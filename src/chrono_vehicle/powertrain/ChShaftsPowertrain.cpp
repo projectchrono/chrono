@@ -65,7 +65,7 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     // pressing the throttle, like in muscle cars)
     m_motorblock = chrono_types::make_shared<ChShaft>();
     m_motorblock->SetInertia(GetMotorBlockInertia());
-    my_system->Add(m_motorblock);
+    my_system->AddShaft(m_motorblock);
 
     // CREATE  a connection between the motor block and the 3D rigid body that
     // represents the chassis. This allows to get the effect of the car 'rolling'
@@ -78,7 +78,7 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     // This represents the crankshaft plus flywheel.
     m_crankshaft = chrono_types::make_shared<ChShaft>();
     m_crankshaft->SetInertia(GetCrankshaftInertia());
-    my_system->Add(m_crankshaft);
+    my_system->AddShaft(m_crankshaft);
 
     // CREATE  a thermal engine model between motor block and crankshaft (both
     // receive the torque, but with opposite sign).
@@ -105,7 +105,7 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     // This represents the shaft that collects all inertias from torque converter to the gear.
     m_shaft_ingear = chrono_types::make_shared<ChShaft>();
     m_shaft_ingear->SetInertia(GetIngearShaftInertia());
-    my_system->Add(m_shaft_ingear);
+    my_system->AddShaft(m_shaft_ingear);
 
     // CREATE a torque converter and connect the shafts:
     // A (input),B (output), C(truss stator).
@@ -125,7 +125,7 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     // Create the final power shaft (interface to a driveline)
     m_shaft = chrono_types::make_shared<ChShaft>();
     m_shaft->SetInertia(GetPowershaftInertia());
-    my_system->Add(m_shaft);
+    my_system->AddShaft(m_shaft);
 
     // CREATE a gearbox, i.e a transmission ratio constraint between two
     // shafts. Note that differently from the basic ChShaftsGear, this also provides

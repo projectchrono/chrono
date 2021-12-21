@@ -152,6 +152,10 @@ void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
     assembly.AddBody(body);
 }
 
+void ChSystem::AddShaft(std::shared_ptr<ChShaft> shaft) {
+    assembly.AddShaft(shaft);
+}
+
 void ChSystem::AddLink(std::shared_ptr<ChLinkBase> link) {
     assembly.AddLink(link);
 }
@@ -173,6 +177,11 @@ void ChSystem::Add(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
+    if (auto shaft = std::dynamic_pointer_cast<ChShaft>(item)) {
+        AddShaft(shaft);
+        return;
+    }
+
     if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
         AddLink(link);
         return;
@@ -189,6 +198,11 @@ void ChSystem::Add(std::shared_ptr<ChPhysicsItem> item) {
 void ChSystem::Remove(std::shared_ptr<ChPhysicsItem> item) {
     if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
         RemoveBody(body);
+        return;
+    }
+
+    if (auto shaft = std::dynamic_pointer_cast<ChShaft>(item)) {
+        RemoveShaft(shaft);
         return;
     }
 

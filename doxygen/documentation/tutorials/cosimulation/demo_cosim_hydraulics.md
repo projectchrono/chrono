@@ -191,165 +191,29 @@ data/cosimulation/test_cosim_hydraulics.mdl
 
 # The Chrono model
 
-Now let's develop the Chrono C++ program that will interact 
-with Simulink. You can find a ready-to-use example in 
-src/demos/cosimulation/demo_COSIM_hydraulics.cpp
+You can find a ready-to-use example in 
+src/demos/cosimulation/demo_COSIM_hydraulics.cpp. The steps implemented in this program are as follows:
 
-- Use the 'try...catch' statements around socket communication operations 
-  because errors in sockets might throw exceptions
+- Use the 'try...catch' statements around socket communication operations because errors in sockets might throw exceptions.
 
-- create a Chsystem and populate it with a truss, a moving body, 
-  and a revolute joint:
+- Create a Chsystem and populate it with a truss, a moving body, and a revolute joint.
 
-~~~{.cpp}
-	try{
+- Now create create a 'dead' linear actuator between two points using a ChLinkTSDA with zero stiffness and damping. This will be used to apply the force between the two bodies as a cylinder with spherical ball ends.
 
-		ChSystem my_system; 
+- Create a spring-damper to have some load when moving, and configure the system's solver precision.
 
-        // Create rigid bodies and add them to the system:
-        auto my_body_A = std::make_shared<ChBody>();  // truss
-        my_body_A->SetBodyFixed(true);                // truss does not move!
-        my_system.AddBody(my_body_A);
-
-        auto my_body_B = std::make_shared<ChBody>();  // moving body
-        my_body_B->SetMass(114);
-        my_body_B->SetInertiaXX(ChVector<>(50, 50, 50));
-        my_body_B->SetPos(ChVector<>(1, 1, 0));
-        my_system.AddBody(my_body_B);
-
-        // Now create a mechanical link; i.e., a revolute joint at (0,0,0),
-        // between these two markers and insert in system:
-        auto my_link_BA = std::make_shared<ChLinkLockRevolute>();
-        my_link_BA->Initialize(my_body_B, my_body_A, ChCoordsys<>(ChVector<>(0, 1, 0)));
-        my_system.AddLink(my_link_BA);
-~~~
-
-Now create create a 'dead' linear actuator between two points 
-using a @ref chrono::ChLinkSpring with zero stiffness and damping. 
-This will be used to apply the force between the two bodies as 
-a cylinder with spherical ball ends.
-
-~~~{.cpp}
-        auto my_link_actuator = std::make_shared<ChLinkSpring>();
-        my_link_actuator->Initialize(my_body_B, my_body_A, false, ChVector<>(1, 0, 0), ChVector<>(1, 1, 0));
-        my_link_actuator->Set_SpringK(0);
-        my_link_actuator->Set_SpringR(0);
-        my_link_actuator->Set_SpringRestLength(my_link_actuator->GetDist());
-        my_system.AddLink(my_link_actuator);
-~~~
-
-Create a spring-damper to have some load when moving, 
-and configure the system's solver precision:
-
-~~~{.cpp}
-        auto my_link_springdamper = std::make_shared<ChLinkSpring>();
-        my_link_springdamper->Initialize(my_body_B, my_body_A, false, ChVector<>(1, 0, 0), ChVector<>(1, 1, 0));
-        my_link_springdamper->Set_SpringK(4450);
-        my_link_springdamper->Set_SpringR(284);
-        my_link_springdamper->Set_SpringRestLength(my_link_springdamper->GetDist());
-        my_system.AddLink(my_link_springdamper);
-
-        my_system.Set_G_acc(ChVector<>(0, 0, 0));
-        my_system.SetMaxItersSolverSpeed(20);
-        my_system.SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
-~~~
-
-Add a socket framework object (a unique copy to be used through 
-all the program) and a cosimulation interface:
-
-~~~{.cpp}
-
-        // Add a socket framework object
-        ChSocketFramework socket_tools;
-
-        // Create the cosimulation interface:
-        ChCosimulation cosimul_interface(socket_tools,
-                                         1,   // n.input values from Simulink
-                                         2);  // n.output values to Simulink
-~~~
-
-Prepare the two column vectors of data that will be swapped 
-back and forth between Chrono and Simulink:
-
-- receive one variable from Simulink (the hydraulic cylinder force)
-- send two variables to Simulink (the hydraulic cylinder velocity and displacement)
-
-~~~{.cpp}
-
-		ChMatrixDynamic<double> data_in(1,1);
-		ChMatrixDynamic<double> data_out(2,1);
-~~~
-
-Wait for client (Simulink) to connect. Note that in this implementation Chrono is the server, 
-and Simulink the client.
-
-~~~{.cpp}
-	
-		GetLog() << " *** Waiting Simulink to start... *** \n\n";
-		
-		int PORTNUM = 50009;
-
-		cosimul_interface.WaitConnection(PORTNUM);
-~~~
-
-Upon establishing a connection, the simulation is ready to begin.
-Note that 'dt' must be the same with the value entered in the CEcosimulation block
-
-~~~{.cpp}
-		double mytime = 0;
-		double histime = 0;
-		
-		double dt = 0.001; // same as sample period
-		while (true)
-		{
-
-			// A) -- ADVANCE THE Chrono SIMULATION 					
-			if (dt>0)
-				my_system.DoStepDynamics(dt);
-			
-			mytime += dt;			
-					
-			// B) -- SYNCHRONIZATION 			
-				// B.1) - SEND data 
-
-			// - Set the Chrono variables into the vector that must 
-			//   be sent to Simulink at the next timestep:
-			//      * the velocity of the hydraulic actuator
-			//      * the displacement of the hydraulic actuator
-
-			data_out(0) = my_link_actuator->GetDist_dt();
-			data_out(1) = my_link_actuator->GetDist() - my_link_actuator->Get_SpringRestLenght(); 
-
-			cosimul_interface.SendData(mytime, &data_out);	
-			  
-
-				// B.2) - RECEIVE data
-			cosimul_interface.ReceiveData(histime, &data_in);
-
-			// - Update the Chrono system with the received force  
-			//   from Simulink, using the data_in vector, which contains:
-			//      * the force of the hydraulic actuator
-
-			my_link_actuator->Set_SpringF(data_in(0));
+- Add a socket framework object (a unique copy to be used through all the program) and a cosimulation interface.
 
 
-			GetLog() << "--- time: " << mytime << "\n";		
+- Prepare the two column vectors of data that will be swapped back and forth between Chrono and Simulink:
+  - receive one variable from Simulink (the hydraulic cylinder force);
+  - send two variables to Simulink (the hydraulic cylinder velocity and displacement).
 
-		}
+- Wait for client (Simulink) to connect. Note that in this implementation Chrono is the server and Simulink the client.
 
-	} 
-~~~
+- Upon establishing a connection, the simulation is ready to begin. Note that 'dt' must be the same with the value entered in the CEcosimulation block.
 
-Finally, provision for exception catching in running into  
-any trouble with the socket connection.
-
-~~~{.cpp}
-
-	catch(ChExceptionSocket exception)
-	{
-		GetLog() << " ERRROR with socket: \n" << exception.what() << "\n";
-	}
-~~~
+- Finally, provision for exception catching in running into any trouble with the socket connection.
 
 
 # Run the cosimulation
@@ -358,17 +222,13 @@ All the tools are ready for the cosimulation at this point. The next steps:
 
 - Compile the Chrono program;
 
-- Run the Chrono program; it will enter a wait state, 
-  because it is waiting Simulink to connect;
+- Run the Chrono program; it will enter a wait state because it is waiting Simulink to connect;
 
-- Open the ''Input/Output'' orange scope block in Simulink, 
-  simply to plot some results.
+- Open the ''Input/Output'' orange scope block in Simulink, simply to plot some results.
 
 - Run the Simulink model by pressing the '>' button in the Simulink interface;
 
-The two codes will run in parallel and will exchange data 
-  periodically up to the end of the simulation or up to when one presses 
-  'stop' or aborts the Chrono program.
+The two codes will run in parallel and will exchange data periodically up to the end of the simulation or up to when one presses 'stop' or aborts the Chrono program.
 
 
 ![](http://projectchrono.org/assets/manual/Tutorial_cosim_hydraulics_08.png)

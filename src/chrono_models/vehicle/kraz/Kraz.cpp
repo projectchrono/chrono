@@ -77,16 +77,8 @@ void Kraz::SetWheelVisualizationType(VisualizationType vis_tractor, Visualizatio
 }
 
 void Kraz::SetTireVisualizationType(VisualizationType vis_tractor, VisualizationType vis_trailer) {
-    for (auto& axle : m_tractor->GetAxles()) {
-        for (auto& wheel : axle->GetWheels()) {
-            wheel->GetTire()->SetVisualizationType(vis_tractor);
-        }
-    }
-    for (auto& axle : m_trailer->GetAxles()) {
-        for (auto& wheel : axle->GetWheels()) {
-            wheel->GetTire()->SetVisualizationType(vis_trailer);
-        }
-    }
+    m_tractor->SetTireVisualizationType(vis_tractor);
+    m_trailer->SetTireVisualizationType(vis_trailer);
 }
 
 void Kraz::Initialize() {

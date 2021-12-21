@@ -38,6 +38,7 @@ def main():
                                veh.TrackShoeType_SINGLE_PIN, 
                                veh.DrivelineTypeTV_BDS,
                                veh.BrakeType_SIMPLE, 
+                               False,
                                chrono.ChContactMethod_SMC,
                                veh.CollisionType_NONE)
 

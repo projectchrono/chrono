@@ -28,18 +28,22 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-WheeledVehicle::WheeledVehicle(const std::string& filename, ChContactMethod contact_method)
+WheeledVehicle::WheeledVehicle(const std::string& filename,
+                               ChContactMethod contact_method,
+                               bool create_powertrain,
+                               bool create_tires)
     : ChWheeledVehicle("", contact_method) {
-    Create(filename);
+    Create(filename, create_powertrain, create_tires);
 }
 
-WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename) : ChWheeledVehicle("", system) {
-    Create(filename);
+WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename, bool create_powertrain, bool create_tires)
+    : ChWheeledVehicle("", system) {
+    Create(filename, create_powertrain, create_tires);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::Create(const std::string& filename) {
+void WheeledVehicle::Create(const std::string& filename, bool create_powertrain, bool create_tires) {
     // Open and parse the input file
     Document d;
     ReadFileJSON(filename, d);
@@ -64,11 +68,8 @@ void WheeledVehicle::Create(const std::string& filename) {
     // ----------------------------
 
     assert(d.HasMember("Chassis"));
-    assert(d.HasMember("Steering Subsystems"));
-    assert(d.HasMember("Driveline"));
     assert(d.HasMember("Axles"));
     assert(d["Axles"].IsArray());
-    assert(d["Steering Subsystems"].IsArray());
 
     // Extract number of rear chassis subsystems
     if (d.HasMember("Rear Chassis")) {
@@ -90,7 +91,12 @@ void WheeledVehicle::Create(const std::string& filename) {
     m_num_axles = d["Axles"].Size();
 
     // Extract the number of steering subsystems
-    m_num_strs = d["Steering Subsystems"].Size();
+    if (d.HasMember("Steering Subsystems")) {
+        assert(d["Steering Subsystems"].IsArray());
+        m_num_strs = d["Steering Subsystems"].Size();
+    } else {
+        m_num_strs = 0;
+    }
 
     // Resize arrays
     if (m_num_rear_chassis > 0) {
@@ -112,10 +118,12 @@ void WheeledVehicle::Create(const std::string& filename) {
     m_susp_chassis_index.resize(m_num_axles, -1);     // default: attached to main chassis
     m_susp_subchassis_index.resize(m_num_axles, -1);  // default: no subchassis attachment
 
-    m_steerings.resize(m_num_strs);
-    m_str_locations.resize(m_num_strs);
-    m_str_rotations.resize(m_num_strs);
-    m_str_chassis_index.resize(m_num_strs, -1);  // default: attach to main chassis  
+    if (m_num_strs > 0) {
+        m_steerings.resize(m_num_strs);
+        m_str_locations.resize(m_num_strs);
+        m_str_rotations.resize(m_num_strs);
+        m_str_chassis_index.resize(m_num_strs, -1);  // default: attach to main chassis
+    }
 
     m_wheel_separations.resize(m_num_axles, 0.0);
 
@@ -176,11 +184,20 @@ void WheeledVehicle::Create(const std::string& filename) {
         }
     }
 
+    // ------------------------------------
+    // Create the powertrain (if specified)
+    // ------------------------------------
+
+    if (create_powertrain && d.HasMember("Powertrain")) {
+        std::string file_name = d["Powertrain"]["Input File"].GetString();
+        m_powertrain = ReadPowertrainJSON(vehicle::GetDataFile(file_name));
+    }
+
     // --------------------
     // Create the driveline
     // --------------------
 
-    {
+    if (d.HasMember("Driveline")) {
         std::string file_name = d["Driveline"]["Input File"].GetString();
         m_driveline = ReadDrivelineWVJSON(vehicle::GetDataFile(file_name));
         if (d["Driveline"].HasMember("Output")) {
@@ -195,6 +212,7 @@ void WheeledVehicle::Create(const std::string& filename) {
 
     // ---------------------------------------------------
     // Create the suspension, wheel, and brake subsystems.
+    // Create tires (if specified)
     // ---------------------------------------------------
 
     for (int i = 0; i < m_num_axles; i++) {
@@ -257,13 +275,21 @@ void WheeledVehicle::Create(const std::string& filename) {
             m_axles[i]->m_wheels[1] = ReadWheelJSON(vehicle::GetDataFile(file_name));
         }
 
-        // Left and right brakes (may be absent)
+        // Left and right brakes (if specified)
         if (d["Axles"][i].HasMember("Left Brake Input File")) {
             file_name = d["Axles"][i]["Left Brake Input File"].GetString();
             m_axles[i]->m_brake_left = ReadBrakeJSON(vehicle::GetDataFile(file_name));
 
             file_name = d["Axles"][i]["Right Brake Input File"].GetString();
             m_axles[i]->m_brake_right = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+        }
+
+        // Create tires (if specified)
+        if (create_tires && d["Axles"][i].HasMember("Tire Input File")) {
+            file_name = d["Axles"][i]["Tire Input File"].GetString();
+            for (auto& wheel : m_axles[i]->GetWheels()) {
+                wheel->SetTire(ReadTireJSON(vehicle::GetDataFile(file_name)));
+            }
         }
 
         if (d["Axles"][i].HasMember("Output")) {
@@ -279,7 +305,7 @@ void WheeledVehicle::Create(const std::string& filename) {
     } else {
         m_wheelbase = m_susp_locations[0].x() - m_susp_locations[m_num_axles - 1].x();
     }
-    assert(m_wheelbase > 0);
+    assert(m_wheelbase >= 0);
 
     // Get the minimum turning radius (if defined in JSON file).
     // Otherwise, use default value.
@@ -338,13 +364,26 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
         std::shared_ptr<ChSteering> steering = (str_index == -1) ? nullptr : m_steerings[str_index];
         m_axles[i]->Initialize(chassis, subchassis, steering, m_susp_locations[i], m_arb_locations[i],
                                m_wheel_separations[i]);
+        // Initialize tires (if present)
+        for (auto& wheel : m_axles[i]->GetWheels()) {
+            if (wheel->GetTire()) {
+                InitializeTire(wheel->GetTire(), wheel);
+            }
+        }
     }
 
     // Initialize the driveline
-    m_driveline->Initialize(m_chassis, m_axles, m_driven_axles);
+    if (m_driveline) {
+        m_driveline->Initialize(m_chassis, m_axles, m_driven_axles);
 
-    // Sanity check: make sure the driveline can accommodate the number of driven axles.
-    assert(m_driveline->GetNumDrivenAxles() == m_driven_axles.size());
+        // Sanity check: make sure the driveline can accommodate the number of driven axles.
+        assert(m_driveline->GetNumDrivenAxles() == m_driven_axles.size());
+    }
+
+    // Initialize the powertain (if present)
+    if (m_powertrain) {
+        InitializePowertrain(m_powertrain);
+    }
 }
 
 }  // end namespace vehicle

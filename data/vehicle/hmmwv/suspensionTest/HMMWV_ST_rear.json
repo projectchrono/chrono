@@ -1,15 +1,9 @@
 {
-  "Name":     "HMMWV Rear Suspension Test",
-  "Type":     "Vehicle",
-  "Template": "SuspensionTestRig",
+    "Name": "HMMWV Rear Suspension Test",
+    "Type": "SuspensionTestRig",
 
-  "Suspension":
-  {
-    "Input File":   "hmmwv/suspension/HMMWV_DoubleWishboneRear.json",
-    "Location":     [1.688965, 0, 0],
-    "Left Wheel Input File":   "hmmwv/wheel/HMMWV_Wheel_RearLeft.json",
-    "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_RearRight.json"
-  },
-
-  "Displacement Limit":     0.15
+    "Vehicle Input File": "hmmwv//vehicle/HMMWV_Vehicle.json",
+    "Test Axle Indices": [ 1 ],
+    "Initial Ride Height": 0.5,
+    "Displacement Limit": 0.15
 }

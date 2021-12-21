@@ -213,9 +213,13 @@ void DPCapPress() {
         CCPInitial(4, k) = 1;
         CCPInitial(8, k) = 1;
     }
+
+    auto strain_formulation = ChElementHexaANCF_3813_9::StrainFormulation::Hencky;
+    auto plasticity_formulation = ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager_Cap;
+
+    // Create the elements
     int jj = -1;
     int kk = -1;
-    // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {
             jj++;
@@ -254,20 +258,20 @@ void DPCapPress() {
         element->SetAlphaDamp(0.0);     // Structural damping for this element
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-5);   // Set stop tolerance for Drucker-Prager Newton-Raphson
-        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
-        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::DruckerPrager_Cap);
-        if (element->GetStrainFormulation() == ChElementHexaANCF_3813_9::Hencky) {
+        element->SetStrainFormulation(strain_formulation);
+        element->SetPlasticityFormulation(plasticity_formulation);
+        if (strain_formulation == ChElementHexaANCF_3813_9::StrainFormulation::Hencky) {
             element->SetPlasticity(Plasticity);
             if (Plasticity) {
                 element->SetYieldStress(210926.0);
                 element->SetHardeningSlope(0.0);
                 element->SetCCPInitial(CCPInitial);
-                if (element->GetPlasticityFormulation() == ChElementHexaANCF_3813_9::DruckerPrager) {
+                if (plasticity_formulation == ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager) {
                     element->SetFriction(10.0);
                     element->SetDilatancy(0.0);
                     element->SetDPType(3);
-                }
-                if (element->GetPlasticityFormulation() == ChElementHexaANCF_3813_9::DruckerPrager_Cap) {
+                } else if (plasticity_formulation ==
+                           ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager_Cap) {
                     element->SetFriction(51.7848);
                     element->SetDilatancy(51.7848);
                     element->SetDPType(3);
@@ -454,7 +458,7 @@ void ShellBrickContact() {
     // Number of elements in the z direction is considered as 1.
     int TotalNumElements = numDiv_x * numDiv_y * numDiv_z;
     int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = (numDiv_z + 1) * XYNumNodes + TotalNumElements;
+    ////int TotalNumNodes = (numDiv_z + 1) * XYNumNodes + TotalNumElements;
 
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
@@ -537,10 +541,13 @@ void ShellBrickContact() {
         CCPInitial(4, k) = 1;
         CCPInitial(8, k) = 1;
     }
-    int jj = -1;
-    int kk = 0;
+
+    auto strain_formulation = ChElementHexaANCF_3813_9::StrainFormulation::Hencky;
+    auto plasticity_formulation = ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager;
 
     // Create the elements for the bricked plate (made up of 9-node brick elements).
+    int jj = -1;
+    int kk = 0;
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {
             jj++;
@@ -579,15 +586,15 @@ void ShellBrickContact() {
         element->SetAlphaDamp(0.0);     // Structural damping for this element
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-8);   // Set stop tolerance for Drucker-Prager Newton-Raphson
-        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
-        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::DruckerPrager);
-        if (element->GetStrainFormulation() == ChElementHexaANCF_3813_9::Hencky) {
+        element->SetStrainFormulation(strain_formulation);
+        element->SetPlasticityFormulation(plasticity_formulation);
+        if (strain_formulation == ChElementHexaANCF_3813_9::StrainFormulation::Hencky) {
             element->SetPlasticity(Plasticity);
             if (Plasticity) {
                 element->SetYieldStress(0.0);
                 element->SetHardeningSlope(5e5);
                 element->SetCCPInitial(CCPInitial);
-                if (element->GetPlasticityFormulation() == ChElementHexaANCF_3813_9::DruckerPrager) {
+                if (plasticity_formulation == ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager) {
                     element->SetFriction(10.0);
                     element->SetDilatancy(10.0);
                     element->SetDPType(3);
@@ -892,9 +899,13 @@ void SimpleBoxContact() {
         CCPInitial(4, k) = 1;
         CCPInitial(8, k) = 1;
     }
+
+    auto strain_formulation = ChElementHexaANCF_3813_9::StrainFormulation::Hencky;
+    auto plasticity_formulation = ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager;
+
+    // Create the elements
     int jj = -1;
     int kk = -1;
-    // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {
             jj++;
@@ -933,15 +944,15 @@ void SimpleBoxContact() {
         element->SetAlphaDamp(0.0);     // Structural damping for this element
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-8);   // Set stop tolerance for Drucker-Prager Newton-Raphson
-        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
-        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::DruckerPrager);
-        if (element->GetStrainFormulation() == ChElementHexaANCF_3813_9::Hencky) {
+        element->SetStrainFormulation(strain_formulation);
+        element->SetPlasticityFormulation(plasticity_formulation);
+        if (strain_formulation == ChElementHexaANCF_3813_9::StrainFormulation::Hencky) {
             element->SetPlasticity(Plasticity);
             if (Plasticity) {
                 element->SetYieldStress(1e5);
                 element->SetHardeningSlope(5e5);
                 element->SetCCPInitial(CCPInitial);
-                if (element->GetPlasticityFormulation() == ChElementHexaANCF_3813_9::DruckerPrager) {
+                if (plasticity_formulation == ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager) {
                     element->SetFriction(10.0);   // Internal friction for Drucker-Prager
                     element->SetDilatancy(10.0);  // Dilatancy angle for non-associative plasticity
                     element->SetDPType(3);        // Hardening type (constant)
@@ -1188,9 +1199,13 @@ void SoilBin() {
         CCPInitial(4, k) = 1;
         CCPInitial(8, k) = 1;
     }
+
+    auto strain_formulation = ChElementHexaANCF_3813_9::StrainFormulation::Hencky;
+    auto plasticity_formulation = ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager;
+
+    // Create the elements
     int jj = -1;
     int kk = -1;
-    // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {
             jj++;
@@ -1229,15 +1244,15 @@ void SoilBin() {
         element->SetAlphaDamp(5e-4);    // Structural damping for this element
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-8);   // Set stop tolerance for Drucker-Prager Newton-Raphson
-        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
-        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::DruckerPrager);
-        if (element->GetStrainFormulation() == ChElementHexaANCF_3813_9::Hencky) {
+        element->SetStrainFormulation(strain_formulation);
+        element->SetPlasticityFormulation(plasticity_formulation);
+        if (strain_formulation == ChElementHexaANCF_3813_9::StrainFormulation::Hencky) {
             element->SetPlasticity(Plasticity);
             if (Plasticity) {
                 element->SetYieldStress(10000.0);
                 element->SetHardeningSlope(5000);
                 element->SetCCPInitial(CCPInitial);
-                if (element->GetPlasticityFormulation() == ChElementHexaANCF_3813_9::DruckerPrager) {
+                if (plasticity_formulation == ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager) {
                     element->SetFriction(0.00001);
                     element->SetDilatancy(0.00001);
                     element->SetDPType(3);
@@ -1511,12 +1526,17 @@ void AxialDynamics() {
     material->Set_E(E.x());
     // material->Set_G(G.x());
     material->Set_v(nu.x());
+
     ChMatrixNM<double, 9, 8> CCPInitial;
     for (int k = 0; k < 8; k++) {
         CCPInitial(0, k) = 1;
         CCPInitial(4, k) = 1;
         CCPInitial(8, k) = 1;
     }
+
+    auto strain_formulation = ChElementHexaANCF_3813_9::StrainFormulation::Hencky;
+    auto plasticity_formulation = ChElementHexaANCF_3813_9::PlasticityFormulation::J2;
+
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         // Adjacent nodes
@@ -1552,15 +1572,15 @@ void AxialDynamics() {
         element->SetAlphaDamp(0.0);     // Structural damping for this element
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-8);   // Set stop tolerance for Drucker-Prager Newton-Raphson
-        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
-        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::J2);
-        if (element->GetStrainFormulation() == ChElementHexaANCF_3813_9::Hencky) {
+        element->SetStrainFormulation(strain_formulation);
+        element->SetPlasticityFormulation(plasticity_formulation);
+        if (strain_formulation == ChElementHexaANCF_3813_9::StrainFormulation::Hencky) {
             element->SetPlasticity(Plasticity);
             if (Plasticity) {
                 element->SetYieldStress(1e5);
                 element->SetHardeningSlope(5e5);
                 element->SetCCPInitial(CCPInitial);
-                if (element->GetPlasticityFormulation() == ChElementHexaANCF_3813_9::DruckerPrager) {
+                if (plasticity_formulation == ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager) {
                     element->SetFriction(10.0);
                     element->SetDilatancy(10.0);
                     element->SetDPType(3);
@@ -1796,7 +1816,7 @@ void BendingQuasiStatic() {
         // Set other element properties
         element->SetAlphaDamp(0.25);  // Structural damping for this element
 
-        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
+        element->SetStrainFormulation(ChElementHexaANCF_3813_9::StrainFormulation::Hencky);
         element->SetPlasticity(false);
 
         // Add element to mesh
@@ -2024,7 +2044,7 @@ void SwingingShell() {
 
         // Set other element properties
         element->SetAlphaDamp(0.005);  // Structural damping for this element
-        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
+        element->SetStrainFormulation(ChElementHexaANCF_3813_9::StrainFormulation::Hencky);
         element->SetPlasticity(false);
 
         // Add element to mesh

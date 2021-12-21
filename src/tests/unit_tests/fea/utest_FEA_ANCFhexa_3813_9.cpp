@@ -228,7 +228,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
         // Set other element properties
         element->SetAlphaDamp(0.1);  // Structural damping for this element
 
-        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
+        element->SetStrainFormulation(ChElementHexaANCF_3813_9::StrainFormulation::Hencky);
         element->SetPlasticity(false);
 
         // Add element to mesh
@@ -420,7 +420,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
         // Set other element properties
         element->SetAlphaDamp(0.005);  // Structural damping for this element
 
-        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
+        element->SetStrainFormulation(ChElementHexaANCF_3813_9::StrainFormulation::Hencky);
         element->SetPlasticity(false);
 
         // Add element to mesh
@@ -621,9 +621,9 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
         // Set other element properties
         element->SetAlphaDamp(0.0);  // Structural damping for this element
 
-        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
+        element->SetStrainFormulation(ChElementHexaANCF_3813_9::StrainFormulation::Hencky);
         element->SetPlasticity(true);
-        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::J2);
+        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::PlasticityFormulation::J2);
         element->SetYieldStress(1.0);  // Very low Yield Stress to ensure plastic deformation
         element->SetHardeningSlope(5e5);
         element->SetCCPInitial(CCPInitial);
@@ -824,9 +824,9 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
         // Set other element properties
         element->SetAlphaDamp(0.0);  // Structural damping for this element
 
-        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
+        element->SetStrainFormulation(ChElementHexaANCF_3813_9::StrainFormulation::Hencky);
         element->SetPlasticity(true);
-        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::DruckerPrager);
+        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager);
         element->SetDPIterationNo(50);
         element->SetDPYieldTol(1e-8);
         element->SetYieldStress(1.0);  // Very low Yield Stress to ensure plastic deformation

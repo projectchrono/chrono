@@ -9,13 +9,18 @@ In addition to the main library, the VEHICLE module also creates a library of pr
 
 - Wheeled vehicle models
   - [HMMWV](@ref vehicle_models_hmmwv): off-road 4-wheel vehicle
-  - [Sedan](@ref vehicle_models_sedan): passenger car
+  - [Sedan](@ref vehicle_models_sedan): genric passenger car
   - [Citybus](@ref vehicle_models_citybus): passenger bus
-  - [MAN](@ref vehicle_models_man): truck models (3 different variants: 5t, 7t, and 10t)
   - [UAZ](@ref vehicle_models_uaz): minibus model of the UAZ-452 vehicle
-  - [Generic](@ref vehicle_models_generic): generic wheeled vehicle (sandbox for testing various configurations and subsystems)
+  - [M-role](@ref vehicle_models_mrole): multi-purpose wheeled vehicle model
+  - [MAN](@ref vehicle_models_man): truck models (3 different variants: 5t, 7t, and 10t)
+  - [Kraz](@ref vehicle_models_kraz): semi-trailer truck model
+  - [FMTV](@ref vehicle_models_fmtv): models of trucks from the Family of Medium Tactical Vehicles 
+  - [Gator](@ref vehicle_models_gator): small utility vehicle model
+  - [RC](@ref vehicle_models_rccar): remote-controlled vehicle model
 - Tracked vehicle models
-  - [M113](@ref vehicle_models_m113): tracked vehicle
+  - [M113](@ref vehicle_models_m113): M113 tracked vehicle
+  - [Marder](@ref vehicle_models_marder): Marder tracked vehicle
 
 Selected vehicle demos:
 
@@ -35,7 +40,6 @@ Selected vehicle demos:
 - demo_VEH_DeformableSoil - demonstration of location-dependent soil parameters in [SCM deformable terrain](@ref vehicle_terrain_scm)
 - demo_VEH_MovingPatch - demonstration of the moving patch feature for [granular terrain](@ref vehicle_terrain_granular)
 - demo_VEH_RigidTerrain - demonstration of using multiple patches for a [rigid terrain](@ref vehicle_terrain_rigid) model
-- demo_VEH_SuspensionTestRigPlatform - demonstration of the wheeled vehicle [suspension test rig](@ref wheeled_rig_suspension) with tire actuation
-- demo_VEH_SuspensionTestRigPushrod - demonstration of the wheeled vehicle [suspension test rig](@ref wheeled_rig_suspension) with direct spindle actuation
+- demo_VEH_SuspensionTestRig - demonstration of the wheeled vehicle [suspension test rig](@ref wheeled_rig_suspension) with tire actuation
 - demo_VEH_TireTestRig - demonstration of the single [tire test rig](@ref wheeled_rig_tire)
 - demo_VEH_TrackTestRig - demonstration of the tracked vehicle track assembly test rig
