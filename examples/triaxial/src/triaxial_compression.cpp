@@ -303,11 +303,11 @@ int main(int argc, char* argv[]) {
     unsigned int nc=0; // number of contacts
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
-    ChVector<> topPlate_pos(0.0f, 0.0f, params.box_Z / 2.0f);
+    ChVector<> topPlate_pos(0.0f, 0.0f, gpu_sys.GetMaxParticleZ() + params.sphere_radius + 1.f);
 
     // top plate move downward with velocity 1cm/s
     // topWall_vel = -1.0f;
-    ChVector<> topPlate_vel(0.f, 0.f, 2.f);
+    ChVector<> topPlate_vel(0.f, 0.f, -4.f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     // sphere settled now push the plate downward
