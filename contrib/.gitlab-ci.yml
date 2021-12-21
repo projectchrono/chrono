@@ -373,7 +373,7 @@ windows:vs2022:build:
   - MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release
   - cd $CI_PROJECT_DIR/build
   - cmake --preset=windowsci-vs2022 .. -DBUILD_TESTING_GPU=FALSE
-  - cmake --build . -t ALL_BUILD -j 8
+  - cmake --build . -t ALL_BUILD -j 8 --config Release
   artifacts:
     expire_in: 60m
     paths:
@@ -399,7 +399,7 @@ windows:vs2019:build:
   # Main build
   - cd $CI_PROJECT_DIR/build
   - cmake --preset=windowsci-vs2019 .. -DBUILD_TESTING_GPU=FALSE
-  - cmake --build . -t ALL_BUILD -j 8
+  - cmake --build . -t ALL_BUILD -j 8 --config Release
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   #- '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   #- ninja -j 1
