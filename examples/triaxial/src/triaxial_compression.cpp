@@ -302,11 +302,11 @@ int main(int argc, char* argv[]) {
     unsigned int nc=0; // number of contacts
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
-    ChVector<> topPlate_offset(0.0f, 0.0f, cyl_hgt / 2.f); // initial top plate position
+    ChVector<> topPlate_offset(0.0f, 0.0f, +0.5f * cyl_hgt); // initial top plate position
     float topPlate_moveTime = curr_time;
 
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -1.f);
+    ChVector<> topPlate_vel(0.f, 0.f, -4.f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<float>(float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t){
@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
         gpu_sys.AdvanceSimulation(iteration_step);
 
         // platePos = gpu_sys.GetBCPlanePosition(topWall); // TODO: replace this by my own function
-        // std::cout << "top plate pos_z: " << platePos.z() << " cm";
+        std::cout << "top plate pos_z: " << topPlate_pos.z() << " cm";
 
         nc = gpu_sys.GetNumContacts();
         std::cout << ", numContacts: " << nc;
