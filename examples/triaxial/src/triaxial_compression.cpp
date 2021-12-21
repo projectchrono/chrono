@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     // add bottom
     mesh_filenames.push_back("./models/unit_circle_+z.obj"); // add bottom slice
     mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
-    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), -0.5f)); // push translation
+    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), -0.5f * scaling.z)); // push translation
     mesh_masses.push_back(mixer_mass); // push mass
 
     // add sides
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     // add top
     mesh_filenames.push_back("./models/unit_circle_-z.obj"); // add bottom slice
     mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
-    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), +0.5f)); // push translation
+    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), +0.5f * scaling.z)); // push translation
     mesh_masses.push_back(mixer_mass); // push mass
     gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
     // gpu_sys.LoadMeshes(mesh_side_filenames, mesh_rotscales, mesh_translations, mesh_masses);
