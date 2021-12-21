@@ -310,13 +310,13 @@ int main(int argc, char* argv[]) {
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<>(float)> topPlate_posFunc [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t){
-        ChVector pos(topPlate_pos);
+        ChVector<> pos(topPlate_offset);
         if (t > topPlate_moveTime){
             pos.Set(topPlate_pos.x + topPlate_vel.x * (t - topPlate_moveTime),  
                     topPlate_pos.y + topPlate_vel.y * (t - topPlate_moveTime),  
                     topPlate_pos.z + topPlate_vel.z * (t - topPlate_moveTime) );
         }
-    }
+    }i;
     // sphere settled now push the plate downward
 
     // continue simulation until the end
