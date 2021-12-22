@@ -96,18 +96,36 @@ void sparse_assembly_2x2symm(Eigen::SparseMatrix<double, Eigen::ColMajor, int>& 
 	int n_c   = Cq.rows();
 	HCQ.resize(n_v + n_c, n_v + n_c);
 	HCQ.reserve(H.nonZeros() + 2 * Cq.nonZeros());
+    HCQ.setZero();
 
 	for (int k=0; k<H.outerSize(); ++k)
 		for (ChSparseMatrix::InnerIterator it(H,k); it; ++it) {
 			HCQ.insert(it.row(),it.col()) = it.value();
-		}
+        }
+
 	for (int k=0; k<Cq.outerSize(); ++k)
-		for (ChSparseMatrix::InnerIterator it(Cq,k); it; ++it) {
-			HCQ.insert(it.row() + n_v, it.col()) = it.value(); // insert Cq
-			HCQ.insert(it.col(), it.row() + n_v) = it.value(); // insert Cq'
-		}
+        for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
+            HCQ.insert(it.row() + n_v, it.col()) = it.value(); // insert Cq
+            HCQ.insert(it.col(), it.row() + n_v) = it.value(); // insert Cq'
+        }
+
+    // This seems necessary in Release mode
+    HCQ.makeCompressed();
+
+    //***NOTE*** 
+    // for some reason the HCQ matrix created via .insert() or .elementRef() or triplet insert, is 
+    // corrupt in Release mode, not in Debug mode. However, when doing a loop like the one below,
+    // it repairs it. 
+    // ***TODO*** avoid this bad hack and find the cause of the release/debug difference.
+    for (int k = 0; k < HCQ.rows(); ++k) {
+        for (int j = 0; j < HCQ.cols(); ++j) {
+            auto foo = HCQ.coeffRef(k, j);
+            //GetLog() << HCQ.coeffRef(k,j) << " ";
+        }
+    }
 }
-	                     
+
+
 
 bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M,  ///< input M matrix, n_v x n_v
         const ChSparseMatrix& K,  ///< input K matrix, n_v x n_v  
