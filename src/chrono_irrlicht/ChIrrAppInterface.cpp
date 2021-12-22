@@ -516,6 +516,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
 
     gad_modal_mode_n = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 270, 130, 270 + 16), gad_tab2, 9926);
     gad_modal_mode_n->setMax(25);
+    gad_modal_mode_n->setSmallStep(1);
     gad_modal_mode_n_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(135, 270, 220, 270 + 16), false, false, gad_tab2);
 
     // -- gad_tab3
