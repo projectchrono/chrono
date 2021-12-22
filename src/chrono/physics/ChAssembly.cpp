@@ -331,7 +331,8 @@ void ChAssembly::RemoveAllShafts() {
     }
     shaftlist.clear();
 
-    system->is_updated = false;
+    if (system)
+        system->is_updated = false;
 }
 
 void ChAssembly::RemoveAllLinks() {
