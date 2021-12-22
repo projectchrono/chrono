@@ -577,6 +577,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadCustomMultiple)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyForce)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyTorque)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyInertia)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBody)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyTorque)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyBushingSpherical)
