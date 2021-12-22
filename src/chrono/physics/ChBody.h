@@ -263,8 +263,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Set the body mass.
     /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
     void SetMass(double newmass) {
-        if (newmass > 0.)
-            variables.SetBodyMass(newmass);
+         variables.SetBodyMass(newmass);
     }
 
     /// Get the body mass.
