@@ -47,7 +47,7 @@ const std::string out_dir = GetChronoOutputPath() + "MODAL_ANALYSIS";
 int ID_current_example = 1;
 
 double beam_Young = 100.e6;
-double beam_density = 500;
+double beam_density = 1000;
 double beam_wz = 0.3;
 double beam_wy = 0.05;
 double beam_L = 6;
@@ -154,12 +154,23 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool base_fixed)
     // - For an interactive display of the modes, in Irrlicht view, use application.SetModalShow(true); 
     //   this will pause the dynamic simulation and plot the modes of any ChModalAssembly present in the system
     //   as an oscillating animation. Use the GUI of Irrlicht 3D view to change the ID and amplitude of the plotted mode. 
+   
+    my_assembly->ComputeModes(14);
 
-    my_assembly->ComputeModes(16);
-    
     // Just for logging the frequencies:
     for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
         GetLog() << "Mode n." << i
+                 << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) 
+                 << "  damping ratio:" << my_assembly->Get_modes_damping_ratios()(i) 
+                 << "    Re=" << my_assembly->Get_modes_eig()(i).real() << "  Im=" <<   my_assembly->Get_modes_eig()(i).imag()
+                 << "\n";
+    
+    
+    my_assembly->ComputeModesDamped(14);
+    
+    // Just for logging the frequencies:
+    for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
+        GetLog() << "DMode n." << i
                  << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) 
                  << "  damping ratio:" << my_assembly->Get_modes_damping_ratios()(i) 
                  << "    Re=" << my_assembly->Get_modes_eig()(i).real() << "  Im=" <<   my_assembly->Get_modes_eig()(i).imag()

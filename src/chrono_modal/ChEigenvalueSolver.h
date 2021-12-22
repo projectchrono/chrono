@@ -171,6 +171,12 @@ public:
         ChVectorDynamic<double>& damping_ratio,  ///< output vector with n damping rations r=damping/critical_damping.
         int n_modes = 0             ///< optional: n. of desired lower eigenvalues. If =0, return all eigenvalues.
     );
+
+    // Some default settings. One can modify them before calling Solve(), if needed.
+    double tolerance = 1e-10;   ///< tolerance for the iterative solver. 
+    double sigma = 1e-5;        ///< for shift&invert. Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
+    int max_iterations = 500;   ///< upper limit for the number of iterations. If too low might not converge.
+    bool verbose = false;       ///< turn to true to see some diagnostic.
 };
 
 
