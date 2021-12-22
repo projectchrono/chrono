@@ -241,6 +241,10 @@ class ChApi ChLoadBodyInertia : public ChLoadCustom {
     ChMatrix33<> I;       ///< added inertia tensor, in body coordinates
 
     virtual bool IsStiff() override { return true; } // this to force the use of the inertial M, R and K matrices
+
+    static bool use_inertial_damping_matrix_R;  // default true. Can be disabled globally, for testing or optimization
+    static bool use_inertial_stiffness_matrix_K;// default true. Can be disabled globally, for testing or optimization
+    static bool use_gyroscopic_torque;          // default true. Can be disabled globally, for testing or optimization
 };
 
 

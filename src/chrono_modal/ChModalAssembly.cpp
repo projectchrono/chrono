@@ -191,13 +191,6 @@ void ChModalAssembly::SetupModalData() {
         this->modal_q_dt.setZero(this->n_modes_coords_w);
         this->modal_q_dtdt.setZero(this->n_modes_coords_w);
         this->modal_F.setZero(this->n_modes_coords_w);
-        /*
-        this->modal_M.setZero(bou_mod_coords_w, bou_mod_coords_w);
-        this->modal_K.setZero(bou_mod_coords_w, bou_mod_coords_w);
-        this->modal_R.setZero(bou_mod_coords_w, bou_mod_coords_w);
-
-        this->modes_V.setZero(bou_mod_coords_w, this->n_modes_coords_w);
-        */
     }
 }
 

@@ -150,6 +150,12 @@ ChVector<> ChLoadBodyTorque::GetTorque() const {
 // ChLoadBodyInertia
 // -----------------------------------------------------------------------------
 
+// for testing and optimizations
+bool ChLoadBodyInertia::use_inertial_damping_matrix_R = true;   // default true. Can be disabled globally, for testing or optimization
+bool ChLoadBodyInertia::use_inertial_stiffness_matrix_K = true; // default true. Can be disabled globally, for testing or optimization
+bool ChLoadBodyInertia::use_gyroscopic_torque = true;           // default true. Can be disabled globally, for testing or optimization
+
+
 ChLoadBodyInertia::ChLoadBodyInertia(std::shared_ptr<ChBody> body,  ///< object to apply additional inertia to
     const ChVector<>& m_offset,      ///< offset of the center of mass, in body coordinate system
     const double m_mass,             ///< added mass [kg]
@@ -207,10 +213,7 @@ void ChLoadBodyInertia::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     ChVector<> v_x = state_w->segment(0,3); // abs. 
     ChVector<> v_w = state_w->segment(3,3); // local 
 
-    /* NO ACCELERATION PROPORTIONAL TERM ADDED HERE! Can use LoadIntLoadResidual_Mv if needed.
-    // Terms proportional to acceleration: [M]*a. 
-    ChVector<> a_x = mbody->GetPos_dtdt(); // abs. 
-    ChVector<> a_w = mbody->GetWacc_loc(); // local 
+    /* // NO ACCELERATION PROPORTIONAL TERM ADDED HERE! Can use LoadIntLoadResidual_Mv if needed.
     ChVector<> Ma_x = this->mass * (a_x + chrono::Vcross(a_w, this->c_m)); 
     ChVector<> Ma_w = this->mass * chrono::Vcross(this->c_m, a_x) + this->I * a_w;
     */
@@ -219,7 +222,10 @@ void ChLoadBodyInertia::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     ChVector<> quadratic_x;
     ChVector<> quadratic_w;
     quadratic_x = this->mass * chrono::Vcross(v_w ,chrono::Vcross(v_w, this->c_m)); // centrifugal: m*(w X w X c_m)
-    quadratic_w = chrono::Vcross(v_w, this->I * v_w); // gyroscopical: w X J*w
+    if (this->use_gyroscopic_torque)
+        quadratic_w = chrono::Vcross(v_w, this->I * v_w); // gyroscopical: w X J*w
+    else
+        quadratic_w = VNULL;
 
     load_Q.segment(0, 3) = - (quadratic_x).eigen(); // sign: negative, as Q goes in RHS
     load_Q.segment(3, 3) = - (quadratic_w).eigen(); // sign: negative, as Q goes in RHS
@@ -244,6 +250,9 @@ void ChLoadBodyInertia::ComputeJacobian(ChState* state_x,       ///< state posit
     ChVector<> a_x = mbody->GetPos_dtdt(); // abs. 
     ChVector<> a_w = mbody->GetWacc_loc(); // local 
     
+    ChStarMatrix33<> wtilde(v_w);  // [w~]
+    ChStarMatrix33<> ctilde(c_m);  // [c~]
+
     // Analytic expression of inertial load jacobians.
     // Note signs: positive as they go in LHS. 
 
@@ -256,18 +265,20 @@ void ChLoadBodyInertia::ComputeJacobian(ChState* state_x,       ///< state posit
 
     // R gyroscopic damping matrix terms (6x6, split in 3x3 blocks for convenience)
     jacobians->R.setZero();
-    ChStarMatrix33<> wtilde(v_w);  // [w~]
-    ChStarMatrix33<> ctilde(c_m);  // [c~]
-    //  Ri = [0,  m*[w~][c~]' + m*[([w~]*c)~]'  ; 0 , [w~][I] - [([I]*w)~]  ]
-    jacobians->R.block(0, 3, 3, 3) = this->mass * (wtilde * ctilde.transpose() + (ChStarMatrix33<>(wtilde * c_m)).transpose());
-    jacobians->R.block(3, 3, 3, 3) = wtilde * I - ChStarMatrix33<>(I * v_w);
+    if (this->use_inertial_damping_matrix_R) {
+        //  Ri = [0,  m*[w~][c~]' + m*[([w~]*c)~]'  ; 0 , [w~][I] - [([I]*w)~]  ]
+        jacobians->R.block(0, 3, 3, 3) = this->mass * (wtilde * ctilde.transpose() + (ChStarMatrix33<>(wtilde * c_m)).transpose());
+        jacobians->R.block(3, 3, 3, 3) = wtilde * I - ChStarMatrix33<>(I * v_w);
+    }
 
     // K inertial stiffness matrix terms (6x6, split in 3x3 blocks for convenience)
     jacobians->K.setZero();
-    ChStarMatrix33<> atilde(a_w);  // [a~]
-    // Ki_al = [0, -m*[([a~]c)~] -m*[([w~][w~]c)~] ; 0, m*[c~][xpp~] ]
-    jacobians->K.block(0, 3, 3, 3) = -this->mass * ChStarMatrix33<>(atilde * c_m) - this->mass * ChStarMatrix33<>(wtilde * (wtilde * c_m));
-    jacobians->K.block(3, 3, 3, 3) =  this->mass * ctilde * ChStarMatrix33<>(a_x);
+    if (this->use_inertial_stiffness_matrix_K) {
+        ChStarMatrix33<> atilde(a_w);  // [a~]
+        // Ki_al = [0, -m*[([a~]c)~] -m*[([w~][w~]c)~] ; 0, m*[c~][xpp~] ]
+        jacobians->K.block(0, 3, 3, 3) = -this->mass * ChStarMatrix33<>(atilde * c_m) - this->mass * ChStarMatrix33<>(wtilde * (wtilde * c_m));
+        jacobians->K.block(3, 3, 3, 3) = this->mass * ctilde * ChStarMatrix33<>(a_x);
+    }
 }
 
 // The default base implementation in ChLoadCustom could suffice, but here reimplement it in sake of higher speed
