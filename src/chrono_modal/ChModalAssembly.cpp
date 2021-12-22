@@ -82,6 +82,80 @@ void ChModalAssembly::Clear() {
 
 //---------------------------------------------------------------------------------------
    
+void ChModalAssembly::SwitchModalReductionON(int n_modes) {
+    if (is_modal)
+        return;
+
+    // 1) compute modes on the full system
+    this->ComputeModes(n_modes);
+
+    // 2) bound ChVariables etc. to the modal coordinates, resize matrices, set as modal mode
+    this->SetModalMode(true);
+    this->SetupModalData();
+
+    // 3) do the Herting reduction as in Sonneville, 2021
+    ChSparseMatrix full_M;
+    ChSparseMatrix full_K;
+
+    this->GetSubassemblyMassMatrix(&full_M);
+    this->GetSubassemblyStiffnessMatrix(&full_K);
+
+    ChSparseMatrix K_II = full_K.block(this->n_boundary_coords_w, this->n_boundary_coords_w, this->n_internal_coords_w, this->n_internal_coords_w);
+    ChSparseMatrix K_IB = full_K.block(this->n_boundary_coords_w, 0,                         this->n_internal_coords_w, this->n_boundary_coords_w);
+
+    ChSparseMatrix M_II = full_M.block(this->n_boundary_coords_w, this->n_boundary_coords_w, this->n_internal_coords_w, this->n_internal_coords_w);
+    ChSparseMatrix M_IB = full_M.block(this->n_boundary_coords_w, 0,                         this->n_internal_coords_w, this->n_boundary_coords_w);
+
+    ChMatrixDynamic<> V_B = this->modes_V.block(0                        , 0,                this->n_boundary_coords_w, this->n_modes_coords_w).real();
+    ChMatrixDynamic<> V_I = this->modes_V.block(this->n_boundary_coords_w, 0,                this->n_internal_coords_w, this->n_modes_coords_w).real();
+
+
+    // Psi_S = - K_II^{-1} * K_IB
+    
+    ChMatrixDynamic<> Psi_S(this->n_internal_coords_w, this->n_boundary_coords_w);
+
+    // avoid computing K_II^{-1}, effectively do n times a LU solve:
+    Eigen::SparseMatrix<double> A = K_II; // to column-major
+    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> >   solver;
+    solver.analyzePattern(A);
+    solver.factorize(A); 
+
+    for (int i = 0; i < K_IB.cols(); ++i) { 
+        ChVectorDynamic<> x = solver.solve(K_IB.col(i));
+        Psi_S.block(0,i, this->n_internal_coords_w, 1) = -x;
+    }
+
+    // Psi_D = - K_II^{-1} * (M_IB * V_B + M_II * V_I)
+
+    ChMatrixDynamic<> Psi_D(this->n_internal_coords_w, this->n_modes_coords_w);
+
+    for (int i = 0; i < this->n_modes_coords_w; ++i) { 
+        ChVectorDynamic<> x = solver.solve( (M_IB * V_B + M_II * V_I).col(i) );
+        Psi_D.block(0,i, this->n_internal_coords_w, 1) = -x;
+    }
+
+    // Psi = [ I     0    ]
+    //       [Psi_S  Psi_D]
+    ChMatrixDynamic<> Psi(this->n_boundary_coords_w + this->n_internal_coords_w, this->n_boundary_coords_w + this->n_modes_coords_w);
+    //***TODO*** prefer sparse Psi matrix, especially for upper blocks...
+
+    Psi << Eigen::MatrixXd::Identity(n_boundary_coords_w, n_boundary_coords_w), Eigen::MatrixXd::Zero(n_boundary_coords_w, n_modes_coords_w),
+           Psi_S,                                                               Psi_D;
+
+    // Modal reduction of the M K matrices
+    this->modal_M = Psi.transpose() * full_M * Psi;
+    this->modal_K = Psi.transpose() * full_K * Psi;
+
+
+}
+
+void ChModalAssembly::SwitchModalReductionOFF() {
+    if (!is_modal)
+        return;
+
+    this->SetModalMode(false);
+}
+
 
 void ChModalAssembly::SetupModalData() {
 
@@ -117,19 +191,20 @@ void ChModalAssembly::SetupModalData() {
         this->modal_q_dt.setZero(this->n_modes_coords_w);
         this->modal_q_dtdt.setZero(this->n_modes_coords_w);
         this->modal_F.setZero(this->n_modes_coords_w);
-
+        /*
         this->modal_M.setZero(bou_mod_coords_w, bou_mod_coords_w);
         this->modal_K.setZero(bou_mod_coords_w, bou_mod_coords_w);
         this->modal_R.setZero(bou_mod_coords_w, bou_mod_coords_w);
 
         this->modes_V.setZero(bou_mod_coords_w, this->n_modes_coords_w);
+        */
     }
 }
 
 void ChModalAssembly::ComputeModes(int nmodes) {
     
-    // cannot use less modes than n. of internal coords, if so, clamp to internal coords
-    this->n_modes_coords_w = ChMin(nmodes, this->n_internal_coords_w);
+    // cannot use more modes than n. of tot coords, if so, clamp
+    this->n_modes_coords_w = ChMin(nmodes, this->n_internal_coords_w+this->n_boundary_coords_w);
 
     this->Setup();
     this->SetupModalData();
@@ -144,59 +219,50 @@ void ChModalAssembly::ComputeModes(int nmodes) {
     this->GetSubassemblyStiffnessMatrix(&full_K);
     this->GetSubassemblyConstraintJacobianMatrix(&full_Cq);
 
-    // EXPERIMENTAL PART HERE  testing different solvers...
+    // SOLVE EIGENVALUE 
+    // for undamped system (use generalized constrained eigen solver)
     // - Must work with large dimension and sparse matrices only
     // - Must work also in free-free cases, with 6 rigid body modes at 0 frequency.
 
-
-    // TEST: UNDAMPED SYSTEM. 
-
     //ChGeneralizedEigenvalueSolverLanczos     eigsolver;   // OK! 
     ChGeneralizedEigenvalueSolverKrylovSchur eigsolver;   // OK! 
-    eigsolver.Solve(full_M, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, nmodes);
+    eigsolver.Solve(full_M, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, this->n_modes_coords_w);
     this->modes_damping_ratio.setZero(this->modes_freq.rows());
-
-    // TEST: DAMPED SYSTEM 
-    
-    //ChQuadraticEigenvalueSolverNullspaceDirect eigsolver;  // OK! But not for large dimensions... use the nullspace method just for golden reference
-    //ChQuadraticEigenvalueSolverKrylovSchur eigsolver;      // ***WARNING*** Krylov-Schur in SPECTRA not yet working for complex eigenvalues!!!!
-    //eigsolver.Solve(full_M, full_R, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, this->modes_damping_ratio, nmodes);
-    
- 
-
-    // TEST
-    auto V_real = this->modes_V.real();
-    this->modal_M = V_real.transpose() * full_M * V_real;
-    this->modal_R = V_real.transpose() * full_R * V_real;
-    this->modal_K = V_real.transpose() * full_K * V_real;
 
     this->Setup();
 }
-    
-void ChModalAssembly::ComputeModes(ChMatrixRef my_modal_M, ChMatrixRef my_modal_R, ChMatrixRef my_modal_K, ChMatrixRef my_modes_V) {
 
-    this->n_modes_coords_w = my_modes_V.cols();
+void ChModalAssembly::ComputeModesDamped(int nmodes) {
+    
+    // cannot use more modes than n. of tot coords, if so, clamp
+    this->n_modes_coords_w = ChMin(nmodes, this->n_internal_coords_w+this->n_boundary_coords_w);
 
     this->Setup();
     this->SetupModalData();
 
-    int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
-    int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
-    assert((my_modal_M.rows() == bou_mod_coords_w) && (my_modal_M.cols() == bou_mod_coords_w));
-    assert((my_modal_R.rows() == bou_mod_coords_w) && (my_modal_R.cols() == bou_mod_coords_w));
-    assert((my_modal_K.rows() == bou_mod_coords_w) && (my_modal_K.cols() == bou_mod_coords_w));
-    assert((my_modes_V.rows() == bou_int_coords_w) );
+    ChSparseMatrix full_M;
+    ChSparseMatrix full_R;
+    ChSparseMatrix full_K;
+    ChSparseMatrix full_Cq;
 
+    this->GetSubassemblyMassMatrix(&full_M);
+    this->GetSubassemblyDampingMatrix(&full_R);
+    this->GetSubassemblyStiffnessMatrix(&full_K);
+    this->GetSubassemblyConstraintJacobianMatrix(&full_Cq);
 
-
-    this->modes_V = my_modes_V;
-
-    this->modal_M = my_modal_M;
-    this->modal_R = my_modal_R;
-    this->modal_K = my_modal_K;
+    // SOLVE QUADRATIC EIGENVALUE 
+    // for damped system (use quadratic constrained eigen solver)
+    // - Must work with large dimension and sparse matrices only
+    // - Must work also in free-free cases, with 6 rigid body modes at 0 frequency.
+    
+    ChQuadraticEigenvalueSolverNullspaceDirect eigsolver;  // OK! But not for large dimensions... use this nullspace method just for golden reference
+    //ChQuadraticEigenvalueSolverKrylovSchur eigsolver;     // ***WARNING*** Krylov-Schur in SPECTRA not yet working for complex eigenvalues!!!!
+    eigsolver.Solve(full_M, full_R, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, this->modes_damping_ratio, this->n_modes_coords_w);
+    
 
     this->Setup();
 }
+
 
 void ChModalAssembly::ComputeModes(ChMatrixRef my_modes_V) {
 
@@ -211,19 +277,6 @@ void ChModalAssembly::ComputeModes(ChMatrixRef my_modes_V) {
 
 
     this->modes_V = my_modes_V; 
-
-
-    ChSparseMatrix full_M;
-    ChSparseMatrix full_R;
-    ChSparseMatrix full_K;
-
-    this->GetSubassemblyMassMatrix(&full_M);
-    this->GetSubassemblyDampingMatrix(&full_R);
-    this->GetSubassemblyStiffnessMatrix(&full_K);
-
-    this->modal_M = my_modes_V.transpose() * full_M * my_modes_V;
-    this->modal_R = my_modes_V.transpose() * full_R * my_modes_V;
-    this->modal_K = my_modes_V.transpose() * full_K * my_modes_V;
 }
 
 

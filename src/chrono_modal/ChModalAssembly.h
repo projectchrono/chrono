@@ -56,17 +56,16 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         return this->is_modal;
     }
 
-    /// Compute the modes for the "internal" bodies, meshes etc. 
+    /// Compute the undamped modes for the entire assembly. 
+    /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies() etc.
     void ComputeModes(int nmodes); ///< the n. of lower modes to keep 
-    
-    /// Compute modes by providing pre-computed M, R, K matrices and pre-computed modes V.
-    /// The size of the M R K matrices must be this->GetN_coords_w (ie all coords of "boundary" items plus this->n_modes_coords_w)
-    /// where all the rows are ordered to have first all the coordinates of the boundary items, then all modal coordinates.
-    void ComputeModes(  ChMatrixRef my_modal_M, 
-                        ChMatrixRef my_modal_R, 
-                        ChMatrixRef my_modal_K,
-                        ChMatrixRef my_modes_V   ///< columns: arbitrary n of eigenvectors, rows: first "boundary" then "inner" dofs.
-    );
+
+    /// Compute the damped modes for the entire assembly. 
+    /// Expect complex eigenvalues/eigenvectors if damping is used. 
+    /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies(), Get_modes_damping_ratios() etc.
+    void ComputeModesDamped(int nmodes); ///< the n. of lower modes to keep 
+
+   
 
     /// Compute modes by providing pre-computed modes V.
     /// The row size of V must be n_boundary_coords_w + n_internal_coords_w, 
@@ -81,6 +80,16 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// use negative amplitude. If you increment the phase during an animation, you will see the n-ht mode 
     /// oscillating on the screen. 
     void ModeIncrementState(int n_mode, double phase, double amplitude);
+
+
+    /// Perform modal reduction on this assembly. 
+    /// - An undamped modal analysis will be done on the entire system. 
+    /// - The "internal" bodies will be replaced by n_modes modal coordinates
+    void SwitchModalReductionON(int n_modes);
+
+    /// If in modal reduction mode, return to the full assembly.
+    void SwitchModalReductionOFF();
+
 
 protected:
     /// Resize modal matrices and hook up the variables to the  M K R block for the solver. To be used all times
