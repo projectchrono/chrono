@@ -83,7 +83,7 @@ class ChApi ChLoadBase : public ChObj {
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
     virtual int LoadGet_field_ncoords() = 0;
 
-    /// Compute Q, the generalized load(s).
+    /// Compute Q, the generalized load(s). 
     /// Where Q is stored depends on children classes.
     /// Called automatically at each Update().
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
@@ -128,9 +128,15 @@ class ChApi ChLoadBase : public ChObj {
     ///   R += forces * c
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) = 0;
 
+    /// Increment a vector R with a term that has M multiplied a given vector w:
+    ///    R += c*M*w   also  R += c*(-dQ/da)*w
+    /// Not needed (ex. override to {} ) if no M is involved, ex. no inertial effects.
+    virtual void LoadIntLoadResidual_Mv(ChVectorDynamic<>& R,           ///< result: the R residual, R += c*M*v
+                                        const ChVectorDynamic<>& w,     ///< the w vector
+                                        const double c) = 0;            ///< a scaling factor
+
     /// Tell to a system descriptor that there are item(s) of type
     /// ChKblock in this object (for further passing it to a solver)
-    /// Basically does nothing, but inherited classes must specialize this.
     virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor);
 
     /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
@@ -188,6 +194,14 @@ class ChLoad : public ChLoadBase {
 
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;
 
+    /// Default fallback: compute jacobians via ComputeJacobian(), then use  M=-dQ/da  to do R += c*M*w.
+    /// If possible, override this to bypass jacobian computation, if analytical expression c*M*w is known.
+    /// Not needed (ex. override to {} ) if no M is involved, ex. no inertial effects.
+    virtual void LoadIntLoadResidual_Mv(ChVectorDynamic<>& R,           ///< result: the R residual, R += c*M*w
+                                        const ChVectorDynamic<>& w,     ///< the w vector
+                                        const double c) override;       ///< a scaling factor
+
+
     /// Default: load is stiff if the loader is stiff. Override if needed.
     virtual bool IsStiff() override { return loader.IsStiff(); }
 
@@ -233,6 +247,13 @@ class ChApi ChLoadCustom : public ChLoadBase {
                                  ) override;
 
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;
+
+    /// Default fallback: compute jacobians via ComputeJacobian(), then use  M=-dQ/da  to do R += c*M*w.
+    /// If possible, override this to bypass jacobian computation, if analytical expression c*M*w is known.
+    /// Not needed (ex. override to {} ) if no M is involved, ex. no inertial effects.
+    virtual void LoadIntLoadResidual_Mv(ChVectorDynamic<>& R,           ///< result: the R residual, R += c*M*w
+                                        const ChVectorDynamic<>& w,     ///< the w vector
+                                        const double c) override;       ///< a scaling factor
 
     /// Create the jacobian loads if needed, and also
     /// set the ChVariables referenced by the sparse KRM block.
@@ -288,6 +309,13 @@ class ChApi ChLoadCustomMultiple : public ChLoadBase {
                                  ) override;
 
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;
+
+    /// Default fallback: compute jacobians via ComputeJacobian(), then use  M=-dQ/da  to do R += c*M*w.
+    /// If possible, override this to bypass jacobian computation, if analytical expression c*M*w is known.
+    /// Not needed (ex. override to {} ) if no M is involved, ex. no inertial effects.
+    virtual void LoadIntLoadResidual_Mv(ChVectorDynamic<>& R,           ///< result: the R residual, R += c*M*w
+                                        const ChVectorDynamic<>& w,     ///< the w vector
+                                        const double c) override;       ///< a scaling factor
 
     /// Create the jacobian loads if needed, and also
     /// set the ChVariables referenced by the sparse KRM block.
@@ -391,6 +419,37 @@ inline void ChLoad<Tloader>::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const d
             unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
                 R(row + moffset) += this->loader.Q(rowQ) * c;
+                ++rowQ;
+            }
+        }
+    }
+}
+
+template <class Tloader>
+inline void ChLoad<Tloader>::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {
+    if (!this->jacobians)
+        return;
+    // fetch w as a contiguous vector
+    ChVectorDynamic<> grouped_w(this->LoadGet_ndof_w());
+    ChVectorDynamic<> grouped_cMv(this->LoadGet_ndof_w());
+    unsigned int rowQ = 0;
+    for (int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
+        if (this->loader.GetLoadable()->IsSubBlockActive(i)) {
+            unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
+            for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
+                grouped_w(rowQ) = w(row + moffset);
+                ++rowQ;
+            }
+        }
+    }
+    // do computation R=c*M*v
+    grouped_cMv = c * this->jacobians->M * grouped_w;
+    rowQ = 0;
+    for (int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
+        if (this->loader.GetLoadable()->IsSubBlockActive(i)) {
+            unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
+            for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
+                R(row + moffset) += grouped_cMv(rowQ) * c;
                 ++rowQ;
             }
         }
