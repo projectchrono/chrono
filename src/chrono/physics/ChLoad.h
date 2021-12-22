@@ -91,12 +91,14 @@ class ChApi ChLoadBase : public ChObj {
                           ) = 0;
 
     /// Compute the K=-dQ/dx, R=-dQ/dv , M=-dQ/da jacobians.
+    /// If possible, override this with an analytical jacobian. 
+    /// Note the sign that is flipped because assuming Q a right hand side, and dQ/d... at left hand side!
     /// Called automatically at each Update().
     virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
                                  ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                 ChMatrixRef mK,         ///< result dQ/dx
-                                 ChMatrixRef mR,         ///< result dQ/dv
-                                 ChMatrixRef mM          ///< result dQ/da
+                                 ChMatrixRef mK,         ///< result -dQ/dx
+                                 ChMatrixRef mR,         ///< result -dQ/dv
+                                 ChMatrixRef mM          ///< result -dQ/da
                                  ) = 0;
 
     /// Access the jacobians (if any, i.e. if this is a stiff load)
@@ -175,12 +177,13 @@ class ChLoad : public ChLoadBase {
     /// Uses a numerical differentiation for computing K, R, M jacobians, if stiff load.
     /// If possible, override this with an analytical jacobian.
     /// Compute the K=-dQ/dx, R=-dQ/dv , M=-dQ/da jacobians.
+    /// Note the sign that is flipped because assuming Q a right hand side, and dQ/d... at left hand side!
     /// Called automatically at each Update().
     virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
                                  ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                 ChMatrixRef mK,         ///< result dQ/dx
-                                 ChMatrixRef mR,         ///< result dQ/dv
-                                 ChMatrixRef mM          ///< result dQ/da
+                                 ChMatrixRef mK,         ///< result -dQ/dx
+                                 ChMatrixRef mR,         ///< result -dQ/dv
+                                 ChMatrixRef mM          ///< result -dQ/da
                                  ) override;
 
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;
@@ -220,12 +223,13 @@ class ChApi ChLoadCustom : public ChLoadBase {
     /// Uses a numerical differentiation for computing K, R, M jacobians, if stiff load.
     /// If possible, override this with an analytical jacobian.
     /// Compute the K=-dQ/dx, R=-dQ/dv , M=-dQ/da jacobians.
+    /// Note the sign that is flipped because assuming Q a right hand side, and dQ/d... at left hand side!
     /// Called automatically at each Update().
     virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
                                  ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                 ChMatrixRef mK,         ///< result dQ/dx
-                                 ChMatrixRef mR,         ///< result dQ/dv
-                                 ChMatrixRef mM          ///< result dQ/da
+                                 ChMatrixRef mK,         ///< result -dQ/dx
+                                 ChMatrixRef mR,         ///< result -dQ/dv
+                                 ChMatrixRef mM          ///< result -dQ/da
                                  ) override;
 
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;
@@ -278,9 +282,9 @@ class ChApi ChLoadCustomMultiple : public ChLoadBase {
     /// Called automatically at each Update().
     virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
                                  ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                 ChMatrixRef mK,         ///< result dQ/dx
-                                 ChMatrixRef mR,         ///< result dQ/dv
-                                 ChMatrixRef mM          ///< result dQ/da
+                                 ChMatrixRef mK,         ///< result -dQ/dx
+                                 ChMatrixRef mR,         ///< result -dQ/dv
+                                 ChMatrixRef mM          ///< result -dQ/da
                                  ) override;
 
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;
