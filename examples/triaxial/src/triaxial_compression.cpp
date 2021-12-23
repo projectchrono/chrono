@@ -306,7 +306,7 @@ int main(int argc, char* argv[]) {
     float topPlate_moveTime = curr_time;
 
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -1.f);
+    ChVector<> topPlate_vel(0.f, 0.f, -50.f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<float>(float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t){
