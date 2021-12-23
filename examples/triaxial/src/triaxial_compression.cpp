@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
 
             // force-per-mesh files
             std::ofstream meshfrcFile(filenameforce, std::ios::out);
-            meshfrcFile << "# imesh, fx, fy, fz, fr, ftheta, theta, thetaF\n";
+            meshfrcFile << "#imesh, fx, fy, fz, fr, ftheta, theta, thetaF\n";
 
 //            ChVector<> sumforce;    // sum of forces for all meshes
 //            ChVector<> sumforcecyl; // sum of forces for all meshes in cylinderical coordinates
@@ -352,7 +352,7 @@ int main(int argc, char* argv[]) {
 
             // force-per-mesh files
             std::ofstream meshfrcFile(filenameforce, std::ios::out);
-            meshfrcFile << "imesh, fx, fy, fz, fr, ftheta, theta, thetaF\n";
+            meshfrcFile << "#imesh, fx, fy, fz, fr, ftheta, theta, thetaF\n";
 
             unsigned int nmeshes = gpu_sys.GetNumMeshes(); // only 1 mesh 
             ChVector<> sumforce;    // sum of forces for all meshes
