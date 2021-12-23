@@ -302,7 +302,7 @@ int main(int argc, char* argv[]) {
     unsigned int nc=0; // number of contacts
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
-    ChVector<> topPlate_offset(0.0f, 0.0f, (gpu_sys.GetMaxParticleZ() + 5.f * params.sphere_radius)); // initial top plate position
+    ChVector<> topPlate_offset(0.0f, 0.0f, - cyl_hgt + abs( gpu_sys.GetMaxParticleZ() ) + 5.f * params.sphere_radius); // initial top plate position
     float topPlate_moveTime = curr_time;
 
     // top plate move downward with velocity 1cm/s
