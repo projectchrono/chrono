@@ -87,7 +87,6 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) = 0;
 
-  protected:
     /// Set the index of this track shoe within its containing track assembly.
     void SetIndex(size_t index) { m_index = index; }
 
@@ -99,6 +98,7 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
                          bool ccw                            ///< [in] track assembled in counter clockwise direction
                          ) = 0;
 
+  protected:
     size_t m_index;                  ///< index of this track shoe within its containing track assembly
     std::shared_ptr<ChBody> m_shoe;  ///< handle to the shoe body
 
