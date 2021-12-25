@@ -803,8 +803,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// </pre>
     /// where l \f$\in Y, c \in Ny\f$, normal cone to Y
 
-    void SetDumpSolverMatrices(bool md) { dump_matrices = md; }
-    bool GetDumpSolverMatrices() const { return dump_matrices; }
+    /// Enable/disable debug output of system matrices.
+    void EnableSolverMatrixWrite(bool val, const std::string& out_dir = "");
+    bool IsSolverMatrixWriteEnabled() const { return write_matrix; }
 
     /// Dump the current M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian
     /// matrix (at the current configuration). 
@@ -951,7 +952,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     int setupcount;  ///< number of calls to the solver's Setup()
     int solvecount;  ///< number of StateSolveCorrection (reset to 0 at each timestep of static analysis)
 
-    bool dump_matrices;  ///< for debugging
+    bool write_matrix;       ///< write current system matrix to file(s); for debugging
+    std::string output_dir;  ///< output directory for writing system matrices
 
     int ncontacts;  ///< total number of contacts
 
