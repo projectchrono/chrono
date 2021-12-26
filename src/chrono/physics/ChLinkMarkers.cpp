@@ -297,8 +297,6 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     // ... and also "user-friendly" relative coordinates:
 
     // relAngle and relAxis
-    if (relM.rot.e0() < 0)
-        relM.rot *= -1;
     Q_to_AngAxis(relM.rot, relAngle, relAxis);
     // flip rel rotation axis if jerky sign
     if (relAxis.z() < 0) {
