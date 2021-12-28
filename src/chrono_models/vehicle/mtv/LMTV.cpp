@@ -165,19 +165,10 @@ void LMTV::Initialize() {
 }
 
 // -----------------------------------------------------------------------------
-void LMTV::SetTireVisualizationType(VisualizationType vis) {
-    for (auto& axle : m_vehicle->GetAxles()) {
-        for (auto& wheel : axle->GetWheels()) {
-            wheel->GetTire()->SetVisualizationType(vis);
-        }
-    }
-}
-
-// -----------------------------------------------------------------------------
 void LMTV::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
     m_vehicle->Synchronize(time, driver_inputs, terrain);
 }
-// -----------------------------------------------------------------------------
+
 void LMTV::Advance(double step) {
     m_vehicle->Advance(step);
 }
