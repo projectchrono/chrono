@@ -197,15 +197,23 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
     ChSystem* system = m_shoe->GetSystem();
     double sign = ccw ? +1 : -1;
 
-    ChVector<> loc_L;
-    ChVector<> loc_R;
-    ChQuaternion<> rot;
+    ChVector<> pShoe_L;     // local point on shoe (left)
+    ChVector<> pShoe_R;     // local point on shoe (right)
+    ChVector<> pConnector;  // local point on connector
+
+    ChVector<> loc_L;    // left point (expressed in absolute frame)
+    ChVector<> loc_R;    // right point (expressed in absolute frame)
+    ChQuaternion<> rot;  // orientation (expressed in absolute frame)
 
     // 1. Connections between this shoe body and connector bodies
 
     // Create and initialize the revolute joints/bushings between shoe body and connector bodies.
-    loc_L = m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetShoeLength() / 2, +GetShoeWidth() / 2, 0));
-    loc_R = m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetShoeLength() / 2, -GetShoeWidth() / 2, 0));
+    pShoe_L = ChVector<>(sign * GetShoeLength() / 2, +GetShoeWidth() / 2, 0);
+    pShoe_R = ChVector<>(sign * GetShoeLength() / 2, -GetShoeWidth() / 2, 0);
+    pConnector = ChVector<>(-sign * GetConnectorLength() / 2, 0, 0);
+
+    loc_L = m_shoe->TransformPointLocalToParent(pShoe_L);
+    loc_R = m_shoe->TransformPointLocalToParent(pShoe_R);
     rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
 
     m_revolute_L =
@@ -218,27 +226,32 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
                                                   m_connector_R, ChCoordsys<>(loc_R, rot), track->GetBushingData());
     chassis->AddJoint(m_revolute_R);
 
-    // Optionally, include rotational spring-dampers to model track bending stiffness
+    // Optionally, include rotational spring-dampers to model track bending stiffness.
+    // The RSDA frames are aligned with the corresponding body frames and the springs have a default zero rest angle.
     if (track->GetTorqueFunctor()) {
+        ChQuaternion<> z2y = Q_from_AngX(-CH_C_PI_2);
+
         m_rsda_L = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda_L->SetNameString(m_name + "_rsda_pin_L");
-        m_rsda_L->Initialize(m_shoe, m_connector_L, false, ChCoordsys<>(loc_L, m_shoe->GetRot()),
-                             ChCoordsys<>(loc_L, m_connector_L->GetRot()));
+        m_rsda_L->Initialize(m_shoe, m_connector_L, true, ChCoordsys<>(pShoe_L, z2y), ChCoordsys<>(pConnector, z2y));
         m_rsda_L->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_rsda_L);
 
         m_rsda_R = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda_R->SetNameString(m_name + "_rsda_pin_R");
-        m_rsda_R->Initialize(m_shoe, m_connector_R, false, ChCoordsys<>(loc_R, m_shoe->GetRot()),
-                             ChCoordsys<>(loc_R, m_connector_R->GetRot()));
+        m_rsda_R->Initialize(m_shoe, m_connector_R, true, ChCoordsys<>(pShoe_R, z2y), ChCoordsys<>(pConnector, z2y));
         m_rsda_R->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_rsda_R);
     }
 
     // 2. Connections between connector bodies and next shoe body
 
-    loc_L = m_connector_L->TransformPointLocalToParent(ChVector<>(sign * GetConnectorLength() / 2, 0, 0));
-    loc_R = m_connector_R->TransformPointLocalToParent(ChVector<>(sign * GetConnectorLength() / 2, 0, 0));
+    pShoe_L = ChVector<>(-sign * GetShoeLength() / 2, +GetShoeWidth() / 2, 0);
+    pShoe_R = ChVector<>(-sign * GetShoeLength() / 2, -GetShoeWidth() / 2, 0);
+    pConnector = ChVector<>(sign * GetConnectorLength() / 2, 0, 0);
+
+    loc_L = m_connector_L->TransformPointLocalToParent(pConnector);
+    loc_R = m_connector_R->TransformPointLocalToParent(pConnector);
 
     if (!track->GetBushingData()) {
         // Connect left connector
@@ -280,20 +293,21 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
     }
 
     // Optionally, include rotational spring-dampers to model track bending stiffness
+    // The RSDA frames are aligned with the corresponding body frames and the springs has a default zero rest angle.
     if (track->GetTorqueFunctor()) {
+        ChQuaternion<> z2y = Q_from_AngX(-CH_C_PI_2);
+
         m_connection_rsda_L = chrono_types::make_shared<ChLinkRSDA>();
         m_connection_rsda_L->SetNameString(m_name + "_rsda_cpin_L");
-        m_connection_rsda_L->Initialize(m_connector_L, next->GetShoeBody(), false,
-                                        ChCoordsys<>(loc_L, m_connector_L->GetRot()),
-                                        ChCoordsys<>(loc_L, next->GetShoeBody()->GetRot()));
+        m_connection_rsda_L->Initialize(m_connector_L, next->GetShoeBody(), true, ChCoordsys<>(pConnector, z2y),
+                                        ChCoordsys<>(pShoe_L, z2y));
         m_connection_rsda_L->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_connection_rsda_L);
 
         m_connection_rsda_R = chrono_types::make_shared<ChLinkRSDA>();
         m_connection_rsda_R->SetNameString(m_name + "_rsda_cpin_R");
-        m_connection_rsda_R->Initialize(m_connector_R, next->GetShoeBody(), false,
-                                        ChCoordsys<>(loc_R, m_connector_R->GetRot()),
-                                        ChCoordsys<>(loc_R, next->GetShoeBody()->GetRot()));
+        m_connection_rsda_R->Initialize(m_connector_R, next->GetShoeBody(), true, ChCoordsys<>(pConnector, z2y),
+                                        ChCoordsys<>(pShoe_R, z2y));
         m_connection_rsda_R->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_connection_rsda_R);
     }

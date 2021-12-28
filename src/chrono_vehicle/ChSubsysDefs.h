@@ -378,7 +378,7 @@ class MapSpringDamperActuatorForce : public ChLinkTSDA::ForceFunctor {
 class LinearSpringTorque : public ChLinkRSDA::TorqueFunctor {
   public:
     LinearSpringTorque(double k, double rest_angle = 0) : m_k(k), m_rest_angle(rest_angle) {}
-    virtual double evaluate(double time, double angle, double vel, ChLinkRSDA* link) override {
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
         return -m_k * (angle - m_rest_angle);
     }
 
@@ -391,7 +391,7 @@ class LinearSpringTorque : public ChLinkRSDA::TorqueFunctor {
 class LinearDamperTorque : public ChLinkRSDA::TorqueFunctor {
   public:
     LinearDamperTorque(double c) : m_c(c) {}
-    virtual double evaluate(double time, double angle, double vel, ChLinkRSDA* link) override {
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
         return -m_c * vel;
     }
 
@@ -403,7 +403,7 @@ class LinearDamperTorque : public ChLinkRSDA::TorqueFunctor {
 class LinearSpringDamperTorque : public ChLinkRSDA::TorqueFunctor {
   public:
     LinearSpringDamperTorque(double k, double c, double rest_angle = 0) : m_k(k), m_c(c), m_rest_angle(rest_angle) {}
-    virtual double evaluate(double time, double angle, double vel, ChLinkRSDA* link) override {
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
         return -m_k * (angle - m_rest_angle) - m_c * vel;
     }
 
@@ -418,7 +418,7 @@ class LinearSpringDamperActuatorTorque : public ChLinkRSDA::TorqueFunctor {
   public:
     LinearSpringDamperActuatorTorque(double k, double c, double t, double rest_angle = 0)
         : m_k(k), m_c(c), m_t(t), m_rest_angle(rest_angle) {}
-    virtual double evaluate(double time, double angle, double vel, ChLinkRSDA* link) override {
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
         return m_t - m_k * (angle - m_rest_angle) - m_c * vel;
     }
 
@@ -440,7 +440,7 @@ class MapSpringTorque : public ChLinkRSDA::TorqueFunctor {
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double evaluate(double time, double angle, double vel, ChLinkRSDA* link) override {
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
         return -m_map.Get_y(angle - m_rest_angle);
     }
 
@@ -459,7 +459,7 @@ class MapDamperTorque : public ChLinkRSDA::TorqueFunctor {
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double evaluate(double time, double angle, double vel, ChLinkRSDA* link) override {
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
         return -m_map.Get_y(vel);
     }
 
