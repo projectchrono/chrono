@@ -61,7 +61,11 @@ class M113_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     M113_ShockForce(double c) : m_c(c) {}
 
-    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override {
         return -m_c * vel;
     }
 
