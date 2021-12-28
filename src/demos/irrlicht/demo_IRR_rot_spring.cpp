@@ -122,6 +122,7 @@ int main(int argc, char* argv[]) {
     auto torque = chrono_types::make_shared<MySpringTorque>();
     auto spring = chrono_types::make_shared<ChLinkRSDA>();
     spring->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
+    spring->AddAsset(chrono_types::make_shared<ChRotSpringShape>(0.5, 100));
     spring->RegisterTorqueFunctor(torque);
     system.AddLink(spring);
 
