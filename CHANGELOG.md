@@ -64,6 +64,20 @@ Change Log
 
 Both `ChLinkTSDA` and `ChLinkRSDA` default to a linear spring-damper model, but an arbitrary user-defined spring-damper-actuation force can be implemented through functor classes (`ChLinkTSDA::ForceFunctor` and `ChLinkRSDA::TorqueFunctor`, respectively).  When using the PyChrono python wrappers, these functor classes are named `ForceFunctor` and `TorqueFunctor`. When using the C# wrappers, these functor classes are inherited as outside classes named `TSDAForceFunctor` and `RSDATorqueFunctor`, respectively.
 
+**ChLinkRSDA**
+
+- `ChLinkRSDA` is now derived directly from `ChLink` and properly accounts for possible full revolutions. 
+- A rotational spring is initialized by specifying the two connected bodies and the RSDA frames on each of them.  It is assumed that the mechanism kinematics are such that the two RSDA frames maintain their Z axes parallel at all times.
+- The angle is measured starting from the X axis of the RSDA frame on the first body towards the X axis of the RSDA frame on the second body and its sign is dictated by the right-hand rule.
+- Unless `SetRestAngle` is explicitly called, the spring rest (free) angle is inferred from the initial configuration.
+- The signature of the virtual method `ChLinkRSDA::TorqueFunctor::evaluate` was changed to take a const reference to the RSDA element as its last argument.
+- A new visual asset (`ChRotSpringShape`) was added for run-time visualization of a rotational spring.
+
+**ChLinkTSDA**
+
+- For consistency, the mechanism for specifying the spring rest (free) length was changed: unless `SetRestLength` is explicitly called, the spring rest (free) angle is inferred from the initial configuration.
+- The signature of the virtual method `ChLinkTSDA::ForceFunctor::evaluate` was changed to take a const reference to the TSDA element as its last argument.
+
 ### [Changed] Refactor Chrono::Vehicle suspension test rigs
 
 The wheeled vehicle suspension test rig (STR) was modified to accept an arbitrary number of tested axles from any given vehicle.
