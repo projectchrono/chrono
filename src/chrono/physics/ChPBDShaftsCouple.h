@@ -25,6 +25,7 @@
 #include "chrono/physics/ChShaftsClutch.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
 #include "chrono/physics/ChShaftsTorqueBase.h"
+#include "chrono/physics/ChShaftsBody.h"
 
 namespace chrono {
 	
@@ -111,6 +112,19 @@ namespace chrono {
         // We store the old value to subtract it before adding the new one. 
         // If we just set torque we might override any other torque acting on the shaft
         double torqueOld = 0;
+    };
+
+    class ChApi ChPBDShaftsCoupleBody : public ChPBDShaftsCouple {
+      public:
+        /// Create a LinkPBD
+        ChPBDShaftsCoupleBody(ChSystemPBD* sys, ChShaftsBody* shaftbodylink);
+        // Applies torque (calculated during Update) to the shafts
+        void SolveShaftCoupling() override;
+
+      private:
+        ChShaftsBody* shaftBodyptr;
+        // ptr to the constrained body
+        ChBody* bodyptr;
     };
 
 	void PopulateShaftCouplingPBD(std::vector<std::shared_ptr<ChPBDShaftsCouple>>& listPBD,

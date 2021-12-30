@@ -110,6 +110,39 @@ void ChPBDShaftsCoupleTorque::SolveShaftCoupling() {
     torqueOld = torque;
 }
 
+ChPBDShaftsCoupleBody::ChPBDShaftsCoupleBody(ChSystemPBD* sys, ChShaftsBody* shaftbodylink)
+    : shaftBodyptr(shaftbodylink), ChPBDShaftsCouple(sys, shaftbodylink->GetShaft(), nullptr) {
+    
+    bodyptr = dynamic_cast<ChBody*>(shaftbodylink->GetBody());
+}
+
+void ChPBDShaftsCoupleBody::SolveShaftCoupling() {
+    double h = PBDsys->Get_h();
+    // rotation speed of the body in the constrained direction
+    double omegabody = bodyptr->GetWvel_loc() ^ shaftBodyptr->GetShaftDirection();
+    double C = (shaft1->GetPos_dt() - omegabody) * h;
+    if (abs(C) > 1E-5) {
+        double h_sqrd = pow(h, 2);
+        double alpha_hat = alpha / h_sqrd;
+        double w1 = GetShaftInvI(shaft1);
+        double w2 = 0;
+        // get the inv inertia in the rot direction
+        if (!bodyptr->GetBodyFixed()) {
+            w2 = (bodyptr->GetInvInertia() * shaftBodyptr->GetShaftDirection().eigen()).sum();
+        }
+
+        double delta_lambda = -(C + alpha_hat * lambda) / (w1 + w2 + alpha_hat);
+        lambda += delta_lambda;
+
+        shaft1->SetPos(shaft1->GetPos() + delta_lambda * w1);
+
+        ChQuaternion<> Rot2(0, w2 * delta_lambda * shaftBodyptr->GetShaftDirection());
+        ChQuaternion<> qnew2 = bodyptr->GetRot() - bodyptr->GetRot() * Rot2 * 0.5;
+        qnew2.Normalize();
+        bodyptr->SetRot(qnew2);
+    }
+}
+
 void PopulateShaftCouplingPBD(std::vector<std::shared_ptr<ChPBDShaftsCouple>>& listPBD,
                               const std::vector<std::shared_ptr<ChPhysicsItem>>& otherlist,
                               ChSystemPBD* sys) {
@@ -133,6 +166,11 @@ void PopulateShaftCouplingPBD(std::vector<std::shared_ptr<ChPBDShaftsCouple>>& l
             ChShaftsTorqueBase* shaftTorque = dynamic_cast<ChShaftsTorqueBase*>(physobj.get());
             auto shaftTorquePBD = chrono_types::make_shared<ChPBDShaftsCoupleTorque>(sys, shaftTorque);
             listPBD.push_back(shaftTorquePBD);
+        }
+        if (dynamic_cast<const ChShaftsBody*>(physobj.get()) != nullptr) {
+            ChShaftsBody* shaftBody = dynamic_cast<ChShaftsBody*>(physobj.get());
+            auto shaftBodyPBD = chrono_types::make_shared<ChPBDShaftsCoupleBody>(sys, shaftBody);
+            listPBD.push_back(shaftBodyPBD);
         }
     }
 }
