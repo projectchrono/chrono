@@ -595,21 +595,20 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
                                       nullptr,  // emitted property list
                                       0         // num emitted properties
                                       ));
-                                      
+
     return m_root;
 }
 
 // rebuilding the structure without creating anything new
 void ChOptixGeometry::RebuildRootStructure() {
-    
     for (int i = 0; i < m_motion_transforms.size(); i++) {
         // update the motion transforms
         const ChFrame<double> f_start = m_obj_body_frames_start[i] * m_obj_asset_frames[i];
-        const ChVector<double> pos_start = f_start.GetPos();
+        const ChVector<double> pos_start = f_start.GetPos() - m_origin_offset;
         const ChMatrix33<double> rot_mat_start = f_start.Amatrix;
 
         const ChFrame<double> f_end = m_obj_body_frames_end[i] * m_obj_asset_frames[i];
-        const ChVector<double> pos_end = f_end.GetPos();
+        const ChVector<double> pos_end = f_end.GetPos() - m_origin_offset;
         const ChMatrix33<double> rot_mat_end = f_end.Amatrix;
 
         m_motion_transforms[i].motionOptions.timeBegin = m_start_time;  // default at start, will be updated
@@ -627,10 +626,10 @@ void ChOptixGeometry::RebuildRootStructure() {
     instance_input.instanceArray.instances = md_instances;
     instance_input.instanceArray.numInstances = static_cast<unsigned int>(m_instances.size());
     OptixAccelBuildOptions accel_options = {};
-    accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;// | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
+    accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;  // | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
     accel_options.operation = OPTIX_BUILD_OPERATION_BUILD;
 
-    accel_options.motionOptions.numKeys = 2;  // default at start TODO: should this always be 2?
+    accel_options.motionOptions.numKeys = 2;
     accel_options.motionOptions.timeBegin = m_start_time;
     accel_options.motionOptions.timeEnd = m_end_time;
     accel_options.motionOptions.flags = OPTIX_MOTION_FLAG_NONE;
@@ -670,8 +669,8 @@ void ChOptixGeometry::UpdateBodyTransformsEnd(float t_end) {
         m_obj_body_frames_end[i] = m_bodies[i]->GetFrame_REF_to_abs();
     }
 
-    //need a default start time that will trigger first transform to always be valid
-    if(m_obj_body_frames_start_tmps.size() > 0){
+    // need a default start time that will trigger first transform to always be valid
+    if (m_obj_body_frames_start_tmps.size() > 0) {
         m_start_time = std::get<0>(m_obj_body_frames_start_tmps[0]) + 1.f;
     }
 
@@ -679,7 +678,7 @@ void ChOptixGeometry::UpdateBodyTransformsEnd(float t_end) {
         float target_end = std::get<1>(m_obj_body_frames_start_tmps[i]);
         float target_start = std::get<0>(m_obj_body_frames_start_tmps[i]);
 
-        if (target_end < (t_end+1e-8) && target_start < m_start_time) {
+        if (target_end < (t_end + 1e-8) && target_start < m_start_time) {
             m_start_time = std::get<0>(m_obj_body_frames_start_tmps[i]);
             m_obj_body_frames_start = std::move(std::get<2>(m_obj_body_frames_start_tmps[i]));
         }
@@ -689,15 +688,14 @@ void ChOptixGeometry::UpdateBodyTransformsEnd(float t_end) {
     int i = 0;
     while (i < m_obj_body_frames_start_tmps.size()) {
         float target_end = std::get<1>(m_obj_body_frames_start_tmps[i]);
-        if (target_end < (t_end+1e-8)) {
+        if (target_end < (t_end + 1e-8)) {
             m_obj_body_frames_start_tmps.erase(m_obj_body_frames_start_tmps.begin() + i);
             i--;
         }
         i++;
     }
 
-    m_start_time = ChClamp(m_start_time,0.f,m_end_time);
-
+    m_start_time = ChClamp(m_start_time, 0.f, m_end_time);
 }
 
 void ChOptixGeometry::GetT3x4FromSRT(const ChVector<double>& s,

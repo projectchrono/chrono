@@ -33,10 +33,10 @@ extern "C" __global__ void __raygen__camera() {
 
     if (camera.lens_model == FOV_LENS && ((d.x) > 1e-5 || abs(d.y) > 1e-5)) {
         float rd = sqrtf(d.x * d.x + d.y * d.y);
-        float ru = tanf(rd * camera.hFOV) / (2 * tanf(camera.hFOV/2.0));
-        float ru_max = tanf(camera.hFOV) / (2 * tanf(camera.hFOV/2.0));
-        // d.x = d.x * (ru / ru_max) / rd; 
-        // d.y = d.y * (ru / ru_max) / rd; 
+        float ru = tanf(rd * camera.hFOV) / (2 * tanf(camera.hFOV / 2.0));
+        float ru_max = tanf(camera.hFOV) / (2 * tanf(camera.hFOV / 2.0));
+        // d.x = d.x * (ru / ru_max) / rd;
+        // d.y = d.y * (ru / ru_max) / rd;
         d.x = d.x * (ru / rd);
         d.y = d.y * (ru / rd);
     } else if (camera.lens_model == RADIAL) {
@@ -72,8 +72,11 @@ extern "C" __global__ void __raygen__camera() {
         t_frac = curand_uniform(
             &camera.rng_buffer[image_index]);  // 0-1 between start and end time of the camera (chosen here)
     const float t_traverse = raygen->t0 + t_frac * (raygen->t1 - raygen->t0);  // simulation time when ray is sent
+
     float3 ray_origin = lerp(raygen->pos0, raygen->pos1, t_frac);
     float4 ray_quat = nlerp(raygen->rot0, raygen->rot1, t_frac);
+    // float3 ray_origin = raygen->pos0;
+    // float4 ray_quat = raygen->rot0;
     const float h_factor = camera.hFOV / CUDART_PI_F * 2.0;
     float3 forward;
     float3 left;

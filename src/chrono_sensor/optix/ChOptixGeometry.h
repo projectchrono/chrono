@@ -126,6 +126,9 @@ class CH_SENSOR_API ChOptixGeometry {
     /// Cleanup the entire optix geometry manager, cleans and frees device pointers and root structure
     void Cleanup();
 
+    /// Origin offset function for moving the origin to reduce large translations
+    void SetOriginOffset(ChVector<float> origin_offset) { m_origin_offset = origin_offset; }
+
   private:
     /// Function to add an object to the scene given the handle
     /// @param mat_id the material id for the object
@@ -208,6 +211,7 @@ class CH_SENSOR_API ChOptixGeometry {
     std::vector<ChFrame<double>> m_obj_body_frames_end;    ///< frame at time=end used for the geometry
     std::vector<ChFrame<double>> m_obj_asset_frames;       ///< constant frame used for the geometry
     std::vector<ChVector<double>> m_obj_scales;  ///< asset frame scales since ChFrame makes the Amatrix orthonormal
+    ChVector<float> m_origin_offset;             ///< origin offset for the scene
 
     std::vector<std::tuple<float, float, std::vector<ChFrame<double>>>>
         m_obj_body_frames_start_tmps;  ///< need to potentially hold multiple starts and will move it to
