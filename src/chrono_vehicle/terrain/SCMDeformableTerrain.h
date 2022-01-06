@@ -68,6 +68,19 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
         PLOT_MASSREMAINDER
     };
 
+    /// Information at SCM node.
+    struct NodeInfo {
+        double sinkage;          ///< sinkage, along local normal direction
+        double sinkage_plastic;  ///< sinkage due to plastic deformation, along local normal direction
+        double sinkage_elastic;  ///< sinkage due to plastic deformation, along local normal direction
+        double sigma;            ///< normal pressure, along local normal direction
+        double sigma_yield;      ///< yield pressure, along local normal direction
+        double kshear;           ///< Janosi-Hanamoto shear, along local tangent direction
+        double tau;              ///< shear stress, along local tangent direction
+
+        NodeInfo() = default;
+    };
+
     /// Construct a default SCM deformable terrain.
     /// The user is responsible for calling various Set methods before Initialize.
     SCMDeformableTerrain(ChSystem* system,               ///< [in] pointer to the containing multibody system
@@ -189,6 +202,9 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// of type ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value of 0.8.
     virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
+
+    /// Get SCM information at the node closest to the specified location.
+    NodeInfo GetNodeInfo(const ChVector<>& loc) const;
 
     /// Get the visualization triangular mesh.
     std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
@@ -399,6 +415,9 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     // Check if the provided grid location is within the visualization mesh bounds
     bool CheckMeshBounds(const ChVector2<int>& loc) const;
+
+    // Return information at node closest to specified location.
+    SCMDeformableTerrain::NodeInfo GetNodeInfo(const ChVector<>& loc) const;
 
     // Complete setup before first simulation step.
     virtual void SetupInitial() override;

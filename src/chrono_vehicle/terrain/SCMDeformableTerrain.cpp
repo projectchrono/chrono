@@ -75,6 +75,11 @@ float SCMDeformableTerrain::GetCoefficientFriction(const ChVector<>& loc) const 
     return m_friction_fun ? (*m_friction_fun)(loc) : 0.8f;
 }
 
+// Get SCM information at the node closest to the specified location.
+SCMDeformableTerrain::NodeInfo SCMDeformableTerrain::GetNodeInfo(const ChVector<>& loc) const {
+    return m_ground->GetNodeInfo(loc);
+}
+
 // Set the color of the visualization assets.
 void SCMDeformableTerrain::SetColor(const ChColor& color) {
     if (m_ground->m_color)
@@ -612,6 +617,41 @@ void SCMDeformableSoil::SetupInitial() {
 
 bool SCMDeformableSoil::CheckMeshBounds(const ChVector2<int>& loc) const {
     return loc.x() >= -m_nx && loc.x() <= m_nx && loc.y() >= -m_ny && loc.y() <= m_ny;
+}
+
+SCMDeformableTerrain::NodeInfo SCMDeformableSoil::GetNodeInfo(const ChVector<>& loc) const {
+    SCMDeformableTerrain::NodeInfo ni;
+
+    // Express location in the SCM frame
+    ChVector<> loc_loc = m_plane.TransformPointParentToLocal(loc);
+
+    // Find closest grid vertex (approximation)
+    int i = static_cast<int>(std::round(loc_loc.x() / m_delta));
+    int j = static_cast<int>(std::round(loc_loc.y() / m_delta));
+    ChVector2<int> ij(i, j);
+
+    // First query the hash-map
+    auto p = m_grid_map.find(ij);
+    if (p != m_grid_map.end()) {
+        ni.sinkage = p->second.sinkage;
+        ni.sinkage_plastic = p->second.sinkage_plastic;
+        ni.sinkage_elastic = p->second.sinkage_elastic;
+        ni.sigma = p->second.sigma;
+        ni.sigma_yield = p->second.sigma_yield;
+        ni.kshear = p->second.kshear;
+        ni.tau = p->second.tau;
+        return ni;
+    }
+
+    // Return a default node record
+    ni.sinkage = 0;
+    ni.sinkage_plastic = 0;
+    ni.sinkage_elastic = 0;
+    ni.sigma = 0;
+    ni.sigma_yield = 0;
+    ni.kshear = 0;
+    ni.tau = 0;
+    return ni;
 }
 
 // Get index of trimesh vertex corresponding to the specified grid vertex.
