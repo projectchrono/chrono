@@ -15,7 +15,7 @@
     "Roundness of Cross Section": 0.1
   },
 
-  "Coefficient of Friction": 0.8,
+  "Coefficient of Friction": 0.9,
 
   "Rolling Resistance Coefficients": [ 0.015, 0.015 ],
 
@@ -60,17 +60,17 @@
     "Dynamic Radius Weighting Coefficients": [ 0.375, 0.75 ],
     "Longitudinal": {
       "Initial Slopes dFx/dsx [N]": [ 151447.29, 236412.79 ],
-      "Maximum Fx Load [N]": [ 7575.3614, 12808.276 ],
-      "Sliding Fx Load [N]": [ 4657.9208, 8625.3352 ],
+      "Maximum Fx Load [N]": [ 13635.6505, 23054.8968 ],
+      "Sliding Fx Load [N]": [ 10061.1089, 15525.6034 ],
       "Slip sx at Maximum Fx": [ 0.12, 0.15 ],
-      "Slip sx where sliding begins": [ 0.9, 0.95 ]
+      "Slip sx where sliding begins": [ 0.6, 0.65 ]
     },
     "Lateral": {
       "Initial Slopes dFy/dsy [N]": [ 50931.693, 94293.847 ],
-      "Maximum Fy Load [N]": [ 6615.0404, 12509.947 ],
-      "Sliding Fy Load [N]": [ 6091.5092, 11443.875 ],
-      "Slip sy at Maximum Fy": [ 0.38786, 0.38786 ],
-      "Slip sy where sliding begins": [ 0.82534, 0.91309 ]
+      "Maximum Fy Load [N]": [ 9922.5606, 18764.9205 ],
+      "Sliding Fy Load [N]": [ 9137.2638, 17165.8125 ],
+      "Slip sy at Maximum Fy": [ 0.25857, 0.25857 ],
+      "Slip sy where sliding begins": [ 0.55023, 0.60873 ]
     },
     "Aligning": {
       "Normalized Trail at Zero Slip sy": [ 0.178, 0.19 ],
