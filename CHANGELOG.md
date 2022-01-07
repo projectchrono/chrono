@@ -4,6 +4,7 @@
 Change Log
 ==========
 
+- [Release 7.0.1](#release-701---2022-01-07)
 - [Release 7.0.0](#release-700---2021-11-15) 
   - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
   - [New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
@@ -51,6 +52,15 @@ Change Log
   - [Eigen dense linear algebra](#changed-refactoring-of-dense-linear-algebra)
   - [Eigen sparse matrices](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
 - [Release 4.0.0](#release-400---2019-02-22)
+
+## Release 7.0.1 - 2022-01-07
+
+### [Fixed]
+
+- Fixed Chrono::Sensor class export (Windows)
+- Fixed bug in ChPovRay related to processing of OBJ files
+- Fixed demo program in sample project for vehicle co-simulation
+- Fixed setting of MPI linker flags in CMake project configuration script
 
 ## Release 7.0.0 - 2021-11-15
 
