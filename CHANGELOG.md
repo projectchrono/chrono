@@ -7,6 +7,7 @@ Change Log
 - [Unreleased (development version)](#unreleased-development-branch)
   - [Translational and rotational spring-damper-actuators](#changed-translational-and-rotational-spring-damper-actuators)
   - [Refactor Chrono::Vehicle suspension test rigs](#changed-refactor-chronovehicle-suspension-test-rigs)
+- [Release 7.0.1](#release-701---2022-01-07)  
 - [Release 7.0.0](#release-700---2021-11-15) 
   - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
   - [New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
@@ -95,6 +96,14 @@ Note also that the format for a data file with STR actuation information (used b
 In other words, each line of this ASCII file should now contain:<br>
 `    time  steering_input  left_post_0  right_post_0 left_post_1 right_post_1 …`
 
+## Release 7.0.1 - 2022-01-07
+
+### [Fixed]
+
+- Fixed Chrono::Sensor class export (Windows)
+- Fixed bug in ChPovRay related to processing of OBJ files
+- Fixed demo program in sample project for vehicle co-simulation
+- Fixed setting of MPI linker flags in CMake project configuration script
 
 ## Release 7.0.0 - 2021-11-15
 
