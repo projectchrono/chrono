@@ -191,7 +191,7 @@ std::shared_ptr<ChLinkTSDA> AddSuspensionSpring(std::shared_ptr<ChBodyAuxRef> bo
 
     std::shared_ptr<ChLinkTSDA> spring;
     spring = chrono_types::make_shared<ChLinkTSDA>();
-    spring->Initialize(body1, body2, false, p1, p2, true, 0.0);
+    spring->Initialize(body1, body2, false, p1, p2);
     spring->SetSpringCoefficient(800000.0);
     spring->SetDampingCoefficient(10000.0);
     chassis->GetBody()->GetSystem()->AddLink(spring);

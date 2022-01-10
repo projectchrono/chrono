@@ -30,7 +30,7 @@ ChTrackAssemblySegmented::ChTrackAssemblySegmented(const std::string& name, Vehi
 double ChTrackAssemblySegmented::TrackBendingFunctor::evaluate(double time,
                                                                double angle,
                                                                double vel,
-                                                               ChLinkRSDA* link) {
+                                                               const ChLinkRSDA& link) {
     // Clamp angle in [-pi, +pi]
     if (angle < -CH_C_PI)
         angle = CH_C_2PI - angle;

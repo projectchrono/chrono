@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
 
     // 1- STATICS
 
-    //my_system.SetDumpSolverMatrices(true);
+    //my_system.EnableSolverMatrixWrite(true);
 
     // Perform nonlinear statics, with assigned speeds and accelerations (that generate inertial and gyroscopic loads)
     // as for a blade in steady-state rotation.
@@ -403,7 +403,7 @@ int main(int argc, char* argv[]) {
         in->SetWvel_par(ChVector<>(0, 0,  rad_s));
     }
     */
-    //my_system.SetDumpSolverMatrices(false);
+    //my_system.EnableSolverMatrixWrite(false);
 
 
     // 2- DYNAMICS

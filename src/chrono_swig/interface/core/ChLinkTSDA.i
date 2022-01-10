@@ -14,7 +14,7 @@ class TSDAForceFunctor : public chrono::ChLinkTSDA::ForceFunctor {
                                 double rest_length,
                                 double length,
                                 double vel,
-                                chrono::ChLinkTSDA* link) override {
+                                const chrono::ChLinkTSDA& link) override {
             GetLog() << "You must implement the function evaluate()!\n";
             return 0.0;
         }
@@ -49,7 +49,7 @@ class TSDAForceFunctor {
                                 double rest_length,
                                 double length,
                                 double vel,
-                                chrono::ChLinkTSDA* link) {
+                                const chrono::ChLinkTSDA& link) {
             return 0.0;
         }
 };

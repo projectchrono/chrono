@@ -67,7 +67,11 @@ class Tractor_SpringForceFront : public ChLinkTSDA::ForceFunctor {
   public:
     Tractor_SpringForceFront(double spring_constant, double min_length, double max_length);
 
-    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_spring_constant;
@@ -96,7 +100,7 @@ double Tractor_SpringForceFront::evaluate(double time,
                                           double rest_length,
                                           double length,
                                           double vel,
-                                          ChLinkTSDA* link) {
+                                          const ChLinkTSDA& link) {
     double force = 0;
 
     double defl_spring = rest_length - length;
@@ -126,7 +130,11 @@ class Tractor_ShockForceFront : public ChLinkTSDA::ForceFunctor {
                             double expansion_slope,
                             double expansion_degressivity);
 
-    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_slope_compr;
@@ -144,7 +152,11 @@ Tractor_ShockForceFront::Tractor_ShockForceFront(double compression_slope,
       m_degres_compr(compression_degressivity),
       m_degres_expand(expansion_degressivity) {}
 
-double Tractor_ShockForceFront::evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
+double Tractor_ShockForceFront::evaluate(double time,
+                                         double rest_length,
+                                         double length,
+                                         double vel,
+                                         const ChLinkTSDA& link) {
     // Simple model of a degressive damping characteristic
 
     double force = 0;

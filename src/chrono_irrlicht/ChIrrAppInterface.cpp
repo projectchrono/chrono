@@ -105,12 +105,12 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                 app->DumpSystemMatrices();
                 return true;
             case irr::KEY_F7:
-                if (!app->system->GetDumpSolverMatrices()) {
-                    GetLog() << "Start saving system vector and matrices to dump_xxxx_yy.dat files...\n";
-                    app->system->SetDumpSolverMatrices(true);
+                if (!app->system->IsSolverMatrixWriteEnabled()) {
+                    GetLog() << "Start saving system vector and matrices to *.dat files...\n";
+                    app->system->EnableSolverMatrixWrite(true);
                 } else {
-                    GetLog() << "Stop saving system vector and matrices to dump_xxxx_yy.dat files.\n";
-                    app->system->SetDumpSolverMatrices(false);
+                    GetLog() << "Stop saving system vector and matrices to *.dat files.\n";
+                    app->system->EnableSolverMatrixWrite(false);
                 }
                 return true;
             case irr::KEY_SNAPSHOT:
