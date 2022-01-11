@@ -1,16 +1,17 @@
 #--------------------------------------------------------------
-# Additional include paths and settings
+# Additional paths and settings
 
-INCLUDE_DIRECTORIES("${CASCADE_INCLUDE_DIR}")
+include_directories(${OpenCASCADE_INCLUDE_DIR})
+#link_directories(${OpenCASCADE_LIBRARY_DIR})
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")	
-    ADD_DEFINITIONS( "/DWNT" )
-ENDIF()	
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")	
+    add_definitions( "/DWNT" )
+endif()	
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    ADD_DEFINITIONS(-DHAVE_IOSTREAM)
-    ADD_DEFINITIONS(-DHAVE_LIMITS_H)
-ENDIF()
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    add_definitions(-DHAVE_IOSTREAM)
+    add_definitions(-DHAVE_LIMITS_H)
+endif()
 
 #--------------------------------------------------------------
 # List of all Cascade demos which also require Irrlicht support
@@ -22,36 +23,32 @@ set(DEMOS_CAS
 	demo_CAS_profile
 )
 
-message(STATUS "Demo programs for CASCADE module...")
+message(STATUS "Demo programs for OpenCASCADE module...")
 
 #--------------------------------------------------------------
 # Add demo executables that use Irrlicht
 
 if(ENABLE_MODULE_IRRLICHT)
 
-   INCLUDE_DIRECTORIES("${CH_IRRLICHTINC}")
+   include_directories(${CH_IRRLICHTINC})
 
-   FOREACH(PROGRAM ${DEMOS_CAS})
-        MESSAGE(STATUS "...add ${PROGRAM}")
+   foreach(PROGRAM ${DEMOS_CAS})
+        message(STATUS "...add ${PROGRAM}")
 
-        ADD_EXECUTABLE(${PROGRAM} "${PROGRAM}.cpp")
-        SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+        add_executable(${PROGRAM} "${PROGRAM}.cpp")
+        source_group(""  FILES "${PROGRAM}.cpp")
 
-        SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
+        set_target_properties(${PROGRAM} PROPERTIES 
             FOLDER demos
-            COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-            LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-        SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-        TARGET_LINK_LIBRARIES(${PROGRAM}
-            ChronoEngine
-            ChronoEngine_cascade
-            ChronoEngine_irrlicht)
-        ADD_DEPENDENCIES(${PROGRAM}
+            COMPILE_FLAGS "${CH_CXX_FLAGS} ${OpenCASCADE_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
+            LINK_FLAGS "${CH_LINKERFLAG_EXE} ${OpenCASCADE_LINKER_FLAGS}")
+        set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+        target_link_libraries(${PROGRAM}
             ChronoEngine
             ChronoEngine_cascade
             ChronoEngine_irrlicht)
 
-        INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO}) 
-    ENDFOREACH()
+        install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO}) 
+    endforeach()
 
 endif()
