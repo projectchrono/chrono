@@ -136,6 +136,12 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
                         ChCollisionModel* model,
                         ChRayhitResult& result) const override;
 
+    /// Method to trigger debug visualization of collision shapes.
+    /// The 'flags' argument can be any of the VisualizationModes enums, or a combination thereof (using bit-wise
+    /// operators). The calling program must invoke this function from within the simulation loop. No-op if a
+    /// visualization callback was not specified with RegisterVisualizationCallback().
+    virtual void Visualize(int flags) override;
+
     /// Return the pairs of IDs for overlapping contact shapes.
     virtual std::vector<vec2> GetOverlappingPairs();
 
@@ -145,6 +151,15 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
 
     /// Generate the current axis-aligned bounding boxes of collision shapes.
     void GenerateAABB();
+
+    /// Visualize collision shapes (wireframe).
+    void VisualizeShapes();
+
+    ///  Visualize collision shape AABBs
+    void VisualizeAABB();
+
+    /// Visualize contact points and normals.
+    void VisualizeContacts();
 
     std::shared_ptr<ChCollisionData> cd_data;
 
