@@ -97,6 +97,14 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
                         ChCollisionModel* model,
                         ChRayhitResult& result) const override;
 
+    /// Specify a callback object to be used for debug rendering of collision shapes.
+    virtual void RegisterVisualizationCallback(std::shared_ptr<VisualizationCallback> callback) override;
+
+    /// Method to trigger debug visualization of collision shapes.
+    /// Must be called from within the simulation loop.
+    /// No-op if a visualization callback was not specified with RegisterVisualizationCallback().
+    virtual void Visualize() override;
+
     // Get the underlying Bullet collision world.
     btCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
 
@@ -138,6 +146,8 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     btCollisionAlgorithmCreateFunc* m_collision_cetri_cetri;
     void* m_tmp_mem;
     btCollisionAlgorithmCreateFunc* m_emptyCreateFunc;
+
+    btIDebugDraw* m_debug_drawer;
 };
 
 /// @} collision_bullet

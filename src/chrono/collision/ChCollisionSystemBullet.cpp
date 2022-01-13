@@ -19,6 +19,7 @@
 #include "chrono/collision/ChCollisionAlgorithmsBullet.h"
 #include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcherMt.h"
+#include "chrono/collision/bullet/LinearMath/btIDebugDraw.h"
 
 extern btScalar gContactBreakingThreshold;
 
@@ -29,7 +30,7 @@ namespace collision {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCollisionSystemBullet)
 
-ChCollisionSystemBullet::ChCollisionSystemBullet() {
+ChCollisionSystemBullet::ChCollisionSystemBullet() : m_debug_drawer(nullptr) {
     // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
     bt_collision_configuration = new btDefaultCollisionConfiguration();
 
@@ -101,6 +102,8 @@ ChCollisionSystemBullet::~ChCollisionSystemBullet() {
     delete bt_broadphase;
     delete bt_dispatcher;
     delete bt_collision_configuration;
+
+    delete m_debug_drawer;
 
     delete m_collision_capsule_box;
     delete m_collision_box_capsule;
@@ -370,6 +373,50 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
 
 void ChCollisionSystemBullet::SetContactBreakingThreshold(double threshold) {
     gContactBreakingThreshold = (btScalar)threshold;
+}
+
+class ChDebugDrawer : public btIDebugDraw {
+  public:
+    explicit ChDebugDrawer(ChCollisionSystem::VisualizationCallback* vis) : m_debugMode(0), m_vis(vis) {}
+
+    ~ChDebugDrawer() override {}
+
+    void drawLine(const btVector3& from, const btVector3& to, const btVector3& color) override {
+        m_vis->DrawLine(ChVector<>(from.x(), from.y(), from.z()), ChVector<>(to.x(), to.y(), to.z()),
+                        ChColor(color.x(), color.y(), color.z()));
+    }
+
+    void drawContactPoint(const btVector3& PointOnB,
+                          const btVector3& normalOnB,
+                          btScalar distance,
+                          int lifeTime,
+                          const btVector3& color) override {}
+
+    void reportErrorWarning(const char* warningString) override {}
+    void draw3dText(const btVector3& location, const char* textString) override {}
+
+    void setDebugMode(int debugMode) override { m_debugMode |= debugMode; }
+
+    int getDebugMode() const override { return m_debugMode; }
+
+  private:
+    int m_debugMode;
+    ChCollisionSystem::VisualizationCallback* m_vis;
+};
+
+void ChCollisionSystemBullet::RegisterVisualizationCallback(std::shared_ptr<VisualizationCallback> callback) {
+    ChCollisionSystem::RegisterVisualizationCallback(callback);
+
+    m_debug_drawer = new ChDebugDrawer(vis_callback.get());
+    m_debug_drawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+    bt_collision_world->setDebugDrawer(m_debug_drawer);
+}
+
+void ChCollisionSystemBullet::Visualize() {
+    if (!vis_callback)
+        return;
+
+    bt_collision_world->debugDrawWorld();
 }
 
 }  // end namespace collision
