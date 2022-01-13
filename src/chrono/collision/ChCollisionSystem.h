@@ -183,10 +183,19 @@ class ChApi ChCollisionSystem {
         vis_callback = callback;
     }
 
+    /// Enumeration of supported flags for collision debug visualization. 
+    enum VisualizationModes {
+        VIS_None = 0,         ///< no debug collision visualization
+        VIS_Shapes = 1 << 0,  ///< wireframe representation of collision shapes
+        VIS_Aabb = 1 << 1,    ///< axis-aligned bounding boxes of collision shapes
+        VIS_MAX_MODES
+    };
+
     /// Method to trigger debug visualization of collision shapes.
-    /// Must be called from within the simulation loop.
-    /// A derived class should implement a no-op if a visualization callback was not specified.
-    virtual void Visualize() {}
+    /// The 'flags' argument can be any of the VisualizationModes enums, or a combination thereof (using bit-wise
+    /// operators). The calling program must invoke this function from within the simulation loop. A derived class
+    /// should implement a no-op if a visualization callback was not specified.
+    virtual void Visualize(int flags) {}
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
@@ -208,6 +217,7 @@ class ChApi ChCollisionSystem {
     std::shared_ptr<BroadphaseCallback> broad_callback;    ///< user callback for each near-enough pair of shapes
     std::shared_ptr<NarrowphaseCallback> narrow_callback;  ///< user callback for each collision pair
     std::shared_ptr<VisualizationCallback> vis_callback;   ///< user callback for debug visualization
+    int m_vis_flags;
 };
 
 /// @} chrono_collision

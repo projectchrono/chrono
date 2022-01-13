@@ -101,9 +101,10 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     virtual void RegisterVisualizationCallback(std::shared_ptr<VisualizationCallback> callback) override;
 
     /// Method to trigger debug visualization of collision shapes.
-    /// Must be called from within the simulation loop.
-    /// No-op if a visualization callback was not specified with RegisterVisualizationCallback().
-    virtual void Visualize() override;
+    /// The 'flags' argument can be any of the VisualizationModes enums, or a combination thereof (using bit-wise
+    /// operators). The calling program must invoke this function from within the simulation loop. No-op if a
+    /// visualization callback was not specified with RegisterVisualizationCallback().
+    virtual void Visualize(int flags) override;
 
     // Get the underlying Bullet collision world.
     btCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }

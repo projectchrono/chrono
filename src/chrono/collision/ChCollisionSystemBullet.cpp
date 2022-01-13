@@ -408,13 +408,18 @@ void ChCollisionSystemBullet::RegisterVisualizationCallback(std::shared_ptr<Visu
     ChCollisionSystem::RegisterVisualizationCallback(callback);
 
     m_debug_drawer = new ChDebugDrawer(vis_callback.get());
-    m_debug_drawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+    m_debug_drawer->setDebugMode(btIDebugDraw::DBG_NoDebug);
     bt_collision_world->setDebugDrawer(m_debug_drawer);
 }
 
-void ChCollisionSystemBullet::Visualize() {
-    if (!vis_callback)
+void ChCollisionSystemBullet::Visualize(int flags) {
+    if (!vis_callback || flags == VisualizationModes::VIS_None)
         return;
+
+    if (flags & VisualizationModes::VIS_Shapes)
+        m_debug_drawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+    if (flags & VisualizationModes::VIS_Aabb)
+        m_debug_drawer->setDebugMode(btIDebugDraw::DBG_DrawAabb);
 
     bt_collision_world->debugDrawWorld();
 }
