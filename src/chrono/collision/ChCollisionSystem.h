@@ -176,6 +176,9 @@ class ChApi ChCollisionSystem {
 
         /// Method for rendering a line of specified color between the two given points.
         virtual void DrawLine(const ChVector<>& from, const ChVector<>& to, const ChColor& color) = 0;
+
+        /// Set scaling factor for normal vectors (default 1.0).
+        virtual double GetNormalScale() const { return 1.0; }
     };
 
     /// Specify a callback object to be used for debug rendering of collision shapes.
@@ -183,11 +186,12 @@ class ChApi ChCollisionSystem {
         vis_callback = callback;
     }
 
-    /// Enumeration of supported flags for collision debug visualization. 
+    /// Enumeration of supported flags for collision debug visualization.
     enum VisualizationModes {
-        VIS_None = 0,         ///< no debug collision visualization
-        VIS_Shapes = 1 << 0,  ///< wireframe representation of collision shapes
-        VIS_Aabb = 1 << 1,    ///< axis-aligned bounding boxes of collision shapes
+        VIS_None = 0,           ///< no debug collision visualization
+        VIS_Shapes = 1 << 0,    ///< wireframe representation of collision shapes
+        VIS_Aabb = 1 << 1,      ///< axis-aligned bounding boxes of collision shapes
+        VIS_Contacts = 1 << 2,  ///< contact points and normals
         VIS_MAX_MODES
     };
 

@@ -390,7 +390,12 @@ class ChDebugDrawer : public btIDebugDraw {
                           const btVector3& normalOnB,
                           btScalar distance,
                           int lifeTime,
-                          const btVector3& color) override {}
+                          const btVector3& color) override {
+        btVector3 from = PointOnB;
+        btVector3 to = PointOnB + m_vis->GetNormalScale() * normalOnB;
+        m_vis->DrawLine(ChVector<>(from.x(), from.y(), from.z()), ChVector<>(to.x(), to.y(), to.z()),
+                        ChColor(color.x(), color.y(), color.z()));
+    }
 
     void reportErrorWarning(const char* warningString) override {}
     void draw3dText(const btVector3& location, const char* textString) override {}
@@ -420,6 +425,8 @@ void ChCollisionSystemBullet::Visualize(int flags) {
         m_debug_drawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
     if (flags & VisualizationModes::VIS_Aabb)
         m_debug_drawer->setDebugMode(btIDebugDraw::DBG_DrawAabb);
+    if (flags & VisualizationModes::VIS_Contacts)
+        m_debug_drawer->setDebugMode(btIDebugDraw::DBG_DrawContactPoints);
 
     bt_collision_world->debugDrawWorld();
 }

@@ -40,10 +40,12 @@ class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
                                             irr::video::SColor(255, color.R * 255, color.G * 255, color.B * 255));
     }
 
-    void Draw(int flags) {
+    virtual double GetNormalScale() const override { return 1.0; }
+
+    void Draw(int flags, bool use_zbuffer = true) {
         m_app->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
         irr::video::SMaterial mattransp;
-        mattransp.ZBuffer = true;
+        mattransp.ZBuffer = use_zbuffer;
         mattransp.Lighting = false;
         m_app->GetVideoDriver()->setMaterial(mattransp);
 
@@ -108,6 +110,13 @@ int main(int argc, char* argv[]) {
     auto drawer = chrono_types::make_shared<DebugDrawer>(&application);
     sys.GetCollisionSystem()->RegisterVisualizationCallback(drawer);
 
+    // Specify what information is visualized
+    int mode = ChCollisionSystem::VIS_Shapes | ChCollisionSystem::VIS_Aabb;
+    //////int mode = ChCollisionSystem::VIS_Shapes;
+    ////int mode = ChCollisionSystem::VIS_Contacts;
+
+    bool use_zbuffer = true;
+
     // Simulation loop
     application.SetTimestep(0.005);
     application.SetTryRealtime(true);
@@ -115,7 +124,7 @@ int main(int argc, char* argv[]) {
         application.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         application.DrawAll();
         application.DoStep();
-        drawer->Draw(ChCollisionSystem::VIS_Shapes | ChCollisionSystem::VIS_Aabb);
+        drawer->Draw(mode, use_zbuffer);
         application.EndScene();
     }
 
