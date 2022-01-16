@@ -12,8 +12,8 @@ Alternatively, you can use the `CMakeLists.txt` file in this directory, which sh
    - [Windows] use explorer or a 3rd party tool such as 7-zip 
 3. Copy the `CMakeLists.txt` provided here into `/your/path/OpenCRG.1.1.2/c-api`
 4. Configure: 
-   `cmake  -G Ninja -B Release /your/path/OpenCRG.1.1.2/c-api` 
-   `cmake  -G Ninja -B Debug /your/path/OpenCRG.1.1.2/c-api` 
+   `cmake  -G Ninja -B Release -DCMAKE_BUILD_TYPE=Release /your/path/OpenCRG.1.1.2/c-api` 
+   `cmake  -G Ninja -B Debug -DCMAKE_BUILD_TYPE=Debug /your/path/OpenCRG.1.1.2/c-api` 
 5. Build it:
    - [Linux, Mac, Windows] `cmake --build Release`
    - [Linux, Mac, Windows] `cmake --build Debug`
