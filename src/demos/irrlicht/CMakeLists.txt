@@ -47,9 +47,9 @@ SET(DEMOS
   demo_IRR_OpenSim_parser
   demo_IRR_report_collisions
   demo_IRR_Adams_parser
-  demo_IRR_debugDrawer_collisionModels
   demo_IRR_imposed_motion
   demo_IRR_custom_contact
+  demo_IRR_visualize_collision
 )
 
 if (THRUST_FOUND)
