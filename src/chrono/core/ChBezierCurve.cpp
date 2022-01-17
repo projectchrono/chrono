@@ -366,7 +366,8 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
     ChVector<> Qd;
     ChVector<> Qdd;
 
-    for (size_t j = 0; j < m_maxNumIters; j++) {
+    size_t j = 0;
+    for (j = 0; j < m_maxNumIters; j++) {
         ChVector<> vec = Q - loc;
         double d2 = vec.Length2();
 
@@ -387,33 +388,34 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
 
         t -= dt;
 
-        if (t < m_paramTol || t > 1 - m_paramTol) {
-            ChClampValue(t, 0.0, 1.0);
-            Q = eval(i, t);
-            break;
-        }
-
         Q = eval(i, t);
 
         if ((dt * Qd).Length2() < m_sqrDistTol)
             break;
-    };
-
-    ChVector<> Q_0 = eval(i, 0.0);
-    ChVector<> Q_1 = eval(i, 1.0);
-
-    double d2 = (Q - loc).Length2();
-    double d2_0 = (Q_0 - loc).Length2();
-    double d2_1 = (Q_1 - loc).Length2();
-
-    if (d2_0 < d2) {
-        t = 0;
-        Q = Q_0;
-        d2 = d2_0;
     }
-    if (d2_1 < d2) {
-        t = 1;
-        Q = Q_1;
+
+    ////std::cout << "num iterations: " << j << "   max: " << m_maxNumIters << std::endl;
+
+    if (t < m_paramTol || t > 1 - m_paramTol) {
+        ChClampValue(t, 0.0, 1.0);
+        Q = eval(i, t);
+    } else {
+        ChVector<> Q_0 = eval(i, 0.0);
+        ChVector<> Q_1 = eval(i, 1.0);
+
+        double d2 = (Q - loc).Length2();
+        double d2_0 = (Q_0 - loc).Length2();
+        double d2_1 = (Q_1 - loc).Length2();
+
+        if (d2_0 < d2) {
+            t = 0;
+            Q = Q_0;
+            d2 = d2_0;
+        }
+        if (d2_1 < d2) {
+            t = 1;
+            Q = Q_1;
+        }
     }
 
     return Q;
