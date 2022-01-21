@@ -156,18 +156,17 @@ void ChModalAssembly::SwitchModalReductionOFF() {
     this->SetModalMode(false);
 }
 
+void ChModalAssembly::SetupModalData(int nmodes_reduction) {
 
-void ChModalAssembly::SetupModalData() {
+    this->n_modes_coords_w = nmodes_reduction;
 
     if (!modal_variables || (modal_variables->Get_ndof() != this->n_modes_coords_w)) {
-            
-        int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
-        int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
 
         // Initialize ChVariable object used for modal variables
         if (modal_variables)
             delete modal_variables;
         modal_variables = new ChVariablesGenericDiagonalMass(this->n_modes_coords_w);
+        modal_variables->GetMassDiagonal().setZero(); // diag. mass not needed, the mass will be defined via this->modal_Hblock 
 
         // Initialize the modal_Hblock, which is a ChKblockGeneric referencing all ChVariable items:
         std::vector<ChVariables*> mvars;
