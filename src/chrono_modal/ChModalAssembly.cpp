@@ -184,7 +184,18 @@ void ChModalAssembly::SetupModalData() {
         mvars = temporary_descriptor.GetVariablesList();
         // - for the MODAL variables:
         mvars.push_back(this->modal_variables);
-        this->modal_Hblock.SetVariables(mvars);
+
+        // NOTE! Purge the not active variables, so that there is a  1-to-1 mapping
+        // between the assembly's matrices this->modal_M, modal_K, modal_R and the modal_Hblock->Get_K() block.
+        // In fact the ChKblockGeneric modal_Hblock could also handle the not active vars, but the modal_M, K etc are 
+        // computed for the active-only variables for simplicity in the Herting transformation.
+        std::vector<ChVariables*> mvars_active;
+        for (auto mvar : mvars) {
+            if (mvar->IsActive())
+                mvars_active.push_back(mvar);
+        }
+
+        this->modal_Hblock.SetVariables(mvars_active);
 
         // Initialize vectors to be used with modal coordinates:
         this->modal_q.setZero(this->n_modes_coords_w);
