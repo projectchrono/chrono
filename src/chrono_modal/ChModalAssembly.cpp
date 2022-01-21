@@ -16,6 +16,8 @@
 #include "chrono_modal/ChModalAssembly.h"
 #include "chrono_modal/ChEigenvalueSolver.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
 
 namespace chrono {
 
@@ -89,16 +91,18 @@ void ChModalAssembly::SwitchModalReductionON(int n_modes) {
     // 1) compute modes on the full system
     this->ComputeModes(n_modes);
 
-    // 2) bound ChVariables etc. to the modal coordinates, resize matrices, set as modal mode
-    this->SetModalMode(true);
-    this->SetupModalData();
-
-    // 3) do the Herting reduction as in Sonneville, 2021
+    // 2) fetch the full (not reduced) mass and stiffness
     ChSparseMatrix full_M;
     ChSparseMatrix full_K;
 
     this->GetSubassemblyMassMatrix(&full_M);
     this->GetSubassemblyStiffnessMatrix(&full_K);
+
+    // 3) bound ChVariables etc. to the modal coordinates, resize matrices, set as modal mode
+    this->SetModalMode(true);
+    this->SetupModalData(n_modes);
+
+    // do the Herting reduction as in Sonneville, 2021
 
     ChSparseMatrix K_II = full_K.block(this->n_boundary_coords_w, this->n_boundary_coords_w, this->n_internal_coords_w, this->n_internal_coords_w);
     ChSparseMatrix K_IB = full_K.block(this->n_boundary_coords_w, 0,                         this->n_internal_coords_w, this->n_boundary_coords_w);
@@ -137,7 +141,7 @@ void ChModalAssembly::SwitchModalReductionON(int n_modes) {
     // Psi = [ I     0    ]
     //       [Psi_S  Psi_D]
     ChMatrixDynamic<> Psi(this->n_boundary_coords_w + this->n_internal_coords_w, this->n_boundary_coords_w + this->n_modes_coords_w);
-    //***TODO*** prefer sparse Psi matrix, especially for upper blocks...
+    //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
 
     Psi << Eigen::MatrixXd::Identity(n_boundary_coords_w, n_boundary_coords_w), Eigen::MatrixXd::Zero(n_boundary_coords_w, n_modes_coords_w),
            Psi_S,                                                               Psi_D;
@@ -145,8 +149,39 @@ void ChModalAssembly::SwitchModalReductionON(int n_modes) {
     // Modal reduction of the M K matrices
     this->modal_M = Psi.transpose() * full_M * Psi;
     this->modal_K = Psi.transpose() * full_K * Psi;
+    this->modal_R.setZero(this->modal_M.rows(), this->modal_M.cols()); //***TODO*** proper damping, ex. Rayleigh?
 
-
+    // Reset to zero all the atomic masses of the boundary nodes because now their mass is represented by  this->modal_M
+    // NOTE! this should be made more generic and future-proof by implementing a virtual method ex. RemoveMass() in all ChPhysicsItem 
+    for (auto& body : bodylist) {
+            body->SetMass(0);
+            body->SetInertia(VNULL);
+    }
+    for (auto& item : otherphysicslist) {
+        if (auto& mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
+            for (auto& node : mesh->GetNodes()) {
+                if (auto& xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node))
+                    xyz->SetMass(0);
+                if (auto& xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
+                    xyzrot->SetMass(0);
+                    xyzrot->GetInertia().setZero();
+                }
+            }
+        }
+    }
+    
+    // Debug dump data. ***TODO*** remove
+    if (false) {
+        ChStreamOutAsciiFile fileP("dump_modal_Psi.dat");
+        fileP.SetNumFormat("%.12g");
+        StreamOUTdenseMatlabFormat(Psi, fileP);
+        ChStreamOutAsciiFile fileM("dump_modal_M.dat");
+        fileM.SetNumFormat("%.12g");
+        StreamOUTdenseMatlabFormat(this->modal_M, fileM);
+        ChStreamOutAsciiFile fileK("dump_modal_K.dat");
+        fileK.SetNumFormat("%.12g");
+        StreamOUTdenseMatlabFormat(this->modal_K, fileK);
+    }
 }
 
 
@@ -218,10 +253,9 @@ bool ChModalAssembly::ComputeModes(int nmodes) {
     this->IntStateGather(0, assembly_x0, 0, assembly_v0, fooT);
 
     // cannot use more modes than n. of tot coords, if so, clamp
-    this->n_modes_coords_w = ChMin(nmodes, this->n_internal_coords_w+this->n_boundary_coords_w);
+    int nmodes_clamped = ChMin(nmodes, this->ncoords_w);
 
     this->Setup();
-    this->SetupModalData();
 
     ChSparseMatrix full_M;
     ChSparseMatrix full_R;
@@ -240,10 +274,12 @@ bool ChModalAssembly::ComputeModes(int nmodes) {
 
     //ChGeneralizedEigenvalueSolverLanczos     eigsolver;   // OK! 
     ChGeneralizedEigenvalueSolverKrylovSchur eigsolver;   // OK! 
-    eigsolver.Solve(full_M, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, this->n_modes_coords_w);
+    eigsolver.Solve(full_M, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, nmodes_clamped);
     this->modes_damping_ratio.setZero(this->modes_freq.rows());
 
     this->Setup();
+
+    return true;
 }
 
 bool ChModalAssembly::ComputeModesDamped(int nmodes) {
@@ -265,10 +301,9 @@ bool ChModalAssembly::ComputeModesDamped(int nmodes) {
     this->IntStateGather(0, assembly_x0, 0, assembly_v0, fooT);
 
     // cannot use more modes than n. of tot coords, if so, clamp
-    this->n_modes_coords_w = ChMin(nmodes, this->n_internal_coords_w+this->n_boundary_coords_w);
+    int nmodes_clamped = ChMin(nmodes, this->ncoords_w);
 
     this->Setup();
-    this->SetupModalData();
 
     ChSparseMatrix full_M;
     ChSparseMatrix full_R;
@@ -287,26 +322,11 @@ bool ChModalAssembly::ComputeModesDamped(int nmodes) {
     
     ChQuadraticEigenvalueSolverNullspaceDirect eigsolver;  // OK! But not for large dimensions... use this nullspace method just for golden reference
     //ChQuadraticEigenvalueSolverKrylovSchur eigsolver;     // ***WARNING*** Krylov-Schur in SPECTRA not yet working for complex eigenvalues!!!!
-    eigsolver.Solve(full_M, full_R, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, this->modes_damping_ratio, this->n_modes_coords_w);
+    eigsolver.Solve(full_M, full_R, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, this->modes_damping_ratio, nmodes_clamped);
     
-
     this->Setup();
-}
 
-
-void ChModalAssembly::ComputeModes(ChMatrixRef my_modes_V) {
-
-    this->n_modes_coords_w = my_modes_V.cols();
-
-    this->Setup();
-    this->SetupModalData();
-  
-    int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
-    int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
-    assert((my_modes_V.rows() == bou_int_coords_w) );
-
-
-    this->modes_V = my_modes_V; 
+    return true;
 }
 
 
@@ -937,20 +957,13 @@ void ChModalAssembly::Setup() {
     }
 }
 
-// Update assembly's own properties first (ChTime and assets, if any).
-// Then update all contents of this assembly.
-void ChModalAssembly::Update(double mytime, bool update_assets) {
 
-    ChAssembly::Update(mytime, update_assets);  // parent
-
-    Update(update_assets);
-}
 
 // Update all physical items (bodies, links, meshes, etc), including their auxiliary variables.
 // Updates all forces (automatic, as children of bodies)
 // Updates all markers (automatic, as children of bodies).
 void ChModalAssembly::Update(bool update_assets) {
-
+    GetLog() << " ChModalAssembly::Update() ";
     ChAssembly::Update(update_assets);  // parent
 
     if (is_modal == false) {
@@ -968,6 +981,12 @@ void ChModalAssembly::Update(bool update_assets) {
             internal_meshlist[ip]->Update(ChTime, update_assets);
         }
     }
+    else {
+        // If in modal reduction mode, the internal parts would not be updated (actually, these could even be removed)
+        // However one still might want to see the internal nodes "moving" during animations, 
+        this->SetInternalStateWithModes();
+    }
+
 }
 
 void ChModalAssembly::SetNoSpeedNoAcceleration() {

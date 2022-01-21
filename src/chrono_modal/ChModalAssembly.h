@@ -58,21 +58,22 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Compute the undamped modes for the entire assembly. 
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies() etc.
-    void ComputeModes(int nmodes); ///< the n. of lower modes to keep 
+    /// (Return false and do nothing if in  IsModalMode() , as you cannot do modal analysis
+    /// of an already modal-reduced model; if needed, add this into another ChModalAssembly.)
+    bool ComputeModes(int nmodes); ///< the n. of lower modes to keep 
 
     /// Compute the damped modes for the entire assembly. 
     /// Expect complex eigenvalues/eigenvectors if damping is used. 
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies(), Get_modes_damping_ratios() etc.
-    void ComputeModesDamped(int nmodes); ///< the n. of lower modes to keep 
+    /// (Return false and do nothing if in  IsModalMode() , as you cannot do modal analysis
+    /// of an already modal-reduced model; if needed, add this into another ChModalAssembly.)
+    bool ComputeModesDamped(int nmodes); ///< the n. of lower modes to keep 
 
-   
+    /// Perform modal reduction on this assembly. 
+    /// - An undamped modal analysis will be done on the entire system. 
+    /// - The "internal" bodies will be replaced by n_modes modal coordinates.
+    void SwitchModalReductionON(int n_modes);
 
-    /// Compute modes by providing pre-computed modes V.
-    /// The row size of V must be n_boundary_coords_w + n_internal_coords_w, 
-    /// with coordinates arranged as all coords of "boundary" items then all "inner" items.
-    /// This function also computes the M, R, K matrices. 
-    void ComputeModes( ChMatrixRef my_modes_V   ///< columns: arbitrary n of eigenvectors, rows: first "boundary" then "inner" dofs.
-    );
 
 
     /// For displaying modes, you can use the following function. It sets the state of this subassembly
@@ -90,10 +91,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// calling this function one can update their changing positions for visualization, stress recovery, etc.
     void SetInternalStateWithModes();
 
-    /// Perform modal reduction on this assembly. 
-    /// - An undamped modal analysis will be done on the entire system. 
-    /// - The "internal" bodies will be replaced by n_modes modal coordinates
-    void SwitchModalReductionON(int n_modes);
 
     /// Resets the state of this subassembly (both boundary and inner items) to the state snapshot that 
     /// was taken when doing the last ComputeModes() or ComputeModesDamped() or SwitchModalReductionON().
@@ -102,8 +99,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
 protected:
     /// Resize modal matrices and hook up the variables to the  M K R block for the solver. To be used all times
-    /// the n. of modes (n_modes_coords_w) is changed. Use after a Setup() and after n_modes_coords_w is set.
-    void SetupModalData();
+    /// the n. of modes of modal reduction (n_modes_coords_w) is changed.
+    void SetupModalData(int nmodes_reduction);
 
 public:
     /// Get the number of modal coordinates. Use one of the ComputeModes() to change it.
@@ -281,10 +278,6 @@ public:
     /// Assumes that this->offset_x this->offset_w this->offset_L are already set
     /// as starting point for offsetting all the contained sub objects.
     virtual void Setup() override;
-
-    /// Updates all the auxiliary data and children of
-    /// bodies, forces, links, given their current state.
-    virtual void Update(double mytime, bool update_assets = true) override;
 
     /// Updates all the auxiliary data and children of
     /// bodies, forces, links, given their current state.
