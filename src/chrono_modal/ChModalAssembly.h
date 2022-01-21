@@ -83,6 +83,12 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// last ComputeModes() or ComputeModesDamped() or SwitchModalReductionON().
     void SetFullStateWithModeOverlay(int n_mode, double phase, double amplitude);
 
+    /// For displaying the deformation using internal nodes, you can use the following function. Works only if IsModalMode().
+    /// It sets the state of the internal nodes of this subassembly using the current state of the modal coordinates q
+    /// given the computed eigenvalues: x=V*q , then it overlays s to the state snapshot x0 stored last time one called a modal analysis.
+    /// This is not necessary, but useful during animations, in fact the internal nodes would be completely neglected if IsModalMode() ; but
+    /// calling this function one can update their changing positions for visualization, stress recovery, etc.
+    void SetInternalStateWithModes();
 
     /// Perform modal reduction on this assembly. 
     /// - An undamped modal analysis will be done on the entire system. 

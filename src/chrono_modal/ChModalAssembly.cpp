@@ -330,6 +330,61 @@ void ChModalAssembly::SetFullStateWithModeOverlay(int n_mode, double phase, doub
 }
 
 
+void ChModalAssembly::SetInternalStateWithModes() {
+   
+    bool needs_temporary_bou_int = this->is_modal;
+    if (needs_temporary_bou_int) 
+        this->is_modal = false; // to have IntStateIncrement IntStateScatter referencing both boundary AND INTERNAL items
+    
+    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
+    int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
+    
+    if (this->modes_V.rows() != bou_int_coords_w)
+        return;
+
+    ChState assembly_x_new;
+    ChStateDelta assembly_v;
+    ChStateDelta assembly_Dx;
+    
+    assembly_x_new.setZero(bou_int_coords, nullptr);
+    assembly_v.setZero(bou_int_coords_w, nullptr);
+    assembly_Dx.setZero(bou_int_coords_w, nullptr);
+    
+    // compute x = V * q  with V eigenvectors  and q current modal coordinates
+    assembly_Dx = this->modes_V.real() * this->modal_q;
+    
+    this->IntStateIncrement(0, assembly_x_new, assembly_x0, 0, assembly_Dx); 
+
+    // scatter to internal nodes only and update them 
+    unsigned int displ_x = 0 - this->offset_x;
+    unsigned int displ_v = 0 - this->offset_w;
+    bool full_update = true;
+    double T = this->GetChTime();
+    for (auto& body : internal_bodylist) {
+        if (body->IsActive())
+            body->IntStateScatter(displ_x + body->GetOffset_x(), assembly_x_new, displ_v + body->GetOffset_w(), assembly_v, T, full_update);
+        else
+            body->Update(T, full_update);
+    }
+    for (auto& mesh : internal_meshlist) {
+        mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), assembly_x_new, displ_v + mesh->GetOffset_w(), assembly_v, T, full_update);
+    }
+    for (auto& link : internal_linklist) {
+        if (link->IsActive())
+            link->IntStateScatter(displ_x + link->GetOffset_x(), assembly_x_new, displ_v + link->GetOffset_w(), assembly_v, T, full_update);
+        else
+            link->Update(T, full_update);
+    }
+    for (auto& item : internal_otherphysicslist) {
+        item->IntStateScatter(displ_x + item->GetOffset_x(), assembly_x_new, displ_v + item->GetOffset_w(), assembly_v, T, full_update);
+    }
+
+
+    if (needs_temporary_bou_int) 
+        this->is_modal = true;
+}
+
+
 void ChModalAssembly::SetFullStateReset() {
    
     bool needs_temporary_bou_int = this->is_modal;
