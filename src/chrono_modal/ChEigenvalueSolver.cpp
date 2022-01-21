@@ -161,16 +161,19 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M,  /
     OpType op(A, B);
     BOpType Bop(B);
 
+	// Dump data for test. ***TODO*** remove when well tested
+	if (false)
+	{
+		ChStreamOutAsciiFile fileA("dump_modal_A.dat");
+		fileA.SetNumFormat("%.12g");
+		StreamOUTdenseMatlabFormat(ChMatrixDynamic<>(A), fileA);
+		ChStreamOutAsciiFile fileB("dump_modal_B.dat");
+		fileB.SetNumFormat("%.12g");
+		StreamOUTdenseMatlabFormat(ChMatrixDynamic<>(B), fileB);
+	}
+
 	// The Krylov-Schur solver, using the shift and invert mode:
  	KrylovSchurGEigsShiftInvert<OpType, BOpType> eigen_solver(op, Bop, n_modes, m, sigma);  //*** OK EIGVECTS, WRONG EIGVALS REQUIRE eigen_values(i) = (1.0 / eigen_values(i)) + sigma;
-
-	/*
-	// Note: the former can be obtained even without the KrylovSchurGEigsShiftInvert custom class, just by doing:
-
-	auto myshiftinv = SymGEigsShiftInvertOp<OpType, BOpType>(op, Bop);
-	myshiftinv.set_shift(sigma);
-	KrylovSchurGEigsBase<SymGEigsShiftInvertOp<OpType, BOpType>, BOpType> eigen_solver(myshiftinv, Bop, n_modes, m); //*** OK EIGVECTS, WRONG EIGVALS REQUIRE eigen_values(i) = (1.0 / eigen_values(i)) + sigma;
-	*/
 
 	eigen_solver.init();
 
