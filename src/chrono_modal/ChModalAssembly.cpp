@@ -205,8 +205,15 @@ void ChModalAssembly::SetupModalData() {
     }
 }
 
-void ChModalAssembly::ComputeModes(int nmodes) {
+bool ChModalAssembly::ComputeModes(int nmodes) {
     
+    if (is_modal)
+        return false;
+
+    this->SetupInitial();
+    this->Setup();
+    this->Update();
+
     // fetch the state_snapshot
     int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
     int bou_int_coords_w = this->n_boundary_coords_w   + this->n_internal_coords_w;
@@ -245,8 +252,15 @@ void ChModalAssembly::ComputeModes(int nmodes) {
     this->Setup();
 }
 
-void ChModalAssembly::ComputeModesDamped(int nmodes) {
-    
+bool ChModalAssembly::ComputeModesDamped(int nmodes) {
+
+    if (is_modal)
+        return false;
+
+    this->SetupInitial();
+    this->Setup();
+    this->Update();
+
     // fetch the state_snapshot
     int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
     int bou_int_coords_w = this->n_boundary_coords_w   + this->n_internal_coords_w;
