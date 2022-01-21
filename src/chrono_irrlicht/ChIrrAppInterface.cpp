@@ -650,7 +650,6 @@ void ChIrrAppInterface::BeginScene(bool backBuffer, bool zBuffer, irr::video::SC
 
 #ifdef CHRONO_MODAL
     if (this->modal_phi || this->modal_show) {
-        double current_phi = this->modal_phi;
         if (this->modal_show)
             this->modal_phi += this->modal_speed * 0.01;
         else
@@ -659,18 +658,14 @@ void ChIrrAppInterface::BeginScene(bool backBuffer, bool zBuffer, irr::video::SC
         for (auto item : this->system->Get_otherphysicslist()) {
             if (auto mmodalassembly = std::dynamic_pointer_cast<modal::ChModalAssembly>(item)) {
                 try {
-                    // reset the modal superposition to original state
-                    mmodalassembly->ModeIncrementState(this->modal_current_mode_n, -current_phi, this->modal_amplitude); 
-                    }
-                catch (...) {}
-                try {
                     // superposition of modal shape
-                    mmodalassembly->ModeIncrementState(this->modal_mode_n, this->modal_phi, this->modal_amplitude); 
+                    mmodalassembly->SetFullStateWithModeOverlay(this->modal_mode_n, this->modal_phi, this->modal_amplitude); 
                     // fetch Hz of this mode
                     this->modal_current_freq = mmodalassembly->Get_modes_frequencies()(this->modal_mode_n);
                 }
                 catch (...) {
-                    this->modal_phi = 0; // in case it could not increment, ex. modal_mode_n larger than available modes
+                    // something failed in SetFullStateWithModeOverlay(), ex. node n was higher than available ones
+                    mmodalassembly->SetFullStateReset();
                 }
             }
         }
