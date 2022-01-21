@@ -75,11 +75,13 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     );
 
 
-    /// For displaying modes, you can use the following function. It increments the current state of this subassembly
-    /// (both boundary and inner items) using the n-th eigenvector multiplied by a "amplitude" factor * sin(phase). To rewind to original state, 
-    /// use negative amplitude. If you increment the phase during an animation, you will see the n-ht mode 
+    /// For displaying modes, you can use the following function. It sets the state of this subassembly
+    /// (both boundary and inner items) using the n-th eigenvector multiplied by a "amplitude" factor * sin(phase). 
+    /// If you increment the phase during an animation, you will see the n-ht mode 
     /// oscillating on the screen. 
-    void ModeIncrementState(int n_mode, double phase, double amplitude);
+    /// It works also if in IsModalMode(). The mode shape is added to the state snapshot that was taken when doing the
+    /// last ComputeModes() or ComputeModesDamped() or SwitchModalReductionON().
+    void SetFullStateWithModeOverlay(int n_mode, double phase, double amplitude);
 
 
     /// Perform modal reduction on this assembly. 
@@ -411,7 +413,7 @@ public:
     ChVectorDynamic<double>               modes_freq;          // frequencies
     ChVectorDynamic<double>               modes_damping_ratio; // damping ratio
 
-
+    ChState               assembly_x0;      // state snapshot of full not reduced assembly at the time of eigenvector computation
 
     // Statistics:
     

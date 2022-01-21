@@ -196,6 +196,15 @@ void ChModalAssembly::SetupModalData() {
 
 void ChModalAssembly::ComputeModes(int nmodes) {
     
+    // fetch the state_snapshot
+    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
+    int bou_int_coords_w = this->n_boundary_coords_w   + this->n_internal_coords_w;
+    double fooT;
+    ChStateDelta assembly_v0;
+    assembly_x0.setZero(bou_int_coords, nullptr);
+    assembly_v0.setZero(bou_int_coords_w, nullptr);
+    this->IntStateGather(0, assembly_x0, 0, assembly_v0, fooT);
+
     // cannot use more modes than n. of tot coords, if so, clamp
     this->n_modes_coords_w = ChMin(nmodes, this->n_internal_coords_w+this->n_boundary_coords_w);
 
@@ -227,6 +236,15 @@ void ChModalAssembly::ComputeModes(int nmodes) {
 
 void ChModalAssembly::ComputeModesDamped(int nmodes) {
     
+    // fetch the state_snapshot
+    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
+    int bou_int_coords_w = this->n_boundary_coords_w   + this->n_internal_coords_w;
+    double fooT;
+    ChStateDelta assembly_v0;
+    assembly_x0.setZero(bou_int_coords, nullptr);
+    assembly_v0.setZero(bou_int_coords_w, nullptr);
+    this->IntStateGather(0, assembly_x0, 0, assembly_v0, fooT);
+
     // cannot use more modes than n. of tot coords, if so, clamp
     this->n_modes_coords_w = ChMin(nmodes, this->n_internal_coords_w+this->n_boundary_coords_w);
 
@@ -273,36 +291,35 @@ void ChModalAssembly::ComputeModes(ChMatrixRef my_modes_V) {
 }
 
 
-void ChModalAssembly::ModeIncrementState(int n_mode, double phase, double amplitude) {
-    
+
+void ChModalAssembly::SetFullStateWithModeOverlay(int n_mode, double phase, double amplitude) {
+   
     bool needs_temporary_bou_int = this->is_modal;
     if (needs_temporary_bou_int) 
-        this->is_modal = false; // to have IntStateGather returning all boundary and internal
+        this->is_modal = false; // to have IntStateIncrement IntStateScatter referencing both boundary AND INTERNAL items
 
     if (n_mode >= this->modes_V.cols())
         throw ChException("Error: mode " + std::to_string(n_mode) + " is beyond the " + std::to_string(this->modes_V.cols()) + " computed eigenvectors.");
     
     int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
     int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
-    assert(this->modes_V.rows() == bou_int_coords_w);
+    
+    if (this->modes_V.rows() != bou_int_coords_w)
+        return;
 
-    double fooT;
-    ChState assembly_x;
+    double fooT=0;
     ChState assembly_x_new;
     ChStateDelta assembly_v;
     ChStateDelta assembly_Dx;
     
-    assembly_x.setZero(bou_int_coords, nullptr);
     assembly_x_new.setZero(bou_int_coords, nullptr);
     assembly_v.setZero(bou_int_coords_w, nullptr);
     assembly_Dx.setZero(bou_int_coords_w, nullptr);
-
-    this->IntStateGather(0, assembly_x, 0, assembly_v, fooT);
     
     // pick the nth eigenvector
     assembly_Dx = sin(phase) * amplitude * this->modes_V.col(n_mode).real();   //***TODO***: .. + cos(phase) * amplitude * this->modes_V.col(n_mode).imag()
     
-    this->IntStateIncrement(0, assembly_x_new, assembly_x, 0, assembly_Dx); // x += amplitude * eigenvector
+    this->IntStateIncrement(0, assembly_x_new, assembly_x0, 0, assembly_Dx); // x += amplitude * eigenvector
 
     this->IntStateScatter(0, assembly_x_new, 0, assembly_v, fooT, true);
 
