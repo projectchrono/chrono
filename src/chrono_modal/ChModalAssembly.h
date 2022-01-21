@@ -89,8 +89,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// - The "internal" bodies will be replaced by n_modes modal coordinates
     void SwitchModalReductionON(int n_modes);
 
-    /// If in modal reduction mode, return to the full assembly.
-    void SwitchModalReductionOFF();
+    /// Resets the state of this subassembly (both boundary and inner items) to the state snapshot that 
+    /// was taken when doing the last ComputeModes() or ComputeModesDamped() or SwitchModalReductionON().
+    void SetFullStateReset();
 
 
 protected:

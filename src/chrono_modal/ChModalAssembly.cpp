@@ -330,6 +330,31 @@ void ChModalAssembly::SetFullStateWithModeOverlay(int n_mode, double phase, doub
 }
 
 
+void ChModalAssembly::SetFullStateReset() {
+   
+    bool needs_temporary_bou_int = this->is_modal;
+    if (needs_temporary_bou_int) 
+        this->is_modal = false; // to have IntStateScatter referencing both boundary AND INTERNAL items
+
+    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
+    int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
+    
+    if (this->assembly_x0.rows() != bou_int_coords)
+        return;
+
+    double fooT=0;
+    ChStateDelta assembly_v;
+ 
+    assembly_v.setZero(bou_int_coords_w, nullptr);
+
+    this->IntStateScatter(0, this->assembly_x0, 0, assembly_v, fooT, true);
+
+    this->Update();
+
+    if (needs_temporary_bou_int) 
+        this->is_modal = true;
+}
+
 
 
 //---------------------------------------------------------------------------------------
