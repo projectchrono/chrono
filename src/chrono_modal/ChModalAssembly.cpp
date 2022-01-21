@@ -149,12 +149,7 @@ void ChModalAssembly::SwitchModalReductionON(int n_modes) {
 
 }
 
-void ChModalAssembly::SwitchModalReductionOFF() {
-    if (!is_modal)
-        return;
 
-    this->SetModalMode(false);
-}
 
 void ChModalAssembly::SetupModalData(int nmodes_reduction) {
 
