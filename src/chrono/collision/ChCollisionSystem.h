@@ -19,6 +19,7 @@
 #include "chrono/collision/ChCollisionInfo.h"
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
+#include "chrono/assets/ChColor.h"
 
 namespace chrono {
 
@@ -168,6 +169,38 @@ class ChApi ChCollisionSystem {
                         ChCollisionModel* model,
                         ChRayhitResult& result) const = 0;
 
+    /// Class to be used as a callback interface for user-defined visualization of collision shapes.
+    class ChApi VisualizationCallback {
+      public:
+        virtual ~VisualizationCallback() {}
+
+        /// Method for rendering a line of specified color between the two given points.
+        virtual void DrawLine(const ChVector<>& from, const ChVector<>& to, const ChColor& color) = 0;
+
+        /// Set scaling factor for normal vectors (default 1.0).
+        virtual double GetNormalScale() const { return 1.0; }
+    };
+
+    /// Specify a callback object to be used for debug rendering of collision shapes.
+    virtual void RegisterVisualizationCallback(std::shared_ptr<VisualizationCallback> callback) {
+        vis_callback = callback;
+    }
+
+    /// Enumeration of supported flags for collision debug visualization.
+    enum VisualizationModes {
+        VIS_None = 0,           ///< no debug collision visualization
+        VIS_Shapes = 1 << 0,    ///< wireframe representation of collision shapes
+        VIS_Aabb = 1 << 1,      ///< axis-aligned bounding boxes of collision shapes
+        VIS_Contacts = 1 << 2,  ///< contact points and normals
+        VIS_MAX_MODES
+    };
+
+    /// Method to trigger debug visualization of collision shapes.
+    /// The 'flags' argument can be any of the VisualizationModes enums, or a combination thereof (using bit-wise
+    /// operators). The calling program must invoke this function from within the simulation loop. A derived class
+    /// should implement a no-op if a visualization callback was not specified.
+    virtual void Visualize(int flags) {}
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
@@ -187,6 +220,8 @@ class ChApi ChCollisionSystem {
     ChSystem* m_system;                                    ///< associated Chrono system
     std::shared_ptr<BroadphaseCallback> broad_callback;    ///< user callback for each near-enough pair of shapes
     std::shared_ptr<NarrowphaseCallback> narrow_callback;  ///< user callback for each collision pair
+    std::shared_ptr<VisualizationCallback> vis_callback;   ///< user callback for debug visualization
+    int m_vis_flags;
 };
 
 /// @} chrono_collision

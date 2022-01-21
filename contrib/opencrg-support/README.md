@@ -4,7 +4,7 @@ Chrono::Vehicle has the ability of using road geometry specified through a `crg`
 
 Get the distribution here: http://www.opencrg.org. The most current version is 1.1.2. For Mac and Linux you can use the provided makefiles. 
 
-Alternatively, you can use the `CMakeLists.txt` file in this directory, which should also work for Windows.
+Alternatively, you can use the `CMakeLists.txt` file in this directory, which should also work for Windows. The `CMakeLists.txt` has been modified to build the Release and the Debug variants with different names, so that they can be installed to the same directories. You have to use different runs of cmake for Release and for Debug. Instead of 'make' 'ninja' should be used, it works well on Linux, Mac and Windows.
 
 1. Copy OpenCRG.1.1.2.zip to a location of your coice
 2. Unpack the zip archive: 
@@ -12,17 +12,21 @@ Alternatively, you can use the `CMakeLists.txt` file in this directory, which sh
    - [Windows] use explorer or a 3rd party tool such as 7-zip 
 3. Copy the `CMakeLists.txt` provided here into `/your/path/OpenCRG.1.1.2/c-api`
 4. Configure: 
-   `cmake /your/path/OpenCRG.1.1.2/c-api` 
+   `cmake  -G Ninja -B Release -DCMAKE_BUILD_TYPE=Release /your/path/OpenCRG.1.1.2/c-api` 
+   `cmake  -G Ninja -B Debug -DCMAKE_BUILD_TYPE=Debug /your/path/OpenCRG.1.1.2/c-api` 
 5. Build it:
-   - [Linux, Mac] `make`
-   - [Windows] use the native tool specified during configuration (Nmake, Visual Studio, etc.)
+   - [Linux, Mac, Windows] `cmake --build Release`
+   - [Linux, Mac, Windows] `cmake --build Debug`
 6. The generated files are:
    - header: `CrgBaseLib.h`
-   - library: `libOpenCRG.a` [Linux, Mac], `OpenCRG.lib` [Windows]
+   - Release library: `libOpenCRG.a` [Linux, Mac], `OpenCRG.lib` [Windows]
+   - Debug library: `libOpenCRGd.a` [Linux, Mac], `OpenCRGd.lib` [Windows]
 7. Install the files
-8. When you configure Chrono let the configure script point to the needed OpenCRG files
+   - [Linux, Mac, Windows] `ninja --install Release --prefix=/where/you/want/it_to_be`
+   - [Linux, Mac, Windows] `ninja --install Debug --prefix=/where/you/want/it_to_be`
+6. When you configure Chrono let the configure script point to the needed OpenCRG files
 
-On all platforms, the provided CmakeLists.txt build OpenCRG as a static library.
+On all platforms, the provided CmakeLists.txt builds OpenCRG as a static library.
 
 # Why should anybody use OpenCRG files?
 
