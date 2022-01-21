@@ -1240,11 +1240,11 @@ void ChModalAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offse
                                     const ChVectorDynamic<>& w,  ///< the w vector
                                     const double c               ///< a scaling factor
 ) {
-    ChAssembly::IntLoadResidual_Mv(off, R, w, c);  // parent
-
     unsigned int displ_v = off - this->offset_w;
 
     if (is_modal == false) {
+        ChAssembly::IntLoadResidual_Mv(off, R, w, c);  // parent
+
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
                 body->IntLoadResidual_Mv(displ_v + body->GetOffset_w(), R, w, c);
@@ -1261,7 +1261,8 @@ void ChModalAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offse
         }
     } 
     else {
-        R.segment(displ_v + this->n_boundary_coords_w, this->n_modes_coords_w) += c * this->modal_M * w.segment(displ_v + this->n_boundary_coords_w, this->n_modes_coords_w);
+        ChVectorDynamic<> w_modal = w.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w);
+        R.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w) += c * (this->modal_M * w_modal);
     }
 }
 
@@ -1488,9 +1489,10 @@ void ChModalAssembly::ConstraintsLoadJacobians() {
 
 void ChModalAssembly::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
 
-    ChAssembly::InjectKRMmatrices(mdescriptor);  // parent
-
     if (is_modal == false) {
+
+        ChAssembly::InjectKRMmatrices(mdescriptor);  // parent
+
         for (auto& body : internal_bodylist) {
             body->InjectKRMmatrices(mdescriptor);
         }
@@ -1511,10 +1513,10 @@ void ChModalAssembly::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
 
 void ChModalAssembly::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
 
-    ChAssembly::KRMmatricesLoad(Kfactor, Rfactor, Mfactor);  // parent
-
     if (is_modal == false) {
         {
+            ChAssembly::KRMmatricesLoad(Kfactor, Rfactor, Mfactor);  // parent
+
             for (auto& body : internal_bodylist) {
                 body->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
             }
