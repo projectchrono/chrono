@@ -89,7 +89,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// given the computed eigenvalues: x=V*q , then it overlays s to the state snapshot x0 stored last time one called a modal analysis.
     /// This is not necessary, but useful during animations, in fact the internal nodes would be completely neglected if IsModalMode() ; but
     /// calling this function one can update their changing positions for visualization, stress recovery, etc.
-    void SetInternalStateWithModes();
+    void SetInternalStateWithModes(bool full_update);
 
 
     /// Resets the state of this subassembly (both boundary and inner items) to the state snapshot that 

@@ -158,11 +158,11 @@ void ChModalAssembly::SwitchModalReductionON(int n_modes) {
             body->SetInertia(VNULL);
     }
     for (auto& item : otherphysicslist) {
-        if (auto& mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
+        if (auto mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
             for (auto& node : mesh->GetNodes()) {
-                if (auto& xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node))
+                if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node))
                     xyz->SetMass(0);
-                if (auto& xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
+                if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
                     xyzrot->SetMass(0);
                     xyzrot->GetInertia().setZero();
                 }
@@ -369,7 +369,7 @@ void ChModalAssembly::SetFullStateWithModeOverlay(int n_mode, double phase, doub
 }
 
 
-void ChModalAssembly::SetInternalStateWithModes() {
+void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
    
     bool needs_temporary_bou_int = this->is_modal;
     if (needs_temporary_bou_int) 
@@ -397,7 +397,6 @@ void ChModalAssembly::SetInternalStateWithModes() {
     // scatter to internal nodes only and update them 
     unsigned int displ_x = 0 - this->offset_x;
     unsigned int displ_v = 0 - this->offset_w;
-    bool full_update = true;
     double T = this->GetChTime();
     for (auto& body : internal_bodylist) {
         if (body->IsActive())
@@ -963,7 +962,7 @@ void ChModalAssembly::Setup() {
 // Updates all forces (automatic, as children of bodies)
 // Updates all markers (automatic, as children of bodies).
 void ChModalAssembly::Update(bool update_assets) {
-    GetLog() << " ChModalAssembly::Update() ";
+
     ChAssembly::Update(update_assets);  // parent
 
     if (is_modal == false) {
@@ -984,7 +983,7 @@ void ChModalAssembly::Update(bool update_assets) {
     else {
         // If in modal reduction mode, the internal parts would not be updated (actually, these could even be removed)
         // However one still might want to see the internal nodes "moving" during animations, 
-        this->SetInternalStateWithModes();
+        this->SetInternalStateWithModes(update_assets);
     }
 
 }
@@ -1079,6 +1078,11 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
     else {
         this->modal_q    = x.segment(off_x + this->n_boundary_coords,   this->n_modes_coords_w);
         this->modal_q_dt = v.segment(off_v + this->n_boundary_coords_w, this->n_modes_coords_w);
+
+        // Update: 
+        // If in modal reduction mode, the internal parts would not be updated (actually, these could even be removed)
+        // However one still might want to see the internal nodes "moving" during animations, 
+        this->SetInternalStateWithModes(full_update);
     }
 }
 
