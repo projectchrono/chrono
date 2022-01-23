@@ -97,6 +97,10 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void SetFullStateReset();
 
 
+    /// Computes the increment of the subassembly configuration respect to the x0 snapshot configuration.
+    void GetStateIncrement(ChStateDelta& Dx, int off_x);
+
+
 protected:
     /// Resize modal matrices and hook up the variables to the  M K R block for the solver. To be used all times
     /// the n. of modes of modal reduction (n_modes_coords_w) is changed.
