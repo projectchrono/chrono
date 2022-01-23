@@ -130,7 +130,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction)
         ChVector<>(0, 1, 0)       // the 'Y' up direction of the section for the beam
     );
 
-    my_node_B_boundary->SetForce(ChVector<>(0, -5, 0)); // to trigger some vibration at the free end
+    my_node_B_boundary->SetForce(ChVector<>(0, -3, 0)); // to trigger some vibration at the free end
 
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
     my_system->Setup();
@@ -142,15 +142,17 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction)
 
         // HERE PERFORM THE MODAL REDUCTION!
 
-        my_assembly->SwitchModalReductionON(19);
+        my_assembly->SwitchModalReductionON(12);
 
         // Just for later reference, dump reduced M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
         my_assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir+"/dump_reduced").c_str());
+
+        //my_assembly->Get_modal_q()(1) = 0.2;
     }
     else {
 
         // Otherwise we perform a conventional modal analysis on the full ChModalAssembly.
-        my_assembly->ComputeModes(10);
+        my_assembly->ComputeModes(12);
 
         // Just for logging the frequencies:
         for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
@@ -180,18 +182,11 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction)
     mvisualizeInternalB->SetZbufferHide(false);
     my_mesh_internal->AddAsset(mvisualizeInternalB);
 
-    auto mvisualizeBoundaryA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh_boundary.get()));
-    mvisualizeBoundaryA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_TX);
-    mvisualizeBoundaryA->SetColorscaleMinMax(-0.001, 1200);
-    mvisualizeBoundaryA->SetSmoothFaces(true);
-    mvisualizeBoundaryA->SetWireframe(false);
-    my_mesh_boundary->AddAsset(mvisualizeBoundaryA);
-
     auto mvisualizeBoundaryB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh_boundary.get()));
     mvisualizeBoundaryB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
     mvisualizeBoundaryB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizeBoundaryB->SetSymbolsThickness(0.2);
-    mvisualizeBoundaryB->SetSymbolsScale(0.1);
+    mvisualizeBoundaryB->SetSymbolsThickness(0.4);
+    mvisualizeBoundaryB->SetSymbolsScale(4);
     mvisualizeBoundaryB->SetZbufferHide(false);
     my_mesh_boundary->AddAsset(mvisualizeBoundaryB);
 
