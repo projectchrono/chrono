@@ -24,7 +24,7 @@
 #include <limits>
 
 #ifdef _OPENMP
-#include <omp.h>
+    #include <omp.h>
 #endif
 
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
@@ -216,6 +216,11 @@ void SCMDeformableTerrain::Initialize(const std::string& heightmap_file,
     m_ground->Initialize(heightmap_file, sizeX, sizeY, hMin, hMax, delta);
 }
 
+// Initialize the terrain from a specified OBJ mesh file.
+void SCMDeformableTerrain::Initialize(const std::string& mesh_file, double delta) {
+    m_ground->Initialize(mesh_file, delta);
+}
+
 // Get the heights of modified grid nodes.
 std::vector<SCMDeformableTerrain::NodeLevel> SCMDeformableTerrain::GetModifiedNodes(bool all_nodes) const {
     return m_ground->GetModifiedNodes(all_nodes);
@@ -382,67 +387,7 @@ void SCMDeformableSoil::Initialize(double sizeX, double sizeY, double delta) {
     if (!m_trimesh_shape)
         return;
 
-    int nvx = 2 * m_nx + 1;                     // number of grid vertices in X direction
-    int nvy = 2 * m_ny + 1;                     // number of grid vertices in Y direction
-    int n_verts = nvx * nvy;                    // total number of vertices for initial visualization trimesh
-    int n_faces = 2 * (2 * m_nx) * (2 * m_ny);  // total number of faces for initial visualization trimesh
-    double x_scale = 0.5 / m_nx;                // scale for texture coordinates (U direction)
-    double y_scale = 0.5 / m_ny;                // scale for texture coordinates (V direction)
-
-    // Readability aliases
-    auto trimesh = m_trimesh_shape->GetMesh();
-    trimesh->Clear();
-    std::vector<ChVector<>>& vertices = trimesh->getCoordsVertices();
-    std::vector<ChVector<>>& normals = trimesh->getCoordsNormals();
-    std::vector<ChVector<int>>& idx_vertices = trimesh->getIndicesVertexes();
-    std::vector<ChVector<int>>& idx_normals = trimesh->getIndicesNormals();
-    std::vector<ChVector<>>& uv_coords = trimesh->getCoordsUV();
-    std::vector<ChVector<float>>& colors = trimesh->getCoordsColors();
-
-    // Resize mesh arrays
-    vertices.resize(n_verts);
-    normals.resize(n_verts);
-    uv_coords.resize(n_verts);
-    colors.resize(n_verts);
-    idx_vertices.resize(n_faces);
-    idx_normals.resize(n_faces);
-
-    // Load mesh vertices.
-    // We order the vertices starting at the bottom-left corner, row after row.
-    // The bottom-left corner corresponds to the point (-sizeX/2, -sizeY/2).
-    // UV coordinates are mapped in [0,1] x [0,1].
-    int iv = 0;
-    for (int iy = 0; iy < nvy; iy++) {
-        double y = iy * m_delta - 0.5 * sizeY;
-        for (int ix = 0; ix < nvx; ix++) {
-            double x = ix * m_delta - 0.5 * sizeX;
-            // Set vertex location
-            vertices[iv] = m_plane * ChVector<>(x, y, 0);
-            // Initialize vertex normal to Y up
-            normals[iv] = m_plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
-            // Assign color white to all vertices
-            colors[iv] = ChVector<float>(1, 1, 1);
-            // Set UV coordinates in [0,1] x [0,1]
-            uv_coords[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
-            ++iv;
-        }
-    }
-
-    // Specify triangular faces (two at a time).
-    // Specify the face vertices counter-clockwise.
-    // Set the normal indices same as the vertex indices.
-    int it = 0;
-    for (int iy = 0; iy < nvy - 1; iy++) {
-        for (int ix = 0; ix < nvx - 1; ix++) {
-            int v0 = ix + nvx * iy;
-            idx_vertices[it] = ChVector<int>(v0, v0 + 1, v0 + nvx + 1);
-            idx_normals[it] = ChVector<int>(v0, v0 + 1, v0 + nvx + 1);
-            ++it;
-            idx_vertices[it] = ChVector<int>(v0, v0 + nvx + 1, v0 + nvx);
-            idx_normals[it] = ChVector<int>(v0, v0 + nvx + 1, v0 + nvx);
-            ++it;
-        }
-    }
+    CreateVisualizationMesh(sizeX, sizeY);
 }
 
 // Initialize the terrain from a specified height map.
@@ -468,19 +413,13 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
 
     m_nx = static_cast<int>(std::ceil((sizeX / 2) / delta));  // half number of divisions in X direction
     m_ny = static_cast<int>(std::ceil((sizeY / 2) / delta));  // number of divisions in Y direction
-
-    m_delta = sizeX / (2.0 * m_nx);  // grid spacing
-    m_area = std::pow(m_delta, 2);   // area of a cell
+    int nvx = 2 * m_nx + 1;                                   // number of grid vertices in X direction
+    int nvy = 2 * m_ny + 1;                                   // number of grid vertices in Y direction
+    m_delta = sizeX / (2.0 * m_nx);                           // grid spacing
+    m_area = std::pow(m_delta, 2);                            // area of a cell
 
     double dx_grid = 0.5 / m_nx;
     double dy_grid = 0.5 / m_ny;
-
-    int nvx = 2 * m_nx + 1;                     // number of grid vertices in X direction
-    int nvy = 2 * m_ny + 1;                     // number of grid vertices in Y direction
-    int n_verts = nvx * nvy;                    // total number of vertices for initial visualization trimesh
-    int n_faces = 2 * (2 * m_nx) * (2 * m_ny);  // total number of faces for initial visualization trimesh
-    double x_scale = 0.5 / m_nx;                // scale for texture coordinates (U direction)
-    double y_scale = 0.5 / m_ny;                // scale for texture coordinates (V direction)
 
     // Resample image and calculate interpolated gray levels and then map it to the height range, with black
     // corresponding to hMin and white corresponding to hMax. Entry (0,0) corresponds to bottom-left grid vertex.
@@ -526,6 +465,110 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     if (!m_trimesh_shape)
         return;
 
+    CreateVisualizationMesh(sizeX, sizeY);
+}
+
+// Initialize the terrain from a specified OBJ mesh file.
+bool calcBarycentricCoordinates(const ChVector<>& v1,
+                                const ChVector<>& v2,
+                                const ChVector<>& v3,
+                                const ChVector<>& v,
+                                double& a1,
+                                double& a2,
+                                double& a3) {
+    double denom = (v2.y() - v3.y()) * (v1.x() - v3.x()) + (v3.x() - v2.x()) * (v1.y() - v3.y());
+    a1 = ((v2.y() - v3.y()) * (v.x() - v3.x()) + (v3.x() - v2.x()) * (v.y() - v3.y())) / denom;
+    a2 = ((v3.y() - v1.y()) * (v.x() - v3.x()) + (v1.x() - v3.x()) * (v.y() - v3.y())) / denom;
+    a3 = 1 - a1 - a2;
+
+    return (0 <= a1) && (a1 <= 1) && (0 <= a2) && (a2 <= 1) && (0 <= a3) && (a3 <= 1);
+}
+
+void SCMDeformableSoil::Initialize(const std::string& mesh_file, double delta) {
+    m_type = PatchType::TRI_MESH;
+
+    // Load triangular mesh
+    geometry::ChTriangleMeshConnected trimesh;
+    trimesh.LoadWavefrontMesh(mesh_file, true, true);
+
+    const auto& vertices = trimesh.getCoordsVertices();
+    const auto& faces = trimesh.getIndicesVertexes();
+
+    // Find x, y, and z ranges of vertex data
+    auto minmaxX = std::minmax_element(begin(vertices), end(vertices),
+                                       [](const ChVector<>& v1, const ChVector<>& v2) { return v1.x() < v2.x(); });
+    auto minmaxY = std::minmax_element(begin(vertices), end(vertices),
+                                       [](const ChVector<>& v1, const ChVector<>& v2) { return v1.y() < v2.y(); });
+    auto minmaxZ = std::minmax_element(begin(vertices), end(vertices),
+                                       [](const ChVector<>& v1, const ChVector<>& v2) { return v1.z() < v2.z(); });
+    auto minX = minmaxX.first->x() + delta;
+    auto maxX = minmaxX.second->x() - delta;
+    auto minY = minmaxY.first->y() + delta;
+    auto maxY = minmaxY.second->y() - delta;
+    auto minZ = minmaxZ.first->z();
+    auto maxZ = minmaxZ.second->z();
+
+    auto sizeX = (maxX - minX);
+    auto sizeY = (maxY - minY);
+    ChVector<> center((maxX + minX) / 2, (maxY + minY) / 2, 0);
+
+    // Initial grid extent
+    m_nx = static_cast<int>(std::ceil((sizeX / 2) / delta));  // half number of divisions in X direction
+    m_ny = static_cast<int>(std::ceil((sizeY / 2) / delta));  // number of divisions in Y direction
+    m_delta = sizeX / (2.0 * m_nx);                           // grid spacing
+    m_area = std::pow(m_delta, 2);                            // area of a cell
+    int nvx = 2 * m_nx + 1;                                   // number of grid vertices in X direction
+    int nvy = 2 * m_ny + 1;                                   // number of grid vertices in Y direction
+
+    // Loop over all mesh faces, project onto the x-y plane and set the height for all covered grid nodes.
+    m_heights = ChMatrixDynamic<>::Zero(nvx, nvy);
+
+    int num_h_set = 0;
+    double a1, a2, a3;
+    for (const auto& f : faces) {
+        // Find bounds of (shifted) face projection
+        const auto& v1 = vertices[f[0]] - center;
+        const auto& v2 = vertices[f[1]] - center;
+        const auto& v3 = vertices[f[2]] - center;
+        auto x_min = ChMin(ChMin(v1.x(), v2.x()), v3.x());
+        auto x_max = ChMax(ChMax(v1.x(), v2.x()), v3.x());
+        auto y_min = ChMin(ChMin(v1.y(), v2.y()), v3.y());
+        auto y_max = ChMax(ChMax(v1.y(), v2.y()), v3.y());
+        int i_min = static_cast<int>(std::floor(x_min / m_delta));
+        int j_min = static_cast<int>(std::floor(y_min / m_delta));
+        int i_max = static_cast<int>(std::ceil(x_max / m_delta));
+        int j_max = static_cast<int>(std::ceil(y_max / m_delta));
+        ChClampValue(i_min, -m_nx, +m_nx);
+        ChClampValue(i_max, -m_nx, +m_nx);
+        ChClampValue(j_min, -m_ny, +m_ny);
+        ChClampValue(j_max, -m_ny, +m_ny);
+        // Loop over all grid nodes within bounds
+        for (int i = i_min; i <= i_max; i++) {
+            for (int j = j_min; j <= j_max; j++) {
+                ChVector<> v(i * m_delta, j * m_delta, 0);
+                if (calcBarycentricCoordinates(v1, v2, v3, v, a1, a2, a3)) {
+                    m_heights(m_nx + i, m_ny + j) = minZ + a1 * v1.z() + a2 * v2.z() + a3 * v3.z();
+                    num_h_set++;
+                }
+            }
+        }
+    }
+
+    // Return now if no visualization
+    if (!m_trimesh_shape)
+        return;
+
+    CreateVisualizationMesh(sizeX, sizeY);
+}
+
+void SCMDeformableSoil::CreateVisualizationMesh(double sizeX, double sizeY) {
+    int nvx = 2 * m_nx + 1;                     // number of grid vertices in X direction
+    int nvy = 2 * m_ny + 1;                     // number of grid vertices in Y direction
+    int n_verts = nvx * nvy;                    // total number of vertices for initial visualization trimesh
+    int n_faces = 2 * (2 * m_nx) * (2 * m_ny);  // total number of faces for initial visualization trimesh
+    double x_scale = 0.5 / m_nx;                // scale for texture coordinates (U direction)
+    double y_scale = 0.5 / m_ny;                // scale for texture coordinates (V direction)
+
     // Readability aliases
     auto trimesh = m_trimesh_shape->GetMesh();
     trimesh->Clear();
@@ -544,6 +587,13 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     idx_vertices.resize(n_faces);
     idx_normals.resize(n_faces);
 
+    // Default normal vector
+    ChVector<> def_normal;
+    if (m_type == PatchType::FLAT)
+        def_normal = ChVector<>(0, 0, 1);
+    else
+        def_normal = ChVector<>(0, 0, 0);
+
     // Load mesh vertices.
     // We order the vertices starting at the bottom-left corner, row after row.
     // The bottom-left corner corresponds to the point (-sizeX/2, -sizeY/2).
@@ -553,10 +603,17 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
         double y = iy * m_delta - 0.5 * sizeY;
         for (int ix = 0; ix < nvx; ix++) {
             double x = ix * m_delta - 0.5 * sizeX;
-            // Set vertex location
-            vertices[iv] = m_plane * ChVector<>(x, y, m_heights(ix, iy));
-            // Initialize vertex normal to Y up
-            normals[iv] = m_plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
+            if (m_type == PatchType::FLAT) {
+                // Set vertex location
+                vertices[iv] = m_plane * ChVector<>(x, y, 0);
+                // Initialize vertex normal to Z up
+                normals[iv] = m_plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
+            } else {
+                // Set vertex location
+                vertices[iv] = m_plane * ChVector<>(x, y, m_heights(ix, iy));
+                // Initialize vertex normal to zero (will be set later)
+                normals[iv] = ChVector<>(0, 0, 0);
+            }
             // Assign color white to all vertices
             colors[iv] = ChVector<float>(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
@@ -580,6 +637,9 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
             ++it;
         }
     }
+
+    if (m_type == PatchType::FLAT)
+        return;
 
     // Initialize the array of accumulators (number of adjacent faces to a vertex)
     std::vector<int> accumulators(n_verts, 0);
@@ -692,7 +752,8 @@ double SCMDeformableSoil::GetInitHeight(const ChVector2<int>& loc) const {
     switch (m_type) {
         case PatchType::FLAT:
             return 0;
-        case PatchType::HEIGHT_MAP: {
+        case PatchType::HEIGHT_MAP:
+        case PatchType::TRI_MESH: {
             auto x = ChClamp(loc.x(), -m_nx, +m_nx);
             auto y = ChClamp(loc.y(), -m_ny, +m_ny);
             return m_heights(x + m_nx, y + m_ny);
@@ -705,7 +766,8 @@ double SCMDeformableSoil::GetInitHeight(const ChVector2<int>& loc) const {
 // Get the initial undeformed terrain normal (relative to the SCM plane) at the specified grid node.
 ChVector<> SCMDeformableSoil::GetInitNormal(const ChVector2<int>& loc) const {
     switch (m_type) {
-        case PatchType::HEIGHT_MAP: {
+        case PatchType::HEIGHT_MAP:
+        case PatchType::TRI_MESH: {
             // Average normals of 4 triangular faces incident to given grid node
             auto hE = GetInitHeight(loc + ChVector2<int>(1, 0));  // east
             auto hW = GetInitHeight(loc - ChVector2<int>(1, 0));  // west
@@ -733,7 +795,8 @@ double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) const {
 // Get the terrain normal (relative to the SCM plane) at the specified grid vertex.
 ChVector<> SCMDeformableSoil::GetNormal(const ChVector2<>& loc) const {
     switch (m_type) {
-        case PatchType::HEIGHT_MAP: {
+        case PatchType::HEIGHT_MAP:
+        case PatchType::TRI_MESH: {
             // Average normals of 4 triangular faces incident to given grid node
             auto hE = GetHeight(loc + ChVector2<int>(1, 0));  // east
             auto hW = GetHeight(loc - ChVector2<int>(1, 0));  // west
@@ -1087,7 +1150,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
         // Loop through all vertices in the patch range
         int num_ray_casts = 0;
-    #pragma omp parallel for num_threads(nthreads) reduction(+:num_ray_casts)
+    #pragma omp parallel for num_threads(nthreads) reduction(+ : num_ray_casts)
         for (int k = 0; k < p.m_range.size(); k++) {
             int t_num = ChOMP::GetThreadNum();
             ChVector2<int> ij = p.m_range[k];
@@ -1125,7 +1188,6 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
         // Sequential insertion in global hits
         for (int t_num = 0; t_num < nthreads; t_num++) {
-            
             for (auto& h : t_hits[t_num]) {
                 // If this is the first hit from this node, initialize the node record
                 if (m_grid_map.find(h.first) == m_grid_map.end()) {
@@ -1134,7 +1196,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 }
                 ////hits.insert(h);
             }
-            
+
             hits.insert(t_hits[t_num].begin(), t_hits[t_num].end());
             t_hits[t_num].clear();
         }

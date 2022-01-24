@@ -224,15 +224,30 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     );
 
     /// Initialize the terrain system (height map).
-    /// The initial undeformed mesh is provided via the specified image file as a height map.
-    /// By default, a mesh vertex is created for each pixel in the image. If divX and divY are non-zero,
-    /// the image will be sampled at the specified resolution with linear interpolation as needed.
+    /// The initial undeformed terrain profile is provided via the specified image file as a height map.
+    /// The terrain patch is scaled in the horizontal plane of the SCM frame to sizeX x sizeY, while the initial height
+    /// is scaled between hMin and hMax (with the former corresponding to a pure balck pixel and the latter to a pure
+    /// white pixel).  The SCM grid resolution is specified through 'delta' and initial heights at grid points are
+    /// obtained through interpolation (outside the terrain patch, the SCM node height is initialized to the height of
+    /// the closest image pixel). For visualization purposes, a triangular mesh is also generated from the provided
+    /// image file.
     void Initialize(const std::string& heightmap_file,  ///< [in] filename for the height map (image file)
                     double sizeX,                       ///< [in] terrain dimension in the X direction
                     double sizeY,                       ///< [in] terrain dimension in the Y direction
                     double hMin,                        ///< [in] minimum height (black level)
                     double hMax,                        ///< [in] maximum height (white level)
                     double delta                        ///< [in] grid spacing (may be slightly decreased)
+    );
+
+    /// Initialize the terrain system (mesh).
+    /// The initial undeformed terrain profile is provided via the specified Wavefront OBJ mesh file.
+    /// The dimensions of the terrain patch in the horizontal plane of the SCM frame is set to the range of the x and y
+    /// mesh vertex coordinates, respectively.  The SCM grid resolution is specified through 'delta' and initial heights
+    /// at grid points are obtained through linear interpolation (outside the mesh footprint, the height of a grid node
+    /// is set to the height of the closest point on the mesh).  A visualization mesh is created from the original mesh
+    /// resampled at the grid node points.
+    void Initialize(const std::string& mesh_file,  ///< [in] filename for the height map (image file)
+                    double delta                   ///< [in] grid spacing (may be slightly decreased)
     );
 
     /// Node height level at a given grid location.
@@ -312,9 +327,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     );
 
     /// Initialize the terrain system (height map).
-    /// The initial undeformed mesh is provided via the specified image file as a height map
-    /// By default, a mesh vertex is created for each pixel in the image. If divX and divY are non-zero,
-    /// the image will be sampled at the specified resolution with linear interpolation as needed.
+    /// The initial undeformed mesh is provided via the specified image file as a height map.
     void Initialize(const std::string& heightmap_file,  ///< [in] filename for the height map (image file)
                     double sizeX,                       ///< [in] terrain dimension in the X direction
                     double sizeY,                       ///< [in] terrain dimension in the Y direction
@@ -323,11 +336,18 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
                     double delta                        ///< [in] grid spacing (may be slightly decreased)
     );
 
+    /// Initialize the terrain system (mesh).
+    /// The initial undeformed terrain profile is provided via the specified Wavefront OBJ mesh file.
+    void Initialize(const std::string& mesh_file,  ///< [in] filename for the height map (image file)
+                    double delta                   ///< [in] grid spacing (may be slightly decreased)
+    );
+
   private:
     // SCM patch type
     enum class PatchType {
-        FLAT,       // flat patch
-        HEIGHT_MAP  // triangular mesh (generated from a gray-scale image height-map)
+        FLAT,        // flat patch
+        HEIGHT_MAP,  // triangular mesh (generated from a gray-scale image height-map)
+        TRI_MESH     // triangular mesh (provided through an OBJ file)
     };
 
     // Moving patch parameters
@@ -382,6 +402,9 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         // 31 is just a decently-sized prime number to reduce bucket collisions
         std::size_t operator()(const ChVector2<int>& p) const { return p.x() * 31 + p.y(); }
     };
+
+    // Create visualization mesh
+    void CreateVisualizationMesh(double sizeX, double sizeY);
 
     // Get the initial undeformed terrain height (relative to the SCM plane) at the specified grid node.
     double GetInitHeight(const ChVector2<int>& loc) const;
