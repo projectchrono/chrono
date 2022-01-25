@@ -77,8 +77,9 @@ class CH_VSG_API VSGApp {
     vsg::ref_ptr<vsg::Switch> m_body_sym_subgraph;
     vsg::ref_ptr<vsg::Switch> m_asset_sym_subgraph;
 
-    vsg::ref_ptr<vsg::Builder> m_builderBodyDots;
-    vsg::ref_ptr<vsg::Builder> m_builderWireFrame;
+    vsg::StateInfo m_stateInfoPolygon;
+    vsg::StateInfo m_stateInfoWireFrame;
+
     vsg::ref_ptr<vsg::Builder> m_builderLighting;
 
     vsg::ref_ptr<vsg::CommandGraph> m_commandGraph;

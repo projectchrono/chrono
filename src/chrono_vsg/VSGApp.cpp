@@ -148,37 +148,6 @@ namespace chrono {
             VSGApp *m_appPtr;
         };
 
-        vsg::ref_ptr<vsg::RenderPass> createRenderPassCompatibleWithReadingDepthBuffer(vsg::Device *device,
-                VkFormat imageFormat,
-                VkFormat depthFormat) {
-            auto colorAttachmet = vsg::defaultColorAttachment(imageFormat);
-            auto depthAttachment = vsg::defaultDepthAttachment(depthFormat);
-
-            // by deault storeOp is VK_ATTACHMENT_STORE_OP_DONT_CARE but we do care, so bake sure we store the depth value
-            depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-
-            vsg::RenderPass::Attachments attachments{colorAttachmet, depthAttachment};
-
-            vsg::SubpassDescription subpass = {};
-            subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-            subpass.colorAttachments.emplace_back(VkAttachmentReference{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
-            subpass.depthStencilAttachments.emplace_back(
-                    VkAttachmentReference{1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL});
-
-            vsg::RenderPass::Subpasses subpasses{subpass};
-
-            VkSubpassDependency dependency = {};
-            dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-            dependency.dstSubpass = 0;
-            dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            dependency.srcAccessMask = 0;
-            dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-            vsg::RenderPass::Dependencies dependencies{dependency};
-
-            return vsg::RenderPass::create(device, attachments, subpasses, dependencies);
-        }
 
         VSGApp::VSGApp() : m_up_vector(vsg::dvec3(0, 0, 1)), m_system(nullptr) {
         }
@@ -203,6 +172,13 @@ namespace chrono {
                     VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
             windowTraits->depthImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
+            // initialize stateInfos for builder class
+            m_stateInfoPolygon.lighting = true;
+            m_stateInfoPolygon.wireframe = false;
+
+            m_stateInfoWireFrame.lighting = true;
+            m_stateInfoWireFrame.wireframe = true;
+
             // create the viewer and assign window(s) to it
             m_viewer = vsg::Viewer::create();
 
@@ -213,15 +189,7 @@ namespace chrono {
             }
 
             auto device = m_window->getOrCreateDevice();
-            // provide a custom RenderPass to ensure we can read from the depth buffer, only required by the 'd' depth
-            // screenshot code path
-            m_window->setRenderPass(createRenderPassCompatibleWithReadingDepthBuffer(device, m_window->surfaceFormat().format,
-                    m_window->depthFormat()));
 
-            m_builderBodyDots = vsg::Builder::create();
-            m_builderBodyDots->options = options;
-            m_builderWireFrame = vsg::Builder::create();
-            m_builderWireFrame->options = options;
             m_builderLighting = vsg::Builder::create();
             m_builderLighting->options = options;
 
@@ -410,10 +378,7 @@ namespace chrono {
                 vsg::GeometryInfo geomDot;
                 geomDot.transform = vsgXform(g_X_b, ChVector<>(0.1));
 
-                vsg::StateInfo stateDot;
-                stateDot.lighting = true;
-                stateDot.wireframe = false;
-                m_dot_subgraph->addChild(false, m_builderBodyDots->createSphere(geomDot, stateDot));
+                m_dot_subgraph->addChild(false, m_builderLighting->createSphere(geomDot, m_stateInfoPolygon));
 
                 // Provide reference frame symbol for each body
                 // position of the body
@@ -457,32 +422,20 @@ namespace chrono {
                         vsg::GeometryInfo geomInfo;
                         geomInfo.transform = vsgXform(g_X_a, ChVector<>(2 * sphere_shape->GetSphereGeometry().rad));
 
-                        vsg::StateInfo stateInfo;
-                        stateInfo.lighting = true;
-                        stateInfo.wireframe = true;
-                        m_line_subgraph->addChild(false, m_builderWireFrame->createSphere(geomInfo, stateInfo));
-                        stateInfo.wireframe = false;
-                        m_polygon_subgraph->addChild(true, m_builderLighting->createSphere(geomInfo, stateInfo));
+                        m_polygon_subgraph->addChild(true, m_builderLighting->createSphere(geomInfo, m_stateInfoPolygon));
+                        m_line_subgraph->addChild(false, m_builderLighting->createSphere(geomInfo, m_stateInfoWireFrame));
                     } else if (ChEllipsoidShape *ellipsoid_shape = dynamic_cast<ChEllipsoidShape *>(asset.get())) {
                         vsg::GeometryInfo geomInfo;
                         geomInfo.transform = vsgXform(g_X_a, ellipsoid_shape->GetEllipsoidGeometry().rad * 2);
 
-                        vsg::StateInfo stateInfo;
-                        stateInfo.lighting = true;
-                        stateInfo.wireframe = true;
-                        m_line_subgraph->addChild(false, m_builderWireFrame->createSphere(geomInfo, stateInfo));
-                        stateInfo.wireframe = false;
-                        m_polygon_subgraph->addChild(true, m_builderLighting->createSphere(geomInfo, stateInfo));
+                        m_polygon_subgraph->addChild(true, m_builderLighting->createSphere(geomInfo, m_stateInfoPolygon));
+                        m_line_subgraph->addChild(false, m_builderLighting->createSphere(geomInfo, m_stateInfoWireFrame));
                     } else if (ChBoxShape *box_shape = dynamic_cast<ChBoxShape *>(asset.get())) {
                         vsg::GeometryInfo geomInfo;
                         geomInfo.transform = vsgXform(g_X_a, box_shape->GetBoxGeometry().GetLengths());
 
-                        vsg::StateInfo stateInfo;
-                        stateInfo.lighting = true;
-                        stateInfo.wireframe = true;
-                        m_line_subgraph->addChild(false, m_builderWireFrame->createBox(geomInfo, stateInfo));
-                        stateInfo.wireframe = false;
-                        m_polygon_subgraph->addChild(true, m_builderLighting->createBox(geomInfo, stateInfo));
+                        m_polygon_subgraph->addChild(true, m_builderLighting->createBox(geomInfo, m_stateInfoPolygon));
+                        m_line_subgraph->addChild(false, m_builderLighting->createBox(geomInfo, m_stateInfoWireFrame));
                     } else if (ChCylinderShape *cylinder_shape = dynamic_cast<ChCylinderShape *>(asset.get())) {
                         double rad = cylinder_shape->GetCylinderGeometry().rad;
                         const ChVector<> &p1 = cylinder_shape->GetCylinderGeometry().p1;
@@ -507,12 +460,8 @@ namespace chrono {
                         vsg::GeometryInfo geomInfo;
                         geomInfo.transform = vsgXform(g_X_c, ChVector<>(2 * rad, 2 * rad, height));
 
-                        vsg::StateInfo stateInfo;
-                        stateInfo.lighting = true;
-                        stateInfo.wireframe = true;
-                        m_line_subgraph->addChild(false, m_builderWireFrame->createCylinder(geomInfo, stateInfo));
-                        stateInfo.wireframe = false;
-                        m_polygon_subgraph->addChild(true, m_builderLighting->createCylinder(geomInfo, stateInfo));
+                        m_polygon_subgraph->addChild(true, m_builderLighting->createCylinder(geomInfo, m_stateInfoPolygon));
+                        m_line_subgraph->addChild(false, m_builderLighting->createCylinder(geomInfo, m_stateInfoWireFrame));
                     } else if (ChConeShape *cone_shape = dynamic_cast<ChConeShape *>(asset.get())) {
                         double rx = cone_shape->GetConeGeometry().rad.x();
                         double ry = cone_shape->GetConeGeometry().rad.z();
@@ -526,12 +475,8 @@ namespace chrono {
                         vsg::GeometryInfo geomInfo;
                         geomInfo.transform = vsgXform(g_X_c, ChVector<>(2 * rx, 2 * ry, height));
 
-                        vsg::StateInfo stateInfo;
-                        stateInfo.lighting = true;
-                        stateInfo.wireframe = true;
-                        m_line_subgraph->addChild(false, m_builderWireFrame->createCone(geomInfo, stateInfo));
-                        stateInfo.wireframe = false;
-                        m_polygon_subgraph->addChild(true, m_builderLighting->createCone(geomInfo, stateInfo));
+                        m_polygon_subgraph->addChild(true, m_builderLighting->createCone(geomInfo, m_stateInfoPolygon));
+                        m_line_subgraph->addChild(false, m_builderLighting->createCone(geomInfo, m_stateInfoWireFrame));
                     } else if (ChCapsuleShape *capsule_shape = dynamic_cast<ChCapsuleShape *>(asset.get())) {
                         double rad = capsule_shape->GetCapsuleGeometry().rad;
                         double hlen = capsule_shape->GetCapsuleGeometry().hlen;
@@ -544,12 +489,8 @@ namespace chrono {
                         vsg::GeometryInfo geomInfo;
                         geomInfo.transform = vsgXform(g_X_c, ChVector<>(2 * rad, 2 * rad, 2 * hlen));
 
-                        vsg::StateInfo stateInfo;
-                        stateInfo.lighting = true;
-                        stateInfo.wireframe = true;
-                        m_line_subgraph->addChild(false, m_builderWireFrame->createCapsule(geomInfo, stateInfo));
-                        stateInfo.wireframe = false;
-                        m_polygon_subgraph->addChild(true, m_builderLighting->createCapsule(geomInfo, stateInfo));
+                        m_polygon_subgraph->addChild(true, m_builderLighting->createCapsule(geomInfo, m_stateInfoPolygon));
+                        m_line_subgraph->addChild(false, m_builderLighting->createCapsule(geomInfo, m_stateInfoWireFrame));
                     }
                 }
             }
