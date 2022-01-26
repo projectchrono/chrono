@@ -45,6 +45,14 @@ class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
                               const std::string& powertrain_json  ///< powertrain JSON specification file
     );
 
+    /// Construct a wheeled vehicle node using the provided vehicle and powertrain objects.
+    /// Notes:
+    /// - the provided vehicle system must be constructed with a null Chrono system.
+    /// - the vehicle and powertrain system should not be initialized.
+    ChVehicleCosimVehicleNode(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< vehicle system
+                              std::shared_ptr<ChPowertrain> powertrain    ///< powertrain system
+    );
+
     ~ChVehicleCosimVehicleNode();
 
     /// Get the underlying vehicle system.
