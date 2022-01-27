@@ -311,7 +311,7 @@ void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
         text.Render(buffer, LEFT, TOP - SPACING * 21, sx, sy);
     } else {
         // ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
-        // btDbvtBroadphase * broadphase = (btDbvtBroadphase* )
+        // cbtDbvtBroadphase * broadphase = (cbtDbvtBroadphase* )
         // collision_system->GetBulletCollisionWorld()->getBroadphase();
     }
 #endif

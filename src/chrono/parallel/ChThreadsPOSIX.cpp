@@ -92,7 +92,7 @@ void ChThreadsPOSIX::waitForResponse(unsigned int* puiArgument0, unsigned int* p
 
     /// A possible response can be 'yes, SPU handled it', or 'no, please do a PPU fallback'
 
-    btAssert(m_activeSpuStatus.size());
+    cbtAssert(m_activeSpuStatus.size());
 
     // wait for any of the threads to finish
     checkPThreadFunction(
@@ -115,11 +115,11 @@ void ChThreadsPOSIX::waitForResponse(unsigned int* puiArgument0, unsigned int* p
 
     ChThreadStatePOSIX& spuStatus = m_activeSpuStatus[last];
 
-    btAssert(spuStatus.m_status > 1);
+    cbtAssert(spuStatus.m_status > 1);
     spuStatus.m_status = 0;
 
     // need to find an active spu
-    btAssert(last >= 0);
+    cbtAssert(last >= 0);
 
     *puiArgument0 = spuStatus.m_taskId;
     *puiArgument1 = spuStatus.m_status;

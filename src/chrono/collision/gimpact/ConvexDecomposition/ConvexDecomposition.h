@@ -42,7 +42,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include <string.h>
 #include <stdio.h>
-#include "LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/cbtAlignedObjectArray.h"
 
 
 
@@ -51,7 +51,7 @@ extern float CONCAVE_PERCENT ;
 extern float MERGE_PERCENT   ;
 
 
-typedef btAlignedObjectArray< unsigned int > UintVector;
+typedef cbtAlignedObjectArray< unsigned int > UintVector;
 
 
 
