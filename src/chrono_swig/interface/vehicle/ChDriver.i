@@ -12,10 +12,11 @@
 #include "chrono_vehicle/utils/ChSpeedController.h"
 #include "chrono_vehicle/utils/ChSteeringController.h"
 #include "chrono_vehicle/utils/ChAdaptiveSpeedController.h"
-#include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
@@ -25,6 +26,7 @@
 #ifdef CHRONO_IRRLICHT
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
@@ -61,7 +63,23 @@
 %import "ChChassis.i"
 %import "../../../chrono_vehicle/ChVehicle.h"
 
-//%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
+%shared_ptr(chrono::vehicle::ChDriver)
+%shared_ptr(chrono::vehicle::ChDataDriver)
+%shared_ptr(chrono::vehicle::ChPathFollowerDriver)
+%shared_ptr(chrono::vehicle::ChPathFollowerDriverXT)
+%shared_ptr(chrono::vehicle::ChPathFollowerDriverSR)
+%shared_ptr(chrono::vehicle::ChPathFollowerDriverStanley)
+%shared_ptr(chrono::vehicle::ChPathFollowerACCDriver)
+%shared_ptr(chrono::vehicle::ChDriverSTR)
+%shared_ptr(chrono::vehicle::ChDataDriverSTR)
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+#ifdef CHRONO_IRRLICHT
+%shared_ptr(chrono::vehicle::ChIrrGuiDriver)
+%shared_ptr(chrono::vehicle::ChIrrGuiDriverSTR)
+#endif
+#endif             // --------------------------------------------------------------------- PYTHON
+
 
 %rename(DriverInputs) chrono::vehicle::ChDriver::Inputs;
 %rename(DataDriverEntry) chrono::vehicle::ChDataDriver::Entry;
@@ -73,6 +91,8 @@
 %include "../../../chrono_vehicle/driver/ChDataDriver.h"
 %include "../../../chrono_vehicle/driver/ChPathFollowerDriver.h"
 %include "../../../chrono_vehicle/driver/ChPathFollowerACCDriver.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
 %include "../../../chrono_vehicle/utils/ChSpeedController.h"
 %include "../../../chrono_vehicle/utils/ChSteeringController.h"
 %include "../../../chrono_vehicle/utils/ChAdaptiveSpeedController.h"
@@ -82,6 +102,7 @@
 #ifdef CHRONO_IRRLICHT
 %include "../../../chrono_vehicle/utils/ChVehicleIrrApp.h"
 %include "../../../chrono_vehicle/driver/ChIrrGuiDriver.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 %include "../../../chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 %include "irrTypes.h"

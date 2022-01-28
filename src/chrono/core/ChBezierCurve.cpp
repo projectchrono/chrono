@@ -52,7 +52,7 @@ namespace chrono {
 const size_t ChBezierCurve::m_maxNumIters = 50;
 const double ChBezierCurve::m_sqrDistTol = 1e-6;
 const double ChBezierCurve::m_cosAngleTol = 1e-4;
-const double ChBezierCurve::m_paramTol = 1e-8;
+const double ChBezierCurve::m_paramTol = 1e-6;
 
 // -----------------------------------------------------------------------------
 // ChBezierCurve::ChBezierCurve()
@@ -362,6 +362,40 @@ ChVector<> ChBezierCurve::eval(double t) const {
 //  - no significant change in the curve parameter (along the Q' direction).
 // -----------------------------------------------------------------------------
 ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, double& t) const {
+    // Bracket location of projection
+    int m_numEvals = 20;
+    double dt = 1.0 / m_numEvals;
+    int min_idx = -1;
+    double d2_min = std::numeric_limits<double>::max();
+    for (int j = 0; j <= m_numEvals; j++) {
+        double d2 = (eval(i, j * dt) - loc).Length2();
+        if (d2 < d2_min) {
+            min_idx = j;
+            d2_min = d2;
+        }
+    }
+
+    // Bisection
+    int count = m_numEvals + 1;
+    double t0 = std::max((min_idx - 1) * dt, 0.0);
+    double t1 = std::min((min_idx + 1) * dt, 1.0);
+    while (t1 - t0 > m_paramTol) {
+        t = (t0 + t1) / 2;
+        double d2_0 = (eval(i, t - m_paramTol) - loc).Length2();
+        double d2_1 = (eval(i, t + m_paramTol) - loc).Length2();
+        if (d2_0 < d2_1)
+            t1 = t;
+        else
+            t0 = t;
+        count += 2;
+    }
+
+    ////std::cout << "num. evaluations: " << count << std::endl;
+
+    return eval(i, t);
+
+    /*
+    // Newton method
     ChVector<> Q = eval(i, t);
     ChVector<> Qd;
     ChVector<> Qdd;
@@ -419,6 +453,7 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
     }
 
     return Q;
+    */
 }
 
 // -----------------------------------------------------------------------------

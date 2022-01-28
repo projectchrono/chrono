@@ -34,6 +34,9 @@
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 
+#include "chrono_models/vehicle/feda/FEDA_Vehicle.h"
+#include "chrono_models/vehicle/feda/FEDA_SimpleMapPowertrain.h"
+
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChIrrApp.h"
 #endif
@@ -116,6 +119,12 @@ int main(int argc, char** argv) {
     bool render = true;
     std::string suffix = "";
     bool verbose = true;
+
+    // If use_JSON_spec=true, use a HMMWV model specified through JSON files.
+    // If use_JSON_spec=false, use a FEDA model from the Chrono::Vehicle model library
+    bool use_JSON_spec = true;
+
+    // If use_DBP_rig=true, attach a drawbar pull rig to the vehicle
     bool use_DBP_rig = false;
 
     double terrain_length = 40;
@@ -153,9 +162,18 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Vehicle node] rank = " << rank << " running on: " << procname << endl;
 
-        auto vehicle =
-            new ChVehicleCosimVehicleNode(vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"),
-                                          vehicle::GetDataFile("hmmwv/powertrain/HMMWV_ShaftsPowertrain.json"));
+        ChVehicleCosimVehicleNode* vehicle;
+        if (use_JSON_spec) {
+            vehicle =
+                new ChVehicleCosimVehicleNode(vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"),
+                                              vehicle::GetDataFile("hmmwv/powertrain/HMMWV_ShaftsPowertrain.json"));
+        } else {
+            auto feda_vehicle = chrono_types::make_shared<feda::FEDA_Vehicle>(nullptr, false, BrakeType::SIMPLE,
+                                                                              CollisionType::NONE, 2, 1);
+            auto feda_powertrain = chrono_types::make_shared<feda::FEDA_SimpleMapPowertrain>("Powertrain");
+            vehicle = new ChVehicleCosimVehicleNode(feda_vehicle, feda_powertrain);
+        }
+
         if (use_DBP_rig) {
             auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
             double base_vel = 1;
@@ -163,6 +181,7 @@ int main(int argc, char** argv) {
             auto dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedSlip>(act_type, base_vel, slip);
             vehicle->AttachDrawbarPullRig(dbp_rig);
         }
+
         auto driver = chrono_types::make_shared<MyDriver>(*vehicle->GetVehicle(), 0.5);
         vehicle->SetDriver(driver);
         vehicle->SetVerbose(verbose);

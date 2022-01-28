@@ -34,9 +34,8 @@ __global__ void pointcloud_from_depth_kernel(float* imgIn,
         int hIndex = index % w;
         int vIndex = index / w;
 
-        float vAngle = (vIndex / (float)(h)) * (max_v_angle - min_v_angle) + min_v_angle;
-
-        float hAngle = (hIndex / (float)(w)) * hfov - hfov / 2.;
+        float vAngle = (vIndex / (float)(max(1,h-1))) * (max_v_angle - min_v_angle) + min_v_angle;
+        float hAngle = (hIndex / (float)(max(1,w-1))) * hfov - hfov / 2.;
 
         float range = imgIn[2 * index];
         float proj_xy = range * cosf(vAngle);
@@ -63,8 +62,8 @@ __global__ void pointcloud_from_depth_dual_kernel(float* imgIn,
         int hIndex = index % w;
         int vIndex = index / w;
 
-        float vAngle = (vIndex / (float)(h)) * (max_v_angle - min_v_angle) + min_v_angle;
-        float hAngle = (hIndex / (float)(w)) * hfov - hfov / 2.;
+        float vAngle = (vIndex / (float)(max(1,h-1))) * (max_v_angle - min_v_angle) + min_v_angle;
+        float hAngle = (hIndex / (float)(max(1,w-1))) * hfov - hfov / 2.;
 
         float strongest_range = imgIn[4 * index];
         float strongest_proj_xy = strongest_range * cos(vAngle);
