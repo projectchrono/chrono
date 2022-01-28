@@ -123,7 +123,7 @@ extern "C" __global__ void __raygen__segmentation() {
         (make_float2(idx.x, idx.y) + make_float2(0.5, 0.5)) / make_float2(screen.x, screen.y) * 2.f - make_float2(1.f);
     d.y *= (float)(screen.y) / (float)(screen.x);  // correct for the aspect ratio
 
-    if (camera.lens_model == FOV_LENS && (d.x) > 1e-5 || abs(d.y) > 1e-5) {
+    if (camera.lens_model == FOV_LENS && ((d.x) > 1e-5 || abs(d.y) > 1e-5)) {
         float rd = sqrtf(d.x * d.x + d.y * d.y);
         float ru = tanf(rd * camera.hFOV / 2.0) / (2 * tanf(camera.hFOV / 4.0));
         float ru_max = tanf(camera.hFOV / 2.0) / (2 * tanf(camera.hFOV / 4.0));
