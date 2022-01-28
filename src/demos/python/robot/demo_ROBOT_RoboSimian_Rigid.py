@@ -15,6 +15,7 @@
 # RoboSimian on rigid terrain
 #
 # =============================================================================
+import errno
 import os
 import math
 import numpy as np
@@ -287,8 +288,9 @@ application.AssetUpdateAll()
 # -----------------------------
 try:
     os.mkdir(out_dir)
-except:
-    print('could not create out_dir')    
+except OSError as exc:
+    if exc.errno != errno.EEXIST:
+       print("Error creating output directory " )
 
 if (povray_output) :
     os.mkdir(pov_dir)
