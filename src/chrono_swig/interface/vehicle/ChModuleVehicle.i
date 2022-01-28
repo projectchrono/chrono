@@ -366,9 +366,10 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 //TODO: antirollbar
 
 // Wheeled vehicles
+%include "ChSteering.i"
+%include "ChSubchassis.i"
 %include "ChSuspension.i"
 %include "ChDriveline.i"
-%include "ChSteering.i"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
@@ -459,6 +460,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorArticulated)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorHitch)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorTorsion)
+
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSubchassis, ChBalancer)
 
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChTMeasyTire)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChRigidTire)
