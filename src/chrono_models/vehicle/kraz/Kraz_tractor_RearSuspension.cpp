@@ -62,7 +62,11 @@ class Tractor_SpringForceRear : public ChLinkTSDA::ForceFunctor {
   public:
     Tractor_SpringForceRear(double spring_constant, double min_length, double max_length);
 
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_spring_constant;
@@ -87,15 +91,11 @@ Tractor_SpringForceRear::Tractor_SpringForceRear(double spring_constant, double 
     m_bump.AddPoint(50.0e-3, 12500.0);
 }
 
-double Tractor_SpringForceRear::operator()(double time,
-                                           double rest_length,
-                                           double length,
-                                           double vel,
-                                           ChLinkTSDA* link) {
-    /*
-     *
-     */
-
+double Tractor_SpringForceRear::evaluate(double time,
+                                         double rest_length,
+                                         double length,
+                                         double vel,
+                                         const ChLinkTSDA& link) {
     double force = 0;
 
     double defl_spring = rest_length - length;
@@ -125,7 +125,11 @@ class Tractor_ShockForceRear : public ChLinkTSDA::ForceFunctor {
                            double expansion_slope,
                            double expansion_degressivity);
 
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_slope_compr;
@@ -143,14 +147,12 @@ Tractor_ShockForceRear::Tractor_ShockForceRear(double compression_slope,
       m_slope_expand(expansion_slope),
       m_degres_expand(expansion_degressivity) {}
 
-double Tractor_ShockForceRear::operator()(double time,
-                                          double rest_length,
-                                          double length,
-                                          double vel,
-                                          ChLinkTSDA* link) {
-    /*
-     * Simple model of a degressive damping characteristic
-     */
+double Tractor_ShockForceRear::evaluate(double time,
+                                        double rest_length,
+                                        double length,
+                                        double vel,
+                                        const ChLinkTSDA& link) {
+    // Simple model of a degressive damping characteristic
 
     double force = 0;
 

@@ -47,9 +47,9 @@ SET(DEMOS
   demo_IRR_OpenSim_parser
   demo_IRR_report_collisions
   demo_IRR_Adams_parser
-  demo_IRR_debugDrawer_collisionModels
   demo_IRR_imposed_motion
   demo_IRR_custom_contact
+  demo_IRR_visualize_collision
 )
 
 if (THRUST_FOUND)
@@ -86,6 +86,9 @@ FOREACH(PROGRAM ${DEMOS})
     FOLDER demos
     COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
     LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+  if(APPLE)
+    set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+  endif()
   SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
   TARGET_LINK_LIBRARIES(${PROGRAM}
     ChronoEngine

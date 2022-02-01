@@ -48,6 +48,8 @@ int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
     ChSystemNSC my_system;
 
+    my_system.SetNumThreads(ChOMP::GetNumProcs(), 0, 1);
+
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(800, 600), VerticalDir::Y, false, true);

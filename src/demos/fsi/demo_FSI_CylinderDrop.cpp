@@ -155,7 +155,7 @@ void SaveParaViewFiles(ChSystemFsi& myFsiSystem,
     double frame_time = 1.0 / paramsH->out_fps;
 
     /// Output data to files
-    if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-9) {
+    if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-6) {
         /// save particles to cvs files
         myFsiSystem.PrintParticleToFile(demo_dir);
 
@@ -282,11 +282,11 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_CylinderDrop_Explicit.json");
     if (argc == 1) {
-        std::cout << "Use the default JSON file \n" << std::endl;
+        std::cout << "Use the default JSON file" << std::endl;
     } else if (argc == 2) {
-        std::cout << "Use the specified JSON file \n" << std::endl;
+        std::cout << "Use the specified JSON file" << std::endl;
         std::string my_inputJson = std::string(argv[1]);
-        inputJson = GetChronoDataFile(my_inputJson);
+        inputJson = my_inputJson;
     } else {
         ShowUsage();
         return 1;
@@ -335,10 +335,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < numPart; i++) {
         double pre_ini = paramsH->rho0 * abs(paramsH->gravity.z) * (-points[i].z() + fzDim);
         double rho_ini = paramsH->rho0 + pre_ini / (paramsH->Cs * paramsH->Cs);
-        myFsiSystem.AddSphMarker(
-            ChVector<>(points[i].x(), points[i].y(), points[i].z()), 
-            ChVector<>(rho_ini, pre_ini, paramsH->mu0), paramsH->HSML, -1,
-            ChVector<>(0.0e0));   // initial velocity
+        myFsiSystem.AddSphMarker(points[i], rho_ini, pre_ini, paramsH->mu0, paramsH->HSML, -1, ChVector<>(0));
     }
     myFsiSystem.AddRefArray(0, (int)numPart, -1, -1);
 
@@ -364,7 +361,7 @@ int main(int argc, char* argv[]) {
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
         printf("\nstep : %d, time= : %f (s) \n", tStep, time);
         double frame_time = 1.0 / paramsH->out_fps;
-        int this_frame = (int)floor((time + 1e-9) / frame_time);
+        int this_frame = (int)floor((time + 1e-6) / frame_time);
 
         /// Get the position of the container and cylinder
         auto box = mphysicalSystem.Get_bodylist()[0];

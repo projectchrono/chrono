@@ -20,7 +20,7 @@
 #ifndef CH_LINEAR_DAMPER_RWA_H
 #define CH_LINEAR_DAMPER_RWA_H
 
-#include "chrono/physics/ChLinkRotSpringCB.h"
+#include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkForce.h"
 
@@ -102,7 +102,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     virtual double GetArmVisRadius() const = 0;
 
     /// Return the functor object for the torsional spring torque.
-    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> GetSpringTorqueFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetSpringTorqueFunctor() const = 0;
 
     /// Return the functor object for the translational shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetShockForceFunctor() const = 0;
@@ -117,7 +117,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
 
     std::shared_ptr<ChBody> m_arm;                ///< handle to the trailing arm body
     std::shared_ptr<ChVehicleJoint> m_revolute;   ///< handle to the revolute joint arm-chassis
-    std::shared_ptr<ChLinkRotSpringCB> m_spring;  ///< handle to the rotational spring link
+    std::shared_ptr<ChLinkRSDA> m_spring;         ///< handle to the rotational spring link
     std::shared_ptr<ChLinkTSDA> m_shock;          ///< handle to the translational shock link
 
   private:

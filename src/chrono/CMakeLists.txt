@@ -212,10 +212,8 @@ set(ChronoEngine_physics_links_SOURCES
     physics/ChLinkPulley.cpp
     physics/ChLinkLinActuator.cpp
     physics/ChLinkScrew.cpp
+    physics/ChLinkRSDA.cpp
     physics/ChLinkTSDA.cpp
-    physics/ChLinkSpring.cpp
-    physics/ChLinkSpringCB.cpp
-    physics/ChLinkRotSpringCB.cpp
     physics/ChLinkClearance.cpp
     physics/ChLinkPointSpline.cpp
     physics/ChLinkTrajectory.cpp
@@ -256,10 +254,8 @@ set(ChronoEngine_physics_links_HEADERS
     physics/ChLinkPulley.h
     physics/ChLinksAll.h
     physics/ChLinkScrew.h
+    physics/ChLinkRSDA.h
     physics/ChLinkTSDA.h
-    physics/ChLinkSpring.h
-    physics/ChLinkSpringCB.h
-    physics/ChLinkRotSpringCB.h
     physics/ChLinkTrajectory.h
     physics/ChLinkClearance.h
     physics/ChLinkMate.h
@@ -291,7 +287,6 @@ set(ChronoEngine_physics_loads_SOURCES
     physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
     physics/ChLoadsXYZnode.cpp
-    physics/ChLoadsXYZROTnode.cpp
     physics/ChLoadBodyMesh.cpp
 )
 
@@ -303,7 +298,6 @@ set(ChronoEngine_physics_loads_HEADERS
     physics/ChLoaderUVW.h
     physics/ChLoad.h
     physics/ChLoadsXYZnode.h
-    physics/ChLoadsXYZROTnode.h
     physics/ChLoadsBody.h
     physics/ChLoadBodyMesh.h
     physics/ChLoadContainer.h
@@ -331,6 +325,7 @@ set(ChronoEngine_physics_shafts_SOURCES
     physics/ChShaftsTorqueConverter.cpp
     physics/ChShaftsThermalEngine.cpp
     physics/ChShaftsLoads.cpp
+    physics/ChShaftsFreewheel.cpp
 )
 
 set(ChronoEngine_physics_shafts_HEADERS
@@ -352,6 +347,7 @@ set(ChronoEngine_physics_shafts_HEADERS
     physics/ChShaftsTorqueConverter.h
     physics/ChShaftsThermalEngine.h
     physics/ChShaftsLoads.h
+    physics/ChShaftsFreewheel.h
 )
 
 source_group(physics\\shafts FILES
@@ -390,6 +386,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChContactSurfaceMesh.cpp
     fea/ChMeshSurface.cpp
     fea/ChLoadContactSurfaceMesh.cpp
+    fea/ChLoadsXYZROTnode.cpp
     fea/ChMaterialBeamANCF.cpp
     fea/ChMaterialShellANCF.cpp
     fea/ChMaterialHexaANCF.cpp
@@ -433,6 +430,7 @@ set(ChronoEngine_fea_HEADERS
     fea/ChContactSurfaceMesh.h
     fea/ChMeshSurface.h
     fea/ChLoadContactSurfaceMesh.h
+    fea/ChLoadsXYZROTnode.h
     fea/ChRotUtils.h
     fea/ChMaterialBeamANCF.h
     fea/ChMaterialShellANCF.h

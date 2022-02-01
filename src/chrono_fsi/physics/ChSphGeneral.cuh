@@ -31,129 +31,111 @@
 #include "chrono_fsi/math/ExactLinearSolvers.cuh"
 #include "chrono_fsi/math/custom_math.h"
 
-// #include <cstdio>
-
 namespace chrono {
 namespace fsi {
 
-/// I made this const variables static in order to be able to use them in a different translation units in the utils
+/// Declared as const variables static in order to be able to use them in a different translation units in the utils
 __constant__ static SimParams paramsD;
 __constant__ static NumberOfObjects numObjectsD;
 
+/// Short define of the kernel function
 #define W3h W3h_Spline
+
+/// Short define of the kernel function gradient
 #define GradWh GradWh_Spline
-// #define W3h W3h_High
-// #define GradWh GradWh_High
 
 void CopyParams_NumberOfObjects(std::shared_ptr<SimParams> paramsH, std::shared_ptr<NumberOfObjects> numObjectsH);
+
+// 3D kernel function
 //--------------------------------------------------------------------------------------------------------------------------------
-// 3D Cubic Spline SPH kernel function
-__device__ inline Real W3_Spline(Real d) {  // d is positive. h is the sph particle radius (i.e. h in
-                                            // the document) d is the distance of 2 particles
-    Real h = paramsD.HSML;
-    Real q = fabs(d) / h;
-    if (q < 1) {
-        return (0.25f / (PI * h * h * h) * (cube(2 - q) - 4 * cube(1 - q)));
-    }
-    if (q < 2) {
-        return (0.25f / (PI * h * h * h) * cube(2 - q));
-    }
-    return 0;
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-// 3D Cubic Spline SPH kernel function, takes h as an input, avoids divison operation for better speed 
-__device__ inline Real W3h_Spline(Real d, Real h) {  // d is positive. h is the sph particle radius (i.e. h in
-                                                         // the document) d is the distance of 2 particles
+// Cubic Spline SPH kernel function
+__device__ inline Real W3h_Spline(Real d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
+                                                     // the document) d is the distance of 2 particles
     Real invh = paramsD.INVHSML;
     Real q = fabs(d) * invh;
     if (q < 1) {
-        return (0.25f * (INVPI * invh * invh * invh) * (cube(2 - q) - 4 * cube(1 - q)));
+        return (0.25f * (INVPI * cube(invh)) * (cube(2 - q) - 4 * cube(1 - q)));
     }
     if (q < 2) {
-        return (0.25f * (INVPI * invh * invh * invh) * cube(2 - q));
+        return (0.25f * (INVPI * cube(invh)) * cube(2 - q));
     }
     return 0;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // Johnson kernel 1996b
-__host__ __device__ inline Real W3h_High(Real d, Real h) {  // d is positive. h is the sph particle radius (i.e. h in
-                                                            // the document) d is the distance of 2 particles
-    Real q = fabs(d) / h;
+__device__ inline Real W3h_High(Real d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
+                                                   // the document) d is the distance of 2 particles
+    Real invh = paramsD.INVHSML;
+    Real q = fabs(d) * invh;
     if (q < 2) {
-        return (5.0f / (4.0f * PI * h * h * h) * (3.0 / 16.0 * square(q) - 3.0 / 4.0 * q + 3.0 / 4.0));
+        return (1.25f * (INVPI * cube(invh)) * (0.1875f * square(q) - 0.75f * q + 0.75f));
     }
     return 0;
 }
-
 //--------------------------------------------------------------------------------------------------------------------------------
-// 3D Quintic Spline SPH kernel function
-__device__ inline Real W3H_KERNEL(Real d, Real h) {  // d is positive. h is the sph particle radius (i.e. h in
-                                                     // the document) d is the distance of 2 particles
-    Real q = fabs(d) / h;
+// Quintic Spline SPH kernel function
+__device__ inline Real W3h_Quintic(Real d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
+                                                      // the document) d is the distance of 2 particles
+    Real invh = paramsD.INVHSML;
+    Real q = fabs(d) * invh;
+    Real coeff = 8.35655e-3; // 3/359
     if (q < 1) {
-        return (3.0 / (359 * PI * h * h * h) *
-                (pow(3 - q, Real(5)) - 6 * pow(2 - q, Real(5)) + 15 * pow(1 - q, Real(5))));
+        return (coeff * INVPI * cube(invh) * (quintic(3 - q) - 6 * quintic(2 - q) + 15 * quintic(1 - q)));
     }
     if (q < 2) {
-        return (3.0 / (359 * PI * h * h * h) * (pow(3 - q, Real(5)) - 6 * pow(2 - q, Real(5))));
+        return (coeff * INVPI * cube(invh) * (quintic(3 - q) - 6 * quintic(2 - q)));
     }
     if (q < 3) {
-        return (3.0 / (359 * PI * h * h * h) * (pow(3 - q, Real(5))));
+        return (coeff * INVPI * cube(invh) * (quintic(3 - q)));
     }
     return 0;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 // Gradient of the kernel function
-// d: distance of the two particles
-__device__ inline Real3 GradW_Spline(Real3 d) {  // d is positive. r is the sph particle radius (i.e. h
-                                                 // in the document) d is the distance of 2 particles
-    Real h = paramsD.HSML;
-    Real q = length(d) / h;
-    bool less1 = (q < 1);
-    bool less2 = (q < 2);
-    return (less1 * (3 * q - 4) + less2 * (!less1) * (-q + 4.0f - 4.0f / q)) * .75f * (INVPI)*pow(h, Real(-5)) * d;
-}
-
-__device__ inline Real3 GradWh_Spline(Real3 d, Real h) {  // d is positive. r is the sph particle radius (i.e. h
+//--------------------------------------------------------------------------------------------------------------------------------
+// Gradient of Cubic Spline SPH kernel function
+__device__ inline Real3 GradWh_Spline(Real3 d, Real h) {  // d is positive. r is the sph kernel length (i.e. h
                                                           // in the document) d is the distance of 2 particles
-    Real q = length(d) * paramsD.INVHSML;
-    Real INVHSML5 = paramsD.INVHSML * paramsD.INVHSML * paramsD.INVHSML * paramsD.INVHSML * paramsD.INVHSML;
-
+    Real invh = paramsD.INVHSML;
+    Real q = length(d) * invh;
     if (abs(q) < EPSILON)
         return mR3(0.0);
     bool less1 = (q < 1);
     bool less2 = (q < 2);
-    return (less1 * (3 * q - 4.0f) + less2 * (!less1) * (-q + 4.0f - 4.0f / q)) * .75f * INVPI * INVHSML5 * d;
+    return (less1 * (3 * q - 4.0f) + less2 * (!less1) * (-q + 4.0f - 4.0f / q)) * .75f * INVPI * quintic(invh) * d;
 }
-
-__device__ inline Real3 GradWh_High(Real3 d, Real h) {  // d is positive. r is the sph particle radius (i.e. h
+//--------------------------------------------------------------------------------------------------------------------------------
+// Gradient of Johnson kernel 1996b
+__device__ inline Real3 GradWh_High(Real3 d, Real h) {  // d is positive. r is the sph kernel length (i.e. h
                                                         // in the document) d is the distance of 2 particles
-    Real q = length(d) / h;
+    Real invh = paramsD.INVHSML;
+    Real q = length(d) * invh;
     if (abs(q) < EPSILON)
         return mR3(0.0);
     bool less2 = (q < 2);
-    return (3.0 / 8.0 * q - 3.0 / 4.0) * 5.0 / 4.0 / q * (INVPI)*pow(h, Real(-5)) * d * less2;
+    return (3.0 / 8.0 * q - 3.0 / 4.0) * 5.0 / 4.0 / q * INVPI * (1.0 / quintic(h)) * d * less2;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // Gradient of Quintic Spline SPH kernel function
-__device__ inline Real3 W3H_GRADW(Real3 d, Real h) {  // d is positive. h is the sph particle radius (i.e. h in
-                                                      // the document) d is the distance of 2 particles
-    Real q = length(d) / h;
+__device__ inline Real3 W3h_Quintic(Real3 d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
+                                                        // the document) d is the distance of 2 particles
+    Real invh = paramsD.INVHSML;
+    Real q = length(d) * invh;
     if (fabs(q) < 1e-10)
         return mR3(0.0);
-
+    Real coeff = -4.178273e-2; // -15/359
     if (q < 1) {
-        return (-15.0 / (359 * PI * h * h * h * h * h * q) * d *
-                (pow(3 - q, Real(4)) - 6 * pow(2 - q, Real(4)) + 15 * pow(1 - q, Real(4))));
+        return (coeff * (INVPI * quintic(invh) / q) * d * (quartic(3 - q) - 6 * quartic(2 - q) + 15 * quartic(1 - q)));
     }
     if (q < 2) {
-        return (-15.0 / (359 * PI * h * h * h * h * h * q) * d * (pow(3 - q, Real(4)) - 6 * pow(2 - q, Real(4))));
+        return (coeff * (INVPI * quintic(invh) / q) * d * (quartic(3 - q) - 6 * quartic(2 - q)));
     }
     if (q < 3) {
-        return (-15.0 / (359 * PI * h * h * h * h * h * q) * d * (pow(3 - q, Real(4))));
+        return (coeff * (INVPI * quintic(invh) / q) * d * (quartic(3 - q)));
     }
     return mR3(0);
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
 // fluid equation of state
 __device__ inline Real Eos(Real rho, Real type) {
@@ -192,25 +174,16 @@ __device__ inline Real3 Modify_Local_PosB(Real3& b, Real3 a) {
 
     dist3 = a - b;
     // modifying the markers perfect overlap
-    Real d = length(dist3);
-    if (d < paramsD.epsMinMarkersDis * paramsD.HSML) {
-        dist3 = mR3(paramsD.epsMinMarkersDis * paramsD.HSML, 0, 0);
+    Real dd = dist3.x*dist3.x + dist3.y*dist3.y + dist3.z*dist3.z;
+    Real MinD = paramsD.epsMinMarkersDis * paramsD.HSML;
+    Real sq_MinD = MinD * MinD;
+    if (dd < sq_MinD) {
+        dist3 = mR3(MinD, 0, 0);
     }
     b = a - dist3;
     return (dist3);
 }
 
-/**
- * @brief Distance
- * @details
- *          Distance between two particles, considering the periodic boundary
- * condition
- *
- * @param a Position of Particle A
- * @param b Position of Particle B
- *
- * @return Distance vector (distance in x, distance in y, distance in z)
- */
 __device__ inline Real3 Distance(Real3 a, Real3 b) {
     return Modify_Local_PosB(b, a);
 }
@@ -242,7 +215,7 @@ __device__ inline int3 calcGridPos(Real3 p) {
     gridPos.z = (int)floor((p.z - paramsD.worldOrigin.z) / paramsD.cellSize.z);
     return gridPos;
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline uint calcGridHash(int3 gridPos) {
     gridPos.x -= ((gridPos.x >= paramsD.gridSize.x) ? paramsD.gridSize.x : 0);
     gridPos.y -= ((gridPos.y >= paramsD.gridSize.y) ? paramsD.gridSize.y : 0);

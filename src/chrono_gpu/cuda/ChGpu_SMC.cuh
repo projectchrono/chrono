@@ -11,12 +11,12 @@
 // Holds internal functions and kernels for running a sphere-sphere timestep
 //
 // =============================================================================
-// Contributors: Conlain Kelly, Nic Olsen, Dan Negrut, Ruochun Zhang
+// Contributors: Conlain Kelly, Nic Olsen, Ruochun Zhang, Dan Negrut
 // =============================================================================
 
 #pragma once
 
-//#include "chrono_thirdparty/cub/cub.cuh"
+#include <cub/cub.cuh>
 
 #include <cuda.h>
 #include <cassert>

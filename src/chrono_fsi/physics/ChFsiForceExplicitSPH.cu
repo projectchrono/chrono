@@ -20,7 +20,7 @@
 namespace chrono {
 namespace fsi {
 
-
+//--------------------------------------------------------------------------------------------------------------------------------
 __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
                                          Real3* sortedVelMas,
                                          Real4* sortedRhoPreMu,
@@ -97,6 +97,7 @@ __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
     }
 }
 
+//--------------------------------------------------------------------------------------------------------------------------------
 __device__ __inline__ void calc_A_Matrix(Real4* sortedPosRad,
                                          Real3* sortedVelMas,
                                          Real4* sortedRhoPreMu,
@@ -173,6 +174,7 @@ __device__ __inline__ void calc_A_Matrix(Real4* sortedPosRad,
 
 }
 
+//--------------------------------------------------------------------------------------------------------------------------------
 __device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
                                          Real3* sortedVelMas,
                                          Real4* sortedRhoPreMu,
@@ -500,7 +502,6 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-// modify pressure for body force
 __device__ __inline__ void modifyPressure(Real4& rhoPresMuB, const Real3& dist3Alpha) {
     // body force in x direction
     rhoPresMuB.y = (dist3Alpha.x > 0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y - paramsD.deltaPress.x) : rhoPresMuB.y;
@@ -601,6 +602,8 @@ __device__ inline Real3 CubicSolve(Real aa, Real bb, Real cc, Real dd) {
 
     return mR3(xRex, xRey, xRez);
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline Real3 CubicEigen(Real4 c1, Real4 c2, Real4 c3) {
     Real a = c1.x;
     Real b = c1.y;
@@ -659,10 +662,6 @@ __device__ inline Real3 CubicEigen(Real4 c1, Real4 c2, Real4 c3) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-/**	
- * @brief DifVelocityRho
- * @details  See SDKCollisionSystem.cuh
- */
 __device__ inline Real4 DifVelocityRho(float G_i[9],
                                        Real3 dist3,
                                        Real d,
@@ -706,7 +705,7 @@ __device__ inline Real4 DifVelocityRho(float G_i[9],
     return mR4(derivV, derivRho);
 }
 
-/// Only for modelling elastic and granular problems
+//--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline Real4 DifVelocityRho_ElasticSPH(Real3 gradW,
                                                   Real3 dist3,
                                                   Real d,
@@ -1122,6 +1121,7 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
     }
 }
 
+//--------------------------------------------------------------------------------------------------------------------------------
 __global__ void NS_SSR( Real4* sortedDerivVelRho,
                         Real3* sortedDerivTauXxYyZz,
                         Real3* sortedDerivTauXyXzYz,
@@ -1155,12 +1155,14 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
     Real4 derivVelRho = mR4(0.0);
     Real3 deltaV = mR3(0);
     Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
+    Real SqRadii = SuppRadii * SuppRadii;
 
     uint j_list[150];
     uint j_num = 0;
 
     // Get address in grid
     int3 gridPos = calcGridPos(posRadA);
+    // Find the neighbor particle list
     for (int x = -1; x <= 1; x++) {
         for (int y = -1; y <= 1; y++) {
             for (int z = -1; z <= 1; z++) {
@@ -1172,8 +1174,9 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
                     if (j != index) {
                         Real3 posRadB = mR3(sortedPosRad[j]);
                         Real3 dist3 = Distance(posRadA, posRadB); 
-                        Real d = length(dist3);
-                        if (d < SuppRadii){
+                        // Real d = length(dist3);
+                        Real dd = dist3.x*dist3.x + dist3.y*dist3.y + dist3.z*dist3.z;
+                        if (dd < SqRadii){
                             j_list[j_num] = j;
                             j_num++;
                         }
@@ -1199,6 +1202,7 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
     Real dTauxz = 0.0;
     Real dTauyz = 0.0;
 
+    // Calculate the correction matrix for gradient operator
     Real G_i[9] = {1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0};
     {
         Real mGi[9] = {0.0};
@@ -1206,8 +1210,9 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
             uint j =  j_list[n];
             Real3 posRadB = mR3(sortedPosRad[j]);
             Real3 rij = Distance(posRadA, posRadB);
-            Real d = length(rij);
-            if (d > SuppRadii || sortedRhoPreMu[j].w <= -2)
+            // Real d = length(rij);
+            Real dd = rij.x*rij.x + rij.y*rij.y + rij.z*rij.z;
+            if (dd > SqRadii || sortedRhoPreMu[j].w <= -2)
                 continue;
             Real3 grad_i_wij = GradWh(rij, hA);
             Real3 grw_vj = grad_i_wij * paramsD.volume0;
@@ -1251,6 +1256,8 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
     Real sum_w_i = W3h(0.0, sortedPosRad[index].w) * cube(sortedPosRad[index].w * paramsD.MULT_INITSPACE);
     int N_ = 1;
     int N_s = 0;
+
+    // Get the interaction from neighbor particles
     for(uint n = 0; n < j_num; n++){
         uint j =  j_list[n];
         Real3 posRadB = mR3(sortedPosRad[j]);
@@ -1259,8 +1266,8 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
         if (d > SuppRadii)
             continue;
         Real4 rhoPresMuB = sortedRhoPreMu[j];
-        if (rhoPresMuA.w > -.1 && rhoPresMuB.w > -.1) {  // no rigid-rigid force
-            continue;
+        if (rhoPresMuA.w > -.1 && rhoPresMuB.w > -.1) {  
+            continue; // No BCE-BCE interaction
         }
         Real invd = 1.0 / d;
         Real3 velMasB = sortedVelMas[j];
@@ -1281,10 +1288,10 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
         gradW_new.z = G_i[6]*gradW.x + G_i[7]*gradW.y + G_i[8]*gradW.z;
         gradW = gradW_new;
         derivVelRho += DifVelocityRho_ElasticSPH(gradW, dist3, d, invd, 
-                                    sortedPosRad[index], sortedPosRad[j], velMasA, velMasA,
-                                    velMasB, velMasB, rhoPresMuA, rhoPresMuB, multViscosit,
-                                    sortedTauXxYyZz[index], sortedTauXyXzYz[index],
-                                    sortedTauXxYyZz[j], sortedTauXyXzYz[j]);
+            sortedPosRad[index], sortedPosRad[j], velMasA, velMasA,
+            velMasB, velMasB, rhoPresMuA, rhoPresMuB, multViscosit,
+            sortedTauXxYyZz[index], sortedTauXyXzYz[index],
+            sortedTauXxYyZz[j], sortedTauXyXzYz[j]);
         if(sortedRhoPreMu[index].w < -0.5){
             // start to calculate the stress rate
             Real Gm = paramsD.G_shear;  // shear modulus of the material
@@ -1372,7 +1379,7 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
     shift_r[index] += paramsD.EPS_XSPH * deltaV * paramsD.dT;
     shift_r[index] = shift_r[index] * (1.0 / paramsD.dT);
 
-    // add gravity other body force to fluid markers
+    // Add gravity and other body force to fluid markers
     if (rhoPresMuA.w > -1.5 && rhoPresMuA.w < -0.5){
         Real3 totalFluidBodyForce3 = paramsD.bodyForce3 + paramsD.gravity;
         derivVelRho += mR4(totalFluidBodyForce3);    
@@ -1525,10 +1532,11 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
             ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcRho_kernel");
     }
     
-    if(paramsH->elastic_SPH){
+    if(paramsH->elastic_SPH){ // For granular material
         // execute the kernel Navier_Stokes and Shear_Stress_Rate in one kernel
         *isErrorH = false;
         cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+
         // execute the kernel
         NS_SSR<<<numBlocks, numThreads>>>(
             mR4CAST(sortedDerivVelRho),mR3CAST(sortedDerivTauXxYyZz), mR3CAST(sortedDerivTauXyXzYz),
@@ -1540,7 +1548,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
             U1CAST(markersProximityD->cellEndD), numObjectsH->numAllMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Navier_Stokes and Shear_Stress_Rate");
     }
-    else{
+    else{ // For fluid 
         // EOS<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->rhoPresMuD),
         // numObjectsH->numAllMarkers, isErrorD);
         // ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "EOS");
@@ -1551,25 +1559,27 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         Real MaxVel = length(*iter);
         *isErrorH = false;
         cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+
         // execute the kernel
         Navier_Stokes<<<numBlocks, numThreads>>>(
             mR4CAST(sortedDerivVelRho), mR3CAST(shift_r), mR4CAST(sortedSphMarkersD->posRadD),
             mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             mR3CAST(bceWorker->velMas_ModifiedBCE), mR4CAST(bceWorker->rhoPreMu_ModifiedBCE),
-            mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD),  //
+            mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD), 
             U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
             U1CAST(markersProximityD->cellEndD), numObjectsH->numAllMarkers, MaxVel, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Navier_Stokes");
     }
 
-    CopySortedToOriginal_Invasive_R4(fsiGeneralData->derivVelRhoD_old, sortedDerivVelRho,
-                                    markersProximityD->gridMarkerIndexD);
+    CopySortedToOriginal_Invasive_R4(fsiGeneralData->derivVelRhoD_old, 
+        sortedDerivVelRho, markersProximityD->gridMarkerIndexD);
     if(paramsH->elastic_SPH){
-        CopySortedToOriginal_Invasive_R3(fsiGeneralData->derivTauXxYyZzD, sortedDerivTauXxYyZz,
-                                         markersProximityD->gridMarkerIndexD);
-        CopySortedToOriginal_Invasive_R3(fsiGeneralData->derivTauXyXzYzD, sortedDerivTauXyXzYz,
-                                         markersProximityD->gridMarkerIndexD);
+        CopySortedToOriginal_Invasive_R3(fsiGeneralData->derivTauXxYyZzD, 
+            sortedDerivTauXxYyZz, markersProximityD->gridMarkerIndexD);
+        CopySortedToOriginal_Invasive_R3(fsiGeneralData->derivTauXyXzYzD, 
+            sortedDerivTauXyXzYz, markersProximityD->gridMarkerIndexD);
     }
+
     sortedDerivVelRho.clear();
     sortedDerivTauXxYyZz.clear(); 
     sortedDerivTauXyXzYz.clear(); 
@@ -1584,8 +1594,8 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
 void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     /* Calculate vel_XSPH */
     if (vel_XSPH_Sorted_D.size() != numObjectsH->numAllMarkers) {
-        printf("vel_XSPH_Sorted_D.size() %zd numObjectsH->numAllMarkers %zd \n", vel_XSPH_Sorted_D.size(),
-               numObjectsH->numAllMarkers);
+        printf("vel_XSPH_Sorted_D.size() %zd numObjectsH->numAllMarkers %zd \n", 
+            vel_XSPH_Sorted_D.size(), numObjectsH->numAllMarkers);
         throw std::runtime_error(
             "Error! size error vel_XSPH_Sorted_D Thrown from "
             "CalculateXSPH_velocity!\n");
@@ -1624,8 +1634,8 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     }
 
     if (density_initialization % paramsH->densityReinit == 0)
-        CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkersD->rhoPresMuD,
-                                            markersProximityD->gridMarkerIndexD);
+        CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, 
+            sortedSphMarkersD->rhoPresMuD, markersProximityD->gridMarkerIndexD);
     cudaFree(isErrorD);
     free(isErrorH);
 }

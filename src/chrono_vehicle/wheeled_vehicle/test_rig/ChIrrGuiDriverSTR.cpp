@@ -16,8 +16,7 @@
 // This class implements the functionality required by its base ChDriverSTR
 // class using keyboard inputs.
 // As an Irrlicht event receiver, its OnEvent() callback is used to keep track
-// and update the current driver inputs. As such it does not need to override
-// the default no-op Advance() virtual method.
+// and update the current inputs.
 //
 // =============================================================================
 
@@ -30,15 +29,11 @@ using namespace irr;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChIrrGuiDriverSTR::ChIrrGuiDriverSTR(irrlicht::ChIrrApp& app)
-    : m_app(app), m_displDelta(1.0 / 50), m_steeringDelta(1.0 / 250) {
+    : m_current_post(0), m_msg("Active post: 0"), m_app(app), m_displDelta(1.0 / 50), m_steeringDelta(1.0 / 250) {
     app.SetUserEventReceiver(this);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 bool ChIrrGuiDriverSTR::OnEvent(const SEvent& event) {
     if (m_app.GetSystem()->GetChTime() < m_delay)
         return false;
@@ -49,17 +44,27 @@ bool ChIrrGuiDriverSTR::OnEvent(const SEvent& event) {
 
     if (event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
+            case KEY_ADD:
+            case KEY_PLUS:
+                m_current_post = (m_current_post + 1) % m_naxles;
+                m_msg = "Active post: " + std::to_string(m_current_post);
+                return true;
+            case KEY_SUBTRACT:
+            case KEY_MINUS:
+                m_current_post = (m_current_post == 0) ? m_naxles - 1 : m_current_post - 1;
+                m_msg = "Active post: " + std::to_string(m_current_post);
+                return true;
             case KEY_KEY_T:  // left post up
-                SetDisplacementLeft(m_displLeft + m_displDelta);
+                SetDisplacementLeft(m_current_post, m_displLeft[m_current_post] + m_displDelta);
                 return true;
             case KEY_KEY_G:  // left post down
-                SetDisplacementLeft(m_displLeft - m_displDelta);
+                SetDisplacementLeft(m_current_post, m_displLeft[m_current_post] - m_displDelta);
                 return true;
             case KEY_KEY_Y:  // right post up
-                SetDisplacementRight(m_displRight + m_displDelta);
+                SetDisplacementRight(m_current_post, m_displRight[m_current_post] + m_displDelta);
                 return true;
             case KEY_KEY_H:  // right post down
-                SetDisplacementRight(m_displRight - m_displDelta);
+                SetDisplacementRight(m_current_post, m_displRight[m_current_post] - m_displDelta);
                 return true;
             case KEY_KEY_A:
                 SetSteering(m_steering - m_steeringDelta);

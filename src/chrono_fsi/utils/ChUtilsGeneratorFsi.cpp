@@ -31,11 +31,10 @@
 namespace chrono {
 namespace fsi {
 namespace utils {
+
 void FinalizeDomain(std::shared_ptr<fsi::SimParams> paramsH) {
     paramsH->NUM_BOUNDARY_LAYERS = 3;
-    paramsH->ApplyInFlowOutFlow = false;
-    paramsH->Apply_BC_U = false;  ///< You should go to custom_math.h all the way to end of file and set your function
-    paramsH->ApplyInFlowOutFlow = false;
+    paramsH->Apply_BC_U = false;  // You should go to custom_math.h all the way to end of file and set your function
     int3 side0 = mI3((int)floor((paramsH->cMax.x - paramsH->cMin.x) / (2 * paramsH->HSML)),
                      (int)floor((paramsH->cMax.y - paramsH->cMin.y) / (2 * paramsH->HSML)),
                      (int)floor((paramsH->cMax.z - paramsH->cMin.z) / (2 * paramsH->HSML)));
@@ -89,8 +88,8 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
                                            std::shared_ptr<fsi::SimParams> paramsH,
                                            const thrust::host_vector<Real4>& posRadBCE,
                                            std::shared_ptr<ChBody> body,
-                                           ChVector<> collisionShapeRelativePos,
-                                           ChQuaternion<> collisionShapeRelativeRot,
+                                           const ChVector<>& collisionShapeRelativePos,
+                                           const ChQuaternion<>& collisionShapeRelativeRot,
                                            bool isSolid,
                                            bool add_to_fluid_helpers,
                                            bool add_to_previous_object) {
@@ -111,8 +110,8 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
     if (isSolid) {
         object = refSize4.w + !add_to_previous_object;
         type = 1;
-        printf("adding solid object %d, type is %d, ref size=%zd\n", object, type,
-               fsiSystem->fsiGeneralData->referenceArray.size());
+        // printf("adding solid object %d, type is %d, ref size=%zd\n", object, type,
+        //        fsiSystem->fsiGeneralData->referenceArray.size());
     }
 
     if (type < 0) {
@@ -145,17 +144,18 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
     // Modify number of objects
     // ------------------------
     size_t numBce = posRadBCE.size();
-    printf("type=%d ", type);
+    printf("Particle Type = %d ", type);
+    printf("Pushing back to reference array\n");
 
     fsiSystem->numObjects->numAllMarkers += numBce;
     // For helper markers
     if (type == -3 && fsiSystem->fsiGeneralData->referenceArray.size() != 1) {
-        fsiSystem->fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)posRadBCE.size(), -3, -1));
+        fsiSystem->fsiGeneralData->referenceArray.push_back(
+            mI4(refSize4.y, refSize4.y + (int)posRadBCE.size(), -3, -1));
     }  // For boundary
     else if ((type == 0 || (add_to_previous_object && type == 1)) && !add_to_fluid_helpers) {
         fsiSystem->numObjects->numBoundaryMarkers += numBce;
         if (refSize4.w == -1) {
-            printf("pushing back to refarr\n");
             fsiSystem->fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)numBce, 0, 0));
         } else if (refSize4.w == 0 || (refSize4.w && add_to_previous_object)) {
             refSize4.y = refSize4.y + (int)numBce;
@@ -163,9 +163,8 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
         }
     } else if (!add_to_fluid_helpers) {
         if (fsiSystem->fsiGeneralData->referenceArray.size() < 2) {
-            printf(
-                "Error! Boundary markers are not initialized while trying to "
-                "initialize rigid marker!\n\n");
+            printf("Error! Boundary markers are not initialized while trying to "
+                   "initialize rigid marker!\n\n");
             std::cin.get();
         }
         fsiSystem->numObjects->numRigid_SphMarkers += numBce;
@@ -173,10 +172,9 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
         fsiSystem->numObjects->startRigidMarkers = fsiSystem->fsiGeneralData->referenceArray[1].y;
         fsiSystem->fsiGeneralData->referenceArray.push_back(
             mI4(refSize4.y, refSize4.y + (int)numBce, 1, object));  // 1: for rigid
-        printf("refSize4.y=%d, refSize4.y + numBce = %d, %d, type=,%d\n", refSize4.y, refSize4.y + (int)numBce, 1,
-               object);
+        // printf("refSize4.y = %d, refSize4.y + numBce = %d, %d, Particle Type = ,%d\n", 
+        //        refSize4.y, refSize4.y + (int)numBce, 1, object);
     }
-
 }
 // =============================================================================
 void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
@@ -188,39 +186,40 @@ void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(std::shared_ptr<ChSystemFsi
     fea::ChElementCableANCF::ShapeVector N;
     double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
 
-    chrono::ChVector<> Element_Axis = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).GetNormalized();
+    ChVector<> Element_Axis = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).GetNormalized();
     printf(" Element_Axis= %f, %f, %f\n", Element_Axis.x(), Element_Axis.y(), Element_Axis.z());
 
-    chrono::ChVector<> Old_axis = ChVector<>(1, 0, 0);
-    chrono::ChQuaternion<double> Rotation = (Q_from_Vect_to_Vect(Old_axis, Element_Axis));
+    ChVector<> Old_axis = ChVector<>(1, 0, 0);
+    ChQuaternion<double> Rotation = (Q_from_Vect_to_Vect(Old_axis, Element_Axis));
     Rotation.Normalize();
-    chrono::ChVector<> new_y_axis = Rotation.Rotate(ChVector<>(0, 1, 0));
-    chrono::ChVector<> new_z_axis = Rotation.Rotate(ChVector<>(0, 0, 1));
+    ChVector<> new_y_axis = Rotation.Rotate(ChVector<>(0, 1, 0));
+    ChVector<> new_z_axis = Rotation.Rotate(ChVector<>(0, 0, 1));
 
-    chrono::ChVector<> physic_to_natural(1 / dx, 1, 1);
+    ChVector<> physic_to_natural(1 / dx, 1, 1);
 
-    chrono::ChVector<> nAp = cable->GetNodeA()->GetPos();
-    chrono::ChVector<> nBp = cable->GetNodeB()->GetPos();
+    ChVector<> nAp = cable->GetNodeA()->GetPos();
+    ChVector<> nBp = cable->GetNodeB()->GetPos();
 
-    chrono::ChVector<> nAv = cable->GetNodeA()->GetPos_dt();
-    chrono::ChVector<> nBv = cable->GetNodeB()->GetPos_dt();
+    ChVector<> nAv = cable->GetNodeA()->GetPos_dt();
+    ChVector<> nBv = cable->GetNodeB()->GetPos_dt();
 
     int posRadSizeModified = 0;
 
     printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
     for (size_t i = 0; i < posRadBCE.size(); i++) {
-        chrono::ChVector<> pos_physical = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
+        ChVector<> pos_physical = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
 
-        chrono::ChVector<> pos_natural = pos_physical * physic_to_natural;
+        ChVector<> pos_natural = pos_physical * physic_to_natural;
 
         cable->ShapeFunctions(N, pos_natural.x());
 
         Real2 NFSI = Cables_ShapeFunctions(pos_natural.x());
+        ChVector<> NFSI_Chvector = ChUtilsTypeConvert::Real2ToChVector(NFSI);
 
-        chrono::ChVector<> Normal;
+        ChVector<> Normal;
 
-        chrono::ChVector<> Correct_Pos =
-            NFSI.x * nAp + NFSI.y * nBp + new_y_axis * pos_physical.y() + new_z_axis * pos_physical.z();
+        ChVector<> Correct_Pos =
+            NFSI_Chvector.x() * nAp + NFSI_Chvector.y() * nBp + new_y_axis * pos_physical.y() + new_z_axis * pos_physical.z();
 
         printf(" physic_to_natural is = (%f,%f,%f)\n", physic_to_natural.x(), physic_to_natural.y(),
                physic_to_natural.z());
@@ -251,8 +250,9 @@ void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(std::shared_ptr<ChSystemFsi
         if (addthis) {
             fsiSystem->sphMarkersH->posRadH.push_back(
                 mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
-            fsiSystem->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_physical));
-            chrono::ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + ChVector<double>(1e-20);
+            fsiSystem->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(
+                ChUtilsTypeConvert::ChVectorToReal3(pos_physical));
+            ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + ChVector<double>(1e-20);
             Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
             fsiSystem->sphMarkersH->velMasH.push_back(v3);
             fsiSystem->sphMarkersH->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, type));
@@ -307,31 +307,31 @@ void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(std::shared_ptr<ChSystemFsi
 
     Real dx = shell->GetLengthX();
     Real dy = shell->GetLengthY();
-    chrono::ChVector<> physic_to_natural(2 / dx, 2 / dy, 1);
-    chrono::ChVector<> nAp = shell->GetNodeA()->GetPos();
-    chrono::ChVector<> nBp = shell->GetNodeB()->GetPos();
-    chrono::ChVector<> nCp = shell->GetNodeC()->GetPos();
-    chrono::ChVector<> nDp = shell->GetNodeD()->GetPos();
+    ChVector<> physic_to_natural(2 / dx, 2 / dy, 1);
+    ChVector<> nAp = shell->GetNodeA()->GetPos();
+    ChVector<> nBp = shell->GetNodeB()->GetPos();
+    ChVector<> nCp = shell->GetNodeC()->GetPos();
+    ChVector<> nDp = shell->GetNodeD()->GetPos();
 
-    chrono::ChVector<> nAv = shell->GetNodeA()->GetPos_dt();
-    chrono::ChVector<> nBv = shell->GetNodeB()->GetPos_dt();
-    chrono::ChVector<> nCv = shell->GetNodeC()->GetPos_dt();
-    chrono::ChVector<> nDv = shell->GetNodeD()->GetPos_dt();
+    ChVector<> nAv = shell->GetNodeA()->GetPos_dt();
+    ChVector<> nBv = shell->GetNodeB()->GetPos_dt();
+    ChVector<> nCv = shell->GetNodeC()->GetPos_dt();
+    ChVector<> nDv = shell->GetNodeD()->GetPos_dt();
 
     printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
     for (size_t i = 0; i < posRadBCE.size(); i++) {
-        chrono::ChVector<> pos_physical = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
-        chrono::ChVector<> pos_natural = pos_physical * physic_to_natural;
+        ChVector<> pos_physical = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
+        ChVector<> pos_natural = pos_physical * physic_to_natural;
 
         shell->ShapeFunctions(N, pos_natural.x(), pos_natural.y(), pos_natural.z());
-        chrono::ChVector<> x_dir = (nBp - nAp + nCp - nDp);
-        chrono::ChVector<> y_dir = (nCp - nBp + nDp - nAp);
-        chrono::ChVector<> Normal;
+        ChVector<> x_dir = (nBp - nAp + nCp - nDp);
+        ChVector<> y_dir = (nCp - nBp + nDp - nAp);
+        ChVector<> Normal;
         Normal.Cross(x_dir, y_dir);
         Normal.Normalize();
 
-        chrono::ChVector<> Correct_Pos = N(0) * nAp + N(2) * nBp + N(4) * nCp + N(6) * nDp +
-                                         Normal * pos_physical.z() * my_h * paramsH->MULT_INITSPACE_Shells;
+        ChVector<> Correct_Pos = N(0) * nAp + N(2) * nBp + N(4) * nCp + N(6) * nDp +
+                                 Normal * pos_physical.z() * my_h * paramsH->MULT_INITSPACE_Shells;
 
         if ((Correct_Pos.x() < paramsH->cMin.x || Correct_Pos.x() > paramsH->cMax.x) ||
             (Correct_Pos.y() < paramsH->cMin.y || Correct_Pos.y() > paramsH->cMax.y) ||
@@ -353,9 +353,10 @@ void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(std::shared_ptr<ChSystemFsi
         if (addthis) {
             fsiSystem->sphMarkersH->posRadH.push_back(
                 mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
-            fsiSystem->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
+            fsiSystem->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(
+                ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
 
-            chrono::ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + N(4) * nCv + N(6) * nDv;
+            ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + N(4) * nCv + N(6) * nDv;
             Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
             fsiSystem->sphMarkersH->velMasH.push_back(v3);
             fsiSystem->sphMarkersH->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, type));
@@ -388,8 +389,8 @@ void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(std::shared_ptr<ChSystemFsi
     printf(" x=%d, y=%d, z=%d, w=%d\n", test.x, test.y, test.z, test.w);
 
     if (fsiSystem->numObjects->numFlexBodies2D != fsiSystem->fsiGeneralData->referenceArray.size() - 2 -
-                                                    fsiSystem->numObjects->numRigidBodies -
-                                                    fsiSystem->numObjects->numFlexBodies1D) {
+                                                      fsiSystem->numObjects->numRigidBodies -
+                                                      fsiSystem->numObjects->numFlexBodies1D) {
         printf("Error! num rigid Flexible does not match reference array size!\n\n");
         std::cin.get();
     }
@@ -401,8 +402,8 @@ void CreateBceGlobalMarkersFromBceLocalPosBoundary(std::shared_ptr<ChSystemFsi_i
                                                    std::shared_ptr<fsi::SimParams> paramsH,
                                                    const thrust::host_vector<Real4>& posRadBCE,
                                                    std::shared_ptr<ChBody> body,
-                                                   ChVector<> collisionShapeRelativePos,
-                                                   ChQuaternion<> collisionShapeRelativeRot,
+                                                   const ChVector<>& collisionShapeRelativePos,
+                                                   const ChQuaternion<>& collisionShapeRelativeRot,
                                                    bool isSolid,
                                                    bool add_to_previous) {
     CreateBceGlobalMarkersFromBceLocalPos(fsiSystem, paramsH, posRadBCE, body, collisionShapeRelativePos,
@@ -412,8 +413,8 @@ void CreateBceGlobalMarkersFromBceLocalPosBoundary(std::shared_ptr<ChSystemFsi_i
 void AddSphereBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                   std::shared_ptr<fsi::SimParams> paramsH,
                   std::shared_ptr<ChBody> body,
-                  ChVector<> relPos,
-                  ChQuaternion<> relRot,
+                  const ChVector<>& relPos,
+                  const ChQuaternion<>& relRot,
                   Real radius) {
     thrust::host_vector<Real4> posRadBCE;
     CreateBCE_On_Sphere(posRadBCE, radius, paramsH);
@@ -424,8 +425,8 @@ void AddSphereBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
 void AddCylinderBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                     std::shared_ptr<fsi::SimParams> paramsH,
                     std::shared_ptr<ChBody> body,
-                    ChVector<> relPos,
-                    ChQuaternion<> relRot,
+                    const ChVector<>& relPos,
+                    const ChQuaternion<>& relRot,
                     Real radius,
                     Real height,
                     Real kernel_h,
@@ -439,8 +440,8 @@ void AddCylinderBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
 void AddConeBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                 std::shared_ptr<fsi::SimParams> paramsH,
                 std::shared_ptr<ChBody> body,
-                ChVector<> relPos,
-                ChQuaternion<> relRot,
+                const ChVector<>& relPos,
+                const ChQuaternion<>& relRot,
                 Real radius,
                 Real height,
                 Real kernel_h,
@@ -454,8 +455,8 @@ void AddConeBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
 void AddCylinderSurfaceBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                            std::shared_ptr<fsi::SimParams> paramsH,
                            std::shared_ptr<ChBody> body,
-                           ChVector<> relPos,
-                           ChQuaternion<> relRot,
+                           const ChVector<>& relPos,
+                           const ChQuaternion<>& relRot,
                            Real radius,
                            Real height,
                            Real kernel_h) {
@@ -470,8 +471,8 @@ void AddCylinderSurfaceBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
 void AddSphereSurfaceBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                          std::shared_ptr<fsi::SimParams> paramsH,
                          std::shared_ptr<ChBody> body,
-                         ChVector<> relPos,
-                         ChQuaternion<> relRot,
+                         const ChVector<>& relPos,
+                         const ChQuaternion<>& relRot,
                          Real radius,
                          Real kernel_h) {
     thrust::host_vector<Real4> posRadBCE;
@@ -485,8 +486,8 @@ void AddSphereSurfaceBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
 void AddBoxBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                std::shared_ptr<fsi::SimParams> paramsH,
                std::shared_ptr<ChBody> body,
-               ChVector<> relPos,
-               ChQuaternion<> relRot,
+               const ChVector<>& relPos,
+               const ChQuaternion<>& relRot,
                const ChVector<>& size,
                int plane,
                bool isSolid,
@@ -501,9 +502,9 @@ void AddBoxBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
 void AddBCE_FromPoints(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                        std::shared_ptr<SimParams> paramsH,
                        std::shared_ptr<ChBody> body,
-                       const std::vector<chrono::ChVector<>>& points,
-                       chrono::ChVector<> collisionShapeRelativePos,
-                       chrono::ChQuaternion<> collisionShapeRelativeRot) {
+                       const std::vector<ChVector<>>& points,
+                       const ChVector<>& collisionShapeRelativePos,
+                       const ChQuaternion<>& collisionShapeRelativeRot) {
     thrust::host_vector<Real4> posRadBCE;
     for (auto& p : points)
         posRadBCE.push_back(mR4(p.x(), p.y(), p.z(), paramsH->HSML));
@@ -515,8 +516,8 @@ void AddBCE_FromFile(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                      std::shared_ptr<fsi::SimParams> paramsH,
                      std::shared_ptr<ChBody> body,
                      std::string dataPath,
-                     ChVector<> collisionShapeRelativePos,
-                     ChQuaternion<> collisionShapeRelativeRot,
+                     const ChVector<>& collisionShapeRelativePos,
+                     const ChQuaternion<>& collisionShapeRelativeRot,
                      double scale,
                      bool isSolid) {
     thrust::host_vector<Real4> posRadBCE;
@@ -532,7 +533,7 @@ void CreateSphereFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                      std::shared_ptr<fsi::SimParams> paramsH,
                      std::shared_ptr<ChMaterialSurface> mat_prop,
                      Real density,
-                     ChVector<> pos,
+                     const ChVector<>& pos,
                      Real radius) {
     auto body = chrono_types::make_shared<ChBody>();
     body->SetBodyFixed(false);
@@ -559,8 +560,8 @@ void CreateCylinderFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                        std::shared_ptr<fsi::SimParams> paramsH,
                        std::shared_ptr<ChMaterialSurface> mat_prop,
                        Real density,
-                       ChVector<> pos,
-                       ChQuaternion<> rot,
+                       const ChVector<>& pos,
+                       const ChQuaternion<>& rot,
                        Real radius,
                        Real length) {
     auto body = chrono_types::make_shared<ChBody>();
@@ -590,8 +591,8 @@ void CreateBoxFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                   std::shared_ptr<fsi::SimParams> paramsH,
                   std::shared_ptr<ChMaterialSurface> mat_prop,
                   Real density,
-                  ChVector<> pos,
-                  ChQuaternion<> rot,
+                  const ChVector<>& pos,
+                  const ChQuaternion<>& rot,
                   const ChVector<>& hsize) {
     auto body = chrono_types::make_shared<ChBody>();
     body->SetBodyFixed(false);
@@ -798,6 +799,7 @@ void AddBCE_FromMesh(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
         }
     }
 }
+
 }  // end namespace utils
 }  // end namespace fsi
 }  // end namespace chrono

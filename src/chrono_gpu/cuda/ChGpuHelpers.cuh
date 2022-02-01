@@ -20,7 +20,7 @@
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 #include "chrono_gpu/ChGpuDefines.h"
 
-#include "chrono_thirdparty/cub/cub.cuh"
+#include <cub/cub.cuh>
 
 using chrono::gpu::ChSystemGpu_impl;
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;

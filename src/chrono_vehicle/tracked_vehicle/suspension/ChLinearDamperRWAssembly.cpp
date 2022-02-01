@@ -65,7 +65,7 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
     // x-axis aligned with the line between the arm-chassis connection point and
     // the arm-wheel connection point.
     ChVector<> y_dir = susp_to_abs.GetA().Get_A_Yaxis();
-    ChVector<> u = susp_to_abs.GetPos() - points[ARM_CHASSIS];
+    ChVector<> u = points[ARM_WHEEL] - points[ARM_CHASSIS];
     u.Normalize();
     ChVector<> w = Vcross(u, y_dir);
     w.Normalize();
@@ -89,18 +89,20 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
     m_pAS = m_arm->TransformPointParentToLocal(points[SHOCK_A]);
     m_dY = m_arm->TransformDirectionParentToLocal(y_dir);
 
+    ChQuaternion<> z2y = susp_to_abs.GetRot() * Q_from_AngX(-CH_C_PI_2);
+
     // Create and initialize the revolute joint between arm and chassis.
     // The axis of rotation is the y axis of the suspension reference frame.
-    m_revolute = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::REVOLUTE, m_name + "_revolute", chassis->GetBody(), m_arm,
-        ChCoordsys<>(points[ARM_CHASSIS], susp_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)), getArmBushingData());
+    m_revolute = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_revolute",
+                                                           chassis->GetBody(), m_arm,
+                                                           ChCoordsys<>(points[ARM_CHASSIS], z2y), getArmBushingData());
     chassis->AddJoint(m_revolute);
 
     // Create and initialize the rotational spring torque element.
-    m_spring = chrono_types::make_shared<ChLinkRotSpringCB>();
+    // The reference RSDA frame is aligned with the chassis frame.
+    m_spring = chrono_types::make_shared<ChLinkRSDA>();
     m_spring->SetNameString(m_name + "_spring");
-    m_spring->Initialize(chassis->GetBody(), m_arm,
-                         ChCoordsys<>(points[ARM_CHASSIS], susp_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
+    m_spring->Initialize(chassis->GetBody(), m_arm, ChCoordsys<>(points[ARM_CHASSIS], z2y));
     m_spring->RegisterTorqueFunctor(GetSpringTorqueFunctor());
     chassis->GetSystem()->AddLink(m_spring);
 
@@ -127,7 +129,7 @@ double ChLinearDamperRWAssembly::GetMass() const {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double ChLinearDamperRWAssembly::GetCarrierAngle() const {
-    return m_spring->GetRelAngle();
+    return m_spring->GetAngle();
 }
 
 // -----------------------------------------------------------------------------
@@ -228,7 +230,7 @@ void ChLinearDamperRWAssembly::ExportComponentList(rapidjson::Document& jsonDocu
     ChPart::ExportJointList(jsonDocument, joints);
     ChPart::ExportBodyLoadList(jsonDocument, bushings);
 
-    std::vector<std::shared_ptr<ChLinkRotSpringCB>> rot_springs;
+    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
     rot_springs.push_back(m_spring);
     ChPart::ExportRotSpringList(jsonDocument, rot_springs);
 
@@ -254,7 +256,7 @@ void ChLinearDamperRWAssembly::Output(ChVehicleOutput& database) const {
     database.WriteJoints(joints);
     database.WriteBodyLoads(bushings);
 
-    std::vector<std::shared_ptr<ChLinkRotSpringCB>> rot_springs;
+    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
     rot_springs.push_back(m_spring);
     database.WriteRotSprings(rot_springs);
 

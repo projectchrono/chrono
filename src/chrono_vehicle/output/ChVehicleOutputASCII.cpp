@@ -123,6 +123,7 @@ void ChVehicleOutputASCII::WriteCouples(const std::vector<std::shared_ptr<ChShaf
 void ChVehicleOutputASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
     for (auto spring : springs) {
         m_stream << "    lin spring: " << spring->GetIdentifier() << " \"" << spring->GetNameString() << "\" ";
+        m_stream << spring->GetPoint1Abs() << " " << spring->GetPoint2Abs() << " ";
         m_stream << spring->GetLength() << " " << spring->GetVelocity() << " ";
         m_stream << spring->GetForce() << " ";
         m_stream << std::endl;
@@ -130,11 +131,11 @@ void ChVehicleOutputASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChL
     }
 }
 
-void ChVehicleOutputASCII::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) {
+void ChVehicleOutputASCII::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
     for (auto spring : springs) {
         m_stream << "    rot spring: " << spring->GetIdentifier() << " \"" << spring->GetNameString() << "\" ";
-        m_stream << spring->GetRotSpringAngle() << " " << spring->GetRotSpringSpeed() << " ";
-        m_stream << spring->GetRotSpringTorque() << " ";
+        m_stream << spring->GetAngle() << " " << spring->GetVelocity() << " ";
+        m_stream << spring->GetTorque() << " ";
         m_stream << std::endl;
         //// TODO
     }

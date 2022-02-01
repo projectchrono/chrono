@@ -16,7 +16,10 @@
 // =============================================================================
 
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/solver/ChSolverPSOR.h"
+
+#include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
@@ -31,11 +34,11 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #ifdef CHRONO_MUMPS
-#include "chrono_mumps/ChSolverMumps.h"
+    #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
 using namespace chrono;
@@ -49,8 +52,13 @@ using std::endl;
 // USER SETTINGS
 // =============================================================================
 
-// Simulation step size
-double step_size = 1e-3;
+// Rig construction
+bool use_JSON = false;
+std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json");
+////std::string filename("M113/track_assembly/M113_TrackAssemblyDoublePin_Left.json");
+
+TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
+bool add_track_RSDA = true;
 
 // Specification of test rig inputs
 enum class DriverMode {
@@ -63,16 +71,31 @@ std::string road_file("M113/test_rig/TTR_road.dat");      // used for mode=ROADP
 double road_speed = 10;                                   // used for mode=ROADPROFILE
 DriverMode driver_mode = DriverMode::ROADPROFILE;
 
-bool use_JSON = false;
-std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json");
-////std::string filename("M113/track_assembly/M113_TrackAssemblyDoublePin_Left.json");
+// Contact method
+ChContactMethod contact_method = ChContactMethod::SMC;
 
-// Use HHT + MKL / MUMPS
-bool use_mkl = false;
-bool use_mumps = false;
+// Simulation step size
+double step_size_NSC = 1e-3;
+double step_size_SMC = 5e-4;
 
-// Solver output level (MKL and MUMPS)
+// Solver and integrator types
+////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
+////ChSolver::Type slvr_type = ChSolver::Type::PSOR;
+////ChSolver::Type slvr_type = ChSolver::Type::MINRES;
+////ChSolver::Type slvr_type = ChSolver::Type::GMRES;
+////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_LU;
+////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_QR;
+ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
+////ChSolver::Type slvr_type = ChSolver::Type::MUMPS;
+
+////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT;
+ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+////ChTimestepper::Type intgr_type = ChTimestepper::Type::HHT;
+
+// Verbose output level (solver and integrator)
 bool verbose_solver = false;
+bool verbose_integrator = false;
 
 // Output collection
 bool output = true;
@@ -80,6 +103,113 @@ const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
 double out_step_size = 1e-2;
 
 // =============================================================================
+
+void SelectSolver(ChSystem& sys, ChSolver::Type& solver_type, ChTimestepper::Type& integrator_type) {
+    // For NSC systems, use implicit linearized Euler and an iterative VI solver
+    if (sys.GetContactMethod() == ChContactMethod::NSC) {
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+        if (solver_type != ChSolver::Type::BARZILAIBORWEIN && solver_type != ChSolver::Type::APGD &&
+            solver_type != ChSolver::Type::PSOR && solver_type != ChSolver::Type::PSSOR) {
+            solver_type = ChSolver::Type::BARZILAIBORWEIN;
+        }
+    }
+
+    // If none of the direct sparse solver modules is enabled, default to SPARSE_QR
+    if (solver_type == ChSolver::Type::PARDISO_MKL) {
+#ifndef CHRONO_PARDISO_MKL
+        solver_type = ChSolver::Type::SPARSE_QR;
+#endif
+    } else if (solver_type == ChSolver::Type::PARDISO_PROJECT) {
+#ifndef CHRONO_PARDISOPROJECT
+        solver_type = ChSolver::Type::SPARSE_QR;
+#endif
+    } else if (solver_type == ChSolver::Type::MUMPS) {
+#ifndef CHRONO_MUMPS
+        solver_type = ChSolver::Type::SPARSE_QR;
+#endif
+    }
+
+    if (solver_type == ChSolver::Type::PARDISO_MKL) {
+#ifdef CHRONO_PARDISO_MKL
+        auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+        solver->LockSparsityPattern(true);
+        sys.SetSolver(solver);
+#endif
+    } else if (solver_type == ChSolver::Type::PARDISO_PROJECT) {
+#ifdef CHRONO_PARDISOPROJECT
+        auto solver = chrono_types::make_shared<ChSolverPardisoProject>();
+        solver->LockSparsityPattern(true);
+        sys->SetSolver(solver);
+#endif
+    } else if (solver_type == ChSolver::Type::MUMPS) {
+#ifdef CHRONO_MUMPS
+        auto solver = chrono_types::make_shared<ChSolverMumps>();
+        solver->LockSparsityPattern(true);
+        solver->EnableNullPivotDetection(true);
+        solver->GetMumpsEngine().SetICNTL(14, 50);
+        sys.SetSolver(solver);
+#endif
+    } else {
+        sys.SetSolverType(solver_type);
+        switch (solver_type) {
+            case ChSolver::Type::SPARSE_LU:
+            case ChSolver::Type::SPARSE_QR: {
+                auto solver = std::static_pointer_cast<ChDirectSolverLS>(sys.GetSolver());
+                solver->LockSparsityPattern(false);
+                solver->UseSparsityPatternLearner(false);
+                break;
+            }
+            case ChSolver::Type::BARZILAIBORWEIN:
+            case ChSolver::Type::APGD:
+            case ChSolver::Type::PSOR: {
+                auto solver = std::static_pointer_cast<ChIterativeSolverVI>(sys.GetSolver());
+                solver->SetMaxIterations(100);
+                solver->SetOmega(0.8);
+                solver->SetSharpnessLambda(1.0);
+
+                ////sys.SetMaxPenetrationRecoverySpeed(1.5);
+                ////sys.SetMinBounceSpeed(2.0);
+                break;
+            }
+            case ChSolver::Type::BICGSTAB:
+            case ChSolver::Type::MINRES:
+            case ChSolver::Type::GMRES: {
+                auto solver = std::static_pointer_cast<ChIterativeSolverLS>(sys.GetSolver());
+                solver->SetMaxIterations(200);
+                solver->SetTolerance(1e-10);
+                solver->EnableDiagonalPreconditioner(true);
+                break;
+            }
+        }
+    }
+
+    sys.SetTimestepperType(integrator_type);
+    switch (integrator_type) {
+        case ChTimestepper::Type::HHT: {
+            auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
+            integrator->SetAlpha(-0.2);
+            integrator->SetMaxiters(50);
+            integrator->SetAbsTolerances(1e-4, 1e2);
+            integrator->SetMode(ChTimestepperHHT::ACCELERATION);
+            integrator->SetStepControl(false);
+            integrator->SetModifiedNewton(false);
+            integrator->SetScaling(false);
+            break;
+        }
+        case ChTimestepper::Type::EULER_IMPLICIT: {
+            auto integrator = std::static_pointer_cast<ChTimestepperEulerImplicit>(sys.GetTimestepper());
+            integrator->SetMaxiters(50);
+            integrator->SetAbsTolerances(1e-4, 1e2);
+            break;
+        }
+        case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
+        case ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
+            break;
+    }
+}
+
+// =============================================================================
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -88,7 +218,6 @@ int main(int argc, char* argv[]) {
     // -----------------------
 
     bool create_track = true;
-    ChContactMethod contact_method = ChContactMethod::SMC;
 
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
@@ -96,19 +225,17 @@ int main(int argc, char* argv[]) {
         std::cout << "Rig uses track assembly from JSON file: " << vehicle::GetDataFile(filename) << std::endl;
     } else {
         VehicleSide side = LEFT;
-        TrackShoeType type = TrackShoeType::SINGLE_PIN;
         BrakeType brake_type = BrakeType::SIMPLE;
-        bool add_track_RSDA = true;
         std::shared_ptr<ChTrackAssembly> track_assembly;
-        switch (type) {
+        switch (shoe_type) {
             case TrackShoeType::SINGLE_PIN: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblySinglePin>(side, brake_type, add_track_RSDA);
-                track_assembly = assembly;
+                track_assembly =
+                    chrono_types::make_shared<M113_TrackAssemblySinglePin>(side, brake_type, add_track_RSDA);
                 break;
             }
             case TrackShoeType::DOUBLE_PIN: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side, brake_type, add_track_RSDA);
-                track_assembly = assembly;
+                track_assembly =
+                    chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side, brake_type, add_track_RSDA);
                 break;
             }
             default:
@@ -117,7 +244,7 @@ int main(int argc, char* argv[]) {
         }
 
         rig = new ChTrackTestRig(track_assembly, create_track, contact_method);
-        std::cout << "Rig uses M113 track assembly:  type " << (int)type << " side " << side << std::endl;
+        std::cout << "Rig uses M113 track assembly:  type " << (int)shoe_type << " side " << side << std::endl;
     }
 
     // ---------------------------------------
@@ -146,7 +273,7 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<ChDriverTTR> driver;
     switch (driver_mode) {
-        case DriverMode::KEYBOARD : {
+        case DriverMode::KEYBOARD: {
             auto irr_driver = chrono_types::make_shared<ChIrrGuiDriverTTR>(app);
             irr_driver->SetThrottleDelta(1.0 / 50);
             irr_driver->SetDisplacementDelta(1.0 / 250);
@@ -216,71 +343,24 @@ int main(int argc, char* argv[]) {
     // Solver and integrator settings
     // ------------------------------
 
+    double step_size = 1e-3;
     switch (contact_method) {
         case ChContactMethod::NSC:
             std::cout << "Use NSC" << std::endl;
-            // Cannot use HHT with MKL/MUMPS with NSC contact
-            use_mkl = false;
-            use_mumps = false;
-            step_size = 1e-3;
+            step_size = step_size_NSC;
             break;
         case ChContactMethod::SMC:
             std::cout << "Use SMC" << std::endl;
-            step_size = 5e-4;
+            step_size = step_size_SMC;
             break;
     }
 
-#ifndef CHRONO_PARDISO_MKL
-    use_mkl = false;
-#endif
-#ifndef CHRONO_PARDISO_MUMPS
-    use_mumps = false;
-#endif
+    SelectSolver(*rig->GetSystem(), slvr_type, intgr_type);
+    rig->GetSystem()->GetSolver()->SetVerbose(verbose_solver);
+    rig->GetSystem()->GetTimestepper()->SetVerbose(verbose_integrator);
 
-    if (use_mkl) {
-#ifdef CHRONO_PARDISO_MKL
-        std::cout << "Solver: PardisoMKL" << std::endl;
-        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-        mkl_solver->LockSparsityPattern(true);
-        mkl_solver->SetVerbose(verbose_solver);
-        rig->GetSystem()->SetSolver(mkl_solver);
-#endif
-    } else if (use_mumps) {
-#ifdef CHRONO_MUMPS
-        std::cout << "Solver: MUMPS" << std::endl;
-        auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
-        mumps_solver->LockSparsityPattern(true);
-        mumps_solver->EnableNullPivotDetection(true);
-        mumps_solver->SetVerbose(verbose_solver);
-        rig->GetSystem()->SetSolver(mumps_solver);
-#endif
-    } else {
-        std::cout << "Solver: SOR" << std::endl;
-        auto solver = chrono_types::make_shared<ChSolverPSOR>();
-        solver->SetMaxIterations(60);
-        solver->SetOmega(0.8);
-        solver->SetSharpnessLambda(1.0);
-        rig->GetSystem()->SetSolver(solver);
-
-        rig->GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-        rig->GetSystem()->SetMinBounceSpeed(2.0);
-    }
-
-    if (use_mkl || use_mumps) {
-        std::cout << "Integrator: HHT" << std::endl;
-        rig->GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
-        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(rig->GetSystem()->GetTimestepper());
-        integrator->SetAlpha(-0.2);
-        integrator->SetMaxiters(50);
-        integrator->SetAbsTolerances(1e-4, 1e2);
-        integrator->SetMode(ChTimestepperHHT::ACCELERATION);
-        integrator->SetStepControl(false);
-        integrator->SetModifiedNewton(false);
-        integrator->SetScaling(true);
-        integrator->SetVerbose(verbose_solver);
-    } else {
-        std::cout << "Integrator: Default" << std::endl;
-    }
+    std::cout << "SOLVER TYPE:     " << (int)slvr_type << std::endl;
+    std::cout << "INTEGRATOR TYPE: " << (int)intgr_type << std::endl;
 
     // ---------------
     // Simulation loop

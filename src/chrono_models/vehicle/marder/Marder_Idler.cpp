@@ -56,7 +56,11 @@ class Marder_TensionerForce : public ChLinkTSDA::ForceFunctor {
   public:
     Marder_TensionerForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
 
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override {
         return m_f - m_k * (length - rest_length) - m_c * vel;
     }
 

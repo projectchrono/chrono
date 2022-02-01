@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Simple example demonstrating the use of ChLinkRotSpringCB.
+// Simple example demonstrating the use of ChLinkRSDA.
 //
 // Recall that Irrlicht uses a left-hand frame, so everything is rendered with
 // left and right flipped.
@@ -38,13 +38,13 @@ double rest_angle = CH_C_PI / 6;
 
 // =============================================================================
 
-// Functor class implementing the torque for a ChLinkRotSpringCB link.
-class MySpringTorque : public ChLinkRotSpringCB::TorqueFunctor {
-    virtual double operator()(double time,             // current time
-                              double angle,            // relative angle of rotation
-                              double vel,              // relative angular speed
-                              ChLinkRotSpringCB* link  // back-pointer to associated link
-                              ) override {
+// Functor class implementing the torque for a ChLinkRSDA link.
+class MySpringTorque : public ChLinkRSDA::TorqueFunctor {
+    virtual double evaluate(double time,            // current time
+                            double angle,           // relative angle of rotation
+                            double vel,             // relative angular speed
+                            const ChLinkRSDA& link  // associated link
+                            ) override {
         double torque = -spring_coef * (angle - rest_angle) - damping_coef * vel;
         return torque;
     }
@@ -120,13 +120,14 @@ int main(int argc, char* argv[]) {
 
     // Create the rotational spring between body and ground
     auto torque = chrono_types::make_shared<MySpringTorque>();
-    auto spring = chrono_types::make_shared<ChLinkRotSpringCB>();
+    auto spring = chrono_types::make_shared<ChLinkRSDA>();
     spring->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
+    spring->AddAsset(chrono_types::make_shared<ChRotSpringShape>(0.5, 100));
     spring->RegisterTorqueFunctor(torque);
     system.AddLink(spring);
 
     // Create the Irrlicht application
-    ChIrrApp application(&system, L"ChLinkRotSpringCB demo", core::dimension2d<u32>(800, 600));
+    ChIrrApp application(&system, L"ChLinkRSDA demo", core::dimension2d<u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -156,8 +157,8 @@ int main(int argc, char* argv[]) {
             GetLog() << "Body lin. vel." << body->GetPos_dt() << "\n";
             GetLog() << "Body absolute ang. vel." << body->GetWvel_par() << "\n";
             GetLog() << "Body local ang. vel." << body->GetWvel_loc() << "\n";
-            GetLog() << "Rot. spring-damper  " << spring->GetRotSpringAngle() << "  " << spring->GetRotSpringSpeed()
-                     << "  " << spring->GetRotSpringTorque() << "\n";
+            GetLog() << "Rot. spring-damper  " << spring->GetAngle() << "  " << spring->GetVelocity() << "  "
+                     << spring->GetTorque() << "\n";
             GetLog() << "---------------\n\n";
         }
 

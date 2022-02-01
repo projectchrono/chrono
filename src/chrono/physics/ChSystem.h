@@ -23,19 +23,17 @@
 #include <iostream>
 #include <list>
 
-#include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/parallel/ChOpenMP.h"
 #include "chrono/physics/ChAssembly.h"
-#include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChContactContainer.h"
-#include "chrono/physics/ChLinksAll.h"
 #include "chrono/solver/ChSystemDescriptor.h"
-#include "chrono/timestepper/ChAssemblyAnalysis.h"
 #include "chrono/solver/ChSolver.h"
+#include "chrono/timestepper/ChAssemblyAnalysis.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
@@ -264,6 +262,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Attach a body to the underlying assembly.
     virtual void AddBody(std::shared_ptr<ChBody> body);
 
+    /// Attach a shaft to the underlying assembly.
+    virtual void AddShaft(std::shared_ptr<ChShaft> shaft);
+
     /// Attach a link to the underlying assembly.
     virtual void AddLink(std::shared_ptr<ChLinkBase> link);
 
@@ -274,11 +275,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
 
     /// Attach an arbitrary ChPhysicsItem (e.g. ChBody, ChParticles, ChLink, etc.) to the assembly.
-    /// It will take care of adding it to the proper list of bodies, links, meshes, or generic
-    /// physic item. (i.e. it calls AddBody(), AddLink(), AddMesh(), or AddOtherPhysicsItem()).
-    /// Note, you cannot call Add() during an Update (i.e. items like particle generators that
-    /// are already inserted in the assembly cannot call this) because not thread safe; instead,
-    /// use AddBatch().
+    /// It will take care of adding it to the proper list of bodies, links, meshes, or generic physic item. (i.e. it
+    /// calls AddBody, AddShaft(), AddLink(), AddMesh(), or AddOtherPhysicsItem()). Note, you cannot call Add() during
+    /// an Update (i.e. items like particle generators that are already inserted in the assembly cannot call this)
+    /// because not thread safe; instead, use AddBatch().
     void Add(std::shared_ptr<ChPhysicsItem> item);
 
     /// Items added in this way are added like in the Add() method, but not instantly,
@@ -292,6 +292,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Remove a body from this assembly.
     virtual void RemoveBody(std::shared_ptr<ChBody> body) { assembly.RemoveBody(body); }
+
+    /// Remove a shaft from this assembly.
+    virtual void RemoveShaft(std::shared_ptr<ChShaft> shaft) { assembly.RemoveShaft(shaft); }
 
     /// Remove a link from this assembly.
     virtual void RemoveLink(std::shared_ptr<ChLinkBase> link) { assembly.RemoveLink(link); }
@@ -307,6 +310,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Remove all bodies from the underlying assembly.
     void RemoveAllBodies() { assembly.RemoveAllBodies(); }
+    /// Remove all shafts from the underlying assembly.
+    void RemoveAllShafts() { assembly.RemoveAllShafts(); }
     /// Remove all links from the underlying assembly.
     void RemoveAllLinks() { assembly.RemoveAllLinks(); }
     /// Remove all meshes from the underlying assembly.
@@ -316,6 +321,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Get the list of bodies.
     const std::vector<std::shared_ptr<ChBody>>& Get_bodylist() const { return assembly.bodylist; }
+    /// Get the list of shafts.
+    const std::vector<std::shared_ptr<ChShaft>>& Get_shaftlist() const { return assembly.shaftlist; }
     /// Get the list of links.
     const std::vector<std::shared_ptr<ChLinkBase>>& Get_linklist() const { return assembly.linklist; }
     /// Get the list of meshes.
@@ -327,6 +334,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Search a body by its name.
     std::shared_ptr<ChBody> SearchBody(const char* name) { return assembly.SearchBody(name); }
+    /// Search a body by its ID
+    std::shared_ptr<ChBody> SearchBodyID(int bodyID) { return assembly.SearchBodyID(bodyID); }
+    /// Search a shaft by its name.
+    std::shared_ptr<ChShaft> SearchShaft(const char* name) { return assembly.SearchShaft(name); }
     /// Search a link by its name.
     std::shared_ptr<ChLinkBase> SearchLink(const char* name) { return assembly.SearchLink(name); }
     /// Search a mesh by its name.
@@ -337,12 +348,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     }
     /// Search a marker by its name.
     std::shared_ptr<ChMarker> SearchMarker(const char* name) { return assembly.SearchMarker(name); }
-    /// Search an item (body, link or other ChPhysics items) by name.
-    std::shared_ptr<ChPhysicsItem> Search(const char* name) { return assembly.Search(name); }
-    /// Search a body by its ID
-    std::shared_ptr<ChBody> SearchBodyID(int bodyID) { return assembly.SearchBodyID(bodyID); }
     /// Search a marker by its unique ID.
     std::shared_ptr<ChMarker> SearchMarker(int markID) { return assembly.SearchMarker(markID); }
+    /// Search an item (body, link or other ChPhysics items) by name.
+    std::shared_ptr<ChPhysicsItem> Search(const char* name) { return assembly.Search(name); }
 
     /// Get the number of active bodies (excluding those that are sleeping or are fixed to ground).
     int GetNbodies() const { return assembly.GetNbodies(); }
@@ -352,6 +361,15 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     int GetNbodiesFixed() const { return assembly.GetNbodiesFixed(); }
     /// Get the total number of bodies in the assembly, including the grounded and sleeping bodies.
     int GetNbodiesTotal() const { return assembly.GetNbodiesTotal(); }
+
+    /// Get the number of shafts.
+    int GetNshafts() const { return assembly.GetNshafts(); }
+    /// Get the number of shafts that are in sleeping mode (excluding fixed shafts).
+    int GetNshaftsSleeping() const { return assembly.GetNbodiesSleeping(); }
+    /// Get the number of shafts that are fixed to ground.
+    int GetNshaftsFixed() const { return assembly.GetNshaftsFixed(); }
+    /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
+    int GetNshaftsTotal() const { return assembly.GetNshaftsTotal(); }
 
     /// Get the number of links.
     int GetNlinks() const { return assembly.GetNlinks(); }
@@ -785,8 +803,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// </pre>
     /// where l \f$\in Y, c \in Ny\f$, normal cone to Y
 
-    void SetDumpSolverMatrices(bool md) { dump_matrices = md; }
-    bool GetDumpSolverMatrices() const { return dump_matrices; }
+    /// Enable/disable debug output of system matrices.
+    void EnableSolverMatrixWrite(bool val, const std::string& out_dir = "");
+    bool IsSolverMatrixWriteEnabled() const { return write_matrix; }
 
     /// Dump the current M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian
     /// matrix (at the current configuration). 
@@ -933,7 +952,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     int setupcount;  ///< number of calls to the solver's Setup()
     int solvecount;  ///< number of StateSolveCorrection (reset to 0 at each timestep of static analysis)
 
-    bool dump_matrices;  ///< for debugging
+    bool write_matrix;       ///< write current system matrix to file(s); for debugging
+    std::string output_dir;  ///< output directory for writing system matrices
 
     int ncontacts;  ///< total number of contacts
 

@@ -12,7 +12,7 @@
 # Authors: Radu Serban
 # =============================================================================
 #
-# Simple example demonstrating the use of ChLinkRotSpringCB.
+# Simple example demonstrating the use of ChLinkRSDA.
 #
 # Recall that Irrlicht uses a left-hand frame, so everything is rendered with
 # left and right flipped.
@@ -31,16 +31,16 @@ rest_angle = m.pi / 6
 
 # =============================================================================
 
-# Functor class implementing the torque for a ChLinkRotSpringCB link.
+# Functor class implementing the torque for a ChLinkRSDA link.
 class MySpringTorque(chrono.TorqueFunctor):
     def __init__(self):
         super(MySpringTorque, self).__init__()
     
-    def __call__(self,    #
+    def evaluate(self,    #
                  time,    # current time
                  angle,   # relative angle of rotation
                  vel,     # relative angular speed
-                 link):   # back-pointer to associated link
+                 link):   # associated link
                               
         torque = -spring_coef * (angle - rest_angle) - damping_coef * vel
         return torque
@@ -111,13 +111,16 @@ system.AddLink(rev)
 
 # Create the rotational spring between body and ground
 torque = MySpringTorque()
-spring = chrono.ChLinkRotSpringCB()
+spring = chrono.ChLinkRSDA()
 spring.Initialize(body, ground, chrono.ChCoordsysD(rev_pos, rev_rot))
 spring.RegisterTorqueFunctor(torque)
-system.AddLink(spring);
+rsda = chrono.ChRotSpringShape(0.5, 40)
+rsda.SetColor(chrono.ChColor(0, 0, 0))
+spring.AddAsset(rsda)
+system.AddLink(spring)
 
 # Create the Irrlicht application
-application = irr.ChIrrApp(system, "ChLinkRotSpringCB demo", irr.dimension2du(800, 600))
+application = irr.ChIrrApp(system, "ChLinkRSDA demo", irr.dimension2du(800, 600))
 application.AddTypicalLogo()
 application.AddTypicalSky()
 application.AddTypicalLights()
@@ -142,7 +145,7 @@ while (application.GetDevice().run()) :
         print('Body lin. vel      ', body.GetPos_dt())
         print('Body abs. ang. vel ', body.GetWvel_par())
         print('Body loc. ang. vel ', body.GetWvel_loc())
-        print('Rot. spring-damper ', spring.GetRotSpringAngle(), '  ', spring.GetRotSpringTorque())
+        print('Rot. spring-damper ', spring.GetAngle(), '  ', spring.GetTorque())
         print('---------------')
 
 

@@ -33,6 +33,9 @@ endif()
 
 if(ENABLE_MODULE_OPENGL)
     include_directories(${CH_OPENGL_INCLUDES})
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+		set (EM_GL_LINKERFLAGS "-s FULL_ES3=1 -s USE_GLFW=3")
+    endif()
     list(APPEND LIBS "ChronoEngine_opengl")
 endif()
 
@@ -47,7 +50,7 @@ foreach(PROGRAM ${DEMOS})
 
     set_target_properties(${PROGRAM} PROPERTIES
                           COMPILE_FLAGS "${COMPILER_FLAGS}"
-                          LINK_FLAGS "${LINKER_FLAGS}")
+						  LINK_FLAGS "${LINKER_FLAGS} ${EM_GL_LINKERFLAGS}")
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM}
                           ChronoEngine

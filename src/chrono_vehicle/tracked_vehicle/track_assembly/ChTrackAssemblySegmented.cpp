@@ -27,10 +27,10 @@ namespace vehicle {
 ChTrackAssemblySegmented::ChTrackAssemblySegmented(const std::string& name, VehicleSide side)
     : ChTrackAssembly(name, side), m_torque_funct(nullptr), m_bushing_data(nullptr) {}
 
-double ChTrackAssemblySegmented::TrackBendingFunctor::operator()(double time,
+double ChTrackAssemblySegmented::TrackBendingFunctor::evaluate(double time,
                                                                double angle,
                                                                double vel,
-                                                               ChLinkRotSpringCB* link) {
+                                                               const ChLinkRSDA& link) {
     // Clamp angle in [-pi, +pi]
     if (angle < -CH_C_PI)
         angle = CH_C_2PI - angle;

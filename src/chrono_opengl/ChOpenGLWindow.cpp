@@ -146,6 +146,10 @@ void ChOpenGLWindow::GLFWGetVersion(GLFWwindow* main_window) {
     printf("%s : %s (%s)\n >> GLSL: %s\n", vendor, renderer, version, glsl_ver);
 }
 
+void ChOpenGLWindow::WrapRenderStep(void* stepFunction) {
+    (*((std::function<void()>*)stepFunction))();
+}
+
 void ChOpenGLWindow::CallbackError(int error, const char* description) {
     fputs(description, stderr);
     fputs("\n", stderr);

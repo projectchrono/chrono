@@ -72,11 +72,11 @@ unsigned int horizontal_samples = 100;
 unsigned int vertical_samples = 100;
 
 // Field of View
-float horizontal_fov = CH_C_PI / 2;           // 20 degree scan
-float vertical_fov = CH_C_PI / 3;   // 12 degrees up
+float horizontal_fov = float(CH_C_PI / 2);  // 20 degree scan
+float vertical_fov = float(CH_C_PI / 3);    // 12 degrees up
 
 // camera can have same view as radar
-float aspect_ratio = horizontal_fov / (vertical_fov);
+float aspect_ratio = horizontal_fov / vertical_fov;
 float width = 960;
 float height = width / aspect_ratio;
 
@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
     // Create a sensor manager
     // -----------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
-    float intensity = 0.3;
+    float intensity = 0.3f;
     manager->scene->AddPointLight({100, 100, 100}, {intensity, intensity, intensity}, 500);
 
     // -----------------------------------------------
@@ -247,9 +247,8 @@ int main(int argc, char* argv[]) {
     radar->SetCollectionWindow(collection_time);
 
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZReturn>("Radar XYZ"));
-//    radar->PushFilter(chrono_types::make_shared<ChFilterRadarVisualizeCluster>(640, 480, 1, "Radar Clusters"));
-    radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZVisualize>(640, 480,1, "Radar XYZ Return"));
-    const std::string out_dir = "RADAR_OUPUT/";
+    // radar->PushFilter(chrono_types::make_shared<ChFilterRadarVisualizeCluster>(640, 480, 1, "Radar Clusters"));
+    radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZVisualize>(640, 480, 1, "Radar XYZ Return"));
     manager->AddSensor(radar);
 
     auto cam_offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(0));

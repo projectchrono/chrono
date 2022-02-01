@@ -1,6 +1,7 @@
 import pychrono as chrono
 import pychrono.vehicle as veh
 import pychrono.irrlicht as irr
+import errno
 import os
 import math as m
 
@@ -64,9 +65,10 @@ def main() :
     # -----------------
 
     try:
-           os.mkdir(out_dir)
-    except:
-           print("Error creating directory " )
+        os.mkdir(out_dir)
+    except OSError as exc:
+        if exc.errno != errno.EEXIST:
+           print("Error creating output directory " )
 
     # Generate JSON information with available output channels
     out_json = vehicle.ExportComponentList()

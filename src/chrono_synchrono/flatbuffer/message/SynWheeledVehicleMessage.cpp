@@ -28,8 +28,8 @@ namespace synchrono {
 namespace Agent = SynFlatBuffers::Agent;
 namespace WheeledVehicle = SynFlatBuffers::Agent::WheeledVehicle;
 
-SynWheeledVehicleStateMessage::SynWheeledVehicleStateMessage(unsigned int source_id, unsigned int destination_id)
-    : SynMessage(source_id, destination_id) {}
+SynWheeledVehicleStateMessage::SynWheeledVehicleStateMessage(AgentKey source_key, AgentKey destination_key)
+    : SynMessage(source_key, destination_key) {}
 
 void SynWheeledVehicleStateMessage::SetState(double time, SynPose chassis, std::vector<SynPose> wheels) {
     this->time = time;
@@ -42,8 +42,8 @@ void SynWheeledVehicleStateMessage::ConvertFromFlatBuffers(const SynFlatBuffers:
     if (message->message_type() != SynFlatBuffers::Type_Agent_State)
         return;
 
-    m_source_id = message->source_id();
-    m_destination_id = message->destination_id();
+    m_source_key = AgentKey(message->source_key());
+    m_destination_key = message->destination_key();
 
     auto agent_state = message->message_as_Agent_State();
     auto state = agent_state->message_as_WheeledVehicle_State();
@@ -66,27 +66,23 @@ FlatBufferMessage SynWheeledVehicleStateMessage::ConvertToFlatBuffers(flatbuffer
         flatbuffer_wheels.push_back(wheel.ToFlatBuffers(builder));
 
     auto vehicle_type = Agent::Type_WheeledVehicle_State;
-    auto vehicle_state = WheeledVehicle::CreateStateDirect(builder,             //
-                                                           this->time,          //
-                                                           flatbuffer_chassis,  //
-                                                           &flatbuffer_wheels)
-                             .Union();
+    auto vehicle_state =
+        WheeledVehicle::CreateStateDirect(builder, this->time, flatbuffer_chassis, &flatbuffer_wheels).Union();
 
     auto flatbuffer_state = Agent::CreateState(builder, vehicle_type, vehicle_state);
-    auto flatbuffer_message = SynFlatBuffers::CreateMessage(builder,                           //
-                                                            SynFlatBuffers::Type_Agent_State,  //
-                                                            flatbuffer_state.Union(),          //
-                                                            m_source_id, m_destination_id);    //
+    auto flatbuffer_message =
+        SynFlatBuffers::CreateMessage(builder, SynFlatBuffers::Type_Agent_State, flatbuffer_state.Union(),
+                                      m_source_key.GetFlatbuffersKey(), m_destination_key.GetFlatbuffersKey());
 
     return flatbuffers::Offset<SynFlatBuffers::Message>(flatbuffer_message);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
 
-SynWheeledVehicleDescriptionMessage::SynWheeledVehicleDescriptionMessage(unsigned int source_id,
-                                                                         unsigned int destination_id,
+SynWheeledVehicleDescriptionMessage::SynWheeledVehicleDescriptionMessage(AgentKey source_key,
+                                                                         AgentKey destination_key,
                                                                          const std::string& json)
-    : SynMessage(source_id, destination_id), json(json) {}
+    : SynMessage(source_key, destination_key), json(json) {}
 
 /// Generate agent description from FlatBuffers message
 void SynWheeledVehicleDescriptionMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
@@ -95,8 +91,8 @@ void SynWheeledVehicleDescriptionMessage::ConvertFromFlatBuffers(const SynFlatBu
         return;
 
     auto description = message->message_as_Agent_Description();
-    m_source_id = message->source_id();
-    m_destination_id = message->destination_id();
+    m_source_key = AgentKey(message->source_key());
+    m_destination_key = message->destination_key();
 
     if (description->json()->Length())
         this->json = description->json()->str();
@@ -130,10 +126,10 @@ FlatBufferMessage SynWheeledVehicleDescriptionMessage::ConvertToFlatBuffers(
                                                            vehicle_description.Union(),  //
                                                            flatbuffer_json);             //
 
-    return SynFlatBuffers::CreateMessage(builder,                                 //
-                                         SynFlatBuffers::Type_Agent_Description,  //
-                                         flatbuffer_description.Union(),          //
-                                         m_source_id, m_destination_id);          //
+    return SynFlatBuffers::CreateMessage(builder,                                                                   //
+                                         SynFlatBuffers::Type_Agent_Description,                                    //
+                                         flatbuffer_description.Union(),                                            //
+                                         m_source_key.GetFlatbuffersKey(), m_destination_key.GetFlatbuffersKey());  //
 }
 
 void SynWheeledVehicleDescriptionMessage::SetZombieVisualizationFilesFromJSON(const std::string& filename) {

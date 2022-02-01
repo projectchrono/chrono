@@ -688,6 +688,35 @@ void drawSpring(irr::video::IVideoDriver* driver,
 }
 
 // -----------------------------------------------------------------------------
+// Draw a rotational spring in 3D space, with given color.
+// -----------------------------------------------------------------------------
+ChApiIrr void drawRotSpring(irr::video::IVideoDriver* driver,
+                            ChCoordsys<> pos,
+                            double radius,
+                            double start_angle,
+                            double end_angle,
+                            irr::video::SColor col,
+                            int resolution,
+                            bool use_Zbuffer) {
+    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
+    mattransp.ZBuffer = false;
+    mattransp.Lighting = false;
+    driver->setMaterial(mattransp);
+
+    double del_angle = (end_angle - start_angle) / resolution;
+    ChVector<> V1(radius * std::cos(start_angle), radius * std::sin(start_angle), 0);
+
+    for (int iu = 1; iu <= resolution; iu++) {
+        double crt_angle = start_angle + iu * del_angle;
+        double crt_radius = radius - (iu * del_angle / CH_C_2PI) * (radius / 10);
+        ChVector<> V2(crt_radius * std::cos(crt_angle), crt_radius * std::sin(crt_angle), 0);
+        drawSegment(driver, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        V1 = V2;
+    }
+}
+
+// -----------------------------------------------------------------------------
 // Draw grids in 3D space, with given orientation, colour and spacing.
 // -----------------------------------------------------------------------------
 void drawGrid(irr::video::IVideoDriver* driver,

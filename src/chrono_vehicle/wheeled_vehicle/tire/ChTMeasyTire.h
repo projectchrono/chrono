@@ -176,7 +176,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     virtual double GetDeflection() const override { return m_data.depth; }
 
     /// Using tire relaxation, we have three tire deflections
-    ChVector<> GetDeflection() { return ChVector<>(m_states.xe, m_states.ye, m_data.depth); }
+    ChVector<> GetDeflection3() { return ChVector<>(m_states.xe, m_states.ye, m_data.depth); }
 
     /// Export a TMeasy Tire Parameter File
     void ExportParameterFile(std::string fileName);

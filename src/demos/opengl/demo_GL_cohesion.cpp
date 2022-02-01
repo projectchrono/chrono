@@ -17,6 +17,10 @@
 //
 // =============================================================================
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -192,12 +196,21 @@ int main(int argc, char* argv[]) {
     gl_window.Initialize(1280, 720, "Demo_Cohesion_GL", &mphysicalSystem);
     gl_window.SetCamera(ChVector<>(0, 0, -10), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0));
     gl_window.Pause();
-    while (gl_window.Active()) {
+
+    std::function<void()> step_iter = [&]() {
         if (gl_window.DoStepDynamics(0.01)) {
             // Add code here that will only run after a step is taken
         }
         gl_window.Render();
+    };
+
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop_arg(&opengl::ChOpenGLWindow::WrapRenderStep, (void*)&step_iter, 50, true);
+#else
+    while (gl_window.Active()) {
+        step_iter();
     }
+#endif
 
     return 0;
 }

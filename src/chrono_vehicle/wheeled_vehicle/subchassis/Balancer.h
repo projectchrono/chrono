@@ -37,8 +37,6 @@ class CH_VEHICLE_API Balancer : public ChBalancer {
     Balancer(const rapidjson::Document& d);
     ~Balancer();
 
-    virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
-
     virtual double GetBalancerBeamMass() const override { return m_beam_mass; }
     virtual const ChVector<>& GetBalancerBeamInertia() const override { return m_beam_inertia; }
     virtual const double GetBalancerMaxPitch() const override { return m_beam_max_pitch; }
@@ -47,6 +45,8 @@ class CH_VEHICLE_API Balancer : public ChBalancer {
     virtual std::shared_ptr<ChVehicleBushingData> GetBushingData() const override { return m_bushingData; }
 
   private:
+    virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
+
     virtual void Create(const rapidjson::Document& d) override;
 
     ChVector<> m_points[NUM_POINTS];

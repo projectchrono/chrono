@@ -47,7 +47,7 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     /// @param supersample_factor The number of rays that should be sampled per pixel for antialiasing.
     /// @param lens_model A enum specifying the desired lens model.
     /// @param use_gi Enable the global illumination, with significant decrease in performace
-    /// @param Gamma correction of the image, 1 for linear color space, 2.2 for sRGB
+    /// @param gamma correction of the image, 1 for linear color space, 2.2 for sRGB
     ChCameraSensor(std::shared_ptr<chrono::ChBody> parent,  // object to which the sensor is attached
                    float updateRate,                        // rate at which the sensor updates
                    chrono::ChFrame<double> offsetPose,      // position of sensor relative to parent object

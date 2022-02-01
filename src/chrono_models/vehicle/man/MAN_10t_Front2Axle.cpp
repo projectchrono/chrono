@@ -76,7 +76,11 @@ class MAN_10t_SpringForceFront2 : public ChLinkTSDA::ForceFunctor {
                               double min_length,
                               double max_length);
 
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_spring_constant1;
@@ -110,15 +114,11 @@ MAN_10t_SpringForceFront2::MAN_10t_SpringForceFront2(double spring_constant1,
     m_bump.AddPoint(50.0e-3, 12500.0);
 }
 
-double MAN_10t_SpringForceFront2::operator()(double time,
-                                             double rest_length,
-                                             double length,
-                                             double vel,
-                                             ChLinkTSDA* link) {
-    /*
-     *
-     */
-
+double MAN_10t_SpringForceFront2::evaluate(double time,
+                                           double rest_length,
+                                           double length,
+                                           double vel,
+                                           const ChLinkTSDA& link) {
     double force = 0;
 
     double defl_spring = rest_length - length;
