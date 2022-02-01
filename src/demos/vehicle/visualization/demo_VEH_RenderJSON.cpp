@@ -41,19 +41,35 @@ using namespace chrono::vehicle;
 bool chassis_fixed = false;
 bool enable_gravity = true;
 
-std::string vehicle_file = "hmmwv/vehicle/HMMWV_Vehicle.json";
-std::string powertrain_file = "hmmwv/powertrain/HMMWV_ShaftsPowertrain.json";
-std::string tire_file = "hmmwv/tire/HMMWV_TMeasyTire.json";
+class Setup {
+  public:
+    virtual std::string VehicleJSON() const = 0;
+    virtual std::string PowertrainJSON() const = 0;
+    virtual std::string TireJSON() const { return ""; }
+};
 
-////std::string vehicle_file("M113/vehicle/M113_Vehicle_SinglePin.json");
-////std::string powertrain_file("M113/powertrain/M113_SimpleCVTPowertrain.json");
+class HMMWV_Setup : public Setup {
+  public:
+    virtual std::string VehicleJSON() const override { return "hmmwv/vehicle/HMMWV_Vehicle.json"; }
+    virtual std::string PowertrainJSON() const override { return "hmmwv/powertrain/HMMWV_ShaftsPowertrain.json"; }
+    virtual std::string TireJSON() const override { return "hmmwv/tire/HMMWV_TMeasyTire.json"; }
+};
+
+class M113_Setup : public Setup {
+  public:
+    virtual std::string VehicleJSON() const override { return "M113/vehicle/M113_Vehicle_SinglePin.json"; }
+    virtual std::string PowertrainJSON() const override { return "M113/powertrain/M113_SimpleCVTPowertrain.json"; }
+};
+
+HMMWV_Setup setup;
+////M113_Setup setup;
 
 // =============================================================================
 
 ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
     if (is_wheeled) {
         // Create the wheeled vehicle system
-        auto vehicle = new WheeledVehicle(sys, vehicle::GetDataFile(vehicle_file));
+        auto vehicle = new WheeledVehicle(sys, vehicle::GetDataFile(setup.VehicleJSON()));
         vehicle->Initialize(ChCoordsys<>(ChVector<>(0, 0, 0.75), QUNIT));
         vehicle->GetChassis()->SetFixed(chassis_fixed);
         vehicle->SetChassisVisualizationType(VisualizationType::MESH);
@@ -62,13 +78,13 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
         vehicle->SetWheelVisualizationType(VisualizationType::MESH);
 
         // Create and initialize the powertrain system
-        auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(powertrain_file));
+        auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(setup.PowertrainJSON()));
         vehicle->InitializePowertrain(powertrain);
 
         // Create and initialize the tires
         for (auto& axle : vehicle->GetAxles()) {
             for (auto& wheel : axle->GetWheels()) {
-                auto tire = ReadTireJSON(vehicle::GetDataFile(tire_file));
+                auto tire = ReadTireJSON(vehicle::GetDataFile(setup.TireJSON()));
                 vehicle->InitializeTire(tire, wheel, VisualizationType::MESH);
             }
         }
@@ -76,7 +92,7 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
         return vehicle;
     } else {
         // Create the tracked vehicle system
-        auto vehicle = new TrackedVehicle(sys, vehicle::GetDataFile(vehicle_file));
+        auto vehicle = new TrackedVehicle(sys, vehicle::GetDataFile(setup.VehicleJSON()));
         vehicle->Initialize(ChCoordsys<>(ChVector<>(0, 0, 0.85), QUNIT));
         vehicle->GetChassis()->SetFixed(chassis_fixed);
         vehicle->SetChassisVisualizationType(VisualizationType::MESH);
@@ -87,7 +103,7 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
         vehicle->SetTrackShoeVisualizationType(VisualizationType::MESH);
 
         // Create and initialize the powertrain system
-        auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(powertrain_file));
+        auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(setup.PowertrainJSON()));
         vehicle->InitializePowertrain(powertrain);
 
         return vehicle;
@@ -135,7 +151,7 @@ int main(int argc, char* argv[]) {
 
     // Peek in vehicle JSON file and infer type
     rapidjson::Document d;
-    ReadFileJSON(vehicle::GetDataFile(vehicle_file), d);
+    ReadFileJSON(vehicle::GetDataFile(setup.VehicleJSON()), d);
     assert(!d.IsNull());
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));
@@ -143,6 +159,9 @@ int main(int argc, char* argv[]) {
     assert(type.compare("Vehicle") == 0);
     std::string subtype = d["Template"].GetString();
     bool is_wheeled = (subtype.compare("WheeledVehicle") == 0);
+
+    // Ignore visualization asset levels for all vehicle parts (Chrono::OpenGL does not process them)
+    ChVehicleGeometry::EnableVisualizationAssetLevels(false);
 
     // Create containing system and vehicle
     ChSystemSMC sys;
@@ -180,7 +199,7 @@ int main(int argc, char* argv[]) {
     gl_window.SetUserEventReceiver(&my_receiver);
 
     // Simulation loop
-    double step_size = 2e-3;
+    double step_size = 5e-4;
 
     // Dummy (not needed)
     TerrainForces shoe_forces_left;
