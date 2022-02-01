@@ -922,7 +922,7 @@ set(ChronoEngine_parallel_HEADERS
 source_group(parallel FILES
     ${ChronoEngine_parallel_SOURCES}
     ${ChronoEngine_parallel_HEADERS})
-
+	
 # Solver group
 
 set(ChronoEngine_solver_SOURCES
@@ -1288,6 +1288,7 @@ set(ChronoEngine_utils_SOURCES
     utils/ChParserAdams.cpp
     utils/ChAdamsTokenizer.yy.cpp
     utils/ChConvexHull.cpp
+		utils/ChSocket.cpp
     )
 
 set(ChronoEngine_utils_HEADERS
@@ -1304,6 +1305,7 @@ set(ChronoEngine_utils_HEADERS
     utils/ChParserOpenSim.h
     utils/ChParserAdams.h
     utils/ChConvexHull.h
+		utils/ChSocket.h
 )
 
 if(BUILD_BENCHMARKING)

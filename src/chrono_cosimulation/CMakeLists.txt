@@ -21,18 +21,11 @@ MESSAGE(STATUS "==== Chrono Cosimulation module ====")
 #
 
 SET(ChronoEngine_COSIMULATION_SOURCES 
-    ChHostInfo.cpp 
-    ChSocket.cpp
-    ChSocketFramework.cpp
     ChCosimulation.cpp
 )
 
 SET(ChronoEngine_COSIMULATION_HEADERS
     ChApiCosimulation.h
-    ChExceptionSocket.h
-    ChHostInfo.h 
-    ChSocket.h
-    ChSocketFramework.h
     ChCosimulation.h
 )
 

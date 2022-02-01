@@ -202,6 +202,8 @@ set(CV_DRIVER_FILES
     driver/ChPathFollowerDriver.cpp
     driver/ChPathFollowerACCDriver.h
     driver/ChPathFollowerACCDriver.cpp
+		driver/ChExternalDriver.h
+		driver/ChExternalDriver.cpp
 
     driver/AIDriver.h
     driver/AIDriver.cpp
