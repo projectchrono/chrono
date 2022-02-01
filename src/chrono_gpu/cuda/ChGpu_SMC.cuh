@@ -33,7 +33,7 @@
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 #include "chrono_gpu/cuda/ChGpuHelpers.cuh"
-#include "chrono_gpu/cuda/ChGpuBoundaryConditions.cuh"  
+#include "chrono_gpu/cuda/ChGpuBoundaryConditions.cuh"
 //#include <math_constants.h>
 
 #define PI_F 3.1415926
@@ -137,6 +137,23 @@ static __global__ void elementalZLocalToGlobal(float* posZ,
         z_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
         z_UU += ((int64_t)ownerSD_triplet.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
         posZ[mySphereID] = z_UU;
+    }
+}
+
+/// A light-weight kernel that writes 0 or 1 depending on whether a particle's Z coord is higher than a given value
+static __global__ void elementalZAboveValue(unsigned int* YorN,
+                                            ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                            size_t nSpheres,
+                                            ChSystemGpu_impl::GranParamsPtr gran_params,
+                                            float ZValue) {
+    size_t mySphereID = (threadIdx.x + blockIdx.x * blockDim.x);
+    if (mySphereID < nSpheres) {
+        int zPos_local = sphere_data->sphere_local_pos_Z[mySphereID];
+        int3 ownerSD_triplet = SDIDTriplet(sphere_data->sphere_owner_SDs[mySphereID], gran_params);
+        float z_UU = zPos_local * gran_params->LENGTH_UNIT;
+        z_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
+        z_UU += ((int64_t)ownerSD_triplet.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
+        YorN[mySphereID] = z_UU >= ZValue ? 1 : 0;
     }
 }
 
