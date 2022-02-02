@@ -1335,7 +1335,7 @@ ChSocketFramework::ChSocketFramework() {
     WSADATA wsaData;
 
     if (WSAStartup(0x101, &wsaData)) {
-        throw chrono::socket::ChExceptionSocket(0, "Error: calling WSAStartup()");
+        throw ChExceptionSocket(0, "Error: calling WSAStartup()");
     }
 
 #endif

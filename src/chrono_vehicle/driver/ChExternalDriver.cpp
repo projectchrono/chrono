@@ -17,7 +17,13 @@
 
 #include "chrono_vehicle/driver/ChExternalDriver.h"
 
-using namespace chrono::utils;
+// Take care of Microsoft idiocy
+#ifdef _WIN32
+#ifdef GetObject
+#undef GetObject
+#endif
+#endif
+
 using namespace rapidjson;
 
 namespace chrono {
@@ -64,7 +70,7 @@ bool ChExternalDriver::WaitConnection(int port) {
     m_port = port;
 
     // a server is created that can listen at the given port
-    m_server = new ChSocketTCP(port);
+    m_server = new utils::ChSocketTCP(port);
 
     // bind the socket
     m_server->bindSocket();
@@ -77,7 +83,7 @@ bool ChExternalDriver::WaitConnection(int port) {
     m_client = m_server->acceptClient(clientHostName);
 
     if (!m_client)
-        throw ChExceptionSocket(0, "Server failed in getting the client socket.");
+        throw utils::ChExceptionSocket(0, "Server failed in getting the client socket.");
 
     GetLog() << "Connected to client: (" << clientHostName << ", " << port << ")\n";
 
@@ -86,7 +92,7 @@ bool ChExternalDriver::WaitConnection(int port) {
 
 bool ChExternalDriver::SendData(double time) {
     if (!m_client)
-        throw ChExceptionSocket(0, "Error. Attempted 'SendData' with no connected client.");
+        throw utils::ChExceptionSocket(0, "Error. Attempted 'SendData' with no connected client.");
 
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
@@ -126,7 +132,7 @@ bool ChExternalDriver::SendData(double time) {
 
 bool ChExternalDriver::ReceiveData() {
     if (!m_client)
-        throw ChExceptionSocket(0, "Error. Attempted 'ReceiveData' with no connected client.");
+        throw utils::ChExceptionSocket(0, "Error. Attempted 'ReceiveData' with no connected client.");
 
     // Receive from the client
     std::string message;

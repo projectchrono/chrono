@@ -39,9 +39,9 @@ namespace cosimul {
 class ChApiCosimulation ChCosimulation {
   public:
     /// Create a co-simulation interface.
-    ChCosimulation(chrono::utils::ChSocketFramework& mframework,  ///< socket framework
-                   int n_in_values,  ///< number of scalar variables to receive each timestep
-                   int n_out_values  ///< number of scalar variables to send each timestep
+    ChCosimulation(utils::ChSocketFramework& mframework,  ///< socket framework
+                   int n_in_values,                       ///< number of scalar variables to receive each timestep
+                   int n_out_values                       ///< number of scalar variables to send each timestep
     );
 
     ~ChCosimulation();

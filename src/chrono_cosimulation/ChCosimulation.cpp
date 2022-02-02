@@ -21,9 +21,9 @@ using namespace chrono::utils;
 namespace chrono {
 namespace cosimul {
 
-ChCosimulation::ChCosimulation(ChSocketFramework& mframework,
-                               int n_in_values,  /// number of scalar variables to receive each timestep
-                               int n_out_values  /// number of scalar variables to send each timestep
+ChCosimulation::ChCosimulation(ChSocketFramework& mframework,  // socket framework
+                               int n_in_values,                // number of scalar variables to receive each timestep
+                               int n_out_values                // number of scalar variables to send each timestep
 ) {
     this->myServer = 0;
     this->myClient = 0;
