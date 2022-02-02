@@ -108,10 +108,12 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction)
     
     // The first node is a boundary node: add it to my_mesh_boundary
     auto my_node_A_boundary = chrono_types::make_shared<ChNodeFEAxyzrot>();
+    my_node_A_boundary->SetMass(0); my_node_A_boundary->GetInertia().setZero(); 
     my_mesh_boundary->AddNode(my_node_A_boundary); 
 
     // The last node is a boundary node: add it to my_mesh_boundary
     auto my_node_B_boundary = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L, 0, 0)));
+    my_node_B_boundary->SetMass(0); my_node_B_boundary->GetInertia().setZero();
     my_mesh_boundary->AddNode(my_node_B_boundary); 
 
     //my_node_A_boundary->SetFixed(true); // NO - issues with bookeeping in modal_Hblock ***TO FIX***, for the moment: use constraint:
@@ -130,7 +132,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction)
         ChVector<>(0, 1, 0)       // the 'Y' up direction of the section for the beam
     );
 
-    my_node_B_boundary->SetForce(ChVector<>(0, -3, 0)); // to trigger some vibration at the free end
+    my_node_B_boundary->SetForce(ChVector<>(0, 2, 0)); // to trigger some vibration at the free end
 
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
     my_system->Setup();
@@ -142,12 +144,10 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction)
 
         // HERE PERFORM THE MODAL REDUCTION!
 
-        my_assembly->SwitchModalReductionON(12);
+        my_assembly->SwitchModalReductionON(5);
 
         // Just for later reference, dump reduced M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
         my_assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir+"/dump_reduced").c_str());
-
-        //my_assembly->Get_modal_q()(1) = 0.2;
     }
     else {
 
@@ -301,12 +301,13 @@ int main(int argc, char* argv[]) {
 
     application.SetTimestep(0.01);
    
+    /*
     // use HHT second order integrator (but slower)
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
         mystepper->SetStepControl(false);
     }
-
+    */
     
     // Need to show modes in 3D? No changes in your while() loop! In fact if you set application.SetModalShow(true), 
     // the application.BeginScene() in the simulation loop will overimpose the nth mode shape, displayed in 3D as a 
