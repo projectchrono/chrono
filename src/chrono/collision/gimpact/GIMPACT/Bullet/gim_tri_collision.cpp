@@ -40,23 +40,23 @@ class GIM_TRIANGLE_CALCULATION_CACHE
 {
 public:
 	GREAL margin;
-	btVector3 tu_vertices[3];
-	btVector3 tv_vertices[3];
-	btVector4 tu_plane;
-	btVector4 tv_plane;
-	btVector3 closest_point_u;
-	btVector3 closest_point_v;
-	btVector3 edge_edge_dir;
-	btVector3 distances;
+	cbtVector3 tu_vertices[3];
+	cbtVector3 tv_vertices[3];
+	cbtVector4 tu_plane;
+	cbtVector4 tv_plane;
+	cbtVector3 closest_point_u;
+	cbtVector3 closest_point_v;
+	cbtVector3 edge_edge_dir;
+	cbtVector3 distances;
 	GREAL du[4];
 	GREAL du0du1;
 	GREAL du0du2;
 	GREAL dv[4];
 	GREAL dv0dv1;
 	GREAL dv0dv2;
-	btVector3 temp_points[MAX_TRI_CLIPPING];
-	btVector3 temp_points1[MAX_TRI_CLIPPING];
-	btVector3 contact_points[MAX_TRI_CLIPPING];
+	cbtVector3 temp_points[MAX_TRI_CLIPPING];
+	cbtVector3 temp_points1[MAX_TRI_CLIPPING];
+	cbtVector3 contact_points[MAX_TRI_CLIPPING];
 
 	//! if returns false, the faces are paralele
 	SIMD_FORCE_INLINE bool compute_intervals(
@@ -106,14 +106,14 @@ public:
 	/*!
 	*/
 	SIMD_FORCE_INLINE GUINT clip_triangle(
-		const btVector4 &tri_plane,
-		const btVector3 *tripoints,
-		const btVector3 *srcpoints,
-		btVector3 *clip_points)
+		const cbtVector4 &tri_plane,
+		const cbtVector3 *tripoints,
+		const cbtVector3 *srcpoints,
+		cbtVector3 *clip_points)
 	{
 		// edge 0
 
-		btVector4 edgeplane;
+		cbtVector4 edgeplane;
 
 		EDGE_PLANE(tripoints[0], tripoints[1], tri_plane, edgeplane);
 
@@ -143,8 +143,8 @@ public:
 		/*GUINT i0 = (tri_plane.closestAxis()+1)%3;
 		GUINT i1 = (i0+1)%3;
 		// edge 0
-		btVector3 temp_points[MAX_TRI_CLIPPING];
-		btVector3 temp_points1[MAX_TRI_CLIPPING];
+		cbtVector3 temp_points[MAX_TRI_CLIPPING];
+		cbtVector3 temp_points1[MAX_TRI_CLIPPING];
 
 		GUINT clipped_count= PLANE_CLIP_TRIANGLE_GENERIC(
 			0,srcpoints[0],srcpoints[1],srcpoints[2],temp_points,
@@ -169,14 +169,14 @@ public:
 	}
 
 	SIMD_FORCE_INLINE void sort_isect(
-		GREAL &isect0, GREAL &isect1, GUINT &e0, GUINT &e1, btVector3 &vec0, btVector3 &vec1)
+		GREAL &isect0, GREAL &isect1, GUINT &e0, GUINT &e1, cbtVector3 &vec0, cbtVector3 &vec1)
 	{
 		if (isect1 < isect0)
 		{
 			//swap
 			GIM_SWAP_NUMBERS(isect0, isect1);
 			GIM_SWAP_NUMBERS(e0, e1);
-			btVector3 tmp = vec0;
+			cbtVector3 tmp = vec0;
 			vec0 = vec1;
 			vec1 = tmp;
 		}
@@ -222,11 +222,11 @@ public:
 							   dv0dv1, dv0dv2, tv_scale_e0, tv_scale_e1, tv_e0, tv_e1)) return 0;
 
 		//proyected vertices
-		btVector3 up_e0 = tu_vertices[tu_e0].lerp(tu_vertices[(tu_e0 + 1) % 3], tu_scale_e0);
-		btVector3 up_e1 = tu_vertices[tu_e1].lerp(tu_vertices[(tu_e1 + 1) % 3], tu_scale_e1);
+		cbtVector3 up_e0 = tu_vertices[tu_e0].lerp(tu_vertices[(tu_e0 + 1) % 3], tu_scale_e0);
+		cbtVector3 up_e1 = tu_vertices[tu_e1].lerp(tu_vertices[(tu_e1 + 1) % 3], tu_scale_e1);
 
-		btVector3 vp_e0 = tv_vertices[tv_e0].lerp(tv_vertices[(tv_e0 + 1) % 3], tv_scale_e0);
-		btVector3 vp_e1 = tv_vertices[tv_e1].lerp(tv_vertices[(tv_e1 + 1) % 3], tv_scale_e1);
+		cbtVector3 vp_e0 = tv_vertices[tv_e0].lerp(tv_vertices[(tv_e0 + 1) % 3], tv_scale_e0);
+		cbtVector3 vp_e1 = tv_vertices[tv_e1].lerp(tv_vertices[(tv_e1 + 1) % 3], tv_scale_e1);
 
 		//proyected intervals
 		GREAL isect_u[] = {up_e0.dot(edge_edge_dir), up_e1.dot(edge_edge_dir)};
@@ -309,13 +309,13 @@ public:
 
 	//! collides by two sides
 	SIMD_FORCE_INLINE bool triangle_collision(
-		const btVector3 &u0,
-		const btVector3 &u1,
-		const btVector3 &u2,
+		const cbtVector3 &u0,
+		const cbtVector3 &u1,
+		const cbtVector3 &u2,
 		GREAL margin_u,
-		const btVector3 &v0,
-		const btVector3 &v1,
-		const btVector3 &v2,
+		const cbtVector3 &v0,
+		const cbtVector3 &v1,
+		const cbtVector3 &v2,
 		GREAL margin_v,
 		GIM_TRIANGLE_CONTACT_DATA &contacts)
 	{
@@ -480,25 +480,25 @@ public:
 public:
 	GREAL margin;
 	GUINT clipped_count;
-	btVector3 tu_vertices[3];
-	btVector3 tv_vertices[3];
-	btVector3 temp_points[MAX_TRI_CLIPPING];
-	btVector3 temp_points1[MAX_TRI_CLIPPING];
-	btVector3 clipped_points[MAX_TRI_CLIPPING];
+	cbtVector3 tu_vertices[3];
+	cbtVector3 tv_vertices[3];
+	cbtVector3 temp_points[MAX_TRI_CLIPPING];
+	cbtVector3 temp_points1[MAX_TRI_CLIPPING];
+	cbtVector3 clipped_points[MAX_TRI_CLIPPING];
 	GIM_TRIANGLE_CONTACT_DATA contacts1;
 	GIM_TRIANGLE_CONTACT_DATA contacts2;
 
 
 	//! clip triangle
 	GUINT clip_triangle(
-		const btVector4 & tri_plane,
-		const btVector3 * tripoints,
-		const btVector3 * srcpoints,
-		btVector3 * clipped_points)
+		const cbtVector4 & tri_plane,
+		const cbtVector3 * tripoints,
+		const cbtVector3 * srcpoints,
+		cbtVector3 * clipped_points)
 	{
 		// edge 0
 
-		btVector4 edgeplane;
+		cbtVector4 edgeplane;
 
 		EDGE_PLANE(tripoints[0],tripoints[1],tri_plane,edgeplane);
 
@@ -531,13 +531,13 @@ public:
 
 	//! collides only on one side
 	bool triangle_collision(
-					const btVector3 & u0,
-					const btVector3 & u1,
-					const btVector3 & u2,
+					const cbtVector3 & u0,
+					const cbtVector3 & u1,
+					const cbtVector3 & u2,
 					GREAL margin_u,
-					const btVector3 & v0,
-					const btVector3 & v1,
-					const btVector3 & v2,
+					const cbtVector3 & v0,
+					const cbtVector3 & v1,
+					const cbtVector3 & v2,
 					GREAL margin_v,
 					GIM_TRIANGLE_CONTACT_DATA & contacts)
 	{
