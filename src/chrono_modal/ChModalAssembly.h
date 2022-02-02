@@ -100,6 +100,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Computes the increment of the subassembly configuration respect to the x0 snapshot configuration.
     void GetStateIncrement(ChStateDelta& Dx, int off_x);
 
+    /// Optimization flag. Default true: when in modal reduced mode, during simulations the internal (discarded) 
+    /// nodes are updated anyway by superposition of modal shapes etc., for visualization or postprocessing reasons.
+    /// In sake of high CPU performance, if no interest in visualization/postprocessing, one can disable this setting to false.
+    void SetInternalNodesUpdate(bool mflag);
+
 
 protected:
     /// Resize modal matrices and hook up the variables to the  M K R block for the solver. To be used all times
@@ -461,6 +466,8 @@ public:
     /// TOTAL: use the n_coords, n_coords_w, etc. of the parent class.
 
     bool is_modal;
+
+    bool internal_nodes_update;
 
     friend class ChSystem;
     friend class ChSystemMulticore;

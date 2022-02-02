@@ -33,7 +33,8 @@ CH_FACTORY_REGISTER(ChModalAssembly)
 ChModalAssembly::ChModalAssembly()
     : modal_variables(nullptr),
     n_modes_coords_w(0),
-    is_modal(false)
+    is_modal(false),
+    internal_nodes_update(true)
 {}
 
 ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(other) {
@@ -43,6 +44,7 @@ ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(othe
     modal_q_dt = other.modal_q_dt;
     modal_q_dtdt = other.modal_q_dtdt;
     modal_F = other.modal_F;
+    internal_nodes_update = other.internal_nodes_update;
 
     //// TODO:  deep copy of the object lists (internal_bodylist, internal_linklist, internal_meshlist,  internal_otherphysicslist)
 }
@@ -457,6 +459,10 @@ void ChModalAssembly::SetFullStateReset() {
         this->is_modal = true;
 }
 
+
+void ChModalAssembly::SetInternalNodesUpdate(bool mflag) {
+        this->internal_nodes_update = mflag;
+}
 
 
 //---------------------------------------------------------------------------------------
@@ -992,7 +998,8 @@ void ChModalAssembly::Update(bool update_assets) {
     else {
         // If in modal reduction mode, the internal parts would not be updated (actually, these could even be removed)
         // However one still might want to see the internal nodes "moving" during animations, 
-        this->SetInternalStateWithModes(update_assets);
+        if (this->internal_nodes_update)
+            this->SetInternalStateWithModes(update_assets);
     }
 
 }
@@ -1162,7 +1169,8 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
         // Update: 
         // If in modal reduction mode, the internal parts would not be updated (actually, these could even be removed)
         // However one still might want to see the internal nodes "moving" during animations, 
-        this->SetInternalStateWithModes(full_update);
+        if (this->internal_nodes_update)
+            this->SetInternalStateWithModes(full_update);
     }
 }
 
@@ -1676,6 +1684,7 @@ void ChModalAssembly::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(modal_q_dt, "modal_q_dt");
     marchive << CHNVP(modal_q_dtdt, "modal_q_dtdt");
     marchive << CHNVP(modal_F, "modal_F");
+    marchive << CHNVP(internal_nodes_update, "internal_nodes_update");
 }
 
 void ChModalAssembly::ArchiveIN(ChArchiveIn& marchive) {
@@ -1714,6 +1723,7 @@ void ChModalAssembly::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(modal_q_dt, "modal_q_dt");
     marchive >> CHNVP(modal_q_dtdt, "modal_q_dtdt");
     marchive >> CHNVP(modal_F, "modal_F");
+    marchive >> CHNVP(internal_nodes_update, "internal_nodes_update");
 
     // Recompute statistics, offsets, etc.
     Setup();
