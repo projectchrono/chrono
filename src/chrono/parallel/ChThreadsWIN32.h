@@ -17,7 +17,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/parallel/ChThreadsFunct.h"
-#include "chrono/collision/bullet/LinearMath/btAlignedObjectArray.h"
+#include "chrono/collision/bullet/LinearMath/cbtAlignedObjectArray.h"
 
 namespace chrono {
 
@@ -47,8 +47,8 @@ struct ChThreadStateWIN32 {
 
 class ChApi ChThreadsWIN32  // : public ChThreads
     {
-    btAlignedObjectArray<ChThreadStateWIN32> m_activeSpuStatus;
-    btAlignedObjectArray<void*> m_completeHandles;
+    cbtAlignedObjectArray<ChThreadStateWIN32> m_activeSpuStatus;
+    cbtAlignedObjectArray<void*> m_completeHandles;
 
     std::string uniqueName;
 

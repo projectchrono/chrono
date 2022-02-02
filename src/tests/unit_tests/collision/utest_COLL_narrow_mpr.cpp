@@ -22,12 +22,12 @@
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChMathematics.h"
 
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btBoxShape.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCollisionMargin.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btConeShape.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btMultiSphereShape.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBoxShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCollisionMargin.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtConeShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtMultiSphereShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSphereShape.h"
 
 #include "gtest/gtest.h"
 
@@ -45,12 +45,12 @@ const double precision = 5e-7;
 const float precision = 1e-6f;
 #endif
 
-real3 ToReal3(const btVector3& v) {
+real3 ToReal3(const cbtVector3& v) {
     return real3(v.x(), v.y(), v.z());
 }
 
-btVector3 ToBtVec(const real3& v) {
-    return btVector3((btScalar)v.x, (btScalar)v.y, (btScalar)v.z);
+cbtVector3 ToBtVec(const real3& v) {
+    return cbtVector3((cbtScalar)v.x, (cbtScalar)v.y, (cbtScalar)v.z);
 }
 
 // =============================================================================
@@ -63,7 +63,7 @@ TEST(ChNarrowphaseMPR, support_functions) {
         real3 R = real3(3.0, 1, 2);
         real3 answer_a = GetSupportPoint_Sphere(R.x, Dir);
 
-        btSphereShape shape((btScalar)R.x);
+        cbtSphereShape shape((cbtScalar)R.x);
         shape.setMargin(0);
         real3 answer_b = R.x * Dir;
 
@@ -75,10 +75,10 @@ TEST(ChNarrowphaseMPR, support_functions) {
         real3 R = real3(3.0, 1, 2);
         real3 answer_a = GetSupportPoint_Box(R, Dir);
 
-        btBoxShape shape(ToBtVec(R));
+        cbtBoxShape shape(ToBtVec(R));
         shape.setMargin(0);
         real3 answer_b =
-            ToReal3(shape.localGetSupportingVertex(btVector3((btScalar)Dir.x, (btScalar)Dir.y, (btScalar)Dir.z)));
+            ToReal3(shape.localGetSupportingVertex(cbtVector3((cbtScalar)Dir.x, (cbtScalar)Dir.y, (cbtScalar)Dir.z)));
 
         Assert_near(answer_a, answer_b, precision);
     }
@@ -88,10 +88,10 @@ TEST(ChNarrowphaseMPR, support_functions) {
         real3 R = real3(3.0, 1.0, 3.0);
         real3 answer_a = GetSupportPoint_Cylinder(R, Dir);
 
-        btCylinderShape shape(ToBtVec(R));
+        cbtCylinderShape shape(ToBtVec(R));
         shape.setMargin(0);
         real3 answer_b =
-            ToReal3(shape.localGetSupportingVertex(btVector3((btScalar)Dir.x, (btScalar)Dir.y, (btScalar)Dir.z)));
+            ToReal3(shape.localGetSupportingVertex(cbtVector3((cbtScalar)Dir.x, (cbtScalar)Dir.y, (cbtScalar)Dir.z)));
 
         Assert_near(answer_a, answer_b, precision);
     }
@@ -101,10 +101,10 @@ TEST(ChNarrowphaseMPR, support_functions) {
         real3 R = real3(3.0, 1.0, 3.0);
         real3 answer_a = GetSupportPoint_Cone(R, Dir);
 
-        btConeShape shape((btScalar)R.x, (btScalar)R.y);
+        cbtConeShape shape((cbtScalar)R.x, (cbtScalar)R.y);
         shape.setMargin(0);
         real3 answer_b =
-            ToReal3(shape.localGetSupportingVertex(btVector3((btScalar)Dir.x, (btScalar)Dir.y, (btScalar)Dir.z)));
+            ToReal3(shape.localGetSupportingVertex(cbtVector3((cbtScalar)Dir.x, (cbtScalar)Dir.y, (cbtScalar)Dir.z)));
 
         Assert_near(answer_a, answer_b, precision);
     }

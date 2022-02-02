@@ -16,7 +16,7 @@
 #include <string>
 #include "chrono/core/ChApiCE.h"
 #include "chrono/parallel/ChThreadsFunct.h"
-#include "chrono/collision/bullet/LinearMath/btAlignedObjectArray.h"
+#include "chrono/collision/bullet/LinearMath/cbtAlignedObjectArray.h"
 
 // macOS platform-specific headers:
 #if defined(__APPLE__)
@@ -57,8 +57,8 @@ struct ChThreadStatePOSIX {
 };
 
 class ChApi ChThreadsPOSIX {
-    btAlignedObjectArray<ChThreadStatePOSIX> m_activeSpuStatus;
-    btAlignedObjectArray<void*> m_completeHandles;
+    cbtAlignedObjectArray<ChThreadStatePOSIX> m_activeSpuStatus;
+    cbtAlignedObjectArray<void*> m_completeHandles;
 
     std::string uniqueName;
 

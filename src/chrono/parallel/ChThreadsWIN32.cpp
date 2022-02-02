@@ -45,7 +45,7 @@ DWORD WINAPI Thread_no_1(LPVOID lpParam) {
 
     while (1) {
         WaitForSingleObject(status->m_eventStartHandle, INFINITE);
-        btAssert(status->m_status);
+        cbtAssert(status->m_status);
 
         void* userPtr = status->m_userPtr;
 
@@ -65,8 +65,8 @@ DWORD WINAPI Thread_no_1(LPVOID lpParam) {
 /// send messages to SPUs
 void ChThreadsWIN32::sendRequest(uint32_t uiCommand, void* uiUserPtr, uint32_t threadId) {
     ChThreadStateWIN32& spuStatus = m_activeSpuStatus[threadId];
-    btAssert(threadId >= 0);
-    btAssert(threadId < (unsigned)m_activeSpuStatus.size());
+    cbtAssert(threadId >= 0);
+    cbtAssert(threadId < (unsigned)m_activeSpuStatus.size());
 
     spuStatus.m_commandId = uiCommand;
     spuStatus.m_status = 1;
@@ -78,23 +78,23 @@ void ChThreadsWIN32::sendRequest(uint32_t uiCommand, void* uiUserPtr, uint32_t t
 
 /// check for messages from SPUs
 void ChThreadsWIN32::waitForResponse(unsigned int* puiArgument0, unsigned int* puiArgument1) {
-    btAssert(m_activeSpuStatus.size());
+    cbtAssert(m_activeSpuStatus.size());
 
     int last = -1;
 
     DWORD res = WaitForMultipleObjects(m_completeHandles.size(), &m_completeHandles[0], 0, INFINITE);
-    btAssert(res != WAIT_FAILED);
+    cbtAssert(res != WAIT_FAILED);
     last = res - WAIT_OBJECT_0;
 
     ChThreadStateWIN32& spuStatus = m_activeSpuStatus[last];
-    btAssert(spuStatus.m_threadHandle);
-    btAssert(spuStatus.m_eventCompletetHandle);
+    cbtAssert(spuStatus.m_threadHandle);
+    cbtAssert(spuStatus.m_eventCompletetHandle);
 
-    btAssert(spuStatus.m_status > 1);
+    cbtAssert(spuStatus.m_status > 1);
     spuStatus.m_status = 0;
 
     /// need to find an active spu
-    btAssert(last >= 0);
+    cbtAssert(last >= 0);
 
     *puiArgument0 = spuStatus.m_taskId;
     *puiArgument1 = spuStatus.m_status;

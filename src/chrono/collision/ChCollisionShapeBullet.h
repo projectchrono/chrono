@@ -16,7 +16,7 @@
 #define CH_COLLISION_SHAPE_BULLET
 
 #include "chrono/collision/ChCollisionShape.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCollisionShape.h"
 
 namespace chrono {
 namespace collision {
@@ -33,7 +33,7 @@ class ChCollisionShapeBullet : public ChCollisionShape {
     ~ChCollisionShapeBullet() { delete m_bt_shape; }
 
   private:
-    btCollisionShape* m_bt_shape;
+    cbtCollisionShape* m_bt_shape;
 
     friend class ChCollisionModelBullet;
 };

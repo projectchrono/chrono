@@ -16,28 +16,28 @@ subject to the following restrictions:
 #ifndef BT_SPHERE_TRIANGLE_DETECTOR_H
 #define BT_SPHERE_TRIANGLE_DETECTOR_H
 
-#include "BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h"
+#include "BulletCollision/NarrowPhaseCollision/cbtDiscreteCollisionDetectorInterface.h"
 
-class btSphereShape;
-class btTriangleShape;
+class cbtSphereShape;
+class cbtTriangleShape;
 
-/// sphere-triangle to match the btDiscreteCollisionDetectorInterface
-struct SphereTriangleDetector : public btDiscreteCollisionDetectorInterface
+/// sphere-triangle to match the cbtDiscreteCollisionDetectorInterface
+struct SphereTriangleDetector : public cbtDiscreteCollisionDetectorInterface
 {
-	virtual void getClosestPoints(const ClosestPointInput& input, Result& output, class btIDebugDraw* debugDraw, bool swapResults = false);
+	virtual void getClosestPoints(const ClosestPointInput& input, Result& output, class cbtIDebugDraw* debugDraw, bool swapResults = false);
 
-	SphereTriangleDetector(btSphereShape* sphere, btTriangleShape* triangle, btScalar contactBreakingThreshold);
+	SphereTriangleDetector(cbtSphereShape* sphere, cbtTriangleShape* triangle, cbtScalar contactBreakingThreshold);
 
 	virtual ~SphereTriangleDetector(){};
 
-	bool collide(const btVector3& sphereCenter, btVector3& point, btVector3& resultNormal, btScalar& depth, btScalar& timeOfImpact, btScalar contactBreakingThreshold);
+	bool collide(const cbtVector3& sphereCenter, cbtVector3& point, cbtVector3& resultNormal, cbtScalar& depth, cbtScalar& timeOfImpact, cbtScalar contactBreakingThreshold);
 
 private:
-	bool pointInTriangle(const btVector3 vertices[], const btVector3& normal, btVector3* p);
-	bool facecontains(const btVector3& p, const btVector3* vertices, btVector3& normal);
+	bool pointInTriangle(const cbtVector3 vertices[], const cbtVector3& normal, cbtVector3* p);
+	bool facecontains(const cbtVector3& p, const cbtVector3* vertices, cbtVector3& normal);
 
-	btSphereShape* m_sphere;
-	btTriangleShape* m_triangle;
-	btScalar m_contactBreakingThreshold;
+	cbtSphereShape* m_sphere;
+	cbtTriangleShape* m_triangle;
+	cbtScalar m_contactBreakingThreshold;
 };
 #endif  //BT_SPHERE_TRIANGLE_DETECTOR_H

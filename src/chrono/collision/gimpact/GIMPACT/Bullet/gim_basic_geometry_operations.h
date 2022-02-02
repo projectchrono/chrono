@@ -277,7 +277,7 @@ SIMD_FORCE_INLINE GUINT LINE_PLANE_COLLISION(
 {
 	GREAL _dis, _dotdir;
 	_dotdir = VEC_DOT(plane, vDir);
-	if (btFabs(_dotdir) < PLANEDIREPSILON)
+	if (cbtFabs(_dotdir) < PLANEDIREPSILON)
 	{
 		tparam = tmax;
 		return 0;
@@ -471,7 +471,7 @@ SIMD_FORCE_INLINE void SEGMENT_COLLISION(
 	VEC_CROSS(_M, n, _BD);
 	_M[3] = VEC_DOT(_M, vB1);
 
-	LINE_PLANE_COLLISION(_M, _AD, vA1, vPointA, _tp, btScalar(0), btScalar(1));
+	LINE_PLANE_COLLISION(_M, _AD, vA1, vPointA, _tp, cbtScalar(0), cbtScalar(1));
 	/*Closest point on segment*/
 	VEC_DIFF(vPointB, vPointA, vB1);
 	_tp = VEC_DOT(vPointB, _BD);
