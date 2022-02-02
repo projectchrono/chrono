@@ -20,6 +20,7 @@ import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
 import pychrono.fea as fea
 import pychrono.pardisomkl as mkl
+import errno
 import os
 
 
@@ -34,9 +35,11 @@ out_dir = chrono.GetChronoOutputPath() + "FEA_SHELLS_BST"
 #GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n"
 
 # Create (if needed) output directory
-if not os.path.isdir(out_dir): 
-	os.mkdir(out_dir)
-	
+try:
+    os.mkdir(out_dir)
+except OSError as exc:
+    if exc.errno != errno.EEXIST:
+       print("Error creating output directory " )
 
 # Create a Chrono::Engine physical system
 my_system = chrono.ChSystemSMC()

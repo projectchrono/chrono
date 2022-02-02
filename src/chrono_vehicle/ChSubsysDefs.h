@@ -677,6 +677,12 @@ class CH_VEHICLE_API ChVehicleGeometry {
   public:
     ChVehicleGeometry();
 
+    /// Process visualization asset levels in the associated visual model (default: true).
+    /// If set to false, all visualization asset levels are flatten into a single one. This may be required for
+    /// visualization systems which do not process ChAssetLevel objects (such as Chrono::OpenGL).
+    /// Note: To have effect, this function must be called before setting visualizatin assets for any vehicle part.
+    static void EnableVisualizationAssetLevels(bool flag);
+
     /// Box shape for visualization and/or collision.
     struct BoxShape {
         BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1)
