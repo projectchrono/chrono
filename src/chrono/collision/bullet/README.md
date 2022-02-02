@@ -19,3 +19,5 @@ These directory contains a copy of various Bullet files modified for use in Chro
   ```shell
   $ find . -name '*.orig' -delete
   ```
+
+  These commands should be issued in the `src/` directory to modify all modules, demos, and tests.

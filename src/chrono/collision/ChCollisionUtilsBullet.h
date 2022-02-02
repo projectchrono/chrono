@@ -34,14 +34,14 @@ namespace bt_utils {
 
 /// Project point onto line.
 ChApi cbtVector3 ProjectPointOnLine(const cbtVector3& lP,  ///< point on line
-                                   const cbtVector3& lD,  ///< line direction (unit vector)
-                                   const cbtVector3& P    ///< point
+                                    const cbtVector3& lD,  ///< line direction (unit vector)
+                                    const cbtVector3& P    ///< point
 );
 
 /// Calculate distance from point to line
 ChApi cbtScalar DistancePointToLine(const cbtVector3& lP,  ///< point on line
-                                   const cbtVector3& lD,  ///< line direction (unit vector)
-                                   const cbtVector3& P    ///< point
+                                    const cbtVector3& lD,  ///< line direction (unit vector)
+                                    const cbtVector3& P    ///< point
 );
 
 /// Snap the specified location to a point on a box with given half-dimensions.

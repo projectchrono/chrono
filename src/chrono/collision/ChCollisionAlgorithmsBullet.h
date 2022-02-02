@@ -32,10 +32,10 @@ namespace collision {
 class cbtCapsuleBoxCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
   public:
     cbtCapsuleBoxCollisionAlgorithm(cbtPersistentManifold* mf,
-                                   const cbtCollisionAlgorithmConstructionInfo& ci,
-                                   const cbtCollisionObjectWrapper* col0,
-                                   const cbtCollisionObjectWrapper* col1,
-                                   bool isSwapped);
+                                    const cbtCollisionAlgorithmConstructionInfo& ci,
+                                    const cbtCollisionObjectWrapper* col0,
+                                    const cbtCollisionObjectWrapper* col1,
+                                    bool isSwapped);
     cbtCapsuleBoxCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci);
     ~cbtCapsuleBoxCollisionAlgorithm();
 
@@ -44,15 +44,15 @@ class cbtCapsuleBoxCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
                                   const cbtDispatcherInfo& dispatchInfo,
                                   cbtManifoldResult* resultOut) override;
     virtual cbtScalar calculateTimeOfImpact(cbtCollisionObject* body0,
-                                           cbtCollisionObject* body1,
-                                           const cbtDispatcherInfo& dispatchInfo,
-                                           cbtManifoldResult* resultOut) override;
+                                            cbtCollisionObject* body1,
+                                            const cbtDispatcherInfo& dispatchInfo,
+                                            cbtManifoldResult* resultOut) override;
     virtual void getAllContactManifolds(cbtManifoldArray& manifoldArray) override;
 
     struct CreateFunc : public cbtCollisionAlgorithmCreateFunc {
         virtual cbtCollisionAlgorithm* CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
-                                                               const cbtCollisionObjectWrapper* body0Wrap,
-                                                               const cbtCollisionObjectWrapper* body1Wrap) override;
+                                                                const cbtCollisionObjectWrapper* body0Wrap,
+                                                                const cbtCollisionObjectWrapper* body1Wrap) override;
     };
 
   private:
@@ -67,10 +67,10 @@ class cbtCapsuleBoxCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
 class cbtCylshellBoxCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
   public:
     cbtCylshellBoxCollisionAlgorithm(cbtPersistentManifold* mf,
-                                    const cbtCollisionAlgorithmConstructionInfo& ci,
-                                    const cbtCollisionObjectWrapper* col0,
-                                    const cbtCollisionObjectWrapper* col1,
-                                    bool isSwapped);
+                                     const cbtCollisionAlgorithmConstructionInfo& ci,
+                                     const cbtCollisionObjectWrapper* col0,
+                                     const cbtCollisionObjectWrapper* col1,
+                                     bool isSwapped);
     cbtCylshellBoxCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci);
     ~cbtCylshellBoxCollisionAlgorithm();
 
@@ -79,15 +79,15 @@ class cbtCylshellBoxCollisionAlgorithm : public cbtActivatingCollisionAlgorithm 
                                   const cbtDispatcherInfo& dispatchInfo,
                                   cbtManifoldResult* resultOut) override;
     virtual cbtScalar calculateTimeOfImpact(cbtCollisionObject* body0,
-                                           cbtCollisionObject* body1,
-                                           const cbtDispatcherInfo& dispatchInfo,
-                                           cbtManifoldResult* resultOut) override;
+                                            cbtCollisionObject* body1,
+                                            const cbtDispatcherInfo& dispatchInfo,
+                                            cbtManifoldResult* resultOut) override;
     virtual void getAllContactManifolds(cbtManifoldArray& manifoldArray) override;
 
     struct CreateFunc : public cbtCollisionAlgorithmCreateFunc {
         virtual cbtCollisionAlgorithm* CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
-                                                               const cbtCollisionObjectWrapper* body0Wrap,
-                                                               const cbtCollisionObjectWrapper* body1Wrap) override;
+                                                                const cbtCollisionObjectWrapper* body0Wrap,
+                                                                const cbtCollisionObjectWrapper* body1Wrap) override;
     };
 
   private:
@@ -99,14 +99,15 @@ class cbtCylshellBoxCollisionAlgorithm : public cbtActivatingCollisionAlgorithm 
 // ================================================================================================
 
 /// Custom override of the default Bullet algorithm for sphere-cylinder collision.
-/// This replaces the default GJK algorithm in Bullet which is inaccurate if the cylinder is much larger than the sphere.
+/// This replaces the default GJK algorithm in Bullet which is inaccurate if the cylinder is much larger than the
+/// sphere.
 class cbtSphereCylinderCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
   public:
     cbtSphereCylinderCollisionAlgorithm(cbtPersistentManifold* mf,
-                                       const cbtCollisionAlgorithmConstructionInfo& ci,
-                                       const cbtCollisionObjectWrapper* col0,
-                                       const cbtCollisionObjectWrapper* col1,
-                                       bool isSwapped);
+                                        const cbtCollisionAlgorithmConstructionInfo& ci,
+                                        const cbtCollisionObjectWrapper* col0,
+                                        const cbtCollisionObjectWrapper* col1,
+                                        bool isSwapped);
     cbtSphereCylinderCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci);
     ~cbtSphereCylinderCollisionAlgorithm();
 
@@ -115,15 +116,15 @@ class cbtSphereCylinderCollisionAlgorithm : public cbtActivatingCollisionAlgorit
                                   const cbtDispatcherInfo& dispatchInfo,
                                   cbtManifoldResult* resultOut) override;
     virtual cbtScalar calculateTimeOfImpact(cbtCollisionObject* body0,
-                                           cbtCollisionObject* body1,
-                                           const cbtDispatcherInfo& dispatchInfo,
-                                           cbtManifoldResult* resultOut) override;
+                                            cbtCollisionObject* body1,
+                                            const cbtDispatcherInfo& dispatchInfo,
+                                            cbtManifoldResult* resultOut) override;
     virtual void getAllContactManifolds(cbtManifoldArray& manifoldArray) override;
 
     struct CreateFunc : public cbtCollisionAlgorithmCreateFunc {
         virtual cbtCollisionAlgorithm* CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
-                                                               const cbtCollisionObjectWrapper* body0Wrap,
-                                                               const cbtCollisionObjectWrapper* body1Wrap) override;
+                                                                const cbtCollisionObjectWrapper* body0Wrap,
+                                                                const cbtCollisionObjectWrapper* body1Wrap) override;
     };
 
   private:
@@ -139,10 +140,10 @@ class cbtSphereCylinderCollisionAlgorithm : public cbtActivatingCollisionAlgorit
 class cbtArcSegmentCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
   public:
     cbtArcSegmentCollisionAlgorithm(cbtPersistentManifold* mf,
-                                   const cbtCollisionAlgorithmConstructionInfo& ci,
-                                   const cbtCollisionObjectWrapper* col0,
-                                   const cbtCollisionObjectWrapper* col1,
-                                   bool isSwapped);
+                                    const cbtCollisionAlgorithmConstructionInfo& ci,
+                                    const cbtCollisionObjectWrapper* col0,
+                                    const cbtCollisionObjectWrapper* col1,
+                                    bool isSwapped);
     cbtArcSegmentCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci);
     ~cbtArcSegmentCollisionAlgorithm();
 
@@ -151,15 +152,15 @@ class cbtArcSegmentCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
                                   const cbtDispatcherInfo& dispatchInfo,
                                   cbtManifoldResult* resultOut) override;
     virtual cbtScalar calculateTimeOfImpact(cbtCollisionObject* body0,
-                                           cbtCollisionObject* body1,
-                                           const cbtDispatcherInfo& dispatchInfo,
-                                           cbtManifoldResult* resultOut) override;
+                                            cbtCollisionObject* body1,
+                                            const cbtDispatcherInfo& dispatchInfo,
+                                            cbtManifoldResult* resultOut) override;
     virtual void getAllContactManifolds(cbtManifoldArray& manifoldArray) override;
 
     struct CreateFunc : public cbtCollisionAlgorithmCreateFunc {
         virtual cbtCollisionAlgorithm* CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
-                                                               const cbtCollisionObjectWrapper* body0Wrap,
-                                                               const cbtCollisionObjectWrapper* body1Wrap) override;
+                                                                const cbtCollisionObjectWrapper* body0Wrap,
+                                                                const cbtCollisionObjectWrapper* body1Wrap) override;
     };
 
   private:
@@ -175,10 +176,10 @@ class cbtArcSegmentCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
 class cbtArcArcCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
   public:
     cbtArcArcCollisionAlgorithm(cbtPersistentManifold* mf,
-                               const cbtCollisionAlgorithmConstructionInfo& ci,
-                               const cbtCollisionObjectWrapper* col0,
-                               const cbtCollisionObjectWrapper* col1,
-                               bool isSwapped);
+                                const cbtCollisionAlgorithmConstructionInfo& ci,
+                                const cbtCollisionObjectWrapper* col0,
+                                const cbtCollisionObjectWrapper* col1,
+                                bool isSwapped);
     cbtArcArcCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci);
     ~cbtArcArcCollisionAlgorithm();
 
@@ -187,15 +188,15 @@ class cbtArcArcCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
                                   const cbtDispatcherInfo& dispatchInfo,
                                   cbtManifoldResult* resultOut) override;
     virtual cbtScalar calculateTimeOfImpact(cbtCollisionObject* body0,
-                                           cbtCollisionObject* body1,
-                                           const cbtDispatcherInfo& dispatchInfo,
-                                           cbtManifoldResult* resultOut) override;
+                                            cbtCollisionObject* body1,
+                                            const cbtDispatcherInfo& dispatchInfo,
+                                            cbtManifoldResult* resultOut) override;
     virtual void getAllContactManifolds(cbtManifoldArray& manifoldArray) override;
 
     struct CreateFunc : public cbtCollisionAlgorithmCreateFunc {
         virtual cbtCollisionAlgorithm* CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
-                                                               const cbtCollisionObjectWrapper* body0Wrap,
-                                                               const cbtCollisionObjectWrapper* body1Wrap) override;
+                                                                const cbtCollisionObjectWrapper* body0Wrap,
+                                                                const cbtCollisionObjectWrapper* body1Wrap) override;
     };
 
   private:
@@ -210,10 +211,10 @@ class cbtArcArcCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
 class cbtCEtriangleShapeCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
   public:
     cbtCEtriangleShapeCollisionAlgorithm(cbtPersistentManifold* mf,
-                                        const cbtCollisionAlgorithmConstructionInfo& ci,
-                                        const cbtCollisionObjectWrapper* col0,
-                                        const cbtCollisionObjectWrapper* col1,
-                                        bool isSwapped);
+                                         const cbtCollisionAlgorithmConstructionInfo& ci,
+                                         const cbtCollisionObjectWrapper* col0,
+                                         const cbtCollisionObjectWrapper* col1,
+                                         bool isSwapped);
     cbtCEtriangleShapeCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci);
     ~cbtCEtriangleShapeCollisionAlgorithm();
 
@@ -222,15 +223,15 @@ class cbtCEtriangleShapeCollisionAlgorithm : public cbtActivatingCollisionAlgori
                                   const cbtDispatcherInfo& dispatchInfo,
                                   cbtManifoldResult* resultOut) override;
     virtual cbtScalar calculateTimeOfImpact(cbtCollisionObject* body0,
-                                           cbtCollisionObject* body1,
-                                           const cbtDispatcherInfo& dispatchInfo,
-                                           cbtManifoldResult* resultOut) override;
+                                            cbtCollisionObject* body1,
+                                            const cbtDispatcherInfo& dispatchInfo,
+                                            cbtManifoldResult* resultOut) override;
     virtual void getAllContactManifolds(cbtManifoldArray& manifoldArray) override;
 
     struct CreateFunc : public cbtCollisionAlgorithmCreateFunc {
         virtual cbtCollisionAlgorithm* CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
-                                                               const cbtCollisionObjectWrapper* body0Wrap,
-                                                               const cbtCollisionObjectWrapper* body1Wrap) override;
+                                                                const cbtCollisionObjectWrapper* body0Wrap,
+                                                                const cbtCollisionObjectWrapper* body1Wrap) override;
     };
 
   private:

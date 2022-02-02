@@ -44,13 +44,14 @@ ChCollisionSystemBullet::ChCollisionSystemBullet() : m_debug_drawer(nullptr) {
     bt_broadphase = new cbtDbvtBroadphase();
     bt_collision_world = new cbtCollisionWorld(bt_dispatcher, bt_broadphase, bt_collision_configuration);
 
-    // custom collision for cylinder-sphere case, for improved precision   
+    // custom collision for cylinder-sphere case, for improved precision
     ////cbtCollisionAlgorithmCreateFunc* m_collision_sph_cyl = new cbtSphereCylinderCollisionAlgorithm::CreateFunc;
     ////cbtCollisionAlgorithmCreateFunc* m_collision_cyl_sph = new cbtSphereCylinderCollisionAlgorithm::CreateFunc;
     ////m_collision_cyl_sph->m_swapped = true;
-    ////bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE, CYLINDER_SHAPE_PROXYTYPE, m_collision_sph_cyl);
-    ////bt_dispatcher->registerCollisionCreateFunc(CYLINDER_SHAPE_PROXYTYPE, SPHERE_SHAPE_PROXYTYPE, m_collision_cyl_sph);
-    
+    ////bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE, CYLINDER_SHAPE_PROXYTYPE,
+    ///m_collision_sph_cyl); /bt_dispatcher->registerCollisionCreateFunc(CYLINDER_SHAPE_PROXYTYPE,
+    ///SPHERE_SHAPE_PROXYTYPE, m_collision_cyl_sph);
+
     // custom collision for capsule-box case
     m_collision_capsule_box = new cbtCapsuleBoxCollisionAlgorithm::CreateFunc;
     m_collision_box_capsule = new cbtCapsuleBoxCollisionAlgorithm::CreateFunc;
@@ -151,10 +152,9 @@ void ChCollisionSystemBullet::Run() {
     if (bt_collision_world) {
         bt_collision_world->performDiscreteCollisionDetection();
     }
-	
-	//int numPairs = bt_collision_world->getBroadphase()->getOverlappingPairCache()->getNumOverlappingPairs();	
-	//GetLog() << "tot pairs: " << numPairs << "\n";
-	
+
+    // int numPairs = bt_collision_world->getBroadphase()->getOverlappingPairCache()->getNumOverlappingPairs();
+    // GetLog() << "tot pairs: " << numPairs << "\n";
 }
 
 void ChCollisionSystemBullet::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
@@ -250,8 +250,8 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
                     // Add to contact container
                     if (add_contact) {
                         ////std::cout << " add indexA=" << indexA << " indexB=" << indexB << std::endl;
-                        ////std::cout << "     typeA=" << icontact.shapeA->m_type << " typeB=" << icontact.shapeB->m_type
-                        ////          << std::endl;
+                        ////std::cout << "     typeA=" << icontact.shapeA->m_type << " typeB=" << icontact.shapeB->m_type << std::endl;
+
                         mcontactcontainer->AddContact(icontact);
                     }
                 }

@@ -224,8 +224,7 @@ void ChCollisionSystemBulletMulticore::ReportContacts(ChContactContainer* mconta
 
                     if (add_contact) {
                         ////std::cout << " add indexA=" << indexA << " indexB=" << indexB << std::endl;
-                        ////std::cout << "     typeA=" << icontact.shapeA->m_type << " typeB=" <<
-                        ///icontact.shapeB->m_type /          << std::endl;
+                        ////std::cout << "     typeA=" << icontact.shapeA->m_type << " typeB=" << icontact.shapeB->m_type << std::endl;
 
                         data_manager->cd_data->norm_rigid_rigid.push_back(
                             real3(icontact.vN.x(), icontact.vN.y(), icontact.vN.z()));

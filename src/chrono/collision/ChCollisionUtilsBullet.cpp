@@ -23,15 +23,15 @@ namespace bt_utils {
 
 // Project point onto line.
 cbtVector3 ProjectPointOnLine(const cbtVector3& lP,  // point on line
-                             const cbtVector3& lD,  // line direction (unit vector)
-                             const cbtVector3& P    // point
+                              const cbtVector3& lD,  // line direction (unit vector)
+                              const cbtVector3& P    // point
 ) {
     return lP + (P - lP).dot(lD) * lD;
 }
 
 cbtScalar DistancePointToLine(const cbtVector3& lP,  // point on line
-                             const cbtVector3& lD,  // line direction (unit vector)
-                             const cbtVector3& P    // point
+                              const cbtVector3& lD,  // line direction (unit vector)
+                              const cbtVector3& P    // point
 ) {
     cbtVector3 Q = ProjectPointOnLine(lP, lD, P);
     return (Q - P).length();
@@ -288,7 +288,7 @@ bool IntersectSegmentCylinder(const cbtVector3& sC,  // segment center point
             tMax = cbtMin(tMax, t2);
         } else {
             tMin = cbtMax(tMin, t2);
-            tMax = cbtMin(tMax, t1);        
+            tMax = cbtMin(tMax, t1);
         }
         if (tMax < tMin)
             return false;

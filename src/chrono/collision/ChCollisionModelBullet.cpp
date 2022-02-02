@@ -86,8 +86,8 @@ static ChVector<> ChBulletToVect(const cbtVector3& vec) {
 
 static void ChPosMatrToBullet(const ChVector<>& pos, const ChMatrix33<>& rA, cbtTransform& mtransform) {
     cbtMatrix3x3 basisA((cbtScalar)rA(0, 0), (cbtScalar)rA(0, 1), (cbtScalar)rA(0, 2), (cbtScalar)rA(1, 0),
-                       (cbtScalar)rA(1, 1), (cbtScalar)rA(1, 2), (cbtScalar)rA(2, 0), (cbtScalar)rA(2, 1),
-                       (cbtScalar)rA(2, 2));
+                        (cbtScalar)rA(1, 1), (cbtScalar)rA(1, 2), (cbtScalar)rA(2, 0), (cbtScalar)rA(2, 1),
+                        (cbtScalar)rA(2, 2));
     mtransform.setBasis(basisA);
     mtransform.setOrigin(cbtVector3((cbtScalar)pos.x(), (cbtScalar)pos.y(), (cbtScalar)pos.z()));
 }
@@ -261,10 +261,10 @@ bool ChCollisionModelBullet::AddCapsule(std::shared_ptr<ChMaterialSurface> mater
 }
 
 bool ChCollisionModelBullet::AddCylindricalShell(std::shared_ptr<ChMaterialSurface> material,
-                                         double radius,
-                                         double hlen,
-                                         const ChVector<>& pos,
-                                         const ChMatrix33<>& rot) {
+                                                 double radius,
+                                                 double hlen,
+                                                 const ChVector<>& pos,
+                                                 const ChMatrix33<>& rot) {
     // adjust default inward margin (if object too thin)
     SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, 0.5 * hlen)));
 
@@ -326,16 +326,16 @@ bool ChCollisionModelBullet::Add2Dpath(std::shared_ptr<ChMaterialSurface> materi
             shape->m_bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
             injectShape(pos, rot, shape);
         } else if (auto marc = std::dynamic_pointer_cast<geometry::ChLineArc>(mpath->GetSubLineN(i))) {
-            if ((marc->origin.rot.e1() != 0) ||  (marc->origin.rot.e2() != 0))
+            if ((marc->origin.rot.e1() != 0) || (marc->origin.rot.e2() != 0))
                 throw ChException("Error! Add2Dpath: a sub arc of ChLinePath not parallel to XY plane!");
             double mangle1 = marc->angle1;
             double mangle2 = marc->angle2;
             if (mangle1 - mangle2 == CH_C_2PI)
                 mangle1 -= 1e-7;
             auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::PATH2D, material);
-            shape->m_bt_shape =
-                new cbt2DarcShape((cbtScalar)marc->origin.pos.x(), (cbtScalar)marc->origin.pos.y(), (cbtScalar)marc->radius,
-                                  (cbtScalar)mangle1, (cbtScalar)mangle2, marc->counterclockwise, (cbtScalar)mthickness);
+            shape->m_bt_shape = new cbt2DarcShape((cbtScalar)marc->origin.pos.x(), (cbtScalar)marc->origin.pos.y(),
+                                                  (cbtScalar)marc->radius, (cbtScalar)mangle1, (cbtScalar)mangle2,
+                                                  marc->counterclockwise, (cbtScalar)mthickness);
             shape->m_bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
             injectShape(pos, rot, shape);
         } else {
@@ -371,8 +371,9 @@ bool ChCollisionModelBullet::Add2Dpath(std::shared_ptr<ChMaterialSurface> materi
                 double mangle2 = atan2(dir_next.y(), dir_next.x()) + CH_C_PI_2;
 
                 auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::PATH2D, material);
-                shape->m_bt_shape = new cbt2DarcShape((cbtScalar)pos_prev.x(), (cbtScalar)pos_prev.y(), (cbtScalar)0,
-                                                      (cbtScalar)mangle1, (cbtScalar)mangle2, false, (cbtScalar)mthickness);
+                shape->m_bt_shape =
+                    new cbt2DarcShape((cbtScalar)pos_prev.x(), (cbtScalar)pos_prev.y(), (cbtScalar)0,
+                                      (cbtScalar)mangle1, (cbtScalar)mangle2, false, (cbtScalar)mthickness);
                 shape->m_bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
                 injectShape(pos, rot, shape);
                 // GetLog() << "convex corner between " << i_next << " and " << i_next << " w.angles: " << mangle1 << "
@@ -420,8 +421,9 @@ bool ChCollisionModelBullet::AddTriangleProxy(std::shared_ptr<ChMaterialSurface>
 
     auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::TRIANGLE, material);
 
-    shape->m_bt_shape = new cbtCEtriangleShape(p1, p2, p3, ep1, ep2, ep3, mowns_vertex_1, mowns_vertex_2, mowns_vertex_3,
-                                              mowns_edge_1, mowns_edge_2, mowns_edge_3, msphereswept_rad);
+    shape->m_bt_shape =
+        new cbtCEtriangleShape(p1, p2, p3, ep1, ep2, ep3, mowns_vertex_1, mowns_vertex_2, mowns_vertex_3, mowns_edge_1,
+                               mowns_edge_2, mowns_edge_3, msphereswept_rad);
     shape->m_bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
 
     injectShape(VNULL, ChMatrix33<>(1), shape);
@@ -459,7 +461,7 @@ bool ChCollisionModelBullet::AddConvexHull(std::shared_ptr<ChMaterialSurface> ma
     auto bt_shape = new cbtConvexHullShape;
     for (unsigned int i = 0; i < mmesh.m_vertices.size(); i++) {
         bt_shape->addPoint(cbtVector3((cbtScalar)mmesh.m_vertices[i].x(), (cbtScalar)mmesh.m_vertices[i].y(),
-                                     (cbtScalar)mmesh.m_vertices[i].z()));
+                                      (cbtScalar)mmesh.m_vertices[i].z()));
     }
     bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
     bt_shape->recalcLocalAabb();
@@ -834,8 +836,8 @@ void ChCollisionModelBullet::SyncPosition() {
         cbtVector3((cbtScalar)mcsys.pos.x(), (cbtScalar)mcsys.pos.y(), (cbtScalar)mcsys.pos.z()));
     const ChMatrix33<>& rA(mcsys.rot);
     cbtMatrix3x3 basisA((cbtScalar)rA(0, 0), (cbtScalar)rA(0, 1), (cbtScalar)rA(0, 2), (cbtScalar)rA(1, 0),
-                       (cbtScalar)rA(1, 1), (cbtScalar)rA(1, 2), (cbtScalar)rA(2, 0), (cbtScalar)rA(2, 1),
-                       (cbtScalar)rA(2, 2));
+                        (cbtScalar)rA(1, 1), (cbtScalar)rA(1, 2), (cbtScalar)rA(2, 0), (cbtScalar)rA(2, 1),
+                        (cbtScalar)rA(2, 2));
     bt_collision_object->getWorldTransform().setBasis(basisA);
 }
 

@@ -32,10 +32,10 @@ namespace collision {
 // ================================================================================================
 
 cbtCapsuleBoxCollisionAlgorithm::cbtCapsuleBoxCollisionAlgorithm(cbtPersistentManifold* mf,
-                                                               const cbtCollisionAlgorithmConstructionInfo& ci,
-                                                               const cbtCollisionObjectWrapper* col0,
-                                                               const cbtCollisionObjectWrapper* col1,
-                                                               bool isSwapped)
+                                                                 const cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                 const cbtCollisionObjectWrapper* col0,
+                                                                 const cbtCollisionObjectWrapper* col1,
+                                                                 bool isSwapped)
     : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
     const cbtCollisionObjectWrapper* capsuleObjWrap = m_isSwapped ? col1 : col0;
     const cbtCollisionObjectWrapper* boxObjWrap = m_isSwapped ? col0 : col1;
@@ -60,9 +60,9 @@ cbtCapsuleBoxCollisionAlgorithm ::~cbtCapsuleBoxCollisionAlgorithm() {
 
 // Capsule-box intersection test.
 void cbtCapsuleBoxCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
-                                                      const cbtCollisionObjectWrapper* body1,
-                                                      const cbtDispatcherInfo& dispatchInfo,
-                                                      cbtManifoldResult* resultOut) {
+                                                       const cbtCollisionObjectWrapper* body1,
+                                                       const cbtDispatcherInfo& dispatchInfo,
+                                                       cbtManifoldResult* resultOut) {
     (void)dispatchInfo;
     (void)resultOut;
     if (!m_manifoldPtr)
@@ -187,9 +187,9 @@ void cbtCapsuleBoxCollisionAlgorithm::processCollision(const cbtCollisionObjectW
 }
 
 cbtScalar cbtCapsuleBoxCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
-                                                               cbtCollisionObject* body1,
-                                                               const cbtDispatcherInfo& dispatchInfo,
-                                                               cbtManifoldResult* resultOut) {
+                                                                 cbtCollisionObject* body1,
+                                                                 const cbtDispatcherInfo& dispatchInfo,
+                                                                 cbtManifoldResult* resultOut) {
     // not yet
     return cbtScalar(1.);
 }
@@ -215,10 +215,10 @@ cbtCollisionAlgorithm* cbtCapsuleBoxCollisionAlgorithm::CreateFunc::CreateCollis
 // ================================================================================================
 
 cbtCylshellBoxCollisionAlgorithm::cbtCylshellBoxCollisionAlgorithm(cbtPersistentManifold* mf,
-                                                                 const cbtCollisionAlgorithmConstructionInfo& ci,
-                                                                 const cbtCollisionObjectWrapper* col0,
-                                                                 const cbtCollisionObjectWrapper* col1,
-                                                                 bool isSwapped)
+                                                                   const cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                   const cbtCollisionObjectWrapper* col0,
+                                                                   const cbtCollisionObjectWrapper* col1,
+                                                                   bool isSwapped)
     : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
     const cbtCollisionObjectWrapper* cylshellObjWrap = m_isSwapped ? col1 : col0;
     const cbtCollisionObjectWrapper* boxObjWrap = m_isSwapped ? col0 : col1;
@@ -290,7 +290,7 @@ int addContactPoint(const cbtVector3& pc,
 }
 
 // Add contact between the given box point (assumed to be in or on the cylinder) and the cylshell.
-// All input vectors are assumed to be expressed in the box frame. 
+// All input vectors are assumed to be expressed in the box frame.
 int addContactPoint(const cbtVector3& p,
                     const cbtVector3& c,
                     const cbtVector3& a,
@@ -318,9 +318,9 @@ int addContactPoint(const cbtVector3& p,
 //   - capsule-box intersection is then reduced to a segment-box intersection
 //   - a replacement capsule (one for each direction of the box) may generate 0, 1, or 2 contacts
 void cbtCylshellBoxCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
-                                                       const cbtCollisionObjectWrapper* body1,
-                                                       const cbtDispatcherInfo& dispatchInfo,
-                                                       cbtManifoldResult* resultOut) {
+                                                        const cbtCollisionObjectWrapper* body1,
+                                                        const cbtDispatcherInfo& dispatchInfo,
+                                                        cbtManifoldResult* resultOut) {
     (void)dispatchInfo;
     (void)resultOut;
     if (!m_manifoldPtr)
@@ -400,7 +400,7 @@ void cbtCylshellBoxCollisionAlgorithm::processCollision(const cbtCollisionObject
         }
     }
 
-    // If a box face supports the cylinder, do not check box edges. 
+    // If a box face supports the cylinder, do not check box edges.
     if (num_contacts > 0)
         return;
 
@@ -437,7 +437,6 @@ void cbtCylshellBoxCollisionAlgorithm::processCollision(const cbtCollisionObject
                 }
             }
         }
-
     }
 
     ////std::cout << num_contacts << std::endl;
@@ -448,9 +447,9 @@ void cbtCylshellBoxCollisionAlgorithm::processCollision(const cbtCollisionObject
 }
 
 cbtScalar cbtCylshellBoxCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
-                                                                cbtCollisionObject* body1,
-                                                                const cbtDispatcherInfo& dispatchInfo,
-                                                                cbtManifoldResult* resultOut) {
+                                                                  cbtCollisionObject* body1,
+                                                                  const cbtDispatcherInfo& dispatchInfo,
+                                                                  cbtManifoldResult* resultOut) {
     // not yet
     return cbtScalar(1.);
 }
@@ -475,11 +474,12 @@ cbtCollisionAlgorithm* cbtCylshellBoxCollisionAlgorithm::CreateFunc::CreateColli
 
 // ================================================================================================
 
-cbtSphereCylinderCollisionAlgorithm::cbtSphereCylinderCollisionAlgorithm(cbtPersistentManifold* mf,
-                                                                       const cbtCollisionAlgorithmConstructionInfo& ci,
-                                                                       const cbtCollisionObjectWrapper* col0,
-                                                                       const cbtCollisionObjectWrapper* col1,
-                                                                       bool isSwapped)
+cbtSphereCylinderCollisionAlgorithm::cbtSphereCylinderCollisionAlgorithm(
+    cbtPersistentManifold* mf,
+    const cbtCollisionAlgorithmConstructionInfo& ci,
+    const cbtCollisionObjectWrapper* col0,
+    const cbtCollisionObjectWrapper* col1,
+    bool isSwapped)
     : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
     const cbtCollisionObjectWrapper* sphereObj = m_isSwapped ? col1 : col0;
     const cbtCollisionObjectWrapper* cylObj = m_isSwapped ? col0 : col1;
@@ -490,7 +490,8 @@ cbtSphereCylinderCollisionAlgorithm::cbtSphereCylinderCollisionAlgorithm(cbtPers
     }
 }
 
-cbtSphereCylinderCollisionAlgorithm::cbtSphereCylinderCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci)
+cbtSphereCylinderCollisionAlgorithm::cbtSphereCylinderCollisionAlgorithm(
+    const cbtCollisionAlgorithmConstructionInfo& ci)
     : cbtActivatingCollisionAlgorithm(ci) {}
 
 cbtSphereCylinderCollisionAlgorithm ::~cbtSphereCylinderCollisionAlgorithm() {
@@ -501,9 +502,9 @@ cbtSphereCylinderCollisionAlgorithm ::~cbtSphereCylinderCollisionAlgorithm() {
 }
 
 void cbtSphereCylinderCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
-                                                          const cbtCollisionObjectWrapper* body1,
-                                                          const cbtDispatcherInfo& dispatchInfo,
-                                                          cbtManifoldResult* resultOut) {
+                                                           const cbtCollisionObjectWrapper* body1,
+                                                           const cbtDispatcherInfo& dispatchInfo,
+                                                           cbtManifoldResult* resultOut) {
     (void)dispatchInfo;
     (void)resultOut;
     if (!m_manifoldPtr)
@@ -581,9 +582,9 @@ void cbtSphereCylinderCollisionAlgorithm::processCollision(const cbtCollisionObj
 }
 
 cbtScalar cbtSphereCylinderCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
-                                                                   cbtCollisionObject* body1,
-                                                                   const cbtDispatcherInfo& dispatchInfo,
-                                                                   cbtManifoldResult* resultOut) {
+                                                                     cbtCollisionObject* body1,
+                                                                     const cbtDispatcherInfo& dispatchInfo,
+                                                                     cbtManifoldResult* resultOut) {
     // not yet
     return cbtScalar(1.);
 }
@@ -609,10 +610,10 @@ cbtCollisionAlgorithm* cbtSphereCylinderCollisionAlgorithm::CreateFunc::CreateCo
 // ================================================================================================
 
 cbtArcSegmentCollisionAlgorithm::cbtArcSegmentCollisionAlgorithm(cbtPersistentManifold* mf,
-                                                               const cbtCollisionAlgorithmConstructionInfo& ci,
-                                                               const cbtCollisionObjectWrapper* col0,
-                                                               const cbtCollisionObjectWrapper* col1,
-                                                               bool isSwapped)
+                                                                 const cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                 const cbtCollisionObjectWrapper* col0,
+                                                                 const cbtCollisionObjectWrapper* col1,
+                                                                 bool isSwapped)
     : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
     const cbtCollisionObjectWrapper* arcObjWrap = m_isSwapped ? col1 : col0;
     const cbtCollisionObjectWrapper* segmentObjWrap = m_isSwapped ? col0 : col1;
@@ -636,9 +637,9 @@ cbtArcSegmentCollisionAlgorithm ::~cbtArcSegmentCollisionAlgorithm() {
 }
 
 void cbtArcSegmentCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
-                                                      const cbtCollisionObjectWrapper* body1,
-                                                      const cbtDispatcherInfo& dispatchInfo,
-                                                      cbtManifoldResult* resultOut) {
+                                                       const cbtCollisionObjectWrapper* body1,
+                                                       const cbtDispatcherInfo& dispatchInfo,
+                                                       cbtManifoldResult* resultOut) {
     (void)dispatchInfo;
     (void)resultOut;
     if (!m_manifoldPtr)
@@ -758,9 +759,9 @@ void cbtArcSegmentCollisionAlgorithm::processCollision(const cbtCollisionObjectW
 }
 
 cbtScalar cbtArcSegmentCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
-                                                               cbtCollisionObject* body1,
-                                                               const cbtDispatcherInfo& dispatchInfo,
-                                                               cbtManifoldResult* resultOut) {
+                                                                 cbtCollisionObject* body1,
+                                                                 const cbtDispatcherInfo& dispatchInfo,
+                                                                 cbtManifoldResult* resultOut) {
     // not yet
     return cbtScalar(1.);
 }
@@ -786,10 +787,10 @@ cbtCollisionAlgorithm* cbtArcSegmentCollisionAlgorithm::CreateFunc::CreateCollis
 // ================================================================================================
 
 cbtArcArcCollisionAlgorithm::cbtArcArcCollisionAlgorithm(cbtPersistentManifold* mf,
-                                                       const cbtCollisionAlgorithmConstructionInfo& ci,
-                                                       const cbtCollisionObjectWrapper* col0,
-                                                       const cbtCollisionObjectWrapper* col1,
-                                                       bool isSwapped)
+                                                         const cbtCollisionAlgorithmConstructionInfo& ci,
+                                                         const cbtCollisionObjectWrapper* col0,
+                                                         const cbtCollisionObjectWrapper* col1,
+                                                         bool isSwapped)
     : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
     const cbtCollisionObjectWrapper* arcObj1Wrap = m_isSwapped ? col1 : col0;
     const cbtCollisionObjectWrapper* arcObj2Wrap = m_isSwapped ? col0 : col1;
@@ -813,9 +814,9 @@ cbtArcArcCollisionAlgorithm ::~cbtArcArcCollisionAlgorithm() {
 }
 
 void cbtArcArcCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
-                                                  const cbtCollisionObjectWrapper* body1,
-                                                  const cbtDispatcherInfo& dispatchInfo,
-                                                  cbtManifoldResult* resultOut) {
+                                                   const cbtCollisionObjectWrapper* body1,
+                                                   const cbtDispatcherInfo& dispatchInfo,
+                                                   cbtManifoldResult* resultOut) {
     (void)dispatchInfo;
     (void)resultOut;
     if (!m_manifoldPtr)
@@ -990,9 +991,9 @@ void cbtArcArcCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapp
 }
 
 cbtScalar cbtArcArcCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
-                                                           cbtCollisionObject* body1,
-                                                           const cbtDispatcherInfo& dispatchInfo,
-                                                           cbtManifoldResult* resultOut) {
+                                                             cbtCollisionObject* body1,
+                                                             const cbtDispatcherInfo& dispatchInfo,
+                                                             cbtManifoldResult* resultOut) {
     // not yet
     return cbtScalar(1.);
 }
@@ -1017,11 +1018,12 @@ cbtCollisionAlgorithm* cbtArcArcCollisionAlgorithm::CreateFunc::CreateCollisionA
 
 // ================================================================================================
 
-cbtCEtriangleShapeCollisionAlgorithm::cbtCEtriangleShapeCollisionAlgorithm(cbtPersistentManifold* mf,
-                                                                         const cbtCollisionAlgorithmConstructionInfo& ci,
-                                                                         const cbtCollisionObjectWrapper* col0,
-                                                                         const cbtCollisionObjectWrapper* col1,
-                                                                         bool isSwapped)
+cbtCEtriangleShapeCollisionAlgorithm::cbtCEtriangleShapeCollisionAlgorithm(
+    cbtPersistentManifold* mf,
+    const cbtCollisionAlgorithmConstructionInfo& ci,
+    const cbtCollisionObjectWrapper* col0,
+    const cbtCollisionObjectWrapper* col1,
+    bool isSwapped)
     : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
     const cbtCollisionObjectWrapper* triObj1Wrap = m_isSwapped ? col1 : col0;
     const cbtCollisionObjectWrapper* triObj2Wrap = m_isSwapped ? col0 : col1;
@@ -1034,7 +1036,8 @@ cbtCEtriangleShapeCollisionAlgorithm::cbtCEtriangleShapeCollisionAlgorithm(cbtPe
     }
 }
 
-cbtCEtriangleShapeCollisionAlgorithm::cbtCEtriangleShapeCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci)
+cbtCEtriangleShapeCollisionAlgorithm::cbtCEtriangleShapeCollisionAlgorithm(
+    const cbtCollisionAlgorithmConstructionInfo& ci)
     : cbtActivatingCollisionAlgorithm(ci) {}
 
 cbtCEtriangleShapeCollisionAlgorithm ::~cbtCEtriangleShapeCollisionAlgorithm() {
@@ -1045,9 +1048,9 @@ cbtCEtriangleShapeCollisionAlgorithm ::~cbtCEtriangleShapeCollisionAlgorithm() {
 }
 
 void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
-                                                           const cbtCollisionObjectWrapper* body1,
-                                                           const cbtDispatcherInfo& dispatchInfo,
-                                                           cbtManifoldResult* resultOut) {
+                                                            const cbtCollisionObjectWrapper* body1,
+                                                            const cbtDispatcherInfo& dispatchInfo,
+                                                            cbtManifoldResult* resultOut) {
     (void)dispatchInfo;
     (void)resultOut;
     if (!m_manifoldPtr)
@@ -1520,9 +1523,9 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
 }
 
 cbtScalar cbtCEtriangleShapeCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
-                                                                    cbtCollisionObject* body1,
-                                                                    const cbtDispatcherInfo& dispatchInfo,
-                                                                    cbtManifoldResult* resultOut) {
+                                                                      cbtCollisionObject* body1,
+                                                                      const cbtDispatcherInfo& dispatchInfo,
+                                                                      cbtManifoldResult* resultOut) {
     // not yet
     return cbtScalar(1.);
 }
@@ -1534,11 +1537,11 @@ void cbtCEtriangleShapeCollisionAlgorithm::getAllContactManifolds(cbtManifoldArr
 }
 
 void cbtCEtriangleShapeCollisionAlgorithm::_add_contact(const ChVector<>& candid_pA,
-                                                       const ChVector<>& candid_pB,
-                                                       const double dist,
-                                                       cbtManifoldResult* resultOut,
-                                                       const double offsetA,
-                                                       const double offsetB) {
+                                                        const ChVector<>& candid_pB,
+                                                        const double dist,
+                                                        cbtManifoldResult* resultOut,
+                                                        const double offsetA,
+                                                        const double offsetB) {
     // convert to Bullet vectors. Note: in absolute csys.
     cbtVector3 absA((cbtScalar)candid_pA.x(), (cbtScalar)candid_pA.y(), (cbtScalar)candid_pA.z());
     cbtVector3 absB((cbtScalar)candid_pB.x(), (cbtScalar)candid_pB.y(), (cbtScalar)candid_pB.z());

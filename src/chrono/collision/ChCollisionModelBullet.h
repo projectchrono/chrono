@@ -46,7 +46,7 @@ class ChConvexDecomposition;
 class ChApi ChCollisionModelBullet : public ChCollisionModel {
   protected:
     std::unique_ptr<cbtCollisionObject> bt_collision_object;  ///< Bullet collision object containing Bullet geometries
-    std::shared_ptr<cbtCompoundShape> bt_compound_shape;      ///< Compound for models with more than one collision shape
+    std::shared_ptr<cbtCompoundShape> bt_compound_shape;  ///< Compound for models with more than one collision shape
 
   public:
     ChCollisionModelBullet();
