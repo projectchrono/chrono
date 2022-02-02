@@ -411,6 +411,7 @@ public:
     ChMatrixDynamic<> modal_M;
     ChMatrixDynamic<> modal_K;
     ChMatrixDynamic<> modal_R;
+    ChMatrixDynamic<> Psi; //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
 
     ChMatrixDynamic<std::complex<double>> modes_V;             // eigenvectors
     ChVectorDynamic<std::complex<double>> modes_eig;           // eigenvalues

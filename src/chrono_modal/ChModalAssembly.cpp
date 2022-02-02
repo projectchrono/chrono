@@ -140,7 +140,7 @@ void ChModalAssembly::SwitchModalReductionON(int n_modes) {
 
     // Psi = [ I     0    ]
     //       [Psi_S  Psi_D]
-    ChMatrixDynamic<> Psi(this->n_boundary_coords_w + this->n_internal_coords_w, this->n_boundary_coords_w + this->n_modes_coords_w);
+    Psi.setZero(this->n_boundary_coords_w + this->n_internal_coords_w, this->n_boundary_coords_w + this->n_modes_coords_w);
     //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
 
     Psi << Eigen::MatrixXd::Identity(n_boundary_coords_w, n_boundary_coords_w), Eigen::MatrixXd::Zero(n_boundary_coords_w, n_modes_coords_w),
@@ -371,6 +371,15 @@ void ChModalAssembly::SetFullStateWithModeOverlay(int n_mode, double phase, doub
 
 void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
    
+    if (!this->is_modal)
+        return;
+
+    // Fetch current dx state (e reduced)
+    ChStateDelta assembly_Dx_reduced;
+    assembly_Dx_reduced.setZero(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
+    this->GetStateIncrement(assembly_Dx_reduced,0);
+
+
     bool needs_temporary_bou_int = this->is_modal;
     if (needs_temporary_bou_int) 
         this->is_modal = false; // to have IntStateIncrement IntStateScatter referencing both boundary AND INTERNAL items
@@ -389,10 +398,10 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
     assembly_v.setZero(bou_int_coords_w, nullptr);
     assembly_Dx.setZero(bou_int_coords_w, nullptr);
     
-    // compute x = V * q  with V eigenvectors  and q current modal coordinates
-    assembly_Dx = this->modes_V.real() * this->modal_q;
+    // compute dx = Psi * dx_reduced  
+    assembly_Dx = this->Psi * assembly_Dx_reduced;
     
-    this->IntStateIncrement(0, assembly_x_new, assembly_x0, 0, assembly_Dx); 
+    this->IntStateIncrement(0, assembly_x_new, this->assembly_x0, 0, assembly_Dx); 
 
     // scatter to internal nodes only and update them 
     unsigned int displ_x = 0 - this->offset_x;
@@ -1076,7 +1085,7 @@ void ChModalAssembly::GetStateIncrement(ChStateDelta& Dx, int off_v) {
         }
         
         // Finally compute the increment for the modal variables, that is quite simple: the last part of Dx is exactly =modal_q
-        Dx.segment(off_x + this->n_boundary_coords_w, this->n_modes_coords_w) = this->modal_q;
+        Dx.segment(off_v + this->n_boundary_coords_w, this->n_modes_coords_w) = this->modal_q;
     }
 }
 
