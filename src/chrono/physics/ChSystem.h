@@ -28,7 +28,7 @@
 #include "chrono/core/ChMath.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/collision/ChCollisionSystem.h"
-#include "chrono/parallel/ChOpenMP.h"
+#include "chrono/utils/ChOpenMP.h"
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/solver/ChSystemDescriptor.h"

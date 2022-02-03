@@ -902,27 +902,6 @@ source_group(motion_functions FILES
     ${ChronoEngine_motion_functions_SOURCES}
     ${ChronoEngine_motion_functions_HEADERS})
 
-# Parallel support group
-
-set(ChronoEngine_parallel_SOURCES
-    parallel/ChThreads.cpp
-    parallel/ChThreadsPOSIX.cpp
-    parallel/ChThreadsWIN32.cpp
-    )
-
-set(ChronoEngine_parallel_HEADERS
-    parallel/ChOpenMP.h
-    parallel/ChThreads.h
-    parallel/ChThreadsFunct.h
-    parallel/ChThreadsPOSIX.h
-    parallel/ChThreadsSync.h
-    parallel/ChThreadsWIN32.h
-    )
-
-source_group(parallel FILES
-    ${ChronoEngine_parallel_SOURCES}
-    ${ChronoEngine_parallel_HEADERS})
-
 # Solver group
 
 set(ChronoEngine_solver_SOURCES
@@ -1291,6 +1270,7 @@ set(ChronoEngine_utils_SOURCES
     )
 
 set(ChronoEngine_utils_HEADERS
+    utils/ChOpenMP.h
     utils/ChUtilsGeometry.h
     utils/ChUtilsCreators.h
     utils/ChUtilsGenerators.h
@@ -1370,8 +1350,6 @@ set(ChronoEngine_FILES
     ${ChronoEngine_timestepper_HEADERS}
     ${ChronoEngine_motion_functions_SOURCES}
     ${ChronoEngine_motion_functions_HEADERS}
-    ${ChronoEngine_parallel_SOURCES}
-    ${ChronoEngine_parallel_HEADERS}
     ${ChronoEngine_collision_chrono_SOURCES}
     ${ChronoEngine_collision_bullet_SOURCES}
     ${ChronoEngine_collision_gimpact_SOURCES}
