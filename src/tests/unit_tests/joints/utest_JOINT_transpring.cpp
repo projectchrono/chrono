@@ -171,7 +171,7 @@ bool TestTranSpring(
     // "jointLocPend" and "jointLocGnd".
 
     auto spring = chrono_types::make_shared<ChLinkTSDA>();
-    spring->Initialize(pendulum, ground, false, jointLocPend, jointLocGnd, true);
+    spring->Initialize(pendulum, ground, false, jointLocPend, jointLocGnd);
     spring->SetSpringCoefficient(spring_coef);
     spring->SetDampingCoefficient(damping_coef);
     my_system.AddLink(spring);

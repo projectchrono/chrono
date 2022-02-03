@@ -5,8 +5,10 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Callback mechanism for collision debug visualization](#added-callback-mechanism-for-collision-debug-visualization)
   - [Translational and rotational spring-damper-actuators](#changed-translational-and-rotational-spring-damper-actuators)
   - [Refactor Chrono::Vehicle suspension test rigs](#changed-refactor-chronovehicle-suspension-test-rigs)
+- [Release 7.0.1](#release-701---2022-01-07)  
 - [Release 7.0.0](#release-700---2021-11-15) 
   - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
   - [New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
@@ -57,12 +59,59 @@ Change Log
 
 ## Unreleased (development branch)
 
+### [Added] Callback mechanism for collision debug visualization
+
+A formal callback mechanism was added to `ChCollisionSystem` which allows user-controlled visualization of collision detection information for debug purposes.
+This mechanism allows overlaying collision detection debug information (wireframe rendering of the collision shapes, axis-aligned bounding boxes, contact points and normals) using any visualization system.
+The only requirement for this capability is the ability of rendering lines between two given 3D points (expressed in the absolute coordinate system).
+
+To use this capability, users must implement a custom callback class derived from `ChCollisionSystem::VisualizationCallback` and override the `DrawLine` method to render a line in 3D using their visualization system of choice.
+This callback object is attached to the Chrono system using `ChCollisionSystem::RegisterVisualizationCallback` and rendering of collision information is triggered by calling `ChCollisionSystem::Visualize` from within the simulation loop.
+The type of information that will be rendered is controlled by an integer flag argument to `Visualize` which can be any of the enum `ChCollisionSystem::VisualizationModes` or a combination of these (using bit-wise or).
+
+For example:
+```cpp
+class MyDrawer : public ChCollisionSystem::VisualizationCallback {
+public:
+  MyDrawer() {...}
+  virtual void DrawLine(...) override {...}
+};
+
+ChSystemNSC sys;
+...
+auto drawer = chrono_types::make_shared<MyDrawer>();
+sys.GetCollisionSystem()->RegisterVisualizationCallback(drawer);
+...
+while (...) {
+  ...
+  sys.GetCollisionSystem()->Visualize(ChCollisionSystem::VIS_Shapes | ChCollisionSystem::VIS_Aabb);
+}
+```
+
+A demonstration of this capability, with either the Bullet-based or the parallel Chrono collision system, is given in `demo_IRR_visualize_collision`. The custom collision visualization callback class in this demo uses Irrlicht for rendering lines.
+
+
+
 ### [Changed] Translational and rotational spring-damper-actuators
 
 - The classes `ChLinkSpring` and `ChLinkSpringCB` were obsoleted, with their functionality superseded by `ChLinkTSDA`.  
 - For consistency, the class `ChLinkRotSpringCB` was renamed to `ChLinkRSDA`.
 
 Both `ChLinkTSDA` and `ChLinkRSDA` default to a linear spring-damper model, but an arbitrary user-defined spring-damper-actuation force can be implemented through functor classes (`ChLinkTSDA::ForceFunctor` and `ChLinkRSDA::TorqueFunctor`, respectively).  When using the PyChrono python wrappers, these functor classes are named `ForceFunctor` and `TorqueFunctor`. When using the C# wrappers, these functor classes are inherited as outside classes named `TSDAForceFunctor` and `RSDATorqueFunctor`, respectively.
+
+**ChLinkRSDA**
+
+- `ChLinkRSDA` is now derived directly from `ChLink` and properly accounts for possible full revolutions. 
+- A rotational spring is initialized by specifying the two connected bodies and the RSDA frames on each of them.  It is assumed that the mechanism kinematics are such that the two RSDA frames maintain their Z axes parallel at all times.
+- The angle is measured starting from the X axis of the RSDA frame on the first body towards the X axis of the RSDA frame on the second body and its sign is dictated by the right-hand rule.
+- Unless `SetRestAngle` is explicitly called, the spring rest (free) angle is inferred from the initial configuration.
+- The signature of the virtual method `ChLinkRSDA::TorqueFunctor::evaluate` was changed to take a const reference to the RSDA element as its last argument.
+- A new visual asset (`ChRotSpringShape`) was added for run-time visualization of a rotational spring.
+
+**ChLinkTSDA**
+
+- For consistency, the mechanism for specifying the spring rest (free) length was changed: unless `SetRestLength` is explicitly called, the spring rest (free) angle is inferred from the initial configuration.
+- The signature of the virtual method `ChLinkTSDA::ForceFunctor::evaluate` was changed to take a const reference to the TSDA element as its last argument.
 
 ### [Changed] Refactor Chrono::Vehicle suspension test rigs
 
@@ -81,6 +130,14 @@ Note also that the format for a data file with STR actuation information (used b
 In other words, each line of this ASCII file should now contain:<br>
 `    time  steering_input  left_post_0  right_post_0 left_post_1 right_post_1 …`
 
+## Release 7.0.1 - 2022-01-07
+
+### [Fixed]
+
+- Fixed Chrono::Sensor class export (Windows)
+- Fixed bug in ChPovRay related to processing of OBJ files
+- Fixed demo program in sample project for vehicle co-simulation
+- Fixed setting of MPI linker flags in CMake project configuration script
 
 ## Release 7.0.0 - 2021-11-15
 

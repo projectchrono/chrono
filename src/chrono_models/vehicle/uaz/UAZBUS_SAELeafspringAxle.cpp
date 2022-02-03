@@ -81,7 +81,11 @@ class UAZBUS_AuxSpringForceRear : public ChLinkTSDA::ForceFunctor {
   public:
     UAZBUS_AuxSpringForceRear(double spring_constant, double min_length, double max_length);
 
-    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_spring_constant;
@@ -110,7 +114,7 @@ double UAZBUS_AuxSpringForceRear::evaluate(double time,
                                            double rest_length,
                                            double length,
                                            double vel,
-                                           ChLinkTSDA* link) {
+                                           const ChLinkTSDA& link) {
     double force = 0;
 
     double defl_spring = rest_length - length;
@@ -140,7 +144,11 @@ class UAZBUS_SAEShockForceRear : public ChLinkTSDA::ForceFunctor {
                              double expansion_slope,
                              double expansion_degressivity);
 
-    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_slope_compr;
@@ -162,7 +170,7 @@ double UAZBUS_SAEShockForceRear::evaluate(double time,
                                           double rest_length,
                                           double length,
                                           double vel,
-                                          ChLinkTSDA* link) {
+                                          const ChLinkTSDA& link) {
     // Simple model of a degressive damping characteristic
     double force = 0;
 

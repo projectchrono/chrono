@@ -15,6 +15,7 @@
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChLinkRevoluteSpherical.h"
 #include "chrono/physics/ChLinkTSDA.h"
+#include "chrono/physics/ChLinkRSDA.h"
 
 namespace chrono {
 
@@ -37,7 +38,7 @@ void ChPointPointDrawing::Update(ChPhysicsItem* updater, const ChCoordsys<>& coo
                            coords.TransformPointParentToLocal(link->GetBody2()->GetPos()));
     }
 
-    // Inherit patent class (ChLineShape)
+    // Inherit parent class (ChLineShape)
     ChLineShape::Update(updater, coords);
 }
 
@@ -78,6 +79,31 @@ void ChPointPointSpring::UpdateLineGeometry(const ChVector<>& endpoint1, const C
 	}
 
 	this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(linepath));
+}
+
+void ChRotSpringShape::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
+    // Do nothing if not associated with an RSDA.
+    auto rsda = dynamic_cast<ChLinkRSDA*>(updater);
+    if (!rsda)
+        return;
+
+    // The asset frame for an RSDA is the frame on body1.
+    auto linepath = chrono_types::make_shared<geometry::ChLinePath>();
+    double del_angle = rsda->GetAngle() / m_resolution;
+    ChVector<> V1(m_radius, 0, 0);
+    for (int iu = 1; iu <= m_resolution; iu++) {
+        double crt_angle = iu * del_angle;
+        double crt_radius = m_radius - (iu * del_angle / CH_C_2PI) * (m_radius / 10);
+        ChVector<> V2(crt_radius * std::cos(crt_angle), crt_radius * std::sin(crt_angle), 0);
+        auto segment = geometry::ChLineSegment(V1, V2);
+        linepath->AddSubLine(segment);
+        V1 = V2;
+    }
+
+    this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(linepath));
+
+    // Inherit parent class (ChLineShape)
+    ChLineShape::Update(updater, coords);
 }
 
 }  // end namespace chrono

@@ -275,8 +275,8 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
 
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
-    m_spring[side]->Initialize(chassis->GetBody(), m_upright[side], false, points[SPRING_C], points[SPRING_U], false,
-                               getSpringRestLength());
+    m_spring[side]->Initialize(chassis->GetBody(), m_upright[side], false, points[SPRING_C], points[SPRING_U]);
+    m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
     chassis->GetSystem()->AddLink(m_spring[side]);
 

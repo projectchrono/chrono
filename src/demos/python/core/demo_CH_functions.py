@@ -9,6 +9,7 @@
 #------------------------------------------------------------------------------
 
 import pychrono as chrono
+import errno
 import os
 import math
 
@@ -26,11 +27,12 @@ print ('Demonstration of functions for y = f(x)')
 
 # Create the output directory
 out_dir = os.path.join(os.path.dirname(__file__), "Functions_demo")
-if not os.path.exists(out_dir):
+try:
     os.mkdir(out_dir)
-    print("Directory " , out_dir ,  " created ")
-else:    
-    print("Directory " , out_dir ,  " already exists")
+except OSError as exc:
+    if exc.errno != errno.EEXIST:
+       print("Error creating output directory " )
+
 
 # Ramp function
 # -------------

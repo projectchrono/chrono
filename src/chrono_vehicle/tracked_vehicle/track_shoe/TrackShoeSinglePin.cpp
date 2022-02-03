@@ -159,6 +159,7 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
         for (auto& cyl : m_geometry.m_coll_cylinders) {
             m_geometry.m_vis_cylinders.push_back(cyl);
         }
+        m_geometry.m_has_primitives = true;
     }
 }
 

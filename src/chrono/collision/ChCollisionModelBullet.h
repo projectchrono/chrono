@@ -24,11 +24,11 @@
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionShapeBullet.h"
 #include "chrono/geometry/ChLinePath.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCompoundShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCompoundShape.h"
 
 // forward references
-class btCollisionObject;
-// class btCollisionShape;
+class cbtCollisionObject;
+// class cbtCollisionShape;
 
 namespace chrono {
 
@@ -45,8 +45,8 @@ class ChConvexDecomposition;
 /// Class defining the Bullet geometric model for collision detection.
 class ChApi ChCollisionModelBullet : public ChCollisionModel {
   protected:
-    std::unique_ptr<btCollisionObject> bt_collision_object;  ///< Bullet collision object containing Bullet geometries
-    std::shared_ptr<btCompoundShape> bt_compound_shape;      ///< Compound for models with more than one collision shape
+    std::unique_ptr<cbtCollisionObject> bt_collision_object;  ///< Bullet collision object containing Bullet geometries
+    std::shared_ptr<cbtCompoundShape> bt_compound_shape;  ///< Compound for models with more than one collision shape
 
   public:
     ChCollisionModelBullet();
@@ -348,7 +348,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
 
     void onFamilyChange();
 
-    btCollisionObject* GetBulletModel() { return bt_collision_object.get(); }
+    cbtCollisionObject* GetBulletModel() { return bt_collision_object.get(); }
 
     std::vector<std::shared_ptr<geometry::ChTriangleMesh>> m_trimeshes;
 

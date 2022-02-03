@@ -32,8 +32,14 @@
 namespace chrono {
 namespace vehicle {
 
+static bool use_visualization_asset_levels = true;
+
 ChVehicleGeometry::ChVehicleGeometry()
     : m_has_primitives(false), m_has_mesh(false), m_has_collision(false), m_has_colors(false) {}
+
+void ChVehicleGeometry::EnableVisualizationAssetLevels(bool flag) {
+    use_visualization_asset_levels = flag;
+}
 
 void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
@@ -59,9 +65,11 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
             auto sphere_shape = chrono_types::make_shared<ChSphereShape>();
             sphere_shape->GetSphereGeometry().rad = sphere.m_radius;
             sphere_shape->Pos = sphere.m_pos;
-            sphere_level->AddAsset(sphere_shape);
+            if (use_visualization_asset_levels)
+                sphere_level->AddAsset(sphere_shape);
+            else
+                body->AddAsset(sphere_shape);
         }
-        sphere_level->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color_spheres));
 
         auto box_level = chrono_types::make_shared<ChAssetLevel>();
         for (auto& box : m_vis_boxes) {
@@ -69,9 +77,11 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
             box_shape->GetBoxGeometry().SetLengths(box.m_dims);
             box_shape->Pos = box.m_pos;
             box_shape->Rot = box.m_rot;
-            box_level->AddAsset(box_shape);
+            if (use_visualization_asset_levels)
+                box_level->AddAsset(box_shape);
+            else
+                body->AddAsset(box_shape);
         }
-        box_level->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color_boxes));
 
         auto cyl_level = chrono_types::make_shared<ChAssetLevel>();
         for (auto& cyl : m_vis_cylinders) {
@@ -81,13 +91,21 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
             cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -cyl.m_length / 2, 0);
             cyl_shape->Pos = cyl.m_pos;
             cyl_shape->Rot = cyl.m_rot;
-            cyl_level->AddAsset(cyl_shape);
+            if (use_visualization_asset_levels)
+                cyl_level->AddAsset(cyl_shape);
+            else
+                body->AddAsset(cyl_shape);
         }
-        cyl_level->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color_cylinders));
 
-        body->AddAsset(box_level);
-        body->AddAsset(cyl_level);
-        body->AddAsset(cyl_level);
+        if (use_visualization_asset_levels) {
+            sphere_level->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color_spheres));
+            box_level->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color_boxes));
+            cyl_level->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color_cylinders));
+
+            body->AddAsset(sphere_level);
+            body->AddAsset(box_level);
+            body->AddAsset(cyl_level);
+        }
 
         return;
     }

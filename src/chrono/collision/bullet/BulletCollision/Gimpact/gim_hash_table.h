@@ -289,7 +289,7 @@ protected:
 
 				if (m_hash_table[index] != GIM_INVALID_HASH)
 				{  //The new index is alreade used... discard this new incomming object, repeated key
-					btAssert(m_hash_table[index] == nodekey);
+					cbtAssert(m_hash_table[index] == nodekey);
 					nodesptr[i].m_key = GIM_INVALID_HASH;
 				}
 				else
@@ -330,7 +330,7 @@ protected:
 			//rehashing
 			_resize_table(m_table_size + 1);
 			GUINT cell_index = _find_avaliable_cell(hashkey);
-			btAssert(cell_index != GIM_INVALID_HASH);
+			cbtAssert(cell_index != GIM_INVALID_HASH);
 		}
 		return cell_index;
 	}
@@ -344,8 +344,8 @@ protected:
 			//Search for the avaliable cell in buffer
 			GUINT cell_index = _find_cell(m_nodes[index].m_key);
 
-			btAssert(cell_index != GIM_INVALID_HASH);
-			btAssert(m_hash_table[cell_index] == index);
+			cbtAssert(cell_index != GIM_INVALID_HASH);
+			cbtAssert(m_hash_table[cell_index] == index);
 
 			m_hash_table[cell_index] = GIM_INVALID_HASH;
 		}
@@ -448,7 +448,7 @@ protected:
 			{
 				//update the new position of the last element
 				GUINT cell_index = _find_cell(hashkey);
-				btAssert(cell_index != GIM_INVALID_HASH);
+				cbtAssert(cell_index != GIM_INVALID_HASH);
 				//new position of the last element which will be swaped
 				m_hash_table[cell_index] = index;
 			}

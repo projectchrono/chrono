@@ -13,7 +13,7 @@ class RSDATorqueFunctor : public chrono::ChLinkRSDA::TorqueFunctor {
         virtual double evaluate(double time,
                                 double angle,
                                 double vel,
-                                chrono::ChLinkRSDA* link) override {
+                                const chrono::ChLinkRSDA& link) override {
             GetLog() << "You must implement the function evaluate()!\n";
             return 0.0;
         }
@@ -47,7 +47,7 @@ class RSDATorqueFunctor {
         virtual double evaluate(double time,
                                 double angle,
                                 double vel,
-                                chrono::ChLinkRSDA* link) {
+                                const chrono::ChLinkRSDA& link) {
             return 0.0;
         }
 };

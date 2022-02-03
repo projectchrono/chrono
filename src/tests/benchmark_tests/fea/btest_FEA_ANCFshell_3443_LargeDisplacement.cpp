@@ -25,7 +25,6 @@
 #include <string>
 
 #include "chrono/ChConfig.h"
-#include "chrono/parallel/ChOpenMP.h"
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"

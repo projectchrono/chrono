@@ -3,5 +3,5 @@
   "Type":                       "Brake",
   "Template":                   "BrakeSimple",
 
-  "Maximum Torque":             2000
+  "Maximum Torque":             825
 }

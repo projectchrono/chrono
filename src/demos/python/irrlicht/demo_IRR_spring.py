@@ -44,7 +44,7 @@ class MySpringForce(chrono.ForceFunctor):
                  rest_length,  # undeformed length
                  length,       # current length
                  vel,          # current velocity (positive when extending)
-                 link):        # back-pointer to associated link
+                 link):        # associated link
         force = -spring_coef * (length - rest_length) - damping_coef * vel
         return force
 
@@ -96,7 +96,8 @@ body_1.AddAsset(col_1)
 # Create the spring between body_1 and ground. The spring end points are
 # specified in the body relative frames.
 spring_1 = chrono.ChLinkTSDA()
-spring_1.Initialize(body_1, ground, True, chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(-1, 0, 0), False, rest_length)
+spring_1.Initialize(body_1, ground, True, chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(-1, 0, 0))
+spring_1.SetRestLength(rest_length)
 spring_1.SetSpringCoefficient(spring_coef)
 spring_1.SetDampingCoefficient(damping_coef)
 system.AddLink(spring_1)
@@ -130,7 +131,8 @@ body_2.AddAsset(col_2)
 force = MySpringForce()
 
 spring_2 = chrono.ChLinkTSDA()
-spring_2.Initialize(body_2, ground, True, chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(1, 0, 0), False, rest_length)
+spring_2.Initialize(body_2, ground, True, chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(1, 0, 0))
+spring_2.SetRestLength(rest_length)
 spring_2.RegisterForceFunctor(force)
 system.AddLink(spring_2)
 

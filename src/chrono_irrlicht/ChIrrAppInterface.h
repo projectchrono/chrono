@@ -41,13 +41,12 @@ class ChIrrAppEventReceiver;
 /// Vertical direction
 enum class VerticalDir { Y, Z };
 
-/// Class to add some GUI to Irrlicht + ChronoEngine applications.
-/// This basic GUI can be used to monitor solver timings, to easily change
-/// physical system settings, etc.
+/// Class to add some GUI to Irrlicht + Chrono applications.
+/// This basic GUI can be used to monitor solver timings, to easily change physical system settings, etc.
 class ChApiIrr ChIrrAppInterface {
   public:
-    /// Create the IRRLICHT context (device, etc.)
-    ChIrrAppInterface(ChSystem* psystem,
+    /// Create the Irrlicht context (device, etc.)
+    ChIrrAppInterface(ChSystem* sys,
                       const std::wstring& title = L"Chrono",
                       const irr::core::dimension2d<irr::u32>& dimens = irr::core::dimension2d<irr::u32>(640, 480),
                       VerticalDir vert = VerticalDir::Y,
@@ -57,7 +56,7 @@ class ChApiIrr ChIrrAppInterface {
                       irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9,
                       irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION);
 
-    /// Safely delete all Irrlicht items (including the Irrlicht scene nodes)
+    /// Delete all Irrlicht items (including the Irrlicht scene nodes)
     virtual ~ChIrrAppInterface();
 
     //// Accessor functions
@@ -160,7 +159,7 @@ class ChApiIrr ChIrrAppInterface {
     void SetPlotAABB(bool val) { this->gad_plot_aabb->setChecked(val); }
     /// Set if the COG frames will be plotted
     void SetPlotCOGFrames(bool val) { this->gad_plot_cogs->setChecked(val); }
-    /// Set if the Bullet collision shapes will be plotted
+    /// Set if the collision shapes will be plotted
     void SetPlotCollisionShapes(bool val) { this->gad_plot_collisionshapes->setChecked(val); }
     /// Set if the link frames will be plotted
     void SetPlotLinkFrames(bool val) { this->gad_plot_linkframes->setChecked(val); }
@@ -250,21 +249,18 @@ class ChApiIrr ChIrrAppInterface {
                                                     bool clipborder = true);
 
   private:
-    // The Irrlicht engine:
-    irr::IrrlichtDevice* device;
+    void DrawCollisionShapes(irr::video::SColor color);
 
-    // Xeffects for shadow maps!
-    std::unique_ptr<EffectHandler> effect;
-    bool use_effects;
+    ChSystem* system;                                  ///< associated Chrono system
+    irr::IrrlichtDevice* device;                       ///< Irrlicht visualization device
+    std::unique_ptr<EffectHandler> effect;             ///< effect handler for shadow maps
+    bool use_effects;                                  ///< flag to enable/disable effects
+    std::unique_ptr<ChIrrAppEventReceiver> receiver;   ///< default event receiver
+    std::vector<irr::IEventReceiver*> user_receivers;  ///< optional user-defined receivers
+    irr::scene::ISceneNode* container;                 ///< Irrliicht scene container
 
-    // The ChronoEngine system:
-    ChSystem* system;
-
-    std::unique_ptr<ChIrrAppEventReceiver> receiver;
-
-    std::vector<irr::IEventReceiver*> user_receivers;
-
-    irr::scene::ISceneNode* container;
+    /// Collision visualization callback object
+    std::shared_ptr<collision::ChCollisionSystem::VisualizationCallback> m_drawer;
 
     bool y_up;
 

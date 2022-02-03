@@ -18,27 +18,27 @@
 #include "chrono/collision/ChCollisionUtils.h"
 #include "chrono/collision/ChCollisionUtilsBullet.h"
 
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btBoxShape.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylindricalShellShape.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCapsuleShape.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSphereShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBoxShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCylindricalShellShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCapsuleShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.h"
 
 namespace chrono {
 namespace collision {
 
 // ================================================================================================
 
-btCapsuleBoxCollisionAlgorithm::btCapsuleBoxCollisionAlgorithm(btPersistentManifold* mf,
-                                                               const btCollisionAlgorithmConstructionInfo& ci,
-                                                               const btCollisionObjectWrapper* col0,
-                                                               const btCollisionObjectWrapper* col1,
-                                                               bool isSwapped)
-    : btActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
-    const btCollisionObjectWrapper* capsuleObjWrap = m_isSwapped ? col1 : col0;
-    const btCollisionObjectWrapper* boxObjWrap = m_isSwapped ? col0 : col1;
+cbtCapsuleBoxCollisionAlgorithm::cbtCapsuleBoxCollisionAlgorithm(cbtPersistentManifold* mf,
+                                                                 const cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                 const cbtCollisionObjectWrapper* col0,
+                                                                 const cbtCollisionObjectWrapper* col1,
+                                                                 bool isSwapped)
+    : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
+    const cbtCollisionObjectWrapper* capsuleObjWrap = m_isSwapped ? col1 : col0;
+    const cbtCollisionObjectWrapper* boxObjWrap = m_isSwapped ? col0 : col1;
 
     if (!m_manifoldPtr &&
         m_dispatcher->needsCollision(capsuleObjWrap->getCollisionObject(), boxObjWrap->getCollisionObject())) {
@@ -48,10 +48,10 @@ btCapsuleBoxCollisionAlgorithm::btCapsuleBoxCollisionAlgorithm(btPersistentManif
     }
 }
 
-btCapsuleBoxCollisionAlgorithm::btCapsuleBoxCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
-    : btActivatingCollisionAlgorithm(ci) {}
+cbtCapsuleBoxCollisionAlgorithm::cbtCapsuleBoxCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci)
+    : cbtActivatingCollisionAlgorithm(ci) {}
 
-btCapsuleBoxCollisionAlgorithm ::~btCapsuleBoxCollisionAlgorithm() {
+cbtCapsuleBoxCollisionAlgorithm ::~cbtCapsuleBoxCollisionAlgorithm() {
     if (m_ownManifold) {
         if (m_manifoldPtr)
             m_dispatcher->releaseManifold(m_manifoldPtr);
@@ -59,37 +59,37 @@ btCapsuleBoxCollisionAlgorithm ::~btCapsuleBoxCollisionAlgorithm() {
 }
 
 // Capsule-box intersection test.
-void btCapsuleBoxCollisionAlgorithm::processCollision(const btCollisionObjectWrapper* body0,
-                                                      const btCollisionObjectWrapper* body1,
-                                                      const btDispatcherInfo& dispatchInfo,
-                                                      btManifoldResult* resultOut) {
+void cbtCapsuleBoxCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
+                                                       const cbtCollisionObjectWrapper* body1,
+                                                       const cbtDispatcherInfo& dispatchInfo,
+                                                       cbtManifoldResult* resultOut) {
     (void)dispatchInfo;
     (void)resultOut;
     if (!m_manifoldPtr)
         return;
 
-    const btCollisionObjectWrapper* capObjWrap = m_isSwapped ? body1 : body0;
-    const btCollisionObjectWrapper* boxObjWrap = m_isSwapped ? body0 : body1;
+    const cbtCollisionObjectWrapper* capObjWrap = m_isSwapped ? body1 : body0;
+    const cbtCollisionObjectWrapper* boxObjWrap = m_isSwapped ? body0 : body1;
 
     resultOut->setPersistentManifold(m_manifoldPtr);
 
-    const btCapsuleShape* cap = (btCapsuleShape*)capObjWrap->getCollisionShape();
-    const btBoxShape* box = (btBoxShape*)boxObjWrap->getCollisionShape();
+    const cbtCapsuleShape* cap = (cbtCapsuleShape*)capObjWrap->getCollisionShape();
+    const cbtBoxShape* box = (cbtBoxShape*)boxObjWrap->getCollisionShape();
 
     // Express capsule in the box frame
-    const btTransform& abs_X_cap = capObjWrap->getWorldTransform();
-    const btTransform& abs_X_box = boxObjWrap->getWorldTransform();
-    btTransform box_X_cap = abs_X_box.inverseTimes(abs_X_cap);
+    const cbtTransform& abs_X_cap = capObjWrap->getWorldTransform();
+    const cbtTransform& abs_X_box = boxObjWrap->getWorldTransform();
+    cbtTransform box_X_cap = abs_X_box.inverseTimes(abs_X_cap);
 
-    btVector3 a = box_X_cap.getBasis().getColumn(1);  // capsule axis (expressed in box frame)
-    btVector3 c = box_X_cap.getOrigin();              // capsule center (expressed in box frame)
+    cbtVector3 a = box_X_cap.getBasis().getColumn(1);  // capsule axis (expressed in box frame)
+    cbtVector3 c = box_X_cap.getOrigin();              // capsule center (expressed in box frame)
 
     // Box dimensions
-    btVector3 hdims = box->getHalfExtentsWithMargin();
+    cbtVector3 hdims = box->getHalfExtentsWithMargin();
 
     // Cylinder dimensions
-    btScalar radius = cap->getRadius();    // capsule radius
-    btScalar hlen = cap->getHalfHeight();  // capsule half-length
+    cbtScalar radius = cap->getRadius();    // capsule radius
+    cbtScalar hlen = cap->getHalfHeight();  // capsule half-length
 
     // Loop over each direction of the box frame (i.e., each of the 3 face normals).
     // In each case, consider two segments on the cylindrical surface that are on a plane defined by the axis and the
@@ -102,32 +102,32 @@ void btCapsuleBoxCollisionAlgorithm::processCollision(const btCollisionObjectWra
     // For a capsule, projects these points back onto the capsule axis and check intersection between spheres centered
     // at the points on the axis and the box.  In this case, the projection is done orthogonal to the capsule axis.
 
-    const btScalar parallel_tol = btScalar(1e-5);           // tolearance for parallelism tests
-    const btScalar near_tol = btScalar(1e-4) * (2 * hlen);  // tolerance for line parameters of near duplicate points
+    const cbtScalar parallel_tol = cbtScalar(1e-5);           // tolearance for parallelism tests
+    const cbtScalar near_tol = cbtScalar(1e-4) * (2 * hlen);  // tolerance for line parameters of near duplicate points
 
-    std::vector<btScalar> t_points = {-hlen, +hlen};  // initialize list of candidates with segment ends
+    std::vector<cbtScalar> t_points = {-hlen, +hlen};  // initialize list of candidates with segment ends
 
     for (int i = 0; i < 3; i++) {
         // "positive" face normal
-        btVector3 n(0, 0, 0);
+        cbtVector3 n(0, 0, 0);
         n[i] = 1;
 
         // If the axis is parallel to the face normal, no additional candidate point.
-        btVector3 v = n.cross(a);
+        cbtVector3 v = n.cross(a);
         if (std::abs(a[i] - 1) < parallel_tol)
             continue;
 
         // Direction perpendicular to axis
-        btVector3 r = v.cross(a);
+        cbtVector3 r = v.cross(a);
 
         // Construct center points of the two segments on cylindrical surface
-        btVector3 c1 = c + radius * r;
-        btVector3 c2 = c - radius * r;
+        cbtVector3 c1 = c + radius * r;
+        cbtVector3 c2 = c - radius * r;
 
         // Check if either segment intersects box.
         // If it does, append line parameters for intersection points (clamped to segment limits).
-        btScalar tMin;
-        btScalar tMax;
+        cbtScalar tMin;
+        cbtScalar tMax;
         if (bt_utils::IntersectSegmentBox(hdims, c1, a, hlen, parallel_tol, tMin, tMax)) {
             t_points.push_back(ChClamp(tMin, -hlen, +hlen));
             t_points.push_back(ChClamp(tMax, -hlen, +hlen));
@@ -139,13 +139,13 @@ void btCapsuleBoxCollisionAlgorithm::processCollision(const btCollisionObjectWra
     }
 
     // Contact distance
-    btScalar contactDist = radius;
-    ////btScalar contactDist = radius + m_manifoldPtr->getContactBreakingThreshold();
+    cbtScalar contactDist = radius;
+    ////cbtScalar contactDist = radius + m_manifoldPtr->getContactBreakingThreshold();
 
     // Loop over all candidate points (points on the capsule axis) and perform a sphere-box collision test.
     // In order to eliminate near duplicate points, use a sorted list and keep track of last processed point.
     std::sort(t_points.begin(), t_points.end());
-    btScalar t_last = -2 * hlen;
+    cbtScalar t_last = -2 * hlen;
     int n_contacts = 0;
     for (auto t : t_points) {
         if (t - t_last < near_tol)
@@ -155,23 +155,23 @@ void btCapsuleBoxCollisionAlgorithm::processCollision(const btCollisionObjectWra
         t_last = t;
 
         // Calculate sphere center (point on axis, expressed in box frame) and snap it to the surface of the box
-        btVector3 sphPos = c + a * t;
-        btVector3 boxPos = sphPos;
+        cbtVector3 sphPos = c + a * t;
+        cbtVector3 boxPos = sphPos;
         bt_utils::SnapPointToBox(hdims, boxPos);
 
         // If the distance from the sphere center to the closest point is larger than the radius plus the separation
         // value, then there is no contact. Also, ignore contact if the sphere center (almost) coincides with the
         // closest point, in which case we couldn't decide on the proper contact direction.
-        btVector3 delta = sphPos - boxPos;
-        btScalar dist2 = delta.length2();
+        cbtVector3 delta = sphPos - boxPos;
+        cbtScalar dist2 = delta.length2();
         if (dist2 >= contactDist * contactDist || dist2 <= 1e-12)
             continue;
 
         // Generate contact information (transform to absolute frame)
-        btScalar dist = btSqrt(dist2);
-        btScalar penetration = dist - radius;
-        btVector3 normal = abs_X_box.getBasis() * (delta / dist);
-        btVector3 point = abs_X_box(boxPos);
+        cbtScalar dist = cbtSqrt(dist2);
+        cbtScalar penetration = dist - radius;
+        cbtVector3 normal = abs_X_box.getBasis() * (delta / dist);
+        cbtVector3 point = abs_X_box(boxPos);
 
         // A new contact point must specify:
         //   normal, pointing from B towards A
@@ -186,42 +186,42 @@ void btCapsuleBoxCollisionAlgorithm::processCollision(const btCollisionObjectWra
     }
 }
 
-btScalar btCapsuleBoxCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* body0,
-                                                               btCollisionObject* body1,
-                                                               const btDispatcherInfo& dispatchInfo,
-                                                               btManifoldResult* resultOut) {
+cbtScalar cbtCapsuleBoxCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
+                                                                 cbtCollisionObject* body1,
+                                                                 const cbtDispatcherInfo& dispatchInfo,
+                                                                 cbtManifoldResult* resultOut) {
     // not yet
-    return btScalar(1.);
+    return cbtScalar(1.);
 }
 
-void btCapsuleBoxCollisionAlgorithm::getAllContactManifolds(btManifoldArray& manifoldArray) {
+void cbtCapsuleBoxCollisionAlgorithm::getAllContactManifolds(cbtManifoldArray& manifoldArray) {
     if (m_manifoldPtr && m_ownManifold) {
         manifoldArray.push_back(m_manifoldPtr);
     }
 }
 
-btCollisionAlgorithm* btCapsuleBoxCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
-    btCollisionAlgorithmConstructionInfo& ci,
-    const btCollisionObjectWrapper* body0Wrap,
-    const btCollisionObjectWrapper* body1Wrap) {
-    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btCapsuleBoxCollisionAlgorithm));
+cbtCollisionAlgorithm* cbtCapsuleBoxCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
+    cbtCollisionAlgorithmConstructionInfo& ci,
+    const cbtCollisionObjectWrapper* body0Wrap,
+    const cbtCollisionObjectWrapper* body1Wrap) {
+    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtCapsuleBoxCollisionAlgorithm));
     if (!m_swapped) {
-        return new (mem) btCapsuleBoxCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
+        return new (mem) cbtCapsuleBoxCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
     } else {
-        return new (mem) btCapsuleBoxCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
+        return new (mem) cbtCapsuleBoxCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
     }
 }
 
 // ================================================================================================
 
-btCylshellBoxCollisionAlgorithm::btCylshellBoxCollisionAlgorithm(btPersistentManifold* mf,
-                                                                 const btCollisionAlgorithmConstructionInfo& ci,
-                                                                 const btCollisionObjectWrapper* col0,
-                                                                 const btCollisionObjectWrapper* col1,
-                                                                 bool isSwapped)
-    : btActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
-    const btCollisionObjectWrapper* cylshellObjWrap = m_isSwapped ? col1 : col0;
-    const btCollisionObjectWrapper* boxObjWrap = m_isSwapped ? col0 : col1;
+cbtCylshellBoxCollisionAlgorithm::cbtCylshellBoxCollisionAlgorithm(cbtPersistentManifold* mf,
+                                                                   const cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                   const cbtCollisionObjectWrapper* col0,
+                                                                   const cbtCollisionObjectWrapper* col1,
+                                                                   bool isSwapped)
+    : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
+    const cbtCollisionObjectWrapper* cylshellObjWrap = m_isSwapped ? col1 : col0;
+    const cbtCollisionObjectWrapper* boxObjWrap = m_isSwapped ? col0 : col1;
 
     if (!m_manifoldPtr &&
         m_dispatcher->needsCollision(cylshellObjWrap->getCollisionObject(), boxObjWrap->getCollisionObject())) {
@@ -231,10 +231,10 @@ btCylshellBoxCollisionAlgorithm::btCylshellBoxCollisionAlgorithm(btPersistentMan
     }
 }
 
-btCylshellBoxCollisionAlgorithm::btCylshellBoxCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
-    : btActivatingCollisionAlgorithm(ci) {}
+cbtCylshellBoxCollisionAlgorithm::cbtCylshellBoxCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci)
+    : cbtActivatingCollisionAlgorithm(ci) {}
 
-btCylshellBoxCollisionAlgorithm::~btCylshellBoxCollisionAlgorithm() {
+cbtCylshellBoxCollisionAlgorithm::~cbtCylshellBoxCollisionAlgorithm() {
     if (m_ownManifold) {
         if (m_manifoldPtr)
             m_dispatcher->releaseManifold(m_manifoldPtr);
@@ -244,11 +244,11 @@ btCylshellBoxCollisionAlgorithm::~btCylshellBoxCollisionAlgorithm() {
 // Check and add contact between the given cylshell point and the specified box face.
 // 'iface' is +1, +2, +3 for the "positive" x, y, or z box face, respectively.
 // 'iface' is -1, -2, -3 for the "negative" x, y, or z box face, respectively.
-int addContactPoint(const btVector3& pc,
+int addContactPoint(const cbtVector3& pc,
                     int iface,
-                    const btVector3& hdims,
-                    const btTransform& X_box,
-                    btManifoldResult* resultOut) {
+                    const cbtVector3& hdims,
+                    const cbtTransform& X_box,
+                    cbtManifoldResult* resultOut) {
     assert(iface >= -3 && iface <= +3 && iface != 0);
 
     // No contact if point outside box
@@ -257,9 +257,9 @@ int addContactPoint(const btVector3& pc,
 
     // Find point projection on box face and calculate normal and penetration
     // (still working in the box frame)
-    btVector3 p = pc;
-    btVector3 n(0, 0, 0);
-    btScalar penetration;
+    cbtVector3 p = pc;
+    cbtVector3 n(0, 0, 0);
+    cbtScalar penetration;
     if (iface > 0) {
         // "positive" box face
         int i = iface - 1;
@@ -278,8 +278,8 @@ int addContactPoint(const btVector3& pc,
     //   normal, pointing from B towards A
     //   point, located on surface of B
     //   distance, negative for penetration
-    btVector3 normal = X_box.getBasis() * n;
-    btVector3 point = X_box(p);
+    cbtVector3 normal = X_box.getBasis() * n;
+    cbtVector3 point = X_box(p);
     resultOut->addContactPoint(normal, point, penetration);
 
     ////std::cout << "add contact     nrm = " << normal.x() << " " << normal.y() << " " << normal.z() << std::endl;
@@ -290,22 +290,22 @@ int addContactPoint(const btVector3& pc,
 }
 
 // Add contact between the given box point (assumed to be in or on the cylinder) and the cylshell.
-// All input vectors are assumed to be expressed in the box frame. 
-int addContactPoint(const btVector3& p,
-                    const btVector3& c,
-                    const btVector3& a,
-                    const btScalar h,
-                    const btScalar r,
-                    const btTransform& X_box,
-                    btManifoldResult* resultOut) {
+// All input vectors are assumed to be expressed in the box frame.
+int addContactPoint(const cbtVector3& p,
+                    const cbtVector3& c,
+                    const cbtVector3& a,
+                    const cbtScalar h,
+                    const cbtScalar r,
+                    const cbtTransform& X_box,
+                    cbtManifoldResult* resultOut) {
     // Find closest point on cylindrical surface to given location
-    btVector3 q = bt_utils::ProjectPointOnLine(c, a, p);
-    btVector3 v = p - q;
-    btScalar dist = v.length();
-    btVector3 n = v / dist;
+    cbtVector3 q = bt_utils::ProjectPointOnLine(c, a, p);
+    cbtVector3 v = p - q;
+    cbtScalar dist = v.length();
+    cbtVector3 n = v / dist;
 
-    btVector3 normal = X_box.getBasis() * (-n);
-    btVector3 point = X_box(p);
+    cbtVector3 normal = X_box.getBasis() * (-n);
+    cbtVector3 point = X_box(p);
 
     resultOut->addContactPoint(normal, point, dist - r);
 
@@ -317,39 +317,39 @@ int addContactPoint(const btVector3& p,
 //   - the cylshell is replaced with a capsule on the surface of the cylshell
 //   - capsule-box intersection is then reduced to a segment-box intersection
 //   - a replacement capsule (one for each direction of the box) may generate 0, 1, or 2 contacts
-void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWrapper* body0,
-                                                       const btCollisionObjectWrapper* body1,
-                                                       const btDispatcherInfo& dispatchInfo,
-                                                       btManifoldResult* resultOut) {
+void cbtCylshellBoxCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
+                                                        const cbtCollisionObjectWrapper* body1,
+                                                        const cbtDispatcherInfo& dispatchInfo,
+                                                        cbtManifoldResult* resultOut) {
     (void)dispatchInfo;
     (void)resultOut;
     if (!m_manifoldPtr)
         return;
 
-    const btCollisionObjectWrapper* cylObjWrap = m_isSwapped ? body1 : body0;
-    const btCollisionObjectWrapper* boxObjWrap = m_isSwapped ? body0 : body1;
+    const cbtCollisionObjectWrapper* cylObjWrap = m_isSwapped ? body1 : body0;
+    const cbtCollisionObjectWrapper* boxObjWrap = m_isSwapped ? body0 : body1;
 
     resultOut->setPersistentManifold(m_manifoldPtr);
 
-    const btCylindricalShellShape* cyl = (btCylindricalShellShape*)cylObjWrap->getCollisionShape();
-    const btBoxShape* box = (btBoxShape*)boxObjWrap->getCollisionShape();
+    const cbtCylindricalShellShape* cyl = (cbtCylindricalShellShape*)cylObjWrap->getCollisionShape();
+    const cbtBoxShape* box = (cbtBoxShape*)boxObjWrap->getCollisionShape();
 
     // Express cylinder in the box frame
-    const btTransform& abs_X_cyl = cylObjWrap->getWorldTransform();
-    const btTransform& abs_X_box = boxObjWrap->getWorldTransform();
-    btTransform box_X_cyl = abs_X_box.inverseTimes(abs_X_cyl);
+    const cbtTransform& abs_X_cyl = cylObjWrap->getWorldTransform();
+    const cbtTransform& abs_X_box = boxObjWrap->getWorldTransform();
+    cbtTransform box_X_cyl = abs_X_box.inverseTimes(abs_X_cyl);
 
-    btVector3 a = box_X_cyl.getBasis().getColumn(1);  // cylinder axis (expressed in box frame)
-    btVector3 c = box_X_cyl.getOrigin();              // cylinder center (expressed in box frame)
+    cbtVector3 a = box_X_cyl.getBasis().getColumn(1);  // cylinder axis (expressed in box frame)
+    cbtVector3 c = box_X_cyl.getOrigin();              // cylinder center (expressed in box frame)
 
     // Box dimensions
-    btVector3 hdims = box->getHalfExtentsWithMargin();
+    cbtVector3 hdims = box->getHalfExtentsWithMargin();
 
     // Cylinder dimensions
-    btScalar radius = cyl->getRadius();    // cylinder radius
-    btScalar hlen = cyl->getHalfLength();  // cylinder half-length
+    cbtScalar radius = cyl->getRadius();    // cylinder radius
+    cbtScalar hlen = cyl->getHalfLength();  // cylinder half-length
 
-    const btScalar parallel_tol = btScalar(1e-5);  // tolearance for parallelism tests
+    const cbtScalar parallel_tol = cbtScalar(1e-5);  // tolearance for parallelism tests
 
     int num_contacts = 0;
 
@@ -363,7 +363,7 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
     //   midpoint candidate.
     for (int idir = 0; idir < 3; idir++) {
         // current box direction
-        btVector3 ndir(0, 0, 0);
+        cbtVector3 ndir(0, 0, 0);
         ndir[idir] = 1;
 
         // If the axis is parallel to the current direction, no contact.
@@ -371,23 +371,23 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
             continue;
 
         // Direction perpendicular to cylinder axis (in direction opposite to ndir)
-        btVector3 v = ndir.cross(a);
-        btVector3 r = v.cross(a);
+        cbtVector3 v = ndir.cross(a);
+        cbtVector3 r = v.cross(a);
         assert(r.length() > parallel_tol);
         r.normalize();
 
         // Consider segments in both "negative" and "positive" r direction
-        btScalar dir[2] = {-1, 1};
+        cbtScalar dir[2] = {-1, 1};
         for (int jdir = 0; jdir < 2; jdir++) {
             // Calculate current segment center
-            btVector3 cs = c + dir[jdir] * radius * r;
+            cbtVector3 cs = c + dir[jdir] * radius * r;
             // Check for intersection with box
-            btScalar tMin, tMax;
+            cbtScalar tMin, tMax;
             if (bt_utils::IntersectSegmentBox(hdims, cs, a, hlen, parallel_tol, tMin, tMax)) {
                 // Consider the intersection points and their midpoint as candidates
-                btVector3 pMin = cs + a * tMin;
-                btVector3 pMax = cs + a * tMax;
-                btVector3 pMid = cs + a * ((tMin + tMax) / 2);
+                cbtVector3 pMin = cs + a * tMin;
+                cbtVector3 pMax = cs + a * tMax;
+                cbtVector3 pMid = cs + a * ((tMin + tMax) / 2);
 
                 // Pick box face that is closest to midpoint
                 int iface = bt_utils::FindClosestBoxFace(hdims, pMid);
@@ -400,7 +400,7 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
         }
     }
 
-    // If a box face supports the cylinder, do not check box edges. 
+    // If a box face supports the cylinder, do not check box edges.
     if (num_contacts > 0)
         return;
 
@@ -410,25 +410,25 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
     //   and their midpoint.
     for (int idir = 0; idir < 3; idir++) {
         // current box edge direction and halflength
-        btVector3 eD(0, 0, 0);
+        cbtVector3 eD(0, 0, 0);
         eD[idir] = 1;
-        btScalar eH = hdims[idir];
+        cbtScalar eH = hdims[idir];
         // The other two box directions
         int jdir = (idir + 1) % 3;
         int kdir = (idir + 2) % 3;
         for (int j = -1; j <= +1; j += 2) {
             for (int k = -1; k <= +1; k += 2) {
-                btVector3 eC;
+                cbtVector3 eC;
                 eC[idir] = 0;
                 eC[jdir] = j * hdims[jdir];
                 eC[kdir] = k * hdims[kdir];
                 // Check for edge intersection with cylinder
-                btScalar tMin, tMax;
+                cbtScalar tMin, tMax;
                 if (bt_utils::IntersectSegmentCylinder(eC, eD, eH, c, a, hlen, radius, parallel_tol, tMin, tMax)) {
                     // Consider the intersection points and their midpoint as candidates
-                    btVector3 pMin = eC + eD * tMin;
-                    btVector3 pMax = eC + eD * tMax;
-                    btVector3 pMid = eC + eD * ((tMin + tMax) / 2);
+                    cbtVector3 pMin = eC + eD * tMin;
+                    cbtVector3 pMax = eC + eD * tMax;
+                    cbtVector3 pMid = eC + eD * ((tMin + tMax) / 2);
 
                     // Add a contact for any of the candidate points that is inside the cylinder
                     num_contacts += addContactPoint(pMin, c, a, hlen, radius, abs_X_box, resultOut);
@@ -437,7 +437,6 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
                 }
             }
         }
-
     }
 
     ////std::cout << num_contacts << std::endl;
@@ -447,42 +446,43 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
     }
 }
 
-btScalar btCylshellBoxCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* body0,
-                                                                btCollisionObject* body1,
-                                                                const btDispatcherInfo& dispatchInfo,
-                                                                btManifoldResult* resultOut) {
+cbtScalar cbtCylshellBoxCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
+                                                                  cbtCollisionObject* body1,
+                                                                  const cbtDispatcherInfo& dispatchInfo,
+                                                                  cbtManifoldResult* resultOut) {
     // not yet
-    return btScalar(1.);
+    return cbtScalar(1.);
 }
 
-void btCylshellBoxCollisionAlgorithm::getAllContactManifolds(btManifoldArray& manifoldArray) {
+void cbtCylshellBoxCollisionAlgorithm::getAllContactManifolds(cbtManifoldArray& manifoldArray) {
     if (m_manifoldPtr && m_ownManifold) {
         manifoldArray.push_back(m_manifoldPtr);
     }
 }
 
-btCollisionAlgorithm* btCylshellBoxCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
-    btCollisionAlgorithmConstructionInfo& ci,
-    const btCollisionObjectWrapper* body0Wrap,
-    const btCollisionObjectWrapper* body1Wrap) {
-    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btCylshellBoxCollisionAlgorithm));
+cbtCollisionAlgorithm* cbtCylshellBoxCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
+    cbtCollisionAlgorithmConstructionInfo& ci,
+    const cbtCollisionObjectWrapper* body0Wrap,
+    const cbtCollisionObjectWrapper* body1Wrap) {
+    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtCylshellBoxCollisionAlgorithm));
     if (!m_swapped) {
-        return new (mem) btCylshellBoxCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
+        return new (mem) cbtCylshellBoxCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
     } else {
-        return new (mem) btCylshellBoxCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
+        return new (mem) cbtCylshellBoxCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
     }
 }
 
 // ================================================================================================
 
-btSphereCylinderCollisionAlgorithm::btSphereCylinderCollisionAlgorithm(btPersistentManifold* mf,
-                                                                       const btCollisionAlgorithmConstructionInfo& ci,
-                                                                       const btCollisionObjectWrapper* col0,
-                                                                       const btCollisionObjectWrapper* col1,
-                                                                       bool isSwapped)
-    : btActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
-    const btCollisionObjectWrapper* sphereObj = m_isSwapped ? col1 : col0;
-    const btCollisionObjectWrapper* cylObj = m_isSwapped ? col0 : col1;
+cbtSphereCylinderCollisionAlgorithm::cbtSphereCylinderCollisionAlgorithm(
+    cbtPersistentManifold* mf,
+    const cbtCollisionAlgorithmConstructionInfo& ci,
+    const cbtCollisionObjectWrapper* col0,
+    const cbtCollisionObjectWrapper* col1,
+    bool isSwapped)
+    : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
+    const cbtCollisionObjectWrapper* sphereObj = m_isSwapped ? col1 : col0;
+    const cbtCollisionObjectWrapper* cylObj = m_isSwapped ? col0 : col1;
 
     if (!m_manifoldPtr && m_dispatcher->needsCollision(sphereObj->getCollisionObject(), cylObj->getCollisionObject())) {
         m_manifoldPtr = m_dispatcher->getNewManifold(sphereObj->getCollisionObject(), cylObj->getCollisionObject());
@@ -490,52 +490,53 @@ btSphereCylinderCollisionAlgorithm::btSphereCylinderCollisionAlgorithm(btPersist
     }
 }
 
-btSphereCylinderCollisionAlgorithm::btSphereCylinderCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
-    : btActivatingCollisionAlgorithm(ci) {}
+cbtSphereCylinderCollisionAlgorithm::cbtSphereCylinderCollisionAlgorithm(
+    const cbtCollisionAlgorithmConstructionInfo& ci)
+    : cbtActivatingCollisionAlgorithm(ci) {}
 
-btSphereCylinderCollisionAlgorithm ::~btSphereCylinderCollisionAlgorithm() {
+cbtSphereCylinderCollisionAlgorithm ::~cbtSphereCylinderCollisionAlgorithm() {
     if (m_ownManifold) {
         if (m_manifoldPtr)
             m_dispatcher->releaseManifold(m_manifoldPtr);
     }
 }
 
-void btSphereCylinderCollisionAlgorithm::processCollision(const btCollisionObjectWrapper* body0,
-                                                          const btCollisionObjectWrapper* body1,
-                                                          const btDispatcherInfo& dispatchInfo,
-                                                          btManifoldResult* resultOut) {
+void cbtSphereCylinderCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
+                                                           const cbtCollisionObjectWrapper* body1,
+                                                           const cbtDispatcherInfo& dispatchInfo,
+                                                           cbtManifoldResult* resultOut) {
     (void)dispatchInfo;
     (void)resultOut;
     if (!m_manifoldPtr)
         return;
 
-    const btCollisionObjectWrapper* sphereObjWrap = m_isSwapped ? body1 : body0;
-    const btCollisionObjectWrapper* cylObjWrap = m_isSwapped ? body0 : body1;
+    const cbtCollisionObjectWrapper* sphereObjWrap = m_isSwapped ? body1 : body0;
+    const cbtCollisionObjectWrapper* cylObjWrap = m_isSwapped ? body0 : body1;
 
     resultOut->setPersistentManifold(m_manifoldPtr);
 
-    const btSphereShape* sphere0 = (btSphereShape*)sphereObjWrap->getCollisionShape();
-    const btCylinderShape* cylinder = (btCylinderShape*)cylObjWrap->getCollisionShape();
+    const cbtSphereShape* sphere0 = (cbtSphereShape*)sphereObjWrap->getCollisionShape();
+    const cbtCylinderShape* cylinder = (cbtCylinderShape*)cylObjWrap->getCollisionShape();
 
-    const btTransform& m44T = cylObjWrap->getCollisionObject()->getWorldTransform();
-    btVector3 diff = m44T.invXform(
+    const cbtTransform& m44T = cylObjWrap->getCollisionObject()->getWorldTransform();
+    cbtVector3 diff = m44T.invXform(
         sphereObjWrap->getCollisionObject()
             ->getWorldTransform()
             .getOrigin());  // col0->getWorldTransform().getOrigin()-  col1->getWorldTransform().getOrigin();
-    btScalar radius0 = sphere0->getRadius();
-    btScalar radius1 = cylinder->getHalfExtentsWithMargin().getX();  // cylinder->getRadius();
-    btScalar H1 = cylinder->getHalfExtentsWithMargin().getY();
+    cbtScalar radius0 = sphere0->getRadius();
+    cbtScalar radius1 = cylinder->getHalfExtentsWithMargin().getX();  // cylinder->getRadius();
+    cbtScalar H1 = cylinder->getHalfExtentsWithMargin().getY();
 
-    btVector3 r1 = diff;
+    cbtVector3 r1 = diff;
     r1.setY(0);
 
-    btScalar y1 = diff.y();
+    cbtScalar y1 = diff.y();
 
-    btScalar r1_len = r1.length();
+    cbtScalar r1_len = r1.length();
 
-    btVector3 pos1;
-    btVector3 normalOnSurfaceB(1, 0, 0);
-    btScalar dist;
+    cbtVector3 pos1;
+    cbtVector3 normalOnSurfaceB(1, 0, 0);
+    cbtScalar dist;
 
     // Case A
     if ((y1 <= H1) && (y1 >= -H1)) {
@@ -547,29 +548,29 @@ void btSphereCylinderCollisionAlgorithm::processCollision(const btCollisionObjec
         /// distance (negative means penetration)
         dist = r1_len - (radius0 + radius1);
 
-        btVector3 localnormalOnSurfaceB;
+        cbtVector3 localnormalOnSurfaceB;
         if (r1_len > SIMD_EPSILON) {
             localnormalOnSurfaceB = r1 / r1_len;
             normalOnSurfaceB = m44T.getBasis() * localnormalOnSurfaceB;
         }
         /// point on B (worldspace)
-        pos1 = m44T(btVector3(0, y1, 0)) + radius1 * normalOnSurfaceB;
+        pos1 = m44T(cbtVector3(0, y1, 0)) + radius1 * normalOnSurfaceB;
     } else {
-        btScalar side = 1;
+        cbtScalar side = 1;
         if (y1 < -H1)
             side = -1;
 
         if (r1_len > radius1) {
             // case B
-            btVector3 pos_loc = r1.normalized() * radius1 + btVector3(0, H1 * side, 0);
+            cbtVector3 pos_loc = r1.normalized() * radius1 + cbtVector3(0, H1 * side, 0);
             pos1 = m44T(pos_loc);
-            btVector3 d = sphereObjWrap->getCollisionObject()->getWorldTransform().getOrigin() - pos1;
+            cbtVector3 d = sphereObjWrap->getCollisionObject()->getWorldTransform().getOrigin() - pos1;
             normalOnSurfaceB = d.normalized();
             dist = d.length() - radius0;
         } else {
             // case C
-            normalOnSurfaceB = m44T.getBasis() * btVector3(0, 1 * side, 0);
-            btVector3 pos_loc = r1 + btVector3(0, H1 * side, 0);
+            normalOnSurfaceB = m44T.getBasis() * cbtVector3(0, 1 * side, 0);
+            cbtVector3 pos_loc = r1 + cbtVector3(0, H1 * side, 0);
             pos1 = m44T(pos_loc);
             dist = side * (y1 - H1) - radius0;
         }
@@ -580,42 +581,42 @@ void btSphereCylinderCollisionAlgorithm::processCollision(const btCollisionObjec
     resultOut->refreshContactPoints();
 }
 
-btScalar btSphereCylinderCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* body0,
-                                                                   btCollisionObject* body1,
-                                                                   const btDispatcherInfo& dispatchInfo,
-                                                                   btManifoldResult* resultOut) {
+cbtScalar cbtSphereCylinderCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
+                                                                     cbtCollisionObject* body1,
+                                                                     const cbtDispatcherInfo& dispatchInfo,
+                                                                     cbtManifoldResult* resultOut) {
     // not yet
-    return btScalar(1.);
+    return cbtScalar(1.);
 }
 
-void btSphereCylinderCollisionAlgorithm::getAllContactManifolds(btManifoldArray& manifoldArray) {
+void cbtSphereCylinderCollisionAlgorithm::getAllContactManifolds(cbtManifoldArray& manifoldArray) {
     if (m_manifoldPtr && m_ownManifold) {
         manifoldArray.push_back(m_manifoldPtr);
     }
 }
 
-btCollisionAlgorithm* btSphereCylinderCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
-    btCollisionAlgorithmConstructionInfo& ci,
-    const btCollisionObjectWrapper* body0Wrap,
-    const btCollisionObjectWrapper* body1Wrap) {
-    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btSphereCylinderCollisionAlgorithm));
+cbtCollisionAlgorithm* cbtSphereCylinderCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
+    cbtCollisionAlgorithmConstructionInfo& ci,
+    const cbtCollisionObjectWrapper* body0Wrap,
+    const cbtCollisionObjectWrapper* body1Wrap) {
+    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtSphereCylinderCollisionAlgorithm));
     if (!m_swapped) {
-        return new (mem) btSphereCylinderCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
+        return new (mem) cbtSphereCylinderCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
     } else {
-        return new (mem) btSphereCylinderCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
+        return new (mem) cbtSphereCylinderCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
     }
 }
 
 // ================================================================================================
 
-btArcSegmentCollisionAlgorithm::btArcSegmentCollisionAlgorithm(btPersistentManifold* mf,
-                                                               const btCollisionAlgorithmConstructionInfo& ci,
-                                                               const btCollisionObjectWrapper* col0,
-                                                               const btCollisionObjectWrapper* col1,
-                                                               bool isSwapped)
-    : btActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
-    const btCollisionObjectWrapper* arcObjWrap = m_isSwapped ? col1 : col0;
-    const btCollisionObjectWrapper* segmentObjWrap = m_isSwapped ? col0 : col1;
+cbtArcSegmentCollisionAlgorithm::cbtArcSegmentCollisionAlgorithm(cbtPersistentManifold* mf,
+                                                                 const cbtCollisionAlgorithmConstructionInfo& ci,
+                                                                 const cbtCollisionObjectWrapper* col0,
+                                                                 const cbtCollisionObjectWrapper* col1,
+                                                                 bool isSwapped)
+    : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
+    const cbtCollisionObjectWrapper* arcObjWrap = m_isSwapped ? col1 : col0;
+    const cbtCollisionObjectWrapper* segmentObjWrap = m_isSwapped ? col0 : col1;
 
     if (!m_manifoldPtr &&
         m_dispatcher->needsCollision(arcObjWrap->getCollisionObject(), segmentObjWrap->getCollisionObject())) {
@@ -625,68 +626,68 @@ btArcSegmentCollisionAlgorithm::btArcSegmentCollisionAlgorithm(btPersistentManif
     }
 }
 
-btArcSegmentCollisionAlgorithm::btArcSegmentCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
-    : btActivatingCollisionAlgorithm(ci) {}
+cbtArcSegmentCollisionAlgorithm::cbtArcSegmentCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci)
+    : cbtActivatingCollisionAlgorithm(ci) {}
 
-btArcSegmentCollisionAlgorithm ::~btArcSegmentCollisionAlgorithm() {
+cbtArcSegmentCollisionAlgorithm ::~cbtArcSegmentCollisionAlgorithm() {
     if (m_ownManifold) {
         if (m_manifoldPtr)
             m_dispatcher->releaseManifold(m_manifoldPtr);
     }
 }
 
-void btArcSegmentCollisionAlgorithm::processCollision(const btCollisionObjectWrapper* body0,
-                                                      const btCollisionObjectWrapper* body1,
-                                                      const btDispatcherInfo& dispatchInfo,
-                                                      btManifoldResult* resultOut) {
+void cbtArcSegmentCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
+                                                       const cbtCollisionObjectWrapper* body1,
+                                                       const cbtDispatcherInfo& dispatchInfo,
+                                                       cbtManifoldResult* resultOut) {
     (void)dispatchInfo;
     (void)resultOut;
     if (!m_manifoldPtr)
         return;
 
-    const btCollisionObjectWrapper* arcObjWrap = m_isSwapped ? body1 : body0;
-    const btCollisionObjectWrapper* segmentObjWrap = m_isSwapped ? body0 : body1;
+    const cbtCollisionObjectWrapper* arcObjWrap = m_isSwapped ? body1 : body0;
+    const cbtCollisionObjectWrapper* segmentObjWrap = m_isSwapped ? body0 : body1;
 
     resultOut->setPersistentManifold(m_manifoldPtr);
 
     // only 1 contact per pair, avoid persistence
     resultOut->getPersistentManifold()->clearManifold();
 
-    const bt2DarcShape* arc = (bt2DarcShape*)arcObjWrap->getCollisionShape();
-    const bt2DsegmentShape* segment = (bt2DsegmentShape*)segmentObjWrap->getCollisionShape();
+    const cbt2DarcShape* arc = (cbt2DarcShape*)arcObjWrap->getCollisionShape();
+    const cbt2DsegmentShape* segment = (cbt2DsegmentShape*)segmentObjWrap->getCollisionShape();
 
     // A concave arc (i.e.with outward volume, counterclockwise abscissa) will never collide with segments
     if (arc->get_counterclock())
         return;
 
-    const btTransform& m44Tarc = arcObjWrap->getCollisionObject()->getWorldTransform();
-    const btTransform& m44Tsegment = segmentObjWrap->getCollisionObject()->getWorldTransform();
+    const cbtTransform& m44Tarc = arcObjWrap->getCollisionObject()->getWorldTransform();
+    const cbtTransform& m44Tsegment = segmentObjWrap->getCollisionObject()->getWorldTransform();
 
     // Shapes on two planes that are not so parallel? no collisions!
-    btVector3 Zarc = m44Tarc.getBasis().getColumn(2);
-    btVector3 Zsegment = m44Tsegment.getBasis().getColumn(2);
+    cbtVector3 Zarc = m44Tarc.getBasis().getColumn(2);
+    cbtVector3 Zsegment = m44Tsegment.getBasis().getColumn(2);
     if (fabs(Zarc.dot(Zsegment)) < 0.99)  //***TODO*** threshold as setting
         return;
 
     // Shapes on two planes that are too far? no collisions!
-    btVector3 diff = m44Tsegment.invXform(m44Tarc.getOrigin());
+    cbtVector3 diff = m44Tsegment.invXform(m44Tarc.getOrigin());
     if (fabs(diff.getZ()) > (arc->get_zthickness() + segment->get_zthickness()))
         return;
 
     // vectors of body 1 in body 2 csys:
-    btVector3 local_arc_center = m44Tsegment.invXform(m44Tarc * btVector3(arc->get_X(), arc->get_Y(), 0));
-    btVector3 local_arc_X = m44Tsegment.getBasis().transpose() * (m44Tarc.getBasis() * btVector3(1, 0, 0));
+    cbtVector3 local_arc_center = m44Tsegment.invXform(m44Tarc * cbtVector3(arc->get_X(), arc->get_Y(), 0));
+    cbtVector3 local_arc_X = m44Tsegment.getBasis().transpose() * (m44Tarc.getBasis() * cbtVector3(1, 0, 0));
     double local_arc_rot = atan2(local_arc_X.getY(), local_arc_X.getX());
     double arc1_angle1 = local_arc_rot + arc->get_angle1();
     double arc1_angle2 = local_arc_rot + arc->get_angle2();
 
-    btVector3 local_CS1 = local_arc_center - segment->get_P1();
-    btVector3 local_seg_S2S1 = (segment->get_P2() - segment->get_P1());
-    btScalar seg_length = local_seg_S2S1.length();
+    cbtVector3 local_CS1 = local_arc_center - segment->get_P1();
+    cbtVector3 local_seg_S2S1 = (segment->get_P2() - segment->get_P1());
+    cbtScalar seg_length = local_seg_S2S1.length();
     if (seg_length < 1e-30)
         return;
-    btVector3 local_seg_D = local_seg_S2S1 / seg_length;
-    btScalar param = local_CS1.dot(local_seg_D);
+    cbtVector3 local_seg_D = local_seg_S2S1 / seg_length;
+    cbtScalar param = local_CS1.dot(local_seg_D);
 
     // contact out of segment extrema?
     if (param < 0)
@@ -694,12 +695,12 @@ void btArcSegmentCollisionAlgorithm::processCollision(const btCollisionObjectWra
     if (param > seg_length)
         return;
 
-    btVector3 local_P2 = segment->get_P1() + local_seg_D * param;
-    btVector3 local_CP2 = local_arc_center - local_P2;
+    cbtVector3 local_P2 = segment->get_P1() + local_seg_D * param;
+    cbtVector3 local_CP2 = local_arc_center - local_P2;
     local_CP2.setZ(0);
-    btVector3 local_R = local_CP2.normalized() * arc->get_radius();
-    btVector3 local_P1;
-    btVector3 local_N2;
+    cbtVector3 local_R = local_CP2.normalized() * arc->get_radius();
+    cbtVector3 local_P1;
+    cbtVector3 local_N2;
     if (local_seg_S2S1.cross(local_CP2).getZ() > 0) {
         local_P1 = local_arc_center - local_R;
         local_N2 = local_CP2.normalized();
@@ -742,10 +743,10 @@ void btArcSegmentCollisionAlgorithm::processCollision(const btCollisionObjectWra
         return;
 
     // transform in absolute coords:
-    // btVector3 pos1 = m44Tsegment * local_P1; // not needed
-    btVector3 pos2 = m44Tsegment * local_P2;
-    btVector3 normal_on_2 = m44Tsegment.getBasis() * local_N2;
-    btScalar dist = local_N2.dot(local_P1 - local_P2);
+    // cbtVector3 pos1 = m44Tsegment * local_P1; // not needed
+    cbtVector3 pos2 = m44Tsegment * local_P2;
+    cbtVector3 normal_on_2 = m44Tsegment.getBasis() * local_N2;
+    cbtScalar dist = local_N2.dot(local_P1 - local_P2);
 
     // too far or too interpenetrate? discard.
     if (fabs(dist) > (arc->getMargin() + segment->getMargin()))
@@ -757,42 +758,42 @@ void btArcSegmentCollisionAlgorithm::processCollision(const btCollisionObjectWra
     resultOut->refreshContactPoints();
 }
 
-btScalar btArcSegmentCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* body0,
-                                                               btCollisionObject* body1,
-                                                               const btDispatcherInfo& dispatchInfo,
-                                                               btManifoldResult* resultOut) {
+cbtScalar cbtArcSegmentCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
+                                                                 cbtCollisionObject* body1,
+                                                                 const cbtDispatcherInfo& dispatchInfo,
+                                                                 cbtManifoldResult* resultOut) {
     // not yet
-    return btScalar(1.);
+    return cbtScalar(1.);
 }
 
-void btArcSegmentCollisionAlgorithm::getAllContactManifolds(btManifoldArray& manifoldArray) {
+void cbtArcSegmentCollisionAlgorithm::getAllContactManifolds(cbtManifoldArray& manifoldArray) {
     if (m_manifoldPtr && m_ownManifold) {
         manifoldArray.push_back(m_manifoldPtr);
     }
 }
 
-btCollisionAlgorithm* btArcSegmentCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
-    btCollisionAlgorithmConstructionInfo& ci,
-    const btCollisionObjectWrapper* body0Wrap,
-    const btCollisionObjectWrapper* body1Wrap) {
-    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btArcSegmentCollisionAlgorithm));
+cbtCollisionAlgorithm* cbtArcSegmentCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
+    cbtCollisionAlgorithmConstructionInfo& ci,
+    const cbtCollisionObjectWrapper* body0Wrap,
+    const cbtCollisionObjectWrapper* body1Wrap) {
+    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtArcSegmentCollisionAlgorithm));
     if (!m_swapped) {
-        return new (mem) btArcSegmentCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
+        return new (mem) cbtArcSegmentCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
     } else {
-        return new (mem) btArcSegmentCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
+        return new (mem) cbtArcSegmentCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
     }
 }
 
 // ================================================================================================
 
-btArcArcCollisionAlgorithm::btArcArcCollisionAlgorithm(btPersistentManifold* mf,
-                                                       const btCollisionAlgorithmConstructionInfo& ci,
-                                                       const btCollisionObjectWrapper* col0,
-                                                       const btCollisionObjectWrapper* col1,
-                                                       bool isSwapped)
-    : btActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
-    const btCollisionObjectWrapper* arcObj1Wrap = m_isSwapped ? col1 : col0;
-    const btCollisionObjectWrapper* arcObj2Wrap = m_isSwapped ? col0 : col1;
+cbtArcArcCollisionAlgorithm::cbtArcArcCollisionAlgorithm(cbtPersistentManifold* mf,
+                                                         const cbtCollisionAlgorithmConstructionInfo& ci,
+                                                         const cbtCollisionObjectWrapper* col0,
+                                                         const cbtCollisionObjectWrapper* col1,
+                                                         bool isSwapped)
+    : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
+    const cbtCollisionObjectWrapper* arcObj1Wrap = m_isSwapped ? col1 : col0;
+    const cbtCollisionObjectWrapper* arcObj2Wrap = m_isSwapped ? col0 : col1;
 
     if (!m_manifoldPtr &&
         m_dispatcher->needsCollision(arcObj1Wrap->getCollisionObject(), arcObj2Wrap->getCollisionObject())) {
@@ -802,67 +803,67 @@ btArcArcCollisionAlgorithm::btArcArcCollisionAlgorithm(btPersistentManifold* mf,
     }
 }
 
-btArcArcCollisionAlgorithm::btArcArcCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
-    : btActivatingCollisionAlgorithm(ci) {}
+cbtArcArcCollisionAlgorithm::cbtArcArcCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci)
+    : cbtActivatingCollisionAlgorithm(ci) {}
 
-btArcArcCollisionAlgorithm ::~btArcArcCollisionAlgorithm() {
+cbtArcArcCollisionAlgorithm ::~cbtArcArcCollisionAlgorithm() {
     if (m_ownManifold) {
         if (m_manifoldPtr)
             m_dispatcher->releaseManifold(m_manifoldPtr);
     }
 }
 
-void btArcArcCollisionAlgorithm::processCollision(const btCollisionObjectWrapper* body0,
-                                                  const btCollisionObjectWrapper* body1,
-                                                  const btDispatcherInfo& dispatchInfo,
-                                                  btManifoldResult* resultOut) {
+void cbtArcArcCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
+                                                   const cbtCollisionObjectWrapper* body1,
+                                                   const cbtDispatcherInfo& dispatchInfo,
+                                                   cbtManifoldResult* resultOut) {
     (void)dispatchInfo;
     (void)resultOut;
     if (!m_manifoldPtr)
         return;
 
-    const btCollisionObjectWrapper* arcObj1Wrap = m_isSwapped ? body1 : body0;
-    const btCollisionObjectWrapper* arcObj2Wrap = m_isSwapped ? body0 : body1;
+    const cbtCollisionObjectWrapper* arcObj1Wrap = m_isSwapped ? body1 : body0;
+    const cbtCollisionObjectWrapper* arcObj2Wrap = m_isSwapped ? body0 : body1;
 
     resultOut->setPersistentManifold(m_manifoldPtr);
 
     // only 1 contact per pair, avoid persistence
     resultOut->getPersistentManifold()->clearManifold();
 
-    const bt2DarcShape* arc1 = (bt2DarcShape*)arcObj1Wrap->getCollisionShape();
-    const bt2DarcShape* arc2 = (bt2DarcShape*)arcObj2Wrap->getCollisionShape();
+    const cbt2DarcShape* arc1 = (cbt2DarcShape*)arcObj1Wrap->getCollisionShape();
+    const cbt2DarcShape* arc2 = (cbt2DarcShape*)arcObj2Wrap->getCollisionShape();
 
-    const btTransform& m44Tarc1 = arcObj1Wrap->getCollisionObject()->getWorldTransform();
-    const btTransform& m44Tarc2 = arcObj2Wrap->getCollisionObject()->getWorldTransform();
+    const cbtTransform& m44Tarc1 = arcObj1Wrap->getCollisionObject()->getWorldTransform();
+    const cbtTransform& m44Tarc2 = arcObj2Wrap->getCollisionObject()->getWorldTransform();
 
     // Shapes on two planes that are not so parallel? no collisions!
-    btVector3 Zarc1 = m44Tarc1.getBasis().getColumn(2);
-    btVector3 Zarc2 = m44Tarc2.getBasis().getColumn(2);
+    cbtVector3 Zarc1 = m44Tarc1.getBasis().getColumn(2);
+    cbtVector3 Zarc2 = m44Tarc2.getBasis().getColumn(2);
     if (fabs(Zarc1.dot(Zarc2)) < 0.99)  //***TODO*** threshold as setting
         return;
 
     // Shapes on two planes that are too far? no collisions!
-    btVector3 diff = m44Tarc2.invXform(m44Tarc1.getOrigin());
+    cbtVector3 diff = m44Tarc2.invXform(m44Tarc1.getOrigin());
     if (fabs(diff.getZ()) > (arc1->get_zthickness() + arc2->get_zthickness()))
         return;
 
     // vectors and angles of arc 1 in arc 2 csys:
-    btVector3 local_arc1_center = m44Tarc2.invXform(m44Tarc1 * btVector3(arc1->get_X(), arc1->get_Y(), 0));
-    btVector3 local_arc1_X = m44Tarc2.getBasis().transpose() * (m44Tarc1.getBasis() * btVector3(1, 0, 0));
+    cbtVector3 local_arc1_center = m44Tarc2.invXform(m44Tarc1 * cbtVector3(arc1->get_X(), arc1->get_Y(), 0));
+    cbtVector3 local_arc1_X = m44Tarc2.getBasis().transpose() * (m44Tarc1.getBasis() * cbtVector3(1, 0, 0));
     double local_arc1_rot = atan2(local_arc1_X.getY(), local_arc1_X.getX());
     double arc1_angle1 = local_arc1_rot + arc1->get_angle1();
     double arc1_angle2 = local_arc1_rot + arc1->get_angle2();
 
-    btVector3 local_arc2_center = btVector3(arc2->get_X(), arc2->get_Y(), 0);
+    cbtVector3 local_arc2_center = cbtVector3(arc2->get_X(), arc2->get_Y(), 0);
     double arc2_angle1 = arc2->get_angle1();
     double arc2_angle2 = arc2->get_angle2();
 
-    btVector3 local_C1C2 = local_arc1_center - local_arc2_center;
-    btVector3 local_D12 = local_C1C2.normalized();
+    cbtVector3 local_C1C2 = local_arc1_center - local_arc2_center;
+    cbtVector3 local_D12 = local_C1C2.normalized();
 
-    btVector3 local_P1;
-    btVector3 local_P2;
-    btVector3 local_N2;
+    cbtVector3 local_P1;
+    cbtVector3 local_P2;
+    cbtVector3 local_N2;
     double dist = 0;
     bool paired = false;
     double alpha = atan2(local_C1C2.getY(), local_C1C2.getX());
@@ -976,55 +977,56 @@ void btArcArcCollisionAlgorithm::processCollision(const btCollisionObjectWrapper
         return;
 
     // transform in absolute coords:
-    btVector3 pos2 = m44Tarc2 * local_P2;
-    btVector3 normal_on_2 = m44Tarc2.getBasis() * local_N2;
+    cbtVector3 pos2 = m44Tarc2 * local_P2;
+    cbtVector3 normal_on_2 = m44Tarc2.getBasis() * local_N2;
 
     // too far or too interpenetrate? discard.
     if (fabs(dist) > (arc1->getMargin() + arc2->getMargin()))
         return;
 
     /// report a contact.
-    resultOut->addContactPoint(normal_on_2, pos2, (btScalar)dist);
+    resultOut->addContactPoint(normal_on_2, pos2, (cbtScalar)dist);
 
     resultOut->refreshContactPoints();
 }
 
-btScalar btArcArcCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* body0,
-                                                           btCollisionObject* body1,
-                                                           const btDispatcherInfo& dispatchInfo,
-                                                           btManifoldResult* resultOut) {
+cbtScalar cbtArcArcCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
+                                                             cbtCollisionObject* body1,
+                                                             const cbtDispatcherInfo& dispatchInfo,
+                                                             cbtManifoldResult* resultOut) {
     // not yet
-    return btScalar(1.);
+    return cbtScalar(1.);
 }
 
-void btArcArcCollisionAlgorithm::getAllContactManifolds(btManifoldArray& manifoldArray) {
+void cbtArcArcCollisionAlgorithm::getAllContactManifolds(cbtManifoldArray& manifoldArray) {
     if (m_manifoldPtr && m_ownManifold) {
         manifoldArray.push_back(m_manifoldPtr);
     }
 }
 
-btCollisionAlgorithm* btArcArcCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
-    btCollisionAlgorithmConstructionInfo& ci,
-    const btCollisionObjectWrapper* body0Wrap,
-    const btCollisionObjectWrapper* body1Wrap) {
-    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btArcArcCollisionAlgorithm));
+cbtCollisionAlgorithm* cbtArcArcCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
+    cbtCollisionAlgorithmConstructionInfo& ci,
+    const cbtCollisionObjectWrapper* body0Wrap,
+    const cbtCollisionObjectWrapper* body1Wrap) {
+    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtArcArcCollisionAlgorithm));
     if (!m_swapped) {
-        return new (mem) btArcArcCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
+        return new (mem) cbtArcArcCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
     } else {
-        return new (mem) btArcArcCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
+        return new (mem) cbtArcArcCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
     }
 }
 
 // ================================================================================================
 
-btCEtriangleShapeCollisionAlgorithm::btCEtriangleShapeCollisionAlgorithm(btPersistentManifold* mf,
-                                                                         const btCollisionAlgorithmConstructionInfo& ci,
-                                                                         const btCollisionObjectWrapper* col0,
-                                                                         const btCollisionObjectWrapper* col1,
-                                                                         bool isSwapped)
-    : btActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
-    const btCollisionObjectWrapper* triObj1Wrap = m_isSwapped ? col1 : col0;
-    const btCollisionObjectWrapper* triObj2Wrap = m_isSwapped ? col0 : col1;
+cbtCEtriangleShapeCollisionAlgorithm::cbtCEtriangleShapeCollisionAlgorithm(
+    cbtPersistentManifold* mf,
+    const cbtCollisionAlgorithmConstructionInfo& ci,
+    const cbtCollisionObjectWrapper* col0,
+    const cbtCollisionObjectWrapper* col1,
+    bool isSwapped)
+    : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
+    const cbtCollisionObjectWrapper* triObj1Wrap = m_isSwapped ? col1 : col0;
+    const cbtCollisionObjectWrapper* triObj2Wrap = m_isSwapped ? col0 : col1;
 
     if (!m_manifoldPtr &&
         m_dispatcher->needsCollision(triObj1Wrap->getCollisionObject(), triObj2Wrap->getCollisionObject())) {
@@ -1034,35 +1036,36 @@ btCEtriangleShapeCollisionAlgorithm::btCEtriangleShapeCollisionAlgorithm(btPersi
     }
 }
 
-btCEtriangleShapeCollisionAlgorithm::btCEtriangleShapeCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
-    : btActivatingCollisionAlgorithm(ci) {}
+cbtCEtriangleShapeCollisionAlgorithm::cbtCEtriangleShapeCollisionAlgorithm(
+    const cbtCollisionAlgorithmConstructionInfo& ci)
+    : cbtActivatingCollisionAlgorithm(ci) {}
 
-btCEtriangleShapeCollisionAlgorithm ::~btCEtriangleShapeCollisionAlgorithm() {
+cbtCEtriangleShapeCollisionAlgorithm ::~cbtCEtriangleShapeCollisionAlgorithm() {
     if (m_ownManifold) {
         if (m_manifoldPtr)
             m_dispatcher->releaseManifold(m_manifoldPtr);
     }
 }
 
-void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObjectWrapper* body0,
-                                                           const btCollisionObjectWrapper* body1,
-                                                           const btDispatcherInfo& dispatchInfo,
-                                                           btManifoldResult* resultOut) {
+void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
+                                                            const cbtCollisionObjectWrapper* body1,
+                                                            const cbtDispatcherInfo& dispatchInfo,
+                                                            cbtManifoldResult* resultOut) {
     (void)dispatchInfo;
     (void)resultOut;
     if (!m_manifoldPtr)
         return;
 
-    const btCollisionObjectWrapper* triObj1Wrap = m_isSwapped ? body1 : body0;
-    const btCollisionObjectWrapper* triObj2Wrap = m_isSwapped ? body0 : body1;
+    const cbtCollisionObjectWrapper* triObj1Wrap = m_isSwapped ? body1 : body0;
+    const cbtCollisionObjectWrapper* triObj2Wrap = m_isSwapped ? body0 : body1;
 
     resultOut->setPersistentManifold(m_manifoldPtr);
 
     // avoid persistence of contacts in manifold:
     resultOut->getPersistentManifold()->clearManifold();
 
-    const btCEtriangleShape* triA = (btCEtriangleShape*)triObj1Wrap->getCollisionShape();
-    const btCEtriangleShape* triB = (btCEtriangleShape*)triObj2Wrap->getCollisionShape();
+    const cbtCEtriangleShape* triA = (cbtCEtriangleShape*)triObj1Wrap->getCollisionShape();
+    const cbtCEtriangleShape* triB = (cbtCEtriangleShape*)triObj2Wrap->getCollisionShape();
     ChCollisionModelBullet* triModelA = (ChCollisionModelBullet*)triA->getUserPointer();
     ChCollisionModelBullet* triModelB = (ChCollisionModelBullet*)triB->getUserPointer();
 
@@ -1088,32 +1091,32 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     offset_A += triModelA->GetEnvelope();
     offset_B += triModelB->GetEnvelope();
 
-    const btTransform& m44Ta = triObj1Wrap->getCollisionObject()->getWorldTransform();
-    const btTransform& m44Tb = triObj2Wrap->getCollisionObject()->getWorldTransform();
-    const btMatrix3x3& mbtRa = m44Ta.getBasis();
-    const btMatrix3x3& mbtRb = m44Tb.getBasis();
+    const cbtTransform& m44Ta = triObj1Wrap->getCollisionObject()->getWorldTransform();
+    const cbtTransform& m44Tb = triObj2Wrap->getCollisionObject()->getWorldTransform();
+    const cbtMatrix3x3& mcbtRa = m44Ta.getBasis();
+    const cbtMatrix3x3& mcbtRb = m44Tb.getBasis();
     ChMatrix33<> mRa;
-    mRa(0, 0) = mbtRa[0][0];
-    mRa(0, 1) = mbtRa[0][1];
-    mRa(0, 2) = mbtRa[0][2];
-    mRa(1, 0) = mbtRa[1][0];
-    mRa(1, 1) = mbtRa[1][1];
-    mRa(1, 2) = mbtRa[1][2];
-    mRa(2, 0) = mbtRa[2][0];
-    mRa(2, 1) = mbtRa[2][1];
-    mRa(2, 2) = mbtRa[2][2];
+    mRa(0, 0) = mcbtRa[0][0];
+    mRa(0, 1) = mcbtRa[0][1];
+    mRa(0, 2) = mcbtRa[0][2];
+    mRa(1, 0) = mcbtRa[1][0];
+    mRa(1, 1) = mcbtRa[1][1];
+    mRa(1, 2) = mcbtRa[1][2];
+    mRa(2, 0) = mcbtRa[2][0];
+    mRa(2, 1) = mcbtRa[2][1];
+    mRa(2, 2) = mcbtRa[2][2];
     ChVector<> mOa(m44Ta.getOrigin().x(), m44Ta.getOrigin().y(), m44Ta.getOrigin().z());
 
     ChMatrix33<> mRb;
-    mRb(0, 0) = mbtRb[0][0];
-    mRb(0, 1) = mbtRb[0][1];
-    mRb(0, 2) = mbtRb[0][2];
-    mRb(1, 0) = mbtRb[1][0];
-    mRb(1, 1) = mbtRb[1][1];
-    mRb(1, 2) = mbtRb[1][2];
-    mRb(2, 0) = mbtRb[2][0];
-    mRb(2, 1) = mbtRb[2][1];
-    mRb(2, 2) = mbtRb[2][2];
+    mRb(0, 0) = mcbtRb[0][0];
+    mRb(0, 1) = mcbtRb[0][1];
+    mRb(0, 2) = mcbtRb[0][2];
+    mRb(1, 0) = mcbtRb[1][0];
+    mRb(1, 1) = mcbtRb[1][1];
+    mRb(1, 2) = mcbtRb[1][2];
+    mRb(2, 0) = mcbtRb[2][0];
+    mRb(2, 1) = mcbtRb[2][1];
+    mRb(2, 2) = mcbtRb[2][2];
     ChVector<> mOb(m44Tb.getOrigin().x(), m44Tb.getOrigin().y(), m44Tb.getOrigin().z());
 
     // transform points to absolute coords, since models might be roto-translated
@@ -1519,45 +1522,45 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     resultOut->refreshContactPoints();
 }
 
-btScalar btCEtriangleShapeCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* body0,
-                                                                    btCollisionObject* body1,
-                                                                    const btDispatcherInfo& dispatchInfo,
-                                                                    btManifoldResult* resultOut) {
+cbtScalar cbtCEtriangleShapeCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
+                                                                      cbtCollisionObject* body1,
+                                                                      const cbtDispatcherInfo& dispatchInfo,
+                                                                      cbtManifoldResult* resultOut) {
     // not yet
-    return btScalar(1.);
+    return cbtScalar(1.);
 }
 
-void btCEtriangleShapeCollisionAlgorithm::getAllContactManifolds(btManifoldArray& manifoldArray) {
+void cbtCEtriangleShapeCollisionAlgorithm::getAllContactManifolds(cbtManifoldArray& manifoldArray) {
     if (m_manifoldPtr && m_ownManifold) {
         manifoldArray.push_back(m_manifoldPtr);
     }
 }
 
-void btCEtriangleShapeCollisionAlgorithm::_add_contact(const ChVector<>& candid_pA,
-                                                       const ChVector<>& candid_pB,
-                                                       const double dist,
-                                                       btManifoldResult* resultOut,
-                                                       const double offsetA,
-                                                       const double offsetB) {
+void cbtCEtriangleShapeCollisionAlgorithm::_add_contact(const ChVector<>& candid_pA,
+                                                        const ChVector<>& candid_pB,
+                                                        const double dist,
+                                                        cbtManifoldResult* resultOut,
+                                                        const double offsetA,
+                                                        const double offsetB) {
     // convert to Bullet vectors. Note: in absolute csys.
-    btVector3 absA((btScalar)candid_pA.x(), (btScalar)candid_pA.y(), (btScalar)candid_pA.z());
-    btVector3 absB((btScalar)candid_pB.x(), (btScalar)candid_pB.y(), (btScalar)candid_pB.z());
+    cbtVector3 absA((cbtScalar)candid_pA.x(), (cbtScalar)candid_pA.y(), (cbtScalar)candid_pA.z());
+    cbtVector3 absB((cbtScalar)candid_pB.x(), (cbtScalar)candid_pB.y(), (cbtScalar)candid_pB.z());
     ChVector<> dabsN_onB((candid_pA - candid_pB).GetNormalized());
-    btVector3 absN_onB((btScalar)dabsN_onB.x(), (btScalar)dabsN_onB.y(), (btScalar)dabsN_onB.z());
+    cbtVector3 absN_onB((cbtScalar)dabsN_onB.x(), (cbtScalar)dabsN_onB.y(), (cbtScalar)dabsN_onB.z());
     if (dist < 0)
         absN_onB = -absN_onB;  // flip norm to be coherent with dist sign
-    resultOut->addContactPoint(absN_onB, absB + absN_onB * (btScalar)offsetB, (btScalar)(dist - (offsetA + offsetB)));
+    resultOut->addContactPoint(absN_onB, absB + absN_onB * (cbtScalar)offsetB, (cbtScalar)(dist - (offsetA + offsetB)));
 }
 
-btCollisionAlgorithm* btCEtriangleShapeCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
-    btCollisionAlgorithmConstructionInfo& ci,
-    const btCollisionObjectWrapper* body0Wrap,
-    const btCollisionObjectWrapper* body1Wrap) {
-    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btCEtriangleShapeCollisionAlgorithm));
+cbtCollisionAlgorithm* cbtCEtriangleShapeCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
+    cbtCollisionAlgorithmConstructionInfo& ci,
+    const cbtCollisionObjectWrapper* body0Wrap,
+    const cbtCollisionObjectWrapper* body1Wrap) {
+    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtCEtriangleShapeCollisionAlgorithm));
     if (!m_swapped) {
-        return new (mem) btCEtriangleShapeCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
+        return new (mem) cbtCEtriangleShapeCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
     } else {
-        return new (mem) btCEtriangleShapeCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
+        return new (mem) cbtCEtriangleShapeCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
     }
 }
 
