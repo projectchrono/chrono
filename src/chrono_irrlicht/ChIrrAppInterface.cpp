@@ -291,11 +291,35 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
 }
 
 // -----------------------------------------------------------------------------
+// Utility class used for drawing collision shapes (see drawCollisionShapes)
+// -----------------------------------------------------------------------------
+
+class DebugDrawer : public collision::ChCollisionSystem::VisualizationCallback {
+  public:
+    explicit DebugDrawer(irr::video::IVideoDriver* driver)
+        : m_driver(driver), m_debugMode(0), m_linecolor(255, 255, 0, 0) {}
+    ~DebugDrawer() {}
+
+    virtual void DrawLine(const ChVector<>& from, const ChVector<>& to, const ChColor& color) override {
+        m_driver->draw3DLine(irr::core::vector3dfCH(from), irr::core::vector3dfCH(to), m_linecolor);
+    }
+
+    virtual double GetNormalScale() const override { return 1.0; }
+
+    void SetLineColor(irr::video::SColor& mcolor) { m_linecolor = mcolor; }
+
+  private:
+    irr::video::IVideoDriver* m_driver;
+    int m_debugMode;
+    irr::video::SColor m_linecolor;
+};
+
+// -----------------------------------------------------------------------------
 // Implementation of ChIrrAppInterface methods
 // -----------------------------------------------------------------------------
 
 // Create the IRRLICHT context (device, etc.)
-ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
+ChIrrAppInterface::ChIrrAppInterface(ChSystem* sys,
                                      const std::wstring& title,
                                      const irr::core::dimension2d<irr::u32>& dimens,
                                      VerticalDir vert,
@@ -341,6 +365,11 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     }
 
     device->grab();
+
+    // Create the collision visualization callback object
+    m_drawer = chrono_types::make_shared<DebugDrawer>(device->getVideoDriver());
+    if (sys->GetCollisionSystem())
+        sys->GetCollisionSystem()->RegisterVisualizationCallback(m_drawer);
 
     // Xeffects for shadow maps!
     if (do_antialias)
@@ -528,7 +557,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     auto child = gad_treeview->getRoot()->addChildBack(L"System", 0);
     child->setExpanded(true);
 
-    system = psystem;
+    system = sys;
 
     show_infos = false;
     show_profiler = false;
@@ -807,7 +836,7 @@ void ChIrrAppInterface::DrawAll() {
         tools::drawAllLinkframes(*system, GetVideoDriver(), symbolscale);
 
     if (gad_plot_collisionshapes->isChecked())
-        tools::drawCollisionShapes(*system, GetDevice());
+        DrawCollisionShapes(irr::video::SColor(50, 0, 0, 110));
 
     if (gad_plot_convergence->isChecked())
         tools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system, 240, 370, 300, 100, 100.0);
@@ -912,6 +941,21 @@ void ChIrrAppInterface::DrawAll() {
 
     // if(show_infos)
     GetIGUIEnvironment()->drawAll();
+}
+
+void ChIrrAppInterface::DrawCollisionShapes(irr::video::SColor color) {
+    if (!m_drawer)
+        return;
+
+    std::static_pointer_cast<DebugDrawer>(m_drawer)->SetLineColor(color);
+
+    GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
+    mattransp.ZBuffer = true;
+    mattransp.Lighting = false;
+    GetVideoDriver()->setMaterial(mattransp);
+
+    system->GetCollisionSystem()->Visualize(collision::ChCollisionSystem::VIS_Shapes);
 }
 
 // Dump the last used system matrices and vectors in the current directory,
