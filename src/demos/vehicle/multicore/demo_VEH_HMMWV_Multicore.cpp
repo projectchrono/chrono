@@ -83,7 +83,7 @@ double slope = 0;
 double radius = 40;
 
 // Granular material density (kg/m3)
-double rho = 2000;
+double density = 2000;
 
 // Coefficient of friction
 double mu = 0.9;
@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
 
     double slope_g = slope * CH_C_DEG_TO_RAD;
     double r_g = radius / 1000;
-    double rho_g = rho;
+    double rho_g = density;
     double mu_g = mu;
 
     double area = CH_C_PI * r_g * r_g;
@@ -365,7 +365,7 @@ int main(int argc, char* argv[]) {
     if (output) {
         ofile << "# Slope (deg):     " << slope << endl;
         ofile << "# Radius (mm):     " << radius << endl;
-        ofile << "# Density (kg/m3): " << rho << endl;
+        ofile << "# Density (kg/m3): " << density << endl;
         ofile << "# Friction:        " << mu << endl;
         ofile << "# Cohesion (kPa):  " << coh << endl;
         ofile << "# " << endl;

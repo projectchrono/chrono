@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include "chrono/physics/ChSystem.h"
+#include "chrono/core/ChTimer.h"
+
 #include "chrono_opengl/core/ChApiOpenGL.h"
 #include "chrono_opengl/core/ChOpenGLBase.h"
 #include "chrono_opengl/ChOpenGLCamera.h"
@@ -27,9 +30,6 @@
 #include "chrono_opengl/UI/ChOpenGLContacts.h"
 #include "chrono_opengl/UI/ChOpenGLHUD.h"
 #include "chrono_opengl/UI/ChOpenGLGraphs.h"
-
-#include "chrono/physics/ChSystem.h"
-#include "chrono/core/ChTimer.h"
 
 //#include "chrono_multicore/physics/ChSystemMulticore.h"
 #include <GLFW/glfw3.h>
