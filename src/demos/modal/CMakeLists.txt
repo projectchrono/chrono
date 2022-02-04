@@ -4,7 +4,6 @@
 # Add demos that require Irrlicht and MKL and postprocess
 if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_POSTPROCESS)
 set(MODAL_DEMOS
-    demo_MOD_assembly
 )
 endif()
 
