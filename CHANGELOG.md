@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Modal analysis](#added-modal-analysis-module)
   - [Callback mechanism for collision debug visualization](#added-callback-mechanism-for-collision-debug-visualization)
   - [Translational and rotational spring-damper-actuators](#changed-translational-and-rotational-spring-damper-actuators)
   - [Refactor Chrono::Vehicle suspension test rigs](#changed-refactor-chronovehicle-suspension-test-rigs)
@@ -58,6 +59,27 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] Modal analysis module
+
+A new module `MODULE_MODAL` has been added. The module uses an external dependency (the [Spectra](https://spectralib.org/) library for eigenvalue computation). 
+Follow the [installation guide](@ref module_modal_installation) for instructions on how to enable it.
+
+The new class `ChModalAssembly` offer three main functionalities:
+
+- **undamped modal analysis** of all the system being created within the sub assembly will be obtained. The modes and frequencies can be also displayed interactively if using the Irrlicht visualization system. 
+	- The subassembly can also contain constraints between its sub parts. 
+	- Rigid modes (for free-free structures) are supported
+	- A custom genaralized, sparse, constrained eigenvalue solver of Krylov-Schur type allows the computation of only the n lower modes. This allows handling large FEA systems. 
+	
+- **damped (complex) modal analysis** of the subsystem: this is like the previous case, but damping matrix is used too, hence obtaining complex eigenvalues/eigenvectors. Damping factors for the modes are output too, indicating stability or instability. *NOTE: while we wait that Spectra will enable complex eigenvalues in Krylov-Schur, a more conventional solver is used, that is not sparse - hence requiring more time and memory*
+
+- **modal reduction** of the subassembly. Example of a scenario where this is useful: you have a tower modeled with thousands of finite elements, but you are just interested in the small oscillations of its tip, because you will mount a windmill on its tip. If you simulate thousands of finite elements just for this purpose, you waste CPU time, hence a modal reduction of the tower will discard all the DOFs of the finite elements and represent the overall behaviour of the tower using just few modal shapes (ex. fore aft bending, lateral bending, etc.), with extreme CPU performance at the cost of a small reduction of fidelity.
+	- Bodies and FEA nodes can be added to the subassebly as *internal*  or *boundary* interface nodes. Later one can call `ChModalAssembly::SwitchModalReductionON(int n_modes)` to replace the complexity of the internal nodes with few `n_modes` modal coordinates.
+	- Boundary interface nodes can be connected to the rest of the multibody system as usual, using constraints, forces, etc.
+	- Internal constraints can be used between internal nodes. Their effect too will be condensed in the modal reduction.
+	- *NOTE: at the moment only linear dynamics is supported for the subassembly, in the sense that the subassembly cannot withstand large rotations, ex. in a helicopter blade. Future developments will address this*
+
 
 ### [Added] Callback mechanism for collision debug visualization
 
