@@ -61,10 +61,10 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
                 m_app->m_camera.Zoom(-1);
                 return true;
             case KEY_LEFT:
-                m_app->m_camera.Turn(1);
+                m_app->m_camera.Turn(-1);
                 return true;
             case KEY_RIGHT:
-                m_app->m_camera.Turn(-1);
+                m_app->m_camera.Turn(1);
                 return true;
             case KEY_NEXT:
                 m_app->m_camera.Raise(1);
