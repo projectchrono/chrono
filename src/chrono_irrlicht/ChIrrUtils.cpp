@@ -11,6 +11,7 @@
 // =============================================================================
 
 #include "chrono_irrlicht/ChIrrUtils.h"
+#include "chrono_irrlicht/ChIrrSkyBoxSceneNode.h"
 
 namespace chrono {
 namespace irrlicht {
@@ -45,13 +46,16 @@ void add_typical_Sky(IrrlichtDevice* device, bool y_up, const std::string& mtext
     std::string str_dn = mtexturedir + "sky_dn.jpg";
 
     irr::video::ITexture* map_skybox_side = device->getVideoDriver()->getTexture(str_lf.c_str());
-
-    auto mbox = device->getSceneManager()->addSkyBoxSceneNode(
+        
+    // Create a skybox scene node
+    auto skybox = new scene::CSkyBoxSceneNode(
         device->getVideoDriver()->getTexture(str_up.c_str()), device->getVideoDriver()->getTexture(str_dn.c_str()),
-        map_skybox_side, map_skybox_side, map_skybox_side, map_skybox_side);
+        map_skybox_side, map_skybox_side, map_skybox_side, map_skybox_side,
+        device->getSceneManager()->getRootSceneNode(), device->getSceneManager(), -1);
+    skybox->drop();
 
     if (!y_up)
-        mbox->setRotation(irr::core::vector3df(90, 0, 0));
+        skybox->setRotation(irr::core::vector3df(90, 0, 0));
 }
 
 void add_typical_Camera(IrrlichtDevice* device, irr::core::vector3df pos, irr::core::vector3df targ, bool y_up) {
