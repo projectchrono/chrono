@@ -133,7 +133,6 @@ int main(int argc, char* argv[]) {
     // Vehicle Irrlicht run-time visualization
     ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"HMMWV-9 YUP", irr::core::dimension2d<irr::u32>(1000, 800),
                                irr::ELL_NONE);
-    app.SetSkyBox();
     app.AddTypicalLights();
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     app.SetTimestep(step_size);

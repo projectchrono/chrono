@@ -66,10 +66,6 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
 
     virtual ~ChVehicleIrrApp();
 
-    /// Create a skybox that has Z pointing up.
-    /// Note that the default ChIrrApp::AddTypicalSky() uses Y up.
-    void SetSkyBox();
-
     /// Set parameters for the underlying chase camera.
     void SetChaseCamera(const ChVector<>& ptOnChassis,  ///< tracked point on chassis body (in vehicle reference frame)
                         double chaseDist,               ///< chase distance (behind tracked point)

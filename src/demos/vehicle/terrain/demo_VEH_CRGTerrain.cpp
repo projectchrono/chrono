@@ -340,7 +340,6 @@ int main(int argc, char* argv[]) {
     ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Steering",
                                irr::core::dimension2d<irr::u32>(1000, 800));
     app.SetHUDLocation(500, 20);
-    app.SetSkyBox();
     app.AddTypicalLogo();
     for (auto& loc : light_locs)
         app.AddLight(irr::core::vector3dfCH(ChWorldFrame::FromISO(loc)), 100);

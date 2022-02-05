@@ -192,7 +192,6 @@ int main(int argc, char* argv[]) {
                         irr::core::dimension2d<irr::u32>(800, 640));
 #endif
     app.SetHUDLocation(500, 20);
-    app.SetSkyBox();
     app.AddTypicalLogo();
     app.AddTypicalLights(irr::core::vector3df(-150.f, -150.f, 200.f), irr::core::vector3df(-150.f, 150.f, 200.f), 100,
                          100);
