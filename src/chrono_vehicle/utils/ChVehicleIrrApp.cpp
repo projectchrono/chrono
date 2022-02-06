@@ -109,8 +109,9 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
 ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
                                  const std::wstring& title,
                                  const irr::core::dimension2d<irr::u32>& dims,
+                                 irrlicht::VerticalDir vert,
                                  irr::ELOG_LEVEL log_level)
-    : ChIrrApp(vehicle->GetSystem(), title, dims, irrlicht::VerticalDir::Z, false, false, true, irr::video::EDT_OPENGL, log_level),
+    : ChIrrApp(vehicle->GetSystem(), title, dims, vert, false, false, true, irr::video::EDT_OPENGL, log_level),
       m_vehicle(vehicle),
       m_camera(vehicle->GetChassisBody()),
       m_stepsize(1e-3),

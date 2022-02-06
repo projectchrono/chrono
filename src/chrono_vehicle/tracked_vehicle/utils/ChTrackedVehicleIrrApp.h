@@ -33,11 +33,12 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackedVehicleIrrApp : public ChVehicleIrrApp {
   public:
     /// Construct a tracked vehicle Irrlicht application.
-    ChTrackedVehicleIrrApp(ChVehicle* vehicle,  ///< pointer to the associated vehicle system
+    ChTrackedVehicleIrrApp(ChVehicle* vehicle,                              ///< associated vehicle system
                            const std::wstring& title = L"Chrono::Vehicle",  ///< window title
                            const irr::core::dimension2d<irr::u32>& dims =
-                               irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
-                           irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level
+                               irr::core::dimension2d<irr::u32>(1000, 800),        ///< window dimensions
+                           irrlicht::VerticalDir vert = irrlicht::VerticalDir::Z,  ///< vertical camera direction
+                           irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION        ///< Irrlicht logging level
     );
 
     ~ChTrackedVehicleIrrApp() {}

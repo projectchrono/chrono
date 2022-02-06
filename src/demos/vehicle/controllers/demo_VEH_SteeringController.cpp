@@ -180,16 +180,13 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
 
 #ifdef USE_PID
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering PID Controller Demo",
-                               irr::core::dimension2d<irr::u32>(800, 640));
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering PID Controller Demo");
 #endif
 #ifdef USE_XT
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering XT Controller Demo",
-                               irr::core::dimension2d<irr::u32>(800, 640));
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering XT Controller Demo");
 #endif
 #ifdef USE_SR
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering SR Controller Demo",
-                        irr::core::dimension2d<irr::u32>(800, 640));
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering SR Controller Demo");
 #endif
     app.SetHUDLocation(500, 20);
     app.AddTypicalLogo();
