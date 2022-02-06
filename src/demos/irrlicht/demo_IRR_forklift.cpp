@@ -368,12 +368,12 @@ class MyEventReceiver : public IEventReceiver {
                 case irr::KEY_KEY_Q:
                     if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(
                             forklift->link_steer_engineB->GetAngleFunction()))
-                        mfun->Set_yconst(-0.6 + mfun->Get_yconst());
+                        mfun->Set_yconst(+0.3 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_W:
                     if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(
                             forklift->link_steer_engineB->GetAngleFunction()))
-                        mfun->Set_yconst(+0.3 + mfun->Get_yconst());
+                        mfun->Set_yconst(-0.3 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_A:
                     if (auto mfun =
