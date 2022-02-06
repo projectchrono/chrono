@@ -84,7 +84,7 @@ void AddFallingItems(ChSystemSMC& sys) {
                 body->AddAsset(box);
 
                 auto texture = chrono_types::make_shared<ChTexture>();
-                texture->SetTextureFilename(GetChronoDataFile("textures/pinkwhite.png"));
+                texture->SetTextureFilename(GetChronoDataFile("textures/cubetexture_pinkwhite.png"));
                 body->AddAsset(texture);
 
                 sys.AddBody(body);
