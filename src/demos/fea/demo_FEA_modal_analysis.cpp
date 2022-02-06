@@ -414,13 +414,13 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"Modal analysis", core::dimension2d<u32>(1024, 768));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddLightWithShadow(irr::core::vector3df(20, 20, 20), irr::core::vector3df(0, 0, 0), 50, 5, 50, 55);
     application.AddLight(irr::core::vector3df(-20, -20, 0), 6, irr::video::SColorf(0.6f, 1.0f, 1.0f, 1.0f));
     application.AddLight(irr::core::vector3df(0, -20, -20), 6, irr::video::SColorf(0.6f, 1.0f, 1.0f, 1.0f));
     // application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(1.f, 1.3f, 6.f), core::vector3df(3.f, 0.f, 0.f));
+    application.AddCamera(core::vector3df(1.f, 1.3f, 6.f), core::vector3df(3.f, 0.f, 0.f));
 
 
     // This is for GUI tweaking of system parameters..

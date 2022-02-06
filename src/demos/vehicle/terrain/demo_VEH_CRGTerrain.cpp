@@ -339,7 +339,7 @@ int main(int argc, char* argv[]) {
 
     ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Steering");
     app.SetHUDLocation(500, 20);
-    app.AddTypicalLogo();
+    app.AddLogo();
     for (auto& loc : light_locs)
         app.AddLight(irr::core::vector3dfCH(ChWorldFrame::FromISO(loc)), 100);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);

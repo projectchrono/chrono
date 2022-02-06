@@ -48,10 +48,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"Beams (SPACE for dynamics, F10 / F11 statics)", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(-0.1f, 0.2f, -0.2f));
+    application.AddCamera(core::vector3df(-0.1f, 0.2f, -0.2f));
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.

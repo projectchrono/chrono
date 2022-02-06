@@ -189,11 +189,11 @@ int main(int argc, char* argv[]) {
     ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering SR Controller Demo");
 #endif
     app.SetHUDLocation(500, 20);
-    app.AddTypicalLogo();
-    app.AddTypicalLights(irr::core::vector3df(-150.f, -150.f, 200.f), irr::core::vector3df(-150.f, 150.f, 200.f), 100,
-                         100);
-    app.AddTypicalLights(irr::core::vector3df(150.f, -150.f, 200.f), irr::core::vector3df(150.0f, 150.f, 200.f), 100,
-                         100);
+    app.AddLogo();
+    app.AddLight(irr::core::vector3df(-150.f, -150.f, 200.f), 100, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(irr::core::vector3df(-150.f, +150.f, 200.f), 100, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(irr::core::vector3df(+150.f, -150.f, 200.f), 100, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(irr::core::vector3df(+150.f, +150.f, 200.f), 100, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
 
     app.SetTimestep(step_size);

@@ -103,10 +103,10 @@ int main(int argc, char* argv[]) {
 
     // 4- Create the Irrlicht visualization
     ChIrrApp application(&my_system, L"Simple slider-crank example", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0, 0, -6));
+    application.AddCamera(core::vector3df(0, 0, -6));
 
     // Bind assets
     application.AssetBindAll();

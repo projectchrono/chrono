@@ -57,10 +57,10 @@ mphysicalSystem = chrono.ChSystemNSC()
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc. etc.)
 application = chronoirr.ChIrrApp(mphysicalSystem, "Particle emitter", chronoirr.dimension2du(800, 600))
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(chronoirr.vector3df(0, 14, -20))
+application.AddCamera(chronoirr.vector3df(0, 14, -20))
 
 #
 # CREATE THE SYSTEM OBJECTS

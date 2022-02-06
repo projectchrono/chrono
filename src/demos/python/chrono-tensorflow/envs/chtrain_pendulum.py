@@ -57,9 +57,9 @@ class Model(object):
              self.myapplication.SetTimestep(0.01)
              self. myapplication.SetTryRealtime(True)
              
-             self.myapplication.AddTypicalSky()
-             self.myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-             self.myapplication.AddTypicalCamera(chronoirr.vector3df(0.5,0.5,1.0))
+             self.myapplication.AddSkyBox()
+             self.myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+             self.myapplication.AddCamera(chronoirr.vector3df(0.5,0.5,1.0))
              self.myapplication.AddLightWithShadow(chronoirr.vector3df(2,4,2),    # point
                                             chronoirr.vector3df(0,0,0),    # aimpoint
                                             9,                 # radius (power)

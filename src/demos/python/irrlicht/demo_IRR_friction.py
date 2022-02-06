@@ -141,11 +141,10 @@ mphysicalSystem.Add(bin)
 
 myapplication = chronoirr.ChIrrApp(mphysicalSystem, 'PyChrono example: Friction', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddTypicalCamera(chronoirr.vector3df(0, 14, -20))
-myapplication.AddTypicalLights(chronoirr.vector3df(30., 100., 30.),
-                               chronoirr.vector3df(-30, 100., 30.))
+myapplication.AddSkyBox()
+myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+myapplication.AddCamera(chronoirr.vector3df(0, 14, -20))
+myapplication.AddTypicalLights()
 
 # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
 # in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.

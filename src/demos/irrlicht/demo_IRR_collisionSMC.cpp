@@ -188,10 +188,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&sys, L"SMC collision demo", core::dimension2d<u32>(800, 600));
 
     // Add camera, lights, logo and sky in Irrlicht scene
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0, 18, -20));
+    application.AddCamera(core::vector3df(0, 18, -20));
 
     // Add fixed and moving bodies
     auto mixer = AddContainer(sys);

@@ -81,9 +81,8 @@ steeringPID.Reset(my_hmmwv.GetVehicle())
 # Create the vehicle Irrlicht application
 app = veh.ChVehicleIrrApp(my_hmmwv.GetVehicle(), "Constant radius test")
 app.SetHUDLocation(500, 20)
-app.AddTypicalLogo()
-app.AddTypicalLights(chronoirr.vector3df(-150, 0, 200), chronoirr.vector3df(-150, 0, 200), 100, 100)
-app.AddTypicalLights(chronoirr.vector3df(150, 0, 200), chronoirr.vector3df(150, 0, 200), 100, 100)
+app.AddLogo()
+app.AddTypicalLights()
 app.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
 
 # Visualization of controller points (sentinel & target)

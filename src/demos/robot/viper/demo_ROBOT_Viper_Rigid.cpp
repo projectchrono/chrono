@@ -101,10 +101,11 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization
     ChIrrApp application(&sys, L"Viper Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720), VerticalDir::Z,
                          false, false, true);
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
-    application.AddTypicalLights(irr::core::vector3df(30.f, 30.f, 150.f), irr::core::vector3df(-30.f, -30.f, 150.f));
-    application.AddTypicalCamera(core::vector3df(3, 3, 1));
+    application.AddLogo();
+    application.AddSkyBox();
+    application.AddLight(irr::core::vector3df(30.f, 30.f, 150.f), 290, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    application.AddLight(irr::core::vector3df(-30.f, -30.f, 150.f), 190, irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
+    application.AddCamera(core::vector3df(3, 3, 1));
     application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
 
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);

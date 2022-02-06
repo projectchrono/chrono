@@ -131,8 +131,8 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
     m_camera_control = new ChCameraEventReceiver(this);
     SetUserEventReceiver(m_camera_control);
 
-    AddTypicalCamera(core::vector3dfCH(cam_pos), core::vector3dfCH(cam_target));
-    AddTypicalSky();
+    AddCamera(core::vector3dfCH(cam_pos), core::vector3dfCH(cam_target));
+    AddSkyBox();
 
 #ifdef CHRONO_IRRKLANG
     m_sound_engine = 0;

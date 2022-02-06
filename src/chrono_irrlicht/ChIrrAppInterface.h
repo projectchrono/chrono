@@ -23,7 +23,7 @@
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrEffects.h"
 #include "chrono_irrlicht/ChIrrTools.h"
-#include "chrono_irrlicht/ChIrrUtils.h"
+#include "chrono_irrlicht/ChIrrCamera.h"
 
 #ifdef CHRONO_POSTPROCESS
 #include "chrono_postprocess/ChPovRay.h"
@@ -209,25 +209,23 @@ class ChApiIrr ChIrrAppInterface {
     /// matrices.
     void DumpSystemMatrices();
 
-    //
-    // Some wrapper functions for 'easy setup' of the application window:
-    //
+    /// Add a logo in a 3D scene.
+    void AddLogo(const std::string& mlogofilename = GetChronoDataFile("logo_chronoengine_alpha.png"));
 
-    void AddTypicalLogo(const std::string& mlogofilename = GetChronoDataFile("logo_chronoengine_alpha.png"));
+    /// Add a Maya-like camera in an Irrlicht 3D scene.
+    /// The camera rotation/pan is controlled by mouse left and right buttons, the zoom is controlled by mouse wheel or
+    /// rmb+lmb+mouse, the position can be changed also with keyboard up/down/left/right arrows, the height can be
+    /// changed with keyboard 'PgUp' and 'PgDn' keys. Optional parameters are position and target. Note: if you want
+    /// more precise control on camera specs, just use plain commands of Irrlicht.
+    void AddCamera(irr::core::vector3df pos = irr::core::vector3df(0, 0, -8),
+                   irr::core::vector3df targ = irr::core::vector3df(0, 0, 0));
 
-    void AddTypicalCamera(irr::core::vector3df pos = irr::core::vector3df(0, 0, -8),
-                          irr::core::vector3df targ = irr::core::vector3df(0, 0, 0));
+    /// Add a sky box in a 3D scene.
+    /// Note: it is assumed that the specified "texturedir" directory contains the following three texture images:
+    /// sky_lf.jpg, sky_up.jpg, sky_dn.jpg
+    void AddSkyBox(const std::string& texturedir = GetChronoDataFile("skybox/"));
 
-    void AddTypicalLights(irr::core::vector3df pos1 = irr::core::vector3df(30.f, 100.f, 30.f),
-                          irr::core::vector3df pos2 = irr::core::vector3df(30.f, 80.f, -30.f),
-                          double rad1 = 290,
-                          double rad2 = 190,
-                          irr::video::SColorf col1 = irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f),
-                          irr::video::SColorf col2 = irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
-
-    void AddTypicalSky(const std::string& mtexturedir = GetChronoDataFile("skybox/"));
-
-    /// Add a point light to the scene
+    /// Add a point light to the scene.
     irr::scene::ILightSceneNode* AddLight(irr::core::vector3df pos,
                                           double radius,
                                           irr::video::SColorf color = irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
@@ -247,6 +245,10 @@ class ChApiIrr ChIrrAppInterface {
                                                     irr::video::SColorf color = irr::video::SColorf(1.f, 1.f, 1.f, 1.f),
                                                     bool directional = false,
                                                     bool clipborder = true);
+
+    /// Simple shortcut to set two point lights in the scene.
+    /// Note: if you want more precise control on lights, use AddLight() or just use Irrlicht directly.
+    void AddTypicalLights();
 
   private:
     void DrawCollisionShapes(irr::video::SColor color);
