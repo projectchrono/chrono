@@ -113,8 +113,7 @@ patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
 terrain.Initialize()
 
 # Create the vehicle Irrlicht interface
-app = veh.ChWheeledVehicleIrrApp(my_bus.GetVehicle(), 'Citybus', irr.dimension2du(1000,800))
-app.SetSkyBox()
+app = veh.ChWheeledVehicleIrrApp(my_bus.GetVehicle(), 'Citybus')
 app.AddTypicalLights(irr.vector3df(30, -30, 100), irr.vector3df(30, 50, 100), 250, 130)
 app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 app.SetChaseCamera(trackPoint, 15.0, 0.5)

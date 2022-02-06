@@ -59,7 +59,6 @@ def main() :
     # Create the vehicle Irrlicht application
     cam_loc = (rig.GetSpindlePos(0, veh.LEFT) + rig.GetSpindlePos(0, veh.RIGHT)) * 0.5
     app = veh.ChVehicleIrrApp(rig.GetVehicle(), 'Suspension Test Rig')
-    app.SetSkyBox()
     app.AddTypicalLights(irr.vector3df(30, -30, 100), irr.vector3df(30, 50, 100), 250, 130)
     app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     app.SetChaseCamera(cam_loc, 4.0, 0.5)

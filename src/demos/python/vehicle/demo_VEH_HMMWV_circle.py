@@ -81,7 +81,6 @@ steeringPID.Reset(my_hmmwv.GetVehicle())
 # Create the vehicle Irrlicht application
 app = veh.ChVehicleIrrApp(my_hmmwv.GetVehicle(), "Constant radius test")
 app.SetHUDLocation(500, 20)
-app.SetSkyBox()
 app.AddTypicalLogo()
 app.AddTypicalLights(chronoirr.vector3df(-150, 0, 200), chronoirr.vector3df(-150, 0, 200), 100, 100)
 app.AddTypicalLights(chronoirr.vector3df(150, 0, 200), chronoirr.vector3df(150, 0, 200), 100, 100)

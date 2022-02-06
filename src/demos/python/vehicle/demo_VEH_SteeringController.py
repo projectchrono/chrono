@@ -76,8 +76,7 @@ def main():
     driver.Initialize()
 
     # Create the vehicle Irrlicht interface
-    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV', irr.dimension2du(1000,800))
-    app.SetSkyBox()
+    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV')
     app.AddTypicalLights(irr.vector3df(-60, -30, 100), irr.vector3df(60, 30, 100), 250, 130)
     app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     app.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
