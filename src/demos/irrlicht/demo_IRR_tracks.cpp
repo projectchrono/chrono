@@ -196,7 +196,7 @@ class MySimpleTank {
         // ..the tank right-back wheel
 
         wheelRB = chrono_types::make_shared<ChBodyEasyMesh>(  //
-            GetChronoDataFile("wheel_view.obj").c_str(),      // data file
+            GetChronoDataFile("models/bulldozer/wheel_view.obj").c_str(),      // data file
             1000,                                             // density
             false,                                            // do not compute mass and inertia
             true,                                             // visualization?
@@ -231,7 +231,7 @@ class MySimpleTank {
         // ..the tank left-back wheel
 
         wheelLB = chrono_types::make_shared<ChBodyEasyMesh>(  //
-            GetChronoDataFile("wheel_view.obj").c_str(),      // data file
+            GetChronoDataFile("models/bulldozer/view.obj").c_str(),      // data file
             1000,                                             // density
             false,                                            // do not compute mass and inertia
             true,                                             // visualization?
