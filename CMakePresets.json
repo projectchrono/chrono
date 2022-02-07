@@ -130,7 +130,7 @@
 				"genericci-base"
 			],
 			"cacheVariables": {
-				"ENABLE_MODULE_GPU": "ON",
+				"ENABLE_MODULE_GPU": "OFF",
 				"ENABLE_MODULE_MULTICORE": "OFF",
 				"ENABLE_MODULE_FSI": "OFF",
 				"ENABLE_MODULE_SENSOR": "OFF",
