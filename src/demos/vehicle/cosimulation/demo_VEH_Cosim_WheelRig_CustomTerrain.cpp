@@ -110,10 +110,10 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     if (m_render) {
         m_irrapp = new irrlicht::ChIrrApp(m_system, L"Custom terrain node", irr::core::dimension2d<irr::u32>(1280, 720),
                                           irrlicht::VerticalDir::Z);
-        m_irrapp->AddTypicalLogo();
-        m_irrapp->AddTypicalSky();
-        m_irrapp->AddTypicalLights(irr::core::vector3df(30.f, +30.f, 100.f), irr::core::vector3df(30.f, -30.f, 100.f));
-        m_irrapp->AddTypicalCamera(irr::core::vector3df(2.0f, 1.4f, 1.0f), irr::core::vector3df(0, 0, 0));
+        m_irrapp->AddLogo();
+        m_irrapp->AddSkyBox();
+        m_irrapp->AddTypicalLights();
+        m_irrapp->AddCamera(irr::core::vector3df(2.0f, 1.4f, 1.0f), irr::core::vector3df(0, 0, 0));
     }
 #endif
 

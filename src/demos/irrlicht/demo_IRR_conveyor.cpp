@@ -215,10 +215,10 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Conveyor belt", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(1.5f, 0.4f, -1.0f), core::vector3df(0.5f, 0.0f, 0.0f));
+    application.AddCamera(core::vector3df(1.5f, 0.4f, -1.0f), core::vector3df(0.5f, 0.0f, 0.0f));
 
     // This is for GUI tweaking of system parameters..
     MyEventReceiver receiver(&application);

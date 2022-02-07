@@ -149,10 +149,10 @@ system.AddLink(rev_2)
 
 # Create the Irrlicht application
 application = chronoirr.ChIrrApp(system, "ChBodyAuxRef demo", chronoirr.dimension2du(800, 600))
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(chronoirr.vector3df(0, 3, 6))
+application.AddCamera(chronoirr.vector3df(0, 3, 6))
 
 application.AssetBindAll()
 application.AssetUpdateAll()

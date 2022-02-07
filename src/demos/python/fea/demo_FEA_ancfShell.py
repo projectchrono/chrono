@@ -46,10 +46,10 @@ my_system.Set_G_acc(chrono.ChVectorD(0, 0, -9.8))
 application = chronoirr.ChIrrApp(my_system, "ANCF Shells", chronoirr.dimension2du(800, 600))
 
 # Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(chronoirr.vector3df(-0.4, -0.3, 0.0),  # camera location
+application.AddCamera(chronoirr.vector3df(-0.4, -0.3, 0.0),  # camera location
                              chronoirr.vector3df(0.0, 0.5, -0.1))  # "look at" location
 
 print( "-----------------------------------------------------------\n")

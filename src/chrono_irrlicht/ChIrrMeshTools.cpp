@@ -191,7 +191,7 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
             } else
                 tu = buffer->Vertices[i - polyCountXPitch].TCoords.X;
 
-            buffer->Vertices[i] = irr::video::S3DVertex(pos.X, pos.Y, pos.Z, normal.X, normal.Y, normal.Z, clr, tu,
+            buffer->Vertices[i] = irr::video::S3DVertex(-pos.X, pos.Y, pos.Z, -normal.X, normal.Y, normal.Z, clr, tu,
                                                         (f32)(ay * irr::core::RECIPROCAL_PI64));
             ++i;
 
@@ -283,39 +283,39 @@ IMesh* createCubeMesh(const irr::core::vector3df& size) {
 
     buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 0, 0, 0, -1, clr, 0.75f, 0.666f));
     buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 0, 0, 0, -1, clr, 0.75f, 0.333f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(1, 1, 0, 0, 0, -1, clr, 1.00f, 0.333f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(1, 0, 0, 0, 0, -1, clr, 1.00f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(-1, 1, 0, 0, 0, -1, clr, 1.00f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(-1, 0, 0, 0, 0, -1, clr, 1.00f, 0.666f));
 
     buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 1, 0, 0, 1, clr, 0.25f, 0.333f));
     buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 1, 0, 0, 1, clr, 0.25f, 0.666f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(1, 1, 1, 0, 0, 1, clr, 0.50f, 0.666f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(1, 0, 1, 0, 0, 1, clr, 0.50f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(-1, 1, 1, 0, 0, 1, clr, 0.50f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(-1, 0, 1, 0, 0, 1, clr, 0.50f, 0.333f));
 
-    buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 0, -1, 0, 0, clr, 0.00f, 0.333f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 1, -1, 0, 0, clr, 0.25f, 0.333f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 1, -1, 0, 0, clr, 0.25f, 0.666f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 0, -1, 0, 0, clr, 0.00f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 0, 1, 0, 0, clr, 0.00f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 1, 1, 0, 0, clr, 0.25f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 1, 1, 0, 0, clr, 0.25f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 0, 1, 0, 0, clr, 0.00f, 0.666f));
 
-    buffer->Vertices.push_back(irr::video::S3DVertex(1, 0, 0, 1, 0, 0, clr, 0.50f, 0.666f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(1, 0, 1, 1, 0, 0, clr, 0.75f, 0.666f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(1, 1, 1, 1, 0, 0, clr, 0.75f, 0.333f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(1, 1, 0, 1, 0, 0, clr, 0.50f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(-1, 0, 0, -1, 0, 0, clr, 0.50f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(-1, 0, 1, -1, 0, 0, clr, 0.75f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(-1, 1, 1, -1, 0, 0, clr, 0.75f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(-1, 1, 0, -1, 0, 0, clr, 0.50f, 0.333f));
 
     buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 0, 0, -1, 0, clr, 0.25f, 0.000f));
     buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 1, 0, -1, 0, clr, 0.25f, 0.333f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(1, 0, 1, 0, -1, 0, clr, 0.50f, 0.333f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(1, 0, 0, 0, -1, 0, clr, 0.50f, 0.000f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(-1, 0, 1, 0, -1, 0, clr, 0.50f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(-1, 0, 0, 0, -1, 0, clr, 0.50f, 0.000f));
 
     buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 0, 0, 1, 0, clr, 0.25f, 1.000f));
     buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 1, 0, 1, 0, clr, 0.25f, 0.666f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(1, 1, 1, 0, 1, 0, clr, 0.50f, 0.666f));
-    buffer->Vertices.push_back(irr::video::S3DVertex(1, 1, 0, 0, 1, 0, clr, 0.50f, 1.000f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(-1, 1, 1, 0, 1, 0, clr, 0.50f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(-1, 1, 0, 0, 1, 0, clr, 0.50f, 1.000f));
 
     // Recalculate bounding box
     buffer->BoundingBox.reset(0, 0, 0);
 
     for (u32 i = 0; i < 24; ++i) {
-        buffer->Vertices[i].Pos -= irr::core::vector3df(0.5f, 0.5f, 0.5f);
+        buffer->Vertices[i].Pos -= irr::core::vector3df(-0.5f, 0.5f, 0.5f);
         buffer->Vertices[i].Pos *= size;
         buffer->BoundingBox.addInternalPoint(buffer->Vertices[i].Pos);
     }
@@ -537,12 +537,15 @@ IMesh* createCapsuleMesh(irr::f32 radius, irr::f32 hlen, irr::u32 numSegV, irr::
 // No shared normals between caps and hull
 // -----------------------------------------------------------------------------
 IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 tesselation) {
+    f32 oblique = 0;
     irr::video::SColor color(255, 255, 255, 255);
 
     SMeshBuffer* buffer = new SMeshBuffer();
 
     const f32 recTesselation = irr::core::reciprocal((f32)tesselation);
+    const f32 recTesselationHalf = recTesselation * 0.5f;
     const f32 angleStep = (irr::core::PI * 2.f) * recTesselation;
+    const f32 angleStepHalf = angleStep * 0.5f;
 
     // HULL
 
@@ -555,15 +558,15 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
     for (i = 0; i <= tesselation; ++i) {
         const f32 angle = angleStep * i;
-        v.Pos.X = radius_low * cosf(angle);
+        v.Pos.X = -radius_low * cosf(angle);
         v.Pos.Y = -length;
         v.Pos.Z = radius_low * sinf(angle);
-        v.Normal = irr::core::vector3df(cosf(angle)*cosf(beta),  sinf(beta), sinf(angle)*cosf(beta));
-        v.TCoords.X = tcx;
+        v.Normal = irr::core::vector3df(-cosf(angle)*cosf(beta),  sinf(beta), sinf(angle)*cosf(beta));
+        v.TCoords.X = -tcx;
         v.TCoords.Y = 0.f;
         buffer->Vertices.push_back(v);
 
-        v.Pos.X = radius_top * cosf(angle);
+        v.Pos.X = -radius_top * cosf(angle);
         v.Pos.Y = length;
         v.Pos.Z = radius_top * sinf(angle);
        // v.Normal = irr::core::vector3df(cosf(angle), sinf(beta), sinf(angle));
@@ -590,11 +593,11 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
     for (i = 0; i <= tesselation; ++i) {
         const f32 angle = angleStep * i;
-        v.Pos.X = radius_low * cosf(angle);
+        v.Pos.X = -radius_low * cosf(angle);
         v.Pos.Y = -length;
         v.Pos.Z = radius_low * sinf(angle);
         v.Normal = irr::core::vector3df(0, -1, 0);
-        v.TCoords.X = 0.5f + 0.5f * cosf(angle);
+        v.TCoords.X = -0.5f + 0.5f * cosf(angle);
         v.TCoords.Y = 0.5f + 0.5f * sinf(angle);
         buffer->Vertices.push_back(v);
     }
@@ -605,7 +608,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
     v.Normal.X = 0.f;
     v.Normal.Y = -1.f;
     v.Normal.Z = 0.f;
-    v.TCoords.X = 0.5;
+    v.TCoords.X = -0.5;
     v.TCoords.Y = 0.5;
     buffer->Vertices.push_back(v);
 
@@ -624,11 +627,11 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
         for (i = 0; i <= tesselation; ++i) {
             const f32 angle = angleStep * i;
-            v.Pos.X = radius_top * cosf(angle);
+            v.Pos.X = -radius_top * cosf(angle);
             v.Pos.Y = length;
             v.Pos.Z = radius_top * sinf(angle);
             v.Normal = irr::core::vector3df(0, 1, 0);
-            v.TCoords.X = 0.5f + 0.5f * cosf(angle);
+            v.TCoords.X = -0.5f - 0.5f * cosf(angle);
             v.TCoords.Y = 0.5f + 0.5f * sinf(angle);
             buffer->Vertices.push_back(v);
         }
@@ -639,7 +642,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
         v.Normal.X = 0.f;
         v.Normal.Y = 1.f;
         v.Normal.Z = 0.f;
-        v.TCoords.X = 0.5;
+        v.TCoords.X = -0.5;
         v.TCoords.Y = 0.5;
         buffer->Vertices.push_back(v);
 

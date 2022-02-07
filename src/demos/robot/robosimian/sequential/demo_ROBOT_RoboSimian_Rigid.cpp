@@ -304,10 +304,11 @@ int main(int argc, char* argv[]) {
 
     robosimian::RoboSimianIrrApp application(&robot, driver.get(), L"RoboSimian - Rigid terrain",
                                              irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
-    application.AddTypicalCamera(irr::core::vector3df(1, -2.75f, 0.2f), irr::core::vector3df(1, 0, 0));
-    application.AddTypicalLights(irr::core::vector3df(100.f, 100.f, 100.f), irr::core::vector3df(100.f, -100.f, 80.f));
+    application.AddLogo();
+    application.AddSkyBox();
+    application.AddCamera(irr::core::vector3df(1, -2.75f, 0.2f), irr::core::vector3df(1, 0, 0));
+    application.AddLight(irr::core::vector3df(100.f, 100.f, 100.f), 290, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    application.AddLight(irr::core::vector3df(100.f, -100.f, 80.f), 190, irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
     application.AddLightWithShadow(irr::core::vector3df(10.0f, -6.0f, 3.0f), irr::core::vector3df(0, 0, 0), 3, -10, 10,
                                    40, 512);
 

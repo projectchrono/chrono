@@ -165,9 +165,9 @@ out_step  = 1.0 / 20
 
 myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example: Collisions between objects', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddTypicalCamera(chronoirr.vector3df(0, 18, -20))
+myapplication.AddSkyBox()
+myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+myapplication.AddCamera(chronoirr.vector3df(0, 18, -20))
 myapplication.AddTypicalLights()
 
 # Add fixed and moving bodies

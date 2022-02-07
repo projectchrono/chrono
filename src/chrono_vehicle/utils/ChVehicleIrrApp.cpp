@@ -61,10 +61,10 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
                 m_app->m_camera.Zoom(-1);
                 return true;
             case KEY_LEFT:
-                m_app->m_camera.Turn(1);
+                m_app->m_camera.Turn(-1);
                 return true;
             case KEY_RIGHT:
-                m_app->m_camera.Turn(-1);
+                m_app->m_camera.Turn(1);
                 return true;
             case KEY_NEXT:
                 m_app->m_camera.Raise(1);
@@ -109,8 +109,9 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
 ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
                                  const std::wstring& title,
                                  const irr::core::dimension2d<irr::u32>& dims,
+                                 irrlicht::VerticalDir vert,
                                  irr::ELOG_LEVEL log_level)
-    : ChIrrApp(vehicle->GetSystem(), title, dims, irrlicht::VerticalDir::Z, false, false, true, irr::video::EDT_OPENGL, log_level),
+    : ChIrrApp(vehicle->GetSystem(), title, dims, vert, false, false, true, irr::video::EDT_OPENGL, log_level),
       m_vehicle(vehicle),
       m_camera(vehicle->GetChassisBody()),
       m_stepsize(1e-3),
@@ -130,13 +131,8 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
     m_camera_control = new ChCameraEventReceiver(this);
     SetUserEventReceiver(m_camera_control);
 
-    // Create and initialize the Irrlicht camera
-    scene::ICameraSceneNode* camera = GetSceneManager()->addCameraSceneNode(
-        GetSceneManager()->getRootSceneNode(), core::vector3df(0, 0, 0), core::vector3df(0, 0, 0));
-
-    camera->setUpVector(core::vector3dfCH(ChWorldFrame::Vertical()));
-    camera->setPosition(core::vector3dfCH(cam_pos));
-    camera->setTarget(core::vector3dfCH(cam_target));
+    AddCamera(core::vector3dfCH(cam_pos), core::vector3dfCH(cam_target));
+    AddSkyBox();
 
 #ifdef CHRONO_IRRKLANG
     m_sound_engine = 0;
@@ -171,24 +167,6 @@ void ChVehicleIrrApp::EnableSound(bool sound) {
         m_car_sound = 0;
     }
 #endif
-}
-
-// -----------------------------------------------------------------------------
-// Create a skybox that has Z pointing up.
-// Note that the default ChIrrApp::AddTypicalSky() uses Y up.
-// -----------------------------------------------------------------------------
-void ChVehicleIrrApp::SetSkyBox() {
-    std::string mtexturedir = GetChronoDataFile("skybox/");
-    std::string str_lf = mtexturedir + "sky_lf.jpg";
-    std::string str_up = mtexturedir + "sky_up.jpg";
-    std::string str_dn = mtexturedir + "sky_dn.jpg";
-    irr::video::ITexture* map_skybox_side = GetVideoDriver()->getTexture(str_lf.c_str());
-    irr::scene::ISceneNode* mbox = GetSceneManager()->addSkyBoxSceneNode(
-        GetVideoDriver()->getTexture(str_up.c_str()), GetVideoDriver()->getTexture(str_dn.c_str()), map_skybox_side,
-        map_skybox_side, map_skybox_side, map_skybox_side);
-    ChMatrix33<> A = ChWorldFrame::Rotation() * ChMatrix33<>(Q_from_AngX(-CH_C_PI_2));
-    auto angles = CH_C_RAD_TO_DEG * A.Get_A_Rxyz();
-    mbox->setRotation(irr::core::vector3dfCH(angles));
 }
 
 // -----------------------------------------------------------------------------

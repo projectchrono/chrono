@@ -84,10 +84,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&msystem, L"SMC demo", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0, 3, -6));
+    application.AddCamera(core::vector3df(0, 3, -6));
 
     // This means that contactforces will be shown in Irrlicht application
     application.SetSymbolscale(1e-4);

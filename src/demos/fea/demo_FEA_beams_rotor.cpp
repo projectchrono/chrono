@@ -275,13 +275,13 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"Rotor with simplified blade: steady state statics & dynamics", core::dimension2d<u32>(1024, 768));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddLightWithShadow(irr::core::vector3df(20, 20, 20), irr::core::vector3df(0, 0, 0), 50, 5, 50, 55);
     application.AddLight(irr::core::vector3df(-20, -20, 0), 6, irr::video::SColorf(0.6f, 1.0f, 1.0f, 1.0f));
     application.AddLight(irr::core::vector3df(0, -20, -20), 6, irr::video::SColorf(0.6f, 1.0f, 1.0f, 1.0f));
     // application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(1.f, 0.3f, 10.f), core::vector3df(0.f, 0.f, 0.f));
+    application.AddCamera(core::vector3df(1.f, 0.3f, 10.f), core::vector3df(0.f, 0.f, 0.f));
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.

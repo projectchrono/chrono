@@ -749,10 +749,10 @@ motor6.SetMotionFunction(motor6setpoint)
 application = chronoirr.ChIrrApp(mphysicalSystem, "Motors", chronoirr.dimension2du(800, 600))
 
 # Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(chronoirr.vector3df(1, 3, -7))
+application.AddCamera(chronoirr.vector3df(1, 3, -7))
 application.AddLightWithShadow(chronoirr.vector3df(20.0, 35.0, -25.0), chronoirr.vector3df(0, 0, 0), 55, 20, 55, 35, 512,
                                chronoirr.SColorf(0.6, 0.8, 1.0))
 

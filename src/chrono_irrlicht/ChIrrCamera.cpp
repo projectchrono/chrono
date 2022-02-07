@@ -170,7 +170,7 @@ void RTSCamera::OnRegisterSceneNode() {
         if ((dp > -1.0001f && dp < -0.9999f) || (dp < 1.0001f && dp > 0.9999f))
             up.X += 1.0f;
 
-        View.buildCameraLookAtMatrixLH(pos, Target, up);  // Right hand camera: use "..RH" here and in the following
+        View.buildCameraLookAtMatrixRH(pos, Target, up);  // Right hand camera: use "..RH" here and in the following
         recalculateViewArea();
 
         SceneManager->registerNodeForRendering(this, ESNRP_CAMERA);
@@ -275,7 +275,7 @@ void RTSCamera::setMaxZoom(f32 amount) {
 }
 
 void RTSCamera::recalculateProjectionMatrix() {
-    Projection.buildProjectionMatrixPerspectiveFovLH(Fovy, Aspect, ZNear,
+    Projection.buildProjectionMatrixPerspectiveFovRH(Fovy, Aspect, ZNear,
                                                      ZFar);  // Right hand camera: use "..RH" here and in the following
 }
 
@@ -313,7 +313,7 @@ void RTSCamera::animate() {
 
     // Translation Vals
     core::vector3df translate(oldTarget);
-    core::vector3df tvectX = Pos - Target;
+    core::vector3df tvectX = Target - Pos;
     tvectX = tvectX.crossProduct(UpVector);
     tvectX.normalize();
 
@@ -358,17 +358,17 @@ void RTSCamera::animate() {
             nRotY = rotY;
         } else {
             if (y_up)
-                nRotX += (rotateStartX - MousePos.X) * rotateSpeed;
-            else
                 nRotX -= (rotateStartX - MousePos.X) * rotateSpeed;
+            else
+                nRotX += (rotateStartX - MousePos.X) * rotateSpeed;
             nRotY += (rotateStartY - MousePos.Y) * rotateSpeed;
         }
     } else {
         if (rotating) {
             if (y_up)
-                rotX = rotX + (rotateStartX - MousePos.X) * rotateSpeed;
-            else
                 rotX = rotX - (rotateStartX - MousePos.X) * rotateSpeed;
+            else
+                rotX = rotX + (rotateStartX - MousePos.X) * rotateSpeed;
             rotY = rotY + (rotateStartY - MousePos.Y) * rotateSpeed;
             nRotX = rotX;
             nRotY = rotY;
@@ -422,7 +422,7 @@ void RTSCamera::animate() {
             setTarget(getTarget() + movevector * translateSpeed);
             updateAbsolutePosition();
         }
-    } else if (isKeyDown(KEY_LEFT) && !zooming) {
+    } else if (isKeyDown(KEY_RIGHT) && !zooming) {
         if (!translating)
             translating = true;
         else {
@@ -435,7 +435,7 @@ void RTSCamera::animate() {
             setTarget(getTarget() - strafevector * translateSpeed);
             updateAbsolutePosition();
         }
-    } else if (isKeyDown(KEY_RIGHT) && !zooming) {
+    } else if (isKeyDown(KEY_LEFT) && !zooming) {
         if (!translating)
             translating = true;
         else {

@@ -229,9 +229,7 @@ int main(int argc, char* argv[]) {
     DriverWrapper driver(vehicle);
     if (cli.HasValueInVector<int>("irr", node_id)) {
         auto temp_app = chrono_types::make_shared<ChWheeledVehicleIrrApp>(&vehicle, L"SynChrono Wheeled Vehicle Demo");
-        temp_app->SetSkyBox();
-        temp_app->AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f),
-                                   250, 130);
+        temp_app->AddTypicalLights();
         temp_app->SetChaseCamera(trackPoint, cam_distance, 0.5);
         temp_app->SetTimestep(step_size);
         temp_app->AssetBindAll();

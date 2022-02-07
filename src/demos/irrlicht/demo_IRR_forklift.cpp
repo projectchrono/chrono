@@ -368,12 +368,12 @@ class MyEventReceiver : public IEventReceiver {
                 case irr::KEY_KEY_Q:
                     if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(
                             forklift->link_steer_engineB->GetAngleFunction()))
-                        mfun->Set_yconst(-0.6 + mfun->Get_yconst());
+                        mfun->Set_yconst(+0.3 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_W:
                     if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(
                             forklift->link_steer_engineB->GetAngleFunction()))
-                        mfun->Set_yconst(+0.3 + mfun->Get_yconst());
+                        mfun->Set_yconst(-0.3 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_A:
                     if (auto mfun =
@@ -431,10 +431,10 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&my_system, L"Drive a forklift", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(-6, 3, -6));
+    application.AddCamera(core::vector3df(-6, 3, -6));
 
     // add text with info
     application.GetIGUIEnvironment()->addStaticText(L"Keys: steer=Q,W; throttle=A,Z; lift=S,X; bank=D,C",

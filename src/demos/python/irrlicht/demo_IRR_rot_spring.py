@@ -121,10 +121,10 @@ system.AddLink(spring)
 
 # Create the Irrlicht application
 application = irr.ChIrrApp(system, "ChLinkRSDA demo", irr.dimension2du(800, 600))
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(irr.vector3df(3, 1, 3))
+application.AddCamera(irr.vector3df(3, 1, 3))
 application.AssetBindAll()
 application.AssetUpdateAll()
 

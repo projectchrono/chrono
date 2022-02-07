@@ -31,8 +31,9 @@ namespace vehicle {
 ChTrackedVehicleIrrApp::ChTrackedVehicleIrrApp(ChVehicle* vehicle,
                                                const std::wstring& title,
                                                const irr::core::dimension2d<irr::u32>& dims,
+                                               irrlicht::VerticalDir vert,
                                                irr::ELOG_LEVEL log_level)
-    : ChVehicleIrrApp(vehicle, title, dims, log_level),
+    : ChVehicleIrrApp(vehicle, title, dims, vert, log_level),
       m_render_frame_idlers{false, false},
       m_render_frame_shoes{false, false},
       m_render_frame_sprockets{false, false} {

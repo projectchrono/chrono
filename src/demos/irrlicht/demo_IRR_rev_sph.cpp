@@ -98,10 +98,10 @@ int main(int argc, char* argv[]) {
     // -------------------------------
 
     ChIrrApp application(&system, L"ChLinkRevoluteSpherical demo", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0, 3, 6));
+    application.AddCamera(core::vector3df(0, 3, 6));
 
     application.AssetBindAll();
     application.AssetUpdateAll();
