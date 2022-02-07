@@ -263,8 +263,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Set the body mass.
     /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
     void SetMass(double newmass) {
-        if (newmass > 0.)
-            variables.SetBodyMass(newmass);
+         variables.SetBodyMass(newmass);
     }
 
     /// Get the body mass.
@@ -683,7 +682,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return true; }
+    virtual bool IsSubBlockActive(int nblock) const override { return variables.IsActive(); }
 
     /// This is not needed because not used in quadrature.
     virtual double GetDensity() override { return density; }
@@ -720,6 +719,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     friend class ChSystemMulticore;
     friend class ChSystemMulticoreNSC;
     friend class ChAssembly;
+    friend class modal::ChModalAssembly;
     friend class ChConveyor;
 };
 

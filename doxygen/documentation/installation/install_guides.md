@@ -23,6 +23,8 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [MATLAB module](@ref module_matlab_installation)
 
+-   [MODAL module](@ref module_modal_installation)
+
 -   [Pardiso MKL module](@ref module_mkl_installation)
 
 -   [Pardiso Project module](@ref module_pardisoproject_installation)

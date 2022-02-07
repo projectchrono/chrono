@@ -346,8 +346,8 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
 
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
-    m_spring[side]->Initialize(chassis->GetBody(), m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
-                               getSpringRestLength());
+    m_spring[side]->Initialize(chassis->GetBody(), m_axleTube, false, points[SPRING_C], points[SPRING_A]);
+    m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
     chassis->GetSystem()->AddLink(m_spring[side]);
 
@@ -463,7 +463,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->AddJoint(m_rearleafRev[side]);
 
     m_vertRotSpringB[side] = chrono_types::make_shared<ChLinkRSDA>();
-    m_vertRotSpringB[side]->Initialize(m_clampB[side], m_rearleaf[side], rev_csys_clampB);
+    m_vertRotSpringB[side]->Initialize(m_clampB[side], m_rearleaf[side], rev_csys_rearleaf);
     m_vertRotSpringB[side]->RegisterTorqueFunctor(getVertTorqueFunctorB());
     chassis->GetSystem()->AddLink(m_vertRotSpringB[side]);
 

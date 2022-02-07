@@ -38,7 +38,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ConvexDecomposition.h"
 #include "vlookup.h"
-#include "LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/cbtAlignedObjectArray.h"
 
 using namespace ConvexDecomposition;
 
@@ -71,7 +71,7 @@ public:
 };
 
 
-typedef btAlignedObjectArray< ChUll * > ChUllVector;
+typedef cbtAlignedObjectArray< ChUll * > ChUllVector;
 
 
 

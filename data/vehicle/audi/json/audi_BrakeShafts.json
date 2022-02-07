@@ -3,6 +3,6 @@
   "Type":                       "Brake",
   "Template":                   "BrakeShafts",
 
-  "Maximum Torque":             2000,
+  "Maximum Torque":             825,
   "Shaft Inertia":              0.4
 }

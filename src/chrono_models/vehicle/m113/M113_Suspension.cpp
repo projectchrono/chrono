@@ -44,7 +44,7 @@ class M113_SpringTorque : public ChLinkRSDA::TorqueFunctor {
   public:
     M113_SpringTorque(double k, double c, double t) : m_k(k), m_c(c), m_t(t) {}
 
-    virtual double evaluate(double time, double angle, double vel, ChLinkRSDA* link) override {
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
         return m_t - m_k * angle - m_c * vel;
     }
 
@@ -61,7 +61,11 @@ class M113_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     M113_ShockForce(double c) : m_c(c) {}
 
-    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override {
         return -m_c * vel;
     }
 

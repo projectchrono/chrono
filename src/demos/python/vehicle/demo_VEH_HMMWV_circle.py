@@ -107,7 +107,7 @@ while (app.GetDevice().run()) :
     time = my_hmmwv.GetSystem().GetChTime()
     
     # Driver inputs
-    driver_inputs = veh.Inputs()
+    driver_inputs = veh.DriverInputs()
     driver_inputs.m_steering = np.clip(steeringPID_output, -1.0, +1.0)
     driver_inputs.m_throttle = throttle_value
     driver_inputs.m_braking = 0.0

@@ -41,13 +41,12 @@ class ChIrrAppEventReceiver;
 /// Vertical direction
 enum class VerticalDir { Y, Z };
 
-/// Class to add some GUI to Irrlicht + ChronoEngine applications.
-/// This basic GUI can be used to monitor solver timings, to easily change
-/// physical system settings, etc.
+/// Class to add some GUI to Irrlicht + Chrono applications.
+/// This basic GUI can be used to monitor solver timings, to easily change physical system settings, etc.
 class ChApiIrr ChIrrAppInterface {
   public:
-    /// Create the IRRLICHT context (device, etc.)
-    ChIrrAppInterface(ChSystem* psystem,
+    /// Create the Irrlicht context (device, etc.)
+    ChIrrAppInterface(ChSystem* sys,
                       const std::wstring& title = L"Chrono",
                       const irr::core::dimension2d<irr::u32>& dimens = irr::core::dimension2d<irr::u32>(640, 480),
                       VerticalDir vert = VerticalDir::Y,
@@ -57,7 +56,7 @@ class ChApiIrr ChIrrAppInterface {
                       irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9,
                       irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION);
 
-    /// Safely delete all Irrlicht items (including the Irrlicht scene nodes)
+    /// Delete all Irrlicht items (including the Irrlicht scene nodes)
     virtual ~ChIrrAppInterface();
 
     //// Accessor functions
@@ -73,6 +72,8 @@ class ChApiIrr ChIrrAppInterface {
     /// Show the info panel in the 3D view
     void SetShowInfos(bool val) { show_infos = val; }
     bool GetShowInfos() { return show_infos; }
+
+    void SetInfosTab(int ntab) { this->gad_tabbed->setActiveTab(ntab); }
 
     /// Show the realtime profiler in the 3D view
     void SetShowProfiler(bool val) { show_profiler = val; }
@@ -111,6 +112,23 @@ class ChApiIrr ChIrrAppInterface {
     void SetVideoframeSaveInterval(int val) { videoframe_each = val; }
     int GetVideoframeSaveInterval() { return videoframe_each; }
 
+    /// If set true, instead of doing time integration in myapplication.DoStep() it 
+    /// just shows an oscillatory motion of the nth mode (only if some ChModalAssembly is found)
+    void SetModalShow(bool val) { modal_show = val; }
+    bool GetModalShow() { return modal_show; }
+
+    /// When in SetModalShow(true), use this to pick the n-th mode to show (only if some ChModalAssembly is found)
+    void SetModalModeNumber(int val) { modal_mode_n = val; }
+    int  GetModalModeNumber() { return modal_mode_n; }
+
+    /// When in SetModalShow(true), this sets the amplitude of shown mode (only if some ChModalAssembly is found)
+    void SetModalAmplitude(double val) { modal_amplitude = val; }
+    double GetModalAmplitude() { return modal_amplitude; }
+
+    /// When in SetModalShow(true), this sets the speed of shown mode (only if some ChModalAssembly is found)
+    void SetModalSpeed(double val) { modal_speed = val; }
+    double GetModalSpeed() { return modal_speed; }
+
 #ifdef CHRONO_POSTPROCESS
 
     /// If set to true, each frame of the animation will be saved on the disk
@@ -141,7 +159,7 @@ class ChApiIrr ChIrrAppInterface {
     void SetPlotAABB(bool val) { this->gad_plot_aabb->setChecked(val); }
     /// Set if the COG frames will be plotted
     void SetPlotCOGFrames(bool val) { this->gad_plot_cogs->setChecked(val); }
-    /// Set if the Bullet collision shapes will be plotted
+    /// Set if the collision shapes will be plotted
     void SetPlotCollisionShapes(bool val) { this->gad_plot_collisionshapes->setChecked(val); }
     /// Set if the link frames will be plotted
     void SetPlotLinkFrames(bool val) { this->gad_plot_linkframes->setChecked(val); }
@@ -231,21 +249,18 @@ class ChApiIrr ChIrrAppInterface {
                                                     bool clipborder = true);
 
   private:
-    // The Irrlicht engine:
-    irr::IrrlichtDevice* device;
+    void DrawCollisionShapes(irr::video::SColor color);
 
-    // Xeffects for shadow maps!
-    std::unique_ptr<EffectHandler> effect;
-    bool use_effects;
+    ChSystem* system;                                  ///< associated Chrono system
+    irr::IrrlichtDevice* device;                       ///< Irrlicht visualization device
+    std::unique_ptr<EffectHandler> effect;             ///< effect handler for shadow maps
+    bool use_effects;                                  ///< flag to enable/disable effects
+    std::unique_ptr<ChIrrAppEventReceiver> receiver;   ///< default event receiver
+    std::vector<irr::IEventReceiver*> user_receivers;  ///< optional user-defined receivers
+    irr::scene::ISceneNode* container;                 ///< Irrliicht scene container
 
-    // The ChronoEngine system:
-    ChSystem* system;
-
-    std::unique_ptr<ChIrrAppEventReceiver> receiver;
-
-    std::vector<irr::IEventReceiver*> user_receivers;
-
-    irr::scene::ISceneNode* container;
+    /// Collision visualization callback object
+    std::shared_ptr<collision::ChCollisionSystem::VisualizationCallback> m_drawer;
 
     bool y_up;
 
@@ -261,6 +276,14 @@ class ChApiIrr ChIrrAppInterface {
     bool videoframe_save;
     int videoframe_num;
     int videoframe_each;
+
+    bool modal_show;
+    int  modal_mode_n;
+    double modal_amplitude;
+    double modal_speed;
+    double modal_phi;
+    double modal_current_mode_n;
+    double modal_current_freq;
 
 #ifdef CHRONO_POSTPROCESS
     bool povray_save;
@@ -307,6 +330,10 @@ class ChApiIrr ChIrrAppInterface {
     irr::gui::IGUIEditBox* gad_symbolscale;
     irr::gui::IGUIStaticText* gad_symbolscale_info;
     irr::gui::IGUIStaticText* gad_textHelp;
+
+    irr::gui::IGUICheckBox* gad_modal_show;
+    irr::gui::IGUIScrollBar* gad_modal_mode_n;
+    irr::gui::IGUIStaticText* gad_modal_mode_n_info;
 
     irr::gui::IGUITreeView* gad_treeview;
 

@@ -61,9 +61,8 @@ spring.Initialize(ground,
                   body,
                   True,
                   chrono.ChVectorD(0, 0, 2),
-                  chrono.ChVectorD(0, 0, 0),
-                  False,
-                  1.9)
+                  chrono.ChVectorD(0, 0, 0))
+spring.SetRestLength(1.9)
 mysystem.AddLink(spring)
 
 spring_col = chrono.ChColorAsset()

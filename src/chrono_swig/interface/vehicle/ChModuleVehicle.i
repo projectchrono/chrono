@@ -42,6 +42,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsLoads.h"
+#include "chrono/physics/ChShaftsFreewheel.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChMarker.h"
@@ -89,6 +90,9 @@
 #include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeShafts.h"
+
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
 
 // Tracked vehicle
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
@@ -214,6 +218,10 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChWheeledTrailer)
 %shared_ptr(chrono::vehicle::WheeledVehicle)
 %shared_ptr(chrono::vehicle::WheeledTrailer)
+
+%shared_ptr(chrono::vehicle::ChSuspensionTestRig)
+%shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
+%shared_ptr(chrono::vehicle::ChSuspensionTestRigPushrod)
 
 %shared_ptr(chrono::vehicle::ChSprocket)
 %shared_ptr(chrono::vehicle::ChIdler)
@@ -366,9 +374,10 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 //TODO: antirollbar
 
 // Wheeled vehicles
+%include "ChSteering.i"
+%include "ChSubchassis.i"
 %include "ChSuspension.i"
 %include "ChDriveline.i"
-%include "ChSteering.i"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
@@ -387,6 +396,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
+
+%include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 
 // Tracked vehicles
 %include "ChTrackAssembly.i"
@@ -459,6 +470,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorArticulated)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorHitch)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorTorsion)
+
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSubchassis, ChBalancer)
 
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChTMeasyTire)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChRigidTire)

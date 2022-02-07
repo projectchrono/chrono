@@ -325,17 +325,29 @@ class ChApi ChSystemDescriptor {
                                      ChVectorDynamic<>* rhs  ///< [out] assembled RHS vector
     );
 
-    /// Saves to disk the LAST used matrices of the problem.
-    /// If assembled == true,
-    ///    dump_Z.dat   has the assembled optimization matrix (Matlab sparse format)
-    ///    dump_rhs.dat has the assembled RHS
-    /// Otherwise,
-    ///    dump_H.dat   has masses and/or stiffness (Matlab sparse format)
-    ///    dump_Cq.dat  has the jacobians (Matlab sparse format)
-    ///    dump_E.dat   has the constr.compliance (Matlab sparse format)
-    ///    dump_f.dat   has the applied loads
-    ///    dump_b.dat   has the constraint rhs
-    virtual void DumpLastMatrices(bool assembled = false, const char* path = "");
+    /// Write the current assembled system matrix and right-hand side vector.
+    /// The system matrix is formed by calling ConvertToMatrixForm() as used with direct linear solvers.
+    /// The following files are written in the directory specified by [path]:
+    /// - [prefix]_Z.dat    the assembled optimization matrix (Matlab sparse format)
+    /// - [prefix]_rhs.dat  the assmbled RHS
+    virtual void WriteMatrix(const std::string& path, const std::string& prefix);
+
+    /// Write the current system matrix blocks and right-hand side components.
+    /// The system matrix is formed by calling ConvertToMatrixForm() as used with direct linear solvers.
+    /// The following files are written in the directory specified by [path]:
+    /// - [prefix]_H.dat   masses and/or stiffness (Matlab sparse format)
+    /// - [prefix]_Cq.dat  Jacobians (Matlab sparse format)
+    /// - [prefix]_E.dat   constraint compliance (Matlab sparse format)
+    /// - [prefix]_f.dat   applied loads
+    /// - [prefix]_b.dat   constraint rhs
+    virtual void WriteMatrixBlocks(const std::string& path, const std::string& prefix);
+
+    /// Write the current assembled system matrix and right-hand side vector.
+    /// The system matrix is formed by multiple calls to SystemProduct() as used with iterative linear solvers.
+    /// The following files are written in the directory specified by [path]:
+    /// - [prefix]_Z.dat    the assembled optimization matrix (Matlab sparse format)
+    /// - [prefix]_rhs.dat  the assmbled RHS
+    virtual void WriteMatrixSpmv(const std::string& path, const std::string& prefix);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {

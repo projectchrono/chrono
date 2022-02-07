@@ -52,7 +52,7 @@ namespace chrono {
 const size_t ChBezierCurve::m_maxNumIters = 50;
 const double ChBezierCurve::m_sqrDistTol = 1e-6;
 const double ChBezierCurve::m_cosAngleTol = 1e-4;
-const double ChBezierCurve::m_paramTol = 1e-8;
+const double ChBezierCurve::m_paramTol = 1e-6;
 
 // -----------------------------------------------------------------------------
 // ChBezierCurve::ChBezierCurve()
@@ -362,11 +362,46 @@ ChVector<> ChBezierCurve::eval(double t) const {
 //  - no significant change in the curve parameter (along the Q' direction).
 // -----------------------------------------------------------------------------
 ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, double& t) const {
+    // Bracket location of projection
+    int m_numEvals = 20;
+    double dt = 1.0 / m_numEvals;
+    int min_idx = -1;
+    double d2_min = std::numeric_limits<double>::max();
+    for (int j = 0; j <= m_numEvals; j++) {
+        double d2 = (eval(i, j * dt) - loc).Length2();
+        if (d2 < d2_min) {
+            min_idx = j;
+            d2_min = d2;
+        }
+    }
+
+    // Bisection
+    int count = m_numEvals + 1;
+    double t0 = std::max((min_idx - 1) * dt, 0.0);
+    double t1 = std::min((min_idx + 1) * dt, 1.0);
+    while (t1 - t0 > m_paramTol) {
+        t = (t0 + t1) / 2;
+        double d2_0 = (eval(i, t - m_paramTol) - loc).Length2();
+        double d2_1 = (eval(i, t + m_paramTol) - loc).Length2();
+        if (d2_0 < d2_1)
+            t1 = t;
+        else
+            t0 = t;
+        count += 2;
+    }
+
+    ////std::cout << "num. evaluations: " << count << std::endl;
+
+    return eval(i, t);
+
+    /*
+    // Newton method
     ChVector<> Q = eval(i, t);
     ChVector<> Qd;
     ChVector<> Qdd;
 
-    for (size_t j = 0; j < m_maxNumIters; j++) {
+    size_t j = 0;
+    for (j = 0; j < m_maxNumIters; j++) {
         ChVector<> vec = Q - loc;
         double d2 = vec.Length2();
 
@@ -387,36 +422,38 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
 
         t -= dt;
 
-        if (t < m_paramTol || t > 1 - m_paramTol) {
-            ChClampValue(t, 0.0, 1.0);
-            Q = eval(i, t);
-            break;
-        }
-
         Q = eval(i, t);
 
         if ((dt * Qd).Length2() < m_sqrDistTol)
             break;
-    };
-
-    ChVector<> Q_0 = eval(i, 0.0);
-    ChVector<> Q_1 = eval(i, 1.0);
-
-    double d2 = (Q - loc).Length2();
-    double d2_0 = (Q_0 - loc).Length2();
-    double d2_1 = (Q_1 - loc).Length2();
-
-    if (d2_0 < d2) {
-        t = 0;
-        Q = Q_0;
-        d2 = d2_0;
     }
-    if (d2_1 < d2) {
-        t = 1;
-        Q = Q_1;
+
+    ////std::cout << "num iterations: " << j << "   max: " << m_maxNumIters << std::endl;
+
+    if (t < m_paramTol || t > 1 - m_paramTol) {
+        ChClampValue(t, 0.0, 1.0);
+        Q = eval(i, t);
+    } else {
+        ChVector<> Q_0 = eval(i, 0.0);
+        ChVector<> Q_1 = eval(i, 1.0);
+
+        double d2 = (Q - loc).Length2();
+        double d2_0 = (Q_0 - loc).Length2();
+        double d2_1 = (Q_1 - loc).Length2();
+
+        if (d2_0 < d2) {
+            t = 0;
+            Q = Q_0;
+            d2 = d2_0;
+        }
+        if (d2_1 < d2) {
+            t = 1;
+            Q = Q_1;
+        }
     }
 
     return Q;
+    */
 }
 
 // -----------------------------------------------------------------------------

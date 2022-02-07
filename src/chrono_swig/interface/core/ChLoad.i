@@ -29,6 +29,7 @@
 %shared_ptr(chrono::ChLoadCustomMultiple)
 %shared_ptr(chrono::ChLoadBodyForce)
 %shared_ptr(chrono::ChLoadBodyTorque)
+%shared_ptr(chrono::ChLoadBodyInertia)
 %shared_ptr(chrono::ChLoadBodyBody)
 %shared_ptr(chrono::ChLoadBodyBodyTorque)
 %shared_ptr(chrono::ChLoadBodyBodyBushingSpherical)

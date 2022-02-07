@@ -22,6 +22,7 @@ import pychrono.vehicle as veh
 import pychrono.irrlicht as irr
 import pychrono.sensor as sens
 import math as m
+import errno
 import os
 import math
 
@@ -85,9 +86,10 @@ def main():
     # Initialize output
 
     try:
-           os.mkdir(out_dir)
-    except:
-           print("Error creating directory " )
+        os.mkdir(out_dir)
+    except OSError as exc:
+        if exc.errno != errno.EEXIST:
+           print("Error creating output directory " )
 
     # Set up vehicle output
     my_hmmwv.GetVehicle().SetChassisOutput(True);

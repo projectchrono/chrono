@@ -123,7 +123,18 @@ void ChVehicleCosimDBPRig::OnAdvance(double step_size) {
 // =============================================================================
 
 ChVehicleCosimDBPRigImposedSlip::ChVehicleCosimDBPRigImposedSlip(ActuationType act_type, double base_vel, double slip)
-    : m_act_type(act_type), m_base_vel(base_vel), m_slip(slip), m_lin_vel(0), m_ang_vel(0) {}
+    : m_act_type(act_type),
+      m_base_vel(base_vel),
+      m_slip(slip),
+      m_lin_vel(0),
+      m_ang_vel(0),
+      m_time_delay(0.2),
+      m_time_ramp(0.5) {}
+
+void ChVehicleCosimDBPRigImposedSlip::SetRampingIntervals(double delay, double ramp_time) {
+    m_time_delay = delay;
+    m_time_ramp = ramp_time;
+}
 
 std::string ChVehicleCosimDBPRigImposedSlip::GetActuationTypeAsString(ActuationType type) {
     switch (type) {
@@ -167,8 +178,8 @@ void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chas
     }
 
     // Motor functions
-    m_lin_motor_func = chrono_types::make_shared<ConstantFunction>(m_lin_vel, 0.2, 0.5);
-    m_rot_motor_func = chrono_types::make_shared<ConstantFunction>(m_ang_vel, 0.2, 0.5);
+    m_lin_motor_func = chrono_types::make_shared<ConstantFunction>(m_lin_vel, m_time_delay, m_time_ramp);
+    m_rot_motor_func = chrono_types::make_shared<ConstantFunction>(m_ang_vel, m_time_delay, m_time_ramp);
 
     if (m_verbose) {
         cout << "[DBP rig     ] actuation                " << GetActuationTypeAsString(m_act_type) << endl;
@@ -221,12 +232,17 @@ double ChVehicleCosimDBPRigImposedSlip::GetDBP() const {
 // =============================================================================
 
 ChVehicleCosimDBPRigImposedAngVel::ChVehicleCosimDBPRigImposedAngVel(double ang_vel, double force_rate)
-    : m_ang_vel(ang_vel), m_tire_radius(0), m_force_rate(force_rate) {}
+    : m_ang_vel(ang_vel), m_tire_radius(0), m_force_rate(force_rate), m_time_delay(0.2), m_time_ramp(0.5) {}
+
+void ChVehicleCosimDBPRigImposedAngVel::SetRampingIntervals(double delay, double ramp_time) {
+    m_time_delay = delay;
+    m_time_ramp = ramp_time;
+}
 
 void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> chassis,
                                                       const std::vector<ChVector<>>& tire_info) {
     m_tire_radius = tire_info[0].y();
-    m_rot_motor_func = chrono_types::make_shared<ConstantFunction>(m_ang_vel, 0.2, 0.5);
+    m_rot_motor_func = chrono_types::make_shared<ConstantFunction>(m_ang_vel, m_time_delay, m_time_ramp);
 
     // Create a "ground" body
     auto ground = chrono_types::make_shared<ChBody>();

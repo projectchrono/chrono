@@ -148,6 +148,10 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedSlip : public ChVehicleCosimDBPR
     /// Return current raw drawbar-pull value.
     virtual double GetDBP() const override;
 
+    /// Set the delay and ramping time intervals for reaching the prescribed linear and angular velocities.
+    /// By default, the velocities are kept zero for 0.2 s and then increased to their final values in 0.5 s.
+    void SetRampingIntervals(double delay, double ramp_time);
+
   private:
     virtual void InitializeRig(std::shared_ptr<ChBody> chassis, const std::vector<ChVector<>>& tire_info) override;
     virtual std::shared_ptr<ChFunction> GetMotorFunction() const override;
@@ -157,6 +161,9 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedSlip : public ChVehicleCosimDBPR
     std::shared_ptr<ChFunction> m_rot_motor_func;         ///< imposed spindle angular speed
     std::shared_ptr<ChFunction> m_lin_motor_func;         ///< imposed carrier linear speed
     std::shared_ptr<ChLinkMotorLinearSpeed> m_lin_motor;  ///< linear motor for imposed linear velocity
+
+    double m_time_delay;  ///< initial interval with zero velocities
+    double m_time_ramp;   ///< time interval to ramp up velocities to final values
 
     double m_base_vel;  ///< base velocity (linear or angular, depending on actuation type)
     double m_slip;      ///< prescribed longitudinal slip for wheel
@@ -191,6 +198,10 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedAngVel : public ChVehicleCosimDB
     /// Return current raw drawbar-pull value.
     virtual double GetDBP() const override;
 
+    /// Set the delay and ramping time intervals for reaching the prescribed angular velocity.
+    /// By default, the angular velocity is kept zero for 0.2 s and then increased to the prescribed value in 0.5 s.
+    void SetRampingIntervals(double delay, double ramp_time);
+
   private:
     virtual void InitializeRig(std::shared_ptr<ChBody> chassis, const std::vector<ChVector<>>& tire_info) override;
     virtual std::shared_ptr<ChFunction> GetMotorFunction() const override;
@@ -198,9 +209,13 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedAngVel : public ChVehicleCosimDB
     std::shared_ptr<ChBody> m_carrier;             ///< rig carrier body
     std::shared_ptr<ChFunction> m_rot_motor_func;  ///< imposed spindle angular speed
     std::shared_ptr<ChLoadBodyForce> m_DBP_force;  ///< resistive (DBP) force
-    double m_ang_vel;                              ///< wheel angular velocity
-    double m_force_rate;                           ///< rate of change of resistive force
-    double m_tire_radius;                          ///< tire radius
+
+    double m_time_delay;  ///< initial interval with zero angular velocity
+    double m_time_ramp;   ///< time interval to ramp up angular velocity to prescribed value
+
+    double m_ang_vel;      ///< wheel angular velocity
+    double m_force_rate;   ///< rate of change of resistive force
+    double m_tire_radius;  ///< tire radius
 };
 
 /// @} vehicle_cosim_mbs

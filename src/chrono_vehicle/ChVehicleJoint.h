@@ -58,7 +58,7 @@ class CH_VEHICLE_API ChVehicleJoint {
     /// For a kinematic joint, the wrapped element will be a ChLink of the appropriate type. For a bushing, the
     /// stiffness and damping in the appropriate directions (as defined by the DOFs of the joint type) are set to a
     /// different value (typically 0).
-    enum class Type { LOCK, SPHERICAL, REVOLUTE, UNIVERSAL, POINTLINE };
+    enum class Type { LOCK, SPHERICAL, REVOLUTE, UNIVERSAL, POINTLINE, POINTPLANE };
 
     typedef std::shared_ptr<ChLink> Link;
     typedef std::shared_ptr<ChLoadBodyBodyBushingGeneric> Bushing;
