@@ -18,9 +18,24 @@ set(DEMOS
 # Include directories, compiler flags, libraries
 
 include_directories(${CH_IRRLICHTINC})
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}  ${CH_IRRLICHT_CXX_FLAGS}")
+set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "")
+
+#--------------------------------------------------------------
+# List all libraries to link to
+
+set(CHRONO_LIBRARIES
+	ChronoEngine
+	ChronoEngine_irrlicht
+	ChronoEngine_vehicle
+	ChronoEngine_vehicle_irrlicht
+	ChronoModels_vehicle
+)
+
+if (ENABLE_MODULE_SENSOR)
+	list(APPEND CHRONO_LIBRARIES "ChronoEngine_sensor")
+endif()
 
 #--------------------------------------------------------------
 # Create the executables
@@ -39,11 +54,7 @@ foreach(PROGRAM ${DEMOS})
     endif()
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM}
-                          ChronoEngine
-                          ChronoEngine_irrlicht
-                          ChronoEngine_vehicle
-                          ChronoEngine_vehicle_irrlicht
-                          ChronoModels_vehicle
+													${CHRONO_LIBRARIES}
                           ${LIBS})
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})

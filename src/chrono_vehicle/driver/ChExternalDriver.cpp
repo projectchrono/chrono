@@ -19,9 +19,9 @@
 
 // Take care of Microsoft idiocy
 #ifdef _WIN32
-#ifdef GetObject
-#undef GetObject
-#endif
+    #ifdef GetObject
+        #undef GetObject
+    #endif
 #endif
 
 using namespace rapidjson;
@@ -114,6 +114,7 @@ bool ChExternalDriver::SendData(double time) {
                 writer.String("data");
                 writer.StartObject();
                 generator.functor->Serialize(writer);
+                writer.EndObject();
             }
 
             writer.EndObject();

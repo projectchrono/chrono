@@ -19,7 +19,7 @@
 namespace chrono {
 namespace utils {
 
-const int MSG_HEADER_LEN = 6;
+const int MSG_HEADER_LEN = sizeof(uint64_t);
 
 ChSocket::ChSocket(int pNumber) {
     portNumber = pNumber;
@@ -1064,8 +1064,9 @@ int ChSocketTCP::sendMessage(std::string& message) {
     */
 
     char msgLength[MSG_HEADER_LEN + 1];
-    sprintf(msgLength, "%6d", static_cast<int>(message.size()));
-    std::string sendMsg = std::string(msgLength);
+    std::string fmt = "%" + std::to_string(MSG_HEADER_LEN) + "ld";
+    sprintf(msgLength, fmt.c_str(), static_cast<uint64_t>(message.size()));
+    std::string sendMsg(msgLength);
     sendMsg += message;
 
     // Sends the message to the connected host
@@ -1229,36 +1230,33 @@ int ChSocketTCP::XPrecieveMessage(std::string& message) {
 #endif
 
 int ChSocketTCP::receiveMessage(std::string& message) {
-    int numBytes;  // The number of bytes received
-
 #ifdef WINDOWS_XP
     return XPrecieveMessage(message);
 #endif
 
-    // retrieve the length of the message received
+    int64_t numBytes = 0;       // Number of received bytes on the last recv
+    int64_t expectedBytes = 0;  // Number of total bytes expected
+    int64_t receivedBytes = 0;  // Accumulated number of bytes received thus far
 
-    char msgLength[MSG_HEADER_LEN + 1];
-    memset(msgLength, 0, sizeof(msgLength));
     try {
-        numBytes = recv(socketId, msgLength, MSG_HEADER_LEN, 0);
+        // Receive the header
+        char header[MSG_HEADER_LEN + 1];
+        numBytes = recv(socketId, header, MSG_HEADER_LEN, 0);
         if (numBytes == -1) {
             ChExceptionSocket* unixSocketRecvException = new ChExceptionSocket(0, "unix: error calling recv()");
             throw unixSocketRecvException;
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
-        exit(1);
-    }
+        expectedBytes = atoll(header);
+        message.resize(expectedBytes);
 
-    // receive the real message
+        while (receivedBytes < expectedBytes) {
+            numBytes = recv(socketId, (char*)(message.c_str()) + receivedBytes, expectedBytes, 0);
+            if (numBytes == -1) {
+                ChExceptionSocket* unixSocketRecvException = new ChExceptionSocket(0, "unix: error calling recv()");
+                throw unixSocketRecvException;
+            }
 
-    try {
-        message.resize(atoi(msgLength));
-        numBytes = recv(socketId, (char*)(message.c_str()), atoi(msgLength), 0);
-        if (numBytes == -1) {
-            ChExceptionSocket* unixSocketRecvException = new ChExceptionSocket(0, "unix: error calling recv()");
-            throw unixSocketRecvException;
+            receivedBytes += numBytes;
         }
     } catch (ChExceptionSocket* excp) {
         excp->response();

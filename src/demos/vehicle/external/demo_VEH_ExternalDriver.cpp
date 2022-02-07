@@ -24,13 +24,29 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChExternalDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+// #define USE_IRRLICHT
+#endif
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
+
+#ifdef CHRONO_SENSOR
+    #include "chrono_sensor/ChSensorManager.h"
+    #include "chrono_sensor/sensors/ChCameraSensor.h"
+    #include "chrono_sensor/filters/ChFilterAccess.h"
+    #include "chrono_sensor/filters/ChFilterVisualize.h"
+    #include "chrono_sensor/filters/ChFilterSave.h"
+
+#endif
+#include "chrono_thirdparty/stb/stb_image_write.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
+#include "chrono_thirdparty/rapidjson/error/error.h"
+#include "chrono_thirdparty/rapidjson/error/en.h"
 
 using namespace chrono;
 using namespace chrono::geometry;
@@ -38,6 +54,10 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
 using namespace rapidjson;
+
+#ifdef CHRONO_SENSOR
+using namespace chrono::sensor;
+#endif
 
 // Problem parameters
 
@@ -103,6 +123,49 @@ int filter_window_size = 20;
 
 // =============================================================================
 
+#ifdef CHRONO_SENSOR
+
+// Create a data generator to add to the external driver
+// This will send the camera image the external control stack
+class ChCameraSensor_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
+  public:
+    ChCameraSensor_DataGeneratorFunctor(std::shared_ptr<ChCameraSensor> camera)
+        : DataGeneratorFunctor("ChCameraSensor"), m_camera(camera) {}
+
+    virtual void Serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) override {
+        auto rgba8_ptr = m_camera->GetMostRecentBuffer<UserRGBA8BufferPtr>();
+        if (rgba8_ptr->Buffer) {
+            std::string image(reinterpret_cast<char*>(rgba8_ptr->Buffer.get()),
+                              rgba8_ptr->Width * rgba8_ptr->Height * sizeof(PixelRGBA8));
+
+            writer.Key("image");
+            writer.String(image.c_str(), rgba8_ptr->Width * rgba8_ptr->Height * sizeof(PixelRGBA8));
+
+            writer.Key("width");
+            writer.Uint64(rgba8_ptr->Width);
+            writer.Key("height");
+            writer.Uint64(rgba8_ptr->Height);
+            writer.Key("size");
+            writer.Uint64(sizeof(PixelRGBA8));
+        }
+    }
+
+  private:
+    std::shared_ptr<ChCameraSensor> m_camera;
+};
+
+#endif
+
+void print_json(rapidjson::Document& json) {
+    StringBuffer sb;
+    PrettyWriter<StringBuffer> writer(sb);
+    json.Accept(writer);
+    auto str = sb.GetString();
+    printf("%s\n", str);
+}
+
+// =============================================================================
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2022 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -119,12 +182,17 @@ int main(int argc, char* argv[]) {
                                "(client only) Address to connect to. Defaults to \"127.0.0.1\", i.e. localhost.",
                                "127.0.0.1");
 
+    cli.AddOption<bool>("Sensor", "camera-vis", "Visualize camera sensor image.", "false");
+    cli.AddOption<bool>("Sensor", "camera-save", "Save camera sensor image.", "false");
+
     if (!cli.Parse(argc, argv, true, true))
         return 0;
 
     const bool USE_CLIENT = cli.GetAsType<bool>("client");
     const int PORT = cli.GetAsType<int>("port");
     const std::string ADDRESS = cli.GetAsType<std::string>("address");
+    const bool CAMERA_VIS = cli.GetAsType<bool>("camera-vis");
+    const bool CAMERA_SAVE = cli.GetAsType<bool>("camera-save");
 
     // -----------
     // Client code
@@ -136,6 +204,42 @@ int main(int argc, char* argv[]) {
 
         while (true) {
             try {
+                // -------
+                // Receive
+                // -------
+                {
+                    std::string message;
+                    client.receiveMessage(message);
+                    message += '\0';
+
+                    // Parse the JSON string
+                    Document d;
+                    d.Parse(message.c_str());
+
+                    for (auto& m : d.GetArray()) {
+                        std::string type = m["type"].GetString();
+                        if (type == "ChCameraSensor") {
+                            auto data = m["data"].GetObject();
+
+                            if (data.HasMember("image")) {
+                                uint64_t total_len =
+                                    data["width"].GetUint64() * data["height"].GetUint64() * data["size"].GetUint64();
+
+                                const char* image_ptr = data["image"].GetString();
+                                std::vector<uint8_t> image(image_ptr, image_ptr + total_len);
+
+                                static int i = 0;
+                                if (!stbi_write_png(
+                                        std::string("DEMO_OUTPUT/EXTERNAL/test_" + std::to_string(i++) + ".png")
+                                            .c_str(),
+                                        data["width"].GetUint64(), data["height"].GetUint64(), data["size"].GetUint64(),
+                                        image.data(), data["size"].GetUint64() * data["width"].GetUint64()))
+                                    std::cerr << "Failed to write RGBA8 image!\n";
+                            }
+                        }
+                    }
+                }
+
                 // ----
                 // Send
                 // ----
@@ -145,14 +249,7 @@ int main(int argc, char* argv[]) {
                     client.sendMessage(message);
                 }
 
-                // -------
-                // Receive
-                // -------
-                {
-                    std::string message;
-                    client.receiveMessage(message);
-                }
-            } catch (utils::ChExceptionSocket exception) {
+            } catch (utils::ChExceptionSocket& exception) {
                 GetLog() << " ERROR with socket system: \n" << exception.what() << "\n";
             }
         }
@@ -200,6 +297,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
+#ifdef USE_IRRLICHT
     ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"External Driver Demo",
                                irr::core::dimension2d<irr::u32>(800, 640));
     app.SetHUDLocation(500, 20);
@@ -212,6 +310,7 @@ int main(int argc, char* argv[]) {
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
 
     app.SetTimestep(step_size);
+#endif
 
     // ------------------------
     // Create the driver system
@@ -219,9 +318,46 @@ int main(int argc, char* argv[]) {
 
     ChExternalDriver driver(my_hmmwv.GetVehicle(), PORT);
 
+    // ---------------------------------------------------------
+    // Create the sensor system (if Chrono::Sensor is available)
+    // ---------------------------------------------------------
+
+#ifdef CHRONO_SENSOR
+    auto manager = chrono_types::make_shared<ChSensorManager>(my_hmmwv.GetSystem());
+    manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 500);
+    manager->scene->SetAmbientLight({.1, .1, .1});
+
+    // Set the background to an environment map
+    Background b;
+    b.mode = BackgroundMode::ENVIRONMENT_MAP;
+    b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
+    manager->scene->SetBackground(b);
+
+    // Create a camera that's placed on the hood
+    chrono::ChFrame<double> offset_pose({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0}));
+    auto cam = chrono_types::make_shared<ChCameraSensor>(my_hmmwv.GetChassisBody(),  // body camera is attached to
+                                                         30,                         // update rate in Hz
+                                                         offset_pose,                // offset pose
+                                                         1280,                       // image width
+                                                         720,                        // image height
+                                                         CH_C_PI / 4);  // camera's horizontal field of view
+    cam->SetName("Camera Sensor");
+    if (CAMERA_VIS)
+        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "Third Person View"));
+    if (CAMERA_SAVE)
+        cam->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "/SENSOR_OUTPUT/cam/"));
+    cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
+    manager->AddSensor(cam);
+
+    // Add a message generator
+    driver.AddDataGenerator(chrono_types::make_shared<ChCameraSensor_DataGeneratorFunctor>(cam), 30);
+#endif
+
+#ifdef USE_IRRLICHT
     // Finalize construction of visualization assets
     app.AssetBindAll();
     app.AssetUpdateAll();
+#endif
 
     // -----------------
     // Initialize output
@@ -269,11 +405,16 @@ int main(int argc, char* argv[]) {
     // Initialize simulation frame counter and simulation time
     int sim_frame = 0;
     int render_frame = 0;
+    double time = 0;
 
     ChRealtimeStepTimer realtime_timer;
+#ifdef USE_IRRLICHT
     while (app.GetDevice()->run()) {
+#else
+    while (time < t_end) {
+#endif
         // Extract system state
-        double time = my_hmmwv.GetSystem()->GetChTime();
+        time = my_hmmwv.GetSystem()->GetChTime();
         ChVector<> acc_CG = my_hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
         ChVector<> acc_driver = my_hmmwv.GetVehicle().GetVehiclePointAcceleration(driver_pos);
         double fwd_acc_CG = fwd_acc_GC_filter.Add(acc_CG.x());
@@ -290,6 +431,7 @@ int main(int argc, char* argv[]) {
 
         // Output POV-Ray data
         if (sim_frame % render_steps == 0) {
+#ifdef USE_IRRLICHT
             app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
             app.DrawAll();
             app.EndScene();
@@ -299,6 +441,7 @@ int main(int argc, char* argv[]) {
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
                 utils::WriteVisualizationAssets(my_hmmwv.GetSystem(), filename);
             }
+#endif
 
             if (state_output) {
                 csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking;
@@ -323,13 +466,22 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
+#ifdef USE_IRRLICHT
         app.Synchronize("External Driver", driver_inputs);
+#endif
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
+#ifdef USE_IRRLICHT
         app.Advance(step_size);
+#endif
+
+#ifdef CHRONO_SENSOR
+        // Update the sensor manager
+        manager->Update();
+#endif
 
         // Increment simulation frame number
         sim_frame++;
