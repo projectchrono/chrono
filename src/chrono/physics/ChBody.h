@@ -683,7 +683,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return true; }
+    virtual bool IsSubBlockActive(int nblock) const override { return variables.IsActive(); }
 
     /// This is not needed because not used in quadrature.
     virtual double GetDensity() override { return density; }
