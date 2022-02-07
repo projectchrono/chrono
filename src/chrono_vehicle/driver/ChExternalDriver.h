@@ -25,6 +25,13 @@
 
 #include <functional>
 
+// Take care of Microsoft idiocy
+#ifdef _WIN32
+    #ifdef GetObject
+        #undef GetObject
+    #endif
+#endif
+
 namespace chrono {
 namespace vehicle {
 

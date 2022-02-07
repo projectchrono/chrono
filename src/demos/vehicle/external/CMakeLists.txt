@@ -15,6 +15,17 @@ set(DEMOS
 )
 
 #--------------------------------------------------------------
+# STB files
+
+set(STB_FILES
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
+)
+source_group("stb" FILES ${STB_FILES})
+
+#--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
 include_directories(${CH_IRRLICHTINC})
@@ -43,7 +54,7 @@ endif()
 foreach(PROGRAM ${DEMOS})
     message(STATUS "...add ${PROGRAM}")
 
-    add_executable(${PROGRAM} ${PROGRAM}.cpp)
+    add_executable(${PROGRAM} ${PROGRAM}.cpp ${STB_FILES})
     source_group("" FILES ${PROGRAM}.cpp)
 
     set_target_properties(${PROGRAM} PROPERTIES
