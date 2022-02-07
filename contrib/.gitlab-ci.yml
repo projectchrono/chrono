@@ -322,7 +322,7 @@ linux:almalinux:build:
     - cd build
     - cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
         -DBUILD_DEMOS=ON -DBUILD_BENCHMARK=ON -DBUILD_TESTING=ON
-        -DIOMP5_LIBRARY="/opt/intel/oneapi/compiler/2022.0.1/linux/compiler/lib/intel64_lin/libiomp5.so"
+        -DIOMP5_LIBRARY="/opt/intel/oneapi/compiler/latest/linux/compiler/lib/intel64_lin/libiomp5.so"
         -DPYTHON_EXECUTABLE=usr/bin/python3
         -DENABLE_MODULE_IRRLICHT=ON
         -DENABLE_MODULE_PARDISO_MKL=ON
