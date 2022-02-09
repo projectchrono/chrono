@@ -263,8 +263,9 @@ void ChSystemFsi::AddBceBox(std::shared_ptr<SimParams> paramsH,
                             const ChVector<>& relPos,
                             const ChQuaternion<>& relRot,
                             const ChVector<>& size,
-                            int plane) {
-    utils::AddBoxBce(fsiSystem, paramsH, body, relPos, relRot, size, plane);
+                            int plane,
+                            bool isSolid) {
+    utils::AddBoxBce(fsiSystem, paramsH, body, relPos, relRot, size, plane, isSolid);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::AddBceCylinder(std::shared_ptr<SimParams> paramsH,
