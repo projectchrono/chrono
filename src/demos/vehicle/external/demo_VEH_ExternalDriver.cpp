@@ -130,7 +130,7 @@ int filter_window_size = 20;
 class ChCameraSensor_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
   public:
     ChCameraSensor_DataGeneratorFunctor(std::shared_ptr<ChCameraSensor> camera)
-        : DataGeneratorFunctor("ChCameraSensor"), m_camera(camera) {}
+        : DataGeneratorFunctor("ChCameraSensor", "third_person"), m_camera(camera) {}
 
     virtual void Serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) override {
         auto rgba8_ptr = m_camera->GetMostRecentBuffer<UserRGBA8BufferPtr>();
@@ -148,6 +148,11 @@ class ChCameraSensor_DataGeneratorFunctor : public ChExternalDriver::DataGenerat
             writer.Key("size");
             writer.Uint64(sizeof(PixelRGBA8));
         }
+    }
+
+    virtual bool HasData() override {
+        auto rgba8_ptr = m_camera->GetMostRecentBuffer<UserRGBA8BufferPtr>();
+        return rgba8_ptr->Buffer != nullptr;
     }
 
   private:

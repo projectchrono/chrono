@@ -50,7 +50,7 @@ void ChExternalDriver::Synchronize(double time) {
 }
 
 void ChExternalDriver::AddDataGenerator(std::shared_ptr<DataGeneratorFunctor> functor, float updateRate) {
-    m_generators.push_back({functor, updateRate, 0, 0, functor->type});
+    m_generators.push_back({functor, updateRate, 0, 0, functor->type, functor->name});
 };
 
 void ChExternalDriver::AddDataParser(std::shared_ptr<DataParserFunctor> functor) {
@@ -93,13 +93,20 @@ bool ChExternalDriver::SendData(double time) {
     writer.StartArray();
 
     for (auto& generator : m_generators) {
-        if (generator.updateRate == -1 || time > generator.numLaunches / generator.updateRate - 1e-7) {
+        if ((generator.updateRate == -1 || time > generator.numLaunches / generator.updateRate - 1e-7) &&
+            generator.functor->HasData()) {
             writer.StartObject();
 
             // type
             {
                 writer.String("type");
                 writer.String(generator.type.c_str());
+            }
+
+            // name
+            {
+                writer.String("name");
+                writer.String(generator.name.c_str());
             }
 
             // data

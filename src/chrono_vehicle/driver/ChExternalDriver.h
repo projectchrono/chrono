@@ -53,8 +53,9 @@ class CH_VEHICLE_API ChExternalDriver : public ChDriver {
 
     class DataGeneratorFunctor {
       public:
-        DataGeneratorFunctor(const std::string& type) : type(type) {}
+        DataGeneratorFunctor(const std::string& type, const std::string& name) : type(type), name(name) {}
         virtual void Serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) = 0;
+        virtual bool HasData() { return true; }
 
       protected:
         template <class Real = double>
@@ -82,6 +83,7 @@ class CH_VEHICLE_API ChExternalDriver : public ChDriver {
 
       private:
         std::string type;
+        std::string name;
 
         friend class ChExternalDriver;
     };
@@ -141,6 +143,7 @@ class CH_VEHICLE_API ChExternalDriver : public ChDriver {
         float lastTimeUpdated;                          ///< time since previous update
 
         std::string type;  ///< the type used to unparse on receive
+        std::string name;  ///< the name of the message type (for duplicate types)
     };
     std::vector<DataGenerator> m_generators;
 
@@ -158,7 +161,7 @@ class CH_VEHICLE_API ChExternalDriver : public ChDriver {
 
 class ChSystem_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
   public:
-    ChSystem_DataGeneratorFunctor(ChSystem* system) : DataGeneratorFunctor("ChSystem"), m_system(system) {}
+    ChSystem_DataGeneratorFunctor(ChSystem* system) : DataGeneratorFunctor("ChSystem", "system"), m_system(system) {}
 
     virtual void Serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) override {
         writer.String("time");
@@ -171,7 +174,7 @@ class ChSystem_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunc
 
 class ChVehicle_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
   public:
-    ChVehicle_DataGeneratorFunctor(ChVehicle& vehicle) : DataGeneratorFunctor("ChVehicle"), m_vehicle(vehicle) {}
+    ChVehicle_DataGeneratorFunctor(ChVehicle& vehicle) : DataGeneratorFunctor("ChVehicle", "ego"), m_vehicle(vehicle) {}
 
     virtual void Serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) override {
         auto body = m_vehicle.GetChassisBody();
