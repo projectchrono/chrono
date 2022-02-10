@@ -200,6 +200,24 @@ namespace chrono {
             // holds whole 3d stuff
             m_scenegraph = vsg::Group::create();
 
+            // add ambient light
+            auto ambientLight = vsg::AmbientLight::create();
+            ambientLight->name = "ambient";
+            ambientLight->color.set(1.0, 1.0, 1.0);
+            ambientLight->intensity = 0.1;
+
+            auto directionalLight = vsg::DirectionalLight::create();
+            directionalLight->name = "head light";
+            directionalLight->color.set(1.0, 1.0, 1.0);
+            directionalLight->intensity = 0.9;
+            directionalLight->direction.set(0.0, 0.0, -1.0);
+
+            auto absoluteTransform = vsg::AbsoluteTransform::create();
+            absoluteTransform->addChild(ambientLight);
+            absoluteTransform->addChild(directionalLight);
+
+            m_scenegraph->addChild(absoluteTransform);
+
             // subparts, only one active, for easy access
             m_dot_subgraph = vsg::Switch::create();
             m_line_subgraph = vsg::Switch::create();
