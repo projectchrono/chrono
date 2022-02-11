@@ -22,17 +22,8 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-ChExternalDriver::ChExternalDriver(ChVehicle& vehicle, int port, bool add_defaults) : ChDriver(vehicle) {
+ChExternalDriver::ChExternalDriver(ChVehicle& vehicle, int port) : ChDriver(vehicle) {
     WaitConnection(port);
-
-    if (add_defaults) {
-        // Default generators
-        AddDataGenerator(chrono_types::make_shared<ChSystem_DataGeneratorFunctor>(vehicle.GetSystem()));
-        AddDataGenerator(chrono_types::make_shared<ChVehicle_DataGeneratorFunctor>(vehicle));
-
-        // Default parsers
-        AddDataParser(chrono_types::make_shared<ChDriverInputs_DataParserFunctor>(*this));
-    }
 }
 
 ChExternalDriver::~ChExternalDriver() {
@@ -99,19 +90,19 @@ bool ChExternalDriver::SendData(double time) {
 
             // type
             {
-                writer.String("type");
+                writer.Key("type");
                 writer.String(generator.type.c_str());
             }
 
             // name
             {
-                writer.String("name");
+                writer.Key("name");
                 writer.String(generator.name.c_str());
             }
 
             // data
             {
-                writer.String("data");
+                writer.Key("data");
                 writer.StartObject();
                 generator.functor->Serialize(writer);
                 writer.EndObject();

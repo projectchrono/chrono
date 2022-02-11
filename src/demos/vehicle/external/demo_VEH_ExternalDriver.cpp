@@ -27,10 +27,14 @@
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-// #define USE_IRRLICHT
+    #define USE_IRRLICHT
 #endif
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
+
+#include "converters/ChVehicle_DataGeneratorFunctor.h"
+#include "converters/ChSystem_DataGeneratorFunctor.h"
+#include "converters/ChDriverInputs_DataParserFunctor.h"
 
 #ifdef CHRONO_SENSOR
     #include "chrono_sensor/ChSensorManager.h"
@@ -39,6 +43,7 @@
     #include "chrono_sensor/filters/ChFilterVisualize.h"
     #include "chrono_sensor/filters/ChFilterSave.h"
 
+    #include "converters/ChCameraSensor_DataGeneratorFunctor.h"
 #endif
 #include "chrono_thirdparty/stb/stb_image_write.h"
 
@@ -120,54 +125,6 @@ bool povray_output = false;
 // Vehicle state output (forced to true if povray output enabled)
 bool state_output = false;
 int filter_window_size = 20;
-
-// =============================================================================
-
-#ifdef CHRONO_SENSOR
-
-// Create a data generator to add to the external driver
-// This will send the camera image the external control stack
-class ChCameraSensor_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
-  public:
-    ChCameraSensor_DataGeneratorFunctor(std::shared_ptr<ChCameraSensor> camera)
-        : DataGeneratorFunctor("ChCameraSensor", "third_person"), m_camera(camera) {}
-
-    virtual void Serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) override {
-        auto rgba8_ptr = m_camera->GetMostRecentBuffer<UserRGBA8BufferPtr>();
-        if (rgba8_ptr->Buffer) {
-            std::string image(reinterpret_cast<char*>(rgba8_ptr->Buffer.get()),
-                              rgba8_ptr->Width * rgba8_ptr->Height * sizeof(PixelRGBA8));
-
-            writer.Key("image");
-            writer.String(image.c_str(), rgba8_ptr->Width * rgba8_ptr->Height * sizeof(PixelRGBA8));
-
-            writer.Key("width");
-            writer.Uint64(rgba8_ptr->Width);
-            writer.Key("height");
-            writer.Uint64(rgba8_ptr->Height);
-            writer.Key("size");
-            writer.Uint64(sizeof(PixelRGBA8));
-        }
-    }
-
-    virtual bool HasData() override {
-        auto rgba8_ptr = m_camera->GetMostRecentBuffer<UserRGBA8BufferPtr>();
-        return rgba8_ptr->Buffer != nullptr;
-    }
-
-  private:
-    std::shared_ptr<ChCameraSensor> m_camera;
-};
-
-#endif
-
-void print_json(rapidjson::Document& json) {
-    StringBuffer sb;
-    PrettyWriter<StringBuffer> writer(sb);
-    json.Accept(writer);
-    auto str = sb.GetString();
-    printf("%s\n", str);
-}
 
 // =============================================================================
 
@@ -298,30 +255,15 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize();
 
-    // ---------------------------------------
-    // Create the vehicle Irrlicht application
-    // ---------------------------------------
-
-#ifdef USE_IRRLICHT
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"External Driver Demo",
-                               irr::core::dimension2d<irr::u32>(800, 640));
-    app.SetHUDLocation(500, 20);
-    app.SetSkyBox();
-    app.AddTypicalLogo();
-    app.AddTypicalLights(irr::core::vector3df(-150.f, -150.f, 200.f), irr::core::vector3df(-150.f, 150.f, 200.f), 100,
-                         100);
-    app.AddTypicalLights(irr::core::vector3df(150.f, -150.f, 200.f), irr::core::vector3df(150.0f, 150.f, 200.f), 100,
-                         100);
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
-
-    app.SetTimestep(step_size);
-#endif
-
     // ------------------------
     // Create the driver system
     // ------------------------
 
     ChExternalDriver driver(my_hmmwv.GetVehicle(), PORT);
+    driver.AddDataGenerator(chrono_types::make_shared<ChSystem_DataGeneratorFunctor>(my_hmmwv.GetSystem(), "/clock"));
+    driver.AddDataGenerator(
+        chrono_types::make_shared<ChVehicle_DataGeneratorFunctor>(my_hmmwv.GetVehicle(), "~/output/ChVehicle"), 100);
+    driver.AddDataParser(chrono_types::make_shared<ChDriverInputs_DataParserFunctor>(driver));
 
     // ---------------------------------------------------------
     // Create the sensor system (if Chrono::Sensor is available)
@@ -343,8 +285,8 @@ int main(int argc, char* argv[]) {
     auto cam = chrono_types::make_shared<ChCameraSensor>(my_hmmwv.GetChassisBody(),  // body camera is attached to
                                                          30,                         // update rate in Hz
                                                          offset_pose,                // offset pose
-                                                         1280,                       // image width
-                                                         720,                        // image height
+                                                         280,                        // image width
+                                                         120,                        // image height
                                                          CH_C_PI / 4);  // camera's horizontal field of view
     cam->SetName("Camera Sensor");
     if (CAMERA_VIS)
@@ -355,10 +297,29 @@ int main(int argc, char* argv[]) {
     manager->AddSensor(cam);
 
     // Add a message generator
-    driver.AddDataGenerator(chrono_types::make_shared<ChCameraSensor_DataGeneratorFunctor>(cam), 30);
+    driver.AddDataGenerator(
+        chrono_types::make_shared<ChCameraSensor_DataGeneratorFunctor>(cam, "~/output/ChCameraSensor/third_person"),
+        30);
 #endif
 
+    // ---------------------------------------
+    // Create the vehicle Irrlicht application
+    // ---------------------------------------
+
 #ifdef USE_IRRLICHT
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"External Driver Demo",
+                               irr::core::dimension2d<irr::u32>(800, 640));
+    app.SetHUDLocation(500, 20);
+    app.SetSkyBox();
+    app.AddTypicalLogo();
+    app.AddTypicalLights(irr::core::vector3df(-150.f, -150.f, 200.f), irr::core::vector3df(-150.f, 150.f, 200.f), 100,
+                         100);
+    app.AddTypicalLights(irr::core::vector3df(150.f, -150.f, 200.f), irr::core::vector3df(150.0f, 150.f, 200.f), 100,
+                         100);
+    app.SetChaseCamera(trackPoint, 6.0, 0.5);
+
+    app.SetTimestep(step_size);
+
     // Finalize construction of visualization assets
     app.AssetBindAll();
     app.AssetUpdateAll();

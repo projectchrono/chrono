@@ -41,7 +41,7 @@ namespace vehicle {
 /// Driver
 class CH_VEHICLE_API ChExternalDriver : public ChDriver {
   public:
-    ChExternalDriver(ChVehicle& vehicle, int port, bool add_defaults = true);
+    ChExternalDriver(ChVehicle& vehicle, int port);
     virtual ~ChExternalDriver();
 
     /// Update the state of this driver system at the current time.
@@ -153,66 +153,6 @@ class CH_VEHICLE_API ChExternalDriver : public ChDriver {
         std::string type;  ///< the type used to unparse on receive
     };
     std::map<std::string, DataParser> m_parsers;
-};
-
-// ------------------------------
-// Common Data Generator Functors
-// ------------------------------
-
-class ChSystem_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
-  public:
-    ChSystem_DataGeneratorFunctor(ChSystem* system) : DataGeneratorFunctor("ChSystem", "system"), m_system(system) {}
-
-    virtual void Serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) override {
-        writer.String("time");
-        writer.Double(m_system->GetChTime());
-    }
-
-  private:
-    ChSystem* m_system;
-};
-
-class ChVehicle_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
-  public:
-    ChVehicle_DataGeneratorFunctor(ChVehicle& vehicle) : DataGeneratorFunctor("ChVehicle", "ego"), m_vehicle(vehicle) {}
-
-    virtual void Serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) override {
-        auto body = m_vehicle.GetChassisBody();
-
-        writer.String("pos");
-        this->Serialize_ChVector(writer, body->GetPos());
-        writer.String("rot");
-        this->Serialize_ChQuaternion(writer, body->GetRot());
-        writer.String("pos_dt");
-        this->Serialize_ChVector(writer, body->GetPos_dt());
-        writer.String("rot_dt");
-        this->Serialize_ChQuaternion(writer, body->GetRot_dt());
-        writer.String("pos_dtdt");
-        this->Serialize_ChVector(writer, body->GetPos_dtdt());
-        writer.String("rot_dtdt");
-        this->Serialize_ChQuaternion(writer, body->GetRot_dtdt());
-    }
-
-  private:
-    ChVehicle& m_vehicle;
-};
-
-// -----------------------------
-// Common Data Receiver Functors
-// -----------------------------
-
-class ChDriverInputs_DataParserFunctor : public ChExternalDriver::DataParserFunctor {
-  public:
-    ChDriverInputs_DataParserFunctor(ChDriver& driver) : DataParserFunctor("ChDriverInputs"), m_driver(driver) {}
-
-    virtual void Deserialize(rapidjson::Value& v) override {
-        m_driver.SetThrottle(v["throttle"].GetDouble());
-        m_driver.SetSteering(v["steering"].GetDouble());
-        m_driver.SetBraking(v["braking"].GetDouble());
-    }
-
-  private:
-    ChDriver& m_driver;
 };
 
 /// @} vehicle_driver
