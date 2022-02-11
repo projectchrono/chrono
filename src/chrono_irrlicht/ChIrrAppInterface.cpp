@@ -1061,11 +1061,11 @@ void ChIrrAppInterface::AddCamera(irr::core::vector3df pos, irr::core::vector3df
 
 void ChIrrAppInterface::AddTypicalLights() {
     if (y_up) {
-        AddLight(irr::core::vector3df(30.f, 100.f, +30.f), 250, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-        AddLight(irr::core::vector3df(30.f, 100.f, -30.f), 250, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+        AddLight(irr::core::vector3df(30.f, 80.f, +30.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+        AddLight(irr::core::vector3df(30.f, 80.f, -30.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
     } else {
-        AddLight(irr::core::vector3df(30.f, +30.f, 100.f), 250, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-        AddLight(irr::core::vector3df(30.f, -30.f, 100.f), 250, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));    
+        AddLight(irr::core::vector3df(30.f, +30.f, 80.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+        AddLight(irr::core::vector3df(30.f, -30.f, 80.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));    
     }
 }
 
