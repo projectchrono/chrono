@@ -422,6 +422,11 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
     double C1 = Lsyz / LG;
     double C2 = dSy * Lsyz / (LG * Lsy);
     double C3 = dSz / Lsy;
+    if (this->use_simplified_correction_for_inclined_shear_axis) {
+        C1 = Lsyz / LG;
+        C2 = dSy / LG;
+        C3 = dSz / LG;
+    }
 
     ChMatrixNM<double, 6, 6> Ts1;
     Ts1.setIdentity();
