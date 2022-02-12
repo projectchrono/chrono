@@ -27,7 +27,7 @@
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-    #define USE_IRRLICHT
+// #define USE_IRRLICHT
 #endif
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"

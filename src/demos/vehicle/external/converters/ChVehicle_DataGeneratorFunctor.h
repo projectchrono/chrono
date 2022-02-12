@@ -7,24 +7,18 @@ using namespace chrono::vehicle;
 
 class ChVehicle_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
   public:
-    ChVehicle_DataGeneratorFunctor(ChVehicle& vehicle, const std::string& name)
-        : DataGeneratorFunctor("ChVehicle", name), m_vehicle(vehicle) {}
+    ChVehicle_DataGeneratorFunctor(ChVehicle& vehicle, const std::string& id)
+        : DataGeneratorFunctor("ChVehicle", id), m_vehicle(vehicle) {}
 
-    virtual void Serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) override {
+    virtual void Serialize(ChJSONWriter& writer) override {
         auto body = m_vehicle.GetChassisBody();
 
-        writer.String("pos");
-        this->Serialize_ChVector(writer, body->GetPos());
-        writer.String("rot");
-        this->Serialize_ChQuaternion(writer, body->GetRot());
-        writer.String("lin_vel");
-        this->Serialize_ChVector(writer, body->GetPos_dt());
-        writer.String("ang_vel");
-        this->Serialize_ChVector(writer, body->GetWvel_loc());
-        writer.String("lin_acc");
-        this->Serialize_ChVector(writer, body->GetPos_dtdt());
-        writer.String("ang_acc");
-        this->Serialize_ChVector(writer, body->GetWacc_loc());
+        writer.Key("pos") << body->GetPos();
+        writer.Key("rot") << body->GetRot();
+        writer.Key("lin_vel") << body->GetPos_dt();
+        writer.Key("ang_vel") << body->GetWvel_loc();
+        writer.Key("lin_acc") << body->GetPos_dtdt();
+        writer.Key("ang_acc") << body->GetWacc_loc();
     }
 
   private:

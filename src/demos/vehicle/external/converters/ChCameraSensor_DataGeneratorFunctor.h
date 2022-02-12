@@ -13,24 +13,20 @@ using namespace chrono::sensor;
 // This will send the camera image the external control stack
 class ChCameraSensor_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
   public:
-    ChCameraSensor_DataGeneratorFunctor(std::shared_ptr<ChCameraSensor> camera, const std::string& name)
-        : DataGeneratorFunctor("ChCameraSensor", name), m_camera(camera) {}
+    ChCameraSensor_DataGeneratorFunctor(std::shared_ptr<ChCameraSensor> camera, const std::string& id)
+        : DataGeneratorFunctor("ChCameraSensor", id), m_camera(camera) {}
 
-    virtual void Serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) override {
+    virtual void Serialize(ChJSONWriter& writer) override {
         auto rgba8_ptr = m_camera->GetMostRecentBuffer<UserRGBA8BufferPtr>();
         if (rgba8_ptr->Buffer) {
             std::string image(reinterpret_cast<char*>(rgba8_ptr->Buffer.get()),
                               rgba8_ptr->Width * rgba8_ptr->Height * sizeof(PixelRGBA8));
 
-            writer.Key("image");
-            writer.String(image.c_str(), rgba8_ptr->Width * rgba8_ptr->Height * sizeof(PixelRGBA8));
-
-            writer.Key("width");
-            writer.Uint64(rgba8_ptr->Width);
-            writer.Key("height");
-            writer.Uint64(rgba8_ptr->Height);
-            writer.Key("size");
-            writer.Uint64(sizeof(PixelRGBA8));
+            writer.Key("width") << rgba8_ptr->Width;
+            writer.Key("height") << rgba8_ptr->Height;
+            writer.Key("size") << sizeof(PixelRGBA8);
+            writer.Key("encoding") << "rgba8";
+            writer.Key("image") << image;
         }
     }
 

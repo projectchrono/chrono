@@ -9,10 +9,13 @@ class ChDriverInputs_DataParserFunctor : public ChExternalDriver::DataParserFunc
   public:
     ChDriverInputs_DataParserFunctor(ChDriver& driver) : DataParserFunctor("ChDriverInputs"), m_driver(driver) {}
 
-    virtual void Deserialize(rapidjson::Value& v) override {
-        m_driver.SetThrottle(v["throttle"].GetDouble());
-        m_driver.SetSteering(v["steering"].GetDouble());
-        m_driver.SetBraking(v["braking"].GetDouble());
+    virtual void Deserialize(ChJSONReader& reader) override {
+        double steering, throttle, braking;
+        reader >> steering >> throttle >> braking;
+
+        m_driver.SetThrottle(throttle);
+        m_driver.SetSteering(steering);
+        m_driver.SetBraking(braking);
     }
 
   private:

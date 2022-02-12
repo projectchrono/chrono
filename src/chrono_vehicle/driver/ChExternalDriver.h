@@ -22,6 +22,8 @@
 #include "chrono/utils/ChSocket.h"
 
 #include "chrono_thirdparty/rapidjson/writer.h"
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
 #include <functional>
 
@@ -38,6 +40,9 @@ namespace vehicle {
 /// @addtogroup vehicle_driver
 /// @{
 
+class ChJSONWriter;
+class ChJSONReader;
+
 /// Driver
 class CH_VEHICLE_API ChExternalDriver : public ChDriver {
   public:
@@ -53,37 +58,13 @@ class CH_VEHICLE_API ChExternalDriver : public ChDriver {
 
     class DataGeneratorFunctor {
       public:
-        DataGeneratorFunctor(const std::string& type, const std::string& name) : type(type), name(name) {}
-        virtual void Serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) = 0;
+        DataGeneratorFunctor(const std::string& type, const std::string& id) : type(type), id(id) {}
+        virtual void Serialize(ChJSONWriter& writer) = 0;
         virtual bool HasData() { return true; }
-
-      protected:
-        template <class Real = double>
-        void Serialize_ChVector(rapidjson::Writer<rapidjson::StringBuffer>& writer, const ChVector<Real>& v) {
-            writer.StartArray();
-
-            writer.Double(v.x());
-            writer.Double(v.y());
-            writer.Double(v.z());
-
-            writer.EndArray();
-        }
-
-        template <class Real = double>
-        void Serialize_ChQuaternion(rapidjson::Writer<rapidjson::StringBuffer>& writer, const ChQuaternion<Real>& v) {
-            writer.StartArray();
-
-            writer.Double(v.e0());
-            writer.Double(v.e1());
-            writer.Double(v.e2());
-            writer.Double(v.e3());
-
-            writer.EndArray();
-        }
 
       private:
         std::string type;
-        std::string name;
+        std::string id;
 
         friend class ChExternalDriver;
     };
@@ -100,7 +81,7 @@ class CH_VEHICLE_API ChExternalDriver : public ChDriver {
     class DataParserFunctor {
       public:
         DataParserFunctor(const std::string& type) : type(type) {}
-        virtual void Deserialize(rapidjson::Value& v) = 0;
+        virtual void Deserialize(ChJSONReader& reader) = 0;
 
       private:
         std::string type;
@@ -143,7 +124,7 @@ class CH_VEHICLE_API ChExternalDriver : public ChDriver {
         float lastTimeUpdated;                          ///< time since previous update
 
         std::string type;  ///< the type used to unparse on receive
-        std::string name;  ///< the name of the message type (for duplicate types)
+        std::string id;    ///< the name of the message type (for duplicate types)
     };
     std::vector<DataGenerator> m_generators;
 
@@ -153,6 +134,86 @@ class CH_VEHICLE_API ChExternalDriver : public ChDriver {
         std::string type;  ///< the type used to unparse on receive
     };
     std::map<std::string, DataParser> m_parsers;
+};
+
+/**
+ * This is a helper class to generate serialized JSON messages that can be passed to/from Chrono. The expectation the
+ * replciate class for this object should be used on the Chrono side
+ *
+ * This works as follows:
+ * - The ChJSONWriter implements << operators that correspond to the types provided by rapidjson
+ * - The ChJSONWriter is responsible for interacting with rapidjson, generating JSON buffers that are suitable to be
+ * read on the other side
+ */
+class ChJSONWriter {
+  public:
+    ChJSONWriter();
+
+    //  Operators
+
+    ChJSONWriter& operator<<(bool v);
+    ChJSONWriter& operator<<(const int v);
+    ChJSONWriter& operator<<(const long int v);
+    ChJSONWriter& operator<<(const double v);
+    ChJSONWriter& operator<<(const float v);
+    ChJSONWriter& operator<<(unsigned int v);
+    ChJSONWriter& operator<<(const char* v);
+    ChJSONWriter& operator<<(std::string& v);
+    ChJSONWriter& operator<<(const std::string& v);
+    ChJSONWriter& operator<<(unsigned long v);
+    ChJSONWriter& operator<<(unsigned long long v);
+    ChJSONWriter& operator<<(ChVector<> v);
+    ChJSONWriter& operator<<(ChQuaternion<> v);
+    ChJSONWriter& operator<<(ChJSONWriter&) { return *this; };
+
+    ChJSONWriter& Key(const std::string& v);
+
+    ChJSONWriter& StartObject(const std::string& type, const std::string& id);
+    ChJSONWriter& EndObject();
+
+    std::string Finish();
+
+  private:
+    rapidjson::StringBuffer m_buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> m_writer;
+};
+
+// ------------------------------------------------------------------------------------
+
+class ChJSONReader {
+  public:
+    ChJSONReader();
+
+    void Parse(const std::string& message);
+
+    //  Operators
+
+    ChJSONReader& operator>>(bool& v);
+    ChJSONReader& operator>>(int& v);
+    ChJSONReader& operator>>(long int& v);
+    ChJSONReader& operator>>(double& v);
+    ChJSONReader& operator>>(float& v);
+    ChJSONReader& operator>>(unsigned int& v);
+    ChJSONReader& operator>>(std::string& v);
+    ChJSONReader& operator>>(unsigned long& v);
+    ChJSONReader& operator>>(unsigned long long& v);
+    ChJSONReader& operator>>(std::array<double, 3>& v);
+    ChJSONReader& operator>>(std::array<double, 4>& v);
+    ChJSONReader& operator>>(ChJSONReader&) { return *this; };
+
+    ChJSONReader& Next();
+    ChJSONReader& Back();
+
+    ChJSONReader& StartObject();
+    ChJSONReader& GetObject();
+    ChJSONReader& EndObject();
+
+    bool HasMembers();
+
+  private:
+    rapidjson::Document m_d;
+    rapidjson::Value::ConstValueIterator m_arr_iterator;
+    rapidjson::Value::ConstMemberIterator m_obj_iterator;
 };
 
 /// @} vehicle_driver

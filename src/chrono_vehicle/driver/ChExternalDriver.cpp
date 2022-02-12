@@ -41,7 +41,7 @@ void ChExternalDriver::Synchronize(double time) {
 }
 
 void ChExternalDriver::AddDataGenerator(std::shared_ptr<DataGeneratorFunctor> functor, float updateRate) {
-    m_generators.push_back({functor, updateRate, 0, 0, functor->type, functor->name});
+    m_generators.push_back({functor, updateRate, 0, 0, functor->type, functor->id});
 };
 
 void ChExternalDriver::AddDataParser(std::shared_ptr<DataParserFunctor> functor) {
@@ -78,45 +78,25 @@ bool ChExternalDriver::SendData(double time) {
     if (!m_client)
         throw utils::ChExceptionSocket(0, "Error. Attempted 'SendData' with no connected client.");
 
-    StringBuffer buffer;
-    Writer<StringBuffer> writer(buffer);
-
-    writer.StartArray();
+    ChJSONWriter writer;
 
     for (auto& generator : m_generators) {
         if ((generator.updateRate == -1 || time > generator.numLaunches / generator.updateRate - 1e-7) &&
             generator.functor->HasData()) {
-            writer.StartObject();
-
-            // type
             {
-                writer.Key("type");
-                writer.String(generator.type.c_str());
-            }
-
-            // name
-            {
-                writer.Key("name");
-                writer.String(generator.name.c_str());
-            }
-
-            // data
-            {
-                writer.Key("data");
-                writer.StartObject();
+                writer.StartObject(generator.type, generator.id);
                 generator.functor->Serialize(writer);
                 writer.EndObject();
             }
 
             writer.EndObject();
+
             generator.numLaunches += 1;
         }
     }
 
-    writer.EndArray();
-
     // Send the message to the client
-    std::string str(buffer.GetString());
+    std::string str(writer.Finish());
     m_client->sendMessage(str);
 
     return true;
@@ -131,21 +111,243 @@ bool ChExternalDriver::ReceiveData() {
     m_client->receiveMessage(message);
 
     // Parse the JSON string
-    Document d;
-    d.Parse(message.c_str());
+    ChJSONReader reader;
+    reader.Parse(message);
 
-    for (auto& m : d.GetArray()) {
-        auto type = m["type"].GetString();
+    std::string type;
+    while (reader.HasMembers()) {
+        reader.StartObject() >> type >> reader.GetObject();
+
         if (m_parsers.count(type))
-            m_parsers[type].functor->Deserialize(m["data"].GetObject());
+            m_parsers[type].functor->Deserialize(reader);
+
+        reader.EndObject();
     }
 
     return true;
 }
 
 // ------------------------------
-// Common Data Generator Functors
-// ------------------------------
+#define OUTPUT(type, v) m_writer.type(v);
+
+#define _INPUT(TYPE, v, it, GET)           \
+    v = m_obj_iterator->value.GET##TYPE(); \
+    it++;
+#define INPUT(type, v) _INPUT(type, v, m_obj_iterator, Get)
+
+ChJSONWriter::ChJSONWriter() : m_writer(m_buffer) {
+    m_writer.StartArray();
+}
+
+ChJSONWriter& ChJSONWriter::operator<<(bool v) {
+    OUTPUT(Bool, v);
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::operator<<(const int v) {
+    OUTPUT(Int, v);
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::operator<<(const long int v) {
+    OUTPUT(Int64, v);
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::operator<<(const double v) {
+    OUTPUT(Double, v);
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::operator<<(const float v) {
+    OUTPUT(Double, v);
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::operator<<(unsigned int v) {
+    OUTPUT(Uint, v);
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::operator<<(const char* v) {
+    OUTPUT(String, v);
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::operator<<(std::string& v) {
+    OUTPUT(String, v.c_str());
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::operator<<(const std::string& v) {
+    OUTPUT(String, v.c_str());
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::operator<<(unsigned long v) {
+    OUTPUT(Uint64, v);
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::operator<<(unsigned long long v) {
+    OUTPUT(Uint64, v);
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::operator<<(ChVector<> v) {
+    m_writer.StartArray();
+    OUTPUT(Double, v.x());
+    OUTPUT(Double, v.y());
+    OUTPUT(Double, v.z());
+    m_writer.EndArray();
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::operator<<(ChQuaternion<> v) {
+    m_writer.StartArray();
+    OUTPUT(Double, v.e0());
+    OUTPUT(Double, v.e1());
+    OUTPUT(Double, v.e2());
+    OUTPUT(Double, v.e3());
+    m_writer.EndArray();
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::Key(const std::string& v) {
+    OUTPUT(Key, v.c_str());
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::StartObject(const std::string& type, const std::string& id) {
+    m_writer.StartObject();
+
+    m_writer.Key("type");
+    m_writer.String(type.c_str());
+
+    m_writer.Key("id");
+    m_writer.String(id.c_str());
+
+    m_writer.Key("data");
+    m_writer.StartObject();
+
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::EndObject() {
+    m_writer.EndObject();
+
+    return *this;
+}
+
+std::string ChJSONWriter::Finish() {
+    m_writer.EndArray();
+    std::string message(m_buffer.GetString());
+
+    // Restart the buffer
+    m_buffer.Clear();
+    m_writer.Reset(m_buffer);
+    m_writer.StartArray();
+
+    return message;
+}
+
+// ------------------------------------------------------------------------------------
+
+ChJSONReader::ChJSONReader() {}
+
+void ChJSONReader::Parse(const std::string& message) {
+    m_d.Parse(message.c_str());
+
+    m_arr_iterator = m_d.Begin();
+}
+
+ChJSONReader& ChJSONReader::operator>>(bool& v) {
+    INPUT(Bool, v);
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::operator>>(int& v) {
+    INPUT(Int, v);
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::operator>>(long int& v) {
+    INPUT(Int64, v);
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::operator>>(double& v) {
+    INPUT(Double, v);
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::operator>>(float& v) {
+    INPUT(Double, v);
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::operator>>(unsigned int& v) {
+    INPUT(Uint, v);
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::operator>>(std::string& v) {
+    INPUT(String, v);
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::operator>>(unsigned long& v) {
+    INPUT(Uint64, v);
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::operator>>(unsigned long long& v) {
+    INPUT(Uint64, v);
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::operator>>(std::array<double, 3>& v) {
+    auto temp_arr_iterator = m_obj_iterator->value.GetArray().Begin();
+    for (int i = 0; i < 3; i++, temp_arr_iterator++)
+        v[i] = temp_arr_iterator->GetDouble();
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::operator>>(std::array<double, 4>& v) {
+    auto temp_arr_iterator = m_obj_iterator->value.GetArray().Begin();
+    for (int i = 0; i < 4; i++, temp_arr_iterator++)
+        v[i] = temp_arr_iterator->GetDouble();
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::Next() {
+    m_obj_iterator++;
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::Back() {
+    m_obj_iterator--;
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::GetObject() {
+    m_obj_iterator = m_obj_iterator->value.GetObject().MemberBegin();
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::StartObject() {
+    m_obj_iterator = m_arr_iterator->MemberBegin();
+    return *this;
+}
+
+ChJSONReader& ChJSONReader::EndObject() {
+    m_arr_iterator++;
+    return *this;
+}
+
+bool ChJSONReader::HasMembers() {
+    return m_arr_iterator != m_d.End();
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono
