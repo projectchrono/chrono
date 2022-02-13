@@ -272,7 +272,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_SENSOR
     auto manager = chrono_types::make_shared<ChSensorManager>(my_hmmwv.GetSystem());
     manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 500);
-    manager->scene->SetAmbientLight({.1, .1, .1});
+    manager->scene->SetAmbientLight({0.1f, 0.1f, 0.1f});
 
     // Set the background to an environment map
     Background b;

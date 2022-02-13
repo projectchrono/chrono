@@ -127,7 +127,8 @@ bool ChExternalDriver::ReceiveData() {
     return true;
 }
 
-// ------------------------------
+// ------------------------------------------------------------------------------------
+
 #define OUTPUT(type, v) m_writer.type(v);
 
 #define _INPUT(TYPE, v, it, GET)           \

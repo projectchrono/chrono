@@ -26,6 +26,7 @@
 #include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
 #include <functional>
+#include <array>
 
 // Take care of Microsoft idiocy
 #ifdef _WIN32
@@ -145,7 +146,7 @@ class CH_VEHICLE_API ChExternalDriver : public ChDriver {
  * - The ChJSONWriter is responsible for interacting with rapidjson, generating JSON buffers that are suitable to be
  * read on the other side
  */
-class ChJSONWriter {
+class CH_VEHICLE_API ChJSONWriter {
   public:
     ChJSONWriter();
 
@@ -164,7 +165,7 @@ class ChJSONWriter {
     ChJSONWriter& operator<<(unsigned long long v);
     ChJSONWriter& operator<<(ChVector<> v);
     ChJSONWriter& operator<<(ChQuaternion<> v);
-    ChJSONWriter& operator<<(ChJSONWriter&) { return *this; };
+    ChJSONWriter& operator<<(ChJSONWriter&) { return *this; }
 
     ChJSONWriter& Key(const std::string& v);
 
@@ -180,7 +181,7 @@ class ChJSONWriter {
 
 // ------------------------------------------------------------------------------------
 
-class ChJSONReader {
+class CH_VEHICLE_API ChJSONReader {
   public:
     ChJSONReader();
 
@@ -199,7 +200,7 @@ class ChJSONReader {
     ChJSONReader& operator>>(unsigned long long& v);
     ChJSONReader& operator>>(std::array<double, 3>& v);
     ChJSONReader& operator>>(std::array<double, 4>& v);
-    ChJSONReader& operator>>(ChJSONReader&) { return *this; };
+    ChJSONReader& operator>>(ChJSONReader&) { return *this; }
 
     ChJSONReader& Next();
     ChJSONReader& Back();
