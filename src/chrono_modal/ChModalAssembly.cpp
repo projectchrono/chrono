@@ -118,7 +118,7 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMat
 
     // avoid computing K_II^{-1}, effectively do n times a LU solve:
     Eigen::SparseMatrix<double> A = K_II; // to column-major
-    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> >   solver;
+    Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> >   solver;
     solver.analyzePattern(A);
     solver.factorize(A); 
 
