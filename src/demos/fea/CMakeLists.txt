@@ -70,13 +70,6 @@ set(FEA_DEMOS ${FEA_DEMOS}
 )
 endif()
 
-# Add demos that require Irrlicht and MKL and postprocess and modal
-if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_POSTPROCESS AND ENABLE_MODULE_MODAL)
-set(FEA_DEMOS ${FEA_DEMOS}
-    demo_FEA_modal_analysis
-    demo_FEA_modal_assembly
-)
-endif()
 
 
 #--------------------------------------------------------------

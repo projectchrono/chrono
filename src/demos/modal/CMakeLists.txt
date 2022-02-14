@@ -1,9 +1,11 @@
 #--------------------------------------------------------------
 # List all MODAL demos 
 
-# Add demos that require Irrlicht and MKL and postprocess
-if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_POSTPROCESS)
-set(MODAL_DEMOS
+# Add demos that require Irrlicht and MKL and postprocess and modal
+if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_POSTPROCESS AND ENABLE_MODULE_MODAL)
+set(MODAL_DEMOS ${MODAL_DEMOS}
+    demo_MOD_analysis
+    demo_MOD_assembly
 )
 endif()
 
