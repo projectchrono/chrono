@@ -62,6 +62,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// of an already modal-reduced model; if needed, add this into another ChModalAssembly.)
     bool ComputeModes(int nmodes); ///< the n. of lower modes to keep 
 
+    /// Compute the undamped modes from M and K matrices. Later you can fetch results via Get_modes_V() etc.
+    bool ComputeModesExternalData(ChSparseMatrix& mM, ChSparseMatrix& mK, ChSparseMatrix& full_Cq, int nmodes); ///< the n. of lower modes to keep 
+
     /// Compute the damped modes for the entire assembly. 
     /// Expect complex eigenvalues/eigenvectors if damping is used. 
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies(), Get_modes_damping_ratios() etc.
@@ -69,11 +72,21 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// of an already modal-reduced model; if needed, add this into another ChModalAssembly.)
     bool ComputeModesDamped(int nmodes); ///< the n. of lower modes to keep 
 
-    /// Perform modal reduction on this assembly. 
-    /// - An undamped modal analysis will be done on the entire system. 
-    /// - The "internal" bodies will be replaced by n_modes modal coordinates.
+    /// Perform modal reduction on this assembly, from the current "full" ("boundary"+"internal") assembly.
+    /// - An undamped modal analysis will be done on the full assembly with  nodes. 
+    /// - The "internal" nodes will be replaced by n_modes modal coordinates.
     void SwitchModalReductionON(int n_modes);
 
+    /// Perform modal reduction on this assembly that contains only the "boundary" nodes, whereas
+    /// the "internal" nodes have been modeled only in an external FEA software with the 
+    /// full ("boundary"+"internal") modes. 
+    /// - with an external FEA software, the full assembly is modeled with "boundary"+"internal" nodes.
+    /// - with an external FEA software, the M mass matrix and the K stiffness matrix are saved t disk.
+    /// - in Chrono, M and K are load from disk and stored in two ChSparseMatrix objects
+    /// - in Chrono, only boundary nodes are added to a ChModalAssembly
+    /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
+    /// Note that the size of M (and K) must be at least > n_boundary_coords_w. 
+    void SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, int n_modes);
 
 
     /// For displaying modes, you can use the following function. It sets the state of this subassembly
