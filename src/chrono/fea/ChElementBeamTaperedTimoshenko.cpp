@@ -1469,10 +1469,12 @@ void ChElementBeamTaperedTimoshenko::EvaluateElementStrainEnergy(ChVector<>& Str
 
 void ChElementBeamTaperedTimoshenko::EvaluateElementDampingEnergy(ChVector<>& DampingEnergyV_trans,
                                                                   ChVector<>& DampingEnergyV_rot) {
+    ChVectorDynamic<> displ(this->GetNdofs());
+    this->GetStateBlock(displ);
     ChVectorDynamic<> displ_dt(this->GetNdofs());
     this->GetField_dt(displ_dt);
 
-    ChVectorN<double, 12> damping_energy = 1.0 / 2.0 * displ_dt.asDiagonal() * this->Rm * displ_dt;
+    ChVectorN<double, 12> damping_energy = 1.0 / 2.0 * displ.asDiagonal() * this->Rm * displ_dt;
     ChVectorN<double, 6> damping_energy_v;
     // double damping_energy_sum = 0;
     for (int i = 0; i < 6; i++) {
