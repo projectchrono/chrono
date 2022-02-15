@@ -13,7 +13,7 @@ using namespace chrono::sensor;
 // This will send the camera image the external control stack
 class ChCameraSensor_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
   public:
-    ChCameraSensor_DataGeneratorFunctor(std::shared_ptr<ChCameraSensor> camera, const std::string& id)
+    ChCameraSensor_DataGeneratorFunctor(const std::string& id, std::shared_ptr<ChCameraSensor> camera)
         : DataGeneratorFunctor("ChCameraSensor", id), m_camera(camera) {}
 
     virtual void Serialize(ChJSONWriter& writer) override {

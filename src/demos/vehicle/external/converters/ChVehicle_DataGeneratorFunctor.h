@@ -7,7 +7,7 @@ using namespace chrono::vehicle;
 
 class ChVehicle_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
   public:
-    ChVehicle_DataGeneratorFunctor(ChVehicle& vehicle, const std::string& id)
+    ChVehicle_DataGeneratorFunctor(const std::string& id, ChVehicle& vehicle)
         : DataGeneratorFunctor("ChVehicle", id), m_vehicle(vehicle) {}
 
     virtual void Serialize(ChJSONWriter& writer) override {

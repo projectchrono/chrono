@@ -57,17 +57,16 @@ class CH_VEHICLE_API ChExternalDriver : public ChDriver {
     // Generator
     // ---------
 
-    class DataGeneratorFunctor {
+    class CH_VEHICLE_API DataGeneratorFunctor {
       public:
         DataGeneratorFunctor(const std::string& type, const std::string& id) : type(type), id(id) {}
+        virtual ~DataGeneratorFunctor() {}
+
         virtual void Serialize(ChJSONWriter& writer) = 0;
         virtual bool HasData() { return true; }
 
-      private:
         std::string type;
         std::string id;
-
-        friend class ChExternalDriver;
     };
 
     /// Add a data generator that is used to send data.
@@ -79,15 +78,14 @@ class CH_VEHICLE_API ChExternalDriver : public ChDriver {
     // Parser
     // ------
 
-    class DataParserFunctor {
+    class CH_VEHICLE_API DataParserFunctor {
       public:
         DataParserFunctor(const std::string& type) : type(type) {}
+        virtual ~DataParserFunctor() {}
+
         virtual void Deserialize(ChJSONReader& reader) = 0;
 
-      private:
         std::string type;
-
-        friend class ChExternalDriver;
     };
 
     /// Add a data parser that is used when receiving data.
@@ -168,6 +166,8 @@ class CH_VEHICLE_API ChJSONWriter {
     ChJSONWriter& operator<<(ChJSONWriter&) { return *this; }
 
     ChJSONWriter& Key(const std::string& v);
+
+    ChJSONWriter& PointerAsString(unsigned long v, int len);
 
     ChJSONWriter& StartObject(const std::string& type, const std::string& id);
     ChJSONWriter& EndObject();

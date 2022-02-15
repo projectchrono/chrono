@@ -129,8 +129,6 @@ bool ChExternalDriver::ReceiveData() {
 
 // ------------------------------------------------------------------------------------
 
-#define OUTPUT(type, v) m_writer.type(v);
-
 #define _INPUT(TYPE, v, it, GET)           \
     v = m_obj_iterator->value.GET##TYPE(); \
     it++;
@@ -141,81 +139,87 @@ ChJSONWriter::ChJSONWriter() : m_writer(m_buffer) {
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(bool v) {
-    OUTPUT(Bool, v);
+    m_writer.Bool(v);
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(const int v) {
-    OUTPUT(Int, v);
+    m_writer.Int(v);
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(const long int v) {
-    OUTPUT(Int64, v);
+    m_writer.Int64(v);
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(const double v) {
-    OUTPUT(Double, v);
+    m_writer.Double(v);
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(const float v) {
-    OUTPUT(Double, v);
+    m_writer.Double(v);
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(unsigned int v) {
-    OUTPUT(Uint, v);
+    m_writer.Uint(v);
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(const char* v) {
-    OUTPUT(String, v);
+    m_writer.String(v);
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(std::string& v) {
-    OUTPUT(String, v.c_str());
+    m_writer.String(v.c_str(), v.size());
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(const std::string& v) {
-    OUTPUT(String, v.c_str());
+    m_writer.String(v.c_str(), v.size());
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(unsigned long v) {
-    OUTPUT(Uint64, v);
+    m_writer.Uint64(v);
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(unsigned long long v) {
-    OUTPUT(Uint64, v);
+    m_writer.Uint64(v);
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(ChVector<> v) {
     m_writer.StartArray();
-    OUTPUT(Double, v.x());
-    OUTPUT(Double, v.y());
-    OUTPUT(Double, v.z());
+    m_writer.Double(v.x());
+    m_writer.Double(v.y());
+    m_writer.Double(v.z());
     m_writer.EndArray();
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(ChQuaternion<> v) {
     m_writer.StartArray();
-    OUTPUT(Double, v.e0());
-    OUTPUT(Double, v.e1());
-    OUTPUT(Double, v.e2());
-    OUTPUT(Double, v.e3());
+    m_writer.Double(v.e0());
+    m_writer.Double(v.e1());
+    m_writer.Double(v.e2());
+    m_writer.Double(v.e3());
     m_writer.EndArray();
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::Key(const std::string& v) {
-    OUTPUT(Key, v.c_str());
+    m_writer.Key(v.c_str(), v.size());
+    return *this;
+}
+
+ChJSONWriter& ChJSONWriter::PointerAsString(unsigned long v, int len) {
+    std::string buffer(reinterpret_cast<char*>(v), len);
+    m_writer.String(buffer.c_str(), len);
     return *this;
 }
 

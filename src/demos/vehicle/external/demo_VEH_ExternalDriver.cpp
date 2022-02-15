@@ -223,25 +223,25 @@ int main(int argc, char* argv[]) {
     // ------------------------------
 
     // Create the HMMWV vehicle, set parameters, and initialize
-    HMMWV_Full my_hmmwv;
-    my_hmmwv.SetContactMethod(contact_method);
-    my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_hmmwv.SetPowertrainType(powertrain_model);
-    my_hmmwv.SetDriveType(drive_type);
-    my_hmmwv.SetSteeringType(steering_type);
-    my_hmmwv.SetTireType(tire_model);
-    my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.Initialize();
+    HMMWV_Full hmmwv;
+    hmmwv.SetContactMethod(contact_method);
+    hmmwv.SetChassisFixed(false);
+    hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    hmmwv.SetPowertrainType(powertrain_model);
+    hmmwv.SetDriveType(drive_type);
+    hmmwv.SetSteeringType(steering_type);
+    hmmwv.SetTireType(tire_model);
+    hmmwv.SetTireStepSize(tire_step_size);
+    hmmwv.Initialize();
 
-    my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
-    my_hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
-    my_hmmwv.SetSteeringVisualizationType(steering_vis_type);
-    my_hmmwv.SetWheelVisualizationType(wheel_vis_type);
-    my_hmmwv.SetTireVisualizationType(tire_vis_type);
+    hmmwv.SetChassisVisualizationType(chassis_vis_type);
+    hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
+    hmmwv.SetSteeringVisualizationType(steering_vis_type);
+    hmmwv.SetWheelVisualizationType(wheel_vis_type);
+    hmmwv.SetTireVisualizationType(tire_vis_type);
 
     // Create the terrain
-    RigidTerrain terrain(my_hmmwv.GetSystem());
+    RigidTerrain terrain(hmmwv.GetSystem());
 
     MaterialInfo minfo;
     minfo.mu = 0.8f;
@@ -259,18 +259,30 @@ int main(int argc, char* argv[]) {
     // Create the driver system
     // ------------------------
 
-    ChExternalDriver driver(my_hmmwv.GetVehicle(), PORT);
-    driver.AddDataGenerator(chrono_types::make_shared<ChSystem_DataGeneratorFunctor>(my_hmmwv.GetSystem(), "/clock"));
-    driver.AddDataGenerator(
-        chrono_types::make_shared<ChVehicle_DataGeneratorFunctor>(my_hmmwv.GetVehicle(), "~/output/ChVehicle"), 100);
-    driver.AddDataParser(chrono_types::make_shared<ChDriverInputs_DataParserFunctor>(driver));
+    ChExternalDriver driver(hmmwv.GetVehicle(), PORT);
+
+    // Sends time to the client
+    // Will send every timestep
+    auto system_generator =
+        chrono_types::make_shared<ChSystem_DataGeneratorFunctor>("~/output/time", hmmwv.GetSystem());
+    driver.AddDataGenerator(system_generator);
+
+    // Sends vehicle state to the client
+    // Will send at 100Hz
+    auto vehicle_generator =
+        chrono_types::make_shared<ChVehicle_DataGeneratorFunctor>("~/output/vehicle", hmmwv.GetVehicle());
+    driver.AddDataGenerator(vehicle_generator, 100);
+
+    // Parses incoming message that has driver inputs for the vehicle
+    auto inputs_parser = chrono_types::make_shared<ChDriverInputs_DataParserFunctor>(driver);
+    driver.AddDataParser(inputs_parser);
 
     // ---------------------------------------------------------
     // Create the sensor system (if Chrono::Sensor is available)
     // ---------------------------------------------------------
 
 #ifdef CHRONO_SENSOR
-    auto manager = chrono_types::make_shared<ChSensorManager>(my_hmmwv.GetSystem());
+    auto manager = chrono_types::make_shared<ChSensorManager>(hmmwv.GetSystem());
     manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 500);
     manager->scene->SetAmbientLight({0.1f, 0.1f, 0.1f});
 
@@ -282,12 +294,12 @@ int main(int argc, char* argv[]) {
 
     // Create a camera that's placed on the hood
     chrono::ChFrame<double> offset_pose({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0}));
-    auto cam = chrono_types::make_shared<ChCameraSensor>(my_hmmwv.GetChassisBody(),  // body camera is attached to
-                                                         30,                         // update rate in Hz
-                                                         offset_pose,                // offset pose
-                                                         280,                        // image width
-                                                         120,                        // image height
-                                                         CH_C_PI / 4);  // camera's horizontal field of view
+    auto cam = chrono_types::make_shared<ChCameraSensor>(hmmwv.GetChassisBody(),  // body camera is attached to
+                                                         30,                      // update rate in Hz
+                                                         offset_pose,             // offset pose
+                                                         280,                     // image width
+                                                         120,                     // image height
+                                                         CH_C_PI / 4);            // camera's horizontal field of view
     cam->SetName("Camera Sensor");
     if (CAMERA_VIS)
         cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "Third Person View"));
@@ -297,9 +309,9 @@ int main(int argc, char* argv[]) {
     manager->AddSensor(cam);
 
     // Add a message generator
-    driver.AddDataGenerator(
-        chrono_types::make_shared<ChCameraSensor_DataGeneratorFunctor>(cam, "~/output/ChCameraSensor/third_person"),
-        30);
+    auto sensor_generator =
+        chrono_types::make_shared<ChCameraSensor_DataGeneratorFunctor>("~/output/camera/front_facing_camera", cam);
+    driver.AddDataGenerator(sensor_generator, 30);
 #endif
 
     // ---------------------------------------
@@ -307,7 +319,7 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
 
 #ifdef USE_IRRLICHT
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"External Driver Demo",
+    ChWheeledVehicleIrrApp app(&hmmwv.GetVehicle(), L"External Driver Demo",
                                irr::core::dimension2d<irr::u32>(800, 640));
     app.SetHUDLocation(500, 20);
     app.SetSkyBox();
@@ -360,7 +372,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Driver location in vehicle local frame
-    ChVector<> driver_pos = my_hmmwv.GetChassis()->GetLocalDriverCoordsys().pos;
+    ChVector<> driver_pos = hmmwv.GetChassis()->GetLocalDriverCoordsys().pos;
 
     // Number of simulation steps between miscellaneous events
     double render_step_size = 1 / fps;
@@ -380,9 +392,9 @@ int main(int argc, char* argv[]) {
     while (time < t_end) {
 #endif
         // Extract system state
-        time = my_hmmwv.GetSystem()->GetChTime();
-        ChVector<> acc_CG = my_hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
-        ChVector<> acc_driver = my_hmmwv.GetVehicle().GetVehiclePointAcceleration(driver_pos);
+        time = hmmwv.GetSystem()->GetChTime();
+        ChVector<> acc_CG = hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
+        ChVector<> acc_driver = hmmwv.GetVehicle().GetVehiclePointAcceleration(driver_pos);
         double fwd_acc_CG = fwd_acc_GC_filter.Add(acc_CG.x());
         double lat_acc_CG = lat_acc_GC_filter.Add(acc_CG.y());
         double fwd_acc_driver = fwd_acc_driver_filter.Add(acc_driver.x());
@@ -405,13 +417,13 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(my_hmmwv.GetSystem(), filename);
+                utils::WriteVisualizationAssets(hmmwv.GetSystem(), filename);
             }
 #endif
 
             if (state_output) {
                 csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking;
-                csv << my_hmmwv.GetVehicle().GetVehicleSpeed();
+                csv << hmmwv.GetVehicle().GetVehicleSpeed();
                 csv << acc_CG.x() << fwd_acc_CG << acc_CG.y() << lat_acc_CG;
                 csv << acc_driver.x() << fwd_acc_driver << acc_driver.y() << lat_acc_driver;
                 csv << std::endl;
@@ -431,7 +443,7 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_hmmwv.Synchronize(time, driver_inputs, terrain);
+        hmmwv.Synchronize(time, driver_inputs, terrain);
 #ifdef USE_IRRLICHT
         app.Synchronize("External Driver", driver_inputs);
 #endif
@@ -439,7 +451,7 @@ int main(int argc, char* argv[]) {
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        my_hmmwv.Advance(step_size);
+        hmmwv.Advance(step_size);
 #ifdef USE_IRRLICHT
         app.Advance(step_size);
 #endif
