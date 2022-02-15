@@ -282,6 +282,7 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     friend class chrono::ChSystem;
     friend class chrono::ChAssembly;
+    friend class chrono::modal::ChModalAssembly;
 };
 
 /// @} chrono_fea

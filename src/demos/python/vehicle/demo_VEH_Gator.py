@@ -113,12 +113,8 @@ terrain.Initialize()
 # Create the driver system
 # -------------------------------------
 
-app = veh.ChWheeledVehicleIrrApp(gator.GetVehicle(), 'Gator', irr.dimension2du(1000,800))
-app.SetSkyBox()
-app.AddTypicalLights(irr.vector3df(+130, +130, 150), irr.vector3df(-130, +130, 150), 120,
-                     120, irr.SColorf(0.7, 0.7, 0.7, 1.0), irr.SColorf(0.7, 0.7, 0.7, 1.0))
-app.AddTypicalLights(irr.vector3df(+130, -130, 150), irr.vector3df(-130, -130, 150), 120,
-                     120, irr.SColorf(0.7, 0.7, 0.7, 1.0), irr.SColorf(0.7, 0.7, 0.7, 1.0))
+app = veh.ChWheeledVehicleIrrApp(gator.GetVehicle(), 'Gator')
+app.AddTypicalLights()
 
 app.SetChaseCamera(trackPoint, 6.0, 0.5)
 app.SetTimestep(step_size)

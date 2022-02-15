@@ -18,8 +18,13 @@
 
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrCamera.h"
+#include "chrono_irrlicht/ChIrrSkyBoxSceneNode.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
+
+#ifdef CHRONO_MODAL
+#include "chrono_modal/ChModalAssembly.h"
+#endif
 
 namespace chrono {
 namespace irrlicht {
@@ -178,6 +183,9 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                         app->GetSystem()->SetMinBounceSpeed(
                             (1.0 / 200.0) * ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                         break;
+                    case 9926:
+                        app->modal_mode_n = ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
+                        break;
                 }
                 break;
 
@@ -263,6 +271,9 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     case 9917:
                         app->pause_step = ((irr::gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked();
                         break;
+                    case 9922:
+                        app->modal_show = ((irr::gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked();
+                        break;
                 }
                 break;
 
@@ -291,11 +302,35 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
 }
 
 // -----------------------------------------------------------------------------
+// Utility class used for drawing collision shapes (see drawCollisionShapes)
+// -----------------------------------------------------------------------------
+
+class DebugDrawer : public collision::ChCollisionSystem::VisualizationCallback {
+  public:
+    explicit DebugDrawer(irr::video::IVideoDriver* driver)
+        : m_driver(driver), m_debugMode(0), m_linecolor(255, 255, 0, 0) {}
+    ~DebugDrawer() {}
+
+    virtual void DrawLine(const ChVector<>& from, const ChVector<>& to, const ChColor& color) override {
+        m_driver->draw3DLine(irr::core::vector3dfCH(from), irr::core::vector3dfCH(to), m_linecolor);
+    }
+
+    virtual double GetNormalScale() const override { return 1.0; }
+
+    void SetLineColor(irr::video::SColor& mcolor) { m_linecolor = mcolor; }
+
+  private:
+    irr::video::IVideoDriver* m_driver;
+    int m_debugMode;
+    irr::video::SColor m_linecolor;
+};
+
+// -----------------------------------------------------------------------------
 // Implementation of ChIrrAppInterface methods
 // -----------------------------------------------------------------------------
 
 // Create the IRRLICHT context (device, etc.)
-ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
+ChIrrAppInterface::ChIrrAppInterface(ChSystem* sys,
                                      const std::wstring& title,
                                      const irr::core::dimension2d<irr::u32>& dimens,
                                      VerticalDir vert,
@@ -309,6 +344,13 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
       pause_step(false),
       timestep(0.01),
       do_single_step(false),
+      modal_show(false),
+      modal_mode_n(0),
+      modal_amplitude(0.1),
+      modal_speed(1),
+      modal_phi(0),
+      modal_current_mode_n(0),
+      modal_current_freq(0),
       videoframe_save(false),
       videoframe_num(0),
       videoframe_each(1),
@@ -342,6 +384,11 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
 
     device->grab();
 
+    // Create the collision visualization callback object
+    m_drawer = chrono_types::make_shared<DebugDrawer>(device->getVideoDriver());
+    if (sys->GetCollisionSystem())
+        sys->GetCollisionSystem()->RegisterVisualizationCallback(m_drawer);
+
     // Xeffects for shadow maps!
     if (do_antialias)
         effect = std::unique_ptr<EffectHandler>(
@@ -364,12 +411,20 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     skin->setColor(irr::gui::EGDC_HIGH_LIGHT, irr::video::SColor(255, 40, 70, 250));
     skin->setColor(irr::gui::EGDC_FOCUSED_EDITABLE, irr::video::SColor(255, 0, 255, 255));
     skin->setColor(irr::gui::EGDC_3D_HIGH_LIGHT, irr::video::SColor(200, 210, 210, 210));
+    /*
+    for (int i=0; i<irr::gui::EGDC_COUNT ; ++i)
+    {
+        irr::video::SColor col = skin->getColor((irr::gui::EGUI_DEFAULT_COLOR)i);
+        col.setAlpha(200);
+        skin->setColor((irr::gui::EGUI_DEFAULT_COLOR)i, col);
+    }
+    */
 
     gad_tabbed = GetIGUIEnvironment()->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 510), 0, true, true);
     gad_tab1 = gad_tabbed->addTab(L"Stats");
     gad_tab2 = gad_tabbed->addTab(L"System");
     gad_tab3 = gad_tabbed->addTab(L"Help");
-
+    
     // create GUI gadgets
     gad_textFPS =
         GetIGUIEnvironment()->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 230), true, true, gad_tab1);
@@ -436,28 +491,10 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
         L"Symbols scale", irr::core::rect<irr::s32>(110, 330, 170, 330 + 15), false, false, gad_tab1);
     SetSymbolscale(symbolscale);
 
-    // --
+    // -- gad_tab2
 
-    gad_speed_iternumber =
-        GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 10, 150, 10 + 20), gad_tab2, 9904);
-    gad_speed_iternumber->setMax(120);
-    gad_speed_iternumber_info = GetIGUIEnvironment()->addStaticText(
-        L"", irr::core::rect<irr::s32>(155, 10, 220, 10 + 20), false, false, gad_tab2);
 
-    gad_usesleep = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 100, 200, 100 + 20), gad_tab2,
-                                                     9913, L"Enable sleeping");
-
-    gad_ccpsolver =
-        GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 130, 200, 130 + 20), gad_tab2, 9907);
-    gad_ccpsolver->addItem(L"Projected SOR");
-    gad_ccpsolver->addItem(L"Projected SSOR");
-    gad_ccpsolver->addItem(L"Projected Jacobi");
-    gad_ccpsolver->addItem(L"Projected BB");
-    gad_ccpsolver->addItem(L"Projected APGD");
-    gad_ccpsolver->addItem(L"(custom)");
-    gad_ccpsolver->setSelected(5);
-
-    gad_stepper = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 160, 200, 160 + 20), gad_tab2, 9908);
+    gad_stepper = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 10, 200, 10 + 16), gad_tab2, 9908);
     gad_stepper->addItem(L"Euler implicit");
     gad_stepper->addItem(L"Euler semimplicit (linearized)");
     gad_stepper->addItem(L"Euler semimplicit projected");
@@ -473,27 +510,46 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
 
     gad_stepper->setSelected(0);
 
-    gad_clamping =
-        GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 250, 150, 250 + 20), gad_tab2, 9911);
-    gad_clamping->setMax(100);
-    gad_clamping_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 250, 220, 250 + 20),
-                                                            false, false, gad_tab2);
+    gad_timestep = GetIGUIEnvironment()->addEditBox(L"", irr::core::rect<irr::s32>(140, 30, 200, 30 + 16), true, gad_tab2, 9918);
+    gad_timestep_info = GetIGUIEnvironment()->addStaticText( L"Time step", irr::core::rect<irr::s32>(10, 30, 130, 30 + 16), false, false, gad_tab2);
 
-    gad_minbounce =
-        GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 280, 150, 280 + 20), gad_tab2, 9912);
-    gad_minbounce->setMax(100);
-    gad_minbounce_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 280, 220, 280 + 20),
-                                                             false, false, gad_tab2);
+    gad_try_realtime = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 50, 200, 50 + 16),  gad_tab2, 9916, L"Realtime step");
 
-    gad_timestep =
-        GetIGUIEnvironment()->addEditBox(L"", irr::core::rect<irr::s32>(140, 320, 200, 320 + 15), true, gad_tab2, 9918);
-    gad_timestep_info = GetIGUIEnvironment()->addStaticText(
-        L"Time step", irr::core::rect<irr::s32>(10, 320, 130, 320 + 15), false, false, gad_tab2);
+    gad_usesleep = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 70, 200, 70 + 16), gad_tab2, 9913, L"Enable sleeping");
 
-    gad_try_realtime = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 340, 200, 340 + 15),
-                                                         gad_tab2, 9916, L"Realtime step");
-    gad_pause_step = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 355, 200, 355 + 15),
+    gad_pause_step = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 90, 200, 90 + 16),
                                                        gad_tab2, 9917, L"Pause physics");
+
+    gad_ccpsolver = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 130, 200, 130 + 16), gad_tab2, 9907);
+    gad_ccpsolver->addItem(L"Projected SOR");
+    gad_ccpsolver->addItem(L"Projected SSOR");
+    gad_ccpsolver->addItem(L"Projected Jacobi");
+    gad_ccpsolver->addItem(L"Projected BB");
+    gad_ccpsolver->addItem(L"Projected APGD");
+    gad_ccpsolver->addItem(L"(custom)");
+    gad_ccpsolver->setSelected(5);
+
+    gad_speed_iternumber = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 150, 150, 150 + 16), gad_tab2, 9904);
+    gad_speed_iternumber->setMax(120);
+    gad_speed_iternumber_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 150, 220, 150 + 16), false, false, gad_tab2);
+
+    gad_clamping = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 170, 150, 170 + 16), gad_tab2, 9911);
+    gad_clamping->setMax(100);
+    gad_clamping_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 170, 220, 170 + 16), false, false, gad_tab2);
+
+    gad_minbounce = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 190, 150, 190 + 16), gad_tab2, 9912);
+    gad_minbounce->setMax(100);
+    gad_minbounce_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 190, 220, 190 + 16), false, false, gad_tab2);
+
+
+    gad_modal_show = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 250, 200, 250 + 16), gad_tab2, 9922, L"Show modal shapes");
+
+    gad_modal_mode_n = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 270, 130, 270 + 16), gad_tab2, 9926);
+    gad_modal_mode_n->setMax(25);
+    gad_modal_mode_n->setSmallStep(1);
+    gad_modal_mode_n_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(135, 270, 220, 270 + 16), false, false, gad_tab2);
+
+    // -- gad_tab3
 
     gad_textHelp =
         GetIGUIEnvironment()->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 380), true, true, gad_tab3);
@@ -528,7 +584,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     auto child = gad_treeview->getRoot()->addChildBack(L"System", 0);
     child->setExpanded(true);
 
-    system = psystem;
+    system = sys;
 
     show_infos = false;
     show_profiler = false;
@@ -621,6 +677,31 @@ void ChIrrAppInterface::BeginScene(bool backBuffer, bool zBuffer, irr::video::SC
         GetActiveCamera()->setPosition(pos);
         GetActiveCamera()->setTarget(target);
     }
+
+#ifdef CHRONO_MODAL
+    if (this->modal_phi || this->modal_show) {
+        if (this->modal_show)
+            this->modal_phi += this->modal_speed * 0.01;
+        else
+            this->modal_phi = 0; // return to normal dynamics
+        // scan for modal assemblies, if any
+        for (auto item : this->system->Get_otherphysicslist()) {
+            if (auto mmodalassembly = std::dynamic_pointer_cast<modal::ChModalAssembly>(item)) {
+                try {
+                    // superposition of modal shape
+                    mmodalassembly->SetFullStateWithModeOverlay(this->modal_mode_n, this->modal_phi, this->modal_amplitude); 
+                    // fetch Hz of this mode
+                    this->modal_current_freq = mmodalassembly->Get_modes_frequencies()(this->modal_mode_n);
+                }
+                catch (...) {
+                    // something failed in SetFullStateWithModeOverlay(), ex. node n was higher than available ones
+                    mmodalassembly->SetFullStateReset();
+                }
+            }
+        }
+        this->modal_current_mode_n = this->modal_mode_n;
+    }
+#endif
 }
 
 // Call this to end the scene draw at the end of each animation frame.
@@ -669,6 +750,9 @@ void ChIrrAppInterface::DoStep() {
         povray_num++;
     }
 #endif
+
+    if (this->modal_show)
+        return;
 
     try {
         system->DoStepDynamics(timestep);
@@ -807,7 +891,7 @@ void ChIrrAppInterface::DrawAll() {
         tools::drawAllLinkframes(*system, GetVideoDriver(), symbolscale);
 
     if (gad_plot_collisionshapes->isChecked())
-        tools::drawCollisionShapes(*system, GetDevice());
+        DrawCollisionShapes(irr::video::SColor(50, 0, 0, 110));
 
     if (gad_plot_convergence->isChecked())
         tools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system, 240, 370, 300, 100, 100.0);
@@ -899,6 +983,15 @@ void ChIrrAppInterface::DrawAll() {
         gad_try_realtime->setChecked(try_realtime);
         gad_pause_step->setChecked(pause_step);
 
+        gad_modal_show->setChecked(modal_show);
+
+        gad_modal_mode_n->setPos(modal_mode_n);
+        sprintf(message, "%i mode %.3g Hz", modal_mode_n, this->modal_current_freq);
+        gad_modal_mode_n_info->setText(irr::core::stringw(message).c_str());
+        
+        gad_modal_mode_n->setEnabled(modal_show);
+        gad_modal_mode_n_info->setEnabled(modal_show);
+
         if (!step_manage) {
             sprintf(message, "%g", GetSystem()->GetStep());
             gad_timestep->setText(irr::core::stringw(message).c_str());
@@ -912,6 +1005,21 @@ void ChIrrAppInterface::DrawAll() {
 
     // if(show_infos)
     GetIGUIEnvironment()->drawAll();
+}
+
+void ChIrrAppInterface::DrawCollisionShapes(irr::video::SColor color) {
+    if (!m_drawer)
+        return;
+
+    std::static_pointer_cast<DebugDrawer>(m_drawer)->SetLineColor(color);
+
+    GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
+    mattransp.ZBuffer = true;
+    mattransp.Lighting = false;
+    GetVideoDriver()->setMaterial(mattransp);
+
+    system->GetCollisionSystem()->Visualize(collision::ChCollisionSystem::VIS_Shapes);
 }
 
 // Dump the last used system matrices and vectors in the current directory,
@@ -931,25 +1039,53 @@ void ChIrrAppInterface::DumpSystemMatrices() {
 
 // -----------------------------------------------------------------------------
 
-void ChIrrAppInterface::AddTypicalLogo(const std::string& mlogofilename) {
-    tools::add_typical_Logo(GetDevice(), mlogofilename);
+void ChIrrAppInterface::AddLogo(const std::string& mlogofilename) {
+    device->getGUIEnvironment()->addImage(device->getVideoDriver()->getTexture(mlogofilename.c_str()),
+                                          irr::core::position2d<irr::s32>(10, 10));
 }
 
-void ChIrrAppInterface::AddTypicalCamera(irr::core::vector3df pos, irr::core::vector3df targ) {
-    tools::add_typical_Camera(GetDevice(), pos, targ, y_up);
+void ChIrrAppInterface::AddCamera(irr::core::vector3df pos, irr::core::vector3df targ) {
+    // create and init camera
+    RTSCamera* camera = new RTSCamera(device, device->getSceneManager()->getRootSceneNode(), device->getSceneManager(),
+                                      -1, -160.0f, 1.0f, 0.003f);
+
+    // camera->bindTargetAndRotation(true);
+    if (!y_up)
+        camera->setZUp();
+    camera->setPosition(pos);
+    camera->setTarget(targ);
+
+    camera->setNearValue(0.1f);
+    camera->setMinZoom(0.6f);
 }
 
-void ChIrrAppInterface::AddTypicalLights(irr::core::vector3df pos1,
-                                         irr::core::vector3df pos2,
-                                         double rad1,
-                                         double rad2,
-                                         irr::video::SColorf col1,
-                                         irr::video::SColorf col2) {
-    tools::add_typical_Lights(GetDevice(), pos1, pos2, rad1, rad2, col1, col2);
+void ChIrrAppInterface::AddTypicalLights() {
+    if (y_up) {
+        AddLight(irr::core::vector3df(30.f, 80.f, +30.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+        AddLight(irr::core::vector3df(30.f, 80.f, -30.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    } else {
+        AddLight(irr::core::vector3df(30.f, +30.f, 80.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+        AddLight(irr::core::vector3df(30.f, -30.f, 80.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));    
+    }
 }
 
-void ChIrrAppInterface::AddTypicalSky(const std::string& mtexturedir) {
-    tools::add_typical_Sky(GetDevice(), y_up, mtexturedir);
+void ChIrrAppInterface::AddSkyBox(const std::string& texturedir) {
+    // create sky box
+    std::string str_lf = texturedir + "sky_lf.jpg";
+    std::string str_up = texturedir + "sky_up.jpg";
+    std::string str_dn = texturedir + "sky_dn.jpg";
+
+    irr::video::ITexture* map_skybox_side = device->getVideoDriver()->getTexture(str_lf.c_str());
+
+    // Create a skybox scene node
+    auto skybox = new irr::scene::CSkyBoxSceneNode(
+        device->getVideoDriver()->getTexture(str_up.c_str()), device->getVideoDriver()->getTexture(str_dn.c_str()),
+        map_skybox_side, map_skybox_side, map_skybox_side, map_skybox_side,
+        device->getSceneManager()->getRootSceneNode(), device->getSceneManager(), -1);
+    skybox->drop();
+
+    if (!y_up)
+        skybox->setRotation(irr::core::vector3df(90, 0, 0));
 }
 
 irr::scene::ILightSceneNode* ChIrrAppInterface::AddLight(irr::core::vector3df pos,

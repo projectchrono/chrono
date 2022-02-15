@@ -144,10 +144,10 @@ spring_2.AddAsset(chrono.ChPointPointSpring(0.05, 80, 15))
 # -------------------------------
 
 application = chronoirr.ChIrrApp(system, "ChLinkTSDA demo", chronoirr.dimension2du(800, 600))
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(chronoirr.vector3df(0, 0, 6))
+application.AddCamera(chronoirr.vector3df(0, 0, 6))
 
 application.AssetBindAll()
 application.AssetUpdateAll()

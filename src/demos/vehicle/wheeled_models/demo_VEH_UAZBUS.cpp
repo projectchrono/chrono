@@ -145,11 +145,7 @@ int main(int argc, char* argv[]) {
     // -------------------------------------
 
     ChWheeledVehicleIrrApp app(&uaz.GetVehicle(), L"UAZBUS demo");
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(+130.f, +130.f, 150.f), irr::core::vector3df(-130.f, +130.f, 150.f), 120,
-                         120, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f), irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddTypicalLights(irr::core::vector3df(+130.f, -130.f, 150.f), irr::core::vector3df(-130.f, -130.f, 150.f), 120,
-                         120, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f), irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddTypicalLights();
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
     app.SetTimestep(step_size);
     app.AssetBindAll();

@@ -29,8 +29,9 @@ namespace vehicle {
 ChTrackTestRigIrrApp::ChTrackTestRigIrrApp(ChTrackTestRig* rig,
                                            const std::wstring& title,
                                            const irr::core::dimension2d<irr::u32>& dims,
+                                           irrlicht::VerticalDir vert,
                                            irr::ELOG_LEVEL log_level)
-    : ChVehicleIrrApp(rig, title, dims, log_level),
+    : ChVehicleIrrApp(rig, title, dims, vert, log_level),
       m_rig(rig),
       m_render_frame_idler(false),
       m_render_frame_shoes(false),

@@ -86,10 +86,10 @@ int main(int argc, char* argv[]) {
                          VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(1, 3, -10));
+    application.AddCamera(core::vector3df(1, 3, -10));
     application.AddLightWithShadow(vector3df(1.0f, 25.0f, -5.0f), vector3df(0, 0, 0), 35, 0.2, 35, 35, 512,
                                    video::SColorf(0.6f, 0.8f, 1.0f));
 

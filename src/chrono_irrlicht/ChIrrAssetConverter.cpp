@@ -20,6 +20,9 @@
 #include "chrono/assets/ChSurfaceShape.h"
 #include "chrono/assets/ChBarrelShape.h"
 #include "chrono/assets/ChCapsuleShape.h"
+#ifdef CHRONO_MODAL
+#include "chrono_modal/ChModalAssembly.h"
+#endif
 
 #include "chrono_irrlicht/ChIrrAssetConverter.h"
 #include "chrono_irrlicht/ChIrrTools.h"
@@ -161,14 +164,7 @@ void ChIrrAssetConverter::mflipSurfacesOnX(IMesh* mesh) const {
     for (u32 b = 0; b < bcount; ++b) {
         IMeshBuffer* buffer = mesh->getMeshBuffer(b);
         const u32 idxcnt = buffer->getIndexCount();
-        u16* idx = buffer->getIndices();
-        s32 tmp;
 
-        for (u32 i = 0; i < idxcnt; i += 3) {
-            tmp = idx[i + 1];
-            idx[i + 1] = idx[i + 2];
-            idx[i + 2] = tmp;
-        }
         const u32 vertcnt = buffer->getVertexCount();
         for (u32 i = 0; i < vertcnt; i++) {
             buffer->getPosition(i).X = -buffer->getPosition(i).X;  // mirror vertex
@@ -203,11 +199,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                         // mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, false);
 
                         // Note: the Irrlicht loader of .OBJ files flips the X to correct its left-handed nature, but
-                        // this goes wrong with our assemblies and links. So we rather accept that the display is X
-                        // mirrored, and we
-                        // restore the X flipping of the mesh (also the normals and triangle indexes ordering must be
-                        // flipped otherwise
-                        // back culling is not working):
+                        // this goes wrong with our assemblies and links.Restore the X flipping of the mesh.
                         if (!irrmesh_already_loaded)  // flag to avoid multiple flipping in shared meshes
                             mflipSurfacesOnX(((IAnimatedMeshSceneNode*)mchildnode)->getMesh());
 
@@ -216,7 +208,6 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                 } else if (auto mytrimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset)) {
                     CDynamicMeshBuffer* buffer =
                         new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
-                    //	SMeshBuffer* buffer = new SMeshBuffer();
                     SMesh* newmesh = new SMesh;
                     newmesh->addMeshBuffer(buffer);
                     buffer->drop();
@@ -495,6 +486,29 @@ void ChIrrAssetConverter::BindAllContentsOfAssembly(const ChAssembly* massy, std
     for (auto link : massy->Get_linklist()) {
         Bind(link);
     }
+
+ #ifdef CHRONO_MODAL
+    // Modal assemblies contain custom internal items that might be useful to visualize
+    if (auto myassy_modal = dynamic_cast<const chrono::modal::ChModalAssembly*>(massy)) {
+        for (auto body : myassy_modal->Get_internal_bodylist()) {
+            Bind(body);
+        }
+        for (auto& mesh : myassy_modal->Get_internal_meshlist()) {
+            Bind(mesh);
+        }
+        for (auto ph : myassy_modal->Get_internal_otherphysicslist()) {
+            Bind(ph);
+            // If the assembly holds another assemblies, also bind their contents.
+            if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(ph)) {
+                BindAllContentsOfAssembly(myassy.get(), mtrace);
+            }
+        }
+        for (auto link : myassy_modal->Get_internal_linklist()) {
+            Bind(link);
+        }
+    }
+#endif 
+
 }
 
 void ChIrrAssetConverter::UpdateAllContentsOfAssembly(const ChAssembly* massy, std::unordered_set<const ChAssembly*>& mtrace) {
@@ -523,6 +537,29 @@ void ChIrrAssetConverter::UpdateAllContentsOfAssembly(const ChAssembly* massy, s
     for (auto link : massy->Get_linklist()) {
         Update(link);
     }
+
+ #ifdef CHRONO_MODAL
+    // Modal assemblies contain custom internal items that might be useful to visualize
+    if (auto myassy_modal = dynamic_cast<const chrono::modal::ChModalAssembly*>(massy)) {
+        for (auto body : myassy_modal->Get_internal_bodylist()) {
+            Update(body);
+        }
+        for (auto& mesh : myassy_modal->Get_internal_meshlist()) {
+            Update(mesh);
+        }
+        for (auto ph : myassy_modal->Get_internal_otherphysicslist()) {
+            Update(ph);
+            // If the assembly holds another assemblies, also bind their contents.
+            if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(ph)) {
+                UpdateAllContentsOfAssembly(myassy.get(), mtrace);
+            }
+        }
+        for (auto link : myassy_modal->Get_internal_linklist()) {
+            Update(link);
+        }
+    }
+ #endif
+
 }
 
 }  // end namespace irrlicht

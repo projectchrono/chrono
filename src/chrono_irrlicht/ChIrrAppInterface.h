@@ -23,7 +23,7 @@
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrEffects.h"
 #include "chrono_irrlicht/ChIrrTools.h"
-#include "chrono_irrlicht/ChIrrUtils.h"
+#include "chrono_irrlicht/ChIrrCamera.h"
 
 #ifdef CHRONO_POSTPROCESS
 #include "chrono_postprocess/ChPovRay.h"
@@ -41,13 +41,12 @@ class ChIrrAppEventReceiver;
 /// Vertical direction
 enum class VerticalDir { Y, Z };
 
-/// Class to add some GUI to Irrlicht + ChronoEngine applications.
-/// This basic GUI can be used to monitor solver timings, to easily change
-/// physical system settings, etc.
+/// Class to add some GUI to Irrlicht + Chrono applications.
+/// This basic GUI can be used to monitor solver timings, to easily change physical system settings, etc.
 class ChApiIrr ChIrrAppInterface {
   public:
-    /// Create the IRRLICHT context (device, etc.)
-    ChIrrAppInterface(ChSystem* psystem,
+    /// Create the Irrlicht context (device, etc.)
+    ChIrrAppInterface(ChSystem* sys,
                       const std::wstring& title = L"Chrono",
                       const irr::core::dimension2d<irr::u32>& dimens = irr::core::dimension2d<irr::u32>(640, 480),
                       VerticalDir vert = VerticalDir::Y,
@@ -57,7 +56,7 @@ class ChApiIrr ChIrrAppInterface {
                       irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9,
                       irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION);
 
-    /// Safely delete all Irrlicht items (including the Irrlicht scene nodes)
+    /// Delete all Irrlicht items (including the Irrlicht scene nodes)
     virtual ~ChIrrAppInterface();
 
     //// Accessor functions
@@ -73,6 +72,8 @@ class ChApiIrr ChIrrAppInterface {
     /// Show the info panel in the 3D view
     void SetShowInfos(bool val) { show_infos = val; }
     bool GetShowInfos() { return show_infos; }
+
+    void SetInfosTab(int ntab) { this->gad_tabbed->setActiveTab(ntab); }
 
     /// Show the realtime profiler in the 3D view
     void SetShowProfiler(bool val) { show_profiler = val; }
@@ -111,6 +112,23 @@ class ChApiIrr ChIrrAppInterface {
     void SetVideoframeSaveInterval(int val) { videoframe_each = val; }
     int GetVideoframeSaveInterval() { return videoframe_each; }
 
+    /// If set true, instead of doing time integration in myapplication.DoStep() it 
+    /// just shows an oscillatory motion of the nth mode (only if some ChModalAssembly is found)
+    void SetModalShow(bool val) { modal_show = val; }
+    bool GetModalShow() { return modal_show; }
+
+    /// When in SetModalShow(true), use this to pick the n-th mode to show (only if some ChModalAssembly is found)
+    void SetModalModeNumber(int val) { modal_mode_n = val; }
+    int  GetModalModeNumber() { return modal_mode_n; }
+
+    /// When in SetModalShow(true), this sets the amplitude of shown mode (only if some ChModalAssembly is found)
+    void SetModalAmplitude(double val) { modal_amplitude = val; }
+    double GetModalAmplitude() { return modal_amplitude; }
+
+    /// When in SetModalShow(true), this sets the speed of shown mode (only if some ChModalAssembly is found)
+    void SetModalSpeed(double val) { modal_speed = val; }
+    double GetModalSpeed() { return modal_speed; }
+
 #ifdef CHRONO_POSTPROCESS
 
     /// If set to true, each frame of the animation will be saved on the disk
@@ -141,7 +159,7 @@ class ChApiIrr ChIrrAppInterface {
     void SetPlotAABB(bool val) { this->gad_plot_aabb->setChecked(val); }
     /// Set if the COG frames will be plotted
     void SetPlotCOGFrames(bool val) { this->gad_plot_cogs->setChecked(val); }
-    /// Set if the Bullet collision shapes will be plotted
+    /// Set if the collision shapes will be plotted
     void SetPlotCollisionShapes(bool val) { this->gad_plot_collisionshapes->setChecked(val); }
     /// Set if the link frames will be plotted
     void SetPlotLinkFrames(bool val) { this->gad_plot_linkframes->setChecked(val); }
@@ -191,25 +209,23 @@ class ChApiIrr ChIrrAppInterface {
     /// matrices.
     void DumpSystemMatrices();
 
-    //
-    // Some wrapper functions for 'easy setup' of the application window:
-    //
+    /// Add a logo in a 3D scene.
+    void AddLogo(const std::string& mlogofilename = GetChronoDataFile("logo_chronoengine_alpha.png"));
 
-    void AddTypicalLogo(const std::string& mlogofilename = GetChronoDataFile("logo_chronoengine_alpha.png"));
+    /// Add a Maya-like camera in an Irrlicht 3D scene.
+    /// The camera rotation/pan is controlled by mouse left and right buttons, the zoom is controlled by mouse wheel or
+    /// rmb+lmb+mouse, the position can be changed also with keyboard up/down/left/right arrows, the height can be
+    /// changed with keyboard 'PgUp' and 'PgDn' keys. Optional parameters are position and target. Note: if you want
+    /// more precise control on camera specs, just use plain commands of Irrlicht.
+    void AddCamera(irr::core::vector3df pos = irr::core::vector3df(0, 0, -8),
+                   irr::core::vector3df targ = irr::core::vector3df(0, 0, 0));
 
-    void AddTypicalCamera(irr::core::vector3df pos = irr::core::vector3df(0, 0, -8),
-                          irr::core::vector3df targ = irr::core::vector3df(0, 0, 0));
+    /// Add a sky box in a 3D scene.
+    /// Note: it is assumed that the specified "texturedir" directory contains the following three texture images:
+    /// sky_lf.jpg, sky_up.jpg, sky_dn.jpg
+    void AddSkyBox(const std::string& texturedir = GetChronoDataFile("skybox/"));
 
-    void AddTypicalLights(irr::core::vector3df pos1 = irr::core::vector3df(30.f, 100.f, 30.f),
-                          irr::core::vector3df pos2 = irr::core::vector3df(30.f, 80.f, -30.f),
-                          double rad1 = 290,
-                          double rad2 = 190,
-                          irr::video::SColorf col1 = irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f),
-                          irr::video::SColorf col2 = irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
-
-    void AddTypicalSky(const std::string& mtexturedir = GetChronoDataFile("skybox/"));
-
-    /// Add a point light to the scene
+    /// Add a point light to the scene.
     irr::scene::ILightSceneNode* AddLight(irr::core::vector3df pos,
                                           double radius,
                                           irr::video::SColorf color = irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
@@ -230,22 +246,23 @@ class ChApiIrr ChIrrAppInterface {
                                                     bool directional = false,
                                                     bool clipborder = true);
 
+    /// Simple shortcut to set two point lights in the scene.
+    /// Note: if you want more precise control on lights, use AddLight() or just use Irrlicht directly.
+    void AddTypicalLights();
+
   private:
-    // The Irrlicht engine:
-    irr::IrrlichtDevice* device;
+    void DrawCollisionShapes(irr::video::SColor color);
 
-    // Xeffects for shadow maps!
-    std::unique_ptr<EffectHandler> effect;
-    bool use_effects;
+    ChSystem* system;                                  ///< associated Chrono system
+    irr::IrrlichtDevice* device;                       ///< Irrlicht visualization device
+    std::unique_ptr<EffectHandler> effect;             ///< effect handler for shadow maps
+    bool use_effects;                                  ///< flag to enable/disable effects
+    std::unique_ptr<ChIrrAppEventReceiver> receiver;   ///< default event receiver
+    std::vector<irr::IEventReceiver*> user_receivers;  ///< optional user-defined receivers
+    irr::scene::ISceneNode* container;                 ///< Irrliicht scene container
 
-    // The ChronoEngine system:
-    ChSystem* system;
-
-    std::unique_ptr<ChIrrAppEventReceiver> receiver;
-
-    std::vector<irr::IEventReceiver*> user_receivers;
-
-    irr::scene::ISceneNode* container;
+    /// Collision visualization callback object
+    std::shared_ptr<collision::ChCollisionSystem::VisualizationCallback> m_drawer;
 
     bool y_up;
 
@@ -261,6 +278,14 @@ class ChApiIrr ChIrrAppInterface {
     bool videoframe_save;
     int videoframe_num;
     int videoframe_each;
+
+    bool modal_show;
+    int  modal_mode_n;
+    double modal_amplitude;
+    double modal_speed;
+    double modal_phi;
+    double modal_current_mode_n;
+    double modal_current_freq;
 
 #ifdef CHRONO_POSTPROCESS
     bool povray_save;
@@ -307,6 +332,10 @@ class ChApiIrr ChIrrAppInterface {
     irr::gui::IGUIEditBox* gad_symbolscale;
     irr::gui::IGUIStaticText* gad_symbolscale_info;
     irr::gui::IGUIStaticText* gad_textHelp;
+
+    irr::gui::IGUICheckBox* gad_modal_show;
+    irr::gui::IGUIScrollBar* gad_modal_mode_n;
+    irr::gui::IGUIStaticText* gad_modal_mode_n_info;
 
     irr::gui::IGUITreeView* gad_treeview;
 

@@ -54,10 +54,10 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization
     ChIrrApp application(&my_system, L"Loads on beams", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(0.5f, 0.0f, -3.0f), irr::core::vector3df(0.5f, 0.0f, 0.0f));
+    application.AddCamera(irr::core::vector3df(0.5f, 0.0f, -3.0f), irr::core::vector3df(0.5f, 0.0f, 0.0f));
 
     // Create a mesh
     auto mesh = chrono_types::make_shared<ChMesh>();

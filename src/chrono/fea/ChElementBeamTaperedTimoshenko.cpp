@@ -422,6 +422,11 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
     double C1 = Lsyz / LG;
     double C2 = dSy * Lsyz / (LG * Lsy);
     double C3 = dSz / Lsy;
+    if (this->use_simplified_correction_for_inclined_shear_axis) {
+        C1 = Lsyz / LG;
+        C2 = dSy / LG;
+        C3 = dSz / LG;
+    }
 
     ChMatrixNM<double, 6, 6> Ts1;
     Ts1.setIdentity();
@@ -788,7 +793,8 @@ void ChElementBeamTaperedTimoshenko::SetupInitial(ChSystem* system) {
     // Compute initial rotation
     ChMatrix33<> A0;
     ChVector<> mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
-    ChVector<> myele = nodes[0]->GetX0().GetA().Get_A_Yaxis();
+    ChVector<> myele =
+        (nodes[0]->GetX0().GetA().Get_A_Yaxis() + nodes[1]->GetX0().GetA().Get_A_Yaxis()).GetNormalized();
     A0.Set_A_Xdir(mXele, myele);
     q_element_ref_rot = A0.Get_A_quaternion();
 

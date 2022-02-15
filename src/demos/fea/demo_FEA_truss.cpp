@@ -222,10 +222,10 @@ int main(int argc, char* argv[]) {
                          core::dimension2d<u32>(1024, 768));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0.f, 1.0f, -1.f));
+    application.AddCamera(core::vector3df(0.f, 1.0f, -1.f));
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.

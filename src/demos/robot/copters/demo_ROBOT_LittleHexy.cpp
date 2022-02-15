@@ -114,10 +114,10 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization.
     ChIrrApp application(&mphysicalSystem, L"HexaCopter Test", core::dimension2d<u32>(800, 600), VerticalDir::Z);
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(5, 5, 2));
+    application.AddCamera(core::vector3df(5, 5, 2));
 
     // create text with info
     application.GetIGUIEnvironment()->addStaticText(

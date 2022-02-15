@@ -450,7 +450,8 @@ void ChElementBeamEuler::SetupInitial(ChSystem* system) {
     // Compute initial rotation
     ChMatrix33<> A0;
     ChVector<> mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
-    ChVector<> myele = nodes[0]->GetX0().GetA().Get_A_Yaxis();
+    ChVector<> myele =
+        (nodes[0]->GetX0().GetA().Get_A_Yaxis() + nodes[1]->GetX0().GetA().Get_A_Yaxis()).GetNormalized();
     A0.Set_A_Xdir(mXele, myele);
     q_element_ref_rot = A0.Get_A_quaternion();
 

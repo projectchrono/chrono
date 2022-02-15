@@ -136,10 +136,10 @@ int main(int argc, char* argv[]) {
     // -------------------------------
 
     ChIrrApp application(&system, L"Limits on LinkLockPrismatic demo", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(-1, 1.5, -6));
+    application.AddCamera(irr::core::vector3df(-1, 1.5, -6));
 
     application.AssetBindAll();
     application.AssetUpdateAll();

@@ -293,8 +293,7 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
 
     ChTrackedVehicleIrrApp app(&m113.GetVehicle(), L"M113 Vehicle Demo");
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
+    app.AddTypicalLights();
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
     ////app.SetChaseCameraPosition(m113.GetVehicle().GetVehiclePos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);

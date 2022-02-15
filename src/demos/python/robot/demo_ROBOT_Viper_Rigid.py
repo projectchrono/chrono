@@ -51,10 +51,10 @@ rover.Initialize(chrono.ChFrameD(chrono.ChVectorD(0, -0.2, 0), chrono.ChQuaterni
 
 # Create run-time visualization
 application = chronoirr.ChIrrApp(system, "Viper rover - Rigid terrain", chronoirr.dimension2du(1280, 720), chronoirr.VerticalDir_Z)
-application.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
-application.AddTypicalSky()
-application.AddTypicalCamera(chronoirr.vector3df(0, 2, 2), chronoirr.vector3df(0, 0, 0))
-application.AddTypicalLights(chronoirr.vector3df(100, 100, 100), chronoirr.vector3df(100, -100, 80))
+application.AddLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+application.AddSkyBox()
+application.AddCamera(chronoirr.vector3df(0, 2, 2), chronoirr.vector3df(0, 0, 0))
+application.AddTypicalLights()
 application.AddLightWithShadow(chronoirr.vector3df(1.5, -2.5, 5.5), chronoirr.vector3df(0, 0, 0), 3, 4, 10, 40, 512)
 
 application.AssetBindAll()

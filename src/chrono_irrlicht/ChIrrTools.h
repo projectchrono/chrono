@@ -207,12 +207,6 @@ ChApiIrr void drawColorbar(double vmin,
                            int sx = 30,
                            int sy = 300);
 
-/// Draw the collision shapes as wireframe, overlayed to shapes.
-/// Note: this works only for the Bullet collision system.
-ChApiIrr void drawCollisionShapes(ChSystem& asystem,
-                                  irr::IrrlichtDevice* mdevice,
-                                  irr::video::SColor mcol = irr::video::SColor(50, 0, 0, 110));
-
 ChApiIrr void drawPlot3D(irr::video::IVideoDriver* driver,
                          ChMatrixConstRef X,  // x of points, in local csys x
                          ChMatrixConstRef Y,  // y of points, in local csys y

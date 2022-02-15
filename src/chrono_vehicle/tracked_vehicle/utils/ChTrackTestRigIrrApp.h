@@ -33,11 +33,12 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackTestRigIrrApp : public ChVehicleIrrApp {
   public:
     /// Construct a track test rig Irrlicht application.
-    ChTrackTestRigIrrApp(ChTrackTestRig* rig,  ///< pointer to the associated vehicle system
+    ChTrackTestRigIrrApp(ChTrackTestRig* rig,                                            ///< associated vehicle system
                          const std::wstring& title = L"Chrono::Vehicle Track Test Rig",  ///< window title
                          const irr::core::dimension2d<irr::u32>& dims =
-                             irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
-                         irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level
+                             irr::core::dimension2d<irr::u32>(1000, 800),        ///< window dimensions
+                         irrlicht::VerticalDir vert = irrlicht::VerticalDir::Z,  ///< vertical camera direction
+                         irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION        ///< Irrlicht logging level
     );
 
     ~ChTrackTestRigIrrApp() {}

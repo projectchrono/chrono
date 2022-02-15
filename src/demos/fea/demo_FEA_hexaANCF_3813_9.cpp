@@ -92,10 +92,10 @@ void DPCapPress() {
     ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
+    application.AddCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
                                  core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
 
     GetLog() << "-----------------------------------------------------------------------\n";
@@ -416,10 +416,10 @@ void ShellBrickContact() {
     ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
+    application.AddCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
                                  core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
 
     GetLog() << "-----------------------------------------------------------------------\n";
@@ -810,10 +810,10 @@ void SimpleBoxContact() {
     ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
+    application.AddCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
                                  core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
 
     GetLog() << "-----------------------------------------------------------------------\n";
@@ -1108,10 +1108,10 @@ void SoilBin() {
     ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
+    application.AddCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
                                  core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
 
     GetLog() << "-----------------------------------------------------------------------\n";
@@ -1440,10 +1440,10 @@ void AxialDynamics() {
     //                     false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    // application.AddTypicalLogo();
-    // application.AddTypicalSky();
+    // application.AddLogo();
+    // application.AddSkyBox();
     // application.AddTypicalLights();
-    // application.AddTypicalCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
+    // application.AddCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
     //                             core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
 
     GetLog() << "-----------------------------------------------------------------------\n";
@@ -1703,10 +1703,10 @@ void BendingQuasiStatic() {
                          core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
+    application.AddCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
                                  core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
 
     GetLog() << "-----------------------------------------------------------\n";
@@ -1932,10 +1932,10 @@ void SwingingShell() {
                          core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
+    application.AddCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
                                  core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
 
     GetLog() << "--------------------------------------------------------------------\n";

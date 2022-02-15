@@ -45,10 +45,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&mphysicalSystem, L"A simple project template", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(2, 2, -5), core::vector3df(0, 1, 0));
+    application.AddCamera(core::vector3df(2, 2, -5), core::vector3df(0, 1, 0));
     ////application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 55, 512, video::SColorf(1,1,1));
 
     //======================================================================

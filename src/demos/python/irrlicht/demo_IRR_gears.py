@@ -34,10 +34,10 @@ application = chronoirr.ChIrrApp(mphysicalSystem, "Gears annd pulleys", chronoir
 
 
 # Easy shortcuts to add camera, lights, logo, and sky in Irrlicht scene:
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(chronoirr.vector3df(12, 15, -20))
+application.AddCamera(chronoirr.vector3df(12, 15, -20))
 
 # Contact material shared among all bodies
 mat = chrono.ChMaterialSurfaceNSC()
