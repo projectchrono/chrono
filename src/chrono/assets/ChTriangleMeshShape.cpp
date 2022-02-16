@@ -48,6 +48,12 @@ void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnec
             return;
         }
 
+        if (materials.empty()) {
+            // Use the default visual asset material
+            material_list.push_back(default_mat);
+            return;
+        }
+
         // copy in materials
         for (int i = 0; i < materials.size(); i++) {
             std::shared_ptr<ChVisualMaterial> mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -101,9 +107,8 @@ void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnec
             material_list.push_back(mat);
         }
 
-        // for each shape, copy material_indices
+        // For each shape, copy material_indices. Faces that reference an invalid material are assigned the first one.
         trimesh->m_face_col_indices.clear();
-
         for (int i = 0; i < shapes.size(); i++) {
             for (int j = 0; j < shapes[i].mesh.indices.size() / 3; j++) {
                 if (shapes[i].mesh.material_ids[j] < 0 || shapes[i].mesh.material_ids[j] >= material_list.size()) {
@@ -113,8 +118,6 @@ void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnec
                 }
             }
         }
-
-    
     }
 }
 
@@ -133,7 +136,7 @@ void ChTriangleMeshShape::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChTriangleMeshShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChTriangleMeshShape>();
+    /*int version =*/marchive.VersionRead<ChTriangleMeshShape>();
     // deserialize parent class
     ChVisualization::ArchiveIN(marchive);
     // stream in all member data:

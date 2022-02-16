@@ -21,8 +21,8 @@
 
 namespace chrono {
 
-/// Base class for assets that define something about visualization (rendering, post processing, etc.)
-/// It contains basic information about position, color, and visibility.
+/// Base class for a visualization asset for rendering (run-time or post processing).
+/// Encapsulates basic information about the asset position, materials, and visibility.
 class ChApi ChVisualization : public ChAsset {
   public:
     virtual ~ChVisualization() {}
@@ -33,12 +33,11 @@ class ChApi ChVisualization : public ChAsset {
     /// Return true if the asset is set as visible.
     bool IsVisible() const { return visible; }
 
-    /// Set the color of the surface (default: white).
-    /// This information can optionally be used by a visualization system.
-    void SetColor(const ChColor& mc) { color = mc; }
+    /// Set the diffuse color of the default material (default: white).
+    void SetColor(const ChColor& col);
 
-    /// Return the color assigned to this asset.
-    const ChColor& GetColor() const { return color; }
+    /// Return the diffuse color of the default material.
+    ChColor GetColor() const;
 
     /// Set the fading level, a value in [0,1] (default: 0).
     /// If fading = 0, the surface is completely opaque.
@@ -57,11 +56,9 @@ class ChApi ChVisualization : public ChAsset {
     /// Return true if the visualization asset is marked as static.
     bool IsStatic() const { return is_static; }
 
-    ChVector<> Pos;    ///< Position of Asset
-    ChMatrix33<> Rot;  ///< Rotation of Asset
-
-    // added for Mulitple materials
-    std::vector<std::shared_ptr<ChVisualMaterial>> material_list;
+    ChVector<> Pos;                                                ///< asset position
+    ChMatrix33<> Rot;                                              ///< asset orientation
+    std::vector<std::shared_ptr<ChVisualMaterial>> material_list;  ///< list of visualization materials
 
   protected:
     ChVisualization();
@@ -74,8 +71,8 @@ class ChApi ChVisualization : public ChAsset {
 
     bool visible;
     bool is_static;
-    ChColor color;
     float fading;
+    std::shared_ptr<ChVisualMaterial> default_mat;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

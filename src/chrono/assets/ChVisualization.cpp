@@ -16,7 +16,21 @@
 
 namespace chrono {
 
-ChVisualization::ChVisualization() : Pos(0), Rot(1), visible(true), is_static(false), fading(0) {}
+ChVisualization::ChVisualization() : Pos(0), Rot(1), visible(true), is_static(false), fading(0) {
+    default_mat = chrono_types::make_shared<ChVisualMaterial>();
+    default_mat->SetDiffuseColor(ChVector<float>(1, 1, 1));
+}
+
+void ChVisualization::SetColor(const ChColor& col) {
+    default_mat->SetDiffuseColor(ChVector<float>(col.R, col.G, col.B));
+    default_mat->SetTransparency(col.A);
+}
+
+ChColor ChVisualization::GetColor() const {
+    auto RGB = default_mat->GetDiffuseColor();
+    auto A = default_mat->GetTransparency();
+    return ChColor(RGB[0], RGB[1], RGB[2], A);
+}
 
 void ChVisualization::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
@@ -27,7 +41,6 @@ void ChVisualization::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(Pos);
     ////marchive << CHNVP(Rot);
     marchive << CHNVP(visible);
-    marchive << CHNVP(color);
     marchive << CHNVP(fading);
 }
 
@@ -40,7 +53,6 @@ void ChVisualization::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(Pos);
     ////marchive >> CHNVP(Rot);
     marchive >> CHNVP(visible);
-    marchive >> CHNVP(color);
     marchive >> CHNVP(fading);
 }
 
