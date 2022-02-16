@@ -101,7 +101,7 @@ linux:doxygen:deploy:
   needs:
     - job: linux:arch-gcc:test
       artifacts: false
-    - job: macos:catalina:test
+    - job: macos:monterey:test
       artifacts: false
     - job: windows:vs2022:test
       artifacts: false
