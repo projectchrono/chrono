@@ -20,14 +20,12 @@
 
 namespace chrono {
 
-/// Class for applying loads to a triangle mesh belonging to a ChBody, as a cluster of forces
-/// operating on the underlying rigid body.
-/// It is useful for doing cosimulation: one can pass this object's vertex & faces
-/// to an external software (ex. CFD) that in turn will perform collision detection
-/// with its entities, compute forces, send forces back to Chrono via this object.
-/// Note, this is based on a cluster of  std::vector< std::shared_ptr<ChLoadBodyForce> >, but
-/// the class itself could bypass all methods of ChLoadBodyForce and directly implement
-/// a more efficient LoadIntLoadResidual_F, however this is left in this way for didactic reasons.
+/// Class for applying loads to a triangle mesh belonging to a ChBody, as a cluster of forces operating on the
+/// underlying rigid body. It is useful for doing cosimulation: one can pass this object's vertex & faces to an external
+/// software (ex. CFD) that in turn will perform collision detection with its entities, compute forces, send forces back
+/// to Chrono via this object.
+/// Note, this is based on a cluster of std::vector<std::shared_ptr<ChLoadBodyForce>>, but the class itself could bypass
+/// all methods of ChLoadBodyForce and directly implement a more efficient LoadIntLoadResidual_F.
 
 class ChApi ChLoadBodyMesh : public ChLoadBase {
   public:
@@ -40,36 +38,31 @@ class ChApi ChLoadBodyMesh : public ChLoadBase {
 
     // Functions that can be used for cosimulation  A <----> B
 
-    /// A --> B
-    /// Get the collision mesh where vertex are given in a vector of xyz points,
-    /// expressed in absolute coordinates, and triangles are given as indexes to the three
-    /// vertexes in that vector. Similarly to Wavefront .OBJ meshes. Note, indexes are 0-based.
-    /// These vectors can be later sent to another computing node that computes, say, CFD forces on the mesh.
+    /// Get the collision mesh where vertex are given in a vector of xyz points, expressed in absolute coordinates, and
+    /// triangles are given as indexes to the three vertexes in that vector (similar to Wavefront OBJ meshes). Note that
+    /// indexes are 0-based. These vectors can be later sent to another computing node that computes, say, CFD forces on
+    /// the mesh.
     void OutputSimpleMesh(
         std::vector<ChVector<>>& vert_pos,     ///< array of vertexes (absolute xyz positions)
         std::vector<ChVector<>>& vert_vel,     ///< array of vertexes (absolute xyz velocities, might be useful)
         std::vector<ChVector<int>>& triangles  ///< array of triangles (indexes to vertexes, ccw)
     );
 
-    /// A <-- B
-    /// Set the forces to the body, where forces are given as a vector of xyz vectors
-    /// (expressed in absolute coordinates) and indexes to the referenced vertex, as
-    /// obtained by OutputSimpleMesh.
-    /// NOTE! do not insert/remove nodes from the collision mesh
-    ///       between the OutputSimpleMesh-InputSimpleForces pair!
-    void InputSimpleForces(const std::vector<ChVector<>> vert_forces,  ///< array of forces (absolute xyz forces in [N])
-                           const std::vector<int> vert_ind  ///< array of indexes to vertexes to whom you apply forces
+    /// Set the forces to the body, where forces are given as a vector of xyz vectors (expressed in absolute
+    /// coordinates) and indexes to the referenced vertex, as obtained by OutputSimpleMesh.
+    /// NOTE: do not insert/remove nodes from the collision mesh between the OutputSimpleMesh-InputSimpleForces pair!
+    void InputSimpleForces(const std::vector<ChVector<>> vert_forces,  ///< array of forces (in absolute frame)
+                           const std::vector<int> vert_ind             ///< indexes of vertices with applied forces
     );
 
-    /// Set the contact mesh (also resets the applied nodes)
+    /// Set the contact mesh (also resets the applied nodes).
     void SetContactMesh(geometry::ChTriangleMeshConnected& mmesh);
 
-    /// Get the contact mesh
+    /// Get the contact mesh.
     geometry::ChTriangleMeshConnected& GetContactMesh() { return this->contactmesh; }
 
-    /// Access the list of applied forces, so you can add new ones by using push_back(),
-    /// remove them, count them, etc.
-    /// Note that if you add nodes, these should belong to the referenced mesh.
+    /// Access the list of applied forces, to allow adding new ones, removing them, counting them, etc.
+    /// Note that only nodes from the reference mesh should be added.
     std::vector<std::shared_ptr<ChLoadBodyForce>>& GetForceList() { return forces; }
 
     //

@@ -14,7 +14,7 @@
 //
 // Visual assets that can be used for higher quality rendering such as that
 // used by the sensing module. These materials follow, in part, from the
-// wavefront obj mtl specification.
+// Wavefront obj mtl specification.
 //
 // =============================================================================
 

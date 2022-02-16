@@ -360,7 +360,7 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector<>>& points,
 
 // -----------------------------------------------------------------------------
 
-ChBodyEasyMesh::ChBodyEasyMesh(const std::string filename,
+ChBodyEasyMesh::ChBodyEasyMesh(const std::string& filename,
                                double density,
                                bool compute_mass,
                                bool visualize,
@@ -386,7 +386,7 @@ ChBodyEasyMesh::ChBodyEasyMesh(std::shared_ptr<geometry::ChTriangleMeshConnected
     SetupBody(mesh, "EasyMesh", density, compute_mass, visualize, collide, material, sphere_swept);
 }
 
-ChBodyEasyMesh::ChBodyEasyMesh(const std::string filename,
+ChBodyEasyMesh::ChBodyEasyMesh(const std::string& filename,
                                double density,
                                std::shared_ptr<ChMaterialSurface> material,
                                double sphere_swept,

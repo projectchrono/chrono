@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
 
         auto masset_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
         masset_mesh->SetMesh(mmesh);
-        masset_mesh->SetBackfaceCull(true);
+        //masset_mesh->SetBackfaceCull(true);
         mfalling->AddAsset(masset_mesh);
     }
 

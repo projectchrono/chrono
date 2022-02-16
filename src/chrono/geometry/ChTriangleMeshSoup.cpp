@@ -35,7 +35,7 @@ bool ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
     std::string warn;
     std::string err;
 
-    bool success = LoadObj(&att, &shapes, &materials, &warn, &err, filename.c_str());
+    bool success = tinyobj::LoadObj(&att, &shapes, &materials, &warn, &err, filename.c_str());
     if (!success) {
         std::cerr << "Error loading OBJ file " << filename << std::endl;
         std::cerr << "   tiny_obj warning message: " << warn << std::endl;

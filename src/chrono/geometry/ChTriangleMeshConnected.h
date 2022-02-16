@@ -24,9 +24,7 @@
 namespace chrono {
 namespace geometry {
 
-/// A triangle mesh with connectivity info: vertices can be
-/// shared between faces.
-
+/// A triangle mesh with connectivity info: vertices can be shared between faces.
 class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
   public:
     std::vector<ChVector<double>> m_vertices;

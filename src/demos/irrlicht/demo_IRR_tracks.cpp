@@ -195,14 +195,14 @@ class MySimpleTank {
 
         // ..the tank right-back wheel
 
-        wheelRB = chrono_types::make_shared<ChBodyEasyMesh>(  //
-            GetChronoDataFile("models/bulldozer/wheel_view.obj").c_str(),      // data file
-            1000,                                             // density
-            false,                                            // do not compute mass and inertia
-            true,                                             // visualization?
-            false,                                            // collision?
-            nullptr,                                          // no need for contact material
-            0);                                               // mesh sweep sphere radius
+        wheelRB = chrono_types::make_shared<ChBodyEasyMesh>(       //
+            GetChronoDataFile("models/bulldozer/wheel_view.obj"),  // data file
+            1000,                                                  // density
+            false,                                                 // do not compute mass and inertia
+            true,                                                  // visualization?
+            false,                                                 // collision?
+            nullptr,                                               // no need for contact material
+            0);                                                    // mesh sweep sphere radius
 
         my_system.Add(wheelRB);
         wheelRB->SetPos(ChVector<>(mx, my + radiustrack, 0));
@@ -230,14 +230,14 @@ class MySimpleTank {
 
         // ..the tank left-back wheel
 
-        wheelLB = chrono_types::make_shared<ChBodyEasyMesh>(  //
-            GetChronoDataFile("models/bulldozer/view.obj").c_str(),      // data file
-            1000,                                             // density
-            false,                                            // do not compute mass and inertia
-            true,                                             // visualization?
-            false,                                            // collision?
-            nullptr,                                          // no need for contact material
-            0);                                               // mesh sweep sphere radius
+        wheelLB = chrono_types::make_shared<ChBodyEasyMesh>(       //
+            GetChronoDataFile("models/bulldozer/wheel_view.obj"),  // data file
+            1000,                                                  // density
+            false,                                                 // do not compute mass and inertia
+            true,                                                  // visualization?
+            false,                                                 // collision?
+            nullptr,                                               // no need for contact material
+            0);                                                    // mesh sweep sphere radius
 
         my_system.Add(wheelLB);
         wheelLB->SetPos(ChVector<>(mx, my + radiustrack, rlwidth));
