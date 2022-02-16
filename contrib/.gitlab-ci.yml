@@ -468,7 +468,8 @@ windows:vs2019:deploy:
 
 .macos-monterey:
   extends: .macos
-  tags: monterey
+  tags:
+    - monterey
 
 .macos-deploy-base:
   extends: .macos
