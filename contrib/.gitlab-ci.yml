@@ -466,6 +466,9 @@ windows:vs2019:deploy:
   - git submodule update
   - mkdir -p build
 
+.macos-monterey:
+  extends: .macos
+  tags: monterey
 
 .macos-deploy-base:
   extends: .macos
@@ -497,9 +500,9 @@ windows:vs2019:deploy:
     url: https://anaconda.org/projectchrono/pychrono
 
 
-macos:catalina:build:
+macos:monterey:build:
   stage: build
-  extends: .macos
+  extends: .macos-monterey
   script:
   - cd build
   - cmake ../ --preset=macosci
@@ -507,22 +510,22 @@ macos:catalina:build:
     -DCMAKE_CXX_COMPILER=$(which clang++)
     -DCMAKE_VERBOSE_MAKEFILE=TRUE
   - export CLANG_FORCE_COLOR_DIAGNOSTICS=1
-  - ninja -j 8
+  - ninja -j 16
   artifacts:
     expire_in: 60m
     paths:
     - build/
     
 
-macos:catalina:test:
+macos:monterey:test:
   stage: test
-  needs: ["macos:catalina:build"]
+  needs: ["macos:monterey:build"]
   extends: .macos
   script:
   - cd build
   - export CTEST_OUTPUT_ON_FAILURE=1 
   - ninja test
-  dependencies: ["macos:catalina:build"]
+  dependencies: ["macos:monterey:build"]
 
 
 macos:macos-deploy-python3.6:
@@ -555,3 +558,5 @@ macos:macos-deploy-python3.8:
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
   when: manual
+
+
