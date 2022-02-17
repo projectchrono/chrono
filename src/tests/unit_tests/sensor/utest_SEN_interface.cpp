@@ -193,7 +193,7 @@ TEST(SensorInterface, mesh_channels) {
     std::vector<ChVector<int>> vert_ids = {{0, 1, 2}};
     std::vector<ChVector<int>> norm_ids = {{0, 0, 0}};
     std::vector<ChVector<int>> uv_ids = {{0, 1, 2}};
-    std::vector<ChVector<int>> mat_ids = {0};
+    std::vector<int> mat_ids = {0};
 
     ChSystemNSC mphysicalSystem;
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 100, false, false);
@@ -259,7 +259,7 @@ TEST(SensorInterface, mesh_channels) {
     ASSERT_FLOAT_EQ(buffer->Buffer[0].range, 2.f);
 
     // triangle with verts, uv, normals, mat
-    triangle->getIndicesColors() = mat_ids;
+    triangle->getIndicesMaterials() = mat_ids;
     manager->ReconstructScenes();
     while (mphysicalSystem.GetChTime() < 0.35) {
         manager->Update();

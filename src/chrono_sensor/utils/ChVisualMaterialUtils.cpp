@@ -55,13 +55,13 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
 
     std::vector<std::shared_ptr<ChVisualMaterial>> material_list = std::vector<std::shared_ptr<ChVisualMaterial>>();
 
-    std::vector<ChVector<double>> vertex_buffer;       // = std::vector<ChVector<double>>();
-    std::vector<ChVector<double>> normal_buffer;       // = std::vector<ChVector<double>>();
-    std::vector<ChVector<double>> tex_coords;          // = std::vector<ChVector<double>>();
-    std::vector<ChVector<int>> vertex_index_buffer;    // = std::vector<ChVector<int>>();
-    std::vector<ChVector<int>> normal_index_buffer;    // = std::vector<ChVector<int>>();
-    std::vector<ChVector<int>> texcoord_index_buffer;  // = std::vector<ChVector<int>>();
-    std::vector<ChVector<int>> material_index_buffer;  // = std::vector<ChVector<int>>();
+    std::vector<ChVector<double>> vertex_buffer;
+    std::vector<ChVector<double>> normal_buffer;
+    std::vector<ChVector<double>> tex_coords;
+    std::vector<ChVector<int>> vertex_index_buffer;
+    std::vector<ChVector<int>> normal_index_buffer;
+    std::vector<ChVector<int>> texcoord_index_buffer;
+    std::vector<int> material_index_buffer;
 
     // copy in vertices
     // vertex_buffer.resize(att.vertices.size() / 3);
@@ -158,9 +158,9 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
                                                               shapes[i].mesh.indices[3 * j + 2].texcoord_index));
             }
             if (shapes[i].mesh.material_ids[j] < 0 || shapes[i].mesh.material_ids[j] >= material_list.size()) {
-                material_index_buffer.push_back(ChVector<int>(0, 0, 0));
+                material_index_buffer.push_back(0);
             } else {
-                material_index_buffer.push_back(ChVector<int>(shapes[i].mesh.material_ids[j], 0, 0));
+                material_index_buffer.push_back(shapes[i].mesh.material_ids[j]);
             }
         }
     }
@@ -171,7 +171,7 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
     mesh_shape->GetMesh()->m_face_v_indices = vertex_index_buffer;
     mesh_shape->GetMesh()->m_face_n_indices = normal_index_buffer;
     mesh_shape->GetMesh()->m_face_uv_indices = texcoord_index_buffer;
-    mesh_shape->GetMesh()->m_face_col_indices = material_index_buffer;
+    mesh_shape->GetMesh()->m_face_mat_indices = material_index_buffer;
 
     mesh_shape->material_list = material_list;
 
