@@ -57,8 +57,14 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::vector<ChVector<int>>& getIndicesUV() { return m_face_uv_indices; }
     std::vector<ChVector<int>>& getIndicesColors() { return m_face_col_indices; }
 
-    /// Load a triangle mesh saved as a Wavefront .obj file
-    bool LoadWavefrontMesh(std::string filename, bool load_normals = true, bool load_uv = false);
+    /// Create and return a ChTriangleMeshConnected from a Wavefront OBJ file.
+    /// If an error occurrs during loading, an empty shared pointer is returned.
+    static std::shared_ptr<ChTriangleMeshConnected> CreateFromWavefrontFile(const std::string& filename,
+                                                                            bool load_normals = true,
+                                                                            bool load_uv = false);
+
+    /// Load a Wavefront OBJ file into this triangle mesh.
+    bool LoadWavefrontMesh(const std::string& filename, bool load_normals = true, bool load_uv = false);
 
     /// Write the specified meshes in a Wavefront .obj file
     static void WriteWavefront(const std::string& filename, std::vector<ChTriangleMeshConnected>& meshes);

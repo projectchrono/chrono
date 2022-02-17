@@ -216,9 +216,8 @@ void ViperPart::Construct(ChSystem* system) {
 
     // Add visualization shape
     if (m_visualize) {
-        std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
-        auto trimesh_vis = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh_vis->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+        auto vis_mesh_file = GetChronoDataFile("robot/viper/obj/" + m_mesh_name + ".obj");
+        auto trimesh_vis = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
         trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
         trimesh_vis->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
@@ -232,9 +231,8 @@ void ViperPart::Construct(ChSystem* system) {
 
     // Add collision shape
     if (m_collide) {
-        std::string col_mesh_file = "robot/viper/col/" + m_mesh_name + ".obj";
-        auto trimesh_col = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh_col->LoadWavefrontMesh(GetChronoDataFile(col_mesh_file), false, false);
+        auto col_mesh_file = GetChronoDataFile("robot/viper/col/" + m_mesh_name + ".obj");
+        auto trimesh_col = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(col_mesh_file, false, false);
         trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
         trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
@@ -248,9 +246,8 @@ void ViperPart::Construct(ChSystem* system) {
 }
 
 void ViperPart::CalcMassProperties(double density) {
-    std::string mesh_filename = "robot/viper/col/" + m_mesh_name + ".obj";
-    auto trimesh_col = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh_col->LoadWavefrontMesh(GetChronoDataFile(mesh_filename), false, false);
+    auto mesh_filename = GetChronoDataFile("robot/viper/col/" + m_mesh_name + ".obj");
+    auto trimesh_col = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false, false);
     trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
     trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 

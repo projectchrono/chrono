@@ -213,17 +213,19 @@ int main(int argc, char* argv[]) {
     mrigidbody->SetInertiaXX(ChVector<>(20, 20, 20));
     mrigidbody->SetPos(tire_center + ChVector<>(-1, 0, 0));
 
-    auto mrigidmesh = chrono_types::make_shared<ChTriangleMeshShape>();
-    mrigidmesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.obj"));
-    mrigidmesh->GetMesh()->Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
-    mrigidbody->AddAsset(mrigidmesh);
+    auto mesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+        GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.obj"));
+    mesh->Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
+    auto mesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
+    mesh_asset->SetMesh(mesh);
+    mrigidbody->AddAsset(mesh_asset);
 
     auto mcol = chrono_types::make_shared<ChColorAsset>();
     mcol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
     mrigidbody->AddAsset(mcol);
 
     // this is used to use the mesh in cosimulation!
-    auto mrigidmeshload = chrono_types::make_shared<ChLoadBodyMesh>(mrigidbody, *mrigidmesh->GetMesh());
+    auto mrigidmeshload = chrono_types::make_shared<ChLoadBodyMesh>(mrigidbody, *mesh);
     mloadcontainer->Add(mrigidmeshload);
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items

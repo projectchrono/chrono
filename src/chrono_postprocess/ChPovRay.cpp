@@ -463,32 +463,22 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
             auto mytrimeshshapeasset = std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset);
 
             if (myobjshapeasset || mytrimeshshapeasset) {
-                ChTriangleMeshConnected* mytrimesh = nullptr;
-                ChTriangleMeshConnected* temp_allocated_loadtrimesh = nullptr;
+                std::shared_ptr<ChTriangleMeshConnected> mytrimesh;
                 bool wireframe = false;
 
                 if (myobjshapeasset) {
-                    try {
-                        temp_allocated_loadtrimesh = new (ChTriangleMeshConnected);
-
-                        // Load from the .obj file and convert.
-                        temp_allocated_loadtrimesh->LoadWavefrontMesh(myobjshapeasset->GetFilename(), true, true);
-
+                    auto temp_allocated_loadtrimesh =
+                        ChTriangleMeshConnected::CreateFromWavefrontFile(myobjshapeasset->GetFilename(), true, true);
+                    if (temp_allocated_loadtrimesh) {
                         mytrimesh = temp_allocated_loadtrimesh;
-                    } catch (const ChException&) {
-                        if (temp_allocated_loadtrimesh)
-                            delete temp_allocated_loadtrimesh;
-                        temp_allocated_loadtrimesh = 0;
-
+                    } else {
                         char error[400];
                         sprintf(error, "Asset n.%d: can't read .obj file %s", k,
                                 myobjshapeasset->GetFilename().c_str());
                         throw(ChException(error));
                     }
-                }
-
-                if (mytrimeshshapeasset) {
-                    mytrimesh = mytrimeshshapeasset->GetMesh().get();
+                } else if (mytrimeshshapeasset) {
+                    mytrimesh = mytrimeshshapeasset->GetMesh();
                     wireframe = mytrimeshshapeasset->IsWireframe();
                 }
 
@@ -590,10 +580,6 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
 
                 // POV macro - end
                 assets_file << "#end \n";
-
-                if (temp_allocated_loadtrimesh)
-                    delete temp_allocated_loadtrimesh;
-                temp_allocated_loadtrimesh = 0;
             }
 
             // *) asset k of object i is a sphere ?

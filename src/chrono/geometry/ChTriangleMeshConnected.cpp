@@ -173,7 +173,16 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
     }
 }
 
-bool ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_normals, bool load_uv) {
+std::shared_ptr<ChTriangleMeshConnected> ChTriangleMeshConnected::CreateFromWavefrontFile(const std::string& filename,
+                                                                                          bool load_normals,
+                                                                                          bool load_uv) {
+    auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
+    if (!trimesh->LoadWavefrontMesh(filename, load_normals, load_uv))
+        return nullptr;
+    return trimesh;
+}
+
+bool ChTriangleMeshConnected::LoadWavefrontMesh(const std::string& filename, bool load_normals, bool load_uv) {
     assert(filesystem::path(filename).is_file());
 
     std::vector<tinyobj::shape_t> shapes;
@@ -220,13 +229,13 @@ bool ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
                                                      shapes[i].mesh.indices[3 * j + 2].vertex_index));
             if (m_normals.size() > 0) {
                 m_face_n_indices.push_back(ChVector<int>(shapes[i].mesh.indices[3 * j + 0].normal_index,
-                                                            shapes[i].mesh.indices[3 * j + 1].normal_index,
-                                                            shapes[i].mesh.indices[3 * j + 2].normal_index));
+                                                         shapes[i].mesh.indices[3 * j + 1].normal_index,
+                                                         shapes[i].mesh.indices[3 * j + 2].normal_index));
             }
             if (m_UV.size() > 0) {
                 m_face_uv_indices.push_back(ChVector<int>(shapes[i].mesh.indices[3 * j + 0].texcoord_index,
-                                                              shapes[i].mesh.indices[3 * j + 1].texcoord_index,
-                                                              shapes[i].mesh.indices[3 * j + 2].texcoord_index));
+                                                          shapes[i].mesh.indices[3 * j + 1].texcoord_index,
+                                                          shapes[i].mesh.indices[3 * j + 2].texcoord_index));
             }
         }
     }
@@ -583,7 +592,7 @@ bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
                                    this->getTriangle(mverttriangles[k]).GetNormal());
                 }
             }
-            
+
             // If any 2 face normals are (close to) colinear, A will be singular!
             // In such a case, one of the two faces should be discarded.  We can achieve this by setting
             // the corresponding row and column to 0 (except the diagonal entry which stays at 1) and
@@ -1030,7 +1039,7 @@ void ChTriangleMeshConnected::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChTriangleMeshConnected::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChTriangleMeshConnected>();
+    /*int version =*/marchive.VersionRead<ChTriangleMeshConnected>();
     // deserialize parent class
     ChTriangleMesh::ArchiveIN(marchive);
     // stream in all member data:

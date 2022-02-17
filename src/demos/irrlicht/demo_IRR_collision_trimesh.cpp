@@ -99,8 +99,8 @@ int main(int argc, char* argv[]) {
 	// between 15 falling shapes; also we want to call RepairDuplicateVertexes() on the
 	// imported mesh; also we want to scale the imported mesh using Transform().
 
-    auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmesh->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_view.obj"), false, true);
+    auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"),
+                                                                  false, true);
     mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1.2));  // scale to a different size
     mmesh->RepairDuplicateVertexes(1e-9);                      // if meshes are not watertight
 

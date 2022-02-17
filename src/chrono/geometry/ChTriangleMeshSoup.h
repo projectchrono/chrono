@@ -34,6 +34,10 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChTriangleMeshSoup* Clone() const override { return new ChTriangleMeshSoup(*this); }
 
+    /// Create and return a ChTriangleMeshConnected from a Wavefront OBJ file.
+    /// If an error occurrs during loading, an empty shared pointer is returned.
+    static std::shared_ptr<ChTriangleMeshSoup> CreateFromWavefrontFile(const std::string& filename);
+
     /// Load from the given Wavefront .obj file
     bool LoadWavefrontMesh(std::string filename);
 

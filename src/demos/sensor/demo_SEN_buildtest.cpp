@@ -132,8 +132,8 @@ int main(int argc, char* argv[]) {
         visual_asset->material_list.push_back(vis_mat);
     }
     // add a mesh
-    auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmesh->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_collision.obj"), false, true);
+    auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
+        GetChronoDataFile("models/bulldozer/shoe_collision.obj"), false, true);
     mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     mmesh->RepairDuplicateVertexes(1e-9);
 
@@ -190,8 +190,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(wall4);
 
     // add box, sphere, mesh with textures
-    // auto gator_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    // gator_mesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/gator/gator_chassis.obj"), false, true);
+    // auto gator_mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/gator/gator_chassis.obj"), false, true);
     // auto gator_meshshape = chrono_types::make_shared<ChTriangleMeshShape>();
     // gator_meshshape->SetMesh(gator_mesh);
     // gator_meshshape->SetName("gator");

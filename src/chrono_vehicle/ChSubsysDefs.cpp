@@ -43,8 +43,8 @@ void ChVehicleGeometry::EnableVisualizationAssetLevels(bool flag) {
 
 void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_vis_mesh_file), false, false);
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
+                                                                                  false, false);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
@@ -147,8 +147,7 @@ void ChVehicleGeometry::AddCollisionShapes(std::shared_ptr<ChBody> body, int col
         }
     }
     for (auto& mesh : m_coll_meshes) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(mesh.m_filename, true, false);
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh.m_filename, true, false);
         // Hack: explicitly offset vertices
         for (auto& v : trimesh->m_vertices)
             v += mesh.m_pos;

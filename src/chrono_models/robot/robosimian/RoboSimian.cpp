@@ -880,9 +880,8 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
     m_body->AddAsset(col);
 
     if (vis == VisualizationType::MESH) {
-        std::string vis_mesh_file = "robot/robosimian/obj/" + m_mesh_name + ".obj";
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
+        auto vis_mesh_file = GetChronoDataFile("robot/robosimian/obj/" + m_mesh_name + ".obj");
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, false);
         //// HACK: a trimesh visual asset ignores transforms! Explicitly offset vertices.
         trimesh->Transform(m_offset, ChMatrix33<>(1));
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
@@ -894,7 +893,7 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
         return;
     }
 
-    for (auto box : m_boxes) {
+    for (const auto& box : m_boxes) {
         auto box_shape = chrono_types::make_shared<ChBoxShape>();
         box_shape->GetBoxGeometry().SetLengths(box.m_dims);
         box_shape->Pos = box.m_pos;
@@ -902,7 +901,7 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
         m_body->AddAsset(box_shape);
     }
 
-    for (auto cyl : m_cylinders) {
+    for (const auto& cyl : m_cylinders) {
         //// HACK: Chrono::OpenGL does not properly account for Pos & Rot.
         ////       So transform the end points explicitly.
         ChCoordsys<> csys(cyl.m_pos, cyl.m_rot);
@@ -915,17 +914,16 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
         m_body->AddAsset(cyl_shape);
     }
 
-    for (auto sphere : m_spheres) {
+    for (const auto& sphere : m_spheres) {
         auto sphere_shape = chrono_types::make_shared<ChSphereShape>();
         sphere_shape->GetSphereGeometry().rad = sphere.m_radius;
         sphere_shape->Pos = sphere.m_pos;
         m_body->AddAsset(sphere_shape);
     }
 
-    for (auto mesh : m_meshes) {
-        std::string vis_mesh_file = "robot/robosimian/obj/" + mesh.m_name + ".obj";
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
+    for (const auto& mesh : m_meshes) {
+        auto vis_mesh_file = GetChronoDataFile("robot/robosimian/obj/" + mesh.m_name + ".obj");
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, false);
         //// HACK: a trimesh visual asset ignores transforms! Explicitly offset vertices.
         trimesh->Transform(mesh.m_pos, ChMatrix33<>(mesh.m_rot));
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
@@ -951,10 +949,9 @@ void RS_Part::AddCollisionShapes() {
         m_body->GetCollisionModel()->AddCylinder(m_mat, cyl.m_radius, cyl.m_radius, cyl.m_length / 2, cyl.m_pos,
                                                  cyl.m_rot);
     }
-    for (auto mesh : m_meshes) {
-        std::string vis_mesh_file = "robot/robosimian/obj/" + mesh.m_name + ".obj";
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    for (const auto& mesh : m_meshes) {
+        auto vis_mesh_file = GetChronoDataFile("robot/robosimian/obj/" + mesh.m_name + ".obj");
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
         switch (mesh.m_type) {
             case MeshShape::Type::CONVEX_HULL:
                 m_body->GetCollisionModel()->AddConvexHull(m_mat, trimesh->getCoordsVertices(), mesh.m_pos, mesh.m_rot);

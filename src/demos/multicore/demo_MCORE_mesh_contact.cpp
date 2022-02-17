@@ -164,8 +164,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_coarse.obj"), true, false);
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+        GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_coarse.obj"));
 
     object->GetCollisionModel()->ClearModel();
     object->GetCollisionModel()->AddTriangleMesh(object_mat, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),

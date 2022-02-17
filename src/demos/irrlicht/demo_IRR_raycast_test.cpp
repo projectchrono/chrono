@@ -200,8 +200,7 @@ void CreateShapes(ChSystemSMC& sys) {
 void CreateMeshes(ChSystemSMC& sys) {
     auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile("models/sphere.obj"));
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/sphere.obj"));
     trimesh->Transform(ChVector<>(0), ChMatrix33<>(2));
     std::shared_ptr<ChTriangleMeshShape> vismesh(new ChTriangleMeshShape);
     vismesh->SetMesh(trimesh);

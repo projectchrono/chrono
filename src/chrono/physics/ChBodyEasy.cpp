@@ -369,8 +369,7 @@ ChBodyEasyMesh::ChBodyEasyMesh(const std::string& filename,
                                double sphere_swept,
                                std::shared_ptr<collision::ChCollisionModel> collision_model)
     : ChBodyAuxRef(collision_model) {
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(filename, true, true);
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true);
     SetupBody(trimesh, filename, density, compute_mass, visualize, collide, material, sphere_swept);
 }
 
@@ -392,8 +391,7 @@ ChBodyEasyMesh::ChBodyEasyMesh(const std::string& filename,
                                double sphere_swept,
                                collision::ChCollisionSystemType collision_type)
     : ChBodyAuxRef(collision_type) {
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(filename, true, true);
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true);
     SetupBody(trimesh, filename, density, true, true, true, material, sphere_swept);
 }
 

@@ -103,10 +103,8 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
     // add set of boxes to be visualized by camera
     // ---------------------------------------
-    auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    // mmesh->LoadWavefrontMesh("C:/Users/15647/Documents/Chrono/untitled.obj", true, true);
-    // mmesh->LoadWavefrontMesh("C:/Users/15647/Documents/Chrono/3Dmodels/Highway/Highway_vis.obj", true, true);
-    mmesh->LoadWavefrontMesh(GetChronoDataFile("sensor/geometries/box.obj"), true, true);
+    auto mmesh =
+        ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("sensor/geometries/box.obj"), true, true);
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(mmesh);

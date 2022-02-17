@@ -270,8 +270,8 @@ class SoilbinWheel {
         wheel->SetCollide(true);
 
         // Visualization mesh
-        auto tireMesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-        tireMesh->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"), true, true);
+        auto tireMesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
+            GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"), true, true);
         auto tireMesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
         tireMesh_asset->SetMesh(tireMesh);
         wheel->AddAsset(tireMesh_asset);

@@ -28,6 +28,13 @@ ChTriangleMeshSoup::ChTriangleMeshSoup(const ChTriangleMeshSoup& source) {
     m_triangles = source.m_triangles;
 }
 
+std::shared_ptr<ChTriangleMeshSoup> ChTriangleMeshSoup::CreateFromWavefrontFile(const std::string& filename) {
+    auto trimesh = chrono_types::make_shared<ChTriangleMeshSoup>();
+    if (!trimesh->LoadWavefrontMesh(filename))
+        return nullptr;
+    return trimesh;
+}
+
 bool ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
     std::vector<tinyobj::shape_t> shapes;
     tinyobj::attrib_t att;

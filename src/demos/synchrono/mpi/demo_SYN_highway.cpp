@@ -174,8 +174,8 @@ int main(int argc, char* argv[]) {
     auto patch =
         terrain.AddPatch(patch_mat, CSYSNORM, synchrono::GetDataFile("meshes/Highway_col.obj"), true, 0.01, false);
 
-    auto vis_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    vis_mesh->LoadWavefrontMesh(synchrono::GetDataFile("meshes/Highway_vis.obj"), true, true);
+    auto vis_mesh =
+        ChTriangleMeshConnected::CreateFromWavefrontFile(synchrono::GetDataFile("meshes/Highway_vis.obj"), true, true);
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(vis_mesh);
     trimesh_shape->SetStatic(true);

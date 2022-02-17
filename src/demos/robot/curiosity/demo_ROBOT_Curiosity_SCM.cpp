@@ -153,10 +153,9 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < 2; i++) {
         // Create a rock
-        auto rock_1_mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         std::string rock1_obj_path = GetChronoDataFile("robot/curiosity/rocks/rock1.obj");
         double scale_ratio = 0.8;
-        rock_1_mmesh->LoadWavefrontMesh(rock1_obj_path, false, true);
+        auto rock_1_mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(rock1_obj_path, false, true);
         rock_1_mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
         rock_1_mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
@@ -209,10 +208,9 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < 2; i++) {
         // Create a rock
-        auto rock_2_mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         std::string rock2_obj_path = GetChronoDataFile("robot/curiosity/rocks/rock1.obj");
         double scale_ratio = 0.45;
-        rock_2_mmesh->LoadWavefrontMesh(rock2_obj_path, false, true);
+        auto rock_2_mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(rock2_obj_path, false, true);
         rock_2_mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
         rock_2_mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
@@ -265,10 +263,9 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < 2; i++) {
         // Create a rock
-        auto rock_3_mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         std::string rock3_obj_path = GetChronoDataFile("robot/curiosity/rocks/rock3.obj");
         double scale_ratio = 0.45;
-        rock_3_mmesh->LoadWavefrontMesh(rock3_obj_path, false, true);
+        auto rock_3_mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(rock3_obj_path, false, true);
         rock_3_mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
         rock_3_mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 

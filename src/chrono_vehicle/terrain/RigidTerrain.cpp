@@ -244,8 +244,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     AddPatch(patch, position, material);
 
     // Load mesh from file
-    patch->m_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    patch->m_trimesh->LoadWavefrontMesh(mesh_file, true, true);
+    patch->m_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_file, true, true);
 
     // Create the collision model
     patch->m_body->GetCollisionModel()->ClearModel();
@@ -253,8 +252,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL,
                                                             ChMatrix33<>(1), sweep_sphere_radius);
     } else {
-        patch->m_trimesh_s = chrono_types::make_shared<geometry::ChTriangleMeshSoup>();
-        patch->m_trimesh_s->LoadWavefrontMesh(mesh_file);
+        patch->m_trimesh_s = geometry::ChTriangleMeshSoup::CreateFromWavefrontFile(mesh_file);
         patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh_s, true, false, VNULL,
                                                             ChMatrix33<>(1), sweep_sphere_radius);
     }

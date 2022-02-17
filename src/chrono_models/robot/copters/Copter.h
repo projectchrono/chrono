@@ -279,8 +279,7 @@ void Copter<nop>::AddVisualizationAssets(const std::string& chassismesh,
                                          const std::string& propellermesh,
                                          const ChFrame<>& cor_m1,
                                          const ChFrame<>& cor_m2) {
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(chassismesh, true, false);
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(chassismesh, true, false);
     trimesh->Transform(cor_m1.GetPos(), cor_m1.GetA());
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
@@ -289,8 +288,7 @@ void Copter<nop>::AddVisualizationAssets(const std::string& chassismesh,
     chassis->AddAsset(trimesh_shape);
 
     for (auto propeller : props) {
-        auto prop_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        prop_trimesh->LoadWavefrontMesh(propellermesh, true, false);
+        auto prop_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(propellermesh, true, false);
         prop_trimesh->Transform(cor_m2.GetPos(), cor_m2.GetA());
         auto trimesh_prop_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_prop_shape->SetMesh(prop_trimesh);

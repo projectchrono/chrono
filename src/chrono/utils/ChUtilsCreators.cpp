@@ -191,8 +191,8 @@ bool AddTriangleMeshGeometry(ChBody* body,
                              const ChVector<>& pos,
                              const ChQuaternion<>& rot,
                              bool visualization) {
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    if (!trimesh->LoadWavefrontMesh(obj_filename, false, false))
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, false, false);
+    if (!trimesh)
         return false;
 
     for (int i = 0; i < trimesh->m_vertices.size(); i++)
@@ -222,8 +222,8 @@ bool AddTriangleMeshConvexDecomposition(ChBody* body,
                                         const ChQuaternion<>& rot,
                                         float skin_thickness,
                                         bool use_original_asset) {
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    if (!trimesh->LoadWavefrontMesh(obj_filename, true, false))
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, true, false);
+    if (!trimesh)
         return false;
 
     for (int i = 0; i < trimesh->m_vertices.size(); i++) {
@@ -289,8 +289,8 @@ bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
                                           const ChVector<>& pos,
                                           const ChQuaternion<>& rot,
                                           bool use_original_asset) {
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    if (!trimesh->LoadWavefrontMesh(obj_filename, true, false))
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, true, false);
+    if (!trimesh)
         return false;
 
     for (int i = 0; i < trimesh->m_vertices.size(); i++) {
@@ -362,12 +362,12 @@ bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                              double total_mass) {
     assert(material->GetContactMethod() == system->GetContactMethod());
 
-    geometry::ChTriangleMeshConnected trimesh;
-    if (!trimesh.LoadWavefrontMesh(obj_filename, true, false))
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, true, false);
+    if (!trimesh)
         return false;
 
-    for (int i = 0; i < trimesh.m_vertices.size(); i++) {
-        trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
+    for (int i = 0; i < trimesh->m_vertices.size(); i++) {
+        trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
     }
     collision::ChConvexDecompositionHACDv2 mydecompositionHACDv2;
 
@@ -379,7 +379,7 @@ bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
     double hacd_fusetolerance = 1e-6;
 
     mydecompositionHACDv2.Reset();
-    mydecompositionHACDv2.AddTriangleMesh(trimesh);
+    mydecompositionHACDv2.AddTriangleMesh(*trimesh);
 
     mydecompositionHACDv2.SetParameters(hacd_maxhullcount, hacd_maxhullmerge, hacd_maxhullvertexes,
                                         (float)hacd_concavity, (float)hacd_smallclusterthreshold,

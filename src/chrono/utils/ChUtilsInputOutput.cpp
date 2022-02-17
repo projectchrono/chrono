@@ -626,12 +626,12 @@ bool WriteMeshPovray(const std::string& obj_filename,
                      const ChVector<>& pos,
                      const ChQuaternion<>& rot) {
     // Read trimesh from OBJ file
-    geometry::ChTriangleMeshConnected trimesh;
-    if (!trimesh.LoadWavefrontMesh(obj_filename, false, false))
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, false, false);
+    if (!trimesh)
         return false;
 
     // Generate output
-    WriteMeshPovray(trimesh, mesh_name, out_dir, col, pos, rot);
+    WriteMeshPovray(*trimesh, mesh_name, out_dir, col, pos, rot);
 
     return true;
 }

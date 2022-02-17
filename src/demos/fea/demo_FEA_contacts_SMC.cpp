@@ -92,8 +92,7 @@ int main(int argc, char* argv[]) {
 
     bool do_mesh_collision_floor = false;
 
-    auto mmeshbox = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmeshbox->LoadWavefrontMesh(GetChronoDataFile("models/cube.obj"), true, true);
+    auto mmeshbox = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cube.obj"), true, true);
 
     if (do_mesh_collision_floor) {
         // floor as a triangle mesh surface:

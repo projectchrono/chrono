@@ -250,8 +250,8 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::MESH: {
             double sphere_r = 0.005;
-            auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-            if (!trimesh->LoadWavefrontMesh(tire_mesh_file, true, false))
+            auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(tire_mesh_file, true, false);
+            if (!trimesh)
                 return 1;
 
             object->GetCollisionModel()->ClearModel();

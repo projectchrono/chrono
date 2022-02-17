@@ -488,11 +488,9 @@ void SCMDeformableSoil::Initialize(const std::string& mesh_file, double delta) {
     m_type = PatchType::TRI_MESH;
 
     // Load triangular mesh
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(mesh_file, true, true);
-
-    const auto& vertices = trimesh.getCoordsVertices();
-    const auto& faces = trimesh.getIndicesVertexes();
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_file, true, true);
+    const auto& vertices = trimesh->getCoordsVertices();
+    const auto& faces = trimesh->getIndicesVertexes();
 
     // Find x, y, and z ranges of vertex data
     auto minmaxX = std::minmax_element(begin(vertices), end(vertices),

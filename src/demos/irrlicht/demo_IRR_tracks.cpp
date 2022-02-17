@@ -264,11 +264,8 @@ class MySimpleTank {
         //--- TRACKS ---
 
         // Load a triangle mesh for collision
-
-        IAnimatedMesh* irmesh_shoe_collision = msceneManager->getMesh(GetChronoDataFile("models/bulldozer/shoe_collision.obj").c_str());
-
-        auto trimesh = chrono_types::make_shared<ChTriangleMeshSoup>();
-        fillChTrimeshFromIrlichtMesh(trimesh.get(), irmesh_shoe_collision->getMesh(0));
+        auto trimesh =
+            ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_collision.obj"));
 
         ChVector<> mesh_displacement(shoelength * 0.5, 0, 0);    // as mesh origin is not in body center of mass
         ChVector<> joint_displacement(-shoelength * 0.5, 0, 0);  // pos. of shoe-shoe constraint, relative to COG.
@@ -300,18 +297,22 @@ class MySimpleTank {
             firstBodyShoe->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
 
             // Visualization:
+            auto shoe_trimesh =
+                ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"));
+            shoe_trimesh->Transform(-mesh_displacement, ChMatrix33<>(1));
             auto shoe_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
-            firstBodyShoe->AddAsset(shoe_mesh);
-            shoe_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_view.obj").c_str());
-            shoe_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
+            shoe_mesh->SetMesh(shoe_trimesh);
             shoe_mesh->SetVisible(true);
+            firstBodyShoe->AddAsset(shoe_mesh);
 
             // Visualize collision mesh
+            auto shoe_coll_trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
+                GetChronoDataFile("models/bulldozer/shoe_collision.obj"));
+            shoe_coll_trimesh->Transform(-mesh_displacement, ChMatrix33<>(1));
             auto shoe_coll_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
-            firstBodyShoe->AddAsset(shoe_coll_mesh);
-            shoe_coll_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_collision.obj").c_str());
-            shoe_coll_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
+            shoe_coll_mesh->SetMesh(shoe_coll_trimesh);
             shoe_coll_mesh->SetVisible(false);
+            firstBodyShoe->AddAsset(shoe_coll_mesh);
 
             // Collision:
             firstBodyShoe->GetCollisionModel()->SetSafeMargin(0.004);  // inward safe margin

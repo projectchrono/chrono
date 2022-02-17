@@ -169,9 +169,8 @@ Turtlebot_Part::Turtlebot_Part(const std::string& name,
 
 // Create Visulization assets
 void Turtlebot_Part::AddVisualizationAssets() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, false);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
@@ -187,9 +186,8 @@ void Turtlebot_Part::SetCollide(bool state) {
 
 // Add collision assets
 void Turtlebot_Part::AddCollisionShapes() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, false);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
@@ -219,9 +217,8 @@ Turtlebot_Chassis::Turtlebot_Chassis(const std::string& name,
 }
 
 void Turtlebot_Chassis::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -277,9 +274,8 @@ Turtlebot_ActiveWheel::Turtlebot_ActiveWheel(const std::string& name,
 }
 
 void Turtlebot_ActiveWheel::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -340,9 +336,8 @@ Turtlebot_PassiveWheel::Turtlebot_PassiveWheel(const std::string& name,
 }
 
 void Turtlebot_PassiveWheel::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -403,9 +398,8 @@ Turtlebot_Rod_Short::Turtlebot_Rod_Short(const std::string& name,
 }
 
 void Turtlebot_Rod_Short::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -468,9 +462,8 @@ Turtlebot_BottomPlate::Turtlebot_BottomPlate(const std::string& name,
 }
 
 void Turtlebot_BottomPlate::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -532,9 +525,8 @@ Turtlebot_MiddlePlate::Turtlebot_MiddlePlate(const std::string& name,
 }
 
 void Turtlebot_MiddlePlate::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -596,9 +588,8 @@ Turtlebot_TopPlate::Turtlebot_TopPlate(const std::string& name,
 }
 
 void Turtlebot_TopPlate::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -662,9 +653,8 @@ Turtlebot_Rod_Long::Turtlebot_Rod_Long(const std::string& name,
 }
 
 void Turtlebot_Rod_Long::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
