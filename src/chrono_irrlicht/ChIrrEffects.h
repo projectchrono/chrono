@@ -966,12 +966,13 @@ struct SShadowLight {
                  irr::f32 farValue = 100.0,
                  irr::f32 fov = 90.0 * irr::core::DEGTORAD64,
                  bool directional = false)
-        : pos(position),
+        : diffuseColour(lightColour),
+          pos(position),
           tar(target),
           farPlane(directional ? 1.0f : farValue),
-          diffuseColour(lightColour),
-          mapRes(shadowMapResolution) {
-        nearValue = nearValue <= 0.0f ? 0.1f : nearValue;
+          mapRes(shadowMapResolution),
+          clipborder(true) {
+        nearValue = (nearValue <= 0.0f) ? 0.1f : nearValue;
 
         updateViewMatrix();
 
@@ -979,8 +980,6 @@ struct SShadowLight {
             projMat.buildProjectionMatrixOrthoRH(fov, fov, nearValue, farValue);
         else
             projMat.buildProjectionMatrixPerspectiveFovRH(fov, 1.0f, nearValue, farValue);
-
-        clipborder = true;
     }
 
     /// Sets the light's position.
@@ -1307,7 +1306,7 @@ class EffectHandler {
         SPostProcessingPair(const irr::s32 materialTypeIn,
                             ScreenQuadCB* callbackIn,
                             IPostProcessingRenderCallback* renderCallbackIn = 0)
-            : materialType(materialTypeIn), callback(callbackIn), renderCallback(renderCallbackIn) {}
+            : callback(callbackIn), renderCallback(renderCallbackIn), materialType(materialTypeIn) {}
 
         bool operator<(const SPostProcessingPair& other) const { return materialType < other.materialType; }
 
@@ -1367,18 +1366,18 @@ inline EffectHandler::EffectHandler(irr::IrrlichtDevice* dev,
                                     const bool useRoundSpotLights,
                                     const bool use32BitDepthBuffers)
     : device(dev),
-      smgr(dev->getSceneManager()),
       driver(dev->getVideoDriver()),
-      ScreenRTTSize(screenRTTSize.getArea() == 0 ? dev->getVideoDriver()->getScreenSize() : screenRTTSize),
-      ClearColour(0x0),
-      shadowsUnsupported(false),
-      DepthRTT(0),
-      DepthPass(false),
+      smgr(dev->getSceneManager()),
       depthMC(0),
       shadowMC(0),
+      DepthRTT(0),
+      ScreenRTTSize(screenRTTSize.getArea() == 0 ? dev->getVideoDriver()->getScreenSize() : screenRTTSize),
+      ClearColour(0x0),
       AmbientColour(0x0),
+      shadowsUnsupported(false),
       use32BitDepth(use32BitDepthBuffers),
-      useVSM(useVSMShadows) {
+      useVSM(useVSMShadows),
+      DepthPass(false) {
     bool tempTexFlagMipMaps = driver->getTextureCreationFlag(irr::video::ETCF_CREATE_MIP_MAPS);
     bool tempTexFlag32 = driver->getTextureCreationFlag(irr::video::ETCF_ALWAYS_32_BIT);
 
@@ -1614,8 +1613,11 @@ inline void EffectHandler::update(irr::video::ITexture* outputTarget) {
 
                 for (irr::u32 m = 0; m < CurrentMaterialCount; ++m) {
                     BufferMaterialList.push_back(ShadowNodeArray[i].node->getMaterial(m).MaterialType);
-                    ShadowNodeArray[i].node->getMaterial(m).MaterialType = (irr::video::E_MATERIAL_TYPE)(
-                        BufferMaterialList[m] == irr::video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF ? DepthT : Depth);
+                    ShadowNodeArray[i].node->getMaterial(m).MaterialType =
+                        (irr::video::E_MATERIAL_TYPE)(BufferMaterialList[m] ==
+                                                              irr::video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF
+                                                          ? DepthT
+                                                          : Depth);
                 }
 
                 ShadowNodeArray[i].node->OnAnimate(device->getTimer()->getTime());

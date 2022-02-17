@@ -102,14 +102,14 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Clear all data
     virtual void Clear() override {
-        this->getCoordsVertices().clear();
-        this->getCoordsNormals().clear();
-        this->getCoordsUV().clear();
-        this->getCoordsColors().clear();
-        this->getIndicesVertexes().clear();
-        this->getIndicesNormals().clear();
-        this->getIndicesUV().clear();
-        this->getIndicesColors().clear();
+        m_vertices.clear();
+        m_normals.clear();
+        m_UV.clear();
+        m_colors.clear();
+        m_face_v_indices.clear();
+        m_face_n_indices.clear();
+        m_face_uv_indices.clear();
+        m_face_col_indices.clear();
     }
 
     /// Compute barycenter, mass, inertia tensor
@@ -132,7 +132,6 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// If allow_single_wing = false, only edges with at least 2 triangles are returned.
     ///  Else, also boundary edges with 1 triangle (the free side has triangle id = -1).
     /// Return false if some edge has more than 2 neighboring triangles.
-
     bool ComputeWingedEdges(std::map<std::pair<int, int>, std::pair<int, int>>& winged_edges,
                             bool allow_single_wing = true) const;
 
@@ -142,7 +141,6 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// some algorithms, ex. collision detection, topological information might be needed, hence adjacent faces must
     /// be connected.
     /// Return the number of merged vertexes.
-
     int RepairDuplicateVertexes(
         const double tolerance = 1e-18  ///< when vertexes are closer than this value, they are merged
     );
@@ -151,16 +149,13 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// The offset can be inward or outward.
     /// Note: self-collisions and inverted faces resulting from excessive offsets are NOT trimmed;
     ///       so this is mostly meant to be a fast tool for making small offsets.
-
     bool MakeOffset(const double offset);
 
-    /// Return the indexes of the two vertexes of the i-th edge of the triangle
-    std::pair<int, int> GetTriangleEdgeIndexes(
-        const std::vector<ChVector<int>>& indexes,  ///< indexes, xyz per each face, ex. getIndicesVertexes()
-        int it,                                     ///< triangle index
-        int nedge,                                  ///< number of edge: 0,1,2
-        bool
-            unique  ///< if true, swaps the pair so that 1st is always < 2nd id, so can test sharing wiht other triangle
+    /// Return the indexes of the two vertexes of the i-th edge of the triangle.
+    /// If unique=true, swap the pair so that 1st < 2nd, to permit test sharing with other triangle.
+    std::pair<int, int> GetTriangleEdgeIndexes(const ChVector<int>& face_indices,  ///< indices of a triangular face
+                                               int nedge,                          ///< number of edge: 0, 1, 2
+                                               bool unique                         ///< swap?
     );
 
     /// Split a given edge by inserting a vertex in the middle: from two triangles one

@@ -256,11 +256,11 @@ void ChTriangleMeshConnected::WriteWavefront(const std::string& filename,
         for (auto& m : meshes) {
             mf << "o mesh_" << std::to_string(i++) << std::endl;
 
-            for (auto& v : m.getCoordsVertices()) {
+            for (auto& v : m.m_vertices) {
                 mf << "v " << v.x() << " " << v.y() << " " << v.z() << std::endl;
             }
 
-            for (auto& f : m.getIndicesVertexes()) {
+            for (auto& f : m.m_face_v_indices) {
                 mf << "f " << f.x() << " " << f.y() << " " << f.z() << std::endl;
             }
         }
@@ -270,30 +270,30 @@ void ChTriangleMeshConnected::WriteWavefront(const std::string& filename,
     std::vector<int> v_offsets;
     int v_off = 1;
     for (auto& m : meshes) {
-        for (auto& v : m.getCoordsVertices()) {
+        for (auto& v : m.m_vertices) {
             mf << "v " << v.x() << " " << v.y() << " " << v.z() << std::endl;
         }
         v_offsets.push_back(v_off);
-        v_off += static_cast<int>(m.getCoordsVertices().size());
+        v_off += static_cast<int>(m.m_vertices.size());
     }
 
     std::vector<bool> has_normals;
     std::vector<int> vn_offsets;
     int vn_off = 1;
     for (auto& m : meshes) {
-        has_normals.push_back(m.getCoordsNormals().size() > 0);
-        for (auto& v : m.getCoordsNormals()) {
+        has_normals.push_back(m.m_normals.size() > 0);
+        for (auto& v : m.m_normals) {
             mf << "vn " << v.x() << " " << v.y() << " " << v.z() << std::endl;
         }
         vn_offsets.push_back(vn_off);
-        vn_off += static_cast<int>(m.getCoordsNormals().size());
+        vn_off += static_cast<int>(m.m_normals.size());
     }
 
     for (size_t i = 0; i < meshes.size(); i++) {
         v_off = v_offsets[i];
         if (has_normals[i]) {
-            auto& idxV = meshes[i].getIndicesVertexes();
-            auto& idxN = meshes[i].getIndicesNormals();
+            auto& idxV = meshes[i].m_face_v_indices;
+            auto& idxN = meshes[i].m_face_n_indices;
             assert(idxV.size() == idxN.size());
             vn_off = vn_offsets[i];
             for (int j = 0; j < idxV.size(); j++) {
@@ -304,7 +304,7 @@ void ChTriangleMeshConnected::WriteWavefront(const std::string& filename,
                     std::endl;
             }
         } else {
-            for (auto& f : meshes[i].getIndicesVertexes()) {
+            for (auto& f : meshes[i].m_face_v_indices) {
                 mf << "f " << f.x() + v_off << " " << f.y() + v_off << " " << f.z() + v_off << std::endl;
             }
         }
@@ -316,14 +316,14 @@ void ChTriangleMeshConnected::WriteWavefront(const std::string& filename,
 /// Utility function for merging multiple meshes.
 ChTriangleMeshConnected ChTriangleMeshConnected::Merge(std::vector<ChTriangleMeshConnected>& meshes) {
     ChTriangleMeshConnected trimesh;
-    auto& vertices = trimesh.getCoordsVertices();
-    auto& normals = trimesh.getCoordsNormals();
-    auto& uvs = trimesh.getCoordsUV();
-    auto& colors = trimesh.getCoordsColors();
-    auto& idx_vertices = trimesh.getIndicesVertexes();
-    auto& idx_normals = trimesh.getIndicesNormals();
-    auto& idx_uvs = trimesh.getIndicesUV();
-    auto& idx_colors = trimesh.getIndicesColors();
+    auto& vertices = trimesh.m_vertices;
+    auto& normals = trimesh.m_normals;
+    auto& uvs = trimesh.m_UV;
+    auto& colors = trimesh.m_colors;
+    auto& idx_vertices = trimesh.m_face_v_indices;
+    auto& idx_normals = trimesh.m_face_n_indices;
+    auto& idx_uvs = trimesh.m_face_uv_indices;
+    auto& idx_colors = trimesh.m_face_col_indices;
 
     int v_off = 0;
     int n_off = 0;
@@ -331,43 +331,43 @@ ChTriangleMeshConnected ChTriangleMeshConnected::Merge(std::vector<ChTriangleMes
     int c_off = 0;
     for (auto& m : meshes) {
         {
-            vertices.insert(vertices.end(), m.getCoordsVertices().begin(), m.getCoordsVertices().end());
+            vertices.insert(vertices.end(), m.m_vertices.begin(), m.m_vertices.end());
             std::vector<ChVector<int>> tmp;
-            tmp.reserve(m.getIndicesVertexes().size());
-            std::transform(m.getIndicesVertexes().begin(), m.getIndicesVertexes().end(), std::back_inserter(tmp),
+            tmp.reserve(m.m_face_v_indices.size());
+            std::transform(m.m_face_v_indices.begin(), m.m_face_v_indices.end(), std::back_inserter(tmp),
                            [&v_off](ChVector<int>& a) { return a + v_off; });
             idx_vertices.insert(idx_vertices.end(), tmp.begin(), tmp.end());
-            v_off += static_cast<int>(m.getCoordsVertices().size());
+            v_off += static_cast<int>(m.m_vertices.size());
         }
 
         {
-            normals.insert(normals.end(), m.getCoordsNormals().begin(), m.getCoordsNormals().end());
+            normals.insert(normals.end(), m.m_normals.begin(), m.m_normals.end());
             std::vector<ChVector<int>> tmp;
-            tmp.reserve(m.getIndicesNormals().size());
-            std::transform(m.getIndicesNormals().begin(), m.getIndicesNormals().end(), std::back_inserter(tmp),
+            tmp.reserve(m.m_face_n_indices.size());
+            std::transform(m.m_face_n_indices.begin(), m.m_face_n_indices.end(), std::back_inserter(tmp),
                            [&n_off](ChVector<int>& a) { return a + n_off; });
             idx_normals.insert(idx_normals.end(), tmp.begin(), tmp.end());
-            n_off += static_cast<int>(m.getCoordsNormals().size());
+            n_off += static_cast<int>(m.m_normals.size());
         }
 
         {
-            uvs.insert(uvs.end(), m.getCoordsUV().begin(), m.getCoordsUV().end());
+            uvs.insert(uvs.end(), m.m_UV.begin(), m.m_UV.end());
             std::vector<ChVector<int>> tmp;
-            tmp.reserve(m.getIndicesUV().size());
-            std::transform(m.getIndicesUV().begin(), m.getIndicesUV().end(), std::back_inserter(tmp),
+            tmp.reserve(m.m_face_uv_indices.size());
+            std::transform(m.m_face_uv_indices.begin(), m.m_face_uv_indices.end(), std::back_inserter(tmp),
                            [&uv_off](ChVector<int>& a) { return a + uv_off; });
             idx_uvs.insert(idx_uvs.end(), tmp.begin(), tmp.end());
-            uv_off += static_cast<int>(m.getCoordsUV().size());
+            uv_off += static_cast<int>(m.m_UV.size());
         }
 
         {
-            colors.insert(colors.end(), m.getCoordsColors().begin(), m.getCoordsColors().end());
+            colors.insert(colors.end(), m.m_colors.begin(), m.m_colors.end());
             std::vector<ChVector<int>> tmp;
-            tmp.reserve(m.getIndicesColors().size());
-            std::transform(m.getIndicesColors().begin(), m.getIndicesColors().end(), std::back_inserter(tmp),
+            tmp.reserve(m.m_face_col_indices.size());
+            std::transform(m.m_face_col_indices.begin(), m.m_face_col_indices.end(), std::back_inserter(tmp),
                            [&c_off](ChVector<int>& a) { return a + c_off; });
             idx_colors.insert(idx_colors.end(), tmp.begin(), tmp.end());
-            c_off += static_cast<int>(m.getCoordsColors().size());
+            c_off += static_cast<int>(m.m_colors.size());
         }
     }
 
@@ -628,25 +628,17 @@ bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
     return true;
 }
 
-/// Return the indexes of the two vertexes of the i-th edge of the triangle
+// Return the indexes of the two vertexes of the specified triangle edge.
+// If unique = true, swap the pair so that 1st < 2nd, to permit test sharing with other triangle.
 std::pair<int, int> ChTriangleMeshConnected::GetTriangleEdgeIndexes(
-    const std::vector<ChVector<int>>& indexes,  ///< indexes, xyz per each face, ex. getIndicesVertexes()
-    int it,                                     ///< triangle id
-    int nedge,                                  ///< number of edge: 0,1,2
-    bool unique  ///< if true, swaps the pair so that 1st is always < 2nd id, so can test sharing wiht other triangle
+    const ChVector<int>& face_indices,  // indices of a triangular face
+    int nedge,                          // number of edge: 0, 1, 2
+    bool unique                         // swap?
 ) {
-    std::pair<int, int> medge;
-    if (nedge == 0)
-        medge = {indexes[it].x(), indexes[it].y()};
-    if (nedge == 1)
-        medge = {indexes[it].y(), indexes[it].z()};
-    if (nedge == 2)
-        medge = {indexes[it].z(), indexes[it].x()};
-    if (unique) {
-        // unique? sort always in increasing order to avoid ambiguous duplicated edges
-        if (medge.first > medge.second)
-            medge = std::pair<int, int>(medge.second, medge.first);
-    }
+    std::pair<int, int> medge{face_indices[nedge], face_indices[(nedge + 1) % 3]};
+    if (unique && medge.first > medge.second)
+        medge = std::pair<int, int>(medge.second, medge.first);
+
     return medge;
 }
 
@@ -693,41 +685,39 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
 // Split an edge by inserting a point in the middle
 // It also updates uv buffer, normals buffer, etc. and recomputes neighboring map.
 bool ChTriangleMeshConnected::SplitEdge(
-    int itA,                                             ///< triangle index,
-    int itB,                                             ///< triangle index, -1 if not existing (means free edge on A)
-    int neA,                                             ///< n.edge on tri A: 0,1,2
-    int neB,                                             ///< n.edge on tri B: 0,1,2
-    int& itA_1,                                          ///< returns the index of split triangle A, part1
-    int& itA_2,                                          ///< returns the index of split triangle A, part2
-    int& itB_1,                                          ///< returns the index of split triangle B, part1
-    int& itB_2,                                          ///< returns the index of split triangle B, part2
-    std::vector<std::array<int, 4>>& tri_map,            ///< triangle neighboring map
-    std::vector<std::vector<double>*>& aux_data_double,  ///< auxiliary buffers to interpolate (assuming indexed as
-                                                         ///< vertexes: each with same size as vertex buffer)
-    std::vector<std::vector<int>*>& aux_data_int,  ///< auxiliary buffers to interpolate (assuming indexed as vertexes:
-                                                   ///< each with same size as vertex buffer)
-    std::vector<std::vector<bool>*>& aux_data_bool,       ///< auxiliary buffers to interpolate (assuming indexed as
-                                                          ///< vertexes: each with same size as vertex buffer)
-    std::vector<std::vector<ChVector<>>*>& aux_data_vect  ///< auxiliary buffers to interpolate (assuming indexed as
-                                                          ///< vertexes: each with same size as vertex buffer)
+    int itA,                                              // triangle index,
+    int itB,                                              // triangle index, -1 if not existing (means free edge on A)
+    int neA,                                              // n.edge on tri A: 0,1,2
+    int neB,                                              // n.edge on tri B: 0,1,2
+    int& itA_1,                                           // returns the index of split triangle A, part1
+    int& itA_2,                                           // returns the index of split triangle A, part2
+    int& itB_1,                                           // returns the index of split triangle B, part1
+    int& itB_2,                                           // returns the index of split triangle B, part2
+    std::vector<std::array<int, 4>>& tri_map,             // triangle neighboring map
+    std::vector<std::vector<double>*>& aux_data_double,   // auxiliary buffers to interpolate
+    std::vector<std::vector<int>*>& aux_data_int,         // auxiliary buffers to interpolate
+    std::vector<std::vector<bool>*>& aux_data_bool,       // auxiliary buffers to interpolate
+    std::vector<std::vector<ChVector<>>*>& aux_data_vect  // auxiliary buffers to interpolate
 ) {
-    std::array<std::vector<ChVector<int>>*, 4> face_indexes;
-    face_indexes[0] = &m_face_v_indices;
-    face_indexes[1] = &m_face_n_indices;
-    face_indexes[2] = &m_face_uv_indices;
-    face_indexes[3] = &m_face_col_indices;
+    std::array<std::vector<ChVector<int>>*, 4> face_indexes{
+        &m_face_v_indices,   //
+        &m_face_n_indices,   //
+        &m_face_uv_indices,  //
+        &m_face_col_indices  //
+    };
 
-    int iea = 0, ieb = 0;
+    int iea = 0;
+    int ieb = 0;
 
     for (int ibuffer = 0; ibuffer < 4; ++ibuffer) {
         if (face_indexes[ibuffer]->size()) {
             // case where one used normals, uv, color buffers, with custom face indexes:
             std::pair<int, int> eA;
-            eA = ChTriangleMeshConnected::GetTriangleEdgeIndexes(*face_indexes[ibuffer], itA, neA, false);
+            eA = ChTriangleMeshConnected::GetTriangleEdgeIndexes(face_indexes[ibuffer]->at(itA), neA, false);
             std::pair<int, int> eAB = eA;
             std::pair<int, int> eB;
             if (itB != -1)
-                eB = ChTriangleMeshConnected::GetTriangleEdgeIndexes(*face_indexes[ibuffer], itB, neB, false);
+                eB = ChTriangleMeshConnected::GetTriangleEdgeIndexes(face_indexes[ibuffer]->at(itB), neB, false);
             bool swapA = false;
             if (eA.first > eA.second) {
                 swapA = true;
@@ -929,7 +919,7 @@ void ChTriangleMeshConnected::RefineMeshEdges(
             int edge_N = 0;
             double L_e;
             for (int ie = 0; ie < 3; ++ie) {
-                std::pair<int, int> ie_verts = this->GetTriangleEdgeIndexes(m_face_v_indices, t_N, ie, true);
+                std::pair<int, int> ie_verts = this->GetTriangleEdgeIndexes(m_face_v_indices[t_N], ie, true);
                 if (criterion)
                     L_e = criterion->ComputeLength(ie_verts.first, ie_verts.second, this);
                 else
@@ -979,7 +969,7 @@ void ChTriangleMeshConnected::RefineMeshEdges(
                 int edge_N1 = 0;
                 int t_shared = 0;
                 for (int ie = 0; ie < 3; ++ie) {
-                    std::pair<int, int> T1_ie_verts = this->GetTriangleEdgeIndexes(m_face_v_indices, t_N1, ie, true);
+                    std::pair<int, int> T1_ie_verts = this->GetTriangleEdgeIndexes(m_face_v_indices[t_N1], ie, true);
                     if (criterion)
                         L_e = criterion->ComputeLength(T1_ie_verts.first, T1_ie_verts.second, this);
                     else
