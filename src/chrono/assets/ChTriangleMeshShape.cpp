@@ -108,13 +108,13 @@ void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnec
         }
 
         // For each shape, copy material_indices. Faces that reference an invalid material are assigned the first one.
-        trimesh->m_face_col_indices.clear();
+        trimesh->m_face_mat_indices.clear();
         for (int i = 0; i < shapes.size(); i++) {
             for (int j = 0; j < shapes[i].mesh.indices.size() / 3; j++) {
                 if (shapes[i].mesh.material_ids[j] < 0 || shapes[i].mesh.material_ids[j] >= material_list.size()) {
-                    trimesh->m_face_col_indices.push_back(ChVector<int>(0, 0, 0));
+                    trimesh->m_face_mat_indices.push_back(0);
                 } else {
-                    trimesh->m_face_col_indices.push_back(ChVector<int>(shapes[i].mesh.material_ids[j], 0, 0));
+                    trimesh->m_face_mat_indices.push_back(shapes[i].mesh.material_ids[j]);
                 }
             }
         }

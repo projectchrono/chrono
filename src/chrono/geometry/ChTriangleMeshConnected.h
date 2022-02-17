@@ -36,6 +36,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::vector<ChVector<int>> m_face_n_indices;
     std::vector<ChVector<int>> m_face_uv_indices;
     std::vector<ChVector<int>> m_face_col_indices;
+    std::vector<int> m_face_mat_indices;
 
     std::string m_filename;  ///< file string if loading an obj file
 
@@ -56,6 +57,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::vector<ChVector<int>>& getIndicesNormals() { return m_face_n_indices; }
     std::vector<ChVector<int>>& getIndicesUV() { return m_face_uv_indices; }
     std::vector<ChVector<int>>& getIndicesColors() { return m_face_col_indices; }
+    std::vector<int>& getIndicesMaterials() { return m_face_mat_indices; }
 
     /// Create and return a ChTriangleMeshConnected from a Wavefront OBJ file.
     /// If an error occurrs during loading, an empty shared pointer is returned.
@@ -110,6 +112,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
         m_face_n_indices.clear();
         m_face_uv_indices.clear();
         m_face_col_indices.clear();
+        m_face_mat_indices.clear();
     }
 
     /// Compute barycenter, mass, inertia tensor

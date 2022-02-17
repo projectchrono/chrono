@@ -13,6 +13,12 @@
 // =============================================================================
 // =============================================================================
 
+//// RADU TODO
+//// (1) Merge() does nothing for the face material indices.
+////     The problem is that we cannot merge the visual material lists (not present here)
+//// (2) SplitEdge() does not do anything for face material indices.
+///      This could be implemented such that the two new faces point to the same material.
+
 #include <algorithm>
 #include <cstdio>
 #include <fstream>
@@ -41,6 +47,7 @@ ChTriangleMeshConnected::ChTriangleMeshConnected(const ChTriangleMeshConnected& 
     m_face_n_indices = source.m_face_n_indices;
     m_face_uv_indices = source.m_face_uv_indices;
     m_face_col_indices = source.m_face_col_indices;
+    m_face_mat_indices = source.m_face_mat_indices;
 
     m_filename = source.m_filename;
 }
@@ -557,6 +564,9 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
         m_face_col_indices[i].y() = new_indexes[m_face_col_indices[i].y()];
         m_face_col_indices[i].z() = new_indexes[m_face_col_indices[i].z()];
     }
+    for (int i = 0; i < this->m_face_mat_indices.size(); ++i) {
+        m_face_mat_indices[i] = new_indexes[m_face_mat_indices[i]];
+    }
 
     return nmerged;
 }
@@ -1024,6 +1034,7 @@ void ChTriangleMeshConnected::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(m_face_n_indices);
     marchive << CHNVP(m_face_uv_indices);
     marchive << CHNVP(m_face_col_indices);
+    marchive << CHNVP(m_face_mat_indices);
     marchive << CHNVP(m_filename);
 }
 
@@ -1041,6 +1052,7 @@ void ChTriangleMeshConnected::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(m_face_n_indices);
     marchive >> CHNVP(m_face_uv_indices);
     marchive >> CHNVP(m_face_col_indices);
+    marchive >> CHNVP(m_face_mat_indices);
     marchive >> CHNVP(m_filename);
 }
 
