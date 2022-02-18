@@ -525,7 +525,7 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
     std::vector<int> new_indexes(m_vertices.size());
 
     // merge vertexes
-    for (int i = 0; i < this->m_vertices.size(); ++i) {
+    for (int i = 0; i < m_vertices.size(); ++i) {
         bool tomerge = false;
         for (int j = 0; j < processed_verts.size(); ++j) {
             if ((m_vertices[i] - processed_verts[j]).Length2() < tolerance) {
@@ -541,31 +541,14 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
         }
     }
 
-    this->m_vertices = processed_verts;
+    m_vertices = processed_verts;
 
-    // update the merged vertexes also in face indexes to vertexes
+    // Update the merged vertexes also in face indexes to vertexes
+    // Note: we DO NOT update the normal, color, UV, or material indices!
     for (int i = 0; i < this->m_face_v_indices.size(); ++i) {
         m_face_v_indices[i].x() = new_indexes[m_face_v_indices[i].x()];
         m_face_v_indices[i].y() = new_indexes[m_face_v_indices[i].y()];
         m_face_v_indices[i].z() = new_indexes[m_face_v_indices[i].z()];
-    }
-    for (int i = 0; i < this->m_face_n_indices.size(); ++i) {
-        m_face_n_indices[i].x() = new_indexes[m_face_n_indices[i].x()];
-        m_face_n_indices[i].y() = new_indexes[m_face_n_indices[i].y()];
-        m_face_n_indices[i].z() = new_indexes[m_face_n_indices[i].z()];
-    }
-    for (int i = 0; i < this->m_face_uv_indices.size(); ++i) {
-        m_face_uv_indices[i].x() = new_indexes[m_face_uv_indices[i].x()];
-        m_face_uv_indices[i].y() = new_indexes[m_face_uv_indices[i].y()];
-        m_face_uv_indices[i].z() = new_indexes[m_face_uv_indices[i].z()];
-    }
-    for (int i = 0; i < this->m_face_col_indices.size(); ++i) {
-        m_face_col_indices[i].x() = new_indexes[m_face_col_indices[i].x()];
-        m_face_col_indices[i].y() = new_indexes[m_face_col_indices[i].y()];
-        m_face_col_indices[i].z() = new_indexes[m_face_col_indices[i].z()];
-    }
-    for (int i = 0; i < this->m_face_mat_indices.size(); ++i) {
-        m_face_mat_indices[i] = new_indexes[m_face_mat_indices[i]];
     }
 
     return nmerged;
