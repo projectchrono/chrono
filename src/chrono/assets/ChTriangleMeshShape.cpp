@@ -77,31 +77,31 @@ void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnec
             }
 
             if (materials[i].specular_texname != "") {
-                mat->SetKsTexture(mtl_base + materials[i].specular_texname);
+                mat->SetKsTexture(mtl_base + "/" +  materials[i].specular_texname);
                 mat->SetUseSpecularWorkflow(true);
             }
             // set normal map when called "bump_texname"
             if (materials[i].bump_texname != "") {
-                mat->SetNormalMapTexture(mtl_base + materials[i].bump_texname);
+                mat->SetNormalMapTexture(mtl_base + "/" + materials[i].bump_texname);
             }
             // set normal map when called "normal_texname"
             if (materials[i].normal_texname != "") {
-                mat->SetNormalMapTexture(mtl_base + materials[i].normal_texname);
+                mat->SetNormalMapTexture(mtl_base + "/" + materials[i].normal_texname);
             }
             // set roughness texture if it exists
             if (materials[i].roughness_texname != "") {
-                mat->SetRoughnessTexture(mtl_base + materials[i].roughness_texname);
+                mat->SetRoughnessTexture(mtl_base + "/" + materials[i].roughness_texname);
                 mat->SetUseSpecularWorkflow(false);
             }
             // set metallic texture if it exists
             if (materials[i].metallic_texname != "") {
-                mat->SetMetallicTexture(mtl_base + materials[i].metallic_texname);
+                mat->SetMetallicTexture(mtl_base + "/" + materials[i].metallic_texname);
             }
             // set opacity texture if it exists
             // NOTE: need to make sure alpha and diffuse names are different to prevent 4 channel opacity textures in
             // Chrono::Sensor
             if (materials[i].alpha_texname != "" && materials[i].alpha_texname != materials[i].diffuse_texname) {
-                mat->SetOpacityTexture(mtl_base + materials[i].alpha_texname);
+                mat->SetOpacityTexture(mtl_base + "/" + materials[i].alpha_texname);
             }
 
             material_list.push_back(mat);
