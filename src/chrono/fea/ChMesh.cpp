@@ -265,6 +265,22 @@ void ChMesh::IntStateIncrement(const unsigned int off_x,
     }
 }
 
+void ChMesh::IntStateGetIncrement(const unsigned int off_x,
+                               const ChState& x_new,
+                               const ChState& x,
+                               const unsigned int off_v,
+                               ChStateDelta& Dv) {
+    unsigned int local_off_x = 0;
+    unsigned int local_off_v = 0;
+    for (unsigned int j = 0; j < vnodes.size(); j++) {
+        if (!vnodes[j]->GetFixed()) {
+            vnodes[j]->NodeIntStateGetIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
+            local_off_x += vnodes[j]->Get_ndof_x();
+            local_off_v += vnodes[j]->Get_ndof_w();
+        }
+    }
+}
+
 void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     // nodes applied forces
     unsigned int local_off_v = 0;

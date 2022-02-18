@@ -202,6 +202,24 @@ void ChBody::IntStateIncrement(const unsigned int off_x,  // offset in x state v
     ChQuaternion<> q_new = q_old * rel_q;
     x_new.segment(off_x + 3, 4) = q_new.eigen();
 }
+
+void ChBody::IntStateGetIncrement(const unsigned int off_x,  // offset in x state vector
+                               const ChState& x_new,         // state vector, position part, incremented result
+                               const ChState& x,             // state vector, initial position part
+                               const unsigned int off_v,     // offset in v state vector
+                               ChStateDelta& Dv     // state vector, increment
+) {
+    // POSITION:
+    Dv(off_v) = x_new(off_x) - x(off_x);
+    Dv(off_v + 1) = x_new(off_x + 1) - x(off_x + 1);
+    Dv(off_v + 2) = x_new(off_x + 2) - x(off_x + 2);
+
+    // ROTATION (quaternions): Dq_loc = q_old^-1 * q_new,
+    //  because   q_new = Dq_abs * q_old   = q_old * Dq_loc
+    ChQuaternion<> q_old(x.segment(off_x + 3, 4));
+    ChQuaternion<> q_new(x_new.segment(off_x + 3, 4));
+    ChQuaternion<> rel_q = q_old.GetConjugate() % q_new;
+    Dv.segment(off_v + 3, 3) = rel_q.Q_to_Rotv().eigen();
 }
 
 void ChBody::IntLoadResidual_F(const unsigned int off,  // offset in R residual

@@ -389,6 +389,25 @@ void ChParticlesClones::IntStateIncrement(const unsigned int off_x,  // offset i
         x_new.segment(off_x + 7 * j + 3, 4) = q_new.eigen();
     }
 }
+
+void ChParticlesClones::IntStateGetIncrement(const unsigned int off_x,  // offset in x state vector
+                                          const ChState& x_new,            // state vector, position part, incremented result
+                                          const ChState& x,          // state vector, initial position part
+                                          const unsigned int off_v,  // offset in v state vector
+                                          ChStateDelta& Dv     // state vector, increment
+                                          ) {
+    for (unsigned int j = 0; j < particles.size(); j++) {
+        // POSITION:
+        Dv(off_v + 6 * j) = x_new(off_x + 7 * j) - x(off_x + 7 * j);
+        Dv(off_v + 6 * j + 1) = x_new(off_x + 7 * j + 1) - x(off_x + 7 * j + 1);
+        Dv(off_v + 6 * j + 2) = x_new(off_x + 7 * j + 2) - x(off_x + 7 * j + 2);
+
+        // ROTATION (quaternions): Dq_loc = q_old^-1 * q_new,
+        //  because   q_new = Dq_abs * q_old   = q_old * Dq_loc
+        ChQuaternion<> q_old(x.segment(off_x + 7 * j + 3, 4));
+        ChQuaternion<> q_new(x_new.segment(off_x + 7 * j + 3, 4));
+        ChQuaternion<> rel_q = q_old.GetConjugate() % q_new;
+        Dv.segment(off_v + 6 *j + 3, 3) = rel_q.Q_to_Rotv().eigen();
     }
 }
 
