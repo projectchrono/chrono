@@ -194,29 +194,50 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<
     auto& indexbuffer = irrmesh->getIndexBuffer();
 
     // Access Chrono triangle mesh
-    geometry::ChTriangleMeshConnected* mesh = trianglemesh->GetMesh().get();
+    const auto& mesh = trianglemesh->GetMesh();
     std::vector<ChVector<>>& vertices = mesh->getCoordsVertices();
     std::vector<ChVector<>>& normals = mesh->getCoordsNormals();
+    std::vector<ChVector<>>& uvs = mesh->getCoordsUV();
+    std::vector<ChVector<float>>& colors = mesh->getCoordsColors();
     std::vector<ChVector<int>>& idx_vertices = mesh->getIndicesVertexes();
-    std::vector<ChVector<>>& uv_coords = mesh->getCoordsUV();
-    std::vector<ChVector<float>>& cols = mesh->getCoordsColors();
 
-    // Chrono mesh -> Irrlicht mesh
+    unsigned int ntriangles = (unsigned int)mesh->getIndicesVertexes().size();
+    unsigned int nvertices = (unsigned int)mesh->getCoordsVertices().size();
+    unsigned int nnormals = (unsigned int)mesh->getCoordsNormals().size();
+    unsigned int nuvs = (unsigned int)mesh->getCoordsUV().size();
+    unsigned int ncolors = (unsigned int)mesh->getCoordsColors().size();
+
+    bool has_colors = (ncolors > 0);
+    bool has_uvs = (nuvs > 0);
+
     if (initial_update) {
         // Full setup of the Irrlicht mesh
-        unsigned int ntriangles = (unsigned int)mesh->getIndicesVertexes().size();
-        unsigned int nvertices = (unsigned int)mesh->getCoordsVertices().size();
-
         vertexbuffer.set_used(nvertices);
         indexbuffer.set_used(ntriangles * 3);
 
+        assert(nnormals == nvertices);
+        assert(ncolors == 0 || ncolors == nvertices);
+        assert(nuvs == 0 || nuvs == nvertices);
+
         for (unsigned int i = 0; i < nvertices; i++) {
+            video::SColor color(255, 255, 255, 255);
+            if (has_colors) {
+                color.setRed((u32)(colors[i].x() * 255));
+                color.setGreen((u32)(colors[i].x() * 255));
+                color.setBlue((u32)(colors[i].x() * 255));
+            }
+            f32 u = 0;
+            f32 v = 0;
+            if (has_uvs) {
+                u = (f32)uvs[i].x();
+                v = (f32)uvs[i].y();
+            }
+
             vertexbuffer[i] = video::S3DVertex(                                    //
                 (f32)vertices[i].x(), (f32)vertices[i].y(), (f32)vertices[i].z(),  //
                 (f32)normals[i].x(), (f32)normals[i].y(), (f32)normals[i].z(),     //
-                video::SColor(255, (u32)(cols[i].x() * 255), (u32)(cols[i].y() * 255),
-                              (u32)(cols[i].z() * 255)),      //
-                (f32)uv_coords[i].x(), (f32)uv_coords[i].y()  //
+                color,                                                             //
+                u, v                                                               //
             );
         }
 
@@ -239,8 +260,12 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<
         for (auto i : trianglemesh->GetModifiedVertices()) {
             vertexbuffer[i].Pos = core::vector3df((f32)vertices[i].x(), (f32)vertices[i].y(), (f32)vertices[i].z());
             vertexbuffer[i].Normal = core::vector3df((f32)normals[i].x(), (f32)normals[i].y(), (f32)normals[i].z());
-            vertexbuffer[i].Color =
-                video::SColor(255, (u32)(cols[i].x() * 255), (u32)(cols[i].y() * 255), (u32)(cols[i].z() * 255));
+            if (has_colors) {
+                vertexbuffer[i].Color = video::SColor(255,                         //
+                                                      (u32)(colors[i].x() * 255),  //
+                                                      (u32)(colors[i].y() * 255),  //
+                                                      (u32)(colors[i].z() * 255));
+            }
         }
     }
 
