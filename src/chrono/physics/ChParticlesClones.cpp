@@ -381,15 +381,14 @@ void ChParticlesClones::IntStateIncrement(const unsigned int off_x,  // offset i
         x_new(off_x + 7 * j + 1) = x(off_x + 7 * j + 1) + Dv(off_v + 6 * j + 1);
         x_new(off_x + 7 * j + 2) = x(off_x + 7 * j + 2) + Dv(off_v + 6 * j + 2);
 
-        // ADVANCE ROTATION: rot' = delta*rot  (use quaternion for delta rotation)
-        ChQuaternion<> mdeltarot;
-        ChQuaternion<> moldrot(x.segment(off_x + 7 * j + 3, 4));
-        ChVector<> newwel_abs = particles[j]->Amatrix * ChVector<>(Dv.segment(off_v + 6 * j + 3, 3));
-        double mangle = newwel_abs.Length();
-        newwel_abs.Normalize();
-        mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
-        ChQuaternion<> mnewrot = mdeltarot * moldrot;  // quaternion product
-        x_new.segment(off_x + 7 * j + 3, 4) = mnewrot.eigen();
+        // ADVANCE ROTATION: R_new = DR_a * R_old
+        // (using quaternions, local or abs:  q_new = Dq_a * q_old =  q_old * Dq_l  )
+        ChQuaternion<> q_old(x.segment(off_x + 7 * j + 3, 4));
+        ChQuaternion<> rel_q; rel_q.Q_from_Rotv(Dv.segment(off_v + 6 * j + 3, 3));
+        ChQuaternion<> q_new = q_old * rel_q;
+        x_new.segment(off_x + 7 * j + 3, 4) = q_new.eigen();
+    }
+}
     }
 }
 
