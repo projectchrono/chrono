@@ -90,6 +90,11 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
                                        const ChState& x,
                                        const unsigned int off_v,
                                        const ChStateDelta& Dv) override;
+    virtual void NodeIntStateGetIncrement(const unsigned int off_x,
+                                       const ChState& x_new,
+                                       const ChState& x,
+                                       const unsigned int off_v,
+                                       ChStateDelta& Dv) override;
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                         ChVectorDynamic<>& R,
