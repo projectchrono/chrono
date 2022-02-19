@@ -114,7 +114,7 @@ std::shared_ptr<ChTriangleMeshShape> ChTire::AddVisualizationMesh(const std::str
     m_vis_mesh_file = left ? mesh_file_left : mesh_file_right;
 
     auto trimesh =
-        geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file), false, false);
+        geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file), true, true);
     trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(rot));
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();

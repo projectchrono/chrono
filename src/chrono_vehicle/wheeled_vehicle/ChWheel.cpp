@@ -89,7 +89,7 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && !m_vis_mesh_file.empty()) {
         ChQuaternion<> rot = (m_side == VehicleSide::LEFT) ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
-                                                                                  false, false);
+                                                                                  true, true);
         trimesh->Transform(ChVector<>(0, m_offset, 0), ChMatrix33<>(rot));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->Pos = ChVector<>(0, m_offset, 0);

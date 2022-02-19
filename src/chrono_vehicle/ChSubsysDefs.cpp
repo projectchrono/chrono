@@ -44,7 +44,7 @@ void ChVehicleGeometry::EnableVisualizationAssetLevels(bool flag) {
 void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
-                                                                                  false, false);
+                                                                                  true, true);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
