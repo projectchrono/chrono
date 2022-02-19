@@ -58,9 +58,9 @@ void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnec
         for (int i = 0; i < materials.size(); i++) {
             std::shared_ptr<ChVisualMaterial> mat = chrono_types::make_shared<ChVisualMaterial>();
             mat->SetAmbientColor({materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2]});
-
             mat->SetDiffuseColor({materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]});
             mat->SetSpecularColor({materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]});
+            mat->SetEmissiveColor({materials[i].emission[0], materials[i].emission[1], materials[i].emission[2]});
             mat->SetMetallic(materials[i].metallic);
             mat->SetTransparency(materials[i].dissolve);
             mat->SetRoughness(materials[i].roughness);

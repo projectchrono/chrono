@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Asher Elmquist, Radu Serban
 // =============================================================================
 
 #include "chrono/assets/ChVisualMaterial.h"
@@ -31,22 +31,28 @@ ChVisualMaterial::ChVisualMaterial()
       class_id(0),
       instance_id(0) {}
 
-void ChVisualMaterial::SetAmbientColor(ChVector<float> rgb) {
+void ChVisualMaterial::SetAmbientColor(const ChVector<float>& rgb) {
     // valid rgb range [0,1]
     if (rgb.x() >= 0 && rgb.y() >= 0 && rgb.z() >= 0 && rgb.x() <= 1 && rgb.y() <= 1 && rgb.z() <= 1) {
         Ka = rgb;
     }
 }
-void ChVisualMaterial::SetDiffuseColor(ChVector<float> rgb) {
+void ChVisualMaterial::SetDiffuseColor(const ChVector<float>& rgb) {
     // valid rgb range [0,1]
     if (rgb.x() >= 0 && rgb.y() >= 0 && rgb.z() >= 0 && rgb.x() <= 1 && rgb.y() <= 1 && rgb.z() <= 1) {
         Kd = rgb;
     }
 }
-void ChVisualMaterial::SetSpecularColor(ChVector<float> rgb) {
+void ChVisualMaterial::SetSpecularColor(const ChVector<float>& rgb) {
     // valid rgb range [0,1]
     if (rgb.x() >= 0 && rgb.y() >= 0 && rgb.z() >= 0 && rgb.x() <= 1 && rgb.y() <= 1 && rgb.z() <= 1) {
         Ks = rgb;
+    }
+}
+void ChVisualMaterial::SetEmissiveColor(const ChVector<float>& rgb) {
+    // valid rgb range [0,1]
+    if (rgb.x() >= 0 && rgb.y() >= 0 && rgb.z() >= 0 && rgb.x() <= 1 && rgb.y() <= 1 && rgb.z() <= 1) {
+        Ke = rgb;
     }
 }
 
