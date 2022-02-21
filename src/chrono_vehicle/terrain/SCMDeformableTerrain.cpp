@@ -574,7 +574,7 @@ void SCMDeformableSoil::CreateVisualizationMesh(double sizeX, double sizeY) {
     std::vector<ChVector<>>& normals = trimesh->getCoordsNormals();
     std::vector<ChVector<int>>& idx_vertices = trimesh->getIndicesVertexes();
     std::vector<ChVector<int>>& idx_normals = trimesh->getIndicesNormals();
-    std::vector<ChVector<>>& uv_coords = trimesh->getCoordsUV();
+    std::vector<ChVector2<>>& uv_coords = trimesh->getCoordsUV();
     std::vector<ChVector<float>>& colors = trimesh->getCoordsColors();
 
     // Resize mesh arrays.
@@ -615,7 +615,7 @@ void SCMDeformableSoil::CreateVisualizationMesh(double sizeX, double sizeY) {
             // Assign color white to all vertices
             colors[iv] = ChVector<float>(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
-            uv_coords[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
+            uv_coords[iv] = ChVector2<>(ix * x_scale, iy * y_scale);
             ++iv;
         }
     }

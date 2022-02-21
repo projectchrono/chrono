@@ -52,6 +52,36 @@ ChTriangleMeshConnected::ChTriangleMeshConnected(const ChTriangleMeshConnected& 
     m_filename = source.m_filename;
 }
 
+void ChTriangleMeshConnected::addTriangle(const ChVector<>& vertex0,
+                                          const ChVector<>& vertex1,
+                                          const ChVector<>& vertex2) {
+    int base_v = (int)m_vertices.size();
+    m_vertices.push_back(vertex0);
+    m_vertices.push_back(vertex1);
+    m_vertices.push_back(vertex2);
+    m_face_v_indices.push_back(ChVector<int>(base_v, base_v + 1, base_v + 2));
+}
+
+void ChTriangleMeshConnected::addTriangle(const ChTriangle& atriangle) {
+    int base_v = (int)m_vertices.size();
+    m_vertices.push_back(atriangle.p1);
+    m_vertices.push_back(atriangle.p2);
+    m_vertices.push_back(atriangle.p3);
+    m_face_v_indices.push_back(ChVector<int>(base_v, base_v + 1, base_v + 2));
+}
+
+void ChTriangleMeshConnected::Clear() {
+    m_vertices.clear();
+    m_normals.clear();
+    m_UV.clear();
+    m_colors.clear();
+    m_face_v_indices.clear();
+    m_face_n_indices.clear();
+    m_face_uv_indices.clear();
+    m_face_col_indices.clear();
+    m_face_mat_indices.clear();
+}
+
 // Following function is a modified version of:
 //
 // Geometric Tools, LLC
@@ -225,7 +255,7 @@ bool ChTriangleMeshConnected::LoadWavefrontMesh(const std::string& filename, boo
     }
     if (load_uv) {
         for (size_t i = 0; i < att.texcoords.size() / 2; i++) {
-            m_UV.push_back(ChVector<>(att.texcoords[2 * i + 0], att.texcoords[2 * i + 1], 0));
+            m_UV.push_back(ChVector2<>(att.texcoords[2 * i + 0], att.texcoords[2 * i + 1]));
         }
     }
 
@@ -657,7 +687,7 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
         case 2: {
             if (mesh.m_UV.empty())
                 return false;
-            ChVector<> Vnew = (mesh.m_UV[i1] + mesh.m_UV[i2]) * 0.5;
+            ChVector2<> Vnew = (mesh.m_UV[i1] + mesh.m_UV[i2]) * 0.5;
             mesh.m_UV.push_back(Vnew);
             created_index = (int)mesh.m_UV.size() - 1;
             return true;

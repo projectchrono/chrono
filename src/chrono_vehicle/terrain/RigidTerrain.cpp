@@ -356,7 +356,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
             // Assign color white to all vertices
             patch->m_trimesh->getCoordsColors()[iv] = ChVector<float>(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
-            patch->m_trimesh->getCoordsUV()[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
+            patch->m_trimesh->getCoordsUV()[iv] = ChVector2<>(ix * x_scale, iy * y_scale);
             ++iv;
         }
     }

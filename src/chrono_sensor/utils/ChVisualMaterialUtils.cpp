@@ -57,7 +57,7 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
 
     std::vector<ChVector<double>> vertex_buffer;
     std::vector<ChVector<double>> normal_buffer;
-    std::vector<ChVector<double>> tex_coords;
+    std::vector<ChVector2<double>> tex_coords;
     std::vector<ChVector<int>> vertex_index_buffer;
     std::vector<ChVector<int>> normal_index_buffer;
     std::vector<ChVector<int>> texcoord_index_buffer;
@@ -79,7 +79,7 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
 
     // copy in tex coords (uvs)
     for (int i = 0; i < att.texcoords.size() / 2; i++) {
-        tex_coords.push_back(ChVector<double>(att.texcoords[2 * i + 0], att.texcoords[2 * i + 1], 0));
+        tex_coords.push_back(ChVector2<double>(att.texcoords[2 * i + 0], att.texcoords[2 * i + 1]));
     }
 
     // copy in materials

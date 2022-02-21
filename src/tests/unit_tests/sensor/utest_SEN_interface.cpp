@@ -189,7 +189,7 @@ TEST(SensorInterface, mesh_channels) {
 
     std::vector<ChVector<double>> vertices = {{2.f, 0.f, 0.5f}, {2.f, 0.5f, -0.5f}, {2.f, -0.5f, -0.5f}};
     std::vector<ChVector<double>> normals = {{-1.f, 0.f, 0.f}};
-    std::vector<ChVector<double>> uvs = {{0.5f, 1.f, 0.f}, {0.f, 0.f, 0.f}, {1.f, 0.f, 0.f}};
+    std::vector<ChVector2<double>> uvs = {{0.5f, 1.f}, {0.f, 0.f}, {1.f, 0.f}};
     std::vector<ChVector<int>> vert_ids = {{0, 1, 2}};
     std::vector<ChVector<int>> norm_ids = {{0, 0, 0}};
     std::vector<ChVector<int>> uv_ids = {{0, 1, 2}};

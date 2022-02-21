@@ -73,7 +73,7 @@ static video::SColor ToIrrlichtColor(const ChVector<float>& col, u32 alpha = 255
 
 static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
                                          const ChVector<>& nrm,
-                                         const ChVector<>& uv,
+                                         const ChVector2<>& uv,
                                          const ChVector<float>& col) {
     video::S3DVertex vertex;
     vertex.Pos = core::vector3df((f32)pos.x(), (f32)pos.y(), (f32)pos.z());
@@ -85,7 +85,7 @@ static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
 
 static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
                                          const ChVector<>& nrm,
-                                         const ChVector<>& uv,
+                                         const ChVector2<>& uv,
                                          const video::SColor& col) {
     video::S3DVertex vertex;
     vertex.Pos = core::vector3df((f32)pos.x(), (f32)pos.y(), (f32)pos.z());
@@ -162,7 +162,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMes
             n3 = n1;
         }
 
-        ChVector<> uv1, uv2, uv3;
+        ChVector2<> uv1, uv2, uv3;
         if (uv_indices.size() == ntriangles) {
             uv1 = uvs[uv_indices[itri].x()];
             uv2 = uvs[uv_indices[itri].y()];
@@ -171,8 +171,6 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMes
             uv1 = uvs[v_indices[itri].x()];
             uv2 = uvs[v_indices[itri].y()];
             uv3 = uvs[v_indices[itri].z()];
-        } else {
-            uv1 = uv2 = uv3 = VNULL;
         }
 
         ChVector<float> col1, col2, col3;
@@ -339,7 +337,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMes
                 n3 = n1;
             }
 
-            ChVector<> uv1, uv2, uv3;
+            ChVector2<> uv1, uv2, uv3;
             if (uv_indices.size() == ntriangles_all) {
                 uv1 = uvs[uv_indices[itri].x()];
                 uv2 = uvs[uv_indices[itri].y()];
@@ -406,7 +404,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<
     const auto& mesh = trianglemesh->GetMesh();
     std::vector<ChVector<>>& vertices = mesh->getCoordsVertices();
     std::vector<ChVector<>>& normals = mesh->getCoordsNormals();
-    std::vector<ChVector<>>& uvs = mesh->getCoordsUV();
+    std::vector<ChVector2<>>& uvs = mesh->getCoordsUV();
     std::vector<ChVector<float>>& colors = mesh->getCoordsColors();
     std::vector<ChVector<int>>& idx_vertices = mesh->getIndicesVertexes();
 
