@@ -63,6 +63,7 @@ void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnec
             mat->SetEmissiveColor({materials[i].emission[0], materials[i].emission[1], materials[i].emission[2]});
             mat->SetMetallic(materials[i].metallic);
             mat->SetTransparency(materials[i].dissolve);
+            mat->SetIllumination(materials[i].illum);
             mat->SetRoughness(materials[i].roughness);
 
             // If metallic and roughness is set to default, use specular workflow

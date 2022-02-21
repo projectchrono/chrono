@@ -70,6 +70,13 @@ void ChVisualMaterial::SetTransparency(float tr) {
     }
 }
 
+void ChVisualMaterial::SetIllumination(int i) {
+    // valid values for illumination model are 0...10
+    if (i >= 0 && i <= 10) {
+        illum = i;
+    }
+}
+
 void ChVisualMaterial::SetFresnelExp(float exp) {
     fresnel_exp = std::max(1.f, std::min(exp, 1000.f));
 }

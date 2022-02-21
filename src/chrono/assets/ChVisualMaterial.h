@@ -37,6 +37,7 @@ class ChApi ChVisualMaterial : public ChAsset {
     void SetEmissiveColor(const ChVector<float>& rgb);
     void SetSpecularExponent(float exponent);
     void SetTransparency(float tr);
+    void SetIllumination(int i);
     void SetKdTexture(const std::string& filename) { kd_texture = filename; };
     void SetKsTexture(const std::string& filename) { ks_texture = filename; };
     void SetNormalMapTexture(const std::string& filename) { normal_texture = filename; };
@@ -59,6 +60,7 @@ class ChApi ChVisualMaterial : public ChAsset {
     const ChVector<float>& GetEmissiveColor() const { return Ke; }
     float GetSpecularExponent() const { return Ns; }
     float GetTransparency() const { return d; }
+    int GetIllumination() const { return illum; }
     const std::string& GetKdTexture() const { return kd_texture; };
     const std::string& GetKsTexture() const { return ks_texture; };
     const std::string& GetNormalMapTexture() const { return normal_texture; };
@@ -85,6 +87,8 @@ class ChApi ChVisualMaterial : public ChAsset {
     float fresnel_exp;
     float Ns;  // specular exponent
     float d;   // transparency
+
+    int illum;  // illumination model (see http://www.fileformat.info/format/material/)
 
     float roughness;
     float metallic;
