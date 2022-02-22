@@ -202,6 +202,16 @@ class CH_VEHICLE_API ChJSONReader {
     ChJSONReader& operator>>(std::array<double, 4>& v);
     ChJSONReader& operator>>(ChJSONReader&) { return *this; }
 
+    // Primarily for Python users
+
+    bool GetBool();
+    int GetInt();
+    long int GetLongInt();
+    double GetDouble();
+    float GetFloat();
+    unsigned int GetUint();
+    std::string GetString();
+
     ChJSONReader& Next();
     ChJSONReader& Back();
 

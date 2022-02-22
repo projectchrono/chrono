@@ -325,6 +325,48 @@ ChJSONReader& ChJSONReader::operator>>(std::array<double, 4>& v) {
     return *this;
 }
 
+bool ChJSONReader::GetBool() {
+    bool v;
+    (*this) >> v;
+    return v;
+}
+
+int ChJSONReader::GetInt() {
+    int v;
+    (*this) >> v;
+    return v;
+}
+
+long int ChJSONReader::GetLongInt() {
+    long int v;
+    (*this) >> v;
+    return v;
+}
+
+double ChJSONReader::GetDouble() {
+    double v;
+    (*this) >> v;
+    return v;
+}
+
+float ChJSONReader::GetFloat() {
+    float v;
+    (*this) >> v;
+    return v;
+}
+
+unsigned int ChJSONReader::GetUint() {
+    unsigned int v;
+    (*this) >> v;
+    return v;
+}
+
+std::string ChJSONReader::GetString() {
+    std::string v;
+    (*this) >> v;
+    return v;
+}
+
 ChJSONReader& ChJSONReader::Next() {
     m_obj_iterator++;
     return *this;
