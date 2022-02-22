@@ -19,7 +19,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     //mphysicalSystem.Add(floor);
     //{
     //    auto asset = floor->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
     //        visual_asset->AddMaterial(grey);
     //    }
     //}
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     //mphysicalSystem.Add(ceiling);
     //{
     //    auto asset = ceiling->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
     //        visual_asset->AddMaterial(grey);
     //    }
     //}
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     //mphysicalSystem.Add(left_wall);
     //{
     //    auto asset = left_wall->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
     //        visual_asset->AddMaterial(red);
     //    }
     //}
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
     //mphysicalSystem.Add(right_wall);
     //{
     //    auto asset = right_wall->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
     //        visual_asset->AddMaterial(green);
     //    }
     //}
@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
     //mphysicalSystem.Add(back_wall);
     //{
     //    auto asset = back_wall->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
     //        visual_asset->AddMaterial(grey);
     //    }
     //}
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
     //mphysicalSystem.Add(box1);
     //{
     //    auto asset = box1->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
     //        visual_asset->AddMaterial(grey);
     //    }
     //}
@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
     //mphysicalSystem.Add(box2);
     //{
     //    auto asset = box2->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
     //        visual_asset->AddMaterial(grey);
     //    }
     //}

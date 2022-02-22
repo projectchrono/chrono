@@ -126,7 +126,7 @@ void ChTriangleMeshShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChTriangleMeshShape>();
     // serialize parent class
-    ChVisualization::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(trimesh);
     marchive << CHNVP(wireframe);
@@ -139,7 +139,7 @@ void ChTriangleMeshShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChTriangleMeshShape>();
     // deserialize parent class
-    ChVisualization::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(trimesh);
     marchive >> CHNVP(wireframe);

@@ -18,7 +18,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     sphere1->SetPos({0, -1.2, 0});
     sphere1->SetBodyFixed(true);
     auto sphere_asset = sphere1->GetAssets()[0];
-    if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(sphere_asset)) {
+    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(sphere_asset)) {
         visual_asset->AddMaterial(color1);
     }
 
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     sphere2->SetPos({0, 0, 0});
     sphere2->SetBodyFixed(true);
     sphere_asset = sphere2->GetAssets()[0];
-    if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(sphere_asset)) {
+    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(sphere_asset)) {
         visual_asset->AddMaterial(color2);
     }
 
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     sphere3->SetPos({0, 1.2, 0});
     sphere3->SetBodyFixed(true);
     sphere_asset = sphere3->GetAssets()[0];
-    if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(sphere_asset)) {
+    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(sphere_asset)) {
         visual_asset->AddMaterial(color3);
     }
 

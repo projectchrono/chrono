@@ -19,7 +19,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(floor);
     {
         auto asset = floor->GetAssets()[0];
-        if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
             visual_asset->AddMaterial(vis_mat3);
         }
     }
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(box_body);
     {
         auto asset = box_body->GetAssets()[0];
-        if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
             visual_asset->AddMaterial(vis_mat);
         }
     }
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(sphere_body);
     {
         auto asset = sphere_body->GetAssets()[0];
-        if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
             visual_asset->AddMaterial(vis_mat2);
         }
     }
@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(cyl_body);
     {
         auto asset = cyl_body->GetAssets()[0];
-        if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
             visual_asset->AddMaterial(vis_mat4);
         }
     }
@@ -342,7 +342,7 @@ int main(int argc, char* argv[]) {
 
     manager->Update();
 
-    if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(trimesh_shape)) {
+    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(trimesh_shape)) {
         for (const auto& v : visual_asset->GetMaterials()) {
             v->SetClassID(200);
             v->SetInstanceID(200);

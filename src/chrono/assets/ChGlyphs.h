@@ -14,7 +14,7 @@
 #define CHGLYPHS_H
 
 #include "chrono/assets/ChColor.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/core/ChMatrix.h"
 
 namespace chrono {
@@ -23,7 +23,7 @@ namespace chrono {
 /// such as arrows or points to be drawn for showing vector directions etc.
 /// Remember that depending on the type of visualization system
 /// (POVray, Irrlicht,etc.) this asset might not be supported.
-class ChApi ChGlyphs : public ChVisualization {
+class ChApi ChGlyphs : public ChVisualShape {
   public:
     enum eCh_GlyphType { GLYPH_POINT = 0, GLYPH_VECTOR, GLYPH_COORDSYS };
 

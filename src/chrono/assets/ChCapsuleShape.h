@@ -15,13 +15,13 @@
 #ifndef CHCAPSULESHAPE_H
 #define CHCAPSULESHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChCapsule.h"
 
 namespace chrono {
 
 /// Class for referencing a capsule shape that can be visualized in some way.
-class ChApi ChCapsuleShape : public ChVisualization {
+class ChApi ChCapsuleShape : public ChVisualShape {
   protected:
     geometry::ChCapsule gcapsule;
 

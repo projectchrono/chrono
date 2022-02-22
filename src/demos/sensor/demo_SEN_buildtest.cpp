@@ -23,7 +23,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     top_mirror->SetBodyFixed(true);
     mphysicalSystem.Add(top_mirror);
     auto top_m_asset = top_mirror->GetAssets()[0];
-    if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(top_m_asset)) {
+    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(top_m_asset)) {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         // vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
         vis_mat->SetDiffuseColor({1, 1, 1});
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     bottom_mirror->SetBodyFixed(true);
     mphysicalSystem.Add(bottom_mirror);
     auto bottom_m_asset = bottom_mirror->GetAssets()[0];
-    if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(bottom_m_asset)) {
+    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(bottom_m_asset)) {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         // vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
         vis_mat->SetDiffuseColor({1, 1, 1});
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     //
     // mphysicalSystem.Add(origin);
     // auto origin_asset = origin->GetAssets()[0];
-    // if (std::shared_ptr<ChVisualization> v_asset = std::dynamic_pointer_cast<ChVisualization>(origin_asset)) {
+    // if (std::shared_ptr<ChVisualShape> v_asset = std::dynamic_pointer_cast<ChVisualShape>(origin_asset)) {
     //     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     //     vis_mat->SetDiffuseColor({1, 0, 0});
     //     vis_mat->SetSpecularColor({.5f, .5f, .5f});
@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(texbox);
 
     auto texbox_asset = texbox->GetAssets()[0];
-    if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(texbox_asset)) {
+    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(texbox_asset)) {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(texsphere);
 
     auto texsphere_asset = texsphere->GetAssets()[0];
-    if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(texsphere_asset)) {
+    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(texsphere_asset)) {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(texcyl);
 
     auto texcyl_asset = texcyl->GetAssets()[0];
-    if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(texcyl_asset)) {
+    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(texcyl_asset)) {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
@@ -266,7 +266,7 @@ int main(int argc, char* argv[]) {
         mphysicalSystem.Add(box);
 
         auto box_asset = box->GetAssets()[0];
-        if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(box_asset)) {
+        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(box_asset)) {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
             // vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
             vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
         mphysicalSystem.Add(cyl);
 
         auto cyl_asset = cyl->GetAssets()[0];
-        if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(cyl_asset)) {
+        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(cyl_asset)) {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
             // vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
             vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
         }
 
         auto sphere_asset = sphere->GetAssets()[0];
-        if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(sphere_asset)) {
+        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(sphere_asset)) {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
             vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
             vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});

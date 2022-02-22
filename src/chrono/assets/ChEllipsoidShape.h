@@ -13,13 +13,13 @@
 #ifndef CHOBJELLIPSOIDSHAPE_H
 #define CHOBJELLIPSOIDSHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChEllipsoid.h"
 
 namespace chrono {
 
 /// Class for referencing an ellipsoid shape that can be visualized in some way.
-class ChApi ChEllipsoidShape : public ChVisualization {
+class ChApi ChEllipsoidShape : public ChVisualShape {
   protected:
     geometry::ChEllipsoid gellipsoid;
 

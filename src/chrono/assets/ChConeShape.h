@@ -13,13 +13,13 @@
 #ifndef CHOBJCONESHAPE_H
 #define CHOBJCONESHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChCone.h"
 
 namespace chrono {
 
 /// Class for referencing a cone shape that can be visualized in some way.
-class ChApi ChConeShape : public ChVisualization {
+class ChApi ChConeShape : public ChVisualShape {
   protected:
     geometry::ChCone gcone;
 

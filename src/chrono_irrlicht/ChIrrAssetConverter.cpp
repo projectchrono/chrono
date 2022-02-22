@@ -184,7 +184,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
     for (unsigned int k = 0; k < assetlist.size(); k++) {
         std::shared_ptr<ChAsset> k_asset = assetlist[k];
 
-        if (auto v_asset = std::dynamic_pointer_cast<ChVisualization>(k_asset)) {
+        if (auto v_asset = std::dynamic_pointer_cast<ChVisualShape>(k_asset)) {
             if (v_asset->IsVisible()) {
                 if (auto obj = std::dynamic_pointer_cast<ChObjShapeFile>(k_asset)) {
                     bool irrmesh_already_loaded = false;
@@ -455,7 +455,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
     // if a visualization setting (color) has been set, force the color attribute of all assets in same level
     if (mcolor) {
         for (unsigned int k = 0; k < assetlist.size(); k++) {
-            if (auto k_visasset = std::dynamic_pointer_cast<ChVisualization>(assetlist[k]))
+            if (auto k_visasset = std::dynamic_pointer_cast<ChVisualShape>(assetlist[k]))
                 k_visasset->SetColor(mcolor->GetColor());
         }
     }

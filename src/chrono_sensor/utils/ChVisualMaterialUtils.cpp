@@ -53,7 +53,7 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
     }
 
     // go through each shape and add the material as an asset. Also add the material id list to the
-    // ChVisualization asset along with a list of triangle-to-face id list to mesh
+    // ChVisualShape asset along with a list of triangle-to-face id list to mesh
 
     auto& vertex_buffer = mesh->getCoordsVertices();
     auto& normal_buffer = mesh->getCoordsNormals();
@@ -185,8 +185,8 @@ void ConvertToModernAssets(std::shared_ptr<ChBody> body) {
         // iterate through all assets in the body
         // std::cout << "Number of assets: " << body->GetAssets().size() << std::endl;
         for (auto asset : body->GetAssets()) {
-            // check if the asset is a ChVisualization
-            if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+            // check if the asset is a ChVisualShape
+            if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
                 // collect relative position and orientation of the asset
 
                 if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =

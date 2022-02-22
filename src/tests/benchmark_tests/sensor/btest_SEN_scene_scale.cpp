@@ -18,7 +18,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
                 cyl->SetBodyFixed(true);
                 cyl->SetPos({2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
                 auto asset = cyl->GetAssets()[0];
-                if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+                if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
                     auto vis_mat = std::make_shared<ChVisualMaterial>();
                     vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
                     vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
                 sphere->SetPos(
                     {2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
                 auto asset = sphere->GetAssets()[0];
-                if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+                if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
                     auto vis_mat = std::make_shared<ChVisualMaterial>();
                     vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
                     vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
                 box->SetBodyFixed(true);
                 box->SetPos({2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
                 auto asset = box->GetAssets()[0];
-                if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+                if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
                     auto vis_mat = std::make_shared<ChVisualMaterial>();
                     vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
                     vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});

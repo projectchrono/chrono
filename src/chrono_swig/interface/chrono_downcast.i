@@ -84,7 +84,7 @@
 //    classes wrapped by the chared ptr)
 //
 // Example:
-//   %downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile)
+//   %downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualShape, chrono::ChObjShapeFile)
 
 
 

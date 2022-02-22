@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetSpecularColor({.1f, .1f, .1f});
     vis_mat->SetKdTexture(GetChronoDataFile("sensor/textures/grass_texture.jpg"));
-    terrain->GetMesh()->material_list.push_back(vis_mat);
+    terrain->GetMesh()->AddMaterial(vis_mat);
 
     // Create the driver for the vehicle
 

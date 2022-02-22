@@ -15,13 +15,13 @@
 #ifndef CHOBJSBOXSHAPE_H
 #define CHOBJSBOXSHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChBox.h"
 
 namespace chrono {
 
 /// Class for a box shape that can be visualized in some way.
-class ChApi ChBoxShape : public ChVisualization {
+class ChApi ChBoxShape : public ChVisualShape {
   protected:
     geometry::ChBox gbox;
 

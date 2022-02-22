@@ -5,7 +5,7 @@
 %}
  
 %import "chrono_swig/interface/core/ChVector.i"
-%import "chrono_swig/interface/core/ChVisualization.i"
+%import "chrono_swig/interface/core/ChVisualShape.i"
 
 
 /* Parse the header file to generate wrappers */

@@ -12,34 +12,34 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 
 namespace chrono {
 
-ChVisualization::ChVisualization() : Pos(0), Rot(1), visible(true), is_static(false), fading(0) {
+ChVisualShape::ChVisualShape() : Pos(0), Rot(1), visible(true), is_static(false), fading(0) {
     default_mat = chrono_types::make_shared<ChVisualMaterial>();
     default_mat->SetDiffuseColor(ChVector<float>(1, 1, 1));
 }
 
-int ChVisualization::AddMaterial(std::shared_ptr<ChVisualMaterial> material) {
+int ChVisualShape::AddMaterial(std::shared_ptr<ChVisualMaterial> material) {
     material_list.push_back(material);
     return (int)material_list.size();
 }
 
-void ChVisualization::SetColor(const ChColor& col) {
+void ChVisualShape::SetColor(const ChColor& col) {
     default_mat->SetDiffuseColor(ChVector<float>(col.R, col.G, col.B));
     default_mat->SetTransparency(col.A);
 }
 
-ChColor ChVisualization::GetColor() const {
+ChColor ChVisualShape::GetColor() const {
     auto RGB = default_mat->GetDiffuseColor();
     auto A = default_mat->GetTransparency();
     return ChColor(RGB[0], RGB[1], RGB[2], A);
 }
 
-void ChVisualization::ArchiveOUT(ChArchiveOut& marchive) {
+void ChVisualShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChVisualization>();
+    marchive.VersionWrite<ChVisualShape>();
     // serialize parent class
     ChAsset::ArchiveOUT(marchive);
     // serialize all member data:
@@ -49,9 +49,9 @@ void ChVisualization::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(fading);
 }
 
-void ChVisualization::ArchiveIN(ChArchiveIn& marchive) {
+void ChVisualShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVisualization>();
+    /*int version =*/ marchive.VersionRead<ChVisualShape>();
     // deserialize parent class
     ChAsset::ArchiveIN(marchive);
     // stream in all member data:

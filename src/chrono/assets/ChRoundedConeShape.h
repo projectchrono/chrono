@@ -15,13 +15,13 @@
 #ifndef CHROUNDEDCONESHAPE_H
 #define CHROUNDEDCONESHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChRoundedCone.h"
 
 namespace chrono {
 
 /// Class for referencing a rounded cone shape that can be visualized in some way.
-class ChApi ChRoundedConeShape : public ChVisualization {
+class ChApi ChRoundedConeShape : public ChVisualShape {
   protected:
     geometry::ChRoundedCone groundedcone;
 

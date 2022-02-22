@@ -350,7 +350,7 @@ using namespace chrono::fea;
 %include "ChAsset.i"
 %include "ChColor.i"
 %include "../chrono/assets/ChVisualMaterial.h"
-%include "ChVisualization.i"
+%include "ChVisualShape.i"
 %include "ChColorAsset.i"
 %include "ChAssetLevel.i"
 %include "ChObjShapeFile.i"
@@ -439,14 +439,14 @@ using namespace chrono::fea;
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
 // enable _automatic_ downcasting from ChAsset to derived classes (shared pointers versions)
-%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape, chrono::ChTexture, chrono::ChAssetLevel, chrono::ChCamera, chrono::ChColorAsset)
+%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualShape, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape, chrono::ChTexture, chrono::ChAssetLevel, chrono::ChCamera, chrono::ChColorAsset)
 
 %DefSharedPtrDynamicDowncast(chrono,ChContactable, ChBody)
 
 %DefSharedPtrDynamicDowncast(chrono,ChLoadable, ChBody)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadable, ChNodeBase)
 
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChVisualization)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChVisualShape)
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChObjShapeFile)
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChBoxShape)
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChSphereShape)

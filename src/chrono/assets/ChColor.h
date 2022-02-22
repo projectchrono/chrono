@@ -21,7 +21,7 @@
 
 namespace chrono {
 
-/// Class for setting a color (used by ChVisualization)
+/// Class for setting a color (used by ChVisualShape)
 class ChApi ChColor {
   public:
     float R;  /// red channel (0,1)

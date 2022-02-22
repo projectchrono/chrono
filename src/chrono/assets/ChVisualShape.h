@@ -10,8 +10,8 @@
 //
 // =============================================================================
 
-#ifndef CHVISUALIZATION_H
-#define CHVISUALIZATION_H
+#ifndef CH_VISUAL_SHAPE_H
+#define CH_VISUAL_SHAPE_H
 
 #include "chrono/assets/ChAsset.h"
 #include "chrono/assets/ChColor.h"
@@ -23,9 +23,9 @@ namespace chrono {
 
 /// Base class for a visualization asset for rendering (run-time or post processing).
 /// Encapsulates basic information about the asset position, materials, and visibility.
-class ChApi ChVisualization : public ChAsset {
+class ChApi ChVisualShape : public ChAsset {
   public:
-    virtual ~ChVisualization() {}
+    virtual ~ChVisualShape() {}
 
     /// Set this visualization asset as visible.
     void SetVisible(bool mv) { visible = mv; }
@@ -72,7 +72,7 @@ class ChApi ChVisualization : public ChAsset {
     ChMatrix33<> Rot;  ///< asset orientation
 
   protected:
-    ChVisualization();
+    ChVisualShape();
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
@@ -91,7 +91,7 @@ class ChApi ChVisualization : public ChAsset {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-CH_CLASS_VERSION(ChVisualization, 0)
+CH_CLASS_VERSION(ChVisualShape, 0)
 
 }  // end namespace chrono
 

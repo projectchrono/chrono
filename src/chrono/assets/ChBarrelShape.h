@@ -15,12 +15,12 @@
 #ifndef CHBARRELSHAPE_H
 #define CHBARRELSHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 
 namespace chrono {
 
 /// Class for referencing a barrel shape (a lathed arc) that can be visualized in some way.
-class ChApi ChBarrelShape : public ChVisualization {
+class ChApi ChBarrelShape : public ChVisualShape {
   protected:
     //geometry::ChBarrel gbarrel; // maybe in future the following data can be moved into a ChGeometry class?
 	  double Hlow;

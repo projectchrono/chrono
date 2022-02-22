@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
     }
 
     auto ground_body = patch->GetGroundBody();
-    auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(ground_body->GetAssets()[0]);
+    auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(ground_body->GetAssets()[0]);
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetKdTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"));
     vis_mat->SetSpecularColor({.0f, .0f, .0f});

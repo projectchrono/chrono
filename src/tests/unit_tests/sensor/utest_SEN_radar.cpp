@@ -68,7 +68,7 @@ TEST(ChRadarSensor, check_velocity) {
 //    mphysicalSystem.Add(floor);
 //    {
 //        auto asset = floor->GetAssets()[0];
-//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
 //            visual_asset->AddMaterial(green);
 //        }
 //    }
@@ -79,7 +79,7 @@ TEST(ChRadarSensor, check_velocity) {
 //    mphysicalSystem.Add(box_body);
 //    {
 //        auto asset = box_body->GetAssets()[0];
-//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
 //            visual_asset->AddMaterial(red);
 //        }
 //    }

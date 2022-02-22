@@ -404,7 +404,7 @@ void WriteVisualizationAssets(ChSystem* system,
 
         // Loop over assets once again -- write information for supported types.
         for (auto asset : body->GetAssets()) {
-            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset);
+            auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset);
             if (!visual_asset)
                 continue;
 
@@ -524,7 +524,7 @@ void WriteVisualizationAssets(ChSystem* system,
         if (!link)
             continue;
         for (auto asset : link->GetAssets()) {
-            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset);
+            auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset);
             if (!visual_asset)
                 continue;
             if (std::dynamic_pointer_cast<ChPointPointSegment>(visual_asset)) {

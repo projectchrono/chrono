@@ -13,13 +13,13 @@
 #ifndef CHSURFACESHAPE_H
 #define CHSURFACESHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChSurface.h"
 
 namespace chrono {
 
 /// Class for referencing a ChSurface u,v, parametric surface that can be visualized in some way.
-class ChApi ChSurfaceShape : public ChVisualization {
+class ChApi ChSurfaceShape : public ChVisualShape {
   protected:
     std::shared_ptr<geometry::ChSurface> gsurface;
 

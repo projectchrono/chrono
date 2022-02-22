@@ -23,7 +23,7 @@ void ChObjShapeFile::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChObjShapeFile>();
     // serialize parent class
-    ChVisualization::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(filename);
 }
@@ -32,7 +32,7 @@ void ChObjShapeFile::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChObjShapeFile>();
     // deserialize parent class
-    ChVisualization::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(filename);
 }

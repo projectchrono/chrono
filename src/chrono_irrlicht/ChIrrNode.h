@@ -33,7 +33,7 @@ namespace irrlicht {
 /// Class for Irrlicht visualization. It will be managed by a ChIrrNodeAsset
 /// asset to be added among the ChBody assets. Such ChIrrNode can automatically
 /// be populated with Irrlicht meshes, each inside a ChIrrNodeProxyToAsset,
-/// that will correspond to shapes that have been added as ChVisualization
+/// that will correspond to shapes that have been added as ChVisualShape
 /// assets in ChBody.
 ///
 /// Example: (with ascii art, with --> shared pointer, ...> raw pointer)
@@ -97,7 +97,7 @@ class ChApiIrr ChIrrNode : public irr::scene::ISceneNode {
     /// (it follows a ChPhysicsItem that contains a ChIrrNodeAsset, proxy to this).
     virtual void SetChronoControlled(const bool& controlled) { ChronoControlled = controlled; }
 
-    /// Updates the children Irr mesh nodes to reflect the ChVisualization assets,
+    /// Updates the children Irr mesh nodes to reflect the ChVisualShape assets,
     /// by spawning the Update() command to all children ChIrrNodeProxyToAsset
     virtual void UpdateAssetsProxies();
 

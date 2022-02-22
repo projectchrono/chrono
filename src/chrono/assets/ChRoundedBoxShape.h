@@ -15,13 +15,13 @@
 #ifndef CHROUNDEDBOXSHAPE_H
 #define CHROUNDEDBOXSHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChRoundedBox.h"
 
 namespace chrono {
 
 /// Class for referencing a rounded box shape that can be visualized in some way.
-class ChApi ChRoundedBoxShape : public ChVisualization {
+class ChApi ChRoundedBoxShape : public ChVisualShape {
   protected:
     geometry::ChRoundedBox groundedbox;
 

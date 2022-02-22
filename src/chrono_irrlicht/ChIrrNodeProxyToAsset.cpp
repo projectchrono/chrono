@@ -44,7 +44,7 @@ void ChIrrNodeProxyToAsset::Update() {
         return;
 
     if (!initial_update) {
-        auto asset = std::dynamic_pointer_cast<ChVisualization>(visualization_asset);
+        auto asset = std::dynamic_pointer_cast<ChVisualShape>(visualization_asset);
         if (asset && asset->IsStatic())
             return;
     }
@@ -671,7 +671,7 @@ void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surfac
     std::shared_ptr<geometry::ChSurface> msurface = surface->GetSurfaceGeometry();
 
     // Set color.
-    auto vis = std::static_pointer_cast<ChVisualization>(visualization_asset);
+    auto vis = std::static_pointer_cast<ChVisualShape>(visualization_asset);
     ChColor col = vis->GetColor();
     video::SColor clr((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
 
@@ -826,7 +826,7 @@ void ChIrrNodeProxyToAsset::UpdateLine(std::shared_ptr<geometry::ChLine> line, u
     unsigned int ntriangles = nvertexes - 1;
 
     // Set color.
-    auto vis = std::static_pointer_cast<ChVisualization>(visualization_asset);
+    auto vis = std::static_pointer_cast<ChVisualShape>(visualization_asset);
     ChColor col = vis->GetColor();
     video::SColor clr((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
 

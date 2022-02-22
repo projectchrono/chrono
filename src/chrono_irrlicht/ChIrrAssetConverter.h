@@ -23,7 +23,7 @@
 #include "chrono/assets/ChCapsuleShape.h"
 #include "chrono/assets/ChObjShapeFile.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChAssetLevel.h"
 #include "chrono/assets/ChTriangleMeshShape.h"

@@ -18,7 +18,7 @@
 #include <string>
 
 #include "chrono_postprocess/ChPostProcessBase.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 
 namespace chrono {
 namespace postprocess {

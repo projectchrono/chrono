@@ -13,13 +13,13 @@
 #ifndef CHOBJSHAPEFILE_H
 #define CHOBJSHAPEFILE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 
 namespace chrono {
 
 /// Class for referencing a Wavefront OBJ file containing a shape that can be visualized in some way.
 /// The file is not loaded into this object; this is simply a reference to the resource on disk.
-class ChApi ChObjShapeFile : public ChVisualization {
+class ChApi ChObjShapeFile : public ChVisualShape {
   protected:
     std::string filename;
 

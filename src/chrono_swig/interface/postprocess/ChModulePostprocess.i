@@ -94,7 +94,7 @@ using namespace chrono::postprocess;
 // is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
 // tree must be promoted to %shared_ptr too).
 
-%shared_ptr(chrono::ChVisualization)
+%shared_ptr(chrono::ChVisualShape)
 %shared_ptr(chrono::postprocess::ChPostProcessBase)
 %shared_ptr(chrono::postprocess::ChPovRay)
 %shared_ptr(chrono::postprocess::ChPovRayAssetCustom)
@@ -123,7 +123,7 @@ using namespace chrono::postprocess;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChAsset.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualization.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
 
 %include "ChPostProcessBase.i"
 %include "ChPovRay.i"

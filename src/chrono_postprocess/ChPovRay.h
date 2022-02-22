@@ -20,7 +20,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_postprocess/ChPostProcessBase.h"
 

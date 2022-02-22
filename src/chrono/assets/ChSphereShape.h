@@ -15,13 +15,13 @@
 #ifndef CHOBJSPHERESHAPE_H
 #define CHOBJSPHERESHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChSphere.h"
 
 namespace chrono {
 
 /// Class for referencing a sphere shape that can be visualized in some way.
-class ChApi ChSphereShape : public ChVisualization {
+class ChApi ChSphereShape : public ChVisualShape {
   protected:
     geometry::ChSphere gsphere;
 

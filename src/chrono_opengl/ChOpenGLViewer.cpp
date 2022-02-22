@@ -298,11 +298,11 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
     for (int i = 0; i < abody->GetAssets().size(); i++) {
         auto asset = abody->GetAssets().at(i);
 
-        if (!std::dynamic_pointer_cast<ChVisualization>(asset)) {
+        if (!std::dynamic_pointer_cast<ChVisualShape>(asset)) {
             continue;
         }
 
-        ChVisualization* visual_asset = ((ChVisualization*)(asset.get()));
+        ChVisualShape* visual_asset = ((ChVisualShape*)(asset.get()));
 		//position of the asset
         Vector center = visual_asset->Pos;
 		//rotate asset pos into global frame

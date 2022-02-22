@@ -45,7 +45,7 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/physics/ChSystem.h"
 
 #include <random>
@@ -438,7 +438,7 @@ void ChOptixEngine::SceneProcess(RenderThread& tself) {
 
 void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
                                      std::shared_ptr<ChBoxShape> box_shape,
-                                     std::shared_ptr<ChVisualization> visual_asset) {
+                                     std::shared_ptr<ChVisualShape> visual_asset) {
     ChVector<double> size = box_shape->GetBoxGeometry().GetLengths();
     ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos, visual_asset->Rot);
 
@@ -454,7 +454,7 @@ void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
 
 void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
                                         std::shared_ptr<ChSphereShape> sphere_shape,
-                                        std::shared_ptr<ChVisualization> visual_asset) {
+                                        std::shared_ptr<ChVisualShape> visual_asset) {
     ChVector<double> size = {sphere_shape->GetSphereGeometry().rad, sphere_shape->GetSphereGeometry().rad,
                              sphere_shape->GetSphereGeometry().rad};
     ChFrame<double> asset_frame =
@@ -472,7 +472,7 @@ void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
 
 void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
                                           std::shared_ptr<ChCylinderShape> cyl_shape,
-                                          std::shared_ptr<ChVisualization> visual_asset) {
+                                          std::shared_ptr<ChVisualShape> visual_asset) {
     double radius = cyl_shape->GetCylinderGeometry().rad;
     double height = (cyl_shape->GetCylinderGeometry().p1 - cyl_shape->GetCylinderGeometry().p2).Length();
     ChVector<double> center = (cyl_shape->GetCylinderGeometry().p1 + cyl_shape->GetCylinderGeometry().p2) / 2;
@@ -492,7 +492,7 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
 
 void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
                                            std::shared_ptr<ChTriangleMeshShape> mesh_shape,
-                                           std::shared_ptr<ChVisualization> visual_asset) {
+                                           std::shared_ptr<ChVisualShape> visual_asset) {
     if (mesh_shape->IsWireframe()) {
         std::cerr << "WARNING: Chrono::Sensor does not support wireframe meshes. Defaulting back to solid mesh, please "
                      "check for visual issues.\n";
@@ -517,7 +517,7 @@ void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
 
 void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
                                                 std::shared_ptr<ChTriangleMeshShape> mesh_shape,
-                                                std::shared_ptr<ChVisualization> visual_asset) {
+                                                std::shared_ptr<ChVisualShape> visual_asset) {
     if (mesh_shape->IsWireframe()) {
         std::cerr << "WARNING: Chrono::Sensor does not support wireframe meshes. Defaulting back to solid mesh, please "
                      "check for visual issues.\n";
@@ -560,9 +560,9 @@ void ChOptixEngine::ConstructScene() {
         if (body->GetAssets().size() > 0) {
             // iterate through all assets in the body
             for (auto asset : body->GetAssets()) {
-                // check if the asset is a ChVisualization
+                // check if the asset is a ChVisualShape
 
-                if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+                if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
                     // collect relative position and orientation of the asset
                     // ChVector<double> asset_pos = visual_asset->Pos;
                     // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
@@ -627,7 +627,7 @@ void ChOptixEngine::ConstructScene() {
 
         if (item->GetAssets().size() > 0) {
             for (auto asset : item->GetAssets()) {
-                if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+                if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
                     // ChVector<double> asset_pos = visual_asset->Pos;
                     // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
 

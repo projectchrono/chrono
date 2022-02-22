@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
@@ -26,7 +26,7 @@ namespace chrono {
 /// A ChTriangleMeshShape can be attached to a physics object.
 /// Provides various rendering options (e.g., drawing as wireframe, performing backface culling, etc.) which may not be
 /// supported by a particular visualization system.
-class ChApi ChTriangleMeshShape : public ChVisualization {
+class ChApi ChTriangleMeshShape : public ChVisualShape {
   public:
     ChTriangleMeshShape();
     ~ChTriangleMeshShape() {}

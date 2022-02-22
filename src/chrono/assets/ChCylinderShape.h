@@ -15,13 +15,13 @@
 #ifndef CHCYLINDERSHAPE_H
 #define CHCYLINDERSHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChCylinder.h"
 
 namespace chrono {
 
 /// Class for referencing a cylinder shape that can be visualized in some way.
-class ChApi ChCylinderShape : public ChVisualization {
+class ChApi ChCylinderShape : public ChVisualShape {
   protected:
     geometry::ChCylinder gcylinder;
 

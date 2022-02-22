@@ -22,7 +22,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -60,8 +60,8 @@ int main(int argc, char* argv[]) {
             sphere1->SetPos({0, i - (x_dim / 2.), j - (y_dim / 2.)});
             sphere1->SetBodyFixed(true);
             auto sphere_asset1 = sphere1->GetAssets()[0];
-            if (std::shared_ptr<ChVisualization> visual_asset =
-                    std::dynamic_pointer_cast<ChVisualization>(sphere_asset1)) {
+            if (std::shared_ptr<ChVisualShape> visual_asset =
+                    std::dynamic_pointer_cast<ChVisualShape>(sphere_asset1)) {
                 auto color = chrono_types::make_shared<ChVisualMaterial>();
                 color->SetDiffuseColor({.8f, 0.f, 0.f});
                 color->SetSpecularColor({(float)i / x_dim, (float)i / x_dim, (float)i / x_dim});
