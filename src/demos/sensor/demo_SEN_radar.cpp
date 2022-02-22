@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     {
         auto asset = floor->GetAssets()[0];
         if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(green);
+            visual_asset->AddMaterial(green);
         }
     }
 
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
 //    {
 //        auto asset = wall->GetAssets()[0];
 //        if(auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
-//            visual_asset->material_list.push_back(red);
+//            visual_asset->AddMaterial(red);
 //        }
 //    }
 
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     {
         auto asset = box->GetAssets()[0];
         if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
-            visual_asset->material_list.push_back(green);
+            visual_asset->AddMaterial(green);
         }
     }
 
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     {
         auto asset = box->GetAssets()[0];
         if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
-            visual_asset->material_list.push_back(green);
+            visual_asset->AddMaterial(green);
         }
     }
 
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
     {
         auto asset = box->GetAssets()[0];
         if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
-            visual_asset->material_list.push_back(green);
+            visual_asset->AddMaterial(green);
         }
     }
 
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
 //    {
 //        auto asset = floor->GetAssets()[0];
 //        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//            visual_asset->material_list.push_back(green);
+//            visual_asset->AddMaterial(green);
 //        }
 //    }
 //
@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
 //        {
 //            auto asset = box_body->GetAssets()[0];
 //            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//                visual_asset->material_list.push_back(red);
+//                visual_asset->AddMaterial(red);
 //            }
 //        }
 //    }
@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
 //        {
 //            auto asset = box_body->GetAssets()[0];
 //            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//                visual_asset->material_list.push_back(red);
+//                visual_asset->AddMaterial(red);
 //            }
 //        }
 //    }

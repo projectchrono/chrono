@@ -98,7 +98,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     void ComputeMassProperties(bool bodyCoords, double& mass, ChVector<>& center, ChMatrix33<>& inertia);
 
     /// Get the filename of the triangle mesh.
-    std::string GetFileName() { return m_filename; }
+    const std::string& GetFileName() const { return m_filename; }
 
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed).
     virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale) override;

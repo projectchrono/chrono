@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
     sphere1->SetBodyFixed(true);
     auto sphere_asset = sphere1->GetAssets()[0];
     if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(sphere_asset)) {
-        visual_asset->material_list.push_back(color1);
+        visual_asset->AddMaterial(color1);
     }
 
     auto sphere2 = std::make_shared<ChBodyEasySphere>(.5, 1000, true, true, phys_mat);
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     sphere2->SetBodyFixed(true);
     sphere_asset = sphere2->GetAssets()[0];
     if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(sphere_asset)) {
-        visual_asset->material_list.push_back(color2);
+        visual_asset->AddMaterial(color2);
     }
 
     auto sphere3 = std::make_shared<ChBodyEasySphere>(.5, 1000, true, true, phys_mat);
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     sphere3->SetBodyFixed(true);
     sphere_asset = sphere3->GetAssets()[0];
     if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(sphere_asset)) {
-        visual_asset->material_list.push_back(color3);
+        visual_asset->AddMaterial(color3);
     }
 
     // sphere->AddAsset(material);

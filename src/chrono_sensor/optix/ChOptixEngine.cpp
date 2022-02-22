@@ -443,10 +443,10 @@ void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
     ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos, visual_asset->Rot);
 
     unsigned int mat_id;
-    if (box_shape->material_list.size() == 0) {
+    if (box_shape->GetNumMaterials() == 0) {
         mat_id = m_pipeline->GetBoxMaterial();
     } else {
-        mat_id = m_pipeline->GetBoxMaterial(box_shape->material_list[0]);
+        mat_id = m_pipeline->GetBoxMaterial(box_shape->GetMaterial(0));
     }
     m_geometry->AddBox(body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
@@ -461,10 +461,10 @@ void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
         ChFrame<double>(visual_asset->Pos + sphere_shape->GetSphereGeometry().center, visual_asset->Rot);
 
     unsigned int mat_id;
-    if (sphere_shape->material_list.size() == 0) {
+    if (sphere_shape->GetNumMaterials() == 0) {
         mat_id = m_pipeline->GetSphereMaterial();
     } else {
-        mat_id = m_pipeline->GetSphereMaterial(sphere_shape->material_list[0]);
+        mat_id = m_pipeline->GetSphereMaterial(sphere_shape->GetMaterial(0));
     }
     m_geometry->AddSphere(body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
@@ -481,10 +481,10 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
     ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos + center, visual_asset->Rot);
 
     unsigned int mat_id;
-    if (cyl_shape->material_list.size() == 0) {
+    if (cyl_shape->GetNumMaterials() == 0) {
         mat_id = m_pipeline->GetCylinderMaterial();
     } else {
-        mat_id = m_pipeline->GetCylinderMaterial(cyl_shape->material_list[0]);
+        mat_id = m_pipeline->GetCylinderMaterial(cyl_shape->GetMaterial(0));
     }
     m_geometry->AddCylinder(body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
@@ -502,7 +502,7 @@ void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
 
     unsigned int mat_id;
 
-    if (mesh_shape->material_list.size() == 0) {
+    if (mesh_shape->GetNumMaterials() == 0) {
         // Create a "proper" mesh if one doesn't already exist for it
         CreateModernMeshAssets(mesh_shape);
     }
@@ -510,7 +510,7 @@ void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
     CUdeviceptr d_vertex_buffer;  // handle will go to m_geometry
     CUdeviceptr d_index_buffer;   // handle will go to m_geometry
     // still possible there are no materials, but the pipeline will make a default if none exist
-    mat_id = m_pipeline->GetRigidMeshMaterial(d_vertex_buffer, d_index_buffer, mesh_shape, mesh_shape->material_list);
+    mat_id = m_pipeline->GetRigidMeshMaterial(d_vertex_buffer, d_index_buffer, mesh_shape, mesh_shape->GetMaterials());
     m_geometry->AddRigidMesh(d_vertex_buffer, d_index_buffer, mesh_shape, body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
 }
@@ -527,7 +527,7 @@ void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
 
     unsigned int mat_id;
 
-    if (mesh_shape->material_list.size() == 0) {
+    if (mesh_shape->GetNumMaterials() == 0) {
         // Create a "proper" mesh if one doesn't already exist for it
         CreateModernMeshAssets(mesh_shape);
     }
@@ -536,7 +536,7 @@ void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
     CUdeviceptr d_index_buffer;   // handle will go to m_geometry
     // still possible there are no materials, but the pipeline will make a default if none exist
     mat_id =
-        m_pipeline->GetDeformableMeshMaterial(d_vertex_buffer, d_index_buffer, mesh_shape, mesh_shape->material_list);
+        m_pipeline->GetDeformableMeshMaterial(d_vertex_buffer, d_index_buffer, mesh_shape, mesh_shape->GetMaterials());
     m_geometry->AddDeformableMesh(d_vertex_buffer, d_index_buffer, mesh_shape, body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
 }

@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     {
         auto asset = floor->GetAssets()[0];
         if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(vis_mat3);
+            visual_asset->AddMaterial(vis_mat3);
         }
     }
 
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     {
         auto asset = box_body->GetAssets()[0];
         if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(vis_mat);
+            visual_asset->AddMaterial(vis_mat);
         }
     }
 
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     {
         auto asset = sphere_body->GetAssets()[0];
         if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(vis_mat2);
+            visual_asset->AddMaterial(vis_mat2);
         }
     }
 
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
     {
         auto asset = cyl_body->GetAssets()[0];
         if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(vis_mat4);
+            visual_asset->AddMaterial(vis_mat4);
         }
     }
 
@@ -343,8 +343,7 @@ int main(int argc, char* argv[]) {
     manager->Update();
 
     if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(trimesh_shape)) {
-        // printf("assets: %d\n", visual_asset->material_list.size());
-        for (auto v : visual_asset->material_list) {
+        for (const auto& v : visual_asset->GetMaterials()) {
             v->SetClassID(200);
             v->SetInstanceID(200);
         }

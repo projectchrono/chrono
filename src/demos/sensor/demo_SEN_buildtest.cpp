@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({1.f, 1.f, 1.f});
         vis_mat->SetRoughness(0);
         vis_mat->SetMetallic(.9);
-        visual_asset->material_list.push_back(vis_mat);
+        visual_asset->AddMaterial(vis_mat);
     }
 
     auto bottom_mirror = chrono_types::make_shared<ChBodyEasyBox>(10, 10, .1,       // x,y,z size
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({1.f, 1.f, 1.f});
         vis_mat->SetRoughness(0);
         vis_mat->SetMetallic(.9);
-        visual_asset->material_list.push_back(vis_mat);
+        visual_asset->AddMaterial(vis_mat);
     }
     // add a mesh
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     //     vis_mat->SetDiffuseColor({1, 0, 0});
     //     vis_mat->SetSpecularColor({.5f, .5f, .5f});
     //
-    //     v_asset->material_list.push_back(vis_mat);
+    //     v_asset->AddMaterial(vis_mat);
     // }
 
     // walls to contain falling objects
@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
         vis_mat->SetNormalMapTexture(GetChronoDataFile("sensor/textures/FaceNormal.jpg"));
-        visual_asset->material_list.push_back(vis_mat);
+        visual_asset->AddMaterial(vis_mat);
     }
 
     auto texsphere = chrono_types::make_shared<ChBodyEasySphere>(.6,                // size
@@ -233,7 +233,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
         vis_mat->SetNormalMapTexture(GetChronoDataFile("sensor/textures/FaceNormal.jpg"));
-        visual_asset->material_list.push_back(vis_mat);
+        visual_asset->AddMaterial(vis_mat);
     }
 
     auto texcyl = chrono_types::make_shared<ChBodyEasyCylinder>(.5, 1,             // size
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
         vis_mat->SetNormalMapTexture(GetChronoDataFile("sensor/textures/FaceNormal.jpg"));
-        visual_asset->material_list.push_back(vis_mat);
+        visual_asset->AddMaterial(vis_mat);
     }
 
     for (int i = 0; i < num_bodies; i++) {
@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
             // vis_mat->SetAmbientColor(.2 * vis_mat->GetDiffuseColor());
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
 
-            visual_asset->material_list.push_back(vis_mat);
+            visual_asset->AddMaterial(vis_mat);
         }
 
         if (!imu_parent) {
@@ -297,7 +297,7 @@ int main(int argc, char* argv[]) {
             // vis_mat->SetAmbientColor(.2 * vis_mat->GetDiffuseColor());
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
 
-            visual_asset->material_list.push_back(vis_mat);
+            visual_asset->AddMaterial(vis_mat);
         }
 
         auto sphere = chrono_types::make_shared<ChBodyEasySphere>((float)ChRandom() / 2.0 + 0.1,  // radius
@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
             vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
 
-            visual_asset->material_list.push_back(vis_mat);
+            visual_asset->AddMaterial(vis_mat);
         }
 
         // auto mesh_body = chrono_types::make_shared<ChBody>();

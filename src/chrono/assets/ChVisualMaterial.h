@@ -21,12 +21,13 @@
 #ifndef CHVISUALMATERIAL_H
 #define CHVISUALMATERIAL_H
 
-#include "chrono/assets/ChAsset.h"
+#include <string>
+#include "chrono/core/ChVector.h"
 
 namespace chrono {
 
 /// Visual material.
-class ChApi ChVisualMaterial : public ChAsset {
+class ChApi ChVisualMaterial {
   public:
     ChVisualMaterial();
 

@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
     vis_mat->SetSpecularColor({.0f, .0f, .0f});
     vis_mat->SetRoughness(1.f);
     vis_mat->SetUseSpecularWorkflow(false);
-    visual_asset->material_list.push_back(vis_mat);
+    visual_asset->AddMaterial(vis_mat);
 
     terrain.Initialize();
 

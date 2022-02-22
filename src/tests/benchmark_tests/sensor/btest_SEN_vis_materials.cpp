@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
                 color->SetMetallic((float)i / x_dim);
                 color->SetRoughness(1 - (float)j / y_dim);
                 color->SetUseSpecularWorkflow(false);
-                visual_asset->material_list.push_back(color);
+                visual_asset->AddMaterial(color);
             }
             mphysicalSystem.Add(sphere1);
         }

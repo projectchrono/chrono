@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
                     vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
                     vis_mat->SetSpecularColor({.2f, .2f, .2f});
 
-                    visual_asset->material_list.push_back(vis_mat);
+                    visual_asset->AddMaterial(vis_mat);
                 }
                 mphysicalSystem.Add(cyl);
                 curr_item_cnt++;
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
                     vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
                     vis_mat->SetSpecularColor({.2f, .2f, .2f});
 
-                    visual_asset->material_list.push_back(vis_mat);
+                    visual_asset->AddMaterial(vis_mat);
                 }
                 mphysicalSystem.Add(sphere);
                 curr_item_cnt++;
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
                     vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
                     vis_mat->SetSpecularColor({.2f, .2f, .2f});
 
-                    visual_asset->material_list.push_back(vis_mat);
+                    visual_asset->AddMaterial(vis_mat);
                 }
                 mphysicalSystem.Add(box);
                 curr_item_cnt++;

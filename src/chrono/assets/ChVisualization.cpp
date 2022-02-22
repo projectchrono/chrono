@@ -21,6 +21,11 @@ ChVisualization::ChVisualization() : Pos(0), Rot(1), visible(true), is_static(fa
     default_mat->SetDiffuseColor(ChVector<float>(1, 1, 1));
 }
 
+int ChVisualization::AddMaterial(std::shared_ptr<ChVisualMaterial> material) {
+    material_list.push_back(material);
+    return (int)material_list.size();
+}
+
 void ChVisualization::SetColor(const ChColor& col) {
     default_mat->SetDiffuseColor(ChVector<float>(col.R, col.G, col.B));
     default_mat->SetTransparency(col.A);

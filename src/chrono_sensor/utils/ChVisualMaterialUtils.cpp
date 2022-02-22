@@ -25,7 +25,9 @@ namespace chrono {
 namespace sensor {
 
 void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
-    if (mesh_shape->GetMesh()->GetFileName() == "") {
+    auto mesh = mesh_shape->GetMesh();
+
+    if (mesh->GetFileName() == "") {
         return;
     }
 
@@ -36,7 +38,7 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
     std::string err;
 
     std::string mtl_base = "";
-    std::string file_name = mesh_shape->GetMesh()->GetFileName();
+    std::string file_name = mesh->GetFileName();
 
     int slash_location = (int)file_name.rfind('/');
 
@@ -53,15 +55,15 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
     // go through each shape and add the material as an asset. Also add the material id list to the
     // ChVisualization asset along with a list of triangle-to-face id list to mesh
 
-    std::vector<std::shared_ptr<ChVisualMaterial>> material_list = std::vector<std::shared_ptr<ChVisualMaterial>>();
+    auto& vertex_buffer = mesh->getCoordsVertices();
+    auto& normal_buffer = mesh->getCoordsNormals();
+    auto& tex_coords = mesh->getCoordsUV();
+    auto& vertex_index_buffer = mesh->getIndicesVertexes();
+    auto& normal_index_buffer = mesh->getIndicesNormals();
+    auto& texcoord_index_buffer = mesh->getIndicesUV();
 
-    std::vector<ChVector<double>> vertex_buffer;
-    std::vector<ChVector<double>> normal_buffer;
-    std::vector<ChVector2<double>> tex_coords;
-    std::vector<ChVector<int>> vertex_index_buffer;
-    std::vector<ChVector<int>> normal_index_buffer;
-    std::vector<ChVector<int>> texcoord_index_buffer;
-    std::vector<int> material_index_buffer;
+    auto& material_list = mesh_shape->GetMaterials();
+    auto& material_index_buffer = mesh->getIndicesMaterials();
 
     // copy in vertices
     // vertex_buffer.resize(att.vertices.size() / 3);
@@ -165,15 +167,6 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
         }
     }
 
-    mesh_shape->GetMesh()->m_vertices = vertex_buffer;
-    mesh_shape->GetMesh()->m_normals = normal_buffer;
-    mesh_shape->GetMesh()->m_UV = tex_coords;
-    mesh_shape->GetMesh()->m_face_v_indices = vertex_index_buffer;
-    mesh_shape->GetMesh()->m_face_n_indices = normal_index_buffer;
-    mesh_shape->GetMesh()->m_face_uv_indices = texcoord_index_buffer;
-    mesh_shape->GetMesh()->m_face_mat_indices = material_index_buffer;
-
-    mesh_shape->material_list = material_list;
 
     // std::cout << "Vertices: " << vertex_buffer.size() << std::endl;
     // std::cout << "Normals: " << normal_buffer.size() << std::endl;

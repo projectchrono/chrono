@@ -30,7 +30,7 @@ ChTriangleMeshShape::ChTriangleMeshShape()
 void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, bool load_materials) {
     trimesh = mesh;
 
-    auto filename = mesh->m_filename;
+    const auto& filename = mesh->GetFileName();
     if (load_materials && !filename.empty()) {
         std::vector<tinyobj::shape_t> shapes;
         tinyobj::attrib_t att;

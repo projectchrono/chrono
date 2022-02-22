@@ -210,7 +210,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     // If no materials defined, create a single mesh buffer.
 
                     SMesh* smesh = new SMesh;
-                    int nbuffers = (int)trimesh->material_list.size();
+                    int nbuffers = (int)trimesh->GetNumMaterials();
                     nbuffers = std::max(nbuffers, 1);
                     for (int ibuffer = 0; ibuffer < nbuffers; ibuffer++) {
                         CDynamicMeshBuffer* buffer =

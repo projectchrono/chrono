@@ -69,7 +69,7 @@ TEST(ChRadarSensor, check_velocity) {
 //    {
 //        auto asset = floor->GetAssets()[0];
 //        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//            visual_asset->material_list.push_back(green);
+//            visual_asset->AddMaterial(green);
 //        }
 //    }
 //
@@ -80,7 +80,7 @@ TEST(ChRadarSensor, check_velocity) {
 //    {
 //        auto asset = box_body->GetAssets()[0];
 //        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//            visual_asset->material_list.push_back(red);
+//            visual_asset->AddMaterial(red);
 //        }
 //    }
 //

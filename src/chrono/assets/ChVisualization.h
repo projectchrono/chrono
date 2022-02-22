@@ -56,9 +56,20 @@ class ChApi ChVisualization : public ChAsset {
     /// Return true if the visualization asset is marked as static.
     bool IsStatic() const { return is_static; }
 
-    ChVector<> Pos;                                                ///< asset position
-    ChMatrix33<> Rot;                                              ///< asset orientation
-    std::vector<std::shared_ptr<ChVisualMaterial>> material_list;  ///< list of visualization materials
+    /// Add a visualization material and return its index in the list of materials.
+    int AddMaterial(std::shared_ptr<ChVisualMaterial> material);
+
+    /// Get the list of visualization materials.
+    std::vector<std::shared_ptr<ChVisualMaterial>>& GetMaterials() { return material_list; }
+
+    /// Get the specified material in the list.
+    std::shared_ptr<ChVisualMaterial> GetMaterial(int i) { return material_list[i]; }
+
+    /// Get the number of visualizatin materials.
+    int GetNumMaterials() const { return (int)material_list.size(); }
+
+    ChVector<> Pos;    ///< asset position
+    ChMatrix33<> Rot;  ///< asset orientation
 
   protected:
     ChVisualization();
@@ -72,7 +83,9 @@ class ChApi ChVisualization : public ChAsset {
     bool visible;
     bool is_static;
     float fading;
-    std::shared_ptr<ChVisualMaterial> default_mat;
+
+    std::shared_ptr<ChVisualMaterial> default_mat;                 ///< default material
+    std::vector<std::shared_ptr<ChVisualMaterial>> material_list;  ///< list of visualization materials
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

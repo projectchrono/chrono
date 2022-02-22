@@ -96,7 +96,7 @@ static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
 }
 
 void ChIrrNodeProxyToAsset::UpdateTriangleMesh(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
-    if (trianglemesh->material_list.empty())
+    if (trianglemesh->GetNumMaterials() == 0)
         UpdateTriangleMesh_col(trianglemesh);
     else
         UpdateTriangleMesh_mat(trianglemesh);
@@ -218,7 +218,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMes
     scene::SMesh* smesh = (scene::SMesh*)meshnode->getMesh();
  
     const auto& mesh = trianglemesh->GetMesh();
-    const auto& materials = trianglemesh->material_list;
+    const auto& materials = trianglemesh->GetMaterials();
 
     int nbuffers = (int)smesh->getMeshBufferCount();
     int nmaterials = (int)materials.size();

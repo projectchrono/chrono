@@ -202,7 +202,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetDiffuseColor({.3, .3, .3});
     vis_mat->SetSpecularColor({.1f, .1f, .1f});
-    trimesh_shape->material_list.push_back(vis_mat);
+    trimesh_shape->AddMaterial(vis_mat);
 
     auto mcolor = chrono_types::make_shared<ChColorAsset>(0.3f, 0.3f, 0.3f);
     wheel_body->AddAsset(mcolor);
@@ -303,7 +303,7 @@ int main(int argc, char* argv[]) {
     vis_mat->SetSpecularColor({.1f, .1f, .1f});
     vis_mat->SetRoughness(1);
     vis_mat->SetKdTexture(GetChronoDataFile("sensor/textures/grass_texture.jpg"));
-    terrain.GetMesh()->material_list.push_back(vis_mat);
+    terrain.GetMesh()->AddMaterial(vis_mat);
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application

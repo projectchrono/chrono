@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
 
         auto base_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         base_trimesh_shape->SetMesh(mmesh);
-        if (base_trimesh_shape->material_list.size() == 0) {
+        if (base_trimesh_shape->GetNumMaterials() == 0) {
             // Create a "proper" set of materials if they don't already exist
             CreateModernMeshAssets(base_trimesh_shape);
         }
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
                     float scale = .5 * randf() + .1;
                     trimesh_shape->SetScale({scale, scale, scale});
                     // trimesh_shape->SetScale({.8, .8, .8});
-                    trimesh_shape->material_list = base_trimesh_shape->material_list;
+                    trimesh_shape->GetMaterials() = base_trimesh_shape->GetMaterials();
 
                     auto mesh_body = std::make_shared<ChBody>();
                     // auto mesh_body = std::make_shared<ChBodyEasyBox>(2 * randf() + .1, 2 * randf() + .1,
