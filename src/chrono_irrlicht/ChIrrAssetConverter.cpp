@@ -208,6 +208,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                 } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset)) {
                     // Create a number of Irrlicht mesh buffers equal to the number of materials.
                     // If no materials defined, create a single mesh buffer.
+
                     SMesh* smesh = new SMesh;
                     int nbuffers = (int)trimesh->material_list.size();
                     nbuffers = std::max(nbuffers, 1);
@@ -230,19 +231,17 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                 } else if (auto surf = std::dynamic_pointer_cast<ChSurfaceShape>(k_asset)) {
                     CDynamicMeshBuffer* buffer =
                         new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
-                    //	SMeshBuffer* buffer = new SMeshBuffer();
                     SMesh* newmesh = new SMesh;
                     newmesh->addMeshBuffer(buffer);
                     buffer->drop();
 
                     ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(surf, mnode);
-                    /*ISceneNode* mchildnode =*/scenemanager->addMeshSceneNode(newmesh, mproxynode);
+                    ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
                     newmesh->drop();
                     mproxynode->Update();  // force syncing of triangle positions & face indexes
                     mproxynode->drop();
 
-                    ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME, mysurf->IsWireframe());
-                    ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mysurf->IsBackfaceCull());
+                    mchildnode->setMaterialFlag(video::EMF_WIREFRAME, surf->IsWireframe());
                 } else if (auto mybarrel = std::dynamic_pointer_cast<ChBarrelShape>(k_asset)) {
                     auto mbarrelmesh =
                         createEllipticalMesh((irr::f32)(mybarrel->GetRhor()), (irr::f32)(mybarrel->GetRvert()),

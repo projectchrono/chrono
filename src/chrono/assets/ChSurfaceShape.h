@@ -28,16 +28,10 @@ class ChApi ChSurfaceShape : public ChVisualization {
     int resolution_V;
 
   public:
-    ChSurfaceShape() {
-        // default
-        // gsurface = chrono_types::make_shared<geometry::ChSurface>();
+    ChSurfaceShape() : wireframe(false), resolution_U(5), resolution_V(5) {}
 
-        wireframe = false;
-        resolution_U = 5;
-        resolution_V = 5;
-    }
-
-    ChSurfaceShape(std::shared_ptr<geometry::ChSurface> msurf) : gsurface(msurf), wireframe(false) {}
+    ChSurfaceShape(std::shared_ptr<geometry::ChSurface> msurf)
+        : gsurface(msurf), wireframe(false), resolution_U(5), resolution_V(5) {}
 
     virtual ~ChSurfaceShape() {}
 
