@@ -30,7 +30,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DPYTHON_LIBRARY:FILEPATH=$PREFIX/lib/${PY_LIB} \
  -DCMAKE_BUILD_TYPE=$CONFIGURATION \
  -DENABLE_MODULE_IRRLICHT=ON \
- -DENABLE_MODULE_POSTPROCESS=ON \
+ -DENABLE_MODULE_POSTPROCESS=OFF \
  -DENABLE_MODULE_VEHICLE=ON \
  -DENABLE_MODULE_PYTHON=ON \
  -DENABLE_MODULE_SENSOR=ON \
@@ -38,10 +38,10 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DBUILD_TESTING=OFF \
  -DBUILD_BENCHMARKING=OFF \
  -DBUILD_GMOCK=OFF \
- -DENABLE_MODULE_CASCADE=ON \
+ -DENABLE_MODULE_CASCADE=OFF \
  -DCASCADE_INCLUDE_DIR=$HOME/miniconda3/include/opencascade \
  -DCASCADE_LIBDIR=$HOME/miniconda3/lib \
- -DENABLE_MODULE_PARDISO_MKL=ON \
+ -DENABLE_MODULE_PARDISO_MKL=OFF \
  -DMKL_INCLUDE_DIR=$HOME/miniconda3/include \
  -DMKL_RT_LIBRARY=$HOME/miniconda3/lib/libmkl_rt.so \
  -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 \
@@ -56,6 +56,6 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
 # gcc gets out of memory
-cmake --build . --config "$CONFIGURATION"
+cmake --build . --config "$CONFIGURATION" -j8
 
 cmake --build . --config "$CONFIGURATION" --target install
