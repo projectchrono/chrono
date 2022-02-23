@@ -21,7 +21,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 #include "chrono/assets/ChRoundedBoxShape.h"
 #include "chrono/assets/ChRoundedCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -527,10 +527,10 @@ void WriteVisualizationAssets(ChSystem* system,
             auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset);
             if (!visual_asset)
                 continue;
-            if (std::dynamic_pointer_cast<ChPointPointSegment>(visual_asset)) {
+            if (std::dynamic_pointer_cast<ChSegmentShape>(visual_asset)) {
                 csv << SEGMENT << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
                 la_count++;
-            } else if (std::dynamic_pointer_cast<ChPointPointSpring>(visual_asset)) {
+            } else if (std::dynamic_pointer_cast<ChSpringShape>(visual_asset)) {
                 csv << COIL << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
                 la_count++;
             }

@@ -24,7 +24,7 @@
 
 #include <cstdio>
 
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
 
     // Attach a visualization asset.
     spring_1->AddAsset(col_1);
-    spring_1->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
+    spring_1->AddAsset(chrono_types::make_shared<ChSpringShape>(0.05, 80, 15));
 
     // Create a body suspended through a ChLinkTSDA (custom force functor)
     // -------------------------------------------------------------------
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
 
     // Attach a visualization asset.
     spring_2->AddAsset(col_2);
-    spring_2->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
+    spring_2->AddAsset(chrono_types::make_shared<ChSpringShape>(0.05, 80, 15));
 
     // Create the Irrlicht application
     // -------------------------------

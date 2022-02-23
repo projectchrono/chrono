@@ -18,7 +18,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperRWAssembly.h"
@@ -190,7 +190,7 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
 
     // Visualization of the shock (with default color)
     if (m_has_shock) {
-        m_shock->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+        m_shock->AddAsset(chrono_types::make_shared<ChSegmentShape>());
     }
 }
 

@@ -22,7 +22,7 @@
 
 #include <algorithm>
 
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -433,7 +433,7 @@ class TestMech {
         system->AddLink(spring);
 
         spring->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6f, 0.1f, 0.1f));
-        spring->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
+        spring->AddAsset(chrono_types::make_shared<ChSpringShape>(0.05, 80, 15));
 
         // create a prismatic constraint between the weight and the ground
         auto weightLink = chrono_types::make_shared<ChLinkLockOldham>();

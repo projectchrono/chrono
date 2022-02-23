@@ -25,7 +25,7 @@
 
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
@@ -159,7 +159,7 @@ void ChIdler::AddVisualizationAssets(VisualizationType vis) {
     m_carrier->AddAsset(col);
 
     // Visualization of the tensioner spring (with default color)
-    m_tensioner->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_tensioner->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
 }
 
 void ChIdler::RemoveVisualizationAssets() {

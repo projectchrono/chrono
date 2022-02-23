@@ -21,7 +21,7 @@
 
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 #include "chrono_vehicle/wheeled_vehicle/steering/ChPitmanArm.h"
 
@@ -238,7 +238,7 @@ void ChPitmanArm::AddVisualizationAssets(VisualizationType vis) {
     }
 
     // Visualization for rev-sph link
-    m_revsph->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_revsph->AddAsset(chrono_types::make_shared<ChSegmentShape>());
 }
 
 void ChPitmanArm::RemoveVisualizationAssets() {

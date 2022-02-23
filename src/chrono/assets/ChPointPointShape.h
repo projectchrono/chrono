@@ -10,8 +10,8 @@
 //
 // =============================================================================
 
-#ifndef CHLINESHAPEPP_H
-#define CHLINESHAPEPP_H
+#ifndef CH_POINTPOINT_SHAPE_H
+#define CH_POINTPOINT_SHAPE_H
 
 #include "chrono/assets/ChLineShape.h"
 
@@ -24,9 +24,9 @@ namespace chrono {
 /// Otherwise drawing may broken since each physics item will try to update
 /// geometry of the line and causes race conditions.
 
-class ChApi ChPointPointDrawing : public ChLineShape {
+class ChApi ChPointPointShape : public ChLineShape {
   public:
-    ChPointPointDrawing() = default;
+    ChPointPointShape() = default;
 
     // Call UpdateLineGeometry() if updater has any pair of points.
     // (at this point, only ChLink and its derivatives are supported.)
@@ -42,7 +42,7 @@ class ChApi ChPointPointDrawing : public ChLineShape {
 /// - Currently, only ChLink and its derivatives are supported.
 /// - An instance of this class should not be shared among multiple ChPhysicsItem instances. Otherwise drawing may
 ///   broken since each physics item will try to update geometry of the line and causes race conditions.
-class ChApi ChPointPointSegment : public ChPointPointDrawing {
+class ChApi ChSegmentShape : public ChPointPointShape {
   private:
     // Set line geometry as segment between two end point
     virtual void UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) override;
@@ -53,9 +53,9 @@ class ChApi ChPointPointSegment : public ChPointPointDrawing {
 /// - Currently, only ChLink and its derivatives are supported.
 /// - An instance of this class should not be shared among multiple ChPhysicsItem instances. Otherwise drawing may
 ///   broken since each physics item will try to update geometry of the line and causes race conditions.
-class ChApi ChPointPointSpring : public ChPointPointDrawing {
+class ChApi ChSpringShape : public ChPointPointShape {
   public:
-    ChPointPointSpring(double mradius = 0.05, int mresolution = 65, double mturns = 5.)
+    ChSpringShape(double mradius = 0.05, int mresolution = 65, double mturns = 5.)
         : radius(mradius), turns(mturns), resolution(mresolution) {}
 
   private:
@@ -79,8 +79,6 @@ class ChApi ChRotSpringShape : public ChLineShape {
     double m_radius;
     size_t m_resolution;
 };
-
-
 
 }  // end namespace chrono
 

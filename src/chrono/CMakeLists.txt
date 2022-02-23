@@ -621,7 +621,7 @@ set(ChronoEngine_assets_SOURCES
     assets/ChPathShape.cpp
     assets/ChLineShape.cpp
     assets/ChEmitterAsset.cpp
-    assets/ChPointPointDrawing.cpp
+    assets/ChPointPointShape.cpp
     assets/ChSurfaceShape.cpp
     assets/ChVisualMaterial.cpp
     )
@@ -644,7 +644,6 @@ set(ChronoEngine_assets_HEADERS
     assets/ChColor.h
     assets/ChMaterial.h
     assets/ChGlyphs.h
-    #assets/ChGenericRender.h
     assets/ChColorAsset.h
     assets/ChRoundedCylinderShape.h
     assets/ChRoundedBoxShape.h
@@ -652,7 +651,7 @@ set(ChronoEngine_assets_HEADERS
     assets/ChPathShape.h
     assets/ChLineShape.h
     assets/ChEmitterAsset.h
-    assets/ChPointPointDrawing.h
+    assets/ChPointPointShape.h
     assets/ChSurfaceShape.h
     assets/ChVisualMaterial.h
     )

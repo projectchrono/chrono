@@ -22,7 +22,7 @@
 namespace chrono {
 
 /// Base class for a visualization asset for rendering (run-time or post processing).
-/// Encapsulates basic information about the asset position, materials, and visibility.
+/// Encapsulates basic information about the shape position, materials, and visibility.
 class ChApi ChVisualShape : public ChAsset {
   public:
     virtual ~ChVisualShape() {}
@@ -47,13 +47,13 @@ class ChApi ChVisualShape : public ChAsset {
     /// Get the fading level.
     float GetFading() const { return fading; }
 
-    /// Set this visualization asset as static (default: false).
+    /// Set this visualization shape as static (default: false).
     /// Set to true to indicate that the asset never changes and therefore does not require updates
     /// (e.g. for a non-deformable triangular mesh).
     /// A particular visualization system may take advantage of this setting to accelerate rendering.
     void SetStatic(bool val) { is_static = val; }
 
-    /// Return true if the visualization asset is marked as static.
+    /// Return true if the visualization shape is marked as static.
     bool IsStatic() const { return is_static; }
 
     /// Add a visualization material and return its index in the list of materials.
@@ -65,7 +65,7 @@ class ChApi ChVisualShape : public ChAsset {
     /// Get the specified material in the list.
     std::shared_ptr<ChVisualMaterial> GetMaterial(int i) { return material_list[i]; }
 
-    /// Get the number of visualizatin materials.
+    /// Get the number of visualization materials.
     int GetNumMaterials() const { return (int)material_list.size(); }
 
     ChVector<> Pos;    ///< asset position

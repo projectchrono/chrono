@@ -104,7 +104,7 @@ system.AddLink(spring_1)
 
 # Attach a visualization asset.
 spring_1.AddAsset(col_1)
-spring_1.AddAsset(chrono.ChPointPointSpring(0.05, 80, 15))
+spring_1.AddAsset(chrono.ChSpringShape(0.05, 80, 15))
 
 # Create a body suspended through a ChLinkTSDA (custom force functor)
 # -------------------------------------------------------------------
@@ -138,7 +138,7 @@ system.AddLink(spring_2)
 
 # Attach a visualization asset.
 spring_2.AddAsset(col_2)
-spring_2.AddAsset(chrono.ChPointPointSpring(0.05, 80, 15))
+spring_2.AddAsset(chrono.ChSpringShape(0.05, 80, 15))
 
 # Create the Irrlicht application
 # -------------------------------

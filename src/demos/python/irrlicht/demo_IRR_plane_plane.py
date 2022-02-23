@@ -68,7 +68,7 @@ mysystem.AddLink(spring)
 spring_col = chrono.ChColorAsset()
 spring_col.SetColor(chrono.ChColor(0.2, 0.4, 0.8))
 spring.AddAsset(spring_col)
-spring.AddAsset(chrono.ChPointPointSpring(0.05, 80, 15))
+spring.AddAsset(chrono.ChSpringShape(0.05, 80, 15))
 
 # ---------------------------------------------------------------------
 #

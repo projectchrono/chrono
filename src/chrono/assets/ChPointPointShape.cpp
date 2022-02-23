@@ -10,7 +10,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 #include "chrono/physics/ChLinkMarkers.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChLinkRevoluteSpherical.h"
@@ -19,7 +19,7 @@
 
 namespace chrono {
 
-void ChPointPointDrawing::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
+void ChPointPointShape::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
     // Extract two positions from updater if it has any, and then update line geometry from these positions.
     if (auto link_markers = dynamic_cast<ChLinkMarkers*>(updater)) {
         UpdateLineGeometry(coords.TransformPointParentToLocal(link_markers->GetMarker1()->GetAbsCoord().pos),
@@ -43,42 +43,43 @@ void ChPointPointDrawing::Update(ChPhysicsItem* updater, const ChCoordsys<>& coo
 }
 
 // Set line geometry as a segment between two end point
-void ChPointPointSegment::UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) {
-	this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(chrono_types::make_shared<geometry::ChLineSegment>(endpoint1, endpoint2)));
+void ChSegmentShape::UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) {
+    this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(
+        chrono_types::make_shared<geometry::ChLineSegment>(endpoint1, endpoint2)));
 };
 
 // Set line geometry as a coil between two end point
-void ChPointPointSpring::UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) {
-	auto linepath = chrono_types::make_shared<geometry::ChLinePath>();
+void ChSpringShape::UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) {
+    auto linepath = chrono_types::make_shared<geometry::ChLinePath>();
 
-	// Following part was copied from irrlicht::tools::drawSpring()
-	ChVector<> dist = endpoint2 - endpoint1;
-	ChVector<> Vx, Vy, Vz;
-	double length = dist.Length();
-	ChVector<> dir = dist.GetNormalized();
+    // Following part was copied from irrlicht::tools::drawSpring()
+    ChVector<> dist = endpoint2 - endpoint1;
+    ChVector<> Vx, Vy, Vz;
+    double length = dist.Length();
+    ChVector<> dir = dist.GetNormalized();
     XdirToDxDyDz(dir, VECT_Y, Vx, Vy, Vz);
 
-	ChMatrix33<> rel_matrix(Vx, Vy, Vz);
-	ChCoordsys<> mpos(endpoint1, rel_matrix.Get_A_quaternion());
+    ChMatrix33<> rel_matrix(Vx, Vy, Vz);
+    ChCoordsys<> mpos(endpoint1, rel_matrix.Get_A_quaternion());
 
-	double phaseA = 0;
-	double phaseB = 0;
-	double heightA = 0;
-	double heightB = 0;
+    double phaseA = 0;
+    double phaseB = 0;
+    double heightA = 0;
+    double heightB = 0;
 
-	for (int iu = 1; iu <= resolution; iu++) {
-		phaseB = turns * CH_C_2PI * (double)iu / (double)resolution;
-		heightB = length * ((double)iu / (double)resolution);
-		ChVector<> V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
-		ChVector<> V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
+    for (int iu = 1; iu <= resolution; iu++) {
+        phaseB = turns * CH_C_2PI * (double)iu / (double)resolution;
+        heightB = length * ((double)iu / (double)resolution);
+        ChVector<> V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
+        ChVector<> V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
 
-		auto segment = geometry::ChLineSegment(mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2));
-		linepath->AddSubLine(segment);
-		phaseA = phaseB;
-		heightA = heightB;
-	}
+        auto segment = geometry::ChLineSegment(mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2));
+        linepath->AddSubLine(segment);
+        phaseA = phaseB;
+        heightA = heightB;
+    }
 
-	this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(linepath));
+    this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(linepath));
 }
 
 void ChRotSpringShape::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {

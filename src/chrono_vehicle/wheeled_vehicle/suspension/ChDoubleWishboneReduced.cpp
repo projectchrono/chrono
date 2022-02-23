@@ -26,7 +26,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChDoubleWishboneReduced.h"
@@ -228,36 +228,36 @@ void ChDoubleWishboneReduced::AddVisualizationAssets(VisualizationType vis) {
                             m_pointsR[LCA_U], m_pointsR[TIEROD_U], getUprightRadius());
 
     // Add visualization for the spring-dampers
-    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
 
     // Add visualization for the arm and tie-rod distance constraints
     ChColor col_tierod(0.8f, 0.3f, 0.3f);
     ChColor col_upperarm(0.1f, 0.4f, 0.1f);
     ChColor col_lowerarm(0.1f, 0.1f, 0.4f);
 
-    m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+    m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
     m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_tierod));
     m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_tierod));
 
-    m_distUCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distUCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distUCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+    m_distUCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
     m_distUCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_upperarm));
     m_distUCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_upperarm));
 
-    m_distUCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distUCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distUCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+    m_distUCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
     m_distUCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_upperarm));
     m_distUCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_upperarm));
 
-    m_distLCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distLCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distLCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+    m_distLCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
     m_distLCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_lowerarm));
     m_distLCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_lowerarm));
 
-    m_distLCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distLCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_distLCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+    m_distLCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
     m_distLCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_lowerarm));
     m_distLCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_lowerarm));
 }

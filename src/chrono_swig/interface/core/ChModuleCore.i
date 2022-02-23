@@ -63,7 +63,7 @@
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 #include "chrono/assets/ChSurfaceShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
@@ -143,9 +143,9 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLineShape)
 %shared_ptr(chrono::ChSurfaceShape)
 %shared_ptr(chrono::ChPathShape)
-%shared_ptr(chrono::ChPointPointDrawing)
-%shared_ptr(chrono::ChPointPointSegment)
-%shared_ptr(chrono::ChPointPointSpring)
+%shared_ptr(chrono::ChPointPointShape)
+%shared_ptr(chrono::ChSegmentShape)
+%shared_ptr(chrono::ChSpringShape)
 %shared_ptr(chrono::ChRotSpringShape)
 %shared_ptr(chrono::ChTriangleMeshShape)
 %shared_ptr(chrono::ChBezierCurve)
@@ -361,7 +361,7 @@ using namespace chrono::fea;
 %include "ChCamera.i"
 %include "../../../chrono/assets/ChLineShape.h"
 %include "../../../chrono/assets/ChPathShape.h"
-%include "../../../chrono/assets/ChPointPointDrawing.h"
+%include "../../../chrono/assets/ChPointPointShape.h"
 %include "../../../chrono/assets/ChSurfaceShape.h"
 %include "../../../chrono/assets/ChTriangleMeshShape.h"
 %include "../../../chrono/assets/ChEllipsoidShape.h"
@@ -457,9 +457,9 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChLineShape)
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChSurfaceShape)
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChPathShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChPointPointDrawing)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChPointPointSegment)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChPointPointSpring)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChPointPointShape)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChSegmentShape)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChSpringShape)
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChRotSpringShape)
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChTriangleMeshShape)
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChEllipsoidShape)

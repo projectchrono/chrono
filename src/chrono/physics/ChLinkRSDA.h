@@ -17,7 +17,7 @@
 
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 namespace chrono {
 
