@@ -1010,6 +1010,17 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
     }
 }
 
+void ChElementBeamTaperedTimoshenko::GetKRMmatricesLocal(ChMatrixRef H,
+                                                         double Kmfactor,
+                                                         double Kgfactor,
+                                                         double Rmfactor,
+                                                         double Mfactor) {
+    assert((H.rows() == 12) && (H.cols() == 12));
+
+    H.block(0, 0, 12, 12) = this->Km * Kmfactor + this->Kg * Kgfactor + this->Rm * Rmfactor + this->M * Mfactor;
+
+}
+
 void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 12);
     assert(tapered_section);
