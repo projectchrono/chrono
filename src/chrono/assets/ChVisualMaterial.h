@@ -43,6 +43,7 @@ class ChApi ChVisualMaterial : public ChAsset {
     void SetMetallicTexture(std::string filename) { metallic_texture = filename; };
     void SetRoughnessTexture(std::string filename) { roughness_texture = filename; };
     void SetOpacityTexture(std::string filename) { opacity_texture = filename; };
+    void SetWeightTexture(std::string filename) { weight_texture = filename; };
     void SetFresnelExp(float exp);
     void SetFresnelMax(float max);
     void SetFresnelMin(float min);
@@ -51,6 +52,7 @@ class ChApi ChVisualMaterial : public ChAsset {
     void SetUseSpecularWorkflow(bool s) { use_specular_workflow = s; }
     void SetClassID(unsigned short int id) { class_id = id; }
     void SetInstanceID(unsigned short int id) { instance_id = id; }
+    void SetTextureScale(ChVector<float> scale){tex_scale = scale;}
 
     // accessor functions
     ChVector<float> GetAmbientColor() { return Ka; }
@@ -64,6 +66,7 @@ class ChApi ChVisualMaterial : public ChAsset {
     std::string GetMetallicTexture() { return metallic_texture; };
     std::string GetRoughnessTexture() { return roughness_texture; };
     std::string GetOpacityTexture() { return opacity_texture; };
+    std::string GetWeightTexture() { return weight_texture; };
     float GetFresnelExp() { return fresnel_exp; }
     float GetFresnelMax() { return fresnel_max; }
     float GetFresnelMin() { return fresnel_min; }
@@ -72,6 +75,7 @@ class ChApi ChVisualMaterial : public ChAsset {
     bool GetUseSpecularWorkflow() { return use_specular_workflow; }
     unsigned short int GetClassID() { return class_id; }
     unsigned short int GetInstanceID() { return instance_id; }
+    ChVector<float> GetTextureScale(){return tex_scale;}
 
   private:
     ChVector<float> Ka;  // ambient color 0-1
@@ -95,6 +99,9 @@ class ChApi ChVisualMaterial : public ChAsset {
     std::string metallic_texture;
     std::string roughness_texture;
     std::string opacity_texture;
+    std::string weight_texture;
+
+    ChVector<float> tex_scale;
 
     unsigned short int class_id;
     unsigned short int instance_id;

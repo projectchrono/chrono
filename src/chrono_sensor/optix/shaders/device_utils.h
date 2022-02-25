@@ -102,6 +102,7 @@ __device__ __inline__ PerRayData_camera default_camera_prd() {
     prd.use_gi = false;
     prd.albedo = make_float3(0.f, 0.f, 0.f);
     prd.normal = make_float3(0.f, 0.f, 0.f);
+    prd.use_fog = true;
     return prd;
 };
 
@@ -396,9 +397,9 @@ __device__ __inline__ void basis_from_quaternion(const float4& q, float3& f, flo
     const float e1e2 = q.y * q.z;
     const float e1e3 = q.y * q.w;
     const float e2e3 = q.z * q.w;
-    f = make_float3((e0e0 + e1e1) * 2 - 1, (e1e2 + e0e3) * 2, (e1e3 - e0e2) * 2);
-    g = make_float3((e1e2 - e0e3) * 2, (e0e0 + e2e2) * 2 - 1, (e2e3 + e0e1) * 2);
-    h = make_float3((e1e3 + e0e2) * 2, (e2e3 - e0e1) * 2, (e0e0 + e3e3) * 2 - 1);
+    f = make_float3((e0e0 + e1e1) * 2.f - 1.f, (e1e2 + e0e3) * 2.f, (e1e3 - e0e2) * 2.f);
+    g = make_float3((e1e2 - e0e3) * 2.f, (e0e0 + e2e2) * 2.f - 1.f, (e2e3 + e0e1) * 2.f);
+    h = make_float3((e1e3 + e0e2) * 2.f, (e2e3 - e0e1) * 2.f, (e0e0 + e3e3) * 2.f - 1.f);
 }
 
 __device__ __inline__ float lerp(const float& a, const float& b, const float& t) {

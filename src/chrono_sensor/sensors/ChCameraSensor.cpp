@@ -35,23 +35,27 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
                                              unsigned int supersample_factor,  // super sampling factor
                                              CameraLensModelType lens_model,   // lens model to use
                                              bool use_gi,                      // 1 to use Global Illumination
-                                             float gamma                       // 1 for linear color space, 2.2 for sRGB
+                                             float gamma,                      // 1 for linear color space, 2.2 for sRGB
+                                             bool use_fog                      // whether to use fog on this camera
                                              )
     : m_hFOV(hFOV),
       m_supersample_factor(supersample_factor),
       m_lens_model_type(lens_model),
       m_use_gi(use_gi),
       m_gamma(gamma),
+      m_use_fog(use_fog),
+      m_lens_parameters({0.f, 0.f, 0.f}),
       ChOptixSensor(parent, updateRate, offsetPose, w * supersample_factor, h * supersample_factor) {
     // set the program to match the model requested
-    switch (lens_model) {
-        case CameraLensModelType::FOV_LENS:
-            m_pipeline_type = PipelineType::CAMERA_FOV_LENS;
-            break;
-        default:  // default to CameraLensModelType::PINHOLE
-            m_pipeline_type = PipelineType::CAMERA_PINHOLE;
-            break;
-    }
+    // switch (lens_model) {
+    //     case CameraLensModelType::FOV_LENS:
+    m_pipeline_type = PipelineType::CAMERA;
+    //         break;
+    //     default:  // default to CameraLensModelType::PINHOLE
+    //         m_pipeline_type = PipelineType::CAMERA_PINHOLE;
+    //         break;
+    // }
+    ;
 
     m_filters.push_back(chrono_types::make_shared<ChFilterImageHalf4ToRGBA8>());
 
@@ -68,6 +72,13 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
 // Destructor
 // -----------------------------------------------------------------------------
 CH_SENSOR_API ChCameraSensor::~ChCameraSensor() {}
+
+void ChCameraSensor::SetRadialLensParameters(ChVector<float> params) {
+    float b1 = -params.x();
+    float b2 = 3.f * params.x() * params.x() - params.y();
+    float b3 = 8.f * params.x() * params.y() - 12.f * params.x() * params.x() * params.x() - params.z();
+    m_lens_parameters = {b1, b2, b3};
+}
 
 }  // namespace sensor
 }  // namespace chrono
