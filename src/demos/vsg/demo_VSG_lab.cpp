@@ -12,16 +12,17 @@
 // Authors: Rainer Gericke
 // =============================================================================
 //
-// Chrono::vsg3d test program, experimental, obsolete
+// Chrono::vsg3d test program.
 //
-// A Random Set of Geometries in Space
+// Template for the new chrono graphics representation
+//
 // The global reference frame has Z up.
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_vsg/VSGAppProto.h"
+#include "chrono_vsg/VSGApp.h"
 
 using namespace chrono;
 using namespace chrono::vsg3d;
@@ -70,8 +71,10 @@ int main(int argc, char* argv[]) {
     utils::AddCapsuleGeometry(bin.get(), mat, c, 0.5, zdir * 6, rot);
 
     // Render everything
-    VSGAppProto app;
-    app.Initialize(1280, 720, "VSG Shapes", &sys);
+    VSGApp app;
+
+    app.Initialize(1280, 720, "VSG Lab", &sys);
+
 
     while (app.GetViewer()->advanceToNextFrame()) {
         app.Render();

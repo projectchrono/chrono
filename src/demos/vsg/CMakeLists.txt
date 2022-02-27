@@ -2,6 +2,7 @@
 # List of all OpenGL demos
 
 SET(DEMOS
+  demo_VSG_lab
   demo_VSG_shapes
 )
 
