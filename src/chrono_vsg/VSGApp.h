@@ -31,6 +31,7 @@ namespace vsg3d {
 /// @{
 
 class CH_VSG_API VSGApp {
+
   public:
     VSGApp();
     ~VSGApp();
@@ -38,7 +39,8 @@ class CH_VSG_API VSGApp {
     void Render();
     void Quit();
     vsg::ref_ptr<vsg::Viewer> GetViewer() const { return m_viewer; }
-private:
+
+  private:
     ChSystem* m_system;
     // window & viewer
     vsg::ref_ptr<vsg::Viewer> m_viewer;
@@ -53,8 +55,6 @@ private:
     // command + render
     vsg::ref_ptr<vsg::CommandGraph> m_commandGraph;
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
-
-
 };
 }  // namespace vsg3d
 }  // namespace chrono

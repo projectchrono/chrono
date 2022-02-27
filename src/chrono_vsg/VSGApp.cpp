@@ -34,34 +34,69 @@
 
 namespace chrono {
 namespace vsg3d {
+
 struct Params : public vsg::Inherit<vsg::Object, Params> {
     bool showGui = true;  // you can toggle this with your own EventHandler and key
 };
 
-    class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler> {
-    public:
-        AppKeyboardHandler(vsg::Viewer *viewer) : m_viewer(viewer) {
-        }
+class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler> {
+  public:
+    AppKeyboardHandler(vsg::Viewer* viewer) : m_viewer(viewer) {}
 
-        void SetParams(vsg::ref_ptr<Params> params, VSGApp *appPtr) {
-            _params = params;
-            m_appPtr = appPtr;
-        }
+    void SetParams(vsg::ref_ptr<Params> params, VSGApp* appPtr) {
+        _params = params;
+        m_appPtr = appPtr;
+    }
 
-        void apply(vsg::KeyPressEvent &keyPress) override {
-            if (keyPress.keyBase == 'm' || keyPress.keyModified == 'm') {
-                _params->showGui = !_params->showGui;
-            }
-            if (keyPress.keyBase == 'q' || keyPress.keyModified == 'q') {
+    void apply(vsg::KeyPressEvent& keyPress) override {
+        if (keyPress.keyBase == 'm' || keyPress.keyModified == 'm') {
+            _params->showGui = !_params->showGui;
+        }
+        if (keyPress.keyBase == 'q' || keyPress.keyModified == 'q') {
+            m_appPtr->Quit();
+        }
+    }
+
+  private:
+    vsg::observer_ptr<vsg::Viewer> m_viewer;
+    vsg::ref_ptr<Params> _params;
+    VSGApp* m_appPtr;
+};
+
+class MyGuiComponent {
+  public:
+    MyGuiComponent(vsg::ref_ptr<Params> params, VSGApp* appPtr) : _params(params), m_appPtr(appPtr) {}
+
+    // Example here taken from the Dear imgui comments (mostly)
+    bool operator()() {
+        bool visibleComponents = false;
+        ImGuiIO& io = ImGui::GetIO();
+#ifdef __APPLE__
+        io.FontGlobalScale = 2.0;
+#else
+        io.FontGlobalScale = 1.0;
+#endif
+
+        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+        if (_params->showGui) {
+            ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+            ImGui::Begin("App:");  // Create a window called "Hello, world!" and append into it.
+
+            if (ImGui::Button(
+                    "Quit"))  // Buttons return true when clicked (most widgets return true when edited/activated)
                 m_appPtr->Quit();
-            }
+
+            ImGui::End();
+            visibleComponents = true;
         }
 
-    private:
-        vsg::observer_ptr<vsg::Viewer> m_viewer;
-        vsg::ref_ptr<Params> _params;
-        VSGApp *m_appPtr;
-    };
+        return visibleComponents;
+    }
+
+  private:
+    vsg::ref_ptr<Params> _params;
+    VSGApp* m_appPtr;
+};
 
 VSGApp::VSGApp() : m_up_vector(vsg::dvec3(0, 0, 1)), m_system(nullptr) {}
 
@@ -148,6 +183,11 @@ bool VSGApp::Initialize(int windowWidth, int windowHeight, const char* windowTit
     m_renderGraph->addChild(vsg::View::create(m_camera, m_scenegraph));
 
     auto params = Params::create();
+    m_renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, MyGuiComponent(params, this)));
+
+    // Add the ImGui event handler first to handle events early
+    m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
+
     auto kbHandler = AppKeyboardHandler::create(m_viewer);
     kbHandler->SetParams(params, this);
     m_viewer->addEventHandler(kbHandler);
