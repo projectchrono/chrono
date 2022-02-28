@@ -60,7 +60,7 @@ scene::ISceneNode* ChIrrNode::clone(scene::ISceneNode* newParent, scene::ISceneM
 }
 
 bool ChIrrNode::SetupClones() {
-    unsigned int needed_clones = physicsitem.lock()->GetAssetsFrameNclones();
+    unsigned int needed_clones = physicsitem.lock()->GetNumVisualModelClones();
 
     if (needed_clones) {
         unsigned int actual_clones = this->getChildren().getSize();
@@ -97,8 +97,8 @@ void ChIrrNode::OnAnimate(u32 timeMs) {
     if (IsVisible && ChronoControlled) {
         // reorient/reposition the scene node every frame
         if (!physicsitem.expired()) {
-            if (!physicsitem.lock()->GetAssetsFrameNclones()) {
-                tools::alignIrrlichtNodeToChronoCsys(this, physicsitem.lock()->GetAssetsFrame().GetCoord());
+            if (!physicsitem.lock()->GetNumVisualModelClones()) {
+                tools::alignIrrlichtNodeToChronoCsys(this, physicsitem.lock()->GetVisualModelFrame().GetCoord());
             } else {
                 // check that children clones are already as many as
                 // assets frame clones, and adjust it if not:
@@ -108,7 +108,7 @@ void ChIrrNode::OnAnimate(u32 timeMs) {
                     irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
                     for (; it != Children.end(); ++it) {
                         tools::alignIrrlichtNodeToChronoCsys(
-                            (*it), physicsitem.lock()->GetAssetsFrame(iclone).GetCoord());
+                            (*it), physicsitem.lock()->GetVisualModelFrame(iclone).GetCoord());
                         ++iclone;
                     }
                 }

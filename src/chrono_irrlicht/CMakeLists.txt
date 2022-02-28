@@ -31,6 +31,8 @@ SET(ChronoEngine_IRRLICHT_SOURCES
   ChIrrTools.cpp
   ChIrrNodeAsset.cpp
   ChIrrSkyBoxSceneNode.cpp
+  ChIrrGUI.cpp
+  ChVisualSystemIrrlicht.cpp
 )
 
 SET(ChronoEngine_IRRLICHT_HEADERS
@@ -46,6 +48,8 @@ SET(ChronoEngine_IRRLICHT_HEADERS
   ChIrrNodeAsset.h
   ChIrrEffects.h
   ChIrrSkyBoxSceneNode.h
+  ChIrrGUI.h
+  ChVisualSystemIrrlicht.h
 )
 
 SOURCE_GROUP("" FILES

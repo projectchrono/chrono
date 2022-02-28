@@ -141,7 +141,7 @@ void ChIrrAssetConverter::PopulateIrrlicht(std::shared_ptr<ChPhysicsItem> mitem)
     if (!fillnode)
         return;
 
-    if (mitem->GetAssetsFrameNclones() > 0) {
+    if (mitem->GetNumVisualModelClones() > 0) {
         ISceneNode* clonecontainer = scenemanager->addEmptySceneNode(myirrasset->GetIrrlichtNode());
         fillnode = clonecontainer;
     }

@@ -436,7 +436,7 @@ int drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* drive
 
         // default frame alignment:
 
-        frAabs = link->GetAssetsFrame();
+        frAabs = link->GetVisualModelFrame();
         frBabs = frAabs;
 
         // special cases:
