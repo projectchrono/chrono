@@ -35,15 +35,11 @@
 namespace chrono {
 namespace vsg3d {
 
-struct Params : public vsg::Inherit<vsg::Object, Params> {
-    bool showGui = true;  // you can toggle this with your own EventHandler and key
-};
-
 class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler> {
   public:
     AppKeyboardHandler(vsg::Viewer* viewer) : m_viewer(viewer) {}
 
-    void SetParams(vsg::ref_ptr<Params> params, VSGApp* appPtr) {
+    void SetParams(vsg::ref_ptr<VSGApp::Params> params, VSGApp* appPtr) {
         _params = params;
         m_appPtr = appPtr;
     }
@@ -59,13 +55,13 @@ class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler>
 
   private:
     vsg::observer_ptr<vsg::Viewer> m_viewer;
-    vsg::ref_ptr<Params> _params;
+    vsg::ref_ptr<VSGApp::Params> _params;
     VSGApp* m_appPtr;
 };
 
 class MyGuiComponent {
   public:
-    MyGuiComponent(vsg::ref_ptr<Params> params, VSGApp* appPtr) : _params(params), m_appPtr(appPtr) {}
+    MyGuiComponent(vsg::ref_ptr<VSGApp::Params> params, VSGApp* appPtr) : _params(params), m_appPtr(appPtr) {}
 
     // Example here taken from the Dear imgui comments (mostly)
     bool operator()() {
@@ -94,7 +90,7 @@ class MyGuiComponent {
     }
 
   private:
-    vsg::ref_ptr<Params> _params;
+    vsg::ref_ptr<VSGApp::Params> _params;
     VSGApp* m_appPtr;
 };
 
@@ -108,11 +104,22 @@ bool VSGApp::Initialize(int windowWidth, int windowHeight, const char* windowTit
     auto options = vsg::Options::create();
     options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
     options->objectCache = vsg::ObjectCache::create();
+#ifdef vsgXchange_all
+    // add vsgXchange's support for reading and writing 3rd party file formats
+    options->add(vsgXchange::all::create());
+#endif
+    options->fileCache = vsg::getEnv("VSG_FILE_CACHE");
+    options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
 
     auto windowTraits = vsg::WindowTraits::create();
     windowTraits->windowTitle = windowTitle;
     windowTraits->width = windowWidth;
     windowTraits->height = windowHeight;
+    windowTraits->deviceExtensionNames = {
+            VK_KHR_MULTIVIEW_EXTENSION_NAME,
+            VK_KHR_MAINTENANCE2_EXTENSION_NAME,
+            VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
+            VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME};
 
     // enable transfer from the colour and depth buffer images
     windowTraits->swapchainPreferences.imageUsage =
@@ -182,14 +189,14 @@ bool VSGApp::Initialize(int windowWidth, int windowHeight, const char* windowTit
     // create the normal 3D view of the scene
     m_renderGraph->addChild(vsg::View::create(m_camera, m_scenegraph));
 
-    auto params = Params::create();
-    m_renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, MyGuiComponent(params, this)));
+    m_params = Params::create();
+    m_renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, MyGuiComponent(m_params, this)));
 
     // Add the ImGui event handler first to handle events early
     m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
 
     auto kbHandler = AppKeyboardHandler::create(m_viewer);
-    kbHandler->SetParams(params, this);
+    kbHandler->SetParams(m_params, this);
     m_viewer->addEventHandler(kbHandler);
 
     // add close handler to respond the close window button and pressing escape

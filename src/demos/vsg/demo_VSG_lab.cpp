@@ -75,7 +75,6 @@ int main(int argc, char* argv[]) {
 
     app.Initialize(1280, 720, "VSG Lab", &sys);
 
-
     while (app.GetViewer()->advanceToNextFrame()) {
         app.Render();
     }

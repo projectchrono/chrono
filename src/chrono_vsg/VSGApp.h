@@ -18,6 +18,9 @@
 #define VSG_APP_H
 
 #include <vsg/all.h>
+#ifdef vsgXchange_FOUND
+#    include <vsgXchange/all.h>
+#endif
 
 #include "chrono_vsg/core/ChApiVSG.h"
 #include "chrono_vsg/resources/ChVSGSettings.h"
@@ -31,8 +34,10 @@ namespace vsg3d {
 /// @{
 
 class CH_VSG_API VSGApp {
-
   public:
+    struct Params : public vsg::Inherit<vsg::Object, Params> {
+        bool showGui = true;  // you can toggle this with your own EventHandler and key
+    };
     VSGApp();
     ~VSGApp();
     bool Initialize(int windowWidth, int windowHeight, const char* windowTitle, ChSystem* system);
@@ -45,6 +50,7 @@ class CH_VSG_API VSGApp {
     // window & viewer
     vsg::ref_ptr<vsg::Viewer> m_viewer;
     vsg::ref_ptr<vsg::Window> m_window;
+    vsg::ref_ptr<VSGApp::Params> m_params;
     // scene(sub)graphs
     vsg::ref_ptr<vsg::Group> m_scenegraph;
     // camera settings
