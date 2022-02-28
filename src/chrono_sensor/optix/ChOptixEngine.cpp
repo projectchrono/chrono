@@ -130,7 +130,7 @@ void ChOptixEngine::AssignSensor(std::shared_ptr<ChOptixSensor> sensor) {
         }
 
         m_assignedSensor.push_back(sensor);
-        m_cameraStartFrames.push_back(sensor->GetParent()->GetAssetsFrame());
+        m_cameraStartFrames.push_back(sensor->GetParent()->GetVisualModelFrame());
         m_cameraStartFrames_set.push_back(false);
         m_pipeline->SpawnPipeline(sensor->GetPipelineType());
 
@@ -189,7 +189,7 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
                                                   (float)m_system->GetChTime() + sensor->GetCollectionWindow());
             // std::cout << "Loaded a set of body start transforms time=" << m_system->GetChTime() << std::endl;
 
-            m_cameraStartFrames[i] = sensor->GetParent()->GetAssetsFrame();
+            m_cameraStartFrames[i] = sensor->GetParent()->GetVisualModelFrame();
             m_cameraStartFrames_set[i] = true;
             // std::cout << "Set camera " << i << " start frame at time=" << m_system->GetChTime() << std::endl;
         }
@@ -685,7 +685,7 @@ void ChOptixEngine::UpdateCameraTransforms() {
         ChFrame<double> f_offset = sensor->GetOffsetPose();
         ChFrame<double> f_body_0 = m_cameraStartFrames[i];
         m_cameraStartFrames_set[i] = false;  // reset this camera frame so that we know it should be packed again
-        ChFrame<double> f_body_1 = sensor->GetParent()->GetAssetsFrame();
+        ChFrame<double> f_body_1 = sensor->GetParent()->GetVisualModelFrame();
         ChFrame<double> global_loc_0 = f_body_0 * f_offset;
         ChFrame<double> global_loc_1 = f_body_1 * f_offset;
         m_assignedRenderers[i]->m_raygen_record->data.t0 =

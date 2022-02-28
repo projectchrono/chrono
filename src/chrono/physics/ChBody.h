@@ -191,9 +191,9 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// For the base ChBody, this is always the same reference of the COG.
     virtual const ChFrameMoving<>& GetFrame_REF_to_abs() const { return *this; }
 
-    /// Get the master coordinate system for the assets (this will return the
-    /// main coordinate system of the rigid body)
-    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) override { return (GetFrame_REF_to_abs()); }
+    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
+    /// For a ChBody, this is the main coordinate system of the rigid body.
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return (GetFrame_REF_to_abs()); }
 
     /// Get the entire AABB axis-aligned bounding box of the object,
     /// as defined by the collision model (if any).

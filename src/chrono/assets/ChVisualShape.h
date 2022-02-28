@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2022 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -16,6 +16,7 @@
 #include "chrono/assets/ChAsset.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 
 #include "chrono/assets/ChVisualMaterial.h"
 
@@ -80,6 +81,8 @@ class ChApi ChVisualShape : public ChAsset {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
+    ChFrame<> frame; ///< shape position relative to containing model
+
     bool visible;
     bool is_static;
     float fading;
@@ -89,6 +92,8 @@ class ChApi ChVisualShape : public ChAsset {
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    friend class ChVisualModel;
 };
 
 CH_CLASS_VERSION(ChVisualShape, 0)

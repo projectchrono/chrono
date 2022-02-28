@@ -599,7 +599,6 @@ source_group(geometry FILES
 
 set(ChronoEngine_assets_SOURCES
     assets/ChAsset.cpp
-    assets/ChVisualShape.cpp
     assets/ChObjShapeFile.cpp
     assets/ChTriangleMeshShape.cpp
     assets/ChSphereShape.cpp
@@ -624,11 +623,13 @@ set(ChronoEngine_assets_SOURCES
     assets/ChPointPointShape.cpp
     assets/ChSurfaceShape.cpp
     assets/ChVisualMaterial.cpp
+    assets/ChVisualShape.cpp
+    assets/ChVisualModel.cpp
+    assets/ChVisualSystem.cpp
     )
 
 set(ChronoEngine_assets_HEADERS
     assets/ChAsset.h
-    assets/ChVisualShape.h
     assets/ChObjShapeFile.h
     assets/ChTriangleMeshShape.h
     assets/ChSphereShape.h
@@ -654,6 +655,9 @@ set(ChronoEngine_assets_HEADERS
     assets/ChPointPointShape.h
     assets/ChSurfaceShape.h
     assets/ChVisualMaterial.h
+    assets/ChVisualShape.h
+    assets/ChVisualModel.h
+    assets/ChVisualSystem.h
     )
 
 source_group(assets FILES

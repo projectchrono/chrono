@@ -364,13 +364,18 @@ void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
     collision_system->SetSystem(this);
 }
 
-void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsystem) {
+void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_sys) {
     assert(assembly.GetNbodies() == 0);
-    assert(newcollsystem);
-    collision_system = newcollsystem;
-    collision_system_type = newcollsystem->GetType();
+    assert(coll_sys);
+    collision_system = coll_sys;
+    collision_system_type = coll_sys->GetType();
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
+}
+
+void ChSystem::SetVisualSystem(std::shared_ptr<ChVisualSystem> vis_sys) {
+    visual_system = vis_sys;
+    visual_system->OnAttach(this);
 }
 
 void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
@@ -761,6 +766,10 @@ void ChSystem::Update(bool update_assets) {
 
     // Update all contacts, if any
     contact_container->Update(ch_time, update_assets);
+
+    // Update any attached visualization system only when also updating assets
+    if (visual_system && update_assets)
+        visual_system->Update();
 
     timer_update.stop();
 }
@@ -1484,6 +1493,10 @@ bool ChSystem::Integrate_Y() {
 
     // Time elapsed for step
     timer_step.stop();
+
+    // Update the run-time visualization system, if present
+    if (visual_system)
+        visual_system->Update();
 
     // Tentatively mark system as unchanged (i.e., no updated necessary)
     is_updated = true;

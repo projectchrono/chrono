@@ -120,7 +120,7 @@ ChCoordsys<> ChLinkRSDA::GetLinkRelativeCoords() {
     return m_csys2;
 }
 
-ChFrame<> ChLinkRSDA::GetAssetsFrame(unsigned int nclone) {
+ChFrame<> ChLinkRSDA::GetVisualModelFrame(unsigned int nclone) {
     return ChFrame<>(m_csys1 >> Body1->GetCoord());
 }
 

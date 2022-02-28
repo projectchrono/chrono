@@ -499,7 +499,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
 }
 
 void ChOpenGLViewer::DrawObject(std::shared_ptr<ChLinkBase> link) {
-    const auto& asset_frame = link->GetAssetsFrame();
+    const auto& asset_frame = link->GetVisualModelFrame();
 
     for (auto asset : link->GetAssets()) {
         if (ChLineShape* line_shape = dynamic_cast<ChLineShape*>(asset.get())) {

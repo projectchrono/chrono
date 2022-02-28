@@ -27,6 +27,7 @@
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/utils/ChOpenMP.h"
 #include "chrono/physics/ChAssembly.h"
@@ -703,11 +704,19 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Change the underlying collision system.
     /// By default, a ChSystem uses a Bullet-based collision detection engine.
-    virtual void SetCollisionSystem(std::shared_ptr<collision::ChCollisionSystem> newcollsystem);
+    virtual void SetCollisionSystem(std::shared_ptr<collision::ChCollisionSystem> coll_sys);
 
     /// Access the underlying collision system.
     /// Usually this is not needed, as the collision system is automatically handled by the ChSystem.
     std::shared_ptr<collision::ChCollisionSystem> GetCollisionSystem() const { return collision_system; }
+
+    /// Set the run-time visualization system.
+    /// By default, no visualization system is attached.
+    virtual void SetVisualSystem(std::shared_ptr<ChVisualSystem> vis_sys);
+
+    /// Access the underlying collision system.
+    /// Usually this is not needed, as the collision system is automatically handled by the ChSystem.
+    std::shared_ptr<ChVisualSystem> GetVisualSystem() const { return visual_system; }
 
     /// Change the underlying contact container given the specified type of the collision detection system.
     /// Usually this is not needed, as the contact container is automatically handled by the ChSystem.
@@ -963,6 +972,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     collision::ChCollisionSystemType collision_system_type;                     ///< type of the collision engine
     std::shared_ptr<collision::ChCollisionSystem> collision_system;             ///< collision engine
+    std::shared_ptr<ChVisualSystem> visual_system;                              ///< run-time visualization engine
     std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;  ///< user-defined collision callbacks
     std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;        /// material composition strategy
 

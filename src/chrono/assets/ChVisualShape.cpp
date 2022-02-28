@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2022 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/assets/ChVisualShape.h"

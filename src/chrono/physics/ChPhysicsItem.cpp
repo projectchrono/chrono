@@ -47,10 +47,9 @@ void ChPhysicsItem::SetSystem(ChSystem* m_system) {
     }
 }
 
-std::shared_ptr<ChAsset> ChPhysicsItem::GetAssetN(unsigned int num) {
-    if (num < assets.size())
-        return assets[num];
-    return std::shared_ptr<ChAsset>();
+void ChPhysicsItem::AddVisualModel(std::shared_ptr<ChVisualModel> model) {
+    vis_model = std::unique_ptr<ChVisualModelInstance>(new ChVisualModelInstance(model));
+    vis_model->m_owner = this;
 }
 
 void ChPhysicsItem::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
@@ -69,7 +68,7 @@ void ChPhysicsItem::Update(double mytime, bool update_assets) {
 
     if (update_assets) {
         for (unsigned int ia = 0; ia < assets.size(); ++ia)
-            assets[ia]->Update(this, GetAssetsFrame().GetCoord());
+            assets[ia]->Update(this, GetVisualModelFrame().GetCoord());
     }
 }
 

@@ -78,7 +78,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
     m_optixSensor = pOptixSensor;
     // get the sensor reference frames
     ChFrame<double> f_offset = pOptixSensor->GetOffsetPose();
-    ChFrame<double> f_body = pOptixSensor->GetParent()->GetAssetsFrame();
+    ChFrame<double> f_body = pOptixSensor->GetParent()->GetVisualModelFrame();
     ChFrame<double> global_loc = f_body * f_offset;
 
     if (auto cam = std::dynamic_pointer_cast<ChCameraSensor>(pSensor)) {
