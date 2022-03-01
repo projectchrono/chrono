@@ -63,10 +63,10 @@ void ChVisualMaterial::SetSpecularExponent(float exponent) {
     }
 }
 
-void ChVisualMaterial::SetTransparency(float tr) {
+void ChVisualMaterial::SetOpacity(float o) {
     // valid transparent range [0,1] 1=opaque, 0=transparent
-    if (tr >= 0 && tr <= 1) {
-        d = tr;
+    if (o >= 0 && o <= 1) {
+        d = o;
     }
 }
 

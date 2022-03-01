@@ -532,6 +532,9 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
         node->getMaterial(0) =
             tools::ToIrrlichtMaterial(shape->GetMaterial(0), node->getSceneManager()->getVideoDriver());
     }
+
+    // Do not use vertex coloring
+    node->getMaterial(0).ColorMaterial = irr::video::ECM_NONE;
 }
 
 void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,

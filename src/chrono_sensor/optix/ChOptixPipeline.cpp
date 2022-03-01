@@ -627,7 +627,7 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
         material.fresnel_exp = mat->GetFresnelExp();
         material.fresnel_min = mat->GetFresnelMin();
         material.fresnel_max = mat->GetFresnelMax();
-        material.transparency = mat->GetTransparency();
+        material.transparency = mat->GetOpacity();
         material.roughness = mat->GetRoughness();
         material.metallic = mat->GetMetallic();
         material.use_specular_workflow = mat->GetUseSpecularWorkflow();

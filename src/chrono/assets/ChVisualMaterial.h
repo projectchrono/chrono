@@ -37,7 +37,7 @@ class ChApi ChVisualMaterial {
     void SetSpecularColor(const ChVector<float>& rgb);
     void SetEmissiveColor(const ChVector<float>& rgb);
     void SetSpecularExponent(float exponent);
-    void SetTransparency(float tr);
+    void SetOpacity(float o);
     void SetIllumination(int i);
     void SetKdTexture(const std::string& filename) { kd_texture = filename; };
     void SetKsTexture(const std::string& filename) { ks_texture = filename; };
@@ -60,7 +60,7 @@ class ChApi ChVisualMaterial {
     const ChVector<float>& GetSpecularColor() const { return Ks; }
     const ChVector<float>& GetEmissiveColor() const { return Ke; }
     float GetSpecularExponent() const { return Ns; }
-    float GetTransparency() const { return d; }
+    float GetOpacity() const { return d; }
     int GetIllumination() const { return illum; }
     const std::string& GetKdTexture() const { return kd_texture; };
     const std::string& GetKsTexture() const { return ks_texture; };

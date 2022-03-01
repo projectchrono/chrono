@@ -28,7 +28,7 @@ void ChVisualShape::SetColor(const ChColor& col) {
         material_list.push_back(std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default()));
 
     material_list[0]->SetDiffuseColor(ChVector<float>(col.R, col.G, col.B));
-    material_list[0]->SetTransparency(1 - col.A);
+    material_list[0]->SetOpacity(1 - col.A);
 }
 
 ChColor ChVisualShape::GetColor() const {
@@ -36,13 +36,31 @@ ChColor ChVisualShape::GetColor() const {
     float A;
     if (material_list.empty()) {
         RGB = ChVisualMaterial::Default()->GetDiffuseColor();
-        A = ChVisualMaterial::Default()->GetTransparency();
+        A = ChVisualMaterial::Default()->GetOpacity();
     } else {
         RGB = material_list[0]->GetDiffuseColor();
-        A = material_list[0]->GetTransparency();
+        A = material_list[0]->GetOpacity();
     }
 
     return ChColor(RGB[0], RGB[1], RGB[2], 1 - A);
+}
+
+void ChVisualShape::SetOpacity(float val) {
+    if (material_list.empty())
+        material_list.push_back(std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default()));
+
+    material_list[0]->SetOpacity(val);
+}
+
+float ChVisualShape::GetOpacity() const {
+    float A;
+    if (material_list.empty()) {
+        A = ChVisualMaterial::Default()->GetOpacity();
+    } else {
+        A = material_list[0]->GetOpacity();
+    }
+
+    return A;
 }
 
 void ChVisualShape::SetTexture(const std::string& filename) {

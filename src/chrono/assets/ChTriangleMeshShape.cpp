@@ -60,7 +60,7 @@ void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnec
             mat->SetSpecularColor({materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]});
             mat->SetEmissiveColor({materials[i].emission[0], materials[i].emission[1], materials[i].emission[2]});
             mat->SetMetallic(materials[i].metallic);
-            mat->SetTransparency(materials[i].dissolve);
+            mat->SetOpacity(materials[i].dissolve);
             mat->SetIllumination(materials[i].illum);
             mat->SetRoughness(materials[i].roughness);
 

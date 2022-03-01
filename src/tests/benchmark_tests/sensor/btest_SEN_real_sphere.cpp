@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     color1->SetRoughness(0.5f);
     color1->SetFresnelMin(0.2f);
     color1->SetFresnelMax(1.0f);
-    color1->SetTransparency(1.0f);
+    color1->SetOpacity(1.0f);
 
     auto color2 = std::make_shared<ChVisualMaterial>();
     color2->SetDiffuseColor(dif);
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     color2->SetRoughness(0.5f);
     color2->SetFresnelMin(0.2f);
     color2->SetFresnelMax(1.0f);
-    color2->SetTransparency(0.2f);
+    color2->SetOpacity(0.2f);
 
     auto color3 = std::make_shared<ChVisualMaterial>();
     color3->SetDiffuseColor(dif);
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     color3->SetRoughness(0.1f);
     color3->SetFresnelMin(0.5f);
     color3->SetFresnelMax(1.0f);
-    color3->SetTransparency(1.0f);
+    color3->SetOpacity(1.0f);
 
     auto sphere1 = std::make_shared<ChBodyEasySphere>(.5, 1000, true, true, phys_mat);
     sphere1->SetPos({0, -1.2, 0});

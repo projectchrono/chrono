@@ -43,6 +43,15 @@ class ChApi ChVisualShape : public ChAsset {
     /// If no materials are defined, return the color of the default material.
     ChColor GetColor() const;
 
+    /// Set opacity for this shape (0: fully transparent; 1: fully opaque).
+    /// This changes the first material in the list of materials for this shape.
+    /// If no materials are defined for a shape, one is first created by duplicating the default material.
+    void SetOpacity(float val);
+
+    /// Get opacity of the first material in the list of materials for this shape.
+    /// If no materials are defined, return the color of the default material.
+    float GetOpacity() const;
+
     /// Set the diffuse texture map for this shape.
     /// This changes the texture of the first material in the list of materials for this shape.
     /// If no materials are defined for a shape, one is first created by duplicating the default material.

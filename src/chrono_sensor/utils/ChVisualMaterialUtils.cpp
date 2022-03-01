@@ -92,7 +92,7 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
         mat->SetDiffuseColor({materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]});
         mat->SetSpecularColor({materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]});
         mat->SetMetallic(materials[i].metallic);
-        mat->SetTransparency(materials[i].dissolve);
+        mat->SetOpacity(materials[i].dissolve);
         mat->SetRoughness(materials[i].roughness);
 
         // If metallic and roughness is set to default, use 

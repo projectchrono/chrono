@@ -40,7 +40,7 @@ video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video
     irr_mat.SpecularColor = ToIrrlichtColor(mat->GetSpecularColor());
     irr_mat.EmissiveColor = ToIrrlichtColor(mat->GetEmissiveColor());
 
-    float dval = mat->GetTransparency();  // in [0,1]
+    float dval = mat->GetOpacity();  // in [0,1]
     irr_mat.DiffuseColor.setAlpha((s32)(dval * 255));
     if (dval < 1.0f)
         irr_mat.MaterialType = video::EMT_TRANSPARENT_VERTEX_ALPHA;
