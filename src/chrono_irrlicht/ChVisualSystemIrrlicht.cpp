@@ -32,6 +32,7 @@
 #endif
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrMeshTools.h"
 #include "chrono_irrlicht/ChIrrCamera.h"
 #include "chrono_irrlicht/ChIrrSkyBoxSceneNode.h"
@@ -41,6 +42,8 @@ namespace irrlicht {
 
 using namespace irr;
 using namespace irr::scene;
+
+static std::shared_ptr<irr::video::SMaterial> default_material;
 
 ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
     : m_device_params(irr::SIrrlichtCreationParameters()),
@@ -151,6 +154,12 @@ void ChVisualSystemIrrlicht::Initialize() {
 
     // Create the container Irrlicht scene node
     m_container = GetSceneManager()->addEmptySceneNode();
+
+    // Create default Irrlicht material
+    if (!default_material) {
+        auto irr_mat = tools::ToIrrlichtMaterial(ChVisualMaterial::Default(), GetVideoDriver());
+        default_material = std::make_shared<irr::video::SMaterial>(irr_mat);
+    }
 
     // Create an Irrlicht GUI
     m_gui = std::unique_ptr<ChIrrGUI>(new ChIrrGUI(m_device));
@@ -514,6 +523,17 @@ static void mflipSurfacesOnX(IMesh* mesh) {
     }
 }
 
+static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> shape) {
+    if (shape->GetMaterials().empty()) {
+        // Use default material
+        node->getMaterial(0) = *default_material;
+    } else {
+        // Use the first material in the list
+        node->getMaterial(0) =
+            tools::ToIrrlichtMaterial(shape->GetMaterial(0), node->getSceneManager()->getVideoDriver());
+    }
+}
+
 void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                                              const ChVisualModel& model,
                                              const ChFrame<>& parent_frame) {
@@ -589,6 +609,8 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 double mradius = sphere->GetSphereGeometry().rad;
                 mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
                 tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
+
+                SetVisualMaterial(mchildnode, sphere);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
             }
         } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
@@ -604,6 +626,8 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
 
                 mchildnode->setScale(core::vector3dfCH(ellipsoid->GetEllipsoidGeometry().rad));
                 tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
+
+                SetVisualMaterial(mchildnode, ellipsoid);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
             }
         } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
@@ -633,6 +657,8 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrcylindercoords);
                 core::vector3df irrsize((f32)rad, (f32)(0.5 * height), (f32)rad);
                 mchildnode->setScale(irrsize);
+
+                SetVisualMaterial(mchildnode, cylinder);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
             }
         } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
@@ -651,6 +677,8 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrcapsulecoords);
                 core::vector3df irrsize((f32)rad, (f32)hlen, (f32)rad);
                 mchildnode->setScale(irrsize);
+
+                SetVisualMaterial(mchildnode, capsule);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
             }
         } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
@@ -667,24 +695,28 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
 
                 mchildnode->setScale(core::vector3dfCH(box->GetBoxGeometry().Size));
                 tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrboxcoords);
+
+                SetVisualMaterial(mchildnode, box);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
             }
-        } else if (auto mybarrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
-            auto mbarrelmesh = createEllipticalMesh((irr::f32)(mybarrel->GetRhor()), (irr::f32)(mybarrel->GetRvert()),
-                                                    (irr::f32)(mybarrel->GetHlow()), (irr::f32)(mybarrel->GetHsup()),
-                                                    (irr::f32)(mybarrel->GetRoffset()), 15, 8);
-            ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mybarrel, node);
+        } else if (auto barrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
+            auto mbarrelmesh = createEllipticalMesh((irr::f32)(barrel->GetRhor()), (irr::f32)(barrel->GetRvert()),
+                                                    (irr::f32)(barrel->GetHlow()), (irr::f32)(barrel->GetHsup()),
+                                                    (irr::f32)(barrel->GetRoffset()), 15, 8);
+            ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(barrel, node);
             ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(mbarrelmesh, mproxynode);
             mproxynode->drop();
 
             // Calculate transform from node to geometry
             // (concatenate node - asset and asset - geometry)
-            ChVector<> pos = mybarrel->Pos;
-            ChCoordsys<> irrspherecoords(pos, mybarrel->Rot.Get_A_quaternion());
+            ChVector<> pos = barrel->Pos;
+            ChCoordsys<> irrspherecoords(pos, barrel->Rot.Get_A_quaternion());
 
             // double mradius = mysphere->GetSphereGeometry().rad;
             // mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
             tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
+
+            SetVisualMaterial(mchildnode, barrel);
             mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
         } else if (auto glyphs = std::dynamic_pointer_cast<ChGlyphs>(shape)) {
             CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
@@ -694,10 +726,13 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             buffer->drop();
 
             ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(glyphs, node);
-            /*ISceneNode* mchildnode =*/GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
+            ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
             newmesh->drop();
+
             mproxynode->Update();  // force syncing of triangle positions & face indexes
             mproxynode->drop();
+
+            SetVisualMaterial(mchildnode, glyphs);
 
             ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
             ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
@@ -708,10 +743,13 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             buffer->drop();
 
             ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(shape, node);
-            /*ISceneNode* mchildnode =*/GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
+            ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
             newmesh->drop();
+
             mproxynode->Update();  // force syncing of triangle positions & face indexes
             mproxynode->drop();
+
+            SetVisualMaterial(mchildnode, shape);
 
             ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
             ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );

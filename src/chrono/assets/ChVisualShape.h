@@ -52,14 +52,6 @@ class ChApi ChVisualShape : public ChAsset {
     /// If no materials are defined, return an empty string (no texture for the default material).
     std::string GetTexture() const;
 
-    /// Set the fading level, a value in [0,1] (default: 0).
-    /// If fading = 0, the surface is completely opaque.
-    /// If fading = 1, the surface is completely transparent.
-    void SetFading(const float mc) { fading = mc; }
-
-    /// Get the fading level.
-    float GetFading() const { return fading; }
-
     /// Set this visualization shape as modifiable (default: false for primitive shapes, true otherwise).
     /// Set to false to indicate that the asset never changes and therefore does not require updates
     /// (e.g. for a non-deformable triangular mesh). Note that this also includes changes in materials.
@@ -95,9 +87,8 @@ class ChApi ChVisualShape : public ChAsset {
 
     ChFrame<> frame; ///< shape position relative to containing model
 
-    bool visible;   ///< shape visibility flag
+    bool visible;     ///< shape visibility flag
     bool is_mutable;  ///< flag indicating whether the shape is rigid or deformable
-    float fading;   ///< shape fading flag
 
     std::vector<std::shared_ptr<ChVisualMaterial>> material_list;  ///< list of visualization materials
 

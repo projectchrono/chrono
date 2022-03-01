@@ -19,6 +19,7 @@
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/motion_functions/ChFunction_Base.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -86,6 +87,12 @@ enum class IrrLinkLabelMode {
 };
 
 namespace tools {
+
+/// Convert an RGB set and an opacity value to an Irrlicht color.
+irr::video::SColor ToIrrlichtColor(const ChVector<float>& col, float alpha = 1.0);
+
+/// Convert a ChVisualMaterial to an Irrlicht material.
+irr::video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, irr::video::IVideoDriver* driver);
 
 /// Align an Irrlicht object to a Chrono coordsys.
 ChApiIrr void alignIrrlichtNodeToChronoCsys(irr::scene::ISceneNode* mnode, const ChCoordsys<>& mcoords);

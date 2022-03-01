@@ -13,6 +13,7 @@
 #include "chrono/core/ChVector.h"
 
 #include "chrono_irrlicht/ChIrrNodeProxyToAsset.h"
+#include "chrono_irrlicht/ChIrrTools.h"
 
 namespace chrono {
 namespace irrlicht {
@@ -67,10 +68,6 @@ void ChIrrNodeProxyToAsset::Update() {
     initial_update = false;
 }
 
-static video::SColor ToIrrlichtColor(const ChVector<float>& col, u32 alpha = 255) {
-    return video::SColor(alpha, (u32)(col.x() * 255), (u32)(col.y() * 255), (u32)(col.z() * 255));
-}
-
 static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
                                          const ChVector<>& nrm,
                                          const ChVector2<>& uv,
@@ -79,7 +76,7 @@ static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
     vertex.Pos = core::vector3df((f32)pos.x(), (f32)pos.y(), (f32)pos.z());
     vertex.Normal = core::vector3df((f32)nrm.x(), (f32)nrm.y(), (f32)nrm.z());
     vertex.TCoords = core::vector2df((f32)uv.x(), 1 - (f32)uv.y());
-    vertex.Color = ToIrrlichtColor(col);
+    vertex.Color = tools::ToIrrlichtColor(col);
     return vertex;
 }
 
@@ -262,38 +259,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMes
         irr_indices.reallocate(0);
 
         // Set the Irrlicht material for this mesh buffer
-        const auto& mat = materials[i];
-        irr_mat.AmbientColor = ToIrrlichtColor(mat->GetAmbientColor());
-        irr_mat.DiffuseColor = ToIrrlichtColor(mat->GetDiffuseColor());
-        irr_mat.SpecularColor = ToIrrlichtColor(mat->GetSpecularColor());
-        irr_mat.EmissiveColor = ToIrrlichtColor(mat->GetEmissiveColor());
-
-        float dval = mat->GetTransparency();  // in [0,1]
-        irr_mat.DiffuseColor.setAlpha((s32)(dval * 255));
-        if (dval < 1.0f)
-            irr_mat.MaterialType = video::EMT_TRANSPARENT_VERTEX_ALPHA;
-
-        float ns_val = mat->GetSpecularExponent();  // in [0, 1000]
-        irr_mat.Shininess = ns_val * 0.128f;
-
-        auto kd_texture_name = mat->GetKdTexture();
-        if (!kd_texture_name.empty()) {
-            auto kd_texture = getSceneManager()->getVideoDriver()->getTexture(kd_texture_name.c_str());
-            irr_mat.setTexture(0, kd_texture);
-
-            // Same as when Irrlicht loads the OBJ+MTL.  Is this really needed?
-            irr_mat.DiffuseColor = ToIrrlichtColor(ChVector<>(1, 1, 1), irr_mat.DiffuseColor.getAlpha());
-        }
-
-        auto normal_texture_name = mat->GetNormalMapTexture();
-        if (!normal_texture_name.empty()) {
-            auto normal_texture = getSceneManager()->getVideoDriver()->getTexture(normal_texture_name.c_str());
-            irr_mat.setTexture(1, normal_texture);
-
-            // Same as when Irrlicht loads the OBJ+MTL.  Is this really needed?
-            irr_mat.DiffuseColor = ToIrrlichtColor(ChVector<>(1, 1, 1), irr_mat.DiffuseColor.getAlpha());
-        }
-
+        irr_mat = tools::ToIrrlichtMaterial(materials[i], getSceneManager()->getVideoDriver());
         ////irr_mat.setFlag(video::EMF_TEXTURE_WRAP, video::ETC_CLAMP);
 
         // Map from vertex indices in full Chrono mesh to vertex indices in current Irrlicht mesh buffer.
@@ -457,7 +423,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<
             vertexbuffer[i].Pos = core::vector3df((f32)vertices[i].x(), (f32)vertices[i].y(), (f32)vertices[i].z());
             vertexbuffer[i].Normal = core::vector3df((f32)normals[i].x(), (f32)normals[i].y(), (f32)normals[i].z());
             if (has_colors) {
-                vertexbuffer[i].Color = ToIrrlichtColor(colors[i]);
+                vertexbuffer[i].Color = tools::ToIrrlichtColor(colors[i]);
             }
         }
     }

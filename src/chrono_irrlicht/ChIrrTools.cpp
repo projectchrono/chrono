@@ -25,6 +25,55 @@ namespace tools {
 using namespace irr;
 
 // -----------------------------------------------------------------------------
+
+video::SColor ToIrrlichtColor(const ChVector<float>& col, float alpha) {
+    return video::SColor((u32)(alpha * 255), (u32)(col.x() * 255), (u32)(col.y() * 255), (u32)(col.z() * 255));
+}
+
+// -----------------------------------------------------------------------------
+
+video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video::IVideoDriver* driver) {
+    video::SMaterial irr_mat;
+
+    irr_mat.AmbientColor = ToIrrlichtColor(mat->GetAmbientColor());
+    irr_mat.DiffuseColor = ToIrrlichtColor(mat->GetDiffuseColor());
+    irr_mat.SpecularColor = ToIrrlichtColor(mat->GetSpecularColor());
+    irr_mat.EmissiveColor = ToIrrlichtColor(mat->GetEmissiveColor());
+
+    float dval = mat->GetTransparency();  // in [0,1]
+    irr_mat.DiffuseColor.setAlpha((s32)(dval * 255));
+    if (dval < 1.0f)
+        irr_mat.MaterialType = video::EMT_TRANSPARENT_VERTEX_ALPHA;
+
+    float ns_val = mat->GetSpecularExponent();  // in [0, 1000]
+    irr_mat.Shininess = ns_val * 0.128f;
+
+    auto kd_texture_name = mat->GetKdTexture();
+    if (!kd_texture_name.empty()) {
+        auto kd_texture = driver->getTexture(kd_texture_name.c_str());
+        irr_mat.setTexture(0, kd_texture);
+
+        // Same as when Irrlicht loads the OBJ+MTL.  Is this really needed?
+        irr_mat.DiffuseColor.setRed(255);
+        irr_mat.DiffuseColor.setGreen(255);
+        irr_mat.DiffuseColor.setBlue(255);
+    }
+
+    auto normal_texture_name = mat->GetNormalMapTexture();
+    if (!normal_texture_name.empty()) {
+        auto normal_texture = driver->getTexture(normal_texture_name.c_str());
+        irr_mat.setTexture(1, normal_texture);
+
+        // Same as when Irrlicht loads the OBJ+MTL.  Is this really needed?
+        irr_mat.DiffuseColor.setRed(255);
+        irr_mat.DiffuseColor.setGreen(255);
+        irr_mat.DiffuseColor.setBlue(255);
+    }
+
+    return irr_mat;
+}
+
+// -----------------------------------------------------------------------------
 // Function to align an Irrlicht object to a Chrono::Engine coordsys.
 // -----------------------------------------------------------------------------
 void alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const ChCoordsys<>& mcoords) {

@@ -730,7 +730,7 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
 
                 // add POV  pigment
                 assets_file << " pigment {color rgbt <" << myobjasset->GetColor().R << "," << myobjasset->GetColor().G
-                            << "," << myobjasset->GetColor().B << "," << myobjasset->GetFading() << "> }\n";
+                            << "," << myobjasset->GetColor().B << "," << myobjasset->GetColor().A << "> }\n";
 
                 // POV macro - end
                 assets_file << "#end \n";

@@ -27,7 +27,6 @@ void ChColorAsset::ArchiveOUT(ChArchiveOut& marchive) {
     ChAsset::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(color);
-    marchive << CHNVP(fading);
 }
 
 /// Method to allow de-serialization of transient data from archives.
@@ -38,7 +37,6 @@ void ChColorAsset::ArchiveIN(ChArchiveIn& marchive) {
     ChAsset::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(color);
-    marchive >> CHNVP(fading);
 }
 
 }  // end namespace chrono

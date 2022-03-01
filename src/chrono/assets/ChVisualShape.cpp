@@ -16,7 +16,7 @@
 
 namespace chrono {
 
-ChVisualShape::ChVisualShape() : Pos(0), Rot(1), visible(true), is_mutable(true), fading(0) {}
+ChVisualShape::ChVisualShape() : Pos(0), Rot(1), visible(true), is_mutable(true) {}
 
 int ChVisualShape::AddMaterial(std::shared_ptr<ChVisualMaterial> material) {
     material_list.push_back(material);
@@ -28,7 +28,7 @@ void ChVisualShape::SetColor(const ChColor& col) {
         material_list.push_back(std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default()));
 
     material_list[0]->SetDiffuseColor(ChVector<float>(col.R, col.G, col.B));
-    material_list[0]->SetTransparency(col.A);
+    material_list[0]->SetTransparency(1 - col.A);
 }
 
 ChColor ChVisualShape::GetColor() const {
@@ -42,7 +42,7 @@ ChColor ChVisualShape::GetColor() const {
         A = material_list[0]->GetTransparency();
     }
 
-    return ChColor(RGB[0], RGB[1], RGB[2], A);
+    return ChColor(RGB[0], RGB[1], RGB[2], 1 - A);
 }
 
 void ChVisualShape::SetTexture(const std::string& filename) {
@@ -67,7 +67,6 @@ void ChVisualShape::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(Pos);
     ////marchive << CHNVP(Rot);
     marchive << CHNVP(visible);
-    marchive << CHNVP(fading);
 }
 
 void ChVisualShape::ArchiveIN(ChArchiveIn& marchive) {
@@ -79,7 +78,6 @@ void ChVisualShape::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(Pos);
     ////marchive >> CHNVP(Rot);
     marchive >> CHNVP(visible);
-    marchive >> CHNVP(fading);
 }
 
 }  // namespace chrono
