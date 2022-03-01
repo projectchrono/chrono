@@ -283,7 +283,7 @@ void Copter<nop>::AddVisualizationAssets(const std::string& chassismesh,
     trimesh->Transform(cor_m1.GetPos(), cor_m1.GetA());
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetStatic(true);
+    trimesh_shape->SetMutable(false);
     chassis->AddAsset(trimesh_shape);
 
     for (auto propeller : props) {
@@ -291,7 +291,7 @@ void Copter<nop>::AddVisualizationAssets(const std::string& chassismesh,
         prop_trimesh->Transform(cor_m2.GetPos(), cor_m2.GetA());
         auto trimesh_prop_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_prop_shape->SetMesh(prop_trimesh);
-        trimesh_prop_shape->SetStatic(true);
+        trimesh_prop_shape->SetMutable(false);
         propeller->AddAsset(trimesh_prop_shape);
     }
 }

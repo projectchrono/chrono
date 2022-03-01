@@ -207,7 +207,7 @@ TEST(SensorInterface, mesh_channels) {
 
     auto triangle_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     triangle_shape->SetMesh(triangle);
-    triangle_shape->SetStatic(true);
+    triangle_shape->SetMutable(false);
 
     auto tri_body = chrono_types::make_shared<ChBodyAuxRef>();
     tri_body->SetFrame_REF_to_abs(ChFrame<>());

@@ -61,7 +61,7 @@ void Marder_RoadWheel::AddVisualizationAssets(VisualizationType vis) {
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
-        trimesh_shape->SetStatic(true);
+        trimesh_shape->SetMutable(false);
         m_wheel->AddAsset(trimesh_shape);
     } else {
         ChDoubleRoadWheel::AddVisualizationAssets(vis);

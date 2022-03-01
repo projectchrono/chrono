@@ -888,7 +888,7 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_mesh_name);
         ////trimesh_shape->Pos = m_offset;
-        trimesh_shape->SetStatic(true);
+        trimesh_shape->SetMutable(false);
         m_body->AddAsset(trimesh_shape);
         return;
     }
@@ -930,7 +930,7 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(mesh.m_name);
         ////trimesh_shape->Pos = m_offset;
-        trimesh_shape->SetStatic(true);
+        trimesh_shape->SetMutable(false);
         m_body->AddAsset(trimesh_shape);
     }
 }

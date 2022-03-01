@@ -232,7 +232,7 @@ void ObsModTerrain::GenerateMesh() {
     }
     auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
     vmesh->SetMesh(m_mesh);
-    vmesh->SetStatic(true);
+    vmesh->SetMutable(false);
     vmesh->SetName("ISO_track");
 
     auto vcolor = chrono_types::make_shared<ChColorAsset>();

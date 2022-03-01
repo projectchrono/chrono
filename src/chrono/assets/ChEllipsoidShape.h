@@ -20,12 +20,9 @@ namespace chrono {
 
 /// Class for referencing an ellipsoid shape that can be visualized in some way.
 class ChApi ChEllipsoidShape : public ChVisualShape {
-  protected:
-    geometry::ChEllipsoid gellipsoid;
-
   public:
-    ChEllipsoidShape() {}
-    ChEllipsoidShape(const geometry::ChEllipsoid& mellipsoid) : gellipsoid(mellipsoid) {}
+    ChEllipsoidShape();
+    ChEllipsoidShape(const geometry::ChEllipsoid& ellipsoid);
 
     virtual ~ChEllipsoidShape(){};
 
@@ -37,6 +34,9 @@ class ChApi ChEllipsoidShape : public ChVisualShape {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  protected:
+    geometry::ChEllipsoid gellipsoid;
 };
 
 CH_CLASS_VERSION(ChEllipsoidShape, 0)

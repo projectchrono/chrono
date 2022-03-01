@@ -224,7 +224,7 @@ void ViperPart::Construct(ChSystem* system) {
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh_vis);
         trimesh_shape->SetName(m_mesh_name);
-        trimesh_shape->SetStatic(true);
+        trimesh_shape->SetMutable(false);
         m_body->AddAsset(trimesh_shape);
         ////m_body->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color));
     }

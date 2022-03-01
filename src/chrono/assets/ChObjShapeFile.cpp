@@ -19,6 +19,14 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChObjShapeFile)
 
+ChObjShapeFile::ChObjShapeFile() : filename("") {
+    SetMutable(false);
+}
+
+ChObjShapeFile::ChObjShapeFile(const std::string& fname) : filename(fname) {
+    SetMutable(false);
+}
+
 void ChObjShapeFile::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChObjShapeFile>();

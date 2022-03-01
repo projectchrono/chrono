@@ -102,7 +102,7 @@ std::shared_ptr<ChTriangleMeshShape> SynCopterAgent::CreateMeshZombieComponent(c
         auto mesh =
             geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(filename), false, false);
         trimesh->SetMesh(mesh);
-        trimesh->SetStatic(true);
+        trimesh->SetMutable(false);
         trimesh->SetName(filesystem::path(filename).stem());
     }
     return trimesh;

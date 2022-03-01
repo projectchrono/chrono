@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(mmesh);
     trimesh_shape->SetName("Mesh");
-    trimesh_shape->SetStatic(true);
+    trimesh_shape->SetMutable(false);
 
     std::shared_ptr<ChBody> imu_parent;
     std::shared_ptr<ChBody> gps_parent;
@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
     // auto gator_meshshape = chrono_types::make_shared<ChTriangleMeshShape>();
     // gator_meshshape->SetMesh(gator_mesh);
     // gator_meshshape->SetName("gator");
-    // gator_meshshape->SetStatic(true);
+    // gator_meshshape->SetMutable(false);
     // auto gator_mesh_body = chrono_types::make_shared<ChBody>();
     // gator_mesh_body->SetPos({1, 2, 2});
     // gator_mesh_body->AddAsset(gator_meshshape);

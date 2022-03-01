@@ -20,6 +20,14 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCylinderShape)
 
+ChCylinderShape::ChCylinderShape() {
+    SetMutable(false);
+}
+
+ChCylinderShape::ChCylinderShape(const geometry::ChCylinder& cyl) : gcylinder(cyl) {
+    SetMutable(false);
+}
+
 void ChCylinderShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChCylinderShape>();

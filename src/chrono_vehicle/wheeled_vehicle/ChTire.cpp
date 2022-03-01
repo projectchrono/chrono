@@ -122,7 +122,7 @@ std::shared_ptr<ChTriangleMeshShape> ChTire::AddVisualizationMesh(const std::str
     trimesh_shape->Rot = ChMatrix33<>(rot);
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
-    trimesh_shape->SetStatic(true);
+    trimesh_shape->SetMutable(false);
 
     m_wheel->GetSpindle()->AddAsset(trimesh_shape);
 

@@ -265,7 +265,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(patch->m_trimesh);
         trimesh_shape->SetName(mesh_name);
-        trimesh_shape->SetStatic(true);
+        trimesh_shape->SetMutable(false);
         patch->m_body->AddAsset(trimesh_shape);
     }
 
@@ -423,7 +423,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(patch->m_trimesh);
         trimesh_shape->SetName(mesh_name);
-        trimesh_shape->SetStatic(true);
+        trimesh_shape->SetMutable(false);
         patch->m_body->AddAsset(trimesh_shape);
     }
 

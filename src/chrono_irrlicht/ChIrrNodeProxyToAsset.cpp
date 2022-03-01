@@ -45,7 +45,7 @@ void ChIrrNodeProxyToAsset::Update() {
 
     if (!initial_update) {
         auto asset = std::dynamic_pointer_cast<ChVisualShape>(visualization_asset);
-        if (asset && asset->IsStatic())
+        if (asset && !asset->IsMutable())
             return;
     }
 

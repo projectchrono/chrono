@@ -20,6 +20,14 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBarrelShape)
 
+ChBarrelShape::ChBarrelShape() {
+    SetMutable(false);
+}
+ChBarrelShape::ChBarrelShape(double mHlow, double mHsup, double mRvert, double mRhor, double mRoffset)
+    : Hlow(mHlow), Hsup(mHsup), Rvert(mRvert), Rhor(mRhor), Roffset(mRoffset) {
+    SetMutable(false);
+}
+
 void ChBarrelShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChBarrelShape>();

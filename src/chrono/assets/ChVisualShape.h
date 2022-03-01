@@ -50,7 +50,7 @@ class ChApi ChVisualShape : public ChAsset {
 
     /// Return the diffuse texture map of the first material in the list of materials for this shape.
     /// If no materials are defined, return an empty string (no texture for the default material).
-    const std::string& GetTxture() const;
+    std::string GetTexture() const;
 
     /// Set the fading level, a value in [0,1] (default: 0).
     /// If fading = 0, the surface is completely opaque.
@@ -60,14 +60,14 @@ class ChApi ChVisualShape : public ChAsset {
     /// Get the fading level.
     float GetFading() const { return fading; }
 
-    /// Set this visualization shape as static (default: false).
-    /// Set to true to indicate that the asset never changes and therefore does not require updates
-    /// (e.g. for a non-deformable triangular mesh).
+    /// Set this visualization shape as modifiable (default: false for primitive shapes, true otherwise).
+    /// Set to false to indicate that the asset never changes and therefore does not require updates
+    /// (e.g. for a non-deformable triangular mesh). Note that this also includes changes in materials.
     /// A particular visualization system may take advantage of this setting to accelerate rendering.
-    void SetStatic(bool val) { is_static = val; }
+    void SetMutable(bool val) { is_mutable = val; }
 
-    /// Return true if the visualization shape is marked as static.
-    bool IsStatic() const { return is_static; }
+    /// Return true if the visualization shape is marked as modifiable.
+    bool IsMutable() const { return is_mutable; }
 
     /// Add a visualization material and return its index in the list of materials.
     int AddMaterial(std::shared_ptr<ChVisualMaterial> material);
@@ -95,9 +95,9 @@ class ChApi ChVisualShape : public ChAsset {
 
     ChFrame<> frame; ///< shape position relative to containing model
 
-    bool visible;
-    bool is_static;
-    float fading;
+    bool visible;   ///< shape visibility flag
+    bool is_mutable;  ///< flag indicating whether the shape is rigid or deformable
+    float fading;   ///< shape fading flag
 
     std::vector<std::shared_ptr<ChVisualMaterial>> material_list;  ///< list of visualization materials
 

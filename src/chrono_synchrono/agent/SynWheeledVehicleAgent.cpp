@@ -134,7 +134,7 @@ std::shared_ptr<ChTriangleMeshShape> SynWheeledVehicleAgent::CreateMeshZombieCom
         auto mesh =
             geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(filename), false, false);
         trimesh->SetMesh(mesh);
-        trimesh->SetStatic(true);
+        trimesh->SetMutable(false);
         trimesh->SetName(filesystem::path(filename).stem());
     }
     return trimesh;

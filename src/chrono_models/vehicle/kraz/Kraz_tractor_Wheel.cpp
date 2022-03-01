@@ -50,7 +50,7 @@ void Kraz_tractor_Wheel::AddVisualizationAssets(chrono::vehicle::VisualizationTy
         m_trimesh_shape->Pos = ChVector<>(0, m_offset, 0);
         m_trimesh_shape->Rot = ChMatrix33<>(rot);
         m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetStatic(true);
+        m_trimesh_shape->SetMutable(false);
         m_trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         GetSpindle()->AddAsset(m_trimesh_shape);
     } else {

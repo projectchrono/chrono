@@ -18,6 +18,14 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChConeShape)
 
+ChConeShape::ChConeShape() {
+    SetMutable(false);
+}
+
+ChConeShape::ChConeShape(const geometry::ChCone& cone) : gcone(cone) {
+    SetMutable(false);
+}
+
 void ChConeShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChConeShape>();

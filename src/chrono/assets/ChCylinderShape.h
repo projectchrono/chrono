@@ -22,12 +22,9 @@ namespace chrono {
 
 /// Class for referencing a cylinder shape that can be visualized in some way.
 class ChApi ChCylinderShape : public ChVisualShape {
-  protected:
-    geometry::ChCylinder gcylinder;
-
   public:
-    ChCylinderShape() {}
-    ChCylinderShape(const geometry::ChCylinder& mcyl) : gcylinder(mcyl) {}
+    ChCylinderShape();
+    ChCylinderShape(const geometry::ChCylinder& cyl);
 
     virtual ~ChCylinderShape(){};
 
@@ -39,6 +36,9 @@ class ChApi ChCylinderShape : public ChVisualShape {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  protected:
+    geometry::ChCylinder gcylinder;
 };
 
 CH_CLASS_VERSION(ChCylinderShape, 0)

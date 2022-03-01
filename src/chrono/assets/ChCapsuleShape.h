@@ -26,8 +26,8 @@ class ChApi ChCapsuleShape : public ChVisualShape {
     geometry::ChCapsule gcapsule;
 
   public:
-    ChCapsuleShape() {}
-    ChCapsuleShape(const geometry::ChCapsule& mcap) : gcapsule(mcap) {}
+    ChCapsuleShape();
+    ChCapsuleShape(const geometry::ChCapsule& cap);
 
     virtual ~ChCapsuleShape() {}
 

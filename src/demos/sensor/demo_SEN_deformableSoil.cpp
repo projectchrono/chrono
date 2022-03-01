@@ -196,7 +196,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("lugged_wheel");
-    trimesh_shape->SetStatic(true);
+    trimesh_shape->SetMutable(false);
     wheel_body->AddAsset(trimesh_shape);
 
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();

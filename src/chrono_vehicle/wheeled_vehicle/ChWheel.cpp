@@ -96,7 +96,7 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape->Rot = ChMatrix33<>(rot);
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
-        m_trimesh_shape->SetStatic(true);
+        m_trimesh_shape->SetMutable(false);
         m_spindle->AddAsset(m_trimesh_shape);
         return;
     }

@@ -584,7 +584,7 @@ void ChOptixEngine::ConstructScene() {
 
                     } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
                                    std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
-                        if (trimesh_shape->IsStatic()) {
+                        if (!trimesh_shape->IsMutable()) {
                             rigidMeshVisualization(body, trimesh_shape, visual_asset);
 
                             // added_asset_for_body = true;
@@ -645,7 +645,7 @@ void ChOptixEngine::ConstructScene() {
                         sphereVisualization(dummy_body, sphere_shape, visual_asset);
                     } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
                                    std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
-                        if (trimesh_shape->IsStatic()) {
+                        if (!trimesh_shape->IsMutable()) {
                             rigidMeshVisualization(dummy_body, trimesh_shape, visual_asset);
                         } else {
                             deformableMeshVisualization(dummy_body, trimesh_shape, visual_asset);

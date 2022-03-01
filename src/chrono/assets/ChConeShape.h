@@ -24,8 +24,8 @@ class ChApi ChConeShape : public ChVisualShape {
     geometry::ChCone gcone;
 
   public:
-    ChConeShape() {}
-    ChConeShape(const geometry::ChCone& mcone) : gcone(mcone) {}
+    ChConeShape();
+    ChConeShape(const geometry::ChCone& cone);
 
     virtual ~ChConeShape(){};
 

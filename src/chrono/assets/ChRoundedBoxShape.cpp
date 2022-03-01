@@ -19,6 +19,14 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChRoundedBoxShape)
 
+ChRoundedBoxShape::ChRoundedBoxShape() {
+    SetMutable(false);
+}
+
+ChRoundedBoxShape::ChRoundedBoxShape(const geometry::ChRoundedBox& box) : groundedbox(box) {
+    SetMutable(false);
+}
+
 void ChRoundedBoxShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChRoundedBoxShape>();

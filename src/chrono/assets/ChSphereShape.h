@@ -22,12 +22,9 @@ namespace chrono {
 
 /// Class for referencing a sphere shape that can be visualized in some way.
 class ChApi ChSphereShape : public ChVisualShape {
-  protected:
-    geometry::ChSphere gsphere;
-
   public:
-    ChSphereShape() {}
-    ChSphereShape(const geometry::ChSphere& msphere) : gsphere(msphere) {}
+    ChSphereShape();
+    ChSphereShape(const geometry::ChSphere& sphere);
 
     virtual ~ChSphereShape() {}
 
@@ -39,6 +36,9 @@ class ChApi ChSphereShape : public ChVisualShape {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  protected:
+    geometry::ChSphere gsphere;
 };
 
 CH_CLASS_VERSION(ChSphereShape, 0)

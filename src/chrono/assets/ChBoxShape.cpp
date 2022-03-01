@@ -20,6 +20,14 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBoxShape)
 
+ChBoxShape::ChBoxShape() {
+    SetMutable(false);
+}
+
+ChBoxShape::ChBoxShape(const geometry::ChBox& box) : gbox(box) {
+    SetMutable(false);
+}
+
 void ChBoxShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChBoxShape>();

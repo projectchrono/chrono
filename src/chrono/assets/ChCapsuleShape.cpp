@@ -20,6 +20,13 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCapsuleShape)
 
+ChCapsuleShape::ChCapsuleShape() {
+    SetMutable(false);
+}
+ChCapsuleShape::ChCapsuleShape(const geometry::ChCapsule& cap) : gcapsule(cap) {
+    SetMutable(false);
+}
+
 void ChCapsuleShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChCapsuleShape>();

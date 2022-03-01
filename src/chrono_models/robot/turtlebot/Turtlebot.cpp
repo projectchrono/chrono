@@ -175,7 +175,7 @@ void Turtlebot_Part::AddVisualizationAssets() {
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(m_mesh_name);
-    trimesh_shape->SetStatic(true);
+    trimesh_shape->SetMutable(false);
     m_body->AddAsset(trimesh_shape);
     return;
 }

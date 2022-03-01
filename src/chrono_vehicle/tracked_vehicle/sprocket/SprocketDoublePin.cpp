@@ -92,7 +92,7 @@ void SprocketDoublePin::AddVisualizationAssets(VisualizationType vis) {
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
-        trimesh_shape->SetStatic(true);
+        trimesh_shape->SetMutable(false);
         m_gear->AddAsset(trimesh_shape);
     } else {
         ChSprocket::AddVisualizationAssets(vis);

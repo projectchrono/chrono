@@ -22,12 +22,9 @@ namespace chrono {
 
 /// Class for referencing a rounded cone shape that can be visualized in some way.
 class ChApi ChRoundedConeShape : public ChVisualShape {
-  protected:
-    geometry::ChRoundedCone groundedcone;
-
   public:
-    ChRoundedConeShape() {}
-    ChRoundedConeShape(const geometry::ChRoundedCone& mcap) : groundedcone(mcap) {}
+    ChRoundedConeShape();
+    ChRoundedConeShape(const geometry::ChRoundedCone& cone);
 
     virtual ~ChRoundedConeShape() {}
 
@@ -39,6 +36,9 @@ class ChApi ChRoundedConeShape : public ChVisualShape {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  protected:
+    geometry::ChRoundedCone groundedcone;
 };
 
 CH_CLASS_VERSION(ChRoundedConeShape, 0)

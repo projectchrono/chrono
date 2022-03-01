@@ -42,7 +42,7 @@ def main():
     trimesh_shape = chrono.ChTriangleMeshShape()
     trimesh_shape.SetMesh(mmesh)
     trimesh_shape.SetName("HMMWV Chassis Mesh")
-    trimesh_shape.SetStatic(True)
+    trimesh_shape.SetMutable(False)
 
     mesh_body = chrono.ChBody()
     mesh_body.SetPos(chrono.ChVectorD(0, 0, 0))

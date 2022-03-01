@@ -16,7 +16,7 @@
 
 namespace chrono {
 
-ChVisualShape::ChVisualShape() : Pos(0), Rot(1), visible(true), is_static(false), fading(0) {}
+ChVisualShape::ChVisualShape() : Pos(0), Rot(1), visible(true), is_mutable(true), fading(0) {}
 
 int ChVisualShape::AddMaterial(std::shared_ptr<ChVisualMaterial> material) {
     material_list.push_back(material);
@@ -52,7 +52,7 @@ void ChVisualShape::SetTexture(const std::string& filename) {
     material_list[0]->SetKdTexture(filename);
 }
 
-const std::string& ChVisualShape::GetTxture() const {
+std::string ChVisualShape::GetTexture() const {
     if (material_list.empty())
         return "";
     return material_list[0]->GetKdTexture();

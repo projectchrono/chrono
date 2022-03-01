@@ -26,8 +26,8 @@ class ChApi ChBoxShape : public ChVisualShape {
     geometry::ChBox gbox;
 
   public:
-    ChBoxShape() {}
-    ChBoxShape(const geometry::ChBox& mbox) : gbox(mbox) {}
+    ChBoxShape();
+    ChBoxShape(const geometry::ChBox& box);
 
     virtual ~ChBoxShape() {}
 

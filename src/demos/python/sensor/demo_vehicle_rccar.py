@@ -114,7 +114,7 @@ terrain.Initialize()
 # trimesh_shape = chrono.ChTriangleMeshShape()
 # trimesh_shape.SetMesh(vis_mesh)
 # trimesh_shape.SetName("mesh_name")
-# trimesh_shape.SetStatic(True)
+# trimesh_shape.SetMutable(False)
 #
 # patch.GetGroundBody().AddAsset(trimesh_shape)
 #

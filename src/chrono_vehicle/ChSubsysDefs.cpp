@@ -48,7 +48,7 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
-        trimesh_shape->SetStatic(true);
+        trimesh_shape->SetMutable(false);
         body->AddAsset(trimesh_shape);
         return;
     }

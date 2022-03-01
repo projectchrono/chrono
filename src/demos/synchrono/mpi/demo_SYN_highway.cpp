@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
         ChTriangleMeshConnected::CreateFromWavefrontFile(synchrono::GetDataFile("meshes/Highway_vis.obj"), true, true);
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(vis_mesh);
-    trimesh_shape->SetStatic(true);
+    trimesh_shape->SetMutable(false);
     patch->GetGroundBody()->AddAsset(trimesh_shape);
     terrain.Initialize();
 
