@@ -90,7 +90,7 @@ static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
     video::S3DVertex vertex;
     vertex.Pos = core::vector3df((f32)pos.x(), (f32)pos.y(), (f32)pos.z());
     vertex.Normal = core::vector3df((f32)nrm.x(), (f32)nrm.y(), (f32)nrm.z());
-    vertex.TCoords = core::vector2df((f32)uv.x(), 1 - (f32)uv.y());   // change handedness for Irrlicht   RADU TODO: needed or not?
+    vertex.TCoords = core::vector2df((f32)uv.x(), 1 - (f32)uv.y());   // change handedness for Irrlicht
     vertex.Color = col;
     return vertex;
 }
@@ -102,8 +102,6 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh(std::shared_ptr<ChTriangleMeshSha
         UpdateTriangleMesh_mat(trianglemesh);
 }
 
-//// RADU TODO:  do we even need this case?
-////             We always create a default visualization material in ChTriangleMeshShape::SetMesh()!
 void ChIrrNodeProxyToAsset::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
     // Fetch the 1st child, i.e. the mesh
     ISceneNode* irr_node = *(getChildren().begin());
@@ -188,7 +186,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMes
 
         for (int iv = 0; iv < 3; iv++) {
             irr_vertices[iv + itri * 3] = ToIrrlichtVertex(t[iv], n[iv], uv[iv], col[iv]);
-            irr_indices.setValue(iv + itri * 3, iv + itri * 3);
+            irr_indices.setValue(iv + itri * 3, 2 - iv + itri * 3);
         }
     }
 
@@ -257,6 +255,9 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMes
         auto& irr_vertices = irr_meshbuffer->getVertexBuffer();
         auto& irr_indices = irr_meshbuffer->getIndexBuffer();
         auto& irr_mat = irr_meshbuffer->getMaterial();
+
+        irr_vertices.reallocate(0);
+        irr_indices.reallocate(0);
 
         // Set the Irrlicht material for this mesh buffer
         const auto& mat = materials[i];
