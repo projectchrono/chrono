@@ -35,15 +35,16 @@ namespace vsg3d {
 
 class CH_VSG_API VSGApp {
   public:
-    struct Params : public vsg::Inherit<vsg::Object, Params> {
-        bool showGui = true;  // you can toggle this with your own EventHandler and key
-    };
     VSGApp();
     ~VSGApp();
     bool Initialize(int windowWidth, int windowHeight, const char* windowTitle, ChSystem* system);
     void Render();
     void Quit();
     vsg::ref_ptr<vsg::Viewer> GetViewer() const { return m_viewer; }
+
+    struct Params : public vsg::Inherit<vsg::Object, Params> {
+        bool showGui = true;  // you can toggle this with your own EventHandler and key
+    };
 
   private:
     ChSystem* m_system;
@@ -61,6 +62,10 @@ class CH_VSG_API VSGApp {
     // command + render
     vsg::ref_ptr<vsg::CommandGraph> m_commandGraph;
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
+    // build & update
+    void BuildSceneGraph();
+    void UpdateSceneGraph();
+
 };
 }  // namespace vsg3d
 }  // namespace chrono

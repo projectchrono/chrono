@@ -163,6 +163,8 @@ bool VSGApp::Initialize(int windowWidth, int windowHeight, const char* windowTit
 
     m_scenegraph->addChild(absoluteTransform);
 
+    BuildSceneGraph();
+
     // compute the bounds of the scene graph to help position camera
     vsg::ComputeBounds computeBounds;
     m_scenegraph->accept(computeBounds);
@@ -173,7 +175,7 @@ bool VSGApp::Initialize(int windowWidth, int windowHeight, const char* windowTit
     double nearFarRatio = 0.01;
 
     // set up the camera
-    m_lookAt = vsg::LookAt::create(centre + vsg::dvec3(0.0, -radius * 3.5, 0.0), centre, vsg::dvec3(0.0, 0.0, 1.0));
+    m_lookAt = vsg::LookAt::create(centre + vsg::dvec3(0.0, -radius * 3.5, 0.0), centre, m_up_vector);
     m_perspective = vsg::Perspective::create(
         30.0, static_cast<double>(m_window->extent2D().width) / static_cast<double>(m_window->extent2D().height),
         nearFarRatio * radius, radius * 400.5);
@@ -219,6 +221,12 @@ void VSGApp::Render() {
 
 void VSGApp::Quit() {
     m_viewer->close();
+}
+
+void VSGApp::BuildSceneGraph() {
+}
+
+void VSGApp::UpdateSceneGraph() {
 }
 
 }  // namespace vsg3d
