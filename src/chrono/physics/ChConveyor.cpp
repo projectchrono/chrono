@@ -119,6 +119,16 @@ void ChConveyor::IntStateIncrement(const unsigned int off_x,  // offset in x sta
     conveyor_plate->IntStateIncrement(off_x + 7, x_new, x, off_v + 6, Dv);
 }
 
+void ChConveyor::IntStateGetIncrement(const unsigned int off_x,  // offset in x state vector
+                                   const ChState& x_new,         // state vector, position part, incremented result
+                                   const ChState& x,          // state vector, initial position part
+                                   const unsigned int off_v,  // offset in v state vector
+                                   ChStateDelta& Dv     // state vector, increment
+                                   ) {
+    conveyor_truss->IntStateGetIncrement(off_x, x_new, x, off_v, Dv);
+    conveyor_plate->IntStateGetIncrement(off_x + 7, x_new, x, off_v + 6, Dv);
+}
+
 void ChConveyor::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                    ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                    const double c           // a scaling factor

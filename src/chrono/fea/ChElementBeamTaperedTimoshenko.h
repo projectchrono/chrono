@@ -198,6 +198,10 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
 
+    /// Gets the material mass, material stiffness, material damping and geometric stiffness matrices in local basis.
+    /// This functionality can be used to output these matrices for some other special needs.
+    virtual void GetKRMmatricesLocal(ChMatrixRef H, double Kmfactor, double Kgfactor, double Rmfactor, double Mfactor);
+
     /// Computes the internal forces (e.g. the actual position of nodes is not in relaxed reference position) and set
     /// values in the Fi vector.
     /// This functionality can be used to output the forces and torques at two nodes directly.

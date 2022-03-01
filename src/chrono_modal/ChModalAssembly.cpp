@@ -1372,6 +1372,43 @@ void ChModalAssembly::IntStateIncrement(const unsigned int off_x,
     }
 }
 
+void ChModalAssembly::IntStateGetIncrement(const unsigned int off_x,
+                                   const ChState& x_new,
+                                   const ChState& x,
+                                   const unsigned int off_v,
+                                   ChStateDelta& Dv) {
+
+    ChAssembly::IntStateGetIncrement(off_x, x_new, x, off_v, Dv);  // parent
+
+    unsigned int displ_x = off_x - this->offset_x;
+    unsigned int displ_v = off_v - this->offset_w;
+
+    if (is_modal == false) {
+        for (auto& body : internal_bodylist) {
+            if (body->IsActive())
+                body->IntStateGetIncrement(displ_x + body->GetOffset_x(), x_new, x, displ_v + body->GetOffset_w(), Dv);
+        }
+
+        for (auto& link : internal_linklist) {
+            if (link->IsActive())
+                link->IntStateGetIncrement(displ_x + link->GetOffset_x(), x_new, x, displ_v + link->GetOffset_w(), Dv);
+        }
+
+        for (auto& mesh : internal_meshlist) {
+            mesh->IntStateGetIncrement(displ_x + mesh->GetOffset_x(), x_new, x, displ_v + mesh->GetOffset_w(), Dv);
+        }
+
+        for (auto& item : internal_otherphysicslist) {
+            item->IntStateGetIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
+        }
+    }
+    else {
+        Dv.segment(off_v + this->n_boundary_coords_w,  this->n_modes_coords_w) = 
+        x_new.segment(off_x + this->n_boundary_coords, this->n_modes_coords_w) - 
+            x.segment(off_x + this->n_boundary_coords, this->n_modes_coords_w);
+    }
+}
+
 
 void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F

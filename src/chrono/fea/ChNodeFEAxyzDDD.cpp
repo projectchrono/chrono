@@ -131,6 +131,15 @@ void ChNodeFEAxyzDDD::NodeIntStateIncrement(const unsigned int off_x,
 	x_new(off_x + 10) = x(off_x + 10) + Dv(off_v + 10);
 	x_new(off_x + 11) = x(off_x + 11) + Dv(off_v + 11);
 }
+void ChNodeFEAxyzDDD::NodeIntStateGetIncrement(const unsigned int off_x,
+                                           const ChState& x_new,
+                                           const ChState& x,
+                                           const unsigned int off_v,
+                                           ChStateDelta& Dv) {
+    for (int i = 0; i < 12; ++i) {
+        Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
+    }
+}
 
 void ChNodeFEAxyzDDD::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     R.segment(off + 0, 3) += c * Force.eigen();
