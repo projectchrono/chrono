@@ -49,8 +49,6 @@ void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnec
         }
 
         if (materials.empty()) {
-            // Use the default visual asset material
-            material_list.push_back(default_mat);
             return;
         }
 

@@ -13,11 +13,11 @@
 #ifndef CH_VISUAL_SHAPE_H
 #define CH_VISUAL_SHAPE_H
 
-#include "chrono/assets/ChAsset.h"
-#include "chrono/assets/ChColor.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/core/ChFrame.h"
 
+#include "chrono/assets/ChAsset.h"
+#include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChVisualMaterial.h"
 
 namespace chrono {
@@ -34,11 +34,23 @@ class ChApi ChVisualShape : public ChAsset {
     /// Return true if the asset is set as visible.
     bool IsVisible() const { return visible; }
 
-    /// Set the diffuse color of the default material (default: white).
+    /// Set the diffuse color for this shape.
+    /// This changes the color of the first material in the list of materials for this shape.
+    /// If no materials are defined for a shape, one is first created by duplicating the default material.
     void SetColor(const ChColor& col);
 
-    /// Return the diffuse color of the default material.
+    /// Return the diffuse color of the first material in the list of materials for this shape.
+    /// If no materials are defined, return the color of the default material.
     ChColor GetColor() const;
+
+    /// Set the diffuse texture map for this shape.
+    /// This changes the texture of the first material in the list of materials for this shape.
+    /// If no materials are defined for a shape, one is first created by duplicating the default material.
+    void SetTexture(const std::string& filename);
+
+    /// Return the diffuse texture map of the first material in the list of materials for this shape.
+    /// If no materials are defined, return an empty string (no texture for the default material).
+    const std::string& GetTxture() const;
 
     /// Set the fading level, a value in [0,1] (default: 0).
     /// If fading = 0, the surface is completely opaque.
@@ -87,7 +99,6 @@ class ChApi ChVisualShape : public ChAsset {
     bool is_static;
     float fading;
 
-    std::shared_ptr<ChVisualMaterial> default_mat;                 ///< default material
     std::vector<std::shared_ptr<ChVisualMaterial>> material_list;  ///< list of visualization materials
 
   public:

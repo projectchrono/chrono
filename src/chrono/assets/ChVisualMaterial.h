@@ -77,6 +77,8 @@ class ChApi ChVisualMaterial {
     unsigned short int GetClassID() const { return class_id; }
     unsigned short int GetInstanceID() const { return instance_id; }
 
+    static std::shared_ptr<ChVisualMaterial> Default();
+
   private:
     ChVector<float> Ka;  // ambient color 0-1
     ChVector<float> Kd;  // diffuse color 0-1

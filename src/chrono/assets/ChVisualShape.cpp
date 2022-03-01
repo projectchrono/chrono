@@ -16,10 +16,7 @@
 
 namespace chrono {
 
-ChVisualShape::ChVisualShape() : Pos(0), Rot(1), visible(true), is_static(false), fading(0) {
-    default_mat = chrono_types::make_shared<ChVisualMaterial>();
-    default_mat->SetDiffuseColor(ChVector<float>(1, 1, 1));
-}
+ChVisualShape::ChVisualShape() : Pos(0), Rot(1), visible(true), is_static(false), fading(0) {}
 
 int ChVisualShape::AddMaterial(std::shared_ptr<ChVisualMaterial> material) {
     material_list.push_back(material);
@@ -27,14 +24,38 @@ int ChVisualShape::AddMaterial(std::shared_ptr<ChVisualMaterial> material) {
 }
 
 void ChVisualShape::SetColor(const ChColor& col) {
-    default_mat->SetDiffuseColor(ChVector<float>(col.R, col.G, col.B));
-    default_mat->SetTransparency(col.A);
+    if (material_list.empty())
+        material_list.push_back(std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default()));
+
+    material_list[0]->SetDiffuseColor(ChVector<float>(col.R, col.G, col.B));
+    material_list[0]->SetTransparency(col.A);
 }
 
 ChColor ChVisualShape::GetColor() const {
-    auto RGB = default_mat->GetDiffuseColor();
-    auto A = default_mat->GetTransparency();
+    ChVector<float> RGB;
+    float A;
+    if (material_list.empty()) {
+        RGB = ChVisualMaterial::Default()->GetDiffuseColor();
+        A = ChVisualMaterial::Default()->GetTransparency();
+    } else {
+        RGB = material_list[0]->GetDiffuseColor();
+        A = material_list[0]->GetTransparency();
+    }
+
     return ChColor(RGB[0], RGB[1], RGB[2], A);
+}
+
+void ChVisualShape::SetTexture(const std::string& filename) {
+    if (material_list.empty())
+        material_list.push_back(std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default()));
+
+    material_list[0]->SetKdTexture(filename);
+}
+
+const std::string& ChVisualShape::GetTxture() const {
+    if (material_list.empty())
+        return "";
+    return material_list[0]->GetKdTexture();
 }
 
 void ChVisualShape::ArchiveOUT(ChArchiveOut& marchive) {

@@ -94,4 +94,18 @@ void ChVisualMaterial::SetRoughness(float r) {
 void ChVisualMaterial::SetMetallic(float m) {
     metallic = std::max(0.001f, std::min(m, 1.f));
 }
+
+// -----------------------------------------------------------------------------
+
+static std::shared_ptr<ChVisualMaterial> default_material;
+
+std::shared_ptr<ChVisualMaterial> ChVisualMaterial::Default() {
+    if (!default_material) {
+        default_material = chrono_types::make_shared<ChVisualMaterial>();
+        default_material->SetDiffuseColor(ChVector<float>(1, 1, 1));
+    }
+
+    return default_material;
+}
+
 }  // end namespace chrono

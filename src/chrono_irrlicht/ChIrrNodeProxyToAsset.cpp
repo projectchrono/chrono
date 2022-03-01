@@ -151,6 +151,9 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMes
     ChVector2<> uv[3];       // UV coordinates at the triangle vertices
     ChVector<float> col[3];  // color coordinates at the triangle vertices
 
+    auto default_color = trianglemesh->GetColor();
+    auto default_RGB = ChVector<float>(default_color.R, default_color.G, default_color.B);
+
     for (unsigned int itri = 0; itri < ntriangles; itri++) {
         for (int iv = 0; iv < 3; iv++)
             t[iv] = vertices[v_indices[itri][iv]];
@@ -180,8 +183,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMes
                 col[iv] = colors[v_indices[itri][iv]];
         } else {
             for (int iv = 0; iv < 3; iv++)
-                col[iv] =
-                    ChVector<float>(trianglemesh->GetColor().R, trianglemesh->GetColor().G, trianglemesh->GetColor().B);
+                col[iv] = default_RGB;
         }
 
         for (int iv = 0; iv < 3; iv++) {
