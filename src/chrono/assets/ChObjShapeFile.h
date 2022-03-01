@@ -24,7 +24,7 @@ class ChApi ChObjShapeFile : public ChVisualShape {
     ChObjShapeFile();
     ChObjShapeFile(const std::string& fname);
 
-    virtual ~ChObjShapeFile() {}
+    ~ChObjShapeFile() {}
 
     std::string GetFilename() const { return filename; }
     void SetFilename(const std::string& fname) { filename = fname; }
@@ -35,7 +35,7 @@ class ChApi ChObjShapeFile : public ChVisualShape {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-  protected:
+  private:
     std::string filename;
 };
 

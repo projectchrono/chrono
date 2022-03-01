@@ -27,7 +27,7 @@ class ChApi ChPathShape : public ChVisualShape {
   public:
     ChPathShape();
     ChPathShape(std::shared_ptr<geometry::ChLinePath>& mpath);
-    virtual ~ChPathShape() {}
+    ~ChPathShape() {}
 
     /// Access the underlying path geometry.
     std::shared_ptr<geometry::ChLinePath> GetPathGeometry() { return gpath; }
@@ -41,7 +41,7 @@ class ChApi ChPathShape : public ChVisualShape {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-  protected:
+  private:
     std::shared_ptr<geometry::ChLinePath> gpath;  ///< underlying path geometry
     unsigned int npoints;                         ///< number of points evaluated when rendering
 };

@@ -26,9 +26,9 @@ class ChApi ChRoundedCylinderShape : public ChVisualShape {
     ChRoundedCylinderShape();
     ChRoundedCylinderShape(const geometry::ChRoundedCylinder& cyl);
 
-    virtual ~ChRoundedCylinderShape() {}
+    ~ChRoundedCylinderShape() {}
 
-    // Access the rounded cylinder geometry
+    // Access the rounded cylinder geometry.
     geometry::ChRoundedCylinder& GetRoundedCylinderGeometry() { return groundedcyl; }
 
     /// Method to allow serialization of transient data to archives.
@@ -37,7 +37,7 @@ class ChApi ChRoundedCylinderShape : public ChVisualShape {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-  protected:
+  private:
     geometry::ChRoundedCylinder groundedcyl;
 };
 

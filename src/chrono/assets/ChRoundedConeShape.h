@@ -26,9 +26,9 @@ class ChApi ChRoundedConeShape : public ChVisualShape {
     ChRoundedConeShape();
     ChRoundedConeShape(const geometry::ChRoundedCone& cone);
 
-    virtual ~ChRoundedConeShape() {}
+    ~ChRoundedConeShape() {}
 
-    // Access the rounded cone geometry
+    // Access the rounded cone geometry.
     geometry::ChRoundedCone& GetRoundedConeGeometry() { return groundedcone; }
 
     /// Method to allow serialization of transient data to archives.
@@ -37,7 +37,7 @@ class ChApi ChRoundedConeShape : public ChVisualShape {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-  protected:
+  private:
     geometry::ChRoundedCone groundedcone;
 };
 

@@ -61,7 +61,7 @@ class ChApi ChTriangleMeshShape : public ChVisualShape {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-  protected:
+  private:
     std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
 
     bool wireframe;

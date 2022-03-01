@@ -26,7 +26,7 @@ class ChApi ChRoundedBoxShape : public ChVisualShape {
     ChRoundedBoxShape();
     ChRoundedBoxShape(const geometry::ChRoundedBox& box);
 
-    virtual ~ChRoundedBoxShape() {}
+    ~ChRoundedBoxShape() {}
 
     // Access the rounded box geometry
     geometry::ChRoundedBox& GetRoundedBoxGeometry() { return groundedbox; }
@@ -37,7 +37,7 @@ class ChApi ChRoundedBoxShape : public ChVisualShape {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-  protected:
+  private:
     geometry::ChRoundedBox groundedbox;
 };
 

@@ -24,9 +24,9 @@ class ChApi ChEllipsoidShape : public ChVisualShape {
     ChEllipsoidShape();
     ChEllipsoidShape(const geometry::ChEllipsoid& ellipsoid);
 
-    virtual ~ChEllipsoidShape(){};
+    ~ChEllipsoidShape(){};
 
-    // Access the sphere geometry
+    // Access the ellipsoid geometry.
     geometry::ChEllipsoid& GetEllipsoidGeometry() { return gellipsoid; }
 
     /// Method to allow serialization of transient data to archives.
@@ -35,7 +35,7 @@ class ChApi ChEllipsoidShape : public ChVisualShape {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-  protected:
+  private:
     geometry::ChEllipsoid gellipsoid;
 };
 

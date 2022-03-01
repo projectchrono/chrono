@@ -25,7 +25,7 @@ class ChApi ChBarrelShape : public ChVisualShape {
     ChBarrelShape();
     ChBarrelShape(double mHlow, double mHsup, double mRvert, double mRhor, double mRoffset);
 
-    virtual ~ChBarrelShape() {}
+    ~ChBarrelShape() {}
 
     double GetHlow() { return Hlow; }
     void SetHlow(double ms) { Hlow = ms; }
@@ -48,7 +48,7 @@ class ChApi ChBarrelShape : public ChVisualShape {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-  protected:
+  private:
     // geometry::ChBarrel gbarrel; // maybe in future the following data can be moved into a ChGeometry class?
     double Hlow;
     double Hsup;

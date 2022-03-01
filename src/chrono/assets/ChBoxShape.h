@@ -22,16 +22,13 @@ namespace chrono {
 
 /// Class for a box shape that can be visualized in some way.
 class ChApi ChBoxShape : public ChVisualShape {
-  protected:
-    geometry::ChBox gbox;
-
   public:
     ChBoxShape();
     ChBoxShape(const geometry::ChBox& box);
 
-    virtual ~ChBoxShape() {}
+    ~ChBoxShape() {}
 
-    // Access the sphere geometry
+    /// Access the box geometry.
     geometry::ChBox& GetBoxGeometry() { return gbox; }
 
     /// Method to allow serialization of transient data to archives.
@@ -39,6 +36,9 @@ class ChApi ChBoxShape : public ChVisualShape {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    geometry::ChBox gbox;
 };
 
 CH_CLASS_VERSION(ChBoxShape, 0)

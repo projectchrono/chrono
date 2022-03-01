@@ -26,9 +26,9 @@ class ChApi ChSphereShape : public ChVisualShape {
     ChSphereShape();
     ChSphereShape(const geometry::ChSphere& sphere);
 
-    virtual ~ChSphereShape() {}
+    ~ChSphereShape() {}
 
-    // Access the sphere geometry
+    // Access the sphere geometry.
     geometry::ChSphere& GetSphereGeometry() { return gsphere; }
 
     /// Method to allow serialization of transient data to archives.
@@ -37,7 +37,7 @@ class ChApi ChSphereShape : public ChVisualShape {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-  protected:
+  private:
     geometry::ChSphere gsphere;
 };
 
