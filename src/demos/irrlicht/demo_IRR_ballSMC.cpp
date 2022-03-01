@@ -36,7 +36,6 @@ void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector
     box->GetBoxGeometry().Size = dim;
     box->GetBoxGeometry().Pos = loc;
     box->SetColor(ChColor(1, 0, 0));
-    box->SetFading(0.6f);
     body->AddAsset(box);
 }
 
