@@ -16,10 +16,9 @@
 
 namespace chrono {
 
-ChVisualSystem::ChVisualSystem() : m_system(nullptr) {}
-
-void ChVisualSystem::OnAttach(ChSystem* sys) {
-    m_system = sys;
+ChVisualSystem::ChVisualSystem(ChSystem& sys) : m_system(&sys) {
+    // Attach itself to the ChSystem
+    m_system->visual_system = this;
 }
 
 }  // namespace chrono

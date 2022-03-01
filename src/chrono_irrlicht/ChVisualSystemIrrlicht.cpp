@@ -45,8 +45,9 @@ using namespace irr::scene;
 
 static std::shared_ptr<irr::video::SMaterial> default_material;
 
-ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
-    : m_device_params(irr::SIrrlichtCreationParameters()),
+ChVisualSystemIrrlicht::ChVisualSystemIrrlicht(ChSystem& sys)
+    : ChVisualSystem(sys),
+      m_device_params(irr::SIrrlichtCreationParameters()),
       m_device(nullptr),
       m_container(nullptr),
       m_win_title(""),
@@ -162,7 +163,14 @@ void ChVisualSystemIrrlicht::Initialize() {
     }
 
     // Create an Irrlicht GUI
-    m_gui = std::unique_ptr<ChIrrGUI>(new ChIrrGUI(m_device));
+    m_gui = std::unique_ptr<ChIrrGUI>(new ChIrrGUI(m_device, m_system));
+
+    // Let the associated Irrlicht GUI perform any required setup
+    m_gui->Initialize();
+
+    // Parse the mechanical assembly and create a ChIrrNode for each physics item with a visual model.
+    // This is a recursive call to accomodate any existing sub-assemblies.
+    BindAll();
 }
 
 // -----------------------------------------------------------------------------
@@ -399,24 +407,6 @@ class DebugDrawer : public collision::ChCollisionSystem::VisualizationCallback {
     int m_debugMode;
     irr::video::SColor m_linecolor;
 };
-
-void ChVisualSystemIrrlicht::OnAttach(ChSystem* sys) {
-    if (!m_device) {
-        std::cerr << "The Irrlicht visualization system must be initialized before attaching to a ChSystem."
-                  << std::endl;
-        return;
-    }
-
-    // Invoke the base method
-    ChVisualSystem::OnAttach(sys);
-
-    // Let the associated Irrlicht GUI perform any required setup
-    m_gui->Attach(sys);
-
-    // Parse the mechanical assembly and create a ChIrrNode for each physics item with a visual model.
-    // This is a recursive call to accomodate any existing sub-assemblies.
-    BindAll();
-}
 
 void ChVisualSystemIrrlicht::BindItem(std::shared_ptr<ChPhysicsItem> item) {
     CreateIrrNode(item);

@@ -18,6 +18,7 @@
 #ifdef CHRONO_COLLISION
     #include "chrono/collision/ChCollisionSystemChrono.h"
 #endif
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
@@ -67,6 +68,7 @@ ChSystem::ChSystem()
       write_matrix(false),
       ncontacts(0),
       composition_strategy(new ChMaterialCompositionStrategy),
+      visual_system(nullptr),
       nthreads_chrono(ChOMP::GetNumProcs()),
       nthreads_eigen(1),
       nthreads_collision(1),
@@ -118,6 +120,8 @@ ChSystem::ChSystem(const ChSystem& other) {
     maxiter = other.maxiter;
 
     collision_system_type = other.collision_system_type;
+
+    visual_system = nullptr;
 
     min_bounce_speed = other.min_bounce_speed;
     max_penetration_recovery_speed = other.max_penetration_recovery_speed;
@@ -371,11 +375,6 @@ void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_sys) {
     collision_system_type = coll_sys->GetType();
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
-}
-
-void ChSystem::SetVisualSystem(std::shared_ptr<ChVisualSystem> vis_sys) {
-    visual_system = vis_sys;
-    visual_system->OnAttach(this);
 }
 
 void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container) {

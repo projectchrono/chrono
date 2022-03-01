@@ -45,7 +45,7 @@ enum class CameraVerticalDir { Y, Z };
 
 class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
   public:
-    ChVisualSystemIrrlicht();
+    ChVisualSystemIrrlicht(ChSystem& sys);
     ~ChVisualSystemIrrlicht();
 
     /// Enable/disable antialias (default true).
@@ -146,18 +146,14 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     irr::scene::ICameraSceneNode* GetActiveCamera() { return m_device->getSceneManager()->getActiveCamera(); }
     irr::gui::IGUIEnvironment* GetGUIEnvironment() { return m_device->getGUIEnvironment(); }
 
-    /// Update.
-    virtual void Update() override;
-
     /// Process all visual assets in the associated ChSystem.
-    /// This function is called by default when the visualization system is attached to a Chrono system (using
-    /// ChSystem::SetVisualSystem()), but can also be called later if further modifications to visualization assets
-    /// occur.
+    /// This function is called by default by Initialize(), but can also be called later if further modifications to
+    /// visualization assets occur.
     virtual void BindAll() override;
 
     /// Process the visual assets for the spcified physics item.
     /// This function must be called if a new physics item is added to the system or if changes to its visual model
-    /// occur after the visualization system was attached to the Chrono system.
+    /// occur after the call to Initialize().
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) override;
 
     /// Clean the canvas at the beginning of each animation frame.
@@ -180,9 +176,6 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     virtual void WriteImageToFile(const std::string& filename) override;
 
   private:
-    /// Perform any necessary setup operations when the visualization system is attached to a ChSystem.
-    virtual void OnAttach(ChSystem* sys) override;
-
     /// Create the ChIrrNodes for all visual model instances in the specified assembly.
     void CreateIrrNodes(const ChAssembly* assembly, std::unordered_set<const ChAssembly*>& trace);
 
@@ -196,6 +189,9 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
 
     /// Add shadow to an Irrlicht node.
     void AddShadowToIrrNode(irr::scene::ISceneNode* node);
+
+    /// Update.
+    virtual void Update() override;
 
     std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNode>> m_nodes;
 

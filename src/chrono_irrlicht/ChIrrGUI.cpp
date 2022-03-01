@@ -128,9 +128,9 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
 
 // -----------------------------------------------------------------------------
 
-ChIrrGUI::ChIrrGUI(irr::IrrlichtDevice* device)
+ChIrrGUI::ChIrrGUI(irr::IrrlichtDevice* device, ChSystem* sys)
     : m_device(device),
-      m_system(nullptr),
+      m_system(sys),
       show_explorer(false),
       show_infos(false),
       show_profiler(false),
@@ -285,9 +285,7 @@ class DebugDrawer : public collision::ChCollisionSystem::VisualizationCallback {
     irr::video::SColor m_linecolor;
 };
 
-void ChIrrGUI::Attach(ChSystem* sys) {
-    m_system = sys;
-
+void ChIrrGUI::Initialize() {
     // Create the collision visualization callback object
     m_drawer = chrono_types::make_shared<DebugDrawer>(GetVideoDriver());
     if (m_system->GetCollisionSystem())

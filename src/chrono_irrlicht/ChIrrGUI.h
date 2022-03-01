@@ -33,14 +33,14 @@ class ChIrrEventReceiver;
 /// Irrlicht GUI attached to a ChVisualSystemIrrlicht.
 class ChApiIrr ChIrrGUI {
   public:
-    ChIrrGUI(irr::IrrlichtDevice* device);
+    ChIrrGUI(irr::IrrlichtDevice* device, ChSystem* sys);
     ~ChIrrGUI();
 
     /// Attach a custom event receiver to the application.
     void AddUserEventReceiver(irr::IEventReceiver* receiver);
 
-    /// Perform setup when the containing visualization system is attached to a ChSystem.
-    void Attach(ChSystem* sys);
+    /// Perform setup when the associated Irrlicht visualization system is initialized.
+    void Initialize();
 
     /// Perform operations after opening the Irrlicht scene for the current frame.
     void BeginScene();

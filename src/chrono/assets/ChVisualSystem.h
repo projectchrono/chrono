@@ -18,12 +18,10 @@
 #include <vector>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
-
-// Forward references
-class ChSystem;
 
 class ChApi ChVisualSystem {
   public:
@@ -45,10 +43,7 @@ class ChApi ChVisualSystem {
     virtual void WriteImageToFile(const std::string& filename) {}
 
   protected:
-    ChVisualSystem();
-
-    /// Perform any additional setup operations when the visualization system is attached to a ChSystem.
-    virtual void OnAttach(ChSystem* sys);
+    ChVisualSystem(ChSystem& sys);
 
     /// Update the visualization system at the current time step.
     /// Called by the associated ChSystem.

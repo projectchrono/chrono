@@ -27,7 +27,6 @@
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/core/ChTimer.h"
-#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/utils/ChOpenMP.h"
 #include "chrono/physics/ChAssembly.h"
@@ -43,8 +42,10 @@
 namespace chrono {
 
 // Forward references
-namespace modal { class ChModalAssembly; }
-
+class ChVisualSystem;
+namespace modal {
+class ChModalAssembly;
+}
 
 /// Physical system.
 ///
@@ -710,14 +711,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Usually this is not needed, as the collision system is automatically handled by the ChSystem.
     std::shared_ptr<collision::ChCollisionSystem> GetCollisionSystem() const { return collision_system; }
 
-    /// Set the run-time visualization system.
-    /// By default, no visualization system is attached.
-    virtual void SetVisualSystem(std::shared_ptr<ChVisualSystem> vis_sys);
-
-    /// Access the underlying collision system.
-    /// Usually this is not needed, as the collision system is automatically handled by the ChSystem.
-    std::shared_ptr<ChVisualSystem> GetVisualSystem() const { return visual_system; }
-
     /// Change the underlying contact container given the specified type of the collision detection system.
     /// Usually this is not needed, as the contact container is automatically handled by the ChSystem.
     /// The default implementation is a no-op, since the default contact container for a ChSystem is suitable for all
@@ -972,7 +965,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     collision::ChCollisionSystemType collision_system_type;                     ///< type of the collision engine
     std::shared_ptr<collision::ChCollisionSystem> collision_system;             ///< collision engine
-    std::shared_ptr<ChVisualSystem> visual_system;                              ///< run-time visualization engine
+    ChVisualSystem* visual_system;                                              ///< run-time visualization engine
     std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;  ///< user-defined collision callbacks
     std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;        /// material composition strategy
 
@@ -1006,10 +999,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     friend class ChContactContainerNSC;
     friend class ChContactContainerSMC;
-    
-    //#ifdef CHRONO_MODAL
-        friend class modal::ChModalAssembly;
-    //#endif
+
+    friend class ChVisualSystem;
+
+    friend class modal::ChModalAssembly;
 };
 
 CH_CLASS_VERSION(ChSystem, 0)
