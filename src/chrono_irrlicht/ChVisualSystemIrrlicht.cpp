@@ -501,7 +501,7 @@ void ChVisualSystemIrrlicht::CreateIrrNode(std::shared_ptr<ChPhysicsItem> item) 
         // Recursively populate the ChIrrNode with Irrlicht scene nodes for each visual shape.
         // Begin with identity transform relative to the physics item.
         ChFrame<> frame;
-        PopulateIrrNode(fillnode, item->GetVisualModel().GetModel(), frame);
+        PopulateIrrNode(fillnode, item->GetVisualModel(), frame);
     }
 }
 
@@ -538,10 +538,10 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
 }
 
 void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
-                                             const ChVisualModel& model,
+                                             std::shared_ptr<ChVisualModel> model,
                                              const ChFrame<>& parent_frame) {
     //// TODO
-    for (const auto& shape : model.Getshapes()) {
+    for (const auto& shape : model->GetShapes()) {
         if (!shape->IsVisible())
             continue;
 

@@ -52,6 +52,18 @@ void ChPhysicsItem::AddVisualModel(std::shared_ptr<ChVisualModel> model) {
     vis_model->m_owner = this;
 }
 
+std::shared_ptr<ChVisualModel> ChPhysicsItem::GetVisualModel() const {
+    if (!vis_model)
+        return nullptr;
+    return vis_model->GetModel();
+}
+
+std::shared_ptr<ChVisualShape> ChPhysicsItem::GetVisualShape(unsigned int i) const {
+    if (!vis_model)
+        return nullptr;
+    return vis_model->GetModel()->GetShape(i);
+}
+
 void ChPhysicsItem::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
     bbmin.Set(-1e200, -1e200, -1e200);
     bbmax.Set(1e200, 1e200, 1e200);

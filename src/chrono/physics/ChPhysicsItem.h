@@ -57,13 +57,20 @@ class ChApi ChPhysicsItem : public ChObj {
 
 
     /// Add an (optional) visualization model.
+    /// Not that an instance of the given visual model is associated with this physics ite, thus allowing sharing the
+    /// same model among multiple items.
     void AddVisualModel(std::shared_ptr<ChVisualModel> model);
 
     /// Test whether a visual model is attached.
     bool HasVisualModel() const { return vis_model.get() != nullptr; }
 
     /// Access the visualization model (if any).
-    ChVisualModelInstance& GetVisualModel() const { return *vis_model; }
+    /// Note that this model may be shared with other physics items that may instance it.
+    std::shared_ptr<ChVisualModel> GetVisualModel() const;
+
+    /// Access the specified visualization shape in the visualization model (if any).
+    /// Note that no range check is performed.
+    std::shared_ptr<ChVisualShape> GetVisualShape(unsigned int i) const;
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// If the visual model is cloned (for example for a physics item modeling a particle system), this function returns

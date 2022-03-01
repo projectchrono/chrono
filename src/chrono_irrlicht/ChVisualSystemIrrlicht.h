@@ -21,6 +21,16 @@
 #include <irrlicht.h>
 
 #include "chrono/assets/ChVisualSystem.h"
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
+#include "chrono/assets/ChObjShapeFile.h"
+#include "chrono/assets/ChVisualShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChGlyphs.h"
+#include "chrono/assets/ChPathShape.h"
+#include "chrono/assets/ChLineShape.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrNode.h"
@@ -180,7 +190,9 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     void CreateIrrNode(std::shared_ptr<ChPhysicsItem> item);
 
     /// Populate the ChIrrNode for the visual model instance of the specified physics item.
-    void PopulateIrrNode(irr::scene::ISceneNode* node, const ChVisualModel& model, const ChFrame<>& parent_frame);
+    void PopulateIrrNode(irr::scene::ISceneNode* node,
+                         std::shared_ptr<ChVisualModel> model,
+                         const ChFrame<>& parent_frame);
 
     /// Add shadow to an Irrlicht node.
     void AddShadowToIrrNode(irr::scene::ISceneNode* node);

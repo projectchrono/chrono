@@ -39,7 +39,10 @@ class ChApi ChVisualModel {
     );
 
     /// Get the visual shapes in the model.
-    const std::vector<std::shared_ptr<ChVisualShape>>& Getshapes() const { return m_shapes; }
+    const std::vector<std::shared_ptr<ChVisualShape>>& GetShapes() const { return m_shapes; }
+
+    /// Get the specified visual shape in the model.
+    std::shared_ptr<ChVisualShape> GetShape(unsigned int i) const { return m_shapes[i]; }
 
     /// Update this visual model with information for the owning physical object.
     void Update(const ChFrame<>& frame) {}
@@ -56,7 +59,7 @@ class ChApi ChVisualModelInstance {
     ~ChVisualModelInstance() {}
 
     /// Get the associated visual model.
-    const ChVisualModel& GetModel() const { return *m_model.get(); }
+    std::shared_ptr<ChVisualModel> GetModel() const { return m_model; }
 
     /// Update this visual model with information for the owning physical object.
     void Update(const ChFrame<>& frame);

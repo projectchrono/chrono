@@ -67,9 +67,12 @@ void ChBodyEasySphere::SetupBody(double radius,
         SetCollide(true);
     }
     if (visualize) {
-        std::shared_ptr<ChSphereShape> vshape(new ChSphereShape());
+        auto vshape = chrono_types::make_shared<ChSphereShape>();
         vshape->GetSphereGeometry().rad = radius;
-        this->AddAsset(vshape);
+        auto vmodel = chrono_types::make_shared<ChVisualModel>();
+        vmodel->AddShape(vshape);
+        this->AddVisualModel(vmodel);
+        this->AddAsset(vshape);  //// REMOVE
     }
 }
 
@@ -115,9 +118,12 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector<> radius,
         SetCollide(true);
     }
     if (visualize) {
-        std::shared_ptr<ChEllipsoidShape> vshape(new ChEllipsoidShape());
+        auto vshape = chrono_types::make_shared<ChEllipsoidShape>();
         vshape->GetEllipsoidGeometry().rad = radius;
-        this->AddAsset(vshape);
+        auto vmodel = chrono_types::make_shared<ChVisualModel>();
+        vmodel->AddShape(vshape);
+        this->AddVisualModel(vmodel);
+        this->AddAsset(vshape);  //// REMOVE
     }
 }
 
@@ -168,7 +174,10 @@ void ChBodyEasyCylinder::SetupBody(double radius,
         vshape->GetCylinderGeometry().p1 = ChVector<>(0, -height * 0.5, 0);
         vshape->GetCylinderGeometry().p2 = ChVector<>(0, height * 0.5, 0);
         vshape->GetCylinderGeometry().rad = radius;
-        this->AddAsset(vshape);
+        auto vmodel = chrono_types::make_shared<ChVisualModel>();
+        vmodel->AddShape(vshape);
+        this->AddVisualModel(vmodel);
+        this->AddAsset(vshape);  //// REMOVE
     }
 }
 
@@ -220,7 +229,10 @@ void ChBodyEasyBox::SetupBody(double Xsize,
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChBoxShape>();
         vshape->GetBoxGeometry().SetLengths(ChVector<>(Xsize, Ysize, Zsize));
-        this->AddAsset(vshape);
+        auto vmodel = chrono_types::make_shared<ChVisualModel>();
+        vmodel->AddShape(vshape);
+        this->AddVisualModel(vmodel);
+        this->AddAsset(vshape);  //// REMOVE
     }
 }
 
@@ -254,7 +266,10 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector<>>& points,
     lh.ComputeHull(points, *vshape->GetMesh());
     if (visualize) {
         vshape->SetName("chull_mesh_" + std::to_string(GetIdentifier()));
-        this->AddAsset(vshape);
+        auto vmodel = chrono_types::make_shared<ChVisualModel>();
+        vmodel->AddShape(vshape);
+        this->AddVisualModel(vmodel);
+        this->AddAsset(vshape);  //// REMOVE
     }
 
     double mass;
@@ -318,7 +333,10 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector<>>& points,
     lh.ComputeHull(points, *vshape->GetMesh());
     if (visualize) {
         vshape->SetName("chull_mesh_" + std::to_string(GetIdentifier()));
-        this->AddAsset(vshape);  // assets are respect to REF c.sys
+        auto vmodel = chrono_types::make_shared<ChVisualModel>();
+        vmodel->AddShape(vshape);
+        this->AddVisualModel(vmodel);
+        this->AddAsset(vshape);  //// REMOVE
     }
 
     double mass;
@@ -416,7 +434,10 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected
         auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
         vshape->SetMesh(trimesh);
         vshape->SetName(name);
-        AddAsset(vshape);  // assets are respect to REF c.sys
+        auto vmodel = chrono_types::make_shared<ChVisualModel>();
+        vmodel->AddShape(vshape);
+        this->AddVisualModel(vmodel);
+        this->AddAsset(vshape);  //// REMOVE
     }
 
     this->SetDensity((float)density);
@@ -524,12 +545,15 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector<>>& positions,
         SetCollide(true);
     }
     if (visualize) {
+        auto vmodel = chrono_types::make_shared<ChVisualModel>();
         for (unsigned int i = 0; i < positions.size(); ++i) {
             auto vshape = chrono_types::make_shared<ChSphereShape>();
             vshape->GetSphereGeometry().rad = radii[i];
             vshape->GetSphereGeometry().center = offset_positions[i];
-            this->AddAsset(vshape);
+            vmodel->AddShape(vshape);
+            this->AddAsset(vshape);  //// REMOVE
         }
+        this->AddVisualModel(vmodel);
     }
 }
 
