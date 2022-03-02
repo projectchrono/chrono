@@ -27,6 +27,18 @@ class ChApi ChVisualSystem {
   public:
     virtual ~ChVisualSystem() {}
 
+    /// Enable/disable antialias.
+    virtual void SetAntialias(bool val) {}
+
+    /// Enable/disable full-screen mode.
+    virtual void SetFullscreen(bool val) {}
+
+    /// Set the window size.
+    virtual void SetWindowSize(const ChVector2<int>& win_size) {}
+
+    /// Set the window title (default "").
+    virtual void SetWindowTitle(const std::string& win_title) {}
+
     /// Process all visual assets in the associated ChSystem.
     /// This function is called by default when the visualization system is attached to a Chrono system (using
     /// ChSystem::SetVisualSystem()), but can also be called later if further modifications to visualization assets
