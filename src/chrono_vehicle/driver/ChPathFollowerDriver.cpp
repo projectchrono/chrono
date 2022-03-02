@@ -77,6 +77,10 @@ void ChPathFollowerDriver::Create() {
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
+
+    auto model = chrono_types::make_shared<ChVisualModel>();
+    model->AddShape(path_asset);
+    road->AddVisualModel(model);
     road->AddAsset(path_asset);
 }
 
@@ -164,6 +168,10 @@ void ChPathFollowerDriverXT::Create() {
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
+
+    auto model = chrono_types::make_shared<ChVisualModel>();
+    model->AddShape(path_asset);
+    road->AddVisualModel(model);
     road->AddAsset(path_asset);
 }
 
@@ -253,6 +261,10 @@ void ChPathFollowerDriverSR::Create() {
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
+
+    auto model = chrono_types::make_shared<ChVisualModel>();
+    model->AddShape(path_asset);
+    road->AddVisualModel(model);
     road->AddAsset(path_asset);
 }
 
@@ -340,6 +352,10 @@ void ChPathFollowerDriverStanley::Create() {
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
+
+    auto model = chrono_types::make_shared<ChVisualModel>();
+    model->AddShape(path_asset);
+    road->AddVisualModel(model);
     road->AddAsset(path_asset);
 }
 

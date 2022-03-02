@@ -32,16 +32,15 @@
 namespace chrono {
 namespace vehicle {
 
-static bool use_visualization_asset_levels = true;
-
 ChVehicleGeometry::ChVehicleGeometry()
     : m_has_primitives(false), m_has_mesh(false), m_has_collision(false), m_has_colors(false) {}
 
-void ChVehicleGeometry::EnableVisualizationAssetLevels(bool flag) {
-    use_visualization_asset_levels = flag;
-}
-
 void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis) {
+    if (!body->GetVisualModel()) {
+        auto model = chrono_types::make_shared<ChVisualModel>();
+        body->AddVisualModel(model);
+    }
+
     if (vis == VisualizationType::MESH && m_has_mesh) {
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
                                                                                   true, true);
@@ -50,6 +49,7 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
         trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
         trimesh_shape->SetMutable(false);
         body->AddAsset(trimesh_shape);
+        body->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>());
         return;
     }
 
@@ -60,15 +60,23 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
             m_color_cylinders = ChColor(0.5f, 0.5f, 0.5f);
         }
 
+        auto box_mat = chrono_types::make_shared<ChVisualMaterial>();
+        auto sph_mat = chrono_types::make_shared<ChVisualMaterial>();
+        auto cyl_mat = chrono_types::make_shared<ChVisualMaterial>();
+
+        box_mat->SetDiffuseColor({m_color_boxes.R, m_color_boxes.G, m_color_boxes.B});
+        sph_mat->SetDiffuseColor({m_color_spheres.R, m_color_spheres.G, m_color_spheres.B});
+        cyl_mat->SetDiffuseColor({m_color_cylinders.R, m_color_cylinders.G, m_color_cylinders.B});
+
         auto sphere_level = chrono_types::make_shared<ChAssetLevel>();
         for (auto& sphere : m_vis_spheres) {
             auto sphere_shape = chrono_types::make_shared<ChSphereShape>();
             sphere_shape->GetSphereGeometry().rad = sphere.m_radius;
             sphere_shape->Pos = sphere.m_pos;
-            if (use_visualization_asset_levels)
-                sphere_level->AddAsset(sphere_shape);
-            else
                 body->AddAsset(sphere_shape);
+            sphere_shape->AddMaterial(sph_mat);
+            body->GetVisualModel()->AddShape(sphere_shape, ChFrame<>(sphere.m_pos));
+
         }
 
         auto box_level = chrono_types::make_shared<ChAssetLevel>();
@@ -77,10 +85,9 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
             box_shape->GetBoxGeometry().SetLengths(box.m_dims);
             box_shape->Pos = box.m_pos;
             box_shape->Rot = box.m_rot;
-            if (use_visualization_asset_levels)
-                box_level->AddAsset(box_shape);
-            else
                 body->AddAsset(box_shape);
+            box_shape->AddMaterial(box_mat);
+            body->GetVisualModel()->AddShape(box_shape, ChFrame<>(box.m_pos, box.m_rot));
         }
 
         auto cyl_level = chrono_types::make_shared<ChAssetLevel>();
@@ -91,20 +98,9 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
             cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -cyl.m_length / 2, 0);
             cyl_shape->Pos = cyl.m_pos;
             cyl_shape->Rot = cyl.m_rot;
-            if (use_visualization_asset_levels)
-                cyl_level->AddAsset(cyl_shape);
-            else
                 body->AddAsset(cyl_shape);
-        }
-
-        if (use_visualization_asset_levels) {
-            sphere_level->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color_spheres));
-            box_level->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color_boxes));
-            cyl_level->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color_cylinders));
-
-            body->AddAsset(sphere_level);
-            body->AddAsset(box_level);
-            body->AddAsset(cyl_level);
+            cyl_shape->AddMaterial(cyl_mat);
+                body->GetVisualModel()->AddShape(cyl_shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
         }
 
         return;

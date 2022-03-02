@@ -216,10 +216,16 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 
     // Create visualization asset
     if (visualization) {
+        patch->m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
         auto box = chrono_types::make_shared<ChBoxShape>();
         box->GetBoxGeometry().SetLengths(ChVector<>(length, width, thickness));
         box->Pos = VNULL;
+        if (patch->m_color.R != -1)
+            box->SetColor(patch->m_color);
+        if (!patch->m_texture_filename.empty())
+            box->SetTexture(patch->m_texture_filename);
         patch->m_body->AddAsset(box);
+        patch->m_body->GetVisualModel()->AddShape(box);
     }
 
     patch->m_location = location;
@@ -262,11 +268,17 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 
     // Create the visualization asset.
     if (visualization) {
+        patch->m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(patch->m_trimesh);
         trimesh_shape->SetName(mesh_name);
         trimesh_shape->SetMutable(false);
+        if (patch->m_color.R != -1)
+            trimesh_shape->SetColor(patch->m_color);
+        if (!patch->m_texture_filename.empty())
+            trimesh_shape->SetTexture(patch->m_texture_filename);
         patch->m_body->AddAsset(trimesh_shape);
+        patch->m_body->GetVisualModel()->AddShape(trimesh_shape);
     }
 
     patch->m_radius =
@@ -420,11 +432,17 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 
     // Create the visualization asset.
     if (visualization) {
+        patch->m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(patch->m_trimesh);
         trimesh_shape->SetName(mesh_name);
         trimesh_shape->SetMutable(false);
+        if (patch->m_color.R != -1)
+            trimesh_shape->SetColor(patch->m_color);
+        if (!patch->m_texture_filename.empty())
+            trimesh_shape->SetTexture(patch->m_texture_filename);
         patch->m_body->AddAsset(trimesh_shape);
+        patch->m_body->GetVisualModel()->AddShape(trimesh_shape);
     }
 
     patch->m_radius = ChVector<>(length, width, (hMax - hMin)).Length() / 2;
@@ -438,16 +456,16 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 // Functions to modify properties of a patch
 // -----------------------------------------------------------------------------
 
+RigidTerrain::Patch::Patch() : m_friction(0.8f), m_color(-1, -1, -1), m_texture_filename(""), m_texture_scale({1, 1}) {}
+
 void RigidTerrain::Patch::SetColor(const ChColor& color) {
-    auto acolor = chrono_types::make_shared<ChColorAsset>(color);
-    m_body->AddAsset(acolor);
+    m_color = color;
 }
 
 void RigidTerrain::Patch::SetTexture(const std::string& tex_file, float tex_scale_x, float tex_scale_y) {
-    auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(tex_file);
-    texture->SetTextureScale(tex_scale_x, tex_scale_y);
-    m_body->AddAsset(texture);
+    //// RADU TODO: use texture scale
+    m_texture_filename = tex_file;
+    m_texture_scale = {tex_scale_x, tex_scale_y};
 }
 
 // -----------------------------------------------------------------------------

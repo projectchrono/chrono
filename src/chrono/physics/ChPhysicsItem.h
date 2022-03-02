@@ -61,11 +61,9 @@ class ChApi ChPhysicsItem : public ChObj {
     /// same model among multiple items.
     void AddVisualModel(std::shared_ptr<ChVisualModel> model);
 
-    /// Test whether a visual model is attached.
-    bool HasVisualModel() const { return vis_model.get() != nullptr; }
-
     /// Access the visualization model (if any).
     /// Note that this model may be shared with other physics items that may instance it.
+    /// Returns nullptr if no visual model is present.
     std::shared_ptr<ChVisualModel> GetVisualModel() const;
 
     /// Access the specified visualization shape in the visualization model (if any).

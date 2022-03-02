@@ -74,15 +74,19 @@ RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, doub
     double dtmax = m_dx;
     int p = static_cast<int>(std::ceil(-std::log(m_f_fft_min * dtmax) / std::log(2.0)));
     m_Nfft = 2 << p;
+
     // ground body, carries the graphic assets
     m_ground = std::shared_ptr<ChBody>(system->NewBody());
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector<>(0, 0, 0));
     m_ground->SetBodyFixed(true);
     m_ground->SetCollide(false);
+    m_ground->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
     system->Add(m_ground);
+
     m_curve_left_name = "leftContour";
     m_curve_left_name = "rightContour";
+    
     // class limits for unevenness
     m_classLimits.resize(9);
     m_classLimits << 0.0, 2e-6, 8e-6, 32e-6, 128e-6, 512e-6, 2048e-6, 8192e-6, 16384e-6;
@@ -483,10 +487,6 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
         case RandomSurfaceTerrain::VisualisationType::LINES: {
             GenerateCurves();
 
-            auto mfloorcolor = chrono_types::make_shared<ChColorAsset>();
-            mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
-            m_ground->AddAsset(mfloorcolor);
-
             auto np = m_road_left->getNumPoints();
             unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
             auto bezier_line_left = chrono_types::make_shared<geometry::ChLineBezier>(m_road_left);
@@ -495,14 +495,15 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
             bezier_asset_left->SetNumRenderPoints(num_render_points);
             bezier_asset_left->SetName(m_curve_left_name);
             m_ground->AddAsset(bezier_asset_left);
+            m_ground->GetVisualModel()->AddShape(bezier_asset_left);
 
             auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
             auto bezier_asset_right = chrono_types::make_shared<ChLineShape>();
             bezier_asset_right->SetLineGeometry(bezier_line_right);
             bezier_asset_right->SetNumRenderPoints(num_render_points);
             bezier_asset_right->SetName(m_curve_right_name);
-
             m_ground->AddAsset(bezier_asset_right);
+            m_ground->GetVisualModel()->AddShape(bezier_asset_right);
 
             break;
         }
@@ -514,12 +515,8 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
             vmesh->SetMesh(m_mesh);
             vmesh->SetMutable(false);
             vmesh->SetName("ISO_track");
-
-            auto vcolor = chrono_types::make_shared<ChColorAsset>();
-            vcolor->SetColor(ChColor(0.6f, 0.6f, 0.8f));
-
-            m_ground->AddAsset(vcolor);
             m_ground->AddAsset(vmesh);
+            m_ground->GetVisualModel()->AddShape(vmesh);
 
             break;
         }
@@ -553,6 +550,7 @@ void RandomSurfaceTerrain::SetupCollision() {
         box->GetBoxGeometry().SetLengths(ChVector<>(m_start_length, m_width, thickness));
         box->Pos = loc;
         m_ground->AddAsset(box);
+        m_ground->GetVisualModel()->AddShape(box, ChFrame<>(loc));
     }
 
     m_ground->GetCollisionModel()->BuildModel();

@@ -142,9 +142,8 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     void SetColor(const ChColor& color);
 
     /// Set texture properties.
-    void SetTexture(const std::string tex_file,  ///< [in] texture filename
-                    float tex_scale_x = 1,       ///< [in] texture scale in X
-                    float tex_scale_y = 1        ///< [in] texture scale in Y
+    void SetTexture(const std::string tex_file,          ///< [in] texture filename
+                    ChVector2<float> tex_scale = {1, 1}  ///< [in] texture scale (X,Y)
     );
 
     /// Add a new moving patch.
@@ -521,7 +520,6 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     double m_test_offset_up;    // offset for ray end
 
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  // mesh visualization asset
-    std::shared_ptr<ChColorAsset> m_color;                 // mesh edge default color
 
     // SCM parameters
     double m_Bekker_Kphi;    ///< frictional modulus in Bekker model

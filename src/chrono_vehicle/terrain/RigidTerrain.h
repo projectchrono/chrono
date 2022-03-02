@@ -60,8 +60,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         virtual ~Patch() {}
 
         /// Set visualization color.
-        void SetColor(const ChColor& color  ///< [in] color of the visualization material
-        );
+        void SetColor(const ChColor& color);
 
         /// Set texture properties.
         void SetTexture(const std::string& tex_file,  ///< [in] texture filename
@@ -73,6 +72,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         std::shared_ptr<ChBody> GetGroundBody() const { return m_body; }
 
       protected:
+        Patch();
+
         virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const = 0;
         virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) {}
         virtual void ExportMeshWavefront(const std::string& out_dir) {}
@@ -81,6 +82,10 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         std::shared_ptr<ChBody> m_body;  ///< associated body
         float m_friction;                ///< coefficient of friction
         double m_radius;                 ///< bounding sphere radius
+
+        ChColor m_color;
+        std::string m_texture_filename;
+        ChVector2<float> m_texture_scale;
 
         friend class RigidTerrain;
     };

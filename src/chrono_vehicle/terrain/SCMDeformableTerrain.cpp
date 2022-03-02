@@ -82,16 +82,17 @@ SCMDeformableTerrain::NodeInfo SCMDeformableTerrain::GetNodeInfo(const ChVector<
 
 // Set the color of the visualization assets.
 void SCMDeformableTerrain::SetColor(const ChColor& color) {
-    if (m_ground->m_color)
-        m_ground->m_color->SetColor(color);
+    if (m_ground->GetVisualModel()) {
+        m_ground->GetVisualShape(0)->SetColor(color);
+    }
 }
 
 // Set the texture and texture scaling.
-void SCMDeformableTerrain::SetTexture(const std::string tex_file, float tex_scale_x, float tex_scale_y) {
-    std::shared_ptr<ChTexture> texture(new ChTexture);
-    texture->SetTextureFilename(tex_file);
-    texture->SetTextureScale(tex_scale_x, tex_scale_y);
-    m_ground->AddAsset(texture);
+void SCMDeformableTerrain::SetTexture(const std::string tex_file, ChVector2<float> tex_scale) {
+    //// RADU TODO: use texture scale
+    if (m_ground->GetVisualModel()) {
+        m_ground->GetVisualShape(0)->SetTexture(tex_file);
+    }
 }
 
 // Set the SCM reference plane.
@@ -330,16 +331,14 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
     this->SetSystem(system);
 
     if (visualization_mesh) {
+        auto model = chrono_types::make_shared<ChVisualModel>();
+
         // Create the visualization mesh and asset
         m_trimesh_shape = std::shared_ptr<ChTriangleMeshShape>(new ChTriangleMeshShape);
         m_trimesh_shape->SetWireframe(true);
         m_trimesh_shape->SetFixedConnectivity();
         this->AddAsset(m_trimesh_shape);
-
-        // Create the default mesh asset
-        m_color = std::shared_ptr<ChColorAsset>(new ChColorAsset);
-        m_color->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-        this->AddAsset(m_color);
+        model->AddShape(m_trimesh_shape);
     }
 
     // Default SCM plane and plane normal

@@ -470,7 +470,7 @@ void ChVisualSystemIrrlicht::CreateIrrNodes(const ChAssembly* assembly, std::uno
 }
 
 void ChVisualSystemIrrlicht::CreateIrrNode(std::shared_ptr<ChPhysicsItem> item) {
-    if (!item->HasVisualModel())
+    if (!item->GetVisualModel())
         return;
 
     // Create a new ChIrrNode and, if this is first insertion, populate it.

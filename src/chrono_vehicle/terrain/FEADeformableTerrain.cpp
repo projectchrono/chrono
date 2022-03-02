@@ -250,5 +250,6 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     mvisualizemesh->SetSmoothFaces(false);
     m_mesh->AddAsset(mvisualizemesh);
 }
+
 }  // end namespace vehicle
 }  // end namespace chrono
