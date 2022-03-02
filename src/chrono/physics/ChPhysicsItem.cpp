@@ -48,7 +48,7 @@ void ChPhysicsItem::SetSystem(ChSystem* m_system) {
 }
 
 void ChPhysicsItem::AddVisualModel(std::shared_ptr<ChVisualModel> model) {
-    vis_model = std::unique_ptr<ChVisualModelInstance>(new ChVisualModelInstance(model));
+    vis_model = std::shared_ptr<ChVisualModelInstance>(new ChVisualModelInstance(model));
     vis_model->m_owner = this;
 }
 

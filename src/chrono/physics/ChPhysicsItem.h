@@ -444,7 +444,7 @@ class ChApi ChPhysicsItem : public ChObj {
     ChSystem* system;  ///< parent system
 
     std::vector<std::shared_ptr<ChAsset> > assets;     ///< set of assets
-    std::unique_ptr<ChVisualModelInstance> vis_model;  ///< instantiated visualization model
+    std::shared_ptr<ChVisualModelInstance> vis_model;  ///< instantiated visualization model
 
     unsigned int offset_x;  ///< offset in vector of state (position part)
     unsigned int offset_w;  ///< offset in vector of state (speed part)
