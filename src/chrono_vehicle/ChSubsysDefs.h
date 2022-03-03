@@ -707,6 +707,14 @@ class CH_VEHICLE_API ChVehicleGeometry {
         int m_matID;           ///< index in contact material list
     };
 
+    struct LineShape {
+        LineShape(const ChVector<>& pos, const ChQuaternion<>& rot, std::shared_ptr<geometry::ChLine> line)
+            : m_pos(pos), m_rot(rot), m_line(line) {}
+        ChVector<> m_pos;                              ///< position relative to body
+        ChQuaternion<> m_rot;                          ///< orientation relative to body
+        std::shared_ptr<geometry::ChLine> m_line;  ///< line data
+    };
+
     /// Convex hulls shape for collision.
     struct ConvexHullsShape {
         ConvexHullsShape(const std::string& filename, int matID = -1) : m_filename(filename), m_matID(matID) {}
@@ -736,6 +744,7 @@ class CH_VEHICLE_API ChVehicleGeometry {
     std::vector<BoxShape> m_vis_boxes;           ///< list of visualization boxes
     std::vector<SphereShape> m_vis_spheres;      ///< list of visualization spheres
     std::vector<CylinderShape> m_vis_cylinders;  ///< list of visualization cylinders
+    std::vector<LineShape> m_vis_lines;          ///< list of visualization lines
 
     bool m_has_colors;          ///< true if primitive colors were provided
     ChColor m_color_boxes;      ///< visualization color
