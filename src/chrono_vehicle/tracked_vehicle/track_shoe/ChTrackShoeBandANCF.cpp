@@ -349,7 +349,7 @@ void ChTrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChTrackShoeBandANCF::RemoveVisualizationAssets() {
-    m_shoe->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_shoe);
 }
 
 // -----------------------------------------------------------------------------

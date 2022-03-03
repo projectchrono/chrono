@@ -141,7 +141,7 @@ void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChRackPinion::RemoveVisualizationAssets() {
-    m_link->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_link);
 }
 
 // -----------------------------------------------------------------------------

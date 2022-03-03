@@ -112,7 +112,7 @@ void ChDeformableTire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChDeformableTire::RemoveVisualizationAssets() {
-    m_mesh->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_mesh);
 }
 
 // -----------------------------------------------------------------------------

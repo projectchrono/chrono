@@ -229,10 +229,10 @@ void ChRigidPinnedAxle::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChRigidPinnedAxle::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_axleTube);
     ChSuspension::RemoveVisualizationAssets();
-
-    m_axleTube->GetAssets().clear();
 }
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRigidPinnedAxle::ExportComponentList(rapidjson::Document& jsonDocument) const {

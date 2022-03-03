@@ -163,7 +163,7 @@ void ChIdler::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChIdler::RemoveVisualizationAssets() {
-    m_carrier->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_carrier);
 }
 
 // -----------------------------------------------------------------------------

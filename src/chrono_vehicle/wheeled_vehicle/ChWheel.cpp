@@ -113,17 +113,9 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
 
 void ChWheel::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChWheel::AddVisualizationAssets.
-    // This is important for the ChWheel object because a tire may add its own assets
-    // to the same body (the spindle).
-    auto& assets = m_spindle->GetAssets();
-
-    auto it_cyl = std::find(assets.begin(), assets.end(), m_cyl_shape);
-    if (it_cyl != assets.end())
-        assets.erase(it_cyl);
-
-    auto it_mesh = std::find(assets.begin(), assets.end(), m_trimesh_shape);
-    if (it_mesh != assets.end())
-        assets.erase(it_mesh);
+    // This is important for the ChWheel object because a tire may add its own assets to the same body (the spindle).
+    ChPart::RemoveVisualizationAsset(m_spindle, m_cyl_shape);
+    ChPart::RemoveVisualizationAsset(m_spindle, m_trimesh_shape);
 }
 
 }  // end namespace vehicle

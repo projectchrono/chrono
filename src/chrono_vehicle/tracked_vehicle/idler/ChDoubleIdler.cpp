@@ -97,9 +97,8 @@ void ChDoubleIdler::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChDoubleIdler::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_wheel);
     ChIdler::RemoveVisualizationAssets();
-
-    m_wheel->GetAssets().clear();
 }
 
 }  // end namespace vehicle

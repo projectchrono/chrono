@@ -96,7 +96,7 @@ void ChDoubleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChDoubleRoadWheel::RemoveVisualizationAssets() {
-    m_wheel->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_wheel);
 }
 
 }  // end namespace vehicle

@@ -66,18 +66,8 @@ void ChSuspension::RemoveVisualizationAssets() {
     // Make sure we only remove the spindle assets added by ChSuspension::AddVisualizationAssets.
     // This is important for the spindle bodies because a wheel or a tire may add its own assets
     // to the same body.
-    {
-        auto assets = m_spindle[LEFT]->GetAssets();
-        auto it = std::find(assets.begin(), assets.end(), m_spindle_shapes[LEFT]);
-        if (it != assets.end())
-            assets.erase(it);
-    }
-    {
-        auto assets = m_spindle[RIGHT]->GetAssets();
-        auto it = std::find(assets.begin(), assets.end(), m_spindle_shapes[RIGHT]);
-        if (it != assets.end())
-            assets.erase(it);
-    }
+    ChPart::RemoveVisualizationAsset(m_spindle[LEFT], m_spindle_shapes[LEFT]);
+    ChPart::RemoveVisualizationAsset(m_spindle[RIGHT], m_spindle_shapes[RIGHT]);
 }
 
 void ChSuspension::AddVisualizationSpindle(VehicleSide side, double radius, double width) {

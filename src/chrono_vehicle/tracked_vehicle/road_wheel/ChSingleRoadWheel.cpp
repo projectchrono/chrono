@@ -86,7 +86,7 @@ void ChSingleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChSingleRoadWheel::RemoveVisualizationAssets() {
-    m_wheel->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_wheel);
 }
 
 }  // end namespace vehicle

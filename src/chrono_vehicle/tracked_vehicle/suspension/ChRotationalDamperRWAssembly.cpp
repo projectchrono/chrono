@@ -179,7 +179,7 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
 }
 
 void ChRotationalDamperRWAssembly::RemoveVisualizationAssets() {
-    m_arm->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_arm);
 }
 
 // -----------------------------------------------------------------------------

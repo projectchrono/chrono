@@ -257,7 +257,7 @@ void ChTrackAssemblyBandANCF::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChTrackAssemblyBandANCF::RemoveVisualizationAssets() {
-    m_track_mesh->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_track_mesh);
 }
 
 }  // end namespace vehicle

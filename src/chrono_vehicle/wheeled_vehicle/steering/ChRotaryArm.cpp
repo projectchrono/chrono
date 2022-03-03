@@ -161,7 +161,7 @@ void ChRotaryArm::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChRotaryArm::RemoveVisualizationAssets() {
-    m_link->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_link);
 }
 
 // -----------------------------------------------------------------------------

@@ -122,7 +122,7 @@ void ChSprocket::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChSprocket::RemoveVisualizationAssets() {
-    m_gear->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_gear);
 }
 
 // -----------------------------------------------------------------------------

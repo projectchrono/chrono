@@ -81,8 +81,8 @@ void MAN_5t_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void MAN_5t_TMeasyTire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChTMeasyTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // namespace man

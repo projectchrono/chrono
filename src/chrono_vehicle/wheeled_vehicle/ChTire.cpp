@@ -129,15 +129,6 @@ std::shared_ptr<ChTriangleMeshShape> ChTire::AddVisualizationMesh(const std::str
     return trimesh_shape;
 }
 
-// Remove visualization mesh shape. Make sure to only remove the specified asset.  A associated body (a wheel spindle)
-// may have additional assets.
-void ChTire::RemoveVisualizationMesh(std::shared_ptr<ChTriangleMeshShape> trimesh_shape) {
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    auto it = std::find(assets.begin(), assets.end(), trimesh_shape);
-    if (it != assets.end())
-        assets.erase(it);
-}
-
 // -----------------------------------------------------------------------------
 // Utility functions for characterizing the geometric contact between a disc with
 // specified center location, normal direction, and radius and the terrain,

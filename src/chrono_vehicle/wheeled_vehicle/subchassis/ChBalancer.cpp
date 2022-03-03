@@ -137,8 +137,8 @@ void ChBalancer::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChBalancer::RemoveVisualizationAssets() {
-    m_beam[LEFT]->GetAssets().clear();
-    m_beam[RIGHT]->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_beam[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_beam[RIGHT]);
 }
 
 // -----------------------------------------------------------------------------

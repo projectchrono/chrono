@@ -141,14 +141,14 @@ void ChTrackShoeBandBushing::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     AddShoeVisualization();
-    for (auto segment : m_web_segments)
+    for (auto& segment : m_web_segments)
         AddWebVisualization(segment);
 }
 
 void ChTrackShoeBandBushing::RemoveVisualizationAssets() {
-    m_shoe->GetAssets().clear();
-    for (auto segment : m_web_segments) {
-        segment->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_shoe);
+    for (auto& segment : m_web_segments) {
+        ChPart::RemoveVisualizationAssets(segment);
     }
 }
 

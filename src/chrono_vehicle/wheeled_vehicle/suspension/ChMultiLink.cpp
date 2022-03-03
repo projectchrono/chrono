@@ -536,33 +536,33 @@ void ChMultiLink::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChMultiLink::RemoveVisualizationAssets() {
-    ChSuspension::RemoveVisualizationAssets();
+    ChPart::RemoveVisualizationAssets(m_upright[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_upright[RIGHT]);
 
-    m_upright[LEFT]->GetAssets().clear();
-    m_upright[RIGHT]->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_upperArm[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_upperArm[RIGHT]);
 
-    m_upperArm[LEFT]->GetAssets().clear();
-    m_upperArm[RIGHT]->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_lateral[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_lateral[RIGHT]);
 
-    m_lateral[LEFT]->GetAssets().clear();
-    m_lateral[RIGHT]->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_trailingLink[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_trailingLink[RIGHT]);
 
-    m_trailingLink[LEFT]->GetAssets().clear();
-    m_trailingLink[RIGHT]->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_spring[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_spring[RIGHT]);
 
-    m_spring[LEFT]->GetAssets().clear();
-    m_spring[RIGHT]->GetAssets().clear();
-
-    m_shock[LEFT]->GetAssets().clear();
-    m_shock[RIGHT]->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_shock[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_shock[RIGHT]);
 
     if (UseTierodBodies()) {
-        m_tierod[LEFT]->GetAssets().clear();
-        m_tierod[RIGHT]->GetAssets().clear();
+        ChPart::RemoveVisualizationAssets(m_tierod[LEFT]);
+        ChPart::RemoveVisualizationAssets(m_tierod[RIGHT]);
     } else {
-        m_distTierod[LEFT]->GetAssets().clear();
-        m_distTierod[RIGHT]->GetAssets().clear();
+        ChPart::RemoveVisualizationAssets(m_distTierod[LEFT]);
+        ChPart::RemoveVisualizationAssets(m_distTierod[RIGHT]);
     }
+
+    ChSuspension::RemoveVisualizationAssets();
 }
 
 // -----------------------------------------------------------------------------

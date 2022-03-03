@@ -195,9 +195,9 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChLinearDamperRWAssembly::RemoveVisualizationAssets() {
-    m_arm->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_arm);
     if (m_has_shock)
-      m_shock->GetAssets().clear();
+        ChPart::RemoveVisualizationAssets(m_shock);
 }
 
 // -----------------------------------------------------------------------------

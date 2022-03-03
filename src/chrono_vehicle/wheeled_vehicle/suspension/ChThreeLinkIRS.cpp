@@ -400,22 +400,22 @@ void ChThreeLinkIRS::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChThreeLinkIRS::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_arm[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_arm[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_upper[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_upper[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_lower[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_lower[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_spring[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_spring[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_shock[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_shock[RIGHT]);
+
     ChSuspension::RemoveVisualizationAssets();
-
-    m_arm[LEFT]->GetAssets().clear();
-    m_arm[RIGHT]->GetAssets().clear();
-
-    m_upper[LEFT]->GetAssets().clear();
-    m_upper[RIGHT]->GetAssets().clear();
-
-    m_lower[LEFT]->GetAssets().clear();
-    m_lower[RIGHT]->GetAssets().clear();
-
-    m_spring[LEFT]->GetAssets().clear();
-    m_spring[RIGHT]->GetAssets().clear();
-
-    m_shock[LEFT]->GetAssets().clear();
-    m_shock[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

@@ -147,9 +147,9 @@ void ChTrackShoeDoublePin::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChTrackShoeDoublePin::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_connector_L);
+    ChPart::RemoveVisualizationAssets(m_connector_R);
     ChTrackShoeSegmented::RemoveVisualizationAssets();
-    m_connector_L->GetAssets().clear();
-    m_connector_R->GetAssets().clear();
 }
 
 void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> connector, VisualizationType vis) {

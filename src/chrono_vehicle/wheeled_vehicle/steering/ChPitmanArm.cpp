@@ -242,9 +242,9 @@ void ChPitmanArm::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChPitmanArm::RemoveVisualizationAssets() {
-    m_link->GetAssets().clear();
-    m_arm->GetAssets().clear();
-    m_revsph->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_link);
+    ChPart::RemoveVisualizationAssets(m_arm);
+    ChPart::RemoveVisualizationAssets(m_revsph);
 }
 
 // -----------------------------------------------------------------------------

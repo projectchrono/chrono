@@ -388,24 +388,24 @@ void ChSingleWishbone::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChSingleWishbone::RemoveVisualizationAssets() {
-    ChSuspension::RemoveVisualizationAssets();
+    ChPart::RemoveVisualizationAssets(m_upright[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_upright[RIGHT]);
 
-    m_upright[LEFT]->GetAssets().clear();
-    m_upright[RIGHT]->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_control_arm[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_control_arm[RIGHT]);
 
-    m_control_arm[LEFT]->GetAssets().clear();
-    m_control_arm[RIGHT]->GetAssets().clear();
-
-    m_shock[LEFT]->GetAssets().clear();
-    m_shock[RIGHT]->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_shock[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_shock[RIGHT]);
 
     if (UseTierodBodies()) {
-        m_tierod[LEFT]->GetAssets().clear();
-        m_tierod[RIGHT]->GetAssets().clear();
+        ChPart::RemoveVisualizationAssets(m_tierod[LEFT]);
+        ChPart::RemoveVisualizationAssets(m_tierod[RIGHT]);
     } else {
-        m_distTierod[LEFT]->GetAssets().clear();
-        m_distTierod[RIGHT]->GetAssets().clear();
+        ChPart::RemoveVisualizationAssets(m_distTierod[LEFT]);
+        ChPart::RemoveVisualizationAssets(m_distTierod[RIGHT]);
     }
+
+    ChSuspension::RemoveVisualizationAssets();
 }
 
 // -----------------------------------------------------------------------------

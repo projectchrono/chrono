@@ -25,6 +25,16 @@ void ChVisualModel::AddShape(std::shared_ptr<ChVisualShape> shape, const ChFrame
     m_shapes.push_back(shape);
 }
 
+void ChVisualModel::Clear() {
+    m_shapes.clear();
+}
+
+void ChVisualModel::Erase(std::shared_ptr<ChVisualShape> shape) {
+    auto it = std::find(m_shapes.begin(), m_shapes.end(), shape);
+    if (it != m_shapes.end())
+        m_shapes.erase(it);
+}
+
 // -----------------------------------------------------------------------------
 
 ChVisualModelInstance::ChVisualModelInstance(std::shared_ptr<ChVisualModel> model) : m_model(model), m_owner(nullptr) {}

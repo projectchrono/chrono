@@ -47,6 +47,12 @@ class ChApi ChVisualModel {
     /// Update this visual model with information for the owning physical object.
     void Update(const ChFrame<>& frame) {}
 
+    /// Erase all shapes in this model.
+    void Clear();
+
+    /// Erase the specified visual shape from this model.
+    void Erase(std::shared_ptr<ChVisualShape> shape);
+
   private:
     std::vector<std::shared_ptr<ChVisualShape>> m_shapes;
 };

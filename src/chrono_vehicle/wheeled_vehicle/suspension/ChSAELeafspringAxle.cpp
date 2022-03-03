@@ -472,27 +472,27 @@ void ChSAELeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChSAELeafspringAxle::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_axleTube);
+
+    ChPart::RemoveVisualizationAssets(m_spring[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_spring[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_shock[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_shock[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_frontleaf[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_frontleaf[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_rearleaf[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_rearleaf[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_clampA[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_clampA[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_shackle[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_shackle[RIGHT]);
+
     ChSuspension::RemoveVisualizationAssets();
-
-    m_axleTube->GetAssets().clear();
-
-    m_spring[LEFT]->GetAssets().clear();
-    m_spring[RIGHT]->GetAssets().clear();
-
-    m_shock[LEFT]->GetAssets().clear();
-    m_shock[RIGHT]->GetAssets().clear();
-
-    m_frontleaf[LEFT]->GetAssets().clear();
-    m_frontleaf[RIGHT]->GetAssets().clear();
-
-    m_rearleaf[LEFT]->GetAssets().clear();
-    m_rearleaf[RIGHT]->GetAssets().clear();
-
-    m_clampA[LEFT]->GetAssets().clear();
-    m_clampB[RIGHT]->GetAssets().clear();
-
-    m_shackle[LEFT]->GetAssets().clear();
-    m_shackle[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
