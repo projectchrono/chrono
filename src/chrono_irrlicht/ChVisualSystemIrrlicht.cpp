@@ -530,8 +530,12 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
 void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                                              std::shared_ptr<ChVisualModel> model,
                                              const ChFrame<>& parent_frame) {
-    //// TODO
-    for (const auto& shape : model->GetShapes()) {
+    //// RADU TODO - use shapeFrame when we obsolete Pos and Rot in a ChVisualShape!
+
+    for (const auto& shape_instance : model->GetShapes()) {
+        auto& shape = shape_instance.first;
+        auto& shapeXform = shape_instance.second;
+
         if (!shape->IsVisible())
             continue;
 

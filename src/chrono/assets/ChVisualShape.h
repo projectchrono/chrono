@@ -94,8 +94,6 @@ class ChApi ChVisualShape : public ChAsset {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-    ChFrame<> frame; ///< shape position relative to containing model
-
     bool visible;     ///< shape visibility flag
     bool is_mutable;  ///< flag indicating whether the shape is rigid or deformable
 

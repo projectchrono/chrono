@@ -66,6 +66,10 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Returns nullptr if no visual model is present.
     std::shared_ptr<ChVisualModel> GetVisualModel() const;
 
+    /// Add the specified visual shape to the visualization model.
+    /// If this item does not have a visual model, one is created.
+    void AddVisualShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame = ChFrame<>());
+
     /// Access the specified visualization shape in the visualization model (if any).
     /// Note that no range check is performed.
     std::shared_ptr<ChVisualShape> GetVisualShape(unsigned int i) const;
@@ -441,8 +445,8 @@ class ChApi ChPhysicsItem : public ChObj {
   protected:
     ChSystem* system;  ///< parent system
 
-    std::vector<std::shared_ptr<ChAsset> > assets;     ///< set of assets
-    std::shared_ptr<ChVisualModelInstance> vis_model;  ///< instantiated visualization model
+    std::vector<std::shared_ptr<ChAsset> > assets;              ///< set of assets
+    std::shared_ptr<ChVisualModelInstance> vis_model_instance;  ///< instantiated visualization model
 
     unsigned int offset_x;  ///< offset in vector of state (position part)
     unsigned int offset_w;  ///< offset in vector of state (speed part)

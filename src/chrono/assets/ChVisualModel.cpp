@@ -21,8 +21,7 @@ void ChVisualModel::AddShape(std::shared_ptr<ChVisualShape> shape, const ChFrame
     shape->Pos = frame.GetPos();
     shape->Rot = frame.GetA();
     ////
-    shape->frame = frame;
-    m_shapes.push_back(shape);
+    m_shapes.push_back({shape, frame});
 }
 
 void ChVisualModel::Clear() {
@@ -30,7 +29,8 @@ void ChVisualModel::Clear() {
 }
 
 void ChVisualModel::Erase(std::shared_ptr<ChVisualShape> shape) {
-    auto it = std::find(m_shapes.begin(), m_shapes.end(), shape);
+    auto it = std::find_if(m_shapes.begin(), m_shapes.end(),
+                           [&shape](const ShapeInstance& element) { return element.first == shape; });
     if (it != m_shapes.end())
         m_shapes.erase(it);
 }

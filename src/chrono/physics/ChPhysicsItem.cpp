@@ -48,20 +48,28 @@ void ChPhysicsItem::SetSystem(ChSystem* m_system) {
 }
 
 void ChPhysicsItem::AddVisualModel(std::shared_ptr<ChVisualModel> model) {
-    vis_model = std::shared_ptr<ChVisualModelInstance>(new ChVisualModelInstance(model));
-    vis_model->m_owner = this;
+    vis_model_instance = std::shared_ptr<ChVisualModelInstance>(new ChVisualModelInstance(model));
+    vis_model_instance->m_owner = this;
 }
 
 std::shared_ptr<ChVisualModel> ChPhysicsItem::GetVisualModel() const {
-    if (!vis_model)
+    if (!vis_model_instance)
         return nullptr;
-    return vis_model->GetModel();
+    return vis_model_instance->GetModel();
+}
+
+void ChPhysicsItem::AddVisualShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame) {
+    if (!vis_model_instance) {
+        auto model = chrono_types::make_shared<ChVisualModel>();
+        AddVisualModel(model);
+    }
+    vis_model_instance->GetModel()->AddShape(shape, frame);
 }
 
 std::shared_ptr<ChVisualShape> ChPhysicsItem::GetVisualShape(unsigned int i) const {
-    if (!vis_model)
+    if (!vis_model_instance)
         return nullptr;
-    return vis_model->GetModel()->GetShape(i);
+    return vis_model_instance->GetModel()->GetShape(i);
 }
 
 void ChPhysicsItem::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {

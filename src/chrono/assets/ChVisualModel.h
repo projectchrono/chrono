@@ -30,6 +30,9 @@ class ChPhysicsItem;
 /// Visual models can be instantiated and shared among different Chrono physics items.
 class ChApi ChVisualModel {
   public:
+    /// A ShapeInstance is a pair of a (shared) shape and its position in the model.
+    typedef std::pair<std::shared_ptr<ChVisualShape>, ChFrame<>> ShapeInstance;
+
     ChVisualModel() {}
     ~ChVisualModel() {}
 
@@ -39,10 +42,13 @@ class ChApi ChVisualModel {
     );
 
     /// Get the visual shapes in the model.
-    const std::vector<std::shared_ptr<ChVisualShape>>& GetShapes() const { return m_shapes; }
+    const std::vector<ShapeInstance>& GetShapes() const { return m_shapes; }
 
     /// Get the specified visual shape in the model.
-    std::shared_ptr<ChVisualShape> GetShape(unsigned int i) const { return m_shapes[i]; }
+    std::shared_ptr<ChVisualShape> GetShape(unsigned int i) const { return m_shapes[i].first; }
+
+    /// Get the coordinate frame of the specified visual shape in the model (relative to the model frame).
+    const ChFrame<>& GetShapeFrame(unsigned int i) const { return m_shapes[i].second; }
 
     /// Update this visual model with information for the owning physical object.
     void Update(const ChFrame<>& frame) {}
@@ -54,7 +60,7 @@ class ChApi ChVisualModel {
     void Erase(std::shared_ptr<ChVisualShape> shape);
 
   private:
-    std::vector<std::shared_ptr<ChVisualShape>> m_shapes;
+    std::vector<ShapeInstance> m_shapes;
 };
 
 /// A visual model instance encodes a potentially shared visual model and its owning physics item.
