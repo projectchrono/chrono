@@ -50,11 +50,11 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
 
     /// Enable/disable antialias (default true).
     /// Must be called before Initialize().
-    virtual void SetAntialias(bool val) override;
+    void SetAntialias(bool val);
 
     /// Enable/disable full-screen mode (default false).
     /// Must be called before Initialize().
-    virtual void SetFullscreen(bool val) override;
+    void SetFullscreen(bool val);
 
     /// Enable/disable shadows (default false).
     /// Must be called before Initialize().
@@ -67,11 +67,11 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     /// Set the window size (default 640x480).
     /// Must be called before Initialize().
     void SetWindowSize(const irr::core::dimension2d<irr::u32>& win_size);
-    virtual void SetWindowSize(const ChVector2<int>& win_size) override;
+    void SetWindowSize(const ChVector2<int>& win_size);
 
-    /// Set the window title (default "").
+    /// Set the windoiw title (default "").
     /// Must be called before Initialize().
-    virtual void SetWindowTitle(const std::string& win_title) override;
+    void SetWindowTitle(const std::string& win_title);
 
     /// Use Y-up camera rendering (default CameraVerticalDir::Y).
     /// Must be called before Initialize().
