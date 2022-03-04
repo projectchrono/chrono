@@ -42,6 +42,9 @@ class ChApi ChVisualSystem {
     /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) {}
 
+    /// Get the associated Chrono system.
+    const ChSystem& GetSystem() const { return *m_system; }
+
   protected:
     ChVisualSystem(ChSystem& sys);
 
