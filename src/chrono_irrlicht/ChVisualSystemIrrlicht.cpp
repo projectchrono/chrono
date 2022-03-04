@@ -52,7 +52,8 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht(ChSystem& sys)
       m_container(nullptr),
       m_win_title(""),
       m_yup(true),
-      m_use_effects(false) {
+      m_use_effects(false),
+      m_symbol_scale(1) {
     // Set default device parameter values
     m_device_params.AntiAlias = true;
     m_device_params.Bits = 32;
@@ -119,6 +120,11 @@ void ChVisualSystemIrrlicht::SetLogLevel(irr::ELOG_LEVEL log_level) {
 void ChVisualSystemIrrlicht::SetCameraVertical(CameraVerticalDir vert) {
     m_yup = (vert == CameraVerticalDir::Y);
 }
+void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
+    m_symbol_scale = scale;
+    if (m_gui)
+        m_gui->SetSymbolscale(scale);
+}
 
 // -----------------------------------------------------------------------------
 
@@ -166,6 +172,7 @@ void ChVisualSystemIrrlicht::Initialize() {
     m_gui = std::unique_ptr<ChIrrGUI>(new ChIrrGUI(m_device, m_system));
 
     // Let the associated Irrlicht GUI perform any required setup
+    m_gui->SetSymbolscale(m_symbol_scale);
     m_gui->Initialize();
 
     // Parse the mechanical assembly and create a ChIrrNode for each physics item with a visual model.
@@ -275,7 +282,7 @@ void ChVisualSystemIrrlicht::AddUserEventReceiver(irr::IEventReceiver* receiver)
         return;
 
     m_gui->AddUserEventReceiver(receiver);
-    }
+}
 
 // -----------------------------------------------------------------------------
 
@@ -312,6 +319,32 @@ void ChVisualSystemIrrlicht::AddShadowToIrrNode(scene::ISceneNode* node) {
     // Add shadow only to leaves
     if (node->getChildren().getSize() == 0)
         m_effect_handler->addShadowToNode(node);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChVisualSystemIrrlicht::EnableContactDrawing(IrrContactsDrawMode mode) {
+    if (!m_device)
+        return;
+    m_gui->SetContactsDrawMode(mode);
+}
+
+void ChVisualSystemIrrlicht::EnableLinkDrawing(IrrLinkDrawMode mode) {
+    if (!m_device)
+        return;
+    m_gui->SetLinksDrawMode(mode);
+}
+
+void ChVisualSystemIrrlicht::EnableBodyFrameDrawing(bool val) {
+    if (!m_device)
+        return;
+    m_gui->SetPlotCOGFrames(val);
+}
+
+void ChVisualSystemIrrlicht::EnableCollisionShapeDrawing(bool val) {
+    if (!m_device)
+        return;
+    m_gui->SetPlotCollisionShapes(val);
 }
 
 // -----------------------------------------------------------------------------
@@ -534,7 +567,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
 
     for (const auto& shape_instance : model->GetShapes()) {
         auto& shape = shape_instance.first;
-        auto& shapeXform = shape_instance.second;
+        auto& shapeFrame = shape_instance.second;
 
         if (!shape->IsVisible())
             continue;

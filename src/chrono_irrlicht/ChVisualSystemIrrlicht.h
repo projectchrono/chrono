@@ -81,9 +81,12 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     /// Must be called before Initialize().
     void SetLogLevel(irr::ELOG_LEVEL log_level);
 
+    /// Set the scale for symbol drawing (default: 1).
+    void SetSymbolScale(double scale);
+
     /// Initialize the visualization system.
     /// This creates the Irrlicht device using the current values for the optional device parameters.
-    void Initialize();
+    virtual void Initialize();
 
     /// Add a logo in a 3D scene.
     /// Has no effect, unles called after Initialize().
@@ -129,6 +132,10 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     /// Has no effect, unless called after Initialize().
     void AddTypicalLights();
 
+    /// Attach a custom event receiver to the application.
+    /// Has no effect, unless called after Initialize().
+    void AddUserEventReceiver(irr::IEventReceiver* receiver);
+
     /// Enable shadow maps for all visual models in a scene or only for a single physics item.
     /// A shadow-enabled light must be added to the scene with
     /// Shadow maps in Irrlicht may slow visualization a bit. Also, one must remember to add shadow-enabled light, using
@@ -136,9 +143,21 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     /// Has no effect, unless called after Initialize().
     void EnableShadows(std::shared_ptr<ChPhysicsItem> item = nullptr);
 
-    /// Attach a custom event receiver to the application.
+    /// Enable contact rendering (default: none).
     /// Has no effect, unless called after Initialize().
-    void AddUserEventReceiver(irr::IEventReceiver* receiver);
+    void EnableContactDrawing(IrrContactsDrawMode mode);
+
+    /// Enable rendering of link (joint) frames (default: none).
+    /// Has no effect, unless called after Initialize().
+    void EnableLinkDrawing(IrrLinkDrawMode mode);
+
+    /// Enable rendering of body frames (default: false).
+    /// Has no effect, unless called after Initialize().
+    void EnableBodyFrameDrawing(bool val);
+
+    /// Enable rendering of collision shapes (default: false).
+    /// Has no effect, unless called after Initialize().
+    void EnableCollisionShapeDrawing(bool val);
 
     irr::IrrlichtDevice* GetDevice() { return m_device; }
     irr::video::IVideoDriver* GetVideoDriver() { return m_device->getVideoDriver(); }
@@ -203,7 +222,7 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     std::unique_ptr<ChIrrGUI> m_gui;                   ///< associated Irrlicht GUI and event receiver
     std::unique_ptr<EffectHandler> m_effect_handler;   ///< effect handler for shadow maps
     bool m_use_effects;                                ///< flag to enable/disable effects
-
+    double m_symbol_scale;                             ///< scale for symbol drawing
 
     // shared meshes
     irr::scene::IAnimatedMesh* sphereMesh;

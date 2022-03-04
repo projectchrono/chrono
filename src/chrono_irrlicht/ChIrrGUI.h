@@ -98,7 +98,6 @@ class ChApiIrr ChIrrGUI {
     /// Set the scale for symbol drawing (link frames, COGs, etc.)
     void SetSymbolscale(double val);
 
-
     bool show_infos;
     bool show_profiler;
     bool show_explorer;
@@ -135,6 +134,7 @@ class ChApiIrr ChIrrGUI {
     irr::gui::IGUITreeView* gad_treeview;
 
     friend class ChIrrEventReceiver;
+    friend class ChVisualSystemIrrlicht;
 };
 
 }  // namespace irrlicht
