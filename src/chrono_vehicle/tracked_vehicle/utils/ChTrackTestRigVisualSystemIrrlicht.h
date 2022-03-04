@@ -13,14 +13,14 @@
 // =============================================================================
 //
 // Irrlicht-based visualization wrapper for track test rig.
-// This class extends ChVehicleIrrApp.
+// This class extends ChVehicleVisualSystemIrrlicht.
 //
 // =============================================================================
 
-#ifndef CH_TRACK_TESTRIG_IRRAPP_H
-#define CH_TRACK_TESTRIG_IRRAPP_H
+#ifndef CH_TRACK_TESTRIG_VISUAL_SYSTEM_IRRLICHT_H
+#define CH_TRACK_TESTRIG_VISUAL_SYSTEM_IRRLICHT_H
 
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 
 namespace chrono {
@@ -30,18 +30,12 @@ namespace vehicle {
 /// @{
 
 /// Customized Chrono Irrlicht application for track test rig visualization.
-class CH_VEHICLE_API ChTrackTestRigIrrApp : public ChVehicleIrrApp {
+class CH_VEHICLE_API ChTrackTestRigVisualSystemIrrlicht : public ChVehicleVisualSystemIrrlicht {
   public:
     /// Construct a track test rig Irrlicht application.
-    ChTrackTestRigIrrApp(ChTrackTestRig* rig,                                            ///< associated vehicle system
-                         const std::wstring& title = L"Chrono::Vehicle Track Test Rig",  ///< window title
-                         const irr::core::dimension2d<irr::u32>& dims =
-                             irr::core::dimension2d<irr::u32>(1000, 800),        ///< window dimensions
-                         irrlicht::VerticalDir vert = irrlicht::VerticalDir::Z,  ///< vertical camera direction
-                         irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION        ///< Irrlicht logging level
-    );
+    ChTrackTestRigVisualSystemIrrlicht(ChTrackTestRig* rig);
 
-    ~ChTrackTestRigIrrApp() {}
+    ~ChTrackTestRigVisualSystemIrrlicht() {}
 
     /// Enable/disable rendering of track shoe body frames.
     void RenderTrackShoeFrames(bool state, double axis_length = 1);

@@ -13,25 +13,21 @@
 // =============================================================================
 //
 // Irrlicht-based visualization wrapper for track test rig.
-// This class extends ChVehicleIrrApp.
+// This class extends ChVehicleVisualSystemIrrlicht.
 //
 // =============================================================================
 
 #include "chrono/core/ChMathematics.h"
 
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRigIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRigVisualSystemIrrlicht.h"
 
 using namespace irr;
 
 namespace chrono {
 namespace vehicle {
 
-ChTrackTestRigIrrApp::ChTrackTestRigIrrApp(ChTrackTestRig* rig,
-                                           const std::wstring& title,
-                                           const irr::core::dimension2d<irr::u32>& dims,
-                                           irrlicht::VerticalDir vert,
-                                           irr::ELOG_LEVEL log_level)
-    : ChVehicleIrrApp(rig, title, dims, vert, log_level),
+ChTrackTestRigVisualSystemIrrlicht::ChTrackTestRigVisualSystemIrrlicht(ChTrackTestRig* rig)
+    : ChVehicleVisualSystemIrrlicht(rig),
       m_rig(rig),
       m_render_frame_idler(false),
       m_render_frame_shoes(false),
@@ -40,23 +36,23 @@ ChTrackTestRigIrrApp::ChTrackTestRigIrrApp(ChTrackTestRig* rig,
       m_axis_sprocket(1),
       m_axis_idler(1) {}
 
-void ChTrackTestRigIrrApp::RenderTrackShoeFrames(bool state, double axis_length) {
+void ChTrackTestRigVisualSystemIrrlicht::RenderTrackShoeFrames(bool state, double axis_length) {
     m_render_frame_shoes = state;
     m_axis_shoes = axis_length;
 }
 
-void ChTrackTestRigIrrApp::RenderSprocketFrame(bool state, double axis_length) {
+void ChTrackTestRigVisualSystemIrrlicht::RenderSprocketFrame(bool state, double axis_length) {
     m_render_frame_sprocket = state;
     m_axis_sprocket = axis_length;
 }
 
-void ChTrackTestRigIrrApp::RenderIdlerFrame(bool state, double axis_length) {
+void ChTrackTestRigVisualSystemIrrlicht::RenderIdlerFrame(bool state, double axis_length) {
     m_render_frame_idler = state;
     m_axis_idler = axis_length;
 }
 
 // Render contact normals for monitored subsystems
-void ChTrackTestRigIrrApp::renderOtherGraphics() {
+void ChTrackTestRigVisualSystemIrrlicht::renderOtherGraphics() {
     bool normals = m_rig->m_contact_manager->m_render_normals;
     bool forces = m_rig->m_contact_manager->m_render_forces;
     double scale_normals = 0.4;
@@ -125,12 +121,12 @@ void ChTrackTestRigIrrApp::renderOtherGraphics() {
 }
 
 // Render normal for all contacts in the specified list, using the given color.
-void ChTrackTestRigIrrApp::renderContacts(const std::list<ChTrackContactManager::ContactInfo>& lst,
-                                          const video::SColor& col,
-                                          bool normals,
-                                          bool forces,
-                                          double scale_normals,
-                                          double scale_forces) {
+void ChTrackTestRigVisualSystemIrrlicht::renderContacts(const std::list<ChTrackContactManager::ContactInfo>& lst,
+                                                        const video::SColor& col,
+                                                        bool normals,
+                                                        bool forces,
+                                                        double scale_normals,
+                                                        double scale_forces) {
     for (const auto& c : lst) {
         ChVector<> v1 = c.m_point;
         if (normals) {
