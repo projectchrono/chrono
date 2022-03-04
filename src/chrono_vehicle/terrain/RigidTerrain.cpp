@@ -220,10 +220,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         auto box = chrono_types::make_shared<ChBoxShape>();
         box->GetBoxGeometry().SetLengths(ChVector<>(length, width, thickness));
         box->Pos = VNULL;
-        if (patch->m_color.R != -1)
-            box->SetColor(patch->m_color);
-        if (!patch->m_texture_filename.empty())
-            box->SetTexture(patch->m_texture_filename);
+        box->AddMaterial(patch->m_vis_mat);
         patch->m_body->AddAsset(box);
         patch->m_body->AddVisualShape(box);
     }
@@ -273,10 +270,6 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         trimesh_shape->SetMesh(patch->m_trimesh);
         trimesh_shape->SetName(mesh_name);
         trimesh_shape->SetMutable(false);
-        if (patch->m_color.R != -1)
-            trimesh_shape->SetColor(patch->m_color);
-        if (!patch->m_texture_filename.empty())
-            trimesh_shape->SetTexture(patch->m_texture_filename);
         patch->m_body->AddAsset(trimesh_shape);
         patch->m_body->AddVisualShape(trimesh_shape);
     }
@@ -437,10 +430,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         trimesh_shape->SetMesh(patch->m_trimesh);
         trimesh_shape->SetName(mesh_name);
         trimesh_shape->SetMutable(false);
-        if (patch->m_color.R != -1)
-            trimesh_shape->SetColor(patch->m_color);
-        if (!patch->m_texture_filename.empty())
-            trimesh_shape->SetTexture(patch->m_texture_filename);
+        trimesh_shape->AddMaterial(patch->m_vis_mat);
         patch->m_body->AddAsset(trimesh_shape);
         patch->m_body->AddVisualShape(trimesh_shape);
     }
@@ -456,16 +446,16 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 // Functions to modify properties of a patch
 // -----------------------------------------------------------------------------
 
-RigidTerrain::Patch::Patch() : m_friction(0.8f), m_color(-1, -1, -1), m_texture_filename(""), m_texture_scale({1, 1}) {}
-
-void RigidTerrain::Patch::SetColor(const ChColor& color) {
-    m_color = color;
+RigidTerrain::Patch::Patch() : m_friction(0.8f) {
+    m_vis_mat = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
 }
 
-void RigidTerrain::Patch::SetTexture(const std::string& tex_file, float tex_scale_x, float tex_scale_y) {
-    //// RADU TODO: use texture scale
-    m_texture_filename = tex_file;
-    m_texture_scale = {tex_scale_x, tex_scale_y};
+void RigidTerrain::Patch::SetColor(const ChColor& color) {
+    m_vis_mat->SetDiffuseColor({color.R, color.G, color.B});
+}
+
+void RigidTerrain::Patch::SetTexture(const std::string& filename, float scale_x, float scale_y) {
+    m_vis_mat->SetKdTexture(filename, ChVector2<float>(scale_x, scale_y));
 }
 
 // -----------------------------------------------------------------------------

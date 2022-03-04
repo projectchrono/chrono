@@ -63,9 +63,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         void SetColor(const ChColor& color);
 
         /// Set texture properties.
-        void SetTexture(const std::string& tex_file,  ///< [in] texture filename
-                        float tex_scale_x = 1,        ///< [in] texture scale in X
-                        float tex_scale_y = 1         ///< [in] texture scale in Y
+        void SetTexture(const std::string& filename,  ///< [in] texture filename
+                        float scale_x = 1,            ///< [in] texture scale in X
+                        float scale_y = 1             ///< [in] texture scale in Y
         );
 
         /// Return a handle to the ground body.
@@ -83,9 +83,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         float m_friction;                ///< coefficient of friction
         double m_radius;                 ///< bounding sphere radius
 
-        ChColor m_color;
-        std::string m_texture_filename;
-        ChVector2<float> m_texture_scale;
+        std::shared_ptr<ChVisualMaterial> m_vis_mat;
 
         friend class RigidTerrain;
     };
