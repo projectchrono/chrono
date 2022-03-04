@@ -394,9 +394,13 @@ void ChThreeLinkIRS::AddVisualizationAssets(VisualizationType vis) {
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
     m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-
     m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
     m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 }
 
 void ChThreeLinkIRS::RemoveVisualizationAssets() {
@@ -442,12 +446,14 @@ void ChThreeLinkIRS::AddVisualizationArm(std::shared_ptr<ChBody> body,
     cyl_1->GetCylinderGeometry().p2 = p_CM;
     cyl_1->GetCylinderGeometry().rad = radius;
     body->AddAsset(cyl_1);
+    body->AddVisualShape(cyl_1);
 
     auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = p_S;
     cyl_2->GetCylinderGeometry().p2 = p_CM;
     cyl_2->GetCylinderGeometry().rad = radius;
     body->AddAsset(cyl_2);
+    body->AddVisualShape(cyl_2);
 
     if ((p_S - p_U).Length2() > threshold2) {
         auto cyl_U = chrono_types::make_shared<ChCylinderShape>();
@@ -455,6 +461,7 @@ void ChThreeLinkIRS::AddVisualizationArm(std::shared_ptr<ChBody> body,
         cyl_U->GetCylinderGeometry().p2 = p_U;
         cyl_U->GetCylinderGeometry().rad = radius;
         body->AddAsset(cyl_U);
+        body->AddVisualShape(cyl_U);
     }
 
     if ((p_S - p_L).Length2() > threshold2) {
@@ -463,11 +470,8 @@ void ChThreeLinkIRS::AddVisualizationArm(std::shared_ptr<ChBody> body,
         cyl_L->GetCylinderGeometry().p2 = p_L;
         cyl_L->GetCylinderGeometry().rad = radius;
         body->AddAsset(cyl_L);
+        body->AddVisualShape(cyl_L);
     }
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.8f, 0.2f));
-    body->AddAsset(col);
 }
 
 void ChThreeLinkIRS::AddVisualizationLink(std::shared_ptr<ChBody> body,
@@ -485,17 +489,16 @@ void ChThreeLinkIRS::AddVisualizationLink(std::shared_ptr<ChBody> body,
     cyl_1->GetCylinderGeometry().p2 = p_CM;
     cyl_1->GetCylinderGeometry().rad = radius;
     body->AddAsset(cyl_1);
+    body->AddVisualShape(cyl_1);
 
     auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = p_2;
     cyl_2->GetCylinderGeometry().p2 = p_CM;
     cyl_2->GetCylinderGeometry().rad = radius;
     body->AddAsset(cyl_2);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.8f, 0.2f, 0.2f));
-    body->AddAsset(col);
+    body->AddVisualShape(cyl_2);
 }
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChThreeLinkIRS::ExportComponentList(rapidjson::Document& jsonDocument) const {

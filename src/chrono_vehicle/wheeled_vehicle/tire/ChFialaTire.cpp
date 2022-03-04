@@ -73,6 +73,7 @@ void ChFialaTire::AddVisualizationAssets(VisualizationType vis) {
     m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
     m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
     m_wheel->GetSpindle()->AddAsset(m_cyl_shape);
+    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
 }
 
 void ChFialaTire::RemoveVisualizationAssets() {

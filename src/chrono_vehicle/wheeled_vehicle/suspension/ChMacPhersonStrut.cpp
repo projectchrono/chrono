@@ -455,9 +455,13 @@ void ChMacPhersonStrut::AddVisualizationAssets(VisualizationType vis) {
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
     m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-
     m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
     m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 
     // Add visualization for the tie-rods
     if (UseTierodBodies()) {
@@ -466,8 +470,9 @@ void ChMacPhersonStrut::AddVisualizationAssets(VisualizationType vis) {
     } else {
         m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
         m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-        m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
-        m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+
+        m_distTierod[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+        m_distTierod[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
     }
 }
 
@@ -513,10 +518,7 @@ void ChMacPhersonStrut::AddVisualizationStrut(std::shared_ptr<ChBody> strut,
     cyl->GetCylinderGeometry().p2 = p_u;
     cyl->GetCylinderGeometry().rad = radius;
     strut->AddAsset(cyl);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.7f, 0.7f, 0.7f));
-    strut->AddAsset(col);
+    strut->AddVisualShape(cyl);
 }
 
 void ChMacPhersonStrut::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
@@ -534,16 +536,14 @@ void ChMacPhersonStrut::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
     cyl_F->GetCylinderGeometry().p2 = p_U;
     cyl_F->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_F);
+    arm->AddVisualShape(cyl_F);
 
     auto cyl_B = chrono_types::make_shared<ChCylinderShape>();
     cyl_B->GetCylinderGeometry().p1 = p_B;
     cyl_B->GetCylinderGeometry().p2 = p_U;
     cyl_B->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_B);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.7f, 0.7f, 0.7f));
-    arm->AddAsset(col);
+    arm->AddVisualShape(cyl_B);
 }
 
 void ChMacPhersonStrut::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
@@ -566,6 +566,7 @@ void ChMacPhersonStrut::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
         cyl_L->GetCylinderGeometry().p2 = p_C;
         cyl_L->GetCylinderGeometry().rad = radius;
         upright->AddAsset(cyl_L);
+        upright->AddVisualShape(cyl_L);
     }
 
     if ((p_U - p_C).Length2() > threshold2) {
@@ -574,6 +575,7 @@ void ChMacPhersonStrut::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
         cyl_U->GetCylinderGeometry().p2 = p_C;
         cyl_U->GetCylinderGeometry().rad = radius;
         upright->AddAsset(cyl_U);
+        upright->AddVisualShape(cyl_U);
     }
 
     if ((p_T - p_C).Length2() > threshold2) {
@@ -582,11 +584,8 @@ void ChMacPhersonStrut::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
         cyl_T->GetCylinderGeometry().p2 = p_C;
         cyl_T->GetCylinderGeometry().rad = radius;
         upright->AddAsset(cyl_T);
+        upright->AddVisualShape(cyl_T);
     }
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
-    upright->AddAsset(col);
 }
 
 void ChMacPhersonStrut::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
@@ -602,8 +601,7 @@ void ChMacPhersonStrut::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
     cyl->GetCylinderGeometry().p2 = p_U;
     cyl->GetCylinderGeometry().rad = radius;
     tierod->AddAsset(cyl);
-
-    tierod->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+    tierod->AddVisualShape(cyl);
 }
 
 // -----------------------------------------------------------------------------

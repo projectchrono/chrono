@@ -206,22 +206,21 @@ void ChPitmanArm::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p2 = m_pI;
         cyl->GetCylinderGeometry().rad = getSteeringLinkRadius();
         m_link->AddAsset(cyl);
+        m_link->AddVisualShape(cyl);
 
         auto cyl_P = chrono_types::make_shared<ChCylinderShape>();
         cyl_P->GetCylinderGeometry().p1 = m_pP;
         cyl_P->GetCylinderGeometry().p2 = m_pTP;
         cyl_P->GetCylinderGeometry().rad = getSteeringLinkRadius();
         m_link->AddAsset(cyl_P);
+        m_link->AddVisualShape(cyl_P);
 
         auto cyl_I = chrono_types::make_shared<ChCylinderShape>();
         cyl_I->GetCylinderGeometry().p1 = m_pI;
         cyl_I->GetCylinderGeometry().p2 = m_pTI;
         cyl_I->GetCylinderGeometry().rad = getSteeringLinkRadius();
         m_link->AddAsset(cyl_I);
-
-        auto col = chrono_types::make_shared<ChColorAsset>();
-        col->SetColor(ChColor(0.2f, 0.7f, 0.7f));
-        m_link->AddAsset(col);
+        m_link->AddVisualShape(cyl_I);
     }
 
     // Visualization for arm
@@ -231,14 +230,12 @@ void ChPitmanArm::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p2 = m_pL;
         cyl->GetCylinderGeometry().rad = getPitmanArmRadius();
         m_arm->AddAsset(cyl);
-
-        auto col = chrono_types::make_shared<ChColorAsset>();
-        col->SetColor(ChColor(0.7f, 0.7f, 0.2f));
-        m_arm->AddAsset(col);
+        m_arm->AddVisualShape(cyl);
     }
 
     // Visualization for rev-sph link
     m_revsph->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+    m_revsph->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 }
 
 void ChPitmanArm::RemoveVisualizationAssets() {

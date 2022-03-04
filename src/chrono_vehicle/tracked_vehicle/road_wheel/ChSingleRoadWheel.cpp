@@ -79,10 +79,7 @@ void ChSingleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
     cyl->GetCylinderGeometry().rad = radius;
     m_wheel->AddAsset(cyl);
-
-    auto tex = chrono_types::make_shared<ChTexture>();
-    tex->SetTextureFilename(chrono::GetChronoDataFile("textures/greenwhite.png"));
-    m_wheel->AddAsset(tex);
+    m_wheel->AddVisualShape(cyl);
 }
 
 void ChSingleRoadWheel::RemoveVisualizationAssets() {

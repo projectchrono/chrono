@@ -83,6 +83,7 @@ void DoubleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         trimesh_shape->SetMutable(false);
         m_wheel->AddAsset(trimesh_shape);
+        m_wheel->AddVisualShape(trimesh_shape);
     } else {
         ChDoubleRoadWheel::AddVisualizationAssets(vis);
     }

@@ -153,10 +153,7 @@ void ChRotaryArm::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p2 = m_pL;
         cyl->GetCylinderGeometry().rad = getPitmanArmRadius();
         m_link->AddAsset(cyl);
-
-        auto col = chrono_types::make_shared<ChColorAsset>();
-        col->SetColor(ChColor(0.7f, 0.7f, 0.2f));
-        m_link->AddAsset(col);
+        m_link->AddVisualShape(cyl);
     }
 }
 

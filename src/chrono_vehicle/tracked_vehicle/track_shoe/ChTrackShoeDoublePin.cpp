@@ -165,26 +165,20 @@ void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> con
     cyl_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * c_length, +0.5 * c_width, 0);
     cyl_rear->GetCylinderGeometry().rad = c_radius;
     connector->AddAsset(cyl_rear);
+    connector->AddVisualShape(cyl_rear);
 
     auto cyl_front = chrono_types::make_shared<ChCylinderShape>();
     cyl_front->GetCylinderGeometry().p1 = ChVector<>(0.5 * c_length, -0.5 * c_width, 0);
     cyl_front->GetCylinderGeometry().p2 = ChVector<>(0.5 * c_length, +0.5 * c_width, 0);
     cyl_front->GetCylinderGeometry().rad = c_radius;
     connector->AddAsset(cyl_front);
+    connector->AddVisualShape(cyl_front);
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(c_length, c_width, 2 * c_radius));
     box->Pos = ChVector<>(0, 0, 0);
     connector->AddAsset(box);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    if (m_index == 0)
-        col->SetColor(ChColor(0.7f, 0.4f, 0.4f));
-    else if (m_index % 2 == 0)
-        col->SetColor(ChColor(0.4f, 0.7f, 0.4f));
-    else
-        col->SetColor(ChColor(0.4f, 0.4f, 0.7f));
-    connector->AddAsset(col);
+    connector->AddVisualShape(box, ChFrame<>());
 }
 
 // -----------------------------------------------------------------------------

@@ -153,13 +153,10 @@ void ChTrackShoeBandBushing::RemoveVisualizationAssets() {
 }
 
 void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment) {
-    ChColor col1 = GetColor(m_index);
-    ChColor col2(col1.R + 0.1f, col1.G + 0.1f, col1.B + 0.1f);
-    segment->AddAsset(chrono_types::make_shared<ChColorAsset>(col2));
-
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(m_seg_length, GetBeltWidth(), GetWebThickness()));
     segment->AddAsset(box);
+    segment->AddVisualShape(box);
 
     auto cyl = chrono_types::make_shared<ChCylinderShape>();
     double radius = GetWebThickness() / 4;
@@ -167,6 +164,7 @@ void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment
     cyl->GetCylinderGeometry().p1 = ChVector<>(m_seg_length / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(m_seg_length / 2, +GetBeltWidth() / 2 + 2 * radius, 0);
     segment->AddAsset(cyl);
+    segment->AddVisualShape(cyl);
 }
 
 // -----------------------------------------------------------------------------

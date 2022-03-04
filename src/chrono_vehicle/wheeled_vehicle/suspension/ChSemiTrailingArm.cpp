@@ -280,9 +280,13 @@ void ChSemiTrailingArm::AddVisualizationAssets(VisualizationType vis) {
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
     m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-
     m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
     m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 }
 
 void ChSemiTrailingArm::RemoveVisualizationAssets() {
@@ -319,12 +323,14 @@ void ChSemiTrailingArm::AddVisualizationArm(std::shared_ptr<ChBody> arm,
     cyl_O->GetCylinderGeometry().p2 = p_AS;
     cyl_O->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_O);
+    arm->AddVisualShape(cyl_O);
 
     auto cyl_I = chrono_types::make_shared<ChCylinderShape>();
     cyl_I->GetCylinderGeometry().p1 = p_AC_I;
     cyl_I->GetCylinderGeometry().p2 = p_AS;
     cyl_I->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_I);
+    arm->AddVisualShape(cyl_I);
 
     if ((p_AS - p_S).Length2() > threshold2) {
         auto cyl_S = chrono_types::make_shared<ChCylinderShape>();
@@ -332,11 +338,8 @@ void ChSemiTrailingArm::AddVisualizationArm(std::shared_ptr<ChBody> arm,
         cyl_S->GetCylinderGeometry().p2 = p_S;
         cyl_S->GetCylinderGeometry().rad = radius;
         arm->AddAsset(cyl_S);
+        arm->AddVisualShape(cyl_S);
     }
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
-    arm->AddAsset(col);
 }
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

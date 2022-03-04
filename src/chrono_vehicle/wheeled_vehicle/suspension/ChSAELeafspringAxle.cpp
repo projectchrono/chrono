@@ -440,9 +440,13 @@ void ChSAELeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.03, 150, 10));
     m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.03, 150, 10));
-
     m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
     m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.03, 150, 10));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.03, 150, 10));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 
     double rs = getAxleTubeRadius() / 10.0;
 
@@ -511,10 +515,7 @@ void ChSAELeafspringAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     cyl->GetCylinderGeometry().p2 = p_2;
     cyl->GetCylinderGeometry().rad = radius;
     body->AddAsset(cyl);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(color);
-    body->AddAsset(col);
+    body->AddVisualShape(cyl);
 }
 
 // -----------------------------------------------------------------------------

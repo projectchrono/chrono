@@ -470,9 +470,13 @@ void ChDoubleWishbone::AddVisualizationAssets(VisualizationType vis) {
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(2 * getLCARadius(), 150, 15));
     m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(2 * getLCARadius(), 150, 15));
-
     m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
     m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(2 * getLCARadius(), 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(2 * getLCARadius(), 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 
     // Add visualization for the tie-rods
     if (UseTierodBodies()) {
@@ -481,8 +485,9 @@ void ChDoubleWishbone::AddVisualizationAssets(VisualizationType vis) {
     } else {
         m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
         m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-        m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
-        m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+
+        m_distTierod[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+        m_distTierod[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
     }
 }
 
@@ -530,14 +535,14 @@ void ChDoubleWishbone::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
     cyl_F->GetCylinderGeometry().p2 = p_U;
     cyl_F->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_F);
+    arm->AddVisualShape(cyl_F);
 
     auto cyl_B = chrono_types::make_shared<ChCylinderShape>();
     cyl_B->GetCylinderGeometry().p1 = p_B;
     cyl_B->GetCylinderGeometry().p2 = p_U;
     cyl_B->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_B);
-
-    arm->AddAsset(chrono_types::make_shared<ChColorAsset>(0.7f, 0.7f, 0.7f));
+    arm->AddVisualShape(cyl_B);
 }
 
 void ChDoubleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
@@ -560,6 +565,7 @@ void ChDoubleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
         cyl_L->GetCylinderGeometry().p2 = p_C;
         cyl_L->GetCylinderGeometry().rad = radius;
         upright->AddAsset(cyl_L);
+        upright->AddVisualShape(cyl_L);
     }
 
     if ((p_U - p_C).Length2() > threshold2) {
@@ -568,6 +574,7 @@ void ChDoubleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
         cyl_U->GetCylinderGeometry().p2 = p_C;
         cyl_U->GetCylinderGeometry().rad = radius;
         upright->AddAsset(cyl_U);
+        upright->AddVisualShape(cyl_U);
     }
 
     if ((p_T - p_C).Length2() > threshold2) {
@@ -576,9 +583,8 @@ void ChDoubleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
         cyl_T->GetCylinderGeometry().p2 = p_C;
         cyl_T->GetCylinderGeometry().rad = radius;
         upright->AddAsset(cyl_T);
+        upright->AddVisualShape(cyl_T);
     }
-
-    upright->AddAsset(chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.6f));
 }
 
 void ChDoubleWishbone::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
@@ -594,8 +600,7 @@ void ChDoubleWishbone::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
     cyl->GetCylinderGeometry().p2 = p_U;
     cyl->GetCylinderGeometry().rad = radius;
     tierod->AddAsset(cyl);
-
-    tierod->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+    tierod->AddVisualShape(cyl);
 }
 
 // -----------------------------------------------------------------------------

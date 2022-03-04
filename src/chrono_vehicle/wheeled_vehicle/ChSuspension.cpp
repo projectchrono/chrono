@@ -76,6 +76,7 @@ void ChSuspension::AddVisualizationSpindle(VehicleSide side, double radius, doub
     m_spindle_shapes[side]->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
     m_spindle_shapes[side]->GetCylinderGeometry().rad = radius;
     m_spindle[side]->AddAsset(m_spindle_shapes[side]);
+    m_spindle[side]->AddVisualShape(m_spindle_shapes[side]);
 }
 
 void ChSuspension::ApplyParkingBrake(bool brake) {

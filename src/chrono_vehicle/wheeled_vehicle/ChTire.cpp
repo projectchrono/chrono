@@ -125,6 +125,7 @@ std::shared_ptr<ChTriangleMeshShape> ChTire::AddVisualizationMesh(const std::str
     trimesh_shape->SetMutable(false);
 
     m_wheel->GetSpindle()->AddAsset(trimesh_shape);
+    m_wheel->GetSpindle()->AddVisualShape(trimesh_shape, ChFrame<>(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(rot)));
 
     return trimesh_shape;
 }

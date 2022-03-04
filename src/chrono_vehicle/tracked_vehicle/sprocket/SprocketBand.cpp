@@ -96,6 +96,7 @@ void SprocketBand::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         trimesh_shape->SetMutable(false);
         m_gear->AddAsset(trimesh_shape);
+        m_gear->AddVisualShape(trimesh_shape);
     } else {
         ChSprocketBand::AddVisualizationAssets(vis);
     }

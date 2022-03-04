@@ -519,9 +519,13 @@ void ChMultiLink::AddVisualizationAssets(VisualizationType vis) {
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
     m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-
     m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
     m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 
     // Add visualization for the tie-rods
     if (UseTierodBodies()) {
@@ -530,8 +534,9 @@ void ChMultiLink::AddVisualizationAssets(VisualizationType vis) {
     } else {
         m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
         m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-        m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
-        m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+
+        m_distTierod[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+        m_distTierod[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
     }
 }
 
@@ -582,16 +587,14 @@ void ChMultiLink::AddVisualizationUpperArm(std::shared_ptr<ChBody> arm,
     cyl_F->GetCylinderGeometry().p2 = p_U;
     cyl_F->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_F);
+    arm->AddVisualShape(cyl_F);
 
     auto cyl_B = chrono_types::make_shared<ChCylinderShape>();
     cyl_B->GetCylinderGeometry().p1 = p_B;
     cyl_B->GetCylinderGeometry().p2 = p_U;
     cyl_B->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_B);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.6f, 0.2f, 0.6f));
-    arm->AddAsset(col);
+    arm->AddVisualShape(cyl_B);
 }
 
 void ChMultiLink::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
@@ -616,6 +619,7 @@ void ChMultiLink::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
         cyl_UA->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_UA->GetCylinderGeometry().rad = radius;
         upright->AddAsset(cyl_UA);
+        upright->AddVisualShape(cyl_UA);
     }
 
     if (p_TR.Length2() > threshold2) {
@@ -624,6 +628,7 @@ void ChMultiLink::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
         cyl_TR->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_TR->GetCylinderGeometry().rad = radius;
         upright->AddAsset(cyl_TR);
+        upright->AddVisualShape(cyl_TR);
     }
 
     if (p_TL.Length2() > threshold2) {
@@ -632,6 +637,7 @@ void ChMultiLink::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
         cyl_TL->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_TL->GetCylinderGeometry().rad = radius;
         upright->AddAsset(cyl_TL);
+        upright->AddVisualShape(cyl_TL);
     }
 
     if (p_T.Length2() > threshold2) {
@@ -640,6 +646,7 @@ void ChMultiLink::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
         cyl_T->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_T->GetCylinderGeometry().rad = radius;
         upright->AddAsset(cyl_T);
+        upright->AddVisualShape(cyl_T);
     }
 
     if (p_U.Length2() > threshold2) {
@@ -648,11 +655,8 @@ void ChMultiLink::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
         cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_U->GetCylinderGeometry().rad = radius;
         upright->AddAsset(cyl_U);
+        upright->AddVisualShape(cyl_U);
     }
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
-    upright->AddAsset(col);
 }
 
 void ChMultiLink::AddVisualizationLateral(std::shared_ptr<ChBody> rod,
@@ -668,10 +672,7 @@ void ChMultiLink::AddVisualizationLateral(std::shared_ptr<ChBody> rod,
     cyl->GetCylinderGeometry().p2 = p_U;
     cyl->GetCylinderGeometry().rad = radius;
     rod->AddAsset(cyl);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.6f, 0.2f));
-    rod->AddAsset(col);
+    rod->AddVisualShape(cyl);
 }
 
 void ChMultiLink::AddVisualizationTrailingLink(std::shared_ptr<ChBody> link,
@@ -689,16 +690,14 @@ void ChMultiLink::AddVisualizationTrailingLink(std::shared_ptr<ChBody> link,
     cyl1->GetCylinderGeometry().p2 = p_S;
     cyl1->GetCylinderGeometry().rad = radius;
     link->AddAsset(cyl1);
+    link->AddVisualShape(cyl1);
 
     auto cyl2 = chrono_types::make_shared<ChCylinderShape>();
     cyl2->GetCylinderGeometry().p1 = p_S;
     cyl2->GetCylinderGeometry().p2 = p_U;
     cyl2->GetCylinderGeometry().rad = radius;
     link->AddAsset(cyl2);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.6f, 0.6f));
-    link->AddAsset(col);
+    link->AddVisualShape(cyl2);
 }
 
 void ChMultiLink::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
@@ -714,8 +713,7 @@ void ChMultiLink::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
     cyl->GetCylinderGeometry().p2 = p_U;
     cyl->GetCylinderGeometry().rad = radius;
     tierod->AddAsset(cyl);
-
-    tierod->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+    tierod->AddVisualShape(cyl);
 }
 
 // -----------------------------------------------------------------------------

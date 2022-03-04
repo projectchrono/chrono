@@ -331,14 +331,12 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
     this->SetSystem(system);
 
     if (visualization_mesh) {
-        auto model = chrono_types::make_shared<ChVisualModel>();
-
         // Create the visualization mesh and asset
         m_trimesh_shape = std::shared_ptr<ChTriangleMeshShape>(new ChTriangleMeshShape);
         m_trimesh_shape->SetWireframe(true);
         m_trimesh_shape->SetFixedConnectivity();
         this->AddAsset(m_trimesh_shape);
-        model->AddShape(m_trimesh_shape);
+        this->AddVisualShape(m_trimesh_shape);
     }
 
     // Default SCM plane and plane normal

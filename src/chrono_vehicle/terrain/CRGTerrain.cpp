@@ -332,7 +332,7 @@ void CRGTerrain::SetupLineGraphics() {
     bezier_asset_left->SetNumRenderPoints(num_render_points);
     bezier_asset_left->SetName(m_curve_left_name);
     bezier_asset_left->AddMaterial(mat);
-    m_ground->GetVisualModel()->AddShape(bezier_asset_left);
+    m_ground->AddVisualShape(bezier_asset_left);
     m_ground->AddAsset(bezier_asset_left);
 
     auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
@@ -341,7 +341,7 @@ void CRGTerrain::SetupLineGraphics() {
     bezier_asset_right->SetNumRenderPoints(num_render_points);
     bezier_asset_right->SetName(m_curve_right_name);
     bezier_asset_right->AddMaterial(mat);
-    m_ground->GetVisualModel()->AddShape(bezier_asset_right);
+    m_ground->AddVisualShape(bezier_asset_right);
     m_ground->AddAsset(bezier_asset_right);
 }
 
@@ -433,7 +433,7 @@ void CRGTerrain::SetupMeshGraphics() {
     vmesh->SetName(m_mesh_name);
     vmesh->SetColor(ChColor(0.6f, 0.6f, 0.8f));
 
-    m_ground->GetVisualModel()->AddShape(vmesh);
+    m_ground->AddVisualShape(vmesh);
     m_ground->AddAsset(vmesh);
 }
 

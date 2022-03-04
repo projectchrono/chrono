@@ -371,7 +371,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
                 sphere->Pos = ChVector<>(x_pos, y_pos, radius);
                 m_ground->AddAsset(sphere);
 
-                m_ground->GetVisualModel()->AddShape(sph_shape, ChFrame<>(ChVector<>(x_pos, y_pos, radius)));
+                m_ground->AddVisualShape(sph_shape, ChFrame<>(ChVector<>(x_pos, y_pos, radius)));
 
                 y_pos += m_sep_y;
             }
@@ -434,7 +434,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
         box->GetBoxGeometry().Size = ChVector<>(length / 2, width / 2, hthick);
         box->Pos = ChVector<>(0, 0, -hthick);
         m_ground->AddAsset(box);
-        m_ground->GetVisualModel()->AddShape(box, ChFrame<>(ChVector<>(0, 0, -hthick)));
+        m_ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -hthick)));
     }
 
     // Register the custom collision callback for boundary conditions.

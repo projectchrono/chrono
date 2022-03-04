@@ -147,6 +147,7 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p2 = m_pAW;
         cyl->GetCylinderGeometry().rad = radius;
         m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
 
     if ((m_pA - m_pAC).Length2() > threshold2) {
@@ -155,6 +156,7 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p2 = m_pAC;
         cyl->GetCylinderGeometry().rad = radius;
         m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
 
     if ((m_pA - m_pAS).Length2() > threshold2) {
@@ -163,6 +165,7 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p2 = m_pAS;
         cyl->GetCylinderGeometry().rad = 0.75 * radius;
         m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
 
     // Revolute joint (arm-chassis)
@@ -172,6 +175,7 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p2 = m_pAC + radius * m_dY;
         cyl->GetCylinderGeometry().rad = 1.5 * radius;
         m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
 
     // Revolute joint (arm-wheel)
@@ -182,15 +186,13 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p2 = m_pAW + (m_pAW - m_pO) * radius/len;
         cyl->GetCylinderGeometry().rad = radius;
         m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.6f, 0.3f));
-    m_arm->AddAsset(col);
 
     // Visualization of the shock (with default color)
     if (m_has_shock) {
         m_shock->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+        m_shock->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
     }
 }
 

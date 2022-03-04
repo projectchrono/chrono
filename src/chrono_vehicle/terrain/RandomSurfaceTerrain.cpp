@@ -495,7 +495,7 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
             bezier_asset_left->SetNumRenderPoints(num_render_points);
             bezier_asset_left->SetName(m_curve_left_name);
             m_ground->AddAsset(bezier_asset_left);
-            m_ground->GetVisualModel()->AddShape(bezier_asset_left);
+            m_ground->AddVisualShape(bezier_asset_left);
 
             auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
             auto bezier_asset_right = chrono_types::make_shared<ChLineShape>();
@@ -503,7 +503,7 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
             bezier_asset_right->SetNumRenderPoints(num_render_points);
             bezier_asset_right->SetName(m_curve_right_name);
             m_ground->AddAsset(bezier_asset_right);
-            m_ground->GetVisualModel()->AddShape(bezier_asset_right);
+            m_ground->AddVisualShape(bezier_asset_right);
 
             break;
         }
@@ -516,7 +516,7 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
             vmesh->SetMutable(false);
             vmesh->SetName("ISO_track");
             m_ground->AddAsset(vmesh);
-            m_ground->GetVisualModel()->AddShape(vmesh);
+            m_ground->AddVisualShape(vmesh);
 
             break;
         }
@@ -550,7 +550,7 @@ void RandomSurfaceTerrain::SetupCollision() {
         box->GetBoxGeometry().SetLengths(ChVector<>(m_start_length, m_width, thickness));
         box->Pos = loc;
         m_ground->AddAsset(box);
-        m_ground->GetVisualModel()->AddShape(box, ChFrame<>(loc));
+        m_ground->AddVisualShape(box, ChFrame<>(loc));
     }
 
     m_ground->GetCollisionModel()->BuildModel();

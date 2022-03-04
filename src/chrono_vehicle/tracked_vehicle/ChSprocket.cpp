@@ -106,12 +106,15 @@ void ChSprocket::AddVisualizationAssets(VisualizationType vis) {
     ChQuaternion<> y2z = Q_from_AngX(CH_C_PI_2);
     ChMatrix33<> rot_y2z(y2z);
 
+    //// RADU TODO: can use a single instance of the LineShape
+
     auto asset_1 = chrono_types::make_shared<ChLineShape>();
     asset_1->SetLineGeometry(profile);
     asset_1->Pos = ChVector<>(0, sep / 2, 0);
     asset_1->Rot = rot_y2z;
     asset_1->SetColor(ChColor(1, 0, 0));
     m_gear->AddAsset(asset_1);
+    m_gear->AddVisualShape(asset_1, ChFrame<>(ChVector<>(0, sep / 2, 0), rot_y2z));
 
     auto asset_2 = chrono_types::make_shared<ChLineShape>();
     asset_2->SetLineGeometry(profile);
@@ -119,6 +122,7 @@ void ChSprocket::AddVisualizationAssets(VisualizationType vis) {
     asset_2->Rot = rot_y2z;
     asset_2->SetColor(ChColor(1, 0, 0));
     m_gear->AddAsset(asset_2);
+    m_gear->AddVisualShape(asset_2, ChFrame<>(ChVector<>(0, -sep / 2, 0), rot_y2z));
 }
 
 void ChSprocket::RemoveVisualizationAssets() {

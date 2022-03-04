@@ -225,7 +225,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         if (!patch->m_texture_filename.empty())
             box->SetTexture(patch->m_texture_filename);
         patch->m_body->AddAsset(box);
-        patch->m_body->GetVisualModel()->AddShape(box);
+        patch->m_body->AddVisualShape(box);
     }
 
     patch->m_location = location;
@@ -278,7 +278,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         if (!patch->m_texture_filename.empty())
             trimesh_shape->SetTexture(patch->m_texture_filename);
         patch->m_body->AddAsset(trimesh_shape);
-        patch->m_body->GetVisualModel()->AddShape(trimesh_shape);
+        patch->m_body->AddVisualShape(trimesh_shape);
     }
 
     patch->m_radius =
@@ -442,7 +442,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         if (!patch->m_texture_filename.empty())
             trimesh_shape->SetTexture(patch->m_texture_filename);
         patch->m_body->AddAsset(trimesh_shape);
-        patch->m_body->GetVisualModel()->AddShape(trimesh_shape);
+        patch->m_body->AddVisualShape(trimesh_shape);
     }
 
     patch->m_radius = ChVector<>(length, width, (hMax - hMin)).Length() / 2;
