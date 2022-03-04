@@ -50,8 +50,10 @@ video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video
 
     auto kd_texture_name = mat->GetKdTexture();
     if (!kd_texture_name.empty()) {
+        auto scale = mat->GetKdTextureScale();
         auto kd_texture = driver->getTexture(kd_texture_name.c_str());
         irr_mat.setTexture(0, kd_texture);
+        irr_mat.getTextureMatrix(0).setTextureScale(scale.x(), scale.y());
 
         // Same as when Irrlicht loads the OBJ+MTL.  Is this really needed?
         irr_mat.DiffuseColor.setRed(255);
@@ -61,8 +63,10 @@ video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video
 
     auto normal_texture_name = mat->GetNormalMapTexture();
     if (!normal_texture_name.empty()) {
+        auto scale = mat->GetNormalMapTextureScale();
         auto normal_texture = driver->getTexture(normal_texture_name.c_str());
         irr_mat.setTexture(1, normal_texture);
+        irr_mat.getTextureMatrix(1).setTextureScale(scale.x(), scale.y());
 
         // Same as when Irrlicht loads the OBJ+MTL.  Is this really needed?
         irr_mat.DiffuseColor.setRed(255);

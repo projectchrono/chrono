@@ -25,11 +25,37 @@ ChVisualMaterial::ChVisualMaterial()
       fresnel_exp(5),
       fresnel_max(1),
       fresnel_min(0.f),
+      illum(0),
       roughness(1),
       metallic(0),
       use_specular_workflow(true),
       class_id(0),
       instance_id(0) {}
+
+void ChVisualMaterial::SetKdTexture(const std::string& filename, ChVector2<float> scale) {
+    kd_texture.SetTextureFilename(filename);
+    kd_texture.SetScale(scale);
+}
+void ChVisualMaterial::SetKsTexture(const std::string& filename, ChVector2<float> scale) {
+    ks_texture.SetTextureFilename(filename);
+    ks_texture.SetScale(scale);
+}
+void ChVisualMaterial::SetNormalMapTexture(const std::string& filename, ChVector2<float> scale) {
+    normal_texture.SetTextureFilename(filename);
+    normal_texture.SetScale(scale);
+}
+void ChVisualMaterial::SetMetallicTexture(const std::string& filename, ChVector2<float> scale) {
+    metallic_texture.SetTextureFilename(filename);
+    metallic_texture.SetScale(scale);
+}
+void ChVisualMaterial::SetRoughnessTexture(const std::string& filename, ChVector2<float> scale) {
+    roughness_texture.SetTextureFilename(filename);
+    roughness_texture.SetScale(scale);
+}
+void ChVisualMaterial::SetOpacityTexture(const std::string& filename, ChVector2<float> scale) {
+    opacity_texture.SetTextureFilename(filename);
+    opacity_texture.SetScale(scale);
+}
 
 void ChVisualMaterial::SetAmbientColor(const ChVector<float>& rgb) {
     // valid rgb range [0,1]
