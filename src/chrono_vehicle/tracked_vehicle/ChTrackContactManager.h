@@ -123,6 +123,9 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
 
     friend class ChTrackedVehicleIrrApp;
     friend class ChTrackTestRigIrrApp;
+
+    friend class ChTrackedVehicleVisualSystemIrrlicht;
+    friend class ChTrackTestRigVisualSystemIrrlicht;
 };
 
 // -----------------------------------------------------------------------------
