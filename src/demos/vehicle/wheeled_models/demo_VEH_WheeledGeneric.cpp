@@ -41,7 +41,7 @@
 
 #ifdef CHRONO_IRRLICHT
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 // specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
 #endif
@@ -137,35 +137,11 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_IRRLICHT
 
-    ChWheeledVehicleIrrApp app(&vehicle, L"Generic Vehicle Demo");
-
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&vehicle);
+    app.SetWindowTitle("Generic Vehicle Demo");
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
-
-    app.SetTimestep(step_size);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-
-    /*
-    bool do_shadows = false; // shadow map is experimental
-    irr::scene::ILightSceneNode* mlight = 0;
-
-    if (do_shadows) {
-      mlight = application.AddLightWithShadow(
-        irr::core::vector3df(10.f, 30.f, 60.f),
-        irr::core::vector3df(0.f, 0.f, 0.f),
-        150, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
-    } else {
-      application.AddTypicalLights(
-        irr::core::vector3df(30.f, -30.f, 100.f),
-        irr::core::vector3df(30.f, 50.f, 100.f),
-        250, 130);
-    }
-
-    if (do_shadows)
-       application.AddShadowAll();
-    */
+    app.Initialize();
+    app.AddTypicalLights();
 
     ChIrrGuiDriver driver(app);
 

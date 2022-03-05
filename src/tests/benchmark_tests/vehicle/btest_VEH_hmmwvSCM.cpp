@@ -27,7 +27,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
 using namespace chrono;
@@ -203,12 +203,11 @@ void HmmwvScmTest<TIRE_TYPE, OBJECTS>::ExecuteStep() {
 template <int TIRE_TYPE, bool OBJECTS>
 void HmmwvScmTest<TIRE_TYPE, OBJECTS>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    ChWheeledVehicleIrrApp app(&m_hmmwv->GetVehicle(), L"HMMWV SMC benchmark");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&m_hmmwv->GetVehicle());
+    app.SetWindowTitle("HMMWV SMC benchmark");
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     while (app.GetDevice()->run()) {
         ChDriver::Inputs driver_inputs = m_driver->GetInputs();

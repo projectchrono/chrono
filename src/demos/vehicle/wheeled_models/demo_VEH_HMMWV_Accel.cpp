@@ -31,7 +31,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -113,16 +113,7 @@ int main(int argc, char* argv[]) {
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
     terrain.Initialize();
 
-    // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"HMMWV acceleration test");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.SetTimestep(step_size);
-
-    // ----------------------------------------------
     // Create the straight path and the driver system
-    // ----------------------------------------------
-
     auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(terrainLength / 2, 0, 0.5), 1);
     ChPathFollowerDriver driver(my_hmmwv.GetVehicle(), path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
@@ -130,12 +121,12 @@ int main(int argc, char* argv[]) {
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
-    // ---------------------------------------------
-    // Finalize construction of visualization assets
-    // ---------------------------------------------
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    // Create the vehicle Irrlicht interface
+    ChWheeledVehicleVisualSystemIrrlicht app(&my_hmmwv.GetVehicle());
+    app.SetWindowTitle("HMMWV acceleration test");
+    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    app.Initialize();
+    app.AddTypicalLights();
 
     // ---------------
     // Simulation loop

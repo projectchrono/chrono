@@ -26,7 +26,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/m113/M113.h"
 
@@ -292,14 +292,13 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChTrackedVehicleIrrApp app(&m113.GetVehicle(), L"M113 Vehicle Demo");
-    app.AddTypicalLights();
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
+    ChTrackedVehicleVisualSystemIrrlicht app(&m113.GetVehicle());
+    app.SetWindowTitle("M113 Vehicle Demo");
+    app.SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
     ////app.SetChaseCameraPosition(m113.GetVehicle().GetVehiclePos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // ------------------------
     // Create the driver system

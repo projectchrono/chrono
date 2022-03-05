@@ -36,7 +36,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChHumanDriver.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -331,29 +331,25 @@ int main(int argc, char* argv[]) {
 
     // Light positions (in ISO frame)
     std::vector<ChVector<>> light_locs = {
-        ChVector<>(-150, -150, 200),  //
-        ChVector<>(-150, +150, 200),  //
-        ChVector<>(+150, -150, 200),  //
-        ChVector<>(+150, +150, 200)   //
+        ChVector<>(-150, -150, 120),  //
+        ChVector<>(-150, +150, 120),  //
+        ChVector<>(+150, -150, 120),  //
+        ChVector<>(+150, +150, 120)   //
     };
 
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Steering");
+    ChWheeledVehicleVisualSystemIrrlicht app(&my_hmmwv.GetVehicle());
     app.SetHUDLocation(500, 20);
-    app.AddLogo();
-    for (auto& loc : light_locs)
-        app.AddLight(irr::core::vector3dfCH(ChWorldFrame::FromISO(loc)), 100);
+    app.SetWindowTitle("OpenCRG Steering");
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.SetTimestep(step_size);
+    app.Initialize();
+    for (auto& loc : light_locs)
+        app.AddLight(irr::core::vector3dfCH(ChWorldFrame::FromISO(loc)), 300);
 
     // Visualization of controller points (sentinel & target)
     irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
     irr::scene::IMeshSceneNode* ballT = app.GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
-
-    // Finalize construction of visualization assets
-    app.AssetBindAll();
-    app.AssetUpdateAll();
 
     // ----------------
     // Output directory

@@ -30,7 +30,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -267,12 +267,11 @@ int main(int argc, char* argv[]) {
     RigidTerrain terrain(system, vehicle::GetDataFile(rigidterrain_file));
 
     // Create Irrilicht visualization
-    ChWheeledVehicleIrrApp app(&vehicle, L"Vehicle demo - JSON specification");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&vehicle);
+    app.SetWindowTitle("Vehicle demo - JSON specification");
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model.CameraDistance(), 0.5);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // Create the interactive driver
     ChIrrGuiDriver driver(app);

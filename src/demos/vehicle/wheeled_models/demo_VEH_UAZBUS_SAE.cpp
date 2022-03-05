@@ -32,7 +32,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/uaz/UAZBUS_SAE.h"
 
@@ -145,12 +145,11 @@ int main(int argc, char* argv[]) {
     // Create the driver system
     // -------------------------------------
 
-    ChWheeledVehicleIrrApp app(&uaz.GetVehicle(), L"UAZBUS demo with kinematic leafspring model");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&uaz.GetVehicle());
+    app.SetWindowTitle("UAZBUS demo with kinematic leafspring model");
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // Create the interactive driver system
     ChIrrGuiDriver driver(app);

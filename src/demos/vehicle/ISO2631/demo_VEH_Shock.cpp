@@ -42,7 +42,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 // specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
 #endif
@@ -205,46 +205,41 @@ int main(int argc, char* argv[]) {
 
     ChISO2631_Shock_SeatCushionLogger seat_logger(step_size);
 
-#ifdef USE_IRRLICHT
-    std::wstring windowTitle = L"Vehicle Shock Test Demo ";
-
-    switch (iTire) {
-        default:
-        case 1:
-            windowTitle.append(L"(TMeasy Tire) - " + std::to_wstring(heightVals[iObstacle]) + L" mm Obstacle Height");
-            break;
-        case 2:
-            windowTitle.append(L"(Fiala Tire) - " + std::to_wstring(heightVals[iObstacle]) + L" mm Obstacle Height");
-            break;
-        case 3:
-            windowTitle.append(L"(Pacejka Tire) - " + std::to_wstring(heightVals[iObstacle]) + L" mm Obstacle Height");
-            break;
-        case 4:
-            windowTitle.append(L"(Pacejka89 Tire) - " + std::to_wstring(heightVals[iObstacle]) +
-                               L" mm Obstacle Height");
-            break;
-        case 5:
-            windowTitle.append(L"(Pacejka02 Tire) - " + std::to_wstring(heightVals[iObstacle]) +
-                               L" mm Obstacle Height");
-            break;
-    }
-
-    ChWheeledVehicleIrrApp app(&vehicle, windowTitle);
-
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-
-    app.SetTimestep(step_size);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-#endif
-
     // Create the driver
     auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
     ChPathFollowerDriver driver(vehicle, vehicle::GetDataFile(steering_controller_file),
                                 vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed, false);
     driver.Initialize();
+
+#ifdef USE_IRRLICHT
+    std::string windowTitle = "Vehicle Shock Test Demo ";
+
+    switch (iTire) {
+        default:
+        case 1:
+            windowTitle.append("(TMeasy Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            break;
+        case 2:
+            windowTitle.append("(Fiala Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            break;
+        case 3:
+            windowTitle.append("(Pacejka Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            break;
+        case 4:
+            windowTitle.append("(Pacejka89 Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            break;
+        case 5:
+            windowTitle.append("(Pacejka02 Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            break;
+    }
+
+    ChWheeledVehicleVisualSystemIrrlicht app(&vehicle);
+    app.SetWindowTitle(windowTitle);
+    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    app.Initialize();
+    app.AddTypicalLights();
+
+#endif
 
     // ---------------
     // Simulation loop

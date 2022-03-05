@@ -28,7 +28,7 @@
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #ifdef USE_IRRLICHT
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -249,21 +249,19 @@ int main(int argc, char* argv[]) {
     // -------------------------------------
 
 #ifdef USE_IRRLICHT
-    ChWheeledVehicleIrrApp app(&mtv.GetVehicle(), L"MTV ride & twist test");
+    ChWheeledVehicleVisualSystemIrrlicht app(&mtv.GetVehicle());
+    app.SetWindowTitle("MTV ride & twist test");
+    app.SetChaseCamera(trackPoint, 10.0, 0.5);
+    app.Initialize();
     app.GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
     app.AddLight(irr::core::vector3df(-50.f, -30.f, 40.f), 50, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
     app.AddLight(irr::core::vector3df(10.f, 30.f, 40.f), 50, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.SetChaseCamera(trackPoint, 10.0, 0.5);
-    /*app.SetTimestep(step_size);*/
-    app.AssetBindAll();
-    app.AssetUpdateAll();
 
     // Visualization of controller points (sentinel & target)
     irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
     irr::scene::IMeshSceneNode* ballT = app.GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
-
 #endif
 
     // -------------

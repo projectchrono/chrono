@@ -23,7 +23,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/sedan/Sedan.h"
 
@@ -97,11 +97,11 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), L"Sedan Demo Locked Diff");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&my_sedan.GetVehicle());
+    app.SetWindowTitle("Sedan Demo Locked Diff");
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.5), 4.0, 0.5);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // Initialize output
     if (!filesystem::create_directory(filesystem::path(out_dir))) {

@@ -24,7 +24,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/AIDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/sedan/Sedan.h"
 #include "chrono_models/vehicle/sedan/Sedan_AIDriver.h"
@@ -72,11 +72,11 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), L"Sedan AI Demo");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&my_sedan.GetVehicle());
+    app.SetWindowTitle("Sedan AI Demo");
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // Create the driver system
     // Option 1: use concrete driver class

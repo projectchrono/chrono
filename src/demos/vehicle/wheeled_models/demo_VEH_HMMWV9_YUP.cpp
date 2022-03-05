@@ -28,7 +28,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -126,20 +126,6 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize();
 
-    // ----------------------------------------
-    // Create the run-time visualization system
-    // ----------------------------------------
-
-    // Vehicle Irrlicht run-time visualization
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"HMMWV-9 YUP", irr::core::dimension2d<irr::u32>(1000, 800),
-                               VerticalDir::Y, irr::ELL_NONE);
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.SetTimestep(step_size);
-
-    // ------------------------
-    // Create the driver system
-    // ------------------------
 
 #ifdef USE_PATH_FOLLOWER
     // Path follower driver
@@ -157,7 +143,17 @@ int main(int argc, char* argv[]) {
     irr::scene::IMeshSceneNode* ballT = app.GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
-#else
+#endif
+
+    // Vehicle Irrlicht run-time visualization
+    ChWheeledVehicleVisualSystemIrrlicht app(&my_hmmwv.GetVehicle());
+    app.SetWindowTitle("HMMWV-9 YUP Demo");
+    app.SetCameraVertical(CameraVerticalDir::Y);
+    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    app.Initialize();
+    app.AddTypicalLights();
+
+#ifndef USE_PATH_FOLLOWER
     // Interactive driver
     ChIrrGuiDriver driver(app);
     driver.SetSteeringDelta(0.06);
@@ -165,10 +161,6 @@ int main(int argc, char* argv[]) {
     driver.SetBrakingDelta(0.06);
     driver.Initialize();
 #endif
-
-    // Finalize construction of visualization assets
-    app.AssetBindAll();
-    app.AssetUpdateAll();
 
     // ---------------
     // Simulation loop

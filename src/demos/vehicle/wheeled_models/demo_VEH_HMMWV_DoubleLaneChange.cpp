@@ -32,7 +32,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -167,13 +167,6 @@ class ISO3888_Helper {
         m_rightCones.push_back((m_rightLine[4] + m_rightLine[5]) / 2);
         m_rightCones.push_back(m_rightLine[5]);
 
-        ////std::ofstream tst("bla.txt");
-        ////for (int i = 0; i < m_leftLine.size(); i++) {
-        ////    tst << m_leftLine[i].x() << "\t" << centerLine[i].x() << "\t" << m_leftLine[i].y() << "\t" <<
-        ///centerLine[i].y() /        << "\t" << m_rightLine[i].y() << std::endl;
-        ////}
-        ////tst.close();
-
         // prepare path spline definition
         ChVector<> offset(m_lengthB / 3, 0, 0);
         for (size_t i = 0; i < m_centerLine.size(); i++) {
@@ -295,7 +288,7 @@ double tire_step_size = 1e-3;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    std::wstring wtitle;
+    std::string wtitle;
     DLC_Variant dlc_mode = ISO3888_1;
     int velkmh = 30;
     bool left_turn = true;
@@ -304,20 +297,20 @@ int main(int argc, char* argv[]) {
         default:
             // no parameters given
             if (left_turn) {
-                wtitle = L"ISO 3888-1 Double Lane Change Test v = " + std::to_wstring(velkmh) + L" km/h - Left Turn";
+                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - Left Turn";
 
             } else {
-                wtitle = L"ISO 3888-1 Double Lane Change Test v = " + std::to_wstring(velkmh) + L" km/h - Right Turn";
+                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - Right Turn";
             }
             break;
         case 2:
             // one parameter given (velkmh)
             velkmh = ChClamp(atoi(argv[1]), 10, 100);
             if (left_turn) {
-                wtitle = L"ISO 3888-1 Double Lane Change Test v = " + std::to_wstring(velkmh) + L" km/h - Left Turn";
+                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - Left Turn";
 
             } else {
-                wtitle = L"ISO 3888-1 Double Lane Change Test v = " + std::to_wstring(velkmh) + L" km/h - Right Turn";
+                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - Right Turn";
             }
             break;
         case 3:
@@ -333,15 +326,15 @@ int main(int argc, char* argv[]) {
                     break;
             }
             if (dlc_mode == ISO3888_1) {
-                wtitle = L"ISO 3888-1 Double Lane Change Test v = " + std::to_wstring(velkmh) + L" km/h - ";
+                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - ";
             } else {
-                wtitle = L"ISO 3888-2 Moose Test v = " + std::to_wstring(velkmh) + L" km/h - ";
+                wtitle = "ISO 3888-2 Moose Test v = " + std::to_string(velkmh) + " km/h - ";
             }
             if (left_turn) {
-                wtitle += L" Left Turn";
+                wtitle += " Left Turn";
 
             } else {
-                wtitle += L" Right Turn";
+                wtitle += " Right Turn";
             }
             break;
         case 4:
@@ -366,15 +359,15 @@ int main(int argc, char* argv[]) {
                     left_turn = true;
             }
             if (dlc_mode == ISO3888_1) {
-                wtitle = L"ISO 3888-1 Double Lane Change Test v = " + std::to_wstring(velkmh) + L" km/h - ";
+                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - ";
             } else {
-                wtitle = L"ISO 3888-2 Moose Test v = " + std::to_wstring(velkmh) + L" km/h - ";
+                wtitle = "ISO 3888-2 Moose Test v = " + std::to_string(velkmh) + " km/h - ";
             }
             if (left_turn) {
-                wtitle += L" Left Turn";
+                wtitle += " Left Turn";
 
             } else {
-                wtitle += L" Right Turn";
+                wtitle += " Right Turn";
             }
             break;
     }
@@ -427,10 +420,11 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), wtitle.c_str());
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&my_hmmwv.GetVehicle());
+    app.SetWindowTitle(wtitle);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.SetTimestep(step_size);
+    app.Initialize();
+    app.AddTypicalLights();
 
     // ---------------------------------------------------
     // Create the lane change path and the driver system
@@ -461,12 +455,6 @@ int main(int argc, char* argv[]) {
         node_coneR->setPosition(irr::core::vector3dfCH(pR));
     }
 
-    // ---------------------------------------------
-    // Finalize construction of visualization assets
-    // ---------------------------------------------
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
 
     // ---------------
     // Simulation loop

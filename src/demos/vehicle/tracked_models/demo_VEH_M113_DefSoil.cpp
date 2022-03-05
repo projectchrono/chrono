@@ -22,7 +22,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/m113/M113.h"
 
@@ -158,14 +158,13 @@ int main(int argc, char* argv[]) {
     // Create the run-time visualization
     // ---------------------------------
 
-    ChTrackedVehicleIrrApp app(&m113.GetVehicle(), L"M113 SCM Demo");
-    app.AddTypicalLights();
+    ChTrackedVehicleVisualSystemIrrlicht app(&m113.GetVehicle());
+    app.SetWindowTitle("M113 SCM Demo");
     app.SetChaseCamera(trackPoint, 4.0, 1.0);
     app.SetChaseCameraPosition(ChVector<>(-3, 4, 1.5));
     app.SetChaseCameraMultipliers(1e-4, 10);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // ------------------------
     // Create the driver system

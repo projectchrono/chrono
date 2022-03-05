@@ -25,7 +25,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/marder/Marder.h"
 
@@ -208,14 +208,13 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChTrackedVehicleIrrApp app(&marder.GetVehicle(), L"Marder Vehicle Demo");
-    app.AddTypicalLights();
+    ChTrackedVehicleVisualSystemIrrlicht app(&marder.GetVehicle());
+    app.SetWindowTitle("Marder Vehicle Demo");
     app.SetChaseCamera(trackPoint, 10.0, 0.5);
     ////app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // ------------------------
     // Create the driver system

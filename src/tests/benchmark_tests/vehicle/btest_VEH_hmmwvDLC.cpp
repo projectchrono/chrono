@@ -26,7 +26,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
 using namespace chrono;
@@ -129,18 +129,17 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::ExecuteStep() {
 template <typename EnumClass, EnumClass TIRE_MODEL>
 void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    ChWheeledVehicleIrrApp app(&m_hmmwv->GetVehicle(), L"HMMWV acceleration test");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&m_hmmwv->GetVehicle());
+    app.SetWindowTitle("HMMWV DLC");
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    app.Initialize();
+    app.AddTypicalLights();
 
     // Visualization of controller points (sentinel & target)
     irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
     irr::scene::IMeshSceneNode* ballT = app.GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
 
     while (app.GetDevice()->run()) {
         const ChVector<>& pS = m_driver->GetSteeringController().GetSentinelLocation();

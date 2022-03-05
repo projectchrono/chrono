@@ -31,7 +31,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/kraz/Kraz.h"
 
@@ -99,12 +99,6 @@ int main(int argc, char* argv[]) {
     }
     terrain.Initialize();
 
-    // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&truck.GetTractor(), L"Semi-trailer truck :: Follows Straight Line");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.SetTimestep(step_size);
-
     // Create the straight path and the driver system
     auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(10 * terrainLength / 2, 0, 0.5), 1);
     ChPathFollowerDriver driver(truck.GetTractor(), path, "my_path", 1000.0);
@@ -113,12 +107,12 @@ int main(int argc, char* argv[]) {
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
-    // ---------------------------------------------
-    // Finalize construction of visualization assets
-    // ---------------------------------------------
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    // Create the vehicle Irrlicht interface
+    ChWheeledVehicleVisualSystemIrrlicht app(&truck.GetTractor());
+    app.SetWindowTitle("Semi-trailer truck :: Follows Straight Line");
+    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    app.Initialize();
+    app.AddTypicalLights();
 
     // ---------------
     // Simulation loop

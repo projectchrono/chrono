@@ -28,7 +28,7 @@
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/man/MAN_5t.h"
 
@@ -153,12 +153,11 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_truck.GetVehicle(), L"MAN 5t Truck Demo");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&my_truck.GetVehicle());
+    app.SetWindowTitle("MAN 5t Truck Demo");
     app.SetChaseCamera(trackPoint, 10.0, 0.5);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // -----------------
     // Initialize output
@@ -225,8 +224,8 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     if (contact_vis) {
-        app.SetSymbolscale(1e-4);
-        app.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_FORCES);
+        app.SetSymbolScale(1e-4);
+        app.EnableContactDrawing(IrrContactsDrawMode::CONTACT_FORCES);
     }
 
     ChRealtimeStepTimer realtime_timer;

@@ -27,7 +27,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -109,12 +109,11 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Rigid Terrain Demo");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&my_hmmwv.GetVehicle());
+    app.SetWindowTitle("Rigid Terrain Demo");
     app.SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // Create the interactive driver system
     ChIrrGuiDriver driver(app);

@@ -26,7 +26,7 @@
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChRoadDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRigIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRigVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
@@ -257,12 +257,12 @@ int main(int argc, char* argv[]) {
     ChVector<> target_point = 0.5 * (rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos() +
                                      rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos());
 
-    ChTrackTestRigIrrApp app(rig, L"Track Test Rig");
-    app.AddTypicalLights();
+    ChTrackTestRigVisualSystemIrrlicht app(rig);
+    app.SetWindowTitle("Track Test Rig");
     app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(0, 5, 0));
+    app.SetChaseCameraPosition(target_point + ChVector<>(0, -5, 0));
     app.SetChaseCameraState(utils::ChChaseCamera::Free);
-    app.SetChaseCameraAngle(-CH_C_PI_2);
+    app.SetChaseCameraAngle(CH_C_PI_2);
     app.SetChaseCameraMultipliers(1e-4, 10);
     ////app.RenderTrackShoeFrames(true, 0.4);
 
@@ -317,8 +317,8 @@ int main(int argc, char* argv[]) {
 
     rig->Initialize();
 
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // -----------------
     // Set up rig output

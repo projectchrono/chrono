@@ -29,7 +29,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/sedan/Sedan.h"
 
@@ -151,12 +151,11 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), L"Sedan Demo");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&my_sedan.GetVehicle());
+    app.SetWindowTitle("Sedan Demo");
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // -----------------
     // Initialize output
@@ -222,8 +221,8 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     if (contact_vis) {
-        app.SetSymbolscale(1e-4);
-        app.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_FORCES);
+        app.SetSymbolScale(1e-4);
+        app.EnableContactDrawing(IrrContactsDrawMode::CONTACT_FORCES);
     }
 
     ChRealtimeStepTimer realtime_timer;

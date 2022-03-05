@@ -42,7 +42,7 @@
 #ifdef CHRONO_IRRLICHT
 // ...include additional headers
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 // ...and specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
@@ -144,15 +144,11 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_IRRLICHT
 
-    ChTrackedVehicleIrrApp app(&vehicle, L"JSON Tracked Vehicle Demo");
-
-    app.AddTypicalLights();
+    ChTrackedVehicleVisualSystemIrrlicht app(&vehicle);
+    app.SetWindowTitle("JSON Tracked Vehicle Demo");
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 6.0, 0.5);
-
-    app.SetTimestep(step_size);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     ChIrrGuiDriver driver(app);
 

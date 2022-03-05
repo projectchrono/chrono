@@ -21,7 +21,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -106,16 +106,13 @@ int main(int argc, char* argv[]) {
     driver_2.Initialize();
 
     // Create the vehicle Irrlicht interface (associated with 1st vehicle)
-    ChWheeledVehicleIrrApp app(&hmmwv_1.GetVehicle(), L"Two cars demo");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&hmmwv_1.GetVehicle());
+    app.SetWindowTitle("Two cars demo");
     app.SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
     app.SetChaseCameraState(utils::ChChaseCamera::Track);
     app.SetChaseCameraPosition(ChVector<>(-15, 0, 2.0));
-    app.SetTimestep(step_size);
-
-    // Bind all Irrlicht visualization assets
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // ---------------
     // Simulation loop

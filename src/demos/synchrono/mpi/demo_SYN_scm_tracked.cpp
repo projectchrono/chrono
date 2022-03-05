@@ -42,7 +42,7 @@
 #include "chrono_synchrono/utils/SynLog.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+    #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
 #endif
 
 #ifdef CHRONO_SENSOR
@@ -224,14 +224,13 @@ int main(int argc, char* argv[]) {
     // -------------
 #ifdef CHRONO_IRRLICHT
     // Create the vehicle Irrlicht interface
-    std::shared_ptr<ChTrackedVehicleIrrApp> app;
+    std::shared_ptr<ChTrackedVehicleVisualSystemIrrlicht> app;
     if (cli.HasValueInVector<int>("irr", node_id)) {
-        app = chrono_types::make_shared<ChTrackedVehicleIrrApp>(&m113.GetVehicle(), L"SynChrono SCM Demo");
-        app->AddTypicalLights();
+        app = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>(&m113.GetVehicle());
+        app->SetWindowTitle("SynChrono SCM Demo");
         app->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 10.0, 0.5);
-        app->SetTimestep(step_size);
-        app->AssetBindAll();
-        app->AssetUpdateAll();
+        app->Initialize();
+        app->AddTypicalLights();
     }
 
     // Time interval between two render frames (1/FPS)

@@ -31,7 +31,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/feda/FEDA.h"
 
@@ -117,24 +117,7 @@ int main(int argc, char* argv[]) {
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
     terrain.Initialize();
 
-    // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_feda.GetVehicle(), L"HMMWV acceleration test");
-
-    app.AddLight(irr::core::vector3df(0.f, -30.f, 100.f), 250, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(0.f, 50.f, 100.f), 130, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(-300.f, -30.f, 100.f), 250, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(-300.f, 50.f, 100.f), 130, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(+300.f, -30.f, 100.f), 250, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(+300.f, 50.f, 100.f), 130, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-
-    app.SetTimestep(step_size);
-
-    // ----------------------------------------------
     // Create the straight path and the driver system
-    // ----------------------------------------------
-
     auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(terrainLength / 2, 0, 0.5), 1);
     ChPathFollowerDriver driver(my_feda.GetVehicle(), path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
@@ -142,17 +125,19 @@ int main(int argc, char* argv[]) {
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
-    // ---------------------------------------------
-    // Finalize construction of visualization assets
-    // ---------------------------------------------
+    // Create the vehicle Irrlicht interface
+    ChWheeledVehicleVisualSystemIrrlicht app(&my_feda.GetVehicle());
+    app.SetWindowTitle("FEDA acceleration test");
+    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    app.Initialize();
+    app.AddLight(irr::core::vector3df(0.f, -30.f, 100.f), 250, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(irr::core::vector3df(0.f, 50.f, 100.f), 130, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(irr::core::vector3df(-300.f, -30.f, 100.f), 250, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(irr::core::vector3df(-300.f, 50.f, 100.f), 130, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(irr::core::vector3df(+300.f, -30.f, 100.f), 250, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(irr::core::vector3df(+300.f, 50.f, 100.f), 130, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
 
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-
-    // -------------
     // Prepare output
-    // -------------
-
     if (data_output) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;

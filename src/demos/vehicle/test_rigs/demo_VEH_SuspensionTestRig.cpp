@@ -27,7 +27,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
@@ -205,10 +205,9 @@ int main(int argc, char* argv[]) {
     rig->SetTireVisualizationType(VisualizationType::MESH);
 
     // Create the vehicle Irrlicht application.
-    ChVehicleIrrApp app(&rig->GetVehicle(), L"Suspension Test Rig");
-    app.AddTypicalLights();
+    ChVehicleVisualSystemIrrlicht app(&rig->GetVehicle());
+    app.SetWindowTitle("Suspension Test Rig");
     app.SetChaseCamera(0.5 * (rig->GetSpindlePos(0, LEFT) + rig->GetSpindlePos(0, RIGHT)), setup.CameraDistance(), 0.5);
-    app.SetTimestep(step_size);
 
     // Create and attach the driver system.
     switch (driver_mode) {
@@ -229,8 +228,8 @@ int main(int argc, char* argv[]) {
     // Initialize suspension test rig.
     rig->Initialize();
 
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // Set up rig output
     if (!filesystem::create_directory(filesystem::path(out_dir))) {

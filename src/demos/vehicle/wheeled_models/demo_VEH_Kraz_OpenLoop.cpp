@@ -25,7 +25,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/kraz/Kraz.h"
 
@@ -81,14 +81,11 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&truck.GetTractor(), L"Semi-trailer truck :: Open Loop");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&truck.GetTractor());
+    app.SetWindowTitle("Semi-trailer truck :: Open Loop");
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
-
-    app.SetTimestep(step_size);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     ChIrrGuiDriver driver(app);
 

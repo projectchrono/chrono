@@ -25,7 +25,7 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_synchrono/SynConfig.h"
 #include "chrono_synchrono/SynChronoManager.h"
@@ -231,14 +231,13 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the vehicle Irrlicht interface
-    std::shared_ptr<ChWheeledVehicleIrrApp> app;
+    std::shared_ptr<ChWheeledVehicleVisualSystemIrrlicht> app;
     if (cli.HasValueInVector<int>("irr", node_id)) {
-        app = chrono_types::make_shared<ChWheeledVehicleIrrApp>(&vehicle, L"SynChrono Vehicle Demo");
-        app->AddTypicalLights();
+        app = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>(&vehicle);
+        app->SetWindowTitle("SynChrono Vehicle Demo");
         app->SetChaseCamera(trackPoint, 6.0, 0.5);
-        app->SetTimestep(step_size);
-        app->AssetBindAll();
-        app->AssetUpdateAll();
+        app->Initialize();
+        app->AddTypicalLights();
     }
 
 #ifdef CHRONO_SENSOR

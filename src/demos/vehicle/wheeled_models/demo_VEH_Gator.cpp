@@ -25,7 +25,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/gator/Gator.h"
 #include "chrono_models/vehicle/gator/Gator_SimplePowertrain.h"
@@ -48,7 +48,7 @@ VisualizationType chassis_vis_type = VisualizationType::MESH;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
-VisualizationType tire_vis_type = VisualizationType::MESH;
+VisualizationType tire_vis_type = VisualizationType::NONE;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 CollisionType chassis_collision_type = CollisionType::NONE;
@@ -120,10 +120,11 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             patch =
                 terrain.AddPatch(patch_mat, ChVector<>(10, 0, 0), Q_from_AngY(-10 * CH_C_DEG_TO_RAD).GetZaxis(), 5, 10);
+            patch->SetColor(ChColor(0.8f, 0.2f, 0.5f));
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     128, 128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+                                     128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
@@ -131,20 +132,22 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
     }
-    patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
 
     terrain.Initialize();
+
+    auto truss_mesh = chrono_types::make_shared<ChObjShapeFile>();
+    truss_mesh->SetFilename(GetChronoDataFile("vehicle/gator/gator_chassis.obj"));
+    patch->GetGroundBody()->AddVisualShape(truss_mesh, ChFrame<>(ChVector<>(-10, -2, 3)));
 
     // -------------------------------------
     // Create the vehicle Irrlicht interface
     // -------------------------------------
 
-    ChWheeledVehicleIrrApp app(&gator.GetVehicle(), L"Gator Demo");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&gator.GetVehicle());
+    app.SetWindowTitle("Gator Demo");
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // -----------------
     // Initialize output
@@ -220,7 +223,7 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         gator.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

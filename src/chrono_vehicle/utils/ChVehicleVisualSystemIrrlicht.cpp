@@ -151,8 +151,9 @@ void ChVehicleVisualSystemIrrlicht::Initialize() {
     ChVector<> cam_target = m_camera.GetTargetPos();
     AddCamera(core::vector3dfCH(cam_pos), core::vector3dfCH(cam_target));
 
-    // Add a default sky box
+    // Add a default sky box and the Chrono logo
     AddSkyBox();
+    AddLogo();
 }
 
 // -----------------------------------------------------------------------------

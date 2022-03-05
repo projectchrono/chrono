@@ -27,7 +27,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "subsystems/ACV_Vehicle.h"
 #include "subsystems/ACV_SimplePowertrain.h"
@@ -105,12 +105,11 @@ int main(int argc, char* argv[]) {
     vehicle.InitializeTire(tire_RR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::PRIMITIVES);
 
     // Create the Irrlicht visualization
-    ChWheeledVehicleIrrApp app(&vehicle, L"Articulated Vehicle Demo");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&vehicle);
+    app.SetWindowTitle("Articulated Vehicle Demo");
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // Initialize interactive driver
     ChIrrGuiDriver driver(app);

@@ -26,7 +26,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/gator/Gator.h"
 #include "chrono_models/vehicle/gator/Gator_SimplePowertrain.h"
@@ -125,12 +125,11 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&gator.GetVehicle(), L"Gator Acceleration");
-    app.AddTypicalLights();
+    ChWheeledVehicleVisualSystemIrrlicht app(&gator.GetVehicle());
+    app.SetWindowTitle("Gator Acceleration");
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    app.Initialize();
+    app.AddTypicalLights();
 
     // ---------------
     // Simulation loop
