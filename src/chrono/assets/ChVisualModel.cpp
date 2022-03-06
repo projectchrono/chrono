@@ -24,8 +24,15 @@ void ChVisualModel::AddShape(std::shared_ptr<ChVisualShape> shape, const ChFrame
     m_shapes.push_back({shape, frame});
 }
 
+void ChVisualModel::AddShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA) {
+    m_shapesFEA.push_back(shapeFEA);
+    m_shapes.push_back({shapeFEA->m_trimesh_shape, ChFrame<>()});
+    m_shapes.push_back({shapeFEA->m_glyphs_shape, ChFrame<>()});
+}
+
 void ChVisualModel::Clear() {
     m_shapes.clear();
+    m_shapesFEA.clear();
 }
 
 void ChVisualModel::Erase(std::shared_ptr<ChVisualShape> shape) {
@@ -39,6 +46,9 @@ void ChVisualModel::Update(ChPhysicsItem* owner, const ChFrame<>& frame) {
     for (auto& shape : m_shapes) {
         auto xform = frame >> shape.second;
         shape.first->Update(owner, xform);
+    }
+    for (auto& shapeFEA : m_shapesFEA) {
+        shapeFEA->Update(owner, ChFrame<>());
     }
 }
 

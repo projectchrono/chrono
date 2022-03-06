@@ -26,7 +26,7 @@
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChLoadsBeam.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -440,16 +440,16 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------------------------
     // Set visualization of the FEM mesh.
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::E_PLOT_ELEM_BEAM_MZ);
     mvisualizebeamA->SetColorscaleMinMax(-400, 200);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
     mesh->AddAsset(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);

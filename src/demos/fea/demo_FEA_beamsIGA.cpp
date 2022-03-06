@@ -26,7 +26,7 @@
 #include "chrono/fea/ChElementBeamIGA.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
@@ -118,14 +118,14 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 
     // Attach a visualization of the FEM mesh.
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
     mvisualizebeamA->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
@@ -205,14 +205,14 @@ void MakeAndRunDemo1(ChIrrApp& myapp, int nsections = 32, int order = 2) {
 
     // Attach a visualization of the FEM mesh.
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
     mvisualizebeamA->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
@@ -318,14 +318,14 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 
     // Attach a visualization of the FEM mesh.
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
     mvisualizebeamA->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
@@ -431,14 +431,14 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 
     // Attach a visualization of the FEM mesh.
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
     mvisualizebeamA->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
@@ -606,14 +606,14 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
 
     // Attach a visualization of the FEM mesh.
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
     mvisualizebeamA->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);

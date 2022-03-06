@@ -72,6 +72,20 @@ std::shared_ptr<ChVisualShape> ChPhysicsItem::GetVisualShape(unsigned int i) con
     return vis_model_instance->GetModel()->GetShape(i);
 }
 
+void ChPhysicsItem::AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shape) {
+    if (!vis_model_instance) {
+        auto model = chrono_types::make_shared<ChVisualModel>();
+        AddVisualModel(model);
+    }
+    vis_model_instance->GetModel()->AddShapeFEA(shape);
+}
+
+std::shared_ptr<ChVisualShapeFEA> ChPhysicsItem::GetVisualShapeFEA(unsigned int i) const {
+    if (!vis_model_instance)
+        return nullptr;
+    return vis_model_instance->GetModel()->GetShapeFEA(i);
+}
+
 void ChPhysicsItem::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
     bbmin.Set(-1e200, -1e200, -1e200);
     bbmax.Set(1e200, 1e200, 1e200);

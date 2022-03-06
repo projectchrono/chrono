@@ -30,7 +30,7 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAbase.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
@@ -82,7 +82,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     bool IsRimConnectionEnabled() const { return m_connection_enabled; }
 
     /// Get a handle to the mesh visualization.
-    fea::ChVisualizationFEAmesh* GetMeshVisualization() const { return m_visualization.get(); }
+    ChVisualShapeFEA* GetMeshVisualization() const { return m_visualization.get(); }
 
     /// Get the underlying FEA mesh.
     std::shared_ptr<fea::ChMesh> GetMesh() const { return m_mesh; }
@@ -169,10 +169,10 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     double m_contact_node_radius;       ///< node radius (for node cloud contact surface)
     double m_contact_face_thickness;    ///< face thickness (for mesh contact surface)
 
-    std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;           ///< tire contact material
-    std::shared_ptr<fea::ChVisualizationFEAmesh> m_visualization;  ///< tire mesh visualization
+    std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;  ///< tire contact material
+    std::shared_ptr<ChVisualShapeFEA> m_visualization;    ///< tire mesh visualization
 
-  //private:
+    // private:
     // The following two functions are marked as final.
     // The mass properties of a deformable tire are implicitly included through
     // the FEA mesh.  To prevent double counting the mass and inertia of a

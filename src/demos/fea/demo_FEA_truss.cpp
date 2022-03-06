@@ -28,7 +28,7 @@
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -195,19 +195,19 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
 
-    auto mvisualizeA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizeA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizeA->SetWireframe(true);
     my_mesh->AddAsset(mvisualizeA);
 
-    auto mvisualizeB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizeB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizeB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+    auto mvisualizeB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizeB->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizeB->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
     mvisualizeB->SetSymbolsThickness(0.015);
     my_mesh->AddAsset(mvisualizeB);
 
-    auto mvisualizeC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh_dumb.get()));
-    mvisualizeC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizeC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+    auto mvisualizeC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_dumb);
+    mvisualizeC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizeC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
     mvisualizeC->SetDefaultSymbolsColor(ChColor(1, 1, 0));
     mvisualizeC->SetSymbolsThickness(0.01);
     my_mesh->AddAsset(mvisualizeC);

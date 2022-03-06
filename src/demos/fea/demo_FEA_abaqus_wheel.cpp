@@ -27,7 +27,7 @@
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -237,22 +237,22 @@ int main(int argc, char* argv[]) {
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
     /*
-        auto mvisualizemeshB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-        mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+        auto mvisualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+        mvisualizemeshB->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
         mvisualizemeshB->SetWireframe(true);
         my_mesh->AddAsset(mvisualizemeshB);
     */
     /*
-        auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-        mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-        mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+        auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+        mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
+        mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
         mvisualizemeshC->SetSymbolsThickness(0.006);
         my_mesh->AddAsset(mvisualizemeshC);
      */

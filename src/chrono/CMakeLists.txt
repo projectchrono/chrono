@@ -86,7 +86,7 @@ set(ChronoEngine_core_HEADERS
     core/ChGlobal.h
     core/ChFx.h
     core/ChTypes.h
-	core/ChTensors.h
+    core/ChTensors.h
     )
 
 source_group(core FILES
@@ -234,7 +234,7 @@ set(ChronoEngine_physics_links_SOURCES
     physics/ChLinkMotorLinearSpeed.cpp
     physics/ChLinkMotorLinearForce.cpp
     physics/ChLinkMotorLinearDriveline.cpp
-	physics/ChLinkMotionImposed.cpp
+    physics/ChLinkMotionImposed.cpp
 )
 
 set(ChronoEngine_physics_links_HEADERS
@@ -275,7 +275,7 @@ set(ChronoEngine_physics_links_HEADERS
     physics/ChLinkMotorLinearSpeed.h
     physics/ChLinkMotorLinearForce.h
     physics/ChLinkMotorLinearDriveline.h
-	physics/ChLinkMotionImposed.h
+    physics/ChLinkMotionImposed.h
 )
 
 source_group(physics\\links FILES
@@ -375,7 +375,6 @@ set(ChronoEngine_fea_SOURCES
     fea/ChProximityContainerMeshless.cpp
     fea/ChPolarDecomposition.cpp
     fea/ChMatrixCorotation.cpp
-    fea/ChVisualizationFEAmesh.cpp
     fea/ChLinkPointFrame.cpp
     fea/ChLinkDirFrame.cpp
     fea/ChLinkPointPoint.cpp
@@ -391,7 +390,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChMaterialShellANCF.cpp
     fea/ChMaterialHexaANCF.cpp
     fea/ChMaterialShellReissner.cpp
-	fea/ChMaterialShellKirchhoff.cpp
+    fea/ChMaterialShellKirchhoff.cpp
     )
 
 set(ChronoEngine_fea_HEADERS
@@ -419,7 +418,6 @@ set(ChronoEngine_fea_HEADERS
     fea/ChProximityContainerMeshless.h
     fea/ChPolarDecomposition.h
     fea/ChMatrixCorotation.h
-    fea/ChVisualizationFEAmesh.h
     fea/ChLinkPointFrame.h
     fea/ChLinkDirFrame.h
     fea/ChLinkPointPoint.h
@@ -436,7 +434,7 @@ set(ChronoEngine_fea_HEADERS
     fea/ChMaterialShellANCF.h
     fea/ChMaterialHexaANCF.h
     fea/ChMaterialShellReissner.h
-	fea/ChMaterialShellKirchhoff.h
+    fea/ChMaterialShellKirchhoff.h
 )
 
 source_group(fea FILES
@@ -491,7 +489,7 @@ set(ChronoEngine_fea_elements_SOURCES
     fea/ChElementShellANCF_3423.cpp
     fea/ChElementShellANCF_3833.cpp
     fea/ChElementShellANCF_3443.cpp
-	fea/ChElementShellBST.cpp
+    fea/ChElementShellBST.cpp
     fea/ChElementShellReissner4.cpp
 )
 
@@ -523,7 +521,7 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementShellANCF_3443.h
     fea/ChElementShellANCF_3833.h
     fea/ChElementShellReissner4.h
-	fea/ChElementShellBST.h
+    fea/ChElementShellBST.h
 )
 
 source_group(fea\\elements FILES
@@ -604,7 +602,7 @@ set(ChronoEngine_assets_SOURCES
     assets/ChSphereShape.cpp
     assets/ChEllipsoidShape.cpp
     assets/ChBoxShape.cpp
-  	assets/ChBarrelShape.cpp
+    assets/ChBarrelShape.cpp
     assets/ChConeShape.cpp
     assets/ChCylinderShape.cpp
     assets/ChCapsuleShape.cpp
@@ -624,6 +622,7 @@ set(ChronoEngine_assets_SOURCES
     assets/ChSurfaceShape.cpp
     assets/ChVisualMaterial.cpp
     assets/ChVisualShape.cpp
+    assets/ChVisualShapeFEA.cpp
     assets/ChVisualModel.cpp
     assets/ChVisualSystem.cpp
     )
@@ -634,7 +633,7 @@ set(ChronoEngine_assets_HEADERS
     assets/ChTriangleMeshShape.h
     assets/ChSphereShape.h
     assets/ChEllipsoidShape.h
-  	assets/ChBarrelShape.h
+    assets/ChBarrelShape.h
     assets/ChBoxShape.h
     assets/ChConeShape.h
     assets/ChCylinderShape.h
@@ -656,6 +655,7 @@ set(ChronoEngine_assets_HEADERS
     assets/ChSurfaceShape.h
     assets/ChVisualMaterial.h
     assets/ChVisualShape.h
+    assets/ChVisualShapeFEA.h
     assets/ChVisualModel.h
     assets/ChVisualSystem.h
     )
@@ -690,7 +690,7 @@ if (THRUST_FOUND)
         multicore_math/utility.h
         multicore_math/vec3.cpp
         )
-    
+
     source_group(multicore_math FILES ${ChronoEngine_MulticoreMath_SOURCES})
 elseif()
     set(ChronoEngine_MulticoreMath_SOURCES "")
@@ -730,7 +730,7 @@ if (THRUST_FOUND)
        collision/ChCollisionModelChrono.cpp
        collision/ChCollisionSystemChrono.cpp
        )
-   
+
    set (ChronoEngine_collision_HEADERS ${ChronoEngine_collision_HEADERS}
        collision/ChCollisionShapeChrono.h
        collision/ChCollisionModelChrono.h
@@ -849,16 +849,16 @@ set(ChronoEngine_motion_functions_SOURCES
     motion_functions/ChFunction_Sigma.cpp
     motion_functions/ChFunction_Sine.cpp
     motion_functions/ChFunction_Setpoint.cpp
-	motion_functions/ChFunctionPosition.cpp
-	motion_functions/ChFunctionPosition_XYZfunctions.cpp
-	motion_functions/ChFunctionPosition_line.cpp
-	motion_functions/ChFunctionPosition_setpoint.cpp
-	motion_functions/ChFunctionRotation.cpp
-	motion_functions/ChFunctionRotation_axis.cpp
-	motion_functions/ChFunctionRotation_ABCfunctions.cpp
-	motion_functions/ChFunctionRotation_setpoint.cpp
-	motion_functions/ChFunctionRotation_spline.cpp
-	motion_functions/ChFunctionRotation_SQUAD.cpp
+    motion_functions/ChFunctionPosition.cpp
+    motion_functions/ChFunctionPosition_XYZfunctions.cpp
+    motion_functions/ChFunctionPosition_line.cpp
+    motion_functions/ChFunctionPosition_setpoint.cpp
+    motion_functions/ChFunctionRotation.cpp
+    motion_functions/ChFunctionRotation_axis.cpp
+    motion_functions/ChFunctionRotation_ABCfunctions.cpp
+    motion_functions/ChFunctionRotation_setpoint.cpp
+    motion_functions/ChFunctionRotation_spline.cpp
+    motion_functions/ChFunctionRotation_SQUAD.cpp
     )
 
 set(ChronoEngine_motion_functions_HEADERS
@@ -884,16 +884,16 @@ set(ChronoEngine_motion_functions_HEADERS
     motion_functions/ChFunction_Sigma.h
     motion_functions/ChFunction_Sine.h
     motion_functions/ChFunction_Setpoint.h
-	motion_functions/ChFunctionPosition.h
-	motion_functions/ChFunctionPosition_XYZfunctions.h
-	motion_functions/ChFunctionPosition_line.h
-	motion_functions/ChFunctionPosition_setpoint.h
-	motion_functions/ChFunctionRotation.h
-	motion_functions/ChFunctionRotation_axis.h
-	motion_functions/ChFunctionRotation_ABCfunctions.h
-	motion_functions/ChFunctionRotation_setpoint.h
-	motion_functions/ChFunctionRotation_spline.h
-	motion_functions/ChFunctionRotation_SQUAD.h
+    motion_functions/ChFunctionPosition.h
+    motion_functions/ChFunctionPosition_XYZfunctions.h
+    motion_functions/ChFunctionPosition_line.h
+    motion_functions/ChFunctionPosition_setpoint.h
+    motion_functions/ChFunctionRotation.h
+    motion_functions/ChFunctionRotation_axis.h
+    motion_functions/ChFunctionRotation_ABCfunctions.h
+    motion_functions/ChFunctionRotation_setpoint.h
+    motion_functions/ChFunctionRotation_spline.h
+    motion_functions/ChFunctionRotation_SQUAD.h
     )
 
 if(CH_CXX14)
@@ -1033,7 +1033,7 @@ if (THRUST_FOUND)
        collision/chrono/ChCollisionUtilsMPR.cpp
        collision/chrono/ChCollisionUtilsPRIMS.cpp
    )
-   
+
    source_group("collision\\chrono" FILES
        ${ChronoEngine_collision_chrono_SOURCES})
 endif()
@@ -1302,7 +1302,7 @@ source_group(utils FILES
 set(ChronoEngine_tiny_obj_FILES
   ../chrono_thirdparty/tinyobjloader/tiny_obj_loader.cc
   ../chrono_thirdparty/tinyobjloader/tiny_obj_loader.h
-  )
+)
 
 source_group(utils\\tiny_obj FILES
     ${ChronoEngine_tiny_obj_FILES})

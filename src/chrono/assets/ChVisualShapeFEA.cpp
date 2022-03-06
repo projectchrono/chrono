@@ -9,14 +9,18 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono/fea/ChContactSurfaceMesh.h"
-#include "chrono/fea/ChContactSurfaceNodeCloud.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChNodeFEAxyzP.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
+#include "chrono/fea/ChNodeFEAxyzDD.h"
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementBeamANCF_3243.h"
 #include "chrono/fea/ChElementBeamANCF_3333.h"
@@ -30,13 +34,15 @@
 #include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChTetrahedronFace.h"
 #include "chrono/fea/ChHexahedronFace.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChContactSurfaceNodeCloud.h"
 
 namespace chrono {
-namespace fea {
 
-ChVisualizationFEAmesh::ChVisualizationFEAmesh(ChMesh& mymesh) {
-    FEMmesh = &mymesh;
+using namespace fea;
+
+ChVisualShapeFEA::ChVisualShapeFEA(std::shared_ptr<fea::ChMesh> fea_mesh) {
+    FEMmesh = fea_mesh;
     fem_data_type = E_PLOT_SURFACE;
     fem_glyph = E_GLYPH_NONE;
 
@@ -65,14 +71,14 @@ ChVisualizationFEAmesh::ChVisualizationFEAmesh(ChMesh& mymesh) {
 
     undeformed_reference = false;
 
-    auto new_mesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
-    this->AddAsset(new_mesh_asset);
+    m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    this->AddAsset(m_trimesh_shape);
 
-    auto new_glyphs_asset = chrono_types::make_shared<ChGlyphs>();
-    this->AddAsset(new_glyphs_asset);
+    m_glyphs_shape = chrono_types::make_shared<ChGlyphs>();
+    this->AddAsset(m_glyphs_shape);
 }
 
-ChColor ChVisualizationFEAmesh::ComputeFalseColor2(double mv) {
+ChColor ChVisualShapeFEA::ComputeFalseColor2(double mv) {
     ChColor c = ChColor::ComputeFalseColor(mv, this->colorscale_min, this->colorscale_max, true);
 
     if (this->fem_data_type == E_PLOT_SURFACE)
@@ -81,15 +87,15 @@ ChColor ChVisualizationFEAmesh::ComputeFalseColor2(double mv) {
     return c;
 }
 
-ChVector<float> ChVisualizationFEAmesh::ComputeFalseColor(double mv) {
+ChVector<float> ChVisualShapeFEA::ComputeFalseColor(double mv) {
     ChColor c = this->ComputeFalseColor2(mv);
     ChVector<float> vc(c.R, c.G, c.B);
     return vc;
 }
 
-double ChVisualizationFEAmesh::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> mnode,
-                                                   int nodeID,
-                                                   std::shared_ptr<ChElementBase> melement) {
+double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> mnode,
+                                             int nodeID,
+                                             std::shared_ptr<ChElementBase> melement) {
     switch (this->fem_data_type) {
         case E_PLOT_SURFACE:
             return 1e30;  // to force 'white' in false color scale. Hack, to be improved.
@@ -140,9 +146,9 @@ double ChVisualizationFEAmesh::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz>
     return 0;
 }
 
-double ChVisualizationFEAmesh::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyzP> mnode,
-                                                   int nodeID,
-                                                   std::shared_ptr<ChElementBase> melement) {
+double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyzP> mnode,
+                                             int nodeID,
+                                             std::shared_ptr<ChElementBase> melement) {
     switch (this->fem_data_type) {
         case E_PLOT_SURFACE:
             return 1e30;  // to force 'white' in false color scale. Hack, to be improved.
@@ -195,12 +201,12 @@ void TriangleNormalsSmooth(std::vector<ChVector<>>& normals, std::vector<int>& a
 }
 
 // Helper function for updating visualization mesh buffers for hex elements.
-void ChVisualizationFEAmesh::UpdateBuffers_Hex(std::shared_ptr<ChElementBase> element,
-                                               geometry::ChTriangleMeshConnected& trianglemesh,
-                                               unsigned int& i_verts,
-                                               unsigned int& i_vnorms,
-                                               unsigned int& i_vcols,
-                                               unsigned int& i_triindex) {
+void ChVisualShapeFEA::UpdateBuffers_Hex(std::shared_ptr<ChElementBase> element,
+                                         geometry::ChTriangleMeshConnected& trianglemesh,
+                                         unsigned int& i_verts,
+                                         unsigned int& i_vnorms,
+                                         unsigned int& i_vcols,
+                                         unsigned int& i_triindex) {
     unsigned int ivert_el = i_verts;
     unsigned int inorm_el = i_vnorms;
 
@@ -283,32 +289,16 @@ void ChVisualizationFEAmesh::UpdateBuffers_Hex(std::shared_ptr<ChElementBase> el
     }
 }
 
-void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
+//// RADU TODO obsolete
+void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
+    Update(updater, ChFrame<>(coords));
+}
+
+void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
     if (!this->FEMmesh)
         return;
 
-    std::shared_ptr<ChTriangleMeshShape> mesh_asset;
-    std::shared_ptr<ChGlyphs> glyphs_asset;
-
-    // try to retrieve previously added mesh asset and glyhs asset in sublevel..
-    if (this->GetAssets().size() == 2) {
-        mesh_asset = std::dynamic_pointer_cast<ChTriangleMeshShape>(GetAssets()[0]);
-        glyphs_asset = std::dynamic_pointer_cast<ChGlyphs>(GetAssets()[1]);
-    }
-
-    // if not available, create ...
-    if (!mesh_asset) {
-        this->GetAssets().resize(0);  // this to delete other sub assets that are not in mesh & glyphs, if any
-
-        auto new_mesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
-        this->AddAsset(new_mesh_asset);
-        mesh_asset = new_mesh_asset;
-
-        auto new_glyphs_asset = chrono_types::make_shared<ChGlyphs>();
-        this->AddAsset(new_glyphs_asset);
-        glyphs_asset = new_glyphs_asset;
-    }
-    auto trianglemesh = mesh_asset->GetMesh();
+    auto trianglemesh = m_trimesh_shape->GetMesh();
 
     size_t n_verts = 0;
     size_t n_vcols = 0;
@@ -1044,63 +1034,62 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     }
 
     // other flags
-    mesh_asset->SetWireframe(this->wireframe);
-    mesh_asset->SetBackfaceCull(this->backface_cull);
-    //
+    m_trimesh_shape->SetWireframe(this->wireframe);
+    m_trimesh_shape->SetBackfaceCull(this->backface_cull);
+
     // GLYPHS
-    //
 
     //***TEST***
-    glyphs_asset->Reserve(0);  // unoptimal, should reuse buffers as much as possible
+    m_glyphs_shape->Reserve(0);  // unoptimal, should reuse buffers as much as possible
 
-    glyphs_asset->SetGlyphsSize(this->symbols_thickness);
+    m_glyphs_shape->SetGlyphsSize(this->symbols_thickness);
 
-    glyphs_asset->SetZbufferHide(this->zbuffer_hide);
+    m_glyphs_shape->SetZbufferHide(this->zbuffer_hide);
 
-    if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS) {
-        glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_POINT);
+    if (this->fem_glyph == ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS) {
+        m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_POINT);
         for (unsigned int inode = 0; inode < this->FEMmesh->GetNnodes(); ++inode) {
             if (auto mynode1 = std::dynamic_pointer_cast<ChNodeFEAxyz>(this->FEMmesh->GetNode(inode))) {
-                glyphs_asset->SetGlyphPoint(inode, mynode1->GetPos(), this->symbolscolor);
+                m_glyphs_shape->SetGlyphPoint(inode, mynode1->GetPos(), this->symbolscolor);
             } else if (auto mynode2 = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(this->FEMmesh->GetNode(inode))) {
-                glyphs_asset->SetGlyphPoint(inode, mynode2->GetPos(), this->symbolscolor);
+                m_glyphs_shape->SetGlyphPoint(inode, mynode2->GetPos(), this->symbolscolor);
             } else if (auto mynode3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(this->FEMmesh->GetNode(inode))) {
-                glyphs_asset->SetGlyphPoint(inode, mynode3->GetPos(), this->symbolscolor);
+                m_glyphs_shape->SetGlyphPoint(inode, mynode3->GetPos(), this->symbolscolor);
             } else if (auto mynode4 = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(this->FEMmesh->GetNode(inode))) {
-                glyphs_asset->SetGlyphPoint(inode, mynode4->GetPos(), this->symbolscolor);
+                m_glyphs_shape->SetGlyphPoint(inode, mynode4->GetPos(), this->symbolscolor);
             }
         }
     }
-    if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS) {
-        glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
+    if (this->fem_glyph == ChVisualShapeFEA::E_GLYPH_NODE_CSYS) {
+        m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
         for (unsigned int inode = 0; inode < this->FEMmesh->GetNnodes(); ++inode) {
             if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(this->FEMmesh->GetNode(inode))) {
-                glyphs_asset->SetGlyphCoordsys(inode, mynode->Frame().GetCoord());
+                m_glyphs_shape->SetGlyphCoordsys(inode, mynode->Frame().GetCoord());
             }
             // else if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(this->FEMmesh->GetNode(inode))) {
-            //	glyphs_asset->SetGlyphVector(inode, mynode->GetPos(), mynode->GetD() * this->symbols_scale,
+            //	m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetD() * this->symbols_scale,
             // this->symbolscolor );
             //}
         }
     }
-    if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED) {
-        glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+    if (this->fem_glyph == ChVisualShapeFEA::E_GLYPH_NODE_VECT_SPEED) {
+        m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         for (unsigned int inode = 0; inode < this->FEMmesh->GetNnodes(); ++inode)
             if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyz>(this->FEMmesh->GetNode(inode))) {
-                glyphs_asset->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPos_dt() * this->symbols_scale,
-                                             this->symbolscolor);
+                m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPos_dt() * this->symbols_scale,
+                                               this->symbolscolor);
             }
     }
-    if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_ACCEL) {
-        glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+    if (this->fem_glyph == ChVisualShapeFEA::E_GLYPH_NODE_VECT_ACCEL) {
+        m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         for (unsigned int inode = 0; inode < this->FEMmesh->GetNnodes(); ++inode)
             if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyz>(this->FEMmesh->GetNode(inode))) {
-                glyphs_asset->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPos_dtdt() * this->symbols_scale,
-                                             this->symbolscolor);
+                m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPos_dtdt() * this->symbols_scale,
+                                               this->symbolscolor);
             }
     }
-    if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_ELEM_VECT_DP) {
-        glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+    if (this->fem_glyph == ChVisualShapeFEA::E_GLYPH_ELEM_VECT_DP) {
+        m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel)
             if (auto myelement = std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(this->FEMmesh->GetElement(iel))) {
                 ChVector<> mvP(myelement->GetPgradient());
@@ -1110,11 +1099,11 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 auto n3 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(3));
                 ChVector<> mPoint = (n0->GetPos() + n1->GetPos() + n2->GetPos() + n3->GetPos()) *
                                     0.25;  // to do: better placement in Gauss point
-                glyphs_asset->SetGlyphVector(iel, mPoint, mvP * this->symbols_scale, this->symbolscolor);
+                m_glyphs_shape->SetGlyphVector(iel, mPoint, mvP * this->symbols_scale, this->symbolscolor);
             }
     }
-    if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN) {
-        glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+    if (this->fem_glyph == ChVisualShapeFEA::E_GLYPH_ELEM_TENS_STRAIN) {
+        m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         int nglyvect = 0;
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel)
             if (auto myelement = std::dynamic_pointer_cast<ChElementTetraCorot_4>(this->FEMmesh->GetElement(iel))) {
@@ -1133,19 +1122,19 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 auto n3 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNodeN(3));
                 //// TODO: better placement in Gauss point
                 ChVector<> mPoint = (n0->GetPos() + n1->GetPos() + n2->GetPos() + n3->GetPos()) * 0.25;
-                glyphs_asset->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v1 * e1 * this->symbols_scale,
-                                             ComputeFalseColor2(e1));
+                m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v1 * e1 * this->symbols_scale,
+                                               ComputeFalseColor2(e1));
                 ++nglyvect;
-                glyphs_asset->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v2 * e2 * this->symbols_scale,
-                                             ComputeFalseColor2(e2));
+                m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v2 * e2 * this->symbols_scale,
+                                               ComputeFalseColor2(e2));
                 ++nglyvect;
-                glyphs_asset->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v3 * e3 * this->symbols_scale,
-                                             ComputeFalseColor2(e3));
+                m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v3 * e3 * this->symbols_scale,
+                                               ComputeFalseColor2(e3));
                 ++nglyvect;
             }
     }
-    if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRESS) {
-        glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+    if (this->fem_glyph == ChVisualShapeFEA::E_GLYPH_ELEM_TENS_STRESS) {
+        m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         int nglyvect = 0;
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel)
             if (auto myelement = std::dynamic_pointer_cast<ChElementTetraCorot_4>(this->FEMmesh->GetElement(iel))) {
@@ -1164,14 +1153,14 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 auto n3 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNodeN(3));
                 //// TODO: better placement in Gauss point
                 ChVector<> mPoint = (n0->GetPos() + n1->GetPos() + n2->GetPos() + n3->GetPos()) * 0.25;
-                glyphs_asset->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v1 * e1 * this->symbols_scale,
-                                             ComputeFalseColor2(e1));
+                m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v1 * e1 * this->symbols_scale,
+                                               ComputeFalseColor2(e1));
                 ++nglyvect;
-                glyphs_asset->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v2 * e2 * this->symbols_scale,
-                                             ComputeFalseColor2(e2));
+                m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v2 * e2 * this->symbols_scale,
+                                               ComputeFalseColor2(e2));
                 ++nglyvect;
-                glyphs_asset->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v3 * e3 * this->symbols_scale,
-                                             ComputeFalseColor2(e3));
+                m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v3 * e3 * this->symbols_scale,
+                                               ComputeFalseColor2(e3));
                 ++nglyvect;
             }
     }
@@ -1181,13 +1170,13 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel) {
             // ------------ELEMENT IS A ChElementShellReissner4?
             if (auto myshell = std::dynamic_pointer_cast<ChElementShellReissner4>(this->FEMmesh->GetElement(iel))) {
-                glyphs_asset->SetGlyphsSize(0.4);
+                m_glyphs_shape->SetGlyphsSize(0.4);
                 // average rotation
                 if (false) {
-                    glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
-                    glyphs_asset->GetNumberOfGlyphs();
-                    glyphs_asset->SetGlyphCoordsys(
-                        (unsigned int)glyphs_asset->GetNumberOfGlyphs(),
+                    m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
+                    m_glyphs_shape->GetNumberOfGlyphs();
+                    m_glyphs_shape->SetGlyphCoordsys(
+                        (unsigned int)m_glyphs_shape->GetNumberOfGlyphs(),
                         ChCoordsys<>((myshell->GetNodeA()->GetPos() + myshell->GetNodeB()->GetPos() +
                                       myshell->GetNodeC()->GetPos() + myshell->GetNodeD()->GetPos()) *
                                          0.25,
@@ -1195,41 +1184,41 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 }
                 // gauss point coordsys
                 if (false) {
-                    glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
+                    m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
                     for (int igp = 0; igp < 4; ++igp) {
-                        glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphCoordsys(
-                            (unsigned int)glyphs_asset->GetNumberOfGlyphs(),
+                        m_glyphs_shape->GetNumberOfGlyphs();
+                        m_glyphs_shape->SetGlyphCoordsys(
+                            (unsigned int)m_glyphs_shape->GetNumberOfGlyphs(),
                             ChCoordsys<>(myshell->EvaluateGP(igp), myshell->T_i[igp].Get_A_quaternion()));
                     }
                 }
                 // gauss point weights
                 if (false) {
-                    glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+                    m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
                     for (int igp = 0; igp < 4; ++igp) {
-                        glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphVector((unsigned int)glyphs_asset->GetNumberOfGlyphs(),
-                                                     myshell->EvaluateGP(igp),
-                                                     ChVector<>(0, myshell->alpha_i[igp] * 4, 0));
+                        m_glyphs_shape->GetNumberOfGlyphs();
+                        m_glyphs_shape->SetGlyphVector((unsigned int)m_glyphs_shape->GetNumberOfGlyphs(),
+                                                       myshell->EvaluateGP(igp),
+                                                       ChVector<>(0, myshell->alpha_i[igp] * 4, 0));
                     }
                 }
                 // gauss curvatures
                 if (false) {
                     for (int igp = 0; igp < 4; ++igp) {
-                        glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+                        m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
                         /*
-                        glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(),
+                        m_glyphs_shape->GetNumberOfGlyphs();
+                        m_glyphs_shape->SetGlyphVector(m_glyphs_shape->GetNumberOfGlyphs(),
                             myshell->EvaluateGP(igp),
                             myshell->T_i[igp].Rotate(myshell->kur_u_tilde[igp]*50), ChColor(1,0,0) );
-                        glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(),
+                        m_glyphs_shape->GetNumberOfGlyphs();
+                        m_glyphs_shape->SetGlyphVector(m_glyphs_shape->GetNumberOfGlyphs(),
                             myshell->EvaluateGP(igp),
                             myshell->T_i[igp].Rotate(myshell->kur_v_tilde[igp]*50), ChColor(0,1,0) );
-                            */
-                        glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphVector(
-                            (unsigned int)glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
+                        */
+                        m_glyphs_shape->GetNumberOfGlyphs();
+                        m_glyphs_shape->SetGlyphVector(
+                            (unsigned int)m_glyphs_shape->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
                             myshell->T_i[igp] * ((myshell->k_tilde_1_i[igp] + myshell->k_tilde_2_i[igp]) * 50),
                             ChColor(0, 0, 0));
                     }
@@ -1237,17 +1226,17 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 // gauss strains
                 if (true) {
                     for (int igp = 0; igp < 4; ++igp) {
-                        glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+                        m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
                         double scale = 1;
-                        glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphVector(
-                            (unsigned int)glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
+                        m_glyphs_shape->GetNumberOfGlyphs();
+                        m_glyphs_shape->SetGlyphVector(
+                            (unsigned int)m_glyphs_shape->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
                             myshell->T_i[igp] * (myshell->eps_tilde_1_i[igp] * scale), ChColor(1, 0, 0));
-                        glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphVector(
-                            (unsigned int)glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
+                        m_glyphs_shape->GetNumberOfGlyphs();
+                        m_glyphs_shape->SetGlyphVector(
+                            (unsigned int)m_glyphs_shape->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
                             myshell->T_i[igp] * (myshell->eps_tilde_2_i[igp] * scale), ChColor(0, 0, 1));
-                        glyphs_asset->GetNumberOfGlyphs();
+                        m_glyphs_shape->GetNumberOfGlyphs();
                     }
                 }
                 // other...
@@ -1256,8 +1245,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
     // Finally, update also the children, in case they implemented Update(),
     // and do this by calling the parent class implementation of ChAssetLevel
-    ChAssetLevel::Update(updater, coords);
+    ChAssetLevel::Update(updater, frame.GetCoord());
 }
 
-}  // end namespace fea
 }  // end namespace chrono

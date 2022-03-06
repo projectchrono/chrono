@@ -33,7 +33,7 @@
 #include "chrono/fea/ChElementShellANCF_3443.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChIrrApp.h"
@@ -203,20 +203,20 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
     m_system->Add(mesh);
 
     // Setup visualization
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
     mvisualizemesh->SetSmoothFaces(true);
     mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshlines = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    mvisualizemeshlines->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizemeshlines = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    mvisualizemeshlines->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
     mvisualizemeshlines->SetWireframe(true);
     mvisualizemeshlines->SetDrawInUndeformedReference(false);
     mesh->AddAsset(mvisualizemeshlines);
 
-    auto mvisualizemeshnode = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    mvisualizemeshnode->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshnode->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizemeshnode = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    mvisualizemeshnode->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
+    mvisualizemeshnode->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
     mvisualizemeshnode->SetSymbolsThickness(0.004);
     mesh->AddAsset(mvisualizemeshnode);
 

@@ -22,7 +22,7 @@
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -144,28 +144,28 @@ int main(int argc, char* argv[]) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto visualizemeshA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    visualizemeshA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    auto visualizemeshA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    visualizemeshA->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
     visualizemeshA->SetColorscaleMinMax(0.0, 5.50);
     visualizemeshA->SetShrinkElements(true, 0.85);
     visualizemeshA->SetSmoothFaces(true);
     my_mesh->AddAsset(visualizemeshA);
 
-    auto visualizemeshB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    visualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto visualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    visualizemeshB->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
     visualizemeshB->SetWireframe(true);
     visualizemeshB->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(visualizemeshB);
 
-    auto visualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    visualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    visualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto visualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    visualizemeshC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
+    visualizemeshC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
     visualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(visualizemeshC);
 
-    auto visualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    visualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
-    visualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto visualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    visualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_ELEM_TENS_STRAIN);
+    visualizemeshD->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
     visualizemeshD->SetSymbolsScale(1);
     visualizemeshD->SetColorscaleMinMax(-0.5, 5);
     visualizemeshD->SetZbufferHide(false);

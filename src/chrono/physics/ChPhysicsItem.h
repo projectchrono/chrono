@@ -74,6 +74,14 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Note that no range check is performed.
     std::shared_ptr<ChVisualShape> GetVisualShape(unsigned int i) const;
 
+    /// Add the specified FEA visualization object to the visualization model.
+    /// If this item does not have a visual model, one is created.
+    void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA);
+
+    /// Access the specified FEA visualization object in the visualization model (if any).
+    /// Note that no range check is performed.
+    std::shared_ptr<ChVisualShapeFEA> GetVisualShapeFEA(unsigned int i) const;
+
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// If the visual model is cloned (for example for a physics item modeling a particle system), this function returns
     /// the coordinate system of the specified clone.
