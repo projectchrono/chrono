@@ -74,6 +74,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
       protected:
         Patch();
 
+        virtual void Initialize() = 0;
+
         virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const = 0;
         virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) {}
         virtual void ExportMeshWavefront(const std::string& out_dir) {}
@@ -83,6 +85,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         float m_friction;                ///< coefficient of friction
         double m_radius;                 ///< bounding sphere radius
 
+        bool m_visualize;
         std::shared_ptr<ChVisualMaterial> m_vis_mat;
 
         friend class RigidTerrain;
@@ -195,6 +198,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         ChVector<> m_normal;    ///< outward normal of the top surface
         double m_hlength;       ///< patch half-length
         double m_hwidth;        ///< patch half-width
+        double m_hthickness;    ///< patch half-thickness
+        virtual void Initialize() override;
         virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const override;
     };
 
@@ -203,6 +208,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< associated mesh (contact and visualization)
         std::shared_ptr<geometry::ChTriangleMeshSoup> m_trimesh_s;     ///< associated contact mesh soup
         std::string m_mesh_name;                                       ///< name of associated mesh
+        virtual void Initialize() override;
         virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const override;
         virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) override;
         virtual void ExportMeshWavefront(const std::string& out_dir) override;
