@@ -212,14 +212,14 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
 
     // Setup visualization
     auto vis_surf = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
-    vis_surf->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    vis_surf->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     vis_surf->SetWireframe(true);
     vis_surf->SetDrawInUndeformedReference(true);
     mesh->AddAsset(vis_surf);
 
     auto vis_node = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
-    vis_node->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
-    vis_node->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    vis_node->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    vis_node->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     vis_node->SetSymbolsThickness(0.01);
     mesh->AddAsset(vis_node);
 

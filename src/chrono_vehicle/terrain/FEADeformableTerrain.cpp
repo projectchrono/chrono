@@ -244,7 +244,7 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     // -------------------------------------
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(m_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.995);
     mvisualizemesh->SetSmoothFaces(false);

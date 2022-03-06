@@ -208,26 +208,26 @@ int main(int argc, char* argv[]) {
 
     // Options for visualization in irrlicht
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_P);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_P);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(false);
     my_mesh->AddAsset(mvisualizemesh);
 
     auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
     auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshC->SetSymbolsThickness(0.015);
     my_mesh->AddAsset(mvisualizemeshC);
 
     auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NONE);
-    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NONE);
+    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshD->SetSymbolsScale(1);
     mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);

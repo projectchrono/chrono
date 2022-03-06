@@ -309,8 +309,8 @@ int main(int argc, char* argv[]) {
     my_mesh->AddAsset(mvisualizeshellA);
 
     auto mvisualizeshellB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizeshellB->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
-    mvisualizeshellB->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
+    mvisualizeshellB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    mvisualizeshellB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizeshellB->SetSymbolsThickness(0.006);
     my_mesh->AddAsset(mvisualizeshellB);
 

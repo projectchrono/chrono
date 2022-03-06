@@ -128,10 +128,10 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
 
-    // This will paint the colored mesh with temperature scale (E_PLOT_NODE_P is the scalar field of the Poisson
+    // This will paint the colored mesh with temperature scale (NODE_P is the scalar field of the Poisson
     // problem)
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_P);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_P);
     mvisualizemesh->SetColorscaleMinMax(-1, 12);
     mvisualizemesh->SetShrinkElements(false, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
@@ -139,14 +139,14 @@ int main(int argc, char* argv[]) {
 
     // This will paint the wireframe
     auto mvisualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshB->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    mvisualizemeshB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshB->SetWireframe(true);
     my_mesh->AddAsset(mvisualizemeshB);
 
     // This will paint the heat flux as line vectors
     auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
-    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_ELEM_VECT_DP);
+    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_VECT_DP);
     mvisualizemeshC->SetSymbolsScale(0.003);
     mvisualizemeshC->SetDefaultSymbolsColor(ChColor(0.1f, 0.2f, 0.2f));
     mvisualizemeshC->SetZbufferHide(false);

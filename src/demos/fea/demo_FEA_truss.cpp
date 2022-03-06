@@ -200,14 +200,14 @@ int main(int argc, char* argv[]) {
     my_mesh->AddAsset(mvisualizeA);
 
     auto mvisualizeB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizeB->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
-    mvisualizeB->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
+    mvisualizeB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    mvisualizeB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizeB->SetSymbolsThickness(0.015);
     my_mesh->AddAsset(mvisualizeB);
 
     auto mvisualizeC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_dumb);
-    mvisualizeC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
-    mvisualizeC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
+    mvisualizeC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    mvisualizeC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizeC->SetDefaultSymbolsColor(ChColor(1, 1, 0));
     mvisualizeC->SetSymbolsThickness(0.01);
     my_mesh->AddAsset(mvisualizeC);

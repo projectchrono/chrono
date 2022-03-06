@@ -296,35 +296,35 @@ void DPCapPress() {
     // -------------------------------------
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
     auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
     auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
     auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
+    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
+    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
     mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddAsset(mvisualizemeshD);
 
     auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::E_PLOT_CONTACTSURFACES);
+    mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddAsset(mvisualizemeshcoll);
@@ -648,35 +648,35 @@ void ShellBrickContact() {
     // -------------------------------------
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
     auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
     auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
     auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
+    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
+    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
     mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddAsset(mvisualizemeshD);
 
     auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::E_PLOT_CONTACTSURFACES);
+    mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddAsset(mvisualizemeshcoll);
@@ -684,35 +684,35 @@ void ShellBrickContact() {
     // Duplicate irrlicht settings for the shell mesh
 
     auto mvisualizemesh_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
-    mvisualizemesh_shell->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh_shell->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh_shell->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh_shell->SetShrinkElements(true, 0.85);
     mvisualizemesh_shell->SetSmoothFaces(true);
     my_shell_mesh->AddAsset(mvisualizemesh_shell);
 
     auto mvisualizemeshref_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
-    mvisualizemeshref_shell->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    mvisualizemeshref_shell->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref_shell->SetWireframe(true);
     mvisualizemeshref_shell->SetDrawInUndeformedReference(true);
     my_shell_mesh->AddAsset(mvisualizemeshref_shell);
 
     auto mvisualizemeshC_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
-    mvisualizemeshC_shell->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC_shell->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshC_shell->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshC_shell->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC_shell->SetSymbolsThickness(0.004);
     my_shell_mesh->AddAsset(mvisualizemeshC_shell);
 
     auto mvisualizemeshD_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
-    mvisualizemeshD_shell->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD_shell->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD_shell->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshD_shell->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
+    mvisualizemeshD_shell->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
+    mvisualizemeshD_shell->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD_shell->SetSymbolsScale(1);
     mvisualizemeshD_shell->SetColorscaleMinMax(-0.5, 5);
     mvisualizemeshD_shell->SetZbufferHide(false);
     my_shell_mesh->AddAsset(mvisualizemeshD_shell);
 
     auto mvisualizemeshcoll_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
-    mvisualizemeshcoll_shell->SetFEMdataType(ChVisualShapeFEA::E_PLOT_CONTACTSURFACES);
+    mvisualizemeshcoll_shell->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll_shell->SetWireframe(true);
     mvisualizemeshcoll_shell->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_shell_mesh->AddAsset(mvisualizemeshcoll_shell);
@@ -990,35 +990,35 @@ void SimpleBoxContact() {
     // -------------------------------------
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.99);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
     auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
     auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
     auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
+    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
+    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
     mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddAsset(mvisualizemeshD);
 
     auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::E_PLOT_CONTACTSURFACES);
+    mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddAsset(mvisualizemeshcoll);
@@ -1313,35 +1313,35 @@ void SoilBin() {
     // -------------------------------------
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
     auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
     auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
     auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
+    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
+    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
     mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddAsset(mvisualizemeshD);
 
     auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::E_PLOT_CONTACTSURFACES);
+    mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddAsset(mvisualizemeshcoll);
@@ -1603,28 +1603,28 @@ void AxialDynamics() {
     // -------------------------------------
 
     // auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    // mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
+    // mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     // mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     // mvisualizemesh->SetShrinkElements(true, 0.85);
     // mvisualizemesh->SetSmoothFaces(true);
     // my_mesh->AddAsset(mvisualizemesh);
 
     // auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    // mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    // mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     // mvisualizemeshref->SetWireframe(true);
     // mvisualizemeshref->SetDrawInUndeformedReference(true);
     // my_mesh->AddAsset(mvisualizemeshref);
 
     // auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    // mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
-    // mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    // mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    // mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     // mvisualizemeshC->SetSymbolsThickness(0.004);
     // my_mesh->AddAsset(mvisualizemeshC);
 
     // auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    //// mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_VECT_SPEED);
-    // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_ELEM_TENS_STRAIN);
-    // mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    //// mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
+    // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
+    // mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     // mvisualizemeshD->SetSymbolsScale(1);
     // mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
     // mvisualizemeshD->SetZbufferHide(false);
@@ -1833,28 +1833,28 @@ void BendingQuasiStatic() {
     // -------------------------------------
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
     auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
     auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
     auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
+    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
+    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
     mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
@@ -2061,28 +2061,28 @@ void SwingingShell() {
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
     auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::E_PLOT_ELEM_STRESS_VONMISES);
+    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_STRESS_VONMISES);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
     auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddAsset(mvisualizemeshC);
 
     auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
+    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
+    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
     mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);

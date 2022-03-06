@@ -171,23 +171,23 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction)
     //
 
     auto mvisualizeInternalA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_internal);
-    mvisualizeInternalA->SetFEMdataType(ChVisualShapeFEA::E_PLOT_ELEM_BEAM_TX);
+    mvisualizeInternalA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
     mvisualizeInternalA->SetColorscaleMinMax(-0.001, 1200);
     mvisualizeInternalA->SetSmoothFaces(true);
     mvisualizeInternalA->SetWireframe(false);
     my_mesh_internal->AddAsset(mvisualizeInternalA);
 
     auto mvisualizeInternalB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_internal);
-    mvisualizeInternalB->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_CSYS);
-    mvisualizeInternalB->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizeInternalB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    mvisualizeInternalB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizeInternalB->SetSymbolsThickness(0.2);
     mvisualizeInternalB->SetSymbolsScale(0.1);
     mvisualizeInternalB->SetZbufferHide(false);
     my_mesh_internal->AddAsset(mvisualizeInternalB);
 
     auto mvisualizeBoundaryB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_internal);
-    mvisualizeBoundaryB->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_CSYS);
-    mvisualizeBoundaryB->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizeBoundaryB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    mvisualizeBoundaryB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizeBoundaryB->SetSymbolsThickness(0.4);
     mvisualizeBoundaryB->SetSymbolsScale(4);
     mvisualizeBoundaryB->SetZbufferHide(false);

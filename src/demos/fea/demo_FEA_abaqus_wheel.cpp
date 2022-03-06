@@ -238,21 +238,21 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
     /*
         auto mvisualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-        mvisualizemeshB->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+        mvisualizemeshB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
         mvisualizemeshB->SetWireframe(true);
         my_mesh->AddAsset(mvisualizemeshB);
     */
     /*
         auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-        mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
-        mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+        mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+        mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
         mvisualizemeshC->SetSymbolsThickness(0.006);
         my_mesh->AddAsset(mvisualizemeshC);
      */

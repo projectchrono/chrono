@@ -251,15 +251,15 @@ int main(int argc, char* argv[]) {
     //
 
     auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::E_PLOT_ELEM_BEAM_TX);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
     mvisualizebeamA->SetColorscaleMinMax(-0.001, 600);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
     my_mesh->AddAsset(mvisualizebeamA);
 
     auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizebeamC->SetSymbolsThickness(0.2);
     mvisualizebeamC->SetSymbolsScale(0.1);
     mvisualizebeamC->SetZbufferHide(false);

@@ -28,53 +28,53 @@ class ChMesh;
 class ChNodeFEAxyz;
 class ChNodeFEAxyzP;
 class ChElementBase;
-}
+}  // namespace fea
 
 /// FEA mesh visualization.
 /// Adds to the containing visual model a trimesh and a glyphs visual shapes.
 class ChApi ChVisualShapeFEA : public ChAssetLevel {
   public:
-    enum eChFemDataType {
-        E_PLOT_NONE,
-        E_PLOT_SURFACE,
-        E_PLOT_CONTACTSURFACES,
-        E_PLOT_LOADSURFACES,
-        E_PLOT_NODE_DISP_NORM,
-        E_PLOT_NODE_DISP_X,
-        E_PLOT_NODE_DISP_Y,
-        E_PLOT_NODE_DISP_Z,
-        E_PLOT_NODE_SPEED_NORM,
-        E_PLOT_NODE_SPEED_X,
-        E_PLOT_NODE_SPEED_Y,
-        E_PLOT_NODE_SPEED_Z,
-        E_PLOT_NODE_ACCEL_NORM,
-        E_PLOT_NODE_ACCEL_X,
-        E_PLOT_NODE_ACCEL_Y,
-        E_PLOT_NODE_ACCEL_Z,
-        E_PLOT_ELEM_STRAIN_VONMISES,
-        E_PLOT_ELEM_STRESS_VONMISES,
-        E_PLOT_ELEM_STRAIN_HYDROSTATIC,
-        E_PLOT_ELEM_STRESS_HYDROSTATIC,
-        E_PLOT_ELEM_BEAM_MX,
-        E_PLOT_ELEM_BEAM_MY,
-        E_PLOT_ELEM_BEAM_MZ,
-        E_PLOT_ELEM_BEAM_TX,
-        E_PLOT_ELEM_BEAM_TY,
-        E_PLOT_ELEM_BEAM_TZ,
-        E_PLOT_NODE_P,  // scalar field for Poisson problems (ex. temperature if thermal FEM)
-        E_PLOT_ANCF_BEAM_AX,
-        E_PLOT_ANCF_BEAM_BD,
+    enum class DataType {
+        NONE,
+        SURFACE,
+        CONTACTSURFACES,
+        LOADSURFACES,
+        NODE_DISP_NORM,
+        NODE_DISP_X,
+        NODE_DISP_Y,
+        NODE_DISP_Z,
+        NODE_SPEED_NORM,
+        NODE_SPEED_X,
+        NODE_SPEED_Y,
+        NODE_SPEED_Z,
+        NODE_ACCEL_NORM,
+        NODE_ACCEL_X,
+        NODE_ACCEL_Y,
+        NODE_ACCEL_Z,
+        ELEM_STRAIN_VONMISES,
+        ELEM_STRESS_VONMISES,
+        ELEM_STRAIN_HYDROSTATIC,
+        ELEM_STRESS_HYDROSTATIC,
+        ELEM_BEAM_MX,
+        ELEM_BEAM_MY,
+        ELEM_BEAM_MZ,
+        ELEM_BEAM_TX,
+        ELEM_BEAM_TY,
+        ELEM_BEAM_TZ,
+        NODE_P,
+        ANCF_BEAM_AX,
+        ANCF_BEAM_BD,
     };
 
-    enum eChFemGlyphs {
-        E_GLYPH_NONE,
-        E_GLYPH_NODE_DOT_POS,
-        E_GLYPH_NODE_CSYS,
-        E_GLYPH_NODE_VECT_SPEED,
-        E_GLYPH_NODE_VECT_ACCEL,
-        E_GLYPH_ELEM_TENS_STRAIN,
-        E_GLYPH_ELEM_TENS_STRESS,
-        E_GLYPH_ELEM_VECT_DP,  // gradient field for Poisson problems (ex. heat flow if thermal FEM)
+    enum class GlyphType {
+        NONE,
+        NODE_DOT_POS,
+        NODE_CSYS,
+        NODE_VECT_SPEED,
+        NODE_VECT_ACCEL,
+        ELEM_TENS_STRAIN,
+        ELEM_TENS_STRESS,
+        ELEM_VECT_DP,  // gradient field for Poisson problems (ex. heat flow if thermal FEM)
     };
 
   public:
@@ -86,16 +86,16 @@ class ChApi ChVisualShapeFEA : public ChAssetLevel {
     fea::ChMesh& GetMesh() { return *FEMmesh; }
 
     /// Returns the current data type to be plotted (speeds, forces, etc.).
-    eChFemDataType GetFEMdataType() { return fem_data_type; }
+    DataType GetFEMdataType() { return fem_data_type; }
 
     /// Set the current data type to be plotted (speeds, forces, etc.).
-    void SetFEMdataType(eChFemDataType mdata) { fem_data_type = mdata; }
+    void SetFEMdataType(DataType mdata) { fem_data_type = mdata; }
 
     /// Returns the current data type to be drawn with glyphs.
-    eChFemGlyphs GetFEMglyphType() { return fem_glyph; }
+    GlyphType GetFEMglyphType() { return fem_glyph; }
 
     /// Set the current data type to be drawn with glyphs.
-    void SetFEMglyphType(eChFemGlyphs mdata) { fem_glyph = mdata; }
+    void SetFEMglyphType(GlyphType mdata) { fem_glyph = mdata; }
 
     /// Set upper and lower values of the plotted variable for the colorscale plots.
     void SetColorscaleMinMax(double mmin, double mmax) {
@@ -141,10 +141,10 @@ class ChApi ChVisualShapeFEA : public ChAssetLevel {
     /// If hide = false, symbols will appear even if hidden by meshes/geometries.
     void SetZbufferHide(bool mhide) { this->zbuffer_hide = mhide; }
 
-    /// Set color for E_PLOT_SURFACE mode (also for wireframe lines).
+    /// Set color for SURFACE mode (also for wireframe lines).
     void SetDefaultMeshColor(ChColor mcolor) { this->meshcolor = mcolor; }
 
-    /// Set color for E_GLYPHS_NONE mode or for wireframe lines.
+    /// Set color for GlyphType::NONE mode or for wireframe lines.
     void SetDefaultSymbolsColor(ChColor mcolor) { this->symbolscolor = mcolor; }
 
     /// Activate Gourad or Phong smoothing for faces of non-straight elements.
@@ -177,8 +177,8 @@ class ChApi ChVisualShapeFEA : public ChAssetLevel {
 
     std::shared_ptr<fea::ChMesh> FEMmesh;
 
-    eChFemDataType fem_data_type;
-    eChFemGlyphs fem_glyph;
+    DataType fem_data_type;
+    GlyphType fem_glyph;
 
     double colorscale_min;
     double colorscale_max;

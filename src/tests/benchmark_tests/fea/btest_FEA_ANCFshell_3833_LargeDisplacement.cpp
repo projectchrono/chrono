@@ -204,19 +204,19 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
 
     // Setup visualization
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemesh->SetSmoothFaces(true);
     mesh->AddAsset(mvisualizemesh);
 
     auto mvisualizemeshlines = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
-    mvisualizemeshlines->SetFEMdataType(ChVisualShapeFEA::E_PLOT_SURFACE);
+    mvisualizemeshlines->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshlines->SetWireframe(true);
     mvisualizemeshlines->SetDrawInUndeformedReference(false);
     mesh->AddAsset(mvisualizemeshlines);
 
     auto mvisualizemeshnode = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
-    mvisualizemeshnode->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshnode->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshnode->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshnode->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshnode->SetSymbolsThickness(0.004);
     mesh->AddAsset(mvisualizemeshnode);
 

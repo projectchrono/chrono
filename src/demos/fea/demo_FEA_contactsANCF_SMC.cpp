@@ -175,26 +175,26 @@ int main(int argc, char* argv[]) {
     //    // Options for visualization in irrlicht
     //    ////////////////////////////////////////
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
 
     auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::E_PLOT_CONTACTSURFACES);
+    mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddAsset(mvisualizemeshcoll);
 
     auto mvisualizemeshbeam = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshbeam->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemeshbeam->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemeshbeam->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemeshbeam->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemeshbeam);
 
     auto mvisualizemeshbeamnodes = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshbeamnodes->SetFEMglyphType(ChVisualShapeFEA::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshbeamnodes->SetFEMdataType(ChVisualShapeFEA::E_PLOT_NONE);
+    mvisualizemeshbeamnodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshbeamnodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshbeamnodes->SetSymbolsThickness(0.0008);
     my_mesh->AddAsset(mvisualizemeshbeamnodes);
     application.AssetBindAll();
