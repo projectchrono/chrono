@@ -50,9 +50,6 @@ class ChApi ChVisualModel {
     /// Get the coordinate frame of the specified visual shape in the model (relative to the model frame).
     const ChFrame<>& GetShapeFrame(unsigned int i) const { return m_shapes[i].second; }
 
-    /// Update this visual model with information for the owning physical object.
-    void Update(const ChFrame<>& frame) {}
-
     /// Erase all shapes in this model.
     void Clear();
 
@@ -60,7 +57,13 @@ class ChApi ChVisualModel {
     void Erase(std::shared_ptr<ChVisualShape> shape);
 
   private:
+    /// Update this visual model with information for the owning physical object.
+    /// Since a visual model can be shared in multiple instances, this function may be called with different owners.
+    void Update(ChPhysicsItem* owner, const ChFrame<>& frame);
+
     std::vector<ShapeInstance> m_shapes;
+
+    friend class ChVisualModelInstance;
 };
 
 /// A visual model instance encodes a potentially shared visual model and its owning physics item.

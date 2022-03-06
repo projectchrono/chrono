@@ -89,6 +89,8 @@ void ChPhysicsItem::Update(double mytime, bool update_assets) {
     if (update_assets) {
         for (unsigned int ia = 0; ia < assets.size(); ++ia)
             assets[ia]->Update(this, GetVisualModelFrame().GetCoord());
+        if (vis_model_instance)
+            vis_model_instance->Update(GetVisualModelFrame());
     }
 }
 

@@ -30,7 +30,8 @@ class ChApi ChPointPointShape : public ChLineShape {
 
     // Call UpdateLineGeometry() if updater has any pair of points.
     // (at this point, only ChLink and its derivatives are supported.)
-    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) override;
+    virtual void Update(ChPhysicsItem* updater, const ChFrame<>& coords) override;
+    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) override;  //// RADU TODO obsolete
 
   private:
     // Update underlying line geometry from given two endpoints.
@@ -73,7 +74,8 @@ class ChApi ChRotSpringShape : public ChLineShape {
   public:
     ChRotSpringShape(double radius, int resolution = 65) : m_radius(radius), m_resolution(resolution) {}
 
-    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) override;
+    virtual void Update(ChPhysicsItem* updater, const ChFrame<>& coords) override;
+    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) override;  //// RADU TODO obsolete
 
   private:
     double m_radius;

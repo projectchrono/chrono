@@ -19,27 +19,29 @@
 
 namespace chrono {
 
-void ChPointPointShape::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
+void ChPointPointShape::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
     // Extract two positions from updater if it has any, and then update line geometry from these positions.
     if (auto link_markers = dynamic_cast<ChLinkMarkers*>(updater)) {
-        UpdateLineGeometry(coords.TransformPointParentToLocal(link_markers->GetMarker1()->GetAbsCoord().pos),
-                           coords.TransformPointParentToLocal(link_markers->GetMarker2()->GetAbsCoord().pos));
+        UpdateLineGeometry(frame.TransformPointParentToLocal(link_markers->GetMarker1()->GetAbsCoord().pos),
+                           frame.TransformPointParentToLocal(link_markers->GetMarker2()->GetAbsCoord().pos));
     } else if (auto link_dist = dynamic_cast<ChLinkDistance*>(updater)) {
-        UpdateLineGeometry(coords.TransformPointParentToLocal(link_dist->GetEndPoint1Abs()),
-                           coords.TransformPointParentToLocal(link_dist->GetEndPoint2Abs()));
+        UpdateLineGeometry(frame.TransformPointParentToLocal(link_dist->GetEndPoint1Abs()),
+                           frame.TransformPointParentToLocal(link_dist->GetEndPoint2Abs()));
     } else if (auto link_rs = dynamic_cast<ChLinkRevoluteSpherical*>(updater)) {
-        UpdateLineGeometry(coords.TransformPointParentToLocal(link_rs->GetPoint1Abs()),
-                           coords.TransformPointParentToLocal(link_rs->GetPoint2Abs()));
+        UpdateLineGeometry(frame.TransformPointParentToLocal(link_rs->GetPoint1Abs()),
+                           frame.TransformPointParentToLocal(link_rs->GetPoint2Abs()));
     } else if (auto link_tsda = dynamic_cast<ChLinkTSDA*>(updater)) {
-        UpdateLineGeometry(coords.TransformPointParentToLocal(link_tsda->GetPoint1Abs()),
-                           coords.TransformPointParentToLocal(link_tsda->GetPoint2Abs()));
+        UpdateLineGeometry(frame.TransformPointParentToLocal(link_tsda->GetPoint1Abs()),
+                           frame.TransformPointParentToLocal(link_tsda->GetPoint2Abs()));
     } else if (auto link = dynamic_cast<ChLink*>(updater)) {
-        UpdateLineGeometry(coords.TransformPointParentToLocal(link->GetBody1()->GetPos()),
-                           coords.TransformPointParentToLocal(link->GetBody2()->GetPos()));
+        UpdateLineGeometry(frame.TransformPointParentToLocal(link->GetBody1()->GetPos()),
+                           frame.TransformPointParentToLocal(link->GetBody2()->GetPos()));
     }
+}
 
-    // Inherit parent class (ChLineShape)
-    ChLineShape::Update(updater, coords);
+//// RADU TODO obsolete
+void ChPointPointShape::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
+    Update(updater, ChFrame<>(coords));
 }
 
 // Set line geometry as a segment between two end point
@@ -82,7 +84,7 @@ void ChSpringShape::UpdateLineGeometry(const ChVector<>& endpoint1, const ChVect
     this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(linepath));
 }
 
-void ChRotSpringShape::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
+void ChRotSpringShape::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
     // Do nothing if not associated with an RSDA.
     auto rsda = dynamic_cast<ChLinkRSDA*>(updater);
     if (!rsda)
@@ -102,9 +104,11 @@ void ChRotSpringShape::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords
     }
 
     this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(linepath));
+}
 
-    // Inherit parent class (ChLineShape)
-    ChLineShape::Update(updater, coords);
+//// RADU TODO obsolete
+void ChRotSpringShape::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
+    Update(updater, ChFrame<>(coords));
 }
 
 }  // end namespace chrono

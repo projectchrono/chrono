@@ -88,6 +88,10 @@ class ChApi ChVisualShape : public ChAsset {
   protected:
     ChVisualShape();
 
+    /// Update this visual shape with information for the owning physical object.
+    /// Since a visual shape can be shared in multiple instances, this function may be called with different updaters.
+    virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {}
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 

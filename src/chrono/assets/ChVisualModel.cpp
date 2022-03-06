@@ -35,12 +35,19 @@ void ChVisualModel::Erase(std::shared_ptr<ChVisualShape> shape) {
         m_shapes.erase(it);
 }
 
+void ChVisualModel::Update(ChPhysicsItem* owner, const ChFrame<>& frame) {
+    for (auto& shape : m_shapes) {
+        auto xform = frame >> shape.second;
+        shape.first->Update(owner, xform);
+    }
+}
+
 // -----------------------------------------------------------------------------
 
 ChVisualModelInstance::ChVisualModelInstance(std::shared_ptr<ChVisualModel> model) : m_model(model), m_owner(nullptr) {}
 
 void ChVisualModelInstance::Update(const ChFrame<>& frame) {
-    m_model->Update(frame);
+    m_model->Update(m_owner, frame);
 }
 
 }  // namespace chrono
