@@ -53,20 +53,15 @@ void Kraz_tractor_Wheel::AddVisualizationAssets(chrono::vehicle::VisualizationTy
         m_trimesh_shape->SetMutable(false);
         m_trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         GetSpindle()->AddAsset(m_trimesh_shape);
+        GetSpindle()->AddVisualShape(m_trimesh_shape);
     } else {
         ChWheel::AddVisualizationAssets(vis);
     }
 }
 
 void Kraz_tractor_Wheel::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(GetSpindle(), m_trimesh_shape);
     ChWheel::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by SemiTractor_wheel::AddVisualizationAssets.
-    // This is important for the ChWheel object because a tire may add its own assets
-    // to the same body (the spindle).
-    auto it = std::find(GetSpindle()->GetAssets().begin(), GetSpindle()->GetAssets().end(), m_trimesh_shape);
-    if (it != GetSpindle()->GetAssets().end())
-        GetSpindle()->GetAssets().erase(it);
 }
 
 }  // end namespace kraz

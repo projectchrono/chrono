@@ -73,6 +73,7 @@ void Marder_SprocketSinglePin::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
         trimesh_shape->SetMutable(false);
         m_gear->AddAsset(trimesh_shape);
+        m_gear->AddVisualShape(trimesh_shape);
     } else {
         ChSprocket::AddVisualizationAssets(vis);
     }
