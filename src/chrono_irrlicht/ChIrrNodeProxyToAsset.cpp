@@ -326,7 +326,8 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMes
 
     //// RADU TODO: what is and is not needed here?
 
-    meshnode->setMaterialType(video::EMT_DETAIL_MAP);
+    ////meshnode->setMaterialType(video::EMT_DETAIL_MAP);
+    meshnode->setMaterialType(video::EMT_SOLID);
 
     ////meshnode->setAutomaticCulling(scene::EAC_OFF);
     ////meshnode->setMaterialFlag(video::EMF_WIREFRAME, trianglemesh->IsWireframe());

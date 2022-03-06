@@ -30,15 +30,18 @@ ChTriangleMeshShape::ChTriangleMeshShape()
 void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, bool load_materials) {
     trimesh = mesh;
 
+    // Try to read material information form an MTL file
     const auto& filename = mesh->GetFileName();
+    auto mtl_base = filesystem::path(filesystem::path(filename).parent_path()).str();
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    bool have_mtl_materials = false;
+
     if (load_materials && !filename.empty()) {
-        std::vector<tinyobj::shape_t> shapes;
         tinyobj::attrib_t att;
-        std::vector<tinyobj::material_t> materials;
         std::string warn;
         std::string err;
 
-        auto mtl_base = filesystem::path(filesystem::path(filename).parent_path()).str();
         bool success = tinyobj::LoadObj(&att, &shapes, &materials, &warn, &err, filename.c_str(), mtl_base.c_str());
         if (!success) {
             std::cerr << "Error loading OBJ file " << filename << std::endl;
@@ -48,11 +51,15 @@ void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnec
             return;
         }
 
-        if (materials.empty()) {
-            return;
-        }
+        if (!materials.empty())
+            have_mtl_materials = true;
+    }
 
-        // copy in materials
+    if (have_mtl_materials) {
+        // Discard any existing materials in material_list
+        material_list.clear();
+
+        // Copy materials into material_list
         for (int i = 0; i < materials.size(); i++) {
             std::shared_ptr<ChVisualMaterial> mat = chrono_types::make_shared<ChVisualMaterial>();
             mat->SetAmbientColor({materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2]});
@@ -117,6 +124,10 @@ void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnec
                 }
             }
         }
+    } else if (!material_list.empty()) {
+        // Assign all faces to first material
+        auto nfaces = trimesh->m_face_v_indices.size();
+        trimesh->m_face_mat_indices.resize(nfaces, 0);
     }
 }
 
