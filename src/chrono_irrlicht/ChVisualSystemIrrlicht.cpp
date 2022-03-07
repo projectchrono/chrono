@@ -105,9 +105,6 @@ void ChVisualSystemIrrlicht::SetShadows(bool val) {
 void ChVisualSystemIrrlicht::SetDriverType(irr::video::E_DRIVER_TYPE driver_type) {
     m_device_params.DriverType = driver_type;
 }
-void ChVisualSystemIrrlicht::SetWindowSize(const irr::core::dimension2d<irr::u32>& win_size) {
-    m_device_params.WindowSize = win_size;
-}
 void ChVisualSystemIrrlicht::SetWindowSize(const ChVector2<int>& win_size) {
     m_device_params.WindowSize = irr::core::dimension2d<irr::u32>((u32)win_size.x(), (u32)win_size.y());
 }
@@ -190,7 +187,7 @@ void ChVisualSystemIrrlicht::AddLogo(const std::string& logo_filename) {
                                   irr::core::position2d<irr::s32>(10, 10));
 }
 
-void ChVisualSystemIrrlicht::AddCamera(irr::core::vector3df pos, irr::core::vector3df targ) {
+void ChVisualSystemIrrlicht::AddCamera(const ChVector<>& pos, ChVector<> targ) {
     if (!m_device)
         return;
 
@@ -201,8 +198,8 @@ void ChVisualSystemIrrlicht::AddCamera(irr::core::vector3df pos, irr::core::vect
     // camera->bindTargetAndRotation(true);
     if (!m_yup)
         camera->setZUp();
-    camera->setPosition(pos);
-    camera->setTarget(targ);
+    camera->setPosition(irr::core::vector3dfCH(pos));
+    camera->setTarget(irr::core::vector3dfCH(targ));
 
     camera->setNearValue(0.1f);
     camera->setMinZoom(0.6f);
@@ -213,11 +210,11 @@ void ChVisualSystemIrrlicht::AddTypicalLights() {
         return;
 
     if (m_yup) {
-        AddLight(irr::core::vector3df(30.f, 80.f, +30.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-        AddLight(irr::core::vector3df(30.f, 80.f, -30.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+        AddLight(ChVector<>(30, 80, +30), 280, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+        AddLight(ChVector<>(30, 80, -30), 280, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
     } else {
-        AddLight(irr::core::vector3df(30.f, +30.f, 80.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-        AddLight(irr::core::vector3df(30.f, -30.f, 80.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+        AddLight(ChVector<>(30, +30, 80), 280, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+        AddLight(ChVector<>(30, -30, 80), 280, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
     }
 }
 
@@ -243,36 +240,39 @@ void ChVisualSystemIrrlicht::AddSkyBox(const std::string& texture_dir) {
         skybox->setRotation(irr::core::vector3df(90, 0, 0));
 }
 
-irr::scene::ILightSceneNode* ChVisualSystemIrrlicht::AddLight(irr::core::vector3df pos,
-                                                              double radius,
-                                                              irr::video::SColorf color) {
+irr::scene::ILightSceneNode* ChVisualSystemIrrlicht::AddLight(const ChVector<>& pos, double radius, ChColor color) {
     if (!m_device)
         return nullptr;
 
-    irr::scene::ILightSceneNode* mlight = GetSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
+    irr::scene::ILightSceneNode* mlight = GetSceneManager()->addLightSceneNode(
+        0, irr::core::vector3dfCH(pos), tools::ToIrrlichtSColorf(color), (irr::f32)radius);
     return mlight;
 }
 
-irr::scene::ILightSceneNode* ChVisualSystemIrrlicht::AddLightWithShadow(irr::core::vector3df pos,
-                                                                        irr::core::vector3df aim,
+irr::scene::ILightSceneNode* ChVisualSystemIrrlicht::AddLightWithShadow(const ChVector<>& pos,
+                                                                        const ChVector<>& aim,
                                                                         double radius,
                                                                         double near_value,
                                                                         double far_value,
                                                                         double angle,
-                                                                        irr::u32 resolution,
-                                                                        irr::video::SColorf color,
+                                                                        unsigned int resolution,
+                                                                        ChColor color,
                                                                         bool directional,
                                                                         bool clipborder) {
     if (!m_device)
         return nullptr;
 
-    irr::scene::ILightSceneNode* mlight = GetSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
-    m_effect_handler->addShadowLight(SShadowLight(resolution, pos, aim, color, (irr::f32)near_value,
-                                                  (irr::f32)far_value, (irr::f32)angle * irr::core::DEGTORAD,
-                                                  directional));
+    irr::scene::ILightSceneNode* mlight = GetSceneManager()->addLightSceneNode(
+        0, irr::core::vector3dfCH(pos), tools::ToIrrlichtSColorf(color), (irr::f32)radius);
+
+    m_effect_handler->addShadowLight(SShadowLight(
+        (irr::u32)resolution, irr::core::vector3dfCH(pos), irr::core::vector3dfCH(aim), tools::ToIrrlichtSColorf(color),
+        (irr::f32)near_value, (irr::f32)far_value, (irr::f32)angle * irr::core::DEGTORAD, directional));
+    
     if (clipborder == false) {
         m_effect_handler->getShadowLight(m_effect_handler->getShadowLightCount() - 1).setClipBorder(clipborder);
     }
+
     m_use_effects = true;
     return mlight;
 }
@@ -350,12 +350,12 @@ void ChVisualSystemIrrlicht::EnableCollisionShapeDrawing(bool val) {
 // -----------------------------------------------------------------------------
 
 // Clean canvas at beginning of scene.
-void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, irr::video::SColor color) {
+void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor color) {
     utils::ChProfileManager::Reset();
     utils::ChProfileManager::Start_Profile("Irrlicht loop");
     utils::ChProfileManager::Increment_Frame_Counter();
 
-    GetVideoDriver()->beginScene(backBuffer, zBuffer, color);
+    GetVideoDriver()->beginScene(backBuffer, zBuffer, tools::ToIrrlichtSColor(color));
 
 #ifdef CHRONO_MODAL
     if (this->modal_phi || this->modal_show) {

@@ -26,7 +26,15 @@ using namespace irr;
 
 // -----------------------------------------------------------------------------
 
-video::SColor ToIrrlichtColor(const ChVector<float>& col, float alpha) {
+video::SColorf ToIrrlichtSColorf(const ChColor col) {
+    return video::SColorf(col.R, col.G, col.B, col.A);
+}
+
+video::SColor ToIrrlichtSColor(const ChColor col) {
+    return video::SColor((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
+}
+
+video::SColor ToIrrlichtSColor(const ChVector<float>& col, float alpha) {
     return video::SColor((u32)(alpha * 255), (u32)(col.x() * 255), (u32)(col.y() * 255), (u32)(col.z() * 255));
 }
 
@@ -35,10 +43,10 @@ video::SColor ToIrrlichtColor(const ChVector<float>& col, float alpha) {
 video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video::IVideoDriver* driver) {
     video::SMaterial irr_mat;
 
-    irr_mat.AmbientColor = ToIrrlichtColor(mat->GetAmbientColor());
-    irr_mat.DiffuseColor = ToIrrlichtColor(mat->GetDiffuseColor());
-    irr_mat.SpecularColor = ToIrrlichtColor(mat->GetSpecularColor());
-    irr_mat.EmissiveColor = ToIrrlichtColor(mat->GetEmissiveColor());
+    irr_mat.AmbientColor = ToIrrlichtSColor(mat->GetAmbientColor());
+    irr_mat.DiffuseColor = ToIrrlichtSColor(mat->GetDiffuseColor());
+    irr_mat.SpecularColor = ToIrrlichtSColor(mat->GetSpecularColor());
+    irr_mat.EmissiveColor = ToIrrlichtSColor(mat->GetEmissiveColor());
 
     float dval = mat->GetOpacity();  // in [0,1]
     irr_mat.DiffuseColor.setAlpha((s32)(dval * 255));

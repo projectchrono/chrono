@@ -312,7 +312,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene
         if (app && step_number % render_steps == 0) {
-            app->BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app->BeginScene();
             app->DrawAll();
             app->EndScene();
         }

@@ -254,8 +254,8 @@ int main(int argc, char* argv[]) {
     app.SetChaseCamera(trackPoint, 10.0, 0.5);
     app.Initialize();
     app.GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
-    app.AddLight(irr::core::vector3df(-50.f, -30.f, 40.f), 200, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(+10.f, +30.f, 40.f), 200, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(ChVector<>(-50, -30, 40), 200, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(ChVector<>(+10, +30, 40), 200, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
 
     // Visualization of controller points (sentinel & target)
     irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
@@ -381,7 +381,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene
         if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app.BeginScene();
             app.DrawAll();
             app.EndScene();
         }

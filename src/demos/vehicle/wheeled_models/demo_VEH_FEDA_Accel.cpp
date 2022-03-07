@@ -130,12 +130,12 @@ int main(int argc, char* argv[]) {
     app.SetWindowTitle("FEDA acceleration test");
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     app.Initialize();
-    app.AddLight(irr::core::vector3df(0.f, -30.f, 100.f), 250, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(0.f, 50.f, 100.f), 130, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(-300.f, -30.f, 100.f), 250, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(-300.f, 50.f, 100.f), 130, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(+300.f, -30.f, 100.f), 250, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(+300.f, 50.f, 100.f), 130, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(ChVector<>(0, -30, 100), 250,    ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(ChVector<>(0, 50, 100), 130,     ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(ChVector<>(-300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(ChVector<>(-300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(ChVector<>(+300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(ChVector<>(+300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f, 1.0f));
 
     // Prepare output
     if (data_output) {
@@ -208,7 +208,7 @@ int main(int argc, char* argv[]) {
         if (time >= 100)
             break;
 
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.BeginScene();
         app.DrawAll();
 
         // Driver inputs

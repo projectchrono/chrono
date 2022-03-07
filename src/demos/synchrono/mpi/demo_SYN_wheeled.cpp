@@ -108,7 +108,7 @@ class IrrAppWrapper {
 
     void Render() {
         if (m_app) {
-            m_app->BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            m_app->BeginScene();
             m_app->DrawAll();
             m_app->EndScene();
         }

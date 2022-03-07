@@ -66,7 +66,6 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
 
     /// Set the window size (default 640x480).
     /// Must be called before Initialize().
-    void SetWindowSize(const irr::core::dimension2d<irr::u32>& win_size);
     void SetWindowSize(const ChVector2<int>& win_size);
 
     /// Set the windoiw title (default "").
@@ -97,8 +96,7 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     /// rmb+lmb+mouse, the position can be changed also with keyboard up/down/left/right arrows, the height can be
     /// changed with keyboard 'PgUp' and 'PgDn' keys. Optional parameters are position and target.
     /// Has no effect, unles called after Initialize().
-    void AddCamera(irr::core::vector3df pos = irr::core::vector3df(0, 0, -8),
-                   irr::core::vector3df targ = irr::core::vector3df(0, 0, 0));
+    void AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL);
 
     /// Add a sky box in a 3D scene.
     /// Note: it is assumed that the specified "texture_dir" directory contains the following three texture images:
@@ -108,22 +106,22 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
 
     /// Add a point light to the scene.
     /// Has no effect, unles called after Initialize().
-    irr::scene::ILightSceneNode* AddLight(irr::core::vector3df pos,
+    irr::scene::ILightSceneNode* AddLight(const ChVector<>& pos,
                                           double radius,
-                                          irr::video::SColorf color = irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+                                          ChColor color = ChColor(0.7f, 0.7f, 0.7f, 1.0f));
 
     /// Add a point light that cast shadow (using soft shadows/shadow maps)
     /// Note that the quality of the shadow strictly depends on how close 'near_value' and 'far_value' are to the
     /// bounding box of the scene. Use AddShadow() to enable shadows for an object or for the entire scene.
     /// Has no effect, unless called after Initialize().
-    irr::scene::ILightSceneNode* AddLightWithShadow(irr::core::vector3df pos,
-                                                    irr::core::vector3df aim,
+    irr::scene::ILightSceneNode* AddLightWithShadow(const ChVector<>& pos,
+                                                    const ChVector<>& aim,
                                                     double radius,
                                                     double near_value,
                                                     double far_value,
                                                     double angle,
-                                                    irr::u32 resolution = 512,
-                                                    irr::video::SColorf color = irr::video::SColorf(1.f, 1.f, 1.f, 1.f),
+                                                    unsigned int resolution = 512,
+                                                    ChColor color = ChColor(1, 1, 1, 1),
                                                     bool directional = false,
                                                     bool clipborder = true);
 
@@ -178,7 +176,7 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     /// Clean the canvas at the beginning of each animation frame.
     virtual void BeginScene(bool backBuffer = true,
                             bool zBuffer = true,
-                            irr::video::SColor color = irr::video::SColor(255, 0, 0, 0));
+                            ChColor color = ChColor(0, 0, 0, 1));
 
     /// Draw all 3D shapes and GUI elements at the current frame.
     /// This function is typically called inside a loop such as

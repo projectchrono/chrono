@@ -76,7 +76,7 @@ static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
     vertex.Pos = core::vector3df((f32)pos.x(), (f32)pos.y(), (f32)pos.z());
     vertex.Normal = core::vector3df((f32)nrm.x(), (f32)nrm.y(), (f32)nrm.z());
     vertex.TCoords = core::vector2df((f32)uv.x(), 1 - (f32)uv.y());
-    vertex.Color = tools::ToIrrlichtColor(col);
+    vertex.Color = tools::ToIrrlichtSColor(col);
     return vertex;
 }
 
@@ -424,7 +424,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<
             vertexbuffer[i].Pos = core::vector3df((f32)vertices[i].x(), (f32)vertices[i].y(), (f32)vertices[i].z());
             vertexbuffer[i].Normal = core::vector3df((f32)normals[i].x(), (f32)normals[i].y(), (f32)normals[i].z());
             if (has_colors) {
-                vertexbuffer[i].Color = tools::ToIrrlichtColor(colors[i]);
+                vertexbuffer[i].Color = tools::ToIrrlichtSColor(colors[i]);
             }
         }
     }

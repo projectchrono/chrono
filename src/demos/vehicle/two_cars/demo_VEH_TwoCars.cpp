@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
         double time = sys.GetChTime();
 
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.BeginScene();
         app.DrawAll();
 
         // Driver inputs

@@ -224,10 +224,10 @@ int main(int argc, char* argv[]) {
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
     app.Initialize();
 
-    app.AddLight(irr::core::vector3df(-150.f, -150.f, 200.f), 300, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(-150.f, +150.f, 200.f), 300, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(+150.f, -150.f, 200.f), 300, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(+150.f, +150.f, 200.f), 300, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(ChVector<>(-150, -150, 200), 300, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(ChVector<>(-150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(ChVector<>(+150, -150, 200), 300, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(ChVector<>(+150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
 
     // Visualization of controller points (sentinel & target)
     irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
@@ -321,7 +321,7 @@ int main(int argc, char* argv[]) {
         ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
         ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
 
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.BeginScene();
         app.DrawAll();
         app.EndScene();
 

@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
         if (time >= 100)
             break;
 
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.BeginScene();
         app.DrawAll();
 
         // Driver inputs

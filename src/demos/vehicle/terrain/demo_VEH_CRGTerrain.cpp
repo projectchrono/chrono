@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     app.Initialize();
     for (auto& loc : light_locs)
-        app.AddLight(irr::core::vector3dfCH(ChWorldFrame::FromISO(loc)), 500);
+        app.AddLight(ChWorldFrame::FromISO(loc), 500);
 
     // Visualization of controller points (sentinel & target)
     irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
@@ -385,7 +385,7 @@ int main(int argc, char* argv[]) {
         ballT->setPosition(irr::core::vector3dfCH(driver.GetTargetLocation()));
 
         // Render scene and output images
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.BeginScene();
         app.DrawAll();
 
         // Draw the world reference frame at the sentinel location

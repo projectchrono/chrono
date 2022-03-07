@@ -373,7 +373,7 @@ int main(int argc, char* argv[]) {
 
         if (step_number % render_steps == 0) {
             // Render scene
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app.BeginScene();
             app.DrawAll();
             app.EndScene();
 

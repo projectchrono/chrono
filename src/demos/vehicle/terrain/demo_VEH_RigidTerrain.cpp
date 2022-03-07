@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
         double time = my_hmmwv.GetSystem()->GetChTime();
 
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.BeginScene();
         app.DrawAll();
         app.EndScene();
 
