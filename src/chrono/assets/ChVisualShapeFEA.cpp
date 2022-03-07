@@ -336,11 +336,11 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                     sectionshape = cableANCF->GetSection()->GetDrawShape();
                 } else if (auto beamIGA = std::dynamic_pointer_cast<ChElementBeamIGA>(beam)) {
                     sectionshape = beamIGA->GetSection()->GetDrawShape();
-                } else if (auto mybeamtimoshenko = std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenko>(beam)) {
-                    sectionshape = mybeamtimoshenko->GetTaperedSection()->GetSectionA()->GetDrawShape();
-                } else if (auto mybeamtimoshenkofpm =
+                } else if (auto beamTimoshenko = std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenko>(beam)) {
+                    sectionshape = beamTimoshenko->GetTaperedSection()->GetSectionA()->GetDrawShape();
+                } else if (auto beamTimoshenkoFPM =
                                std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(beam)) {
-                    sectionshape = mybeamtimoshenkofpm->GetTaperedSection()->GetSectionA()->GetDrawShape();
+                    sectionshape = beamTimoshenkoFPM->GetTaperedSection()->GetSectionA()->GetDrawShape();
                 } else if (auto beam3243 = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(beam)) {
                     sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
                         beam3243->GetThicknessY(),
@@ -606,25 +606,25 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
             }
 
             // ------------ELEMENT IS A BEAM with the new ChBeamSectionShape?
-            if (auto mybeam = std::dynamic_pointer_cast<ChElementBeam>(FEMmesh->GetElement(iel))) {
+            if (auto beam = std::dynamic_pointer_cast<ChElementBeam>(FEMmesh->GetElement(iel))) {
                 std::shared_ptr<ChBeamSectionShape> sectionshape;
-                if (auto mybeameuler = std::dynamic_pointer_cast<ChElementBeamEuler>(mybeam)) {
-                    sectionshape = mybeameuler->GetSection()->GetDrawShape();
-                } else if (auto mycableancf = std::dynamic_pointer_cast<ChElementCableANCF>(mybeam)) {
-                    sectionshape = mycableancf->GetSection()->GetDrawShape();
-                } else if (auto mybeamiga = std::dynamic_pointer_cast<ChElementBeamIGA>(mybeam)) {
-                    sectionshape = mybeamiga->GetSection()->GetDrawShape();
-                } else if (auto mybeamtimoshenko = std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenko>(mybeam)) {
-                    sectionshape = mybeamtimoshenko->GetTaperedSection()->GetSectionA()->GetDrawShape();
-                } else if (auto mybeamtimoshenkofpm =
-                               std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(mybeam)) {
-                    sectionshape = mybeamtimoshenkofpm->GetTaperedSection()->GetSectionA()->GetDrawShape();
-                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(mybeam)) {
-                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
-                        mybeamancf->GetThicknessY(), mybeamancf->GetThicknessZ());
-                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(mybeam)) {
-                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
-                        mybeamancf->GetThicknessY(), mybeamancf->GetThicknessZ());
+                if (auto beamEuler = std::dynamic_pointer_cast<ChElementBeamEuler>(beam)) {
+                    sectionshape = beamEuler->GetSection()->GetDrawShape();
+                } else if (auto cableANCF = std::dynamic_pointer_cast<ChElementCableANCF>(beam)) {
+                    sectionshape = cableANCF->GetSection()->GetDrawShape();
+                } else if (auto beamIGA = std::dynamic_pointer_cast<ChElementBeamIGA>(beam)) {
+                    sectionshape = beamIGA->GetSection()->GetDrawShape();
+                } else if (auto beamTimoshenko = std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenko>(beam)) {
+                    sectionshape = beamTimoshenko->GetTaperedSection()->GetSectionA()->GetDrawShape();
+                } else if (auto beamTimoshenkoFPM =
+                               std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(beam)) {
+                    sectionshape = beamTimoshenkoFPM->GetTaperedSection()->GetSectionA()->GetDrawShape();
+                } else if (auto beam3243 = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(beam)) {
+                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(beam3243->GetThicknessY(),
+                                                                                            beam3243->GetThicknessZ());
+                } else if (auto beam3333 = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(beam)) {
+                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(beam3333->GetThicknessY(),
+                                                                                            beam3333->GetThicknessZ());
                 }
 
                 if (sectionshape) {
@@ -638,7 +638,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
 
                         ChVector<> P;
                         ChQuaternion<> msectionrot;
-                        mybeam->EvaluateSectionFrame(eta, P,
+                        beam->EvaluateSectionFrame(eta, P,
                                                      msectionrot);  // compute abs. pos and rot of section plane
 
                         ChVector<> vresult;
@@ -646,35 +646,35 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                         double sresult = 0;
                         switch (fem_data_type) {
                             case DataType::ELEM_BEAM_MX:
-                                mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
+                                beam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                                 sresult = vresultB.x();
                                 break;
                             case DataType::ELEM_BEAM_MY:
-                                mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
+                                beam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                                 sresult = vresultB.y();
                                 break;
                             case DataType::ELEM_BEAM_MZ:
-                                mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
+                                beam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                                 sresult = vresultB.z();
                                 break;
                             case DataType::ELEM_BEAM_TX:
-                                mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
+                                beam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                                 sresult = vresult.x();
                                 break;
                             case DataType::ELEM_BEAM_TY:
-                                mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
+                                beam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                                 sresult = vresult.y();
                                 break;
                             case DataType::ELEM_BEAM_TZ:
-                                mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
+                                beam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                                 sresult = vresult.z();
                                 break;
                             case DataType::ANCF_BEAM_AX:
-                                mybeam->EvaluateSectionStrain(eta, vresult);
+                                beam->EvaluateSectionStrain(eta, vresult);
                                 sresult = vresult.x();
                                 break;
                             case DataType::ANCF_BEAM_BD:
-                                mybeam->EvaluateSectionStrain(eta, vresult);
+                                beam->EvaluateSectionStrain(eta, vresult);
                                 sresult = vresult.y();
                                 break;
                             default:

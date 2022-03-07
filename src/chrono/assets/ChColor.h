@@ -21,7 +21,9 @@
 
 namespace chrono {
 
-/// Class for setting a color (used by ChVisualShape)
+/// Class for setting a color.
+/// The red (R), green (G), and blue (B), and alpha (A) channels take values between 0 and 1.
+/// The alpha channel (A) represents opacity, with a value of 0 indicating full transparency.
 class ChApi ChColor {
   public:
     float R;  /// red channel (0,1)
@@ -30,8 +32,8 @@ class ChApi ChColor {
     float A;  /// alpha channel (0,1)
 
     /// Constructors
-    ChColor() : R(1), G(1), B(1), A(0) {}
-    ChColor(float mR, float mG, float mB, float mA = 0) : R(mR), G(mG), B(mB), A(mA) {}
+    ChColor() : R(1), G(1), B(1), A(1) {}
+    ChColor(float mR, float mG, float mB, float mA = 1) : R(mR), G(mG), B(mB), A(mA) {}
     ChColor(const ChColor& other) : R(other.R), G(other.G), B(other.B), A(other.A) {}
 
     /// Assignment: copy from another color

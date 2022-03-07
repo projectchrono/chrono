@@ -642,8 +642,7 @@ void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surfac
 
     // Set color.
     auto vis = std::static_pointer_cast<ChVisualShape>(visualization_asset);
-    ChColor col = vis->GetColor();
-    video::SColor clr((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
+    video::SColor clr = tools::ToIrrlichtSColor(vis->GetColor());
 
     // Fetch the 1st child, i.e. the mesh
     ISceneNode* mchildnode = *(getChildren().begin());
@@ -797,8 +796,7 @@ void ChIrrNodeProxyToAsset::UpdateLine(std::shared_ptr<geometry::ChLine> line, u
 
     // Set color.
     auto vis = std::static_pointer_cast<ChVisualShape>(visualization_asset);
-    ChColor col = vis->GetColor();
-    video::SColor clr((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
+    video::SColor clr = tools::ToIrrlichtSColor(vis->GetColor());
 
     // Fetch the 1st child, i.e. the mesh
     ISceneNode* mchildnode = *(getChildren().begin());
