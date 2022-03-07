@@ -55,6 +55,7 @@
 #include "chrono_irrlicht/ChIrrEffects.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrCamera.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace irr;
@@ -169,7 +170,6 @@ using namespace gui;
 %include "chrono_irrlicht/ChIrrEffects.h"
 %include "chrono_irrlicht/ChIrrTools.h"
 %include "chrono_irrlicht/ChIrrCamera.h"
-%include "ChIrrAppInterface.i"
 %include "ChIrrAssetConverter.i"
 %include "ChIrrApp.i"
 %include "ChIrrNode.i"

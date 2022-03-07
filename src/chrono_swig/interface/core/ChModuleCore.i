@@ -352,7 +352,6 @@ using namespace chrono::fea;
 %include "../chrono/assets/ChVisualMaterial.h"
 %include "ChVisualShape.i"
 %include "ChColorAsset.i"
-%include "ChAssetLevel.i"
 %include "ChObjShapeFile.i"
 %include "ChBoxShape.i"
 %include "ChSphereShape.i"

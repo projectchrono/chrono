@@ -43,6 +43,9 @@
 
 %import "../../../chrono/assets/ChAsset.h"
 %import "../../../chrono/assets/ChAssetLevel.h"
+%import "../../../chrono/assets/ChVisualMaterial.h"
+%import "../../../chrono/assets/ChVisualShape.h"
+%import "../../../chrono/assets/ChVisualModel.h"
 
 /* Parse the header file to generate wrappers */
 %include "../../../chrono_vehicle/ChChassis.h"

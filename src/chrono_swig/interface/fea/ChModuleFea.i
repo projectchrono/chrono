@@ -89,7 +89,7 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChMeshSurface.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/core/ChTensors.h"
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoadsBody.h"
@@ -307,7 +307,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChLoadBeamWrenchDistributed)
 %shared_ptr(chrono::fea::ChExtruderBeamEuler)
 %shared_ptr(chrono::fea::ChExtruderBeamIGA)
-%shared_ptr(chrono::fea::ChVisualizationFEAmesh)
+%shared_ptr(chrono::ChVisualShapeFEA)
 %shared_ptr(chrono::fea::ChLoadXYZROTnode)
 %shared_ptr(chrono::fea::ChLoadXYZROTnodeForceAbsolute)
 %shared_ptr(chrono::fea::ChLoadXYZROTnodeXYZROTnode)
@@ -355,7 +355,6 @@ using namespace chrono::fea;
 %feature("director") chrono::ChFunction;
 %import(module = "pychrono.core")  "../../../chrono/motion_functions/ChFunction.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChAsset.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChAssetLevel.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChMaterialSurface.i"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChPhysicsItem.h"
@@ -451,7 +450,7 @@ using namespace chrono::fea;
 %template(vector_ChElementBase) std::vector< std::shared_ptr<chrono::fea::ChElementBase> >;
 %include "../../../chrono/fea/ChMesh.h"
 %include "../../../chrono/fea/ChMeshSurface.h"
-%include "../../../chrono/fea/ChVisualizationFEAmesh.h"
+%include "../../../chrono/assets/ChVisualShapeFEA.h"
 %include "../../../chrono/fea/ChLinkDirFrame.h"
 %include "../../../chrono/fea/ChLinkPointFrame.h"
 %include "../../../chrono/fea/ChLinkPointPoint.h"
@@ -515,7 +514,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzD)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzDD)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzrot)
-%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChAsset,ChVisualizationFEAmesh)
+%DefSharedPtrDynamicDowncast2NS(chrono,chrono,ChAsset,ChVisualShapeFEA)
 %DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactTriangleXYZ)
 %DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactTriangleXYZROT)
 %DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactNodeXYZ)
