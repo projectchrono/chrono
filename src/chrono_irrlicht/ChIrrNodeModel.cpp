@@ -11,21 +11,21 @@
 // =============================================================================
 
 #include "chrono/core/ChLog.h"
-#include "chrono_irrlicht/ChIrrNode.h"
-#include "chrono_irrlicht/ChIrrNodeProxyToAsset.h"
+#include "chrono_irrlicht/ChIrrNodeModel.h"
+#include "chrono_irrlicht/ChIrrNodeShape.h"
 
 namespace chrono {
 namespace irrlicht {
 
 using namespace irr;
 
-ChIrrNode::ChIrrNode(std::weak_ptr<ChPhysicsItem> mphysicsitem,
-                     scene::ISceneNode* parent,
-                     scene::ISceneManager* mgr,
-                     s32 id)
-    : ISceneNode(parent, mgr, id), physicsitem(mphysicsitem), ChronoControlled(true) {
+ChIrrNodeModel::ChIrrNodeModel(std::weak_ptr<ChPhysicsItem> physicsitem,
+                               scene::ISceneNode* parent,
+                               scene::ISceneManager* mgr,
+                               s32 id)
+    : ISceneNode(parent, mgr, id), m_physicsitem(physicsitem) {
 #ifdef _DEBUG
-    setDebugName("ChIrrNode");
+    setDebugName("ChIrrNodeModel");
 #endif
 
     // set an unique identifier
@@ -33,34 +33,33 @@ ChIrrNode::ChIrrNode(std::weak_ptr<ChPhysicsItem> mphysicsitem,
     // GetPhysicsItem()->SetIdentifier(static_item_identifier);
 }
 
-void ChIrrNode::OnRegisterSceneNode() {
+void ChIrrNodeModel::OnRegisterSceneNode() {
     if (IsVisible)
         SceneManager->registerNodeForRendering(this);
 
     ISceneNode::OnRegisterSceneNode();
 }
 
-scene::ISceneNode* ChIrrNode::clone(scene::ISceneNode* newParent, scene::ISceneManager* newManager) {
+scene::ISceneNode* ChIrrNodeModel::clone(scene::ISceneNode* new_parent, scene::ISceneManager* new_manager) {
     // GetLog() << "Cloning!\n";
-    if (!newParent)
-        newParent = Parent;
-    if (!newManager)
-        newManager = SceneManager;
+    if (!new_parent)
+        new_parent = Parent;
+    if (!new_manager)
+        new_manager = SceneManager;
 
-    ChIrrNode* nb = new ChIrrNode(this->physicsitem, newParent, newManager, this->ID);
+    ChIrrNodeModel* nb = new ChIrrNodeModel(m_physicsitem, new_parent, new_manager, this->ID);
 
-    nb->cloneMembers(this, newManager);
-    nb->Box = this->Box;
-    nb->ChronoControlled = this->ChronoControlled;
-    nb->physicsitem = this->physicsitem;
+    nb->cloneMembers(this, new_manager);
+    nb->m_box = m_box;
+    nb->m_physicsitem = m_physicsitem;
 
-    if (newParent)
+    if (new_parent)
         nb->drop();
     return nb;
 }
 
-bool ChIrrNode::SetupClones() {
-    unsigned int needed_clones = physicsitem.lock()->GetNumVisualModelClones();
+bool ChIrrNodeModel::SetupClones() {
+    unsigned int needed_clones = m_physicsitem.lock()->GetNumVisualModelClones();
 
     if (needed_clones) {
         unsigned int actual_clones = this->getChildren().getSize();
@@ -93,12 +92,12 @@ bool ChIrrNode::SetupClones() {
     return true;
 }
 
-void ChIrrNode::OnAnimate(u32 timeMs) {
-    if (IsVisible && ChronoControlled) {
+void ChIrrNodeModel::OnAnimate(u32 timeMs) {
+    if (IsVisible) {
         // reorient/reposition the scene node every frame
-        if (!physicsitem.expired()) {
-            if (!physicsitem.lock()->GetNumVisualModelClones()) {
-                tools::alignIrrlichtNodeToChronoCsys(this, physicsitem.lock()->GetVisualModelFrame().GetCoord());
+        if (!m_physicsitem.expired()) {
+            if (!m_physicsitem.lock()->GetNumVisualModelClones()) {
+                tools::alignIrrlichtNodeToChronoCsys(this, m_physicsitem.lock()->GetVisualModelFrame().GetCoord());
             } else {
                 // check that children clones are already as many as
                 // assets frame clones, and adjust it if not:
@@ -108,7 +107,7 @@ void ChIrrNode::OnAnimate(u32 timeMs) {
                     irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
                     for (; it != Children.end(); ++it) {
                         tools::alignIrrlichtNodeToChronoCsys(
-                            (*it), physicsitem.lock()->GetVisualModelFrame(iclone).GetCoord());
+                            (*it), m_physicsitem.lock()->GetVisualModelFrame(iclone).GetCoord());
                         ++iclone;
                     }
                 }
@@ -119,22 +118,22 @@ void ChIrrNode::OnAnimate(u32 timeMs) {
     ISceneNode::OnAnimate(timeMs);
 }
 
-void ChIrrNode::UpdateAssetsProxies() {
-    _recurse_update_asset_proxies(this);
+void ChIrrNodeModel::UpdateChildren() {
+    UpdateChildren_recursive(this);
 }
 
-void ChIrrNode::_recurse_update_asset_proxies(ISceneNode* mnode) {
-    scene::ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
+void ChIrrNodeModel::UpdateChildren_recursive(ISceneNode* node) {
+    scene::ISceneNodeList::ConstIterator it = node->getChildren().begin();
 
-    for (; it != mnode->getChildren().end(); ++it) {
-        // if (ChIrrNodeProxyToAsset* mproxy = dynamic_cast<ChIrrNodeProxyToAsset*>(*it))
-        if ((*it)->getType() == (scene::ESCENE_NODE_TYPE)ESNT_CHIRRNODEPROXYTOASSET) {
-            ChIrrNodeProxyToAsset* mproxy = (ChIrrNodeProxyToAsset*)(*it);
+    for (; it != node->getChildren().end(); ++it) {
+        // if (ChIrrNodeShape* mproxy = dynamic_cast<ChIrrNodeShape*>(*it))
+        if ((*it)->getType() == (scene::ESCENE_NODE_TYPE)ESNT_CHIRRNODE_SHAPE) {
+            ChIrrNodeShape* mproxy = (ChIrrNodeShape*)(*it);
             mproxy->Update();
         }
 
         if (!(*it)->getChildren().empty())
-            _recurse_update_asset_proxies((*it));
+            UpdateChildren_recursive((*it));
     }
 }
 

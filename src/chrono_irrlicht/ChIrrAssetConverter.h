@@ -64,7 +64,7 @@ class ChApiIrr ChIrrAssetConverter {
     /// Destructor
     ~ChIrrAssetConverter();
 
-    /// Returns the proxy to the ChIrrNode, by scanning all assets.
+    /// Returns the proxy to the ChIrrNodeModel, by scanning all assets.
     /// Note, check for the returned pointer, just in case a proxy has not been added.
     std::shared_ptr<ChIrrNodeAsset> GetIrrNodeAsset(std::shared_ptr<ChPhysicsItem> mitem);
 
@@ -84,7 +84,7 @@ class ChApiIrr ChIrrAssetConverter {
     /// assets that are found in the ChPhysicsItem 'mitem'. For example, if one
     /// has added a ChSphereShape and a ChBoxShape to the assets of a ChBody, and
     /// a ChIrrNodeAsset too, this Update() function will prepare a ISceneNode in
-    /// Irrlicht (precisely, a ChIrrNode node) and it will fill it with a
+    /// Irrlicht (precisely, a ChIrrNodeModel node) and it will fill it with a
     /// spherical triangle mesh, and a box triangle mesh.
     /// NOTE. This must be done after the ChIrrNodeAsset has been created and
     /// bound, for example via Bind().
@@ -101,7 +101,7 @@ class ChApiIrr ChIrrAssetConverter {
     /// of an animation), i.e. not too often, for performance reasons.
     void UpdateAll();
 
-    /// Clean all Irrlicht stuff that has been put in the ChIrrNode in a previous
+    /// Clean all Irrlicht stuff that has been put in the ChIrrNodeModel in a previous
     /// Update or PopulateIrrlicht operation.
     void CleanIrrlicht(std::shared_ptr<ChPhysicsItem> mitem);
 

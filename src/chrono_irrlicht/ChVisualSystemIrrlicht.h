@@ -33,7 +33,7 @@
 #include "chrono/assets/ChLineShape.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
-#include "chrono_irrlicht/ChIrrNode.h"
+#include "chrono_irrlicht/ChIrrNodeModel.h"
 #include "chrono_irrlicht/ChIrrEffects.h"
 #include "chrono_irrlicht/ChIrrGUI.h"
 
@@ -196,10 +196,10 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     /// Create the ChIrrNodes for all visual model instances in the specified assembly.
     void CreateIrrNodes(const ChAssembly* assembly, std::unordered_set<const ChAssembly*>& trace);
 
-    /// Create the ChIrrNode for the visual model instance of the specified physics item.
+    /// Create the ChIrrNodeModel for the visual model instance of the specified physics item.
     void CreateIrrNode(std::shared_ptr<ChPhysicsItem> item);
 
-    /// Populate the ChIrrNode for the visual model instance of the specified physics item.
+    /// Populate the ChIrrNodeModel for the visual model instance of the specified physics item.
     void PopulateIrrNode(irr::scene::ISceneNode* node,
                          std::shared_ptr<ChVisualModel> model,
                          const ChFrame<>& parent_frame);
@@ -210,7 +210,7 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     /// Update.
     virtual void Update() override;
 
-    std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNode>> m_nodes;
+    std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;
 
     bool m_yup;                                        ///< use Y-up if true, Z-up if false
     std::string m_win_title;                           ///< window title

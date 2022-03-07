@@ -172,7 +172,7 @@ using namespace gui;
 %include "chrono_irrlicht/ChIrrCamera.h"
 %include "ChIrrAssetConverter.i"
 %include "ChIrrApp.i"
-%include "ChIrrNode.i"
+%include "ChIrrNodeModel.i"
 %include "ChIrrNodeAsset.i"
 
 

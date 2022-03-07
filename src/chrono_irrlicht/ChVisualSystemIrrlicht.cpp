@@ -172,7 +172,7 @@ void ChVisualSystemIrrlicht::Initialize() {
     m_gui->SetSymbolscale(m_symbol_scale);
     m_gui->Initialize();
 
-    // Parse the mechanical assembly and create a ChIrrNode for each physics item with a visual model.
+    // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
     // This is a recursive call to accomodate any existing sub-assemblies.
     BindAll();
 }
@@ -415,7 +415,7 @@ void ChVisualSystemIrrlicht::WriteImageToFile(const std::string& filename) {
 
 void ChVisualSystemIrrlicht::Update() {
     for (auto& node : m_nodes) {
-        node.second->UpdateAssetsProxies();
+        node.second->UpdateChildren();
     }
 }
 
@@ -506,13 +506,13 @@ void ChVisualSystemIrrlicht::CreateIrrNode(std::shared_ptr<ChPhysicsItem> item) 
     if (!item->GetVisualModel())
         return;
 
-    // Create a new ChIrrNode and, if this is first insertion, populate it.
-    if (m_nodes.insert({item.get(), chrono_types::make_shared<ChIrrNode>(item, m_container, GetSceneManager(), 0)})
+    // Create a new ChIrrNodeModel and, if this is first insertion, populate it.
+    if (m_nodes.insert({item.get(), chrono_types::make_shared<ChIrrNodeModel>(item, m_container, GetSceneManager(), 0)})
             .second) {
         auto& node = m_nodes[item.get()];
         assert(node);
 
-        // Remove all Irrlicht scene nodes from the ChIrrNode
+        // Remove all Irrlicht scene nodes from the ChIrrNodeModel
         node->removeAll();
 
         // If the physics item uses clones of its visual model, create an intermediate Irrlicht scene node
@@ -521,7 +521,7 @@ void ChVisualSystemIrrlicht::CreateIrrNode(std::shared_ptr<ChPhysicsItem> item) 
             fillnode = GetSceneManager()->addEmptySceneNode(node.get());
         }
 
-        // Recursively populate the ChIrrNode with Irrlicht scene nodes for each visual shape.
+        // Recursively populate the ChIrrNodeModel with Irrlicht scene nodes for each visual shape.
         // Begin with identity transform relative to the physics item.
         ChFrame<> frame;
         PopulateIrrNode(fillnode, item->GetVisualModel(), frame);
@@ -578,7 +578,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 irrmesh_already_loaded = true;
             IAnimatedMesh* genericMesh = GetSceneManager()->getMesh(obj->GetFilename().c_str());
             if (genericMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(obj, node);
+                ISceneNode* mproxynode = new ChIrrNodeShape(obj, node);
                 ISceneNode* mchildnode = GetSceneManager()->addAnimatedMeshSceneNode(genericMesh, mproxynode);
                 mproxynode->drop();
 
@@ -603,7 +603,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 buffer->drop();
             }
 
-            ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(trimesh, node);
+            ChIrrNodeShape* mproxynode = new ChIrrNodeShape(trimesh, node);
             ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(smesh, mproxynode);
             smesh->drop();
 
@@ -618,7 +618,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             newmesh->addMeshBuffer(buffer);
             buffer->drop();
 
-            ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(surf, node);
+            ChIrrNodeShape* mproxynode = new ChIrrNodeShape(surf, node);
             ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
             newmesh->drop();
             mproxynode->Update();  // force syncing of triangle positions & face indexes
@@ -627,7 +627,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             mchildnode->setMaterialFlag(video::EMF_WIREFRAME, surf->IsWireframe());
         } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
             if (sphereMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(sphere, node);
+                ISceneNode* mproxynode = new ChIrrNodeShape(sphere, node);
                 ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(sphereMesh, mproxynode);
                 mproxynode->drop();
 
@@ -645,7 +645,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             }
         } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
             if (sphereMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(ellipsoid, node);
+                ISceneNode* mproxynode = new ChIrrNodeShape(ellipsoid, node);
                 ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(sphereMesh, mproxynode);
                 mproxynode->drop();
 
@@ -662,7 +662,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             }
         } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
             if (cylinderMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(cylinder, node);
+                ISceneNode* mproxynode = new ChIrrNodeShape(cylinder, node);
                 ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(cylinderMesh, mproxynode);
                 mproxynode->drop();
 
@@ -693,7 +693,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             }
         } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
             if (capsuleMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(capsule, node);
+                ISceneNode* mproxynode = new ChIrrNodeShape(capsule, node);
                 ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(capsuleMesh, mproxynode);
                 mproxynode->drop();
 
@@ -713,7 +713,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             }
         } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
             if (cubeMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(box, node);
+                ISceneNode* mproxynode = new ChIrrNodeShape(box, node);
                 ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(cubeMesh, mproxynode);
                 mproxynode->drop();
 
@@ -733,7 +733,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             auto mbarrelmesh = createEllipticalMesh((irr::f32)(barrel->GetRhor()), (irr::f32)(barrel->GetRvert()),
                                                     (irr::f32)(barrel->GetHlow()), (irr::f32)(barrel->GetHsup()),
                                                     (irr::f32)(barrel->GetRoffset()), 15, 8);
-            ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(barrel, node);
+            ISceneNode* mproxynode = new ChIrrNodeShape(barrel, node);
             ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(mbarrelmesh, mproxynode);
             mproxynode->drop();
 
@@ -755,7 +755,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             newmesh->addMeshBuffer(buffer);
             buffer->drop();
 
-            ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(glyphs, node);
+            ChIrrNodeShape* mproxynode = new ChIrrNodeShape(glyphs, node);
             ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
             newmesh->drop();
 
@@ -772,7 +772,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             newmesh->addMeshBuffer(buffer);
             buffer->drop();
 
-            ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(shape, node);
+            ChIrrNodeShape* mproxynode = new ChIrrNodeShape(shape, node);
             ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
             newmesh->drop();
 

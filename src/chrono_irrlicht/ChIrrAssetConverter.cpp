@@ -123,7 +123,7 @@ void ChIrrAssetConverter::PopulateIrrlicht(std::shared_ptr<ChPhysicsItem> mitem)
     std::vector<std::shared_ptr<ChAsset> > assetlist = mitem->GetAssets();
     std::shared_ptr<ChIrrNodeAsset> myirrasset;
 
-    // 1- Clean the ChIrrNode
+    // 1- Clean the ChIrrNodeModel
     CleanIrrlicht(mitem);
 
     // 2- Find the ChIrrNodeAsset proxy
@@ -133,8 +133,8 @@ void ChIrrAssetConverter::PopulateIrrlicht(std::shared_ptr<ChPhysicsItem> mitem)
         return;
 
     // 3- If shapes must be 'clones', put all them inside an intermediate level
-    // (that will be cloned in ChIrrNode::OnAnimate), if necessary. Otherwise put shapes
-    // normally inside the ChIrrNode
+    // (that will be cloned in ChIrrNodeModel::OnAnimate), if necessary. Otherwise put shapes
+    // normally inside the ChIrrNodeModel
 
     ISceneNode* fillnode = myirrasset->GetIrrlichtNode();
 
@@ -146,7 +146,7 @@ void ChIrrAssetConverter::PopulateIrrlicht(std::shared_ptr<ChPhysicsItem> mitem)
         fillnode = clonecontainer;
     }
 
-    // 4- populate the ChIrrNode with conversions
+    // 4- populate the ChIrrNodeModel with conversions
     // of the geometric assets in this ChPhysicsItem
 
     // ISceneNode* mnode = myirrasset->GetIrrlichtNode(); TO REMOVE
@@ -192,7 +192,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                         irrmesh_already_loaded = true;
                     IAnimatedMesh* genericMesh = scenemanager->getMesh(obj->GetFilename().c_str());
                     if (genericMesh) {
-                        ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(obj, mnode);
+                        ISceneNode* mproxynode = new ChIrrNodeShape(obj, mnode);
                         ISceneNode* mchildnode = scenemanager->addAnimatedMeshSceneNode(genericMesh, mproxynode);
                         mproxynode->drop();
 
@@ -219,7 +219,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                         buffer->drop();
                     }
 
-                    ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(trimesh, mnode);
+                    ChIrrNodeShape* mproxynode = new ChIrrNodeShape(trimesh, mnode);
                     ISceneNode* mchildnode = scenemanager->addMeshSceneNode(smesh, mproxynode);
                     smesh->drop();
 
@@ -235,7 +235,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     newmesh->addMeshBuffer(buffer);
                     buffer->drop();
 
-                    ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(surf, mnode);
+                    ChIrrNodeShape* mproxynode = new ChIrrNodeShape(surf, mnode);
                     ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
                     newmesh->drop();
                     mproxynode->Update();  // force syncing of triangle positions & face indexes
@@ -247,7 +247,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                         createEllipticalMesh((irr::f32)(mybarrel->GetRhor()), (irr::f32)(mybarrel->GetRvert()),
                                              (irr::f32)(mybarrel->GetHlow()), (irr::f32)(mybarrel->GetHsup()),
                                              (irr::f32)(mybarrel->GetRoffset()), 15, 8);
-                    ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mybarrel, mnode);
+                    ISceneNode* mproxynode = new ChIrrNodeShape(mybarrel, mnode);
                     ISceneNode* mchildnode = scenemanager->addMeshSceneNode(mbarrelmesh, mproxynode);
                     mproxynode->drop();
 
@@ -268,7 +268,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     newmesh->addMeshBuffer(buffer);
                     buffer->drop();
 
-                    ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(glyphs, mnode);
+                    ChIrrNodeShape* mproxynode = new ChIrrNodeShape(glyphs, mnode);
                     /*ISceneNode* mchildnode =*/ scenemanager->addMeshSceneNode(newmesh, mproxynode);
                     newmesh->drop();
                     mproxynode->Update();  // force syncing of triangle positions & face indexes
@@ -284,7 +284,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     newmesh->addMeshBuffer(buffer);
                     buffer->drop();
 
-                    ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(k_asset, mnode);
+                    ChIrrNodeShape* mproxynode = new ChIrrNodeShape(k_asset, mnode);
                     /*ISceneNode* mchildnode =*/ scenemanager->addMeshSceneNode(newmesh, mproxynode);
                     newmesh->drop();
                     mproxynode->Update();  // force syncing of triangle positions & face indexes
@@ -294,7 +294,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
                 } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(k_asset)) {
                     if (sphereMesh) {
-                        ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(sphere, mnode);
+                        ISceneNode* mproxynode = new ChIrrNodeShape(sphere, mnode);
                         ISceneNode* mchildnode = scenemanager->addMeshSceneNode(sphereMesh, mproxynode);
                         mproxynode->drop();
 
@@ -310,7 +310,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     }
                 } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(k_asset)) {
                     if (sphereMesh) {
-                        ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(ellipsoid, mnode);
+                        ISceneNode* mproxynode = new ChIrrNodeShape(ellipsoid, mnode);
                         ISceneNode* mchildnode = scenemanager->addMeshSceneNode(sphereMesh, mproxynode);
                         mproxynode->drop();
 
@@ -325,7 +325,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     }
                 } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(k_asset)) {
                     if (cylinderMesh) {
-                        ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(cylinder, mnode);
+                        ISceneNode* mproxynode = new ChIrrNodeShape(cylinder, mnode);
                         ISceneNode* mchildnode = scenemanager->addMeshSceneNode(cylinderMesh, mproxynode);
                         mproxynode->drop();
 
@@ -355,7 +355,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     }
                 } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(k_asset)) {
                     if (capsuleMesh) {
-                        ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(capsule, mnode);
+                        ISceneNode* mproxynode = new ChIrrNodeShape(capsule, mnode);
                         ISceneNode* mchildnode = scenemanager->addMeshSceneNode(capsuleMesh, mproxynode);
                         mproxynode->drop();
 
@@ -373,7 +373,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     }
                 } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(k_asset)) {
                     if (cubeMesh) {
-                        ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(box, mnode);
+                        ISceneNode* mproxynode = new ChIrrNodeShape(box, mnode);
                         ISceneNode* mchildnode = scenemanager->addMeshSceneNode(cubeMesh, mproxynode);
                         mproxynode->drop();
 
@@ -389,7 +389,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     }
                 } else if (auto camera = std::dynamic_pointer_cast<ChCamera>(k_asset)) {
                     camera_found_in_assets = true;
-                    ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(camera, mnode);
+                    ISceneNode* mproxynode = new ChIrrNodeShape(camera, mnode);
                     RTSCamera* irrcamera = new RTSCamera(mdevice, mproxynode, scenemanager, -1, -160.0f, 1.0f, 0.003f);
                     mproxynode->drop();
 
@@ -406,7 +406,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
         if (auto mylevel = std::dynamic_pointer_cast<ChAssetLevel>(k_asset)) {
             std::vector<std::shared_ptr<ChAsset> >& subassetlist = mylevel->GetAssets();
             ChFrame<> subassetframe = mylevel->GetFrame();
-            ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mylevel, mnode);
+            ISceneNode* mproxynode = new ChIrrNodeShape(mylevel, mnode);
             ISceneNode* subassetnode = scenemanager->addEmptySceneNode(mproxynode);
             mproxynode->drop();
             // recurse level...
@@ -426,7 +426,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
         video::ITexture* mtextureMap = mdevice->getVideoDriver()->getTexture(mtexture->GetTextureFilename().c_str());
         ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
         for (; it != mnode->getChildren().end(); ++it) {
-            ISceneNode* mproxynode = (*it);                               // the ChIrrNodeProxyToAsset contains..
+            ISceneNode* mproxynode = (*it);                               // the ChIrrNodeShape contains..
             ISceneNode* meshnode = *(mproxynode->getChildren().begin());  // ..one child ISceneNode with a mesh
             if (meshnode) {
                 meshnode->setMaterialTexture(0, mtextureMap);
@@ -440,7 +440,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
     if (mcolor) {
         ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
         for (; it != mnode->getChildren().end(); ++it) {
-            ISceneNode* mproxynode = (*it);                               // the ChIrrNodeProxyToAsset contains..
+            ISceneNode* mproxynode = (*it);                               // the ChIrrNodeShape contains..
             ISceneNode* meshnode = *(mproxynode->getChildren().begin());  // ..one child ISceneNode with a mesh
             if (meshnode)
                 for (unsigned int im = 0; im < meshnode->getMaterialCount(); ++im) {

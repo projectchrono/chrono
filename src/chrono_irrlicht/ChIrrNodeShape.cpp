@@ -12,7 +12,7 @@
 
 #include "chrono/core/ChVector.h"
 
-#include "chrono_irrlicht/ChIrrNodeProxyToAsset.h"
+#include "chrono_irrlicht/ChIrrNodeShape.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 
 namespace chrono {
@@ -20,52 +20,52 @@ namespace irrlicht {
 
 using namespace irr;
 
-ChIrrNodeProxyToAsset::ChIrrNodeProxyToAsset(std::shared_ptr<ChAsset> asset, ISceneNode* parent)
-    : ISceneNode(parent, parent->getSceneManager(), 0), visualization_asset(asset), initial_update(true) {}
+ChIrrNodeShape::ChIrrNodeShape(std::shared_ptr<ChAsset> shape, ISceneNode* parent)
+    : ISceneNode(parent, parent->getSceneManager(), 0), m_shape(shape), m_initial_update(true) {}
 
-scene::ISceneNode* ChIrrNodeProxyToAsset::clone(ISceneNode* newParent, scene::ISceneManager* newManager) {
+scene::ISceneNode* ChIrrNodeShape::clone(ISceneNode* newParent, scene::ISceneManager* newManager) {
     if (!newParent)
         newParent = Parent;
     if (!newManager)
         newManager = SceneManager;
 
-    ChIrrNodeProxyToAsset* nb = new ChIrrNodeProxyToAsset(visualization_asset, newParent);
+    ChIrrNodeShape* nb = new ChIrrNodeShape(m_shape, newParent);
 
     nb->cloneMembers(this, newManager);
-    nb->Box = Box;
-    nb->visualization_asset = visualization_asset;
+    nb->m_box = m_box;
+    nb->m_shape = m_shape;
 
     if (newParent)
         nb->drop();
     return nb;
 }
 
-void ChIrrNodeProxyToAsset::Update() {
-    if (!visualization_asset)
+void ChIrrNodeShape::Update() {
+    if (!m_shape)
         return;
 
-    if (!initial_update) {
-        auto asset = std::dynamic_pointer_cast<ChVisualShape>(visualization_asset);
+    if (!m_initial_update) {
+        auto asset = std::dynamic_pointer_cast<ChVisualShape>(m_shape);
         if (asset && !asset->IsMutable())
             return;
     }
 
-    if (auto trianglemesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(visualization_asset)) {
+    if (auto trianglemesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(m_shape)) {
         if (trianglemesh->FixedConnectivity())
             UpdateTriangleMeshFixedConnectivity(trianglemesh);
         else
             UpdateTriangleMesh(trianglemesh);
-    } else if (auto glyphs = std::dynamic_pointer_cast<ChGlyphs>(visualization_asset)) {
+    } else if (auto glyphs = std::dynamic_pointer_cast<ChGlyphs>(m_shape)) {
         UpdateGlyphs(glyphs);
-    } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(visualization_asset)) {
+    } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(m_shape)) {
         UpdateSurface(surface);
-    } else if (auto path_shape = std::dynamic_pointer_cast<ChPathShape>(visualization_asset)) {
+    } else if (auto path_shape = std::dynamic_pointer_cast<ChPathShape>(m_shape)) {
         UpdateLine(path_shape->GetPathGeometry(), path_shape->GetNumRenderPoints());
-    } else if (auto line_shape = std::dynamic_pointer_cast<ChLineShape>(visualization_asset)) {
+    } else if (auto line_shape = std::dynamic_pointer_cast<ChLineShape>(m_shape)) {
         UpdateLine(line_shape->GetLineGeometry(), line_shape->GetNumRenderPoints());
     }
 
-    initial_update = false;
+    m_initial_update = false;
 }
 
 static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
@@ -87,19 +87,19 @@ static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
     video::S3DVertex vertex;
     vertex.Pos = core::vector3df((f32)pos.x(), (f32)pos.y(), (f32)pos.z());
     vertex.Normal = core::vector3df((f32)nrm.x(), (f32)nrm.y(), (f32)nrm.z());
-    vertex.TCoords = core::vector2df((f32)uv.x(), 1 - (f32)uv.y());   // change handedness for Irrlicht
+    vertex.TCoords = core::vector2df((f32)uv.x(), 1 - (f32)uv.y());  // change handedness for Irrlicht
     vertex.Color = col;
     return vertex;
 }
 
-void ChIrrNodeProxyToAsset::UpdateTriangleMesh(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+void ChIrrNodeShape::UpdateTriangleMesh(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
     if (trianglemesh->GetNumMaterials() == 0)
         UpdateTriangleMesh_col(trianglemesh);
     else
         UpdateTriangleMesh_mat(trianglemesh);
 }
 
-void ChIrrNodeProxyToAsset::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
     // Fetch the 1st child, i.e. the mesh
     ISceneNode* irr_node = *(getChildren().begin());
     if (!irr_node || irr_node->getType() != scene::ESNT_MESH)
@@ -203,17 +203,17 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMes
     meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
 }
 
-void ChIrrNodeProxyToAsset::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
     // Fetch the 1st child, i.e. the mesh
     ISceneNode* mchildnode = *(getChildren().begin());
     if (!mchildnode)
         return;
     if (!(mchildnode->getType() == scene::ESNT_MESH))
         return;
-    
+
     auto meshnode = (scene::IMeshSceneNode*)mchildnode;
     scene::SMesh* smesh = (scene::SMesh*)meshnode->getMesh();
- 
+
     const auto& mesh = trianglemesh->GetMesh();
     const auto& materials = trianglemesh->GetMaterials();
 
@@ -322,7 +322,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMes
         irr_meshbuffer->recalculateBoundingBox();
     }
 
-    smesh->recalculateBoundingBox();    
+    smesh->recalculateBoundingBox();
 
     //// RADU TODO: what is and is not needed here?
 
@@ -340,7 +340,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMes
 }
 
 // Update a trimesh by keeping fixed the connectivity and only touching the specified modified vertices.
-void ChIrrNodeProxyToAsset::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+void ChIrrNodeShape::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
     // Access the Irrlicht mesh (first child node)
     ISceneNode* childnode = *(getChildren().begin());
     if (!childnode)
@@ -377,7 +377,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<
     assert(ncolors == 0 || ncolors == nvertices);
     assert(nuvs == 0 || nuvs == nvertices);
 
-    if (initial_update) {
+    if (m_initial_update) {
         // Full setup of the Irrlicht mesh
         vertexbuffer.set_used(nvertices);
         indexbuffer.set_used(ntriangles * 3);
@@ -433,7 +433,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<
     meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // color shading = vertexes  color
 }
 
-void ChIrrNodeProxyToAsset::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
+void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
     // Fetch the 1st child, i.e. the mesh
     ISceneNode* mchildnode = *(getChildren().begin());
     if (!mchildnode || mchildnode->getType() != scene::ESNT_MESH)
@@ -637,11 +637,11 @@ void ChIrrNodeProxyToAsset::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
     meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
 }
 
-void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surface) {
+void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChSurfaceShape> surface) {
     std::shared_ptr<geometry::ChSurface> msurface = surface->GetSurfaceGeometry();
 
     // Set color.
-    auto vis = std::static_pointer_cast<ChVisualShape>(visualization_asset);
+    auto vis = std::static_pointer_cast<ChVisualShape>(m_shape);
     video::SColor clr = tools::ToIrrlichtSColor(vis->GetColor());
 
     // Fetch the 1st child, i.e. the mesh
@@ -791,11 +791,11 @@ void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surfac
     }
 }
 
-void ChIrrNodeProxyToAsset::UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned int nvertexes) {
+void ChIrrNodeShape::UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned int nvertexes) {
     unsigned int ntriangles = nvertexes - 1;
 
     // Set color.
-    auto vis = std::static_pointer_cast<ChVisualShape>(visualization_asset);
+    auto vis = std::static_pointer_cast<ChVisualShape>(m_shape);
     video::SColor clr = tools::ToIrrlichtSColor(vis->GetColor());
 
     // Fetch the 1st child, i.e. the mesh
