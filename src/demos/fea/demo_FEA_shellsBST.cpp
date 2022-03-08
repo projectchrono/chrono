@@ -343,11 +343,10 @@ int main(int argc, char* argv[]) {
     ChFunction_Recorder rec_X;
     ChFunction_Recorder rec_Y;
 
-    while (vis.GetDevice()->run()) {
+    while (vis.Run()) {
         vis.BeginScene();
         vis.DrawAll();
         vis.EndScene();
-
         sys.DoStepDynamics(timestep);
     }
 

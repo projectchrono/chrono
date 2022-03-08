@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverForceTolerance(1e-13);
 
-    while (vis.GetDevice()->run()) {
+    while (vis.Run()) {
         vis.BeginScene();
         vis.DrawAll();
         vis.EndScene();

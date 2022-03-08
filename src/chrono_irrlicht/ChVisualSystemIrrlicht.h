@@ -173,6 +173,10 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     /// occur after the call to Initialize().
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) override;
 
+    /// Run the Irrlicht device.
+    /// Returns `false` if the device wants to be deleted.
+    bool Run(); 
+
     /// Clean the canvas at the beginning of each animation frame.
     virtual void BeginScene(bool backBuffer = true,
                             bool zBuffer = true,

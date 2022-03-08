@@ -24,7 +24,7 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -35,18 +35,8 @@ using namespace irr;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    ChSystemSMC my_system;
-    my_system.Set_G_acc(ChVector<>(0, 0, -9.8));
-
-    // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-    ChIrrApp application(&my_system, L"ANCF Shells", core::dimension2d<u32>(800, 600));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
-                                 core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
+    ChSystemSMC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, -9.8));
 
     GetLog() << "-----------------------------------------------------------\n";
     GetLog() << "-----------------------------------------------------------\n";
@@ -138,7 +128,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Add the mesh to the system
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
     // -------------------------------------
     // Options for visualization in irrlicht
@@ -149,19 +139,19 @@ int main(int argc, char* argv[]) {
     visualizemeshA->SetColorscaleMinMax(0.0, 5.50);
     visualizemeshA->SetShrinkElements(true, 0.85);
     visualizemeshA->SetSmoothFaces(true);
-    my_mesh->AddAsset(visualizemeshA);
+    my_mesh->AddVisualShapeFEA(visualizemeshA);
 
     auto visualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     visualizemeshB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     visualizemeshB->SetWireframe(true);
     visualizemeshB->SetDrawInUndeformedReference(true);
-    my_mesh->AddAsset(visualizemeshB);
+    my_mesh->AddVisualShapeFEA(visualizemeshB);
 
     auto visualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     visualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     visualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     visualizemeshC->SetSymbolsThickness(0.004);
-    my_mesh->AddAsset(visualizemeshC);
+    my_mesh->AddVisualShapeFEA(visualizemeshC);
 
     auto visualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     visualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
@@ -169,10 +159,17 @@ int main(int argc, char* argv[]) {
     visualizemeshD->SetSymbolsScale(1);
     visualizemeshD->SetColorscaleMinMax(-0.5, 5);
     visualizemeshD->SetZbufferHide(false);
-    my_mesh->AddAsset(visualizemeshD);
+    my_mesh->AddVisualShapeFEA(visualizemeshD);
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    ChVisualSystemIrrlicht vis(sys);
+    vis.SetWindowSize(ChVector2<int>(800, 600));
+    vis.SetWindowTitle("ANCF Shells");
+    vis.Initialize();
+    vis.AddLogo();
+    vis.AddSkyBox();
+    vis.AddTypicalLights();
+    vis.AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -180,17 +177,17 @@ int main(int argc, char* argv[]) {
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(100);
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
 
     // Set up integrator
-    auto stepper = chrono_types::make_shared<ChTimestepperHHT>(&my_system);
-    my_system.SetTimestepper(stepper);
+    auto stepper = chrono_types::make_shared<ChTimestepperHHT>(&sys);
+    sys.SetTimestepper(stepper);
     // Alternative way of changing the integrator:
-    ////my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    ////auto stepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    ////sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    ////auto stepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
 
     stepper->SetAlpha(-0.2);
     stepper->SetMaxiters(5);
@@ -203,13 +200,11 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
 
-    application.SetTimestep(0.01);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
-        application.DoStep();
-        application.EndScene();
+    while (vis.GetDevice()->run()) {
+        vis.BeginScene();
+        vis.DrawAll();
+        vis.EndScene();
+        sys.DoStepDynamics(0.01);
     }
 
     return 0;

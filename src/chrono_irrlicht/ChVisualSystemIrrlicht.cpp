@@ -413,6 +413,10 @@ void ChVisualSystemIrrlicht::WriteImageToFile(const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 
+bool ChVisualSystemIrrlicht::Run() {
+    return m_device->run();
+}
+
 void ChVisualSystemIrrlicht::Update() {
     for (auto& node : m_nodes) {
         node.second->UpdateChildren();
