@@ -258,6 +258,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     int GetNumthreadsCollision() const { return nthreads_collision; }
     int GetNumthreadsEigen() const { return nthreads_eigen; }
 
+    ChVisualSystem* GetVisualSystem() const { return visual_system; }
+
     //
     // DATABASE HANDLING
     //
