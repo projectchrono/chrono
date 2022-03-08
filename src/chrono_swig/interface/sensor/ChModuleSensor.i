@@ -64,6 +64,7 @@
 #include "chrono_sensor/sensors/Sensor.h"
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/sensors/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChSegmentationCamera.h"
 #include "chrono_sensor/ChConfigSensor.h.in"
 #include "chrono_sensor/sensors/ChGPSSensor.h"
 #include "chrono_sensor/sensors/ChIMUSensor.h"
@@ -96,7 +97,7 @@
 #include "chrono_sensor/filters/ChFilterRadarSavePC.h"
 #include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
 #include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
-
+#include "chrono_sensor/filters/ChFilterCameraNoise.h"
 
 using namespace chrono;
 using namespace chrono::sensor;
@@ -171,6 +172,7 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::ChMagnetometerSensor)
 %shared_ptr(chrono::sensor::ChGPSSensor)
 %shared_ptr(chrono::sensor::ChCameraSensor)
+%shared_ptr(chrono::sensor::ChSegmentationCamera)
 %shared_ptr(chrono::ChTriangleMeshShape)
 %shared_ptr(chrono::sensor::AccelData)
 %shared_ptr(chrono::sensor::GyroData)
@@ -232,6 +234,9 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::ChFilterRadarXYZVisualize)
 %shared_ptr(chrono::sensor::ChFilterRadarVisualizeCluster)
 %shared_ptr(chrono::sensor::ChFilterRadarSavePC)
+
+%shared_ptr(chrono::sensor::ChFilterCameraNoiseConstNormal)
+%shared_ptr(chrono::sensor::ChFilterCameraNoisePixDep)
 
 %shared_ptr(chrono::sensor::ChFilterImgAlias)
 %shared_ptr(chrono::sensor::ChFilterImageResize)
@@ -308,6 +313,7 @@ using namespace chrono::sensor;
 %include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
 %include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
 %include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
+%include "chrono_sensor/filters/ChFilterCameraNoise.h"
 
 %include "chrono_sensor/optix/scene/ChScene.h"
 %include "chrono_sensor/optix/ChOptixDefinitions.h"
@@ -318,6 +324,7 @@ using namespace chrono::sensor;
 %include "chrono_sensor/sensors/Sensor.h"
 %include "chrono_sensor/sensors/ChOptixSensor.h"
 %include "chrono_sensor/sensors/ChCameraSensor.h"
+%include "chrono_sensor/sensors/ChSegmentationCamera.h"
 %include "chrono_sensor/ChConfigSensor.h.in"
 %include "chrono_sensor/sensors/ChGPSSensor.h"
 %include "chrono_sensor/sensors/ChIMUSensor.h"
