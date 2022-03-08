@@ -158,10 +158,12 @@ bool ChOpenGLViewer::Initialize() {
     contact_renderer.Initialize(contact_color, &dot_shader);
     graph_renderer.Initialize(white, &cloud_shader);
 
+#ifndef __EMSCRIPTEN__
+    glEnable(GL_POINT_SPRITE);
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+#endif
     // glEnable(GL_MULTISAMPLE);
-    // glEnable(GL_POINT_SPRITE);
-    // glEnable(GL_PROGRAM_POINT_SIZE);
-    // glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // glLineWidth(10);
@@ -196,11 +198,13 @@ void ChOpenGLViewer::Render(bool render_hud) {
         dot_shader.SetViewport(window_size);
         sphere_shader.SetViewport(window_size);
 
-        // if (render_mode == WIREFRAME) {
-        //     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        // } else {
-        //     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        // }
+#ifndef __EMSCRIPTEN__
+        if (render_mode == WIREFRAME) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        } else {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+#endif
 
         if (render_mode != POINTS) {
             model_box.clear();

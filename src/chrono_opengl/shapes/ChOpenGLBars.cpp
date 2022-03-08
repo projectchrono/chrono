@@ -126,8 +126,9 @@ void ChOpenGLBars::Draw(const mat4& projection, const mat4& view) {
     }
 
     glEnable(GL_DEPTH_TEST);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
+#ifndef __EMSCRIPTEN__
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+#endif
     // Enable the shader
     shader->Use();
     this->GLReturnedError("ChOpenGLBars::Draw - after use");
