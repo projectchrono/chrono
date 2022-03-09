@@ -39,9 +39,6 @@ class ChApiIrr ChIrrGUI {
     /// Attach a custom event receiver to the application.
     void AddUserEventReceiver(irr::IEventReceiver* receiver);
 
-    /// Perform setup when the associated Irrlicht visualization system is initialized.
-    void Initialize();
-
     /// Perform operations after opening the Irrlicht scene for the current frame.
     void BeginScene();
 

@@ -212,18 +212,19 @@ int main(int argc, char* argv[]) {
     mloadcontainer->Add(mrigidmeshload);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(1280, 720));
-    vis.SetWindowTitle("demo_FEA_cosimulate_load");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-                           ChColor(0.8f, 0.8f, 1.0f));
-    vis.AddCamera(ChVector<>(1.0, 1.4, -1.2), ChVector<>(0, tire_rad, 0));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(ChVector2<int>(1280, 720));
+    vis->SetWindowTitle("demo_FEA_cosimulate_load");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512,
+                            ChColor(0.8f, 0.8f, 1.0f));
+    vis->AddCamera(ChVector<>(1.0, 1.4, -1.2), ChVector<>(0, tire_rad, 0));
 
-    vis.EnableShadows();
+    vis->EnableShadows();
 
     //
     // THE SOFT-REAL-TIME CYCLE
@@ -245,9 +246,9 @@ int main(int argc, char* argv[]) {
     // Change type of integrator:
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
-    while (vis.Run()) {
-        vis.BeginScene();
-        vis.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
         sys.DoStepDynamics(0.005);
 
@@ -275,7 +276,7 @@ int main(int argc, char* argv[]) {
 
         // now, just for debugging and some fun, draw some triangles
         // (only those that have a vertex that has a force applied):
-        draw_affected_triangles(vis, vert_pos, triangles, vert_indexes, vert_forces, 0.01);
+        draw_affected_triangles(*vis, vert_pos, triangles, vert_indexes, vert_forces, 0.01);
 
         // Other example: call another cosimulation, this time for the rigid body
         // mesh (the second tire, the rigid one):
@@ -293,15 +294,15 @@ int main(int argc, char* argv[]) {
 
         // now, just for debugging and some fun, draw some triangles
         // (only those that have a vertex that has a force applied):
-        draw_affected_triangles(vis, vert_pos, triangles, vert_indexes, vert_forces, 0.01);
+        draw_affected_triangles(*vis, vert_pos, triangles, vert_indexes, vert_forces, 0.01);
 
         // End of cosimulation block
         // -------------------------------------------------------------------------
 
-        tools::drawGrid(vis.GetVideoDriver(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X),
+        tools::drawGrid(vis->GetVideoDriver(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X),
                         video::SColor(50, 90, 90, 90), true);
 
-        vis.EndScene();
+        vis->EndScene();
     }
 
     return 0;

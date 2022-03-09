@@ -233,21 +233,20 @@ int main(int argc, char* argv[]) {
      */
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(1280, 720));
-    vis.SetWindowTitle("FEA contacts");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(1.0, 1.4, -1.2), ChVector<>(0, tire_rad, 0));
-    vis.AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512,
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(ChVector2<int>(1280, 720));
+    vis->SetWindowTitle("FEA contacts");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(1.0, 1.4, -1.2), ChVector<>(0, tire_rad, 0));
+    vis->AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512,
                            ChColor(0.8f, 0.8f, 1.0f));
-    vis.EnableShadows();
+    vis->EnableShadows();
 
-    //
     // SIMULATION LOOP
-    //
 
     // Change solver to Pardiso from Chrono::PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -266,10 +265,10 @@ int main(int argc, char* argv[]) {
         mystepper->SetAbsTolerances(1e-6);
     }
 
-    while (vis.GetDevice()->run()) {
-        vis.BeginScene();
-        vis.DrawAll();
-        vis.EndScene();
+    while (vis->GetDevice()->run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
         sys.DoStepDynamics(0.001);
     }
 

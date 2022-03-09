@@ -45,7 +45,7 @@ enum class CameraVerticalDir { Y, Z };
 
 class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
   public:
-    ChVisualSystemIrrlicht(ChSystem& sys);
+    ChVisualSystemIrrlicht();
     ~ChVisualSystemIrrlicht();
 
     /// Enable/disable antialias (default true).
@@ -197,6 +197,9 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     virtual void WriteImageToFile(const std::string& filename) override;
 
   private:
+    /// Create the associated Irrlicht GUI.
+    void CreateGUI();
+
     /// Create the ChIrrNodes for all visual model instances in the specified assembly.
     void CreateIrrNodes(const ChAssembly* assembly, std::unordered_set<const ChAssembly*>& trace);
 
@@ -211,23 +214,27 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     /// Add shadow to an Irrlicht node.
     void AddShadowToIrrNode(irr::scene::ISceneNode* node);
 
+    /// Perform any necessary operations when the visualization system is attached to a Chsystem.
+    virtual void OnAttach() override;
+
     /// Perform necessary setup operations at the beginning of a time step.
-    virtual void Setup() override;
+    virtual void OnSetup() override;
 
     /// Perform necessary update operations at the beginning of a time step.
-    virtual void Update() override;
+    virtual void OnUpdate() override;
 
     std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;
 
-    bool m_yup;                                        ///< use Y-up if true, Z-up if false
-    std::string m_win_title;                           ///< window title
-    irr::SIrrlichtCreationParameters m_device_params;  ///< Irrlicht device parameters
-    irr::IrrlichtDevice* m_device;                     ///< Irrlicht visualization device
-    irr::scene::ISceneNode* m_container;               ///< Irrlicht scene container
-    std::unique_ptr<ChIrrGUI> m_gui;                   ///< associated Irrlicht GUI and event receiver
-    std::unique_ptr<EffectHandler> m_effect_handler;   ///< effect handler for shadow maps
-    bool m_use_effects;                                ///< flag to enable/disable effects
-    double m_symbol_scale;                             ///< scale for symbol drawing
+    bool m_yup;                                          ///< use Y-up if true, Z-up if false
+    std::string m_win_title;                             ///< window title
+    irr::SIrrlichtCreationParameters m_device_params;    ///< Irrlicht device parameters
+    irr::IrrlichtDevice* m_device;                       ///< Irrlicht visualization device
+    irr::scene::ISceneNode* m_container;                 ///< Irrlicht scene container
+    std::unique_ptr<ChIrrGUI> m_gui;                     ///< associated Irrlicht GUI and event receiver
+    std::vector<irr::IEventReceiver*> m_user_receivers;  ///< optional user-defined receivers
+    std::unique_ptr<EffectHandler> m_effect_handler;     ///< effect handler for shadow maps
+    bool m_use_effects;                                  ///< flag to enable/disable effects
+    double m_symbol_scale;                               ///< scale for symbol drawing
 
     // shared meshes
     irr::scene::IAnimatedMesh* sphereMesh;

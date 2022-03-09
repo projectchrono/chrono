@@ -183,14 +183,15 @@ int main(int argc, char* argv[]) {
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("Beams (SPACE for dynamics, F10 / F11 statics)");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(-0.1, 0.2, -0.2));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("Beams (SPACE for dynamics, F10 / F11 statics)");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.1, 0.2, -0.2));
+    sys.SetVisualSystem(vis);
 
     // THE SIMULATION LOOP
 
@@ -263,10 +264,10 @@ int main(int argc, char* argv[]) {
     GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x() << "    y=" << hnode3->Frame().GetPos().y()
              << "    z=" << hnode3->Frame().GetPos().z() << "\n\n";
 
-    while (vis.GetDevice()->run()) {
-        vis.BeginScene();
-        vis.DrawAll();
-        vis.EndScene();
+    while (vis->GetDevice()->run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
         sys.DoStepDynamics(0.001);
     }
 

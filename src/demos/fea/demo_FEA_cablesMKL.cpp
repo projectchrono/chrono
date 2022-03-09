@@ -63,14 +63,15 @@ int main(int argc, char* argv[]) {
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("Cables FEM (MKL)");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("Cables FEM (MKL)");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    sys.SetVisualSystem(vis);
 
     // Configure PardisoMKL solver.
     // For this simple and relatively small problem, use of the sparsity pattern learner may introduce additional
@@ -87,10 +88,10 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     // SIMULATION LOOP
-    while (vis.Run()) {
-        vis.BeginScene();
-        vis.DrawAll();
-        vis.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
         sys.DoStepDynamics(0.01);
         ////model.PrintBodyPositions();
     }

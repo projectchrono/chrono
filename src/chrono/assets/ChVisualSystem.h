@@ -46,15 +46,19 @@ class ChApi ChVisualSystem {
     const ChSystem& GetSystem() const { return *m_system; }
 
   protected:
-    ChVisualSystem(ChSystem& sys);
+    ChVisualSystem() : m_system(nullptr) {}
 
-    /// Perform necessary setup operations at the beginning of a time step.
-    /// Called by the associated ChSystem.
-    virtual void Setup() {}
+    /// Perform any necessary operations when the visualization system is attached to a Chsystem.
+    /// Called by the associated ChSystem after it sets m_system.
+    virtual void OnAttach() {}
 
-    /// Perform necessary update operations at the beginning of a time step.
+    /// Perform any necessary setup operations at the beginning of a time step.
     /// Called by the associated ChSystem.
-    virtual void Update() {}
+    virtual void OnSetup() {}
+
+    /// Perform any necessary update operations at the beginning of a time step.
+    /// Called by the associated ChSystem.
+    virtual void OnUpdate() {}
 
     ChSystem* m_system;  ///< associated Chrono system
 

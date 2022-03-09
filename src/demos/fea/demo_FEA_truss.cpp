@@ -216,18 +216,17 @@ int main(int argc, char* argv[]) {
     //
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(1024, 768));
-    vis.SetWindowTitle("Truss FEA test: use ChElementSpring and ChElementBar");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(0.0, 1.0, -1.0));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(1024, 768));
+    vis->SetWindowTitle("Truss FEA test: use ChElementSpring and ChElementBar");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0.0, 1.0, -1.0));
+    sys.SetVisualSystem(vis);
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // Simulation loop
 
     // Change solver to MKL
     // auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -241,14 +240,14 @@ int main(int argc, char* argv[]) {
 
     double timestep = 0.01;
 
-    while (vis.GetDevice()->run()) {
-        vis.BeginScene();
-        vis.DrawAll();
+    while (vis->GetDevice()->run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
         // draw spring elements as lines
         for (auto mspring : springs) {
             if (mspring->GetSpringK() > 0) {
-                tools::drawSegment(vis.GetVideoDriver(),
+                tools::drawSegment(vis->GetVideoDriver(),
                                    std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(0))->GetPos(),
                                    std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(1))->GetPos(),
                                    irr::video::SColor(255, 255, 255, 255), true);
@@ -274,7 +273,7 @@ int main(int argc, char* argv[]) {
 
         sys.DoStepDynamics(timestep);
 
-        vis.EndScene();
+        vis->EndScene();
     }
 
     return 0;

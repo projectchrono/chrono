@@ -241,14 +241,15 @@ int main(int argc, char* argv[]) {
     mgear_motorHI->SetSpeedFunction(mgear_speedHI);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("Beam continuous extrusion and FEA contacts");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(-0.1, 0.2, -0.2));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("Beam continuous extrusion and FEA contacts");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.1, 0.2, -0.2));
+    sys.SetVisualSystem(vis);
 
     // SIMULATION LOOP
 
@@ -256,10 +257,10 @@ int main(int argc, char* argv[]) {
     mkl_solver->LockSparsityPattern(true);
     sys.SetSolver(mkl_solver);
 
-    while (vis.GetDevice()->run()) {
-        vis.BeginScene();
-        vis.DrawAll();
-        tools::drawGrid(vis.GetVideoDriver(), 0.1, 0.1, 20, 20, CSYSNORM, irr::video::SColor(255, 100, 100, 100), true);
+    while (vis->GetDevice()->run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        tools::drawGrid(vis->GetVideoDriver(), 0.1, 0.1, 20, 20, CSYSNORM, irr::video::SColor(255, 100, 100, 100), true);
 
         sys.DoStepDynamics(0.0002);
 
@@ -270,7 +271,7 @@ int main(int argc, char* argv[]) {
             mkl_solver->ForceSparsityPatternUpdate();
         }
 
-        vis.EndScene();
+        vis->EndScene();
     }
 
     return 0;

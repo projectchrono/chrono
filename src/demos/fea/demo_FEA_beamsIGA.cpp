@@ -52,7 +52,7 @@ const std::string out_dir = GetChronoOutputPath() + "FEA_BEAMS_IGA";
 // Example A: Low  level approach, creating single elements and nodes:
 //
 
-void MakeAndRunDemo0(ChSystem& sys, ChVisualSystemIrrlicht& vis) {
+void MakeAndRunDemo0(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
@@ -124,13 +124,13 @@ void MakeAndRunDemo0(ChSystem& sys, ChVisualSystemIrrlicht& vis) {
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    vis.BindAll();
+    sys.SetVisualSystem(vis);
 
-    while (vis.Run()) {
-        vis.BeginScene();
-        vis.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
         sys.DoStepDynamics(0.01);
-        vis.EndScene();
+        vis->EndScene();
     }
 }
 
@@ -140,7 +140,7 @@ void MakeAndRunDemo0(ChSystem& sys, ChVisualSystemIrrlicht& vis) {
 // rod automatically divided in Nel elements:
 //
 
-void MakeAndRunDemo1(ChSystem& sys, ChVisualSystemIrrlicht& vis, int nsections = 32, int order = 2) {
+void MakeAndRunDemo1(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis, int nsections = 32, int order = 2) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
@@ -206,7 +206,7 @@ void MakeAndRunDemo1(ChSystem& sys, ChVisualSystemIrrlicht& vis, int nsections =
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    vis.BindAll();
+    sys.SetVisualSystem(vis);
 
     // Do a linear static analysis.
     sys.DoStaticLinear();
@@ -226,11 +226,11 @@ void MakeAndRunDemo1(ChSystem& sys, ChVisualSystemIrrlicht& vis, int nsections =
              << "  rel.error=  " << fabs((numerical_displ - analytic_timoshenko_displ) / analytic_timoshenko_displ)
              << "\n";
 
-    while (vis.Run()) {
-        vis.BeginScene();
-        vis.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
         sys.DoStepDynamics(0.01);
-        vis.EndScene();
+        vis->EndScene();
     }
 }
 
@@ -240,7 +240,7 @@ void MakeAndRunDemo1(ChSystem& sys, ChVisualSystemIrrlicht& vis, int nsections =
 // Also attach a rigid body to the end of the spline.
 //
 
-void MakeAndRunDemo2(ChSystem& sys, ChVisualSystemIrrlicht& vis) {
+void MakeAndRunDemo2(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
@@ -314,13 +314,13 @@ void MakeAndRunDemo2(ChSystem& sys, ChVisualSystemIrrlicht& vis) {
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    vis.BindAll();
+    sys.SetVisualSystem(vis);
 
-    while (vis.Run()) {
-        vis.BeginScene();
-        vis.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
         sys.DoStepDynamics(0.01);
-        vis.EndScene();
+        vis->EndScene();
     }
 }
 
@@ -329,7 +329,7 @@ void MakeAndRunDemo2(ChSystem& sys, ChVisualSystemIrrlicht& vis) {
 // Plasticity in IGA beams.
 //
 
-void MakeAndRunDemo3(ChSystem& sys, ChVisualSystemIrrlicht& vis) {
+void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
@@ -422,16 +422,16 @@ void MakeAndRunDemo3(ChSystem& sys, ChVisualSystemIrrlicht& vis) {
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    vis.BindAll();
+    sys.SetVisualSystem(vis);
 
     std::string filename = out_dir + "/plasticity.dat";
     ChStreamOutAsciiFile my_plasticfile(filename.c_str());
 
-    while (vis.Run()) {
-        vis.BeginScene();
-        vis.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
         sys.DoStepDynamics(0.01);
-        vis.EndScene();
+        vis->EndScene();
 
         // Save to file: plastic flow of the 1st element, and other data
         ChMatrixDynamic<> mK(builder.GetLastBeamElements()[0]->GetNdofs(),
@@ -463,7 +463,7 @@ void MakeAndRunDemo3(ChSystem& sys, ChVisualSystemIrrlicht& vis) {
 // with a motor, up to resonance.
 //
 
-void MakeAndRunDemo4(ChSystem& sys, ChVisualSystemIrrlicht& vis) {
+void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
@@ -592,7 +592,7 @@ void MakeAndRunDemo4(ChSystem& sys, ChVisualSystemIrrlicht& vis) {
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    vis.BindAll();
+    sys.SetVisualSystem(vis);
 
     std::string filename = out_dir + "/rotor_displ.dat";
     chrono::ChStreamOutAsciiFile file_out1(filename.c_str());
@@ -606,11 +606,11 @@ void MakeAndRunDemo4(ChSystem& sys, ChVisualSystemIrrlicht& vis) {
 
     sys.DoStaticLinear();
 
-    while (vis.Run()) {
-        vis.BeginScene();
-        vis.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
         sys.DoStepDynamics(0.002);
-        vis.EndScene();
+        vis->EndScene();
         file_out1 << sys.GetChTime() << " " << node_mid->GetPos().y() << " " << node_mid->GetPos().z() << "\n";
     }
 }
@@ -639,15 +639,15 @@ int main(int argc, char* argv[]) {
     ChClampValue(which, 1, 4);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle(models[which - 1]);
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddLight(ChVector<>(30, 100, 30), 180, ChColor(0.5f, 0.5f, 0.5f, 1.0f));
-    vis.AddLight(ChVector<>(30, 80, -30), 190, ChColor(0.2f, 0.3f, 0.4f, 1.0f));
-    vis.AddCamera(ChVector<>(-0.1, 0.2, -0.2));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle(models[which - 1]);
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddLight(ChVector<>(30, 100, 30), 180, ChColor(0.5f, 0.5f, 0.5f, 1.0f));
+    vis->AddLight(ChVector<>(30, 80, -30), 190, ChColor(0.2f, 0.3f, 0.4f, 1.0f));
+    vis->AddCamera(ChVector<>(-0.1, 0.2, -0.2));
 
     // Solver default settings for all the sub demos:
     auto solver = chrono_types::make_shared<ChSolverMINRES>();

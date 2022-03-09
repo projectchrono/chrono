@@ -171,28 +171,29 @@ int main(int argc, char* argv[]) {
     mesh->AddVisualShapeFEA(vis_node);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("ANCF beam");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(-0.4, 0.4, 0.4), ChVector<>(0.0, 0.0, 0.0));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("ANCF beam");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.4, 0.4, 0.4), ChVector<>(0.0, 0.0, 0.0));
+    sys.SetVisualSystem(vis);
 
     // Simulation loop
-    while (vis.GetDevice()->run()) {
+    while (vis->GetDevice()->run()) {
         // std::cout << "t (s): " << sys.GetChTime() << "  Tip (m): " << end_point->GetPos() << std::endl;
 
-        vis.BeginScene();
-        vis.DrawAll();
-        irrlicht::tools::drawSegment(vis.GetVideoDriver(), ChVector<>(0), ChVector<>(0.3, 0, 0),
+        vis->BeginScene();
+        vis->DrawAll();
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0.3, 0, 0),
                                      irr::video::SColor(255, 255, 0, 0));
-        irrlicht::tools::drawSegment(vis.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0.3, 0),
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0.3, 0),
                                      irr::video::SColor(255, 0, 255, 0));
-        irrlicht::tools::drawSegment(vis.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 0.3),
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 0.3),
                                      irr::video::SColor(255, 0, 0, 255));
-        vis.EndScene();
+        vis->EndScene();
 
         sys.DoStepDynamics(1e-2);
     }

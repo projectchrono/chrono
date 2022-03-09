@@ -131,28 +131,27 @@ int main(int argc, char* argv[]) {
     sys.AddBody(bin);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("SMC demonstration");
-
-    vis.Initialize();
-    
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(0, 3, -6));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("SMC demonstration");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0, 3, -6));
+    sys.SetVisualSystem(vis);
 
     // The soft-real-time cycle
     double time = 0.0;
     double out_time = 0.0;
 
-    while (vis.GetDevice()->run()) {
-        vis.BeginScene();
-        vis.DrawAll();
-        tools::drawGrid(vis.GetVideoDriver(), 0.2, 0.2, 20, 20,
+    while (vis->GetDevice()->run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        tools::drawGrid(vis->GetVideoDriver(), 0.2, 0.2, 20, 20,
                         ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)), video::SColor(255, 80, 100, 100),
                         true);
-        vis.EndScene();
+        vis->EndScene();
 
         while (time < out_time) {
             sys.DoStepDynamics(time_step);

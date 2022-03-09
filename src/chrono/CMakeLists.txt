@@ -624,7 +624,6 @@ set(ChronoEngine_assets_SOURCES
     assets/ChVisualShape.cpp
     assets/ChVisualShapeFEA.cpp
     assets/ChVisualModel.cpp
-    assets/ChVisualSystem.cpp
     )
 
 set(ChronoEngine_assets_HEADERS

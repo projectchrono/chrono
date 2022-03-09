@@ -132,15 +132,16 @@ int main(int argc, char* argv[]) {
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("FEM electrostatics");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddLight(ChVector<>(20, 20, 20), 90, ChColor(0.5f, 0.5f, 0.5f));
-    vis.AddLight(ChVector<>(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f, 1.0f));
-    vis.AddCamera(ChVector<>(0., 0.2, -0.3));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("FEM electrostatics");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddLight(ChVector<>(20, 20, 20), 90, ChColor(0.5f, 0.5f, 0.5f));
+    vis->AddLight(ChVector<>(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f, 1.0f));
+    vis->AddCamera(ChVector<>(0., 0.2, -0.3));
 
     // SIMULATION LOOP
 
@@ -159,10 +160,10 @@ int main(int argc, char* argv[]) {
 
     sys.DoStaticLinear();
 
-    while (vis.Run()) {
-        vis.BeginScene();
-        vis.DrawAll();
-        vis.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
     }
 
     // Print some node potentials V..

@@ -222,14 +222,15 @@ int main(int argc, char* argv[]) {
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("Brick Elements");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(1.2, 0.6, 0.3), ChVector<>(0.2, -0.2, 0.0));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("Brick Elements");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(1.2, 0.6, 0.3), ChVector<>(0.2, -0.2, 0.0));
+    sys.SetVisualSystem(vis);
 
     // Perform a dynamic time integration:
 
@@ -248,10 +249,10 @@ int main(int argc, char* argv[]) {
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
 
-    while (vis.Run()) {
-        vis.BeginScene();
-        vis.DrawAll();
-        vis.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
         sys.DoStepDynamics(0.004);
     }
 

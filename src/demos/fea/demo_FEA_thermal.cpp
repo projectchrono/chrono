@@ -142,15 +142,16 @@ int main(int argc, char* argv[]) {
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("FEM thermal");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddLight(ChVector<>(+20, 20, +20), 90, ChColor(0.5, 0.5, 0.5));
-    vis.AddLight(ChVector<>(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f, 1.0f));
-    vis.AddCamera(ChVector<>(0, 0.7, -1), ChVector<>(0, 0.4, 0));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("FEM thermal");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddLight(ChVector<>(+20, 20, +20), 90, ChColor(0.5, 0.5, 0.5));
+    vis->AddLight(ChVector<>(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f, 1.0f));
+    vis->AddCamera(ChVector<>(0, 0.7, -1), ChVector<>(0, 0.4, 0));
+    sys.SetVisualSystem(vis);
 
     // SIMULATION LOOP
 
@@ -174,10 +175,10 @@ int main(int argc, char* argv[]) {
     // Also, in the following while() loop, remove  application.DoStep();
     // so you can spin the 3D view and look at the solution.
 
-    while (vis.GetDevice()->run()) {
-        vis.BeginScene();
-        vis.DrawAll();
-        vis.EndScene();
+    while (vis->GetDevice()->run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
         sys.DoStepDynamics(0.01);
 
         if (sys.GetChTime() > 5)

@@ -210,24 +210,23 @@ int main(int argc, char* argv[]) {
     sys->RegisterCustomCollisionCallback(collision);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(*sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("Custom contact demo");
-
-    vis.Initialize();
-
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddCamera(ChVector<>(8, 8, -6));
-    vis.AddTypicalLights();
-    vis.EnableShadows();
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys->SetVisualSystem(vis);
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("Custom contact demo");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(8, 8, -6));
+    vis->AddTypicalLights();
+    vis->EnableShadows();
 
     int frame = 0;
-    while (vis.GetDevice()->run()) {
+    while (vis->GetDevice()->run()) {
         if (frame % 100 == 0) {
-            vis.BeginScene();
-            vis.DrawAll();
-            vis.EndScene();
+            vis->BeginScene();
+            vis->DrawAll();
+            vis->EndScene();
         }
 
         sys->DoStepDynamics(1e-4);

@@ -226,8 +226,13 @@ void ChSystem::Remove(std::shared_ptr<ChPhysicsItem> item) {
 }
 
 // -----------------------------------------------------------------------------
-// Set/Get routines
-// -----------------------------------------------------------------------------
+
+void ChSystem::SetVisualSystem(std::shared_ptr<ChVisualSystem> vsys) {
+    assert(vsys);
+    visual_system = vsys;
+    visual_system->m_system = this;
+    visual_system->OnAttach();
+}
 
 void ChSystem::SetSolverMaxIterations(int max_iters) {
     if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
@@ -768,7 +773,7 @@ void ChSystem::Update(bool update_assets) {
 
     // Update any attached visualization system only when also updating assets
     if (visual_system && update_assets)
-        visual_system->Update();
+        visual_system->OnUpdate();
 
     timer_update.stop();
 }
@@ -1443,7 +1448,7 @@ bool ChSystem::Integrate_Y() {
 
     // Let the visualization system (if any) perform setup operations
     if (visual_system)
-        visual_system->Setup();
+        visual_system->OnSetup();
 
     // Compute contacts and create contact constraints
     int ncontacts_old = ncontacts;
@@ -1499,7 +1504,7 @@ bool ChSystem::Integrate_Y() {
 
     // Update the run-time visualization system, if present
     if (visual_system)
-        visual_system->Update();
+        visual_system->OnUpdate();
 
     // Tentatively mark system as unchanged (i.e., no updated necessary)
     is_updated = true;

@@ -45,9 +45,8 @@ using namespace irr::scene;
 
 static std::shared_ptr<irr::video::SMaterial> default_material;
 
-ChVisualSystemIrrlicht::ChVisualSystemIrrlicht(ChSystem& sys)
-    : ChVisualSystem(sys),
-      m_device_params(irr::SIrrlichtCreationParameters()),
+ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
+    : m_device_params(irr::SIrrlichtCreationParameters()),
       m_device(nullptr),
       m_container(nullptr),
       m_win_title(""),
@@ -92,6 +91,8 @@ ChVisualSystemIrrlicht::~ChVisualSystemIrrlicht() {
     if (m_device)
         m_device->drop();
 }
+
+// -----------------------------------------------------------------------------
 
 void ChVisualSystemIrrlicht::SetAntialias(bool val) {
     m_device_params.AntiAlias = val;
@@ -165,16 +166,68 @@ void ChVisualSystemIrrlicht::Initialize() {
         default_material = std::make_shared<irr::video::SMaterial>(irr_mat);
     }
 
-    // Create an Irrlicht GUI
+    // If the visualization system is already attached to a ChSystem
+    if (m_system) {
+        // Create an Irrlicht GUI
+        assert(!m_gui);
+        CreateGUI();
+
+        // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
+        // This is a recursive call to accomodate any existing sub-assemblies.
+        BindAll();
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+bool ChVisualSystemIrrlicht::Run() {
+    return m_device->run();
+}
+
+void ChVisualSystemIrrlicht::OnAttach() {
+    // If the visualization system is already initialized
+    if (m_device) {
+        assert(!m_gui);
+        CreateGUI();
+
+        // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
+        // This is a recursive call to accomodate any existing sub-assemblies.
+        BindAll();
+    }
+}
+
+void ChVisualSystemIrrlicht::OnSetup() {
+    // Remove Irrlicht nodes associated with a deleted physics item
+    std::vector<ChPhysicsItem*> items_to_remove;
+    for (auto& node : m_nodes) {
+        if (node.second->GetPhysicsItem().expired()) {
+            node.second->removeAll();
+            node.second->remove();
+            items_to_remove.emplace_back(node.first);
+        }
+    }
+    for (auto&& item : items_to_remove)
+        m_nodes.erase(item);
+}
+
+void ChVisualSystemIrrlicht::OnUpdate() {
+    for (auto& node : m_nodes) {
+        node.second->UpdateChildren();
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+// Called from Initialize() or from OnAttach(), whichever is invoked last.
+void ChVisualSystemIrrlicht::CreateGUI() {
+    assert(m_device);
+    assert(m_system);
+
     m_gui = std::unique_ptr<ChIrrGUI>(new ChIrrGUI(m_device, m_system));
 
-    // Let the associated Irrlicht GUI perform any required setup
     m_gui->SetSymbolscale(m_symbol_scale);
-    m_gui->Initialize();
-
-    // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
-    // This is a recursive call to accomodate any existing sub-assemblies.
-    BindAll();
+    for (auto recv : m_user_receivers)
+        m_gui->AddUserEventReceiver(recv);
 }
 
 // -----------------------------------------------------------------------------
@@ -278,17 +331,24 @@ irr::scene::ILightSceneNode* ChVisualSystemIrrlicht::AddLightWithShadow(const Ch
 }
 
 void ChVisualSystemIrrlicht::AddUserEventReceiver(irr::IEventReceiver* receiver) {
-    if (!m_device)
-        return;
-
-    m_gui->AddUserEventReceiver(receiver);
+    if (m_gui)
+        m_gui->AddUserEventReceiver(receiver);
+    else
+        m_user_receivers.push_back(receiver);
 }
 
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemIrrlicht::EnableShadows(std::shared_ptr<ChPhysicsItem> item) {
-    if (!m_device)
+    if (!m_device) {
+        std::cerr << "EnableShadows - visualization system not initialized" << std::endl;
         return;
+    }
+
+    if (!m_system) {
+        std::cerr << "EnableShadows - visualization system not attached to a ChSystem" << std::endl;
+        return;
+    }
 
     if (item) {
         auto node = m_nodes.find(item.get());
@@ -413,57 +473,15 @@ void ChVisualSystemIrrlicht::WriteImageToFile(const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 
-bool ChVisualSystemIrrlicht::Run() {
-    return m_device->run();
-}
-
-void ChVisualSystemIrrlicht::Setup() {
-    std::vector<ChPhysicsItem*> items_to_remove;
-    for (auto& node : m_nodes) {
-        if (node.second->GetPhysicsItem().expired()) {
-            node.second->removeAll();
-            node.second->remove();
-            items_to_remove.emplace_back(node.first);
-        }
-    }
-    for (auto&& item : items_to_remove)
-        m_nodes.erase(item);
-}
-
-void ChVisualSystemIrrlicht::Update() {
-    for (auto& node : m_nodes) {
-        node.second->UpdateChildren();
-    }
-}
-
-// -----------------------------------------------------------------------------
-
-class DebugDrawer : public collision::ChCollisionSystem::VisualizationCallback {
-  public:
-    explicit DebugDrawer(irr::video::IVideoDriver* driver)
-        : m_driver(driver), m_debugMode(0), m_linecolor(255, 255, 0, 0) {}
-    ~DebugDrawer() {}
-
-    virtual void DrawLine(const ChVector<>& from, const ChVector<>& to, const ChColor& color) override {
-        m_driver->draw3DLine(irr::core::vector3dfCH(from), irr::core::vector3dfCH(to), m_linecolor);
-    }
-
-    virtual double GetNormalScale() const override { return 1.0; }
-
-    void SetLineColor(irr::video::SColor& mcolor) { m_linecolor = mcolor; }
-
-  private:
-    irr::video::IVideoDriver* m_driver;
-    int m_debugMode;
-    irr::video::SColor m_linecolor;
-};
-
 void ChVisualSystemIrrlicht::BindItem(std::shared_ptr<ChPhysicsItem> item) {
+    if (!m_system || !m_device)
+        return;
+
     CreateIrrNode(item);
 }
 
 void ChVisualSystemIrrlicht::BindAll() {
-    if (!m_system)
+    if (!m_system || !m_device)
         return;
 
     std::unordered_set<const ChAssembly*> trace;

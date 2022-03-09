@@ -319,14 +319,15 @@ void DPCapPress() {
     my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    sys.SetVisualSystem(vis);
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -353,10 +354,10 @@ void DPCapPress() {
 
     double force = 0.0;
 
-    while (vis.Run() && (sys.GetChTime() <= 0.5)) {
-        vis.BeginScene();
-        vis.DrawAll();
-        vis.EndScene();
+    while (vis->Run() && (sys.GetChTime() <= 0.5)) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
         sys.DoStepDynamics(timestep);
 
         int offset_top = N_x * N_y * numDiv_z;
@@ -701,14 +702,15 @@ void ShellBrickContact() {
     my_shell_mesh->AddVisualShapeFEA(mvisualizemeshcoll_shell);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    sys.SetVisualSystem(vis);
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -738,7 +740,7 @@ void ShellBrickContact() {
     double start = std::clock();
     int Iter = 0;
     int timecount = 0;
-    while (vis.Run() && (sys.GetChTime() <= 1.0)) {
+    while (vis->Run() && (sys.GetChTime() <= 1.0)) {
         if (sys.GetChTime() < 0.5) {
             for (int ii = 0; ii < 25; ii++) {
                 auto Snode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_shell_mesh->GetNode(ii));
@@ -751,9 +753,9 @@ void ShellBrickContact() {
             }
         }
 
-        vis.BeginScene();
-        vis.DrawAll();
-        vis.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
         sys.DoStepDynamics(timestep);
 
         Iter += mystepper->GetNumIterations();
@@ -1002,14 +1004,15 @@ void SimpleBoxContact() {
     my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    sys.SetVisualSystem(vis);
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -1039,10 +1042,10 @@ void SimpleBoxContact() {
     double start = std::clock();
     int Iter = 0;
     int timecount = 0;
-    while (vis.Run() && (sys.GetChTime() <= 1.0)) {
-        vis.BeginScene();
-        vis.DrawAll();
-        vis.EndScene();
+    while (vis->Run() && (sys.GetChTime() <= 1.0)) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
         sys.DoStepDynamics(timestep);
 
         Iter += mystepper->GetNumIterations();
@@ -1319,14 +1322,15 @@ void SoilBin() {
     my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    sys.SetVisualSystem(vis);
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -1360,15 +1364,15 @@ void SoilBin() {
     double start = std::clock();
     int Iter = 0;
 
-    while (vis.Run() && (sys.GetChTime() <= 1.0)) {
+    while (vis->Run() && (sys.GetChTime() <= 1.0)) {
         Plate->Empty_forces_accumulators();
         Plate->Accumulate_force(ChVector<>(0.0, 0.0, -1500.0 * sin(sys.GetChTime() * CH_C_PI)), Plate->GetPos(),
                                 false);
         Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
 
-        vis.BeginScene();
-        vis.DrawAll();
-        vis.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
         sys.DoStepDynamics(timestep);
 
         Iter += mystepper->GetNumIterations();
@@ -1638,7 +1642,7 @@ void AxialDynamics() {
 
     double start = std::clock();
     int Iter = 0;
-    while (/*vis.GetDevice()->run() && */ (sys.GetChTime() <= 1.0)) {
+    while (/*vis->GetDevice()->run() && */ (sys.GetChTime() <= 1.0)) {
         // application.BeginScene();
         // application.DrawAll();
         // application.DoStep();
@@ -1827,14 +1831,15 @@ void BendingQuasiStatic() {
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    sys.SetVisualSystem(vis);
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -1866,9 +1871,9 @@ void BendingQuasiStatic() {
     fprintf(outputfile, "\n  ");
 
     double force = 0.0;
-    while (vis.Run() && (sys.GetChTime() <= 2.0)) {
-        vis.BeginScene();
-        vis.DrawAll();
+    while (vis->Run() && (sys.GetChTime() <= 2.0)) {
+        vis->BeginScene();
+        vis->DrawAll();
 
         if (sys.GetChTime() > 1.0) {
             force = -50;
@@ -1890,7 +1895,7 @@ void BendingQuasiStatic() {
         fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
         fprintf(outputfile, "\n  ");
 
-        vis.EndScene();
+        vis->EndScene();
     }
 }
 
@@ -2051,14 +2056,15 @@ void SwingingShell() {
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    sys.SetVisualSystem(vis);
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -2089,9 +2095,9 @@ void SwingingShell() {
     fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
     fprintf(outputfile, "\n  ");
 
-    while (vis.Run() && (sys.GetChTime() < 2.01)) {
-        vis.BeginScene();
-        vis.DrawAll();
+    while (vis->Run() && (sys.GetChTime() < 2.01)) {
+        vis->BeginScene();
+        vis->DrawAll();
 
         sys.DoStepDynamics(timestep);
 
@@ -2101,7 +2107,7 @@ void SwingingShell() {
         fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
         fprintf(outputfile, "\n  ");
 
-        vis.EndScene();
+        vis->EndScene();
 
         GetLog() << sys.GetChTime() << " " << nodetip->GetPos().x() << " " << nodetip->GetPos().y() << " "
                  << nodetip->GetPos().z() << "\n";

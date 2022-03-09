@@ -229,14 +229,15 @@ int main(int argc, char* argv[]) {
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("ANCF Shells");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("ANCF Shells");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    sys.SetVisualSystem(vis);
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -259,7 +260,7 @@ int main(int argc, char* argv[]) {
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
 
-    while (vis.GetDevice()->run()) {
+    while (vis->GetDevice()->run()) {
         std::cout << "Time: " << sys.GetChTime() << "s. \n";
         if (sys.GetChTime() < 0.1) {
             nodetip1->SetForce(ChVector<>(0, 0, -20.0 / 3 * sys.GetChTime()));
@@ -273,9 +274,9 @@ int main(int argc, char* argv[]) {
 
         GetLog() << "Node tip vertical position: " << nodetip1->GetPos().z() << "\n";
 
-        vis.BeginScene();
-        vis.DrawAll();
-        vis.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
         sys.DoStepDynamics(time_step);
     }
 

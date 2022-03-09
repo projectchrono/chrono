@@ -128,6 +128,28 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
 
 // -----------------------------------------------------------------------------
 
+class DebugDrawer : public collision::ChCollisionSystem::VisualizationCallback {
+  public:
+    explicit DebugDrawer(irr::video::IVideoDriver* driver)
+        : m_driver(driver), m_debugMode(0), m_linecolor(255, 255, 0, 0) {}
+    ~DebugDrawer() {}
+
+    virtual void DrawLine(const ChVector<>& from, const ChVector<>& to, const ChColor& color) override {
+        m_driver->draw3DLine(irr::core::vector3dfCH(from), irr::core::vector3dfCH(to), m_linecolor);
+    }
+
+    virtual double GetNormalScale() const override { return 1.0; }
+
+    void SetLineColor(irr::video::SColor& mcolor) { m_linecolor = mcolor; }
+
+  private:
+    irr::video::IVideoDriver* m_driver;
+    int m_debugMode;
+    irr::video::SColor m_linecolor;
+};
+
+// -----------------------------------------------------------------------------
+
 ChIrrGUI::ChIrrGUI(irr::IrrlichtDevice* device, ChSystem* sys)
     : m_device(device),
       m_system(sys),
@@ -139,6 +161,11 @@ ChIrrGUI::ChIrrGUI(irr::IrrlichtDevice* device, ChSystem* sys)
     // Set the default event receiver
     m_receiver = new ChIrrEventReceiver(this);
     m_device->setEventReceiver(m_receiver);
+
+    // Create the collision visualization callback object
+    m_drawer = chrono_types::make_shared<DebugDrawer>(GetVideoDriver());
+    if (m_system->GetCollisionSystem())
+        m_system->GetCollisionSystem()->RegisterVisualizationCallback(m_drawer);
 
     // Grab the GUI environment
     auto guienv = m_device->getGUIEnvironment();
@@ -264,33 +291,6 @@ void ChIrrGUI::SetSymbolscale(double val) {
 }
 
 // -----------------------------------------------------------------------------
-
-class DebugDrawer : public collision::ChCollisionSystem::VisualizationCallback {
-  public:
-    explicit DebugDrawer(irr::video::IVideoDriver* driver)
-        : m_driver(driver), m_debugMode(0), m_linecolor(255, 255, 0, 0) {}
-    ~DebugDrawer() {}
-
-    virtual void DrawLine(const ChVector<>& from, const ChVector<>& to, const ChColor& color) override {
-        m_driver->draw3DLine(irr::core::vector3dfCH(from), irr::core::vector3dfCH(to), m_linecolor);
-    }
-
-    virtual double GetNormalScale() const override { return 1.0; }
-
-    void SetLineColor(irr::video::SColor& mcolor) { m_linecolor = mcolor; }
-
-  private:
-    irr::video::IVideoDriver* m_driver;
-    int m_debugMode;
-    irr::video::SColor m_linecolor;
-};
-
-void ChIrrGUI::Initialize() {
-    // Create the collision visualization callback object
-    m_drawer = chrono_types::make_shared<DebugDrawer>(GetVideoDriver());
-    if (m_system->GetCollisionSystem())
-        m_system->GetCollisionSystem()->RegisterVisualizationCallback(m_drawer);
-}
 
 void ChIrrGUI::DumpSystemMatrices() {
     // For safety

@@ -435,14 +435,15 @@ int main(int argc, char* argv[]) {
     my_mesh->AddVisualShapeFEA(mvisualizeshellC);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("Shells FEA");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(0.0, 6.0, -10.0));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("Shells FEA");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0.0, 6.0, -10.0));
+    sys.SetVisualSystem(vis);
 
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -468,12 +469,12 @@ int main(int argc, char* argv[]) {
 
     double mtime = 0;
 
-    while (vis.GetDevice()->run()) {
-        vis.BeginScene();
-        vis.DrawAll();
+    while (vis->GetDevice()->run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
         // .. draw also a grid
-        tools::drawGrid(vis.GetVideoDriver(), 1, 1);
+        tools::drawGrid(vis->GetVideoDriver(), 1, 1);
 
         // ...update load at end nodes, as simple lumped nodal forces
 
@@ -493,10 +494,10 @@ int main(int argc, char* argv[]) {
             rec_X.AddPoint(load_scale, nodePlotB->GetPos().y());
         }
 
-        vis.EndScene();
+        vis->EndScene();
 
         if (load_scale > 1)
-            vis.GetDevice()->closeDevice();
+            vis->GetDevice()->closeDevice();
     }
 
     // Outputs results in a GNUPLOT plot:

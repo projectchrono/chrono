@@ -52,14 +52,14 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("Particle emitter: creation from various distributions");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(0, 4, -6), ChVector<>(0, -2, 0));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("Particle emitter: creation from various distributions");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0, 4, -6), ChVector<>(0, -2, 0));
 
     // CREATE THE SYSTEM OBJECTS
 
@@ -284,12 +284,12 @@ int main(int argc, char* argv[]) {
     // b- create the callback object...
     auto creation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
-    creation_callback->vis = &vis;
+    creation_callback->vis = vis.get();
     // d- attach the callback to the emitter!
     emitter.RegisterAddBodyCallback(creation_callback);
 
     // Bind all existing visual shapes to the visualization system
-    vis.BindAll();
+    sys.SetVisualSystem(vis);
 
     // Create an exporter to POVray !!
     ChPovRay pov_exporter = ChPovRay(&sys);
@@ -340,10 +340,10 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     double timestep = 0.02;
-    while (vis.Run()) {
-        vis.BeginScene();
-        vis.DrawAll();
-        vis.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         // Continuosly create particle flow:
         emitter.EmitParticles(sys, timestep);

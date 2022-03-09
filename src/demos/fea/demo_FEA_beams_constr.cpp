@@ -269,14 +269,15 @@ int main(int argc, char* argv[]) {
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("Beams and constraints");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("Beams and constraints");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    sys.SetVisualSystem(vis);
 
     // SIMULATION LOOP
 
@@ -300,11 +301,11 @@ int main(int argc, char* argv[]) {
     std::string filename = out_dir + "/buckling_mid.dat";
     chrono::ChStreamOutAsciiFile file_out1(filename.c_str());
 
-    while (vis.GetDevice()->run()) {
-        vis.BeginScene();
-        vis.DrawAll();
+    while (vis->GetDevice()->run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
-        tools::drawGrid(vis.GetVideoDriver(), 0.05, 0.05, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_Z),
+        tools::drawGrid(vis->GetVideoDriver(), 0.05, 0.05, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_Z),
                         video::SColor(50, 90, 90, 90), true);
 
         sys.DoStepDynamics(0.001);
@@ -314,7 +315,7 @@ int main(int argc, char* argv[]) {
             file_out1 << sys.GetChTime() << " " << node_mid->GetPos().z() << " " << node_mid->GetWvel_par().x() << "\n";
         }
 
-        vis.EndScene();
+        vis->EndScene();
     }
 
     return 0;

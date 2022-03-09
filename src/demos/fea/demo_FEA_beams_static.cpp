@@ -154,14 +154,15 @@ int main(int argc, char* argv[]) {
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("Statics of beam");
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("Statics of beam");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    sys.SetVisualSystem(vis);
 
     // Use a solver that can handle stiffness matrices:
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -211,24 +212,24 @@ int main(int argc, char* argv[]) {
 
     // 3D view
 
-    while (vis.GetDevice()->run()) {
-        vis.BeginScene();
-        vis.DrawAll();
+    while (vis->GetDevice()->run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
-        tools::drawGrid(vis.GetVideoDriver(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector<>(0.25, -0.20, 0), 0, VECT_Y),
+        tools::drawGrid(vis->GetVideoDriver(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector<>(0.25, -0.20, 0), 0, VECT_Y),
                         video::SColor(50, 120, 120, 120), true);
 
-        tools::drawGrid(vis.GetVideoDriver(), 0.05, 0.05, 10, 10,
+        tools::drawGrid(vis->GetVideoDriver(), 0.05, 0.05, 10, 10,
                         ChCoordsys<>(ChVector<>(0.25, -0.45, -0.25), CH_C_PI_2, VECT_X),
                         video::SColor(50, 120, 120, 120), true);
 
-        tools::drawGrid(vis.GetVideoDriver(), 0.05, 0.05, 10, 10,
+        tools::drawGrid(vis->GetVideoDriver(), 0.05, 0.05, 10, 10,
                         ChCoordsys<>(ChVector<>(0.001, -0.20, -0.25), CH_C_PI_2, VECT_Y),
                         video::SColor(50, 160, 160, 160), true);
 
         sys.DoStepDynamics(0.001);
 
-        vis.EndScene();
+        vis->EndScene();
     }
 
     return 0;

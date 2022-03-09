@@ -183,17 +183,18 @@ int main(int argc, char* argv[]) {
     my_mesh->AddVisualShapeFEA(mvisualizemeshbeamnodes);
 
     // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis(sys);
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowTitle("ANCF Contact");
-    vis.SetCameraVertical(CameraVerticalDir::Z);
-    vis.Initialize();
-    vis.AddLogo();
-    vis.AddSkyBox();
-    vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(0.5, 0.5, 0.3), ChVector<>(0.0, 0.0, 0.0));
-    vis.EnableContactDrawing(IrrContactsDrawMode::CONTACT_DISTANCES);
-    vis.EnableShadows();
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("ANCF Contact");
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0.5, 0.5, 0.3), ChVector<>(0.0, 0.0, 0.0));
+    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_DISTANCES);
+    vis->EnableShadows();
 
     // ---------------
     // Simulation loop
@@ -223,10 +224,10 @@ int main(int argc, char* argv[]) {
     mystepper->SetVerbose(false);
     ////sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
-    while (vis.Run()) {
-        vis.BeginScene();
-        vis.DrawAll();
-        vis.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         ////std::cout << "Time t = " << sys.GetChTime() << "s \t";
         ////std::cout << "n contacts: " << sys.GetNcontacts() << "\t";

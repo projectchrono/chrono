@@ -107,7 +107,7 @@ bool ChChaseCameraEventReceiver::OnEvent(const SEvent& event) {
 // Construct a vehicle Irrlicht application.
 // -----------------------------------------------------------------------------
 ChVehicleVisualSystemIrrlicht::ChVehicleVisualSystemIrrlicht(ChVehicle* vehicle)
-    : ChVisualSystemIrrlicht(*vehicle->GetSystem()),
+    : ChVisualSystemIrrlicht(),
       m_vehicle(vehicle),
       m_camera(vehicle->GetChassisBody()),
       m_camera_control(nullptr),
