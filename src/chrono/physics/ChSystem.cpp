@@ -1441,6 +1441,10 @@ bool ChSystem::Integrate_Y() {
     solvecount = 0;
     setupcount = 0;
 
+    // Let the visualization system (if any) perform setup operations
+    if (visual_system)
+        visual_system->Setup();
+
     // Compute contacts and create contact constraints
     int ncontacts_old = ncontacts;
     ComputeCollisions();

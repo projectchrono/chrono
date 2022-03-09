@@ -101,8 +101,8 @@ ChApiIrr irr::video::SColor ToIrrlichtSColor(const ChVector<float>& col, float a
 ChApiIrr irr::video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat,
                                                  irr::video::IVideoDriver* driver);
 
-/// Align an Irrlicht object to a Chrono coordsys.
-ChApiIrr void alignIrrlichtNodeToChronoCsys(irr::scene::ISceneNode* mnode, const ChCoordsys<>& mcoords);
+/// Align an Irrlicht object to a the specified coordinate system.
+ChApiIrr void alignIrrlichtNode(irr::scene::ISceneNode* mnode, const ChCoordsys<>& mcoords);
 
 /// Draw contact points used by a ChSystem in the current Irrlicht viewer.
 /// The contact points are visually represented with short lines, of length mlen, aligned to contact normals.

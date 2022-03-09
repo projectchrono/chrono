@@ -260,6 +260,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMeshShape>
 
         // Set the Irrlicht material for this mesh buffer
         irr_mat = tools::ToIrrlichtMaterial(materials[i], getSceneManager()->getVideoDriver());
+        irr_mat.ColorMaterial = irr::video::ECM_NONE;
         ////irr_mat.setFlag(video::EMF_TEXTURE_WRAP, video::ETC_CLAMP);
 
         // Map from vertex indices in full Chrono mesh to vertex indices in current Irrlicht mesh buffer.

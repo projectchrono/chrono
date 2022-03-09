@@ -211,7 +211,10 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     /// Add shadow to an Irrlicht node.
     void AddShadowToIrrNode(irr::scene::ISceneNode* node);
 
-    /// Update.
+    /// Perform necessary setup operations at the beginning of a time step.
+    virtual void Setup() override;
+
+    /// Perform necessary update operations at the beginning of a time step.
     virtual void Update() override;
 
     std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;

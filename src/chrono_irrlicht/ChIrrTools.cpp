@@ -86,9 +86,9 @@ video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video
 }
 
 // -----------------------------------------------------------------------------
-// Function to align an Irrlicht object to a Chrono::Engine coordsys.
+// Align an Irrlicht object to a the specified coordinate system.
 // -----------------------------------------------------------------------------
-void alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const ChCoordsys<>& mcoords) {
+void alignIrrlichtNode(scene::ISceneNode* mnode, const ChCoordsys<>& mcoords) {
     // Output: will be an Irrlicht 4x4 matrix
     irr::core::matrix4 irrMat;
 

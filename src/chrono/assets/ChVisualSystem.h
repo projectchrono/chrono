@@ -48,7 +48,11 @@ class ChApi ChVisualSystem {
   protected:
     ChVisualSystem(ChSystem& sys);
 
-    /// Update the visualization system at the current time step.
+    /// Perform necessary setup operations at the beginning of a time step.
+    /// Called by the associated ChSystem.
+    virtual void Setup() {}
+
+    /// Perform necessary update operations at the beginning of a time step.
     /// Called by the associated ChSystem.
     virtual void Update() {}
 

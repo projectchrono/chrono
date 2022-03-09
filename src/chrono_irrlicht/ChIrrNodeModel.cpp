@@ -93,23 +93,24 @@ bool ChIrrNodeModel::SetupClones() {
 }
 
 void ChIrrNodeModel::OnAnimate(u32 timeMs) {
+    if (m_physicsitem.expired())
+        return;
+
     if (IsVisible) {
-        // reorient/reposition the scene node every frame
-        if (!m_physicsitem.expired()) {
-            if (!m_physicsitem.lock()->GetNumVisualModelClones()) {
-                tools::alignIrrlichtNodeToChronoCsys(this, m_physicsitem.lock()->GetVisualModelFrame().GetCoord());
-            } else {
-                // check that children clones are already as many as
-                // assets frame clones, and adjust it if not:
-                if (SetupClones()) {
-                    // make each clone node match the corresponding asset frame :
-                    unsigned int iclone = 0;
-                    irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
-                    for (; it != Children.end(); ++it) {
-                        tools::alignIrrlichtNodeToChronoCsys(
-                            (*it), m_physicsitem.lock()->GetVisualModelFrame(iclone).GetCoord());
-                        ++iclone;
-                    }
+        // reorient/reposition the scene node
+        if (!m_physicsitem.lock()->GetNumVisualModelClones()) {
+            tools::alignIrrlichtNode(this, m_physicsitem.lock()->GetVisualModelFrame().GetCoord());
+        } else {
+            // check that children clones are already as many as
+            // assets frame clones, and adjust it if not:
+            if (SetupClones()) {
+                // make each clone node match the corresponding asset frame :
+                unsigned int iclone = 0;
+                irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
+                for (; it != Children.end(); ++it) {
+                    tools::alignIrrlichtNode((*it),
+                                                         m_physicsitem.lock()->GetVisualModelFrame(iclone).GetCoord());
+                    ++iclone;
                 }
             }
         }

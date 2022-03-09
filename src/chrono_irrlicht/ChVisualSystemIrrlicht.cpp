@@ -417,6 +417,19 @@ bool ChVisualSystemIrrlicht::Run() {
     return m_device->run();
 }
 
+void ChVisualSystemIrrlicht::Setup() {
+    std::vector<ChPhysicsItem*> items_to_remove;
+    for (auto& node : m_nodes) {
+        if (node.second->GetPhysicsItem().expired()) {
+            node.second->removeAll();
+            node.second->remove();
+            items_to_remove.emplace_back(node.first);
+        }
+    }
+    for (auto&& item : items_to_remove)
+        m_nodes.erase(item);
+}
+
 void ChVisualSystemIrrlicht::Update() {
     for (auto& node : m_nodes) {
         node.second->UpdateChildren();
@@ -642,7 +655,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
 
                 double mradius = sphere->GetSphereGeometry().rad;
                 mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
-                tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
+                tools::alignIrrlichtNode(mchildnode, irrspherecoords);
 
                 SetVisualMaterial(mchildnode, sphere);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
@@ -659,7 +672,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 ChCoordsys<> irrspherecoords(pos, ellipsoid->Rot.Get_A_quaternion());
 
                 mchildnode->setScale(core::vector3dfCH(ellipsoid->GetEllipsoidGeometry().rad));
-                tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
+                tools::alignIrrlichtNode(mchildnode, irrspherecoords);
 
                 SetVisualMaterial(mchildnode, ellipsoid);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
@@ -688,7 +701,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 ChMatrix33<> rot = cylinder->Rot * mrot;
                 ChCoordsys<> irrcylindercoords(pos, rot.Get_A_quaternion());
 
-                tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrcylindercoords);
+                tools::alignIrrlichtNode(mchildnode, irrcylindercoords);
                 core::vector3df irrsize((f32)rad, (f32)(0.5 * height), (f32)rad);
                 mchildnode->setScale(irrsize);
 
@@ -708,7 +721,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 ChMatrix33<> rot = capsule->Rot;
                 ChCoordsys<> irrcapsulecoords(pos, rot.Get_A_quaternion());
 
-                tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrcapsulecoords);
+                tools::alignIrrlichtNode(mchildnode, irrcapsulecoords);
                 core::vector3df irrsize((f32)rad, (f32)hlen, (f32)rad);
                 mchildnode->setScale(irrsize);
 
@@ -728,7 +741,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 ChCoordsys<> irrboxcoords(pos, rot.Get_A_quaternion());
 
                 mchildnode->setScale(core::vector3dfCH(box->GetBoxGeometry().Size));
-                tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrboxcoords);
+                tools::alignIrrlichtNode(mchildnode, irrboxcoords);
 
                 SetVisualMaterial(mchildnode, box);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
@@ -748,7 +761,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
 
             // double mradius = mysphere->GetSphereGeometry().rad;
             // mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
-            tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
+            tools::alignIrrlichtNode(mchildnode, irrspherecoords);
 
             SetVisualMaterial(mchildnode, barrel);
             mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
