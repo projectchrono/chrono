@@ -68,11 +68,11 @@ class Sedan_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     Sedan_ShockForce(std::vector<double> vel, std::vector<double> frc);
 
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override;
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
 
   private:
     ChCubicSpline m_ShockTable;
@@ -85,11 +85,7 @@ Sedan_ShockForce::Sedan_ShockForce(std::vector<double> vel, std::vector<double> 
     m_MinVel = *std::min_element(std::begin(vel), std::end(vel));
 }
 
-double Sedan_ShockForce::operator()(double time,
-                                      double rest_length,
-                                      double length,
-                                      double vel,
-                                      ChLinkTSDA* link) {
+double Sedan_ShockForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
     double force = 0;
     double dcurve = 0;
     double ddcurve = 0;

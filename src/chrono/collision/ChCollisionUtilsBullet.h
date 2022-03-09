@@ -20,8 +20,8 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
-#include "chrono/collision/bullet/LinearMath/btVector3.h"
-#include "chrono/collision/bullet/LinearMath/btMinMax.h"
+#include "chrono/collision/bullet/LinearMath/cbtVector3.h"
+#include "chrono/collision/bullet/LinearMath/cbtMinMax.h"
 
 namespace chrono {
 namespace collision {
@@ -33,15 +33,15 @@ namespace collision {
 namespace bt_utils {
 
 /// Project point onto line.
-ChApi btVector3 ProjectPointOnLine(const btVector3& lP,  ///< point on line
-                                   const btVector3& lD,  ///< line direction (unit vector)
-                                   const btVector3& P    ///< point
+ChApi cbtVector3 ProjectPointOnLine(const cbtVector3& lP,  ///< point on line
+                                    const cbtVector3& lD,  ///< line direction (unit vector)
+                                    const cbtVector3& P    ///< point
 );
 
 /// Calculate distance from point to line
-ChApi btScalar DistancePointToLine(const btVector3& lP,  ///< point on line
-                                   const btVector3& lD,  ///< line direction (unit vector)
-                                   const btVector3& P    ///< point
+ChApi cbtScalar DistancePointToLine(const cbtVector3& lP,  ///< point on line
+                                    const cbtVector3& lD,  ///< line direction (unit vector)
+                                    const cbtVector3& P    ///< point
 );
 
 /// Snap the specified location to a point on a box with given half-dimensions.
@@ -56,44 +56,44 @@ ChApi btScalar DistancePointToLine(const btVector3& lP,  ///< point on line
 ///   code = 1 or code = 2 or code = 4  indicates snapping to a face
 ///   code = 3 or code = 5 or code = 6  indicates snapping to an edge
 ///   code = 7 indicates snapping to a corner
-ChApi int SnapPointToBox(const btVector3& hdims,  ///< box half-dimensions
-                         btVector3& loc           ///< point (in/out)
+ChApi int SnapPointToBox(const cbtVector3& hdims,  ///< box half-dimensions
+                         cbtVector3& loc           ///< point (in/out)
 );
 
 /// Check if given point is inside box (point expressed in box frame).
-ChApi bool PointInsideBox(const btVector3& hdims,  ///< box half-dimensions
-                          const btVector3& loc     ///< point
+ChApi bool PointInsideBox(const cbtVector3& hdims,  ///< box half-dimensions
+                          const cbtVector3& loc     ///< point
 
 );
 
 /// Find the closest box face to the given point (expressed in box frame).
 /// Returns +1, +2, +3 (for a "positive" face in x, y, z, respectively) or -1, -2, -3 (for a "negative" face).
-ChApi int FindClosestBoxFace(const btVector3& hdims,  ///< box half-dimensions
-                             const btVector3& loc     ///< point
+ChApi int FindClosestBoxFace(const cbtVector3& hdims,  ///< box half-dimensions
+                             const cbtVector3& loc     ///< point
 );
 
 // Utility function for intersecting a box with a line segment.
 // It is assumed that the box is centered at the origin and the segment is expressed in the box frame.
 // The function returns false if the segment does not intersect the box.
-ChApi bool IntersectSegmentBox(const btVector3& hdims,  ///< box half-dimensions
-                               const btVector3& c,      ///< segment center point
-                               const btVector3& a,      ///< segment direction (unit vector)
-                               const btScalar hlen,     ///< segment half-length
-                               const btScalar tol,      ///< tolerance for parallelism test
-                               btScalar& tMin,          ///< segment parameter of first intersection point
-                               btScalar& tMax           ///< segment parameter of second intersection point
+ChApi bool IntersectSegmentBox(const cbtVector3& hdims,  ///< box half-dimensions
+                               const cbtVector3& c,      ///< segment center point
+                               const cbtVector3& a,      ///< segment direction (unit vector)
+                               const cbtScalar hlen,     ///< segment half-length
+                               const cbtScalar tol,      ///< tolerance for parallelism test
+                               cbtScalar& tMin,          ///< segment parameter of first intersection point
+                               cbtScalar& tMax           ///< segment parameter of second intersection point
 );
 
 /// Utility function to intersect a line with a plane
 /// Plane equation: pN.X = pN.pP
 /// Line equation:  X = lP + t * lD
 /// Solution:       t = pN.(pP-lP) / pN.lD
-ChApi bool IntersectLinePlane(const btVector3& lP,  ///< point on line
-                              const btVector3& lD,  ///< line direction (unit vector)
-                              const btVector3& pP,  ///< point on plane
-                              const btVector3& pN,  ///< plane normal (unit vector)
-                              const btScalar tol,   ///< tolerance for orthogonality test
-                              btScalar& t           ///< line parameter of intersection point
+ChApi bool IntersectLinePlane(const cbtVector3& lP,  ///< point on line
+                              const cbtVector3& lD,  ///< line direction (unit vector)
+                              const cbtVector3& pP,  ///< point on plane
+                              const cbtVector3& pN,  ///< plane normal (unit vector)
+                              const cbtScalar tol,   ///< tolerance for orthogonality test
+                              cbtScalar& t           ///< line parameter of intersection point
 );
 
 /// Utility function to intersect a segment with a cylinder.
@@ -104,16 +104,16 @@ ChApi bool IntersectLinePlane(const btVector3& lP,  ///< point on line
 ///     points on segment at a distance cR from the cylinder axis line.
 /// (2) Clamp result to cylinder end-caps.
 /// (3) Clamp result to segment length.
-ChApi bool IntersectSegmentCylinder(const btVector3& sC,  ///< segment center point
-                                    const btVector3& sD,  ///< segment direction (unit vector)
-                                    const btScalar sH,    ///< segment half-length
-                                    const btVector3& cC,  ///< cylinder axis center
-                                    const btVector3& cD,  ///< cylinder axis direction (unit vector)
-                                    const btScalar cH,    ///< cylinder axis half-length (cylinder halh-height)
-                                    const btScalar cR,    ///< cylinder radius
-                                    const btScalar tol,   ///< tolerance for parallelism test
-                                    btScalar& tMin,       ///< segment parameter of first intersection point
-                                    btScalar& tMax        ///< segment parameter of second intersection point
+ChApi bool IntersectSegmentCylinder(const cbtVector3& sC,  ///< segment center point
+                                    const cbtVector3& sD,  ///< segment direction (unit vector)
+                                    const cbtScalar sH,    ///< segment half-length
+                                    const cbtVector3& cC,  ///< cylinder axis center
+                                    const cbtVector3& cD,  ///< cylinder axis direction (unit vector)
+                                    const cbtScalar cH,    ///< cylinder axis half-length (cylinder halh-height)
+                                    const cbtScalar cR,    ///< cylinder radius
+                                    const cbtScalar tol,   ///< tolerance for parallelism test
+                                    cbtScalar& tMin,       ///< segment parameter of first intersection point
+                                    cbtScalar& tMax        ///< segment parameter of second intersection point
 );
 
 /// Wrapper for using and exporting the Bullet implementation of the convex hull library.

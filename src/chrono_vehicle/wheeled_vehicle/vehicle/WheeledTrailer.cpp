@@ -26,11 +26,12 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-WheeledTrailer::WheeledTrailer(ChSystem* system, const std::string& filename) : ChWheeledTrailer("", system) {
-    Create(filename);
+WheeledTrailer::WheeledTrailer(ChSystem* system, const std::string& filename, bool create_tires)
+    : ChWheeledTrailer("", system) {
+    Create(filename, create_tires);
 }
 
-void WheeledTrailer::Create(const std::string& filename) {
+void WheeledTrailer::Create(const std::string& filename, bool create_tires) {
     // Open and parse the input file
     Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -138,6 +139,14 @@ void WheeledTrailer::Create(const std::string& filename) {
             m_axles[i]->m_brake_right = ReadBrakeJSON(vehicle::GetDataFile(file_name));
         }
 
+        // Create tires (if specified)
+        if (create_tires && d["Axles"][i].HasMember("Tire Input File")) {
+            file_name = d["Axles"][i]["Tire Input File"].GetString();
+            for (auto& wheel : m_axles[i]->GetWheels()) {
+                wheel->SetTire(ReadTireJSON(vehicle::GetDataFile(file_name)));
+            }
+        }
+
         if (d["Axles"][i].HasMember("Output")) {
             bool output = d["Axles"][i]["Output"].GetBool();
             m_axles[i]->SetOutput(output);
@@ -154,6 +163,12 @@ void WheeledTrailer::Initialize(std::shared_ptr<ChChassis> frontChassis) {
     // Initialize the axles (suspension + brakes + wheels + antirollbar)
     for (int i = 0; i < m_num_axles; i++) {
         m_axles[i]->Initialize(m_chassis, nullptr, nullptr, m_suspLocations[i], ChVector<>(0), m_wheelSeparations[i]);
+        // Initialize tires (if present)
+        for (auto& wheel : m_axles[i]->GetWheels()) {
+            if (wheel->GetTire()) {
+                InitializeTire(wheel->GetTire(), wheel);
+            }
+        }
     }
 }
 

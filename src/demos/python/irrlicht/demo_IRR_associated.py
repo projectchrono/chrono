@@ -115,9 +115,9 @@ if not(fixed_L):
 
 myapplication = chronoirr.ChIrrApp(mysystem, 'Test', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddTypicalSky()
-myapplication.AddTypicalCamera(chronoirr.vector3df(0.6,0.6,0.8))
+myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+myapplication.AddSkyBox()
+myapplication.AddCamera(chronoirr.vector3df(0.6,0.6,0.8))
 myapplication.AddTypicalLights()
 
             # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items

@@ -48,10 +48,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"Beams (SPACE for dynamics, F10 / F11 statics)", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(-0.1f, 0.2f, -0.2f));
+    application.AddCamera(core::vector3df(-0.1f, 0.2f, -0.2f));
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -232,7 +232,27 @@ int main(int argc, char* argv[]) {
 
     GetLog() << "\n\n\n===========STATICS======== \n\n\n";
 
+
     application.GetSystem()->DoStaticLinear();
+
+    //***TEST***    
+my_system.Setup();
+my_system.Update();
+ChMatrixDynamic<> myHa(12, 12);
+ChMatrixDynamic<> myHn(12, 12);
+auto myel = builder.GetLastBeamElements()[1]; //.back();
+myel->SetUseGeometricStiffness(true);
+myel->ComputeKRMmatricesGlobal(myHa, 1, 0, 0);
+GetLog() << "K analytical = \n" << myHa;
+ //***TEST***
+my_system.SetNumThreads(1);
+for (auto i : builder.GetLastBeamElements()) i->use_numerical_diff_for_KR = true;
+
+// builder.GetLastBeamElements().back()->use_numerical_diff_for_KR = true;
+myel->ComputeKRMmatricesGlobal(myHn, 1, 0, 0);
+GetLog() << "K numerical = \n" << myHn;
+GetLog() << "K diff = \n" << ChMatrixDynamic<>(((myHn-myHa).array().abs()).array().cwiseQuotient(myHa.array().abs().array()));
+system("pause");
 
     GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
 

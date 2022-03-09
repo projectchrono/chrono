@@ -22,6 +22,7 @@ import pychrono.vehicle as veh
 import pychrono.irrlicht as irr
 import pychrono.sensor as sens
 import math as m
+import errno
 import os
 import math
 
@@ -72,11 +73,9 @@ def main():
     terrain.Initialize()
 
     # Create the vehicle Irrlicht interface
-    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV', irr.dimension2du(1000,800))
-
-    app.SetSkyBox()
-    app.AddTypicalLights(irr.vector3df(30, -30, 100), irr.vector3df(30, 50, 100), 250, 130)
-    app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV')
+    app.AddTypicalLights()
+    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     app.SetChaseCamera(trackPoint, 6.0, 0.5)
     app.SetTimestep(step_size)
     app.AssetBindAll()
@@ -85,9 +84,10 @@ def main():
     # Initialize output
 
     try:
-           os.mkdir(out_dir)
-    except:
-           print("Error creating directory " )
+        os.mkdir(out_dir)
+    except OSError as exc:
+        if exc.errno != errno.EEXIST:
+           print("Error creating output directory " )
 
     # Set up vehicle output
     my_hmmwv.GetVehicle().SetChassisOutput(True);

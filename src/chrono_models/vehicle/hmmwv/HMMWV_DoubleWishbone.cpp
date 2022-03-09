@@ -111,11 +111,11 @@ class HMMWV_ShockForce : public ChLinkTSDA::ForceFunctor {
                      double metalmetal_lower_bound,
                      double metalmetal_upper_bound);
 
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override;
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_ms_compr;
@@ -151,7 +151,7 @@ HMMWV_ShockForce::HMMWV_ShockForce(double midstroke_compression_slope,
       m_min_length(metalmetal_lower_bound),
       m_max_length(metalmetal_upper_bound) {}
 
-double HMMWV_ShockForce::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
+double HMMWV_ShockForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
     /*
     // On midstroke curve
     if (length >= m_min_length && length <= m_max_length)

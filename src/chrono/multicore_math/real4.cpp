@@ -195,9 +195,9 @@ CUDA_HOST_DEVICE ChApi quaternion Q_from_AngAxis(const real& angle, const real3&
     halfang = (angle * 0.5);
     sinhalf = Sin(halfang);
     quat.w = Cos(halfang);
-    quat[0] = axis[0] * sinhalf;
-    quat[1] = axis[1] * sinhalf;
-    quat[2] = axis[2] * sinhalf;
+    quat.x = axis[0] * sinhalf;
+    quat.y = axis[1] * sinhalf;
+    quat.z = axis[2] * sinhalf;
     return (quat);
 }
 
@@ -220,7 +220,7 @@ CUDA_HOST_DEVICE ChApi real3 AMatV(const quaternion& q) {
 
 CUDA_HOST_DEVICE ChApi void Print(quaternion v, const char* name) {
     printf("%s\n", name);
-    printf("%f %f %f %f\n", v.w, v[0], v[1], v[2]);
+    printf("%f %f %f %f\n", v.w, v.x, v.y, v.z);
 }
 
 }  // namespace chrono

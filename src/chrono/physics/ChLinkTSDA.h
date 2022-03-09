@@ -30,10 +30,10 @@
 
 namespace chrono {
 
-/// Class for translational spring-damper-actuator (TSDA) with the force optionally specified through a functor object
-/// (default, linear TSDA). Optionally, a ChLinkTSDA can have internal dynamics, described by a system of ODEs. The
-/// internal states are integrated simultaneous with the containing system and they can be accessed and used in the
-/// force calculation. ChLinkTSDA provides optional support for computing Jacobians of the generalized forces.
+/// Class for translational spring-damper-actuator (TSDA) with the force optionally specified through a functor object.
+/// By default, models a linear TSDA. Optionally, a ChLinkTSDA can have internal dynamics, described by a system of
+/// ODEs. The internal states are integrated simultaneous with the containing system and they can be accessed and used
+/// in the force calculation. ChLinkTSDA provides optional support for computing Jacobians of the generalized forces.
 class ChApi ChLinkTSDA : public ChLink {
   public:
     ChLinkTSDA();
@@ -44,8 +44,8 @@ class ChApi ChLinkTSDA : public ChLink {
     virtual ChLinkTSDA* Clone() const override;
 
     /// Set spring rest (free) length.
-    /// Optionally, the free length can be calculated from the initial configuration (see #Initialize).
-    void SetRestLength(double len) { m_rest_length = len; }
+    /// By default, this is calculated from the initial configuration.
+    void SetRestLength(double len);
 
     /// Set spring coefficient (default: 0).
     /// Used only if no force functor is provided.
@@ -112,12 +112,12 @@ class ChApi ChLinkTSDA : public ChLink {
 
         /// Calculate and return the general spring-damper force at the specified configuration.
         /// If the link has internal ODE states, the current states can be accessed with link->GetStates().
-        virtual double operator()(double time,         ///< current time
-                                  double rest_length,  ///< undeformed length
-                                  double length,       ///< current length
-                                  double vel,          ///< current velocity (positive when extending)
-                                  ChLinkTSDA* link     ///< back-pointer to associated link
-                                  ) = 0;
+        virtual double evaluate(double time,            ///< current time
+                                double rest_length,     ///< undeformed length
+                                double length,          ///< current length
+                                double vel,             ///< current velocity (positive when extending)
+                                const ChLinkTSDA& link  ///< associated TSDA link
+                                ) = 0;
     };
 
     /// Specify the functor object for calculating the force.
@@ -134,7 +134,7 @@ class ChApi ChLinkTSDA : public ChLink {
         /// Set initial conditions.
         /// Must load y0 = y(0).
         virtual void SetInitialConditions(ChVectorDynamic<>& states,  ///< output initial conditions vector
-                                          ChLinkTSDA* link            ///< back-pointer to associated link
+                                          const ChLinkTSDA& link      ///< associated TSDA link
                                           ) = 0;
 
         /// Calculate and return the ODE right-hand side at the provided time and states.
@@ -142,7 +142,7 @@ class ChApi ChLinkTSDA : public ChLink {
         virtual void CalculateRHS(double time,                      ///< current time
                                   const ChVectorDynamic<>& states,  ///< current ODE states
                                   ChVectorDynamic<>& rhs,           ///< output ODE right-hand side vector
-                                  ChLinkTSDA* link                  ///< back-pointer to associated link
+                                  const ChLinkTSDA& link            ///< associated TSDA link
                                   ) = 0;
 
         /// Calculate the Jacobian of the ODE right-hand side with rerspect to the ODE states.
@@ -153,7 +153,7 @@ class ChApi ChLinkTSDA : public ChLink {
                                   const ChVectorDynamic<>& states,  ///< current ODE states
                                   const ChVectorDynamic<>& rhs,     ///< current ODE right-hand side vector
                                   ChMatrixDynamic<>& jac,           ///< output Jacobian matrix
-                                  ChLinkTSDA* link                  ///< back-pointer to associated link
+                                  const ChLinkTSDA& link            ///< associated TSDA link
         ) {
             return false;
         }
@@ -163,15 +163,13 @@ class ChApi ChLinkTSDA : public ChLink {
     void RegisterODE(ODE* functor);
 
     /// Initialize the spring, specifying the two bodies to be connected, the location of the two anchor points of each
-    /// body (each expressed in body or absolute coordinates), and the imposed rest length of the spring.
-    void Initialize(
-        std::shared_ptr<ChBody> body1,  ///< first body to link
-        std::shared_ptr<ChBody> body2,  ///< second body to link
-        bool pos_are_relative,          ///< if true, point locations are relative to bodies
-        ChVector<> loc1,                ///< point on 1st body (rel. or abs., see flag above)
-        ChVector<> loc2,                ///< point on 2nd body (rel. or abs., see flag above)
-        bool auto_rest_length = true,   ///< if true, initializes the rest length as the distance between loc1 and loc2
-        double rest_length = 0          ///< rest length (no need to define if auto_rest_length=true.)
+    /// body (each expressed in body or absolute coordinates). Unless SetRestLength() is explicitly called, the TSDA
+    /// rest length is calculated from the initial configuration.
+    void Initialize(std::shared_ptr<ChBody> body1,  ///< first body to link
+                    std::shared_ptr<ChBody> body2,  ///< second body to link
+                    bool pos_are_relative,          ///< if true, point locations are relative to bodies
+                    ChVector<> loc1,                ///< point on 1st body (rel. or abs., see flag above)
+                    ChVector<> loc2                 ///< point on 2nd body (rel. or abs., see flag above)
     );
 
     /// Method to allow serialization of transient data to archives.
@@ -262,13 +260,14 @@ class ChApi ChLinkTSDA : public ChLink {
                           const ChStateDelta& state_w  ///< state speed to evaluate jacobians
     );
 
-    ChVector<> m_loc1;     ///< location of end point on body1 (relative to body1)
-    ChVector<> m_loc2;     ///< location of end point on body2 (relative to body1)
-    ChVector<> m_aloc1;    ///< location of end point on body1 (absolute)
-    ChVector<> m_aloc2;    ///< location of end point on body2 (absolute)
-    double m_rest_length;  ///< undeformed length
-    double m_length;       ///< current length
-    double m_length_dt;    ///< current length rate of change
+    ChVector<> m_loc1;        ///< location of end point on body1 (relative to body1)
+    ChVector<> m_loc2;        ///< location of end point on body2 (relative to body1)
+    ChVector<> m_aloc1;       ///< location of end point on body1 (absolute)
+    ChVector<> m_aloc2;       ///< location of end point on body2 (absolute)
+    bool m_auto_rest_length;  ///< if true, rest length set at initialization
+    double m_rest_length;     ///< undeformed length
+    double m_length;          ///< current length
+    double m_length_dt;       ///< current length rate of change
 
     bool m_stiff;  ///< true if loads are stiff (triggers Jacobian calculation)
 

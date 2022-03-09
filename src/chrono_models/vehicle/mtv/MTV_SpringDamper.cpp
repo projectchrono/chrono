@@ -41,7 +41,11 @@ MTV_SpringForceRear::MTV_SpringForceRear(double spring_constant, double min_leng
     m_bump.AddPoint(50.0e-3, 12500.0);
 }
 
-double MTV_SpringForceRear::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
+double MTV_SpringForceRear::evaluate(double time,
+                                     double rest_length,
+                                     double length,
+                                     double vel,
+                                     const ChLinkTSDA& link) {
     double force = 0;
 
     double defl_spring = rest_length - length;
@@ -74,7 +78,11 @@ MTV_ShockForceRear::MTV_ShockForceRear(double compression_slope,
       m_slope_expand(expansion_slope),
       m_degres_expand(expansion_degressivity) {}
 
-double MTV_ShockForceRear::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
+double MTV_ShockForceRear::evaluate(double time,
+                                    double rest_length,
+                                    double length,
+                                    double vel,
+                                    const ChLinkTSDA& link) {
     // Simple model of a degressive damping characteristic
 
     double force = 0;

@@ -100,15 +100,31 @@ void ChNodeFEAxyzrot::NodeIntStateIncrement(const unsigned int off_x,
     x_new(off_x) = x(off_x) + Dv(off_v);
     x_new(off_x + 1) = x(off_x + 1) + Dv(off_v + 1);
     x_new(off_x + 2) = x(off_x + 2) + Dv(off_v + 2);
+    
+    // ADVANCE ROTATION: R_new = DR_a * R_old 
+    // (using quaternions, local or abs:  q_new = Dq_a * q_old =  q_old * Dq_l  )
+    ChQuaternion<> q_old(x.segment(off_x + 3, 4));
+    ChQuaternion<> rel_q; rel_q.Q_from_Rotv(Dv.segment(off_v + 3, 3));
+    ChQuaternion<> q_new = q_old * rel_q;
+    x_new.segment(off_x + 3, 4) = q_new.eigen();
+}
 
-    ChQuaternion<> mdeltarot;
-    ChQuaternion<> moldrot(x.segment(off_x + 3, 4));
-    ChVector<> newwel_abs(Amatrix * Dv.segment(off_v + 3, 3));
-    double mangle = newwel_abs.Length();
-    newwel_abs.Normalize();
-    mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
-    ChQuaternion<> mnewrot = mdeltarot * moldrot;  // quaternion product
-    x_new.segment(off_x + 3, 4) = mnewrot.eigen();
+void ChNodeFEAxyzrot::NodeIntStateGetIncrement(const unsigned int off_x,
+                                            const ChState& x_new,
+                                            const ChState& x,
+                                            const unsigned int off_v,
+                                            ChStateDelta& Dv) {
+    // POSITION:
+    Dv(off_v) = x_new(off_x) - x(off_x);
+    Dv(off_v + 1) = x_new(off_x + 1) - x(off_x + 1);
+    Dv(off_v + 2) = x_new(off_x + 2) - x(off_x + 2);
+
+    // ROTATION (quaternions): Dq_loc = q_old^-1 * q_new,
+    //  because   q_new = Dq_abs * q_old   = q_old * Dq_loc
+    ChQuaternion<> q_old(x.segment(off_x + 3, 4));
+    ChQuaternion<> q_new(x_new.segment(off_x + 3, 4));
+    ChQuaternion<> rel_q = q_old.GetConjugate() % q_new;
+    Dv.segment(off_v + 3, 3) = rel_q.Q_to_Rotv().eigen();
 }
 
 void ChNodeFEAxyzrot::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {

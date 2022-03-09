@@ -55,10 +55,10 @@ int main(int argc, char* argv[]) {
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Particle emitter: creation from various distributions",
                          core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0, 4, -6), core::vector3df(0, -2, 0));
+    application.AddCamera(core::vector3df(0, 4, -6), core::vector3df(0, -2, 0));
 
     //
     // CREATE THE SYSTEM OBJECTS

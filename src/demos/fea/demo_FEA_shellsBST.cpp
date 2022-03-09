@@ -323,13 +323,13 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"Shells FEA test: triangle BST elements", core::dimension2d<u32>(1024, 768));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddLightWithShadow(irr::core::vector3df(2, 2, 2), irr::core::vector3df(0, 0, 0), 6, 0.2, 6, 50);
     application.AddLight(irr::core::vector3df(-2, -2, 0), 6, irr::video::SColorf(0.6f, 1.0f, 1.0f, 1.0f));
     application.AddLight(irr::core::vector3df(0, -2, -2), 6, irr::video::SColorf(0.6f, 1.0f, 1.0f, 1.0f));
     // application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(1.f, 0.3f, 1.3f), core::vector3df(0.5f, -0.3f, 0.5f));
+    application.AddCamera(core::vector3df(1.f, 0.3f, 1.3f), core::vector3df(0.5f, -0.3f, 0.5f));
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.

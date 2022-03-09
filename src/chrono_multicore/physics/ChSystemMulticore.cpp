@@ -195,13 +195,13 @@ bool ChSystemMulticore::Integrate_Y() {
     uint offset = data_manager->num_rigid_bodies * 6;
     ////#pragma omp parallel for
     for (int i = 0; i < (signed)data_manager->num_shafts; i++) {
-        if (!data_manager->host_data.shaft_active[i])
-            continue;
-
-        shaftlist[i]->Variables().Get_qb()(0) = velocities[offset + i];
-        shaftlist[i]->VariablesQbIncrementPosition(GetStep());
-        shaftlist[i]->VariablesQbSetSpeed(GetStep());
-        shaftlist[i]->Update(ch_time);
+        if (data_manager->host_data.shaft_active[i] != 0) {
+            auto& shaft = assembly.shaftlist[i];
+            shaft->Variables().Get_qb()(0) = velocities[offset + i];
+            shaft->VariablesQbIncrementPosition(GetStep());
+            shaft->VariablesQbSetSpeed(GetStep());
+            shaft->Update(ch_time);
+        }
     }
 
     offset += data_manager->num_shafts;
@@ -237,13 +237,10 @@ bool ChSystemMulticore::Integrate_Y() {
     return true;
 }
 
-//
 // Add the specified body to the system.
 // A unique identifier is assigned to each body for indexing purposes.
 // Space is allocated in system-wide vectors for data corresponding to the
 // body.
-//
-
 void ChSystemMulticore::AddBody(std::shared_ptr<ChBody> newbody) {
     // This is only need because bilaterals need to know what bodies to
     // refer to. Not used by contacts
@@ -267,6 +264,23 @@ void ChSystemMulticore::AddBody(std::shared_ptr<ChBody> newbody) {
     AddMaterialSurfaceData(newbody);
 }
 
+// Add the specified shaft to the system.
+// A unique identifier is assigned to each shaft for indexing purposes.
+// Space is allocated in system-wide vectors for data corresponding to the shaft.
+void ChSystemMulticore::AddShaft(std::shared_ptr<ChShaft> shaft) {
+    shaft->SetId(data_manager->num_shafts);
+    shaft->SetSystem(this);
+
+    assembly.shaftlist.push_back(shaft);
+    data_manager->num_shafts++;
+
+    // Reserve space for this shaft in the system-wide vectors. Not that the
+    // actual data is set in UpdateShafts().
+    data_manager->host_data.shaft_rot.push_back(0);
+    data_manager->host_data.shaft_inr.push_back(0);
+    data_manager->host_data.shaft_active.push_back(true);
+}
+
 void ChSystemMulticore::AddLink(std::shared_ptr<ChLinkBase> link) {
     if (link->GetDOF() == 1) {
         if (auto mot = std::dynamic_pointer_cast<ChLinkMotorLinearSpeed>(link)) {
@@ -284,54 +298,15 @@ void ChSystemMulticore::AddLink(std::shared_ptr<ChLinkBase> link) {
     ChSystem::AddLink(link);
 }
 
-//
-// Add physics items, other than bodies or links, to the system.
-// We keep track separately of ChShaft elements which are maintained in their
-// own list (shaftlist).  All other items are stored in otherphysicslist.
-//
+// Add physics items, other than bodies, shafts, or links, to the system.
 // Note that no test is performed to check if the item was already added.
-//
-// Ideally, the function AddShaft() would be an override of a ChSystem
-// virtual function and the vector shaftlist would be maintained by the base
-// class ChSystem.  For now, users must use AddOtherPhysicsItem in order to
-// properly account for the variables of a shaft elelement in ChSystem::Setup().
-//
-
 void ChSystemMulticore::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) {
-    if (auto shaft = std::dynamic_pointer_cast<ChShaft>(newitem)) {
-        AddShaft(shaft);
-    } else {
-        newitem->SetSystem(this);
-        assembly.otherphysicslist.push_back(newitem);
+    newitem->SetSystem(this);
+    assembly.otherphysicslist.push_back(newitem);
 
-        if (newitem->GetCollide()) {
-            newitem->AddCollisionModelsToSystem();
-        }
+    if (newitem->GetCollide()) {
+        newitem->AddCollisionModelsToSystem();
     }
-}
-
-//
-// Add the specified shaft to the system.
-// A unique identifier is assigned to each shaft for indexing purposes.
-// Space is allocated in system-wide vectors for data corresponding to the shaft.
-//
-// Currently, this function is private to prevent the user from directly calling
-// it and instead force them to use AddOtherPhysicsItem().  See comment above.
-// Eventually, this should be an override of a virtual function declared by ChSystem.
-//
-
-void ChSystemMulticore::AddShaft(std::shared_ptr<ChShaft> shaft) {
-    shaft->SetId(data_manager->num_shafts);
-    shaft->SetSystem(this);
-
-    shaftlist.push_back(shaft.get());
-    data_manager->num_shafts++;
-
-    // Reserve space for this shaft in the system-wide vectors. Not that the
-    // actual data is set in UpdateShafts().
-    data_manager->host_data.shaft_rot.push_back(0);
-    data_manager->host_data.shaft_inr.push_back(0);
-    data_manager->host_data.shaft_active.push_back(true);
 }
 
 //
@@ -345,7 +320,7 @@ void ChSystemMulticore::ClearForceVariables() {
 
     ////#pragma omp parallel for
     for (int i = 0; i < (signed)data_manager->num_shafts; i++) {
-        shaftlist[i]->VariablesFbReset();
+        assembly.shaftlist[i]->VariablesFbReset();
     }
 
     for (int i = 0; i < (signed)data_manager->num_linmotors; i++) {
@@ -452,18 +427,21 @@ void ChSystemMulticore::UpdateShafts() {
     real* shaft_inr = data_manager->host_data.shaft_inr.data();
     char* shaft_active = data_manager->host_data.shaft_active.data();
 
+    uint offset = data_manager->num_rigid_bodies * 6;
     ////#pragma omp parallel for
     for (int i = 0; i < (signed)data_manager->num_shafts; i++) {
-        shaftlist[i]->Update(ch_time, false);
-        shaftlist[i]->VariablesFbLoadForces(GetStep());
-        shaftlist[i]->VariablesQbLoadSpeed();
+        auto& shaft = assembly.shaftlist[i];
 
-        shaft_rot[i] = shaftlist[i]->GetPos();
-        shaft_inr[i] = shaftlist[i]->Variables().GetInvInertia();
-        shaft_active[i] = shaftlist[i]->IsActive();
+        shaft->Update(ch_time, false);
+        shaft->VariablesFbLoadForces(GetStep());
+        shaft->VariablesQbLoadSpeed();
 
-        data_manager->host_data.v[data_manager->num_rigid_bodies * 6 + i] = shaftlist[i]->Variables().Get_qb()(0);
-        data_manager->host_data.hf[data_manager->num_rigid_bodies * 6 + i] = shaftlist[i]->Variables().Get_fb()(0);
+        shaft_rot[i] = shaft->GetPos();
+        shaft_inr[i] = shaft->Variables().GetInvInertia();
+        shaft_active[i] = shaft->IsActive();
+
+        data_manager->host_data.v[offset + i] = shaft->Variables().Get_qb()(0);
+        data_manager->host_data.hf[offset + i] = shaft->Variables().Get_fb()(0);
     }
 }
 

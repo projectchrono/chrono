@@ -32,11 +32,11 @@ my_system = chrono.ChSystemSMC()
 application = chronoirr.ChIrrApp(my_system, "Brick Elements", chronoirr.dimension2du(800, 600))
 
 # Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
 
-application.AddTypicalCamera(chronoirr.vector3df(1.2, 0.6, 0.3),   # camera location
+application.AddCamera(chronoirr.vector3df(1.2, 0.6, 0.3),   # camera location
 							 chronoirr.vector3df(0.2, -0.2, 0.))   # "look at" location
 
 print( "-----------------------------------------------------------")

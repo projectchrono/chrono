@@ -361,7 +361,7 @@ int main(int argc, char* argv[]) {
 
     auto my_shaftA = chrono_types::make_shared<ChShaft>();
     my_shaftA->SetInertia(0.03);
-    mphysicalSystem.Add(my_shaftA);
+    mphysicalSystem.AddShaft(my_shaftA);
 
     // Create 'DRIVE', the hi-speed motor model - as a simple example use a 'imposed speed' motor: this
     // is the equivalent of the ChLinkMotorRotationSpeed, but for 1D elements:
@@ -695,7 +695,7 @@ int main(int argc, char* argv[]) {
 
     auto my_shaftB = chrono_types::make_shared<ChShaft>();
     my_shaftB->SetInertia(0.33);  // [kg/m^2]
-    mphysicalSystem.Add(my_shaftB);
+    mphysicalSystem.AddShaft(my_shaftB);
 
     // Create 'DRIVE', the hispeed motor - as a simple example use a 'imposed speed' motor: this
     // is the equivalent of the ChLinkMotorRotationAngle, but for 1D elements:
@@ -798,10 +798,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&mphysicalSystem, L"Motors", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(1, 3, -7));
+    application.AddCamera(core::vector3df(1, 3, -7));
     application.AddLightWithShadow(vector3df(20.0f, 35.0f, -25.0f), vector3df(0, 0, 0), 55, 20, 55, 35, 512,
                                    video::SColorf(0.6f, 0.8f, 1.0f));
 

@@ -21,7 +21,7 @@
 #pragma once
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/parallel/ChOpenMP.h"
+#include "chrono/utils/ChOpenMP.h"
 #include "chrono/collision/chrono/ChBroadphase.h"
 #include "chrono/collision/chrono/ChNarrowphase.h"
 #include "chrono_multicore/ChMulticoreDefines.h"

@@ -51,8 +51,8 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGenericFPM : public ChBeamSectionTimo
     }
 
     ChBeamSectionTimoshenkoAdvancedGenericFPM(
-        const ChMatrixNM<double, 6, 6> mKlaw,  ///< material stiffness matrix of cross-section
-        const ChMatrixNM<double, 6, 6> mMlaw,  ///< material mass matrix of cross-section
+        const ChMatrixNM<double, 6, 6>& mKlaw,  ///< material stiffness matrix of cross-section
+        const ChMatrixNM<double, 6, 6>& mMlaw,  ///< material mass matrix of cross-section
         const double malpha,                   ///< section rotation about elastic center [rad]
         const double mCy,                      ///< elastic center y displacement respect to centerline
         const double mCz,                      ///< elastic center z displacement respect to centerline
@@ -99,7 +99,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGenericFPM : public ChBeamSectionTimo
 
     /// Set the material stiffness matrix of cross-section in fully-polulated format(FPM),
     /// and assign the traditional axial, torsional, shear and bending stiffnesses automatically.
-    virtual void SetStiffnessMatrixFPM(const ChMatrixNM<double, 6, 6> mKlaw) {
+    virtual void SetStiffnessMatrixFPM(const ChMatrixNM<double, 6, 6>& mKlaw) {
         this->Klaw = mKlaw;
         this->Ax = mKlaw(0, 0);
         this->GAyy = mKlaw(1, 1);
@@ -114,7 +114,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGenericFPM : public ChBeamSectionTimo
 
     /// Set the material mass matrix of cross-section in fully-polulated format(FPM) directly.
     /// This cross-sectional mass matrix should be given in the centerline reference.
-    virtual void SetMassMatrixFPM(const ChMatrixNM<double, 6, 6> mMlaw) {
+    virtual void SetMassMatrixFPM(const ChMatrixNM<double, 6, 6>& mMlaw) {
         this->Mlaw = mMlaw;
 
         this->mu = (mMlaw(0, 0) + mMlaw(1, 1) + mMlaw(2, 2)) / 3.0;

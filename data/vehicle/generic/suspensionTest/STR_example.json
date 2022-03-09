@@ -1,0 +1,10 @@
+{
+    "Name": "Generic Suspension Test Rig",
+    "Type": "SuspensionTestRig",
+
+    "Vehicle Input File": "generic/vehicle/Vehicle_DoubleWishbones_ARB.json",
+    "Test Axle Indices": [ 0 ],
+    "Test Steering Indices": [ 0 ],
+    "Initial Ride Height": 0.55,
+    "Displacement Limit": 0.07
+}

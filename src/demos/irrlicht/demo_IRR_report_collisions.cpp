@@ -87,10 +87,10 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht application.
     ChIrrApp application(&system, L"Number of collisions", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(0, 14, -20));
+    application.AddCamera(irr::core::vector3df(0, 14, -20));
 
     // Create a contact material shared by all collision shapes
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();

@@ -19,6 +19,7 @@
 import pychrono as chrono
 import pychrono.fea as fea
 import pychrono.irrlicht as chronoirr
+import errno
 import os
 import copy
 
@@ -28,8 +29,12 @@ out_dir = chrono.GetChronoOutputPath() + "FEA_LOADS"  # Output directory
 print("Copyright (c) 2017 projectchrono.org ")
 
 # Create (if needed) output directory
-if not os.path.isdir(out_dir):
+try:
     os.mkdir(out_dir)
+except OSError as exc:
+    if exc.errno != errno.EEXIST:
+       print("Error creating output directory " )
+
 
 
 # Create the physical system
@@ -38,10 +43,10 @@ my_system = chrono.ChSystemSMC()
 # Create the Irrlicht visualization
 
 application = chronoirr.ChIrrApp(my_system, "Loads on beams", chronoirr.dimension2du(800, 600))
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(chronoirr.vector3df(0.5, 0.0, -3.0), chronoirr.vector3df(0.5, 0.0, 0.0))
+application.AddCamera(chronoirr.vector3df(0.5, 0.0, -3.0), chronoirr.vector3df(0.5, 0.0, 0.0))
 
 # Create a mesh
 mesh = fea.ChMesh()

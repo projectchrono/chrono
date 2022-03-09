@@ -154,10 +154,10 @@ system.AddBody(box2)
 # -------------------------------
 
 application = chronoirr.ChIrrApp(system, "NSC callbacks", chronoirr.dimension2du(800, 600))
-application.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-application.AddTypicalSky()
+application.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(chronoirr.vector3df(4, 4, -6))
+application.AddCamera(chronoirr.vector3df(4, 4, -6))
 
 application.AssetBindAll()
 application.AssetUpdateAll()

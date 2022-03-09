@@ -189,7 +189,10 @@ class CH_VEHICLE_API ChVehicle {
     /// All physical components of the vehicle will be added to that system.
     ChVehicle(const std::string& name,  ///< [in] vehicle name
               ChSystem* system          ///< [in] containing mechanical system
-              );
+    );
+
+    /// Set the associated Chrono system.
+    void SetSystem(ChSystem* sys) { m_system = sys; }
 
     /// Utility function for testing if any subsystem in a list generates output.
     template <typename T>
@@ -212,6 +215,8 @@ class CH_VEHICLE_API ChVehicle {
     std::shared_ptr<ChChassis> m_chassis;         ///< handle to the main chassis subsystem
     ChChassisRearList m_chassis_rear;             ///< list of rear chassis subsystems (can be empty)
     ChChassisConnectorList m_chassis_connectors;  ///< list of chassis connector (must match m_chassis_rear)
+
+    friend class ChVehicleCosimVehicleNode;
 };
 
 /// @} vehicle

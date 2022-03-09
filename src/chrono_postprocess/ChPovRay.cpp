@@ -465,6 +465,7 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
             if (myobjshapeasset || mytrimeshshapeasset) {
                 ChTriangleMeshConnected* mytrimesh = nullptr;
                 ChTriangleMeshConnected* temp_allocated_loadtrimesh = nullptr;
+                bool wireframe = false;
 
                 if (myobjshapeasset) {
                     try {
@@ -488,13 +489,14 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
 
                 if (mytrimeshshapeasset) {
                     mytrimesh = mytrimeshshapeasset->GetMesh().get();
+                    wireframe = mytrimeshshapeasset->IsWireframe();
                 }
 
                 // POV macro to build the asset - begin
                 assets_file << "#macro sh_" << (size_t)k_asset.get()
                             << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
 
-                if (!mytrimeshshapeasset->IsWireframe()) {
+                if (!wireframe) {
                     // Create mesh
                     assets_file << "mesh2  {\n";
 

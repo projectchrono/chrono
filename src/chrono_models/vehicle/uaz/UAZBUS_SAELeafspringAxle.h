@@ -70,21 +70,29 @@ class CH_MODELS_API UAZBUS_SAELeafspringAxle : public ChSAELeafspringAxle {
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
-    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getLatTorqueFunctorA() const override { return m_latRotSpringCBA; }
-    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getLatTorqueFunctorB() const override { return m_latRotSpringCBB; }
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> getLatTorqueFunctorA() const override {
+        return m_latRotSpringCBA;
+    }
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> getLatTorqueFunctorB() const override {
+        return m_latRotSpringCBB;
+    }
  
-    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getVertTorqueFunctorA() const override { return m_vertRotSpringCBA; }
-    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getVertTorqueFunctorB() const override { return m_vertRotSpringCBB; }
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> getVertTorqueFunctorA() const override {
+        return m_vertRotSpringCBA;
+    }
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> getVertTorqueFunctorB() const override {
+        return m_vertRotSpringCBB;
+    }
 
   private:
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_auxSpringForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
-    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_latRotSpringCBA;
-    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_latRotSpringCBB;
+    std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_latRotSpringCBA;
+    std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_latRotSpringCBB;
 
-    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_vertRotSpringCBA;
-    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_vertRotSpringCBB;
+    std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_vertRotSpringCBA;
+    std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_vertRotSpringCBB;
 
     static const double m_axleShaftInertia;
 

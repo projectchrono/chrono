@@ -30,7 +30,9 @@ namespace vehicle {
 /// Wheeled trailer model constructed from a JSON specification file.
 class CH_VEHICLE_API WheeledTrailer : public ChWheeledTrailer {
   public:
-    WheeledTrailer(ChSystem* system, const std::string& filename);
+    /// Create a wheeld trailer system from the provided JSON specification file.
+    /// If indicated, the associated tires are also created (if specified in the JSON file).
+    WheeledTrailer(ChSystem* system, const std::string& filename, bool create_tires = true);
 
     ~WheeledTrailer() {}
 
@@ -39,7 +41,7 @@ class CH_VEHICLE_API WheeledTrailer : public ChWheeledTrailer {
     virtual void Initialize(std::shared_ptr<ChChassis> frontChassis) override;
 
   private:
-    void Create(const std::string& filename);
+    void Create(const std::string& filename, bool create_tires);
 
   private:
     int m_num_axles;                           // number of axles for this vehicle

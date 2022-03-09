@@ -45,10 +45,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization, attach camera and lights, set sky and logo
     ChIrrApp application(&mphysicalSystem, L"Rolling friction", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
-    application.AddTypicalLights(vector3df(30.f, 100.f, 30.f), vector3df(-30.f, 100.f, -30.f));
-    application.AddTypicalCamera(vector3df(0, 14, -20));
+    application.AddLogo();
+    application.AddSkyBox();
+    application.AddLight(irr::core::vector3df(30.f, 100.f, 30.f), 290, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    application.AddLight(irr::core::vector3df(-30.f, 100.f, -30.f), 190, irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
+    application.AddCamera(vector3df(0, 14, -20));
 
     // Create all the rigid bodies.
     double mradius = 0.5;

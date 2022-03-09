@@ -119,9 +119,8 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle Irrlicht interface
     ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"HMMWV-9 Demo", irr::core::dimension2d<irr::u32>(1000, 800),
-                               irr::ELL_NONE);
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
+                               irrlicht::VerticalDir::Z, irr::ELL_NONE);
+    app.AddTypicalLights();
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
     app.SetTimestep(step_size);
     app.AssetBindAll();

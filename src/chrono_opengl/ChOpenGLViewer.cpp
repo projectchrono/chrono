@@ -212,6 +212,9 @@ void ChOpenGLViewer::Render(bool render_hud) {
             for (auto body : physics_system->Get_bodylist()) {
                 DrawObject(body);
             }
+            for (auto link : physics_system->Get_linklist()) {
+                DrawObject(link);
+            }
             if (model_box.size() > 0) {
                 box.Update(model_box);
                 box.Draw(projection, view);
@@ -491,6 +494,37 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
                 t2 = pos_final + lrot.Rotate(t2);
                 line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
             }
+        }
+    }
+}
+
+void ChOpenGLViewer::DrawObject(std::shared_ptr<ChLinkBase> link) {
+    const auto& asset_frame = link->GetAssetsFrame();
+
+    for (auto asset : link->GetAssets()) {
+        if (ChLineShape* line_shape = dynamic_cast<ChLineShape*>(asset.get())) {
+            std::shared_ptr<geometry::ChLine> mline;
+            mline = line_shape->GetLineGeometry();
+
+            double maxU = 1;
+            if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(mline))
+                maxU = mline_path->GetPathDuration();
+
+            ChVector<> t2;
+            mline->Evaluate(t2, 0.0);
+            t2 = asset_frame.TransformPointLocalToParent(t2);
+            line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
+
+            for (unsigned int ig = 1; ig < maxU; ig++) {
+                mline->Evaluate(t2, (double)ig);
+                t2 = asset_frame.TransformPointLocalToParent(t2);
+                line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
+                line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
+            }
+
+            mline->Evaluate(t2, maxU);
+            t2 = asset_frame.TransformPointLocalToParent(t2);
+            line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
         }
     }
 }

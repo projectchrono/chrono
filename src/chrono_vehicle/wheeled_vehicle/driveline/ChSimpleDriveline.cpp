@@ -43,7 +43,7 @@ void ChSimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create the driveshaft
     m_driveshaft = chrono_types::make_shared<ChShaft>();
     m_driveshaft->SetInertia(0.5);
-    chassis->GetSystem()->Add(m_driveshaft);
+    chassis->GetSystem()->AddShaft(m_driveshaft);
 
     m_driven_axles = driven_axles;
 

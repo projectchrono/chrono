@@ -11,8 +11,7 @@ endif()
 # List all demos
 
 set(DEMOS
-    demo_VEH_SuspensionTestRigPlatform
-    demo_VEH_SuspensionTestRigPushrod
+    demo_VEH_SuspensionTestRig
     demo_VEH_TireTestRig
     demo_VEH_TrackTestRig
 )

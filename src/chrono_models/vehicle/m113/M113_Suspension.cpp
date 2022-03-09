@@ -40,11 +40,11 @@ const double M113_Suspension::m_shock_c = 1e2;
 // -----------------------------------------------------------------------------
 // M113 spring functor class - implements a (non)linear rotational spring
 // -----------------------------------------------------------------------------
-class M113_SpringTorque : public ChLinkRotSpringCB::TorqueFunctor {
+class M113_SpringTorque : public ChLinkRSDA::TorqueFunctor {
   public:
     M113_SpringTorque(double k, double c, double t) : m_k(k), m_c(c), m_t(t) {}
 
-    virtual double operator()(double time, double angle, double vel, ChLinkRotSpringCB* link) override {
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
         return m_t - m_k * angle - m_c * vel;
     }
 
@@ -61,11 +61,11 @@ class M113_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     M113_ShockForce(double c) : m_c(c) {}
 
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override {
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override {
         return -m_c * vel;
     }
 
