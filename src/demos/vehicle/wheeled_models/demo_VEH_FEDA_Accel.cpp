@@ -126,16 +126,17 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleVisualSystemIrrlicht app(&my_feda.GetVehicle());
-    app.SetWindowTitle("FEDA acceleration test");
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.Initialize();
-    app.AddLight(ChVector<>(0, -30, 100), 250,    ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(ChVector<>(0, 50, 100), 130,     ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(ChVector<>(-300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(ChVector<>(-300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(ChVector<>(+300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(ChVector<>(+300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("FEDA acceleration test");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddLight(ChVector<>(0, -30, 100), 250,    ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(0, 50, 100), 130,     ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(-300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(-300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(+300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(+300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    my_feda.GetVehicle().SetVisualSystem(vis);
 
     // Prepare output
     if (data_output) {
@@ -174,7 +175,7 @@ int main(int argc, char* argv[]) {
 
     ChTimer<> timer;
     timer.start();
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         time = my_feda.GetSystem()->GetChTime();
 
         double speed = speed_filter.Add(my_feda.GetVehicle().GetVehicleSpeed());
@@ -208,8 +209,8 @@ int main(int argc, char* argv[]) {
         if (time >= 100)
             break;
 
-        app.BeginScene();
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -229,18 +230,18 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_feda.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("Acceleration test", driver_inputs);
+        vis->Synchronize("Acceleration test", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_feda.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;
 
-        app.EndScene();
+        vis->EndScene();
     }
 
     if (data_output) {

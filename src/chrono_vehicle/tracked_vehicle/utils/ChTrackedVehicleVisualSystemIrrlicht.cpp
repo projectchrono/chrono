@@ -28,12 +28,16 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChTrackedVehicleVisualSystemIrrlicht::ChTrackedVehicleVisualSystemIrrlicht(ChVehicle* vehicle)
-    : ChVehicleVisualSystemIrrlicht(vehicle),
+ChTrackedVehicleVisualSystemIrrlicht::ChTrackedVehicleVisualSystemIrrlicht()
+    : ChVehicleVisualSystemIrrlicht(),
+      m_tvehicle(nullptr),
       m_render_frame_idlers{false, false},
       m_render_frame_shoes{false, false},
-      m_render_frame_sprockets{false, false} {
-    m_tvehicle = dynamic_cast<ChTrackedVehicle*>(vehicle);
+      m_render_frame_sprockets{false, false} {}
+
+void ChTrackedVehicleVisualSystemIrrlicht::OnAttachToVehicle() {
+    ChVehicleVisualSystemIrrlicht::OnAttachToVehicle();
+    m_tvehicle = dynamic_cast<ChTrackedVehicle*>(m_vehicle);
     assert(m_tvehicle);
 }
 

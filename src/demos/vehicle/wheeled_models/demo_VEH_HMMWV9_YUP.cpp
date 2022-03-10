@@ -139,23 +139,24 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // Visualization of controller points (sentinel & target)
-    irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
-    irr::scene::IMeshSceneNode* ballT = app.GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballT = vis->GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
 #endif
 
     // Vehicle Irrlicht run-time visualization
-    ChWheeledVehicleVisualSystemIrrlicht app(&my_hmmwv.GetVehicle());
-    app.SetWindowTitle("HMMWV-9 YUP Demo");
-    app.SetCameraVertical(CameraVerticalDir::Y);
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("HMMWV-9 YUP Demo");
+    vis->SetCameraVertical(CameraVerticalDir::Y);
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
 #ifndef USE_PATH_FOLLOWER
     // Interactive driver
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
     driver.SetSteeringDelta(0.06);
     driver.SetThrottleDelta(0.02);
     driver.SetBrakingDelta(0.06);
@@ -172,7 +173,7 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
     utils::ChRunningAverage RTF_filter(50);
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();
 
 #ifdef USE_PATH_FOLLOWER
@@ -183,11 +184,11 @@ int main(int argc, char* argv[]) {
 #endif
 
         if (step_number % render_steps == 0) {
-            app.BeginScene();
-            app.DrawAll();
-            app.RenderFrame(ChFrame<>(), 10);
-            app.RenderGrid(ChVector<>(0, 0.01, 0), 20, 1.0);
-            app.EndScene();
+            vis->BeginScene();
+            vis->DrawAll();
+            vis->RenderFrame(ChFrame<>(), 10);
+            vis->RenderGrid(ChVector<>(0, 0.01, 0), 20, 1.0);
+            vis->EndScene();
         }
 
         // Driver inputs
@@ -197,13 +198,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("", driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);

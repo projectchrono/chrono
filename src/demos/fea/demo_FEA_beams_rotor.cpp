@@ -422,7 +422,7 @@ int main(int argc, char* argv[]) {
     std::vector<double> rec_tip_edge_d;
     std::vector<double> rec_tip_flap_d;
 
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
         tools::drawGrid(vis->GetVideoDriver(), 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),

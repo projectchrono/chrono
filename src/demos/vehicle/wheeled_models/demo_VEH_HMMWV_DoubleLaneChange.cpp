@@ -420,11 +420,12 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleVisualSystemIrrlicht app(&my_hmmwv.GetVehicle());
-    app.SetWindowTitle(wtitle);
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle(wtitle);
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
     // ---------------------------------------------------
     // Create the lane change path and the driver system
@@ -442,15 +443,15 @@ int main(int argc, char* argv[]) {
     for (size_t i = 0; i < helper.GetConePositions(); i++) {
         ChVector<> pL = helper.GetConePosition(i, true) + ChVector<>(0, coneBaseWidth / 2, 0);
         irr::scene::IAnimatedMesh* mesh_coneL =
-            app.GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
-        irr::scene::IAnimatedMeshSceneNode* node_coneL = app.GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneL);
+            vis->GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
+        irr::scene::IAnimatedMeshSceneNode* node_coneL = vis->GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneL);
         node_coneL->getMaterial(0).EmissiveColor = irr::video::SColor(0, 100, 0, 0);
         node_coneL->setPosition(irr::core::vector3dfCH(pL));
 
         ChVector<> pR = helper.GetConePosition(i, false) + ChVector<>(0, -coneBaseWidth / 2, 0);
         irr::scene::IAnimatedMesh* mesh_coneR =
-            app.GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
-        irr::scene::IAnimatedMeshSceneNode* node_coneR = app.GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneR);
+            vis->GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
+        irr::scene::IAnimatedMeshSceneNode* node_coneR = vis->GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneR);
         node_coneR->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 100, 0);
         node_coneR->setPosition(irr::core::vector3dfCH(pR));
     }
@@ -489,7 +490,7 @@ int main(int argc, char* argv[]) {
     double time = 0;
     double xpos = 0;
     double xend = helper.GetXmax();
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         time = my_hmmwv.GetSystem()->GetChTime();
         double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetVehicleSpeed());
         double accel = accel_filter.Filter(
@@ -526,8 +527,8 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        app.BeginScene();
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -541,18 +542,18 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("Double lane change test", driver_inputs);
+        vis->Synchronize("Double lane change test", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;
 
-        app.EndScene();
+        vis->EndScene();
     }
 
 #ifdef CHRONO_POSTPROCESS

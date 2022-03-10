@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(false);
 
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
         vis->EndScene();

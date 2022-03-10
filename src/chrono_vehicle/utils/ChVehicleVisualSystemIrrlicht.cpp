@@ -55,22 +55,22 @@ bool ChChaseCameraEventReceiver::OnEvent(const SEvent& event) {
     if (event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
             case KEY_DOWN:
-                m_vsys->m_camera.Zoom(1);
+                m_vsys->m_camera->Zoom(1);
                 return true;
             case KEY_UP:
-                m_vsys->m_camera.Zoom(-1);
+                m_vsys->m_camera->Zoom(-1);
                 return true;
             case KEY_LEFT:
-                m_vsys->m_camera.Turn(-1);
+                m_vsys->m_camera->Turn(-1);
                 return true;
             case KEY_RIGHT:
-                m_vsys->m_camera.Turn(1);
+                m_vsys->m_camera->Turn(1);
                 return true;
             case KEY_NEXT:
-                m_vsys->m_camera.Raise(1);
+                m_vsys->m_camera->Raise(1);
                 return true;
             case KEY_PRIOR:
-                m_vsys->m_camera.Raise(-1);
+                m_vsys->m_camera->Raise(-1);
                 return true;
             default:
                 break;
@@ -78,19 +78,19 @@ bool ChChaseCameraEventReceiver::OnEvent(const SEvent& event) {
     } else {
         switch (event.KeyInput.Key) {
             case KEY_KEY_1:
-                m_vsys->m_camera.SetState(utils::ChChaseCamera::Chase);
+                m_vsys->m_camera->SetState(utils::ChChaseCamera::Chase);
                 return true;
             case KEY_KEY_2:
-                m_vsys->m_camera.SetState(utils::ChChaseCamera::Follow);
+                m_vsys->m_camera->SetState(utils::ChChaseCamera::Follow);
                 return true;
             case KEY_KEY_3:
-                m_vsys->m_camera.SetState(utils::ChChaseCamera::Track);
+                m_vsys->m_camera->SetState(utils::ChChaseCamera::Track);
                 return true;
             case KEY_KEY_4:
-                m_vsys->m_camera.SetState(utils::ChChaseCamera::Inside);
+                m_vsys->m_camera->SetState(utils::ChChaseCamera::Inside);
                 return true;
             case KEY_KEY_5:
-                m_vsys->m_camera.SetState(utils::ChChaseCamera::Free);
+                m_vsys->m_camera->SetState(utils::ChChaseCamera::Free);
                 return true;
             case KEY_KEY_V:
                 m_vsys->m_vehicle->LogConstraintViolations();
@@ -106,28 +106,18 @@ bool ChChaseCameraEventReceiver::OnEvent(const SEvent& event) {
 // -----------------------------------------------------------------------------
 // Construct a vehicle Irrlicht application.
 // -----------------------------------------------------------------------------
-ChVehicleVisualSystemIrrlicht::ChVehicleVisualSystemIrrlicht(ChVehicle* vehicle)
+ChVehicleVisualSystemIrrlicht::ChVehicleVisualSystemIrrlicht()
     : ChVisualSystemIrrlicht(),
-      m_vehicle(vehicle),
-      m_camera(vehicle->GetChassisBody()),
       m_camera_control(nullptr),
-      m_stepsize(1e-3),
       m_renderStats(true),
       m_HUD_x(700),
-      m_HUD_y(20),
-      m_steering(0),
-      m_throttle(0),
-      m_braking(0) {
+      m_HUD_y(20) {
     // Set default window size and title
     SetWindowSize(ChVector2<int>(1000, 800));
     SetWindowTitle("Chrono::Vehicle");
 
     // Default camera uses Z up
     SetCameraVertical(irrlicht::CameraVerticalDir::Z);
-
-    // Initialize the chase camera with default values
-    m_camera.Initialize(ChVector<>(0, 0, 1), vehicle->GetChassis()->GetLocalDriverCoordsys(), 6.0, 0.5,
-                        ChWorldFrame::Vertical(), ChWorldFrame::Forward());
 
 #ifdef CHRONO_IRRKLANG
     m_sound_engine = 0;
@@ -146,14 +136,26 @@ void ChVehicleVisualSystemIrrlicht::Initialize() {
     m_camera_control = new ChChaseCameraEventReceiver(this);
     AddUserEventReceiver(m_camera_control);
 
-    // Add the Irrlicht camera (controlled through the chase-cam)
-    ChVector<> cam_pos = m_camera.GetCameraPos();
-    ChVector<> cam_target = m_camera.GetTargetPos();
-    AddCamera(cam_pos, cam_target);
+    // Add the Irrlicht camera (controlled through the chase-cam) if already attach to a vehicle
+    if (m_vehicle) {
+        ChVector<> cam_pos = m_camera->GetCameraPos();
+        ChVector<> cam_target = m_camera->GetTargetPos();
+        AddCamera(cam_pos, cam_target);
+    }
 
     // Add a default sky box and the Chrono logo
     AddSkyBox();
     AddLogo();
+}
+
+void ChVehicleVisualSystemIrrlicht::OnAttachToVehicle() {
+    ChVehicleVisualSystem::OnAttachToVehicle();
+    // Add the Irrlicht camera (controlled through the chase-cam) if already initialized
+    if (GetDevice()) {
+        ChVector<> cam_pos = m_camera->GetCameraPos();
+        ChVector<> cam_target = m_camera->GetTargetPos();
+        AddCamera(cam_pos, cam_target);  
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -182,25 +184,6 @@ void ChVehicleVisualSystemIrrlicht::EnableSound(bool sound) {
 }
 
 // -----------------------------------------------------------------------------
-// Set parameters for the underlying chase camera.
-// -----------------------------------------------------------------------------
-void ChVehicleVisualSystemIrrlicht::SetChaseCamera(const ChVector<>& ptOnChassis, double chaseDist, double chaseHeight) {
-    m_camera.Initialize(ptOnChassis, m_vehicle->GetChassis()->GetLocalDriverCoordsys(), chaseDist, chaseHeight,
-                        ChWorldFrame::Vertical(), ChWorldFrame::Forward());
-    ////ChVector<> cam_pos = m_camera.GetCameraPos();
-    ////ChVector<> cam_target = m_camera.GetTargetPos(); 
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChVehicleVisualSystemIrrlicht::Synchronize(const std::string& msg, const ChDriver::Inputs& driver_inputs) {
-    m_driver_msg = msg;
-    m_steering = driver_inputs.m_steering;
-    m_throttle = driver_inputs.m_throttle;
-    m_braking = driver_inputs.m_braking;
-}
-
-// -----------------------------------------------------------------------------
 // Advance the dynamics of the chase camera.
 // The integration of the underlying ODEs is performed using as many steps as
 // needed to advance by the specified duration.
@@ -211,13 +194,13 @@ void ChVehicleVisualSystemIrrlicht::Advance(double step) {
     double t = 0;
     while (t < step) {
         double h = std::min<>(m_stepsize, step - t);
-        m_camera.Update(h);
+        m_camera->Update(h);
         t += h;
     }
 
     // Update the Irrlicht camera
-    ChVector<> cam_pos = m_camera.GetCameraPos();
-    ChVector<> cam_target = m_camera.GetTargetPos();
+    ChVector<> cam_pos = m_camera->GetCameraPos();
+    ChVector<> cam_target = m_camera->GetTargetPos();
 
     GetActiveCamera()->setPosition(core::vector3dfCH(cam_pos));
     GetActiveCamera()->setTarget(core::vector3dfCH(cam_target));
@@ -321,7 +304,7 @@ void ChVehicleVisualSystemIrrlicht::renderTextBox(const std::string& msg,
 void ChVehicleVisualSystemIrrlicht::renderStats() {
     char msg[100];
 
-    sprintf(msg, "Camera mode: %s", m_camera.GetStateName().c_str());
+    sprintf(msg, "Camera mode: %s", m_camera->GetStateName().c_str());
     renderTextBox(std::string(msg), m_HUD_x, m_HUD_y, 120, 15);
 
     double speed = m_vehicle->GetVehicleSpeed();

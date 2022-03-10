@@ -233,11 +233,12 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    ChWheeledVehicleVisualSystemIrrlicht app(&vehicle);
-    app.SetWindowTitle(windowTitle);
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle(windowTitle);
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vehicle.SetVisualSystem(vis);
 
 #endif
 
@@ -251,10 +252,10 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_IRRLICHT
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         // Render scene
-        app.BeginScene();
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -264,13 +265,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
-        app.Synchronize("", driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         double xpos = vehicle.GetSpindlePos(0, LEFT).x();
         if (xpos >= xend) {
@@ -281,7 +282,7 @@ int main(int argc, char* argv[]) {
             seat_logger.AddData(seat_acc);
         }
 
-        app.EndScene();
+        vis->EndScene();
     }
 
 #else

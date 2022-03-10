@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
     vis->EnableShadows();
 
     int frame = 0;
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         if (frame % 100 == 0) {
             vis->BeginScene();
             vis->DrawAll();

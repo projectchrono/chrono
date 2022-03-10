@@ -144,14 +144,15 @@ int main(int argc, char* argv[]) {
     // Create the driver system
     // -------------------------------------
 
-    ChWheeledVehicleVisualSystemIrrlicht app(&uaz.GetVehicle());
-    app.SetWindowTitle("UAZBUS Demo");
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("UAZBUS Demo");
+    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    uaz.GetVehicle().SetVisualSystem(vis);
 
     // Create the interactive driver system
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
 
     // Set the time response for steering and throttle keyboard inputs.
     double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
@@ -193,14 +194,14 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
     utils::ChRunningAverage RTF_filter(50);
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = uaz.GetSystem()->GetChTime();
 
         // Render scene
         if (step_number % render_steps == 0) {
-            app.BeginScene();
-            app.DrawAll();
-            app.EndScene();
+            vis->BeginScene();
+            vis->DrawAll();
+            vis->EndScene();
 
             if (povray_output && step_number % render_steps == 0) {
                 char filename[100];
@@ -218,7 +219,7 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         uaz.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Test for validity of kingpin angles (max. allowed by UAZ: 27 deg)
         auto suspF = std::static_pointer_cast<ChToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
@@ -235,7 +236,7 @@ int main(int argc, char* argv[]) {
         driver.Advance(step_size);
         terrain.Advance(step_size);
         uaz.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;

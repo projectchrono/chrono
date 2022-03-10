@@ -32,6 +32,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 
@@ -50,33 +51,16 @@ class ChChaseCameraEventReceiver;  ///< custom event receiver for chase-cam cont
 
 /// Customized Chrono Irrlicht visualization for vehicle simulations.
 /// This class implements an Irrlicht-based visualization wrapper for vehicles.
-/// This class is a derived from ChVisualSystemIrrlicht and provides the following functionality:
+/// This class extends ChVisualSystemIrrlicht and provides the following functionality:
 ///   - rendering of the entire Irrlicht scene
 ///   - custom chase-camera (which can be controlled with keyboard)
 ///   - optional rendering of links, springs, stats, etc.
-class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public irrlicht::ChVisualSystemIrrlicht {
+class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSystem, public irrlicht::ChVisualSystemIrrlicht {
   public:
     /// Construct a vehicle Irrlicht visualization system
-    ChVehicleVisualSystemIrrlicht(ChVehicle* vehicle);
+    ChVehicleVisualSystemIrrlicht();
 
     virtual ~ChVehicleVisualSystemIrrlicht();
-
-    /// Set parameters for the underlying chase camera.
-    void SetChaseCamera(const ChVector<>& ptOnChassis,  ///< tracked point on chassis body (in vehicle reference frame)
-                        double chaseDist,               ///< chase distance (behind tracked point)
-                        double chaseHeight              ///< chase height (above tracked point)
-                        );
-    /// Set the step size for integration of the chase-cam dynamics.
-    void SetStepsize(double val) { m_stepsize = val; }
-    /// Set camera state (mode).
-    void SetChaseCameraState(utils::ChChaseCamera::State state) { m_camera.SetState(state); }
-    /// Set camera position.
-    /// Note that this forces the chase-cam in Track mode.
-    void SetChaseCameraPosition(const ChVector<>& pos) { m_camera.SetCameraPos(pos); }
-    /// Set camera angle.
-    void SetChaseCameraAngle(double angle) { m_camera.SetCameraAngle(angle); }
-    /// Set camera zoom multipliers.
-    void SetChaseCameraMultipliers(double minMult, double maxMult) { m_camera.SetMultLimits(minMult, maxMult); }
 
     /// Set the upper-left point of HUD elements.
     void SetHUDLocation(int HUD_x, int HUD_y) {
@@ -102,9 +86,6 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public irrlicht::ChVisualSy
     /// Render the specified reference frame.
     void RenderFrame(const ChFrame<>& frame, double axis_length = 1);
 
-    /// Update information related to driver inputs.
-    void Synchronize(const std::string& msg, const ChDriver::Inputs& driver_inputs);
-
     /// Advance the dynamics of the chase camera.
     /// The integration of the underlying ODEs is performed using as many steps as needed to advance
     /// by the specified duration.
@@ -115,6 +96,8 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public irrlicht::ChVisualSy
     void WriteImageToFile(const std::string& filename);
 
   protected:
+    virtual void OnAttachToVehicle() override;
+
     /// Render additional graphics
     virtual void renderOtherGraphics() {}
 
@@ -136,25 +119,14 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public irrlicht::ChVisualSy
                        int height = 15,
                        irr::video::SColor color = irr::video::SColor(255, 20, 20, 20));
 
-    ChVehicle* m_vehicle;  ///< pointer to the associated vehicle system
-
-  protected:
     void renderStats();
 
-    utils::ChChaseCamera m_camera;                 ///< chase camera
     ChChaseCameraEventReceiver* m_camera_control;  ///< event receiver for chase-cam control
-
-    double m_stepsize;  ///< integration step size for chase-cam dynamics
 
     bool m_renderStats;  ///< turn on/off rendering of stats
 
     int m_HUD_x;  ///< x-coordinate of upper-left corner of HUD elements
     int m_HUD_y;  ///< y-coordinate of upper-left corner of HUD elements
-
-    std::string m_driver_msg;  ///< HUD message from driver system
-    double m_steering;         ///< driver steering input
-    double m_throttle;         ///< driver throttle input
-    double m_braking;          ///< driver braking input
 
 #ifdef CHRONO_IRRKLANG
     irrklang::ISoundEngine* m_sound_engine;  ///< Sound player

@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x() << "    y=" << hnode3->Frame().GetPos().y()
              << "    z=" << hnode3->Frame().GetPos().z() << "\n\n";
 
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
         vis->EndScene();

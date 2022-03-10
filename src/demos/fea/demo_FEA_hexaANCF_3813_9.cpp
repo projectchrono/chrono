@@ -1642,7 +1642,7 @@ void AxialDynamics() {
 
     double start = std::clock();
     int Iter = 0;
-    while (/*vis->GetDevice()->run() && */ (sys.GetChTime() <= 1.0)) {
+    while (/*vis->Run() && */ (sys.GetChTime() <= 1.0)) {
         // application.BeginScene();
         // application.DrawAll();
         // application.DoStep();

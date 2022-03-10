@@ -137,13 +137,14 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_IRRLICHT
 
-    ChWheeledVehicleVisualSystemIrrlicht app(&vehicle);
-    app.SetWindowTitle("Generic Vehicle Demo");
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Generic Vehicle Demo");
+    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vehicle.SetVisualSystem(vis);
 
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
 
     // Set the time response for steering and throttle keyboard inputs.
     // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -178,7 +179,7 @@ int main(int argc, char* argv[]) {
 #ifdef USE_IRRLICHT
 
     ChRealtimeStepTimer realtime_timer;
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         // Update the position of the shadow mapping so that it follows the car
         ////if (do_shadows) {
         ////  ChVector<> lightaim = vehicle.GetChassisPos();
@@ -191,9 +192,9 @@ int main(int argc, char* argv[]) {
         ////}
 
         // Render scene
-        app.BeginScene();
-        app.DrawAll();
-        app.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
 #ifdef DEBUG_LOG
         // Number of simulation steps between two output frames
@@ -215,13 +216,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         vehicle.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;

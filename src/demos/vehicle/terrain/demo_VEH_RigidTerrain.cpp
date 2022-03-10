@@ -109,14 +109,15 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleVisualSystemIrrlicht app(&my_hmmwv.GetVehicle());
-    app.SetWindowTitle("Rigid Terrain Demo");
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Rigid Terrain Demo");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
     // Create the interactive driver system
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
     driver.Initialize();
 
     // Set the time response for steering and throttle keyboard inputs.
@@ -145,13 +146,13 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     ChRealtimeStepTimer realtime_timer;
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();
 
         // Render scene
-        app.BeginScene();
-        app.DrawAll();
-        app.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -160,13 +161,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);

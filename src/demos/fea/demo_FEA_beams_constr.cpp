@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
     std::string filename = out_dir + "/buckling_mid.dat";
     chrono::ChStreamOutAsciiFile file_out1(filename.c_str());
 
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
 

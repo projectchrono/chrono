@@ -143,11 +143,12 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     // -------------------------------------
 
-    ChWheeledVehicleVisualSystemIrrlicht app(&gator.GetVehicle());
-    app.SetWindowTitle("Gator Demo");
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Gator Demo");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    gator.GetVehicle().SetVisualSystem(vis);
 
     // -----------------
     // Initialize output
@@ -170,7 +171,7 @@ int main(int argc, char* argv[]) {
     // ------------------------
 
     // Create the interactive driver system
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
 
     // Set the time response for steering and throttle keyboard inputs.
     double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
@@ -198,14 +199,14 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     ChRealtimeStepTimer realtime_timer;
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = gator.GetSystem()->GetChTime();
 
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0) {
-            app.BeginScene();
-            app.DrawAll();
-            app.EndScene();
+            vis->BeginScene();
+            vis->DrawAll();
+            vis->EndScene();
 
             if (povray_output) {
                 char filename[100];
@@ -223,13 +224,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         gator.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("", driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         gator.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;

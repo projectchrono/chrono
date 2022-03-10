@@ -33,11 +33,12 @@ namespace vehicle {
 class CH_VEHICLE_API ChWheeledVehicleVisualSystemIrrlicht : public ChVehicleVisualSystemIrrlicht {
   public:
     /// Construct a wheeled vehicle Irrlicht visualization.
-    ChWheeledVehicleVisualSystemIrrlicht(ChVehicle* vehicle);
+    ChWheeledVehicleVisualSystemIrrlicht();
 
     ~ChWheeledVehicleVisualSystemIrrlicht() {}
 
   private:
+    virtual void OnAttachToVehicle() override;
     virtual void renderOtherStats(int left, int top) override;
 
     ChWheeledVehicle* m_wvehicle;

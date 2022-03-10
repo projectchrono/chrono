@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
     sys.SetVisualSystem(vis);
 
     // Simulation loop
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         // std::cout << "t (s): " << sys.GetChTime() << "  Tip (m): " << end_point->GetPos() << std::endl;
 
         vis->BeginScene();

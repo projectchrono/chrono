@@ -337,17 +337,18 @@ int main(int argc, char* argv[]) {
         ChVector<>(+150, +150, 120)   //
     };
 
-    ChWheeledVehicleVisualSystemIrrlicht app(&my_hmmwv.GetVehicle());
-    app.SetHUDLocation(500, 20);
-    app.SetWindowTitle("OpenCRG Steering");
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.Initialize();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetHUDLocation(500, 20);
+    vis->SetWindowTitle("OpenCRG Steering");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
     for (auto& loc : light_locs)
-        app.AddLight(ChWorldFrame::FromISO(loc), 500);
+        vis->AddLight(ChWorldFrame::FromISO(loc), 500);
+    my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
     // Visualization of controller points (sentinel & target)
-    irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
-    irr::scene::IMeshSceneNode* ballT = app.GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballT = vis->GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
 
@@ -374,7 +375,7 @@ int main(int argc, char* argv[]) {
     int sim_frame = 0;
     int render_frame = 0;
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();
 
         // Driver inputs
@@ -385,16 +386,16 @@ int main(int argc, char* argv[]) {
         ballT->setPosition(irr::core::vector3dfCH(driver.GetTargetLocation()));
 
         // Render scene and output images
-        app.BeginScene();
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Draw the world reference frame at the sentinel location
-        app.RenderFrame(ChFrame<>(driver.GetSentinelLocation()));
+        vis->RenderFrame(ChFrame<>(driver.GetSentinelLocation()));
 
         if (output_images && sim_frame % render_steps == 0) {
             char filename[200];
             sprintf(filename, "%s/image_%05d.bmp", out_dir.c_str(), render_frame);
-            app.WriteImageToFile(filename);
+            vis->WriteImageToFile(filename);
             render_frame++;
         }
 
@@ -402,19 +403,19 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize(driver.GetDriverType(), driver_inputs);
+        vis->Synchronize(driver.GetDriverType(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
         sys.DoStepDynamics(step_size);
 
         // Increment simulation frame number
         sim_frame++;
 
-        app.EndScene();
+        vis->EndScene();
     }
 
     driver.PrintStats();

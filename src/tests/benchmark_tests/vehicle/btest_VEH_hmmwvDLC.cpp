@@ -129,19 +129,20 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::ExecuteStep() {
 template <typename EnumClass, EnumClass TIRE_MODEL>
 void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    ChWheeledVehicleVisualSystemIrrlicht app(&m_hmmwv->GetVehicle());
-    app.SetWindowTitle("HMMWV DLC");
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("HMMWV DLC");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    m_hmmwv->GetVehicle().SetVisualSystem(vis);
 
     // Visualization of controller points (sentinel & target)
-    irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
-    irr::scene::IMeshSceneNode* ballT = app.GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballT = vis->GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         const ChVector<>& pS = m_driver->GetSteeringController().GetSentinelLocation();
         const ChVector<>& pT = m_driver->GetSteeringController().GetTargetLocation();
         ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
@@ -149,12 +150,12 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
 
         ChDriver::Inputs driver_inputs = m_driver->GetInputs();
 
-        app.BeginScene();
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
         ExecuteStep();
-        app.Synchronize("Acceleration test", driver_inputs);
-        app.Advance(m_step_veh);
-        app.EndScene();
+        vis->Synchronize("Acceleration test", driver_inputs);
+        vis->Advance(m_step_veh);
+        vis->EndScene();
     }
 
     std::cout << "Time: " << GetTime() << "  location: " << GetLocation() << std::endl;

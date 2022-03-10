@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
         mystepper->SetAbsTolerances(1e-6);
     }
 
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
         vis->EndScene();

@@ -261,11 +261,12 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
-    ChWheeledVehicleVisualSystemIrrlicht app(&my_hmmwv.GetVehicle());
-    app.SetWindowTitle("HMMWV Deformable Soil Demo");
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("HMMWV Deformable Soil Demo");
+    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
     // -----------------
     // Initialize output
@@ -298,7 +299,7 @@ int main(int argc, char* argv[]) {
 
     ChTimer<> timer;
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = system->GetChTime();
 
         if (step_number == 800) {
@@ -314,15 +315,15 @@ int main(int argc, char* argv[]) {
         }
 
         // Render scene
-        app.BeginScene();
-        app.DrawAll();
-        tools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
-        app.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        tools::drawColorbar(0, 0.1, "Sinkage", vis->GetDevice(), 30);
+        vis->EndScene();
 
         if (img_output && step_number % render_steps == 0) {
             char filename[100];
             sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-            app.WriteImageToFile(filename);
+            vis->WriteImageToFile(filename);
             render_frame++;
         }
 
@@ -333,11 +334,11 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("", driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         // Advance dynamics
         system->DoStepDynamics(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;

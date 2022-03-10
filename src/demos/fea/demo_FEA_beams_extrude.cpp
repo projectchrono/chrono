@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
     mkl_solver->LockSparsityPattern(true);
     sys.SetSolver(mkl_solver);
 
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
         tools::drawGrid(vis->GetVideoDriver(), 0.1, 0.1, 20, 20, CSYSNORM, irr::video::SColor(255, 100, 100, 100), true);

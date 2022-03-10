@@ -81,13 +81,14 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleVisualSystemIrrlicht app(&truck.GetTractor());
-    app.SetWindowTitle("Semi-trailer truck :: Open Loop");
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Semi-trailer truck :: Open Loop");
+    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    truck.GetTractor().SetVisualSystem(vis);
 
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
 
     // Set the time response for steering and throttle keyboard inputs.
     // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -106,12 +107,12 @@ int main(int argc, char* argv[]) {
     // Initialize simulation frame counter
     int step_number = 0;
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         // Render scene
         if (step_number % render_steps == 0) {
-            app.BeginScene();
-            app.DrawAll();
-            app.EndScene();
+            vis->BeginScene();
+            vis->DrawAll();
+            vis->EndScene();
         }
 
         // Driver inputs
@@ -122,13 +123,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         truck.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         truck.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;

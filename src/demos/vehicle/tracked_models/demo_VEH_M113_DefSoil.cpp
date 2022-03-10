@@ -158,19 +158,20 @@ int main(int argc, char* argv[]) {
     // Create the run-time visualization
     // ---------------------------------
 
-    ChTrackedVehicleVisualSystemIrrlicht app(&m113.GetVehicle());
-    app.SetWindowTitle("M113 SCM Demo");
-    app.SetChaseCamera(trackPoint, 4.0, 1.0);
-    app.SetChaseCameraPosition(ChVector<>(-3, 4, 1.5));
-    app.SetChaseCameraMultipliers(1e-4, 10);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("M113 SCM Demo");
+    vis->SetChaseCamera(trackPoint, 4.0, 1.0);
+    vis->SetChaseCameraPosition(ChVector<>(-3, 4, 1.5));
+    vis->SetChaseCameraMultipliers(1e-4, 10);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    m113.GetVehicle().SetVisualSystem(vis);
 
     // ------------------------
     // Create the driver system
     // ------------------------
 
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
 
     // Set the time response for keyboard inputs.
     double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
@@ -262,16 +263,16 @@ int main(int argc, char* argv[]) {
     // Execution time
     double total_timing = 0;
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         if (step_number % render_steps == 0) {
-            app.BeginScene();
-            app.DrawAll();
-            app.EndScene();
+            vis->BeginScene();
+            vis->DrawAll();
+            vis->EndScene();
 
             if (img_output) {
                 char filename[100];
                 sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-                app.WriteImageToFile(filename);
+                vis->WriteImageToFile(filename);
                 render_frame++;
             }
         }
@@ -286,13 +287,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
-        app.Synchronize("", driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         m113.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;

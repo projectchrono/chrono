@@ -251,20 +251,11 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ////ChVector<> target_point = rig->GetPostPosition();
-    ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-    ////ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
-    ChVector<> target_point = 0.5 * (rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos() +
-                                     rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos());
-
-    ChTrackTestRigVisualSystemIrrlicht app(rig);
-    app.SetWindowTitle("Track Test Rig");
-    app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(0, -5, 0));
-    app.SetChaseCameraState(utils::ChChaseCamera::Free);
-    app.SetChaseCameraAngle(CH_C_PI_2);
-    app.SetChaseCameraMultipliers(1e-4, 10);
-    ////app.RenderTrackShoeFrames(true, 0.4);
+    auto vis = chrono_types::make_shared<ChTrackTestRigVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Track Test Rig");
+    vis->SetChaseCamera(ChVector<>(0), 3.0, 0.0);
+    vis->SetChaseCameraMultipliers(1e-4, 10);
+    ////vis->RenderTrackShoeFrames(true, 0.4);
 
     // -----------------------------------
     // Create and attach the driver system
@@ -273,7 +264,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChDriverTTR> driver;
     switch (driver_mode) {
         case DriverMode::KEYBOARD: {
-            auto irr_driver = chrono_types::make_shared<ChIrrGuiDriverTTR>(app);
+            auto irr_driver = chrono_types::make_shared<ChIrrGuiDriverTTR>(*vis);
             irr_driver->SetThrottleDelta(1.0 / 50);
             irr_driver->SetDisplacementDelta(1.0 / 250);
             driver = irr_driver;
@@ -317,8 +308,19 @@ int main(int argc, char* argv[]) {
 
     rig->Initialize();
 
-    app.Initialize();
-    app.AddTypicalLights();
+    rig->SetVisualSystem(vis);
+    vis->Initialize();
+    vis->AddTypicalLights();
+
+    ////ChVector<> target_point = rig->GetPostPosition();
+    ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
+    ////ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+    ChVector<> target_point = 0.5 * (rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos() +
+                                     rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos());
+
+    vis->SetChaseCameraPosition(target_point + ChVector<>(0, -5, 0));
+    vis->SetChaseCameraState(utils::ChChaseCamera::Free);
+    vis->SetChaseCameraAngle(CH_C_PI_2);
 
     // -----------------
     // Set up rig output
@@ -368,11 +370,11 @@ int main(int argc, char* argv[]) {
     // Initialize simulation frame counter
     int step_number = 0;
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         // Render scene
-        app.BeginScene();
-        app.DrawAll();
-        app.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         // Debugging output
         ////rig->LogDriverInputs();
@@ -381,8 +383,8 @@ int main(int argc, char* argv[]) {
         rig->Advance(step_size);
 
         // Update visualization app
-        app.Synchronize(rig->GetDriverMessage(), {0, rig->GetThrottleInput(), 0});
-        app.Advance(step_size);
+        vis->Synchronize(rig->GetDriverMessage(), {0, rig->GetThrottleInput(), 0});
+        vis->Advance(step_size);
 
         ////if (driver->Ended())
         ////    break;

@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
 
     double timestep = 0.01;
 
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
 

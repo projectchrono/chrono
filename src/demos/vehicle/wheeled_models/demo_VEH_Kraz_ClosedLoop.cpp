@@ -108,11 +108,12 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleVisualSystemIrrlicht app(&truck.GetTractor());
-    app.SetWindowTitle("Semi-trailer truck :: Follows Straight Line");
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Semi-trailer truck :: Follows Straight Line");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    truck.GetTractor().SetVisualSystem(vis);
 
     // ---------------
     // Simulation loop
@@ -132,7 +133,7 @@ int main(int argc, char* argv[]) {
 
     ChTimer<> timer;
     timer.start();
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         time = truck.GetSystem()->GetChTime();
 
         double speed = speed_filter.Add(truck.GetTractor().GetVehicleSpeed());
@@ -158,8 +159,8 @@ int main(int argc, char* argv[]) {
         if (time >= 100)
             break;
 
-        app.BeginScene();
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -173,18 +174,18 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         truck.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("Acceleration test", driver_inputs);
+        vis->Synchronize("Acceleration test", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         truck.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;
 
-        app.EndScene();
+        vis->EndScene();
     }
 
     return 0;

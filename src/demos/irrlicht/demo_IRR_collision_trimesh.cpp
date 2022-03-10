@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     ////application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
 
     // Simulation loop
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         vis->BeginScene(true, true, ChColor(0.55, 0.63, 0.75));
         vis->DrawAll();
         vis->EndScene();

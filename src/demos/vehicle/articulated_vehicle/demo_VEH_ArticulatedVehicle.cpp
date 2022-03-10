@@ -105,14 +105,15 @@ int main(int argc, char* argv[]) {
     vehicle.InitializeTire(tire_RR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::PRIMITIVES);
 
     // Create the Irrlicht visualization
-    ChWheeledVehicleVisualSystemIrrlicht app(&vehicle);
-    app.SetWindowTitle("Articulated Vehicle Demo");
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Articulated Vehicle Demo");
+    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vehicle.SetVisualSystem(vis);
 
     // Initialize interactive driver
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
     driver.SetSteeringDelta(0.04);
     driver.SetThrottleDelta(0.2);
     driver.SetBrakingDelta(0.5);
@@ -124,13 +125,13 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     ChRealtimeStepTimer realtime_timer;
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = vehicle.GetSystem()->GetChTime();
 
         // Render scene
-        app.BeginScene();
-        app.DrawAll();
-        app.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -139,13 +140,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         vehicle.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);

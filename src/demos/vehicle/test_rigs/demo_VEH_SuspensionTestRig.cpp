@@ -205,9 +205,9 @@ int main(int argc, char* argv[]) {
     rig->SetTireVisualizationType(VisualizationType::MESH);
 
     // Create the vehicle Irrlicht application.
-    ChVehicleVisualSystemIrrlicht app(&rig->GetVehicle());
-    app.SetWindowTitle("Suspension Test Rig");
-    app.SetChaseCamera(0.5 * (rig->GetSpindlePos(0, LEFT) + rig->GetSpindlePos(0, RIGHT)), setup.CameraDistance(), 0.5);
+    auto vis = chrono_types::make_shared<ChVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Suspension Test Rig");
+    vis->SetChaseCamera(0.5 * (rig->GetSpindlePos(0, LEFT) + rig->GetSpindlePos(0, RIGHT)), setup.CameraDistance(), 0.5);
 
     // Create and attach the driver system.
     switch (driver_mode) {
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case DriverMode::INTERACTIVE: {
-            auto driver = chrono_types::make_shared<ChIrrGuiDriverSTR>(app);
+            auto driver = chrono_types::make_shared<ChIrrGuiDriverSTR>(*vis);
             driver->SetSteeringDelta(1.0 / 50);
             driver->SetDisplacementDelta(1.0 / 250);
             rig->SetDriver(driver);
@@ -228,8 +228,9 @@ int main(int argc, char* argv[]) {
     // Initialize suspension test rig.
     rig->Initialize();
 
-    app.Initialize();
-    app.AddTypicalLights();
+    vis->Initialize();
+    vis->AddTypicalLights();
+    rig->GetVehicle().SetVisualSystem(vis);
 
     // Set up rig output
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -244,18 +245,18 @@ int main(int argc, char* argv[]) {
     }
 
     // Simulation loop
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         // Render scene
-        app.BeginScene();
-        app.DrawAll();
-        app.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         // Advance simulation of the rig
         rig->Advance(step_size);
 
         // Update visualization app
-        app.Synchronize(rig->GetDriverMessage(), {rig->GetSteeringInput(), 0, 0});
-        app.Advance(step_size);
+        vis->Synchronize(rig->GetDriverMessage(), {rig->GetSteeringInput(), 0, 0});
+        vis->Advance(step_size);
 
         if (rig->DriverEnded())
             break;

@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     // Also, in the following while() loop, remove  application.DoStep();
     // so you can spin the 3D view and look at the solution.
 
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
         vis->EndScene();

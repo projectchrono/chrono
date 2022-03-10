@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     double time = 0.0;
     double out_time = 0.0;
 
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
         tools::drawGrid(vis->GetVideoDriver(), 0.2, 0.2, 20, 20,

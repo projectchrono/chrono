@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
 
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
         vis->EndScene();

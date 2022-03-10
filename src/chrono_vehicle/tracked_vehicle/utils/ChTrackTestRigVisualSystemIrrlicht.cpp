@@ -26,15 +26,21 @@ using namespace irr;
 namespace chrono {
 namespace vehicle {
 
-ChTrackTestRigVisualSystemIrrlicht::ChTrackTestRigVisualSystemIrrlicht(ChTrackTestRig* rig)
-    : ChVehicleVisualSystemIrrlicht(rig),
-      m_rig(rig),
+ChTrackTestRigVisualSystemIrrlicht::ChTrackTestRigVisualSystemIrrlicht()
+    : ChVehicleVisualSystemIrrlicht(),
+      m_rig(nullptr),
       m_render_frame_idler(false),
       m_render_frame_shoes(false),
       m_render_frame_sprocket(false),
       m_axis_shoes(1),
       m_axis_sprocket(1),
       m_axis_idler(1) {}
+
+void ChTrackTestRigVisualSystemIrrlicht::OnAttachToVehicle() {
+    ChVehicleVisualSystemIrrlicht::OnAttachToVehicle();
+    m_rig = dynamic_cast<ChTrackTestRig*>(m_vehicle);
+    assert(m_rig);
+}
 
 void ChTrackTestRigVisualSystemIrrlicht::RenderTrackShoeFrames(bool state, double axis_length) {
     m_render_frame_shoes = state;

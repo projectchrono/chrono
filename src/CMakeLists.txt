@@ -477,11 +477,17 @@ elseif(MSVC)
     add_compile_options(/wd4127)   # conditional expression is constant
     add_compile_options(/wd4201)   # nameless struct/union
     add_compile_options(/wd4244)   # conversion; possible loss of data
+    add_compile_options(/wd4250)   # inheritance via dominance
     add_compile_options(/wd4251)   # class needs to have dll-interface
+    add_compile_options(/wd4275)   # non dll-interface class used as base class
     add_compile_options(/wd4324)   # structure padded due to alignment specifier
     add_compile_options(/wd4505)   # unreferenced local function
     add_compile_options(/wd4458)   # declaration hides class member
     add_compile_options(/wd4515)   # namespace uses itself
+    add_compile_options(/wd5038)   # order of initialization
+    add_compile_options(/wd26451)  # arithmetic overflow
+    add_compile_options(/wd26495)  # uninitialized member variable
+    add_compile_options(/wd26812)  # use of unscoped enums
 else()
     message(STATUS "Warning level set to -Wall")
     add_compile_options(-Wall)

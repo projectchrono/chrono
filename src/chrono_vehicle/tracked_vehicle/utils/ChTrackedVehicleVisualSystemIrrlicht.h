@@ -33,7 +33,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackedVehicleVisualSystemIrrlicht : public ChVehicleVisualSystemIrrlicht {
   public:
     /// Construct a tracked vehicle Irrlicht visualization.
-    ChTrackedVehicleVisualSystemIrrlicht(ChVehicle* vehicle);
+    ChTrackedVehicleVisualSystemIrrlicht();
 
     ~ChTrackedVehicleVisualSystemIrrlicht() {}
 
@@ -47,6 +47,7 @@ class CH_VEHICLE_API ChTrackedVehicleVisualSystemIrrlicht : public ChVehicleVisu
     void RenderIdlerFrame(VehicleSide side, bool state, double axis_length = 1);
 
   private:
+    virtual void OnAttachToVehicle() override;
     virtual void renderOtherGraphics() override;
     virtual void renderOtherStats(int left, int top) override;
     void renderContacts(const std::list<ChTrackContactManager::ContactInfo>& lst,

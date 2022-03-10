@@ -469,7 +469,7 @@ int main(int argc, char* argv[]) {
 
     double mtime = 0;
 
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
 

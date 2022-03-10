@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
 
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         std::cout << "Time: " << sys.GetChTime() << "s. \n";
         if (sys.GetChTime() < 0.1) {
             nodetip1->SetForce(ChVector<>(0, 0, -20.0 / 3 * sys.GetChTime()));

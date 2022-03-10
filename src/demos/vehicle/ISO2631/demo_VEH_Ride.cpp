@@ -291,13 +291,14 @@ int main(int argc, char* argv[]) {
     }
     windowTitle.append(" - " + std::to_string(rmsVal) + " mm RMS");
 
-    ChWheeledVehicleVisualSystemIrrlicht app(&vehicle);
-    app.SetWindowTitle(windowTitle);
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.Initialize();
-    app.GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
-    app.AddLight(ChVector<>(-50, -30, 40), 200, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(ChVector<>(+10, +30, 40), 200, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle(windowTitle);
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
+    vis->AddLight(ChVector<>(-50, -30, 40), 200, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(+10, +30, 40), 200, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vehicle.SetVisualSystem(vis);
 
 #endif
 
@@ -307,10 +308,10 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_IRRLICHT
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         // Render scene
-        app.BeginScene();
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -320,13 +321,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
-        app.Synchronize("", driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         double xpos = vehicle.GetSpindlePos(0, LEFT).x();
         if (xpos >= xend) {
@@ -339,7 +340,7 @@ int main(int argc, char* argv[]) {
             seat_logger.AddData(speed, seat_acc);
         }
 
-        app.EndScene();
+        vis->EndScene();
     }
 
 #else

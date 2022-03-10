@@ -233,11 +233,12 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     std::shared_ptr<ChWheeledVehicleVisualSystemIrrlicht> app;
     if (cli.HasValueInVector<int>("irr", node_id)) {
-        app = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>(&vehicle);
+        app = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
         app->SetWindowTitle("SynChrono Vehicle Demo");
         app->SetChaseCamera(trackPoint, 6.0, 0.5);
         app->Initialize();
         app->AddTypicalLights();
+        vehicle.SetVisualSystem(app);
     }
 
 #ifdef CHRONO_SENSOR

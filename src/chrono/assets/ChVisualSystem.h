@@ -48,7 +48,7 @@ class ChApi ChVisualSystem {
   protected:
     ChVisualSystem() : m_system(nullptr) {}
 
-    /// Perform any necessary operations when the visualization system is attached to a Chsystem.
+    /// Perform any necessary operations when the visualization system is attached to a ChSystem.
     /// Called by the associated ChSystem after it sets m_system.
     virtual void OnAttach() {}
 

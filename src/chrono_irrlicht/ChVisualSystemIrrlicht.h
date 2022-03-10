@@ -43,7 +43,7 @@ namespace irrlicht {
 /// Vertical direction
 enum class CameraVerticalDir { Y, Z };
 
-class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
+class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
   public:
     ChVisualSystemIrrlicht();
     ~ChVisualSystemIrrlicht();
@@ -214,7 +214,7 @@ class ChApiIrr ChVisualSystemIrrlicht : public ChVisualSystem {
     /// Add shadow to an Irrlicht node.
     void AddShadowToIrrNode(irr::scene::ISceneNode* node);
 
-    /// Perform any necessary operations when the visualization system is attached to a Chsystem.
+    /// Perform any necessary operations when the visualization system is attached to a ChSystem.
     virtual void OnAttach() override;
 
     /// Perform necessary setup operations at the beginning of a time step.

@@ -228,11 +228,12 @@ int main(int argc, char* argv[]) {
     IrrAppWrapper app;
     DriverWrapper driver(vehicle);
     if (cli.HasValueInVector<int>("irr", node_id)) {
-        auto temp_app = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>(&vehicle);
+        auto temp_app = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
         temp_app->SetWindowTitle("SynChrono Wheeled Vehicle Demo");
         temp_app->SetChaseCamera(trackPoint, cam_distance, 0.5);
         temp_app->Initialize();
         temp_app->AddTypicalLights();
+        vehicle.SetVisualSystem(temp_app);
 
         // Create the interactive driver system
         auto irr_driver = chrono_types::make_shared<ChIrrGuiDriver>(*temp_app);

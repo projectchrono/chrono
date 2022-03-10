@@ -122,11 +122,12 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleVisualSystemIrrlicht app(&my_hmmwv.GetVehicle());
-    app.SetWindowTitle("HMMWV acceleration test");
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.Initialize();
-    app.AddTypicalLights();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("HMMWV acceleration test");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
     // ---------------
     // Simulation loop
@@ -146,7 +147,7 @@ int main(int argc, char* argv[]) {
 
     ChTimer<> timer;
     timer.start();
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         time = my_hmmwv.GetSystem()->GetChTime();
 
         double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetVehicleSpeed());
@@ -172,8 +173,8 @@ int main(int argc, char* argv[]) {
         if (time >= 100)
             break;
 
-        app.BeginScene();
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -187,18 +188,18 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("Acceleration test", driver_inputs);
+        vis->Synchronize("Acceleration test", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;
 
-        app.EndScene();
+        vis->EndScene();
     }
 
     return 0;

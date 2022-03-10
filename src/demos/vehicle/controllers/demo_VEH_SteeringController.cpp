@@ -210,28 +210,30 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChWheeledVehicleVisualSystemIrrlicht app(&my_hmmwv.GetVehicle());
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
 #ifdef USE_PID
-    app.SetWindowTitle("Steering PID Controller Demo");
+    vis->SetWindowTitle("Steering PID Controller Demo");
 #endif
 #ifdef USE_XT
-    app.SetWindowTitle("Steering XT Controller Demo");
+    vis->SetWindowTitle("Steering XT Controller Demo");
 #endif
 #ifdef USE_SR
-    app.SetWindowTitle("Steering SR Controller Demo");
+    vis->SetWindowTitle("Steering SR Controller Demo");
 #endif
-    app.SetHUDLocation(500, 20);
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    app.Initialize();
+    vis->SetHUDLocation(500, 20);
+    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
+    vis->Initialize();
 
-    app.AddLight(ChVector<>(-150, -150, 200), 300, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(ChVector<>(-150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(ChVector<>(+150, -150, 200), 300, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(ChVector<>(+150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(-150, -150, 200), 300, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(-150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(+150, -150, 200), 300, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(+150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+
+    my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
     // Visualization of controller points (sentinel & target)
-    irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
-    irr::scene::IMeshSceneNode* ballT = app.GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballT = vis->GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
 
@@ -284,7 +286,7 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     ChRealtimeStepTimer realtime_timer;
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         // Extract system state
         double time = my_hmmwv.GetSystem()->GetChTime();
         ChVector<> acc_CG = my_hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
@@ -321,9 +323,9 @@ int main(int argc, char* argv[]) {
         ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
         ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
 
-        app.BeginScene();
-        app.DrawAll();
-        app.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         // Output POV-Ray data
         if (sim_frame % render_steps == 0) {
@@ -356,13 +358,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("Double lane change", driver_inputs);
+        vis->Synchronize("Double lane change", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment simulation frame number
         sim_frame++;

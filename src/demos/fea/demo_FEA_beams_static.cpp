@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
 
     // 3D view
 
-    while (vis->GetDevice()->run()) {
+    while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
 

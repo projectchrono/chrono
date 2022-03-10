@@ -226,11 +226,12 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     std::shared_ptr<ChTrackedVehicleVisualSystemIrrlicht> app;
     if (cli.HasValueInVector<int>("irr", node_id)) {
-        app = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>(&m113.GetVehicle());
+        app = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
         app->SetWindowTitle("SynChrono SCM Demo");
         app->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 10.0, 0.5);
         app->Initialize();
         app->AddTypicalLights();
+        m113.GetVehicle().SetVisualSystem(app);
     }
 
     // Time interval between two render frames (1/FPS)

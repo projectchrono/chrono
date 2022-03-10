@@ -74,6 +74,8 @@
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
 
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
+
 // Wheeled vehicle
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
@@ -218,6 +220,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChWheeledTrailer)
 %shared_ptr(chrono::vehicle::WheeledVehicle)
 %shared_ptr(chrono::vehicle::WheeledTrailer)
+
+%shared_ptr(chrono::vehicle::ChVehicleVisualSystem)
 
 %shared_ptr(chrono::vehicle::ChSuspensionTestRig)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
@@ -369,6 +373,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../../chrono_vehicle/ChVehicle.h"
 %include "ChDriver.i"
 %include "ChTerrain.i"
+%include "../../../chrono_vehicle/ChVehicleVisualSystem.h"
+
 //TODO: antirollbar
 
 // Wheeled vehicles
