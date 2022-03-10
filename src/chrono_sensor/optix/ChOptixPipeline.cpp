@@ -785,7 +785,7 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
         std::vector<uint4> vertex_index_buffer = std::vector<uint4>(mesh->getIndicesVertexes().size());
         std::vector<uint4> normal_index_buffer = std::vector<uint4>(mesh->getIndicesNormals().size());
         std::vector<uint4> uv_index_buffer = std::vector<uint4>(mesh->getIndicesUV().size());
-        std::vector<unsigned int> mat_index_buffer = std::vector<unsigned int>(mesh->getIndicesMaterials().size());
+        std::vector<unsigned int> mat_index_buffer;
         std::vector<float4> vertex_buffer = std::vector<float4>(mesh->getCoordsVertices().size());
         std::vector<float4> normal_buffer = std::vector<float4>(mesh->getCoordsNormals().size());
         std::vector<float2> uv_buffer = std::vector<float2>(mesh->getCoordsUV().size());
@@ -833,7 +833,7 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
         }
 
         unsigned int* d_mat_index_buffer = {};
-        if (mat_index_buffer.size() > 0) {  // optional whether there are material indices
+        if (mesh->getIndicesMaterials().size() > 0) {  // optional whether there are material indices
             std::copy(mesh->getIndicesMaterials().begin(), mesh->getIndicesMaterials().end(),
                       std::back_inserter(mat_index_buffer));
 
