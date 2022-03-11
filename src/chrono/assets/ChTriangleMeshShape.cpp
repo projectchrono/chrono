@@ -70,6 +70,7 @@ void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnec
             mat->SetOpacity(materials[i].dissolve);
             mat->SetIllumination(materials[i].illum);
             mat->SetRoughness(materials[i].roughness);
+            mat->SetSpecularExponent(materials[i].shininess);
 
             // If metallic and roughness is set to default, use specular workflow
             if (materials[i].metallic == 0 && materials[i].roughness == 0.5) {
