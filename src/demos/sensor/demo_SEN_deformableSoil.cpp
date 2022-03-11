@@ -29,7 +29,7 @@
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -190,19 +190,19 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     coll_model->BuildModel();
 
     // Visualization
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+        vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("lugged_wheel");
-    trimesh_shape->SetStatic(true);
+    trimesh_shape->SetMutable(false);
     wheel_body->AddAsset(trimesh_shape);
 
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetDiffuseColor({.3, .3, .3});
     vis_mat->SetSpecularColor({.1f, .1f, .1f});
-    trimesh_shape->material_list.push_back(vis_mat);
+    trimesh_shape->AddMaterial(vis_mat);
 
     auto mcolor = chrono_types::make_shared<ChColorAsset>(0.3f, 0.3f, 0.3f);
     wheel_body->AddAsset(mcolor);
@@ -303,18 +303,18 @@ int main(int argc, char* argv[]) {
     vis_mat->SetSpecularColor({.1f, .1f, .1f});
     vis_mat->SetRoughness(1);
     vis_mat->SetKdTexture(GetChronoDataFile("sensor/textures/grass_texture.jpg"));
-    terrain.GetMesh()->material_list.push_back(vis_mat);
+    terrain.GetMesh()->AddMaterial(vis_mat);
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"HMMWV Deformable Soil Demo");
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("HMMWV Deformable Soil Demo");
+    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
     // -----------------
     // Initialize output
@@ -377,7 +377,7 @@ int main(int argc, char* argv[]) {
 
     ChTimer<> timer;
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = system->GetChTime();
 
         if (step_number == 800) {
@@ -393,15 +393,15 @@ int main(int argc, char* argv[]) {
         }
 
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        tools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
-        app.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        tools::drawColorbar(0, 0.1, "Sinkage", vis->GetDevice(), 30);
+        vis->EndScene();
 
         if (img_output && step_number % render_steps == 0) {
             char filename[100];
             sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-            app.WriteImageToFile(filename);
+            vis->WriteImageToFile(filename);
             render_frame++;
         }
 
@@ -412,13 +412,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("", driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         manager->Update();
 
         // Advance dynamics
         system->DoStepDynamics(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;

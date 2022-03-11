@@ -157,10 +157,10 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization
     ChIrrApp application(system, L"Collision test", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(3, 1, (float)init_z), irr::core::vector3df(0, 0, (float)init_z));
+    application.AddCamera(irr::core::vector3df(3, 1, (float)init_z), irr::core::vector3df(0, 0, (float)init_z));
 
     // Render contact forces or normals
     application.SetSymbolscale(5e-4);
@@ -250,8 +250,8 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::MESH: {
             double sphere_r = 0.005;
-            auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-            if (!trimesh->LoadWavefrontMesh(tire_mesh_file, true, false))
+            auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(tire_mesh_file, true, false);
+            if (!trimesh)
                 return 1;
 
             object->GetCollisionModel()->ClearModel();

@@ -18,7 +18,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -51,8 +51,8 @@ int main(int argc, char* argv[]) {
         // ---------------------------------------
         // add a mesh to be visualized by a camera
         // ---------------------------------------
-        auto mmesh = std::make_shared<ChTriangleMeshConnected>();
-        mmesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
+        auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
+            GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
         mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
         int x_instances = q;
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
                     auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
                     trimesh_shape->SetMesh(mmesh);
                     trimesh_shape->SetName("HMMWV Chassis Mesh");
-                    trimesh_shape->SetStatic(true);
+                    trimesh_shape->SetMutable(false);
                     float scale = 1 * (float)rand() / (float)RAND_MAX + .01f;
                     trimesh_shape->SetScale({scale, scale, scale});
 

@@ -42,7 +42,7 @@
 #ifdef CHRONO_IRRLICHT
 // ...include additional headers
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 // ...and specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
@@ -137,6 +137,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
+    terrain.Initialize();
 
     // Create and initialize the powertrain system
     auto powertrain = chrono_types::make_shared<SimpleCVTPowertrain>(vehicle::GetDataFile(simplepowertrain_file));
@@ -144,18 +145,14 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_IRRLICHT
 
-    ChTrackedVehicleIrrApp app(&vehicle, L"JSON Tracked Vehicle Demo");
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("JSON Tracked Vehicle Demo");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vehicle.SetVisualSystem(vis);
 
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 6.0, 0.5);
-
-    app.SetTimestep(step_size);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
 
     // Set the time response for steering and throttle keyboard inputs.
     // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -196,12 +193,12 @@ int main(int argc, char* argv[]) {
 #ifdef USE_IRRLICHT
 
     ChRealtimeStepTimer realtime_timer;
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         if (step_number % render_steps == 0) {
             // Render scene
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+            vis->BeginScene();
+            vis->DrawAll();
+            vis->EndScene();
         }
 
         // Collect output data from modules (for inter-module communication)
@@ -213,13 +210,13 @@ int main(int argc, char* argv[]) {
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
-        app.Synchronize("", driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;

@@ -45,7 +45,7 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/physics/ChSystem.h"
 
 #include <random>
@@ -130,7 +130,7 @@ void ChOptixEngine::AssignSensor(std::shared_ptr<ChOptixSensor> sensor) {
         }
 
         m_assignedSensor.push_back(sensor);
-        m_cameraStartFrames.push_back(sensor->GetParent()->GetAssetsFrame());
+        m_cameraStartFrames.push_back(sensor->GetParent()->GetVisualModelFrame());
         m_cameraStartFrames_set.push_back(false);
         m_pipeline->SpawnPipeline(sensor->GetPipelineType());
 
@@ -189,7 +189,7 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
                                                   (float)m_system->GetChTime() + sensor->GetCollectionWindow());
             // std::cout << "Loaded a set of body start transforms time=" << m_system->GetChTime() << std::endl;
 
-            m_cameraStartFrames[i] = sensor->GetParent()->GetAssetsFrame();
+            m_cameraStartFrames[i] = sensor->GetParent()->GetVisualModelFrame();
             m_cameraStartFrames_set[i] = true;
             // std::cout << "Set camera " << i << " start frame at time=" << m_system->GetChTime() << std::endl;
         }
@@ -438,15 +438,15 @@ void ChOptixEngine::SceneProcess(RenderThread& tself) {
 
 void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
                                      std::shared_ptr<ChBoxShape> box_shape,
-                                     std::shared_ptr<ChVisualization> visual_asset) {
+                                     std::shared_ptr<ChVisualShape> visual_asset) {
     ChVector<double> size = box_shape->GetBoxGeometry().GetLengths();
     ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos, visual_asset->Rot);
 
     unsigned int mat_id;
-    if (box_shape->material_list.size() == 0) {
+    if (box_shape->GetNumMaterials() == 0) {
         mat_id = m_pipeline->GetBoxMaterial();
     } else {
-        mat_id = m_pipeline->GetBoxMaterial(box_shape->material_list[0]);
+        mat_id = m_pipeline->GetBoxMaterial(box_shape->GetMaterial(0));
     }
     m_geometry->AddBox(body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
@@ -454,17 +454,17 @@ void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
 
 void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
                                         std::shared_ptr<ChSphereShape> sphere_shape,
-                                        std::shared_ptr<ChVisualization> visual_asset) {
+                                        std::shared_ptr<ChVisualShape> visual_asset) {
     ChVector<double> size = {sphere_shape->GetSphereGeometry().rad, sphere_shape->GetSphereGeometry().rad,
                              sphere_shape->GetSphereGeometry().rad};
     ChFrame<double> asset_frame =
         ChFrame<double>(visual_asset->Pos + sphere_shape->GetSphereGeometry().center, visual_asset->Rot);
 
     unsigned int mat_id;
-    if (sphere_shape->material_list.size() == 0) {
+    if (sphere_shape->GetNumMaterials() == 0) {
         mat_id = m_pipeline->GetSphereMaterial();
     } else {
-        mat_id = m_pipeline->GetSphereMaterial(sphere_shape->material_list[0]);
+        mat_id = m_pipeline->GetSphereMaterial(sphere_shape->GetMaterial(0));
     }
     m_geometry->AddSphere(body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
@@ -472,7 +472,7 @@ void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
 
 void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
                                           std::shared_ptr<ChCylinderShape> cyl_shape,
-                                          std::shared_ptr<ChVisualization> visual_asset) {
+                                          std::shared_ptr<ChVisualShape> visual_asset) {
     double radius = cyl_shape->GetCylinderGeometry().rad;
     double height = (cyl_shape->GetCylinderGeometry().p1 - cyl_shape->GetCylinderGeometry().p2).Length();
     ChVector<double> center = (cyl_shape->GetCylinderGeometry().p1 + cyl_shape->GetCylinderGeometry().p2) / 2;
@@ -481,10 +481,10 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
     ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos + center, visual_asset->Rot);
 
     unsigned int mat_id;
-    if (cyl_shape->material_list.size() == 0) {
+    if (cyl_shape->GetNumMaterials() == 0) {
         mat_id = m_pipeline->GetCylinderMaterial();
     } else {
-        mat_id = m_pipeline->GetCylinderMaterial(cyl_shape->material_list[0]);
+        mat_id = m_pipeline->GetCylinderMaterial(cyl_shape->GetMaterial(0));
     }
     m_geometry->AddCylinder(body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
@@ -492,7 +492,7 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
 
 void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
                                            std::shared_ptr<ChTriangleMeshShape> mesh_shape,
-                                           std::shared_ptr<ChVisualization> visual_asset) {
+                                           std::shared_ptr<ChVisualShape> visual_asset) {
     if (mesh_shape->IsWireframe()) {
         std::cerr << "WARNING: Chrono::Sensor does not support wireframe meshes. Defaulting back to solid mesh, please "
                      "check for visual issues.\n";
@@ -502,7 +502,7 @@ void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
 
     unsigned int mat_id;
 
-    if (mesh_shape->material_list.size() == 0) {
+    if (mesh_shape->GetNumMaterials() == 0) {
         // Create a "proper" mesh if one doesn't already exist for it
         CreateModernMeshAssets(mesh_shape);
     }
@@ -510,14 +510,14 @@ void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
     CUdeviceptr d_vertex_buffer;  // handle will go to m_geometry
     CUdeviceptr d_index_buffer;   // handle will go to m_geometry
     // still possible there are no materials, but the pipeline will make a default if none exist
-    mat_id = m_pipeline->GetRigidMeshMaterial(d_vertex_buffer, d_index_buffer, mesh_shape, mesh_shape->material_list);
+    mat_id = m_pipeline->GetRigidMeshMaterial(d_vertex_buffer, d_index_buffer, mesh_shape, mesh_shape->GetMaterials());
     m_geometry->AddRigidMesh(d_vertex_buffer, d_index_buffer, mesh_shape, body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
 }
 
 void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
                                                 std::shared_ptr<ChTriangleMeshShape> mesh_shape,
-                                                std::shared_ptr<ChVisualization> visual_asset) {
+                                                std::shared_ptr<ChVisualShape> visual_asset) {
     if (mesh_shape->IsWireframe()) {
         std::cerr << "WARNING: Chrono::Sensor does not support wireframe meshes. Defaulting back to solid mesh, please "
                      "check for visual issues.\n";
@@ -527,7 +527,7 @@ void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
 
     unsigned int mat_id;
 
-    if (mesh_shape->material_list.size() == 0) {
+    if (mesh_shape->GetNumMaterials() == 0) {
         // Create a "proper" mesh if one doesn't already exist for it
         CreateModernMeshAssets(mesh_shape);
     }
@@ -536,7 +536,7 @@ void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
     CUdeviceptr d_index_buffer;   // handle will go to m_geometry
     // still possible there are no materials, but the pipeline will make a default if none exist
     mat_id =
-        m_pipeline->GetDeformableMeshMaterial(d_vertex_buffer, d_index_buffer, mesh_shape, mesh_shape->material_list);
+        m_pipeline->GetDeformableMeshMaterial(d_vertex_buffer, d_index_buffer, mesh_shape, mesh_shape->GetMaterials());
     m_geometry->AddDeformableMesh(d_vertex_buffer, d_index_buffer, mesh_shape, body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
 }
@@ -560,9 +560,9 @@ void ChOptixEngine::ConstructScene() {
         if (body->GetAssets().size() > 0) {
             // iterate through all assets in the body
             for (auto asset : body->GetAssets()) {
-                // check if the asset is a ChVisualization
+                // check if the asset is a ChVisualShape
 
-                if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+                if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
                     // collect relative position and orientation of the asset
                     // ChVector<double> asset_pos = visual_asset->Pos;
                     // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
@@ -584,7 +584,7 @@ void ChOptixEngine::ConstructScene() {
 
                     } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
                                    std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
-                        if (trimesh_shape->IsStatic()) {
+                        if (!trimesh_shape->IsMutable()) {
                             rigidMeshVisualization(body, trimesh_shape, visual_asset);
 
                             // added_asset_for_body = true;
@@ -627,7 +627,7 @@ void ChOptixEngine::ConstructScene() {
 
         if (item->GetAssets().size() > 0) {
             for (auto asset : item->GetAssets()) {
-                if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+                if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
                     // ChVector<double> asset_pos = visual_asset->Pos;
                     // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
 
@@ -645,7 +645,7 @@ void ChOptixEngine::ConstructScene() {
                         sphereVisualization(dummy_body, sphere_shape, visual_asset);
                     } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
                                    std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
-                        if (trimesh_shape->IsStatic()) {
+                        if (!trimesh_shape->IsMutable()) {
                             rigidMeshVisualization(dummy_body, trimesh_shape, visual_asset);
                         } else {
                             deformableMeshVisualization(dummy_body, trimesh_shape, visual_asset);
@@ -685,7 +685,7 @@ void ChOptixEngine::UpdateCameraTransforms() {
         ChFrame<double> f_offset = sensor->GetOffsetPose();
         ChFrame<double> f_body_0 = m_cameraStartFrames[i];
         m_cameraStartFrames_set[i] = false;  // reset this camera frame so that we know it should be packed again
-        ChFrame<double> f_body_1 = sensor->GetParent()->GetAssetsFrame();
+        ChFrame<double> f_body_1 = sensor->GetParent()->GetVisualModelFrame();
         ChFrame<double> global_loc_0 = f_body_0 * f_offset;
         ChFrame<double> global_loc_1 = f_body_1 * f_offset;
         m_assignedRenderers[i]->m_raygen_record->data.t0 =

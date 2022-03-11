@@ -16,6 +16,7 @@
 #define CHPHYSICSITEM_H
 
 #include "chrono/assets/ChAsset.h"
+#include "chrono/assets/ChVisualModel.h"
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChObject.h"
@@ -26,6 +27,7 @@ namespace chrono {
 
 // Forward references
 class ChSystem;
+namespace modal { class ChModalAssembly; }
 
 /// Base class for items that can contain objects of ChVariables or ChConstraints,
 /// such as rigid bodies, mechanical joints, etc.
@@ -46,6 +48,59 @@ class ChApi ChPhysicsItem : public ChObj {
     /// also add to new collision system / remove from old coll.system
     virtual void SetSystem(ChSystem* m_system);
 
+
+
+
+
+
+
+
+
+    /// Add an (optional) visualization model.
+    /// Not that an instance of the given visual model is associated with this physics ite, thus allowing sharing the
+    /// same model among multiple items.
+    void AddVisualModel(std::shared_ptr<ChVisualModel> model);
+
+    /// Access the visualization model (if any).
+    /// Note that this model may be shared with other physics items that may instance it.
+    /// Returns nullptr if no visual model is present.
+    std::shared_ptr<ChVisualModel> GetVisualModel() const;
+
+    /// Add the specified visual shape to the visualization model.
+    /// If this item does not have a visual model, one is created.
+    void AddVisualShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame = ChFrame<>());
+
+    /// Access the specified visualization shape in the visualization model (if any).
+    /// Note that no range check is performed.
+    std::shared_ptr<ChVisualShape> GetVisualShape(unsigned int i) const;
+
+    /// Add the specified FEA visualization object to the visualization model.
+    /// If this item does not have a visual model, one is created.
+    void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA);
+
+    /// Access the specified FEA visualization object in the visualization model (if any).
+    /// Note that no range check is performed.
+    std::shared_ptr<ChVisualShapeFEA> GetVisualShapeFEA(unsigned int i) const;
+
+    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
+    /// If the visual model is cloned (for example for a physics item modeling a particle system), this function returns
+    /// the coordinate system of the specified clone.
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) { return ChFrame<>(); }
+
+    /// Return the number of clones of the visual model associated with this physics item.
+    /// If the visual model is cloned (for example for a physics item modeling a particle system), this function should
+    /// return the total number of copies of the visual model, including the "original".  The current coordinate frame
+    /// of a given clone can be obtained by calling GetVisualModelFrame() with the corresponding clone identifier.
+    virtual unsigned int GetNumVisualModelClones() const { return 0; }
+
+
+
+
+
+
+
+
+
     /// Add an optional asset (it can be used to define visualization shapes, es ChSphereShape,
     /// or textures, or custom attached properties that the user can define by
     /// creating his class inherited from ChAsset)
@@ -54,24 +109,13 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Access to the list of optional assets.
     std::vector<std::shared_ptr<ChAsset> >& GetAssets() { return assets; }
 
-    /// Access the Nth asset in the list of optional assets.
-    std::shared_ptr<ChAsset> GetAssetN(unsigned int num);
 
-    /// Get the master coordinate system for assets that have some geometric meaning.
-    /// It could be used, for example, by a visualization system to show a 3d shape of this item.
-    /// Children classes might override this (for example, for a ChBody, this will
-    /// return the coordinate system of the rigid body).
-    /// Optional parameter 'nclone' can be used for items that contain 'clones' (ex. lot
-    /// of particles with the same visualization shape), so the corresponding coordinate frame
-    /// can be returned.
-    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) { return ChFrame<>(); }
 
-    /// Optionally, a ChPhysicsItem can return multiple asset coordinate systems;
-    /// this can be helpful if, for example, when a ChPhysicsItem contains 'clones'
-    /// with the same assets (ex. lot of particle with the same visualization shape).
-    /// If so, returns Nclones >0 , the number of clones including the original.
-    /// Then use GetAssetsFrame(n), n=0...Nclones-1, to access the corresponding coord.frame.
-    virtual unsigned int GetAssetsFrameNclones() { return 0; }
+
+
+
+
+
 
     //                   --- INTERFACES ---
     // inherited classes might/should implement some of the following functions.
@@ -238,6 +282,20 @@ class ChApi ChPhysicsItem : public ChObj {
         }
     }
 
+    /// Computes Dt = x_new - x, using vectors at specified offsets.
+    /// By default, when DOF = DOF_w, it does just the difference of two state vectors, but in some cases (ex when using quaternions
+    /// for rotations) it could do more complex stuff, and children classes might overload it.
+    virtual void IntStateGetIncrement(const unsigned int off_x,  ///< offset in x state vector
+                                   const ChState& x_new,      ///< state vector, final position part
+                                   const ChState& x,          ///< state vector, initial position part
+                                   const unsigned int off_v,  ///< offset in v state vector
+                                   ChStateDelta& Dv           ///< state vector, increment. Here gets the result
+    ) {
+        for (int i = 0; i < GetDOF(); ++i) {
+             Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
+        }
+    }
+
     /// Takes the F force term, scale and adds to R at given offset:
     ///    R += c*F
     virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
@@ -395,7 +453,8 @@ class ChApi ChPhysicsItem : public ChObj {
   protected:
     ChSystem* system;  ///< parent system
 
-    std::vector<std::shared_ptr<ChAsset> > assets;  ///< set of assets
+    std::vector<std::shared_ptr<ChAsset> > assets;              ///< set of assets
+    std::shared_ptr<ChVisualModelInstance> vis_model_instance;  ///< instantiated visualization model
 
     unsigned int offset_x;  ///< offset in vector of state (position part)
     unsigned int offset_w;  ///< offset in vector of state (speed part)
@@ -406,6 +465,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     friend class ChSystem;
     friend class ChAssembly;
+    friend class modal::ChModalAssembly;
 };
 
 CH_CLASS_VERSION(ChPhysicsItem, 0)

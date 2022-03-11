@@ -293,6 +293,20 @@ if (NOT USE_EIGEN_OPENMP)
   set(CH_C_FLAGS "${CH_C_FLAGS} -DEIGEN_DONT_PARALLELIZE")
 endif()
 
+# Fix for hang-up in compilation with 32 bit on MSVC in Release configuration with EIGEN3.
+# Note: this flag may DECREASE the overall calculation performance in approx. 10%
+# For more information, see: https://gitlab.com/libeigen/eigen/-/issues/2379
+option(CMAKE_FLAGS_EIGEN3_INLINE "Build with 32 bit on MSVC in release configuration" OFF)
+mark_as_advanced(FORCE CMAKE_FLAGS_EIGEN3_INLINE)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	if(MSVC AND ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32") AND CMAKE_FLAGS_EIGEN3_INLINE)
+     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /DEIGEN_STRONG_INLINE=inline")
+     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /DEIGEN_STRONG_INLINE=inline")
+	 message(STATUS "Enabling inline flag for EIGEN hang-up issues with 32 bit on MSVC in release configuration")
+	 message(STATUS " Compiler flag: -DEIGEN_STRONG_INLINE=inline")
+	 message(STATUS " Note: this flag may DECREASE the overall calculation performance in approx. 10%")
+	endif()
+endif()
 #-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------
@@ -463,11 +477,17 @@ elseif(MSVC)
     add_compile_options(/wd4127)   # conditional expression is constant
     add_compile_options(/wd4201)   # nameless struct/union
     add_compile_options(/wd4244)   # conversion; possible loss of data
+    add_compile_options(/wd4250)   # inheritance via dominance
     add_compile_options(/wd4251)   # class needs to have dll-interface
+    add_compile_options(/wd4275)   # non dll-interface class used as base class
     add_compile_options(/wd4324)   # structure padded due to alignment specifier
     add_compile_options(/wd4505)   # unreferenced local function
     add_compile_options(/wd4458)   # declaration hides class member
     add_compile_options(/wd4515)   # namespace uses itself
+    add_compile_options(/wd5038)   # order of initialization
+    add_compile_options(/wd26451)  # arithmetic overflow
+    add_compile_options(/wd26495)  # uninitialized member variable
+    add_compile_options(/wd26812)  # use of unscoped enums
 else()
     message(STATUS "Warning level set to -Wall")
     add_compile_options(-Wall)
@@ -647,10 +667,10 @@ add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_irrlicht)
 add_subdirectory(chrono_cascade)
+add_subdirectory(chrono_modal)
 add_subdirectory(chrono_postprocess)
 add_subdirectory(chrono_pardisoproject)
 add_subdirectory(chrono_cosimulation)
-add_subdirectory(chrono_python)
 add_subdirectory(chrono_multicore)
 add_subdirectory(chrono_opengl)
 add_subdirectory(chrono_gpu)
@@ -659,7 +679,9 @@ add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_sensor)
 add_subdirectory(chrono_synchrono)
-add_subdirectory(chrono_vsg)
+add_subdirectory(chrono_pyparser)
+add_subdirectory(chrono_swig/chrono_python)
+add_subdirectory(chrono_swig/chrono_csharp)
 
 # Add directories for model libraries
 add_subdirectory(chrono_models)
@@ -751,6 +773,12 @@ if(ENABLE_MODULE_CASCADE)
   set(CHRONO_CASCADE "#define CHRONO_CASCADE")
 else()
   set(CHRONO_CASCADE "#undef CHRONO_CASCADE")
+endif()
+
+if(ENABLE_MODULE_MODAL)
+  set(CHRONO_MODAL "#define CHRONO_MODAL")
+else()
+  set(CHRONO_MODAL "#undef CHRONO_MODAL")
 endif()
 
 if(ENABLE_MODULE_COSIMULATION)
@@ -847,12 +875,6 @@ if(ENABLE_MODULE_SYNCHRONO)
   set(CHRONO_SYNCHRONO "#define CHRONO_SYNCHRONO")
 else()
   set(CHRONO_SYNCHRONO "#undef CHRONO_SYNCHRONO")
-endif()
-
-if(ENABLE_MODULE_VSG)
-  set(CHRONO_VSG "#define CHRONO_VSG")
-else()
-  set(CHRONO_VSG "#undef CHRONO_VSG")
 endif()
 
 if (USE_SIMD)

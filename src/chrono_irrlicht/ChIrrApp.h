@@ -60,7 +60,7 @@ class ChApiIrr ChIrrApp : public ChIrrAppInterface {
     /// assets that are found in the ChPhysicsItem 'mitem'. For example, if one
     /// has added a ChSphereShape and a ChBoxShape to the assets of a ChBody, and
     /// a ChIrrNodeAsset too, this Update() function will prepare a ISceneNode in
-    /// Irrlicht (precisely, a ChIrrNode node) and it will fill it with a
+    /// Irrlicht (precisely, a ChIrrNodeModel node) and it will fill it with a
     /// spherical triangle mesh, and a box triangle mesh.
     /// NOTE. This must be done after the ChIrrNodeAsset has been created and
     /// bound, for example via Bind().

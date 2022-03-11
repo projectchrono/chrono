@@ -62,15 +62,16 @@ int main(int argc, char* argv[]) {
     auto spring = chrono_types::make_shared<ChLinkTSDA>();
     spring->SetSpringCoefficient(100);
     spring->SetDampingCoefficient(5);
-    spring->Initialize(ground, body, true, ChVector<>(0, 0, 2), ChVector<>(0, 0, 0), false, 1.9);
+    spring->Initialize(ground, body, true, ChVector<>(0, 0, 2), ChVector<>(0, 0, 0));
+    spring->SetRestLength(1.9);
     system.AddLink(spring);
 
     // Create the Irrlicht application
     ChIrrApp application(&system, L"ChLinkLockPlanePlane", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(3, 0, 3));
+    application.AddCamera(irr::core::vector3df(3, 0, 3));
 
     application.AssetBindAll();
     application.AssetUpdateAll();

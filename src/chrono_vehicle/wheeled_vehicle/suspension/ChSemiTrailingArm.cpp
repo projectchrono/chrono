@@ -28,7 +28,7 @@
 #include <algorithm>
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChSemiTrailingArm.h"
@@ -163,8 +163,8 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
 
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
-    m_spring[side]->Initialize(chassis->GetBody(), m_arm[side], false, points[SPRING_C], points[SPRING_A], false,
-                               getSpringRestLength());
+    m_spring[side]->Initialize(chassis->GetBody(), m_arm[side], false, points[SPRING_C], points[SPRING_A]);
+    m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
     chassis->GetSystem()->AddLink(m_spring[side]);
 
@@ -174,7 +174,7 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPos_dt(-ang_vel);
-    chassis->GetSystem()->Add(m_axle[side]);
+    chassis->GetSystem()->AddShaft(m_axle[side]);
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
@@ -278,24 +278,28 @@ void ChSemiTrailingArm::AddVisualizationAssets(VisualizationType vis) {
                         getArmRadius());
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
 
-    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 }
 
 void ChSemiTrailingArm::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_arm[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_arm[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_spring[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_spring[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_shock[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_shock[RIGHT]);
+
     ChSuspension::RemoveVisualizationAssets();
-
-    m_arm[LEFT]->GetAssets().clear();
-    m_arm[RIGHT]->GetAssets().clear();
-
-    m_spring[LEFT]->GetAssets().clear();
-    m_spring[RIGHT]->GetAssets().clear();
-
-    m_shock[LEFT]->GetAssets().clear();
-    m_shock[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
@@ -319,12 +323,14 @@ void ChSemiTrailingArm::AddVisualizationArm(std::shared_ptr<ChBody> arm,
     cyl_O->GetCylinderGeometry().p2 = p_AS;
     cyl_O->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_O);
+    arm->AddVisualShape(cyl_O);
 
     auto cyl_I = chrono_types::make_shared<ChCylinderShape>();
     cyl_I->GetCylinderGeometry().p1 = p_AC_I;
     cyl_I->GetCylinderGeometry().p2 = p_AS;
     cyl_I->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_I);
+    arm->AddVisualShape(cyl_I);
 
     if ((p_AS - p_S).Length2() > threshold2) {
         auto cyl_S = chrono_types::make_shared<ChCylinderShape>();
@@ -332,11 +338,8 @@ void ChSemiTrailingArm::AddVisualizationArm(std::shared_ptr<ChBody> arm,
         cyl_S->GetCylinderGeometry().p2 = p_S;
         cyl_S->GetCylinderGeometry().rad = radius;
         arm->AddAsset(cyl_S);
+        arm->AddVisualShape(cyl_S);
     }
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
-    arm->AddAsset(col);
 }
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

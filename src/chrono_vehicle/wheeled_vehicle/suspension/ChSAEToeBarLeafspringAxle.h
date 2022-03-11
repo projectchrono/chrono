@@ -288,11 +288,11 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
-    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getLatTorqueFunctorA() const = 0;
-    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getLatTorqueFunctorB() const = 0;
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> getLatTorqueFunctorA() const = 0;
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> getLatTorqueFunctorB() const = 0;
 
-    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getVertTorqueFunctorA() const = 0;
-    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getVertTorqueFunctorB() const = 0;
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> getVertTorqueFunctorA() const = 0;
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> getVertTorqueFunctorB() const = 0;
 
     /// Returns topolology flag for knuckle/draglink connection
     virtual bool isLeftKnuckleActuated() { return true; }
@@ -339,11 +339,11 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
     std::shared_ptr<ChBody> m_clampB[2];             ///< clampB bodies
     std::shared_ptr<ChVehicleJoint> m_clampBRev[2];  ///< clampB-axleTube rotational joint Z
 
-    std::shared_ptr<ChLinkRotSpringCB> m_latRotSpringA[2];  ///< mimics lateral stiffness of frontleaf
-    std::shared_ptr<ChLinkRotSpringCB> m_latRotSpringB[2];  ///< mimics lateral stiffness of rearleaf
+    std::shared_ptr<ChLinkRSDA> m_latRotSpringA[2];  ///< mimics lateral stiffness of frontleaf
+    std::shared_ptr<ChLinkRSDA> m_latRotSpringB[2];  ///< mimics lateral stiffness of rearleaf
 
-    std::shared_ptr<ChLinkRotSpringCB> m_vertRotSpringA[2];  ///< mimics vertical stiffness of frontleaf
-    std::shared_ptr<ChLinkRotSpringCB> m_vertRotSpringB[2];  ///< mimics vertical stiffness of rearleaf
+    std::shared_ptr<ChLinkRSDA> m_vertRotSpringA[2];  ///< mimics vertical stiffness of frontleaf
+    std::shared_ptr<ChLinkRSDA> m_vertRotSpringB[2];  ///< mimics vertical stiffness of rearleaf
 
   private:
     // Hardpoint absolute locations

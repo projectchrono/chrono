@@ -56,7 +56,11 @@ class Marder_TensionerForce : public ChLinkTSDA::ForceFunctor {
   public:
     Marder_TensionerForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
 
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override {
         return m_f - m_k * (length - rest_length) - m_c * vel;
     }
 
@@ -86,13 +90,13 @@ void Marder_Idler::AddVisualizationAssets(VisualizationType vis) {
     ChDoubleIdler::AddVisualizationAssets(vis);
 
     if (vis == VisualizationType::MESH) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
-        trimesh_shape->SetStatic(true);
+        trimesh_shape->SetMutable(false);
         m_wheel->AddAsset(trimesh_shape);
+        m_wheel->AddVisualShape(trimesh_shape);
     }
 }
 

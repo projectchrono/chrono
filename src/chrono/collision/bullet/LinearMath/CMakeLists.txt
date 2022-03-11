@@ -4,50 +4,50 @@ INCLUDE_DIRECTORIES(
 )
 
 SET(LinearMath_SRCS
-	btAlignedAllocator.cpp
-	btConvexHull.cpp
-	btConvexHullComputer.cpp
-	btGeometryUtil.cpp
-	btPolarDecomposition.cpp
-	btQuickprof.cpp
-	btSerializer.cpp
-	btSerializer64.cpp
-	btThreads.cpp
-	btVector3.cpp
-	TaskScheduler/btTaskScheduler.cpp
-	TaskScheduler/btThreadSupportPosix.cpp
-	TaskScheduler/btThreadSupportWin32.cpp
+	cbtAlignedAllocator.cpp
+	cbtConvexHull.cpp
+	cbtConvexHullComputer.cpp
+	cbtGeometryUtil.cpp
+	cbtPolarDecomposition.cpp
+	cbtQuickprof.cpp
+	cbtSerializer.cpp
+	cbtSerializer64.cpp
+	cbtThreads.cpp
+	cbtVector3.cpp
+	TaskScheduler/cbtTaskScheduler.cpp
+	TaskScheduler/cbtThreadSupportPosix.cpp
+	TaskScheduler/cbtThreadSupportWin32.cpp
 )
 
 SET(LinearMath_HDRS
-	btAabbUtil2.h
-	btAlignedAllocator.h
-	btAlignedObjectArray.h
-	btConvexHull.h
-	btConvexHullComputer.h
-	btDefaultMotionState.h
-	btGeometryUtil.h
-	btGrahamScan2dConvexHull.h
-	btHashMap.h
-	btIDebugDraw.h
-	btList.h
-	btMatrix3x3.h
-	btMinMax.h
-	btMotionState.h
-	btPolarDecomposition.h
-	btPoolAllocator.h
-	btQuadWord.h
-	btQuaternion.h
-	btQuickprof.h
-	btRandom.h
-	btScalar.h
-	btSerializer.h
-	btStackAlloc.h
-	btThreads.h
-	btTransform.h
-	btTransformUtil.h
-	btVector3.h
-	TaskScheduler/btThreadSupportInterface.h
+	cbtAabbUtil2.h
+	cbtAlignedAllocator.h
+	cbtAlignedObjectArray.h
+	cbtConvexHull.h
+	cbtConvexHullComputer.h
+	cbtDefaultMotionState.h
+	cbtGeometryUtil.h
+	cbtGrahamScan2dConvexHull.h
+	cbtHashMap.h
+	cbtIDebugDraw.h
+	cbtList.h
+	cbtMatrix3x3.h
+	cbtMinMax.h
+	cbtMotionState.h
+	cbtPolarDecomposition.h
+	cbtPoolAllocator.h
+	cbtQuadWord.h
+	cbtQuaternion.h
+	cbtQuickprof.h
+	cbtRandom.h
+	cbtScalar.h
+	cbtSerializer.h
+	cbtStackAlloc.h
+	cbtThreads.h
+	cbtTransform.h
+	cbtTransformUtil.h
+	cbtVector3.h
+	TaskScheduler/cbtThreadSupportInterface.h
 )
 
 ADD_LIBRARY(LinearMath ${LinearMath_SRCS} ${LinearMath_HDRS})

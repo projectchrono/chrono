@@ -134,14 +134,11 @@ void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -length / 2, 0);
     cyl->GetCylinderGeometry().rad = GetSteeringLinkRadius();
     m_link->AddAsset(cyl);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.8f, 0.8f, 0.2f));
-    m_link->AddAsset(col);
+    m_link->AddVisualShape(cyl);
 }
 
 void ChRackPinion::RemoveVisualizationAssets() {
-    m_link->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_link);
 }
 
 // -----------------------------------------------------------------------------

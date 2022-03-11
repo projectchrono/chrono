@@ -71,9 +71,11 @@ void ChChaseCamera::Initialize(const ChVector<>& ptOnChassis,
     m_up = up;
     m_fwd = fwd;
 
-    ChVector<> localOffset(-chaseDist, 0, chaseHeight);
-    m_loc = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(ptOnChassis + localOffset);
-    m_lastLoc = m_loc;
+    if (m_chassis) {
+        ChVector<> localOffset(-m_dist, 0, m_height);
+        m_loc = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_ptOnChassis + localOffset);
+        m_lastLoc = m_loc;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -178,6 +180,10 @@ void ChChaseCamera::SetCameraAngle(double angle) {
 
 void ChChaseCamera::SetChassis(std::shared_ptr<ChBody> chassis) {
     m_chassis = chassis;
+
+    ChVector<> localOffset(-m_dist, 0, m_height);
+    m_loc = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_ptOnChassis + localOffset);
+    m_lastLoc = m_loc;
 }
 
 // -----------------------------------------------------------------------------

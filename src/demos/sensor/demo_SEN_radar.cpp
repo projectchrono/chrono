@@ -132,8 +132,8 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(floor);
     {
         auto asset = floor->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(green);
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
+            visual_asset->AddMaterial(green);
         }
     }
 
@@ -143,8 +143,8 @@ int main(int argc, char* argv[]) {
 //    mphysicalSystem.Add(wall);
 //    {
 //        auto asset = wall->GetAssets()[0];
-//        if(auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
-//            visual_asset->material_list.push_back(red);
+//        if(auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)){
+//            visual_asset->AddMaterial(red);
 //        }
 //    }
 
@@ -154,8 +154,8 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(box);
     {
         auto asset = box->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
-            visual_asset->material_list.push_back(green);
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)){
+            visual_asset->AddMaterial(green);
         }
     }
 
@@ -165,8 +165,8 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(box1);
     {
         auto asset = box->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
-            visual_asset->material_list.push_back(green);
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)){
+            visual_asset->AddMaterial(green);
         }
     }
 
@@ -176,8 +176,8 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(box2);
     {
         auto asset = box->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
-            visual_asset->material_list.push_back(green);
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)){
+            visual_asset->AddMaterial(green);
         }
     }
 
@@ -190,8 +190,8 @@ int main(int argc, char* argv[]) {
 //    mphysicalSystem.Add(floor);
 //    {
 //        auto asset = floor->GetAssets()[0];
-//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//            visual_asset->material_list.push_back(green);
+//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
+//            visual_asset->AddMaterial(green);
 //        }
 //    }
 //
@@ -205,8 +205,8 @@ int main(int argc, char* argv[]) {
 //        mphysicalSystem.Add(box_body);
 //        {
 //            auto asset = box_body->GetAssets()[0];
-//            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//                visual_asset->material_list.push_back(red);
+//            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
+//                visual_asset->AddMaterial(red);
 //            }
 //        }
 //    }
@@ -221,8 +221,8 @@ int main(int argc, char* argv[]) {
 //        mphysicalSystem.Add(box_body);
 //        {
 //            auto asset = box_body->GetAssets()[0];
-//            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//                visual_asset->material_list.push_back(red);
+//            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
+//                visual_asset->AddMaterial(red);
 //            }
 //        }
 //    }

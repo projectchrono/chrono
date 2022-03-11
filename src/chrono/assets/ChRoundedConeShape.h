@@ -15,23 +15,20 @@
 #ifndef CHROUNDEDCONESHAPE_H
 #define CHROUNDEDCONESHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChRoundedCone.h"
 
 namespace chrono {
 
 /// Class for referencing a rounded cone shape that can be visualized in some way.
-class ChApi ChRoundedConeShape : public ChVisualization {
-  protected:
-    geometry::ChRoundedCone groundedcone;
-
+class ChApi ChRoundedConeShape : public ChVisualShape {
   public:
-    ChRoundedConeShape() {}
-    ChRoundedConeShape(const geometry::ChRoundedCone& mcap) : groundedcone(mcap) {}
+    ChRoundedConeShape();
+    ChRoundedConeShape(const geometry::ChRoundedCone& cone);
 
-    virtual ~ChRoundedConeShape() {}
+    ~ChRoundedConeShape() {}
 
-    // Access the rounded cone geometry
+    // Access the rounded cone geometry.
     geometry::ChRoundedCone& GetRoundedConeGeometry() { return groundedcone; }
 
     /// Method to allow serialization of transient data to archives.
@@ -39,6 +36,9 @@ class ChApi ChRoundedConeShape : public ChVisualization {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    geometry::ChRoundedCone groundedcone;
 };
 
 CH_CLASS_VERSION(ChRoundedConeShape, 0)

@@ -44,12 +44,13 @@
 
 namespace chrono {
 
+/// Namespace with classes for the Turtlebot model.
 namespace turtlebot {
 
 /// @addtogroup robot_models_turtlebot
 /// @{
 
-/// turtlebot collision families.
+/// Turtlebot collision families.
 namespace CollisionFamily {
 enum Enum {
     CHASSIS = 1,        ///< chassis
@@ -62,7 +63,7 @@ enum Enum {
 };
 }
 
-/// Turtlebot wheel identifiers.
+/// TurtleBot wheel identifiers.
 enum WheelID {
     LD,  ///< left driven
     RD,  ///< right driven

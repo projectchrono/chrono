@@ -32,9 +32,9 @@ email: projectileman@yahoo.com
 -----------------------------------------------------------------------------
 */
 
-#include "LinearMath/btScalar.h"
+#include "LinearMath/cbtScalar.h"
 
-#define GREAL btScalar
+#define GREAL cbtScalar
 #define GREAL2 double
 #define GINT int
 #define GUINT unsigned int
@@ -99,7 +99,7 @@ enum GIM_SCALAR_TYPES
 ///returns a clamped number
 #define GIM_CLAMP(number, minval, maxval) (number < minval ? minval : (number > maxval ? maxval : number))
 
-#define GIM_GREATER(x, y) btFabs(x) > (y)
+#define GIM_GREATER(x, y) cbtFabs(x) > (y)
 
 ///Swap numbers
 #define GIM_SWAP_NUMBERS(a, b) \

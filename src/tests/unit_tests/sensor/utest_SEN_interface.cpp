@@ -189,11 +189,11 @@ TEST(SensorInterface, mesh_channels) {
 
     std::vector<ChVector<double>> vertices = {{2.f, 0.f, 0.5f}, {2.f, 0.5f, -0.5f}, {2.f, -0.5f, -0.5f}};
     std::vector<ChVector<double>> normals = {{-1.f, 0.f, 0.f}};
-    std::vector<ChVector<double>> uvs = {{0.5f, 1.f, 0.f}, {0.f, 0.f, 0.f}, {1.f, 0.f, 0.f}};
+    std::vector<ChVector2<double>> uvs = {{0.5f, 1.f}, {0.f, 0.f}, {1.f, 0.f}};
     std::vector<ChVector<int>> vert_ids = {{0, 1, 2}};
     std::vector<ChVector<int>> norm_ids = {{0, 0, 0}};
     std::vector<ChVector<int>> uv_ids = {{0, 1, 2}};
-    std::vector<ChVector<int>> mat_ids = {0};
+    std::vector<int> mat_ids = {0};
 
     ChSystemNSC mphysicalSystem;
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 100, false, false);
@@ -207,7 +207,7 @@ TEST(SensorInterface, mesh_channels) {
 
     auto triangle_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     triangle_shape->SetMesh(triangle);
-    triangle_shape->SetStatic(true);
+    triangle_shape->SetMutable(false);
 
     auto tri_body = chrono_types::make_shared<ChBodyAuxRef>();
     tri_body->SetFrame_REF_to_abs(ChFrame<>());
@@ -259,7 +259,7 @@ TEST(SensorInterface, mesh_channels) {
     ASSERT_FLOAT_EQ(buffer->Buffer[0].range, 2.f);
 
     // triangle with verts, uv, normals, mat
-    triangle->getIndicesColors() = mat_ids;
+    triangle->getIndicesMaterials() = mat_ids;
     manager->ReconstructScenes();
     while (mphysicalSystem.GetChTime() < 0.35) {
         manager->Update();

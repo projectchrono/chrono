@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include "chrono/physics/ChSystem.h"
+#include "chrono/core/ChTimer.h"
+
 #include "chrono_opengl/core/ChApiOpenGL.h"
 #include "chrono_opengl/core/ChOpenGLBase.h"
 #include "chrono_opengl/ChOpenGLCamera.h"
@@ -27,9 +30,6 @@
 #include "chrono_opengl/UI/ChOpenGLContacts.h"
 #include "chrono_opengl/UI/ChOpenGLHUD.h"
 #include "chrono_opengl/UI/ChOpenGLGraphs.h"
-
-#include "chrono/physics/ChSystem.h"
-#include "chrono/core/ChTimer.h"
 
 //#include "chrono_multicore/physics/ChSystemMulticore.h"
 #include <GLFW/glfw3.h>
@@ -51,7 +51,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     bool Initialize();
     bool Update(double time_step);
     void Render(bool render_hud);
-    void DrawObject(std::shared_ptr<ChBody> abody);
+    void DrawVisualModel(std::shared_ptr<ChPhysicsItem> item);
     void DisplayHUD(bool render_hud);
     void RenderContacts();
     void RenderAABB();

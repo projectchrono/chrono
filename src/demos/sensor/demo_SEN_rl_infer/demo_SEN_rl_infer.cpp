@@ -43,7 +43,7 @@
 #include "chrono_sensor/utils/ChVisualMaterialUtils.h"
 
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 
 #include "InferenceDriver.h"
 
@@ -220,15 +220,14 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     auto ground_body = patch->GetGroundBody();
-    auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(ground_body->GetAssets()[0]);
+    auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(ground_body->GetAssets()[0]);
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
     visual_asset->material_list.push_back(vis_mat);
 
     // Create the vehicle Irrlicht interface
     ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"HMMWV Demo");
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
+    app.AddTypicalLights();
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
     app.SetTimestep(step_size);
     app.AssetBindAll();
@@ -244,7 +243,7 @@ int main(int argc, char* argv[]) {
 
         // Add visual asset to be sensed by camera
         // Will be a solid blue color
-        auto box_asset = std::dynamic_pointer_cast<ChVisualization>(box->GetAssets()[0]);
+        auto box_asset = std::dynamic_pointer_cast<ChVisualShape>(box->GetAssets()[0]);
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         vis_mat->SetAmbientColor({0, 0, 0});
         vis_mat->SetDiffuseColor({.2, .2, .9});
@@ -445,7 +444,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app.BeginScene();
             app.DrawAll();
             app.EndScene();
 

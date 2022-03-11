@@ -95,9 +95,6 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     void EnableVisualization(bool val) { m_vis_enabled = val; }
     bool IsVisualizationEnabled() const { return m_vis_enabled; }
 
-    /// Set boundary visualization color.
-    void SetColor(ChColor color) { m_color->SetColor(color); }
-
     /// Return a handle to the ground body.
     std::shared_ptr<ChBody> GetGroundBody() { return m_ground; }
 
@@ -187,9 +184,8 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     // Collision envelope used in custom collision detection
     double m_envelope;  ///< collision outward envelope
 
-    bool m_vis_enabled;                     ///< boundary visualization enabled?
-    std::shared_ptr<ChBody> m_ground;       ///< ground body
-    std::shared_ptr<ChColorAsset> m_color;  ///< color of boundary visualization asset
+    bool m_vis_enabled;                ///< boundary visualization enabled?
+    std::shared_ptr<ChBody> m_ground;  ///< ground body
 
     std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material properties
 

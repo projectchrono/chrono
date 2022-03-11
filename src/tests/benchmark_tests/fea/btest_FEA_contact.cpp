@@ -32,7 +32,7 @@
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -189,8 +189,8 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
     mesh->AddContactSurface(surf);
     surf->AddFacesFromBoundary(0.002);
 
-    auto vis_speed = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    vis_speed->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    auto vis_speed = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_speed->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     vis_speed->SetColorscaleMinMax(0.0, 5.50);
     vis_speed->SetSmoothFaces(true);
     mesh->AddAsset(vis_speed);
@@ -213,16 +213,16 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
     mesh->AddContactSurface(cloud);
     cloud->AddAllNodes(0.025);
 
-    auto vis_speed = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    vis_speed->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    auto vis_speed = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_speed->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     vis_speed->SetColorscaleMinMax(0.0, 5.50);
     vis_speed->SetSmoothFaces(true);
     vis_speed->SetWireframe(true);
     mesh->AddAsset(vis_speed);
 
-    auto vis_nodes = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    vis_nodes->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    vis_nodes->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto vis_nodes = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_nodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    vis_nodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     vis_nodes->SetSymbolsThickness(0.008);
     mesh->AddAsset(vis_nodes);
 }
@@ -231,10 +231,10 @@ void FEAcontactTest::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
     irrlicht::ChIrrApp application(m_system, L"FEA contacts", irr::core::dimension2d<irr::u32>(800, 600),
                                    irrlicht::VerticalDir::Y, false, true);
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(0, (irr::f32)0.6, -1));
+    application.AddCamera(irr::core::vector3df(0, (irr::f32)0.6, -1));
     application.AddLightWithShadow(irr::core::vector3df(1.5, 5.5, -2.5), irr::core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40,
                                    512, irr::video::SColorf(1, 1, 1));
 

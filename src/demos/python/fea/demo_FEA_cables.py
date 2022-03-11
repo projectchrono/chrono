@@ -36,10 +36,10 @@ my_system = chrono.ChSystemSMC()
 application = chronoirr.ChIrrApp(my_system, "Cables FEM", chronoirr.dimension2du(800, 600))
 
 # Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(chronoirr.vector3df(0., 0.6, -1))
+application.AddCamera(chronoirr.vector3df(0., 0.6, -1))
 
 # Create a mesh, that is a container for groups of elements and
 # their referenced nodes.

@@ -18,7 +18,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -60,14 +60,13 @@ int main(int argc, char* argv[]) {
         // ---------------------------------------
         // add a mesh to be visualized by a camera
         // ---------------------------------------
-        auto mmesh = std::make_shared<ChTriangleMeshConnected>();
-        // mmesh->LoadWavefrontMesh(GetChronoDataFile("models/ob_chess_table.obj"), false, true);
-        mmesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
+        auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
+            GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
         mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
         auto base_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         base_trimesh_shape->SetMesh(mmesh);
-        if (base_trimesh_shape->material_list.size() == 0) {
+        if (base_trimesh_shape->GetNumMaterials() == 0) {
             // Create a "proper" set of materials if they don't already exist
             CreateModernMeshAssets(base_trimesh_shape);
         }
@@ -84,11 +83,11 @@ int main(int argc, char* argv[]) {
                     auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
                     trimesh_shape->SetMesh(mmesh);
                     // trimesh_shape->SetName("HMMWV Chassis Mesh");
-                    trimesh_shape->SetStatic(true);
+                    trimesh_shape->SetMutable(false);
                     float scale = .5 * randf() + .1;
                     trimesh_shape->SetScale({scale, scale, scale});
                     // trimesh_shape->SetScale({.8, .8, .8});
-                    trimesh_shape->material_list = base_trimesh_shape->material_list;
+                    trimesh_shape->GetMaterials() = base_trimesh_shape->GetMaterials();
 
                     auto mesh_body = std::make_shared<ChBody>();
                     // auto mesh_body = std::make_shared<ChBodyEasyBox>(2 * randf() + .1, 2 * randf() + .1,

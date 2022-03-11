@@ -28,7 +28,7 @@
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChIrrApp.h"
@@ -198,15 +198,15 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
     auto mesh = chrono_types::make_shared<ChMesh>();
     m_system->Add(mesh);
 
-    auto vis_surf = chrono_types::make_shared<ChVisualizationFEAmesh>(*mesh);
-    vis_surf->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto vis_surf = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_surf->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     vis_surf->SetWireframe(true);
     vis_surf->SetDrawInUndeformedReference(true);
     mesh->AddAsset(vis_surf);
 
-    auto vis_node = chrono_types::make_shared<ChVisualizationFEAmesh>(*mesh);
-    vis_node->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    vis_node->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto vis_node = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_node->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    vis_node->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     vis_node->SetSymbolsThickness(0.004);
     mesh->AddAsset(vis_node);
 
@@ -242,10 +242,10 @@ template <int N>
 void ANCFshell<N>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
     irrlicht::ChIrrApp application(m_system, L"ANCF shells", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(-0.2f, 0.2f, 0.2f), irr::core::vector3df(0, 0, 0));
+    application.AddCamera(irr::core::vector3df(-0.2f, 0.2f, 0.2f), irr::core::vector3df(0, 0, 0));
 
     application.AssetBindAll();
     application.AssetUpdateAll();

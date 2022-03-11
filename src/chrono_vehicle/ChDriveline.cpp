@@ -29,7 +29,7 @@ ChDriveline::~ChDriveline() {
         return;
     auto sys = m_driveshaft->GetSystem();
     if (sys) {
-        sys->Remove(m_driveshaft);
+        sys->RemoveShaft(m_driveshaft);
     }
 }
 

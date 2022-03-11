@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_vehicle/ChTerrain.h"
@@ -119,7 +118,6 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     std::vector<DiscState> m_state;
 
     std::vector<std::shared_ptr<ChCylinderShape>> m_cyl_shapes;  ///< visualization cylinder assets
-    std::shared_ptr<ChTexture> m_texture;                        ///< visualization texture asset
 };
 
 /// @} vehicle_wheeled_tire

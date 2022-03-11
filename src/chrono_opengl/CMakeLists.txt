@@ -250,16 +250,6 @@ SOURCE_GROUP("ui" FILES ${CE_OpenGL_UI_FILES})
 SOURCE_GROUP("resources" FILES ${CE_OpenGL_RESOURCES_FILES})
 SOURCE_GROUP("tinyobjloader" FILES ${CE_OpenGL_TINYOBJLOADER_FILES})
 
-IF (MSVC)
-  # On Windows, include necessary Bullet source files.
-  SET(CE_OpenGL_BULLET_FILES 
-    ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
-    )
-  SOURCE_GROUP("bullet" ${CE_OpenGL_BULLET_FILES})
-ELSE()
-  SET(CE_OpenGL_BULLET_FILES "")
-ENDIF()
-
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_opengl library
 # ------------------------------------------------------------------------------
@@ -271,7 +261,6 @@ ADD_LIBRARY(ChronoEngine_opengl SHARED
   ${CE_OpenGL_UI_FILES}
   ${CE_OpenGL_RESOURCES_FILES}
   ${CE_OpenGL_TINYOBJLOADER_FILES}
-  ${CE_OpenGL_BULLET_FILES}
 ) 
 
 SET(CE_OpenGL_FLAGS "${CH_CXX_FLAGS}")

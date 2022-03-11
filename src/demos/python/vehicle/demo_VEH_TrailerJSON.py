@@ -51,10 +51,9 @@ def main() :
     # Create the ground
     terrain = veh.RigidTerrain(vehicle.GetSystem(), rigidterrain_file)
 
-    app = veh.ChVehicleIrrApp(vehicle, 'Sedan+Trailer (JSON specification)', irr.dimension2du(1000,800))
-    app.SetSkyBox()
-    app.AddTypicalLights(irr.vector3df(30, -30, 100), irr.vector3df(30, 50, 100), 250, 130)
-    app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    app = veh.ChVehicleIrrApp(vehicle, 'Sedan+Trailer (JSON specification)')
+    app.AddTypicalLights()
+    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     app.SetChaseCamera(trackPoint, 6.0, 0.5)
     app.SetTimestep(step_size)
     app.AssetBindAll()

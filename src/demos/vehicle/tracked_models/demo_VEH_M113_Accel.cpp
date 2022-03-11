@@ -106,10 +106,11 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChTrackedVehicleIrrApp app(&m113.GetVehicle(), L"M113 Vehicle Demo");
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(ChVector<>(0,0,0), 6.0, 0.5);
+    ChTrackedVehicleVisualSystemIrrlicht app(&m113.GetVehicle());
+    app.SetWindowTitle("M113 Vehicle Demo");
+    app.SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
+    app.Initialize();
+    app.AddTypicalLights();
 
     // ----------------------------------------------
     // Create the straight path and the driver system
@@ -121,13 +122,6 @@ int main(int argc, char* argv[]) {
     driver.GetSteeringController().SetGains(0.5, 0, 0);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
-
-    // ---------------------------------------------
-    // Finalize construction of visualization assets
-    // ---------------------------------------------
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
 
     // ---------------
     // Simulation loop
@@ -172,7 +166,7 @@ int main(int argc, char* argv[]) {
         if (time >= 100)
             break;
 
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.BeginScene();
         app.DrawAll();
 
         // Driver inputs

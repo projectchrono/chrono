@@ -370,8 +370,8 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
     // element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
     // element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::DruckerPrager);
     // if (ChElementHexaANCF_3813_9::Hencky == element->GetStrainFormulation) {
-    switch (m_element->GetStrainFormulation()) {
-        case ChElementHexaANCF_3813_9::GreenLagrange: {
+    switch (m_element->m_strain_form) {
+        case ChElementHexaANCF_3813_9::StrainFormulation::GreenLagrange : {
             // ddNx = e^{T}*Nx^{T}*Nx, ddNy = e^{T}*Ny^{T}*Ny, ddNz = e^{T}*Nz^{T}*Nz
             ChVectorN<double, 11> ddNx = m_element->m_ddT * Nx.transpose();
             ChVectorN<double, 11> ddNy = m_element->m_ddT * Ny.transpose();
@@ -464,7 +464,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
             // Internal force calculation
             result = (detJ0 * m_element->m_GaussScaling) * strainD.transpose() * E_eps * strain;
         } break;
-        case ChElementHexaANCF_3813_9::Hencky: {
+        case ChElementHexaANCF_3813_9::StrainFormulation::Hencky : {
             ChMatrixNM<double, 3, 3> CCPinv;  // Inverse of F^{pT}*F^{p}, where F^{p} is the plastic deformation
                                               // gradient stemming from multiplicative decomposition
             ChMatrix33<double> BETRI;         // Left Cauchy-Green tensor for elastic deformation
@@ -559,8 +559,8 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                 ChVector<double> devStressUp;
                 // Vector of eigenvalues of current logarithmic strain
                 ChVector<double> lambda;
-                switch (m_element->GetPlasticityFormulation()) {
-                    case ChElementHexaANCF_3813_9::J2: {
+                switch (m_element->m_plast_form) {
+                    case ChElementHexaANCF_3813_9::PlasticityFormulation::J2 : {
                         // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
                         hydroP = (StressK_eig(0) + StressK_eig(1) + StressK_eig(2)) / 3.0;
                         // Deviatoric stress
@@ -634,7 +634,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         }
                     } break;
 
-                    case ChElementHexaANCF_3813_9::DruckerPrager: {
+                    case ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager: {
                         double EDNInv;  // Inverse of norm of deviatoric Hencky strain
 
                         // Evaluate norm of deviatoric Hencky strain
@@ -798,7 +798,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         }
                     } break;
 
-                    case ChElementHexaANCF_3813_9::DruckerPrager_Cap: {
+                    case ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager_Cap : {
                         // Hydrostatic pressure (Cap)
                         double hydroPt;
                         // Current value of yield function (Cap)
@@ -890,9 +890,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         double Hi;
 
                         // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-                        m_element->ComputeHardening_a(MeanEffP, Hi, m_element->m_Alpha_Plast(m_element->m_InteCounter),
-                                                      m_element->m_DPVector1, m_element->m_DPVector2,
-                                                      m_element->m_DPVector_size);
+                        m_element->ComputeHardening(m_element->m_Alpha_Plast(m_element->m_InteCounter), MeanEffP, Hi);
 
                         YieldFunc_Cap = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                             (hydroP - hydroPt + MeanEffP) * (hydroP - hydroPt + MeanEffP) +
@@ -981,8 +979,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                 ChVector<double> devS = devStress;
 
                                 // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-                                m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
-                                                              m_element->m_DPVector2, m_element->m_DPVector_size);
+                                m_element->ComputeHardening(EPBAR, MeanEffP, Hi);
                                 // Evaluate initial 2 residual vectors
                                 double Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                    (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
@@ -1036,8 +1033,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                     devS.z() = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma) * devStress.z();
 
                                     // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-                                    m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
-                                                                  m_element->m_DPVector2, m_element->m_DPVector_size);
+                                    m_element->ComputeHardening(EPBAR, MeanEffP, Hi);
 
                                     Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                 (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
@@ -1079,8 +1075,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                     P = PT;
                                     devS = devStress;
                                     // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-                                    m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
-                                                                  m_element->m_DPVector2, m_element->m_DPVector_size);
+                                    m_element->ComputeHardening(EPBAR, MeanEffP, Hi);
                                     // initial resid vector
                                     Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                 (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
@@ -1098,9 +1093,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                         DGamma_A = (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
                                         EPBAR = EPBARN - etab * DGamma_A;
                                         // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-                                        m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
-                                                                      m_element->m_DPVector2,
-                                                                      m_element->m_DPVector_size);
+                                        m_element->ComputeHardening(EPBAR, MeanEffP, Hi);
                                         // update stresses
                                         P = PT - K * etab * DGamma_A;
                                         SQRJ2 = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B1) *
@@ -1123,9 +1116,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                         DGamma_A = (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
                                         EPBAR = EPBARN - etab * DGamma_A;  // plastic strain
                                         // Update yield stress and the Hi(slop) at plastic strain from table
-                                        m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
-                                                                      m_element->m_DPVector2,
-                                                                      m_element->m_DPVector_size);
+                                        m_element->ComputeHardening(EPBAR, MeanEffP, Hi);
                                         // Update stresses
                                         P = PT - K * etab * DGamma_A;
                                         SQRJ2 = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) *
@@ -1369,9 +1360,9 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
     E_eps(2, 2) = C2;
     E_eps(4, 4) = C2;
     E_eps(5, 5) = C2;
-    switch (m_element->GetStrainFormulation()) {
-        case ChElementHexaANCF_3813_9::GreenLagrange: {  // ddNx = e^{T}*Nx^{T}*Nx, ddNy = e^{T}*Ny^{T}*Ny, ddNz =
-                                                         // e^{T}*Nz^{T}*Nz
+    switch (m_element->m_strain_form) {
+        case ChElementHexaANCF_3813_9::StrainFormulation::GreenLagrange: {  
+            // ddNx = e^{T}*Nx^{T}*Nx, ddNy = e^{T}*Ny^{T}*Ny, ddNz = e^{T}*Nz^{T}*Nz
             ChVectorN<double, 11> ddNx = m_element->m_ddT * Nx.transpose();
             ChVectorN<double, 11> ddNy = m_element->m_ddT * Ny.transpose();
             ChVectorN<double, 11> ddNz = m_element->m_ddT * Nz.transpose();
@@ -1532,7 +1523,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
             result = m_KTE1 * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + m_KTE2 * m_Kfactor;
             result *= detJ0 * m_element->m_GaussScaling;
         } break;
-        case ChElementHexaANCF_3813_9::Hencky: {
+        case ChElementHexaANCF_3813_9::StrainFormulation::Hencky: {
             ChMatrixNM<double, 3, 3> CCPinv;  // Inverse of F^{pT}*F^{p}, where F^{p} is the plastic deformation
             ChMatrix33<double> BETRI;         // Left Cauchy-Green tensor for elastic deformation
             ChVectorN<double, 3> BETRI_eig;   // Eigenvalues of spatial stretch tensor
@@ -1632,10 +1623,9 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                 // Vector of eigenvalues of current logarithmic strain
                 ChVector<double> lambda;
 
-                switch (m_element->GetPlasticityFormulation()) {
-                    case ChElementHexaANCF_3813_9::J2: {  // Hydrostatic pressure , i.e. volumetric stress (from
-                                                          // principal
-                                                          // stresses)
+                switch (m_element->m_plast_form) {
+                    case ChElementHexaANCF_3813_9::PlasticityFormulation::J2: {  
+                        // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
                         hydroP = (StressK_eig(0) + StressK_eig(1) + StressK_eig(2)) / 3.0;
 
                         // Deviatoric stress
@@ -1718,7 +1708,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                         }
                     } break;
 
-                    case ChElementHexaANCF_3813_9::DruckerPrager: {
+                    case ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager: {
                         double EDNInv;  // Inverse of norm of deviatoric Hencky strain
                         // Evaluate norm of deviatoric Hencky strain
                         if (ETDNorm != 0.0) {
@@ -1887,7 +1877,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                             }
                         }  // End Yield Criteria
                     } break;
-                    case ChElementHexaANCF_3813_9::DruckerPrager_Cap: {
+                    case ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager_Cap: {
                         // Hydrostatic pressure (Cap)
                         double hydroPt;
                         // Current value of yield function (Cap)
@@ -1984,9 +1974,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                         // GetLog() << "m_DPVector1" << mm_DPVector1 << "m_DPVector2" << mm_DPVector2 <<"\n";
 
                         // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-                        m_element->ComputeHardening_a(MeanEffP, Hi, m_element->m_Alpha_Plast(m_element->m_InteCounter),
-                                                      m_element->m_DPVector1, m_element->m_DPVector2,
-                                                      m_element->m_DPVector_size);
+                        m_element->ComputeHardening(m_element->m_Alpha_Plast(m_element->m_InteCounter), MeanEffP, Hi);
 
                         YieldFunc_Cap = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                             (hydroP - hydroPt + MeanEffP) * (hydroP - hydroPt + MeanEffP) +
@@ -2131,8 +2119,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                 double DDGamma;
                                 double DALPHA;
                                 // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-                                m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
-                                                              m_element->m_DPVector2, m_element->m_DPVector_size);
+                                m_element->ComputeHardening(EPBAR, MeanEffP, Hi);
                                 // Evaluate initial 2 residual vectors
                                 Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                             (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
@@ -2174,8 +2161,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                     devS.z() = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma) * devStress.z();
 
                                     // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-                                    m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
-                                                                  m_element->m_DPVector2, m_element->m_DPVector_size);
+                                    m_element->ComputeHardening(EPBAR, MeanEffP, Hi);
 
                                     Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                 (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
@@ -2213,8 +2199,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                     P = PT;
                                     devS = devStress;
                                     // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-                                    m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
-                                                                  m_element->m_DPVector2, m_element->m_DPVector_size);
+                                    m_element->ComputeHardening(EPBAR, MeanEffP, Hi);
                                     // initial resid vector
                                     Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                 (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
@@ -2232,9 +2217,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                         DGamma_A = (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
                                         EPBAR = EPBARN - etab * DGamma_A;
                                         // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-                                        m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
-                                                                      m_element->m_DPVector2,
-                                                                      m_element->m_DPVector_size);
+                                        m_element->ComputeHardening(EPBAR, MeanEffP, Hi);
                                         // update stresses
                                         P = PT - K * etab * DGamma_A;
                                         SQRJ2 = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B1) *
@@ -2257,9 +2240,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                         DGamma_A = (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
                                         EPBAR = EPBARN - etab * DGamma_A;  // plastic strain
                                         // Update yield stress and the Hi(slop) at plastic strain from table
-                                        m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
-                                                                      m_element->m_DPVector2,
-                                                                      m_element->m_DPVector_size);
+                                        m_element->ComputeHardening(EPBAR, MeanEffP, Hi);
                                         // Update stresses
                                         P = PT - K * etab * DGamma_A;
                                         SQRJ2 = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) *
@@ -2885,50 +2866,35 @@ void ChElementHexaANCF_3813_9::CalcCoordDerivMatrix(ChVectorN<double, 33>& dt) {
     dt(31) = m_central_node->GetCurvatureZZ_dt().y();
     dt(32) = m_central_node->GetCurvatureZZ_dt().z();
 }
-void ChElementHexaANCF_3813_9::ComputeHardening_a(double& MeanEffP,
-                                                  double& Hi,
-                                                  double alphUp,
-                                                  ChVectorDynamic<double> m_DPVector1,
-                                                  ChVectorDynamic<double> m_DPVector2,
-                                                  int m_DPVector_size) {
-    // Given a value of alphUp return a value of MeanEffP based on interpolation
-    // within a table of m_DPVector2 values(ytab) corresponding to the m_DPVector1 values
-    // contained in the array xtab.The subroutine assumes that the
-    // values in xtab increase monotonically.
-    int i1;
-    int flag;
-    double wx;
-    double x;
-    flag = 0;
-    x = alphUp;
-    if (x < m_DPVector1(0)) {  // is below the table range
-        flag = 2;
-    } else {
-        for (i1 = 0; i1 < m_DPVector_size - 1; i1++) {
-            if (x <= m_DPVector1(i1 + 1)) {
-                break;
-            }
-        }
-        if (x > m_DPVector1(m_DPVector_size - 1)) {  // is above the table range
-            flag = 1;
+
+// Return the interpolated value and derivative at alpha, using the table  m_DPVector1 / m_DPVector2.
+// It is assumed that the values in m_DPVector1 increase monotonically.
+void ChElementHexaANCF_3813_9::ComputeHardening(double alpha, double& val, double& der) {
+    // Check if below the table range
+    if (alpha < m_DPVector1(0)) {
+        val = (m_DPVector2(1) - m_DPVector2(0)) / (m_DPVector1(1) - m_DPVector1(0)) * (alpha - m_DPVector1(0)) +
+              m_DPVector2(0);
+        der = (m_DPVector2(1) - m_DPVector2(0)) / (m_DPVector1(1) - m_DPVector1(0));
+        return;
+    }
+
+    // Check if in range
+    for (int i0 = 0, i1 = 1; i1 < m_DPVector_size; i0++, i1++) {
+        if (alpha <= m_DPVector1(i1)) {
+            double wx = (alpha - m_DPVector1(i0)) / (m_DPVector1(i1) - m_DPVector1(i0));
+            val = (1.0 - wx) * m_DPVector2(i0) + wx * m_DPVector2(i1);
+            der = (m_DPVector2(i1) - m_DPVector2(i0)) / (m_DPVector1(i1) - m_DPVector1(i0));
+            return;
         }
     }
 
-    if (flag == 0) {  // Inter range
-        wx = (x - m_DPVector1(i1)) / (m_DPVector1(i1 + 1) - m_DPVector1(i1));
-        MeanEffP = (1.0 - wx) * m_DPVector2(i1) + wx * m_DPVector2(i1 + 1);
-        Hi = (m_DPVector2(i1 + 1) - m_DPVector2(i1)) / (m_DPVector1(i1 + 1) - m_DPVector1(i1));
-    }
-    if (flag == 1) {  // outer range above
-        MeanEffP =
-            (m_DPVector2(i1 + 1) - m_DPVector2(i1)) / (m_DPVector1(i1 + 1) - m_DPVector1(i1)) * (x - m_DPVector1(i1)) +
-            m_DPVector2(i1);
-        Hi = (m_DPVector2(i1 + 1) - m_DPVector2(i1)) / (m_DPVector1(i1 + 1) - m_DPVector1(i1));
-    }
-    if (flag == 2) {  // outer range below
-        MeanEffP = (m_DPVector2(1) - m_DPVector2(0)) / (m_DPVector1(1) - m_DPVector1(0)) * (x - m_DPVector1(0)) +
-                   m_DPVector2(0);
-        Hi = (m_DPVector2(1) - m_DPVector2(0)) / (m_DPVector1(1) - m_DPVector1(0));
+    // Check if above the table range
+    if (alpha > m_DPVector1(m_DPVector_size - 1)) {
+        int i0 = m_DPVector_size - 2;
+        int i1 = m_DPVector_size - 1;
+        val = (m_DPVector2(i1) - m_DPVector2(i0)) / (m_DPVector1(i1) - m_DPVector1(i0)) * (alpha - m_DPVector1(i0)) +
+              m_DPVector2(i0);
+        der = (m_DPVector2(i1) - m_DPVector2(i0)) / (m_DPVector1(i1) - m_DPVector1(i0));
     }
 }
 

@@ -74,7 +74,7 @@ void ChWheeledVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powert
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
     double powertrain_torque = 0;
-    if (m_powertrain) {
+    if (m_powertrain && m_driveline) {
         // Extract the torque from the powertrain.
         powertrain_torque = m_powertrain->GetOutputTorque();
         // Synchronize the associated powertrain system (pass throttle input).
@@ -82,7 +82,8 @@ void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_i
     }
 
     // Apply powertrain torque to the driveline's input shaft.
-    m_driveline->Synchronize(powertrain_torque);
+    if (m_driveline)
+        m_driveline->Synchronize(powertrain_torque);
 
     // Let the steering subsystems process the steering input.
     for (auto& steering : m_steerings) {
@@ -135,11 +136,13 @@ void ChWheeledVehicle::Advance(double step) {
 // Enable/disable differential locking.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::LockAxleDifferential(int axle, bool lock) {
-    m_driveline->LockAxleDifferential(axle, lock);
+    if (m_driveline)
+        m_driveline->LockAxleDifferential(axle, lock);
 }
 
 void ChWheeledVehicle::LockCentralDifferential(int which, bool lock) {
-    m_driveline->LockCentralDifferential(which, lock);
+    if (m_driveline)
+        m_driveline->LockCentralDifferential(which, lock);
 }
 
 // Disconnect driveline
@@ -198,6 +201,15 @@ void ChWheeledVehicle::SetWheelVisualizationType(VisualizationType vis) {
     }
 }
 
+void ChWheeledVehicle::SetTireVisualizationType(VisualizationType vis) {
+    for (auto& axle : m_axles) {
+        for (auto& wheel : axle->m_wheels) {
+            if (wheel->GetTire())
+                wheel->GetTire()->SetVisualizationType(vis);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Enable/disable collision between the chassis and all other vehicle subsystems
 // This only controls collisions between the chassis and the tire systems.
@@ -227,13 +239,18 @@ void ChWheeledVehicle::SetSteeringOutput(int id, bool state) {
     m_steerings[id]->SetOutput(state);
 }
 
+void ChWheeledVehicle::SetSubchassisOutput(int id, bool state) {
+    m_subchassis[id]->SetOutput(state);
+}
+
 void ChWheeledVehicle::SetAntirollbarOutput(int id, bool state) {
     assert(m_axles[id]->m_antirollbar);
     m_axles[id]->m_antirollbar->SetOutput(state);
 }
 
 void ChWheeledVehicle::SetDrivelineOutput(bool state) {
-    m_driveline->SetOutput(state);
+    if (m_driveline)
+        m_driveline->SetOutput(state);
 }
 
 // -----------------------------------------------------------------------------
@@ -366,8 +383,10 @@ void ChWheeledVehicle::LogConstraintViolations() {
 void ChWheeledVehicle::LogSubsystemTypes() {
     GetLog() << "\nSubsystem types\n";
     GetLog() << "Chassis:        " << m_chassis->GetTemplateName().c_str() << "\n";
-    GetLog() << "Powertrain:     " << m_powertrain->GetTemplateName().c_str() << "\n";
-    GetLog() << "Driveline:      " << m_driveline->GetTemplateName().c_str() << "\n";
+    if (m_powertrain)
+        GetLog() << "Powertrain:     " << m_powertrain->GetTemplateName().c_str() << "\n";
+    if (m_driveline)
+        GetLog() << "Driveline:      " << m_driveline->GetTemplateName().c_str() << "\n";
 
     for (int i = 0; i < m_steerings.size(); i++) {
         GetLog() << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName().c_str() << "\n";
@@ -403,6 +422,15 @@ std::string ChWheeledVehicle::ExportComponentList() const {
     }
 
     //// TODO add array of rear chassis subsystems
+
+    rapidjson::Value subchassisArray(rapidjson::kArrayType);
+    for (auto& subchassis : m_subchassis) {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        subchassis->ExportComponentList(jsonSubDocument);
+        subchassisArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());    
+    }
+    jsonDocument.AddMember("subchassis", subchassisArray, jsonDocument.GetAllocator());
 
     rapidjson::Value sterringArray(rapidjson::kArrayType);
     for (auto& steering : m_steerings) {
@@ -475,6 +503,13 @@ void ChWheeledVehicle::Output(int frame, ChVehicleOutput& database) const {
         if (c->OutputEnabled()) {
             database.WriteSection(c->GetName());
             c->Output(database);
+        }
+    }
+
+    for (auto& subchassis : m_subchassis) {
+        if (subchassis->OutputEnabled()) {
+            database.WriteSection(subchassis->GetName());
+            subchassis->Output(database);
         }
     }
 

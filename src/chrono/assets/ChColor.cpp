@@ -22,7 +22,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChColor)
 
 ChColor ChColor::ComputeFalseColor(double v, double vmin, double vmax, bool out_of_range_as_bw) {
-    ChColor c = {1.0, 1.0, 1.0, 0.0};  // default white
+    ChColor c = {1.0, 1.0, 1.0, 1.0};  // default white
     double dv;
 
     if (out_of_range_as_bw) {

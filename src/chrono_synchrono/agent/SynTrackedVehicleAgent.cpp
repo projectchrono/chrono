@@ -131,15 +131,14 @@ void SynTrackedVehicleAgent::SetKey(AgentKey agent_key) {
 // ------------------------------------------------------------------------
 
 std::shared_ptr<ChTriangleMeshShape> SynTrackedVehicleAgent::CreateMeshZombieComponent(const std::string& filename) {
-    auto mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    if (!filename.empty())
-        mesh->LoadWavefrontMesh(vehicle::GetDataFile(filename), false, false);
-
     auto trimesh = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh->SetMesh(mesh);
-    trimesh->SetStatic(true);
-    trimesh->SetName(filesystem::path(filename).stem());
-
+    if (!filename.empty()) {
+        auto mesh =
+            geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(filename), false, false);
+        trimesh->SetMesh(mesh);
+        trimesh->SetMutable(false);
+        trimesh->SetName(filesystem::path(filename).stem());
+    }
     return trimesh;
 }
 

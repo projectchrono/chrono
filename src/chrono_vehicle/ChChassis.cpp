@@ -210,6 +210,10 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
 
     system->Add(m_body);
 
+    // Add containers for bushing elements and external forces.
+    system->Add(m_bushings);
+    system->Add(m_container_forces);
+
     // Add pre-defined marker (COM) on the chassis body.
     AddMarker("COM", ChCoordsys<>(GetLocalPosCOM()));
 }

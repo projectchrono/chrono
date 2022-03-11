@@ -213,10 +213,10 @@ impose_5.SetRotationFunction(f_squad)
 
 # Create the Irrlicht application
 application = irr.ChIrrApp(system, "Imposing rotation and position to bodies demo", irr.dimension2du(800, 600))
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(irr.vector3df(0, 2, -3))
+application.AddCamera(irr.vector3df(0, 2, -3))
 application.AssetBindAll()
 application.AssetUpdateAll()
 

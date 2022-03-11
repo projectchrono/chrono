@@ -106,6 +106,15 @@ class ChApi ChChaseCamera {
     /// Change the associated body.
     void SetChassis(std::shared_ptr<ChBody> chassis);
 
+    /// Set the target point on the associated body.
+    void SetTargetPoint(const ChVector<>& point) { m_ptOnChassis = point; }
+
+    /// Set the chase distance.
+    void SetChaseDistance(double dist) { m_dist = dist; }
+
+    /// Set the chase height.
+    void SetChaseHeight(double height) { m_height = height; }
+
   private:
     /// Calculate derivatives for internal dynamics ODE.
     ChVector<> calcDeriv(const ChVector<>& loc);

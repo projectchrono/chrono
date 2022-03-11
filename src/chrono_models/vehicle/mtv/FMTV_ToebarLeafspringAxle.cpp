@@ -64,7 +64,11 @@ class FMTV_SpringForceFront : public ChLinkTSDA::ForceFunctor {
   public:
     FMTV_SpringForceFront(double spring_constant, double min_length, double max_length);
 
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_spring_constant;
@@ -88,15 +92,11 @@ FMTV_SpringForceFront::FMTV_SpringForceFront(double spring_constant, double min_
     m_bump.AddPoint(50.0e-3, 12500.0);
 }
 
-double FMTV_SpringForceFront::operator()(double time,
-                                           double rest_length,
-                                           double length,
-                                           double vel,
-                                           ChLinkTSDA* link) {
-    /*
-     *
-     */
-
+double FMTV_SpringForceFront::evaluate(double time,
+                                       double rest_length,
+                                       double length,
+                                       double vel,
+                                       const ChLinkTSDA& link) {
     double force = 0;
 
     double defl_spring = rest_length - length;
@@ -126,7 +126,11 @@ class FMTV_ShockForceFront : public ChLinkTSDA::ForceFunctor {
                            double expansion_slope,
                            double expansion_degressivity);
 
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_slope_compr;
@@ -144,14 +148,12 @@ FMTV_ShockForceFront::FMTV_ShockForceFront(double compression_slope,
       m_degres_compr(compression_degressivity),
       m_degres_expand(expansion_degressivity) {}
 
-double FMTV_ShockForceFront::operator()(double time,
-                                          double rest_length,
-                                          double length,
-                                          double vel,
-                                          ChLinkTSDA* link) {
-    /*
-     * Simple model of a degressive damping characteristic
-     */
+double FMTV_ShockForceFront::evaluate(double time,
+                                      double rest_length,
+                                      double length,
+                                      double vel,
+                                      const ChLinkTSDA& link) {
+    // Simple model of a degressive damping characteristic
 
     double force = 0;
 

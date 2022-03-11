@@ -22,7 +22,7 @@
 
 #include <algorithm>
 
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -270,8 +270,8 @@ class SoilbinWheel {
         wheel->SetCollide(true);
 
         // Visualization mesh
-        auto tireMesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-        tireMesh->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"), true, true);
+        auto tireMesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
+            GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"), true, true);
         auto tireMesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
         tireMesh_asset->SetMesh(tireMesh);
         wheel->AddAsset(tireMesh_asset);
@@ -433,7 +433,7 @@ class TestMech {
         system->AddLink(spring);
 
         spring->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6f, 0.1f, 0.1f));
-        spring->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
+        spring->AddAsset(chrono_types::make_shared<ChSpringShape>(0.05, 80, 15));
 
         // create a prismatic constraint between the weight and the ground
         auto weightLink = chrono_types::make_shared<ChLinkLockOldham>();
@@ -936,10 +936,12 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Soil bin demo", core::dimension2d<u32>(1024, 768));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
-    application.AddTypicalLights(core::vector3df(20., 30., 25.), core::vector3df(25., 25., -25.), 65.0, 75.);
-    application.AddTypicalCamera(core::vector3df(3.5f, 2.5f, -2.4f));
+    application.AddLogo();
+    application.AddSkyBox();
+    application.AddLight(irr::core::vector3df(20.f, 30.f, 25.f), 290, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    application.AddLight(irr::core::vector3df(25.f, 25.f, -25.f), 190, irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
+
+    application.AddCamera(core::vector3df(3.5f, 2.5f, -2.4f));
 
     // ******* SOIL BIN WHEEL
     // Create the wheel

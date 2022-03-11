@@ -62,10 +62,9 @@ def main():
     terrain.Initialize()
 
     # Create the vehicle Irrlicht interface
-    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV-9 YUP world frame', irr.dimension2du(1000,800))
-    app.SetSkyBox()
+    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV-9 YUP world frame', irr.dimension2du(1000,800), irr.VerticalDir_Y)
     app.AddTypicalLights()
-    app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     app.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
     app.SetTimestep(step_size)
     app.AssetBindAll()
@@ -86,7 +85,7 @@ def main():
 
         app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
         app.DrawAll()
-        app.RenderFrame(chrono.ChVectorD(0, 0, 0), 10)
+        app.RenderFrame(chrono.ChFrameD(chrono.ChVectorD(0, 0, 0)), 10)
         app.EndScene()
 
         # Get driver inputs

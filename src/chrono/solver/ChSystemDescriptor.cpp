@@ -270,69 +270,6 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
     }
 }
 
-void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
-    char filename[300];
-    try {
-        const char* numformat = "%.12g";
-
-        if (assembled) {
-            ChSparseMatrix Z;
-            ChVectorDynamic<double> rhs;
-            ConvertToMatrixForm(&Z, &rhs);
-
-            sprintf(filename, "%s%s", path, "Z.dat");
-            ChStreamOutAsciiFile file_Z(filename);
-            file_Z.SetNumFormat(numformat);
-            StreamOUTsparseMatlabFormat(Z, file_Z);
-
-            sprintf(filename, "%s%s", path, "rhs.dat");
-            ChStreamOutAsciiFile file_rhs(filename);
-            file_rhs.SetNumFormat(numformat);
-            StreamOUTdenseMatlabFormat(rhs, file_rhs);
-        } else {
-            ChSparseMatrix mdM;
-            ChSparseMatrix mdCq;
-            ChSparseMatrix mdE;
-            ChVectorDynamic<double> mdf;
-            ChVectorDynamic<double> mdb;
-            ChVectorDynamic<double> mdfric;
-            ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-
-            sprintf(filename, "%s%s", path, "M.dat");
-            ChStreamOutAsciiFile file_M(filename);
-            file_M.SetNumFormat(numformat);
-            StreamOUTsparseMatlabFormat(mdM, file_M);
-
-            sprintf(filename, "%s%s", path, "Cq.dat");
-            ChStreamOutAsciiFile file_Cq(filename);
-            file_Cq.SetNumFormat(numformat);
-            StreamOUTsparseMatlabFormat(mdCq, file_Cq);
-
-            sprintf(filename, "%s%s", path, "E.dat");
-            ChStreamOutAsciiFile file_E(filename);
-            file_E.SetNumFormat(numformat);
-            StreamOUTsparseMatlabFormat(mdE, file_E);
-
-            sprintf(filename, "%s%s", path, "f.dat");
-            ChStreamOutAsciiFile file_f(filename);
-            file_f.SetNumFormat(numformat);
-            StreamOUTdenseMatlabFormat(mdf, file_f);
-
-            sprintf(filename, "%s%s", path, "b.dat");
-            ChStreamOutAsciiFile file_b(filename);
-            file_b.SetNumFormat(numformat);
-            StreamOUTdenseMatlabFormat(mdb, file_b);
-
-            sprintf(filename, "%s%s", path, "fric.dat");
-            ChStreamOutAsciiFile file_fric(filename);
-            file_fric.SetNumFormat(numformat);
-            StreamOUTdenseMatlabFormat(mdfric, file_fric);
-        }
-    } catch (const chrono::ChException &myexc) {
-        chrono::GetLog() << myexc.what();
-    }
-}
-
 int ChSystemDescriptor::BuildFbVector(ChVectorDynamic<>& Fvector) {
     n_q = CountActiveVariables();
     Fvector.setZero(n_q);
@@ -686,6 +623,113 @@ void ChSystemDescriptor::UnknownsProject(ChVectorDynamic<>& mx) {
             mx(vconstraints[ic]->GetOffset() + n_q) = -vconstraints[ic]->Get_l_i();
         }
     }
+}
+
+// -----------------------------------------------------------------------------
+
+void ChSystemDescriptor::WriteMatrix(const std::string& path, const std::string& prefix) {
+    const char* numformat = "%.12g";
+    std::string filename;
+
+    ChSparseMatrix Z;
+    ChVectorDynamic<double> rhs;
+    ConvertToMatrixForm(&Z, &rhs);
+
+    filename = path + "/" + prefix + "_Z.dat";
+    ChStreamOutAsciiFile file_Z(filename.c_str());
+    file_Z.SetNumFormat(numformat);
+    StreamOUTsparseMatlabFormat(Z, file_Z);
+
+    filename = path + "/" + prefix + "_rhs.dat";
+    ChStreamOutAsciiFile file_rhs(filename.c_str());
+    file_rhs.SetNumFormat(numformat);
+    StreamOUTdenseMatlabFormat(rhs, file_rhs);
+}
+
+void ChSystemDescriptor::WriteMatrixBlocks(const std::string& path, const std::string& prefix) {
+    const char* numformat = "%.12g";
+    std::string filename;
+
+    ChSparseMatrix mdM;
+    ChSparseMatrix mdCq;
+    ChSparseMatrix mdE;
+    ChVectorDynamic<double> mdf;
+    ChVectorDynamic<double> mdb;
+    ChVectorDynamic<double> mdfric;
+    ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+
+    filename = path + "/" + prefix + "_M.dat";
+    ChStreamOutAsciiFile file_M(filename.c_str());
+    file_M.SetNumFormat(numformat);
+    StreamOUTsparseMatlabFormat(mdM, file_M);
+
+    filename = path + "/" + prefix + "_Cq.dat";
+    ChStreamOutAsciiFile file_Cq(filename.c_str());
+    file_Cq.SetNumFormat(numformat);
+    StreamOUTsparseMatlabFormat(mdCq, file_Cq);
+
+    filename = path + "/" + prefix + "_E.dat";
+    ChStreamOutAsciiFile file_E(filename.c_str());
+    file_E.SetNumFormat(numformat);
+    StreamOUTsparseMatlabFormat(mdE, file_E);
+
+    filename = path + "/" + prefix + "_f.dat";
+    ChStreamOutAsciiFile file_f(filename.c_str());
+    file_f.SetNumFormat(numformat);
+    StreamOUTdenseMatlabFormat(mdf, file_f);
+
+    filename = path + "/" + prefix + "_b.dat";
+    ChStreamOutAsciiFile file_b(filename.c_str());
+    file_b.SetNumFormat(numformat);
+    StreamOUTdenseMatlabFormat(mdb, file_b);
+
+    filename = path + "/" + prefix + "_fric.dat";
+    ChStreamOutAsciiFile file_fric(filename.c_str());
+    file_fric.SetNumFormat(numformat);
+    StreamOUTdenseMatlabFormat(mdfric, file_fric);
+}
+
+void ChSystemDescriptor::WriteMatrixSpmv(const std::string& path, const std::string& prefix) {
+    const char* numformat = "%.12g";
+    std::string filename;
+
+    // Count constraints.
+    int mn_c = 0;
+    for (auto& cnstr : vconstraints) {
+        if (cnstr->IsActive())
+            mn_c++;
+    }
+
+    // Generate dense system matrix, column by column
+    int size = n_q + mn_c;
+    ChMatrixDynamic<> A(size, size);
+    ChVectorDynamic<> v(size);
+    ChVectorDynamic<> e(size);
+    e.setZero();
+
+    for (int i = 0; i < size; i++) {
+        e[i] = 1;
+        SystemProduct(v, e);
+        A.col(i) = v;
+        e[i] = 0;
+    }
+
+    // Convert to Eigen sparse matrix
+    ChSparseMatrix Z = A.sparseView();
+
+    // Write sparse matrix to file
+    filename = path + "/" + prefix + "_Z.dat";
+    ChStreamOutAsciiFile file_Z(filename.c_str());
+    file_Z.SetNumFormat(numformat);
+    StreamOUTsparseMatlabFormat(Z, file_Z);
+
+    // Write RHS to file
+    ChVectorDynamic<double> rhs;
+    ConvertToMatrixForm(nullptr, &rhs);
+    filename = path + "/" + prefix + "_rhs.dat";
+    ChStreamOutAsciiFile file_rhs(filename.c_str());
+    file_rhs.SetNumFormat(numformat);
+    StreamOUTdenseMatlabFormat(rhs, file_rhs);
 }
 
 }  // end namespace chrono

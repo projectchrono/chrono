@@ -19,7 +19,7 @@
 
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
-#include "chrono_irrlicht/ChIrrNode.h"
+#include "chrono_irrlicht/ChIrrNodeModel.h"
 
 namespace chrono {
 namespace irrlicht {
@@ -32,7 +32,7 @@ namespace irrlicht {
 class ChApiIrr ChIrrNodeAsset : public ChAsset {
 
   protected:
-    ChIrrNode* mnode;
+    ChIrrNodeModel* mnode;
 
   public:
     ChIrrNodeAsset() : mnode(0) {}
@@ -47,7 +47,7 @@ class ChApiIrr ChIrrNodeAsset : public ChAsset {
     void Bind(std::shared_ptr<ChPhysicsItem> aitem, ChIrrAppInterface& aapp) {
         UnBind();
 
-        mnode = new ChIrrNode(aitem, aapp.GetContainer(), aapp.GetSceneManager(), 0);
+        mnode = new ChIrrNodeModel(aitem, aapp.GetContainer(), aapp.GetSceneManager(), 0);
 
         // Grab() to avoid dangling pointer if irrlicht scene is deleted before this obj:
         //  ***NOT NEEDED! Already done in ctor OF ISceneNode when attaching to parent
@@ -66,7 +66,7 @@ class ChApiIrr ChIrrNodeAsset : public ChAsset {
         // inherit parent
         ChAsset::Update(updater, coords);
 
-        mnode->UpdateAssetsProxies();
+        mnode->UpdateChildren();
     }
 };
 

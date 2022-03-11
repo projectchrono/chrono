@@ -57,8 +57,8 @@ Configuration var for applying interpolation of  contact normals
 class GIM_CONTACT
 {
 public:
-	btVector3 m_point;
-	btVector3 m_normal;
+	cbtVector3 m_point;
+	cbtVector3 m_normal;
 	GREAL m_depth;     //Positive value indicates interpenetration
 	GREAL m_distance;  //Padding not for use
 	GUINT m_feature1;  //Face number
@@ -81,7 +81,7 @@ public:
 		m_feature2 = contact.m_feature2;
 	}
 
-	GIM_CONTACT(const btVector3 &point, const btVector3 &normal,
+	GIM_CONTACT(const cbtVector3 &point, const cbtVector3 &normal,
 				GREAL depth, GUINT feature1, GUINT feature2) : m_point(point),
 															   m_normal(normal),
 															   m_depth(depth),
@@ -107,9 +107,9 @@ public:
 		return _hash;
 	}
 
-	SIMD_FORCE_INLINE void interpolate_normals(btVector3 *normals, GUINT normal_count)
+	SIMD_FORCE_INLINE void interpolate_normals(cbtVector3 *normals, GUINT normal_count)
 	{
-		btVector3 vec_sum(m_normal);
+		cbtVector3 vec_sum(m_normal);
 		for (GUINT i = 0; i < normal_count; i++)
 		{
 			vec_sum += normals[i];
@@ -133,7 +133,7 @@ public:
 	{
 	}
 
-	SIMD_FORCE_INLINE void push_contact(const btVector3 &point, const btVector3 &normal,
+	SIMD_FORCE_INLINE void push_contact(const cbtVector3 &point, const cbtVector3 &normal,
 										GREAL depth, GUINT feature1, GUINT feature2)
 	{
 		push_back_mem();

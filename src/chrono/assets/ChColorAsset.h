@@ -27,24 +27,17 @@ namespace chrono {
 /// able to recognize it and implement the proper translation.
 class ChApi ChColorAsset : public ChAsset {
   public:
-    ChColorAsset() : fading(0) {}
-    ChColorAsset(const ChColor& c) : color(c), fading(0) {}
-    ChColorAsset(float mR, float mG, float mB, float mA = 0) : color(mR, mG, mB, mA), fading(0) {}
+    ChColorAsset() {}
+    ChColorAsset(const ChColor& c) : color(c) {}
+    ChColorAsset(float mR, float mG, float mB, float mA = 0) : color(mR, mG, mB, mA) {}
 
     /// Get/Set the color of the surface. This information could be used by
     /// visualization postprocessing.
     const ChColor& GetColor() const { return color; }
     void SetColor(const ChColor& mc) { color = mc; }
 
-    /// Get/Set the fading amount, 0 <= fading <= 1.
-    /// If fading = 0, no transparency of surface,
-    /// If fading = 1, surface is completely transparent.
-    float GetFading() const { return fading; }
-    void SetFading(const float mc) { fading = mc; }
-
   private:
     ChColor color;  // color of material
-    float fading;   // transparency of material
 
   public:
     /// Method to allow serialization of transient data to archives.

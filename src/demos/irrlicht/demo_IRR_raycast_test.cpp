@@ -200,8 +200,7 @@ void CreateShapes(ChSystemSMC& sys) {
 void CreateMeshes(ChSystemSMC& sys) {
     auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile("models/sphere.obj"));
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/sphere.obj"));
     trimesh->Transform(ChVector<>(0), ChMatrix33<>(2));
     std::shared_ptr<ChTriangleMeshShape> vismesh(new ChTriangleMeshShape);
     vismesh->SetMesh(trimesh);
@@ -285,10 +284,10 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization
     ChIrrApp application(&sys, L"Ray intersection test", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0, 0, -60));
+    application.AddCamera(core::vector3df(0, 0, -60));
     application.AssetBindAll();
     application.AssetUpdateAll();
 

@@ -8,8 +8,7 @@
 # Copyright:   (c) ProjectChrono 2019
 #------------------------------------------------------------------------------
 
-
-
+import errno
 import os
 import pychrono as chrono
 import pychrono.postprocess as postprocess
@@ -72,10 +71,19 @@ pov_exporter = postprocess.ChPovRay(my_system)
  # Sets some file names for in-out processes.
 pov_exporter.SetTemplateFile(chrono.GetChronoDataFile('_template_POV.pov'))
 pov_exporter.SetOutputScriptFile("rendering_frames.pov")
-if not os.path.exists("output"):
+
+try:
     os.mkdir("output")
-if not os.path.exists("anim"):
+except OSError as exc:
+    if exc.errno != errno.EEXIST:
+        print("Error creating output directory " )
+
+try:
     os.mkdir("anim")
+except OSError as exc:
+    if exc.errno != errno.EEXIST:
+        print("Error creating anim directory " )
+
 pov_exporter.SetOutputDataFilebase("output/my_state")
 pov_exporter.SetPictureFilebase("anim/picture")
 

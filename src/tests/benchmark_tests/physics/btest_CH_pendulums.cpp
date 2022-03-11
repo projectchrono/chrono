@@ -135,10 +135,10 @@ void ChainTest<N>::SimulateVis() {
     float offset = static_cast<float>(N * m_length);
 
     irrlicht::ChIrrApp application(m_system, L"Pendulum chain", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(0, -offset / 2, offset), irr::core::vector3df(0, -offset / 2, 0));
+    application.AddCamera(irr::core::vector3df(0, -offset / 2, offset), irr::core::vector3df(0, -offset / 2, 0));
 
     application.AssetBindAll();
     application.AssetUpdateAll();

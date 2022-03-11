@@ -61,15 +61,14 @@ spring.Initialize(ground,
                   body,
                   True,
                   chrono.ChVectorD(0, 0, 2),
-                  chrono.ChVectorD(0, 0, 0),
-                  False,
-                  1.9)
+                  chrono.ChVectorD(0, 0, 0))
+spring.SetRestLength(1.9)
 mysystem.AddLink(spring)
 
 spring_col = chrono.ChColorAsset()
 spring_col.SetColor(chrono.ChColor(0.2, 0.4, 0.8))
 spring.AddAsset(spring_col)
-spring.AddAsset(chrono.ChPointPointSpring(0.05, 80, 15))
+spring.AddAsset(chrono.ChSpringShape(0.05, 80, 15))
 
 # ---------------------------------------------------------------------
 #
@@ -78,9 +77,9 @@ spring.AddAsset(chrono.ChPointPointSpring(0.05, 80, 15))
 
 myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example: ChLinkLockPlanePlane', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddTypicalCamera(chronoirr.vector3df(3, 0 ,3))
+myapplication.AddSkyBox()
+myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+myapplication.AddCamera(chronoirr.vector3df(3, 0 ,3))
 myapplication.AddTypicalLights()
 
 # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items

@@ -102,7 +102,7 @@ class ShadowShaderCB : public irr::video::IShaderConstantSetCallBack {
     irr::core::matrix4 ViewLink;
     irr::core::vector3df LightLink;
     irr::f32 FarLink, MapRes;
-    bool clipborder;  //***ALEX***
+    bool clipborder;
 };
 
 /// ScreenQuadCB
@@ -382,8 +382,6 @@ inline irr::core::stringc CShaderPreprocessor::ppShaderFF(irr::core::stringc sha
     return ppShader(getFileContent(shaderProgram.c_str()).c_str());
 }
 
-//***ALEX*** fixes for Irrlicht 1.8
-
 /// CScreenQuad
 class CScreenQuad {
   public:
@@ -416,46 +414,6 @@ class CScreenQuad {
     irr::video::S3DVertex Vertices[4];
     irr::video::SMaterial Material;
 };
-
-/*
-class CScreenQuad
-{
-public:
-    CScreenQuad()
-    {
-        Material.Wireframe = false;
-        Material.Lighting = false;
-        Material.ZWriteEnable = false;
-
-        Vertices[0] = irr::video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,irr::video::SColor(0x0),0.0f,1.0f);
-        Vertices[1] = irr::video::S3DVertex(-1.0f, 1.0f,0.0f,0,0,1,irr::video::SColor(0x0),0.0f,0.0f);
-        Vertices[2] = irr::video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,irr::video::SColor(0x0),1.0f,0.0f);
-        Vertices[3] = irr::video::S3DVertex( 1.0f,-1.0f,0.0f,0,0,1,irr::video::SColor(0x0),1.0f,1.0f);
-        Vertices[4] = irr::video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,irr::video::SColor(0x0),0.0f,1.0f);
-        Vertices[5] = irr::video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,irr::video::SColor(0x0),1.0f,0.0f);
-    }
-
-    virtual void render(irr::video::IVideoDriver* driver)
-    {
-        u16 indices[6] = {0, 1, 2, 3, 4, 5};
-
-        driver->setMaterial(Material);
-        driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
-        driver->drawIndexedTriangleList(&Vertices[0], 6, &indices[0], 2);
-    }
-
-    virtual irr::video::SMaterial& getMaterial()
-    {
-        return Material;
-    }
-
-    irr::video::ITexture* rt[2];
-
-private:
-    irr::video::S3DVertex Vertices[6];
-    irr::video::SMaterial Material;
-};
-*/
 
 //////////////////////////////////////EffectShaders.h
 
@@ -1012,17 +970,16 @@ struct SShadowLight {
           pos(position),
           tar(target),
           farPlane(directional ? 1.0f : farValue),
-          mapRes(shadowMapResolution) {
-        nearValue = nearValue <= 0.0f ? 0.1f : nearValue;
+          mapRes(shadowMapResolution),
+          clipborder(true) {
+        nearValue = (nearValue <= 0.0f) ? 0.1f : nearValue;
 
         updateViewMatrix();
 
         if (directional)
-            projMat.buildProjectionMatrixOrthoLH(fov, fov, nearValue, farValue);
+            projMat.buildProjectionMatrixOrthoRH(fov, fov, nearValue, farValue);
         else
-            projMat.buildProjectionMatrixPerspectiveFovLH(fov, 1.0f, nearValue, farValue);
-
-        clipborder = true;  //***ALEX***
+            projMat.buildProjectionMatrixPerspectiveFovRH(fov, 1.0f, nearValue, farValue);
     }
 
     /// Sets the light's position.
@@ -1075,14 +1032,12 @@ struct SShadowLight {
     /// Gets the shadow map resolution for this light.
     irr::u32 getShadowMapResolution() const { return mapRes; }
 
-    ///***ALEX***
     void setClipBorder(bool mb) { clipborder = mb; }
-    ///***ALEX***
     bool getClipBorder() const { return clipborder; }
 
   private:
     void updateViewMatrix() {
-        viewMat.buildCameraLookAtMatrixLH(pos, tar,
+        viewMat.buildCameraLookAtMatrixRH(pos, tar,
                                           (pos - tar).dotProduct(irr::core::vector3df(1.0f, 0.0f, 1.0f)) == 0.0f
                                               ? irr::core::vector3df(0.0f, 0.0f, 1.0f)
                                               : irr::core::vector3df(0.0f, 1.0f, 0.0f));
@@ -1093,7 +1048,7 @@ struct SShadowLight {
     irr::f32 farPlane;
     irr::core::matrix4 viewMat, projMat;
     irr::u32 mapRes;
-    bool clipborder;  //***ALEX***
+    bool clipborder;
 };
 
 // This is a general interface that can be overidden if you want to perform operations before or after
@@ -1413,9 +1368,9 @@ inline EffectHandler::EffectHandler(irr::IrrlichtDevice* dev,
     : device(dev),
       driver(dev->getVideoDriver()),
       smgr(dev->getSceneManager()),
-      depthMC(nullptr),
-      shadowMC(nullptr),
-      DepthRTT(nullptr),
+      depthMC(0),
+      shadowMC(0),
+      DepthRTT(0),
       ScreenRTTSize(screenRTTSize.getArea() == 0 ? dev->getVideoDriver()->getScreenSize() : screenRTTSize),
       ClearColour(0x0),
       AmbientColour(0x0),
@@ -1658,8 +1613,11 @@ inline void EffectHandler::update(irr::video::ITexture* outputTarget) {
 
                 for (irr::u32 m = 0; m < CurrentMaterialCount; ++m) {
                     BufferMaterialList.push_back(ShadowNodeArray[i].node->getMaterial(m).MaterialType);
-                    ShadowNodeArray[i].node->getMaterial(m).MaterialType = (irr::video::E_MATERIAL_TYPE)(
-                        BufferMaterialList[m] == irr::video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF ? DepthT : Depth);
+                    ShadowNodeArray[i].node->getMaterial(m).MaterialType =
+                        (irr::video::E_MATERIAL_TYPE)(BufferMaterialList[m] ==
+                                                              irr::video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF
+                                                          ? DepthT
+                                                          : Depth);
                 }
 
                 ShadowNodeArray[i].node->OnAnimate(device->getTimer()->getTime());
@@ -1700,7 +1658,7 @@ inline void EffectHandler::update(irr::video::ITexture* outputTarget) {
             shadowMC->ViewLink = LightList[l].getViewMatrix();
             shadowMC->ProjLink = LightList[l].getProjectionMatrix();
             shadowMC->MapRes = (irr::f32)LightList[l].getShadowMapResolution();
-            shadowMC->clipborder = LightList[l].getClipBorder();  //***ALEX***
+            shadowMC->clipborder = LightList[l].getClipBorder();
 
             for (irr::u32 i = 0; i < ShadowNodeArraySize; ++i) {
                 if (ShadowNodeArray[i].shadowMode == ESM_CAST || ShadowNodeArray[i].shadowMode == ESM_EXCLUDE)

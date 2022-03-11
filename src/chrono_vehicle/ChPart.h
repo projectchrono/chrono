@@ -26,7 +26,7 @@
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChShaftsCouple.h"
 #include "chrono/physics/ChLinkTSDA.h"
-#include "chrono/physics/ChLinkRotSpringCB.h"
+#include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
@@ -123,10 +123,17 @@ class CH_VEHICLE_API ChPart {
 
     /// Export the list of rotational springs to the specified JSON document.
     static void ExportRotSpringList(rapidjson::Document& jsonDocument,
-                                    std::vector<std::shared_ptr<ChLinkRotSpringCB>> springs);
+                                    std::vector<std::shared_ptr<ChLinkRSDA>> springs);
 
     /// Export the list of body-body loads to the specified JSON document.
-    static void ExportBodyLoadList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLoadBodyBody>> loads);
+    static void ExportBodyLoadList(rapidjson::Document& jsonDocument,
+                                   std::vector<std::shared_ptr<ChLoadBodyBody>> loads);
+
+    /// Erase all visual shapes from the visual model associated with the specified physics item (if any).
+    static void RemoveVisualizationAssets(std::shared_ptr<ChPhysicsItem> item);
+
+    /// Erase the given shape from the visual model associated with the specified physics item (if any).
+    static void RemoveVisualizationAsset(std::shared_ptr<ChPhysicsItem> item, std::shared_ptr<ChVisualShape> shape);
 
     std::string m_name;  ///< subsystem name
 

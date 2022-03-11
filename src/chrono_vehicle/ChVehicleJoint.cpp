@@ -103,6 +103,12 @@ void ChVehicleJoint::CreateLink(Type type,
             m_joint = link;
             break;
         }
+        case Type::POINTPLANE: {
+            auto link = chrono_types::make_shared<ChLinkLockPointPlane>();
+            link->Initialize(body1, body2, pos);
+            m_joint = link;
+            break;
+        }
     }
 }
 
@@ -139,6 +145,7 @@ void ChVehicleJoint::CreateBushing(Type type,
             D_matrix(4, 4) = bd->D_rot_dof;
             break;
         case Type::POINTLINE:
+        case Type::POINTPLANE:
             return; // do not create a bushing
     }
 

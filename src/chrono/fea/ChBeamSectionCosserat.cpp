@@ -1151,7 +1151,7 @@ void ChInertiaCosseratAdvanced::ComputeInertiaStiffnessMatrix(
     // case A: where absolute ang.vel and ang.acc are constant if the frame rotates (as in Bauchau)
     // and the local ang.vel and ang.acc will counterrotate:
     // for mixed absolute (translation) and local (rotation) bases one has:
-    // Ki_al = [0, 0; m*([a~]+[w~][w~])[c~]', m*[c~][xpp~] + [I][a~]  + [w~]([I][w~] - [([I]*w)~]) +[([w~][I]*w)~]  ]
+    // Ki_al = [0,  m*([a~]+[w~][w~])[c~]'; 0,  m*[c~][xpp~] + [I][a~]  + [w~]([I][w~] - [([I]*w)~]) +[([w~][I]*w)~]  ]
     /*
     Ki.block<3, 3>(0, 3) = this->mu * (atilde + wtilde* wtilde) * ctilde.transpose();
     Ki.block<3, 3>(3, 3) = this->mu * ctilde * ChStarMatrix33<>(mXacc)
@@ -1162,7 +1162,7 @@ void ChInertiaCosseratAdvanced::ComputeInertiaStiffnessMatrix(
     // case B: where local ang.vel and ang.acc are constant if the frame rotates (as in Chrono)
     // and the absolute ang.vel and ang.acc will rotate:
     // for mixed absolute (translation) and local (rotation) bases one has:
-    // Ki_al = [0, 0; -m*[([a~]c)~] -m*[([w~][w~]c)~] , m*[c~][xpp~] ]
+    // Ki_al = [0,  -m*[([a~]c)~] -m*[([w~][w~]c)~] ; 0,  m*[c~][xpp~] ]
     Ki.block<3, 3>(0, 3) =
         -this->mu * ChStarMatrix33<>(atilde * mC) - this->mu * ChStarMatrix33<>(wtilde * (wtilde * mC));
     Ki.block<3, 3>(3, 3) = this->mu * ctilde * ChStarMatrix33<>(mXacc);

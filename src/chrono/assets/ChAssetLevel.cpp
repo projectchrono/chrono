@@ -28,13 +28,6 @@ void ChAssetLevel::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
         assets[ia]->Update(updater, composed_coords);
 }
 
-std::shared_ptr<ChAsset> ChAssetLevel::GetAssetN(unsigned int num) {
-    if (num < assets.size())
-        return assets[num];
-    else
-        return std::shared_ptr<ChAsset>();
-}
-
 void ChAssetLevel::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChAssetLevel>();

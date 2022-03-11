@@ -25,7 +25,9 @@ namespace chrono {
 namespace sensor {
 
 void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
-    if (mesh_shape->GetMesh()->GetFileName() == "") {
+    auto mesh = mesh_shape->GetMesh();
+
+    if (mesh->GetFileName() == "") {
         return;
     }
 
@@ -36,7 +38,7 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
     std::string err;
 
     std::string mtl_base = "";
-    std::string file_name = mesh_shape->GetMesh()->GetFileName();
+    std::string file_name = mesh->GetFileName();
 
     int slash_location = (int)file_name.rfind('/');
 
@@ -51,17 +53,17 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
     }
 
     // go through each shape and add the material as an asset. Also add the material id list to the
-    // ChVisualization asset along with a list of triangle-to-face id list to mesh
+    // ChVisualShape asset along with a list of triangle-to-face id list to mesh
 
-    std::vector<std::shared_ptr<ChVisualMaterial>> material_list = std::vector<std::shared_ptr<ChVisualMaterial>>();
+    auto& vertex_buffer = mesh->getCoordsVertices();
+    auto& normal_buffer = mesh->getCoordsNormals();
+    auto& tex_coords = mesh->getCoordsUV();
+    auto& vertex_index_buffer = mesh->getIndicesVertexes();
+    auto& normal_index_buffer = mesh->getIndicesNormals();
+    auto& texcoord_index_buffer = mesh->getIndicesUV();
 
-    std::vector<ChVector<double>> vertex_buffer;       // = std::vector<ChVector<double>>();
-    std::vector<ChVector<double>> normal_buffer;       // = std::vector<ChVector<double>>();
-    std::vector<ChVector<double>> tex_coords;          // = std::vector<ChVector<double>>();
-    std::vector<ChVector<int>> vertex_index_buffer;    // = std::vector<ChVector<int>>();
-    std::vector<ChVector<int>> normal_index_buffer;    // = std::vector<ChVector<int>>();
-    std::vector<ChVector<int>> texcoord_index_buffer;  // = std::vector<ChVector<int>>();
-    std::vector<ChVector<int>> material_index_buffer;  // = std::vector<ChVector<int>>();
+    auto& material_list = mesh_shape->GetMaterials();
+    auto& material_index_buffer = mesh->getIndicesMaterials();
 
     // copy in vertices
     // vertex_buffer.resize(att.vertices.size() / 3);
@@ -79,7 +81,7 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
 
     // copy in tex coords (uvs)
     for (int i = 0; i < att.texcoords.size() / 2; i++) {
-        tex_coords.push_back(ChVector<double>(att.texcoords[2 * i + 0], att.texcoords[2 * i + 1], 0));
+        tex_coords.push_back(ChVector2<double>(att.texcoords[2 * i + 0], att.texcoords[2 * i + 1]));
     }
 
     // copy in materials
@@ -90,7 +92,7 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
         mat->SetDiffuseColor({materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]});
         mat->SetSpecularColor({materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]});
         mat->SetMetallic(materials[i].metallic);
-        mat->SetTransparency(materials[i].dissolve);
+        mat->SetOpacity(materials[i].dissolve);
         mat->SetRoughness(materials[i].roughness);
 
         // If metallic and roughness is set to default, use 
@@ -158,22 +160,13 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
                                                               shapes[i].mesh.indices[3 * j + 2].texcoord_index));
             }
             if (shapes[i].mesh.material_ids[j] < 0 || shapes[i].mesh.material_ids[j] >= material_list.size()) {
-                material_index_buffer.push_back(ChVector<int>(0, 0, 0));
+                material_index_buffer.push_back(0);
             } else {
-                material_index_buffer.push_back(ChVector<int>(shapes[i].mesh.material_ids[j], 0, 0));
+                material_index_buffer.push_back(shapes[i].mesh.material_ids[j]);
             }
         }
     }
 
-    mesh_shape->GetMesh()->m_vertices = vertex_buffer;
-    mesh_shape->GetMesh()->m_normals = normal_buffer;
-    mesh_shape->GetMesh()->m_UV = tex_coords;
-    mesh_shape->GetMesh()->m_face_v_indices = vertex_index_buffer;
-    mesh_shape->GetMesh()->m_face_n_indices = normal_index_buffer;
-    mesh_shape->GetMesh()->m_face_uv_indices = texcoord_index_buffer;
-    mesh_shape->GetMesh()->m_face_col_indices = material_index_buffer;
-
-    mesh_shape->material_list = material_list;
 
     // std::cout << "Vertices: " << vertex_buffer.size() << std::endl;
     // std::cout << "Normals: " << normal_buffer.size() << std::endl;
@@ -192,8 +185,8 @@ void ConvertToModernAssets(std::shared_ptr<ChBody> body) {
         // iterate through all assets in the body
         // std::cout << "Number of assets: " << body->GetAssets().size() << std::endl;
         for (auto asset : body->GetAssets()) {
-            // check if the asset is a ChVisualization
-            if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+            // check if the asset is a ChVisualShape
+            if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
                 // collect relative position and orientation of the asset
 
                 if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =

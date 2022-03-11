@@ -29,7 +29,7 @@
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 using namespace chrono;
 using namespace chrono::fea;

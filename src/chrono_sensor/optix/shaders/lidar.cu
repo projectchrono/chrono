@@ -26,10 +26,9 @@ extern "C" __global__ void __raygen__lidar_single() {
     const uint3 screen = optixGetLaunchDimensions();
     const unsigned int image_index = screen.x * idx.y + idx.x;
 
-    float2 d = (make_float2(idx.x, idx.y) + make_float2(0.5, 0.5)) / make_float2(screen.x, screen.y) * 2.f -
-               make_float2(1.f);  //[-1,1]
-    float theta = d.x * lidar.hFOV / 2.0;
-    float phi = lidar.min_vert_angle + (d.y * .5 + .5) * (lidar.max_vert_angle - lidar.min_vert_angle);
+    float phi = (idx.y / (float)(max(1,screen.y-1))) * (lidar.max_vert_angle -  lidar.min_vert_angle) +  lidar.min_vert_angle;
+    float theta = (idx.x / (float)(max(1,screen.x-1))) * lidar.hFOV - lidar.hFOV / 2.;
+
     float xy_proj = cos(phi);
     float z = sin(phi);
     float y = xy_proj * sin(theta);
@@ -73,14 +72,8 @@ extern "C" __global__ void __raygen__lidar_multi() {
     const int beam_index_x = idx.x / (lidar.sample_radius * 2 - 1);
     const int beam_index_y = idx.y / (lidar.sample_radius * 2 - 1);
 
-    const float2 beam_id_fraction =
-        (make_float2(beam_index_x, beam_index_y) + make_float2(0.5f, 0.5f)) / make_float2(global_beam_dims) * 2.f -
-        make_float2(1.f);
-
-    // theta and phi for beam center
-    float beam_theta = beam_id_fraction.x * lidar.hFOV / 2.0;
-    float beam_phi =
-        lidar.min_vert_angle + (beam_id_fraction.y * .5 + .5) * (lidar.max_vert_angle - lidar.min_vert_angle);
+    float beam_phi = (beam_index_y / (float)(max(1,global_beam_dims.y-1))) * (lidar.max_vert_angle -  lidar.min_vert_angle) +  lidar.min_vert_angle;
+    float beam_theta = (beam_index_x / (float)(max(1,global_beam_dims.x-1))) * lidar.hFOV - lidar.hFOV / 2.;
 
     // index of local ray in beam,  0~sample_radius * 2 - 1, and sample_radius - 1 is index of center ray
     const int local_ray_index_x = idx.x % (lidar.sample_radius * 2 - 1);

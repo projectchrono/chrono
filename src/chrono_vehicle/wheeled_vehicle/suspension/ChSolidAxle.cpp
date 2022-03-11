@@ -26,7 +26,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChSolidAxle.h"
@@ -305,8 +305,8 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
 
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
-    m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
-                               getSpringRestLength());
+    m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A]);
+    m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
     chassis->GetSystem()->AddLink(m_spring[side]);
 
@@ -379,7 +379,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPos_dt(-ang_vel);
-    chassis->GetSystem()->Add(m_axle[side]);
+    chassis->GetSystem()->AddShaft(m_axle[side]);
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
@@ -593,35 +593,39 @@ void ChSolidAxle::AddVisualizationAssets(VisualizationType vis) {
                          ChColor(0.2f, 0.6f, 0.2f));
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
 
-    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 }
 
 void ChSolidAxle::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_axleTube);
+    ChPart::RemoveVisualizationAssets(m_tierod);
+    ChPart::RemoveVisualizationAssets(m_draglink);
+    ChPart::RemoveVisualizationAssets(m_bellCrank);
+
+    ChPart::RemoveVisualizationAssets(m_knuckle[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_knuckle[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_upperLink[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_upperLink[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_lowerLink[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_lowerLink[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_spring[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_spring[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_shock[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_shock[RIGHT]);
+
     ChSuspension::RemoveVisualizationAssets();
-
-    m_axleTube->GetAssets().clear();
-    m_tierod->GetAssets().clear();
-    m_draglink->GetAssets().clear();
-    m_bellCrank->GetAssets().clear();
-
-    m_knuckle[LEFT]->GetAssets().clear();
-    m_knuckle[RIGHT]->GetAssets().clear();
-
-    m_upperLink[LEFT]->GetAssets().clear();
-    m_upperLink[RIGHT]->GetAssets().clear();
-
-    m_lowerLink[LEFT]->GetAssets().clear();
-    m_lowerLink[RIGHT]->GetAssets().clear();
-
-    m_spring[LEFT]->GetAssets().clear();
-    m_spring[RIGHT]->GetAssets().clear();
-
-    m_shock[LEFT]->GetAssets().clear();
-    m_shock[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
@@ -640,10 +644,7 @@ void ChSolidAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     cyl->GetCylinderGeometry().p2 = p_2;
     cyl->GetCylinderGeometry().rad = radius;
     body->AddAsset(cyl);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(color);
-    body->AddAsset(col);
+    body->AddVisualShape(cyl);
 }
 
 void ChSolidAxle::AddVisualizationBellCrank(std::shared_ptr<ChBody> body,
@@ -662,16 +663,14 @@ void ChSolidAxle::AddVisualizationBellCrank(std::shared_ptr<ChBody> body,
   cyl1->GetCylinderGeometry().p2 = p_A;
   cyl1->GetCylinderGeometry().rad = radius;
   body->AddAsset(cyl1);
+  body->AddVisualShape(cyl1);
 
   auto cyl2 = chrono_types::make_shared<ChCylinderShape>();
   cyl2->GetCylinderGeometry().p1 = p_A;
   cyl2->GetCylinderGeometry().p2 = p_T;
   cyl2->GetCylinderGeometry().rad = radius;
   body->AddAsset(cyl2);
-
-  auto col = chrono_types::make_shared<ChColorAsset>();
-  col->SetColor(color);
-  body->AddAsset(col);
+  body->AddVisualShape(cyl2);
 }
 
 void ChSolidAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
@@ -692,6 +691,7 @@ void ChSolidAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
         cyl_L->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_L->GetCylinderGeometry().rad = radius;
         knuckle->AddAsset(cyl_L);
+        knuckle->AddVisualShape(cyl_L);
     }
 
     if (p_U.Length2() > threshold2) {
@@ -700,6 +700,7 @@ void ChSolidAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
         cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_U->GetCylinderGeometry().rad = radius;
         knuckle->AddAsset(cyl_U);
+        knuckle->AddVisualShape(cyl_U);
     }
 
     if (p_T.Length2() > threshold2) {
@@ -708,12 +709,10 @@ void ChSolidAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
         cyl_T->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_T->GetCylinderGeometry().rad = radius;
         knuckle->AddAsset(cyl_T);
+        knuckle->AddVisualShape(cyl_T);
     }
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
-    knuckle->AddAsset(col);
 }
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSolidAxle::ExportComponentList(rapidjson::Document& jsonDocument) const {

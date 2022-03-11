@@ -23,7 +23,6 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/physics/ChLinkRotSpringCB.h"
 
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h"
@@ -91,7 +90,9 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
     ChSystem* system = m_shoe->GetSystem();
     double sign = ccw ? +1 : -1;
 
-    ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetPitch() / 2, 0, 0));
+    ChVector<> p_shoe = ChVector<>(+sign * GetPitch() / 2, 0, 0);  // local point on this shoe
+    ChVector<> p_next = ChVector<>(-sign * GetPitch() / 2, 0, 0);  // local point on next shoe
+    ChVector<> loc = m_shoe->TransformPointLocalToParent(p_shoe);  // connection point (expressed in absolute frame)
 
     if (m_index == 0 && !track->GetBushingData()) {
         // Create and initialize a point-line joint (sliding line along X)
@@ -112,11 +113,14 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
     }
 
     // Optionally, include rotational spring-damper to model track bending stiffness
+    // The RSDA frames are aligned with the corresponding body frames and the spring has a default zero rest angle.
     if (track->GetTorqueFunctor()) {
-        m_connection_rsda = chrono_types::make_shared<ChLinkRotSpringCB>();
+        ChQuaternion<> z2y = Q_from_AngX(-CH_C_PI_2);
+
+        m_connection_rsda = chrono_types::make_shared<ChLinkRSDA>();
         m_connection_rsda->SetNameString(m_name + "_rsda");
-        m_connection_rsda->Initialize(m_shoe, next->GetShoeBody(), false, ChCoordsys<>(loc, m_shoe->GetRot()),
-                                      ChCoordsys<>(loc, next->GetShoeBody()->GetRot()));
+        m_connection_rsda->Initialize(m_shoe, next->GetShoeBody(), true, ChCoordsys<>(p_shoe, z2y),
+                                      ChCoordsys<>(p_next, z2y));
         m_connection_rsda->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_connection_rsda);
     }

@@ -67,10 +67,25 @@ class WheeledVehicleDBPDriver : public ChDriver {
 
 ChVehicleCosimVehicleNode::ChVehicleCosimVehicleNode(const std::string& vehicle_json,
                                                      const std::string& powertrain_json)
-    : ChVehicleCosimMBSNode(), m_num_spindles(0) {
+    : ChVehicleCosimMBSNode(), m_num_spindles(0), m_init_yaw(0) {
     m_vehicle = chrono_types::make_shared<WheeledVehicle>(m_system, vehicle_json);
     m_powertrain = ReadPowertrainJSON(powertrain_json);
     m_terrain = chrono_types::make_shared<ChTerrain>();
+}
+
+ChVehicleCosimVehicleNode::ChVehicleCosimVehicleNode(std::shared_ptr<ChWheeledVehicle> vehicle,
+                                                     std::shared_ptr<ChPowertrain> powertrain)
+    : ChVehicleCosimMBSNode(), m_num_spindles(0), m_init_yaw(0) {
+    // Ensure the vehicle system has a null ChSystem
+    if (vehicle->GetSystem())
+        return;
+
+    m_vehicle = vehicle;
+    m_powertrain = powertrain;
+    m_terrain = chrono_types::make_shared<ChTerrain>();
+
+    // Associate the vehicle system with this node's ChSystem
+    m_vehicle->SetSystem(m_system);
 }
 
 ChVehicleCosimVehicleNode::~ChVehicleCosimVehicleNode() {}

@@ -25,7 +25,6 @@
 #include <string>
 
 #include "chrono/ChConfig.h"
-#include "chrono/parallel/ChOpenMP.h"
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
@@ -34,7 +33,7 @@
 #include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChIrrApp.h"
@@ -204,20 +203,20 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
     m_system->Add(mesh);
 
     // Setup visualization
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemesh->SetSmoothFaces(true);
     mesh->AddAsset(mvisualizemesh);
 
-    auto mvisualizemeshlines = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    mvisualizemeshlines->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizemeshlines = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    mvisualizemeshlines->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshlines->SetWireframe(true);
     mvisualizemeshlines->SetDrawInUndeformedReference(false);
     mesh->AddAsset(mvisualizemeshlines);
 
-    auto mvisualizemeshnode = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    mvisualizemeshnode->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshnode->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizemeshnode = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    mvisualizemeshnode->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshnode->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshnode->SetSymbolsThickness(0.004);
     mesh->AddAsset(mvisualizemeshnode);
 
@@ -294,10 +293,10 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
 void ANCFShellTest::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
     irrlicht::ChIrrApp application(m_system, L"ANCF Shells 3833", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(-0.4f, 0.4f, 0.4f), irr::core::vector3df(0, 0, 0));
+    application.AddCamera(irr::core::vector3df(-0.4f, 0.4f, 0.4f), irr::core::vector3df(0, 0, 0));
 
     application.AssetBindAll();
     application.AssetUpdateAll();

@@ -19,7 +19,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -105,14 +105,14 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
     // add a mesh to be visualized by a camera
     // ---------------------------------------
-    auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/audi/audi_chassis.obj"), false, true);
+    auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/audi/audi_chassis.obj"),
+                                                                  false, true);
     mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(mmesh);
     trimesh_shape->SetName("HMMWV Chassis Mesh");
-    trimesh_shape->SetStatic(true);
+    trimesh_shape->SetMutable(false);
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({-6, 0, 0});
@@ -134,8 +134,8 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(floor);
     {
         auto asset = floor->GetAssets()[0];
-        if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(vis_mat3);
+        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
+            visual_asset->AddMaterial(vis_mat3);
         }
     }
 
@@ -154,8 +154,8 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(box_body);
     {
         auto asset = box_body->GetAssets()[0];
-        if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(vis_mat);
+        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
+            visual_asset->AddMaterial(vis_mat);
         }
     }
 
@@ -174,8 +174,8 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(sphere_body);
     {
         auto asset = sphere_body->GetAssets()[0];
-        if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(vis_mat2);
+        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
+            visual_asset->AddMaterial(vis_mat2);
         }
     }
 
@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(cyl_body);
     {
         auto asset = cyl_body->GetAssets()[0];
-        if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(vis_mat4);
+        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
+            visual_asset->AddMaterial(vis_mat4);
         }
     }
 
@@ -342,9 +342,8 @@ int main(int argc, char* argv[]) {
 
     manager->Update();
 
-    if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(trimesh_shape)) {
-        // printf("assets: %d\n", visual_asset->material_list.size());
-        for (auto v : visual_asset->material_list) {
+    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(trimesh_shape)) {
+        for (const auto& v : visual_asset->GetMaterials()) {
             v->SetClassID(200);
             v->SetInstanceID(200);
         }

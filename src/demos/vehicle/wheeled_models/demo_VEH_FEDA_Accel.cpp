@@ -31,7 +31,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/feda/FEDA.h"
 
@@ -117,20 +117,7 @@ int main(int argc, char* argv[]) {
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
     terrain.Initialize();
 
-    // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_feda.GetVehicle(), L"HMMWV acceleration test");
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(0.f, -30.f, 100.f), irr::core::vector3df(0.f, 50.f, 100.f), 250, 130);
-    app.AddTypicalLights(irr::core::vector3df(-300.f, -30.f, 100.f), irr::core::vector3df(-300.f, 50.f, 100.f), 250, 130);
-    app.AddTypicalLights(irr::core::vector3df(+300.f, -30.f, 100.f), irr::core::vector3df(+300.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-
-    app.SetTimestep(step_size);
-
-    // ----------------------------------------------
     // Create the straight path and the driver system
-    // ----------------------------------------------
-
     auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(terrainLength / 2, 0, 0.5), 1);
     ChPathFollowerDriver driver(my_feda.GetVehicle(), path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
@@ -138,17 +125,20 @@ int main(int argc, char* argv[]) {
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
-    // ---------------------------------------------
-    // Finalize construction of visualization assets
-    // ---------------------------------------------
+    // Create the vehicle Irrlicht interface
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("FEDA acceleration test");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddLight(ChVector<>(0, -30, 100), 250,    ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(0, 50, 100), 130,     ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(-300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(-300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(+300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(+300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    my_feda.GetVehicle().SetVisualSystem(vis);
 
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-
-    // -------------
     // Prepare output
-    // -------------
-
     if (data_output) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
@@ -185,7 +175,7 @@ int main(int argc, char* argv[]) {
 
     ChTimer<> timer;
     timer.start();
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         time = my_feda.GetSystem()->GetChTime();
 
         double speed = speed_filter.Add(my_feda.GetVehicle().GetVehicleSpeed());
@@ -219,8 +209,8 @@ int main(int argc, char* argv[]) {
         if (time >= 100)
             break;
 
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -240,18 +230,18 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_feda.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("Acceleration test", driver_inputs);
+        vis->Synchronize("Acceleration test", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_feda.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;
 
-        app.EndScene();
+        vis->EndScene();
     }
 
     if (data_output) {

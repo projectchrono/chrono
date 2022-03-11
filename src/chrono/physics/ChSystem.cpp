@@ -18,6 +18,7 @@
 #ifdef CHRONO_COLLISION
     #include "chrono/collision/ChCollisionSystemChrono.h"
 #endif
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
@@ -27,6 +28,7 @@
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/solver/ChSolverPSSOR.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/utils/ChProfiler.h"
 
@@ -63,9 +65,10 @@ ChSystem::ChSystem()
       stepcount(0),
       setupcount(0),
       solvecount(0),
-      dump_matrices(false),
+      write_matrix(false),
       ncontacts(0),
       composition_strategy(new ChMaterialCompositionStrategy),
+      visual_system(nullptr),
       nthreads_chrono(ChOMP::GetNumProcs()),
       nthreads_eigen(1),
       nthreads_collision(1),
@@ -104,7 +107,8 @@ ChSystem::ChSystem(const ChSystem& other) {
     stepcount = other.stepcount;
     solvecount = other.solvecount;
     setupcount = other.setupcount;
-    dump_matrices = other.dump_matrices;
+    write_matrix = other.write_matrix;
+    output_dir = other.output_dir;
     SetTimestepperType(other.GetTimestepperType());
     tol_force = other.tol_force;
     nthreads_chrono = other.nthreads_chrono;
@@ -116,6 +120,8 @@ ChSystem::ChSystem(const ChSystem& other) {
     maxiter = other.maxiter;
 
     collision_system_type = other.collision_system_type;
+
+    visual_system = nullptr;
 
     min_bounce_speed = other.min_bounce_speed;
     max_penetration_recovery_speed = other.max_penetration_recovery_speed;
@@ -152,6 +158,10 @@ void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
     assembly.AddBody(body);
 }
 
+void ChSystem::AddShaft(std::shared_ptr<ChShaft> shaft) {
+    assembly.AddShaft(shaft);
+}
+
 void ChSystem::AddLink(std::shared_ptr<ChLinkBase> link) {
     assembly.AddLink(link);
 }
@@ -170,6 +180,11 @@ void ChSystem::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
 void ChSystem::Add(std::shared_ptr<ChPhysicsItem> item) {
     if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
         AddBody(body);
+        return;
+    }
+
+    if (auto shaft = std::dynamic_pointer_cast<ChShaft>(item)) {
+        AddShaft(shaft);
         return;
     }
 
@@ -192,6 +207,11 @@ void ChSystem::Remove(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
+    if (auto shaft = std::dynamic_pointer_cast<ChShaft>(item)) {
+        RemoveShaft(shaft);
+        return;
+    }
+
     if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
         RemoveLink(link);
         return;
@@ -206,8 +226,13 @@ void ChSystem::Remove(std::shared_ptr<ChPhysicsItem> item) {
 }
 
 // -----------------------------------------------------------------------------
-// Set/Get routines
-// -----------------------------------------------------------------------------
+
+void ChSystem::SetVisualSystem(std::shared_ptr<ChVisualSystem> vsys) {
+    assert(vsys);
+    visual_system = vsys;
+    visual_system->m_system = this;
+    visual_system->OnAttach();
+}
 
 void ChSystem::SetSolverMaxIterations(int max_iters) {
     if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
@@ -267,6 +292,12 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
         case ChSolver::Type::MINRES:
             solver = chrono_types::make_shared<ChSolverMINRES>();
             break;
+        case ChSolver::Type::SPARSE_LU:
+            solver = chrono_types::make_shared<ChSolverSparseLU>();
+            break;
+        case ChSolver::Type::SPARSE_QR:
+            solver = chrono_types::make_shared<ChSolverSparseQR>();
+            break;
         default:
             GetLog() << "Solver type not supported. Use SetSolver instead.\n";
             break;
@@ -283,6 +314,11 @@ std::shared_ptr<ChSolver> ChSystem::GetSolver() {
     }
 
     return solver;
+}
+
+void ChSystem::EnableSolverMatrixWrite(bool val, const std::string& out_dir) {
+    write_matrix = val;
+    output_dir = out_dir;
 }
 
 // -----------------------------------------------------------------------------
@@ -337,11 +373,11 @@ void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
     collision_system->SetSystem(this);
 }
 
-void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsystem) {
+void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_sys) {
     assert(assembly.GetNbodies() == 0);
-    assert(newcollsystem);
-    collision_system = newcollsystem;
-    collision_system_type = newcollsystem->GetType();
+    assert(coll_sys);
+    collision_system = coll_sys;
+    collision_system_type = coll_sys->GetType();
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
 }
@@ -735,6 +771,10 @@ void ChSystem::Update(bool update_assets) {
     // Update all contacts, if any
     contact_container->Update(ch_time, update_assets);
 
+    // Update any attached visualization system only when also updating assets
+    if (visual_system && update_assets)
+        visual_system->OnUpdate();
+
     timer_update.stop();
 }
 
@@ -1066,18 +1106,22 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     }
 
     // Diagnostics:
-    if (dump_matrices) {
+    if (write_matrix) {
         const char* numformat = "%.12g";
-        std::string sprefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount) + "_";
+        std::string prefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount);
 
-        descriptor->DumpLastMatrices(true, sprefix.c_str());
-        descriptor->DumpLastMatrices(false, sprefix.c_str());
+        if (std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
+            descriptor->WriteMatrixSpmv(output_dir, prefix);
+        } else {
+            descriptor->WriteMatrix(output_dir, prefix);
+            descriptor->WriteMatrixBlocks(output_dir, prefix);            
+        }
 
-        chrono::ChStreamOutAsciiFile file_x((sprefix + "x_pre.dat").c_str());
+        chrono::ChStreamOutAsciiFile file_x((output_dir + "/" + prefix + "_x_pre.dat").c_str());
         file_x.SetNumFormat(numformat);
         StreamOUTdenseMatlabFormat(x, file_x);
 
-        chrono::ChStreamOutAsciiFile file_v((sprefix + "v_pre.dat").c_str());
+        chrono::ChStreamOutAsciiFile file_v((output_dir + "/" + prefix + "_v_pre.dat").c_str());
         file_v.SetNumFormat(numformat);
         StreamOUTdenseMatlabFormat(v, file_v);
     }
@@ -1103,24 +1147,24 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     IntFromDescriptor(0, Dv, 0, L);
 
     // Diagnostics:
-    if (dump_matrices) {
+    if (write_matrix) {
         const char* numformat = "%.12g";
-        std::string sprefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount) + "_";
+        std::string prefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount) + "_";
 
-        chrono::ChStreamOutAsciiFile file_Dv((sprefix + "Dv.dat").c_str());
+        chrono::ChStreamOutAsciiFile file_Dv((output_dir + "/" + prefix + "Dv.dat").c_str());
         file_Dv.SetNumFormat(numformat);
         StreamOUTdenseMatlabFormat(Dv, file_Dv);
 
-        chrono::ChStreamOutAsciiFile file_L((sprefix + "L.dat").c_str());
+        chrono::ChStreamOutAsciiFile file_L((output_dir + "/" + prefix + "L.dat").c_str());
         file_L.SetNumFormat(numformat);
         StreamOUTdenseMatlabFormat(L, file_L);
 
         // Just for diagnostic, dump also unscaled loads (forces,torques),
-        // since the .._f.dat vector dumped in DumpLastMatrices() might contain scaled loads, and also +M*v
+        // since the .._f.dat vector dumped in WriteMatrixBlocks() might contain scaled loads, and also +M*v
         ChVectorDynamic<> tempF(this->GetNcoords_v());
         tempF.setZero();
         LoadResidual_F(tempF, 1.0);
-        chrono::ChStreamOutAsciiFile file_F((sprefix + "F_pre.dat").c_str());
+        chrono::ChStreamOutAsciiFile file_F((output_dir + "/" + prefix + "F_pre.dat").c_str());
         file_F.SetNumFormat(numformat);
         StreamOUTdenseMatlabFormat(tempF, file_F);
     }
@@ -1402,6 +1446,10 @@ bool ChSystem::Integrate_Y() {
     solvecount = 0;
     setupcount = 0;
 
+    // Let the visualization system (if any) perform setup operations
+    if (visual_system)
+        visual_system->OnSetup();
+
     // Compute contacts and create contact constraints
     int ncontacts_old = ncontacts;
     ComputeCollisions();
@@ -1453,6 +1501,10 @@ bool ChSystem::Integrate_Y() {
 
     // Time elapsed for step
     timer_step.stop();
+
+    // Update the run-time visualization system, if present
+    if (visual_system)
+        visual_system->OnUpdate();
 
     // Tentatively mark system as unchanged (i.e., no updated necessary)
     is_updated = true;
@@ -1541,7 +1593,7 @@ bool ChSystem::DoStaticLinear() {
     bool dump_data = false;
 
     if (dump_data) {
-        GetSystemDescriptor()->DumpLastMatrices();
+        descriptor->WriteMatrixBlocks("", "solve");
 
         // optional check for correctness in result
         chrono::ChVectorDynamic<double> md;
@@ -1549,7 +1601,7 @@ bool ChSystem::DoStaticLinear() {
 
         chrono::ChVectorDynamic<double> mx;
         GetSystemDescriptor()->FromUnknownsToVector(mx, true);  // x ={q,-l}
-        chrono::ChStreamOutAsciiFile file_x("dump_x.dat");
+        chrono::ChStreamOutAsciiFile file_x("solve_x.dat");
         StreamOUTdenseMatlabFormat(mx, file_x);
 
         chrono::ChVectorDynamic<double> mZx;
@@ -1944,7 +1996,7 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(step_min);
     marchive << CHNVP(step_max);
     marchive << CHNVP(stepcount);
-    marchive << CHNVP(dump_matrices);
+    marchive << CHNVP(write_matrix);
 
     marchive << CHNVP(tol_force);
     marchive << CHNVP(maxiter);
@@ -1981,7 +2033,7 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(step_min);
     marchive >> CHNVP(step_max);
     marchive >> CHNVP(stepcount);
-    marchive >> CHNVP(dump_matrices);
+    marchive >> CHNVP(write_matrix);
 
     marchive >> CHNVP(tol_force);
     marchive >> CHNVP(maxiter);

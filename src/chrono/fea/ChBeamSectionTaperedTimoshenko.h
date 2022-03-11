@@ -31,7 +31,7 @@ namespace fea {
 /// alpha is the mass-proportional damping coefficient. Because the mass matrix might be lumped or consistent type,
 /// for the sake of simplification, the mass-proportional damping matrix is evaluated simply as Rm+=alpha*M, instead
 /// of four different values as stiffness-proportional term.
-/// This damping modal is used in ChElementBeamTaperedTimoshenko and ChElementBeamTaperedTimoshenkoFPM.
+/// This damping model is used in ChElementBeamTaperedTimoshenko and ChElementBeamTaperedTimoshenkoFPM.
 /// For more background theory, please refer to:
 /// [1]. Hansen, M. H. (2001). Anisotropic damping of Timoshenko beam elements. (Denmark. Forskningscenter Risoe.
 ///      Risoe-R; No. 1267(EN)).
@@ -136,7 +136,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
         const double mBzz,                         ///< bending rigidity about zz
         const double mGAyy,                        ///< shear rigidity along yy
         const double mGAzz,                        ///< shear rigidity along zz
-        const DampingCoefficients mdamping_coeff,  /// damping coefficients
+        const DampingCoefficients mdamping_coeff,  ///< damping coefficients
         const double malpha,                       ///< section rotation about elastic center [rad]
         const double mCy,                          ///< elastic center y displacement respect to centerline
         const double mCz,                          ///< elastic center z displacement respect to centerline

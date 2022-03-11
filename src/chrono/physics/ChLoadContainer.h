@@ -50,6 +50,12 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
                                    const double c           ///< a scaling factor
                                    ) override;
 
+    virtual void IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
+                                   ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
+                                   const ChVectorDynamic<>& w,  ///< the w vector
+                                   const double c               ///< a scaling factor
+                                   ) override;
+
     /// Tell to a system descriptor that there are items of type
     /// ChKblock in this object (for further passing it to a solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.

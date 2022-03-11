@@ -87,10 +87,10 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&my_system, L"A simple pendulum example", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0, 14, -20));
+    application.AddCamera(core::vector3df(0, 14, -20));
 
     //
     // Create all the rigid bodies!!!!
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
         ChFrame<> my_fan_framerotation(my_fan_coord);
         ChFrame<> my_fan_framespin(ChCoordsys<>(VNULL, my_fan_spin));
         ChCoordsys<> my_fan_coordsys = (my_fan_framespin >> my_fan_framerotation).GetCoord();
-        tools::alignIrrlichtNodeToChronoCsys(fanNode, my_fan_coordsys);
+        tools::alignIrrlichtNode(fanNode, my_fan_coordsys);
 
         // Apply forces caused by fan & wind if Chrono rigid bodies are
         // in front of the fan, using a simple tutorial function (see above):

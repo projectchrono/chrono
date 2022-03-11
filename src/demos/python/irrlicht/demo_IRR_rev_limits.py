@@ -82,10 +82,10 @@ rev.Initialize(ground, pend, chrono.ChCoordsysD(chrono.VNULL, chrono.QUNIT))
 
 # Create the Irrlicht application
 application = irr.ChIrrApp(system, "Limits on LinkLockRevolute demo", irr.dimension2du(800, 600))
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(irr.vector3df(-2, 1.5, 5))
+application.AddCamera(irr.vector3df(-2, 1.5, 5))
 application.AssetBindAll()
 application.AssetUpdateAll()
 

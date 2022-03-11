@@ -30,7 +30,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChRigidPinnedAxle.h"
@@ -130,7 +130,7 @@ void ChRigidPinnedAxle::InitializeSide(VehicleSide side,
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPos_dt(-ang_vel);
-    chassis->GetSystem()->Add(m_axle[side]);
+    chassis->GetSystem()->AddShaft(m_axle[side]);
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
@@ -208,6 +208,7 @@ void ChRigidPinnedAxle::AddVisualizationAssets(VisualizationType vis) {
     cyl1->GetCylinderGeometry().p2 = pSR;
     cyl1->GetCylinderGeometry().rad = getAxleTubeRadius();
     m_axleTube->AddAsset(cyl1);
+    m_axleTube->AddVisualShape(cyl1);
 
     static const double threshold2 = 1e-6;
     if (pP.Length2() > threshold2) {
@@ -216,6 +217,7 @@ void ChRigidPinnedAxle::AddVisualizationAssets(VisualizationType vis) {
         cyl2->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl2->GetCylinderGeometry().rad = getAxleTubeRadius() / 2;
         m_axleTube->AddAsset(cyl2);
+        m_axleTube->AddVisualShape(cyl2);
     }
 
     auto cyl3 = chrono_types::make_shared<ChCylinderShape>();
@@ -223,16 +225,14 @@ void ChRigidPinnedAxle::AddVisualizationAssets(VisualizationType vis) {
     cyl3->GetCylinderGeometry().p2 = pP + ChVector<>(1.5 * getAxleTubeRadius(), 0, 0);
     cyl3->GetCylinderGeometry().rad = getAxleTubeRadius();
     m_axleTube->AddAsset(cyl3);
-
-    auto col = chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.6f);
-    m_axleTube->AddAsset(col);
+    m_axleTube->AddVisualShape(cyl3);
 }
 
 void ChRigidPinnedAxle::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_axleTube);
     ChSuspension::RemoveVisualizationAssets();
-
-    m_axleTube->GetAssets().clear();
 }
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRigidPinnedAxle::ExportComponentList(rapidjson::Document& jsonDocument) const {

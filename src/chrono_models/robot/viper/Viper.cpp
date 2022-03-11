@@ -191,7 +191,7 @@ std::shared_ptr<ChLinkTSDA> AddSuspensionSpring(std::shared_ptr<ChBodyAuxRef> bo
 
     std::shared_ptr<ChLinkTSDA> spring;
     spring = chrono_types::make_shared<ChLinkTSDA>();
-    spring->Initialize(body1, body2, false, p1, p2, true, 0.0);
+    spring->Initialize(body1, body2, false, p1, p2);
     spring->SetSpringCoefficient(800000.0);
     spring->SetDampingCoefficient(10000.0);
     chassis->GetBody()->GetSystem()->AddLink(spring);
@@ -216,25 +216,23 @@ void ViperPart::Construct(ChSystem* system) {
 
     // Add visualization shape
     if (m_visualize) {
-        std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
-        auto trimesh_vis = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh_vis->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+        auto vis_mesh_file = GetChronoDataFile("robot/viper/obj/" + m_mesh_name + ".obj");
+        auto trimesh_vis = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);
         trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
         trimesh_vis->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh_vis);
         trimesh_shape->SetName(m_mesh_name);
-        trimesh_shape->SetStatic(true);
+        trimesh_shape->SetMutable(false);
         m_body->AddAsset(trimesh_shape);
-        m_body->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color));
+        ////m_body->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color));
     }
 
     // Add collision shape
     if (m_collide) {
-        std::string col_mesh_file = "robot/viper/col/" + m_mesh_name + ".obj";
-        auto trimesh_col = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh_col->LoadWavefrontMesh(GetChronoDataFile(col_mesh_file), false, false);
+        auto col_mesh_file = GetChronoDataFile("robot/viper/col/" + m_mesh_name + ".obj");
+        auto trimesh_col = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(col_mesh_file, false, false);
         trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
         trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
@@ -248,9 +246,8 @@ void ViperPart::Construct(ChSystem* system) {
 }
 
 void ViperPart::CalcMassProperties(double density) {
-    std::string mesh_filename = "robot/viper/col/" + m_mesh_name + ".obj";
-    auto trimesh_col = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh_col->LoadWavefrontMesh(GetChronoDataFile(mesh_filename), false, false);
+    auto mesh_filename = GetChronoDataFile("robot/viper/col/" + m_mesh_name + ".obj");
+    auto trimesh_col = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false, false);
     trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
     trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 

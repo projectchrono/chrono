@@ -195,14 +195,14 @@ class MySimpleTank {
 
         // ..the tank right-back wheel
 
-        wheelRB = chrono_types::make_shared<ChBodyEasyMesh>(  //
-            GetChronoDataFile("wheel_view.obj").c_str(),      // data file
-            1000,                                             // density
-            false,                                            // do not compute mass and inertia
-            true,                                             // visualization?
-            false,                                            // collision?
-            nullptr,                                          // no need for contact material
-            0);                                               // mesh sweep sphere radius
+        wheelRB = chrono_types::make_shared<ChBodyEasyMesh>(       //
+            GetChronoDataFile("models/bulldozer/wheel_view.obj"),  // data file
+            1000,                                                  // density
+            false,                                                 // do not compute mass and inertia
+            true,                                                  // visualization?
+            false,                                                 // collision?
+            nullptr,                                               // no need for contact material
+            0);                                                    // mesh sweep sphere radius
 
         my_system.Add(wheelRB);
         wheelRB->SetPos(ChVector<>(mx, my + radiustrack, 0));
@@ -230,14 +230,14 @@ class MySimpleTank {
 
         // ..the tank left-back wheel
 
-        wheelLB = chrono_types::make_shared<ChBodyEasyMesh>(  //
-            GetChronoDataFile("wheel_view.obj").c_str(),      // data file
-            1000,                                             // density
-            false,                                            // do not compute mass and inertia
-            true,                                             // visualization?
-            false,                                            // collision?
-            nullptr,                                          // no need for contact material
-            0);                                               // mesh sweep sphere radius
+        wheelLB = chrono_types::make_shared<ChBodyEasyMesh>(       //
+            GetChronoDataFile("models/bulldozer/wheel_view.obj"),  // data file
+            1000,                                                  // density
+            false,                                                 // do not compute mass and inertia
+            true,                                                  // visualization?
+            false,                                                 // collision?
+            nullptr,                                               // no need for contact material
+            0);                                                    // mesh sweep sphere radius
 
         my_system.Add(wheelLB);
         wheelLB->SetPos(ChVector<>(mx, my + radiustrack, rlwidth));
@@ -264,11 +264,8 @@ class MySimpleTank {
         //--- TRACKS ---
 
         // Load a triangle mesh for collision
-
-        IAnimatedMesh* irmesh_shoe_collision = msceneManager->getMesh(GetChronoDataFile("models/bulldozer/shoe_collision.obj").c_str());
-
-        auto trimesh = chrono_types::make_shared<ChTriangleMeshSoup>();
-        fillChTrimeshFromIrlichtMesh(trimesh.get(), irmesh_shoe_collision->getMesh(0));
+        auto trimesh =
+            ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_collision.obj"));
 
         ChVector<> mesh_displacement(shoelength * 0.5, 0, 0);    // as mesh origin is not in body center of mass
         ChVector<> joint_displacement(-shoelength * 0.5, 0, 0);  // pos. of shoe-shoe constraint, relative to COG.
@@ -300,18 +297,22 @@ class MySimpleTank {
             firstBodyShoe->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
 
             // Visualization:
+            auto shoe_trimesh =
+                ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"));
+            shoe_trimesh->Transform(-mesh_displacement, ChMatrix33<>(1));
             auto shoe_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
-            firstBodyShoe->AddAsset(shoe_mesh);
-            shoe_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_view.obj").c_str());
-            shoe_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
+            shoe_mesh->SetMesh(shoe_trimesh);
             shoe_mesh->SetVisible(true);
+            firstBodyShoe->AddAsset(shoe_mesh);
 
             // Visualize collision mesh
+            auto shoe_coll_trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
+                GetChronoDataFile("models/bulldozer/shoe_collision.obj"));
+            shoe_coll_trimesh->Transform(-mesh_displacement, ChMatrix33<>(1));
             auto shoe_coll_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
-            firstBodyShoe->AddAsset(shoe_coll_mesh);
-            shoe_coll_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_collision.obj").c_str());
-            shoe_coll_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
+            shoe_coll_mesh->SetMesh(shoe_coll_trimesh);
             shoe_coll_mesh->SetVisible(false);
+            firstBodyShoe->AddAsset(shoe_coll_mesh);
 
             // Collision:
             firstBodyShoe->GetCollisionModel()->SetSafeMargin(0.004);  // inward safe margin
@@ -448,21 +449,21 @@ class MyEventReceiver : public IEventReceiver {
         // store pointer to other stuff
         mtank = atank;
 
-        // ..add a GUI slider to control throttle left via mouse
-        scrollbar_throttleL =
-            application->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(510, 20, 650, 35), 0, 101);
-        scrollbar_throttleL->setMax(100);
-        scrollbar_throttleL->setPos(50);
-        text_throttleL =
-            application->GetIGUIEnvironment()->addStaticText(L"Left throttle ", rect<s32>(650, 20, 750, 35), false);
-
-        // ..add a GUI slider to control gas throttle right via mouse
+        // ..add a GUI slider to control throttle right via mouse
         scrollbar_throttleR =
-            application->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(510, 45, 650, 60), 0, 102);
+            application->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(510, 20, 650, 35), 0, 101);
         scrollbar_throttleR->setMax(100);
         scrollbar_throttleR->setPos(50);
         text_throttleR =
-            application->GetIGUIEnvironment()->addStaticText(L"Right throttle", rect<s32>(650, 45, 750, 60), false);
+            application->GetIGUIEnvironment()->addStaticText(L"Right throttle ", rect<s32>(650, 20, 750, 35), false);
+
+        // ..add a GUI slider to control gas throttle left via mouse
+        scrollbar_throttleL =
+            application->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(510, 45, 650, 60), 0, 102);
+        scrollbar_throttleL->setMax(100);
+        scrollbar_throttleL->setPos(50);
+        text_throttleL =
+            application->GetIGUIEnvironment()->addStaticText(L"Left throttle", rect<s32>(650, 45, 750, 60), false);
     }
 
     bool OnEvent(const SEvent& event) {
@@ -472,19 +473,19 @@ class MyEventReceiver : public IEventReceiver {
 
             switch (event.GUIEvent.EventType) {
                 case EGET_SCROLL_BAR_CHANGED:
-                    if (id == 101) {  // id of 'throttleL' slider..
-                        s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-                        double newthrottle = ((double)(pos)-50) / 50.0;
-                        this->mtank->throttleL = newthrottle;
-                        auto mfun = std::static_pointer_cast<ChFunction_Const>(mtank->link_motorLB->GetSpeedFunction());
-                        mfun->Set_yconst(newthrottle * 6);
-                        return true;
-                    }
-                    if (id == 102) {  // id of 'throttleR' slider..
+                    if (id == 101) {  // id of 'throttleR' slider..
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newthrottle = ((double)(pos)-50) / 50.0;
                         this->mtank->throttleR = newthrottle;
                         auto mfun = std::static_pointer_cast<ChFunction_Const>(mtank->link_motorRB->GetSpeedFunction());
+                        mfun->Set_yconst(newthrottle * 6);
+                        return true;
+                    }
+                    if (id == 102) {  // id of 'throttleL' slider..
+                        s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
+                        double newthrottle = ((double)(pos)-50) / 50.0;
+                        this->mtank->throttleL = newthrottle;
+                        auto mfun = std::static_pointer_cast<ChFunction_Const>(mtank->link_motorLB->GetSpeedFunction());
                         mfun->Set_yconst(newthrottle * 6);
                         return true;
                     }
@@ -520,10 +521,10 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc. etc.)
     ChIrrApp application(&my_system, L"Modeling a simplified   tank", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0, 0, -6), core::vector3df(-2, 2, 0));
+    application.AddCamera(core::vector3df(0, 0, -6), core::vector3df(-2, 2, 0));
 
     // 2- Create the rigid bodies of the simpified tank suspension mechanical system
     //   maybe setting position/mass/inertias of

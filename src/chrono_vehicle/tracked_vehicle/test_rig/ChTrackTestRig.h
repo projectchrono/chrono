@@ -220,10 +220,10 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     std::vector<double> m_displ_input;      ///< current post displacement inputs
     std::string m_driver_logfile;           ///< name of optioinal driver log file
 
-    double m_ride_height;         ///< ride height
-    double m_displ_offset;        ///< post displacement offset (to set reference position)
-    double m_displ_delay;         ///< time interval for assuming reference position
-    double m_displ_limit;         ///< scale factor for post displacement
+    double m_ride_height;   ///< ride height
+    double m_displ_offset;  ///< post displacement offset (to set reference position)
+    double m_displ_delay;   ///< time interval for assuming reference position
+    double m_displ_limit;   ///< scale factor for post displacement
 
     double m_max_torque;  ///< maximum torque applied to sprocket
 
@@ -243,7 +243,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     double m_next_plot_output_time;
     utils::CSV_writer* m_csv;
 
-    friend class ChTrackTestRigIrrApp;
+    friend class ChTrackTestRigVisualSystemIrrlicht;
 };
 
 /// @} vehicle_tracked_test_rig

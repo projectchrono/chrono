@@ -62,7 +62,7 @@ void gim_contact_array::merge_contacts(
 	// Merge contacts
 
 	GUINT coincident_count = 0;
-	btVector3 coincident_normals[MAX_COINCIDENT];
+	cbtVector3 coincident_normals[MAX_COINCIDENT];
 
 	GUINT last_key = keycontacts[0].m_key;
 	GUINT key = 0;
@@ -85,7 +85,7 @@ void gim_contact_array::merge_contacts(
 			}
 			else if (normal_contact_average)
 			{
-				if (btFabs(pcontact->m_depth - scontact->m_depth) < CONTACT_DIFF_EPSILON)
+				if (cbtFabs(pcontact->m_depth - scontact->m_depth) < CONTACT_DIFF_EPSILON)
 				{
 					if (coincident_count < MAX_COINCIDENT)
 					{

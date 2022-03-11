@@ -14,10 +14,9 @@
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/assets/ChColor.h"
-#include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono/utils/ChProfiler.h"
-#include "chrono/collision/bullet/LinearMath/btIDebugDraw.h"
-#include "chrono/collision/ChCollisionSystemBullet.h"
+
+#include "chrono_irrlicht/ChIrrTools.h"
 
 namespace chrono {
 namespace irrlicht {
@@ -26,9 +25,70 @@ namespace tools {
 using namespace irr;
 
 // -----------------------------------------------------------------------------
-// Function to align an Irrlicht object to a Chrono::Engine coordsys.
+
+video::SColorf ToIrrlichtSColorf(const ChColor col) {
+    return video::SColorf(col.R, col.G, col.B, col.A);
+}
+
+video::SColor ToIrrlichtSColor(const ChColor col) {
+    return video::SColor((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
+}
+
+video::SColor ToIrrlichtSColor(const ChVector<float>& col, float alpha) {
+    return video::SColor((u32)(alpha * 255), (u32)(col.x() * 255), (u32)(col.y() * 255), (u32)(col.z() * 255));
+}
+
 // -----------------------------------------------------------------------------
-void alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const ChCoordsys<>& mcoords) {
+
+video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video::IVideoDriver* driver) {
+    video::SMaterial irr_mat;
+
+    irr_mat.AmbientColor = ToIrrlichtSColor(mat->GetAmbientColor());
+    irr_mat.DiffuseColor = ToIrrlichtSColor(mat->GetDiffuseColor());
+    irr_mat.SpecularColor = ToIrrlichtSColor(mat->GetSpecularColor());
+    irr_mat.EmissiveColor = ToIrrlichtSColor(mat->GetEmissiveColor());
+
+    float dval = mat->GetOpacity();  // in [0,1]
+    irr_mat.DiffuseColor.setAlpha((s32)(dval * 255));
+    if (dval < 1.0f)
+        irr_mat.MaterialType = video::EMT_TRANSPARENT_VERTEX_ALPHA;
+
+    float ns_val = mat->GetSpecularExponent();  // in [0, 1000]
+    irr_mat.Shininess = ns_val * 0.128f;
+
+    auto kd_texture_name = mat->GetKdTexture();
+    if (!kd_texture_name.empty()) {
+        auto scale = mat->GetKdTextureScale();
+        auto kd_texture = driver->getTexture(kd_texture_name.c_str());
+        irr_mat.setTexture(0, kd_texture);
+        irr_mat.getTextureMatrix(0).setTextureScale(scale.x(), scale.y());
+
+        // Same as when Irrlicht loads the OBJ+MTL.  Is this really needed?
+        irr_mat.DiffuseColor.setRed(255);
+        irr_mat.DiffuseColor.setGreen(255);
+        irr_mat.DiffuseColor.setBlue(255);
+    }
+
+    auto normal_texture_name = mat->GetNormalMapTexture();
+    if (!normal_texture_name.empty()) {
+        auto scale = mat->GetNormalMapTextureScale();
+        auto normal_texture = driver->getTexture(normal_texture_name.c_str());
+        irr_mat.setTexture(1, normal_texture);
+        irr_mat.getTextureMatrix(1).setTextureScale(scale.x(), scale.y());
+
+        // Same as when Irrlicht loads the OBJ+MTL.  Is this really needed?
+        irr_mat.DiffuseColor.setRed(255);
+        irr_mat.DiffuseColor.setGreen(255);
+        irr_mat.DiffuseColor.setBlue(255);
+    }
+
+    return irr_mat;
+}
+
+// -----------------------------------------------------------------------------
+// Align an Irrlicht object to a the specified coordinate system.
+// -----------------------------------------------------------------------------
+void alignIrrlichtNode(scene::ISceneNode* mnode, const ChCoordsys<>& mcoords) {
     // Output: will be an Irrlicht 4x4 matrix
     irr::core::matrix4 irrMat;
 
@@ -437,7 +497,7 @@ int drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* drive
 
         // default frame alignment:
 
-        frAabs = link->GetAssetsFrame();
+        frAabs = link->GetVisualModelFrame();
         frBabs = frAabs;
 
         // special cases:
@@ -688,6 +748,35 @@ void drawSpring(irr::video::IVideoDriver* driver,
 }
 
 // -----------------------------------------------------------------------------
+// Draw a rotational spring in 3D space, with given color.
+// -----------------------------------------------------------------------------
+ChApiIrr void drawRotSpring(irr::video::IVideoDriver* driver,
+                            ChCoordsys<> pos,
+                            double radius,
+                            double start_angle,
+                            double end_angle,
+                            irr::video::SColor col,
+                            int resolution,
+                            bool use_Zbuffer) {
+    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
+    mattransp.ZBuffer = false;
+    mattransp.Lighting = false;
+    driver->setMaterial(mattransp);
+
+    double del_angle = (end_angle - start_angle) / resolution;
+    ChVector<> V1(radius * std::cos(start_angle), radius * std::sin(start_angle), 0);
+
+    for (int iu = 1; iu <= resolution; iu++) {
+        double crt_angle = start_angle + iu * del_angle;
+        double crt_radius = radius - (iu * del_angle / CH_C_2PI) * (radius / 10);
+        ChVector<> V2(crt_radius * std::cos(crt_angle), crt_radius * std::sin(crt_angle), 0);
+        drawSegment(driver, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        V1 = V2;
+    }
+}
+
+// -----------------------------------------------------------------------------
 // Draw grids in 3D space, with given orientation, colour and spacing.
 // -----------------------------------------------------------------------------
 void drawGrid(irr::video::IVideoDriver* driver,
@@ -758,67 +847,6 @@ void drawColorbar(double vmin,
     }
     font->draw(irr::core::stringw(label.c_str()).c_str(), core::rect<s32>(mx, my + sy + 5, mx + 100, my + sy + 20),
                irr::video::SColor(255, 0, 0, 0));
-}
-
-// utility class used for drawing coll shapes using the Bullet machinery (see drawCollisionShapes)
-class ChDebugDrawer : public btIDebugDraw {
-  public:
-    explicit ChDebugDrawer(irr::video::IVideoDriver* driver)
-        : driver_(driver), debugMode_(0), linecolor(255, 255, 0, 0) {}
-
-    ~ChDebugDrawer() override {}
-
-    void drawLine(const btVector3& from, const btVector3& to, const btVector3& color) override {
-        // Note: I did not use the color here as the visuals with the white box were not very
-        // appealing. But one could simply do a SCColor(255, color.x() * 255, color.y() * 255, color.z() * 255)
-        // to get native bullet colors. Useful as this override also results in drawing the x,y,z axis for
-        // the reference frames for the collision models.
-        driver_->draw3DLine(irr::core::vector3dfCH(ChVector<>(from.x(), from.y(), from.z())),
-                            irr::core::vector3dfCH(ChVector<>(to.x(), to.y(), to.z())), linecolor);
-    }
-
-    void drawContactPoint(const btVector3& PointOnB,
-                          const btVector3& normalOnB,
-                          btScalar distance,
-                          int lifeTime,
-                          const btVector3& color) override {}
-
-    void reportErrorWarning(const char* warningString) override {}
-    void draw3dText(const btVector3& location, const char* textString) override {}
-
-    void setDebugMode(int debugMode) override { debugMode_ |= debugMode; }
-
-    int getDebugMode() const override { return debugMode_; }
-
-    void setLineColor(irr::video::SColor& mcolor) { linecolor = mcolor; }
-
-  private:
-    irr::video::IVideoDriver* driver_;
-    int debugMode_;
-    irr::video::SColor linecolor;
-};
-
-// Draw the collision shapes as wireframe, overlayed to shapes.
-// Note: this works only for the Bullet collision system (i.e. not working for Chrono::Multicore)
-void drawCollisionShapes(ChSystem& asystem, irr::IrrlichtDevice* mdevice, irr::video::SColor mcol) {
-    const auto& chCollisionSystem =
-        std::dynamic_pointer_cast<chrono::collision::ChCollisionSystemBullet>(asystem.GetCollisionSystem());
-    if (!chCollisionSystem)
-        return;
-
-    auto bulletCollisionWorld = chCollisionSystem->GetBulletCollisionWorld();
-    ChDebugDrawer debugDrawer(mdevice->getVideoDriver());
-    debugDrawer.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
-    debugDrawer.setLineColor(mcol);
-    bulletCollisionWorld->setDebugDrawer(&debugDrawer);
-
-    mdevice->getVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
-    irr::video::SMaterial mattransp;
-    mattransp.ZBuffer = true;
-    mattransp.Lighting = false;
-    mdevice->getVideoDriver()->setMaterial(mattransp);
-
-    bulletCollisionWorld->debugDrawWorld();
 }
 
 // -----------------------------------------------------------------------------

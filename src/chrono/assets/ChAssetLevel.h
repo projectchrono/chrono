@@ -34,9 +34,6 @@ class ChApi ChAssetLevel : public ChAsset {
     /// Access to the list of children assets.
     std::vector<std::shared_ptr<ChAsset>>& GetAssets() { return assets; }
 
-    /// Get the Nth asset in list
-    std::shared_ptr<ChAsset> GetAssetN(unsigned int num);
-
     /// Add an asset to this level.
     void AddAsset(std::shared_ptr<ChAsset> masset) { this->assets.push_back(masset); }
 

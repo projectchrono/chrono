@@ -20,21 +20,17 @@ Instructions on how to set up a project that uses Chrono.
 
   Detailed documentation of Chrono's main features.
 
-
 - [Chrono::Vehicle module](@ref manual_vehicle)
 
   Ground vehicle modeling and simulation with the Chrono::Vehicle module
-
 
 - [Chrono::Sensor module](@ref manual_sensor)
 
   Sensor modeling and simulation with the Chrono::Sensor module
 
-
 - [PyChrono](@ref pychrono_introduction)
 
   Overview of PyChrono, the Python API to Chrono libraries
-
 
 - [SynChrono](@ref manual_synchrono)
 
@@ -43,6 +39,10 @@ Instructions on how to set up a project that uses Chrono.
 - [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
 
   SolidWorks plugin for exporting CAD data to Chrono
+
+- [Visualization](@ref manual_visualization)  
+
+  Chrono support for run-time and off-line visualization
 
 ---
 

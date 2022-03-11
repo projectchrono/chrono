@@ -22,7 +22,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -117,27 +117,29 @@ int main(int argc, char* argv[]) {
     // ---------------------------------
 
     auto spring1 = chrono_types::make_shared<ChLinkTSDA>();
-    spring1->Initialize(ground, slider1, true, ChVector<>(0, 0, -1), ChVector<>(0, 0, 0), false, 0);
+    spring1->Initialize(ground, slider1, true, ChVector<>(0, 0, -1), ChVector<>(0, 0, 0));
+    spring1->SetRestLength(0.0);
     spring1->SetSpringCoefficient(10);
     spring1->SetDampingCoefficient(0);
     system.AddLink(spring1);
-    spring1->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.1, 80, 15));
+    spring1->AddAsset(chrono_types::make_shared<ChSpringShape>(0.1, 80, 15));
 
     auto spring2 = chrono_types::make_shared<ChLinkTSDA>();
-    spring2->Initialize(ground, slider2, true, ChVector<>(0, 0, +1), ChVector<>(0, 0, 0), false, 0);
+    spring2->Initialize(ground, slider2, true, ChVector<>(0, 0, +1), ChVector<>(0, 0, 0));
+    spring2->SetRestLength(0.0);
     spring2->SetSpringCoefficient(10);
     spring2->SetDampingCoefficient(0);
     system.AddLink(spring2);
-    spring2->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.1, 80, 15));
+    spring2->AddAsset(chrono_types::make_shared<ChSpringShape>(0.1, 80, 15));
 
     // Create the Irrlicht application
     // -------------------------------
 
     ChIrrApp application(&system, L"Limits on LinkLockPrismatic demo", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(-1, 1.5, -6));
+    application.AddCamera(irr::core::vector3df(-1, 1.5, -6));
 
     application.AssetBindAll();
     application.AssetUpdateAll();

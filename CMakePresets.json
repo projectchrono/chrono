@@ -1,7 +1,7 @@
 {
 	"version": 1,
 	"vendor": {
-		"projectchrono.org/chrono/6.0.0" : {}
+		"projectchrono.org/chrono/7.0.2" : {}
 	},
 	"cmakeMinimumRequired": {
 		"major": 3,
@@ -83,28 +83,28 @@
 			"inherits": "genericci-base",
 			"cacheVariables": {
 				"ENABLE_MODULE_PARDISO_MKL": "ON",
-				"BLAZE_DIR": "C:/Users/SBEL CI/Documents/blaze-3.8",
-				"EIGEN3_INCLUDE_DIR": "C:/Users/SBEL CI/Documents/eigen-3.3.9",
-				"GLEW_DLL": "C:/Users/SBEL CI/Documents/glew-2.2.0/bin/Release/x64/glew32.dll",
-				"GLEW_INCLUDE_DIR": "C:/Users/SBEL CI/Documents/glew-2.2.0/include",
-				"GLEW_LIBRARY": "C:/Users/SBEL CI/Documents/glew-2.2.0/lib/Release/x64/glew32.lib",
-				"GLFW_DLL": "C:/Users/SBEL CI/Documents/glfw-3.3.4/lib-vc2017/glfw3.dll",
-				"GLFW_INCLUDE_DIR": "C:/Users/SBEL CI/Documents/glfw-3.3.4/include",
-				"GLFW_LIBRARY": "C:/Users/SBEL CI/Documents/glfw-3.3.4/lib-vc2017/glfw3dll.lib",
-				"GLM_INCLUDE_DIR": "C:/Users/SBEL CI/Documents/glm-0.9.9.8",
-				"IRRLICHT_LIBRARY": "C:/Users/SBEL CI/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib",
-				"IRRLICHT_ROOT": "C:/Users/SBEL CI/Documents/irrlicht-1.8.4",
-				"PYTHON_EXECUTABLE": "C:/ProgramData/Anaconda3/python.exe",
-				"SWIG_EXECUTABLE": "C:/Users/SBEL CI/Documents/swigwin-4.0.2/swig.exe",
+				"BLAZE_DIR": "C:/Users/builder/Documents/blaze-3.7",
+				"EIGEN3_INCLUDE_DIR": "C:/Users/builder/Documents/eigen-3.3.9",
+				"GLEW_DLL": "C:/Users/builder/Documents/glew-2.2.0/bin/Release/x64/glew32.dll",
+				"GLEW_INCLUDE_DIR": "C:/Users/builder/Documents/glew-2.2.0/include",
+				"GLEW_LIBRARY": "C:/Users/builder/Documents/glew-2.2.0/lib/Release/x64/glew32.lib",
+				"GLFW_DLL": "C:/Users/builder/Documents/glfw-3.3.5/lib-vc2019/glfw3.dll",
+				"GLFW_INCLUDE_DIR": "C:/Users/builder/Documents/glfw-3.3.5/include",
+				"GLFW_LIBRARY": "C:/Users/builder/Documents/glfw-3.3.5/lib-vc2019/glfw3dll.lib",
+				"GLM_INCLUDE_DIR": "C:/Users/builder/Documents/glm-0.9.9.8",
+				"IRRLICHT_LIBRARY": "C:/Users/builder/Documents/irrlicht-1.8.5/lib/Win64-visualStudio/Irrlicht.lib",
+				"IRRLICHT_ROOT": "C:/Users/builder/Documents/irrlicht-1.8.5",
+				"PYTHON_EXECUTABLE": "C:/Users/builder/miniconda3/python.exe",
+				"SWIG_EXECUTABLE": "C:/Users/builder/Documents/swigwin-4.0.2/swig.exe",
 				"USE_MULTICORE_CUDA": "OFF",
 				"ENABLE_HDF5": "OFF"
 			}
 		},
 		{
 			"name": "windowsci-vs2019",
-			"displayName": "Windows CI Configuration for Visual Studio 2019",
+			"displayName": "Windows CI Configuration for Visual Studio 2022 (as 2019)",
 			"description": "Options for Windows with Visual Studio 2019 toolchain",
-			"generator": "Visual Studio 16 2019",
+			"generator": "Visual Studio 17 2022",
 			"architecture": "x64",
 			"toolset": "v142",
 			"inherits": [
@@ -113,23 +113,29 @@
 			],
 			"cacheVariables": {
 				"ENABLE_MODULE_GPU": "ON",
-				"ENABLE_MODULE_FSI": "ON",
+				"ENABLE_MODULE_FSI": "OFF",
 				"ENABLE_MODULE_SENSOR": "OFF",
 				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0"
 			}
 		},
 		{
-			"name": "windowsci-vs2017",
-			"displayName": "Windows CI Configuration for Visual Studio 2019 (as 2017)",
-			"description": "Options for Windows with Visual Studio 2017 toolchain",
-			"generator": "Visual Studio 16 2019",
+			"name": "windowsci-vs2022",
+			"displayName": "Windows CI Configuration for Visual Studio 2022",
+			"description": "Options for Windows with Visual Studio 2022 toolchain",
+			"generator": "Visual Studio 17 2022",
 			"architecture": "x64",
-			"toolset": "v141",
+			"toolset": "v143",
 			"inherits": [
 				"windowsci-base",
 				"genericci-base"
-			]
+			],
+			"cacheVariables": {
+				"ENABLE_MODULE_GPU": "OFF",
+				"ENABLE_MODULE_MULTICORE": "OFF",
+				"ENABLE_MODULE_FSI": "OFF",
+				"ENABLE_MODULE_SENSOR": "OFF",
+				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0"
+			}
 		}
 	]
-
 }

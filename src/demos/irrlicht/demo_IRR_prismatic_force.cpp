@@ -24,7 +24,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -124,10 +124,10 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht application
     ChIrrApp application(&system, L"Actuated prismatic joint", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(-1, 1.5, -6));
+    application.AddCamera(irr::core::vector3df(-1, 1.5, -6));
 
     application.AssetBindAll();
     application.AssetUpdateAll();

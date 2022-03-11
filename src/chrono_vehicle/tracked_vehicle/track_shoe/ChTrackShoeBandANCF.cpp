@@ -37,7 +37,7 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAbase.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 using namespace chrono::fea;
 
@@ -349,7 +349,7 @@ void ChTrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChTrackShoeBandANCF::RemoveVisualizationAssets() {
-    m_shoe->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_shoe);
 }
 
 // -----------------------------------------------------------------------------

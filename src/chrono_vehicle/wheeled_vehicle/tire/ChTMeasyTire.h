@@ -52,7 +52,6 @@
 #include <vector>
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_vehicle/ChTerrain.h"
@@ -176,7 +175,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     virtual double GetDeflection() const override { return m_data.depth; }
 
     /// Using tire relaxation, we have three tire deflections
-    ChVector<> GetDeflection() { return ChVector<>(m_states.xe, m_states.ye, m_data.depth); }
+    ChVector<> GetDeflection3() { return ChVector<>(m_states.xe, m_states.ye, m_data.depth); }
 
     /// Export a TMeasy Tire Parameter File
     void ExportParameterFile(std::string fileName);
@@ -341,7 +340,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     TerrainForce m_tireforce;
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
-    std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset
 };
 
 /// @} vehicle_wheeled_tire

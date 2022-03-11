@@ -146,8 +146,9 @@ void Pac89Tire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void Pac89Tire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChPac89Tire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
+
 }  // namespace vehicle
 }  // namespace chrono

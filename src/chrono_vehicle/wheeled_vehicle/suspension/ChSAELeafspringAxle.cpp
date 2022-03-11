@@ -63,7 +63,7 @@
 
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChSAELeafspringAxle.h"
 
@@ -211,8 +211,8 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
-    m_spring[side]->Initialize(chassis->GetBody(), m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
-                               getSpringRestLength());
+    m_spring[side]->Initialize(chassis->GetBody(), m_axleTube, false, points[SPRING_C], points[SPRING_A]);
+    m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
     chassis->GetSystem()->AddLink(m_spring[side]);
 
@@ -222,7 +222,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPos_dt(-ang_vel);
-    chassis->GetSystem()->Add(m_axle[side]);
+    chassis->GetSystem()->AddShaft(m_axle[side]);
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
@@ -293,7 +293,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
                                                   m_clampA[side], m_axleTube, rev_csys_clampA, getClampBushingData());
     chassis->AddJoint(m_clampARev[side]);
 
-    m_latRotSpringA[side] = chrono_types::make_shared<ChLinkRotSpringCB>();
+    m_latRotSpringA[side] = chrono_types::make_shared<ChLinkRSDA>();
     m_latRotSpringA[side]->Initialize(m_clampA[side], m_axleTube, rev_csys_clampA);
     m_latRotSpringA[side]->RegisterTorqueFunctor(getLatTorqueFunctorA());
     chassis->GetSystem()->AddLink(m_latRotSpringA[side]);
@@ -315,7 +315,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
                                                   m_clampB[side], m_axleTube, rev_csys_clampB, getClampBushingData());
     chassis->AddJoint(m_clampBRev[side]);
 
-    m_latRotSpringB[side] = chrono_types::make_shared<ChLinkRotSpringCB>();
+    m_latRotSpringB[side] = chrono_types::make_shared<ChLinkRSDA>();
     m_latRotSpringB[side]->Initialize(m_clampB[side], m_axleTube, rev_csys_clampB);
     m_latRotSpringB[side]->RegisterTorqueFunctor(getLatTorqueFunctorB());
     chassis->GetSystem()->AddLink(m_latRotSpringB[side]);
@@ -327,8 +327,8 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
         rev_csys_rearleaf, getLeafspringBushingData());
     chassis->AddJoint(m_rearleafRev[side]);
 
-    m_vertRotSpringB[side] = chrono_types::make_shared<ChLinkRotSpringCB>();
-    m_vertRotSpringB[side]->Initialize(m_clampB[side], m_rearleaf[side], rev_csys_clampB);
+    m_vertRotSpringB[side] = chrono_types::make_shared<ChLinkRSDA>();
+    m_vertRotSpringB[side]->Initialize(m_clampB[side], m_rearleaf[side], rev_csys_rearleaf);
     m_vertRotSpringB[side]->RegisterTorqueFunctor(getVertTorqueFunctorB());
     chassis->GetSystem()->AddLink(m_vertRotSpringB[side]);
 
@@ -339,7 +339,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
         rev_csys_frontleaf, getLeafspringBushingData());
     chassis->AddJoint(m_frontleafRev[side]);
 
-    m_vertRotSpringA[side] = chrono_types::make_shared<ChLinkRotSpringCB>();
+    m_vertRotSpringA[side] = chrono_types::make_shared<ChLinkRSDA>();
     m_vertRotSpringA[side]->Initialize(m_clampA[side], m_frontleaf[side], rev_csys_frontleaf);
     m_vertRotSpringA[side]->RegisterTorqueFunctor(getVertTorqueFunctorA());
     chassis->GetSystem()->AddLink(m_vertRotSpringA[side]);
@@ -438,11 +438,15 @@ void ChSAELeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.03, 150, 10));
-    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.03, 150, 10));
+    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.03, 150, 10));
+    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.03, 150, 10));
+    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
 
-    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.03, 150, 10));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.03, 150, 10));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 
     double rs = getAxleTubeRadius() / 10.0;
 
@@ -472,27 +476,27 @@ void ChSAELeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChSAELeafspringAxle::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_axleTube);
+
+    ChPart::RemoveVisualizationAssets(m_spring[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_spring[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_shock[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_shock[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_frontleaf[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_frontleaf[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_rearleaf[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_rearleaf[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_clampA[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_clampA[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_shackle[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_shackle[RIGHT]);
+
     ChSuspension::RemoveVisualizationAssets();
-
-    m_axleTube->GetAssets().clear();
-
-    m_spring[LEFT]->GetAssets().clear();
-    m_spring[RIGHT]->GetAssets().clear();
-
-    m_shock[LEFT]->GetAssets().clear();
-    m_shock[RIGHT]->GetAssets().clear();
-
-    m_frontleaf[LEFT]->GetAssets().clear();
-    m_frontleaf[RIGHT]->GetAssets().clear();
-
-    m_rearleaf[LEFT]->GetAssets().clear();
-    m_rearleaf[RIGHT]->GetAssets().clear();
-
-    m_clampA[LEFT]->GetAssets().clear();
-    m_clampB[RIGHT]->GetAssets().clear();
-
-    m_shackle[LEFT]->GetAssets().clear();
-    m_shackle[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
@@ -511,10 +515,7 @@ void ChSAELeafspringAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     cyl->GetCylinderGeometry().p2 = p_2;
     cyl->GetCylinderGeometry().rad = radius;
     body->AddAsset(cyl);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(color);
-    body->AddAsset(col);
+    body->AddVisualShape(cyl);
 }
 
 // -----------------------------------------------------------------------------

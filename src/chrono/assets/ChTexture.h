@@ -15,44 +15,62 @@
 #ifndef CHTEXTURE_H
 #define CHTEXTURE_H
 
+#include <string>
+
 #include "chrono/assets/ChAsset.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChVector2.h"
 
 namespace chrono {
 
-/// Base class for assets that define basic textures. Assets can be attached to ChBody objects.
-/// Different post processing modules can handle textures in proper ways (ex for ray tracing, or
-/// openGL visualization), or may also create specialized classes of textures with more properties.
+/// Class for defining a texture.
+/// Encapsulates the texture filename and texture scale.
 class ChApi ChTexture : public ChAsset {
-  protected:
-    std::string filename;
-    float scale_x;
-    float scale_y;
-
   public:
-    ChTexture() : scale_x(1), scale_y(1) { filename = ""; }
-    ChTexture(const char* mfilename) : scale_x(1), scale_y(1) { filename = mfilename; }
-    ChTexture(const std::string& mfilename) : scale_x(1), scale_y(1) { filename = mfilename; }
+    ChTexture();
+    ChTexture(const char* filename);
+    ChTexture(const std::string& filename, ChVector2<float> scale = ChVector2<float>(1, 1));
 
-    virtual ~ChTexture() {}
+    ~ChTexture() {}
 
-    // Get the texture filename. This information could be used by visualization postprocessing.
-    const std::string& GetTextureFilename() const { return filename; }
-    // Set the texture filename. This information could be used by visualization postprocessing.
-    void SetTextureFilename(const std::string& mfile) { filename = mfile; }
-    // Set the texture scale
+    /// Get the texture filename.
+    const std::string& GetTextureFilename() const { return m_filename; }
+
+    /// Set the texture filename.
+    void SetTextureFilename(const std::string& filename) { m_filename = filename; }
+
+    /// Set the texture scale (in X and Y directions).
     void SetTextureScale(float sx, float sy) {
         scale_x = sx;
         scale_y = sy;
+        m_scale = ChVector2<float>(sx, sy);
     }
+
+    /// Set the texture scale (in X and Y directions).
+    void SetScale(const ChVector2<float>& scale) {
+        scale_x = scale.x();
+        scale_y = scale.y();
+        m_scale = scale;
+    }
+
     // Get the texture scales (in X and Y directions)
     float GetTextureScaleX() const { return scale_x; }
     float GetTextureScaleY() const { return scale_y; }
+
+    /// Get the texture scale.
+    const ChVector2<float>& GetScale() const { return m_scale; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    std::string m_filename;
+    ChVector2<float> m_scale;
+    float scale_x;
+    float scale_y;
 };
 
 CH_CLASS_VERSION(ChTexture, 0)

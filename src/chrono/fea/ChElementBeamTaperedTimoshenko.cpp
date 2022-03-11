@@ -422,6 +422,11 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
     double C1 = Lsyz / LG;
     double C2 = dSy * Lsyz / (LG * Lsy);
     double C3 = dSz / Lsy;
+    if (this->use_simplified_correction_for_inclined_shear_axis) {
+        C1 = Lsyz / LG;
+        C2 = dSy / LG;
+        C3 = dSz / LG;
+    }
 
     ChMatrixNM<double, 6, 6> Ts1;
     Ts1.setIdentity();
@@ -788,7 +793,8 @@ void ChElementBeamTaperedTimoshenko::SetupInitial(ChSystem* system) {
     // Compute initial rotation
     ChMatrix33<> A0;
     ChVector<> mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
-    ChVector<> myele = nodes[0]->GetX0().GetA().Get_A_Yaxis();
+    ChVector<> myele =
+        (nodes[0]->GetX0().GetA().Get_A_Yaxis() + nodes[1]->GetX0().GetA().Get_A_Yaxis()).GetNormalized();
     A0.Set_A_Xdir(mXele, myele);
     q_element_ref_rot = A0.Get_A_quaternion();
 
@@ -1002,6 +1008,17 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
         //// TODO better per-node lumping, or 4x4 consistent mass matrices, maybe with integration if not uniform
         // materials.
     }
+}
+
+void ChElementBeamTaperedTimoshenko::GetKRMmatricesLocal(ChMatrixRef H,
+                                                         double Kmfactor,
+                                                         double Kgfactor,
+                                                         double Rmfactor,
+                                                         double Mfactor) {
+    assert((H.rows() == 12) && (H.cols() == 12));
+
+    H.block(0, 0, 12, 12) = this->Km * Kmfactor + this->Kg * Kgfactor + this->Rm * Rmfactor + this->M * Mfactor;
+
 }
 
 void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi) {
@@ -1463,10 +1480,12 @@ void ChElementBeamTaperedTimoshenko::EvaluateElementStrainEnergy(ChVector<>& Str
 
 void ChElementBeamTaperedTimoshenko::EvaluateElementDampingEnergy(ChVector<>& DampingEnergyV_trans,
                                                                   ChVector<>& DampingEnergyV_rot) {
+    ChVectorDynamic<> displ(this->GetNdofs());
+    this->GetStateBlock(displ);
     ChVectorDynamic<> displ_dt(this->GetNdofs());
     this->GetField_dt(displ_dt);
 
-    ChVectorN<double, 12> damping_energy = 1.0 / 2.0 * displ_dt.asDiagonal() * this->Rm * displ_dt;
+    ChVectorN<double, 12> damping_energy = 1.0 / 2.0 * displ.asDiagonal() * this->Rm * displ_dt;
     ChVectorN<double, 6> damping_energy_v;
     // double damping_energy_sum = 0;
     for (int i = 0; i < 6; i++) {

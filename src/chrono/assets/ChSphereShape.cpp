@@ -19,11 +19,19 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSphereShape)
 
+ChSphereShape::ChSphereShape() {
+    SetMutable(false);
+}
+
+ChSphereShape::ChSphereShape(const geometry::ChSphere& sphere) : gsphere(sphere) {
+    SetMutable(false);
+}
+
 void ChSphereShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSphereShape>();
     // serialize parent class
-    ChVisualization::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(gsphere);
 }
@@ -32,7 +40,7 @@ void ChSphereShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChSphereShape>();
     // deserialize parent class
-    ChVisualization::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(gsphere);
 }

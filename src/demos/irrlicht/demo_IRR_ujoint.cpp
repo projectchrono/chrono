@@ -179,10 +179,10 @@ int main(int argc, char* argv[]) {
     // -------------------------------
 
     ChIrrApp application(&system, L"ChBodyAuxRef demo", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(3, 1, -1.5));
+    application.AddCamera(core::vector3df(3, 1, -1.5));
 
     application.AssetBindAll();
     application.AssetUpdateAll();

@@ -21,7 +21,7 @@ void ChSurfaceShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSurfaceShape>();
     // serialize parent class
-    ChVisualization::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(gsurface);
     marchive << CHNVP(wireframe);
@@ -33,7 +33,7 @@ void ChSurfaceShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChSurfaceShape>();
     // deserialize parent class
-    ChVisualization::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(gsurface);
     marchive >> CHNVP(wireframe);

@@ -41,7 +41,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 // specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
 #endif
@@ -258,53 +258,49 @@ int main(int argc, char* argv[]) {
 
     ChISO2631_Vibration_SeatCushionLogger seat_logger(step_size);
 
-#ifdef USE_IRRLICHT
-
-    // Create the visualization application
-    std::wstring windowTitle = L"Vehicle Ride Quality Demo ";
-    switch (iTire) {
-        default:
-        case 1:
-            windowTitle.append(L"(TMeasy Tire)");
-            break;
-        case 2:
-            windowTitle.append(L"(Fiala Tire)");
-            break;
-        case 3:
-            windowTitle.append(L"(Pacejka Tire)");
-            break;
-        case 4:
-            windowTitle.append(L"(Pacejka89 Tire)");
-            break;
-        case 5:
-            windowTitle.append(L"(Pacejka02 Tire)");
-            break;
-        case 6:
-            windowTitle.append(L"(Rigid Tire)");
-            break;
-    }
-    windowTitle.append(L" - " + std::to_wstring(rmsVal) + L" mm RMS");
-    ChWheeledVehicleIrrApp app(&vehicle, windowTitle);
-
-    app.SetSkyBox();
-    app.GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
-    app.AddTypicalLights(irr::core::vector3df(-50.f, -30.f, 40.f), irr::core::vector3df(10.f, 30.f, 40.f), 50, 50,
-                         irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f), irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-
-    app.SetTimestep(step_size);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-
-#endif
-
     // Create the driver
     auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
     ChPathFollowerDriver driver(vehicle, vehicle::GetDataFile(steering_controller_file),
                                 vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed, false);
     driver.Initialize();
+
+#ifdef USE_IRRLICHT
+
+    // Create the visualization application
+    std::string windowTitle = "Vehicle Ride Quality Demo ";
+    switch (iTire) {
+        default:
+        case 1:
+            windowTitle.append("(TMeasy Tire)");
+            break;
+        case 2:
+            windowTitle.append("(Fiala Tire)");
+            break;
+        case 3:
+            windowTitle.append("(Pacejka Tire)");
+            break;
+        case 4:
+            windowTitle.append("(Pacejka89 Tire)");
+            break;
+        case 5:
+            windowTitle.append("(Pacejka02 Tire)");
+            break;
+        case 6:
+            windowTitle.append("(Rigid Tire)");
+            break;
+    }
+    windowTitle.append(" - " + std::to_string(rmsVal) + " mm RMS");
+
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle(windowTitle);
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
+    vis->AddLight(ChVector<>(-50, -30, 40), 200, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(+10, +30, 40), 200, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vehicle.SetVisualSystem(vis);
+
+#endif
 
     // ---------------
     // Simulation loop
@@ -312,10 +308,10 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_IRRLICHT
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -325,13 +321,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
-        app.Synchronize("", driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         double xpos = vehicle.GetSpindlePos(0, LEFT).x();
         if (xpos >= xend) {
@@ -344,7 +340,7 @@ int main(int argc, char* argv[]) {
             seat_logger.AddData(speed, seat_acc);
         }
 
-        app.EndScene();
+        vis->EndScene();
     }
 
 #else

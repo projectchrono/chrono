@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Asher Elmquist, Radu Serban
 // =============================================================================
 
 #include "chrono/assets/ChVisualMaterial.h"
@@ -25,28 +25,60 @@ ChVisualMaterial::ChVisualMaterial()
       fresnel_exp(5),
       fresnel_max(1),
       fresnel_min(0.f),
+      illum(0),
       roughness(1),
       metallic(0),
       use_specular_workflow(true),
       class_id(0),
       instance_id(0) {}
 
-void ChVisualMaterial::SetAmbientColor(ChVector<float> rgb) {
+void ChVisualMaterial::SetKdTexture(const std::string& filename, ChVector2<float> scale) {
+    kd_texture.SetTextureFilename(filename);
+    kd_texture.SetScale(scale);
+}
+void ChVisualMaterial::SetKsTexture(const std::string& filename, ChVector2<float> scale) {
+    ks_texture.SetTextureFilename(filename);
+    ks_texture.SetScale(scale);
+}
+void ChVisualMaterial::SetNormalMapTexture(const std::string& filename, ChVector2<float> scale) {
+    normal_texture.SetTextureFilename(filename);
+    normal_texture.SetScale(scale);
+}
+void ChVisualMaterial::SetMetallicTexture(const std::string& filename, ChVector2<float> scale) {
+    metallic_texture.SetTextureFilename(filename);
+    metallic_texture.SetScale(scale);
+}
+void ChVisualMaterial::SetRoughnessTexture(const std::string& filename, ChVector2<float> scale) {
+    roughness_texture.SetTextureFilename(filename);
+    roughness_texture.SetScale(scale);
+}
+void ChVisualMaterial::SetOpacityTexture(const std::string& filename, ChVector2<float> scale) {
+    opacity_texture.SetTextureFilename(filename);
+    opacity_texture.SetScale(scale);
+}
+
+void ChVisualMaterial::SetAmbientColor(const ChVector<float>& rgb) {
     // valid rgb range [0,1]
     if (rgb.x() >= 0 && rgb.y() >= 0 && rgb.z() >= 0 && rgb.x() <= 1 && rgb.y() <= 1 && rgb.z() <= 1) {
         Ka = rgb;
     }
 }
-void ChVisualMaterial::SetDiffuseColor(ChVector<float> rgb) {
+void ChVisualMaterial::SetDiffuseColor(const ChVector<float>& rgb) {
     // valid rgb range [0,1]
     if (rgb.x() >= 0 && rgb.y() >= 0 && rgb.z() >= 0 && rgb.x() <= 1 && rgb.y() <= 1 && rgb.z() <= 1) {
         Kd = rgb;
     }
 }
-void ChVisualMaterial::SetSpecularColor(ChVector<float> rgb) {
+void ChVisualMaterial::SetSpecularColor(const ChVector<float>& rgb) {
     // valid rgb range [0,1]
     if (rgb.x() >= 0 && rgb.y() >= 0 && rgb.z() >= 0 && rgb.x() <= 1 && rgb.y() <= 1 && rgb.z() <= 1) {
         Ks = rgb;
+    }
+}
+void ChVisualMaterial::SetEmissiveColor(const ChVector<float>& rgb) {
+    // valid rgb range [0,1]
+    if (rgb.x() >= 0 && rgb.y() >= 0 && rgb.z() >= 0 && rgb.x() <= 1 && rgb.y() <= 1 && rgb.z() <= 1) {
+        Ke = rgb;
     }
 }
 
@@ -57,10 +89,17 @@ void ChVisualMaterial::SetSpecularExponent(float exponent) {
     }
 }
 
-void ChVisualMaterial::SetTransparency(float tr) {
+void ChVisualMaterial::SetOpacity(float o) {
     // valid transparent range [0,1] 1=opaque, 0=transparent
-    if (tr >= 0 && tr <= 1) {
-        d = tr;
+    if (o >= 0 && o <= 1) {
+        d = o;
+    }
+}
+
+void ChVisualMaterial::SetIllumination(int i) {
+    // valid values for illumination model are 0...10
+    if (i >= 0 && i <= 10) {
+        illum = i;
     }
 }
 
@@ -81,4 +120,18 @@ void ChVisualMaterial::SetRoughness(float r) {
 void ChVisualMaterial::SetMetallic(float m) {
     metallic = std::max(0.001f, std::min(m, 1.f));
 }
+
+// -----------------------------------------------------------------------------
+
+static std::shared_ptr<ChVisualMaterial> default_material;
+
+std::shared_ptr<ChVisualMaterial> ChVisualMaterial::Default() {
+    if (!default_material) {
+        default_material = chrono_types::make_shared<ChVisualMaterial>();
+        default_material->SetDiffuseColor(ChVector<float>(1, 1, 1));
+    }
+
+    return default_material;
+}
+
 }  // end namespace chrono

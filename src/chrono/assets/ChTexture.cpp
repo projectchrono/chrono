@@ -20,13 +20,21 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTexture)
 
+ChTexture::ChTexture() : m_filename(""), scale_x(1), scale_y(1), m_scale(ChVector2<float>(1, 1)) {}
+
+ChTexture::ChTexture(const char* filename)
+    : m_filename(filename), scale_x(1), scale_y(1), m_scale(ChVector2<float>(1, 1)) {}
+
+ChTexture::ChTexture(const std::string& filename, ChVector2<float> scale)
+    : scale_x(scale.x()), scale_y(scale.y()), m_scale(scale), m_filename(filename) {}
+
 void ChTexture::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChTexture>();
     // serialize parent class
     ChAsset::ArchiveOUT(marchive);
     // serialize all member data:
-    marchive << CHNVP(filename);
+    marchive << CHNVP(m_filename);
 }
 
 void ChTexture::ArchiveIN(ChArchiveIn& marchive) {
@@ -35,7 +43,7 @@ void ChTexture::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize parent class
     ChAsset::ArchiveIN(marchive);
     // stream in all member data:
-    marchive >> CHNVP(filename);
+    marchive >> CHNVP(m_filename);
 }
 
 }  // end namespace chrono

@@ -482,7 +482,7 @@ void ChVehicleOutputHDF5::WriteLinSprings(const std::vector<std::shared_ptr<ChLi
     set.write(info.data(), getLinSpringType());
 }
 
-void ChVehicleOutputHDF5::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) {
+void ChVehicleOutputHDF5::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
     if (springs.empty())
         return;
 
@@ -491,8 +491,8 @@ void ChVehicleOutputHDF5::WriteRotSprings(const std::vector<std::shared_ptr<ChLi
     H5::DataSpace dataspace(1, dim);
     std::vector<rotspring_info> info(nsprings);
     for (auto i = 0; i < nsprings; i++) {
-        info[i] = {springs[i]->GetIdentifier(), springs[i]->GetRotSpringAngle(), springs[i]->GetRotSpringSpeed(),
-                   springs[i]->GetRotSpringTorque()};
+        info[i] = {springs[i]->GetIdentifier(), springs[i]->GetAngle(), springs[i]->GetVelocity(),
+                   springs[i]->GetTorque()};
     }
 
     H5::DataSet set = m_section_group->createDataSet("Rot Springs", getRotSpringType(), dataspace);

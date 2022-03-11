@@ -1,6 +1,7 @@
 import pychrono as chrono
 import pychrono.vehicle as veh
 import pychrono.irrlicht as irr
+import errno
 import os
 import math as m
 
@@ -37,10 +38,9 @@ def main() :
         tireR = veh.RigidTire(rigidtire_file)
         vehicle.InitializeTire(tireR, axle.m_wheels[1], veh.VisualizationType_MESH)
 
-    app = veh.ChVehicleIrrApp(vehicle, 'HMMWV JSON specification', irr.dimension2du(1000,800))
-    app.SetSkyBox()
-    app.AddTypicalLights(irr.vector3df(30, -30, 100), irr.vector3df(30, 50, 100), 250, 130)
-    app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    app = veh.ChVehicleIrrApp(vehicle, 'HMMWV JSON specification')
+    app.AddTypicalLights()
+    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     app.SetChaseCamera(trackPoint, 6.0, 0.5)
     app.SetTimestep(step_size)
     app.AssetBindAll()
@@ -64,9 +64,10 @@ def main() :
     # -----------------
 
     try:
-           os.mkdir(out_dir)
-    except:
-           print("Error creating directory " )
+        os.mkdir(out_dir)
+    except OSError as exc:
+        if exc.errno != errno.EEXIST:
+           print("Error creating output directory " )
 
     # Generate JSON information with available output channels
     out_json = vehicle.ExportComponentList()

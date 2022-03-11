@@ -20,6 +20,7 @@ import pychrono as chrono
 import pychrono.fea as fea
 import pychrono.pardisomkl as mkl
 import pychrono.irrlicht as chronoirr
+import errno
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -31,10 +32,11 @@ out_dir = chrono.GetChronoOutputPath() + "FEA_SHELLS"
 print( "Copyright (c) 2017 projectchrono.org")
 
 # Create (if needed) output directory
-if not os.path.isdir(out_dir):
+try:
     os.mkdir(out_dir)
-if not os.path.isdir(out_dir):
-	raise NameError("Error creating directory " )
+except OSError as exc:
+    if exc.errno != errno.EEXIST:
+       print("Error creating output directory " )
 
 
 # Create a Chrono::Engine physical system
@@ -45,10 +47,10 @@ my_system = chrono.ChSystemSMC()
 application = chronoirr.ChIrrApp(my_system, "Shells FEA", chronoirr.dimension2du(800, 600))
 
 # Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(chronoirr.vector3df(0, 6.0, -10))
+application.AddCamera(chronoirr.vector3df(0, 6.0, -10))
 
 # Create a mesh, that is a container for groups
 # of elements and their referenced nodes.

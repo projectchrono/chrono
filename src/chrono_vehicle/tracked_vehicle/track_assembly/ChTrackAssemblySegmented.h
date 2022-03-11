@@ -25,7 +25,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
-#include "chrono/physics/ChLinkRotSpringCB.h"
+#include "chrono/physics/ChLinkRSDA.h"
 
 namespace chrono {
 namespace vehicle {
@@ -39,15 +39,15 @@ class CH_VEHICLE_API ChTrackAssemblySegmented : public ChTrackAssembly {
   public:
     virtual ~ChTrackAssemblySegmented() {}
 
-    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> GetTorqueFunctor() const { return m_torque_funct; }
+    std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetTorqueFunctor() const { return m_torque_funct; }
     std::shared_ptr<ChVehicleBushingData> GetBushingData() const { return m_bushing_data; }
 
   protected:
     /// Default torque functor for implementing track bending stiffness.
-    class CH_VEHICLE_API TrackBendingFunctor : public ChLinkRotSpringCB::TorqueFunctor {
+    class CH_VEHICLE_API TrackBendingFunctor : public ChLinkRSDA::TorqueFunctor {
       public:
         TrackBendingFunctor(double k, double c, double t = 0) : m_k(k), m_c(c), m_t(t) {}
-        virtual double operator()(double time, double angle, double vel, ChLinkRotSpringCB* link) override;
+        virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
       private:
         double m_k;
         double m_c;
@@ -58,8 +58,8 @@ class CH_VEHICLE_API ChTrackAssemblySegmented : public ChTrackAssembly {
                              VehicleSide side          ///< [in] assembly on left/right vehicle side
     );
 
-    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_torque_funct;  ///< torque for track bending stiffness
-    std::shared_ptr<ChVehicleBushingData> m_bushing_data;              ///< track pin bushings
+    std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_torque_funct;  ///< torque for track bending stiffness
+    std::shared_ptr<ChVehicleBushingData> m_bushing_data;       ///< track pin bushings
 };
 
 /// @} vehicle_tracked

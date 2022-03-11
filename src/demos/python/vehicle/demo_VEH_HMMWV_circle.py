@@ -81,10 +81,8 @@ steeringPID.Reset(my_hmmwv.GetVehicle())
 # Create the vehicle Irrlicht application
 app = veh.ChVehicleIrrApp(my_hmmwv.GetVehicle(), "Constant radius test")
 app.SetHUDLocation(500, 20)
-app.SetSkyBox()
-app.AddTypicalLogo()
-app.AddTypicalLights(chronoirr.vector3df(-150, 0, 200), chronoirr.vector3df(-150, 0, 200), 100, 100)
-app.AddTypicalLights(chronoirr.vector3df(150, 0, 200), chronoirr.vector3df(150, 0, 200), 100, 100)
+app.AddLogo()
+app.AddTypicalLights()
 app.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
 
 # Visualization of controller points (sentinel & target)
@@ -107,7 +105,7 @@ while (app.GetDevice().run()) :
     time = my_hmmwv.GetSystem().GetChTime()
     
     # Driver inputs
-    driver_inputs = veh.Inputs()
+    driver_inputs = veh.DriverInputs()
     driver_inputs.m_steering = np.clip(steeringPID_output, -1.0, +1.0)
     driver_inputs.m_throttle = throttle_value
     driver_inputs.m_braking = 0.0

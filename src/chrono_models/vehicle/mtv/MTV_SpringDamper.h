@@ -33,7 +33,11 @@ class MTV_SpringForceRear : public ChLinkTSDA::ForceFunctor {
   public:
     MTV_SpringForceRear(double spring_constant, double min_length, double max_length);
 
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_spring_constant;
@@ -51,7 +55,11 @@ class MTV_ShockForceRear : public ChLinkTSDA::ForceFunctor {
                        double expansion_slope,
                        double expansion_degressivity);
 
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_slope_compr;

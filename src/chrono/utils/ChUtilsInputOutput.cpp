@@ -21,7 +21,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 #include "chrono/assets/ChRoundedBoxShape.h"
 #include "chrono/assets/ChRoundedCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -404,7 +404,7 @@ void WriteVisualizationAssets(ChSystem* system,
 
         // Loop over assets once again -- write information for supported types.
         for (auto asset : body->GetAssets()) {
-            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset);
+            auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset);
             if (!visual_asset)
                 continue;
 
@@ -524,13 +524,13 @@ void WriteVisualizationAssets(ChSystem* system,
         if (!link)
             continue;
         for (auto asset : link->GetAssets()) {
-            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset);
+            auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset);
             if (!visual_asset)
                 continue;
-            if (std::dynamic_pointer_cast<ChPointPointSegment>(visual_asset)) {
+            if (std::dynamic_pointer_cast<ChSegmentShape>(visual_asset)) {
                 csv << SEGMENT << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
                 la_count++;
-            } else if (std::dynamic_pointer_cast<ChPointPointSpring>(visual_asset)) {
+            } else if (std::dynamic_pointer_cast<ChSpringShape>(visual_asset)) {
                 csv << COIL << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
                 la_count++;
             }
@@ -626,12 +626,12 @@ bool WriteMeshPovray(const std::string& obj_filename,
                      const ChVector<>& pos,
                      const ChQuaternion<>& rot) {
     // Read trimesh from OBJ file
-    geometry::ChTriangleMeshConnected trimesh;
-    if (!trimesh.LoadWavefrontMesh(obj_filename, false, false))
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, false, false);
+    if (!trimesh)
         return false;
 
     // Generate output
-    WriteMeshPovray(trimesh, mesh_name, out_dir, col, pos, rot);
+    WriteMeshPovray(*trimesh, mesh_name, out_dir, col, pos, rot);
 
     return true;
 }

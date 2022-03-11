@@ -290,15 +290,6 @@ void HMMWV::Initialize() {
 }
 
 // -----------------------------------------------------------------------------
-void HMMWV::SetTireVisualizationType(VisualizationType vis) {
-    for (auto& axle : m_vehicle->GetAxles()) {
-        for (auto& wheel : axle->GetWheels()) {
-            wheel->GetTire()->SetVisualizationType(vis);
-        }
-    }
-}
-
-// -----------------------------------------------------------------------------
 void HMMWV::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
     m_vehicle->Synchronize(time, driver_inputs, terrain);
 }

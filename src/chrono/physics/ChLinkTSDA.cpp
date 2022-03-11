@@ -23,7 +23,8 @@ CH_FACTORY_REGISTER(ChLinkTSDA)
 const double ChLinkTSDA::m_FD_delta = 1e-8;
 
 ChLinkTSDA::ChLinkTSDA()
-    : m_rest_length(0),
+    : m_auto_rest_length(true),
+      m_rest_length(0),
       m_length(0),
       m_length_dt(0),
       m_stiff(false),
@@ -38,6 +39,7 @@ ChLinkTSDA::ChLinkTSDA()
       m_jacobians(nullptr) {}
 
 ChLinkTSDA::ChLinkTSDA(const ChLinkTSDA& other) : ChLink(other) {
+    m_auto_rest_length = other.m_auto_rest_length;
     m_rest_length = other.m_rest_length;
     m_force = other.m_force;
     m_force_fun = other.m_force_fun;
@@ -63,7 +65,7 @@ void ChLinkTSDA::RegisterODE(ODE* functor) {
     m_ode_fun = functor;
     m_nstates = functor->GetNumStates();
     m_states.resize(m_nstates);
-    functor->SetInitialConditions(m_states, this);
+    functor->SetInitialConditions(m_states, *this);
     m_variables = new ChVariablesGenericDiagonalMass(m_nstates);
     m_variables->GetMassDiagonal().Constant(m_nstates, 1);
     // Resize vector of forcing terms
@@ -74,9 +76,7 @@ void ChLinkTSDA::Initialize(std::shared_ptr<ChBody> body1,
                             std::shared_ptr<ChBody> body2,
                             bool pos_are_relative,
                             ChVector<> loc1,
-                            ChVector<> loc2,
-                            bool auto_rest_length,
-                            double rest_length) {
+                            ChVector<> loc2) {
     Body1 = (ChBodyFrame*)body1.get();
     Body2 = (ChBodyFrame*)body2.get();
 
@@ -93,10 +93,16 @@ void ChLinkTSDA::Initialize(std::shared_ptr<ChBody> body1,
     }
 
     m_length = (m_aloc1 - m_aloc2).Length();
-    m_rest_length = auto_rest_length ? m_length : rest_length;
+    if (m_auto_rest_length)
+        m_rest_length = m_length;
 
     // Set size of forcing term
     m_Qforce.resize(12 + m_nstates);
+}
+
+void ChLinkTSDA::SetRestLength(double len) {
+    m_auto_rest_length = false;
+    m_rest_length = len;
 }
 
 // -----------------------------------------------------------------------------
@@ -135,7 +141,7 @@ void ChLinkTSDA::ComputeQ(double time,                  // current time
 
     // Calculate force in the spring direction and convert to 3-D force.
     if (m_force_fun) {
-        m_force = (*m_force_fun)(time, m_rest_length, m_length, m_length_dt, this);
+        m_force = m_force_fun->evaluate(time, m_rest_length, m_length, m_length_dt, *this);
     } else {
         m_force = m_f - m_k * (m_length - m_rest_length) - m_r * m_length_dt;
     }
@@ -156,7 +162,7 @@ void ChLinkTSDA::ComputeQ(double time,                  // current time
     // Load ODE forcing term
     if (m_variables) {
         ChVectorDynamic<> rhs(m_nstates);
-        m_ode_fun->CalculateRHS(time, m_states, rhs, this);
+        m_ode_fun->CalculateRHS(time, m_states, rhs, *this);
         Qforce.segment(12, m_nstates) = rhs;
     }
 }
@@ -233,7 +239,7 @@ void ChLinkTSDA::ComputeJacobians(double time,                 // current time
         // Overwrite ODE Jacobian (rhs w.r.t internal states) if provided.
         m_jacobians->m_J.setZero();
         bool overwrite =
-            m_ode_fun->CalculateJac(time, m_states, m_Qforce.segment(12, m_nstates), m_jacobians->m_J, this);
+            m_ode_fun->CalculateJac(time, m_states, m_Qforce.segment(12, m_nstates), m_jacobians->m_J, *this);
         if (overwrite) {
             m_jacobians->m_R.bottomRightCorner(m_nstates, m_nstates) = m_jacobians->m_J;
         }

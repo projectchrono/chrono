@@ -13,7 +13,7 @@
 // =============================================================================
 
 #include "chrono/collision/ChCollisionUtilsBullet.h"
-#include "chrono/collision/bullet/LinearMath/btConvexHull.h"
+#include "chrono/collision/bullet/LinearMath/cbtConvexHull.h"
 
 namespace chrono {
 namespace collision {
@@ -22,18 +22,18 @@ namespace bt_utils {
 // -----------------------------------------------------------------------------
 
 // Project point onto line.
-btVector3 ProjectPointOnLine(const btVector3& lP,  // point on line
-                             const btVector3& lD,  // line direction (unit vector)
-                             const btVector3& P    // point
+cbtVector3 ProjectPointOnLine(const cbtVector3& lP,  // point on line
+                              const cbtVector3& lD,  // line direction (unit vector)
+                              const cbtVector3& P    // point
 ) {
     return lP + (P - lP).dot(lD) * lD;
 }
 
-btScalar DistancePointToLine(const btVector3& lP,  // point on line
-                             const btVector3& lD,  // line direction (unit vector)
-                             const btVector3& P    // point
+cbtScalar DistancePointToLine(const cbtVector3& lP,  // point on line
+                              const cbtVector3& lD,  // line direction (unit vector)
+                              const cbtVector3& P    // point
 ) {
-    btVector3 Q = ProjectPointOnLine(lP, lD, P);
+    cbtVector3 Q = ProjectPointOnLine(lP, lD, P);
     return (Q - P).length();
 }
 
@@ -51,8 +51,8 @@ btScalar DistancePointToLine(const btVector3& lP,  // point on line
 //   code = 1 or code = 2 or code = 4  indicates snapping to a face
 //   code = 3 or code = 5 or code = 6  indicates snapping to an edge
 //   code = 7 indicates snapping to a corner
-int SnapPointToBox(const btVector3& hdims,  // box half-dimensions
-                   btVector3& loc           // point (in/out)
+int SnapPointToBox(const cbtVector3& hdims,  // box half-dimensions
+                   cbtVector3& loc           // point (in/out)
 ) {
     int code = 0;
 
@@ -75,8 +75,8 @@ int SnapPointToBox(const btVector3& hdims,  // box half-dimensions
 // -----------------------------------------------------------------------------
 
 // Check if given point is inside box (point expressed in box frame).
-bool PointInsideBox(const btVector3& hdims,  // box half-dimensions
-                    const btVector3& loc     // point
+bool PointInsideBox(const cbtVector3& hdims,  // box half-dimensions
+                    const cbtVector3& loc     // point
 ) {
     for (int i = 0; i < 3; i++) {
         if (loc[i] > hdims[i] || loc[i] < -hdims[i])
@@ -89,14 +89,14 @@ bool PointInsideBox(const btVector3& hdims,  // box half-dimensions
 
 // Find the closest box face to the given point (expressed in box frame).
 // Returns +1, +2, +3 (for a "positive" face in x, y, z, respectively) or -1, -2, -3 (for a "negative" face).
-int FindClosestBoxFace(const btVector3& hdims,  // box half-dimensions
-                       const btVector3& loc     // point
+int FindClosestBoxFace(const cbtVector3& hdims,  // box half-dimensions
+                       const cbtVector3& loc     // point
 ) {
     int code = 0;
-    btScalar dist = +BT_LARGE_FLOAT;
+    cbtScalar dist = +BT_LARGE_FLOAT;
     for (int i = 0; i < 3; i++) {
-        btScalar p_dist = std::abs(loc[i] - hdims[i]);
-        btScalar n_dist = std::abs(loc[i] + hdims[i]);
+        cbtScalar p_dist = std::abs(loc[i] - hdims[i]);
+        cbtScalar n_dist = std::abs(loc[i] + hdims[i]);
         if (p_dist < dist) {
             code = i + 1;
             dist = p_dist;
@@ -121,13 +121,13 @@ int FindClosestBoxFace(const btVector3& hdims,  // box half-dimensions
 //  - otherwise, update line parameters with points where line intersects box faces
 //    (keep track of the most "inner" points at all times)
 //  - finally, clamp to segment length
-bool IntersectSegmentBox(const btVector3& hdims,  // box half-dimensions
-                         const btVector3& c,      // segment center point
-                         const btVector3& a,      // segment direction (unit vector)
-                         const btScalar hlen,     // segment half-length
-                         const btScalar tol,      // tolerance for parallelism test
-                         btScalar& tMin,          // segment parameter of first intersection point
-                         btScalar& tMax           // segment parameter of second intersection point
+bool IntersectSegmentBox(const cbtVector3& hdims,  // box half-dimensions
+                         const cbtVector3& c,      // segment center point
+                         const cbtVector3& a,      // segment direction (unit vector)
+                         const cbtScalar hlen,     // segment half-length
+                         const cbtScalar tol,      // tolerance for parallelism test
+                         cbtScalar& tMin,          // segment parameter of first intersection point
+                         cbtScalar& tMax           // segment parameter of second intersection point
 ) {
     tMin = -BT_LARGE_FLOAT;
     tMax = +BT_LARGE_FLOAT;
@@ -137,11 +137,11 @@ bool IntersectSegmentBox(const btVector3& hdims,  // box half-dimensions
         if (std::abs(c.x()) > hdims.x())
             return false;
     } else {
-        btScalar t1 = (-hdims.x() - c.x()) / a.x();
-        btScalar t2 = (+hdims.x() - c.x()) / a.x();
+        cbtScalar t1 = (-hdims.x() - c.x()) / a.x();
+        cbtScalar t2 = (+hdims.x() - c.x()) / a.x();
 
-        tMin = btMax(tMin, btMin(t1, t2));
-        tMax = btMin(tMax, btMax(t1, t2));
+        tMin = cbtMax(tMin, cbtMin(t1, t2));
+        tMax = cbtMin(tMax, cbtMax(t1, t2));
 
         if (tMin > tMax)
             return false;
@@ -152,11 +152,11 @@ bool IntersectSegmentBox(const btVector3& hdims,  // box half-dimensions
         if (std::abs(c.y()) > hdims.y())
             return false;
     } else {
-        btScalar t1 = (-hdims.y() - c.y()) / a.y();
-        btScalar t2 = (+hdims.y() - c.y()) / a.y();
+        cbtScalar t1 = (-hdims.y() - c.y()) / a.y();
+        cbtScalar t2 = (+hdims.y() - c.y()) / a.y();
 
-        tMin = btMax(tMin, btMin(t1, t2));
-        tMax = btMin(tMax, btMax(t1, t2));
+        tMin = cbtMax(tMin, cbtMin(t1, t2));
+        tMax = cbtMin(tMax, cbtMax(t1, t2));
 
         if (tMin > tMax)
             return false;
@@ -167,11 +167,11 @@ bool IntersectSegmentBox(const btVector3& hdims,  // box half-dimensions
         if (std::abs(c.z()) > hdims.z())
             return false;
     } else {
-        btScalar t1 = (-hdims.z() - c.z()) / a.z();
-        btScalar t2 = (+hdims.z() - c.z()) / a.z();
+        cbtScalar t1 = (-hdims.z() - c.z()) / a.z();
+        cbtScalar t2 = (+hdims.z() - c.z()) / a.z();
 
-        tMin = btMax(tMin, btMin(t1, t2));
-        tMax = btMin(tMax, btMax(t1, t2));
+        tMin = cbtMax(tMin, cbtMin(t1, t2));
+        tMax = cbtMin(tMax, cbtMax(t1, t2));
 
         if (tMin > tMax)
             return false;
@@ -194,14 +194,14 @@ bool IntersectSegmentBox(const btVector3& hdims,  // box half-dimensions
 // Plane equation: pN.X = pN.pP
 // Line equation:  X = lP + t * lD
 // Solution:       t = pN.(pP-lP) / pN.lD
-bool IntersectLinePlane(const btVector3& lP,  // point on line
-                        const btVector3& lD,  // line direction (unit vector)
-                        const btVector3& pP,  // point on plane
-                        const btVector3& pN,  // plane normal (unit vector)
-                        const btScalar tol,   // tolerance for orthogonality test
-                        btScalar& t           // line parameter of intersection point
+bool IntersectLinePlane(const cbtVector3& lP,  // point on line
+                        const cbtVector3& lD,  // line direction (unit vector)
+                        const cbtVector3& pP,  // point on plane
+                        const cbtVector3& pN,  // plane normal (unit vector)
+                        const cbtScalar tol,   // tolerance for orthogonality test
+                        cbtScalar& t           // line parameter of intersection point
 ) {
-    btScalar nd = pN.dot(lD);
+    cbtScalar nd = pN.dot(lD);
 
     if (std::abs(nd) < tol) {
         // Line parallel to plane
@@ -232,70 +232,70 @@ bool IntersectLinePlane(const btVector3& lP,  // point on line
 //       0 = t^2 [ 1 - (cD.sD)^2 ] + 2t [ (v.sD) - (cD.v)(cD.sD) ] + v.v - (cD.v)^2 - cR^2
 //       0 = a t^2 + 2bt + c
 // where v = sC-cC and using |sD|=1.
-bool IntersectSegmentCylinder(const btVector3& sC,  // segment center point
-                              const btVector3& sD,  // segment direction (unit vector)
-                              const btScalar sH,    // segment half-length
-                              const btVector3& cC,  // cylinder axis center
-                              const btVector3& cD,  // cylinder axis direction (unit vector)
-                              const btScalar cH,    // cylinder axis half-length (cylinder halh-height)
-                              const btScalar cR,    // cylinder radius
-                              const btScalar tol,   // tolerance for parallelism test
-                              btScalar& tMin,       // segment parameter of first intersection point
-                              btScalar& tMax        // segment parameter of second intersection point
+bool IntersectSegmentCylinder(const cbtVector3& sC,  // segment center point
+                              const cbtVector3& sD,  // segment direction (unit vector)
+                              const cbtScalar sH,    // segment half-length
+                              const cbtVector3& cC,  // cylinder axis center
+                              const cbtVector3& cD,  // cylinder axis direction (unit vector)
+                              const cbtScalar cH,    // cylinder axis half-length (cylinder halh-height)
+                              const cbtScalar cR,    // cylinder radius
+                              const cbtScalar tol,   // tolerance for parallelism test
+                              cbtScalar& tMin,       // segment parameter of first intersection point
+                              cbtScalar& tMax        // segment parameter of second intersection point
 ) {
     tMin = -BT_LARGE_FLOAT;
     tMax = +BT_LARGE_FLOAT;
 
-    btVector3 v = sC - cC;
-    btScalar cDsD = cD.dot(sD);
-    btScalar vcD = v.dot(cD);
-    btScalar vsD = v.dot(sD);
-    btScalar vv = v.dot(v);
-    btScalar a = 1 - cDsD * cDsD;
-    btScalar b = vsD - vcD * cDsD;
-    btScalar c = vv - vcD * vcD - cR * cR;
+    cbtVector3 v = sC - cC;
+    cbtScalar cDsD = cD.dot(sD);
+    cbtScalar vcD = v.dot(cD);
+    cbtScalar vsD = v.dot(sD);
+    cbtScalar vv = v.dot(v);
+    cbtScalar a = 1 - cDsD * cDsD;
+    cbtScalar b = vsD - vcD * cDsD;
+    cbtScalar c = vv - vcD * vcD - cR * cR;
 
     // Intersection with cylindrical surface.
     // a >= 0 always
     // a == 0 indicates line parallel to cylinder axis
     if (std::abs(a) < tol) {
         // line parallel to cylinder axis
-        btScalar dist2 = (v - vcD * cD).length2();
+        cbtScalar dist2 = (v - vcD * cD).length2();
         if (dist2 > cR * cR)
             return false;
         tMin = -sH;
         tMax = +sH;
     } else {
         // line intersects cylindrical surface
-        btScalar discr = b * b - a * c;
+        cbtScalar discr = b * b - a * c;
         if (discr < 0)
             return false;  // no real roots, no intersection
-        discr = btSqrt(discr);
+        discr = cbtSqrt(discr);
         tMin = (-b - discr) / a;
         tMax = (-b + discr) / a;
     }
 
     // Intersection with end-caps.
-    btScalar t1;
+    cbtScalar t1;
     bool code1 = IntersectLinePlane(sC, sD, cC + cH * cD, cD, tol, t1);
-    btScalar t2;
+    cbtScalar t2;
     bool code2 = IntersectLinePlane(sC, sD, cC - cH * cD, cD, tol, t2);
     assert(code1 == code2);
     if (code1 && code2) {
         // line intersects end-caps
         if (t1 < t2) {
-            tMin = btMax(tMin, t1);
-            tMax = btMin(tMax, t2);
+            tMin = cbtMax(tMin, t1);
+            tMax = cbtMin(tMax, t2);
         } else {
-            tMin = btMax(tMin, t2);
-            tMax = btMin(tMax, t1);        
+            tMin = cbtMax(tMin, t2);
+            tMax = cbtMin(tMax, t1);
         }
         if (tMax < tMin)
             return false;
     } else {
         // line parallel to end-cap planes
-        btScalar d1 = std::abs(cD.dot(cC + cH * cD - sC));
-        btScalar d2 = std::abs(cD.dot(cC - cH * cD - sC));
+        cbtScalar d1 = std::abs(cD.dot(cC + cH * cD - sC));
+        cbtScalar d2 = std::abs(cD.dot(cC - cH * cD - sC));
         if (d1 > 2 * cH || d2 > 2 * cH)
             return false;
     }
@@ -305,8 +305,8 @@ bool IntersectSegmentCylinder(const btVector3& sC,  // segment center point
         return false;
 
     // Clamp to segment length
-    btClamp(tMin, -sH, +sH);
-    btClamp(tMax, -sH, +sH);
+    cbtClamp(tMin, -sH, +sH);
+    cbtClamp(tMax, -sH, +sH);
 
     assert(tMin <= tMax);
 
@@ -325,15 +325,15 @@ void ChConvexHullLibraryWrapper::ComputeHull(const std::vector<ChVector<> >& poi
 
     desc.SetHullFlag(QF_TRIANGLES);
 
-    btVector3* btpoints = new btVector3[points.size()];
+    cbtVector3* btpoints = new cbtVector3[points.size()];
     for (unsigned int ip = 0; ip < points.size(); ++ip) {
-        btpoints[ip].setX((btScalar)points[ip].x());
-        btpoints[ip].setY((btScalar)points[ip].y());
-        btpoints[ip].setZ((btScalar)points[ip].z());
+        btpoints[ip].setX((cbtScalar)points[ip].x());
+        btpoints[ip].setY((cbtScalar)points[ip].y());
+        btpoints[ip].setZ((cbtScalar)points[ip].z());
     }
     desc.mVcount = (unsigned int)points.size();
     desc.mVertices = btpoints;
-    desc.mVertexStride = sizeof(btVector3);
+    desc.mVertexStride = sizeof(cbtVector3);
 
     HullError hret = hl.CreateConvexHull(desc, hresult);
 
