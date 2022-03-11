@@ -26,6 +26,9 @@ namespace geometry {
 
 class ChApi ChBox : public ChVolume {
   public:
+
+    //// RADU TODO - get rid of Rot and Pos here!!!!!
+
     ChMatrix33<> Rot;  ///< box rotation
     ChVector<> Pos;    ///< position of box center
     ChVector<> Size;   ///< box halflengths

@@ -23,6 +23,9 @@ namespace geometry {
 /// A spherical geometric object for collisions and visualization.
 class ChApi ChSphere : public ChGeometry {
   public:
+
+    /// RADU TODO - get rid of center here!!!
+
     ChVector<> center;  ///< sphere center
     double rad;         ///< sphere radius
 

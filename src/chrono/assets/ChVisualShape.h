@@ -82,6 +82,8 @@ class ChApi ChVisualShape : public ChAsset {
     /// Get the number of visualization materials.
     int GetNumMaterials() const { return (int)material_list.size(); }
 
+    //// RADU TODO - obsolete these!
+    ////      Only an instance of a shape inside a model has a transform
     ChVector<> Pos;    ///< asset position
     ChMatrix33<> Rot;  ///< asset orientation
 
