@@ -20,62 +20,38 @@ MARK_AS_ADVANCED(CLEAR VSG_ROOT)
 
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_vsg lib
-SET(ChronoEngine_VSG_SOURCES
-    VSGApp.cpp
-    VSGAppProto.cpp
-    assets/ChPBRSetting.cpp
-    assets/ChPBRMaps.cpp
-    core/VSGIndexMesh.cpp
-    resources/ChVSGPbrMaterial.cpp
-    resources/ChVSGPhongMaterial.cpp
-    shapes/ChVSGIndexMesh.cpp
-    shapes/VSGAsys.cpp
-    shapes/VSGBsys.cpp
-    shapes/VSGCsys.cpp
-    shapes/VSGBox.cpp
-    shapes/VSGIndexBox.cpp
-    shapes/VSGIndexSphere.cpp
-    shapes/VSGIndexCylinder.cpp
-    tools/ChVSGScreenshotHandler.cpp
-    tools/VSGScreenshotHandler.cpp
-    ../chrono_thirdparty/stb/stb_image.cpp
-    ../chrono_thirdparty/stb/stb_image_write.cpp
-    ../chrono_thirdparty/Easy_BMP/EasyBMP.cpp
+SET(CE_VSG_BASE_FILES
+  ChVisualSystemVSG.cpp
+  ChVisualSystemVSG.h
 )
 
-SET(ChronoEngine_VSG_HEADERS
-    VSGApp.h
-    VSGAppProto.h
-    assets/ChPBRSetting.h
-    assets/ChPBRMaps.h
+SET(CE_VSG_CORE_FILES
     core/ChApiVSG.h
-    core/VSGIndexMesh.h
-    core/vsg_vertex_shader.h
-    core/vsg_phong_fragment_shader.h
-    core/vsg_pbr_fragment_shader.h
-    core/lineShader_frag.h
-    core/lineShader_vert.h
-    resources/ChVSGSettings.h
-    resources/ChVSGPbrMaterial.h
-    resources/ChVSGPhongMaterial.h
-    resources/VSGPbrMaterial.h
-    resources/VSGPhongMaterial.h
-    shapes/ChVSGIndexMesh.h
-    shapes/VSGAsys.h
-    shapes/VSGBsys.h
-    shapes/VSGCsys.h
-    shapes/VSGBox.h
-    shapes/VSGIndexBox.h
-    shapes/VSGIndexSphere.h
-    shapes/VSGIndexCylinder.h
-    tools/ChVSGScreenshotHandler.h
-    tools/VSGScreenshotHandler.h
 )
 
-SOURCE_GROUP("" FILES
-  ${ChronoEngine_VSG_SOURCES}
-  ${ChronoEngine_VSG_HEADERS}
+SET(CE_VSG_SHAPES_FILES
+  shapes/VSGAsys.cpp
+  shapes/VSGAsys.h
+  shapes/VSGBsys.cpp
+  shapes/VSGBsys.h
+  shapes/VSGCsys.cpp
+  shapes/VSGCsys.h
 )
+
+SET(CE_VSG_RESOURCES_FILES
+    resources/lineShader_frag.h
+    resources/lineShader_vert.h
+)
+
+SET(CE_VSG_TOOLS_FILES
+)
+
+SOURCE_GROUP("" FILES ${CE_VSG_BASE_FILES})
+SOURCE_GROUP("core" FILES ${CE_VSG_CORE_FILES})
+SOURCE_GROUP("shapes" FILES ${CE_VSG_SHAPES_FILES})
+SOURCE_GROUP("resources" FILES ${CE_VSG_RESOURCES_FILES})
+SOURCE_GROUP("tools" FILES ${CE_VSG_TOOLS_FILES})
+
 
 #-------------------------------------------------------------------------------
 # Find the VSG library
@@ -96,8 +72,11 @@ set(CMAKE_CXX_STANDARD 17)
 # Create the ChronoEngine_vsg library
 
 ADD_LIBRARY(ChronoEngine_vsg SHARED
-  ${ChronoEngine_VSG_SOURCES}
-  ${ChronoEngine_VSG_HEADERS}
+  ${CE_VSG_BASE_FILES}
+  ${CE_VSG_CORE_FILES}
+  ${CE_VSG_SHAPES_FILES}
+  ${CE_VSG_RESOURCES_FILES}
+  ${CE_VSG_TOOLS_FILES}
 )
 
 
