@@ -254,17 +254,22 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
     // Reload simulation parameters to FSI system
     m_params->dT = GetStepSize();
+    m_params->INV_dT = 1.0 / m_params->dT;
     m_params->dT_Flex = m_params->dT;
     m_params->dT_Max = m_params->dT;
     m_params->tFinal = 0;  // not used
-
+    
     // Reload physical parameters to FSI system
     m_params->gravity.z = m_gacc;
     m_params->rho0 = m_rho_g;
+    m_params->invrho0 = 1.0 / m_rho_g;
     m_params->Cs = sqrt(m_params->K_bulk / m_params->rho0);
-    m_params->HSML = 2 * m_radius_g;
-    m_params->MULT_INITSPACE = 2 * m_radius_g / m_params->HSML;
-    // m_params->mu_fric_s =
+    m_params->INITSPACE = 2 * m_radius_g;
+    m_params->INV_INIT = 1.0 / (2 * m_radius_g);
+    m_params->HSML = 2 * m_radius_g / m_params->MULT_INITSPACE;
+    m_params->INVHSML = 1.0 / m_params->HSML;
+    m_params->volume0 = pow(m_params->INITSPACE,3);
+    m_params->markerMass = m_params->volume0 * m_params->rho0;
 
     // Reload the size of the fluid container to FSI system
     m_params->boxDimX = (fsi::Real)(2 * m_hdimX);
@@ -290,6 +295,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     m_systemFSI->SetFluidDynamics(m_params->fluid_dynamic_type);
     m_systemFSI->SetFluidSystemLinearSolver(m_params->LinearSolver);
 
+    // Set boundary condition for the fixed wall
+    m_systemFSI->SetWallBC(BceVersion::ORIGINAL);
+
     // Call FinalizeDomain to setup the binning for neighbor search
     fsi::utils::FinalizeDomain(m_params);
 
@@ -312,7 +320,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         // Calculate the pressure of a steady state (p = rho*g*h)
         fsi::Real pre_ini = m_params->rho0 * abs(m_params->gravity.z) * (-points[i].z() + fzDim);
         fsi::Real rho_ini = m_params->rho0 + pre_ini / (m_params->Cs * m_params->Cs);
-        m_systemFSI->AddSphMarker(points[i], rho_ini, pre_ini, m_params->mu0, m_params->HSML, -1, ChVector<>(1e-10));
+        m_systemFSI->AddSphMarker(points[i], rho_ini, 0.0, m_params->mu0, m_params->HSML, -1, 
+            ChVector<>(1e-10), ChVector<>(-pre_ini), ChVector<>(1e-10));
     }
 
     m_systemFSI->AddRefArray(0, numPart, -1, -1);

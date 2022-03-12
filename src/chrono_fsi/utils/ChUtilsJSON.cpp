@@ -101,6 +101,16 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     else
         strcpy(paramsH->out_name, "Undefined");
 
+    if (doc.HasMember("Data Output Length"))
+        paramsH->output_length = doc["Data Output Length"].GetInt();
+    else
+        paramsH->output_length = 1;
+
+    if (doc.HasMember("Output FSI"))
+        paramsH->output_fsi = doc["Output FSI"].GetBool();
+    else
+        paramsH->output_fsi = true;
+
     if (doc.HasMember("Physical Properties of Fluid")) {
         if (doc["Physical Properties of Fluid"].HasMember("Density"))
             paramsH->rho0 = doc["Physical Properties of Fluid"]["Density"].GetDouble();
@@ -164,10 +174,15 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
             paramsH->INVHSML = 1.0 / paramsH->HSML;
         }
 
-        if (doc["SPH Parameters"].HasMember("Initial Spacing"))
-            paramsH->MULT_INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble() / paramsH->HSML;
-        else
+        if (doc["SPH Parameters"].HasMember("Initial Spacing")){
+            paramsH->INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble();
+            paramsH->INV_INIT = 1.0 / paramsH->INITSPACE;
+            paramsH->MULT_INITSPACE = paramsH->INITSPACE / paramsH->HSML;}
+        else{
+            paramsH->INITSPACE = paramsH->HSML;
+            paramsH->INV_INIT = 1.0 / paramsH->INITSPACE;
             paramsH->MULT_INITSPACE = 1.0;
+        }
 
         if (doc["SPH Parameters"].HasMember("Initial Spacing Solid"))
             paramsH->MULT_INITSPACE_Shells = doc["SPH Parameters"]["Initial Spacing Solid"].GetDouble() / paramsH->HSML;
@@ -218,6 +233,16 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
             paramsH->laplacian_type = doc["SPH Parameters"]["Laplacian Discretization Type"].GetInt();
         else
             paramsH->laplacian_type = 0;
+
+        if (doc["SPH Parameters"].HasMember("Consistent Discretization for Laplacian"))
+            paramsH->USE_Consistent_L = doc["SPH Parameters"]["Consistent Discretization for Laplacian"].GetInt();
+        else
+            paramsH->USE_Consistent_L = true;
+
+        if (doc["SPH Parameters"].HasMember("Consistent Discretization for Gradient"))
+            paramsH->USE_Consistent_G = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetInt();
+        else
+            paramsH->USE_Consistent_G = true;
     }
 
     if (doc.HasMember("Time Stepping")) {
@@ -240,6 +265,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
             paramsH->dT = doc["Time Stepping"]["Fluid time step"].GetDouble();
         else
             paramsH->dT = 0.01;
+        paramsH->INV_dT = 1.0 / paramsH->dT;
 
         if (doc["Time Stepping"].HasMember("Solid time step"))
             paramsH->dT_Flex = doc["Time Stepping"]["Solid time step"].GetDouble();
@@ -344,9 +370,13 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
             if (BC == "Generalized Wall BC")
                 paramsH->bceType = BceVersion::ADAMI;
             else
-                paramsH->bceType = BceVersion::mORIGINAL;
+                paramsH->bceType = BceVersion::ORIGINAL;
         } else
             paramsH->bceType = BceVersion::ADAMI;
+        paramsH->bceTypeWall = BceVersion::ADAMI;
+    } else{
+        paramsH->bceType = BceVersion::ADAMI;
+        paramsH->bceTypeWall = BceVersion::ADAMI;
     }
 
     // this part is for modeling granular material dynamics using elastic SPH
@@ -358,6 +388,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         if (doc["Elastic SPH"].HasMember("Young modulus")) {
             paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();              // Young's modulus
             paramsH->G_shear = paramsH->E_young / (2.0 * (1.0 + paramsH->Nu_poisson));       // shear modulus
+            paramsH->INV_G_shear = 1.0 / paramsH->G_shear;
             paramsH->K_bulk = paramsH->E_young / (3.0 * (1.0 - 2.0 * paramsH->Nu_poisson));  // bulk modulus
             paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
         }
@@ -471,6 +502,12 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         }
     }
 
+    if (doc.HasMember("Body Active Domain")) {
+        paramsH->bodyActiveDomain = LoadVectorJSON(doc["Body Active Domain"]);
+    }else{
+        paramsH->bodyActiveDomain = mR3(10000.0, 10000.0, 10000.0);
+    }
+
     //===============================================================
     // Material Models
     //===============================================================
@@ -569,9 +606,9 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     }
     
     int NN = 0;
-    paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);
-    paramsH->markerMass = cube(paramsH->MULT_INITSPACE * paramsH->HSML) * paramsH->rho0;
-    paramsH->volume0 = paramsH->markerMass / paramsH->rho0;
+    // paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);
+    paramsH->volume0 = cube(paramsH->INITSPACE);
+    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
     paramsH->invrho0 = 1.0 / paramsH->rho0;
     paramsH->num_neighbors = NN;
     
@@ -591,7 +628,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     utils::printStruct(paramsH->gravity);
 
     std::cout << "paramsH->HSML: " << paramsH->HSML << std::endl;
-
+    std::cout << "paramsH->INITSPACE: " << paramsH->INITSPACE << std::endl;
     std::cout << "paramsH->MULT_INITSPACE: " << paramsH->MULT_INITSPACE << std::endl;
     std::cout << "paramsH->NUM_BOUNDARY_LAYERS: " << paramsH->NUM_BOUNDARY_LAYERS << std::endl;
     std::cout << "paramsH->epsMinMarkersDis: " << paramsH->epsMinMarkersDis << std::endl;
