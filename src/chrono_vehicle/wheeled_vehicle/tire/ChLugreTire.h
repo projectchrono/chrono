@@ -51,7 +51,7 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
 
     /// Get the tire width.
     /// This is just an approximation of a tire width.
-    double GetWidth() const;
+    double GetWidth() const override;
 
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireForce; }

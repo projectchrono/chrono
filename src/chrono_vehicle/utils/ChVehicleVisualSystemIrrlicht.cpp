@@ -394,17 +394,5 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
     renderOtherStats(m_HUD_x, m_HUD_y + 200);
 }
 
-// -----------------------------------------------------------------------------
-// Create a snapshot of the last rendered frame and save it to the provided
-// file. The file extension determines the image format.
-// -----------------------------------------------------------------------------
-void ChVehicleVisualSystemIrrlicht::WriteImageToFile(const std::string& filename) {
-    video::IImage* image = GetVideoDriver()->createScreenShot();
-    if (image) {
-        GetVideoDriver()->writeImageToFile(image, filename.c_str());
-        image->drop();
-    }
-}
-
 }  // end namespace vehicle
 }  // end namespace chrono
