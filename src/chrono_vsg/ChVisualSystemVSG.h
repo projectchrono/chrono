@@ -20,9 +20,7 @@
 #include "chrono_vsg/core/ChApiVSG.h"
 
 #include <vsg/all.h>
-#ifdef vsgXchange_FOUND
-#    include <vsgXchange/all.h>
-#endif
+#include <vsgXchange/all.h>
 
 #include "chrono/assets/ChVisualSystem.h"
 
@@ -74,6 +72,8 @@ private:
     vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
     //
     bool m_use_skybox = false;
+    std::string m_skyboxFilename = "vsg/textures/chrono_skybox.ktx2"; // "vsg/models/chrono_sky.vsgb";
+
     //
     vsg::ref_ptr<vsg::Group> m_scenegraph;
     //

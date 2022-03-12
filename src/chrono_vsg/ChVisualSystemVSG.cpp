@@ -15,9 +15,8 @@
 #include <vsgImGui/RenderImGui.h>
 #include <vsgImGui/SendEventsToImGui.h>
 #include <vsgImGui/imgui.h>
-
+#include "chrono_vsg/tools/createSkybox.h"
 #include "ChVisualSystemVSG.h"
-#include "chrono_vsg/tools/create_skybox.h"
 
 using namespace std;
 namespace chrono {
@@ -34,9 +33,11 @@ class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler>
 
     void apply(vsg::KeyPressEvent& keyPress) override {
         if (keyPress.keyBase == 'm' || keyPress.keyModified == 'm') {
+            // toggle graphical menu
             _params->showGui = !_params->showGui;
         }
         if (keyPress.keyBase == 't' || keyPress.keyModified == 't') {
+            // terminate process
             m_appPtr->Quit();
         }
     }
@@ -90,7 +91,7 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_options->objectCache = vsg::ObjectCache::create();
 #ifdef vsgXchange_all
     // add vsgXchange's support for reading and writing 3rd party file formats
-    options->add(vsgXchange::all::create());
+    m_options->add(vsgXchange::all::create());
 #endif
     m_options->fileCache = vsg::getEnv("VSG_FILE_CACHE");
 }
@@ -130,30 +131,16 @@ void ChVisualSystemVSG::Initialize() {
     // holds whole 3d stuff
     m_scenegraph = vsg::Group::create();
     if (m_use_skybox) {
-        string filename = "vsg/models/chrono_sky.vsgb";
-        auto object = vsg::read(filename, m_options);
-        if (auto node = object.cast<vsg::Node>(); node) {
-            m_scenegraph->addChild(node);
+        // build node from cubemap texture file
+        if (!m_skyboxFilename.empty()) {
+            if (auto node = createSkybox(m_skyboxFilename, m_options); node) {
+                m_scenegraph->addChild(node);
+            } else {
+                cout << "Couldn't load " << m_skyboxFilename << endl;
+            }
         }
     }
 
-    // add ambient light
-    auto ambientLight = vsg::AmbientLight::create();
-    ambientLight->name = "ambient";
-    ambientLight->color.set(1.0, 1.0, 1.0);
-    ambientLight->intensity = 0.1;
-
-    auto directionalLight = vsg::DirectionalLight::create();
-    directionalLight->name = "head light";
-    directionalLight->color.set(1.0, 1.0, 1.0);
-    directionalLight->intensity = 0.9;
-    directionalLight->direction.set(0.0, 0.0, -1.0);
-
-    auto absoluteTransform = vsg::AbsoluteTransform::create();
-    absoluteTransform->addChild(ambientLight);
-    absoluteTransform->addChild(directionalLight);
-
-    m_scenegraph->addChild(absoluteTransform);
 
     // compute the bounds of the scene graph to help position camera
     vsg::ComputeBounds computeBounds;

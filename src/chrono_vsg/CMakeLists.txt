@@ -41,9 +41,12 @@ SET(CE_VSG_SHAPES_FILES
 SET(CE_VSG_RESOURCES_FILES
     resources/lineShader_frag.h
     resources/lineShader_vert.h
+    resources/cubemapShaders.h
 )
 
 SET(CE_VSG_TOOLS_FILES
+        tools/createSkybox.cpp
+        tools/createSkybox.h
 )
 
 SOURCE_GROUP("" FILES ${CE_VSG_BASE_FILES})

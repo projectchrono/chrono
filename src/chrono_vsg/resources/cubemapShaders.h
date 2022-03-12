@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CUBEMAP_SHADERS_H
+#define CUBEMAP_SHADERS_H
 
 const auto skybox_vert = R"(
 #version 450
@@ -39,3 +40,5 @@ void main()
     outColor = textureLod(envMap, inUVW, 0);
 }
 )";
+
+#endif
