@@ -69,6 +69,8 @@ private:
     //
     vsg::ref_ptr<vsg::Viewer> m_viewer;
     vsg::ref_ptr<vsg::Window> m_window;
+    vsg::ref_ptr<vsg::Options> m_options;
+    vsg::ref_ptr<vsg::WindowTraits> m_windowTraits;
     vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
     //
     bool m_use_skybox = false;

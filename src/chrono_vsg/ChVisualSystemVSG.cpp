@@ -83,38 +83,38 @@ class GuiComponent {
     ChVisualSystemVSG* m_appPtr;
 };
 
-ChVisualSystemVSG::ChVisualSystemVSG() {}
-
-ChVisualSystemVSG::~ChVisualSystemVSG() {}
-
-void ChVisualSystemVSG::Initialize() {
-    auto options = vsg::Options::create();
-    options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
-    options->paths.push_back(GetChronoDataPath());
-    options->objectCache = vsg::ObjectCache::create();
+ChVisualSystemVSG::ChVisualSystemVSG() {
+    m_options = vsg::Options::create();
+    m_options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
+    m_options->paths.push_back(GetChronoDataPath());
+    m_options->objectCache = vsg::ObjectCache::create();
 #ifdef vsgXchange_all
     // add vsgXchange's support for reading and writing 3rd party file formats
     options->add(vsgXchange::all::create());
 #endif
-    options->fileCache = vsg::getEnv("VSG_FILE_CACHE");
+    m_options->fileCache = vsg::getEnv("VSG_FILE_CACHE");
+}
 
-    auto windowTraits = vsg::WindowTraits::create();
-    windowTraits->windowTitle = m_windowTitle;
-    windowTraits->width = m_windowWidth;
-    windowTraits->height = m_windowHeight;
-    windowTraits->deviceExtensionNames = {VK_KHR_MULTIVIEW_EXTENSION_NAME, VK_KHR_MAINTENANCE2_EXTENSION_NAME,
-                                          VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
-                                          VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME};
+ChVisualSystemVSG::~ChVisualSystemVSG() {}
+
+void ChVisualSystemVSG::Initialize() {
+    m_windowTraits = vsg::WindowTraits::create();
+    m_windowTraits->windowTitle = m_windowTitle;
+    m_windowTraits->width = m_windowWidth;
+    m_windowTraits->height = m_windowHeight;
+    m_windowTraits->deviceExtensionNames = {VK_KHR_MULTIVIEW_EXTENSION_NAME, VK_KHR_MAINTENANCE2_EXTENSION_NAME,
+                                            VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
+                                            VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME};
 
     // enable transfer from the colour and depth buffer images
-    windowTraits->swapchainPreferences.imageUsage =
+    m_windowTraits->swapchainPreferences.imageUsage =
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-    windowTraits->depthImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    m_windowTraits->depthImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
     // create the viewer and assign window(s) to it
     m_viewer = vsg::Viewer::create();
 
-    m_window = vsg::Window::create(windowTraits);
+    m_window = vsg::Window::create(m_windowTraits);
     if (!m_window) {
         std::cout << "Could not create window." << std::endl;
         return;
@@ -131,7 +131,7 @@ void ChVisualSystemVSG::Initialize() {
     m_scenegraph = vsg::Group::create();
     if (m_use_skybox) {
         string filename = "vsg/models/chrono_sky.vsgb";
-        auto object = vsg::read(filename, options);
+        auto object = vsg::read(filename, m_options);
         if (auto node = object.cast<vsg::Node>(); node) {
             m_scenegraph->addChild(node);
         }
