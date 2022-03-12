@@ -336,8 +336,6 @@ void ChParserOpenSim::initFunctionTable() {
             newBody->SetBodyFixed(true);
             newBody->SetCollide(false);
             newBody->SetPos(ChVector<>(0, 0, 0));
-            // Mark as ground body
-            newBody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.0f, 0.0f, 0.0f));
         } else {
             // Give new body mass
             newBody->SetMass(std::stod(fieldNode->value()));
@@ -655,7 +653,7 @@ void ChParserOpenSim::initFunctionTable() {
                 std::string meshFilename(geometry->first_node("geometry_file")->value());
                 auto bodyMesh = chrono_types::make_shared<ChObjShapeFile>();
                 bodyMesh->SetFilename(m_datapath + meshFilename);
-                newBody->AddAsset(bodyMesh);
+                newBody->AddVisualShape(bodyMesh);
                 geometry = geometry->next_sibling();
             }
         }
@@ -790,13 +788,15 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         if (m_visType == VisType::PRIMITIVES) {
             // Assign a color based on the body's level in the tree hierarchy
             float colorVal = (1.0f * body_info.level) / max_depth_level;
-            body_info.body->AddAsset(chrono_types::make_shared<ChColorAsset>(colorVal, 1.0f - colorVal, 0.0f));
+            auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
+            vis_mat->SetDiffuseColor(ChVector<float>(colorVal, 1.0f - colorVal, 0.0f));
 
             // Create a sphere at the body COM
             auto sphere = chrono_types::make_shared<ChSphereShape>();
             sphere->GetSphereGeometry().rad = 0.1;
             sphere->Pos = body_info.body->GetFrame_COG_to_REF().GetPos();
-            body_info.body->AddAsset(sphere);
+            sphere->AddMaterial(vis_mat);
+            body_info.body->AddVisualShape(sphere);
 
             // Create visualization cylinders
             for (auto cyl_info : body_info.cylinders) {
@@ -804,9 +804,8 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
                 cylinder->GetCylinderGeometry().rad = cyl_info.rad;
                 cylinder->GetCylinderGeometry().p1 = ChVector<>(0, cyl_info.hlen, 0);
                 cylinder->GetCylinderGeometry().p2 = ChVector<>(0, -cyl_info.hlen, 0);
-                cylinder->Pos = cyl_info.pos;
-                cylinder->Rot = cyl_info.rot;
-                body_info.body->AddAsset(cylinder);
+                cylinder->AddMaterial(vis_mat);
+                body_info.body->AddVisualShape(cylinder, ChFrame<>(cyl_info.pos, cyl_info.rot));
             }
         }
 
