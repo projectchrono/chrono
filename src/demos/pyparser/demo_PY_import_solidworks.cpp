@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     // Set the collision margins. This is expecially important for
     // very large or very small objects! Do this before creating shapes.
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
         // modeled in SolidWorks and saved using the Chrono Add-in for SolidWorks.
 
         my_python.ImportSolidWorksSystem(GetChronoDataFile("solid_works/swiss_escapement").c_str(),
-                                         mphysicalSystem);  // note, don't type the .py suffix in filename..
+                                         sys);  // note, don't type the .py suffix in filename..
 
     } catch (const ChException& myerror) {
         GetLog() << myerror.what();
@@ -79,26 +79,26 @@ int main(int argc, char* argv[]) {
 
     // Log out all the names of the items inserted in the system:
     GetLog() << "SYSTEM ITEMS: \n";
-    mphysicalSystem.ShowHierarchy(GetLog());
+    sys.ShowHierarchy(GetLog());
 
-    for (auto body : mphysicalSystem.Get_bodylist()) {
+    for (auto body : sys.Get_bodylist()) {
         GetLog() << "item:" << typeid(body).name() << "\n";
     }
-    for (auto link : mphysicalSystem.Get_linklist()) {
+    for (auto link : sys.Get_linklist()) {
         GetLog() << "item:" << typeid(link).name() << "\n";
     }
-    for (auto& mesh : mphysicalSystem.Get_meshlist()) {
+    for (auto& mesh : sys.Get_meshlist()) {
         GetLog() << "item:" << typeid(mesh).name() << "\n";
     }
-    for (auto ph : mphysicalSystem.Get_otherphysicslist()) {
+    for (auto ph : sys.Get_otherphysicslist()) {
         GetLog() << "item:" << typeid(ph).name() << "\n";
     }
 
     // Fetch some bodies, given their names, and apply forces/constraints/etc
-    std::shared_ptr<ChPhysicsItem> myitemE = mphysicalSystem.Search("escape_wheel-1");
-    std::shared_ptr<ChPhysicsItem> myitemA = mphysicalSystem.Search("truss-1");
-    std::shared_ptr<ChPhysicsItem> myitemB = mphysicalSystem.Search("balance-1");
-    std::shared_ptr<ChPhysicsItem> myitemC = mphysicalSystem.Search("anchor-1");
+    std::shared_ptr<ChPhysicsItem> myitemE = sys.Search("escape_wheel-1");
+    std::shared_ptr<ChPhysicsItem> myitemA = sys.Search("truss-1");
+    std::shared_ptr<ChPhysicsItem> myitemB = sys.Search("balance-1");
+    std::shared_ptr<ChPhysicsItem> myitemC = sys.Search("anchor-1");
     auto mescape_wheel = std::dynamic_pointer_cast<ChBody>(myitemE);
     auto mtruss = std::dynamic_pointer_cast<ChBody>(myitemA);
     auto mbalance = std::dynamic_pointer_cast<ChBody>(myitemB);
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
         mspring->Initialize(mtruss, mbalance, CSYSNORM);  // origin does not matter, it's only torque
         mspring->GetForce_Ry().SetK(0.24);
         mspring->GetForce_Ry().SetActive(1);
-        mphysicalSystem.Add(mspring);
+        sys.Add(mspring);
 
         // Set an initial angular velocity to the balance:
         mbalance->SetWvel_par(ChVector<>(0, 5, 0));
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Import a SolidWorks system", core::dimension2d<u32>(800, 600));
+    ChIrrApp application(&sys, L"Import a SolidWorks system", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddLogo();

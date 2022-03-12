@@ -89,14 +89,14 @@ double time_step = 0.0005;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
     // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     // set gravity
-    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Turtlebot Robot on Rigid Terrain", core::dimension2d<u32>(1280, 720),
+    ChIrrApp application(&sys, L"Turtlebot Robot on Rigid Terrain", core::dimension2d<u32>(1280, 720),
                          VerticalDir::Z, false, true);
     application.AddLogo();
     application.AddSkyBox();
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 
     mfloor->SetPos(ChVector<>(0, 0, -1));
     mfloor->SetBodyFixed(true);
-    mphysicalSystem.Add(mfloor);
+    sys.Add(mfloor);
 
     auto masset_texture = chrono_types::make_shared<ChTexture>();
     masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
 
     ChVector<double> body_pos(0, 0, -0.45);
 
-    robot = chrono_types::make_shared<TurtleBot>(&mphysicalSystem, body_pos, QUNIT);
+    robot = chrono_types::make_shared<TurtleBot>(&sys, body_pos, QUNIT);
 
     robot->Initialize();
 

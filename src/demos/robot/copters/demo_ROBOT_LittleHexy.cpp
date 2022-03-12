@@ -104,16 +104,16 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
-    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    Little_Hexy myhexy(mphysicalSystem, VNULL);
+    Little_Hexy myhexy(sys, VNULL);
     myhexy.AddVisualizationAssets();
     auto mymat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     myhexy.AddCollisionShapes(mymat);
 
     // Create the Irrlicht visualization.
-    ChIrrApp application(&mphysicalSystem, L"HexaCopter Test", core::dimension2d<u32>(800, 600), VerticalDir::Z);
+    ChIrrApp application(&sys, L"HexaCopter Test", core::dimension2d<u32>(800, 600), VerticalDir::Z);
     application.AddLogo();
     application.AddSkyBox();
     application.AddTypicalLights();
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
                                                            ground_mat);  // contact material
     ground->SetPos(ChVector<>(0, 0, -3));
     ground->SetBodyFixed(true);
-    mphysicalSystem.Add(ground);
+    sys.Add(ground);
 
     auto mtexture = chrono_types::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
@@ -154,10 +154,10 @@ int main(int argc, char* argv[]) {
 
     // Prepare the physical system for the simulation
 
-    mphysicalSystem.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
 
-    mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
-    mphysicalSystem.SetSolverMaxIterations(30);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(30);
 
     // Simulation loop
 

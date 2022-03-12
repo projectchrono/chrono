@@ -42,11 +42,11 @@ int main(int argc, char* argv[]) {
     ChVector<> tire_center(0, tire_rad, 0);
 
     // Create a Chrono physical system
-    ChSystemSMC my_system;
+    ChSystemSMC sys;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Deformable soil and deformable tire", core::dimension2d<u32>(1280, 720),
+    ChIrrApp application(&sys, L"Deformable soil and deformable tire", core::dimension2d<u32>(1280, 720),
                          VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<ChBody> mtruss (new ChBody);
     mtruss->SetBodyFixed(true);
-    my_system.Add(mtruss);
+    sys.Add(mtruss);
 
 
     // 
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
  
     // The rim body: 
     auto mrim = chrono_types::make_shared<ChBody>();
-    my_system.Add(mrim);
+    sys.Add(mrim);
     mrim->SetMass(80);
     mrim->SetInertiaXX(ChVector<>(1,1,1));
     mrim->SetPos(tire_center + ChVector<>(0,0.2,0));
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
     motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
     motor->Initialize(mrim, mtruss, ChFrame<>(tire_center, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
-    my_system.Add(motor);
+    sys.Add(motor);
 
 
     //
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     //
     
     // Create the 'deformable terrain' object
-    vehicle::SCMDeformableTerrain mterrain(&my_system);
+    vehicle::SCMDeformableTerrain mterrain(&sys);
 
     // Displace/rotate the terrain reference plane.
     // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
@@ -162,12 +162,12 @@ int main(int argc, char* argv[]) {
     GetLog() << "Using PardisoMKL solver\n";
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
-    my_system.SetSolver(mkl_solver);
+    sys.SetSolver(mkl_solver);
     
     
     // Change the timestepper to HHT: 
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(8);
     integrator->SetAbsTolerances(5e-05, 1.8e00);

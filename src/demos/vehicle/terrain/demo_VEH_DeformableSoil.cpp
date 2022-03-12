@@ -100,19 +100,19 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono::Engine physical system
     auto collsys_type = collision::ChCollisionSystemType::BULLET;
-    ChSystemSMC my_system;
-    my_system.SetNumThreads(4, 8, 1);
+    ChSystemSMC sys;
+    sys.SetNumThreads(4, 8, 1);
     if (collsys_type == collision::ChCollisionSystemType::CHRONO) {
 #ifdef CHRONO_COLLISION
         auto collsys = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
         collsys->SetBroadphaseGridResolution(ChVector<int>(20, 20, 10));
-        my_system.SetCollisionSystem(collsys);
+        sys.SetCollisionSystem(collsys);
 #endif
     }
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Deformable soil", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
+    ChIrrApp application(&sys, L"Deformable soil", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddLogo();
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
 
     auto mtruss = chrono_types::make_shared<ChBody>(collsys_type);
     mtruss->SetBodyFixed(true);
-    my_system.Add(mtruss);
+    sys.Add(mtruss);
 
     // Initialize output
     if (output) {
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     //
 
     auto mrigidbody = chrono_types::make_shared<ChBody>(collsys_type);
-    my_system.Add(mrigidbody);
+    sys.Add(mrigidbody);
     mrigidbody->SetMass(500);
     mrigidbody->SetInertiaXX(ChVector<>(20, 20, 20));
     mrigidbody->SetPos(tire_center + ChVector<>(0, 0.3, 0));
@@ -185,14 +185,14 @@ int main(int argc, char* argv[]) {
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
     motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
     motor->Initialize(mrigidbody, mtruss, ChFrame<>(tire_center, Q_from_AngY(CH_C_PI_2)));
-    my_system.Add(motor);
+    sys.Add(motor);
 
     //
     // THE DEFORMABLE TERRAIN
     //
 
     // Create the 'deformable terrain' object
-    vehicle::SCMDeformableTerrain mterrain(&my_system);
+    vehicle::SCMDeformableTerrain mterrain(&sys);
 
     // Displace/rotate the terrain reference plane.
     // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
@@ -281,8 +281,8 @@ int main(int argc, char* argv[]) {
     //
     /*
         // Change the timestepper to HHT:
-        my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+        sys.SetTimestepperType(ChTimestepper::Type::HHT);
+        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
         integrator->SetAlpha(-0.2);
         integrator->SetMaxiters(8);
         integrator->SetAbsTolerances(1e-05, 1.8e00);
@@ -292,13 +292,13 @@ int main(int argc, char* argv[]) {
         integrator->SetVerbose(true);
     */
     /*
-        my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
+        sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
     */
 
     application.SetTimestep(0.002);
 
     while (application.GetDevice()->run()) {
-        double time = my_system.GetChTime();
+        double time = sys.GetChTime();
         if (output) {
             vehicle::TerrainForce frc = mterrain.GetContactForce(mrigidbody);
             csv << time << frc.force << frc.moment << frc.point << std::endl;

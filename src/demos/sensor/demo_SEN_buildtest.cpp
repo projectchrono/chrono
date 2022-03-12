@@ -72,8 +72,8 @@ int main(int argc, char* argv[]) {
     auto phys_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     phys_mat->SetFriction(0.2f);
 
-    ChSystemNSC mphysicalSystem;
-    mphysicalSystem.Set_G_acc({0, 0, -9.81});
+    ChSystemNSC sys;
+    sys.Set_G_acc({0, 0, -9.81});
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(100, 100, 1,      // x,y,z size
                                                           1000,             // density
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     floor->SetPos({0, 0, -1.0});
     floor->SetRot(Q_from_AngZ(CH_C_PI / 2.0));
     floor->SetBodyFixed(true);
-    mphysicalSystem.Add(floor);
+    sys.Add(floor);
 
     // place objects to visually test rotations
     auto scalebox = chrono_types::make_shared<ChBodyEasyBox>(1, .2, .4,        // x,y,z size
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
                                                              true, phys_mat);  // visualization?
     scalebox->SetPos({0, -1, 1});
     scalebox->SetBodyFixed(true);
-    mphysicalSystem.Add(scalebox);
+    sys.Add(scalebox);
 
     // test max reflections
     auto top_mirror = chrono_types::make_shared<ChBodyEasyBox>(10, 10, .1,       // x,y,z size
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
                                                                true, phys_mat);  // visualization?
     top_mirror->SetPos({0, -1, 1.5});
     top_mirror->SetBodyFixed(true);
-    mphysicalSystem.Add(top_mirror);
+    sys.Add(top_mirror);
     auto top_m_asset = top_mirror->GetAssets()[0];
     if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(top_m_asset)) {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
                                                                   true, phys_mat);  // visualization?
     bottom_mirror->SetPos({0, -1, 0.5});
     bottom_mirror->SetBodyFixed(true);
-    mphysicalSystem.Add(bottom_mirror);
+    sys.Add(bottom_mirror);
     auto bottom_m_asset = bottom_mirror->GetAssets()[0];
     if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(bottom_m_asset)) {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     // origin->SetPos({0, 0, 1});
     // origin->SetBodyFixed(true);
     //
-    // mphysicalSystem.Add(origin);
+    // sys.Add(origin);
     // auto origin_asset = origin->GetAssets()[0];
     // if (std::shared_ptr<ChVisualShape> v_asset = std::dynamic_pointer_cast<ChVisualShape>(origin_asset)) {
     //     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -172,22 +172,22 @@ int main(int argc, char* argv[]) {
     auto wall1 = chrono_types::make_shared<ChBodyEasyBox>(40.0, .1, 10.0, 1000, true, true, phys_mat);
     wall1->SetPos({0, -20, 4});
     wall1->SetBodyFixed(true);
-    mphysicalSystem.Add(wall1);
+    sys.Add(wall1);
 
     auto wall2 = chrono_types::make_shared<ChBodyEasyBox>(40.0, .1, 10.0, 1000, true, true, phys_mat);
     wall2->SetPos({0, 20, 4});
     wall2->SetBodyFixed(true);
-    mphysicalSystem.Add(wall2);
+    sys.Add(wall2);
 
     auto wall3 = chrono_types::make_shared<ChBodyEasyBox>(.1, 40.0, 10.0, 1000, true, true, phys_mat);
     wall3->SetPos({-20, 0, 4});
     wall3->SetBodyFixed(true);
-    mphysicalSystem.Add(wall3);
+    sys.Add(wall3);
 
     auto wall4 = chrono_types::make_shared<ChBodyEasyBox>(.1, 40.0, 10.0, 1000, true, true, phys_mat);
     wall4->SetPos({20, 0, 4});
     wall4->SetBodyFixed(true);
-    mphysicalSystem.Add(wall4);
+    sys.Add(wall4);
 
     // add box, sphere, mesh with textures
     // auto gator_mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/gator/gator_chassis.obj"), false, true);
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     // gator_mesh_body->SetPos({1, 2, 2});
     // gator_mesh_body->AddAsset(gator_meshshape);
     // gator_mesh_body->SetBodyFixed(true);
-    // mphysicalSystem.Add(gator_mesh_body);
+    // sys.Add(gator_mesh_body);
 
     auto texbox = chrono_types::make_shared<ChBodyEasyBox>(1, 1,
                                                            1,                 // x,y,z size
@@ -208,7 +208,7 @@ int main(int argc, char* argv[]) {
                                                            false, phys_mat);  //
     texbox->SetPos({1, 0, 3});
     texbox->SetBodyFixed(true);
-    mphysicalSystem.Add(texbox);
+    sys.Add(texbox);
 
     auto texbox_asset = texbox->GetAssets()[0];
     if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(texbox_asset)) {
@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
                                                                  false, phys_mat);  //
     texsphere->SetPos({1, -2, 3});
     texsphere->SetBodyFixed(true);
-    mphysicalSystem.Add(texsphere);
+    sys.Add(texsphere);
 
     auto texsphere_asset = texsphere->GetAssets()[0];
     if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(texsphere_asset)) {
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
                                                                 false, phys_mat);  //
     texcyl->SetPos({1, -4, 3});
     texcyl->SetBodyFixed(true);
-    mphysicalSystem.Add(texcyl);
+    sys.Add(texcyl);
 
     auto texcyl_asset = texcyl->GetAssets()[0];
     if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(texcyl_asset)) {
@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
                                                      true, phys_mat);                // visualization?
         box->SetPos({(float)ChRandom(), (float)ChRandom(), 2.0 + i});
         box->SetRot(Q_from_Euler123({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()}));
-        mphysicalSystem.Add(box);
+        sys.Add(box);
 
         auto box_asset = box->GetAssets()[0];
         if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(box_asset)) {
@@ -287,7 +287,7 @@ int main(int argc, char* argv[]) {
                                                                  true, phys_mat);                // visualization?
         cyl->SetPos({(float)ChRandom(), (float)ChRandom(), 2.0 + i});
         cyl->SetRot(Q_from_Euler123({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()}));
-        mphysicalSystem.Add(cyl);
+        sys.Add(cyl);
 
         auto cyl_asset = cyl->GetAssets()[0];
         if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(cyl_asset)) {
@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
         sphere->SetPos({(float)ChRandom(), (float)ChRandom(), 2.0 + i});
         // sphere->SetRot(Q_from_Euler123({(float)ChRandom(), (float)ChRandom(), (float)rand() /
         // RAND_MAX}));
-        mphysicalSystem.Add(sphere);
+        sys.Add(sphere);
         if (!gps_parent) {
             gps_parent = sphere;
         }
@@ -329,14 +329,14 @@ int main(int argc, char* argv[]) {
         // mesh_body->GetCollisionModel()->ClearModel();
         // mesh_body->GetCollisionModel()->AddTriangleMesh(phys_mat, mmesh, true, false);
         // mesh_body->GetCollisionModel()->BuildModel();
-        // mphysicalSystem.Add(mesh_body);
+        // sys.Add(mesh_body);
 
         auto mesh_body = chrono_types::make_shared<ChBodyAuxRef>();
         mesh_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
         mesh_body->SetMass(mmass * mdensity);
         mesh_body->SetInertiaXX(mdensity * principal_I);
         mesh_body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>((float)ChRandom(), (float)ChRandom(), 2.0 + i)));
-        mphysicalSystem.Add(mesh_body);
+        sys.Add(mesh_body);
 
         mesh_body->GetCollisionModel()->ClearModel();
         mesh_body->GetCollisionModel()->AddTriangleMesh(phys_mat, mmesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
@@ -347,7 +347,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "sensor manager being made\n";
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->SetDeviceList({2, 1, 0});
     manager->SetMaxEngines(num_groups);  // THIS NEEDS MORE PERFORMANCE TESTING
     manager->SetVerbose(false);
@@ -600,9 +600,9 @@ int main(int argc, char* argv[]) {
         std::chrono::duration<double> t_render = std::chrono::duration_cast<std::chrono::duration<double>>(r1 - r0);
         render_time += t_render.count();
 
-        mphysicalSystem.DoStepDynamics(time_step);
+        sys.DoStepDynamics(time_step);
 
-        ch_time = (float)mphysicalSystem.GetChTime();
+        ch_time = (float)sys.GetChTime();
     }
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

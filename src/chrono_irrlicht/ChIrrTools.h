@@ -124,25 +124,25 @@ ChApiIrr int drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontactco
                                   irr::video::SColor mcol = irr::video::SColor(255, 255, 255, 255));
 
 /// Draw reaction forces in all contacts in current Irrlicht viewer.
-ChApiIrr int drawAllLinks(ChSystem& mphysicalSystem,
+ChApiIrr int drawAllLinks(ChSystem& sys,
                           irr::video::IVideoDriver* driver,
                           double mlen = 1.0,
                           IrrLinkDrawMode drawtype = IrrLinkDrawMode::LINK_REACT_FORCE);
 
 /// Draw contact informations as labels at the contact point.
-ChApiIrr int drawAllLinkLabels(ChSystem& mphysicalSystem,
+ChApiIrr int drawAllLinkLabels(ChSystem& sys,
                                irr::IrrlichtDevice* device,
                                IrrLinkLabelMode labeltype = IrrLinkLabelMode::LINK_REACT_FORCE_X,
                                irr::video::SColor mcol = irr::video::SColor(255, 255, 255, 255));
 
 /// Draw collision objects bounding boxes for rigid bodies (if they have a collision shape).
-ChApiIrr int drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver);
+ChApiIrr int drawAllBoundingBoxes(ChSystem& sys, irr::video::IVideoDriver* driver);
 
 /// Draw coordinate systems of ChBody objects.
-ChApiIrr int drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale = 0.01);
+ChApiIrr int drawAllCOGs(ChSystem& sys, irr::video::IVideoDriver* driver, double scale = 0.01);
 
 /// Draw coordinate systems of link frames.
-ChApiIrr int drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale = 0.01);
+ChApiIrr int drawAllLinkframes(ChSystem& sys, irr::video::IVideoDriver* driver, double scale = 0.01);
 
 ChApiIrr void drawHUDviolation(irr::video::IVideoDriver* driver,
                                irr::IrrlichtDevice* mdevice,

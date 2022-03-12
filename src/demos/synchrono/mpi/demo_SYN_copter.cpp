@@ -197,9 +197,9 @@ int main(int argc, char* argv[]) {
     // --------------
     double distance = node_id * 2.5;
     // Create the vehicle, set parameters, and initialize
-    ChSystemNSC mphysicalSystem;
-    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
-    Little_Hexy myhexy(mphysicalSystem, ChVector<>(0, distance, 0));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    Little_Hexy myhexy(sys, ChVector<>(0, distance, 0));
     myhexy.AddVisualizationAssets();
     auto mymat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     myhexy.AddCollisionShapes(mymat);
@@ -207,13 +207,13 @@ int main(int argc, char* argv[]) {
     // Add vehicle as an agent and initialize SynChronoManager
     auto agent = chrono_types::make_shared<SynCopterAgent>(&myhexy);
     syn_manager.AddAgent(agent);
-    syn_manager.Initialize(&mphysicalSystem);
+    syn_manager.Initialize(&sys);
 
     IrrAppWrapper appwrap;
     MyEventReceiver receiver;
     // Create the vehicle Irrlicht interface
     if (cli.HasValueInVector<int>("irr", node_id)) {
-        auto application = chrono_types::make_shared<ChIrrApp>(&mphysicalSystem, L"HexaCopter Test",
+        auto application = chrono_types::make_shared<ChIrrApp>(&sys, L"HexaCopter Test",
                                                                core::dimension2d<u32>(800, 600));
         appwrap.Set(application);
 
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
     myhexy.ControlAbsolute(control);
 
     while (appwrap.IsOk() && syn_manager.IsOk()) {
-        double time = mphysicalSystem.GetChTime();
+        double time = sys.GetChTime();
 
         // End simulation
         if (time >= end_time)
@@ -263,9 +263,9 @@ int main(int argc, char* argv[]) {
         // Render scene
         if (step_number % render_steps == 0)
             appwrap.Render();
-        syn_manager.Synchronize(mphysicalSystem.GetChTime());
+        syn_manager.Synchronize(sys.GetChTime());
         myhexy.Update(step_size);
-        mphysicalSystem.DoStepDynamics(step_size);
+        sys.DoStepDynamics(step_size);
 
         // appwrap.Advance();
 
