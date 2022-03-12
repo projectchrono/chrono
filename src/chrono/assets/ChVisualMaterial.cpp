@@ -18,7 +18,7 @@ namespace chrono {
 
 ChVisualMaterial::ChVisualMaterial()
     : Ka({0.2f, 0.2f, 0.2f}),
-      Kd({0.5f, 0.5f, 0.5f}),
+      Kd({1.0f, 2.0f, 2.0f}),
       Ks({0.2f, 0.2f, 0.2f}),
       Ns(88),
       d(1),
@@ -128,7 +128,6 @@ static std::shared_ptr<ChVisualMaterial> default_material;
 std::shared_ptr<ChVisualMaterial> ChVisualMaterial::Default() {
     if (!default_material) {
         default_material = chrono_types::make_shared<ChVisualMaterial>();
-        default_material->SetDiffuseColor(ChVector<float>(1, 1, 1));
     }
 
     return default_material;

@@ -55,7 +55,7 @@ class ChApi ChVisualShape : public ChAsset {
     /// Set the diffuse texture map for this shape.
     /// This changes the texture of the first material in the list of materials for this shape.
     /// If no materials are defined for a shape, one is first created by duplicating the default material.
-    void SetTexture(const std::string& filename);
+    void SetTexture(const std::string& filename, ChVector2<float> scale = ChVector2<float>(1, 1));
 
     /// Return the diffuse texture map of the first material in the list of materials for this shape.
     /// If no materials are defined, return an empty string (no texture for the default material).
@@ -72,6 +72,10 @@ class ChApi ChVisualShape : public ChAsset {
 
     /// Add a visualization material and return its index in the list of materials.
     int AddMaterial(std::shared_ptr<ChVisualMaterial> material);
+
+    /// Replace the material with specified index.
+    /// No-op if there is no material with given index.
+    void SetMaterial(int i, std::shared_ptr<ChVisualMaterial> material);
 
     /// Get the list of visualization materials.
     std::vector<std::shared_ptr<ChVisualMaterial>>& GetMaterials() { return material_list; }
