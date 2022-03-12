@@ -49,6 +49,16 @@ void ChLoadContainer::IntLoadResidual_F(const unsigned int off,  // offset in R 
     }
 }
 
+void ChLoadContainer::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
+                                   ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
+                                   const ChVectorDynamic<>& w,  ///< the w vector
+                                   const double c               ///< a scaling factor
+                                   ) {
+    for (size_t i = 0; i < loadlist.size(); ++i) {
+        loadlist[i]->LoadIntLoadResidual_Mv(R, w, c);
+    }
+}
+
 void ChLoadContainer::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
     for (size_t i = 0; i < loadlist.size(); ++i) {
         loadlist[i]->InjectKRMmatrices(mdescriptor);

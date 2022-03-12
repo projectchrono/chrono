@@ -88,11 +88,9 @@ def main():
 
 
     # Create the vehicle Irrlicht interface
-    app = veh.ChWheeledVehicleIrrApp(hmmwv_1.GetVehicle(), 'Two Car Demo', irr.dimension2du(1000,800))
-
-    app.SetSkyBox()
-    app.AddTypicalLights(irr.vector3df(30, -30, 100), irr.vector3df(30, 50, 100), 250, 130)
-    app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    app = veh.ChWheeledVehicleIrrApp(hmmwv_1.GetVehicle(), 'Two Car Demo')
+    app.AddTypicalLights()
+    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     app.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
     app.SetChaseCameraState(veh.ChChaseCamera.Track)
     app.SetChaseCameraPosition(chrono.ChVectorD(-15, 0, 2.0))

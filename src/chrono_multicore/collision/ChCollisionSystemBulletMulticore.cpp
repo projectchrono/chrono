@@ -25,16 +25,16 @@
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
 #include "chrono_multicore/collision/ChContactContainerMulticore.h"
 
-#include "chrono/collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcherMt.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionDispatcherMt.h"
 
 namespace chrono {
 namespace collision {
 
 /*
- void defaultChronoNearCallback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, btDispatcherInfo&
+ void defaultChronoNearCallback(cbtBroadphasePair& collisionPair, cbtCollisionDispatcher& dispatcher, cbtDispatcherInfo&
  dispatchInfo)
  {
- btCollisionDispatcher::defaultNearCallback(collisionPair, dispatcher, dispatchInfo);
+ cbtCollisionDispatcher::defaultNearCallback(collisionPair, dispatcher, dispatchInfo);
  if (broad_callback)
  broad_callback(collisionPair, dispatcher, dispatchInfo);
  }
@@ -44,21 +44,21 @@ ChCollisionSystemBulletMulticore::ChCollisionSystemBulletMulticore(ChMulticoreDa
     // Container for collision detection data
     data_manager->cd_data = chrono_types::make_shared<ChCollisionData>(false);
 
-    // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
-    bt_collision_configuration = new btDefaultCollisionConfiguration();
+    // cbtDefaultCollisionConstructionInfo conf_info(...); ***TODO***
+    bt_collision_configuration = new cbtDefaultCollisionConfiguration();
 
 #ifdef BT_USE_OPENMP
-    bt_dispatcher = new btCollisionDispatcherMt(bt_collision_configuration);  // parallel version
-    btSetTaskScheduler(btGetOpenMPTaskScheduler());
+    bt_dispatcher = new cbtCollisionDispatcherMt(bt_collision_configuration);  // parallel version
+    cbtSetTaskScheduler(cbtGetOpenMPTaskScheduler());
 #else
-    bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);  // serial version
+    bt_dispatcher = new cbtCollisionDispatcher(bt_collision_configuration);  // serial version
 #endif
 
-    bt_broadphase = new btDbvtBroadphase();
-    bt_collision_world = new btCollisionWorld(bt_dispatcher, bt_broadphase, bt_collision_configuration);
+    bt_broadphase = new cbtDbvtBroadphase();
+    bt_collision_world = new cbtCollisionWorld(bt_dispatcher, bt_broadphase, bt_collision_configuration);
 
     // register custom collision for GIMPACT mesh case too
-    btGImpactCollisionAlgorithm::registerAlgorithm(bt_dispatcher);
+    cbtGImpactCollisionAlgorithm::registerAlgorithm(bt_dispatcher);
 
     counter = 0;
 }
@@ -76,14 +76,14 @@ ChCollisionSystemBulletMulticore::~ChCollisionSystemBulletMulticore() {
 
 void ChCollisionSystemBulletMulticore::SetNumThreads(int nthreads) {
 #ifdef BT_USE_OPENMP
-    btGetOpenMPTaskScheduler()->setNumThreads(nthreads);
+    cbtGetOpenMPTaskScheduler()->setNumThreads(nthreads);
 #endif
 }
 
 void ChCollisionSystemBulletMulticore::Clear(void) {
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
     for (int i = 0; i < numManifolds; i++) {
-        btPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
+        cbtPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
         contactManifold->clearManifold();
     }
 }
@@ -114,8 +114,8 @@ void ChCollisionSystemBulletMulticore::Run() {
 }
 
 void ChCollisionSystemBulletMulticore::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
-    btVector3 aabbMin;
-    btVector3 aabbMax;
+    cbtVector3 aabbMin;
+    cbtVector3 aabbMax;
     bt_broadphase->getBroadphaseAabb(aabbMin, aabbMax);
     aabb_min = ChVector<>((double)aabbMin.x(), (double)aabbMin.y(), (double)aabbMin.z());
     aabb_max = ChVector<>((double)aabbMax.x(), (double)aabbMax.y(), (double)aabbMax.z());
@@ -151,9 +151,9 @@ void ChCollisionSystemBulletMulticore::ReportContacts(ChContactContainer* mconta
 
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
     for (int i = 0; i < numManifolds; i++) {
-        btPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
-        const btCollisionObject* obA = contactManifold->getBody0();
-        const btCollisionObject* obB = contactManifold->getBody1();
+        cbtPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
+        const cbtCollisionObject* obA = contactManifold->getBody0();
+        const cbtCollisionObject* obB = contactManifold->getBody1();
         if (obB->getCompanionId() < obA->getCompanionId()) {
             auto tmp = obA;
             obA = obB;
@@ -186,12 +186,12 @@ void ChCollisionSystemBulletMulticore::ReportContacts(ChContactContainer* mconta
             int numContacts = contactManifold->getNumContacts();
 
             for (int j = 0; j < numContacts; j++) {
-                btManifoldPoint& pt = contactManifold->getContactPoint(j);
+                cbtManifoldPoint& pt = contactManifold->getContactPoint(j);
 
                 // Discard "too far" constraints (the Bullet engine also has its threshold)
                 if (pt.getDistance() < marginA + marginB) {
-                    btVector3 ptA = pt.getPositionWorldOnA();
-                    btVector3 ptB = pt.getPositionWorldOnB();
+                    cbtVector3 ptA = pt.getPositionWorldOnA();
+                    cbtVector3 ptB = pt.getPositionWorldOnB();
 
                     icontact.vpA.Set(ptA.getX(), ptA.getY(), ptA.getZ());
                     icontact.vpB.Set(ptB.getX(), ptB.getY(), ptB.getZ());
@@ -224,8 +224,7 @@ void ChCollisionSystemBulletMulticore::ReportContacts(ChContactContainer* mconta
 
                     if (add_contact) {
                         ////std::cout << " add indexA=" << indexA << " indexB=" << indexB << std::endl;
-                        ////std::cout << "     typeA=" << icontact.shapeA->m_type << " typeB=" <<
-                        ///icontact.shapeB->m_type /          << std::endl;
+                        ////std::cout << "     typeA=" << icontact.shapeA->m_type << " typeB=" << icontact.shapeB->m_type << std::endl;
 
                         data_manager->cd_data->norm_rigid_rigid.push_back(
                             real3(icontact.vN.x(), icontact.vN.y(), icontact.vN.z()));

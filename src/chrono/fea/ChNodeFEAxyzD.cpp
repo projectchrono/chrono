@@ -113,6 +113,17 @@ void ChNodeFEAxyzD::NodeIntStateIncrement(const unsigned int off_x,
     x_new(off_x + 5) = x(off_x + 5) + Dv(off_v + 5);
 }
 
+void ChNodeFEAxyzD::NodeIntStateGetIncrement(const unsigned int off_x,
+                                           const ChState& x_new,
+                                           const ChState& x,
+                                           const unsigned int off_v,
+                                           ChStateDelta& Dv) {
+    for (int i = 0; i < 6; ++i) {
+        Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
+    }
+}
+
+
 void ChNodeFEAxyzD::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     R.segment(off + 0, 3) += c * Force.eigen();
     R.segment(off + 3, 3).setZero();  // TODO something about applied nodal torque..

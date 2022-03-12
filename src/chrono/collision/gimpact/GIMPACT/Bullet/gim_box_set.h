@@ -313,7 +313,7 @@ public:
 
 	//! returns the indices of the primitives in the m_primitive_manager
 	SIMD_FORCE_INLINE bool boxQueryTrans(const GIM_AABB& box,
-										 const btTransform& transform, gim_array<GUINT>& collided_results) const
+										 const cbtTransform& transform, gim_array<GUINT>& collided_results) const
 	{
 		GIM_AABB transbox = box;
 		transbox.appy_transform(transform);
@@ -322,7 +322,7 @@ public:
 
 	//! returns the indices of the primitives in the m_primitive_manager
 	SIMD_FORCE_INLINE bool rayQuery(
-		const btVector3& ray_dir, const btVector3& ray_origin,
+		const cbtVector3& ray_dir, const cbtVector3& ray_origin,
 		gim_array<GUINT>& collided_results) const
 	{
 		GUINT curIndex = 0;
@@ -447,11 +447,11 @@ public:
 	GIM_AABB m_box0;
 	GIM_AABB m_box1;
 	GIM_BOX_BOX_TRANSFORM_CACHE trans_cache_1to0;
-	btTransform trans_cache_0to1;
+	cbtTransform trans_cache_0to1;
 	GIM_TRIANGLE m_tri0;
-	btVector4 m_tri0_plane;
+	cbtVector4 m_tri0_plane;
 	GIM_TRIANGLE m_tri1;
-	btVector4 m_tri1_plane;
+	cbtVector4 m_tri1_plane;
 
 public:
 	GIM_TREE_TREE_COLLIDER()
@@ -609,8 +609,8 @@ protected:
 	}
 
 public:
-	void find_collision(BOX_SET_CLASS0* boxset1, const btTransform& trans1,
-						BOX_SET_CLASS1* boxset2, const btTransform& trans2,
+	void find_collision(BOX_SET_CLASS0* boxset1, const cbtTransform& trans1,
+						BOX_SET_CLASS1* boxset2, const cbtTransform& trans2,
 						gim_pair_set& collision_pairs, bool complete_primitive_tests = true)
 	{
 		m_collision_pairs = &collision_pairs;

@@ -26,10 +26,10 @@
 #include "chrono/physics/ChProximityContainer.h"
 
 #include "chrono/collision/ChCollisionSystem.h"
-#include "chrono/collision/bullet/btBulletCollisionCommon.h"
-#include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
+#include "chrono/collision/bullet/cbtBulletCollisionCommon.h"
+#include "chrono/collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.h"
 
-#include "chrono/collision/bullet/LinearMath/btPoolAllocator.h"
+#include "chrono/collision/bullet/LinearMath/cbtPoolAllocator.h"
 
 #include "chrono_multicore/ChMulticoreDefines.h"
 
@@ -104,13 +104,13 @@ class CH_MULTICORE_API ChCollisionSystemBulletMulticore : public ChCollisionSyst
     }
 
     // For Bullet related stuff
-    btCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
+    cbtCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
 
   private:
-    btCollisionConfiguration* bt_collision_configuration;
-    btCollisionDispatcher* bt_dispatcher;
-    btBroadphaseInterface* bt_broadphase;
-    btCollisionWorld* bt_collision_world;
+    cbtCollisionConfiguration* bt_collision_configuration;
+    cbtCollisionDispatcher* bt_dispatcher;
+    cbtBroadphaseInterface* bt_broadphase;
+    cbtCollisionWorld* bt_collision_world;
 
     ChMulticoreDataManager* data_manager;
 

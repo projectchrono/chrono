@@ -180,24 +180,20 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
 
 #ifdef USE_PID
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering PID Controller Demo",
-                               irr::core::dimension2d<irr::u32>(800, 640));
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering PID Controller Demo");
 #endif
 #ifdef USE_XT
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering XT Controller Demo",
-                               irr::core::dimension2d<irr::u32>(800, 640));
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering XT Controller Demo");
 #endif
 #ifdef USE_SR
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering SR Controller Demo",
-                        irr::core::dimension2d<irr::u32>(800, 640));
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"Steering SR Controller Demo");
 #endif
     app.SetHUDLocation(500, 20);
-    app.SetSkyBox();
-    app.AddTypicalLogo();
-    app.AddTypicalLights(irr::core::vector3df(-150.f, -150.f, 200.f), irr::core::vector3df(-150.f, 150.f, 200.f), 100,
-                         100);
-    app.AddTypicalLights(irr::core::vector3df(150.f, -150.f, 200.f), irr::core::vector3df(150.0f, 150.f, 200.f), 100,
-                         100);
+    app.AddLogo();
+    app.AddLight(irr::core::vector3df(-150.f, -150.f, 200.f), 100, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(irr::core::vector3df(-150.f, +150.f, 200.f), 100, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(irr::core::vector3df(+150.f, -150.f, 200.f), 100, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(irr::core::vector3df(+150.f, +150.f, 200.f), 100, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
 
     app.SetTimestep(step_size);

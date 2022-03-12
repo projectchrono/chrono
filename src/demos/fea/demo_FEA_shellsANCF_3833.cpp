@@ -47,10 +47,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"ANCF Shells", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
+    application.AddCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
                                  core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
 
     GetLog() << "-----------------------------------------------------------------\n";

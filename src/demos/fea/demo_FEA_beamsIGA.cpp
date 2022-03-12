@@ -701,12 +701,11 @@ int main(int argc, char* argv[]) {
                          core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
-    application.AddTypicalLights(irr::core::vector3df(30.f, 100.f, 30.f), irr::core::vector3df(30.f, 80.f, -30.f), 180,
-                                 190, irr::video::SColorf(0.5f, 0.5f, 0.5f, 1.0f),
-                                 irr::video::SColorf(0.2f, 0.3f, 0.4f, 1.0f));
-    application.AddTypicalCamera(core::vector3df(-0.1f, 0.2f, -0.2f));
+    application.AddLogo();
+    application.AddSkyBox();
+    application.AddLight(irr::core::vector3df(30.f, 100.f, 30.f), 180, irr::video::SColorf(0.5f, 0.5f, 0.5f, 1.0f));
+    application.AddLight(irr::core::vector3df(30.f, 80.f, -30.f), 190, irr::video::SColorf(0.2f, 0.3f, 0.4f, 1.0f));
+    application.AddCamera(core::vector3df(-0.1f, 0.2f, -0.2f));
 
     // This is for GUI tweaking of system parameters..
     MyEventReceiver receiver(&application);

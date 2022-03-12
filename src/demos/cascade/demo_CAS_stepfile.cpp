@@ -52,10 +52,10 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&my_system, L"Load a STEP model from file", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
-    application.AddTypicalLights(core::vector3df(30, 100, 30), core::vector3df(30, -80, -30), 200, 130);
-    application.AddTypicalCamera(core::vector3df(0.2f, 0.2f, -0.3f));
+    application.AddLogo();
+    application.AddSkyBox();
+    application.AddTypicalLights();
+    application.AddCamera(core::vector3df(0.2f, 0.2f, -0.3f));
 
     //
     // Load a STEP file, containing a mechanism. The demo STEP file has been

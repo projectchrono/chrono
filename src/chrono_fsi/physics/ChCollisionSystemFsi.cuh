@@ -35,6 +35,7 @@ class ChCollisionSystemFsi : public ChFsiGeneral {
     ChCollisionSystemFsi(
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< Information of the particles in the sorted array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< Proximity information of the system
+        std::shared_ptr<FsiGeneralData> otherFsiGeneralData,     ///< Pointer to the SPH general data
         std::shared_ptr<SimParams> otherParamsH,                 ///< Parameters of the simulation
         std::shared_ptr<NumberOfObjects> otherNumObjects         ///< Size of different objects in the system
     );
@@ -52,6 +53,7 @@ class ChCollisionSystemFsi : public ChFsiGeneral {
     std::shared_ptr<SphMarkerDataD> sphMarkersD;        ///< Information of the particles in the original array
     std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;  ///< Information of the particles in the sorted array
     std::shared_ptr<ProximityDataD> markersProximityD;  ///< Proximity information of the system
+    std::shared_ptr<FsiGeneralData> fsiGeneralData;     ///< Pointer to the SPH general data
     std::shared_ptr<SimParams> paramsH;                 ///< Parameters of the simulation
     std::shared_ptr<NumberOfObjects> numObjectsH;       ///< Size of different objects in the system
 

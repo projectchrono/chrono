@@ -913,14 +913,12 @@ void ChElementShellANCF_3443::PrecomputeInternalForceMatricesWeightsContInt() {
 
                     // Adjust the shape function derivative matrix to account for a potentially deformed reference state
                     SD_precompute_D = Sxi_D * J_0xi.inverse();
-                    m_kGQ(index) = -J_0xi.determinant() * GQ_weight;
+                    m_kGQ((kl * NIP) + index) = -J_0xi.determinant() * GQ_weight;
 
                     // Group all of the columns together in blocks, and then layer by layer across the entire element
                     m_SD.col((3 * kl * NIP) + index) = SD_precompute_D.col(0);
                     m_SD.col((3 * kl * NIP) + index + NIP) = SD_precompute_D.col(1);
                     m_SD.col((3 * kl * NIP) + index + 2 * NIP) = SD_precompute_D.col(2);
-
-                    index++;
                 }
             }
         }
@@ -1118,7 +1116,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntDamping(ChVectorDynami
         E1_Block.array() -= 1;
         E1_Block *= 0.5;
         E1_Block += m_Alpha * E_BlockDamping;
-        E1_Block.array() *= m_kGQ.array();
+        E1_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E2 = kGQ*(E22+alpha*E22dot)
         //                  = kGQ*(1/2*(F12*F12+F22*F22+F32*F32-1)+alpha*(F12*F12dot+F22*F22dot+F32*F32dot))
@@ -1131,7 +1129,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntDamping(ChVectorDynami
         E2_Block.array() -= 1;
         E2_Block *= 0.5;
         E2_Block += m_Alpha * E_BlockDamping;
-        E2_Block.array() *= m_kGQ.array();
+        E2_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E3 = kGQ*(E33+alpha*E33dot)
         //                  = kGQ*(1/2*(F13*F13+F23*F23+F33*F33-1)+alpha*(F13*F13dot+F23*F23dot+F33*F33dot))
@@ -1145,7 +1143,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntDamping(ChVectorDynami
         E3_Block.array() -= 1;
         E3_Block *= 0.5;
         E3_Block += m_Alpha * E_BlockDamping;
-        E3_Block.array() *= m_kGQ.array();
+        E3_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E4 = kGQ*(2*(E23+alpha*E23dot))
         //                  = kGQ*((F12*F13+F22*F23+F32*F33)
@@ -1161,7 +1159,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntDamping(ChVectorDynami
                              FC.template block<NIP, 1>(NIP, 1).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 1)) +
                              FC.template block<NIP, 1>(NIP, 2).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 2));
         E4_Block += m_Alpha * E_BlockDamping;
-        E4_Block.array() *= m_kGQ.array();
+        E4_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E5 = kGQ*(2*(E13+alpha*E13dot))
         //                  = kGQ*((F11*F13+F21*F23+F31*F33)
@@ -1176,7 +1174,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntDamping(ChVectorDynami
                              FC.template block<NIP, 1>(0, 1).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 1)) +
                              FC.template block<NIP, 1>(0, 2).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 2));
         E5_Block += m_Alpha * E_BlockDamping;
-        E5_Block.array() *= m_kGQ.array();
+        E5_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E6 = kGQ*(2*(E12+alpha*E12dot))
         //                  = kGQ*((F11*F12+F21*F22+F31*F32)
@@ -1191,7 +1189,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntDamping(ChVectorDynami
                              FC.template block<NIP, 1>(0, 1).cwiseProduct(FC.template block<NIP, 1>(NIP, 1)) +
                              FC.template block<NIP, 1>(0, 2).cwiseProduct(FC.template block<NIP, 1>(NIP, 2));
         E6_Block += m_Alpha * E_BlockDamping;
-        E6_Block.array() *= m_kGQ.array();
+        E6_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // =============================================================================
         // Get the stiffness tensor in 6x6 matrix form for the current layer and rotate it in the midsurface according
@@ -1330,39 +1328,39 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntNoDamping(ChVectorDyna
                              FC.template block<NIP, 1>(0, 1).cwiseProduct(FC.template block<NIP, 1>(0, 1)) +
                              FC.template block<NIP, 1>(0, 2).cwiseProduct(FC.template block<NIP, 1>(0, 2));
         E1_Block.array() -= 1;
-        E1_Block.array() *= 0.5 * m_kGQ.array();
+        E1_Block.array() *= 0.5 * m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E2 = kGQ*E22 = kGQ*1/2*(F12*F12+F22*F22+F32*F32-1)
         VectorNIP E2_Block = FC.template block<NIP, 1>(NIP, 0).cwiseProduct(FC.template block<NIP, 1>(NIP, 0)) +
                              FC.template block<NIP, 1>(NIP, 1).cwiseProduct(FC.template block<NIP, 1>(NIP, 1)) +
                              FC.template block<NIP, 1>(NIP, 2).cwiseProduct(FC.template block<NIP, 1>(NIP, 2));
         E2_Block.array() -= 1;
-        E2_Block.array() *= 0.5 * m_kGQ.array();
+        E2_Block.array() *= 0.5 * m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E3 = kGQ*E33 = kGQ*1/2*(F13*F13+F23*F23+F33*F33-1)
         VectorNIP E3_Block = FC.template block<NIP, 1>(2 * NIP, 0).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 0)) +
                              FC.template block<NIP, 1>(2 * NIP, 1).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 1)) +
                              FC.template block<NIP, 1>(2 * NIP, 2).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 2));
         E3_Block.array() -= 1;
-        E3_Block.array() *= 0.5 * m_kGQ.array();
+        E3_Block.array() *= 0.5 * m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E4 = kGQ*2*E23 = kGQ*(F12*F13+F22*F23+F32*F33)
         VectorNIP E4_Block = FC.template block<NIP, 1>(NIP, 0).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 0)) +
                              FC.template block<NIP, 1>(NIP, 1).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 1)) +
                              FC.template block<NIP, 1>(NIP, 2).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 2));
-        E4_Block.array() *= m_kGQ.array();
+        E4_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E5 = kGQ*2*E13 = kGQ*(F11*F13+F21*F23+F31*F33)
         VectorNIP E5_Block = FC.template block<NIP, 1>(0, 0).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 0)) +
                              FC.template block<NIP, 1>(0, 1).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 1)) +
                              FC.template block<NIP, 1>(0, 2).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 2));
-        E5_Block.array() *= m_kGQ.array();
+        E5_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E6 = kGQ*2*E12 = (F11*F12+F21*F22+F31*F32)
         VectorNIP E6_Block = FC.template block<NIP, 1>(0, 0).cwiseProduct(FC.template block<NIP, 1>(NIP, 0)) +
                              FC.template block<NIP, 1>(0, 1).cwiseProduct(FC.template block<NIP, 1>(NIP, 1)) +
                              FC.template block<NIP, 1>(0, 2).cwiseProduct(FC.template block<NIP, 1>(NIP, 2));
-        E6_Block.array() *= m_kGQ.array();
+        E6_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // =============================================================================
         // Get the stiffness tensor in 6x6 matrix form for the current layer at rotate it in the midsurface according to
@@ -1639,9 +1637,9 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
                                                    (m_Alpha * Kfactor) * FC.template block<3 * NIP, 3>(0, 3);
 
         for (auto i = 0; i < 3; i++) {
-            FCscaled.template block<NIP, 1>(0, i).array() *= m_kGQ.array();
-            FCscaled.template block<NIP, 1>(NIP, i).array() *= m_kGQ.array();
-            FCscaled.template block<NIP, 1>(2 * NIP, i).array() *= m_kGQ.array();
+            FCscaled.template block<NIP, 1>(0, i).array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
+            FCscaled.template block<NIP, 1>(NIP, i).array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
+            FCscaled.template block<NIP, 1>(2 * NIP, i).array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
         }
 
         // =============================================================================
@@ -1827,7 +1825,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         E1_Block.array() -= 1;
         E1_Block *= 0.5;
         E1_Block += m_Alpha * E_BlockDamping;
-        E1_Block.array() *= m_kGQ.array();
+        E1_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E2 = kGQ*(E22+alpha*E22dot)
         //                  = kGQ*(1/2*(F12*F12+F22*F22+F32*F32-1)+alpha*(F12*F12dot+F22*F22dot+F32*F32dot))
@@ -1840,7 +1838,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         E2_Block.array() -= 1;
         E2_Block *= 0.5;
         E2_Block += m_Alpha * E_BlockDamping;
-        E2_Block.array() *= m_kGQ.array();
+        E2_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E3 = kGQ*(E33+alpha*E33dot)
         //                  = kGQ*(1/2*(F13*F13+F23*F23+F33*F33-1)+alpha*(F13*F13dot+F23*F23dot+F33*F33dot))
@@ -1854,7 +1852,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         E3_Block.array() -= 1;
         E3_Block *= 0.5;
         E3_Block += m_Alpha * E_BlockDamping;
-        E3_Block.array() *= m_kGQ.array();
+        E3_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E4 = kGQ*(2*(E23+alpha*E23dot))
         //                  = kGQ*((F12*F13+F22*F23+F32*F33)
@@ -1870,7 +1868,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
                              FC.template block<NIP, 1>(NIP, 1).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 1)) +
                              FC.template block<NIP, 1>(NIP, 2).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 2));
         E4_Block += m_Alpha * E_BlockDamping;
-        E4_Block.array() *= m_kGQ.array();
+        E4_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E5 = kGQ*(2*(E13+alpha*E13dot))
         //                  = kGQ*((F11*F13+F21*F23+F31*F33)
@@ -1885,7 +1883,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
                              FC.template block<NIP, 1>(0, 1).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 1)) +
                              FC.template block<NIP, 1>(0, 2).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 2));
         E5_Block += m_Alpha * E_BlockDamping;
-        E5_Block.array() *= m_kGQ.array();
+        E5_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E6 = kGQ*(2*(E12+alpha*E12dot))
         //                  = kGQ*((F11*F12+F21*F22+F31*F32)
@@ -1900,7 +1898,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
                              FC.template block<NIP, 1>(0, 1).cwiseProduct(FC.template block<NIP, 1>(NIP, 1)) +
                              FC.template block<NIP, 1>(0, 2).cwiseProduct(FC.template block<NIP, 1>(NIP, 2));
         E6_Block += m_Alpha * E_BlockDamping;
-        E6_Block.array() *= m_kGQ.array();
+        E6_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // =============================================================================
         // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points in the
@@ -2094,9 +2092,9 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         ChMatrixNMc<double, 3 * NIP, 3> FCscaled = Kfactor * FC;
 
         for (auto i = 0; i < 3; i++) {
-            FCscaled.template block<NIP, 1>(0, i).array() *= m_kGQ.array();
-            FCscaled.template block<NIP, 1>(NIP, i).array() *= m_kGQ.array();
-            FCscaled.template block<NIP, 1>(2 * NIP, i).array() *= m_kGQ.array();
+            FCscaled.template block<NIP, 1>(0, i).array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
+            FCscaled.template block<NIP, 1>(NIP, i).array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
+            FCscaled.template block<NIP, 1>(2 * NIP, i).array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
         }
 
         // =============================================================================
@@ -2271,39 +2269,39 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
                              FC.template block<NIP, 1>(0, 1).cwiseProduct(FC.template block<NIP, 1>(0, 1)) +
                              FC.template block<NIP, 1>(0, 2).cwiseProduct(FC.template block<NIP, 1>(0, 2));
         E1_Block.array() -= 1;
-        E1_Block.array() *= 0.5 * m_kGQ.array();
+        E1_Block.array() *= 0.5 * m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E2 = kGQ*E22 = kGQ*1/2*(F12*F12+F22*F22+F32*F32-1)
         VectorNIP E2_Block = FC.template block<NIP, 1>(NIP, 0).cwiseProduct(FC.template block<NIP, 1>(NIP, 0)) +
                              FC.template block<NIP, 1>(NIP, 1).cwiseProduct(FC.template block<NIP, 1>(NIP, 1)) +
                              FC.template block<NIP, 1>(NIP, 2).cwiseProduct(FC.template block<NIP, 1>(NIP, 2));
         E2_Block.array() -= 1;
-        E2_Block.array() *= 0.5 * m_kGQ.array();
+        E2_Block.array() *= 0.5 * m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E3 = kGQ*E33 = kGQ*1/2*(F13*F13+F23*F23+F33*F33-1)
         VectorNIP E3_Block = FC.template block<NIP, 1>(2 * NIP, 0).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 0)) +
                              FC.template block<NIP, 1>(2 * NIP, 1).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 1)) +
                              FC.template block<NIP, 1>(2 * NIP, 2).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 2));
         E3_Block.array() -= 1;
-        E3_Block.array() *= 0.5 * m_kGQ.array();
+        E3_Block.array() *= 0.5 * m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E4 = kGQ*2*E23 = kGQ*(F12*F13+F22*F23+F32*F33)
         VectorNIP E4_Block = FC.template block<NIP, 1>(NIP, 0).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 0)) +
                              FC.template block<NIP, 1>(NIP, 1).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 1)) +
                              FC.template block<NIP, 1>(NIP, 2).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 2));
-        E4_Block.array() *= m_kGQ.array();
+        E4_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E5 = kGQ*2*E13 = kGQ*(F11*F13+F21*F23+F31*F33)
         VectorNIP E5_Block = FC.template block<NIP, 1>(0, 0).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 0)) +
                              FC.template block<NIP, 1>(0, 1).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 1)) +
                              FC.template block<NIP, 1>(0, 2).cwiseProduct(FC.template block<NIP, 1>(2 * NIP, 2));
-        E5_Block.array() *= m_kGQ.array();
+        E5_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // Each entry in E6 = kGQ*2*E12 = (F11*F12+F21*F22+F31*F32)
         VectorNIP E6_Block = FC.template block<NIP, 1>(0, 0).cwiseProduct(FC.template block<NIP, 1>(NIP, 0)) +
                              FC.template block<NIP, 1>(0, 1).cwiseProduct(FC.template block<NIP, 1>(NIP, 1)) +
                              FC.template block<NIP, 1>(0, 2).cwiseProduct(FC.template block<NIP, 1>(NIP, 2));
-        E6_Block.array() *= m_kGQ.array();
+        E6_Block.array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
 
         // =============================================================================
         // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points in the

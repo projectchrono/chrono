@@ -223,9 +223,9 @@ mysystem.Add(mparallelism);
 
 myapplication = chronoirr.ChIrrApp(mysystem, 'Import STEP', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddTypicalCamera(chronoirr.vector3df(2,2,2),chronoirr.vector3df(0,0.8,0))
+myapplication.AddSkyBox()
+myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+myapplication.AddCamera(chronoirr.vector3df(2,2,2),chronoirr.vector3df(0,0.8,0))
 #myapplication.AddTypicalLights()
 myapplication.AddLightWithShadow(chronoirr.vector3df(3,6,2),    # point
                                  chronoirr.vector3df(0,0,0),    # aimpoint

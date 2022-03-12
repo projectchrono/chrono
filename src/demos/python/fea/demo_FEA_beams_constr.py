@@ -46,10 +46,10 @@ my_system = chrono.ChSystemSMC()
 application = chronoirr.ChIrrApp(my_system, "Beams and constraints", chronoirr.dimension2du(800, 600))
 
 # Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(chronoirr.vector3df(0.0, 0.6, -1.0))
+application.AddCamera(chronoirr.vector3df(0.0, 0.6, -1.0))
 
 L = 1
 H = 0.25

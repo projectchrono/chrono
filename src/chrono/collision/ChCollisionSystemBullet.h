@@ -16,7 +16,7 @@
 #define CH_COLLISION_SYSTEM_BULLET_H
 
 #include "chrono/collision/ChCollisionSystem.h"
-#include "chrono/collision/bullet/btBulletCollisionCommon.h"
+#include "chrono/collision/bullet/cbtBulletCollisionCommon.h"
 #include "chrono/core/ChApiCE.h"
 
 namespace chrono {
@@ -107,7 +107,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     virtual void Visualize(int flags) override;
 
     // Get the underlying Bullet collision world.
-    btCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
+    cbtCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
 
     // Change default contact breaking/merging threshold tolerance of Bullet.
     // This is the static gContactBreakingThreshold scalar in Bullet.
@@ -116,7 +116,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
 
   private:
     /// Perform a ray-hit test with all collision models. This version allows specifying the Bullet
-    /// collision filter group and mask (see btBroadphaseProxy::CollisionFilterGroups).
+    /// collision filter group and mask (see cbtBroadphaseProxy::CollisionFilterGroups).
     bool RayHit(const ChVector<>& from,
                 const ChVector<>& to,
                 ChRayhitResult& result,
@@ -124,7 +124,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
                 short int filter_mask) const;
 
     /// Perform a ray-hit test with the specified collision model. This version allows specifying the Bullet
-    /// collision filter group and mask (see btBroadphaseProxy::CollisionFilterGroups).
+    /// collision filter group and mask (see cbtBroadphaseProxy::CollisionFilterGroups).
     bool RayHit(const ChVector<>& from,
                 const ChVector<>& to,
                 ChCollisionModel* model,
@@ -132,23 +132,23 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
                 short int filter_group,
                 short int filter_mask) const;
 
-    btCollisionConfiguration* bt_collision_configuration;
-    btCollisionDispatcher* bt_dispatcher;
-    btBroadphaseInterface* bt_broadphase;
-    btCollisionWorld* bt_collision_world;
+    cbtCollisionConfiguration* bt_collision_configuration;
+    cbtCollisionDispatcher* bt_dispatcher;
+    cbtBroadphaseInterface* bt_broadphase;
+    cbtCollisionWorld* bt_collision_world;
 
-    btCollisionAlgorithmCreateFunc* m_collision_capsule_box;
-    btCollisionAlgorithmCreateFunc* m_collision_box_capsule;
-    btCollisionAlgorithmCreateFunc* m_collision_cylshell_box;
-    btCollisionAlgorithmCreateFunc* m_collision_box_cylshell;
-    btCollisionAlgorithmCreateFunc* m_collision_arc_seg;
-    btCollisionAlgorithmCreateFunc* m_collision_seg_arc;
-    btCollisionAlgorithmCreateFunc* m_collision_arc_arc;
-    btCollisionAlgorithmCreateFunc* m_collision_cetri_cetri;
+    cbtCollisionAlgorithmCreateFunc* m_collision_capsule_box;
+    cbtCollisionAlgorithmCreateFunc* m_collision_box_capsule;
+    cbtCollisionAlgorithmCreateFunc* m_collision_cylshell_box;
+    cbtCollisionAlgorithmCreateFunc* m_collision_box_cylshell;
+    cbtCollisionAlgorithmCreateFunc* m_collision_arc_seg;
+    cbtCollisionAlgorithmCreateFunc* m_collision_seg_arc;
+    cbtCollisionAlgorithmCreateFunc* m_collision_arc_arc;
+    cbtCollisionAlgorithmCreateFunc* m_collision_cetri_cetri;
     void* m_tmp_mem;
-    btCollisionAlgorithmCreateFunc* m_emptyCreateFunc;
+    cbtCollisionAlgorithmCreateFunc* m_emptyCreateFunc;
 
-    btIDebugDraw* m_debug_drawer;
+    cbtIDebugDraw* m_debug_drawer;
 };
 
 /// @} collision_bullet

@@ -293,6 +293,20 @@ if (NOT USE_EIGEN_OPENMP)
   set(CH_C_FLAGS "${CH_C_FLAGS} -DEIGEN_DONT_PARALLELIZE")
 endif()
 
+# Fix for hang-up in compilation with 32 bit on MSVC in Release configuration with EIGEN3.
+# Note: this flag may DECREASE the overall calculation performance in approx. 10%
+# For more information, see: https://gitlab.com/libeigen/eigen/-/issues/2379
+option(CMAKE_FLAGS_EIGEN3_INLINE "Build with 32 bit on MSVC in release configuration" OFF)
+mark_as_advanced(FORCE CMAKE_FLAGS_EIGEN3_INLINE)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	if(MSVC AND ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32") AND CMAKE_FLAGS_EIGEN3_INLINE)
+     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /DEIGEN_STRONG_INLINE=inline")
+     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /DEIGEN_STRONG_INLINE=inline")
+	 message(STATUS "Enabling inline flag for EIGEN hang-up issues with 32 bit on MSVC in release configuration")
+	 message(STATUS " Compiler flag: -DEIGEN_STRONG_INLINE=inline")
+	 message(STATUS " Note: this flag may DECREASE the overall calculation performance in approx. 10%")
+	endif()
+endif()
 #-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------
@@ -647,6 +661,7 @@ add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_irrlicht)
 add_subdirectory(chrono_cascade)
+add_subdirectory(chrono_modal)
 add_subdirectory(chrono_postprocess)
 add_subdirectory(chrono_pardisoproject)
 add_subdirectory(chrono_cosimulation)
@@ -752,6 +767,12 @@ if(ENABLE_MODULE_CASCADE)
   set(CHRONO_CASCADE "#define CHRONO_CASCADE")
 else()
   set(CHRONO_CASCADE "#undef CHRONO_CASCADE")
+endif()
+
+if(ENABLE_MODULE_MODAL)
+  set(CHRONO_MODAL "#define CHRONO_MODAL")
+else()
+  set(CHRONO_MODAL "#undef CHRONO_MODAL")
 endif()
 
 if(ENABLE_MODULE_COSIMULATION)

@@ -13,7 +13,7 @@
 // =============================================================================
 
 #include "chrono_mumps/ChSolverMumps.h"
-#include "chrono/parallel/ChOpenMP.h"
+#include "chrono/utils/ChOpenMP.h"
 
 namespace chrono {
 

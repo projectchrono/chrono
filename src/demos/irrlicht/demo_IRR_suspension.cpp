@@ -606,10 +606,10 @@ int main(int argc, char* argv[]) {
 
     // 2.- Create the Irrlicht visualization.
     ChIrrApp application(&my_system, L"Simple vehicle suspension", core::dimension2d<u32>(640, 480));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0, 0, -6));
+    application.AddCamera(core::vector3df(0, 0, -6));
 
     // 3- Create the rigid bodies of the simpified car suspension mechanical system
     //   maybe setting position/mass/inertias of

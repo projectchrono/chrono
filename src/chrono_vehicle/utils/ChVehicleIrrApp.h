@@ -57,18 +57,15 @@ class ChCameraEventReceiver;  ///< custom event receiver for chase-cam control
 class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
   public:
     /// Construct a vehicle Irrlicht application.
-    ChVehicleIrrApp(ChVehicle* vehicle,                              ///< pointer to the associated vehicle system
+    ChVehicleIrrApp(ChVehicle* vehicle,                              ///< associated vehicle system
                     const std::wstring& title = L"Chrono::Vehicle",  ///< window title
                     const irr::core::dimension2d<irr::u32>& dims =
-                        irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
-                    irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level
+                        irr::core::dimension2d<irr::u32>(1000, 800),        ///< window dimensions
+                    irrlicht::VerticalDir vert = irrlicht::VerticalDir::Z,  ///< vertical camera direction
+                    irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION        ///< Irrlicht logging level
     );
 
     virtual ~ChVehicleIrrApp();
-
-    /// Create a skybox that has Z pointing up.
-    /// Note that the default ChIrrApp::AddTypicalSky() uses Y up.
-    void SetSkyBox();
 
     /// Set parameters for the underlying chase camera.
     void SetChaseCamera(const ChVector<>& ptOnChassis,  ///< tracked point on chassis body (in vehicle reference frame)

@@ -51,15 +51,12 @@ robot.Initialize()
 # Create run-time visualization
 application = chronoirr.ChIrrApp(system, "Turtlebot Robot - Rigid terrain",
                                  chronoirr.dimension2du(1280, 720), chronoirr.VerticalDir_Z)
-application.AddTypicalLogo(
+application.AddLogo(
     chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
-application.AddTypicalSky()
-application.AddTypicalCamera(chronoirr.vector3df(
-    0, 0.5, 0.5), chronoirr.vector3df(0, 0, 0))
-application.AddTypicalLights(chronoirr.vector3df(
-    100, 100, 100), chronoirr.vector3df(100, -100, 80))
-application.AddLightWithShadow(chronoirr.vector3df(
-    1.5, -2.5, 5.5), chronoirr.vector3df(0, 0, 0), 3, 4, 10, 40, 512)
+application.AddSkyBox()
+application.AddCamera(chronoirr.vector3df(0, 0.5, 0.5), chronoirr.vector3df(0, 0, 0))
+application.AddTypicalLights()
+application.AddLightWithShadow(chronoirr.vector3df(1.5, -2.5, 5.5), chronoirr.vector3df(0, 0, 0), 3, 4, 10, 40, 512)
 
 application.AssetBindAll()
 application.AssetUpdateAll()

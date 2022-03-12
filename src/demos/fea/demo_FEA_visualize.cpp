@@ -55,10 +55,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"Irrlicht FEM visualization", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0, (f32)0.6, -1));
+    application.AddCamera(core::vector3df(0, (f32)0.6, -1));
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.

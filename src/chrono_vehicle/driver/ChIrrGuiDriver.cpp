@@ -147,11 +147,11 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
         switch (event.KeyInput.Key) {
             case KEY_KEY_A:
                 if (m_mode == KEYBOARD)
-                    m_steering_target = ChClamp(m_steering_target - m_steering_delta, -1.0, +1.0);
+                    m_steering_target = ChClamp(m_steering_target + m_steering_delta, -1.0, +1.0);
                 return true;
             case KEY_KEY_D:
                 if (m_mode == KEYBOARD)
-                    m_steering_target = ChClamp(m_steering_target + m_steering_delta, -1.0, +1.0);
+                    m_steering_target = ChClamp(m_steering_target - m_steering_delta, -1.0, +1.0);
                 return true;
             case KEY_KEY_W:
                 if (m_mode == KEYBOARD) {

@@ -99,10 +99,10 @@ int main(int argc, char* argv[]) {
                          core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera();
+    application.AddCamera();
 
     // 2- Create the rigid bodies of the four-bar mechanical system
     //   (a flywheel, a rod, a rocker, a truss), maybe setting

@@ -181,10 +181,10 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Critical cases for convergence, and compliance", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(1, 2, 6), core::vector3df(0, 2, 0));
+    application.AddCamera(core::vector3df(1, 2, 6), core::vector3df(0, 2, 0));
 
     // Create all the rigid bodies.
     create_items(application);

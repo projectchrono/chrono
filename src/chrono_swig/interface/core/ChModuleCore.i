@@ -184,11 +184,14 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFunctionPosition_setpoint)
 %shared_ptr(chrono::ChFunctionPosition_XYZfunctions)
 
+%shared_ptr(chrono::collision::ChCollisionSystem)
+%shared_ptr(chrono::collision::ChCollisionSystemBullet)
 %shared_ptr(chrono::collision::ChCollisionModel)
 %shared_ptr(chrono::collision::ChCollisionModelBullet)
 
 %shared_ptr(chrono::collision::ChCollisionSystem::BroadphaseCallback)
 %shared_ptr(chrono::collision::ChCollisionSystem::NarrowphaseCallback)
+%shared_ptr(chrono::collision::ChCollisionSystem::VisualizationCallback)
 
 %shared_ptr(chrono::ChPhysicsItem)
 %shared_ptr(chrono::ChIndexedNodes)
@@ -253,8 +256,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkPointSpline)
 %shared_ptr(chrono::ChLinkMotionImposed)
 
-
-
 %shared_ptr(chrono::geometry::ChGeometry)
 %shared_ptr(chrono::geometry::ChLine)
 %shared_ptr(chrono::geometry::ChVolume)
@@ -279,7 +280,12 @@ using namespace chrono::fea;
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
 %shared_ptr(chrono::geometry::ChTriangleMeshSoup)
 
+// Cross-inheritance for callbacks that must be inherited.
+// Put these 'director' features _before_ class wrapping declaration.
 
+%feature("director") chrono::collision::ChCollisionSystem::BroadphaseCallback;
+%feature("director") chrono::collision::ChCollisionSystem::NarrowphaseCallback;
+%feature("director") chrono::collision::ChCollisionSystem::VisualizationCallback;
 
 //
 // B- INCLUDE HEADERS
@@ -579,6 +585,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadCustomMultiple)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyForce)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyTorque)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyInertia)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBody)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyTorque)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadBase, ChLoadBodyBodyBushingSpherical)

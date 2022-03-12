@@ -43,10 +43,10 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Meshless deformable material", core::dimension2d<u32>(800, 600), false);
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0, 3, -3));
+    application.AddCamera(core::vector3df(0, 3, -3));
 
     // CREATE A FLOOR
 
