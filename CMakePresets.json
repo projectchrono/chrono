@@ -81,7 +81,6 @@
 			"displayName": "macOS M1 Chip CI Configuration",
 			"description": "CI Configuration for macOS with M1 chip (using brew)",
 			"inherits": [
-
 				"unixci-base",
 				"genericci-base"
 			],
@@ -95,7 +94,11 @@
 				"GLFW_INCLUDE_DIR": "/opt/homebrew/include",
 				"PYTHON_EXECUTABLE": "/opt/homebrew/bin",
 				"PYTHON_INCLUDE_DIR": "/opt/homebrew/Cellar/python@3.9/3.9.10/Frameworks/Python.frameworks/Versions/3.9/include/python3.9",
-				"PYTHON_LIBRARY": "/opt/homebrew/Cellar/python@3.9/3.9.10/Frameworks/Python.frameworks/Versions/3.9/lib/python3.9/config-3.9-darwin/libpython3.9.dylib"
+				"PYTHON_LIBRARY": "/opt/homebrew/Cellar/python@3.9/3.9.10/Frameworks/Python.frameworks/Versions/3.9/lib/python3.9/config-3.9-darwin/libpython3.9.dylib","ENABLE_MODULE_DISTRIBUTED": "OFF",
+				"ENABLE_MODULE_FSI": "OFF",
+				"ENABLE_MODULE_GPU": "OFF",
+				"USE_MULTICORE_CUDA": "OFF",
+				"ENABLE_MODULE_SENSOR": "OFF"
 			}
 		},
 		{
