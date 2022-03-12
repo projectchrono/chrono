@@ -26,22 +26,23 @@
 namespace chrono {
 namespace fsi {
 //------------------------------------------------------------------------------------
-ChFsiInterface::ChFsiInterface(ChSystem& other_mphysicalSystem,
-                               std::shared_ptr<fea::ChMesh> other_fsiMesh,
-                               std::shared_ptr<SimParams> other_paramsH,
-                               std::shared_ptr<FsiBodiesDataH> other_fsiBodiesH,
-                               std::shared_ptr<FsiMeshDataH> other_fsiMeshH,
-                               std::vector<std::shared_ptr<ChBody>>& other_fsiBodies,
-                               std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& other_fsiNodes,
-                               std::vector<std::shared_ptr<fea::ChElementCableANCF>>& other_fsiCables,
-                               std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& other_fsiShells,
-                               thrust::host_vector<int2>& other_CableElementsNodesH,
-                               thrust::device_vector<int2>& other_CableElementsNodes,
-                               thrust::host_vector<int4>& other_ShellElementsNodesH,
-                               thrust::device_vector<int4>& other_ShellElementsNodes,
-                               thrust::device_vector<Real3>& other_rigid_FSI_ForcesD,
-                               thrust::device_vector<Real3>& other_rigid_FSI_TorquesD,
-                               thrust::device_vector<Real3>& other_Flex_FSI_ForcesD)
+ChFsiInterface::ChFsiInterface(
+    ChSystem& other_mphysicalSystem,
+    std::shared_ptr<fea::ChMesh> other_fsiMesh,
+    std::shared_ptr<SimParams> other_paramsH,
+    std::shared_ptr<FsiBodiesDataH> other_fsiBodiesH,
+    std::shared_ptr<FsiMeshDataH> other_fsiMeshH,
+    std::vector<std::shared_ptr<ChBody>>& other_fsiBodies,
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& other_fsiNodes,
+    std::vector<std::shared_ptr<fea::ChElementCableANCF>>& other_fsiCables,
+    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& other_fsiShells,
+    thrust::host_vector<int2>& other_CableElementsNodesH,
+    thrust::device_vector<int2>& other_CableElementsNodes,
+    thrust::host_vector<int4>& other_ShellElementsNodesH,
+    thrust::device_vector<int4>& other_ShellElementsNodes,
+    thrust::device_vector<Real3>& other_rigid_FSI_ForcesD,
+    thrust::device_vector<Real3>& other_rigid_FSI_TorquesD,
+    thrust::device_vector<Real3>& other_Flex_FSI_ForcesD)
     : mphysicalSystem(other_mphysicalSystem),
       fsi_mesh(other_fsiMesh),
       paramsH(other_paramsH),
@@ -61,11 +62,6 @@ ChFsiInterface::ChFsiInterface(ChSystem& other_mphysicalSystem,
     size_t numBodies = mphysicalSystem.Get_bodylist().size();
     chronoRigidBackup = chrono_types::make_shared<ChronoBodiesDataH>(numBodies);
     chronoFlexMeshBackup = chrono_types::make_shared<ChronoMeshDataH>(0);
-    //    int numShells = 0;
-    //    int numCables = 0;
-    //    if (mphysicalSystem.Get_otherphysicslist().size())
-    //        numShells =
-    //        std::dynamic_pointer_cast<fea::ChMesh>(mphysicalSystem.Get_otherphysicslist().at(0))->GetNelements();
     int numNodes = 0;
 
     if (mphysicalSystem.Get_otherphysicslist().size())
@@ -74,8 +70,11 @@ ChFsiInterface::ChFsiInterface(ChSystem& other_mphysicalSystem,
 }
 //------------------------------------------------------------------------------------
 ChFsiInterface::~ChFsiInterface() {}
-//------------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+//-----------------------Chrono rigid body Specifics----------------------------------
+//------------------------------------------------------------------------------------
 void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
     size_t numRigids = fsiBodies.size();
     std::string delim = ",";
@@ -90,33 +89,6 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
         totalForce += mforce;
         totalTorque + mtorque;
         std::shared_ptr<ChBody> body = fsiBodies[i];
-        ChVector<> pos = body->GetPos();
-        ChVector<> vel = body->GetPos_dt();
-        ChQuaternion<> rot = body->GetRot();
-
-        sprintf(filename, "%s/FS_body%zd.csv", paramsH->demo_dir, i);
-        std::ofstream file;
-        if (mphysicalSystem.GetChTime() > 0)
-            file.open(filename, std::fstream::app);
-        else {
-            file.open(filename);
-            file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "q0" << delim << "q1" << delim
-                 << "q2" << delim << "q3" << delim << "Vx" << delim << "Vy" << delim << "Vz" << delim << "Fx" << delim
-                 << "Fy" << delim << "Fz" << delim << "Tx" << delim << "Ty" << delim << "Tz" << std::endl;
-        }
-
-        if (1)  // set as 1 if output to file
-            file << mphysicalSystem.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z() << delim
-                 << rot.e0() << delim << rot.e1() << delim << rot.e2() << delim << rot.e3() << delim << vel.x() << delim
-                 << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y() << delim << mforce.z()
-                 << delim << mtorque.x() << delim << mtorque.y() << delim << mtorque.z() << std::endl;
-
-        if (0)  // set as 1 if output to screen
-            std::cout << mphysicalSystem.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z()
-                      << delim << rot.e0() << delim << rot.e1() << delim << rot.e2() << delim << rot.e3() << delim
-                      << vel.x() << delim << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y()
-                      << delim << mforce.z() << delim << mtorque.x() << delim << mtorque.y() << delim << mtorque.z()
-                      << std::endl;
 
         // note: when this FSI body goes back to Chrono system, the gravity
         // will be automaticly added. Here only accumulate force from fluid
@@ -124,10 +96,33 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
         body->Accumulate_force(mforce, body->GetPos(), false);
         body->Accumulate_torque(mtorque, false);
 
-        file.close();
+        // output FSI information into csv files for each body
+        // this can be disabled by setting paramsH->output_fsi
+        // to false for better IO performance
+        if (paramsH->output_fsi){
+            ChVector<> pos = body->GetPos();
+            ChVector<> vel = body->GetPos_dt();
+            ChQuaternion<> rot = body->GetRot();
+
+            sprintf(filename, "%s/FSI_body%zd.csv", paramsH->demo_dir, i);
+            std::ofstream file;
+            if (mphysicalSystem.GetChTime() > 0)
+                file.open(filename, std::fstream::app);
+            else {
+                file.open(filename);
+                file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "q0" << delim << "q1" << delim
+                     << "q2" << delim << "q3" << delim << "Vx" << delim << "Vy" << delim << "Vz" << delim << "Fx" << delim
+                     << "Fy" << delim << "Fz" << delim << "Tx" << delim << "Ty" << delim << "Tz" << std::endl;
+            }
+
+            file << mphysicalSystem.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z() << delim
+                 << rot.e0() << delim << rot.e1() << delim << rot.e2() << delim << rot.e3() << delim << vel.x() << delim
+                 << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y() << delim << mforce.z()
+                 << delim << mtorque.x() << delim << mtorque.y() << delim << mtorque.z() << std::endl;
+            file.close();
+        }
     }
 }
-
 //------------------------------------------------------------------------------------
 void ChFsiInterface::Copy_External_To_ChSystem() {
     size_t numBodies = mphysicalSystem.Get_bodylist().size();
@@ -197,7 +192,6 @@ void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(std::shared_ptr<FsiB
     }
     fsiBodiesD->CopyFromH(*fsiBodiesH);
 }
-
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoBodiesData() {
     size_t numBodies = mphysicalSystem.Get_bodylist().size();
@@ -206,48 +200,42 @@ void ChFsiInterface::ResizeChronoBodiesData() {
 
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
-//-----------------------Chrono FEA Specifics------------------------------------------
+//-----------------------Chrono FEA Specifics-----------------------------------------
 //------------------------------------------------------------------------------------
 void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
-    //    int numShells = 0;
-    //    int numNodes_ChSystem = 0;
     std::string delim = ",";
-
     size_t numNodes = fsiNodes.size();
     ChVector<> total_force(0, 0, 0);
     for (size_t i = 0; i < numNodes; i++) {
         ChVector<> mforce = ChUtilsTypeConvert::Real3ToChVector(ChUtilsDevice::FetchElement(Flex_FSI_ForcesD, i));
-        //        if (mforce.Length() != 0.0)
-        //            printf("mforce= (%.3e,%.3e,%.3e)\n", mforce.x(), mforce.y(), mforce.z());
         auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(fsi_mesh->GetNode((unsigned int)i));
-
-        ChVector<> pos = node->GetPos();
-        ChVector<> vel = node->GetPos_dt();
-        char filename[4096];
-        sprintf(filename, "%s/FS_node%zd.csv", paramsH->demo_dir, i);
-        std::ofstream file;
-        if (mphysicalSystem.GetChTime() > 0)
-            file.open(filename, std::fstream::app);
-        else {
-            file.open(filename);
-            file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "Vx" << delim << "Vy" << delim
-                 << "Vz" << delim << "Fx" << delim << "Fy" << delim << "Fz" << std::endl;
-        }
-
-        file << mphysicalSystem.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z() << delim
-             << vel.x() << delim << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y() << delim
-             << mforce.z() << std::endl;
-        file.close();
-
-        //    ChVector<> OldForce = node->GetForce();
         node->SetForce(mforce);
-    }
 
-    //    printf("Total Force from the fluid to the solid = (%.3e,%.3e,%.3e)\n", total_force.x(), total_force.y(),
-    //           total_force.z());
+        // output FSI information into csv files for each node
+        // this can be disabled by setting paramsH->output_fsi
+        // to false for better IO performance
+        if (paramsH->output_fsi){
+            ChVector<> pos = node->GetPos();
+            ChVector<> vel = node->GetPos_dt();
+            char filename[4096];
+            sprintf(filename, "%s/FSI_node%zd.csv", paramsH->demo_dir, i);
+            std::ofstream file;
+            if (mphysicalSystem.GetChTime() > 0)
+                file.open(filename, std::fstream::app);
+            else {
+                file.open(filename);
+                file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "Vx" << delim << "Vy" << delim
+                     << "Vz" << delim << "Fx" << delim << "Fy" << delim << "Fz" << std::endl;
+            }
+
+            file << mphysicalSystem.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z() << delim
+                 << vel.x() << delim << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y() << delim
+                 << mforce.z() << std::endl;
+            file.close();
+        }
+    }
 }
 //------------------------------------------------------------------------------------
-
 void ChFsiInterface::Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD) {
     size_t num_fsiNodes_Felx = fsiNodes.size();
 
@@ -260,7 +248,6 @@ void ChFsiInterface::Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMe
     FsiMeshD->CopyFromH(*fsiMeshH);
 }
 //------------------------------------------------------------------------------------
-
 void ChFsiInterface::ResizeChronoNodesData() {
     int numNodes = 0;
     auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
@@ -271,7 +258,6 @@ void ChFsiInterface::ResizeChronoNodesData() {
     printf("numNodes in ResizeChronNodesData  %d\n", numNodes);
     chronoFlexMeshBackup->resize(numNodes);
 }
-
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoFEANodesData() {
     int numNodes = 0;
@@ -286,9 +272,9 @@ void ChFsiInterface::ResizeChronoFEANodesData() {
     chronoFlexMeshBackup->resize(numNodes);
 }
 //------------------------------------------------------------------------------------
-
-void ChFsiInterface::ResizeChronoCablesData(std::vector<std::vector<int>> CableElementsNodesSTDVector,
-                                            thrust::host_vector<int2>& CableElementsNodesH) {
+void ChFsiInterface::ResizeChronoCablesData(
+    std::vector<std::vector<int>> CableElementsNodesSTDVector,
+    thrust::host_vector<int2>& CableElementsNodesH) {
     auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
     if (mphysicalSystem.Get_otherphysicslist().size()) {
         my_mesh = std::dynamic_pointer_cast<fea::ChMesh>(mphysicalSystem.Get_otherphysicslist().at(0));
@@ -320,9 +306,9 @@ void ChFsiInterface::ResizeChronoCablesData(std::vector<std::vector<int>> CableE
     }
 }
 //------------------------------------------------------------------------------------
-
-void ChFsiInterface::ResizeChronoShellsData(std::vector<std::vector<int>> ShellElementsNodesSTDVector,
-                                            thrust::host_vector<int4>& ShellElementsNodesH) {
+void ChFsiInterface::ResizeChronoShellsData(
+    std::vector<std::vector<int>> ShellElementsNodesSTDVector,
+    thrust::host_vector<int4>& ShellElementsNodesH) {
     auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
     if (mphysicalSystem.Get_otherphysicslist().size()) {
         my_mesh = std::dynamic_pointer_cast<fea::ChMesh>(mphysicalSystem.Get_otherphysicslist().at(0));

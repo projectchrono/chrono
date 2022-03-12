@@ -19,6 +19,7 @@
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/motion_functions/ChFunction_Base.h"
 #include "chrono/physics/ChSystem.h"
@@ -28,15 +29,19 @@
 namespace irr {
 namespace core {
 
-/// Utility class to easily convert a Chrono vector into an Irrlicht vector3df.
+/// Utility class to convert a Chrono vector into an Irrlicht vector3df.
 class ChApiIrr vector3dfCH : public vector3df {
   public:
-    vector3dfCH(const chrono::ChVector<>& mch) {
-        X = ((f32)mch.x());
-        Y = ((f32)mch.y());
-        Z = ((f32)mch.z());
-    }
+    vector3dfCH(const chrono::ChVector<>& mch);
 };
+
+/// Utility class to convert a Chrono frame into an Irrlicht transform.
+class ChApiIrr matrix4CH : public matrix4 {
+  public:
+    matrix4CH(const chrono::ChCoordsys<>& csys);
+    matrix4CH(const chrono::ChFrame<>& frame);
+};
+
 
 }  // end namespace core
 }  // end namespace irr
@@ -102,6 +107,7 @@ ChApiIrr irr::video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMateri
                                                  irr::video::IVideoDriver* driver);
 
 /// Align an Irrlicht object to a the specified coordinate system.
+//// RADU TODO obsolete
 ChApiIrr void alignIrrlichtNode(irr::scene::ISceneNode* mnode, const ChCoordsys<>& mcoords);
 
 /// Draw contact points used by a ChSystem in the current Irrlicht viewer.

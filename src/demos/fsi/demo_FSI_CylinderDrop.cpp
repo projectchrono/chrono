@@ -155,7 +155,7 @@ void SaveParaViewFiles(ChSystemFsi& myFsiSystem,
     double frame_time = 1.0 / paramsH->out_fps;
 
     /// Output data to files
-    if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-6) {
+    if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-5) {
         /// save particles to cvs files
         myFsiSystem.PrintParticleToFile(demo_dir);
 
@@ -312,9 +312,8 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax( bxDim / 2 * 10,  byDim / 2 * 10,  bzDim * 10);
     myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
 
-    /// Set the time integration type and the linear solver type (only for ISPH)
+    /// Set the time integration type
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
-    myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
 
     /// Setup sub doamins for a faster neighbor particle searching
     myFsiSystem.SetSubDomain(paramsH);

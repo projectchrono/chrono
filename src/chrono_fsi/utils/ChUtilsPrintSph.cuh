@@ -44,6 +44,7 @@ CH_FSI_API void PrintToFile(const thrust::device_vector<Real4>& posRadD,
                             const thrust::host_vector<int4>& referenceArray,
                             const thrust::host_vector<int4>& referenceArrayFEA,
                             const std::string& out_dir,
+                            const std::shared_ptr<SimParams>& paramsH,
                             bool printToParaview = false);
 
 /// Helper function to save particle info from FSI system to a CSV files. 
