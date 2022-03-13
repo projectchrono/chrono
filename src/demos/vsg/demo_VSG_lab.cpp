@@ -41,8 +41,14 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     sys.SetVisualSystem(vis);
 
+    size_t numFrame = 0;
     while(vis->Run()) {
+        if(numFrame == 10) {
+            std::string imageFileName = "image.png"; // allowed formats pmg, bmp, jpg, tga
+            vis->WriteImageToFile(imageFileName); // does not work with frame == 0!
+        }
         vis->Render();
+        numFrame++;
     }
     return 0;
 }

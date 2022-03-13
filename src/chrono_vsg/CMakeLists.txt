@@ -47,6 +47,8 @@ SET(CE_VSG_RESOURCES_FILES
 SET(CE_VSG_TOOLS_FILES
         tools/createSkybox.cpp
         tools/createSkybox.h
+        ../chrono_thirdparty/stb/stb_image_write.cpp
+        ../chrono_thirdparty/stb/stb_image_resize.cpp
 )
 
 SOURCE_GROUP("" FILES ${CE_VSG_BASE_FILES})

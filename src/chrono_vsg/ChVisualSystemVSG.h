@@ -40,7 +40,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Must be called before Initialize().
     void SetWindowSize(const ChVector2<int>& win_size);
 
-    /// Set the windoiw title (default "").
+    /// Set the window title (default "").
     /// Must be called before Initialize().
     void SetWindowTitle(const std::string& win_title);
 
@@ -56,8 +56,13 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     // terminate
     void Quit();
 
+    /// Create a snapshot of the last rendered frame and save it to the provided file.
+    /// The file extension determines the image format.
+    virtual void WriteImageToFile(const std::string& filename) override;
+
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
         bool showGui = true;  // (don't) show the imgui menu
+        bool do_image_capture = false; // mark image capturing as needed
     };
 
 private:
@@ -70,10 +75,10 @@ private:
     vsg::ref_ptr<vsg::Options> m_options;
     vsg::ref_ptr<vsg::WindowTraits> m_windowTraits;
     vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
+    std::string m_imageFilename;
     //
     bool m_use_skybox = false;
     std::string m_skyboxFilename = "vsg/textures/chrono_skybox.ktx2"; // "vsg/models/chrono_sky.vsgb";
-
     //
     vsg::ref_ptr<vsg::Group> m_scenegraph;
     //
@@ -84,7 +89,8 @@ private:
     //
     vsg::ref_ptr<vsg::CommandGraph> m_commandGraph;
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
-
+    //
+    void export_image();
 };
 }  // namespace vsg3d
 }  // namespace chrono
