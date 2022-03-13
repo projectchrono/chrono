@@ -108,8 +108,7 @@ void ChIrrNodeModel::OnAnimate(u32 timeMs) {
                 unsigned int iclone = 0;
                 irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
                 for (; it != Children.end(); ++it) {
-                    tools::alignIrrlichtNode((*it),
-                                                         m_physicsitem.lock()->GetVisualModelFrame(iclone).GetCoord());
+                    tools::alignIrrlichtNode((*it), m_physicsitem.lock()->GetVisualModelFrame(iclone).GetCoord());
                     ++iclone;
                 }
             }

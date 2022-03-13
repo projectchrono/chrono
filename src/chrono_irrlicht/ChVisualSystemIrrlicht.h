@@ -215,6 +215,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
                          std::shared_ptr<ChVisualModel> model,
                          const ChFrame<>& parent_frame);
 
+    /// Purge Irrlicht nodes associated with a deleted physics item or with a deleted visual model.
+    void PurgeIrrNodes();
+
     /// Add shadow to an Irrlicht node.
     void AddShadowToIrrNode(irr::scene::ISceneNode* node);
 
