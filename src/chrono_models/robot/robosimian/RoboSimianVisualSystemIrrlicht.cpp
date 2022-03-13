@@ -14,7 +14,7 @@
 //
 // =============================================================================
 
-#include "chrono_models/robot/robosimian/RoboSimianIrrApp.h"
+#include "chrono_models/robot/robosimian/RoboSimianVisualSystemIrrlicht.h"
 
 namespace chrono {
 namespace robosimian {
@@ -23,7 +23,7 @@ namespace robosimian {
 
 class RS_IEventReceiver : public irr::IEventReceiver {
   public:
-    RS_IEventReceiver(RoboSimianIrrApp* app) : m_app(app), m_vis(VisualizationType::COLLISION) {}
+    RS_IEventReceiver(RoboSimianVisualSystemIrrlicht* vsys) : m_vsys(vsys), m_vis(VisualizationType::COLLISION) {}
 
     virtual bool OnEvent(const irr::SEvent& event) override {
         if (event.EventType != irr::EET_KEY_INPUT_EVENT)
@@ -34,13 +34,12 @@ class RS_IEventReceiver : public irr::IEventReceiver {
                 case irr::KEY_KEY_C:
                     m_vis = (m_vis == VisualizationType::MESH ? VisualizationType::COLLISION : VisualizationType::MESH);
 
-                    m_app->m_robot->SetVisualizationTypeChassis(m_vis);
-                    m_app->m_robot->SetVisualizationTypeSled(m_vis);
-                    m_app->m_robot->SetVisualizationTypeLimbs(m_vis);
-                    m_app->m_robot->SetVisualizationTypeWheels(m_vis);
+                    m_vsys->m_robot->SetVisualizationTypeChassis(m_vis);
+                    m_vsys->m_robot->SetVisualizationTypeSled(m_vis);
+                    m_vsys->m_robot->SetVisualizationTypeLimbs(m_vis);
+                    m_vsys->m_robot->SetVisualizationTypeWheels(m_vis);
 
-                    m_app->AssetBindAll();
-                    m_app->AssetUpdateAll();
+                    m_vsys->BindAll();
 
                     return true;
 
@@ -54,29 +53,27 @@ class RS_IEventReceiver : public irr::IEventReceiver {
 
   private:
     VisualizationType m_vis;
-    RoboSimianIrrApp* m_app;
+    RoboSimianVisualSystemIrrlicht* m_vsys;
 };
 
 // -----------------------------------------------------------------------------
 
-RoboSimianIrrApp::RoboSimianIrrApp(RoboSimian* robot,
-                                   RS_Driver* driver,
-                                   const wchar_t* title,
-                                   irr::core::dimension2d<irr::u32> dims)
-    : ChIrrApp(robot->GetSystem(), title, dims, irrlicht::VerticalDir::Y, false, true, true, irr::video::EDT_OPENGL),
-      m_robot(robot),
+RoboSimianVisualSystemIrrlicht::RoboSimianVisualSystemIrrlicht(RoboSimian* robot,
+                                   RS_Driver* driver)
+    : m_robot(robot),
       m_driver(driver),
       m_HUD_x(650),
       m_HUD_y(20) {
+    m_system = robot->GetSystem();
     m_erecv = new RS_IEventReceiver(this);
-    SetUserEventReceiver(m_erecv);
+    AddUserEventReceiver(m_erecv);
 }
 
-RoboSimianIrrApp::~RoboSimianIrrApp() {
+RoboSimianVisualSystemIrrlicht::~RoboSimianVisualSystemIrrlicht() {
     delete m_erecv;
 }
 
-void RoboSimianIrrApp::renderTextBox(const std::string& msg,
+void RoboSimianVisualSystemIrrlicht::renderTextBox(const std::string& msg,
                                      int xpos,
                                      int ypos,
                                      int length,
@@ -85,12 +82,12 @@ void RoboSimianIrrApp::renderTextBox(const std::string& msg,
     irr::core::rect<irr::s32> mclip(xpos, ypos, xpos + length, ypos + height);
     GetVideoDriver()->draw2DRectangle(irr::video::SColor(90, 60, 60, 60),
                                       irr::core::rect<irr::s32>(xpos, ypos, xpos + length, ypos + height), &mclip);
-    irr::gui::IGUIFont* font = GetIGUIEnvironment()->getBuiltInFont();
+    irr::gui::IGUIFont* font = GetGUIEnvironment()->getBuiltInFont();
     font->draw(msg.c_str(), irr::core::rect<irr::s32>(xpos + 3, ypos + 3, xpos + length, ypos + height), color);
 }
 
-void RoboSimianIrrApp::DrawAll() {
-    ChIrrAppInterface::DrawAll();
+void RoboSimianVisualSystemIrrlicht::DrawAll() {
+    ChVisualSystemIrrlicht::DrawAll();
 
     char msg[100];
 
