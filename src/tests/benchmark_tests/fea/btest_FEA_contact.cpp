@@ -35,7 +35,7 @@
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_irrlicht/ChIrrApp.h"
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
 
 #ifdef CHRONO_PARDISO_MKL
@@ -229,24 +229,22 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
 
 void FEAcontactTest::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp application(m_system, L"FEA contacts", irr::core::dimension2d<irr::u32>(800, 600),
-                                   irrlicht::VerticalDir::Y, false, true);
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(0, (irr::f32)0.6, -1));
-    application.AddLightWithShadow(irr::core::vector3df(1.5, 5.5, -2.5), irr::core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40,
-                                   512, irr::video::SColorf(1, 1, 1));
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+    m_system->SetVisualSystem(vis);
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("FEA contacts");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0, 0.6, -1.0), ChVector<>(0, 0, 0));
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
-    application.AddShadowAll();
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
         ExecuteStep();
-        application.EndScene();
+        vis->EndScene();
     }
 #endif
 }

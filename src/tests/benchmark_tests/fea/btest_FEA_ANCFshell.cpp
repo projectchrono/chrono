@@ -31,7 +31,7 @@
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChIrrApp.h"
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
 
 #ifdef CHRONO_PARDISO_MKL
@@ -241,26 +241,29 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
 template <int N>
 void ANCFshell<N>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp application(m_system, L"ANCF shells", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(-0.2f, 0.2f, 0.2f), irr::core::vector3df(0, 0, 0));
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+    m_system->SetVisualSystem(vis);
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("ANCF shells");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.2, 0.2, 0.2), ChVector<>(0, 0, 0));
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
-        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
+    while (vis->Run()) {
+        vis->.BeginScene();
+        vis->.DrawAll();
+        irrlicht::tools::drawSegment(GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
                                      irr::video::SColor(255, 255, 0, 0));
-        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
                                      irr::video::SColor(255, 0, 255, 0));
-        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
                                      irr::video::SColor(255, 0, 0, 255));
         ExecuteStep();
-        application.EndScene();
+        vis->EndScene();
     }
 #endif
 }
