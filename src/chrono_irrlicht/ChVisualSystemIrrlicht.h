@@ -153,6 +153,10 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Has no effect, unless called after Initialize().
     void EnableBodyFrameDrawing(bool val);
 
+    /// Enable rendering of link frames (default: false).
+    /// Has no effect, unless called after Initialize().
+    void EnableLinkFrameDrawing(bool val);
+
     /// Enable rendering of collision shapes (default: false).
     /// Has no effect, unless called after Initialize().
     void EnableCollisionShapeDrawing(bool val);

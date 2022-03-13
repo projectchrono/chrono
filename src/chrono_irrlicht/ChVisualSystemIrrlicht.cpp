@@ -401,6 +401,12 @@ void ChVisualSystemIrrlicht::EnableBodyFrameDrawing(bool val) {
     m_gui->SetPlotCOGFrames(val);
 }
 
+void ChVisualSystemIrrlicht::EnableLinkFrameDrawing(bool val) {
+    if (!m_device)
+        return;
+    m_gui->SetPlotLinkFrames(val);
+}
+
 void ChVisualSystemIrrlicht::EnableCollisionShapeDrawing(bool val) {
     if (!m_device)
         return;
