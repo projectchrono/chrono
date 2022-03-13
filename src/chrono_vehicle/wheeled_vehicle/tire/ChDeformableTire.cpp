@@ -108,7 +108,7 @@ void ChDeformableTire::AddVisualizationAssets(VisualizationType vis) {
     m_visualization->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     m_visualization->SetColorscaleMinMax(0.0, 1);
     m_visualization->SetSmoothFaces(true);
-    m_mesh->AddAsset(m_visualization);
+    m_mesh->AddVisualShapeFEA(m_visualization);
 }
 
 void ChDeformableTire::RemoveVisualizationAssets() {
