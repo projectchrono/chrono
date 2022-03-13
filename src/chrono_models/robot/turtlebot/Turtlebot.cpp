@@ -176,7 +176,7 @@ void Turtlebot_Part::AddVisualizationAssets() {
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(m_mesh_name);
     trimesh_shape->SetMutable(false);
-    m_body->AddAsset(trimesh_shape);
+    m_body->AddVisualShape(trimesh_shape);
     return;
 }
 

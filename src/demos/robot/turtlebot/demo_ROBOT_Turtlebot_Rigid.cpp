@@ -34,7 +34,7 @@
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChLinkDistance.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -94,20 +94,6 @@ int main(int argc, char* argv[]) {
     // set gravity
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&sys, L"Turtlebot Robot on Rigid Terrain", core::dimension2d<u32>(1280, 720),
-                         VerticalDir::Z, false, true);
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 0.5, 0.5));
-
-    application.AddLightWithShadow(core::vector3df(1.5f, 1.5f, 5.5f), core::vector3df(0, 0, 0), 3, 4, 10, 40, 512,
-                                   video::SColorf(0.8f, 0.8f, 1.0f));
-
-    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
-
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
@@ -133,25 +119,29 @@ int main(int argc, char* argv[]) {
 
     robot->Initialize();
 
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
-    application.AssetBindAll();
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->SetWindowSize(ChVector2<int>(1280, 720));
+    vis->SetWindowTitle("Turtlebot Robot on Rigid Terrain");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 0.5, 0.5));
+    vis->AddTypicalLights();
+    vis->AddLightWithShadow(ChVector<>(1.5, 1.5, 5.5), ChVector<>(0, 0, 0), 3, 4, 10, 40, 512,
+                            ChColor(0.8f, 0.8f, 1.0f));
+    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_DISTANCES);
+    vis->EnableShadows();
 
-    // Use this function for 'converting' assets into Irrlicht meshes
-    application.AssetUpdateAll();
-
-    // Use shadows in realtime view
-    application.AddShadowAll();
-
-    application.SetTimestep(time_step);
-
-    //
     // Simulation loop
-    //
-
     float time = 0.0f;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
-    while (application.GetDevice()->run()) {
         // at time = 1 s, start left turn
         if (abs(time - 1.0f) < 1e-4) {
             robot->SetMotorSpeed(-0.f, WheelID::LD);
@@ -172,10 +162,7 @@ int main(int argc, char* argv[]) {
         // increment time indicator
         time = time + time_step;
 
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-        application.DrawAll();
-        application.DoStep();
-        application.EndScene();
+        sys.DoStepDynamics(time_step);
     }
 
     return 0;
