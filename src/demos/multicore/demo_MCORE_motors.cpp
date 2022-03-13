@@ -50,15 +50,10 @@ void CreateSliderGuide(std::shared_ptr<ChBody>& mguide,
     mslider->SetPos(mpos + ChVector<>(0, 0.3, 0));
     msystem.Add(mslider);
 
-    auto mcolor = chrono_types::make_shared<ChColorAsset>(0.6f, 0.6f, 0.0f);
-    mslider->AddAsset(mcolor);
-
     auto obstacle = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.4, 0.4, 8000, material,
                                                              collision::ChCollisionSystemType::CHRONO);
     obstacle->SetPos(mpos + ChVector<>(1.5, 0.4, 0));
     msystem.Add(obstacle);
-    auto mcolorobstacle = chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.2f);
-    mslider->AddAsset(mcolorobstacle);
 }
 
 void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
@@ -76,9 +71,6 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
     mrotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material, collision::ChCollisionSystemType::CHRONO);
     mrotor->SetPos(mpos + ChVector<>(0.5, 0, -0.15));
     msystem.Add(mrotor);
-
-    auto mcolor = chrono_types::make_shared<ChColorAsset>(0.6f, 0.6f, 0.0f);
-    mrotor->AddAsset(mcolor);
 }
 
 // -----------------------------------------------------------------------------

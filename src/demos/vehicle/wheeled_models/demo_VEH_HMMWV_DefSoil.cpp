@@ -164,7 +164,6 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     trimesh_shape->SetMutable(false);
     trimesh_shape->SetName("lugged_wheel");
     trimesh_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-    wheel_body->AddAsset(trimesh_shape);
     wheel_body->AddVisualShape(trimesh_shape);
 }
 

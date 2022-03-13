@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+//// RADU TODO - investigate incorrect visual output
+
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 

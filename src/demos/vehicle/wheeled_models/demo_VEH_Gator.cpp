@@ -135,9 +135,9 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize();
 
-    auto truss_mesh = chrono_types::make_shared<ChObjShapeFile>();
-    truss_mesh->SetFilename(GetChronoDataFile("vehicle/gator/gator_chassis.obj"));
-    patch->GetGroundBody()->AddVisualShape(truss_mesh, ChFrame<>(ChVector<>(-10, -2, 3)));
+    ////auto truss_mesh = chrono_types::make_shared<ChObjShapeFile>();
+    ////truss_mesh->SetFilename(GetChronoDataFile("vehicle/gator/gator_chassis.obj"));
+    ////patch->GetGroundBody()->AddVisualShape(truss_mesh, ChFrame<>(ChVector<>(-10, -2, 3)));
 
     // -------------------------------------
     // Create the vehicle Irrlicht interface
