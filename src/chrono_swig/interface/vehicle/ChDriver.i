@@ -49,7 +49,7 @@
 
 #ifdef CHRONO_IRRLICHT
 %import(module = "pychrono.irrlicht") "dimension2d.h"
-%import(module = "pychrono.irrlicht") "../irrlicht/ChIrrApp.i"
+%import(module = "pychrono.irrlicht") "../irrlicht/ChVisualSystemIrrlicht.i"
 #endif
 
 #endif             // --------------------------------------------------------------------- PYTHON

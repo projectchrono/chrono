@@ -254,9 +254,9 @@ void ANCFshell<N>::SimulateVis() {
 
 
     while (vis->Run()) {
-        vis->.BeginScene();
-        vis->.DrawAll();
-        irrlicht::tools::drawSegment(GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
+        vis->BeginScene();
+        vis->DrawAll();
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
                                      irr::video::SColor(255, 255, 0, 0));
         irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
                                      irr::video::SColor(255, 0, 255, 0));

@@ -402,7 +402,6 @@ int main(int argc, char* argv[]) {
     // ..the forklift (this class - see above - is a 'set' of bodies and links, automatically added at creation)
     MySimpleForklift* myforklift = new MySimpleForklift(&sys);
 
-    // Use this function for adding a ChIrrNodeAsset to all items
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     sys.SetVisualSystem(vis);

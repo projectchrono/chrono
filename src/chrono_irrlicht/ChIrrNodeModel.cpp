@@ -64,8 +64,6 @@ bool ChIrrNodeModel::SetupClones() {
     if (needed_clones) {
         unsigned int actual_clones = this->getChildren().getSize();
 
-        // At least one clone 'sample' must be present (created with
-        // ChIrrAssetConverter::Update...); otherwise just bail out.
         if (actual_clones == 0)
             return false;
 

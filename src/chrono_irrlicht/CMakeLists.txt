@@ -21,13 +21,9 @@ MARK_AS_ADVANCED(CLEAR IRRLICHT_ROOT)
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_irrlicht lib
 SET(ChronoEngine_IRRLICHT_SOURCES
-  ChIrrApp.cpp
-  ChIrrAppInterface.cpp
-  ChIrrAssetConverter.cpp
   ChIrrCamera.cpp
   ChIrrMeshTools.cpp
   ChIrrTools.cpp
-  ChIrrNodeAsset.cpp
   ChIrrSkyBoxSceneNode.cpp
   ChIrrGUI.cpp
   ChVisualSystemIrrlicht.cpp
@@ -38,12 +34,8 @@ SET(ChronoEngine_IRRLICHT_SOURCES
 SET(ChronoEngine_IRRLICHT_HEADERS
   ChApiIrr.h
   ChIrrTools.h
-  ChIrrAppInterface.h
-  ChIrrApp.h
   ChIrrCamera.h
   ChIrrMeshTools.h
-  ChIrrAssetConverter.h
-  ChIrrNodeAsset.h
   ChIrrEffects.h
   ChIrrSkyBoxSceneNode.h
   ChIrrGUI.h
