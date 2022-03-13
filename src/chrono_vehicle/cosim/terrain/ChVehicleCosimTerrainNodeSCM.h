@@ -31,7 +31,7 @@ namespace chrono {
 
 #ifdef CHRONO_IRRLICHT
 namespace irrlicht {
-class ChIrrApp;
+class ChVisualSystemIrrlicht;
 }
 #endif
 
@@ -88,7 +88,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     ChSystem* m_system;               ///< containing system
     SCMDeformableTerrain* m_terrain;  ///< SCM terrain
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp* m_irrapp;  ///< Irrlicht run-time visualization
+    std::shared_ptr<irrlicht::ChVisualSystemIrrlicht> m_vsys;  ///< Irrlicht run-time visualization
 #endif
 
     double m_spacing;        ///< SCM grid spacing
