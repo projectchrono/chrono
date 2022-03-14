@@ -8,6 +8,8 @@
 // in the LICENSE file at the top level of the distribution and at
 // http://projectchrono.org/license-chrono.txt.
 //
+// Screen capture code from https://github.com/vsg-dev/vsgExamples.git
+//
 // =============================================================================
 // Radu Serban, Rainer Gericke
 // =============================================================================
@@ -19,8 +21,10 @@
 #include "ChVisualSystemVSG.h"
 #include "chrono_thirdparty/stb/stb_image_write.h"
 #include "chrono_thirdparty/stb/stb_image_resize.h"
+#include <algorithm>
 #include <string>
 #include <cstddef>
+#include <cctype>
 
 namespace chrono {
 namespace vsg3d {
@@ -417,51 +421,64 @@ void ChVisualSystemVSG::export_image() {
     auto imageData = vsg::MappedData<vsg::ubvec4Array2D>::create(deviceMemory, subResourceLayout.offset, 0,
                                                                  vsg::Data::Layout{targetImageFormat}, width,
                                                                  height);  // deviceMemory, offset, flags and dimensions
-    unsigned char* data = reinterpret_cast<unsigned char*>(imageData->dataPointer());
-    const size_t channels = 3;  // we use RGB, RGBA seems to cause output problems
-    size_t pixelsDataSize = width * height * channels;
-    unsigned char* pixels = new unsigned char[pixelsDataSize];
-    size_t outWidth = width / 2;
-    size_t outHeight = height / 2;
-    size_t pixelsDataSizeReduced = outWidth * outHeight * channels;
-    unsigned char* pixelsReduced = new unsigned char[pixelsDataSizeReduced];
-    if (pixels && pixelsReduced) {
+    size_t dotPos = m_imageFilename.find_last_of(".");
+    string format;
+    if (dotPos != string::npos)
+        format = m_imageFilename.substr(dotPos + 1);
+    else
+        format = "unknown";
+    std::transform(format.begin(), format.end(), format.begin(), [](unsigned char c) { return std::tolower(c); });
+    size_t nPixelBytes = width * height * 4;
+    unsigned char* pixels = new unsigned char[nPixelBytes];
+    if (pixels) {
         size_t k = 0;
-        for (size_t j = 0; j < imageData->dataSize(); j += 4) {
-            pixels[k++] = data[j];
-            pixels[k++] = data[j + 1];
-            pixels[k++] = data[j + 2];
+        for (size_t i = 0; i < imageData->size(); i++) {
+            vsg::ubvec4 pix = imageData->at(i);
+            pixels[k++] = pix[0];
+            pixels[k++] = pix[1];
+            pixels[k++] = pix[2];
+            pixels[k++] = pix[3];
         }
-        stbir_resize_uint8(pixels, width, height, 0, pixelsReduced, outWidth, outHeight, 0, channels);
-        // int ans1 = stbi_write_bmp("screenshot.bmp", width, height, 3, pixels);
-        size_t last = m_imageFilename.find_last_of(".");
-        string format;
-        if (last != string::npos)
-            format = m_imageFilename.substr(last + 1);
-        else
-            format = "unknown";
-        bool outOk = false;
-        if ((format.compare("png") == 0) || (format.compare("PNG") == 0)) {
-            int ans = stbi_write_png(m_imageFilename.c_str(), outWidth, outHeight, channels, pixelsReduced, 0);
-            outOk = true;
-        } else if ((format.compare("tga") == 0) || (format.compare("TGA") == 0)) {
-            int ans = stbi_write_tga(m_imageFilename.c_str(), width, height, 3, pixels);
-            outOk = true;
-        } else if ((format.compare("jpg") == 0) || (format.compare("JPG") == 0) || (format.compare("jpeg") == 0) ||
-                   (format.compare("JPEG") == 0)) {
-            int ans = stbi_write_jpg(m_imageFilename.c_str(), width, height, 3, pixels, 100);
-            outOk = true;
-        } else if ((format.compare("bmp") == 0) || (format.compare("BMP") == 0)) {
-            int ans = stbi_write_bmp(m_imageFilename.c_str(), width, height, 3, pixels);
-            outOk = true;
+        if ((width == m_windowTraits->width) && (height == m_windowTraits->height)) {
+            // standard display
+            if ((format.compare("png") == 0)) {
+                int ans = stbi_write_png(m_imageFilename.c_str(), width, height, 4, pixels, 0);
+            } else if ((format.compare("tga") == 0)) {
+                int ans = stbi_write_tga(m_imageFilename.c_str(), width, height, 4, pixels);
+            } else if ((format.compare("jpg") == 0) || (format.compare("jpeg") == 0)) {
+                int ans = stbi_write_jpg(m_imageFilename.c_str(), width, height, 4, pixels, 100);
+            } else if ((format.compare("bmp") == 0)) {
+                int ans = stbi_write_bmp(m_imageFilename.c_str(), width, height, 4, pixels);
+            }  else {
+                cout << "No screen capture written due to unknown image format. Use png, tga, jpg or bmp!" << endl;
+            }
+
+        } else {
+            // retina display on the Mac
+            size_t nPixelBytesReduced = m_windowTraits->width * m_windowTraits->height * 4;
+            unsigned char* pixelsReduced = new unsigned char[nPixelBytesReduced];
+            stbir_resize_uint8(pixels, width, height, 0, pixelsReduced, m_windowTraits->width, m_windowTraits->height,
+                               0, 4);
+            if ((format.compare("png") == 0)) {
+                int ans = stbi_write_png(m_imageFilename.c_str(), m_windowTraits->width, m_windowTraits->height, 4,
+                                         pixelsReduced, 0);
+            } else if ((format.compare("tga") == 0)) {
+                int ans = stbi_write_tga(m_imageFilename.c_str(), m_windowTraits->width, m_windowTraits->height, 4,
+                                         pixelsReduced);
+            } else if ((format.compare("jpg") == 0) || (format.compare("jpeg") == 0)) {
+                int ans = stbi_write_jpg(m_imageFilename.c_str(), m_windowTraits->width, m_windowTraits->height, 4,
+                                         pixelsReduced, 100);
+            } else if ((format.compare("bmp") == 0)) {
+                int ans = stbi_write_bmp(m_imageFilename.c_str(), m_windowTraits->width, m_windowTraits->height, 4,
+                                         pixelsReduced);
+            } else {
+                cout << "No creen capture written due to unknown image format. Use png, tga, jpg or bmp!" << endl;
+            }
+            delete[] pixelsReduced;
         }
         delete[] pixels;
-        delete[] pixelsReduced;
-        if (outOk)
-            cout << "Written color buffer to " << m_imageFilename << endl;
-        else
-            cout << "Unknown image file format!" << endl;
     }
 }
+
 }  // namespace vsg3d
 }  // namespace chrono
