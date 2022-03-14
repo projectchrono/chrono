@@ -202,7 +202,7 @@ int drawAllContactPoints(std::shared_ptr<ChContactContainer> mcontainer,
     if (drawtype == IrrContactsDrawMode::CONTACT_NONE)
         return 0;
 
-    // if (mphysicalSystem.GetNcontacts() == 0)
+    // if (sys.GetNcontacts() == 0)
     //    return 0;
 
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
@@ -288,7 +288,7 @@ int drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontainer,
     if (labeltype == IrrContactsLabelMode::CONTACT_NONE_VAL)
         return 0;
 
-    // if (mphysicalSystem.GetNcontacts() == 0)
+    // if (sys.GetNcontacts() == 0)
     //   return 0;
 
     auto my_label_rep = chrono_types::make_shared<_label_reporter_class>();
@@ -306,7 +306,7 @@ int drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontainer,
 // -----------------------------------------------------------------------------
 // Draw links as glyps.
 // ---------------------------------------------------------------------------
-int drawAllLinks(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double mlen, IrrLinkDrawMode drawtype) {
+int drawAllLinks(ChSystem& sys, irr::video::IVideoDriver* driver, double mlen, IrrLinkDrawMode drawtype) {
     if (drawtype == IrrLinkDrawMode::LINK_NONE)
         return 0;
 
@@ -316,7 +316,7 @@ int drawAllLinks(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, do
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    for (auto link : mphysicalSystem.Get_linklist()) {
+    for (auto link : sys.Get_linklist()) {
         ChCoordsys<> mlinkframe = link->GetLinkAbsoluteCoords();
         ChVector<> v1abs = mlinkframe.pos;
         ChVector<> v2;
@@ -344,14 +344,14 @@ int drawAllLinks(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, do
 // -----------------------------------------------------------------------------
 // Draw links as labels
 // ---------------------------------------------------------------------------
-int drawAllLinkLabels(ChSystem& mphysicalSystem,
+int drawAllLinkLabels(ChSystem& sys,
                       irr::IrrlichtDevice* device,
                       IrrLinkLabelMode labeltype,
                       irr::video::SColor mcol) {
     if (labeltype == IrrLinkLabelMode::LINK_NONE_VAL)
         return 0;
 
-    for (auto link : mphysicalSystem.Get_linklist()) {
+    for (auto link : sys.Get_linklist()) {
         ChCoordsys<> mlinkframe = link->GetLinkAbsoluteCoords();
 
         char buffer[25];
@@ -400,14 +400,14 @@ int drawAllLinkLabels(ChSystem& mphysicalSystem,
 // -----------------------------------------------------------------------------
 // Draw collision objects bounding boxes for rigid bodies.
 // -----------------------------------------------------------------------------
-int drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver) {
+int drawAllBoundingBoxes(ChSystem& sys, irr::video::IVideoDriver* driver) {
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    for (auto body : mphysicalSystem.Get_bodylist()) {
+    for (auto body : sys.Get_bodylist()) {
         irr::video::SColor mcol;
 
         if (body->GetSleeping())
@@ -456,14 +456,14 @@ int drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* dr
 // -----------------------------------------------------------------------------
 // Draw coordinate systems of ChBody objects bodies.
 // -----------------------------------------------------------------------------
-int drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale) {
+int drawAllCOGs(ChSystem& sys, irr::video::IVideoDriver* driver, double scale) {
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    for (auto body : mphysicalSystem.Get_bodylist()) {
+    for (auto body : sys.Get_bodylist()) {
         irr::video::SColor mcol;
         const ChFrame<>& mframe_cog = body->GetFrame_COG_to_abs();
         const ChFrame<>& mframe_ref = body->GetFrame_REF_to_abs();
@@ -499,14 +499,14 @@ int drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, dou
 // -----------------------------------------------------------------------------
 // Draw coordinate systems of frames used by links.
 // -----------------------------------------------------------------------------
-int drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale) {
+int drawAllLinkframes(ChSystem& sys, irr::video::IVideoDriver* driver, double scale) {
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    for (auto link : mphysicalSystem.Get_linklist()) {
+    for (auto link : sys.Get_linklist()) {
         ChFrame<> frAabs;
         ChFrame<> frBabs;
 

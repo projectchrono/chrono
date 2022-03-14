@@ -481,18 +481,8 @@ void AddFixedObstacles(ChSystem* system) {
     shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
     shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
     shape->GetCylinderGeometry().rad = radius;
-    obstacle->AddAsset(shape);
-
-    auto color = chrono_types::make_shared<ChColorAsset>();
-    color->SetColor(ChColor(1, 1, 1));
-    obstacle->AddAsset(color);
-
-#ifdef USE_IRRLICHT
-    auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
-    texture->SetTextureScale(10, 10);
-    obstacle->AddAsset(texture);
-#endif
+    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
+    obstacle->AddVisualShape(shape);
 
     // Contact
     auto obst_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();

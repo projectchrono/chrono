@@ -50,7 +50,7 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     ChPowertrain::Initialize(chassis);
 
     assert(chassis->GetBody()->GetSystem());
-    ChSystem* my_system = chassis->GetBody()->GetSystem();
+    ChSystem* sys = chassis->GetBody()->GetSystem();
 
     // Cache the upshift and downshift speeds (in rad/s)
     m_upshift_speed = GetUpshiftRPM() * CH_C_2PI / 60.0;
@@ -65,26 +65,26 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     // pressing the throttle, like in muscle cars)
     m_motorblock = chrono_types::make_shared<ChShaft>();
     m_motorblock->SetInertia(GetMotorBlockInertia());
-    my_system->AddShaft(m_motorblock);
+    sys->AddShaft(m_motorblock);
 
     // CREATE  a connection between the motor block and the 3D rigid body that
     // represents the chassis. This allows to get the effect of the car 'rolling'
     // when the longitudinal engine accelerates suddenly.
     m_motorblock_to_body = chrono_types::make_shared<ChShaftsBody>();
     m_motorblock_to_body->Initialize(m_motorblock, chassis->GetBody(), m_dir_motor_block);
-    my_system->Add(m_motorblock_to_body);
+    sys->Add(m_motorblock_to_body);
 
     // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the crankshaft plus flywheel.
     m_crankshaft = chrono_types::make_shared<ChShaft>();
     m_crankshaft->SetInertia(GetCrankshaftInertia());
-    my_system->AddShaft(m_crankshaft);
+    sys->AddShaft(m_crankshaft);
 
     // CREATE  a thermal engine model between motor block and crankshaft (both
     // receive the torque, but with opposite sign).
     m_engine = chrono_types::make_shared<ChShaftsThermalEngine>();
     m_engine->Initialize(m_crankshaft, m_motorblock);
-    my_system->Add(m_engine);
+    sys->Add(m_engine);
     // The thermal engine requires a torque curve:
     auto mTw = chrono_types::make_shared<ChFunction_Recorder>();
     SetEngineTorqueMap(mTw);
@@ -95,7 +95,7 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     // in neutral position would rotate forever at constant speed.
     m_engine_losses = chrono_types::make_shared<ChShaftsThermalEngine>();
     m_engine_losses->Initialize(m_crankshaft, m_motorblock);
-    my_system->Add(m_engine_losses);
+    sys->Add(m_engine_losses);
     // The engine brake model requires a torque curve:
     auto mTw_losses = chrono_types::make_shared<ChFunction_Recorder>();
     SetEngineLossesMap(mTw_losses);
@@ -105,14 +105,14 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     // This represents the shaft that collects all inertias from torque converter to the gear.
     m_shaft_ingear = chrono_types::make_shared<ChShaft>();
     m_shaft_ingear->SetInertia(GetIngearShaftInertia());
-    my_system->AddShaft(m_shaft_ingear);
+    sys->AddShaft(m_shaft_ingear);
 
     // CREATE a torque converter and connect the shafts:
     // A (input),B (output), C(truss stator).
     // The input is the m_crankshaft, output is m_shaft_ingear; for stator, reuse the motor block 1D item.
     m_torqueconverter = chrono_types::make_shared<ChShaftsTorqueConverter>();
     m_torqueconverter->Initialize(m_crankshaft, m_shaft_ingear, m_motorblock);
-    my_system->Add(m_torqueconverter);
+    sys->Add(m_torqueconverter);
     // To complete the setup of the torque converter, a capacity factor curve is needed:
     auto mK = chrono_types::make_shared<ChFunction_Recorder>();
     SetTorqueConverterCapacityFactorMap(mK);
@@ -125,7 +125,7 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     // Create the final power shaft (interface to a driveline)
     m_shaft = chrono_types::make_shared<ChShaft>();
     m_shaft->SetInertia(GetPowershaftInertia());
-    my_system->AddShaft(m_shaft);
+    sys->AddShaft(m_shaft);
 
     // CREATE a gearbox, i.e a transmission ratio constraint between two
     // shafts. Note that differently from the basic ChShaftsGear, this also provides
@@ -133,7 +133,7 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     m_gears = chrono_types::make_shared<ChShaftsGearbox>();
     m_gears->Initialize(m_shaft_ingear, m_shaft, chassis->GetBody(), m_dir_motor_block);
     m_gears->SetTransmissionRatio(m_current_gear_ratio);
-    my_system->Add(m_gears);
+    sys->Add(m_gears);
 }
 
 // -----------------------------------------------------------------------------

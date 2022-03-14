@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
-    body->AddAsset(trimesh_shape);
+    body->AddVisualShape(trimesh_shape);
 
     auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
@@ -158,10 +158,6 @@ int main(int argc, char* argv[]) {
     body->GetCollisionModel()->BuildModel();
 
     body->SetCollide(true);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-    body->AddAsset(col);
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);

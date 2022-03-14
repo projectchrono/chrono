@@ -197,6 +197,16 @@ void ChVisualSystemIrrlicht::OnAttach() {
 }
 
 void ChVisualSystemIrrlicht::OnSetup() {
+    PurgeIrrNodes();
+}
+
+void ChVisualSystemIrrlicht::OnUpdate() {
+    for (auto& node : m_nodes) {
+        node.second->UpdateChildren();
+    }
+}
+
+void ChVisualSystemIrrlicht::PurgeIrrNodes() {
     // Remove Irrlicht nodes associated with a deleted physics item
     std::vector<ChPhysicsItem*> items_to_remove;
     for (auto& node : m_nodes) {
@@ -206,14 +216,12 @@ void ChVisualSystemIrrlicht::OnSetup() {
             items_to_remove.emplace_back(node.first);
         }
     }
+
+    //// RADU TODO - what if the visual model of the associated node was modified?!?!
+    ////   We may now have Irrlicht scene nodes associated with visual shapes that no longer exist!
+
     for (auto&& item : items_to_remove)
         m_nodes.erase(item);
-}
-
-void ChVisualSystemIrrlicht::OnUpdate() {
-    for (auto& node : m_nodes) {
-        node.second->UpdateChildren();
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -401,6 +409,12 @@ void ChVisualSystemIrrlicht::EnableBodyFrameDrawing(bool val) {
     m_gui->SetPlotCOGFrames(val);
 }
 
+void ChVisualSystemIrrlicht::EnableLinkFrameDrawing(bool val) {
+    if (!m_device)
+        return;
+    m_gui->SetPlotLinkFrames(val);
+}
+
 void ChVisualSystemIrrlicht::EnableCollisionShapeDrawing(bool val) {
     if (!m_device)
         return;
@@ -483,6 +497,8 @@ void ChVisualSystemIrrlicht::BindItem(std::shared_ptr<ChPhysicsItem> item) {
 void ChVisualSystemIrrlicht::BindAll() {
     if (!m_system || !m_device)
         return;
+
+    PurgeIrrNodes();
 
     std::unordered_set<const ChAssembly*> trace;
     CreateIrrNodes(&m_system->GetAssembly(), trace);

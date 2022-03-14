@@ -49,12 +49,9 @@
 #include "chrono/solver/ChSolver.h"
 
 #include <irrlicht.h>
-#include "chrono_irrlicht/ChIrrAppInterface.h"
-#include "chrono_irrlicht/ChIrrAssetConverter.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrEffects.h"
 #include "chrono_irrlicht/ChIrrTools.h"
-#include "chrono_irrlicht/ChIrrCamera.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -110,7 +107,9 @@ using namespace gui;
 // is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
 // tree must be promoted to %shared_ptr too).
 
-%shared_ptr(chrono::irrlicht::ChIrrNodeAsset)
+%shared_ptr(chrono::irrlicht::ChVisualSystemIrrlicht)
+%shared_ptr(chrono::irrlicht::ChIrrNodeShape)
+%shared_ptr(chrono::irrlicht::ChIrrNodeModel)
 
 
 //
@@ -169,11 +168,7 @@ using namespace gui;
 %ignore chrono::irrlicht::ScreenQuadCB;
 %include "chrono_irrlicht/ChIrrEffects.h"
 %include "chrono_irrlicht/ChIrrTools.h"
-%include "chrono_irrlicht/ChIrrCamera.h"
-%include "ChIrrAssetConverter.i"
-%include "ChIrrApp.i"
-%include "ChIrrNodeModel.i"
-%include "ChIrrNodeAsset.i"
+%include "ChVisualSystemIrrlicht.i"
 
 
 
@@ -191,7 +186,6 @@ using namespace gui;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-%DefSharedPtrDynamicDowncast2NS(chrono, chrono::irrlicht, ChAsset,ChIrrNodeAsset)
 
 
 //

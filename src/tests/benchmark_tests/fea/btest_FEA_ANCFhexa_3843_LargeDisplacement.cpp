@@ -36,7 +36,7 @@
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChIrrApp.h"
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
 
 #ifdef CHRONO_PARDISO_MKL
@@ -294,28 +294,30 @@ ANCFHexaTest::ANCFHexaTest(int num_elements, SolverType solver_type, int NumThre
 
 void ANCFHexaTest::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp application(m_system, L"ANCF Hexa 3843", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(-0.4f, 0.4f, 0.4f), irr::core::vector3df(0, 0, 0));
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+    m_system->SetVisualSystem(vis);
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowTitle("ANCF Hexa 3843");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.4, 0.4, 0.4), ChVector<>(0, 0, 0));
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
-
-    while (application.GetDevice()->run()) {
+    while (vis->Run()) {
         std::cout << "Time(s): " << this->m_system->GetChTime() << "  Corner Pos(m): " << this->GetCornerPointPos()
                   << std::endl;
-        application.BeginScene();
-        application.DrawAll();
-        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
+        vis->BeginScene();
+        vis->DrawAll();
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
                                      irr::video::SColor(255, 255, 0, 0));
-        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
                                      irr::video::SColor(255, 0, 255, 0));
-        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
                                      irr::video::SColor(255, 0, 0, 255));
         ExecuteStep();
-        application.EndScene();
+        vis->EndScene();
     }
 #endif
 }

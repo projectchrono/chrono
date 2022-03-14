@@ -192,8 +192,6 @@ int main(int argc, char* argv[]) {
     mvisualizemeshC->SetSymbolsThickness(0.006);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->SetWindowSize(ChVector2<int>(800, 600));

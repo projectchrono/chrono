@@ -219,6 +219,8 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddCamera(ChVector<>(8, 8, -6));
     vis->AddTypicalLights();
+    vis->AddLightWithShadow(ChVector<>(0.0, 24.0, 2.0), ChVector<>(0, 0, 0), 35, 2.2, 25.0, 40, 1024,
+                            ChColor(0.8f, 0.8f, 1.0f));
     vis->EnableShadows();
 
     int frame = 0;

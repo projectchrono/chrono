@@ -152,6 +152,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
+    terrain.Initialize();
 
     // Create and initialize the powertrain system
     auto powertrain = chrono_types::make_shared<SimplePowertrain>(vehicle::GetDataFile(simplepowertrain_file));

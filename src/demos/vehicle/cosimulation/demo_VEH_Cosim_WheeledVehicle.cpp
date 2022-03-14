@@ -37,10 +37,6 @@
 #include "chrono_models/vehicle/feda/FEDA_Vehicle.h"
 #include "chrono_models/vehicle/feda/FEDA_SimpleMapPowertrain.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChIrrApp.h"
-#endif
-
 using std::cout;
 using std::cin;
 using std::endl;

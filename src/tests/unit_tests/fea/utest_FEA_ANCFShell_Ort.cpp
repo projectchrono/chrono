@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
 
-    ChSystemNSC my_system;
+    ChSystemNSC sys;
 
     // ----------------
     // Specify the mesh
@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
     my_mesh->SetAutomaticGravity(false);
 
     // Add the mesh to the system
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
     // ---------------
     // Simulation loop
@@ -198,11 +198,11 @@ int main(int argc, char* argv[]) {
         auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         mkl_solver->SetVerbose(true);
-        my_system.SetSolver(mkl_solver);
+        sys.SetSolver(mkl_solver);
 #endif
     } else {
         auto solver = chrono_types::make_shared<ChSolverMINRES>();
-        my_system.SetSolver(solver);
+        sys.SetSolver(solver);
         solver->SetMaxIterations(100);
         solver->SetTolerance(1e-10);
         solver->EnableDiagonalPreconditioner(true);
@@ -210,8 +210,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup integrator
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(100);
     mystepper->SetAbsTolerances(1e-08);
@@ -233,8 +233,8 @@ int main(int argc, char* argv[]) {
     double max_err = 0;
     for (unsigned int it = 0; it < num_steps; it++) {
         nodetip->SetForce(mforce);
-        my_system.DoStepDynamics(time_step);
-        std::cout << "Time t = " << my_system.GetChTime() << "s \n";
+        sys.DoStepDynamics(time_step);
+        std::cout << "Time t = " << sys.GetChTime() << "s \n";
         // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
         // std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
         // Checking tip Z displacement
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
         }
         /*
         // Code snippet to generate golden file
-        m_data[0][it] = my_system.GetChTime();
+        m_data[0][it] = sys.GetChTime();
         m_data[1][it] = nodetip->pos.z(); // Note that z component is the second row
         m_data[2][it] = nodetip->pos.x();
         m_data[3][it] = nodetip->pos.y();

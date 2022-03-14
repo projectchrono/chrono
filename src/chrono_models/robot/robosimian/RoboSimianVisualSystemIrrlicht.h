@@ -12,14 +12,14 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Customized Chrono Irrlicht application for RoboSimian visualization.
+// Customized Chrono Irrlicht visual system for RoboSimian.
 //
 // =============================================================================
 
-#ifndef ROBOSIMIAN_IRR_APP_H
-#define ROBOSIMIAN_IRR_APP_H
+#ifndef ROBOSIMIAN_VISUAL_SYSTEM_IRRLICHT_H
+#define ROBOSIMIAN_VISUAL_SYSTEM_IRRLICHT_H
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 
 #include "chrono_models/robot/robosimian/RoboSimian.h"
@@ -30,20 +30,17 @@ namespace robosimian {
 /// @addtogroup robot_models_robosimian
 /// @{
 
-/// Customized Chrono Irrlicht application for RoboSimian visualization.
+/// Customized Chrono Irrlicht visualization system for RoboSimian.
 /// Provides a simple GUI with various stats and encapsulates an event receiver to allow visualizing the collision
 /// shapes (toggle with the 'C' key).
-class CH_MODELS_API RoboSimianIrrApp : public irrlicht::ChIrrApp {
+class CH_MODELS_API RoboSimianVisualSystemIrrlicht : public irrlicht::ChVisualSystemIrrlicht {
   public:
     /// Construct a RoboSimian Irrlicht application.
-    RoboSimianIrrApp(RoboSimian* robot,                     ///< associated RoboSimian robot
-                     RS_Driver* driver,                     ///< associated robot driver
-                     const wchar_t* title = L"RoboSimian",  ///< visualization window title
-                     irr::core::dimension2d<irr::u32> dims = irr::core::dimension2d<irr::u32>(1000,
-                                                                                              800)  ///< window size
-    );
+    RoboSimianVisualSystemIrrlicht(RoboSimian* robot,                     ///< associated RoboSimian robot
+                                   RS_Driver* driver                     ///< associated robot driver
+                                   );
 
-    ~RoboSimianIrrApp();
+    ~RoboSimianVisualSystemIrrlicht();
 
     /// Render the Irrlicht scene and additional visual elements.
     virtual void DrawAll() override;

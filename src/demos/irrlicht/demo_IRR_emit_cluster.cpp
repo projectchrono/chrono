@@ -75,14 +75,14 @@ int main(int argc, char* argv[]) {
     auto sphere_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     sphere_mat->SetFriction(0.2f);
 
-    auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(2.1,          // radius size
+    auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(2.1,          // radius size
                                                                    1800,         // density
                                                                    true,         // visualization?
                                                                    true,         // collision?
                                                                    sphere_mat);  // contact material
-    msphereBody->SetPos(ChVector<>(1, 1, 0));
-    msphereBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
-    sys.Add(msphereBody);
+    sphereBody->SetPos(ChVector<>(1, 1, 0));
+    sphereBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+    sys.Add(sphereBody);
 
     // Creating particles using ChBody or the ChBodyEasyXXYYZZ shortcuts
     // can be enough, e.g. if you put in a for() loop you can create a cluster.

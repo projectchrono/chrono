@@ -225,8 +225,7 @@ void ViperPart::Construct(ChSystem* system) {
         trimesh_shape->SetMesh(trimesh_vis);
         trimesh_shape->SetName(m_mesh_name);
         trimesh_shape->SetMutable(false);
-        m_body->AddAsset(trimesh_shape);
-        ////m_body->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color));
+        m_body->AddVisualShape(trimesh_shape);
     }
 
     // Add collision shape

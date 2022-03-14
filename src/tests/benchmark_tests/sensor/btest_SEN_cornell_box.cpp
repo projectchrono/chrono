@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Create the system
     // -----------------
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     // ---------------------------------------
     // add set of boxes to be visualized by camera
@@ -115,19 +115,19 @@ int main(int argc, char* argv[]) {
     mesh_body->SetPos({0, 0, 0});
     mesh_body->AddAsset(trimesh_shape);
     mesh_body->SetBodyFixed(true);
-    mphysicalSystem.Add(mesh_body);
+    sys.Add(mesh_body);
 
     // auto box_body = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     // // auto box_body = chrono_types::make_shared<ChBodyEasySphere>(.5, 1000, true, false);
     // // auto box_body = chrono_types::make_shared<ChBodyEasyCylinder>(.25, 1, 1000, true, false);
     // box_body->SetPos({0, 0, 2});
     // box_body->SetBodyFixed(true);
-    // mphysicalSystem.Add(box_body);
+    // sys.Add(box_body);
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
     floor->SetPos({0, 0, 0});
     floor->SetBodyFixed(true);
-    mphysicalSystem.Add(floor);
+    sys.Add(floor);
 
 
     //auto red = chrono_types::make_shared<ChVisualMaterial>();
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     // auto floor = chrono_types::make_shared<ChBodyEasyBox>(4, 4, .1, 1000, true, false);
     //floor->SetPos({0, 0, 0});
     //floor->SetBodyFixed(true);
-    //mphysicalSystem.Add(floor);
+    //sys.Add(floor);
     //{
     //    auto asset = floor->GetAssets()[0];
     //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     //auto ceiling = chrono_types::make_shared<ChBodyEasyBox>(4, 4, .1, 1000, true, false);
     //ceiling->SetPos({0, 0, 4});
     //ceiling->SetBodyFixed(true);
-    //mphysicalSystem.Add(ceiling);
+    //sys.Add(ceiling);
     //{
     //    auto asset = ceiling->GetAssets()[0];
     //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
     //auto left_wall = chrono_types::make_shared<ChBodyEasyBox>(4, .1, 4, 1000, true, false);
     //left_wall->SetPos({0, 2, 2});
     //left_wall->SetBodyFixed(true);
-    //mphysicalSystem.Add(left_wall);
+    //sys.Add(left_wall);
     //{
     //    auto asset = left_wall->GetAssets()[0];
     //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     //auto right_wall = chrono_types::make_shared<ChBodyEasyBox>(4, .1, 4, 1000, true, false);
     //right_wall->SetPos({0, -2, 2});
     //right_wall->SetBodyFixed(true);
-    //mphysicalSystem.Add(right_wall);
+    //sys.Add(right_wall);
     //{
     //    auto asset = right_wall->GetAssets()[0];
     //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
     //auto back_wall = chrono_types::make_shared<ChBodyEasyBox>(.1, 4, 4, 1000, true, false);
     //back_wall->SetPos({2, 0, 2});
     //back_wall->SetBodyFixed(true);
-    //mphysicalSystem.Add(back_wall);
+    //sys.Add(back_wall);
     //{
     //    auto asset = back_wall->GetAssets()[0];
     //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
@@ -202,7 +202,7 @@ int main(int argc, char* argv[]) {
     //box1->SetPos({.75, .75, box1_height / 2});
     //box1->SetRot(Q_from_AngZ(CH_C_PI / 3));
     //box1->SetBodyFixed(true);
-    //mphysicalSystem.Add(box1);
+    //sys.Add(box1);
     //{
     //    auto asset = box1->GetAssets()[0];
     //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
     //box2->SetPos({-.75, -.75, box2_height / 2});
     //box2->SetRot(Q_from_AngZ(-CH_C_PI / 3));
     //box2->SetBodyFixed(true);
-    //mphysicalSystem.Add(box2);
+    //sys.Add(box2);
     //{
     //    auto asset = box2->GetAssets()[0];
     //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({0.0f, 0.0f, 3.8f}, {2.0f/2, 1.8902f/2, 1.7568f/2}, 5.0f);
 
     // -------------------------------------------------------
@@ -287,10 +287,10 @@ int main(int argc, char* argv[]) {
         manager->Update();
 
         // Perform step of dynamics
-        mphysicalSystem.DoStepDynamics(step_size);
+        sys.DoStepDynamics(step_size);
 
         // Get the current time of the simulation
-        ch_time = (float)mphysicalSystem.GetChTime();
+        ch_time = (float)sys.GetChTime();
     }
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

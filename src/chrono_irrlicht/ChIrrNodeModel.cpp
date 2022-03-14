@@ -64,8 +64,6 @@ bool ChIrrNodeModel::SetupClones() {
     if (needed_clones) {
         unsigned int actual_clones = this->getChildren().getSize();
 
-        // At least one clone 'sample' must be present (created with
-        // ChIrrAssetConverter::Update...); otherwise just bail out.
         if (actual_clones == 0)
             return false;
 
@@ -108,8 +106,7 @@ void ChIrrNodeModel::OnAnimate(u32 timeMs) {
                 unsigned int iclone = 0;
                 irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
                 for (; it != Children.end(); ++it) {
-                    tools::alignIrrlichtNode((*it),
-                                                         m_physicsitem.lock()->GetVisualModelFrame(iclone).GetCoord());
+                    tools::alignIrrlichtNode((*it), m_physicsitem.lock()->GetVisualModelFrame(iclone).GetCoord());
                     ++iclone;
                 }
             }

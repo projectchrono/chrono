@@ -153,6 +153,10 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Has no effect, unless called after Initialize().
     void EnableBodyFrameDrawing(bool val);
 
+    /// Enable rendering of link frames (default: false).
+    /// Has no effect, unless called after Initialize().
+    void EnableLinkFrameDrawing(bool val);
+
     /// Enable rendering of collision shapes (default: false).
     /// Has no effect, unless called after Initialize().
     void EnableCollisionShapeDrawing(bool val);
@@ -210,6 +214,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void PopulateIrrNode(irr::scene::ISceneNode* node,
                          std::shared_ptr<ChVisualModel> model,
                          const ChFrame<>& parent_frame);
+
+    /// Purge Irrlicht nodes associated with a deleted physics item or with a deleted visual model.
+    void PurgeIrrNodes();
 
     /// Add shadow to an Irrlicht node.
     void AddShadowToIrrNode(irr::scene::ISceneNode* node);

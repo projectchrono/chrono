@@ -16,6 +16,9 @@
 //
 // =============================================================================
 
+
+//// RADU TODO - fix issue with crash in Irrlicht 
+
 #include <cmath>
 #include <cstdio>
 #include <vector>
@@ -24,7 +27,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_models/robot/robosimian/RoboSimian.h"
-#include "chrono_models/robot/robosimian/RoboSimianIrrApp.h"
+#include "chrono_models/robot/robosimian/RoboSimianVisualSystemIrrlicht.h"
 
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
@@ -385,23 +388,19 @@ int main(int argc, char* argv[]) {
     // Create the visualization window
     // -------------------------------
 
-    robosimian::RoboSimianIrrApp* application = nullptr;
+    std::shared_ptr<robosimian::RoboSimianVisualSystemIrrlicht> vis;
     if (render) {
-        application = new robosimian::RoboSimianIrrApp(&robot, driver.get(), L"RoboSimian - SCM terrain",
-                                                       irr::core::dimension2d<irr::u32>(800, 600));
-        application->AddLogo();
-        application->AddSkyBox();
-        application->AddCamera(irr::core::vector3df(1, -2.75f, 0.2f), irr::core::vector3df(1, 0, 0));
-        application->AddLight(irr::core::vector3df(100.f, 100.f, 100.f), 290,
-                              irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-        application->AddLight(irr::core::vector3df(100.f, -100.f, 80.f), 190,
-                              irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
-
-        application->AddLightWithShadow(irr::core::vector3df(10.0f, -6.0f, 3.0f), irr::core::vector3df(0, 0, 0), 3, -3,
-                                        7, 40, 512);
-
-        application->AssetBindAll();
-        application->AssetUpdateAll();
+        vis = chrono_types::make_shared<robosimian::RoboSimianVisualSystemIrrlicht>(&robot, driver.get());
+        vis->SetWindowTitle("RoboSimian - SCM terrain");
+        vis->SetWindowSize(ChVector2<int>(800, 600));
+        vis->Initialize();
+        vis->AddLogo();
+        vis->AddSkyBox();
+        vis->AddCamera(ChVector<>(1, -2.75, 0.2), ChVector<>(1, 0, 0));
+        vis->AddLight(ChVector<>(100, +100, 100), 290, ChColor(0.7f, 0.7f, 0.7f));
+        vis->AddLight(ChVector<>(100, -100, 80), 190, ChColor(0.7f, 0.8f, 0.8f));
+        ////vis->AddLightWithShadow(ChVector<>(10.0, -6.0, 3.0), ChVector<>(0, 0, 0), 3, -10, 10, 40, 512);
+        ////vis->EnableShadows();
     }
 
     // -----------------------------
@@ -438,7 +437,7 @@ int main(int argc, char* argv[]) {
     bool terrain_created = false;
 
     while (true) {
-        if (render && !application->GetDevice()->run()) {
+        if (render && !vis->Run()) {
             break;
         }
 
@@ -462,8 +461,7 @@ int main(int argc, char* argv[]) {
             SetContactProperties(&robot);
 
             if (render) {
-                application->AssetBindAll();
-                application->AssetUpdateAll();
+                vis->BindAll();
             }
 
             // Release robot
@@ -473,8 +471,8 @@ int main(int argc, char* argv[]) {
         }
 
         if (render) {
-            application->BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            application->DrawAll();
+            vis->BeginScene();
+            vis->DrawAll();
         }
 
         if (data_output && sim_frame % output_steps == 0) {
@@ -491,11 +489,7 @@ int main(int argc, char* argv[]) {
             if (render && image_output) {
                 char filename[100];
                 sprintf(filename, "%s/img_%04d.jpg", img_dir.c_str(), render_frame + 1);
-                irr::video::IImage* image = application->GetVideoDriver()->createScreenShot();
-                if (image) {
-                    application->GetVideoDriver()->writeImageToFile(image, filename);
-                    image->drop();
-                }
+                vis->WriteImageToFile(filename);
             }
 
             render_frame++;
@@ -506,13 +500,12 @@ int main(int argc, char* argv[]) {
         sim_frame++;
 
         if (render) {
-            application->EndScene();
+            vis->EndScene();
         }
     }
 
     DBP_controller.WriteOutput(out_dir + "/DBP_" + mode_name + ".csv");
 
-    delete application;
     return 0;
 }
 
