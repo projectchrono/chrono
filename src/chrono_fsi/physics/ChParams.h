@@ -262,6 +262,7 @@ struct SimParams {
     Real bodyDensity; ///< Density of the FSI body
 
     Real3 bodyActiveDomain; ///< Size of the active domain that influenced by an FSI body
+    Real settlingTime; ///< Time for the granular to settle down
 };
 
 /// @} fsi_physics
