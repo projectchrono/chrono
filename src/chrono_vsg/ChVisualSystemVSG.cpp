@@ -22,9 +22,10 @@
 #include <string>
 #include <cstddef>
 
-using namespace std;
 namespace chrono {
 namespace vsg3d {
+
+using namespace std;
 
 class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler> {
   public:
