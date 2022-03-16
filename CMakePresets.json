@@ -114,7 +114,7 @@
 			"cacheVariables": {
 				"ENABLE_MODULE_GPU": "ON",
 				"ENABLE_MODULE_FSI": "OFF",
-				"ENABLE_MODULE_SENSOR": "OFF",
+				"ENABLE_MODULE_SENSOR": "ON",
 				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0"
 			}
 		},
@@ -133,7 +133,7 @@
 				"ENABLE_MODULE_GPU": "OFF",
 				"ENABLE_MODULE_MULTICORE": "OFF",
 				"ENABLE_MODULE_FSI": "OFF",
-				"ENABLE_MODULE_SENSOR": "OFF",
+				"ENABLE_MODULE_SENSOR": "ON",
 				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0"
 			}
 		}
