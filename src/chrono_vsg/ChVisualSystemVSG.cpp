@@ -429,8 +429,10 @@ void ChVisualSystemVSG::export_image() {
         format = "unknown";
     std::transform(format.begin(), format.end(), format.begin(), [](unsigned char c) { return std::tolower(c); });
     size_t nPixelBytes = width * height * 4;
-    unsigned char* pixels = new unsigned char[nPixelBytes];
+    //unsigned char* pixels = new unsigned char[nPixelBytes];
+    unsigned char* pixels = (unsigned char*) imageData->dataPointer();
     if (pixels) {
+        /*
         size_t k = 0;
         for (size_t i = 0; i < imageData->size(); i++) {
             vsg::ubvec4 pix = imageData->at(i);
@@ -439,6 +441,7 @@ void ChVisualSystemVSG::export_image() {
             pixels[k++] = pix[2];
             pixels[k++] = pix[3];
         }
+         */
         if ((width == m_windowTraits->width) && (height == m_windowTraits->height)) {
             // standard display
             if ((format.compare("png") == 0)) {
@@ -476,7 +479,7 @@ void ChVisualSystemVSG::export_image() {
             }
             delete[] pixelsReduced;
         }
-        delete[] pixels;
+        //delete[] pixels;
     }
 }
 
