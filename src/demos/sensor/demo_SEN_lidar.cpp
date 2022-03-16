@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
-    mesh_body->AddAsset(trimesh_shape);
+    mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
     mesh_body->SetBodyFixed(true);
     // mphysicalSystem.Add(mesh_body);
 

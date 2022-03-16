@@ -40,7 +40,7 @@ float end_time = 10.0f;
 bool vis = true;
 
 int main(int argc, char* argv[]) {
-    for (int q = 1; q <= 3; q++) {
+    for (int q = 2; q <= 3; q++) {
         GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
         // -----------------
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
                     mesh_body->SetPos(p);
                     mesh_body->SetRot(quat);
                     mesh_body->SetBodyFixed(true);
-                    mesh_body->AddAsset(trimesh_shape);
+                    mesh_body->AddVisualShape(trimesh_shape);
                     mphysicalSystem.Add(mesh_body);
                 }
             }

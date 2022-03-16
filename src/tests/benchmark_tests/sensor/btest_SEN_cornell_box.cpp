@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
-    mesh_body->AddAsset(trimesh_shape);
+    mesh_body->AddVisualShape(trimesh_shape);
     mesh_body->SetBodyFixed(true);
     mphysicalSystem.Add(mesh_body);
 
@@ -146,56 +146,33 @@ int main(int argc, char* argv[]) {
     //floor->SetPos({0, 0, 0});
     //floor->SetBodyFixed(true);
     //mphysicalSystem.Add(floor);
-    //{
-    //    auto asset = floor->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-    //        visual_asset->AddMaterial(grey);
-    //    }
-    //}
+    // floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);
 
     //auto ceiling = chrono_types::make_shared<ChBodyEasyBox>(4, 4, .1, 1000, true, false);
     //ceiling->SetPos({0, 0, 4});
     //ceiling->SetBodyFixed(true);
     //mphysicalSystem.Add(ceiling);
-    //{
-    //    auto asset = ceiling->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-    //        visual_asset->AddMaterial(grey);
-    //    }
-    //}
+    // ceiling->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);
+
 
     //auto left_wall = chrono_types::make_shared<ChBodyEasyBox>(4, .1, 4, 1000, true, false);
     //left_wall->SetPos({0, 2, 2});
     //left_wall->SetBodyFixed(true);
     //mphysicalSystem.Add(left_wall);
-    //{
-    //    auto asset = left_wall->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-    //        visual_asset->AddMaterial(red);
-    //    }
-    //}
+    // left_wall->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
 
     //auto right_wall = chrono_types::make_shared<ChBodyEasyBox>(4, .1, 4, 1000, true, false);
     //right_wall->SetPos({0, -2, 2});
     //right_wall->SetBodyFixed(true);
     //mphysicalSystem.Add(right_wall);
-    //{
-    //    auto asset = right_wall->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-    //        visual_asset->AddMaterial(green);
-    //    }
-    //}
+    // right_wall->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
     //auto back_wall = chrono_types::make_shared<ChBodyEasyBox>(.1, 4, 4, 1000, true, false);
     //back_wall->SetPos({2, 0, 2});
     //back_wall->SetBodyFixed(true);
     //mphysicalSystem.Add(back_wall);
-    //{
-    //    auto asset = back_wall->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-    //        visual_asset->AddMaterial(grey);
-    //    }
-    //}
+    // back_wall->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);
+
 
     //double box1_height = 2.5;
     //auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, box1_height, 1000, true, false);
@@ -203,12 +180,8 @@ int main(int argc, char* argv[]) {
     //box1->SetRot(Q_from_AngZ(CH_C_PI / 3));
     //box1->SetBodyFixed(true);
     //mphysicalSystem.Add(box1);
-    //{
-    //    auto asset = box1->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-    //        visual_asset->AddMaterial(grey);
-    //    }
-    //}
+    // box1->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);
+
 
     //double box2_height = 1.5;
     //auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, box2_height, 1000, true, false);
@@ -216,12 +189,7 @@ int main(int argc, char* argv[]) {
     //box2->SetRot(Q_from_AngZ(-CH_C_PI / 3));
     //box2->SetBodyFixed(true);
     //mphysicalSystem.Add(box2);
-    //{
-    //    auto asset = box2->GetAssets()[0];
-    //    if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-    //        visual_asset->AddMaterial(grey);
-    //    }
-    //}
+    // box2->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);
 
     // -----------------------
     // Create a sensor manager

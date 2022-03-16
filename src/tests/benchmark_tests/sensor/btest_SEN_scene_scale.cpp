@@ -99,15 +99,13 @@ int main(int argc, char* argv[]) {
                 auto cyl = std::make_shared<ChBodyEasyCylinder>(randf() + .05, 2 * randf() + .1, 1000, true, false);
                 cyl->SetBodyFixed(true);
                 cyl->SetPos({2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
-                auto asset = cyl->GetAssets()[0];
-                if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-                    auto vis_mat = std::make_shared<ChVisualMaterial>();
-                    vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
-                    vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
-                    vis_mat->SetSpecularColor({.2f, .2f, .2f});
+        
+                auto vis_mat = std::make_shared<ChVisualMaterial>();
+                vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
+                vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+                vis_mat->SetSpecularColor({.2f, .2f, .2f});
+                cyl->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
 
-                    visual_asset->AddMaterial(vis_mat);
-                }
                 mphysicalSystem.Add(cyl);
                 curr_item_cnt++;
             } else if (obj_type == 1) {  // sphere
@@ -115,15 +113,12 @@ int main(int argc, char* argv[]) {
                 sphere->SetBodyFixed(true);
                 sphere->SetPos(
                     {2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
-                auto asset = sphere->GetAssets()[0];
-                if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-                    auto vis_mat = std::make_shared<ChVisualMaterial>();
-                    vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
-                    vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
-                    vis_mat->SetSpecularColor({.2f, .2f, .2f});
+                auto vis_mat = std::make_shared<ChVisualMaterial>();
+                vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
+                vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+                vis_mat->SetSpecularColor({.2f, .2f, .2f});
+                sphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
 
-                    visual_asset->AddMaterial(vis_mat);
-                }
                 mphysicalSystem.Add(sphere);
                 curr_item_cnt++;
             } else {  // box
@@ -131,15 +126,12 @@ int main(int argc, char* argv[]) {
                                                            true, false);
                 box->SetBodyFixed(true);
                 box->SetPos({2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
-                auto asset = box->GetAssets()[0];
-                if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-                    auto vis_mat = std::make_shared<ChVisualMaterial>();
-                    vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
-                    vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
-                    vis_mat->SetSpecularColor({.2f, .2f, .2f});
+                auto vis_mat = std::make_shared<ChVisualMaterial>();
+                vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
+                vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+                vis_mat->SetSpecularColor({.2f, .2f, .2f});
+                box->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
 
-                    visual_asset->AddMaterial(vis_mat);
-                }
                 mphysicalSystem.Add(box);
                 curr_item_cnt++;
             }

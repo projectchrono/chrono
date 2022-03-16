@@ -66,23 +66,11 @@ TEST(ChRadarSensor, check_velocity) {
 //    //    floor->SetWvel_par(ChVector<>(-0.2,-0.4,-0.3));
 //    //    floor->SetPos_dt(ChVector<>(0.1, 0,0));
 //    mphysicalSystem.Add(floor);
-//    {
-//        auto asset = floor->GetAssets()[0];
-//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-//            visual_asset->AddMaterial(green);
-//        }
-//    }
 //
 //    auto box_body = chrono_types::make_shared<ChBodyEasyBox>(5.5, 5.5, 5.5, 1000, true, false);
 //    box_body->SetPos({5, 0, 0});
 //    box_body->SetPos_dt({0.1, 0, 0});
 //    mphysicalSystem.Add(box_body);
-//    {
-//        auto asset = box_body->GetAssets()[0];
-//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-//            visual_asset->AddMaterial(red);
-//        }
-//    }
 //
 //    // -----------------------
 //    // Create a sensor manager

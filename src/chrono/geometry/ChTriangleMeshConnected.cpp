@@ -888,7 +888,7 @@ bool ChTriangleMeshConnected::SplitEdge(
 
 // Performs mesh refinement using Rivara LEPP long-edge bisection algorithm.
 // Based on "Multithread parallelization of Lepp-bisection algorithms"
-//    M.-C. Rivara et al., Applied Numerical Mathematics 62 (2012) 473–488
+//    M.-C. Rivara et al., Applied Numerical Mathematics 62 (2012) 473ï¿½488
 
 void ChTriangleMeshConnected::RefineMeshEdges(
     std::vector<int>&

@@ -66,10 +66,10 @@ int main(int argc, char* argv[]) {
 
         auto base_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         base_trimesh_shape->SetMesh(mmesh);
-        if (base_trimesh_shape->GetNumMaterials() == 0) {
-            // Create a "proper" set of materials if they don't already exist
-            CreateModernMeshAssets(base_trimesh_shape);
-        }
+        // if (base_trimesh_shape->GetNumMaterials() == 0) {
+        //     // Create a "proper" set of materials if they don't already exist
+        //     CreateModernMeshAssets(base_trimesh_shape);
+        // }
 
         int x_instances = q;
         int y_instances = q;
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
                     ChQuaternion<> quat = {randf(), randf(), randf(), randf()};
                     quat.Normalize();
                     mesh_body->SetRot(quat);
-                    mesh_body->AddAsset(trimesh_shape);
+                    mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
                     mesh_body->SetBodyFixed(true);
                     mphysicalSystem.Add(mesh_body);
                 }

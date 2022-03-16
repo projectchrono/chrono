@@ -82,28 +82,19 @@ int main(int argc, char* argv[]) {
     auto sphere1 = std::make_shared<ChBodyEasySphere>(.5, 1000, true, true, phys_mat);
     sphere1->SetPos({0, -1.2, 0});
     sphere1->SetBodyFixed(true);
-    auto sphere_asset = sphere1->GetAssets()[0];
-    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(sphere_asset)) {
-        visual_asset->AddMaterial(color1);
-    }
+    sphere1->GetVisualModel()->GetShapes()[0].first->AddMaterial(color1);
 
     auto sphere2 = std::make_shared<ChBodyEasySphere>(.5, 1000, true, true, phys_mat);
     sphere2->SetPos({0, 0, 0});
     sphere2->SetBodyFixed(true);
-    sphere_asset = sphere2->GetAssets()[0];
-    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(sphere_asset)) {
-        visual_asset->AddMaterial(color2);
-    }
+    sphere2->GetVisualModel()->GetShapes()[0].first->AddMaterial(color2);
 
     auto sphere3 = std::make_shared<ChBodyEasySphere>(.5, 1000, true, true, phys_mat);
     sphere3->SetPos({0, 1.2, 0});
     sphere3->SetBodyFixed(true);
-    sphere_asset = sphere3->GetAssets()[0];
-    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(sphere_asset)) {
-        visual_asset->AddMaterial(color3);
-    }
+    sphere3->GetVisualModel()->GetShapes()[0].first->AddMaterial(color3);
 
-    // sphere->AddAsset(material);
+    
 
     mphysicalSystem.Add(sphere1);
     mphysicalSystem.Add(sphere2);

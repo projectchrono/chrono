@@ -457,7 +457,7 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    float orbit_radius = 15.f;
+    float orbit_radius = 10.f;
     float orbit_rate = 1;
 
     ChRealtimeStepTimer realtime_timer;
