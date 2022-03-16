@@ -324,16 +324,8 @@ void AddFixedObstacles(ChSystem* system) {
     shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
     shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
     shape->GetCylinderGeometry().rad = radius;
-    obstacle->AddAsset(shape);
-
-    auto color = chrono_types::make_shared<ChColorAsset>();
-    color->SetColor(ChColor(1, 1, 1));
-    obstacle->AddAsset(color);
-
-    auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
-    texture->SetTextureScale(10, 10);
-    obstacle->AddAsset(texture);
+    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
+    obstacle->AddVisualShape(shape);
 
     // Contact
     MaterialInfo minfo;
@@ -381,11 +373,8 @@ void AddMovingObstacles(ChSystem* system) {
 
     auto sphere = chrono_types::make_shared<ChSphereShape>();
     sphere->GetSphereGeometry().rad = radius;
-    ball->AddAsset(sphere);
-
-    auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
-    ball->AddAsset(mtexture);
+    sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+    ball->AddVisualShape(sphere);
 
     system->AddBody(ball);
 }

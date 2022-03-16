@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Create the system
     // -----------------
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     auto phys_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     phys_mat->SetFriction(0.2f);
@@ -96,14 +96,14 @@ int main(int argc, char* argv[]) {
 
     
 
-    mphysicalSystem.Add(sphere1);
-    mphysicalSystem.Add(sphere2);
-    mphysicalSystem.Add(sphere3);
+    sys.Add(sphere1);
+    sys.Add(sphere2);
+    sys.Add(sphere3);
 
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = std::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({-10, 0, 100}, {1, 1, 1}, 1000);
     // manager->scene->AddPointLight({-100, 0, -100}, {1, 1, 1}, 1000);
     // manager->scene->AddPointLight({-10, 0, 100}, {1, 1, 1}, 1000);
@@ -137,15 +137,15 @@ int main(int argc, char* argv[]) {
 
     // std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
-    while (mphysicalSystem.GetChTime() < end_time) {
+    while (sys.GetChTime() < end_time) {
         // cam->SetOffsetPose(chrono::ChFrame<double>(
         //     {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 1},
         //     Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
 
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.001);
+        sys.DoStepDynamics(0.001);
 
-        // ch_time = (float)mphysicalSystem.GetChTime();
+        // ch_time = (float)sys.GetChTime();
     }
     // std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     // std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

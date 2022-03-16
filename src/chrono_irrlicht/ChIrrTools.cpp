@@ -18,6 +18,51 @@
 
 #include "chrono_irrlicht/ChIrrTools.h"
 
+namespace irr {
+namespace core {
+
+vector3dfCH::vector3dfCH(const chrono::ChVector<>& mch) {
+    X = ((f32)mch.x());
+    Y = ((f32)mch.y());
+    Z = ((f32)mch.z());
+}
+
+matrix4CH::matrix4CH(const chrono::ChCoordsys<>& csys) : matrix4CH(chrono::ChFrame<>(csys)) {}
+
+matrix4CH::matrix4CH(const chrono::ChFrame<>& frame) {
+    const auto& v = frame.GetPos();
+    const auto& A = frame.GetA();
+
+    //// RADU
+    //// Is this actually correct?   ChMatrix33 is also stored row-major (even pre-Eigen)!
+    //// Or is Irrlicht actually using column-major?
+
+    // Fill the upper 3x3 submatrix with the [A] matrix transposed, since Irrlicht uses the row-major style as in D3D
+    (*this)[0] = (irr::f32)A(0);
+    (*this)[1] = (irr::f32)A(3);
+    (*this)[2] = (irr::f32)A(6);
+
+    (*this)[4] = (irr::f32)A(1);
+    (*this)[5] = (irr::f32)A(4);
+    (*this)[6] = (irr::f32)A(7);
+
+    (*this)[8] = (irr::f32)A(2);
+    (*this)[9] = (irr::f32)A(5);
+    (*this)[10] = (irr::f32)A(8);
+
+    (*this)[12] = (irr::f32)v.x();
+    (*this)[13] = (irr::f32)v.y();
+    (*this)[14] = (irr::f32)v.z();
+
+    // Clear the last column to 0 and set low-right corner to 1
+    // as in Denavitt-Hartemberg matrices, transposed.
+    (*this)[3] = (*this)[7] = (*this)[11] = 0.0f;
+    (*this)[15] = 1.0f;
+}
+
+}  // namespace core
+}  // namespace irr
+
 namespace chrono {
 namespace irrlicht {
 namespace tools {
@@ -89,40 +134,10 @@ video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video
 // Align an Irrlicht object to a the specified coordinate system.
 // -----------------------------------------------------------------------------
 void alignIrrlichtNode(scene::ISceneNode* mnode, const ChCoordsys<>& mcoords) {
-    // Output: will be an Irrlicht 4x4 matrix
-    irr::core::matrix4 irrMat;
+    // Construct the equivalent 4x4 Irrlicht matrix
+    irr::core::matrix4CH irrMat(mcoords);
 
-    // Get the rigid body actual rotation, as a 3x3 matrix [A]
-    ChMatrix33<> chMat(mcoords.rot);
-
-    //// RADU
-    //// Is this correct?   ChMatrix33 is also stored row-major (even pre-Eigen)!
-    //// Or is Irrlicht actually using column-major?
-
-    // Fill the upper 3x3 submatrix with the [A] matrix
-    // transposed, since Irrlicht uses the row-major style as in D3D
-    irrMat[0] = (irr::f32)chMat(0);
-    irrMat[1] = (irr::f32)chMat(3);
-    irrMat[2] = (irr::f32)chMat(6);
-
-    irrMat[4] = (irr::f32)chMat(1);
-    irrMat[5] = (irr::f32)chMat(4);
-    irrMat[6] = (irr::f32)chMat(7);
-
-    irrMat[8] = (irr::f32)chMat(2);
-    irrMat[9] = (irr::f32)chMat(5);
-    irrMat[10] = (irr::f32)chMat(8);
-
-    irrMat[12] = (irr::f32)mcoords.pos.x();
-    irrMat[13] = (irr::f32)mcoords.pos.y();
-    irrMat[14] = (irr::f32)mcoords.pos.z();
-
-    // Clear the last column to 0 and set low-right corner to 1
-    // as in Denavitt-Hartemberg matrices, transposed.
-    irrMat[3] = irrMat[7] = irrMat[11] = 0.0f;
-    irrMat[15] = 1.0f;
-
-    // Set position and rotation of node using the 4x4 Irrlicht matrix.
+    // Set position and rotation of node using the Irrlicht matrix
     mnode->setPosition(irrMat.getTranslation());
     mnode->setRotation(irrMat.getRotationDegrees());
 }
@@ -187,7 +202,7 @@ int drawAllContactPoints(std::shared_ptr<ChContactContainer> mcontainer,
     if (drawtype == IrrContactsDrawMode::CONTACT_NONE)
         return 0;
 
-    // if (mphysicalSystem.GetNcontacts() == 0)
+    // if (sys.GetNcontacts() == 0)
     //    return 0;
 
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
@@ -273,7 +288,7 @@ int drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontainer,
     if (labeltype == IrrContactsLabelMode::CONTACT_NONE_VAL)
         return 0;
 
-    // if (mphysicalSystem.GetNcontacts() == 0)
+    // if (sys.GetNcontacts() == 0)
     //   return 0;
 
     auto my_label_rep = chrono_types::make_shared<_label_reporter_class>();
@@ -291,7 +306,7 @@ int drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontainer,
 // -----------------------------------------------------------------------------
 // Draw links as glyps.
 // ---------------------------------------------------------------------------
-int drawAllLinks(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double mlen, IrrLinkDrawMode drawtype) {
+int drawAllLinks(ChSystem& sys, irr::video::IVideoDriver* driver, double mlen, IrrLinkDrawMode drawtype) {
     if (drawtype == IrrLinkDrawMode::LINK_NONE)
         return 0;
 
@@ -301,7 +316,7 @@ int drawAllLinks(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, do
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    for (auto link : mphysicalSystem.Get_linklist()) {
+    for (auto link : sys.Get_linklist()) {
         ChCoordsys<> mlinkframe = link->GetLinkAbsoluteCoords();
         ChVector<> v1abs = mlinkframe.pos;
         ChVector<> v2;
@@ -329,14 +344,14 @@ int drawAllLinks(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, do
 // -----------------------------------------------------------------------------
 // Draw links as labels
 // ---------------------------------------------------------------------------
-int drawAllLinkLabels(ChSystem& mphysicalSystem,
+int drawAllLinkLabels(ChSystem& sys,
                       irr::IrrlichtDevice* device,
                       IrrLinkLabelMode labeltype,
                       irr::video::SColor mcol) {
     if (labeltype == IrrLinkLabelMode::LINK_NONE_VAL)
         return 0;
 
-    for (auto link : mphysicalSystem.Get_linklist()) {
+    for (auto link : sys.Get_linklist()) {
         ChCoordsys<> mlinkframe = link->GetLinkAbsoluteCoords();
 
         char buffer[25];
@@ -385,14 +400,14 @@ int drawAllLinkLabels(ChSystem& mphysicalSystem,
 // -----------------------------------------------------------------------------
 // Draw collision objects bounding boxes for rigid bodies.
 // -----------------------------------------------------------------------------
-int drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver) {
+int drawAllBoundingBoxes(ChSystem& sys, irr::video::IVideoDriver* driver) {
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    for (auto body : mphysicalSystem.Get_bodylist()) {
+    for (auto body : sys.Get_bodylist()) {
         irr::video::SColor mcol;
 
         if (body->GetSleeping())
@@ -441,14 +456,14 @@ int drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* dr
 // -----------------------------------------------------------------------------
 // Draw coordinate systems of ChBody objects bodies.
 // -----------------------------------------------------------------------------
-int drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale) {
+int drawAllCOGs(ChSystem& sys, irr::video::IVideoDriver* driver, double scale) {
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    for (auto body : mphysicalSystem.Get_bodylist()) {
+    for (auto body : sys.Get_bodylist()) {
         irr::video::SColor mcol;
         const ChFrame<>& mframe_cog = body->GetFrame_COG_to_abs();
         const ChFrame<>& mframe_ref = body->GetFrame_REF_to_abs();
@@ -484,14 +499,14 @@ int drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, dou
 // -----------------------------------------------------------------------------
 // Draw coordinate systems of frames used by links.
 // -----------------------------------------------------------------------------
-int drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale) {
+int drawAllLinkframes(ChSystem& sys, irr::video::IVideoDriver* driver, double scale) {
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    for (auto link : mphysicalSystem.Get_linklist()) {
+    for (auto link : sys.Get_linklist()) {
         ChFrame<> frAabs;
         ChFrame<> frBabs;
 

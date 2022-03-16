@@ -35,7 +35,7 @@
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChIrrApp.h"
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
 
 using std::cout;
@@ -58,9 +58,6 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double
     : ChVehicleCosimTerrainNodeChrono(Type::SCM, length, width, ChContactMethod::SMC),
       m_radius_p(5e-3),
       m_use_checkpoint(false) {
-#ifdef CHRONO_IRRLICHT
-    m_irrapp = nullptr;
-#endif
 
     // Create system and set default method-specific solver settings
     m_system = new ChSystemSMC;
@@ -74,9 +71,6 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double
 
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile)
     : ChVehicleCosimTerrainNodeChrono(Type::SCM, 0, 0, ChContactMethod::SMC), m_use_checkpoint(false) {
-#ifdef CHRONO_IRRLICHT
-    m_irrapp = nullptr;
-#endif
 
     // Create system and set default method-specific solver settings
     m_system = new ChSystemSMC;
@@ -89,9 +83,6 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& sp
 }
 
 ChVehicleCosimTerrainNodeSCM::~ChVehicleCosimTerrainNodeSCM() {
-#ifdef CHRONO_IRRLICHT
-    delete m_irrapp;
-#endif
     delete m_terrain;
     delete m_system;
 }
@@ -249,13 +240,16 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
 #ifdef CHRONO_IRRLICHT
     // Create the visualization window
     if (m_render) {
-        m_irrapp = new irrlicht::ChIrrApp(m_system, L"Terrain Node (SCM)", irr::core::dimension2d<irr::u32>(1280, 720),
-                                          irrlicht::VerticalDir::Z);
-        m_irrapp->AddLogo();
-        m_irrapp->AddSkyBox();
-        m_irrapp->AddLight(irr::core::vector3df(30.f, +30.f, 100.f), 290, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-        m_irrapp->AddLight(irr::core::vector3df(30.f, -30.f, 100.f), 190, irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
-        m_irrapp->AddCamera(irr::core::vector3df(m_hdimX, 1.4f, 1.0f), irr::core::vector3df(0, 0, 0));
+        m_vsys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+        m_system->SetVisualSystem(m_vsys);
+        m_vsys->SetCameraVertical(irrlicht::CameraVerticalDir::Z);
+        m_vsys->SetWindowSize(ChVector2<int>(1280, 720));
+        m_vsys->SetWindowTitle("Terrain Node (SCM)");
+        m_vsys->Initialize();
+        m_vsys->AddLogo();
+        m_vsys->AddSkyBox();
+        m_vsys->AddTypicalLights();
+        m_vsys->AddCamera(ChVector<>(m_hdimX, 1.4, 1.0), ChVector<>(0, 0, 0));
     }
 #endif
 
@@ -290,8 +284,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxies(unsigned int i) {
 #ifdef CHRONO_IRRLICHT
     // Bind Irrlicht assets
     if (m_render) {
-        m_irrapp->AssetBindAll();
-        m_irrapp->AssetUpdateAll();
+        m_vsys->BindAll();
     }
 #endif
 }
@@ -339,8 +332,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy(unsigned int i) {
 #ifdef CHRONO_IRRLICHT
     // Bind Irrlicht assets
     if (m_render) {
-        m_irrapp->AssetBindAll();
-        m_irrapp->AssetUpdateAll();
+        m_vsys->BindAll();
     }
 #endif
 }
@@ -377,13 +369,13 @@ void ChVehicleCosimTerrainNodeSCM::GetForceWheelProxy(unsigned int i, TerrainFor
 
 void ChVehicleCosimTerrainNodeSCM::Render(double time) {
 #ifdef CHRONO_IRRLICHT
-    if (!m_irrapp->GetDevice()->run()) {
+    if (!m_vsys->Run()) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
-    m_irrapp->BeginScene();
-    m_irrapp->DrawAll();
-    irrlicht::tools::drawColorbar(0, max_sinkage, "Sinkage [m]", m_irrapp->GetDevice(), 1180);
-    m_irrapp->EndScene();
+    m_vsys->BeginScene();
+    m_vsys->DrawAll();
+    irrlicht::tools::drawColorbar(0, max_sinkage, "Sinkage [m]", m_vsys->GetDevice(), 1180);
+    m_vsys->EndScene();
 #endif
 }
 

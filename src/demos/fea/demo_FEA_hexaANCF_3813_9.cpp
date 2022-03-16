@@ -1416,17 +1416,6 @@ void AxialDynamics() {
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, 0, 0));
 
-    // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-    // ChIrrApp application(&sys, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600),
-    //                     false, true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    // application.AddLogo();
-    // application.AddSkyBox();
-    // application.AddTypicalLights();
-    // application.AddCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
-    //                             core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
-
     GetLog() << "-----------------------------------------------------------------------\n";
     GetLog() << "-----------------------------------------------------------------------\n";
     GetLog() << "     9-Node, Large Deformation Brick Element with implicit integration \n";

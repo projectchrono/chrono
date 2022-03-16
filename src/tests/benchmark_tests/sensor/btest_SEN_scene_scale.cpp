@@ -60,9 +60,9 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Create the system
     // -----------------
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
-    auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = std::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 5000);
     manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 5000);
     manager->scene->AddPointLight({100, -100, 100}, {1, 1, 1}, 5000);
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
 
     auto cam_body = chrono_types::make_shared<ChBodyEasyBox>(.01, .01, .01, 1000, false, false);
     cam_body->SetBodyFixed(true);
-    mphysicalSystem.Add(cam_body);
+    sys.Add(cam_body);
     auto cam = std::make_shared<ChCameraSensor>(
         cam_body,                                                           // body camera is attached to
         10.0f,                                                              // update rate in Hz
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
                 vis_mat->SetSpecularColor({.2f, .2f, .2f});
                 cyl->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
 
-                mphysicalSystem.Add(cyl);
+                sys.Add(cyl);
                 curr_item_cnt++;
             } else if (obj_type == 1) {  // sphere
                 auto sphere = std::make_shared<ChBodyEasySphere>(randf() + .05, 1000, true, false);
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
                 vis_mat->SetSpecularColor({.2f, .2f, .2f});
                 sphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
 
-                mphysicalSystem.Add(sphere);
+                sys.Add(sphere);
                 curr_item_cnt++;
             } else {  // box
                 auto box = std::make_shared<ChBodyEasyBox>(2 * randf() + .1, 2 * randf() + .1, 2 * randf() + .1, 1000,
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
                 vis_mat->SetSpecularColor({.2f, .2f, .2f});
                 box->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
 
-                mphysicalSystem.Add(box);
+                sys.Add(box);
                 curr_item_cnt++;
             }
         }
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
         float ch_time = 0.0;
 
         std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-        float start_time = (float)mphysicalSystem.GetChTime();
+        float start_time = (float)sys.GetChTime();
         while (ch_time < start_time + time_interval) {
             cam->SetOffsetPose(chrono::ChFrame<double>(
                 {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate),
@@ -154,9 +154,9 @@ int main(int argc, char* argv[]) {
                 Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1}) * Q_from_AngAxis(.3, {0, 1, 0})));
 
             manager->Update();
-            mphysicalSystem.DoStepDynamics(0.1);
+            sys.DoStepDynamics(0.1);
 
-            ch_time = (float)mphysicalSystem.GetChTime();
+            ch_time = (float)sys.GetChTime();
         }
         std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

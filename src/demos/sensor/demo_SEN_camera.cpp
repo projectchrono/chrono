@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Create the system
     // -----------------
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     // ---------------------------------------
     // add a mesh to be visualized by a camera
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     mesh_body->SetPos({-6, 0, 0});
     mesh_body->AddVisualShape(trimesh_shape, ChFrame<>(ChVector<>(0, 0, 0)));
     mesh_body->SetBodyFixed(true);
-    mphysicalSystem.Add(mesh_body);
+    sys.Add(mesh_body);
 
     auto vis_mat3 = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat3->SetAmbientColor({0.f, 0.f, 0.f});
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, .1, 1000, true, false);
     floor->SetPos({0, 0, -1});
     floor->SetBodyFixed(true);
-    mphysicalSystem.Add(floor);
+    sys.Add(floor);
     {
         auto shape = floor->GetVisualModel()->GetShapes()[0].first;
         if(shape->GetNumMaterials() == 0){
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     auto box_body = chrono_types::make_shared<ChBodyEasyBox>(1.0, 1.0, 1.0, 1000, true, false);
     box_body->SetPos({0, -2, 0});
     box_body->SetBodyFixed(true);
-    mphysicalSystem.Add(box_body);
+    sys.Add(box_body);
     {
         auto shape = box_body->GetVisualModel()->GetShapes()[0].first;
         if(shape->GetNumMaterials() == 0){
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     auto sphere_body = chrono_types::make_shared<ChBodyEasySphere>(.5, 1000, true, false);
     sphere_body->SetPos({0, 0, 0});
     sphere_body->SetBodyFixed(true);
-    mphysicalSystem.Add(sphere_body);
+    sys.Add(sphere_body);
     {
         auto shape = sphere_body->GetVisualModel()->GetShapes()[0].first;
         if(shape->GetNumMaterials() == 0){
@@ -202,7 +202,7 @@ int main(int argc, char* argv[]) {
     auto cyl_body = chrono_types::make_shared<ChBodyEasyCylinder>(.25, 1, 1000, true, false);
     cyl_body->SetPos({0, 2, 0});
     cyl_body->SetBodyFixed(true);
-    mphysicalSystem.Add(cyl_body);
+    sys.Add(cyl_body);
     {
         auto shape = cyl_body->GetVisualModel()->GetShapes()[0].first;
         if(shape->GetNumMaterials() == 0){
@@ -216,13 +216,13 @@ int main(int argc, char* argv[]) {
     auto ground_body = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
     ground_body->SetPos({0, 0, 0});
     ground_body->SetBodyFixed(true);
-    mphysicalSystem.Add(ground_body);
+    sys.Add(ground_body);
 
     // -----------------------
     // Create a sensor manager
     // -----------------------
     float intensity = 1.0;
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({100, 100, 100}, {intensity, intensity, intensity}, 500);
     manager->scene->SetAmbientLight({.1, .1, .1});
     Background b;
@@ -439,10 +439,10 @@ int main(int argc, char* argv[]) {
         manager->Update();
 
         // Perform step of dynamics
-        mphysicalSystem.DoStepDynamics(step_size);
+        sys.DoStepDynamics(step_size);
 
         // Get the current time of the simulation
-        ch_time = (float)mphysicalSystem.GetChTime();
+        ch_time = (float)sys.GetChTime();
     }
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

@@ -135,24 +135,24 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     // Create the mechanical system
     // ----------------------------
 
-    ChSystemNSC my_system;
-    my_system.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
 
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    my_system.SetSolverType(ChSolver::Type::PSOR);
-    my_system.SetSolverMaxIterations(100);
-    my_system.SetSolverForceTolerance(1e-4);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(100);
+    sys.SetSolverForceTolerance(1e-4);
 
     // Create the ground body.
 
     auto ground = chrono_types::make_shared<ChBody>();
-    my_system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetBodyFixed(true);
 
     // Create the plate body.
 
     auto plate = chrono_types::make_shared<ChBody>();
-    my_system.AddBody(plate);
+    sys.AddBody(plate);
     plate->SetPos(ChVector<>(0, 0, 0));
     plate->SetRot(rot);
     plate->SetPos_dt(desiredSpeed * axis);
@@ -165,7 +165,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
 
     auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic->Initialize(plate, ground, ChCoordsys<>(ChVector<>(0, 0, 0), rot));
-    my_system.AddLink(prismatic);
+    sys.AddLink(prismatic);
 
     // Create a ramp function to impose constant speed.  This function returns
     //   y(t) = 0 + t * desiredSpeed
@@ -184,7 +184,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     actuator->Initialize(ground, plate, false, ChCoordsys<>(pt1, rot), ChCoordsys<>(pt2, rot));
     actuator->Set_lin_offset(1);
     actuator->Set_dist_funct(actuator_fun);
-    my_system.AddLink(actuator);
+    sys.AddLink(actuator);
 
     // Perform the simulation (record results)
     // ------------------------------------------------
@@ -326,7 +326,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
         }
 
         // Advance simulation by one step
-        my_system.DoStepDynamics(simTimeStep);
+        sys.DoStepDynamics(simTimeStep);
 
         // Increment simulation time
         simTime += simTimeStep;

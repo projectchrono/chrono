@@ -91,10 +91,6 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     /// by the specified duration.
     void Advance(double step);
 
-    /// Save a snapshot of the last rendered frame to file.
-    /// The file name extension determines the image format.
-    void WriteImageToFile(const std::string& filename);
-
   protected:
     virtual void OnAttachToVehicle() override;
 

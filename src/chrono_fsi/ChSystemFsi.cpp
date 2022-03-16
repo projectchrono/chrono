@@ -32,17 +32,16 @@ namespace fsi {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem, CHFSI_TIME_INTEGRATOR other_integrator)
-    : mphysicalSystem(other_physicalSystem),
-      mTime(0),
-      fluidIntegrator(other_integrator),
+    : mphysicalSystem(other_physicalSystem), mTime(0), fluidIntegrator(other_integrator),
       file_write_mode(CHFSI_OUTPUT_MODE::NONE) {
     fsiSystem = chrono_types::make_shared<ChSystemFsi_impl>();
     paramsH = chrono_types::make_shared<SimParams>();
     numObjectsH = fsiSystem->numObjects;
-    bceWorker = chrono_types::make_shared<ChBce>(fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
-                                                 fsiSystem->fsiGeneralData, paramsH, numObjectsH);
-    fluidDynamics =
-        chrono_types::make_shared<ChFluidDynamics>(bceWorker, fsiSystem, paramsH, numObjectsH, other_integrator);
+    bceWorker = chrono_types::make_shared<ChBce>(
+        fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
+        fsiSystem->fsiGeneralData, paramsH, numObjectsH);
+    fluidDynamics = chrono_types::make_shared<ChFluidDynamics>(
+        bceWorker, fsiSystem, paramsH, numObjectsH, other_integrator);
 
     fsi_mesh = chrono_types::make_shared<fea::ChMesh>();
     fsiBodies.resize(0);
@@ -80,6 +79,7 @@ void ChSystemFsi::SetFluidDynamics(fluid_dynamics params_type) {
     SetFluidIntegratorType(params_type);
     fluidDynamics =
         chrono_types::make_shared<ChFluidDynamics>(bceWorker, fsiSystem, paramsH, numObjectsH, fluidIntegrator);
+    fluidDynamics->GetForceSystem()->SetLinearSolver(paramsH->LinearSolver);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::Finalize() {
@@ -118,10 +118,7 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
 void ChSystemFsi::DoStepDynamics_FSI() {
     if (fluidDynamics->GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH) {
         // The following is used to execute the Explicit WCSPH
-        fsiInterface->Copy_ChSystem_to_External();
         CopyDeviceDataToHalfStep();
-        ChUtilsDevice::FillMyThrust3(fsiSystem->fsiGeneralData->derivTauXxYyZzD, mR3(0));
-        ChUtilsDevice::FillMyThrust3(fsiSystem->fsiGeneralData->derivTauXyXzYzD, mR3(0));
         ChUtilsDevice::FillMyThrust4(fsiSystem->fsiGeneralData->derivVelRhoD, mR4(0));
         fluidDynamics->IntegrateSPH(fsiSystem->sphMarkersD2, fsiSystem->sphMarkersD1, fsiSystem->fsiBodiesD2,
                                     fsiSystem->fsiMeshD, 0.5 * paramsH->dT);
@@ -134,8 +131,6 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         // Note that because of applying forces to the nodal coordinates using SetForce() no other external forces can
         // be applied, or if any thing has been applied will be rewritten by Add_Flex_Forces_To_ChSystem();
         fsiInterface->Add_Flex_Forces_To_ChSystem();
-
-        fsiInterface->Copy_External_To_ChSystem();
 
         // dT_Flex is the time step of solid body system
         mTime += 1 * paramsH->dT;
@@ -240,7 +235,8 @@ void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
 void ChSystemFsi::PrintParticleToFile(const std::string& out_dir) const {
     utils::PrintToFile(fsiSystem->sphMarkersD2->posRadD, fsiSystem->sphMarkersD2->velMasD,
                        fsiSystem->sphMarkersD2->rhoPresMuD, fsiSystem->fsiGeneralData->sr_tau_I_mu_i,
-                       fsiSystem->fsiGeneralData->referenceArray, thrust::host_vector<int4>(), out_dir, true);
+                       fsiSystem->fsiGeneralData->referenceArray, thrust::host_vector<int4>(), out_dir, 
+                       paramsH, true);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::AddSphMarker(const ChVector<>& point,
@@ -258,8 +254,8 @@ void ChSystemFsi::AddSphMarker(const ChVector<>& point,
         ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::AddRefArray(const int start, const int numPart, const int typeA, const int typeB) {
-    fsiSystem->fsiGeneralData->referenceArray.push_back(mI4(start, numPart, typeA, typeB));
+void ChSystemFsi::AddRefArray(const int start, const int numPart, const int compType, const int phaseType) {
+    fsiSystem->fsiGeneralData->referenceArray.push_back(mI4(start, numPart, compType, phaseType));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::AddBceBox(std::shared_ptr<SimParams> paramsH,
@@ -267,8 +263,9 @@ void ChSystemFsi::AddBceBox(std::shared_ptr<SimParams> paramsH,
                             const ChVector<>& relPos,
                             const ChQuaternion<>& relRot,
                             const ChVector<>& size,
-                            int plane) {
-    utils::AddBoxBce(fsiSystem, paramsH, body, relPos, relRot, size, plane);
+                            int plane,
+                            bool isSolid) {
+    utils::AddBoxBce(fsiSystem, paramsH, body, relPos, relRot, size, plane, isSolid);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::AddBceCylinder(std::shared_ptr<SimParams> paramsH,
@@ -350,6 +347,23 @@ void ChSystemFsi::SetFsiOutputDir(std::shared_ptr<SimParams> paramsH,
                                   std::string out_dir,
                                   std::string inputJson) {
     utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetDiscreType(bool useGmatrix, bool useLmatrix){
+    paramsH->USE_Consistent_G = useGmatrix;
+    paramsH->USE_Consistent_L = useLmatrix;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetFsiInfoOutput(bool outputFsiInfo){
+    paramsH->output_fsi =  outputFsiInfo;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetOutputLength(int OutputLength){
+    paramsH->output_length = OutputLength;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetWallBC(BceVersion wallBC){
+    paramsH->bceTypeWall = wallBC;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 std::vector<ChVector<>> ChSystemFsi::GetParticlePosOrProperties() {

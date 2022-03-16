@@ -127,7 +127,7 @@ Model::Model() {
 
     // Set integrator
     m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    ////my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);
+    ////sys.SetTimestepperType(chrono::ChTimestepper::Type::HHT);
 
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper())) {
         mystepper->SetAlpha(-0.2);

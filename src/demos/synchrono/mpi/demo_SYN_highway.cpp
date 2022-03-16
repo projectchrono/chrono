@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(vis_mesh);
     trimesh_shape->SetMutable(false);
-    patch->GetGroundBody()->AddAsset(trimesh_shape);
+    patch->GetGroundBody()->AddVisualShape(trimesh_shape);
     terrain.Initialize();
 
     // ----------

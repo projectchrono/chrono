@@ -46,12 +46,12 @@ const float ABS_ERR_F = 1e-6f;
 
 // adding sensors (camera, lidar, radar, gps, acc, gyro, mag)
 TEST(SensorInterface, sensors) {
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 100, false, false);
     box->SetBodyFixed(true);
-    mphysicalSystem.Add(box);
+    sys.Add(box);
 
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
 
     auto camera = chrono_types::make_shared<ChCameraSensor>(box, 100, chrono::ChFrame<double>(), 1, 1, 1);
     camera->SetLag(0.f);
@@ -90,9 +90,9 @@ TEST(SensorInterface, sensors) {
 
     ASSERT_EQ(manager->GetEngine(0)->GetNumSensor(), 2);  // 3 sensors are optix sensors
 
-    while (mphysicalSystem.GetChTime() < 0.1) {
+    while (sys.GetChTime() < 0.1) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.001);
+        sys.DoStepDynamics(0.001);
     }
 
     ASSERT_EQ(camera->GetNumLaunches(), 10);
@@ -106,12 +106,12 @@ TEST(SensorInterface, sensors) {
 
 // adding objects (box, sphere, cylinder, mesh)
 TEST(SensorInterface, shapes) {
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 100, false, false);
     box->SetBodyFixed(true);
-    mphysicalSystem.Add(box);
+    sys.Add(box);
 
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
 
     auto lidar = chrono_types::make_shared<ChLidarSensor>(box, 10, chrono::ChFrame<double>(ChVector<>(0, 0, 0), QUNIT),
                                                           1, 1, 0, 0, 0, 100);
@@ -121,9 +121,9 @@ TEST(SensorInterface, shapes) {
     manager->AddSensor(lidar);
 
     // nothing there to begin with
-    while (mphysicalSystem.GetChTime() < 0.05) {
+    while (sys.GetChTime() < 0.05) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
     }
 
     auto buffer = lidar->GetMostRecentBuffer<UserDIBufferPtr>();
@@ -133,12 +133,12 @@ TEST(SensorInterface, shapes) {
     auto b = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 100, true, false);
     b->SetPos({2.5, 0.0, 0.0});
     b->SetBodyFixed(true);
-    mphysicalSystem.Add(b);
+    sys.Add(b);
     manager->ReconstructScenes();
     // nothing there to begin with
-    while (mphysicalSystem.GetChTime() < 0.15) {
+    while (sys.GetChTime() < 0.15) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
     }
 
     buffer = lidar->GetMostRecentBuffer<UserDIBufferPtr>();
@@ -147,16 +147,16 @@ TEST(SensorInterface, shapes) {
     ASSERT_FLOAT_EQ(buffer->Buffer[0].range, 2.f);
 
     // remove box, add sphere
-    mphysicalSystem.RemoveBody(b);
+    sys.RemoveBody(b);
     auto s = chrono_types::make_shared<ChBodyEasySphere>(0.5, 100, true, false);
     s->SetPos({2.5, 0.0, 0.0});
     s->SetBodyFixed(true);
-    mphysicalSystem.Add(s);
+    sys.Add(s);
     manager->ReconstructScenes();
     // nothing there to begin with
-    while (mphysicalSystem.GetChTime() < 0.25) {
+    while (sys.GetChTime() < 0.25) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
     }
 
     buffer = lidar->GetMostRecentBuffer<UserDIBufferPtr>();
@@ -165,16 +165,16 @@ TEST(SensorInterface, shapes) {
     ASSERT_FLOAT_EQ(buffer->Buffer[0].range, 2.f);
 
     // remove sphere, add cylinder
-    mphysicalSystem.RemoveBody(s);
+    sys.RemoveBody(s);
     auto c = chrono_types::make_shared<ChBodyEasyCylinder>(0.5, 1.0, 100, true, false);
     c->SetPos({2.5, 0.0, 0.0});
     c->SetBodyFixed(true);
-    mphysicalSystem.Add(c);
+    sys.Add(c);
     manager->ReconstructScenes();
     // nothing there to begin with
-    while (mphysicalSystem.GetChTime() < 0.35) {
+    while (sys.GetChTime() < 0.35) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
     }
 
     buffer = lidar->GetMostRecentBuffer<UserDIBufferPtr>();
@@ -195,10 +195,10 @@ TEST(SensorInterface, mesh_channels) {
     std::vector<ChVector<int>> uv_ids = {{0, 1, 2}};
     std::vector<int> mat_ids = {0};
 
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 100, false, false);
     box->SetBodyFixed(true);
-    mphysicalSystem.Add(box);
+    sys.Add(box);
 
     // triangle with only verts and vert ids
     auto triangle = chrono_types::make_shared<ChTriangleMeshConnected>();
@@ -213,9 +213,9 @@ TEST(SensorInterface, mesh_channels) {
     tri_body->SetFrame_REF_to_abs(ChFrame<>());
     tri_body->AddVisualShape(triangle_shape,ChFrame<>());
     tri_body->SetBodyFixed(true);
-    mphysicalSystem.Add(tri_body);
+    sys.Add(tri_body);
 
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     auto lidar = chrono_types::make_shared<ChLidarSensor>(box, 10, chrono::ChFrame<double>(ChVector<>(0, 0, 0), QUNIT),
                                                           1, 1, 0, 0, 0, 100);
     lidar->SetLag(0.f);
@@ -223,9 +223,9 @@ TEST(SensorInterface, mesh_channels) {
     lidar->PushFilter(chrono_types::make_shared<ChFilterDIAccess>());
     manager->AddSensor(lidar);
 
-    while (mphysicalSystem.GetChTime() < 0.05) {
+    while (sys.GetChTime() < 0.05) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
     }
 
     auto buffer = lidar->GetMostRecentBuffer<UserDIBufferPtr>();
@@ -236,9 +236,9 @@ TEST(SensorInterface, mesh_channels) {
     triangle->getCoordsUV() = uvs;
     triangle->getIndicesUV() = uv_ids;
     manager->ReconstructScenes();
-    while (mphysicalSystem.GetChTime() < 0.15) {
+    while (sys.GetChTime() < 0.15) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
     }
 
     buffer = lidar->GetMostRecentBuffer<UserDIBufferPtr>();
@@ -249,9 +249,9 @@ TEST(SensorInterface, mesh_channels) {
     triangle->getCoordsNormals() = normals;
     triangle->getIndicesNormals() = norm_ids;
     manager->ReconstructScenes();
-    while (mphysicalSystem.GetChTime() < 0.25) {
+    while (sys.GetChTime() < 0.25) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
     }
 
     buffer = lidar->GetMostRecentBuffer<UserDIBufferPtr>();
@@ -261,9 +261,9 @@ TEST(SensorInterface, mesh_channels) {
     // triangle with verts, uv, normals, mat
     triangle->getIndicesMaterials() = mat_ids;
     manager->ReconstructScenes();
-    while (mphysicalSystem.GetChTime() < 0.35) {
+    while (sys.GetChTime() < 0.35) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
     }
 
     buffer = lidar->GetMostRecentBuffer<UserDIBufferPtr>();

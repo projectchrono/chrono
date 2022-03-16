@@ -26,7 +26,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_models/robot/robosimian/RoboSimian.h"
-#include "chrono_models/robot/robosimian/RoboSimianIrrApp.h"
+#include "chrono_models/robot/robosimian/RoboSimianVisualSystemIrrlicht.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -124,11 +124,7 @@ void RayCaster::Update() {
 
 // =============================================================================
 
-std::shared_ptr<ChBody> CreateTerrain(ChSystem* sys,
-                                      double length,
-                                      double width,
-                                      double height,
-                                      double offset) {
+std::shared_ptr<ChBody> CreateTerrain(ChSystem* sys, double length, double width, double height, double offset) {
     float friction = 0.8f;
     float Y = 1e7f;
     float cr = 0.0f;
@@ -151,15 +147,9 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem* sys,
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(length / 2, width / 2, 0.1);
-    box->GetBoxGeometry().Pos = ChVector<>(offset, 0, height - 0.1);
-    ground->AddAsset(box);
-
-    auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(GetChronoDataFile("textures/pinkwhite.png"));
-    texture->SetTextureScale(10 * (float)length, 10 * (float)width);
-    ground->AddAsset(texture);
-
-    ground->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.8f, 0.8f));
+    box->SetTexture(GetChronoDataFile("textures/pinkwhite.png"),
+                    ChVector2<float>(10 * (float)length, 10 * (float)width));
+    ground->AddVisualShape(box, ChFrame<>(ChVector<>(offset, 0, height - 0.1), QUNIT));
 
     sys->AddBody(ground);
 
@@ -257,9 +247,9 @@ int main(int argc, char* argv[]) {
     switch (mode) {
         case robosimian::LocomotionMode::WALK:
             driver = chrono_types::make_shared<robosimian::RS_Driver>(
-                "",                                                           // start input file
+                "",                                                                 // start input file
                 GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt"),  // cycle input file
-                "",                                                           // stop input file
+                "",                                                                 // stop input file
                 true);
             break;
         case robosimian::LocomotionMode::SCULL:
@@ -302,18 +292,17 @@ int main(int argc, char* argv[]) {
     // Create the visualization window
     // -------------------------------
 
-    robosimian::RoboSimianIrrApp application(&robot, driver.get(), L"RoboSimian - Rigid terrain",
-                                             irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddCamera(irr::core::vector3df(1, -2.75f, 0.2f), irr::core::vector3df(1, 0, 0));
-    application.AddLight(irr::core::vector3df(100.f, 100.f, 100.f), 290, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    application.AddLight(irr::core::vector3df(100.f, -100.f, 80.f), 190, irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
-    application.AddLightWithShadow(irr::core::vector3df(10.0f, -6.0f, 3.0f), irr::core::vector3df(0, 0, 0), 3, -10, 10,
-                                   40, 512);
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<robosimian::RoboSimianVisualSystemIrrlicht>(&robot, driver.get());
+    vis->SetWindowTitle("RoboSimian - Rigid terrain");
+    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(1, -2.75, 0.2), ChVector<>(1, 0, 0));
+    vis->AddLight(ChVector<>(100, +100, 100), 290, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(100, -100, 80), 190, ChColor(0.7f, 0.8f, 0.8f));
+    vis->AddLightWithShadow(ChVector<>(10.0, -6.0, 3.0), ChVector<>(0, 0, 0), 3, -10, 10, 40, 512);
+    ////vis->EnableShadows();
 
     // -----------------------------
     // Initialize output directories
@@ -347,7 +336,7 @@ int main(int argc, char* argv[]) {
 
     bool terrain_created = false;
 
-    while (application.GetDevice()->run()) {
+    while (vis->Run()) {
         ////caster.Update();
 
         if (drop && !terrain_created && my_sys->GetChTime() > time_create_terrain) {
@@ -364,8 +353,7 @@ int main(int argc, char* argv[]) {
             auto ground = CreateTerrain(my_sys, length, width, z, length / 4);
             SetContactProperties(&robot);
 
-            application.AssetBind(ground);
-            application.AssetUpdate(ground);
+            vis->BindItem(ground);
 
             // Release robot
             robot.GetChassisBody()->SetBodyFixed(false);
@@ -373,8 +361,8 @@ int main(int argc, char* argv[]) {
             terrain_created = true;
         }
 
-        application.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        application.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         if (data_output && sim_frame % output_steps == 0) {
             robot.Output();
@@ -390,11 +378,7 @@ int main(int argc, char* argv[]) {
             if (image_output) {
                 char filename[100];
                 sprintf(filename, "%s/img_%04d.jpg", img_dir.c_str(), render_frame + 1);
-                irr::video::IImage* image = application.GetVideoDriver()->createScreenShot();
-                if (image) {
-                    application.GetVideoDriver()->writeImageToFile(image, filename);
-                    image->drop();
-                }
+                vis->WriteImageToFile(filename);
             }
 
             render_frame++;
@@ -415,7 +399,7 @@ int main(int argc, char* argv[]) {
 
         sim_frame++;
 
-        application.EndScene();
+        vis->EndScene();
     }
 
     std::cout << "avg. speed: " << cbk.GetAvgSpeed() << std::endl;

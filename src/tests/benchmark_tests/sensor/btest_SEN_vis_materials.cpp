@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Create the system
     // -----------------
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     int x_dim = 11;
     int y_dim = 7;
@@ -69,19 +69,19 @@ int main(int argc, char* argv[]) {
 
             sphere1->GetVisualModel()->GetShapes()[0].first->AddMaterial(color);
 
-            mphysicalSystem.Add(sphere1);
+            sys.Add(sphere1);
         }
     }
 
     auto sphere2 = chrono_types::make_shared<ChBodyEasySphere>(.001, 1000, false, false);
     sphere2->SetPos({0, 0, 0});
     sphere2->SetBodyFixed(true);
-    mphysicalSystem.Add(sphere2);
+    sys.Add(sphere2);
 
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({-100, 0, 100}, {1, 1, 1}, 500);
     Background b;
     b.mode = BackgroundMode::ENVIRONMENT_MAP;  // GRADIENT
@@ -126,9 +126,9 @@ int main(int argc, char* argv[]) {
 
     while (ch_time < end_time) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.001);
+        sys.DoStepDynamics(0.001);
 
-        ch_time = (float)mphysicalSystem.GetChTime();
+        ch_time = (float)sys.GetChTime();
     }
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

@@ -40,7 +40,6 @@
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-#include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 
 #include <iostream>

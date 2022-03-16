@@ -40,7 +40,7 @@ namespace fsi {
 /// @{
 
 /// Approach to handle BCE particles
-enum class BceVersion { ADAMI = 0, mORIGINAL = 1 };
+enum class BceVersion { ADAMI = 0, ORIGINAL = 1 };
 
 /// PPE_SolutionType
 enum class PPE_SolutionType { MATRIX_FREE, FORM_SPARSE_MATRIX };
@@ -57,8 +57,10 @@ enum class fluid_dynamics { IISPH, I2SPH, WCSPH };
 /// Structure with FSI simulation parameters.
 struct SimParams {
     fluid_dynamics fluid_dynamic_type;  ///< Type of SPH mehtod (WCSPH, IISPH, or I2SPH)
-    char out_name[256]; ///< Name of the output directory.
-    char demo_dir[2048]; ///< Demo output directory.
+    char out_name[256];   ///< Name of the output directory.
+    char demo_dir[2048];  ///< Demo output directory.
+    int output_length;    ///< Output length (0:short, 1:middle, 2:long) information of SPH particles into data files
+    bool output_fsi;      ///< Output fsi information for each body/node
 
     int3 gridSize;        ///< dx, dy, dz distances between particle centers.
     Real3 worldOrigin;    ///< Origin point.
@@ -66,7 +68,9 @@ struct SimParams {
     uint numBodies;       ///< Number of FSI bodies.
     Real3 boxDims;        ///< Dimensions of the domain. How big is the box that the domain is in.
     Real HSML;            ///< Interaction Radius (or h)
-    Real INVHSML;         ///< 1.0/h
+    Real INVHSML;         ///< 1.0 / h
+    Real INITSPACE;       ///< Initial separation of the fluid particles
+    Real INV_INIT;        ///< 1.0 / INITSPACE
     Real MULT_INITSPACE;  ///< Multiplier to hsml to determine the initial separation of the fluid particles and the
                           ///< fixed separation for the boundary particles. This means that the separation will always
                           ///< be a multiple of hsml. Default value = 1.0.
@@ -88,7 +92,7 @@ struct SimParams {
     Real3 deltaPress;  ///< Change in Pressure. This is needed for periodic BC. The change in pressure of a particle
                        ///< when it moves from end boundary to beginning.
 
-    Real3 V_in;  ///< Inlet velocity. This is needed for inlet BC.
+    Real3 V_in; ///< Inlet velocity. This is needed for inlet BC.
     Real x_in; ///< Inlet position. This is needed for inlet BC.
 
     Real3 gravity;     ///< Gravity. Applied to fluid, rigid and flexible.
@@ -98,7 +102,7 @@ struct SimParams {
     Real rho0;       ///< Density
     Real invrho0;    ///< Density's inverse
     Real rho_solid;  ///< Solid Density
-    Real volume0;    ///< Volume
+    Real volume0;    ///< Initial volume of particle
 
     Real markerMass;  ///< marker mass
     Real mu0;         ///< Viscosity
@@ -111,6 +115,7 @@ struct SimParams {
     Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to use
               ///< is to run simulations multiple time and find which one is the largest dT that produces a stable
               ///< simulation.
+    Real INV_dT; ///< 1.0 / dT
 
     enum fluidity_model { frictional_plasticity, Inertia_rheology, nonlocal_fluidity };
 
@@ -155,11 +160,15 @@ struct SimParams {
 
     int contactBoundary;  ///< 0: straight channel, 1: serpentine
 
-    BceVersion bceType;  ///< Type of boundary conditions, ADAMI or mORIGINAL
+    BceVersion bceType;  ///< Type of boundary conditions, ADAMI or ORIGINAL
+    BceVersion bceTypeWall;  ///< Type of boundary conditions for fixed wall, ADAMI or ORIGINAL
 
     bool Conservative_Form;  ///< Whether conservative or consistent discretization should be used
     int gradient_type; ///< Type of the gradient operator.
     int laplacian_type; ///< Type of the laplacian operator.
+
+    bool USE_Consistent_G; ///< Use consistent discretization for gradient operator
+    bool USE_Consistent_L; ///< Use consistent discretization for laplacian operator
 
     bool USE_NonIncrementalProjection;  ///< Used in the I2SPH implementation
     bool DensityBaseProjetion; ///< Set true to use density based projetion scheme in ISPH solver
@@ -215,6 +224,7 @@ struct SimParams {
     bool elastic_SPH;   ///< Handles the WCSPH solver for fluid (0) or granular (1)
     Real E_young;       ///< Young's modulus
     Real G_shear;       ///< Shear modulus
+    Real INV_G_shear;   ///< 1.0 / G_shear
     Real K_bulk;        ///< Bulk modulus
     Real Nu_poisson;    ///< Poisson’s ratio
     Real Ar_stress;     ///< Artifical stress
@@ -250,6 +260,8 @@ struct SimParams {
     Real bodyIniAngVel; ///< Initial angular velocity of the FSI body
     Real bodyMass; ///< Mass of the FSI body
     Real bodyDensity; ///< Density of the FSI body
+
+    Real3 bodyActiveDomain; ///< Size of the active domain that influenced by an FSI body
 };
 
 /// @} fsi_physics

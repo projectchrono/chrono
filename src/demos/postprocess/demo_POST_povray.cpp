@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     /* Start example */
     /// [Example 1]
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     mfloor->SetCollide(true);
 
     // Add body to system
-    mphysicalSystem.Add(mfloor);
+    sys.Add(mfloor);
 
     // ==Asset== attach a 'box' shape.
     // Note that assets are managed via shared pointer, so they
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     // it is only for visualization tests)
     auto mbody = chrono_types::make_shared<ChBody>();
     mbody->SetBodyFixed(true);
-    mphysicalSystem.Add(mbody);
+    sys.Add(mbody);
 
     // ==Asset== Attach a 'sphere' shape
     auto msphere = chrono_types::make_shared<ChSphereShape>();
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
         mparticles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1, ChRandom() - 0.5)));
 
     // Do not forget to add the particle cluster to the system:
-    mphysicalSystem.Add(mparticles);
+    sys.Add(mparticles);
 
     //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
     // shape to display all particles when rendering in 3D!
@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
     //
 
     // Create an exporter to POVray !!!
-    ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
+    ChPovRay pov_exporter = ChPovRay(&sys);
 
     // Important: set the path to the template:
     pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
@@ -291,10 +291,10 @@ int main(int argc, char* argv[]) {
 
     pov_exporter.ExportScript();
 
-    while (mphysicalSystem.GetChTime() < 1.5) {
-        mphysicalSystem.DoStepDynamics(0.01);
+    while (sys.GetChTime() < 1.5) {
+        sys.DoStepDynamics(0.01);
 
-        GetLog() << "time= " << mphysicalSystem.GetChTime() << "\n";
+        GetLog() << "time= " << sys.GetChTime() << "\n";
 
         // 2) Create the incremental nnnn.dat and nnnn.pov files that will be load
         //    by the pov .ini script in POV-Ray (do this at each simulation timestep)

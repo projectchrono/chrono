@@ -23,9 +23,23 @@ int ChVisualShape::AddMaterial(std::shared_ptr<ChVisualMaterial> material) {
     return (int)material_list.size();
 }
 
+void ChVisualShape::SetMaterial(int i, std::shared_ptr<ChVisualMaterial> material) {
+    if (i == 0 && material_list.empty()) {
+        material_list.push_back(material);
+        return;
+    }
+
+    if (i < material_list.size()) {
+        material_list[i] = material;
+    }
+}
+
 void ChVisualShape::SetColor(const ChColor& col) {
+    // Ensure that material_list[0] is a new material
     if (material_list.empty())
         material_list.push_back(std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default()));
+    else if (material_list[0] == ChVisualMaterial::Default())
+        material_list[0] = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
 
     material_list[0]->SetDiffuseColor(ChVector<float>(col.R, col.G, col.B));
     material_list[0]->SetOpacity(col.A);
@@ -46,8 +60,11 @@ ChColor ChVisualShape::GetColor() const {
 }
 
 void ChVisualShape::SetOpacity(float val) {
+    // Ensure that material_list[0] is a new material
     if (material_list.empty())
         material_list.push_back(std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default()));
+    else if (material_list[0] == ChVisualMaterial::Default())
+        material_list[0] = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
 
     material_list[0]->SetOpacity(val);
 }
@@ -63,11 +80,14 @@ float ChVisualShape::GetOpacity() const {
     return A;
 }
 
-void ChVisualShape::SetTexture(const std::string& filename) {
+void ChVisualShape::SetTexture(const std::string& filename, ChVector2<float> scale) {
+    // Ensure that material_list[0] is a new material
     if (material_list.empty())
         material_list.push_back(std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default()));
+    else if (material_list[0] == ChVisualMaterial::Default())
+        material_list[0] = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
 
-    material_list[0]->SetKdTexture(filename);
+    material_list[0]->SetKdTexture(filename, scale);
 }
 
 std::string ChVisualShape::GetTexture() const {

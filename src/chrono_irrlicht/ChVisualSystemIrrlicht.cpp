@@ -197,6 +197,16 @@ void ChVisualSystemIrrlicht::OnAttach() {
 }
 
 void ChVisualSystemIrrlicht::OnSetup() {
+    PurgeIrrNodes();
+}
+
+void ChVisualSystemIrrlicht::OnUpdate() {
+    for (auto& node : m_nodes) {
+        node.second->UpdateChildren();
+    }
+}
+
+void ChVisualSystemIrrlicht::PurgeIrrNodes() {
     // Remove Irrlicht nodes associated with a deleted physics item
     std::vector<ChPhysicsItem*> items_to_remove;
     for (auto& node : m_nodes) {
@@ -206,14 +216,12 @@ void ChVisualSystemIrrlicht::OnSetup() {
             items_to_remove.emplace_back(node.first);
         }
     }
+
+    //// RADU TODO - what if the visual model of the associated node was modified?!?!
+    ////   We may now have Irrlicht scene nodes associated with visual shapes that no longer exist!
+
     for (auto&& item : items_to_remove)
         m_nodes.erase(item);
-}
-
-void ChVisualSystemIrrlicht::OnUpdate() {
-    for (auto& node : m_nodes) {
-        node.second->UpdateChildren();
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -401,6 +409,12 @@ void ChVisualSystemIrrlicht::EnableBodyFrameDrawing(bool val) {
     m_gui->SetPlotCOGFrames(val);
 }
 
+void ChVisualSystemIrrlicht::EnableLinkFrameDrawing(bool val) {
+    if (!m_device)
+        return;
+    m_gui->SetPlotLinkFrames(val);
+}
+
 void ChVisualSystemIrrlicht::EnableCollisionShapeDrawing(bool val) {
     if (!m_device)
         return;
@@ -483,6 +497,8 @@ void ChVisualSystemIrrlicht::BindItem(std::shared_ptr<ChPhysicsItem> item) {
 void ChVisualSystemIrrlicht::BindAll() {
     if (!m_system || !m_device)
         return;
+
+    PurgeIrrNodes();
 
     std::unordered_set<const ChAssembly*> trace;
     CreateIrrNodes(&m_system->GetAssembly(), trace);
@@ -575,8 +591,7 @@ static void mflipSurfacesOnX(IMesh* mesh) {
         const u32 vertcnt = buffer->getVertexCount();
         for (u32 i = 0; i < vertcnt; i++) {
             buffer->getPosition(i).X = -buffer->getPosition(i).X;  // mirror vertex
-            core::vector3df oldnorm = buffer->getNormal(i);
-            buffer->getNormal(i).X = -oldnorm.X;  // mirrors normal on X
+            buffer->getNormal(i).X = -buffer->getNormal(i).X;      // mirrors normal on X
         }
     }
 }
@@ -598,11 +613,13 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
 void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                                              std::shared_ptr<ChVisualModel> model,
                                              const ChFrame<>& parent_frame) {
-    //// RADU TODO - use shapeFrame when we obsolete Pos and Rot in a ChVisualShape!
+    //// RADU TODO - We do not use Pos and Rot from box geometry, or center from sphere geometry.
+    ////             THIS WILL BE OBSOLETED!!!
 
     for (const auto& shape_instance : model->GetShapes()) {
         auto& shape = shape_instance.first;
-        auto& shapeFrame = shape_instance.second;
+        auto& shape_frame = shape_instance.second;
+        irr::core::matrix4CH shape_m4(shape_frame);
 
         if (!shape->IsVisible())
             continue;
@@ -624,6 +641,9 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 if (!irrmesh_already_loaded)
                     mflipSurfacesOnX(((IAnimatedMeshSceneNode*)mchildnode)->getMesh());
 
+                mchildnode->setPosition(shape_m4.getTranslation());
+                mchildnode->setRotation(shape_m4.getRotationDegrees());
+
                 mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, true);
             }
         } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
@@ -642,6 +662,9 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(smesh, mproxynode);
             smesh->drop();
 
+            mchildnode->setPosition(shape_m4.getTranslation());
+            mchildnode->setRotation(shape_m4.getRotationDegrees());
+
             mproxynode->Update();  // force syncing of triangle positions & face indexes
             mproxynode->drop();
 
@@ -656,6 +679,10 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             ChIrrNodeShape* mproxynode = new ChIrrNodeShape(surf, node);
             ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
             newmesh->drop();
+
+            mchildnode->setPosition(shape_m4.getTranslation());
+            mchildnode->setRotation(shape_m4.getRotationDegrees());
+
             mproxynode->Update();  // force syncing of triangle positions & face indexes
             mproxynode->drop();
 
@@ -666,14 +693,10 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(sphereMesh, mproxynode);
                 mproxynode->drop();
 
-                // Calculate transform from node to geometry
-                // (concatenate node - asset and asset - geometry)
-                ChVector<> pos = sphere->Pos + sphere->Rot * sphere->GetSphereGeometry().center;
-                ChCoordsys<> irrspherecoords(pos, sphere->Rot.Get_A_quaternion());
-
                 double mradius = sphere->GetSphereGeometry().rad;
                 mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
-                tools::alignIrrlichtNode(mchildnode, irrspherecoords);
+                mchildnode->setPosition(shape_m4.getTranslation());
+                mchildnode->setRotation(shape_m4.getRotationDegrees());
 
                 SetVisualMaterial(mchildnode, sphere);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
@@ -684,13 +707,9 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(sphereMesh, mproxynode);
                 mproxynode->drop();
 
-                // Calculate transform from node to geometry
-                // (concatenate node - asset and asset - geometry)
-                ChVector<> pos = ellipsoid->Pos + ellipsoid->Rot * ellipsoid->GetEllipsoidGeometry().center;
-                ChCoordsys<> irrspherecoords(pos, ellipsoid->Rot.Get_A_quaternion());
-
                 mchildnode->setScale(core::vector3dfCH(ellipsoid->GetEllipsoidGeometry().rad));
-                tools::alignIrrlichtNode(mchildnode, irrspherecoords);
+                mchildnode->setPosition(shape_m4.getTranslation());
+                mchildnode->setRotation(shape_m4.getRotationDegrees());
 
                 SetVisualMaterial(mchildnode, ellipsoid);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
@@ -713,15 +732,15 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 mrot.Set_A_axis(mx, my, mz);
                 ChVector<> mpos = 0.5 * (cylinder->GetCylinderGeometry().p2 + cylinder->GetCylinderGeometry().p1);
 
-                // Calculate transform from node to geometry
-                // (concatenate node - asset and asset - geometry)
-                ChVector<> pos = cylinder->Pos + cylinder->Rot * mpos;
-                ChMatrix33<> rot = cylinder->Rot * mrot;
-                ChCoordsys<> irrcylindercoords(pos, rot.Get_A_quaternion());
+                // Calculate transform from node to geometry (concatenate node - asset and asset - geometry)
+                ChFrame<> frame = shape_frame * ChFrame<>(mpos, mrot);
+                irr::core::matrix4CH m4(frame);
 
-                tools::alignIrrlichtNode(mchildnode, irrcylindercoords);
                 core::vector3df irrsize((f32)rad, (f32)(0.5 * height), (f32)rad);
                 mchildnode->setScale(irrsize);
+                mchildnode->setPosition(m4.getTranslation());
+                mchildnode->setRotation(m4.getRotationDegrees());
+
 
                 SetVisualMaterial(mchildnode, cylinder);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
@@ -735,13 +754,11 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 double rad = capsule->GetCapsuleGeometry().rad;
                 double hlen = capsule->GetCapsuleGeometry().hlen;
 
-                ChVector<> pos = capsule->Pos;
-                ChMatrix33<> rot = capsule->Rot;
-                ChCoordsys<> irrcapsulecoords(pos, rot.Get_A_quaternion());
-
-                tools::alignIrrlichtNode(mchildnode, irrcapsulecoords);
                 core::vector3df irrsize((f32)rad, (f32)hlen, (f32)rad);
                 mchildnode->setScale(irrsize);
+                mchildnode->setPosition(shape_m4.getTranslation());
+                mchildnode->setRotation(shape_m4.getRotationDegrees());
+
 
                 SetVisualMaterial(mchildnode, capsule);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
@@ -752,14 +769,9 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(cubeMesh, mproxynode);
                 mproxynode->drop();
 
-                // Calculate transform from node to geometry
-                // (concatenate node - asset and asset - geometry)
-                ChVector<> pos = box->Pos + box->Rot * box->GetBoxGeometry().Pos;
-                ChMatrix33<> rot = box->Rot * box->GetBoxGeometry().Rot;
-                ChCoordsys<> irrboxcoords(pos, rot.Get_A_quaternion());
-
                 mchildnode->setScale(core::vector3dfCH(box->GetBoxGeometry().Size));
-                tools::alignIrrlichtNode(mchildnode, irrboxcoords);
+                mchildnode->setPosition(shape_m4.getTranslation());
+                mchildnode->setRotation(shape_m4.getRotationDegrees());
 
                 SetVisualMaterial(mchildnode, box);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
@@ -772,20 +784,13 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(mbarrelmesh, mproxynode);
             mproxynode->drop();
 
-            // Calculate transform from node to geometry
-            // (concatenate node - asset and asset - geometry)
-            ChVector<> pos = barrel->Pos;
-            ChCoordsys<> irrspherecoords(pos, barrel->Rot.Get_A_quaternion());
-
-            // double mradius = mysphere->GetSphereGeometry().rad;
-            // mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
-            tools::alignIrrlichtNode(mchildnode, irrspherecoords);
+            mchildnode->setPosition(shape_m4.getTranslation());
+            mchildnode->setRotation(shape_m4.getRotationDegrees());
 
             SetVisualMaterial(mchildnode, barrel);
             mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
         } else if (auto glyphs = std::dynamic_pointer_cast<ChGlyphs>(shape)) {
             CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
-            //  SMeshBuffer* buffer = new SMeshBuffer();
             SMesh* newmesh = new SMesh;
             newmesh->addMeshBuffer(buffer);
             buffer->drop();

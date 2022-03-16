@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki Wei Hu
+// Author: Arman Pazouki, Wei Hu
 // =============================================================================
 //
 // Macro defines for exporting DLL
