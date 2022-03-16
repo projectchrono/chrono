@@ -99,10 +99,10 @@ int main(int argc, char* argv[]) {
     // -------------------------------
 
     ChIrrApp application(&system, L"Limits on LinkLockRevolute demo", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(-2, 1.5, 5));
+    application.AddCamera(core::vector3df(-2, 1.5, 5));
 
     application.AssetBindAll();
     application.AssetUpdateAll();

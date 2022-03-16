@@ -29,8 +29,8 @@ SET(ChronoEngine_IRRLICHT_SOURCES
   ChIrrNode.cpp
   ChIrrNodeProxyToAsset.cpp
   ChIrrTools.cpp
-  ChIrrUtils.cpp
   ChIrrNodeAsset.cpp
+  ChIrrSkyBoxSceneNode.cpp
 )
 
 SET(ChronoEngine_IRRLICHT_HEADERS
@@ -40,12 +40,12 @@ SET(ChronoEngine_IRRLICHT_HEADERS
   ChIrrApp.h
   ChIrrCamera.h
   ChIrrMeshTools.h
-  ChIrrUtils.h
   ChIrrAssetConverter.h
   ChIrrNode.h
   ChIrrNodeProxyToAsset.h
   ChIrrNodeAsset.h
   ChIrrEffects.h
+  ChIrrSkyBoxSceneNode.h
 )
 
 SOURCE_GROUP("" FILES
@@ -130,7 +130,9 @@ if (ENABLE_MODULE_POSTPROCESS)
     #set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_POSTPROCESS_LINK_FLAGS}") # nothing to append
     set(LIBRARIES ${LIBRARIES} ChronoEngine_postprocess)
 endif()
-
+if (ENABLE_MODULE_MODAL)
+    set(LIBRARIES ${LIBRARIES} ChronoEngine_modal)
+endif()
 
 ADD_LIBRARY(ChronoEngine_irrlicht SHARED
   ${ChronoEngine_IRRLICHT_SOURCES}
@@ -159,6 +161,11 @@ ADD_DEPENDENCIES (ChronoEngine_irrlicht ChronoEngine)
 if (ENABLE_MODULE_POSTPROCESS)
     ADD_DEPENDENCIES (ChronoEngine_irrlicht ChronoEngine_postprocess)
 endif()
+
+if (ENABLE_MODULE_MODAL)
+    ADD_DEPENDENCIES (ChronoEngine_irrlicht ChronoEngine_modal)
+endif()
+
 
 #-------------------------------------------------------------------------------
 # On Windows, copy the IRRLICHT DLL to the bin/ directory

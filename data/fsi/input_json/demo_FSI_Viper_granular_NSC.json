@@ -34,7 +34,7 @@
     "Fluid time step": 2.5e-4,
     "Solid time step": 2.5e-4,
     "Maximum time step": 2.5e-4,
-    "End time": 20.0,
+    "End time": 5.0,
     "Write frame per second": 20
   },
 
@@ -78,6 +78,8 @@
     "BodyIniAngVel": 0.0,
     "BodyMass": 0.0,
     "BodyDensity": 200.0
-  }
+  },
+
+  "Body Active Domain": [ 0.4, 0.3, 0.5 ]
 
 }

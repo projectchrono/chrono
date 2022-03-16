@@ -244,6 +244,11 @@ class ChApi ChAssembly : public ChPhysicsItem {
                                    const ChState& x,
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) override;
+    virtual void IntStateGetIncrement(const unsigned int off_x,
+                                   const ChState& x_new,
+                                   const ChState& x,
+                                   const unsigned int off_v,
+                                   ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
@@ -313,7 +318,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// implementing their own swap.
     friend void swap(ChAssembly& first, ChAssembly& second);
 
-  private:
+  protected:
     virtual void SetupInitial() override;
 
     std::vector<std::shared_ptr<ChBody>> bodylist;                 ///< list of rigid bodies

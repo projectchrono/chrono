@@ -145,9 +145,9 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&mphysicalSystem, L"Import a SolidWorks system", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
-    application.AddTypicalCamera(vector3df(0.0f, 0.25f, 0.25f), vector3df(0.0f, 0.0f, -0.1f));
+    application.AddLogo();
+    application.AddSkyBox();
+    application.AddCamera(vector3df(0.0f, 0.25f, 0.25f), vector3df(0.0f, 0.0f, -0.1f));
     application.AddLightWithShadow(vector3df(-0.5f, 0.5f, 0.0f), vector3df(0, 0, 0), 1, 0.2, 1.2, 30, 512,
                                    video::SColorf(1.0f, 0.9f, 0.9f));
     application.AddLightWithShadow(vector3df(0.5f, 0.5f, 0.5f), vector3df(0, 0, 0), 1, 0.2, 1.2, 30, 512,

@@ -171,10 +171,10 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization
     irrlicht::ChIrrApp application(&sys, L"ANCF beam", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(-0.4f, 0.4f, 0.4f), irr::core::vector3df(0, 0, 0));
+    application.AddCamera(irr::core::vector3df(-0.4f, 0.4f, 0.4f), irr::core::vector3df(0, 0, 0));
 
     application.AssetBindAll();
     application.AssetUpdateAll();

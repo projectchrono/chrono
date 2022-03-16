@@ -148,6 +148,16 @@ void ChNodeFEAcurv::NodeIntStateIncrement(const unsigned int off_x,
     }
 }
 
+void ChNodeFEAcurv::NodeIntStateGetIncrement(const unsigned int off_x,
+                                          const ChState& x_new,
+                                          const ChState& x,
+                                          const unsigned int off_v,
+                                          ChStateDelta& Dv) {
+    for (int i = 0; i < 9; i++) {
+        Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
+    }
+}
+
 void ChNodeFEAcurv::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     //// TODO do we even need anything here? What would the forces be?
 }

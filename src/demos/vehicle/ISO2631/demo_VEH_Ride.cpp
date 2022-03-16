@@ -286,11 +286,9 @@ int main(int argc, char* argv[]) {
     windowTitle.append(L" - " + std::to_wstring(rmsVal) + L" mm RMS");
     ChWheeledVehicleIrrApp app(&vehicle, windowTitle);
 
-    app.SetSkyBox();
     app.GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
-    app.AddTypicalLights(irr::core::vector3df(-50.f, -30.f, 40.f), irr::core::vector3df(10.f, 30.f, 40.f), 50, 50,
-                         irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f), irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-
+    app.AddLight(irr::core::vector3df(-50.f, -30.f, 40.f), 50, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.AddLight(irr::core::vector3df(10.f, 30.f, 40.f), 50, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
 
     app.SetTimestep(step_size);

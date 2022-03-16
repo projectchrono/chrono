@@ -115,10 +115,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"Deformable soil", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(2.0f, 1.4f, 0.0f), core::vector3df(0, (f32)tire_rad, 0));
+    application.AddCamera(core::vector3df(2.0f, 1.4f, 0.0f), core::vector3df(0, (f32)tire_rad, 0));
     //application.AddLightWithShadow(core::vector3df(1.5f, 5.5f, -2.5f), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
     //                               video::SColorf(0.8f, 0.8f, 1.0f));
 

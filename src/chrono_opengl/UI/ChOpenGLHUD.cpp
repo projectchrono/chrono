@@ -14,7 +14,6 @@
 // Class that renders the text and other UI elements
 // =============================================================================
 
-#include "chrono/collision/ChCollisionSystemBullet.h"
 #include "chrono/solver/ChIterativeSolverVI.h"
 
 #include "chrono/ChConfig.h"
@@ -31,8 +30,8 @@
 #include "resources/bar_frag.h"
 #include "resources/bar_vert.h"
 
-#include "chrono_opengl/UI/ChOpenGLHUD.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
+#include "chrono_opengl/UI/ChOpenGLHUD.h"
 
 namespace chrono {
 using namespace collision;
@@ -170,20 +169,17 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
     double timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
     double timer_lcp = physics_system->GetTimerAdvance();
     double timer_update = physics_system->GetTimerUpdate();
+
 #ifdef CHRONO_MULTICORE
-    if (ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system)) {
-        num_shapes = parallel_system->data_manager->cd_data->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
+    auto parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system);
+    if (parallel_system) {
+        num_shapes =
+            parallel_system->data_manager->cd_data->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
         num_rigid_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNphysicsItems();
         num_fluid_bodies = parallel_system->data_manager->num_fluid_bodies;
         num_contacts = parallel_system->GetNcontacts();
         num_bilaterals = parallel_system->data_manager->num_bilaterals;
-    } else {
-        auto collision_system = std::static_pointer_cast<ChCollisionSystemBullet>(physics_system->GetCollisionSystem());
-        num_shapes = collision_system->GetBulletCollisionWorld()->getNumCollisionObjects();
-        num_rigid_bodies = physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems();
-        num_contacts = physics_system->GetNcontacts();
     }
-
     double left_b = LEFT + RIGHT;
     double right_b = -LEFT;
     double thick = 0.05;
@@ -196,7 +192,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
     bars.AddBar(narrow_v, lcp_v, BOTTOM + thick, BOTTOM, ColorConverter(0xA0D468));
     bars.AddBar(lcp_v, right_b, BOTTOM + thick, BOTTOM, ColorConverter(0xFFCE54));
 
-    if (ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system)) {
+    if (parallel_system) {
         real build_m = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_M");
         real build_d = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_D");
         real build_e = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_E");
@@ -236,8 +232,8 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
         bars.AddBar(shur_v, right_b, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xEC87C0));
         // bars.AddBar(stab_v, right_b, BOTTOM + thick * 3, BOTTOM + thick * 2, normalize(glm::vec3(149, 165, 166)));
     }
-
 #endif
+
     sprintf(buffer, "MODEL INFO");
     text.Render(buffer, LEFT, TOP - SPACING * 5, sx, sy);
     sprintf(buffer, "BODIES R,F %04d, %04d", num_rigid_bodies, num_fluid_bodies);
@@ -309,10 +305,6 @@ void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
         text.Render(buffer, LEFT, TOP - SPACING * 20, sx, sy);
         sprintf(buffer, "--------------------------------");
         text.Render(buffer, LEFT, TOP - SPACING * 21, sx, sy);
-    } else {
-        // ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
-        // btDbvtBroadphase * broadphase = (btDbvtBroadphase* )
-        // collision_system->GetBulletCollisionWorld()->getBroadphase();
     }
 #endif
 }

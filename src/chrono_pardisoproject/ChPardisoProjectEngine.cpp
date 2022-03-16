@@ -14,7 +14,7 @@
 
 
 #include "chrono_pardisoproject/ChPardisoProjectEngine.h"
-#include "chrono/parallel/ChOpenMP.h"
+#include "chrono/utils/ChOpenMP.h"
 
 
 /* PARDISO prototype. */

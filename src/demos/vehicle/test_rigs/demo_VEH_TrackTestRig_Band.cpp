@@ -177,9 +177,7 @@ int main(int argc, char* argv[]) {
     ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
 
     ChVehicleIrrApp app(rig, L"Continuous Band Track Test Rig");
-    app.SetSkyBox();
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
+    app.AddTypicalLights();
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 3.0, 0.0);
     app.SetChaseCameraPosition(target_point + ChVector<>(-2, 3, 0));
     app.SetChaseCameraState(utils::ChChaseCamera::Free);

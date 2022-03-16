@@ -141,8 +141,8 @@ int main(int argc, char* argv[]) {
         msection->SetDensity(beam_density);
         msection->SetYoungModulus(beam_Young);
         msection->SetGwithPoissonRatio(0.31);
-        msection->SetBeamRaleyghDampingBeta(0.0001);
-        msection->SetBeamRaleyghDampingAlpha(0);
+        msection->SetBeamRaleyghDampingBeta(0*0.00001);
+        msection->SetBeamRaleyghDampingAlpha(0*0.001);
         msection->SetAsRectangularSection(beam_wy, beam_wz);
         msection->compute_inertia_damping_matrix = true; //*** not much different
         msection->compute_inertia_stiffness_matrix = true; //*** not much differen
@@ -161,7 +161,11 @@ int main(int argc, char* argv[]) {
         
         for (auto el : builder.GetLastBeamElements())
            el->SetUseGeometricStiffness(true);  // default true, if false convergence is bad
-        
+
+        my_system.SetNumThreads(1); //**to do: fix race conditions in num diff
+        //for (auto el : builder.GetLastBeamElements())
+        //    el->use_numerical_diff_for_KR = true;
+
         nodes = builder.GetLastBeamNodes();
     }
     if (use_iga) {
@@ -271,13 +275,13 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"Rotor with simplified blade: steady state statics & dynamics", core::dimension2d<u32>(1024, 768));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddLightWithShadow(irr::core::vector3df(20, 20, 20), irr::core::vector3df(0, 0, 0), 50, 5, 50, 55);
     application.AddLight(irr::core::vector3df(-20, -20, 0), 6, irr::video::SColorf(0.6f, 1.0f, 1.0f, 1.0f));
     application.AddLight(irr::core::vector3df(0, -20, -20), 6, irr::video::SColorf(0.6f, 1.0f, 1.0f, 1.0f));
     // application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(1.f, 0.3f, 10.f), core::vector3df(0.f, 0.f, 0.f));
+    application.AddCamera(core::vector3df(1.f, 0.3f, 10.f), core::vector3df(0.f, 0.f, 0.f));
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
@@ -292,6 +296,65 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     application.AddShadowAll();
+
+ // ***TEST***
+
+/// Given the position of a point in local frame coords, and
+	/// assuming it is sticky to frame, return the acceleration in parent coords.
+	/// par_frame is the referenced frame expressed in inertia coordinate, 
+	/// local_pos is the local position of point P expressed in the par_frame,
+	/// par_acc is the translational acceleration of point P but expressed in inertia coordiante.
+	auto PointAccelerationLocalToParent = [&](const chrono::ChFrameMoving<double>& par_frame,
+		const chrono::ChVector<double>& local_pos, chrono::ChVector<double>& par_acc) {
+			chrono::ChVector<double> par_pos = par_frame.TransformDirectionLocalToParent(local_pos);
+			chrono::ChVector<double> alpha = par_frame.GetWacc_par();
+			chrono::ChVector<double> omega = par_frame.GetWvel_par();
+			par_acc = par_frame.GetPos_dtdt() +
+				chrono::Vcross(par_frame.GetWacc_par(), par_pos) +
+				chrono::Vcross(omega, chrono::Vcross(omega, par_pos));
+	};
+
+	// define a rotatiing frame, with rotational angular velocity 2.3rad/s about X axis
+	chrono::ChFrameMoving<double> rot_frame;
+	chrono::ChVector<double> omega = chrono::ChVector<double>(2.3, 0, 0);
+	rot_frame.SetWvel_loc(omega);
+    rot_frame.SetWacc_loc(VNULL);
+    GetLog() << "Frame w_loc =" << rot_frame.GetWvel_loc() <<  "   w_abs =" << rot_frame.GetWvel_par() << "\n";
+
+	// solve the velocites and accelerations of point P due to the rotation of rot_frame
+	auto TestCase = [&](const chrono::ChFrameMoving<double> m_rot_frame, const  chrono::ChVector<double>& m_dpos_rel) {
+	    // elvauated by chrono method
+	    chrono::ChVector<double>vel_par = rot_frame.PointSpeedLocalToParent(m_dpos_rel);
+	    chrono::ChVector<double> acc_par = m_rot_frame.PointAccelerationLocalToParent(m_dpos_rel,VNULL,VNULL);
+	    
+	    // evaluated by new method
+	    chrono::ChVector<double> acc_par_ref;  // accelerations calculated by new developed method
+	    PointAccelerationLocalToParent(m_rot_frame, m_dpos_rel, acc_par_ref);
+
+	    std::cout << "rot_frame.GetCoord():\t"<< m_rot_frame.GetCoord() << std::endl;
+	    std::cout << "rot_frame.GetCoord_dt():\t" << m_rot_frame.GetPos_dt()<<"\t"<< m_rot_frame.GetWvel_loc() << std::endl;
+	    std::cout << "rot_frame.GetCoord_dtdt():\t" << m_rot_frame.GetPos_dtdt() << "\t" << m_rot_frame.GetWacc_loc() << std::endl;
+	    std::cout << "vel_par:\t" << vel_par << std::endl;
+	    std::cout << "acc_par from chrono method:\t" << acc_par << std::endl;
+	    std::cout << "acc_par_ref from new method:\t" << acc_par_ref << std::endl;
+        std::cout << "acc_par_ref from r*w^2:\t" << -7.0*omega.x()*omega.x() << std::endl;
+	    std::cout << "\n" << std::endl;
+	};
+
+	chrono::ChVector<double> dpos_rel1 = chrono::ChVector<double>(-7, 0, 0);
+	std::cout << "***Test case 1: a rotating point P along X axis, so its velocity and acceleration should be zero.\n"
+		<<"But the acceleration from chrono method is NOT zero!"<< std::endl;
+	TestCase(rot_frame, dpos_rel1);
+
+	chrono::ChVector<double> dpos_rel2 = chrono::ChVector<double>(0, -7, 0);
+	std::cout << "Test case 2: a rotating point P along Y axis, so its velocity and accelerations have some values.\n"
+		<<"But the acceleration from chrono methos is A HALF of new method."<< std::endl;
+	TestCase(rot_frame, dpos_rel2);
+
+	system("pause");
+
+
+
 
 
     //

@@ -47,10 +47,10 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Gears and pulleys", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(12, 15, -20));
+    application.AddCamera(core::vector3df(12, 15, -20));
 
     // Contact material shared among all bodies
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();

@@ -13,7 +13,7 @@
 // =============================================================================
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#include "chrono/parallel/ChOpenMP.h"
+#include "chrono/utils/ChOpenMP.h"
 
 namespace chrono {
 

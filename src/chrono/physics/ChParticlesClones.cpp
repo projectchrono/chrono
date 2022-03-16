@@ -381,15 +381,33 @@ void ChParticlesClones::IntStateIncrement(const unsigned int off_x,  // offset i
         x_new(off_x + 7 * j + 1) = x(off_x + 7 * j + 1) + Dv(off_v + 6 * j + 1);
         x_new(off_x + 7 * j + 2) = x(off_x + 7 * j + 2) + Dv(off_v + 6 * j + 2);
 
-        // ADVANCE ROTATION: rot' = delta*rot  (use quaternion for delta rotation)
-        ChQuaternion<> mdeltarot;
-        ChQuaternion<> moldrot(x.segment(off_x + 7 * j + 3, 4));
-        ChVector<> newwel_abs = particles[j]->Amatrix * ChVector<>(Dv.segment(off_v + 6 * j + 3, 3));
-        double mangle = newwel_abs.Length();
-        newwel_abs.Normalize();
-        mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
-        ChQuaternion<> mnewrot = mdeltarot * moldrot;  // quaternion product
-        x_new.segment(off_x + 7 * j + 3, 4) = mnewrot.eigen();
+        // ADVANCE ROTATION: R_new = DR_a * R_old
+        // (using quaternions, local or abs:  q_new = Dq_a * q_old =  q_old * Dq_l  )
+        ChQuaternion<> q_old(x.segment(off_x + 7 * j + 3, 4));
+        ChQuaternion<> rel_q; rel_q.Q_from_Rotv(Dv.segment(off_v + 6 * j + 3, 3));
+        ChQuaternion<> q_new = q_old * rel_q;
+        x_new.segment(off_x + 7 * j + 3, 4) = q_new.eigen();
+    }
+}
+
+void ChParticlesClones::IntStateGetIncrement(const unsigned int off_x,  // offset in x state vector
+                                          const ChState& x_new,            // state vector, position part, incremented result
+                                          const ChState& x,          // state vector, initial position part
+                                          const unsigned int off_v,  // offset in v state vector
+                                          ChStateDelta& Dv     // state vector, increment
+                                          ) {
+    for (unsigned int j = 0; j < particles.size(); j++) {
+        // POSITION:
+        Dv(off_v + 6 * j) = x_new(off_x + 7 * j) - x(off_x + 7 * j);
+        Dv(off_v + 6 * j + 1) = x_new(off_x + 7 * j + 1) - x(off_x + 7 * j + 1);
+        Dv(off_v + 6 * j + 2) = x_new(off_x + 7 * j + 2) - x(off_x + 7 * j + 2);
+
+        // ROTATION (quaternions): Dq_loc = q_old^-1 * q_new,
+        //  because   q_new = Dq_abs * q_old   = q_old * Dq_loc
+        ChQuaternion<> q_old(x.segment(off_x + 7 * j + 3, 4));
+        ChQuaternion<> q_new(x_new.segment(off_x + 7 * j + 3, 4));
+        ChQuaternion<> rel_q = q_old.GetConjugate() % q_new;
+        Dv.segment(off_v + 6 *j + 3, 3) = rel_q.Q_to_Rotv().eigen();
     }
 }
 

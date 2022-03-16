@@ -219,9 +219,9 @@ sys.RegisterCustomCollisionCallback(my_collision)
 
 myapplication = chronoirr.ChIrrApp(sys, 'PyChrono example: Custom contact', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddTypicalCamera(chronoirr.vector3df(8, 8, -6))
+myapplication.AddSkyBox()
+myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+myapplication.AddCamera(chronoirr.vector3df(8, 8, -6))
 myapplication.AddTypicalLights()
 
 # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items

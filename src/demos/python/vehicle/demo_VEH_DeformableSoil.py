@@ -157,9 +157,9 @@ terrain.SetPlotType(veh.SCMDeformableTerrain.PLOT_PRESSURE, 0, 30000.2)
 # ------------------------------------------
 
 myapplication = chronoirr.ChIrrApp(mysystem, 'Deformable soil', chronoirr.dimension2du(1280,720))
-myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddTypicalCamera(chronoirr.vector3df(2.0,1.4,0.0), chronoirr.vector3df(0,tire_rad,0))
+myapplication.AddSkyBox()
+myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+myapplication.AddCamera(chronoirr.vector3df(2.0,1.4,0.0), chronoirr.vector3df(0,tire_rad,0))
 myapplication.AddTypicalLights()
 myapplication.AddLightWithShadow(chronoirr.vector3df(1.5,5.5,-2.5),    # point
                                  chronoirr.vector3df(0,0,0),           # aim point

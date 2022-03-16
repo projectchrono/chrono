@@ -43,10 +43,10 @@ my_system = chrono.ChSystemSMC()
 # Create the Irrlicht visualization
 
 application = chronoirr.ChIrrApp(my_system, "Loads on beams", chronoirr.dimension2du(800, 600))
-application.AddTypicalLogo()
-application.AddTypicalSky()
+application.AddLogo()
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(chronoirr.vector3df(0.5, 0.0, -3.0), chronoirr.vector3df(0.5, 0.0, 0.0))
+application.AddCamera(chronoirr.vector3df(0.5, 0.0, -3.0), chronoirr.vector3df(0.5, 0.0, 0.0))
 
 # Create a mesh
 mesh = fea.ChMesh()

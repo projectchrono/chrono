@@ -14,10 +14,9 @@
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/assets/ChColor.h"
-#include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono/utils/ChProfiler.h"
-#include "chrono/collision/bullet/LinearMath/btIDebugDraw.h"
-#include "chrono/collision/ChCollisionSystemBullet.h"
+
+#include "chrono_irrlicht/ChIrrTools.h"
 
 namespace chrono {
 namespace irrlicht {
@@ -787,67 +786,6 @@ void drawColorbar(double vmin,
     }
     font->draw(irr::core::stringw(label.c_str()).c_str(), core::rect<s32>(mx, my + sy + 5, mx + 100, my + sy + 20),
                irr::video::SColor(255, 0, 0, 0));
-}
-
-// utility class used for drawing coll shapes using the Bullet machinery (see drawCollisionShapes)
-class ChDebugDrawer : public btIDebugDraw {
-  public:
-    explicit ChDebugDrawer(irr::video::IVideoDriver* driver)
-        : driver_(driver), debugMode_(0), linecolor(255, 255, 0, 0) {}
-
-    ~ChDebugDrawer() override {}
-
-    void drawLine(const btVector3& from, const btVector3& to, const btVector3& color) override {
-        // Note: I did not use the color here as the visuals with the white box were not very
-        // appealing. But one could simply do a SCColor(255, color.x() * 255, color.y() * 255, color.z() * 255)
-        // to get native bullet colors. Useful as this override also results in drawing the x,y,z axis for
-        // the reference frames for the collision models.
-        driver_->draw3DLine(irr::core::vector3dfCH(ChVector<>(from.x(), from.y(), from.z())),
-                            irr::core::vector3dfCH(ChVector<>(to.x(), to.y(), to.z())), linecolor);
-    }
-
-    void drawContactPoint(const btVector3& PointOnB,
-                          const btVector3& normalOnB,
-                          btScalar distance,
-                          int lifeTime,
-                          const btVector3& color) override {}
-
-    void reportErrorWarning(const char* warningString) override {}
-    void draw3dText(const btVector3& location, const char* textString) override {}
-
-    void setDebugMode(int debugMode) override { debugMode_ |= debugMode; }
-
-    int getDebugMode() const override { return debugMode_; }
-
-    void setLineColor(irr::video::SColor& mcolor) { linecolor = mcolor; }
-
-  private:
-    irr::video::IVideoDriver* driver_;
-    int debugMode_;
-    irr::video::SColor linecolor;
-};
-
-// Draw the collision shapes as wireframe, overlayed to shapes.
-// Note: this works only for the Bullet collision system (i.e. not working for Chrono::Multicore)
-void drawCollisionShapes(ChSystem& asystem, irr::IrrlichtDevice* mdevice, irr::video::SColor mcol) {
-    const auto& chCollisionSystem =
-        std::dynamic_pointer_cast<chrono::collision::ChCollisionSystemBullet>(asystem.GetCollisionSystem());
-    if (!chCollisionSystem)
-        return;
-
-    auto bulletCollisionWorld = chCollisionSystem->GetBulletCollisionWorld();
-    ChDebugDrawer debugDrawer(mdevice->getVideoDriver());
-    debugDrawer.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
-    debugDrawer.setLineColor(mcol);
-    bulletCollisionWorld->setDebugDrawer(&debugDrawer);
-
-    mdevice->getVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
-    irr::video::SMaterial mattransp;
-    mattransp.ZBuffer = true;
-    mattransp.Lighting = false;
-    mdevice->getVideoDriver()->setMaterial(mattransp);
-
-    bulletCollisionWorld->debugDrawWorld();
 }
 
 // -----------------------------------------------------------------------------

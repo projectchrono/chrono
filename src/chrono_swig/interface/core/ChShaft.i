@@ -37,6 +37,7 @@
 #include "chrono/physics/ChShaftsThermalEngine.h"
 #include "chrono/physics/ChShaftsTorsionSpring.h"
 #include "chrono/physics/ChShaftsLoads.h"
+#include "chrono/physics/ChShaftsFreewheel.h"
 %}
  
 // Tell SWIG about parent classes
@@ -62,6 +63,7 @@
 %shared_ptr(chrono::ChShaftsLoad)
 %shared_ptr(chrono::ChShaftsTorsionSpringDamper)
 %shared_ptr(chrono::ChShaftsElasticGear)
+%shared_ptr(chrono::ChShaftsFreewheel)
 
 // Parse the header file to generate wrappers
 //%include "../../../chrono/solver/ChVariables.h"
@@ -76,7 +78,8 @@
 %include "../../../chrono/physics/ChShaftsClutch.h"  
 %include "../../../chrono/physics/ChShaftsThermalEngine.h"  
 %include "../../../chrono/physics/ChShaftsTorsionSpring.h"  
-%include "../../../chrono/physics/ChShaftsLoads.h"  
+%include "../../../chrono/physics/ChShaftsLoads.h" 
+%include "../../../chrono/physics/ChShaftsFreewheel.h" 
 
 
 

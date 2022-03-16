@@ -42,7 +42,36 @@ const std::string out_dir = GetChronoOutputPath() + "BEAM_BUCKLING";
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-
+/*
+//***TEST***
+    ChVector<> mFi, mTi;
+    ChVector<> mWvel = (1, 2, 3);
+    ChVector<> mWacc =  (0.3, -0.2, 0.4);
+    ChVector<> mXacc =  (0.5, 0.6, -0.9); // ok
+    ChMatrixNM<double,6,6> mMi, mKi, mRi;
+    ChMatrixNM<double,6,6> mKi_num, mRi_num;
+    auto minertia1 = chrono_types::make_shared<ChInertiaCosseratAdvanced>(270.0, 0.1, 0.2, 5, 8, 0.5);
+    minertia1->ComputeQuadraticTerms(mFi, mTi, mWvel);
+    GetLog() << "ComputeQuadraticTerms: \n";
+    GetLog() << " Fi_v= " << mFi;
+    GetLog() << " Ti_v = " << mTi;
+    minertia1->ComputeInertialForce(mFi, mTi, mWvel, mWacc, mXacc);
+    GetLog() << "ComputeInertialForce: \n";
+    GetLog() << " Fi = " << mFi;
+    GetLog() << " Ti = " << mTi;
+    minertia1->ComputeInertiaMatrix(mMi);
+    GetLog() << " Mi: \n" << mMi << "\n";
+    minertia1->ComputeInertiaDampingMatrix(mRi,mWvel);
+    GetLog() << " Ri: \n" << mRi << "\n";
+    minertia1->ComputeInertiaStiffnessMatrix(mKi,mWvel,mWacc,mXacc);
+    GetLog() << " Ki: \n" << mKi << "\n";
+    minertia1->compute_Ri_Ki_by_num_diff = true;
+    minertia1->ComputeInertiaDampingMatrix(mRi_num,mWvel);
+    GetLog() << " Ri_num: \n" << mRi_num << "\n";
+    minertia1->ComputeInertiaStiffnessMatrix(mKi_num,mWvel,mWacc,mXacc);
+    GetLog() << " Ki_num: \n" << mKi_num << "\n";
+ return 1;
+ */
     // Create a Chrono::Engine physical system
     ChSystemSMC my_system;
 
@@ -51,10 +80,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"Beams and constraints", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0.f, 0.6f, -1.f));
+    application.AddCamera(core::vector3df(0.f, 0.6f, -1.f));
 
     double L = 1;
     double H = 0.25;

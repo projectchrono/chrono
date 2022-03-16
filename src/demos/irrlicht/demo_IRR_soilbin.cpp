@@ -936,10 +936,12 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Soil bin demo", core::dimension2d<u32>(1024, 768));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
-    application.AddTypicalLights(core::vector3df(20., 30., 25.), core::vector3df(25., 25., -25.), 65.0, 75.);
-    application.AddTypicalCamera(core::vector3df(3.5f, 2.5f, -2.4f));
+    application.AddLogo();
+    application.AddSkyBox();
+    application.AddLight(irr::core::vector3df(20.f, 30.f, 25.f), 290, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    application.AddLight(irr::core::vector3df(25.f, 25.f, -25.f), 190, irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
+
+    application.AddCamera(core::vector3df(3.5f, 2.5f, -2.4f));
 
     // ******* SOIL BIN WHEEL
     // Create the wheel

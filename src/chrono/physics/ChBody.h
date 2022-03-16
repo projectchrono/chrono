@@ -263,8 +263,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Set the body mass.
     /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
     void SetMass(double newmass) {
-        if (newmass > 0.)
-            variables.SetBodyMass(newmass);
+         variables.SetBodyMass(newmass);
     }
 
     /// Get the body mass.
@@ -523,6 +522,11 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                    const ChState& x,
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) override;
+    virtual void IntStateGetIncrement(const unsigned int off_x,
+                                   const ChState& x_new,
+                                   const ChState& x,
+                                   const unsigned int off_v,
+                                   ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
@@ -683,7 +687,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return true; }
+    virtual bool IsSubBlockActive(int nblock) const override { return variables.IsActive(); }
 
     /// This is not needed because not used in quadrature.
     virtual double GetDensity() override { return density; }
@@ -720,6 +724,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     friend class ChSystemMulticore;
     friend class ChSystemMulticoreNSC;
     friend class ChAssembly;
+    friend class modal::ChModalAssembly;
     friend class ChConveyor;
 };
 

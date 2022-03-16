@@ -46,13 +46,13 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
 
   private:
     int density_initialization;
+    thrust::device_vector<Real3> sortedXSPHandShift;
 
     /// Function to find neighbor particles and calculate the interactions between SPH particles
     void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                   std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD,
                   std::shared_ptr<FsiMeshDataD> fsiMeshD) override;
-    thrust::device_vector<Real3> shift_r;
-
+    
     /// Function to calculate the XSPH velocity of the particles.
     /// XSPH velocity is a compromise between Eulerian and Lagrangian velocities, used
     /// to regularize the particles velocity and reduce noise.
@@ -61,18 +61,6 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
     /// A wrapper around collide function, where calculates the force on particles, and copies the
     /// sorted XSPH velocities to the original. The latter is needed later for position update.
     void CollideWrapper();
-
-    /// Function to calculate the force terms for SPH particles.
-    /// This function calculates the derivatives of the density and velocity in a WCSPH fashion.
-    void collide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
-                 thrust::device_vector<Real4>& sortedPosRad,
-                 thrust::device_vector<Real3>& sortedVelMas,
-                 thrust::device_vector<Real4>& sortedRhoPreMu,
-                 thrust::device_vector<Real3>& velMas_ModifiedBCE,
-                 thrust::device_vector<Real4>& rhoPreMu_ModifiedBCE,
-                 thrust::device_vector<uint>& gridMarkerIndex,
-                 thrust::device_vector<uint>& cellStart,
-                 thrust::device_vector<uint>& cellEnd);
 
     /// Function to add gravity force (acceleration) to other forces on SPH  particles.
     void AddGravityToFluid();
