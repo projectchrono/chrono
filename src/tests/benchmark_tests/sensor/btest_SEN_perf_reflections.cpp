@@ -63,19 +63,20 @@ int main(int argc, char* argv[]) {
     mirror_left->SetPos({0, -1, 0});
     mirror_left->SetBodyFixed(true);
     sys.Add(mirror_left);
-    std::dynamic_pointer_cast<ChVisualShape>(mirror_left->GetAssets()[0])->AddMaterial(reflective_color);
+    mirror_left->GetVisualModel()->GetShapes()[0].first->AddMaterial(reflective_color);
 
     auto mirror_right = chrono_types::make_shared<ChBodyEasyBox>(50, .1, 5, 1000, true, false);
     mirror_right->SetPos({0, 1, 0});
     mirror_right->SetBodyFixed(true);
     sys.Add(mirror_right);
-    std::dynamic_pointer_cast<ChVisualShape>(mirror_right->GetAssets()[0])->AddMaterial(reflective_color);
+    mirror_right->GetVisualModel()->GetShapes()[0].first->AddMaterial(reflective_color);
 
     auto ball = chrono_types::make_shared<ChBodyEasySphere>(.25, 1000, true, false);
     ball->SetPos({4, 0, 0});
     ball->SetBodyFixed(true);
     sys.Add(ball);
-    std::dynamic_pointer_cast<ChVisualShape>(ball->GetAssets()[0])->AddMaterial(red_color);
+    ball->GetVisualModel()->GetShapes()[0].first->AddMaterial(red_color);
+
 
     auto cam_body = chrono_types::make_shared<ChBodyEasyBox>(.01, .01, .01, 1000, false, false);
     cam_body->SetBodyFixed(true);

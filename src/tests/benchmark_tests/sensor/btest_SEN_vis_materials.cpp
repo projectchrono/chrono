@@ -59,17 +59,16 @@ int main(int argc, char* argv[]) {
             auto sphere1 = chrono_types::make_shared<ChBodyEasySphere>(.4, 1000, true, false);
             sphere1->SetPos({0, i - (x_dim / 2.), j - (y_dim / 2.)});
             sphere1->SetBodyFixed(true);
-            auto sphere_asset1 = sphere1->GetAssets()[0];
-            if (std::shared_ptr<ChVisualShape> visual_asset =
-                    std::dynamic_pointer_cast<ChVisualShape>(sphere_asset1)) {
-                auto color = chrono_types::make_shared<ChVisualMaterial>();
-                color->SetDiffuseColor({.8f, 0.f, 0.f});
-                color->SetSpecularColor({(float)i / x_dim, (float)i / x_dim, (float)i / x_dim});
-                color->SetMetallic((float)i / x_dim);
-                color->SetRoughness(1 - (float)j / y_dim);
-                color->SetUseSpecularWorkflow(false);
-                visual_asset->AddMaterial(color);
-            }
+            
+            auto color = chrono_types::make_shared<ChVisualMaterial>();
+            color->SetDiffuseColor({.8f, 0.f, 0.f});
+            color->SetSpecularColor({(float)i / x_dim, (float)i / x_dim, (float)i / x_dim});
+            color->SetMetallic((float)i / x_dim);
+            color->SetRoughness(1 - (float)j / y_dim);
+            color->SetUseSpecularWorkflow(false);
+
+            sphere1->GetVisualModel()->GetShapes()[0].first->AddMaterial(color);
+
             sys.Add(sphere1);
         }
     }

@@ -126,57 +126,33 @@ int main(int argc, char* argv[]) {
     //    floor->SetWvel_par(ChVector<>(-0.2,-0.4,-0.3));
     //    floor->SetPos_dt(ChVector<>(0.1, 0, 0));
     sys.Add(floor);
-    {
-        auto asset = floor->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-            visual_asset->AddMaterial(green);
-        }
-    }
+    floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+
+
 
 //    auto wall = chrono_types::make_shared<ChBodyEasyBox>(1,30,30, 1000, true, false);
 //    wall->SetPos({15,0,4});
 //    wall->SetBodyFixed(true);
 //    sys.Add(wall);
-//    {
-//        auto asset = wall->GetAssets()[0];
-//        if(auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)){
-//            visual_asset->AddMaterial(red);
-//        }
-//    }
+//    wall->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
     box->SetPos({4,3,2});
     box->SetBodyFixed(true);
     sys.Add(box);
-    {
-        auto asset = box->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)){
-            visual_asset->AddMaterial(green);
-        }
-    }
+    box->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
     auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
     box1->SetPos({4,-3,2});
     box1->SetBodyFixed(true);
     sys.Add(box1);
-    {
-        auto asset = box->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)){
-            visual_asset->AddMaterial(green);
-        }
-    }
+    box1->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
     auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
     box2->SetPos({4,0,2});
     box2->SetBodyFixed(true);
     sys.Add(box2);
-    {
-        auto asset = box->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)){
-            visual_asset->AddMaterial(green);
-        }
-    }
-
+    box2->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
 
     // -----------------------

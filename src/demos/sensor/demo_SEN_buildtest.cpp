@@ -101,16 +101,13 @@ int main(int argc, char* argv[]) {
     top_mirror->SetPos({0, -1, 1.5});
     top_mirror->SetBodyFixed(true);
     sys.Add(top_mirror);
-    auto top_m_asset = top_mirror->GetAssets()[0];
-    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(top_m_asset)) {
+    {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-        // vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
         vis_mat->SetDiffuseColor({1, 1, 1});
-        // vis_mat->SetAmbientColor(.2 * vis_mat->GetDiffuseColor());
         vis_mat->SetSpecularColor({1.f, 1.f, 1.f});
         vis_mat->SetRoughness(0);
         vis_mat->SetMetallic(.9);
-        visual_asset->AddMaterial(vis_mat);
+        top_mirror->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
     }
 
     auto bottom_mirror = chrono_types::make_shared<ChBodyEasyBox>(10, 10, .1,       // x,y,z size
@@ -120,17 +117,16 @@ int main(int argc, char* argv[]) {
     bottom_mirror->SetPos({0, -1, 0.5});
     bottom_mirror->SetBodyFixed(true);
     sys.Add(bottom_mirror);
-    auto bottom_m_asset = bottom_mirror->GetAssets()[0];
-    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(bottom_m_asset)) {
+    {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-        // vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
         vis_mat->SetDiffuseColor({1, 1, 1});
-        // vis_mat->SetAmbientColor(.2 * vis_mat->GetDiffuseColor());
         vis_mat->SetSpecularColor({1.f, 1.f, 1.f});
         vis_mat->SetRoughness(0);
         vis_mat->SetMetallic(.9);
-        visual_asset->AddMaterial(vis_mat);
+        bottom_mirror->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
     }
+
+
     // add a mesh
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/bulldozer/shoe_collision.obj"), false, true);
@@ -153,21 +149,6 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChBody> imu_parent;
     std::shared_ptr<ChBody> gps_parent;
 
-    // float size = 3;
-    // auto origin = chrono_types::make_shared<ChBodyEasyBox>(size, size, size, 1000, true, false);
-    // origin->SetPos({0, 0, 1});
-    // origin->SetBodyFixed(true);
-    //
-    // sys.Add(origin);
-    // auto origin_asset = origin->GetAssets()[0];
-    // if (std::shared_ptr<ChVisualShape> v_asset = std::dynamic_pointer_cast<ChVisualShape>(origin_asset)) {
-    //     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-    //     vis_mat->SetDiffuseColor({1, 0, 0});
-    //     vis_mat->SetSpecularColor({.5f, .5f, .5f});
-    //
-    //     v_asset->AddMaterial(vis_mat);
-    // }
-
     // walls to contain falling objects
     auto wall1 = chrono_types::make_shared<ChBodyEasyBox>(40.0, .1, 10.0, 1000, true, true, phys_mat);
     wall1->SetPos({0, -20, 4});
@@ -189,18 +170,6 @@ int main(int argc, char* argv[]) {
     wall4->SetBodyFixed(true);
     sys.Add(wall4);
 
-    // add box, sphere, mesh with textures
-    // auto gator_mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/gator/gator_chassis.obj"), false, true);
-    // auto gator_meshshape = chrono_types::make_shared<ChTriangleMeshShape>();
-    // gator_meshshape->SetMesh(gator_mesh);
-    // gator_meshshape->SetName("gator");
-    // gator_meshshape->SetMutable(false);
-    // auto gator_mesh_body = chrono_types::make_shared<ChBody>();
-    // gator_mesh_body->SetPos({1, 2, 2});
-    // gator_mesh_body->AddAsset(gator_meshshape);
-    // gator_mesh_body->SetBodyFixed(true);
-    // sys.Add(gator_mesh_body);
-
     auto texbox = chrono_types::make_shared<ChBodyEasyBox>(1, 1,
                                                            1,                 // x,y,z size
                                                            1000,              // density
@@ -209,14 +178,12 @@ int main(int argc, char* argv[]) {
     texbox->SetPos({1, 0, 3});
     texbox->SetBodyFixed(true);
     sys.Add(texbox);
-
-    auto texbox_asset = texbox->GetAssets()[0];
-    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(texbox_asset)) {
+    {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
         vis_mat->SetNormalMapTexture(GetChronoDataFile("sensor/textures/FaceNormal.jpg"));
-        visual_asset->AddMaterial(vis_mat);
+        texbox->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
     }
 
     auto texsphere = chrono_types::make_shared<ChBodyEasySphere>(.6,                // size
@@ -226,14 +193,12 @@ int main(int argc, char* argv[]) {
     texsphere->SetPos({1, -2, 3});
     texsphere->SetBodyFixed(true);
     sys.Add(texsphere);
-
-    auto texsphere_asset = texsphere->GetAssets()[0];
-    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(texsphere_asset)) {
+    {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
         vis_mat->SetNormalMapTexture(GetChronoDataFile("sensor/textures/FaceNormal.jpg"));
-        visual_asset->AddMaterial(vis_mat);
+        texsphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
     }
 
     auto texcyl = chrono_types::make_shared<ChBodyEasyCylinder>(.5, 1,             // size
@@ -243,14 +208,12 @@ int main(int argc, char* argv[]) {
     texcyl->SetPos({1, -4, 3});
     texcyl->SetBodyFixed(true);
     sys.Add(texcyl);
-
-    auto texcyl_asset = texcyl->GetAssets()[0];
-    if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(texcyl_asset)) {
+    {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
         vis_mat->SetNormalMapTexture(GetChronoDataFile("sensor/textures/FaceNormal.jpg"));
-        visual_asset->AddMaterial(vis_mat);
+        texcyl->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
     }
 
     for (int i = 0; i < num_bodies; i++) {
@@ -264,16 +227,11 @@ int main(int argc, char* argv[]) {
         box->SetPos({(float)ChRandom(), (float)ChRandom(), 2.0 + i});
         box->SetRot(Q_from_Euler123({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()}));
         sys.Add(box);
-
-        auto box_asset = box->GetAssets()[0];
-        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(box_asset)) {
+        {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-            // vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
             vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
-            // vis_mat->SetAmbientColor(.2 * vis_mat->GetDiffuseColor());
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
-
-            visual_asset->AddMaterial(vis_mat);
+            box->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
         }
 
         if (!imu_parent) {
@@ -288,16 +246,11 @@ int main(int argc, char* argv[]) {
         cyl->SetPos({(float)ChRandom(), (float)ChRandom(), 2.0 + i});
         cyl->SetRot(Q_from_Euler123({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()}));
         sys.Add(cyl);
-
-        auto cyl_asset = cyl->GetAssets()[0];
-        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(cyl_asset)) {
+        {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-            // vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
             vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
-            // vis_mat->SetAmbientColor(.2 * vis_mat->GetDiffuseColor());
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
-
-            visual_asset->AddMaterial(vis_mat);
+            cyl->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
         }
 
         auto sphere = chrono_types::make_shared<ChBodyEasySphere>((float)ChRandom() / 2.0 + 0.1,  // radius
@@ -311,25 +264,13 @@ int main(int argc, char* argv[]) {
         if (!gps_parent) {
             gps_parent = sphere;
         }
-
-        auto sphere_asset = sphere->GetAssets()[0];
-        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(sphere_asset)) {
+        {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
             vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
             vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
-
-            visual_asset->AddMaterial(vis_mat);
+            sphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
         }
-
-        // auto mesh_body = chrono_types::make_shared<ChBody>();
-        // mesh_body->SetPos({0, 0, 0});
-        // mesh_body->AddAsset(trimesh_shape);
-        // mesh_body->SetBodyFixed(true);
-        // mesh_body->GetCollisionModel()->ClearModel();
-        // mesh_body->GetCollisionModel()->AddTriangleMesh(phys_mat, mmesh, true, false);
-        // mesh_body->GetCollisionModel()->BuildModel();
-        // sys.Add(mesh_body);
 
         auto mesh_body = chrono_types::make_shared<ChBodyAuxRef>();
         mesh_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
@@ -343,7 +284,7 @@ int main(int argc, char* argv[]) {
         mesh_body->GetCollisionModel()->BuildModel();
         mesh_body->SetCollide(true);
 
-        mesh_body->AddAsset(trimesh_shape);
+        mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
     }
 
     std::cout << "sensor manager being made\n";

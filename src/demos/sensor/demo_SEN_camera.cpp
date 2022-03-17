@@ -26,6 +26,8 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "chrono/assets/ChObjShapeFile.h"
+
 #include "chrono_sensor/sensors/ChSegmentationCamera.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
@@ -111,12 +113,12 @@ int main(int argc, char* argv[]) {
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(mmesh);
-    trimesh_shape->SetName("HMMWV Chassis Mesh");
+    trimesh_shape->SetName("Audi Chassis Mesh");
     trimesh_shape->SetMutable(false);
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({-6, 0, 0});
-    mesh_body->AddAsset(trimesh_shape);
+    mesh_body->AddVisualShape(trimesh_shape, ChFrame<>(ChVector<>(0, 0, 0)));
     mesh_body->SetBodyFixed(true);
     sys.Add(mesh_body);
 
@@ -133,9 +135,12 @@ int main(int argc, char* argv[]) {
     floor->SetBodyFixed(true);
     sys.Add(floor);
     {
-        auto asset = floor->GetAssets()[0];
-        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-            visual_asset->AddMaterial(vis_mat3);
+        auto shape = floor->GetVisualModel()->GetShapes()[0].first;
+        if(shape->GetNumMaterials() == 0){
+            shape->AddMaterial(vis_mat3);
+        }
+        else{
+            shape->GetMaterials()[0] = vis_mat3;
         }
     }
 
@@ -153,9 +158,12 @@ int main(int argc, char* argv[]) {
     box_body->SetBodyFixed(true);
     sys.Add(box_body);
     {
-        auto asset = box_body->GetAssets()[0];
-        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-            visual_asset->AddMaterial(vis_mat);
+        auto shape = box_body->GetVisualModel()->GetShapes()[0].first;
+        if(shape->GetNumMaterials() == 0){
+            shape->AddMaterial(vis_mat);
+        }
+        else{
+            shape->GetMaterials()[0] = vis_mat;
         }
     }
 
@@ -173,9 +181,12 @@ int main(int argc, char* argv[]) {
     sphere_body->SetBodyFixed(true);
     sys.Add(sphere_body);
     {
-        auto asset = sphere_body->GetAssets()[0];
-        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-            visual_asset->AddMaterial(vis_mat2);
+        auto shape = sphere_body->GetVisualModel()->GetShapes()[0].first;
+        if(shape->GetNumMaterials() == 0){
+            shape->AddMaterial(vis_mat2);
+        }
+        else{
+            shape->GetMaterials()[0] = vis_mat2;
         }
     }
 
@@ -193,9 +204,12 @@ int main(int argc, char* argv[]) {
     cyl_body->SetBodyFixed(true);
     sys.Add(cyl_body);
     {
-        auto asset = cyl_body->GetAssets()[0];
-        if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-            visual_asset->AddMaterial(vis_mat4);
+        auto shape = cyl_body->GetVisualModel()->GetShapes()[0].first;
+        if(shape->GetNumMaterials() == 0){
+            shape->AddMaterial(vis_mat4);
+        }
+        else{
+            shape->GetMaterials()[0] = vis_mat4;
         }
     }
 
@@ -338,7 +352,7 @@ int main(int argc, char* argv[]) {
     seg->PushFilter(chrono_types::make_shared<ChFilterSemanticAccess>());
 
     // Add the second camera to the sensor manager
-    manager->AddSensor(seg);
+    // manager->AddSensor(seg);
 
     manager->Update();
 

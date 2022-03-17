@@ -219,12 +219,6 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize();
 
-    auto ground_body = patch->GetGroundBody();
-    auto visual_asset = std::dynamic_pointer_cast<ChVisualShape>(ground_body->GetAssets()[0]);
-    auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-    vis_mat->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
-    visual_asset->material_list.push_back(vis_mat);
-
     // Create the vehicle Irrlicht interface
     ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"HMMWV Demo");
     app.AddTypicalLights();
@@ -243,12 +237,11 @@ int main(int argc, char* argv[]) {
 
         // Add visual asset to be sensed by camera
         // Will be a solid blue color
-        auto box_asset = std::dynamic_pointer_cast<ChVisualShape>(box->GetAssets()[0]);
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         vis_mat->SetAmbientColor({0, 0, 0});
         vis_mat->SetDiffuseColor({.2, .2, .9});
         vis_mat->SetSpecularColor({.9, .9, .9});
-        box_asset->material_list.push_back(vis_mat);
+        box->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
 
         my_hmmwv.GetSystem()->Add(box);
     }

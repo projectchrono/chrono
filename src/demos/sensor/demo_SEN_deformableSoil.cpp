@@ -197,15 +197,12 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("lugged_wheel");
     trimesh_shape->SetMutable(false);
-    wheel_body->AddAsset(trimesh_shape);
+    wheel_body->AddVisualShape(trimesh_shape,ChFrame<>());
 
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetDiffuseColor({.3, .3, .3});
     vis_mat->SetSpecularColor({.1f, .1f, .1f});
     trimesh_shape->AddMaterial(vis_mat);
-
-    auto mcolor = chrono_types::make_shared<ChColorAsset>(0.3f, 0.3f, 0.3f);
-    wheel_body->AddAsset(mcolor);
 }
 
 // =============================================================================

@@ -211,7 +211,7 @@ TEST(SensorInterface, mesh_channels) {
 
     auto tri_body = chrono_types::make_shared<ChBodyAuxRef>();
     tri_body->SetFrame_REF_to_abs(ChFrame<>());
-    tri_body->AddAsset(triangle_shape);
+    tri_body->AddVisualShape(triangle_shape,ChFrame<>());
     tri_body->SetBodyFixed(true);
     sys.Add(tri_body);
 

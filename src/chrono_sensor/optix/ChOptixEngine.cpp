@@ -438,9 +438,9 @@ void ChOptixEngine::SceneProcess(RenderThread& tself) {
 
 void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
                                      std::shared_ptr<ChBoxShape> box_shape,
-                                     std::shared_ptr<ChVisualShape> visual_asset) {
+                                     ChFrame<> asset_frame) {
     ChVector<double> size = box_shape->GetBoxGeometry().GetLengths();
-    ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos, visual_asset->Rot);
+    // ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos, visual_asset->Rot);
 
     unsigned int mat_id;
     if (box_shape->GetNumMaterials() == 0) {
@@ -454,11 +454,14 @@ void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
 
 void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
                                         std::shared_ptr<ChSphereShape> sphere_shape,
-                                        std::shared_ptr<ChVisualShape> visual_asset) {
+                                        ChFrame<> asset_frame) {
     ChVector<double> size = {sphere_shape->GetSphereGeometry().rad, sphere_shape->GetSphereGeometry().rad,
                              sphere_shape->GetSphereGeometry().rad};
-    ChFrame<double> asset_frame =
-        ChFrame<double>(visual_asset->Pos + sphere_shape->GetSphereGeometry().center, visual_asset->Rot);
+    // ChFrame<double> asset_frame =
+    //     ChFrame<double>(visual_asset->Pos + sphere_shape->GetSphereGeometry().center, visual_asset->Rot);
+
+    ChFrame<double> sphere_frame =
+        asset_frame * ChFrame<double>(sphere_shape->GetSphereGeometry().center, {1, 0, 0, 0});
 
     unsigned int mat_id;
     if (sphere_shape->GetNumMaterials() == 0) {
@@ -466,19 +469,21 @@ void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
     } else {
         mat_id = m_pipeline->GetSphereMaterial(sphere_shape->GetMaterial(0));
     }
-    m_geometry->AddSphere(body, asset_frame, size, mat_id);
+    m_geometry->AddSphere(body, sphere_frame, size, mat_id);
     m_pipeline->AddBody(body);
 }
 
 void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
                                           std::shared_ptr<ChCylinderShape> cyl_shape,
-                                          std::shared_ptr<ChVisualShape> visual_asset) {
+                                          ChFrame<> asset_frame) {
     double radius = cyl_shape->GetCylinderGeometry().rad;
     double height = (cyl_shape->GetCylinderGeometry().p1 - cyl_shape->GetCylinderGeometry().p2).Length();
     ChVector<double> center = (cyl_shape->GetCylinderGeometry().p1 + cyl_shape->GetCylinderGeometry().p2) / 2;
 
     ChVector<double> size = {radius, height, radius};
-    ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos + center, visual_asset->Rot);
+    // ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos + center, visual_asset->Rot);
+
+    ChFrame<double> cyl_frame = asset_frame * ChFrame<double>(center);
 
     unsigned int mat_id;
     if (cyl_shape->GetNumMaterials() == 0) {
@@ -486,30 +491,23 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
     } else {
         mat_id = m_pipeline->GetCylinderMaterial(cyl_shape->GetMaterial(0));
     }
-    m_geometry->AddCylinder(body, asset_frame, size, mat_id);
+    m_geometry->AddCylinder(body, cyl_frame, size, mat_id);
     m_pipeline->AddBody(body);
 }
 
 void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
                                            std::shared_ptr<ChTriangleMeshShape> mesh_shape,
-                                           std::shared_ptr<ChVisualShape> visual_asset) {
+                                           ChFrame<> asset_frame) {
     if (mesh_shape->IsWireframe()) {
         std::cerr << "WARNING: Chrono::Sensor does not support wireframe meshes. Defaulting back to solid mesh, please "
                      "check for visual issues.\n";
     }
     ChVector<double> size = mesh_shape->GetScale();
-    ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos, visual_asset->Rot);
 
     unsigned int mat_id;
-
-    if (mesh_shape->GetNumMaterials() == 0) {
-        // Create a "proper" mesh if one doesn't already exist for it
-        CreateModernMeshAssets(mesh_shape);
-    }
-
     CUdeviceptr d_vertex_buffer;  // handle will go to m_geometry
     CUdeviceptr d_index_buffer;   // handle will go to m_geometry
-    // still possible there are no materials, but the pipeline will make a default if none exist
+
     mat_id = m_pipeline->GetRigidMeshMaterial(d_vertex_buffer, d_index_buffer, mesh_shape, mesh_shape->GetMaterials());
     m_geometry->AddRigidMesh(d_vertex_buffer, d_index_buffer, mesh_shape, body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
@@ -517,24 +515,16 @@ void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
 
 void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
                                                 std::shared_ptr<ChTriangleMeshShape> mesh_shape,
-                                                std::shared_ptr<ChVisualShape> visual_asset) {
+                                                ChFrame<> asset_frame) {
     if (mesh_shape->IsWireframe()) {
         std::cerr << "WARNING: Chrono::Sensor does not support wireframe meshes. Defaulting back to solid mesh, please "
                      "check for visual issues.\n";
     }
     ChVector<double> size = mesh_shape->GetScale();
-    ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos, visual_asset->Rot);
 
     unsigned int mat_id;
-
-    if (mesh_shape->GetNumMaterials() == 0) {
-        // Create a "proper" mesh if one doesn't already exist for it
-        CreateModernMeshAssets(mesh_shape);
-    }
-
     CUdeviceptr d_vertex_buffer;  // handle will go to m_geometry
     CUdeviceptr d_index_buffer;   // handle will go to m_geometry
-    // still possible there are no materials, but the pipeline will make a default if none exist
     mat_id =
         m_pipeline->GetDeformableMeshMaterial(d_vertex_buffer, d_index_buffer, mesh_shape, mesh_shape->GetMaterials());
     m_geometry->AddDeformableMesh(d_vertex_buffer, d_index_buffer, mesh_shape, body, asset_frame, size, mat_id);
@@ -557,102 +547,140 @@ void ChOptixEngine::ConstructScene() {
     // iterate through all bodies in Chrono and add a subnode for each body in Chrono
     for (auto body : m_system->Get_bodylist()) {
         // check that the body list is not empty
-        if (body->GetAssets().size() > 0) {
-            // iterate through all assets in the body
-            for (auto asset : body->GetAssets()) {
+        // if (body->GetAssets().size() > 0) {
+        // if (body->GetVisualModel()->GetShapes().size() > 0) {
+        // iterate through all assets in the body
+        // for (auto asset : body->GetAssets()) {
+        // for (auto asset : body->GetVisualModel()->GetShapes()) {
+        if (body->GetVisualModel()) {
+            for (auto& shape_instance : body->GetVisualModel()->GetShapes()) {
+                const auto& shape = shape_instance.first;
+                const auto& shape_frame = shape_instance.second;
                 // check if the asset is a ChVisualShape
 
-                if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-                    // collect relative position and orientation of the asset
-                    // ChVector<double> asset_pos = visual_asset->Pos;
-                    // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
+                // if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
 
-                    // const ChFrame<float> asset_frame = ChFrame<float>(asset_pos,asset_rot_mat);
+                // collect relative position and orientation of the asset
+                // ChVector<double> asset_pos = visual_asset->Pos;
+                // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
 
-                    if (!visual_asset->IsVisible()) {
-                        std::cout << "Ignoring an asset that is set to invisible\n";
-                    } else if (std::shared_ptr<ChBoxShape> box_shape = std::dynamic_pointer_cast<ChBoxShape>(asset)) {
-                        boxVisualization(body, box_shape, visual_asset);
+                // const ChFrame<float> asset_frame = ChFrame<float>(asset_pos,asset_rot_mat);
 
-                    } else if (std::shared_ptr<ChSphereShape> sphere_shape =
-                                   std::dynamic_pointer_cast<ChSphereShape>(asset)) {
-                        sphereVisualization(body, sphere_shape, visual_asset);
+                if (!shape->IsVisible()) {
+                    // std::cout << "Ignoring an asset that is set to invisible\n";
+                } else if (std::shared_ptr<ChBoxShape> box_shape = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+                    boxVisualization(body, box_shape, shape_frame);
 
-                    } else if (std::shared_ptr<ChCylinderShape> cylinder_shape =
-                                   std::dynamic_pointer_cast<ChCylinderShape>(asset)) {
-                        cylinderVisualization(body, cylinder_shape, visual_asset);
+                } else if (std::shared_ptr<ChSphereShape> sphere_shape =
+                               std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+                    sphereVisualization(body, sphere_shape, shape_frame);
 
-                    } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
-                                   std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
-                        if (!trimesh_shape->IsMutable()) {
-                            rigidMeshVisualization(body, trimesh_shape, visual_asset);
+                } else if (std::shared_ptr<ChCylinderShape> cylinder_shape =
+                               std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+                    cylinderVisualization(body, cylinder_shape, shape_frame);
 
-                            // added_asset_for_body = true;
-                        } else {
-                            deformableMeshVisualization(body, trimesh_shape, visual_asset);
-                        }
-
-                    } else if (std::shared_ptr<ChEllipsoidShape> ellipsoid_shape =
-                                   std::dynamic_pointer_cast<ChEllipsoidShape>(asset)) {
-                    } else if (std::shared_ptr<ChConeShape> cone_shape =
-                                   std::dynamic_pointer_cast<ChConeShape>(asset)) {
-                    } else if (std::shared_ptr<ChRoundedBoxShape> shape =
-                                   std::dynamic_pointer_cast<ChRoundedBoxShape>(asset)) {
-                    } else if (std::shared_ptr<ChCapsuleShape> capsule_shape =
-                                   std::dynamic_pointer_cast<ChCapsuleShape>(asset)) {
-                    } else if (std::shared_ptr<ChPathShape> path_shape =
-                                   std::dynamic_pointer_cast<ChPathShape>(asset)) {
-                    } else if (std::shared_ptr<ChLineShape> line_shape =
-                                   std::dynamic_pointer_cast<ChLineShape>(asset)) {
+                } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
+                               std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
+                    if (!trimesh_shape->IsMutable()) {
+                        rigidMeshVisualization(body, trimesh_shape, shape_frame);
+                        
+                        // added_asset_for_body = true;
+                    } else {
+                        deformableMeshVisualization(body, trimesh_shape, shape_frame);
                     }
 
-                    // check if the asset is a ChColorAsset
-                    else if (std::shared_ptr<ChColorAsset> color_asset =
-                                 std::dynamic_pointer_cast<ChColorAsset>(asset)) {
-                        // std::cout << "Asset was color\n";
-                    }
-
-                    // check if the asset is a ChTexture
-                    else if (std::shared_ptr<ChTexture> texture_asset = std::dynamic_pointer_cast<ChTexture>(asset)) {
-                        // std::cout << "Asset was texture\n";
-                    }
+                } else if (std::shared_ptr<ChEllipsoidShape> ellipsoid_shape =
+                               std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
+                } else if (std::shared_ptr<ChConeShape> cone_shape = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+                } else if (std::shared_ptr<ChRoundedBoxShape> shape =
+                               std::dynamic_pointer_cast<ChRoundedBoxShape>(shape)) {
+                } else if (std::shared_ptr<ChCapsuleShape> capsule_shape =
+                               std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
+                } else if (std::shared_ptr<ChPathShape> path_shape = std::dynamic_pointer_cast<ChPathShape>(shape)) {
+                } else if (std::shared_ptr<ChLineShape> line_shape = std::dynamic_pointer_cast<ChLineShape>(shape)) {
                 }
+
+                // }
+                // }
             }
         }
     }
 
-    // Assumption made here that other physics items don't have a transform -> not always true!!!
+    // // Assumption made here that other physics items don't have a transform -> not always true!!!
     for (auto item : m_system->Get_otherphysicslist()) {
-        // add items one by one
+    //     // add items one by one
 
-        if (item->GetAssets().size() > 0) {
-            for (auto asset : item->GetAssets()) {
-                if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-                    // ChVector<double> asset_pos = visual_asset->Pos;
-                    // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
+    //     if (item->GetAssets().size() > 0) {
+        if (item->GetVisualModel()) {
+            for (auto& shape_instance : item->GetVisualModel()->GetShapes()) {
+                const auto& shape = shape_instance.first;
+                const auto& shape_frame = shape_instance.second;
 
-                    auto dummy_body = chrono_types::make_shared<ChBody>();
+                auto dummy_body = chrono_types::make_shared<ChBody>();
 
-                    if (!visual_asset->IsVisible()) {
-                        std::cout << "Ignoring an asset that is set to invisible in otherphysicslist\n";
-                    } else if (std::shared_ptr<ChBoxShape> box_shape = std::dynamic_pointer_cast<ChBoxShape>(asset)) {
-                        boxVisualization(dummy_body, box_shape, visual_asset);
-                    } else if (std::shared_ptr<ChCylinderShape> cylinder_shape =
-                                   std::dynamic_pointer_cast<ChCylinderShape>(asset)) {
-                        cylinderVisualization(dummy_body, cylinder_shape, visual_asset);
-                    } else if (std::shared_ptr<ChSphereShape> sphere_shape =
-                                   std::dynamic_pointer_cast<ChSphereShape>(asset)) {
-                        sphereVisualization(dummy_body, sphere_shape, visual_asset);
-                    } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
-                                   std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
-                        if (!trimesh_shape->IsMutable()) {
-                            rigidMeshVisualization(dummy_body, trimesh_shape, visual_asset);
-                        } else {
-                            deformableMeshVisualization(dummy_body, trimesh_shape, visual_asset);
-                        }
+                if (!shape->IsVisible()) {
+                    // std::cout << "Ignoring an asset that is set to invisible\n";
+                } else if (std::shared_ptr<ChBoxShape> box_shape = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+                    boxVisualization(dummy_body, box_shape, shape_frame);
+
+                } else if (std::shared_ptr<ChSphereShape> sphere_shape =
+                               std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+                    sphereVisualization(dummy_body, sphere_shape, shape_frame);
+
+                } else if (std::shared_ptr<ChCylinderShape> cylinder_shape =
+                               std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+                    cylinderVisualization(dummy_body, cylinder_shape, shape_frame);
+
+                } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
+                               std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
+                    if (!trimesh_shape->IsMutable()) {
+                        rigidMeshVisualization(dummy_body, trimesh_shape, shape_frame);
+                    } else {
+                        deformableMeshVisualization(dummy_body, trimesh_shape, shape_frame);
                     }
+
+                } else if (std::shared_ptr<ChEllipsoidShape> ellipsoid_shape =
+                               std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
+                } else if (std::shared_ptr<ChConeShape> cone_shape = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+                } else if (std::shared_ptr<ChRoundedBoxShape> shape =
+                               std::dynamic_pointer_cast<ChRoundedBoxShape>(shape)) {
+                } else if (std::shared_ptr<ChCapsuleShape> capsule_shape =
+                               std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
+                } else if (std::shared_ptr<ChPathShape> path_shape = std::dynamic_pointer_cast<ChPathShape>(shape)) {
+                } else if (std::shared_ptr<ChLineShape> line_shape = std::dynamic_pointer_cast<ChLineShape>(shape)) {
                 }
+
             }
+
+
+    //         for (auto asset : item->GetAssets()) {
+    //             if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
+    //                 // ChVector<double> asset_pos = visual_asset->Pos;
+    //                 // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
+
+    //                 auto dummy_body = chrono_types::make_shared<ChBody>();
+
+    //                 if (!visual_asset->IsVisible()) {
+    //                     std::cout << "Ignoring an asset that is set to invisible in otherphysicslist\n";
+    //                 } else if (std::shared_ptr<ChBoxShape> box_shape = std::dynamic_pointer_cast<ChBoxShape>(asset))
+    //                 {
+    //                     boxVisualization(dummy_body, box_shape, visual_asset);
+    //                 } else if (std::shared_ptr<ChCylinderShape> cylinder_shape =
+    //                                std::dynamic_pointer_cast<ChCylinderShape>(asset)) {
+    //                     cylinderVisualization(dummy_body, cylinder_shape, visual_asset);
+    //                 } else if (std::shared_ptr<ChSphereShape> sphere_shape =
+    //                                std::dynamic_pointer_cast<ChSphereShape>(asset)) {
+    //                     sphereVisualization(dummy_body, sphere_shape, visual_asset);
+    //                 } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
+    //                                std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
+    //                     if (!trimesh_shape->IsMutable()) {
+    //                         rigidMeshVisualization(dummy_body, trimesh_shape, visual_asset);
+    //                     } else {
+    //                         deformableMeshVisualization(dummy_body, trimesh_shape, visual_asset);
+    //                     }
+    //                 }
+    //             }
+    //         }
         }
     }
 
