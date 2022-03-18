@@ -299,8 +299,8 @@ bool ChModalAssembly::ComputeModesExternalData(ChSparseMatrix& full_M, ChSparseM
     // - Must work with large dimension and sparse matrices only
     // - Must work also in free-free cases, with 6 rigid body modes at 0 frequency.
 
-    //ChGeneralizedEigenvalueSolverLanczos     eigsolver;   // OK! 
-    ChGeneralizedEigenvalueSolverKrylovSchur eigsolver;   // OK! 
+    ChGeneralizedEigenvalueSolverLanczos     eigsolver;   // OK! 
+    //ChGeneralizedEigenvalueSolverKrylovSchur eigsolver;   // OK! 
     eigsolver.Solve(full_M, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, nmodes_clamped);
     this->modes_damping_ratio.setZero(this->modes_freq.rows());
 
