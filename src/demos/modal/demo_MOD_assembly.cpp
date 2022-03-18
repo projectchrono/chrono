@@ -51,9 +51,9 @@ double beam_density = 1000;
 double beam_wz = 0.3;
 double beam_wy = 0.05;
 double beam_L = 6;
+int n_elements = 8;
 
-
-void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction) 
+void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add_internal_body,  bool add_boundary_body) 
 {
     ChSystem* my_system = myapp.GetSystem();
     // Clear previous demo, if any:
@@ -124,15 +124,40 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction)
 
     // The other nodes are internal nodes: let the builder.BuildBeam add them to my_mesh_internal
     builder.BuildBeam(
-        my_mesh_internal,  // the mesh where to put the created nodes and elements
-        msection,  // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
-        6,         // the number of ChElementBeamEuler to create
-        my_node_A_boundary,       // the 'A' point in space (beginning of beam)
+        my_mesh_internal,   // the mesh where to put the created nodes and elements
+        msection,           // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
+        n_elements,         // the number of ChElementBeamEuler to create
+        my_node_A_boundary, // the 'A' point in space (beginning of beam)
         my_node_B_boundary, //ChVector<>(beam_L, 0, 0), // the 'B' point in space (end of beam)
-        ChVector<>(0, 1, 0)       // the 'Y' up direction of the section for the beam
+        ChVector<>(0, 1, 0) // the 'Y' up direction of the section for the beam
     );
 
     my_node_B_boundary->SetForce(ChVector<>(0, 0, 90)); // to trigger some vibration at the free end
+
+    if (add_internal_body) {
+
+        // BODY: in the middle, as internal 
+        auto my_body_B = chrono_types::make_shared<ChBodyEasyBox>(1.8, 1.8, 1.8, 200);
+        my_body_B->SetPos(ChVector<>(beam_L * 0.5, 0, 0));
+        my_assembly->AddInternal(my_body_B);
+
+        auto my_mid_constr = chrono_types::make_shared<ChLinkMateGeneric>();
+        my_mid_constr->Initialize(builder.GetLastBeamNodes()[n_elements/2], my_body_B, ChFrame<>(ChVector<>(beam_L * 0.5, 0, 0), QUNIT));
+        my_assembly->AddInternal(my_mid_constr);
+    }
+
+    if (add_boundary_body) {
+
+        // BODY: in the end, as boundary 
+        auto my_body_C = chrono_types::make_shared<ChBodyEasyBox>(0.8, 0.8, 0.8, 200);
+        my_body_C->SetPos(ChVector<>(beam_L, 0, 0));
+        my_assembly->Add(my_body_C);
+
+        auto my_end_constr = chrono_types::make_shared<ChLinkMateGeneric>();
+        my_end_constr->Initialize(builder.GetLastBeamNodes().back(), my_body_C, ChFrame<>(ChVector<>(beam_L, 0, 0), QUNIT));
+        my_assembly->Add(my_end_constr);
+    }
+
 
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
     my_system->Setup();
@@ -144,7 +169,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction)
 
         // HERE PERFORM THE MODAL REDUCTION!
 
-        my_assembly->SwitchModalReductionON(1);
+        my_assembly->SwitchModalReductionON(5);
 
         // Just for later reference, dump reduced M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
         my_assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir+"/dump_reduced").c_str());
@@ -230,6 +255,12 @@ class MyEventReceiver : public IEventReceiver {
                 case irr::KEY_KEY_2:
                     ID_current_example = 2;
                     return true;
+                case irr::KEY_KEY_3:
+                    ID_current_example = 3;
+                    return true;
+                case irr::KEY_KEY_4:
+                    ID_current_example = 4;
+                    return true;
                 default:
                     break;
             }
@@ -290,7 +321,10 @@ int main(int argc, char* argv[]) {
     // Some help on the screen
     application.GetIGUIEnvironment()->addStaticText(
         L" Press 1: cantilever - original \n"
-        L" Press 2: cantilever - modal reduction \n",
+        L" Press 2: cantilever - modal reduction \n"
+        L" Press 3: cantilever and boxes - original \n"
+        L" Press 4: cantilever and boxes - modal reduction \n"
+        L" (Switch off 'show modal shape' to start simulating) \n",
         irr::core::rect<irr::s32>(400, 80, 650, 200), false, true, 0);
 
 
@@ -334,12 +368,28 @@ int main(int argc, char* argv[]) {
 
         switch (ID_current_example) {
             case 1:
-                MakeAndRunDemoCantilever(application, 
-                    false);    // no modal reduction
+                MakeAndRunDemoCantilever(application,
+                    false,    // no modal reduction
+                    false,    // no internal body
+                    false);   // no boundary body
                 break;
             case 2:
                 MakeAndRunDemoCantilever(application, 
-                    true);     // modal reduction
+                    true,     //    modal reduction
+                    false,    // no internal body
+                    false);   // no boundary body
+                break;
+            case 3:
+                MakeAndRunDemoCantilever(application,
+                    false,    // no modal reduction
+                    true,     //    internal body
+                    true);    //    boundary body
+                break;
+            case 4:
+                MakeAndRunDemoCantilever(application, 
+                    true,     //    modal reduction
+                    true,     //    internal body
+                    true);    //    boundary body
                 break;
             default:
                 break;
