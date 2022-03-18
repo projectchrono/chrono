@@ -37,8 +37,8 @@ ChFsiForce::ChFsiForce(std::shared_ptr<ChBce> otherBceWorker,
       fsiGeneralData(otherFsiGeneralData),
       numObjectsH(otherNumObjects),
       paramsH(otherParamsH) {
-    fsiCollisionSystem =
-        chrono_types::make_shared<ChCollisionSystemFsi>(sortedSphMarkersD, markersProximityD, paramsH, numObjectsH);
+    fsiCollisionSystem = chrono_types::make_shared<ChCollisionSystemFsi>(
+        sortedSphMarkersD, markersProximityD, fsiGeneralData, paramsH, numObjectsH);
     sphMarkersD = NULL;
 }
 //--------------------------------------------------------------------------------------------------------------------------------

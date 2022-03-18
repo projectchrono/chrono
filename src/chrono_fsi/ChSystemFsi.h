@@ -159,7 +159,7 @@ class CH_FSI_API ChSystemFsi {
                       const ChVector<>& tauXyXzYz = ChVector<>(0));
 
     /// Add reference array for SPH particles.
-    void AddRefArray(const int start, const int numPart, const int typeA, const int typeB);
+    void AddRefArray(const int start, const int numPart, const int compType, const int phaseType);
 
     /// Add BCE particle for a box.
     void AddBceBox(std::shared_ptr<SimParams> paramsH,
@@ -167,7 +167,8 @@ class CH_FSI_API ChSystemFsi {
                    const ChVector<>& relPos,
                    const ChQuaternion<>& relRot,
                    const ChVector<>& size,
-                   int plane = 12);
+                   int plane = 12,
+                   bool isSolid = false);
 
     /// Add BCE particle for a cylinder.
     void AddBceCylinder(std::shared_ptr<SimParams> paramsH,
@@ -237,6 +238,18 @@ class CH_FSI_API ChSystemFsi {
 
     /// Return the SPH particle velocity.
     std::vector<ChVector<>> GetParticleVel();
+
+    /// Set SPH discretization type, consistent or inconsistent
+    void SetDiscreType(bool useGmatrix, bool useLmatrix);
+
+    /// Set FSI information output
+    void SetFsiInfoOutput(bool outputFsiInfo);
+
+    /// Set simulation data output length
+    void SetOutputLength(int OutputLength);
+
+    /// Set wall boundary condition
+    void SetWallBC(BceVersion wallBC);
 
   private:
     /// Set the type of the fluid dynamics.

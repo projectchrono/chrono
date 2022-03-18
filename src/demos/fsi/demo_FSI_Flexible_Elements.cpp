@@ -101,7 +101,6 @@ int main(int argc, char* argv[]) {
     myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
 
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
-    myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
 
     ChVector<> cMin = ChVector<>(-bxDim, -byDim, -bzDim) - ChVector<>(paramsH->HSML * 5);
     ChVector<> cMax = ChVector<>(bxDim, byDim, 1.2 * bzDim) + ChVector<>(paramsH->HSML * 5);
