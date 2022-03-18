@@ -252,25 +252,7 @@ bool ChModalAssembly::ComputeModes(int nmodes) {
     
     if (is_modal)
         return false;
-    /*
-    this->SetupInitial();
-    this->Setup();
-    this->Update();
 
-    // fetch the state_snapshot
-    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
-    int bou_int_coords_w = this->n_boundary_coords_w   + this->n_internal_coords_w;
-    double fooT;
-    ChStateDelta assembly_v0;
-    assembly_x0.setZero(bou_int_coords, nullptr);
-    assembly_v0.setZero(bou_int_coords_w, nullptr);
-    this->IntStateGather(0, assembly_x0, 0, assembly_v0, fooT);
-
-    // cannot use more modes than n. of tot coords, if so, clamp
-    int nmodes_clamped = ChMin(nmodes, this->ncoords_w);
-
-    this->Setup();
-    */
     ChSparseMatrix full_M;
     ChSparseMatrix full_K;
     ChSparseMatrix full_Cq;
@@ -282,19 +264,6 @@ bool ChModalAssembly::ComputeModes(int nmodes) {
     // SOLVE EIGENVALUE
     this->ComputeModesExternalData(full_M, full_K, full_Cq, nmodes);
 
-    /*
-    // SOLVE EIGENVALUE 
-    // for undamped system (use generalized constrained eigen solver)
-    // - Must work with large dimension and sparse matrices only
-    // - Must work also in free-free cases, with 6 rigid body modes at 0 frequency.
-
-    //ChGeneralizedEigenvalueSolverLanczos     eigsolver;   // OK! 
-    ChGeneralizedEigenvalueSolverKrylovSchur eigsolver;   // OK! 
-    eigsolver.Solve(full_M, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, nmodes_clamped);
-    this->modes_damping_ratio.setZero(this->modes_freq.rows());
-
-    this->Setup();
-    */
     return true;
 }
 
