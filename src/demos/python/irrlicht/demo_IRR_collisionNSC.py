@@ -176,9 +176,9 @@ mysystem      = chrono.ChSystemNSC()
 
 myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example: Collisions between objects', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddTypicalCamera(chronoirr.vector3df(0, 14 , -20))
+myapplication.AddSkyBox()
+myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+myapplication.AddCamera(chronoirr.vector3df(0, 14 , -20))
 myapplication.AddTypicalLights()
 
 mixer = AddContainer(mysystem)

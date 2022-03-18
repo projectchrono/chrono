@@ -134,7 +134,6 @@ int main(int argc, char* argv[]) {
 
     // Set up the solver based on the input value of the prameters
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
-    myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);// this is only for ISPH
 
     // Setup sub doamins for a faster neighbor particle searching
     myFsiSystem.SetSubDomain(paramsH);

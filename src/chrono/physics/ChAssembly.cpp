@@ -869,6 +869,38 @@ void ChAssembly::IntStateIncrement(const unsigned int off_x,
     }
 }
 
+void ChAssembly::IntStateGetIncrement(const unsigned int off_x,
+                                   const ChState& x_new,
+                                   const ChState& x,
+                                   const unsigned int off_v,
+                                   ChStateDelta& Dv) {
+    unsigned int displ_x = off_x - this->offset_x;
+    unsigned int displ_v = off_v - this->offset_w;
+
+    for (auto& body : bodylist) {
+        if (body->IsActive())
+            body->IntStateGetIncrement(displ_x + body->GetOffset_x(), x_new, x, displ_v + body->GetOffset_w(), Dv);
+    }
+
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntStateGetIncrement(displ_x + shaft->GetOffset_x(), x_new, x, displ_v + shaft->GetOffset_w(), Dv);
+    }
+
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntStateGetIncrement(displ_x + link->GetOffset_x(), x_new, x, displ_v + link->GetOffset_w(), Dv);
+    }
+
+    for (auto& mesh : meshlist) {
+        mesh->IntStateGetIncrement(displ_x + mesh->GetOffset_x(), x_new, x, displ_v + mesh->GetOffset_w(), Dv);
+    }
+
+    for (auto& item : otherphysicslist) {
+        item->IntStateGetIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
+    }
+}
+
 void ChAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
                                    const double c)          ///< a scaling factor

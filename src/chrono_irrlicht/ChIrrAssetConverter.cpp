@@ -164,14 +164,7 @@ void ChIrrAssetConverter::mflipSurfacesOnX(IMesh* mesh) const {
     for (u32 b = 0; b < bcount; ++b) {
         IMeshBuffer* buffer = mesh->getMeshBuffer(b);
         const u32 idxcnt = buffer->getIndexCount();
-        u16* idx = buffer->getIndices();
-        s32 tmp;
 
-        for (u32 i = 0; i < idxcnt; i += 3) {
-            tmp = idx[i + 1];
-            idx[i + 1] = idx[i + 2];
-            idx[i + 2] = tmp;
-        }
         const u32 vertcnt = buffer->getVertexCount();
         for (u32 i = 0; i < vertcnt; i++) {
             buffer->getPosition(i).X = -buffer->getPosition(i).X;  // mirror vertex
@@ -206,11 +199,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                         // mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, false);
 
                         // Note: the Irrlicht loader of .OBJ files flips the X to correct its left-handed nature, but
-                        // this goes wrong with our assemblies and links. So we rather accept that the display is X
-                        // mirrored, and we
-                        // restore the X flipping of the mesh (also the normals and triangle indexes ordering must be
-                        // flipped otherwise
-                        // back culling is not working):
+                        // this goes wrong with our assemblies and links.Restore the X flipping of the mesh.
                         if (!irrmesh_already_loaded)  // flag to avoid multiple flipping in shared meshes
                             mflipSurfacesOnX(((IAnimatedMeshSceneNode*)mchildnode)->getMesh());
 
@@ -219,7 +208,6 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                 } else if (auto mytrimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset)) {
                     CDynamicMeshBuffer* buffer =
                         new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
-                    //	SMeshBuffer* buffer = new SMeshBuffer();
                     SMesh* newmesh = new SMesh;
                     newmesh->addMeshBuffer(buffer);
                     buffer->drop();

@@ -112,10 +112,10 @@ int main(int argc, char* argv[]) {
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&sys, L"Curiosity Obstacle Crossing on SCM", core::dimension2d<u32>(1800, 1000),
                          VerticalDir::Y, false, true);
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(2.0f, 1.4f, 0.0f), core::vector3df(0, (f32)wheel_range, 0));
+    application.AddCamera(core::vector3df(2.0f, 1.4f, 0.0f), core::vector3df(0, (f32)wheel_range, 0));
     application.AddLightWithShadow(core::vector3df(-5.0f, 8.0f, -0.5f), core::vector3df(-1.0, 0, 0), 100, 1, 35, 85,
                                    512, video::SColorf(0.8f, 0.8f, 1.0f));
     application.SetTimestep(time_step);

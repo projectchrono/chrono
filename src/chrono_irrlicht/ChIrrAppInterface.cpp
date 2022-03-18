@@ -18,6 +18,7 @@
 
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrCamera.h"
+#include "chrono_irrlicht/ChIrrSkyBoxSceneNode.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -1038,25 +1039,53 @@ void ChIrrAppInterface::DumpSystemMatrices() {
 
 // -----------------------------------------------------------------------------
 
-void ChIrrAppInterface::AddTypicalLogo(const std::string& mlogofilename) {
-    tools::add_typical_Logo(GetDevice(), mlogofilename);
+void ChIrrAppInterface::AddLogo(const std::string& mlogofilename) {
+    device->getGUIEnvironment()->addImage(device->getVideoDriver()->getTexture(mlogofilename.c_str()),
+                                          irr::core::position2d<irr::s32>(10, 10));
 }
 
-void ChIrrAppInterface::AddTypicalCamera(irr::core::vector3df pos, irr::core::vector3df targ) {
-    tools::add_typical_Camera(GetDevice(), pos, targ, y_up);
+void ChIrrAppInterface::AddCamera(irr::core::vector3df pos, irr::core::vector3df targ) {
+    // create and init camera
+    RTSCamera* camera = new RTSCamera(device, device->getSceneManager()->getRootSceneNode(), device->getSceneManager(),
+                                      -1, -160.0f, 1.0f, 0.003f);
+
+    // camera->bindTargetAndRotation(true);
+    if (!y_up)
+        camera->setZUp();
+    camera->setPosition(pos);
+    camera->setTarget(targ);
+
+    camera->setNearValue(0.1f);
+    camera->setMinZoom(0.6f);
 }
 
-void ChIrrAppInterface::AddTypicalLights(irr::core::vector3df pos1,
-                                         irr::core::vector3df pos2,
-                                         double rad1,
-                                         double rad2,
-                                         irr::video::SColorf col1,
-                                         irr::video::SColorf col2) {
-    tools::add_typical_Lights(GetDevice(), pos1, pos2, rad1, rad2, col1, col2);
+void ChIrrAppInterface::AddTypicalLights() {
+    if (y_up) {
+        AddLight(irr::core::vector3df(30.f, 80.f, +30.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+        AddLight(irr::core::vector3df(30.f, 80.f, -30.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    } else {
+        AddLight(irr::core::vector3df(30.f, +30.f, 80.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+        AddLight(irr::core::vector3df(30.f, -30.f, 80.f), 280, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));    
+    }
 }
 
-void ChIrrAppInterface::AddTypicalSky(const std::string& mtexturedir) {
-    tools::add_typical_Sky(GetDevice(), y_up, mtexturedir);
+void ChIrrAppInterface::AddSkyBox(const std::string& texturedir) {
+    // create sky box
+    std::string str_lf = texturedir + "sky_lf.jpg";
+    std::string str_up = texturedir + "sky_up.jpg";
+    std::string str_dn = texturedir + "sky_dn.jpg";
+
+    irr::video::ITexture* map_skybox_side = device->getVideoDriver()->getTexture(str_lf.c_str());
+
+    // Create a skybox scene node
+    auto skybox = new irr::scene::CSkyBoxSceneNode(
+        device->getVideoDriver()->getTexture(str_up.c_str()), device->getVideoDriver()->getTexture(str_dn.c_str()),
+        map_skybox_side, map_skybox_side, map_skybox_side, map_skybox_side,
+        device->getSceneManager()->getRootSceneNode(), device->getSceneManager(), -1);
+    skybox->drop();
+
+    if (!y_up)
+        skybox->setRotation(irr::core::vector3df(90, 0, 0));
 }
 
 irr::scene::ILightSceneNode* ChIrrAppInterface::AddLight(irr::core::vector3df pos,

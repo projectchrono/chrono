@@ -41,11 +41,11 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"Brick Elements", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
 
-    application.AddTypicalCamera(core::vector3df(1.2f, 0.6f, 0.3f),   // camera location
+    application.AddCamera(core::vector3df(1.2f, 0.6f, 0.3f),   // camera location
                                  core::vector3df(0.2f, -0.2f, 0.f));  // "look at" location
 
     GetLog() << "-----------------------------------------------------------\n";

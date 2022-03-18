@@ -149,6 +149,11 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
                                    const ChState& x,
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) override;
+    virtual void IntStateGetIncrement(const unsigned int off_x,
+                                   const ChState& x_new,
+                                   const ChState& x,
+                                   const unsigned int off_v,
+                                   ChStateDelta& Dv) override;
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;

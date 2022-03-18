@@ -151,10 +151,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&sys, L"Viper Rover on SCM", core::dimension2d<u32>(1280, 720), VerticalDir::Z, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(2.0f, 0.0f, 1.4f), core::vector3df(0, 0, (f32)wheel_range));
+    application.AddCamera(core::vector3df(2.0f, 0.0f, 1.4f), core::vector3df(0, 0, (f32)wheel_range));
     application.AddLightWithShadow(core::vector3df(-5.0f, -0.5f, 8.0f), core::vector3df(-1.0, 0, 0), 100, 1, 35, 85,
                                    512, video::SColorf(0.8f, 0.8f, 1.0f));
 

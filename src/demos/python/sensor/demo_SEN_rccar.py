@@ -291,10 +291,8 @@ patch_visual_asset.material_list.append(vis_mat)
 
 # Create the vehicle Irrlicht interface
 app = veh.ChWheeledVehicleIrrApp(my_rccar.GetVehicle())
-app.SetSkyBox()
-app.AddTypicalLights(irr.vector3df(30, -30, 100),
-                     irr.vector3df(30, 50, 100), 250, 130)
-app.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+app.AddTypicalLights()
+app.AddLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
 app.SetChaseCamera(trackPoint, 1.5, 0.5)
 app.SetTimestep(step_size)
 

@@ -125,6 +125,14 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /// Please refer to ANSYS theory document for more information.
     void SetUseRs(bool md) { this->use_Rs = md; }
 
+    /// Set this as true to use a simplified correction model for the case of inclined shear axis. 
+    /// By default it is false. This option may affect the bending-twist coupling of Timoshenko 
+    /// beam element, especially when the inclined angle of shear center axis is obvious with
+    /// respect to the centerline.
+    void SetUseSimplifiedCorrectionForInclinedShearAxis(bool md) {
+        this->use_simplified_correction_for_inclined_shear_axis = md;
+    }
+    
     /// Shape functions for Timoshenko beam.
     /// Please refer to the textbook:
     /// J. S. Przemieniecki, Theory of Matrix Structural Analysis-Dover Publications (1985).
@@ -189,6 +197,10 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
+
+    /// Gets the material mass, material stiffness, material damping and geometric stiffness matrices in local basis.
+    /// This functionality can be used to output these matrices for some other special needs.
+    virtual void GetKRMmatricesLocal(ChMatrixRef H, double Kmfactor, double Kgfactor, double Rmfactor, double Mfactor);
 
     /// Computes the internal forces (e.g. the actual position of nodes is not in relaxed reference position) and set
     /// values in the Fi vector.
@@ -350,6 +362,7 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     bool use_geometric_stiffness;  ///< whether include geometric stiffness matrix
     bool use_Rc;                   ///< whether use the transformation matrix for elastic axis orientation
     bool use_Rs;                   ///< whether use the transformation matrix for shear axis orientation
+    bool use_simplified_correction_for_inclined_shear_axis = false;///< whether use the simplified correction model for shear axis orientation, it's false as default.
 
     // Flag that turns on/off the computation of the [Ri] 'gyroscopic' inertial damping matrix.
     // If false, Ri=0. Can be used for cpu speedup, profiling, tests. Default: true.

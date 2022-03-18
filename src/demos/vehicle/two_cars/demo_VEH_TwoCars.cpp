@@ -107,8 +107,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle Irrlicht interface (associated with 1st vehicle)
     ChWheeledVehicleIrrApp app(&hmmwv_1.GetVehicle(), L"Two cars demo");
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
+    app.AddTypicalLights();
     app.SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
     app.SetChaseCameraState(utils::ChChaseCamera::Track);
     app.SetChaseCameraPosition(ChVector<>(-15, 0, 2.0));

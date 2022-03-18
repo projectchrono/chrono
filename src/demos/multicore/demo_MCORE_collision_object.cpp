@@ -174,10 +174,10 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization
     ChIrrApp application(system, L"Collision test (Chrono::Multicore)", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(3, 1, (float)init_z), irr::core::vector3df(0, 0, (float)init_z));
+    application.AddCamera(irr::core::vector3df(3, 1, (float)init_z), irr::core::vector3df(0, 0, (float)init_z));
 
     // Render contact forces or normals
     application.SetSymbolscale(5e-4);

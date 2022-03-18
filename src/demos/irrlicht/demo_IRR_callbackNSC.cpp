@@ -177,10 +177,10 @@ int main(int argc, char* argv[]) {
     // -------------------------------
 
     irrlicht::ChIrrApp application(&system, L"NSC callbacks", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(4, 4, -6));
+    application.AddCamera(irr::core::vector3df(4, 4, -6));
 
     application.AssetBindAll();
     application.AssetUpdateAll();
