@@ -1092,63 +1092,25 @@ void ChModalAssembly::GetStateIncrement(ChStateDelta& Dx, int off_v) {
         return;
     }
     else {
-        //Dx.setZero(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
+        Dx.setZero(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
 
-        int off_x = 0; // test
-        unsigned int displ_x = off_x - this->offset_x;
-        unsigned int displ_v = off_v - this->offset_w;
+        // fetch the state snapshot (modal reduced)
+        int bou_mod_coords   = this->n_boundary_coords   + this->n_modes_coords_w;
+        int bou_mod_coords_w = this->n_boundary_coords_w   + this->n_internal_coords_w;
+        double fooT;
+        ChState       x_mod;
+        ChStateDelta  v_mod;
+        x_mod.setZero(bou_mod_coords, nullptr);
+        v_mod.setZero(bou_mod_coords_w, nullptr);
+        this->IntStateGather(0, x_mod, 0, v_mod, fooT);
 
-        for (auto& body : bodylist) {
-            if (body->IsActive()) {
-                Dx(displ_v + body->GetOffset_w())   = body->GetPos().x() - this->assembly_x0(displ_x + body->GetOffset_x());
-                Dx(displ_v + body->GetOffset_w()+1) = body->GetPos().y() - this->assembly_x0(displ_x + body->GetOffset_x()+1);
-                Dx(displ_v + body->GetOffset_w()+2) = body->GetPos().z() - this->assembly_x0(displ_x + body->GetOffset_x()+2);
-                ChQuaternion<> qb = body->GetRot();
-                ChQuaternion<> q0(this->assembly_x0.segment(displ_x + body->GetOffset_x()+3,4));
-                ChQuaternion<> rel_q = q0.GetConjugate() % qb;
-                Dx.segment(displ_v + body->GetOffset_w()+3, 3) = rel_q.Q_to_Rotv().eigen();
-            }
-        }
-
-        for (auto& shaft : shaftlist) {
-            if (shaft->IsActive()) {
-                //***TODO***
-            }
-        }
-
-        for (auto& link : linklist) {
-            if (link->IsActive()) {
-                //***TODO***
-            }
-        }
-
-        for (auto& item : meshlist) {
-            if (auto mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
-                for (auto& node : mesh->GetNodes()) {
-                    if (auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
-                        Dx(displ_v + nodexyz->NodeGetOffset_w())   = nodexyz->GetPos().x() - this->assembly_x0(displ_x + nodexyz->NodeGetOffset_x());
-                        Dx(displ_v + nodexyz->NodeGetOffset_w()+1) = nodexyz->GetPos().y() - this->assembly_x0(displ_x + nodexyz->NodeGetOffset_x()+1);
-                        Dx(displ_v + nodexyz->NodeGetOffset_w()+2) = nodexyz->GetPos().z() - this->assembly_x0(displ_x + nodexyz->NodeGetOffset_x()+2);
-                    }
-                    if (auto nodexyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
-                        Dx(displ_v + nodexyzrot->NodeGetOffset_w())   = nodexyzrot->GetPos().x() - this->assembly_x0(displ_x + nodexyzrot->NodeGetOffset_x());
-                        Dx(displ_v + nodexyzrot->NodeGetOffset_w()+1) = nodexyzrot->GetPos().y() - this->assembly_x0(displ_x + nodexyzrot->NodeGetOffset_x()+1);
-                        Dx(displ_v + nodexyzrot->NodeGetOffset_w()+2) = nodexyzrot->GetPos().z() - this->assembly_x0(displ_x + nodexyzrot->NodeGetOffset_x()+2);
-                        ChQuaternion<> qb = nodexyzrot->GetRot();
-                        ChQuaternion<> q0(this->assembly_x0.segment(displ_x + nodexyzrot->NodeGetOffset_x()+3,4));
-                        ChQuaternion<> rel_q = q0.GetConjugate() % qb;
-                        Dx.segment(displ_v + nodexyzrot->NodeGetOffset_w()+3, 3) = rel_q.Q_to_Rotv().eigen();
-                    }
-                }
-            }
-        }
-           
-        for (auto& item : otherphysicslist) {
-            //***TODO***
-        }
+        // the old state snapshot (modal reduced)
+        ChState x0_mod;
+        x0_mod.setZero(bou_mod_coords, nullptr);
+        x0_mod.segment(0, this->n_boundary_coords) = this->assembly_x0.segment(0, this->n_boundary_coords);
         
-        // Finally compute the increment for the modal variables, that is quite simple: the last part of Dx is exactly =modal_q
-        Dx.segment(off_v + this->n_boundary_coords_w, this->n_modes_coords_w) = this->modal_q;
+        this->IntStateGetIncrement(0, x_mod, x0_mod, 0, Dx);
+
     }
 }
 
