@@ -17,7 +17,7 @@
 
 namespace chrono {
 namespace vsg3d {
-vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg::Options> options) {
+vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg::Options> options, bool yup) {
     auto data = vsg::read_cast<vsg::Data>(filename, options);
     if (!data) {
         std::cout << "Error: failed to load cubemap file : " << filename << std::endl;
@@ -137,8 +137,11 @@ vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg
     root->addChild(vsg::BindVertexBuffers::create(0, vsg::DataList{vertices}));
     root->addChild(vsg::BindIndexBuffer::create(indices));
     root->addChild(vsg::DrawIndexed::create(indices->size(), 1, 0, 0, 0));
-
-    auto xform = vsg::MatrixTransform::create(vsg::rotate(vsg::PI * 0.5, 1.0, 0.0, 0.0));
+    auto xform = vsg::MatrixTransform::create();
+    //auto xform = vsg::MatrixTransform::create(vsg::rotate(vsg::PI * 0.5, 1.0, 0.0, 0.0));
+    if(!yup) {
+        xform->matrix = vsg::rotate(vsg::PI * 0.5, 1.0, 0.0, 0.0);
+    }
     xform->addChild(root);
 
     return xform;

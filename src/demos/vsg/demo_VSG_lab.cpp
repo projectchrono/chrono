@@ -38,6 +38,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowSize(ChVector2<int>(1000, 800));
     vis->SetWindowTitle("VSG Test Lab");
     vis->SetUseSkyBox(true);
+    vis->SetCameraVertical(CameraVerticalDir::Z);
     vis->Initialize();
     sys.SetVisualSystem(vis);
 

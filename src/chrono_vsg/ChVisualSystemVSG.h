@@ -47,6 +47,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     // activate skybox (converted from Irrlicht skybox)
     void SetUseSkyBox(bool yesno=false) { m_use_skybox = yesno;}
 
+    /// Use Z-up camera rendering (default CameraVerticalDir::Z).
+    /// Must be called before Initialize().
+    void SetCameraVertical(CameraVerticalDir vert);
+
     // renders the whole scene
     void Render();
 
@@ -70,6 +74,7 @@ private:
     int m_windowWidth = 640;
     int m_windowHeight = 480;
     //
+    bool m_initialized = false;
     vsg::ref_ptr<vsg::Viewer> m_viewer;
     vsg::ref_ptr<vsg::Window> m_window;
     vsg::ref_ptr<vsg::Options> m_options;
@@ -85,7 +90,10 @@ private:
     vsg::ref_ptr<vsg::LookAt> m_lookAt;
     vsg::ref_ptr<vsg::Camera> m_camera;
     vsg::ref_ptr<vsg::ProjectionMatrix> m_perspective;
+    vsg::dvec3 m_eye_point = vsg::dvec3(-10,-5,1);
+    vsg::dvec3 m_center_point = vsg::dvec3(0,0,0);
     vsg::dvec3 m_up_vector = vsg::dvec3(0,0,1);
+    bool m_yup = false;
     //
     vsg::ref_ptr<vsg::CommandGraph> m_commandGraph;
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;

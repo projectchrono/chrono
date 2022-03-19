@@ -105,6 +105,19 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_options->fileCache = vsg::getEnv("VSG_FILE_CACHE");
 }
 
+void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir vert) {
+    if (!m_initialized) {
+        m_yup = (vert == CameraVerticalDir::Y);
+        if (m_yup) {
+            m_up_vector = vsg::dvec3(0, 1, 0);
+        } else {
+            m_up_vector = vsg::dvec3(0, 0, 1);
+        }
+    } else {
+        cout << "SetCameraVertical() cannot be used after calling Initialize()!" << endl;
+    }
+}
+
 ChVisualSystemVSG::~ChVisualSystemVSG() {}
 
 void ChVisualSystemVSG::Initialize() {
@@ -142,7 +155,7 @@ void ChVisualSystemVSG::Initialize() {
     if (m_use_skybox) {
         // build node from cubemap texture file
         if (!m_skyboxFilename.empty()) {
-            if (auto node = createSkybox(m_skyboxFilename, m_options); node) {
+            if (auto node = createSkybox(m_skyboxFilename, m_options, m_yup); node) {
                 m_scenegraph->addChild(node);
             } else {
                 cout << "Couldn't load " << m_skyboxFilename << endl;
@@ -159,8 +172,14 @@ void ChVisualSystemVSG::Initialize() {
     // These are set statically because the geometry in the class is expanded in the shader
     double nearFarRatio = 0.01;
 
-    // set up the camera
-    m_lookAt = vsg::LookAt::create(centre + vsg::dvec3(0.0, -radius * 3.5, 0.0), centre, m_up_vector);
+    // set up the camera automatically
+    m_center_point = centre;
+    if (m_yup) {
+        m_eye_point = centre + vsg::dvec3(-radius * 3.5, 0.0, 0.0);
+    } else {
+        m_eye_point = centre + vsg::dvec3(0.0, -radius * 3.5, 0.0);
+    }
+    m_lookAt = vsg::LookAt::create(m_eye_point, m_center_point, m_up_vector);
     m_perspective = vsg::Perspective::create(
         30.0, static_cast<double>(m_window->extent2D().width) / static_cast<double>(m_window->extent2D().height),
         nearFarRatio * radius, radius * 400.5);
@@ -193,6 +212,8 @@ void ChVisualSystemVSG::Initialize() {
     m_viewer->assignRecordAndSubmitTaskAndPresentation({m_commandGraph});
 
     m_viewer->compile();
+
+    m_initialized = true;
 }
 
 void ChVisualSystemVSG::Render() {
@@ -213,17 +234,29 @@ void ChVisualSystemVSG::Quit() {
 }
 
 void ChVisualSystemVSG::SetWindowSize(const ChVector2<int>& win_size) {
-    m_windowWidth = win_size[0];
-    m_windowHeight = win_size[1];
+    if (!m_initialized) {
+        m_windowWidth = win_size[0];
+        m_windowHeight = win_size[1];
+    } else {
+        cout << "SetWindowSize() cannot be used after initializing!" << endl;
+    }
 }
 
 void ChVisualSystemVSG::SetWindowTitle(const std::string& win_title) {
-    m_windowTitle = string(win_title);
+    if (!m_initialized) {
+        m_windowTitle = string(win_title);
+    } else {
+        cout << "SetWindowTitle() cannot be used after initializing!" << endl;
+    }
 }
 
 void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
+#ifdef WIN32
+    cout << "Actually there is a serious bug in VSG preventing Windows programs from writing screenshots!" << endl;
+#else
     m_imageFilename = string(filename);
     m_params->do_image_capture = true;
+#endif
 }
 
 void ChVisualSystemVSG::export_image() {
@@ -429,8 +462,8 @@ void ChVisualSystemVSG::export_image() {
         format = "unknown";
     std::transform(format.begin(), format.end(), format.begin(), [](unsigned char c) { return std::tolower(c); });
     size_t nPixelBytes = width * height * 4;
-    //unsigned char* pixels = new unsigned char[nPixelBytes];
-    unsigned char* pixels = (unsigned char*) imageData->dataPointer();
+    // unsigned char* pixels = new unsigned char[nPixelBytes];
+    unsigned char* pixels = (unsigned char*)imageData->dataPointer();
     if (pixels) {
         /*
         size_t k = 0;
@@ -452,7 +485,7 @@ void ChVisualSystemVSG::export_image() {
                 int ans = stbi_write_jpg(m_imageFilename.c_str(), width, height, 4, pixels, 100);
             } else if ((format.compare("bmp") == 0)) {
                 int ans = stbi_write_bmp(m_imageFilename.c_str(), width, height, 4, pixels);
-            }  else {
+            } else {
                 cout << "No screen capture written due to unknown image format. Use png, tga, jpg or bmp!" << endl;
             }
 
@@ -479,7 +512,7 @@ void ChVisualSystemVSG::export_image() {
             }
             delete[] pixelsReduced;
         }
-        //delete[] pixels;
+        // delete[] pixels;
     }
 }
 

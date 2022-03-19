@@ -20,7 +20,7 @@
 
 namespace chrono {
     namespace vsg3d {
-        vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg::Options> options);
+        vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg::Options> options, bool yup);
     }
 }
 
