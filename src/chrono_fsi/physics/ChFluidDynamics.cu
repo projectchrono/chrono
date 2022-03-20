@@ -509,6 +509,7 @@ __global__ void UpdateActivityD(Real4* posRadD,
                                 uint* extendedActivityIdD,
                                 int2 updatePortion,
                                 size_t numRigidBodies,
+                                Real Time,
                                 volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     index += updatePortion.x;  
@@ -518,6 +519,10 @@ __global__ void UpdateActivityD(Real4* posRadD,
     // Set the particle as an active particle 
     activityIdentifierD[index] = 1;
     extendedActivityIdD[index] = 1;
+
+    // If during the settling phase, all particles are active
+    if (Time < paramsD.settlingTime)
+        return;
 
     // Check the activity of this particle
     uint isNotActive = 0;
@@ -609,9 +614,10 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                    std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                                    std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
                                    std::shared_ptr<FsiMeshDataD> fsiMeshD,
-                                   Real dT) {
+                                   Real dT,
+                                   Real Time) {
     if (GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH){
-        this->UpdateActivity(sphMarkersD1, sphMarkersD2, fsiBodiesD);
+        this->UpdateActivity(sphMarkersD1, sphMarkersD2, fsiBodiesD, Time);
         forceSystem->ForceSPH(sphMarkersD2, fsiBodiesD, fsiMeshD);}
     else
         forceSystem->ForceSPH(sphMarkersD1, fsiBodiesD, fsiMeshD);
@@ -627,7 +633,8 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                                      std::shared_ptr<SphMarkerDataD> sphMarkersD2, 
-                                     std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
+                                     std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                                     Real Time) {
     // Update portion of the SPH particles (should be all particles here)
     int2 updatePortion = mI2(0, numObjectsH->numAllMarkers);
     
@@ -645,7 +652,7 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD
         mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
         U1CAST(fsiSystem->fsiGeneralData->activityIdentifierD),
         U1CAST(fsiSystem->fsiGeneralData->extendedActivityIdD),
-        updatePortion, numObjectsH->numRigidBodies, isErrorD);
+        updatePortion, numObjectsH->numRigidBodies, Time, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------

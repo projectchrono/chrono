@@ -70,7 +70,8 @@ class ChFluidDynamics : public ChFsiGeneral {
                               std::shared_ptr<SphMarkerDataD> sphMarkersD1, ///< Pointer SPH particle information at the first half step
                               std::shared_ptr<FsiBodiesDataD> fsiBodiesD,   ///< Pointer information of rigid bodies
                               std::shared_ptr<FsiMeshDataD> fsiMeshD,       ///< Pointer information of flexible mesh
-                              Real dT                                       ///< Simulation stepsize
+                              Real dT,                                      ///< Simulation stepsize
+                              Real Time                                     ///< Simulation time
     );
 
     /// Function to Shepard Filtering.
@@ -102,7 +103,8 @@ class ChFluidDynamics : public ChFsiGeneral {
     /// For example, particles close to a rigid body.
     virtual void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                                 std::shared_ptr<SphMarkerDataD> sphMarkersD2,
-                                std::shared_ptr<FsiBodiesDataD> fsiBodiesD);
+                                std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                                Real Time);
 
     /// Update SPH particles data.
     /// In an explicit formulation, the function relies on the explicit integration scheme.

@@ -121,9 +121,9 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         CopyDeviceDataToHalfStep();
         ChUtilsDevice::FillMyThrust4(fsiSystem->fsiGeneralData->derivVelRhoD, mR4(0));
         fluidDynamics->IntegrateSPH(fsiSystem->sphMarkersD2, fsiSystem->sphMarkersD1, fsiSystem->fsiBodiesD2,
-                                    fsiSystem->fsiMeshD, 0.5 * paramsH->dT);
+                                    fsiSystem->fsiMeshD, 0.5 * paramsH->dT, mTime);
         fluidDynamics->IntegrateSPH(fsiSystem->sphMarkersD1, fsiSystem->sphMarkersD2, fsiSystem->fsiBodiesD2,
-                                    fsiSystem->fsiMeshD, 1.0 * paramsH->dT);
+                                    fsiSystem->fsiMeshD, 1.0 * paramsH->dT, mTime);
         bceWorker->Rigid_Forces_Torques(fsiSystem->sphMarkersD2, fsiSystem->fsiBodiesD2);
         fsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
 
@@ -151,7 +151,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         fsiInterface->Copy_ChSystem_to_External();
         printf("IntegrateIISPH\n");
         fluidDynamics->IntegrateSPH(fsiSystem->sphMarkersD2, fsiSystem->sphMarkersD2, fsiSystem->fsiBodiesD2,
-                                    fsiSystem->fsiMeshD, 0.0);
+                                    fsiSystem->fsiMeshD, 0.0, mTime);
         printf("Fluid-structure forces\n");
         bceWorker->Rigid_Forces_Torques(fsiSystem->sphMarkersD2, fsiSystem->fsiBodiesD2);
         fsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
