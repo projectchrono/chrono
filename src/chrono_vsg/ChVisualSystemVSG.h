@@ -51,6 +51,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Must be called before Initialize().
     void SetCameraVertical(CameraVerticalDir vert);
 
+    // Set Clear Color
+    /// Must be called before Initialize().
+    void SetClearColor(ChColor cc);
+
     // renders the whole scene
     void Render();
 
@@ -83,7 +87,8 @@ private:
     std::string m_imageFilename;
     //
     bool m_use_skybox = false;
-    std::string m_skyboxFilename = "vsg/textures/chrono_skybox.ktx2"; // "vsg/models/chrono_sky.vsgb";
+    std::string m_skyboxFilename = "vsg/textures/chrono_skybox.ktx2";
+    ChColor m_bg_color = ChColor(1,1,1,1);
     //
     vsg::ref_ptr<vsg::Group> m_scenegraph;
     //

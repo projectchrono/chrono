@@ -139,7 +139,9 @@ vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg
     root->addChild(vsg::DrawIndexed::create(indices->size(), 1, 0, 0, 0));
     auto xform = vsg::MatrixTransform::create();
     //auto xform = vsg::MatrixTransform::create(vsg::rotate(vsg::PI * 0.5, 1.0, 0.0, 0.0));
-    if(!yup) {
+    if(yup) {
+        xform->matrix = vsg::rotate(-vsg::PI * 0.5, 0.0, 1.0, 0.0);
+    } else {
         xform->matrix = vsg::rotate(vsg::PI * 0.5, 1.0, 0.0, 0.0);
     }
     xform->addChild(root);

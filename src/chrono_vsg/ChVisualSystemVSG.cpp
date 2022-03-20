@@ -120,6 +120,14 @@ void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir vert) {
 
 ChVisualSystemVSG::~ChVisualSystemVSG() {}
 
+void ChVisualSystemVSG::SetClearColor(ChColor cc) {
+    if(!m_initialized) {
+        m_bg_color = cc;
+    } else {
+        cout << "SetClearColor() can not be used after calling Initialize()!" << endl;
+    }
+}
+
 void ChVisualSystemVSG::Initialize() {
     m_windowTraits = vsg::WindowTraits::create();
     m_windowTraits->windowTitle = m_windowTitle;
@@ -149,6 +157,12 @@ void ChVisualSystemVSG::Initialize() {
         return;
     }
     m_viewer->addWindow(m_window);
+
+    VkClearColorValue &clearColor = m_window->clearColor();
+    clearColor.float32[0] = m_bg_color.R;
+    clearColor.float32[1] = m_bg_color.G;
+    clearColor.float32[2] = m_bg_color.B;
+    clearColor.float32[3] = m_bg_color.A;
 
     // holds whole 3d stuff
     m_scenegraph = vsg::Group::create();
