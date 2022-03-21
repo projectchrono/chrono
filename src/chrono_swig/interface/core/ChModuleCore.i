@@ -347,11 +347,9 @@ using namespace chrono::fea;
 %include "ChFunction.i"
 
 // assets
-%include "ChAsset.i"
 %include "ChColor.i"
 %include "../chrono/assets/ChVisualMaterial.h"
 %include "ChVisualShape.i"
-%include "ChColorAsset.i"
 %include "ChObjShapeFile.i"
 %include "ChBoxShape.i"
 %include "ChSphereShape.i"
@@ -437,32 +435,29 @@ using namespace chrono::fea;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-// enable _automatic_ downcasting from ChAsset to derived classes (shared pointers versions)
-%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualShape, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape, chrono::ChTexture, chrono::ChAssetLevel, chrono::ChCamera, chrono::ChColorAsset)
+// enable _automatic_ downcasting from ChVisualShape to derived classes (shared pointers versions)
+%downcast_output_sharedptr(chrono::ChVisualShape, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape)
 
 %DefSharedPtrDynamicDowncast(chrono,ChContactable, ChBody)
 
 %DefSharedPtrDynamicDowncast(chrono,ChLoadable, ChBody)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadable, ChNodeBase)
 
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChVisualShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChObjShapeFile)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChBoxShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChSphereShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChCylinderShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChTexture)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChAssetLevel)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChCamera)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChLineShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChSurfaceShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChPathShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChPointPointShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChSegmentShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChSpringShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChRotSpringShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChTriangleMeshShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChEllipsoidShape)
-%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChVisualMaterial)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChObjShapeFile)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChBoxShape)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChSphereShape)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChCylinderShape)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChTexture)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChCamera)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChLineShape)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChSurfaceShape)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChPathShape)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChPointPointShape)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChSegmentShape)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChSpringShape)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChRotSpringShape)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChTriangleMeshShape)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChEllipsoidShape)
 
 %DefSharedPtrDynamicDowncast(chrono,ChBodyFrame, ChBody)
 %DefSharedPtrDynamicDowncast(chrono,ChBodyFrame, ChBodyAuxRef)
