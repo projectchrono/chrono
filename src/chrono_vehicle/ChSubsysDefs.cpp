@@ -50,7 +50,6 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
         trimesh_shape->SetMutable(false);
-        body->AddAsset(trimesh_shape);
         body->AddVisualShape(trimesh_shape, ChFrame<>());
         return;
     }
@@ -73,8 +72,6 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
         for (auto& sphere : m_vis_spheres) {
             auto sphere_shape = chrono_types::make_shared<ChSphereShape>();
             sphere_shape->GetSphereGeometry().rad = sphere.m_radius;
-            sphere_shape->Pos = sphere.m_pos;
-            body->AddAsset(sphere_shape);
             sphere_shape->AddMaterial(sph_mat);
             body->AddVisualShape(sphere_shape, ChFrame<>(sphere.m_pos));
         }
@@ -82,9 +79,6 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
         for (auto& box : m_vis_boxes) {
             auto box_shape = chrono_types::make_shared<ChBoxShape>();
             box_shape->GetBoxGeometry().SetLengths(box.m_dims);
-            box_shape->Pos = box.m_pos;
-            box_shape->Rot = box.m_rot;
-            body->AddAsset(box_shape);
             box_shape->AddMaterial(box_mat);
             body->AddVisualShape(box_shape, ChFrame<>(box.m_pos, box.m_rot));
         }
@@ -94,9 +88,6 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
             cyl_shape->GetCylinderGeometry().rad = cyl.m_radius;
             cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, cyl.m_length / 2, 0);
             cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -cyl.m_length / 2, 0);
-            cyl_shape->Pos = cyl.m_pos;
-            cyl_shape->Rot = cyl.m_rot;
-            body->AddAsset(cyl_shape);
             cyl_shape->AddMaterial(cyl_mat);
             body->AddVisualShape(cyl_shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
         }

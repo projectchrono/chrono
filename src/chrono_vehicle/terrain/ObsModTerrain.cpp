@@ -239,7 +239,6 @@ void ObsModTerrain::GenerateMesh() {
     vmesh->SetName("ISO_track");
     vmesh->SetColor(ChColor(0.6f, 0.6f, 0.8f));
     m_ground->AddVisualShape(vmesh);
-    m_ground->AddAsset(vmesh);
 }
 
 void ObsModTerrain::EnableCollisionMesh(std::shared_ptr<ChMaterialSurface> material,
@@ -267,9 +266,7 @@ void ObsModTerrain::SetupCollision() {
 
         auto box = chrono_types::make_shared<ChBoxShape>();
         box->GetBoxGeometry().SetLengths(ChVector<>(m_start_length, m_width, thickness));
-        box->Pos = loc;
         m_ground->AddVisualShape(box, ChFrame<>(loc));
-        m_ground->AddAsset(box);
 
         // we also need an end plate here
         double end_length = 10.0;
@@ -278,9 +275,7 @@ void ObsModTerrain::SetupCollision() {
 
         auto box2 = chrono_types::make_shared<ChBoxShape>();
         box2->GetBoxGeometry().SetLengths(ChVector<>(end_length, m_width, thickness));
-        box2->Pos = loc2;
         m_ground->AddVisualShape(box2, ChFrame<>(loc2));
-        m_ground->AddAsset(box2);
     }
 
     m_ground->GetCollisionModel()->BuildModel();

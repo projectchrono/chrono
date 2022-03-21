@@ -227,9 +227,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
 
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->Pos = ChVector<>(0, 0, 0);
-        trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-        body->GetAssets().push_back(trimesh_shape);
+        body->AddVisualShape(trimesh_shape, ChFrame<>());
 
         // Add corresponding moving patch to SCM terrain
         m_terrain->AddMovingPatch(body, b.m_oobb_center, b.m_oobb_dims);
@@ -318,9 +316,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy(unsigned int i) {
     // Set visualization asset
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->Pos = ChVector<>(0, 0, 0);
-    trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-    body->GetAssets().push_back(trimesh_shape);
+    body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     m_system->AddBody(body);
     m_proxies[i].push_back(ProxyBody(body, 0));

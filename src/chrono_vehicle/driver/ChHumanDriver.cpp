@@ -211,7 +211,6 @@ void ChHumanDriver::Create() {
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
 
     road->AddVisualShape(path_asset);
-    road->AddAsset(path_asset);
 }
 
 void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.

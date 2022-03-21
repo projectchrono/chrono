@@ -522,20 +522,6 @@ void ChHendricksonPRIMAXX::AddVisualizationAssets(VisualizationType vis) {
                               m_pointsR[LOWERBEAM_TB], getLowerbeamRadius(), ChColor(0.2f, 0.6f, 0.2f));
 
     // Add visualization for the springs and shocks
-    m_shockLB[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shockLB[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-
-    m_shockLB[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shockLB[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-
-    m_shockAH[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shockAH[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-
-    m_shockAH[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shockAH[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-
-
-
     m_shockLB[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
     m_shockLB[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 
@@ -554,9 +540,6 @@ void ChHendricksonPRIMAXX::AddVisualizationAssets(VisualizationType vis) {
         AddVisualizationTierod(m_tierod[LEFT], m_pointsL[TIEROD_C], m_pointsL[TIEROD_K], getTierodRadius());
         AddVisualizationTierod(m_tierod[RIGHT], m_pointsR[TIEROD_C], m_pointsR[TIEROD_K], getTierodRadius());
     } else {
-        m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-        m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-
         m_distTierod[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
         m_distTierod[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
     }
@@ -608,7 +591,6 @@ void ChHendricksonPRIMAXX::AddVisualizationLink(std::shared_ptr<ChBody> body,
     cyl->GetCylinderGeometry().p1 = p_1;
     cyl->GetCylinderGeometry().p2 = p_2;
     cyl->GetCylinderGeometry().rad = radius;
-    body->AddAsset(cyl);
     body->AddVisualShape(cyl);
 }
 
@@ -627,14 +609,12 @@ void ChHendricksonPRIMAXX::AddVisualizationLowerBeam(std::shared_ptr<ChBody> bod
     cyl_1->GetCylinderGeometry().p1 = p_C;
     cyl_1->GetCylinderGeometry().p2 = p_AH;
     cyl_1->GetCylinderGeometry().rad = radius;
-    body->AddAsset(cyl_1);
     body->AddVisualShape(cyl_1);
 
     auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = p_AH;
     cyl_2->GetCylinderGeometry().p2 = p_TB;
     cyl_2->GetCylinderGeometry().rad = radius;
-    body->AddAsset(cyl_2);
     body->AddVisualShape(cyl_2);
 }
 
@@ -657,7 +637,6 @@ void ChHendricksonPRIMAXX::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuck
         cyl_L->GetCylinderGeometry().p1 = p_L;
         cyl_L->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_L->GetCylinderGeometry().rad = radius;
-        knuckle->AddAsset(cyl_L);
         knuckle->AddVisualShape(cyl_L);
     }
 
@@ -666,7 +645,6 @@ void ChHendricksonPRIMAXX::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuck
         cyl_U->GetCylinderGeometry().p1 = p_U;
         cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_U->GetCylinderGeometry().rad = radius;
-        knuckle->AddAsset(cyl_U);
         knuckle->AddVisualShape(cyl_U);
     }
 
@@ -675,7 +653,6 @@ void ChHendricksonPRIMAXX::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuck
         cyl_T->GetCylinderGeometry().p1 = p_T;
         cyl_T->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_T->GetCylinderGeometry().rad = radius;
-        knuckle->AddAsset(cyl_T);
         knuckle->AddVisualShape(cyl_T);
     }
 }
@@ -692,7 +669,6 @@ void ChHendricksonPRIMAXX::AddVisualizationTierod(std::shared_ptr<ChBody> tierod
     cyl->GetCylinderGeometry().p1 = p_C;
     cyl->GetCylinderGeometry().p2 = p_U;
     cyl->GetCylinderGeometry().rad = radius;
-    tierod->AddAsset(cyl);
     tierod->AddVisualShape(cyl);
 }
 

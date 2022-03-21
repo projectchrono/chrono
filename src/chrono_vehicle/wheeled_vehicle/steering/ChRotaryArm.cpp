@@ -152,7 +152,6 @@ void ChRotaryArm::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p1 = m_pC;
         cyl->GetCylinderGeometry().p2 = m_pL;
         cyl->GetCylinderGeometry().rad = getPitmanArmRadius();
-        m_link->AddAsset(cyl);
         m_link->AddVisualShape(cyl);
     }
 }

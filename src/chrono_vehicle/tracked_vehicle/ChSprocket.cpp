@@ -110,18 +110,12 @@ void ChSprocket::AddVisualizationAssets(VisualizationType vis) {
 
     auto asset_1 = chrono_types::make_shared<ChLineShape>();
     asset_1->SetLineGeometry(profile);
-    asset_1->Pos = ChVector<>(0, sep / 2, 0);
-    asset_1->Rot = rot_y2z;
     asset_1->SetColor(ChColor(1, 0, 0));
-    m_gear->AddAsset(asset_1);
     m_gear->AddVisualShape(asset_1, ChFrame<>(ChVector<>(0, sep / 2, 0), rot_y2z));
 
     auto asset_2 = chrono_types::make_shared<ChLineShape>();
     asset_2->SetLineGeometry(profile);
-    asset_2->Pos = ChVector<>(0, -sep / 2, 0);
-    asset_2->Rot = rot_y2z;
     asset_2->SetColor(ChColor(1, 0, 0));
-    m_gear->AddAsset(asset_2);
     m_gear->AddVisualShape(asset_2, ChFrame<>(ChVector<>(0, -sep / 2, 0), rot_y2z));
 }
 

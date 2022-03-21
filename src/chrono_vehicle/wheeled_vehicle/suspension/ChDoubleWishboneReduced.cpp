@@ -228,33 +228,10 @@ void ChDoubleWishboneReduced::AddVisualizationAssets(VisualizationType vis) {
                             m_pointsR[LCA_U], m_pointsR[TIEROD_U], getUprightRadius());
 
     // Add visualization for the spring-dampers
-    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-
     m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
     m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
 
     // Add visualization for the arm and tie-rod distance constraints
-    ChColor col_tierod(0.8f, 0.3f, 0.3f);
-    ChColor col_upperarm(0.1f, 0.4f, 0.1f);
-    ChColor col_lowerarm(0.1f, 0.1f, 0.4f);
-
-    m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-    m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-
-    m_distUCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-    m_distUCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-
-    m_distUCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-    m_distUCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-
-    m_distLCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-    m_distLCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-
-    m_distLCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-    m_distLCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-
-
     m_distTierod[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
     m_distTierod[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 
@@ -317,7 +294,6 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> up
         cyl_L->GetCylinderGeometry().p1 = p_L;
         cyl_L->GetCylinderGeometry().p2 = p_C;
         cyl_L->GetCylinderGeometry().rad = radius;
-        upright->AddAsset(cyl_L);
         upright->AddVisualShape(cyl_L);
     }
 
@@ -326,7 +302,6 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> up
         cyl_U->GetCylinderGeometry().p1 = p_U;
         cyl_U->GetCylinderGeometry().p2 = p_C;
         cyl_U->GetCylinderGeometry().rad = radius;
-        upright->AddAsset(cyl_U);
         upright->AddVisualShape(cyl_U);
     }
 
@@ -335,7 +310,6 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> up
         cyl_T->GetCylinderGeometry().p1 = p_T;
         cyl_T->GetCylinderGeometry().p2 = p_C;
         cyl_T->GetCylinderGeometry().rad = radius;
-        upright->AddAsset(cyl_T);
         upright->AddVisualShape(cyl_T);
     }
 }

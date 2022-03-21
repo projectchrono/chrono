@@ -368,11 +368,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
             for (int iy = 0; iy < m_ny; iy++) {
                 auto sphere = chrono_types::make_shared<ChSphereShape>();
                 sphere->GetSphereGeometry().rad = radius;
-                sphere->Pos = ChVector<>(x_pos, y_pos, radius);
-                m_ground->AddAsset(sphere);
-
                 m_ground->AddVisualShape(sph_shape, ChFrame<>(ChVector<>(x_pos, y_pos, radius)));
-
                 y_pos += m_sep_y;
             }
             x_pos += m_sep_x;
@@ -432,8 +428,6 @@ void GranularTerrain::Initialize(const ChVector<>& center,
         auto box = chrono_types::make_shared<ChBoxShape>();
         double hthick = 0.05;
         box->GetBoxGeometry().Size = ChVector<>(length / 2, width / 2, hthick);
-        box->Pos = ChVector<>(0, 0, -hthick);
-        m_ground->AddAsset(box);
         m_ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -hthick)));
     }
 

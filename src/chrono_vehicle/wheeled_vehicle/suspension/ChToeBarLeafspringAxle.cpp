@@ -462,11 +462,6 @@ void ChToeBarLeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
                             getKnuckleRadius());
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-
     m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
     m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
     m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
@@ -505,7 +500,6 @@ void ChToeBarLeafspringAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     cyl->GetCylinderGeometry().p1 = p_1;
     cyl->GetCylinderGeometry().p2 = p_2;
     cyl->GetCylinderGeometry().rad = radius;
-    body->AddAsset(cyl);
     body->AddVisualShape(cyl);
 }
 
@@ -526,7 +520,6 @@ void ChToeBarLeafspringAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knu
         cyl_L->GetCylinderGeometry().p1 = p_L;
         cyl_L->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_L->GetCylinderGeometry().rad = radius;
-        knuckle->AddAsset(cyl_L);
         knuckle->AddVisualShape(cyl_L);
     }
 
@@ -535,7 +528,6 @@ void ChToeBarLeafspringAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knu
         cyl_U->GetCylinderGeometry().p1 = p_U;
         cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_U->GetCylinderGeometry().rad = radius;
-        knuckle->AddAsset(cyl_U);
         knuckle->AddVisualShape(cyl_U);
     }
 
@@ -544,7 +536,6 @@ void ChToeBarLeafspringAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knu
         cyl_T->GetCylinderGeometry().p1 = p_T;
         cyl_T->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl_T->GetCylinderGeometry().rad = radius;
-        knuckle->AddAsset(cyl_T);
         knuckle->AddVisualShape(cyl_T);
     }
 }

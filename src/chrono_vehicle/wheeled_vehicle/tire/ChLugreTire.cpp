@@ -74,7 +74,6 @@ void ChLugreTire::AddVisualizationAssets(VisualizationType vis) {
         m_cyl_shapes[id]->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + disc_locs[id] + discWidth / 2, 0);
         m_cyl_shapes[id]->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() + disc_locs[id] - discWidth / 2, 0);
         m_cyl_shapes[id]->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
-        m_wheel->GetSpindle()->AddAsset(m_cyl_shapes[id]);
         m_wheel->GetSpindle()->AddVisualShape(m_cyl_shapes[id]);
     }
 }

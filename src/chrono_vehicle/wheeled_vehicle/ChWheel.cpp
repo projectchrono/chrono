@@ -92,12 +92,9 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
                                                                                   true, true);
         trimesh->Transform(ChVector<>(0, m_offset, 0), ChMatrix33<>(rot));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->Pos = ChVector<>(0, m_offset, 0);
-        m_trimesh_shape->Rot = ChMatrix33<>(rot);
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
         m_trimesh_shape->SetMutable(false);
-        m_spindle->AddAsset(m_trimesh_shape);
         m_spindle->AddVisualShape(m_trimesh_shape, ChFrame<>(ChVector<>(0, m_offset, 0), ChMatrix33<>(rot)));
         return;
     }
@@ -109,7 +106,6 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
     m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
     m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, m_offset + GetWidth() / 2, 0);
     m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, m_offset - GetWidth() / 2, 0);
-    m_spindle->AddAsset(m_cyl_shape);
     m_spindle->AddVisualShape(m_cyl_shape);
 }
 

@@ -143,7 +143,6 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
         cyl->GetCylinderGeometry().p1 = m_pA;
         cyl->GetCylinderGeometry().p2 = m_pAW;
         cyl->GetCylinderGeometry().rad = radius;
-        m_arm->AddAsset(cyl);
         m_arm->AddVisualShape(cyl);
     }
 
@@ -152,7 +151,6 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
         cyl->GetCylinderGeometry().p1 = m_pA;
         cyl->GetCylinderGeometry().p2 = m_pAC;
         cyl->GetCylinderGeometry().rad = radius;
-        m_arm->AddAsset(cyl);
         m_arm->AddVisualShape(cyl);
     }
 
@@ -162,7 +160,6 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
         cyl->GetCylinderGeometry().p1 = m_pAC - radius * m_dY;
         cyl->GetCylinderGeometry().p2 = m_pAC + radius * m_dY;
         cyl->GetCylinderGeometry().rad = 1.5 * radius;
-        m_arm->AddAsset(cyl);
         m_arm->AddVisualShape(cyl);
     }
 
@@ -173,7 +170,6 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
         cyl->GetCylinderGeometry().p1 = m_pO;
         cyl->GetCylinderGeometry().p2 = m_pAW + (m_pAW - m_pO) * radius/len;
         cyl->GetCylinderGeometry().rad = radius;
-        m_arm->AddAsset(cyl);
         m_arm->AddVisualShape(cyl);
     }
 }

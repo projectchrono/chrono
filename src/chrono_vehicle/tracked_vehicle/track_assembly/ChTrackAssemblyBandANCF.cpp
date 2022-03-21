@@ -241,19 +241,19 @@ void ChTrackAssemblyBandANCF::AddVisualizationAssets(VisualizationType vis) {
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
-    m_track_mesh->AddAsset(mvisualizemesh);
+    m_track_mesh->AddVisualShapeFEA(mvisualizemesh);
 
     auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(m_track_mesh);
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
-    m_track_mesh->AddAsset(mvisualizemeshref);
+    m_track_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
     auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(m_track_mesh);
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
-    m_track_mesh->AddAsset(mvisualizemeshC);
+    m_track_mesh->AddVisualShapeFEA(mvisualizemeshC);
 }
 
 void ChTrackAssemblyBandANCF::RemoveVisualizationAssets() {

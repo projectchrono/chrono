@@ -91,7 +91,6 @@ void ChPathFollowerACCDriver::Create() {
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
 
     road->AddVisualShape(path_asset);
-    road->AddAsset(path_asset);
 }
 
 void ChPathFollowerACCDriver::Reset() {

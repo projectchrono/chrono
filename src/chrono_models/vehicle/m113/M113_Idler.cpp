@@ -95,7 +95,6 @@ void M113_Idler::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
         trimesh_shape->SetMutable(false);
-        m_wheel->AddAsset(trimesh_shape);
         m_wheel->AddVisualShape(trimesh_shape);
     }
 }

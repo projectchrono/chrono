@@ -615,7 +615,6 @@ void ChSuspensionTestRigPlatform::AddPostVisualization(std::shared_ptr<ChBody> p
     base_cyl->GetCylinderGeometry().rad = m_post_radius;
     base_cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
     base_cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -2 * m_post_hheight);
-    post->AddAsset(base_cyl);
     base_cyl->AddMaterial(mat);
     post->AddVisualShape(base_cyl);
 
@@ -624,7 +623,6 @@ void ChSuspensionTestRigPlatform::AddPostVisualization(std::shared_ptr<ChBody> p
     piston->GetCylinderGeometry().rad = m_post_radius / 6.0;
     piston->GetCylinderGeometry().p1 = ChVector<>(0, 0, -2 * m_post_hheight);
     piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -m_post_hheight * 20.0);
-    post->AddAsset(piston);
     piston->AddMaterial(mat);
     post->AddVisualShape(piston);
 
@@ -633,7 +631,6 @@ void ChSuspensionTestRigPlatform::AddPostVisualization(std::shared_ptr<ChBody> p
     cyl->GetCylinderGeometry().rad = m_post_radius / 4.0;
     cyl->GetCylinderGeometry().p1 = post->GetPos() - ChVector<>(0, 0, 16 * m_post_hheight);
     cyl->GetCylinderGeometry().p2 = post->GetPos() - ChVector<>(0, 0, 32 * m_post_hheight);
-    m_vehicle->GetChassisBody()->AddAsset(cyl);
     cyl->AddMaterial(mat);
     m_vehicle->GetChassisBody()->AddVisualShape(cyl);
 }
@@ -760,7 +757,6 @@ void ChSuspensionTestRigPushrod::AddRodVisualization(std::shared_ptr<ChBody> rod
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -m_rod_length);
     cyl->GetCylinderGeometry().rad = m_rod_radius;
     cyl->SetColor(color);
-    rod->AddAsset(cyl);
     rod->AddVisualShape(cyl);
 }
 

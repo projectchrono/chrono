@@ -248,7 +248,7 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.995);
     mvisualizemesh->SetSmoothFaces(false);
-    m_mesh->AddAsset(mvisualizemesh);
+    m_mesh->AddVisualShapeFEA(mvisualizemesh);
 }
 
 }  // end namespace vehicle

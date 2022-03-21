@@ -22,7 +22,6 @@
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChAssetLevel.h"
 #include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -174,8 +173,6 @@ void ChTrackShoeBand::AddShoeVisualization() {
     ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + g_hdims.z());
     auto box_pin = chrono_types::make_shared<ChBoxShape>();
     box_pin->GetBoxGeometry().Size = g_hdims;
-    box_pin->Pos = g_loc;
-    m_shoe->AddAsset(box_pin);
     m_shoe->AddVisualShape(box_pin, ChFrame<>(g_loc));
 
     // Main box
@@ -183,8 +180,6 @@ void ChTrackShoeBand::AddShoeVisualization() {
     ChVector<> b_loc(0, 0, 0);
     auto box_main = chrono_types::make_shared<ChBoxShape>();
     box_main->GetBoxGeometry().Size = b_hdims;
-    box_main->Pos = b_loc;
-    m_shoe->AddAsset(box_main);
     m_shoe->AddVisualShape(box_main, ChFrame<>(b_loc));
 
     // Pad box
@@ -192,8 +187,6 @@ void ChTrackShoeBand::AddShoeVisualization() {
     ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
     auto box_tread = chrono_types::make_shared<ChBoxShape>();
     box_tread->GetBoxGeometry().Size = t_hdims;
-    box_tread->Pos = t_loc;
-    m_shoe->AddAsset(box_tread);
     m_shoe->AddVisualShape(box_tread, ChFrame<>(t_loc));
 
     // Connection to first web segment
@@ -202,12 +195,9 @@ void ChTrackShoeBand::AddShoeVisualization() {
     cyl->GetCylinderGeometry().rad = radius;
     cyl->GetCylinderGeometry().p1 = ChVector<>(GetToothBaseLength() / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(GetToothBaseLength() / 2, +GetBeltWidth() / 2 + 2 * radius, 0);
-    m_shoe->AddAsset(cyl);
     m_shoe->AddVisualShape(cyl);
 
     // Create tooth meshes
-    m_shoe->AddAsset(ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2));
-    m_shoe->AddAsset(ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2));
     m_shoe->AddVisualShape(ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2));
     m_shoe->AddVisualShape(ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2));
 }

@@ -17,7 +17,6 @@
 // =============================================================================
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/assets/ChAssetLevel.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChColorAsset.h"
@@ -164,20 +163,16 @@ void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> con
     cyl_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * c_length, -0.5 * c_width, 0);
     cyl_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * c_length, +0.5 * c_width, 0);
     cyl_rear->GetCylinderGeometry().rad = c_radius;
-    connector->AddAsset(cyl_rear);
     connector->AddVisualShape(cyl_rear);
 
     auto cyl_front = chrono_types::make_shared<ChCylinderShape>();
     cyl_front->GetCylinderGeometry().p1 = ChVector<>(0.5 * c_length, -0.5 * c_width, 0);
     cyl_front->GetCylinderGeometry().p2 = ChVector<>(0.5 * c_length, +0.5 * c_width, 0);
     cyl_front->GetCylinderGeometry().rad = c_radius;
-    connector->AddAsset(cyl_front);
     connector->AddVisualShape(cyl_front);
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(c_length, c_width, 2 * c_radius));
-    box->Pos = ChVector<>(0, 0, 0);
-    connector->AddAsset(box);
     connector->AddVisualShape(box, ChFrame<>());
 }
 

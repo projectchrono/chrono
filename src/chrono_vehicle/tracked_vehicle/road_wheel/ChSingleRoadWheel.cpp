@@ -78,7 +78,6 @@ void ChSingleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
     cyl->GetCylinderGeometry().rad = radius;
-    m_wheel->AddAsset(cyl);
     m_wheel->AddVisualShape(cyl);
 }
 

@@ -335,7 +335,6 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
         m_trimesh_shape = std::shared_ptr<ChTriangleMeshShape>(new ChTriangleMeshShape);
         m_trimesh_shape->SetWireframe(true);
         m_trimesh_shape->SetFixedConnectivity();
-        this->AddAsset(m_trimesh_shape);
         this->AddVisualShape(m_trimesh_shape);
     }
 
