@@ -156,11 +156,8 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
 void FEAcontactTest::CreateFloor(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
     auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true, true, cmat);
     mfloor->SetBodyFixed(true);
+    mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     m_system->Add(mfloor);
-
-    auto masset_texture = chrono_types::make_shared<ChTexture>();
-    masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    mfloor->AddAsset(masset_texture);
 }
 
 void FEAcontactTest::CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
@@ -193,7 +190,7 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
     vis_speed->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     vis_speed->SetColorscaleMinMax(0.0, 5.50);
     vis_speed->SetSmoothFaces(true);
-    mesh->AddAsset(vis_speed);
+    mesh->AddVisualShapeFEA(vis_speed);
 }
 
 void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
@@ -218,13 +215,13 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
     vis_speed->SetColorscaleMinMax(0.0, 5.50);
     vis_speed->SetSmoothFaces(true);
     vis_speed->SetWireframe(true);
-    mesh->AddAsset(vis_speed);
+    mesh->AddVisualShapeFEA(vis_speed);
 
     auto vis_nodes = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
     vis_nodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     vis_nodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     vis_nodes->SetSymbolsThickness(0.008);
-    mesh->AddAsset(vis_nodes);
+    mesh->AddVisualShapeFEA(vis_nodes);
 }
 
 void FEAcontactTest::SimulateVis() {

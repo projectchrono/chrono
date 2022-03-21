@@ -56,17 +56,14 @@ MixerTestNSC<N>::MixerTestNSC() : m_system(new ChSystemNSC()), m_step(0.02) {
     for (int bi = 0; bi < N; bi++) {
         auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(1.0, 1000, true, true, mat);
         sphereBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
-        sphereBody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.4f, 0.0f, 0.0f));
         m_system->Add(sphereBody);
 
         auto boxBody = chrono_types::make_shared<ChBodyEasyBox>(1.25, 1.25, 1.25, 1000, true, true, mat);
         boxBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
-        boxBody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.0f, 0.4f, 0.0f));
         m_system->Add(boxBody);
 
         auto cylBody = chrono_types::make_shared<ChBodyEasyCylinder>(0.8, 1.0, 1000, true, true, mat);
         cylBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
-        cylBody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.0f, 0.0f, 0.4f));
         m_system->Add(cylBody);
     }
 

@@ -215,13 +215,13 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     vis_surf->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     vis_surf->SetWireframe(true);
     vis_surf->SetDrawInUndeformedReference(true);
-    mesh->AddAsset(vis_surf);
+    mesh->AddVisualShapeFEA(vis_surf);
 
     auto vis_node = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
     vis_node->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     vis_node->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     vis_node->SetSymbolsThickness(0.01);
-    mesh->AddAsset(vis_node);
+    mesh->AddVisualShapeFEA(vis_node);
 
     // Populate the mesh container with a the nodes and elements for the meshed beam
     int num_nodes = num_elements + 1;

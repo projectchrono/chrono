@@ -120,7 +120,6 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
 
         auto pend = chrono_types::make_shared<ChBodyEasyBox>(m_length, width, width, density, true, false);
         pend->SetPos(ChVector<>((ib + 0.5) * m_length, 0, 0));
-        pend->AddAsset(chrono_types::make_shared<ChColorAsset>(0.5f * (ib % 2), 0.0f, 0.5f * (ib % 2 - 1)));
         m_system->AddBody(pend);
 
         auto rev = chrono_types::make_shared<ChLinkLockRevolute>();

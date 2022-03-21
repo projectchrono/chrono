@@ -100,14 +100,10 @@ int main(int argc, char* argv[]) {
     // Create a floor
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, 1, 1000, true, true, floor_mat);
-
     mfloor->SetPos(ChVector<>(0, 0, -1));
     mfloor->SetBodyFixed(true);
+    mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     sys.Add(mfloor);
-
-    auto masset_texture = chrono_types::make_shared<ChTexture>();
-    masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    mfloor->AddAsset(masset_texture);
 
     // Create a Turtlebot Robot with default parameters.
     // The default rotational speed of the Motor is speed w=3.145 rad/sec.

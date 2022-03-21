@@ -175,7 +175,7 @@ class Model3 {
 
             auto msphere = chrono_types::make_shared<ChSphereShape>();
             msphere->GetSphereGeometry().rad = 0.02;
-            constraint_hinge->AddAsset(msphere);
+            constraint_hinge->AddVisualShape(msphere);
 
             // make a box and connect it
             auto mbox = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);

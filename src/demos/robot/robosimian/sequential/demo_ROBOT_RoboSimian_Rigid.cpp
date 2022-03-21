@@ -94,7 +94,7 @@ RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2<>& 
     m_glyphs->SetGlyphsSize(0.004);
     m_glyphs->SetZbufferHide(true);
     m_glyphs->SetDrawMode(ChGlyphs::GLYPH_POINT);
-    m_body->AddAsset(m_glyphs);
+    m_body->AddVisualShape(m_glyphs);
 }
 
 void RayCaster::Update() {
