@@ -147,7 +147,6 @@ using namespace chrono::sensor;
 //
 
 //%template(ChFrameDList) std::vector<chrono::ChFrame<double>> ;
-//%template(ChFrameDList) std::vector< std::shared_ptr<chrono::ChAsset> >;
 
 
 //

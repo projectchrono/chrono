@@ -26,7 +26,6 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChPointPointShape.h"
 
@@ -500,11 +499,6 @@ void ChSolidBellcrankThreeLinkAxle::AddVisualizationAssets(VisualizationType vis
     AddVisualizationLink(m_tierodBody[RIGHT], m_tierodOuterR, m_tierodInnerR, 0.03, ChColor(0.3f, 0.7f, 0.3f));
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChSegmentShape>());
-
     m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
     m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
     m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
@@ -538,7 +532,6 @@ void ChSolidBellcrankThreeLinkAxle::AddVisualizationLink(std::shared_ptr<ChBody>
     cyl->GetCylinderGeometry().p1 = p_1;
     cyl->GetCylinderGeometry().p2 = p_2;
     cyl->GetCylinderGeometry().rad = radius;
-    body->AddAsset(cyl);
     body->AddVisualShape(cyl);
 }
 

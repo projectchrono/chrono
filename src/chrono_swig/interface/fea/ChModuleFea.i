@@ -354,7 +354,6 @@ using namespace chrono::fea;
 // Put this 'director' feature _before_ class wrapping declaration.
 %feature("director") chrono::ChFunction;
 %import(module = "pychrono.core")  "../../../chrono/motion_functions/ChFunction.h"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChAsset.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChMaterialSurface.i"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChPhysicsItem.h"
@@ -514,7 +513,6 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzD)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzDD)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzrot)
-%DefSharedPtrDynamicDowncast2NS(chrono,chrono,ChAsset,ChVisualShapeFEA)
 %DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactTriangleXYZ)
 %DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactTriangleXYZROT)
 %DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactNodeXYZ)

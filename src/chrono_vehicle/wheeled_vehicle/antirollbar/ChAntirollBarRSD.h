@@ -26,8 +26,6 @@
 #ifndef CH_ANTIROLLBAR_RSD_H
 #define CH_ANTIROLLBAR_RSD_H
 
-#include "chrono/assets/ChColorAsset.h"
-
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
 
 namespace chrono {

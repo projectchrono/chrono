@@ -39,24 +39,24 @@ class ChApi ChCamera : public ChAsset {
     virtual ~ChCamera() {}
 
     /// Sets the position of the observer (eye point).
-    /// Expressed in the local coordinate system (ex. of the owner ChBody, of ChAssetLevel,..)
+    /// Expressed in the local coordinate system.
     void SetPosition(ChVector<> mv) { this->position = mv; }
     /// Gets the position of the observer (eye point).
-    /// Expressed in the local coordinate system (ex. of the owner ChBody, of ChAssetLevel,..)
+    /// Expressed in the local coordinate system.
     ChVector<> GetPosition() { return this->position; }
 
     /// Sets the position of the target point (aim point).
-    /// Expressed in the local coordinate system (ex. of the owner ChBody, of ChAssetLevel,..)
+    /// Expressed in the local coordinate system.
     void SetAimPoint(ChVector<> mv) { this->aimpoint = mv; }
     /// Gets the position of the target point (aim point).
-    /// Expressed in the local coordinate system (ex. of the owner ChBody, of ChAssetLevel,..)
+    /// Expressed in the local coordinate system.
     ChVector<> GetAimPoint() { return this->aimpoint; }
 
-    /// Sets the position of the 'up' direction of the camera (default is vertical, VECT_Y)
-    /// Expressed in the local coordinate system (ex. of the owner ChBody, of ChAssetLevel,..)
+    /// Sets the position of the 'up' direction of the camera (default is vertical, VECT_Y).
+    /// Expressed in the local coordinate system.
     void SetUpVector(ChVector<> mv) { this->upvector = mv.GetNormalized(); }
-    /// Gets the position of the 'up' direction of the camera (default is vertical, VECT_Y)
-    /// Expressed in the local coordinate system (ex. of the owner ChBody, of ChAssetLevel,..)
+    /// Gets the position of the 'up' direction of the camera (default is vertical, VECT_Y).
+    /// Expressed in the local coordinate system.
     ChVector<> GetUpVector() { return this->upvector; }
 
     /// Sets the opening angle of the lenses, in degrees, on horizontal direction.

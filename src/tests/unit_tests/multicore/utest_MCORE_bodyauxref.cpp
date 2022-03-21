@@ -37,7 +37,6 @@
 #include "chrono/ChConfig.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #ifdef CHRONO_OPENGL
@@ -99,7 +98,7 @@ TEST(ChronoMulticore, bodyauxref) {
     // Attach a visualization asset representing the Y axis.
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(0.02, 3, 0.02);
-    ground->AddAsset(box);
+    ground->AddVisualShape(box);
 
     // Create a pendulum modeled using ChBody
     auto pend_1 = std::shared_ptr<ChBody>(system->NewBody());
@@ -117,12 +116,7 @@ TEST(ChronoMulticore, bodyauxref) {
     cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, -1, 0);
     cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, 1, 0);
     cyl_1->GetCylinderGeometry().rad = 0.2;
-    cyl_1->Pos = ChVector<>(0, 0, 0);
-    cyl_1->Rot = y2x;
-    pend_1->AddAsset(cyl_1);
-    auto col_1 = chrono_types::make_shared<ChColorAsset>();
-    col_1->SetColor(ChColor(0.6f, 0, 0));
-    pend_1->AddAsset(col_1);
+    pend_1->AddVisualShape(cyl_1, ChFrame<>(ChVector<>(0, 0, 0), y2x));
 
     // Specify the initial position of the pendulum (horizontal, pointing towards
     // positive X). In this case, we set the absolute position of its center of
@@ -151,12 +145,7 @@ TEST(ChronoMulticore, bodyauxref) {
     cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -1, 0);
     cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, 1, 0);
     cyl_2->GetCylinderGeometry().rad = 0.2;
-    cyl_2->Pos = ChVector<>(1, 0, 0);
-    cyl_2->Rot = y2x;
-    pend_2->AddAsset(cyl_2);
-    auto col_2 = chrono_types::make_shared<ChColorAsset>();
-    col_2->SetColor(ChColor(0, 0, 0.6f));
-    pend_2->AddAsset(col_2);
+    pend_2->AddVisualShape(cyl_2, ChFrame<>(ChVector<>(1, 0, 0), y2x));
 
     // In this case, we must specify the centroidal frame, relative to the body
     // reference frame.

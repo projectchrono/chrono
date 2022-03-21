@@ -133,7 +133,6 @@ using namespace gui;
 
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChAsset.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
 

@@ -38,7 +38,6 @@
 #include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
-#include "chrono_sensor/utils/ChVisualMaterialUtils.h"
 
 using namespace chrono;
 using namespace chrono::collision;

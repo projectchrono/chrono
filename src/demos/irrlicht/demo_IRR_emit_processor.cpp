@@ -24,7 +24,6 @@
 #include "chrono/particlefactory/ChParticleEmitter.h"
 #include "chrono/particlefactory/ChParticleRemover.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 

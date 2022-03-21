@@ -16,15 +16,16 @@
 #include "chrono/core/ChMath.h"
 #include "chrono/core/ChFrame.h"
 
-#include "chrono/assets/ChAsset.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChVisualMaterial.h"
 
 namespace chrono {
 
+class ChPhysicsItem;
+
 /// Base class for a visualization asset for rendering (run-time or post processing).
 /// Encapsulates basic information about the shape position, materials, and visibility.
-class ChApi ChVisualShape : public ChAsset {
+class ChApi ChVisualShape {
   public:
     virtual ~ChVisualShape() {}
 
@@ -99,10 +100,10 @@ class ChApi ChVisualShape : public ChAsset {
     virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {}
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 
     bool visible;     ///< shape visibility flag
     bool is_mutable;  ///< flag indicating whether the shape is rigid or deformable

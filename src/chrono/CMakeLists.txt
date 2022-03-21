@@ -608,10 +608,8 @@ set(ChronoEngine_assets_SOURCES
     assets/ChCapsuleShape.cpp
     assets/ChTexture.cpp
     assets/ChCamera.cpp
-    assets/ChAssetLevel.cpp
     assets/ChColor.cpp
     assets/ChGlyphs.cpp
-    assets/ChColorAsset.cpp
     assets/ChRoundedCylinderShape.cpp
     assets/ChRoundedBoxShape.cpp
     assets/ChRoundedConeShape.cpp
@@ -639,11 +637,9 @@ set(ChronoEngine_assets_HEADERS
     assets/ChCapsuleShape.h
     assets/ChTexture.h
     assets/ChCamera.h
-    assets/ChAssetLevel.h
     assets/ChColor.h
     assets/ChMaterial.h
     assets/ChGlyphs.h
-    assets/ChColorAsset.h
     assets/ChRoundedCylinderShape.h
     assets/ChRoundedBoxShape.h
     assets/ChRoundedConeShape.h

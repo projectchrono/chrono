@@ -51,13 +51,10 @@ void Kraz_trailer_Wheel::AddVisualizationAssets(VisualizationType vis) {
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetDataFile(m_meshFile), false, false);
         trimesh->Transform(ChVector<>(0, m_offset, 0), ChMatrix33<>(rot));
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->Pos = ChVector<>(0, m_offset, 0);
-        m_trimesh_shape->Rot = ChMatrix33<>(rot);
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetMutable(false);
         m_trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
-        GetSpindle()->AddAsset(m_trimesh_shape);
-        GetSpindle()->AddVisualShape(m_trimesh_shape);
+        GetSpindle()->AddVisualShape(m_trimesh_shape, ChFrame<>(ChVector<>(0, m_offset, 0), rot));
     } else {
         ChWheel::AddVisualizationAssets(vis);
     }

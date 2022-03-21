@@ -123,7 +123,6 @@ void TrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         trimesh_shape->SetMutable(false);
-        m_shoe->AddAsset(trimesh_shape);
         m_shoe->AddVisualShape(trimesh_shape);
     } else {
         ChTrackShoeBandANCF::AddVisualizationAssets(vis);

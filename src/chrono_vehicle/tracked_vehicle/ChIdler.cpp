@@ -26,7 +26,6 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChPointPointShape.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
@@ -137,7 +136,6 @@ void ChIdler::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p1 = m_pW;
         cyl->GetCylinderGeometry().p2 = m_pC;
         cyl->GetCylinderGeometry().rad = radius;
-        m_carrier->AddAsset(cyl);
         m_carrier->AddVisualShape(cyl);
     }
 
@@ -146,19 +144,14 @@ void ChIdler::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p1 = m_pC;
         cyl->GetCylinderGeometry().p2 = m_pT;
         cyl->GetCylinderGeometry().rad = radius;
-        m_carrier->AddAsset(cyl);
         m_carrier->AddVisualShape(cyl);
     }
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(3 * radius, radius, radius);
-    box->Pos = m_pT;
-    box->Rot = ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0));
-    m_carrier->AddAsset(box);
     m_carrier->AddVisualShape(box, ChFrame<>(m_pT, ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0))));
 
     // Visualization of the tensioner spring (with default color)
-    m_tensioner->AddAsset(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
     m_tensioner->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
 }
 

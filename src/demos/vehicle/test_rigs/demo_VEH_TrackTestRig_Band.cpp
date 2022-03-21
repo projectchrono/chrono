@@ -289,17 +289,9 @@ int main(int argc, char* argv[]) {
     // -----------------
 
     auto sys = rig->GetSystem();
-    std::vector<size_t> nassets;
-    for (auto& mesh : sys->Get_meshlist()) {
-        nassets.push_back(mesh->GetAssets().size());
-    }
     cout << "Number of bodies:        " << sys->Get_bodylist().size() << endl;
     cout << "Number of physics items: " << sys->Get_otherphysicslist().size() << endl;
     cout << "Number of FEA meshes:    " << sys->Get_meshlist().size() << endl;
-    cout << "Number of assets/mesh:   ";
-    for (auto i : nassets)
-        cout << i << " ";
-    cout << endl;
 
     // -----------------
     // Initialize output

@@ -40,7 +40,6 @@
 // #include "chrono_sensor/filters/ChFilterSave.h"
 // #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
 // #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
-#include "chrono_sensor/utils/ChVisualMaterialUtils.h"
 
 using namespace chrono;
 using namespace chrono::geometry;

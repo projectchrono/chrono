@@ -18,7 +18,6 @@
 // =============================================================================
 
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChGlobal.h"
@@ -155,7 +154,6 @@ void ChTrackShoeBandBushing::RemoveVisualizationAssets() {
 void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment) {
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(m_seg_length, GetBeltWidth(), GetWebThickness()));
-    segment->AddAsset(box);
     segment->AddVisualShape(box);
 
     auto cyl = chrono_types::make_shared<ChCylinderShape>();
@@ -163,7 +161,6 @@ void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment
     cyl->GetCylinderGeometry().rad = radius;
     cyl->GetCylinderGeometry().p1 = ChVector<>(m_seg_length / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(m_seg_length / 2, +GetBeltWidth() / 2 + 2 * radius, 0);
-    segment->AddAsset(cyl);
     segment->AddVisualShape(cyl);
 }
 

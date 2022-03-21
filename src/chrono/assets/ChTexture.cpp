@@ -31,8 +31,6 @@ ChTexture::ChTexture(const std::string& filename, ChVector2<float> scale)
 void ChTexture::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChTexture>();
-    // serialize parent class
-    ChAsset::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(m_filename);
 }
@@ -40,8 +38,6 @@ void ChTexture::ArchiveOUT(ChArchiveOut& marchive) {
 void ChTexture::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChTexture>();
-    // deserialize parent class
-    ChAsset::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(m_filename);
 }

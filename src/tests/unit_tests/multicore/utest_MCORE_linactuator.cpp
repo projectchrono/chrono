@@ -112,9 +112,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
 
     auto box_g = chrono_types::make_shared<ChBoxShape>();
     box_g->GetBoxGeometry().SetLengths(ChVector<>(0.1, 0.1, 5));
-    box_g->Pos = 2.5 * axis;
-    box_g->Rot = rot;
-    ground->AddAsset(box_g);
+    ground->AddVisualShape(box_g, ChFrame<>(2.5 * axis, rot));
 
     // Create the plate body.
     plate = std::shared_ptr<ChBody>(msystem->NewBody());
@@ -127,7 +125,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
 
     auto box_p = chrono_types::make_shared<ChBoxShape>();
     box_p->GetBoxGeometry().SetLengths(ChVector<>(1, 1, 0.2));
-    plate->AddAsset(box_p);
+    plate->AddVisualShape(box_p);
 
     // Create prismatic (translational) joint between plate and ground.
     // We set the ground as the "master" body (second one in the initialization

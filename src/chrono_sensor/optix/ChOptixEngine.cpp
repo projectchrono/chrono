@@ -30,12 +30,10 @@
 #include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/sensors/ChRadarSensor.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"
-#include "chrono_sensor/utils/ChVisualMaterialUtils.h"
 
 #include "chrono/assets/ChAsset.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChConeShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
@@ -546,12 +544,6 @@ void ChOptixEngine::ConstructScene() {
 
     // iterate through all bodies in Chrono and add a subnode for each body in Chrono
     for (auto body : m_system->Get_bodylist()) {
-        // check that the body list is not empty
-        // if (body->GetAssets().size() > 0) {
-        // if (body->GetVisualModel()->GetShapes().size() > 0) {
-        // iterate through all assets in the body
-        // for (auto asset : body->GetAssets()) {
-        // for (auto asset : body->GetVisualModel()->GetShapes()) {
         if (body->GetVisualModel()) {
             for (auto& shape_instance : body->GetVisualModel()->GetShapes()) {
                 const auto& shape = shape_instance.first;
@@ -608,9 +600,6 @@ void ChOptixEngine::ConstructScene() {
 
     // // Assumption made here that other physics items don't have a transform -> not always true!!!
     for (auto item : m_system->Get_otherphysicslist()) {
-    //     // add items one by one
-
-    //     if (item->GetAssets().size() > 0) {
         if (item->GetVisualModel()) {
             for (auto& shape_instance : item->GetVisualModel()->GetShapes()) {
                 const auto& shape = shape_instance.first;
@@ -651,36 +640,6 @@ void ChOptixEngine::ConstructScene() {
                 }
 
             }
-
-
-    //         for (auto asset : item->GetAssets()) {
-    //             if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-    //                 // ChVector<double> asset_pos = visual_asset->Pos;
-    //                 // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
-
-    //                 auto dummy_body = chrono_types::make_shared<ChBody>();
-
-    //                 if (!visual_asset->IsVisible()) {
-    //                     std::cout << "Ignoring an asset that is set to invisible in otherphysicslist\n";
-    //                 } else if (std::shared_ptr<ChBoxShape> box_shape = std::dynamic_pointer_cast<ChBoxShape>(asset))
-    //                 {
-    //                     boxVisualization(dummy_body, box_shape, visual_asset);
-    //                 } else if (std::shared_ptr<ChCylinderShape> cylinder_shape =
-    //                                std::dynamic_pointer_cast<ChCylinderShape>(asset)) {
-    //                     cylinderVisualization(dummy_body, cylinder_shape, visual_asset);
-    //                 } else if (std::shared_ptr<ChSphereShape> sphere_shape =
-    //                                std::dynamic_pointer_cast<ChSphereShape>(asset)) {
-    //                     sphereVisualization(dummy_body, sphere_shape, visual_asset);
-    //                 } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
-    //                                std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
-    //                     if (!trimesh_shape->IsMutable()) {
-    //                         rigidMeshVisualization(dummy_body, trimesh_shape, visual_asset);
-    //                     } else {
-    //                         deformableMeshVisualization(dummy_body, trimesh_shape, visual_asset);
-    //                     }
-    //                 }
-    //             }
-    //         }
         }
     }
 

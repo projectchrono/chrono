@@ -207,19 +207,19 @@ ANCFHexaTest::ANCFHexaTest(int num_elements, SolverType solver_type, int NumThre
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetSmoothFaces(true);
-    mesh->AddAsset(mvisualizemesh);
+    mesh->AddVisualShapeFEA(mvisualizemesh);
 
     auto mvisualizemeshlines = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
     mvisualizemeshlines->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshlines->SetWireframe(true);
     mvisualizemeshlines->SetDrawInUndeformedReference(false);
-    mesh->AddAsset(mvisualizemeshlines);
+    mesh->AddVisualShapeFEA(mvisualizemeshlines);
 
     auto mvisualizemeshnode = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
     mvisualizemeshnode->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshnode->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshnode->SetSymbolsThickness(0.004);
-    mesh->AddAsset(mvisualizemeshnode);
+    mesh->AddVisualShapeFEA(mvisualizemeshnode);
 
     // Populate the mesh container with a the nodes and elements for the meshed plate
     double dx = length / (2 * num_elements);

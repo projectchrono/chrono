@@ -72,7 +72,6 @@ void ChBodyEasySphere::SetupBody(double radius,
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);
-        this->AddAsset(vshape);  //// REMOVE
     }
 }
 
@@ -123,7 +122,6 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector<> radius,
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);
-        this->AddAsset(vshape);  //// REMOVE
     }
 }
 
@@ -177,7 +175,6 @@ void ChBodyEasyCylinder::SetupBody(double radius,
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);
-        this->AddAsset(vshape);  //// REMOVE
     }
 }
 
@@ -232,7 +229,6 @@ void ChBodyEasyBox::SetupBody(double Xsize,
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);
-        this->AddAsset(vshape);  //// REMOVE
     }
 }
 
@@ -269,7 +265,6 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector<>>& points,
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);
-        this->AddAsset(vshape);  //// REMOVE
     }
 
     double mass;
@@ -336,7 +331,6 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector<>>& points,
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);
-        this->AddAsset(vshape);  //// REMOVE
     }
 
     double mass;
@@ -437,7 +431,6 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);
-        this->AddAsset(vshape);  //// REMOVE
     }
 
     this->SetDensity((float)density);
@@ -551,7 +544,6 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector<>>& positions,
             vshape->GetSphereGeometry().rad = radii[i];
             vshape->GetSphereGeometry().center = offset_positions[i];
             vmodel->AddShape(vshape);
-            this->AddAsset(vshape);  //// REMOVE
         }
         this->AddVisualModel(vmodel);
     }

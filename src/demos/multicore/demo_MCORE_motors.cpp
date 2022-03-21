@@ -19,7 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorLinearForce.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"

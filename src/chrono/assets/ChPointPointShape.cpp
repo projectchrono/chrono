@@ -39,11 +39,6 @@ void ChPointPointShape::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
     }
 }
 
-//// RADU TODO obsolete
-void ChPointPointShape::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
-    Update(updater, ChFrame<>(coords));
-}
-
 // Set line geometry as a segment between two end point
 void ChSegmentShape::UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) {
     this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(
@@ -104,11 +99,6 @@ void ChRotSpringShape::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
     }
 
     this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(linepath));
-}
-
-//// RADU TODO obsolete
-void ChRotSpringShape::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
-    Update(updater, ChFrame<>(coords));
 }
 
 }  // end namespace chrono

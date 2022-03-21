@@ -26,7 +26,6 @@
 #include <random>
 #include <cmath>
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
@@ -494,7 +493,6 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
             bezier_asset_left->SetLineGeometry(bezier_line_left);
             bezier_asset_left->SetNumRenderPoints(num_render_points);
             bezier_asset_left->SetName(m_curve_left_name);
-            m_ground->AddAsset(bezier_asset_left);
             m_ground->AddVisualShape(bezier_asset_left);
 
             auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
@@ -502,7 +500,6 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
             bezier_asset_right->SetLineGeometry(bezier_line_right);
             bezier_asset_right->SetNumRenderPoints(num_render_points);
             bezier_asset_right->SetName(m_curve_right_name);
-            m_ground->AddAsset(bezier_asset_right);
             m_ground->AddVisualShape(bezier_asset_right);
 
             break;
@@ -515,7 +512,6 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
             vmesh->SetMesh(m_mesh);
             vmesh->SetMutable(false);
             vmesh->SetName("ISO_track");
-            m_ground->AddAsset(vmesh);
             m_ground->AddVisualShape(vmesh);
 
             break;
@@ -548,8 +544,6 @@ void RandomSurfaceTerrain::SetupCollision() {
 
         auto box = chrono_types::make_shared<ChBoxShape>();
         box->GetBoxGeometry().SetLengths(ChVector<>(m_start_length, m_width, thickness));
-        box->Pos = loc;
-        m_ground->AddAsset(box);
         m_ground->AddVisualShape(box, ChFrame<>(loc));
     }
 

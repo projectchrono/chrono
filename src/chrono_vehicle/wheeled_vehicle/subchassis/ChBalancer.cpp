@@ -19,7 +19,6 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/wheeled_vehicle/subchassis/ChBalancer.h"
@@ -127,12 +126,10 @@ void ChBalancer::AddVisualizationAssets(VisualizationType vis) {
 
     auto box_left = chrono_types::make_shared<ChBoxShape>();
     box_left->GetBoxGeometry().SetLengths(GetBalancerBeamDimensions());
-    m_beam[LEFT]->AddAsset(box_left);
     m_beam[LEFT]->AddVisualShape(box_left);
 
     auto box_right = chrono_types::make_shared<ChBoxShape>();
     box_right->GetBoxGeometry().SetLengths(GetBalancerBeamDimensions());
-    m_beam[RIGHT]->AddAsset(box_right);
     m_beam[RIGHT]->AddVisualShape(box_right);
 }
 

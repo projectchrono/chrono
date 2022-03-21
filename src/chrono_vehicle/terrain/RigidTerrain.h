@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "chrono/assets/ChColor.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/physics/ChBody.h"

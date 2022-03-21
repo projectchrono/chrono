@@ -233,18 +233,11 @@ void ChPart::ExportBodyLoadList(rapidjson::Document& jsonDocument, std::vector<s
 }
 
 void ChPart::RemoveVisualizationAssets(std::shared_ptr<ChPhysicsItem> item) {
-    item->GetAssets().clear();  //// RADU obsolete
     if (item->GetVisualModel())
         item->GetVisualModel()->Clear();
 }
 
 void ChPart::RemoveVisualizationAsset(std::shared_ptr<ChPhysicsItem> item, std::shared_ptr<ChVisualShape> shape) {
-    {
-        auto assets = item->GetAssets();
-        auto it = std::find(assets.begin(), assets.end(), shape);
-        if (it != assets.end())
-            assets.erase(it);
-    }
     if (item->GetVisualModel())
         item->GetVisualModel()->Erase(shape);
 }

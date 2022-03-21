@@ -72,10 +72,10 @@ ChVisualShapeFEA::ChVisualShapeFEA(std::shared_ptr<fea::ChMesh> fea_mesh) {
     undeformed_reference = false;
 
     m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    AddAsset(m_trimesh_shape);
+    ////AddAsset(m_trimesh_shape);
 
     m_glyphs_shape = chrono_types::make_shared<ChGlyphs>();
-    AddAsset(m_glyphs_shape);
+    ////AddAsset(m_glyphs_shape);
 }
 
 ChColor ChVisualShapeFEA::ComputeFalseColor2(double mv) {
@@ -289,11 +289,6 @@ void ChVisualShapeFEA::UpdateBuffers_Hex(std::shared_ptr<ChElementBase> element,
         trianglemesh.getIndicesNormals()[i_triindex - 1] = ChVector<int>(20, 22, 21) + inorm_offset;
         i_vnorms += 24;
     }
-}
-
-//// RADU TODO obsolete
-void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
-    Update(updater, ChFrame<>(coords));
 }
 
 void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
@@ -1242,10 +1237,6 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                 // other...
             }
         }
-
-    // Finally, update also the children, in case they implemented Update(),
-    // and do this by calling the parent class implementation of ChAssetLevel
-    ChAssetLevel::Update(updater, frame.GetCoord());
 }
 
 }  // end namespace chrono

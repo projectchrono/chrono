@@ -20,7 +20,7 @@ namespace irrlicht {
 
 using namespace irr;
 
-ChIrrNodeShape::ChIrrNodeShape(std::shared_ptr<ChAsset> shape, ISceneNode* parent)
+ChIrrNodeShape::ChIrrNodeShape(std::shared_ptr<ChVisualShape> shape, ISceneNode* parent)
     : ISceneNode(parent, parent->getSceneManager(), 0), m_shape(shape), m_initial_update(true) {}
 
 scene::ISceneNode* ChIrrNodeShape::clone(ISceneNode* newParent, scene::ISceneManager* newManager) {

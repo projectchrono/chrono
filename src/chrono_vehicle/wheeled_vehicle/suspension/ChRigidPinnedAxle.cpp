@@ -31,7 +31,6 @@
 
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChPointPointShape.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChRigidPinnedAxle.h"
 
@@ -207,7 +206,6 @@ void ChRigidPinnedAxle::AddVisualizationAssets(VisualizationType vis) {
     cyl1->GetCylinderGeometry().p1 = pSL;
     cyl1->GetCylinderGeometry().p2 = pSR;
     cyl1->GetCylinderGeometry().rad = getAxleTubeRadius();
-    m_axleTube->AddAsset(cyl1);
     m_axleTube->AddVisualShape(cyl1);
 
     static const double threshold2 = 1e-6;
@@ -216,7 +214,6 @@ void ChRigidPinnedAxle::AddVisualizationAssets(VisualizationType vis) {
         cyl2->GetCylinderGeometry().p1 = pP;
         cyl2->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
         cyl2->GetCylinderGeometry().rad = getAxleTubeRadius() / 2;
-        m_axleTube->AddAsset(cyl2);
         m_axleTube->AddVisualShape(cyl2);
     }
 
@@ -224,7 +221,6 @@ void ChRigidPinnedAxle::AddVisualizationAssets(VisualizationType vis) {
     cyl3->GetCylinderGeometry().p1 = pP - ChVector<>(1.5 * getAxleTubeRadius(), 0, 0);
     cyl3->GetCylinderGeometry().p2 = pP + ChVector<>(1.5 * getAxleTubeRadius(), 0, 0);
     cyl3->GetCylinderGeometry().rad = getAxleTubeRadius();
-    m_axleTube->AddAsset(cyl3);
     m_axleTube->AddVisualShape(cyl3);
 }
 

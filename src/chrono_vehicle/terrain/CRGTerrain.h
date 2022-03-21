@@ -29,7 +29,6 @@
 #define CRGTERRAIN_H
 
 #include "chrono/assets/ChColor.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono/physics/ChBody.h"

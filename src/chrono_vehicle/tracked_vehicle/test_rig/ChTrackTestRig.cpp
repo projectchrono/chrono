@@ -28,7 +28,6 @@
 #include <cstdio>
 
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -390,7 +389,6 @@ void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
     base_cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
     base_cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -2 * m_post_hheight);
     base_cyl->AddMaterial(mat);
-    post->AddAsset(base_cyl);
     post->AddVisualShape(base_cyl);
 
     // Piston (on post body)
@@ -399,7 +397,6 @@ void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
     piston->GetCylinderGeometry().p1 = ChVector<>(0, 0, -2 * m_post_hheight);
     piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -30 * m_post_hheight);
     piston->AddMaterial(mat);
-    post->AddAsset(piston);
     post->AddVisualShape(piston);
 
     // Post sleeve (on chassis/ground body)
@@ -408,7 +405,6 @@ void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
     cyl->GetCylinderGeometry().p1 = post->GetPos() - ChVector<>(0, 0, 16 * m_post_hheight);
     cyl->GetCylinderGeometry().p2 = post->GetPos() - ChVector<>(0, 0, 32 * m_post_hheight);
     cyl->AddMaterial(mat);
-    chassis->AddAsset(cyl);
     chassis->AddVisualShape(cyl);
 }
 
