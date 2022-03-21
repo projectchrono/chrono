@@ -135,7 +135,7 @@ public:
     /// Access the vector of 2nd time derivative of modal coordinates (accelerations)
     ChVectorDynamic<>& Get_modal_q_dtdt()  { return modal_q_dtdt; }
     /// Access the vector of applied forces to modal coordinates
-    ChVectorDynamic<>& Get_modal_F()  { return modal_F; }
+    ChVectorDynamic<>& Get_custom_F_modal()  { return custom_F_modal; }
 
     /// Access the modal mass matrix - read only
     const ChMatrixDynamic<>& Get_modal_M() const { return modal_M; }
@@ -428,7 +428,8 @@ public:
     ChVectorDynamic<> modal_q;
     ChVectorDynamic<> modal_q_dt;
     ChVectorDynamic<> modal_q_dtdt;
-    ChVectorDynamic<> modal_F;
+    ChVectorDynamic<> custom_F_modal;
+    ChVectorDynamic<> custom_F_full;
 
     ChKblockGeneric   modal_Hblock;
     ChMatrixDynamic<> modal_M;

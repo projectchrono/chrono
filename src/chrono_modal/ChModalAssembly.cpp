@@ -43,7 +43,7 @@ ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(othe
     modal_q = other.modal_q;
     modal_q_dt = other.modal_q_dt;
     modal_q_dtdt = other.modal_q_dtdt;
-    modal_F = other.modal_F;
+    custom_F_modal = other.custom_F_modal;
     internal_nodes_update = other.internal_nodes_update;
 
     //// TODO:  deep copy of the object lists (internal_bodylist, internal_linklist, internal_meshlist,  internal_otherphysicslist)
@@ -307,7 +307,8 @@ void ChModalAssembly::SetupModalData(int nmodes_reduction) {
         this->modal_q.setZero(this->n_modes_coords_w);
         this->modal_q_dt.setZero(this->n_modes_coords_w);
         this->modal_q_dtdt.setZero(this->n_modes_coords_w);
-        this->modal_F.setZero(this->n_modes_coords_w);
+        this->custom_F_modal.setZero(this->n_modes_coords_w);
+        this->custom_F_full.setZero(this->n_boundary_coords_w + this->n_internal_coords_w );
     }
 }
 
@@ -1439,8 +1440,14 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         R.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w) -= c * (this->modal_K * Dx_local); // +this->modal_R * v_local); // ***TODO*** add damping in local sys. Also note -= sign
 
         // 2-
-        // Add custom modal forces
-        R.segment(displ_v + this->n_boundary_coords_w, this->n_modes_coords_w) += c * this->modal_F;
+        // Add custom forces (in modal coordinates)
+        if (!this->custom_F_modal.isZero())
+            R.segment(displ_v + this->n_boundary_coords_w, this->n_modes_coords_w) += c * this->custom_F_modal;
+
+        // 3-
+        // Add custom forces (applied to the original non reduced system) 
+        if (!this->custom_F_full.isZero())
+            R.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w) += c * this->Psi.transpose() * this->custom_F_full;
 
     }
 }
@@ -1770,7 +1777,8 @@ void ChModalAssembly::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(modal_q, "modal_q");
     marchive << CHNVP(modal_q_dt, "modal_q_dt");
     marchive << CHNVP(modal_q_dtdt, "modal_q_dtdt");
-    marchive << CHNVP(modal_F, "modal_F");
+    marchive << CHNVP(custom_F_modal, "custom_F_modal");
+    marchive << CHNVP(custom_F_full, "custom_F_full");
     marchive << CHNVP(internal_nodes_update, "internal_nodes_update");
 }
 
@@ -1809,7 +1817,8 @@ void ChModalAssembly::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(modal_q, "modal_q");
     marchive >> CHNVP(modal_q_dt, "modal_q_dt");
     marchive >> CHNVP(modal_q_dtdt, "modal_q_dtdt");
-    marchive >> CHNVP(modal_F, "modal_F");
+    marchive >> CHNVP(custom_F_modal, "custom_F_modal");
+    marchive >> CHNVP(custom_F_full, "custom_F_full");
     marchive >> CHNVP(internal_nodes_update, "internal_nodes_update");
 
     // Recompute statistics, offsets, etc.
