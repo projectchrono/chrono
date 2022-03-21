@@ -17,7 +17,6 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/particlefactory/ChParticleEmitter.h"
 #include "chrono/particlefactory/ChParticleRemover.h"

@@ -20,7 +20,6 @@
 #include "chrono/core/ChGlobal.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h"

@@ -610,7 +610,6 @@ set(ChronoEngine_assets_SOURCES
     assets/ChCamera.cpp
     assets/ChColor.cpp
     assets/ChGlyphs.cpp
-    assets/ChColorAsset.cpp
     assets/ChRoundedCylinderShape.cpp
     assets/ChRoundedBoxShape.cpp
     assets/ChRoundedConeShape.cpp
@@ -641,7 +640,6 @@ set(ChronoEngine_assets_HEADERS
     assets/ChColor.h
     assets/ChMaterial.h
     assets/ChGlyphs.h
-    assets/ChColorAsset.h
     assets/ChRoundedCylinderShape.h
     assets/ChRoundedBoxShape.h
     assets/ChRoundedConeShape.h

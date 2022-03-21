@@ -14,7 +14,6 @@
 
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCamera.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChObjShapeFile.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -721,19 +720,6 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 // POV macro - end
                 assets_file << "#end \n";
             }
-
-            // *) asset k of object i is a color ?
-            if (auto myobjasset = std::dynamic_pointer_cast<ChColorAsset>(k_asset)) {
-                // POV macro to build the asset - begin
-                assets_file << "#macro cm_" << (size_t)k_asset.get() << "()\n";
-
-                // add POV  pigment
-                assets_file << " pigment {color rgbt <" << myobjasset->GetColor().R << "," << myobjasset->GetColor().G
-                            << "," << myobjasset->GetColor().B << "," << myobjasset->GetColor().A << "> }\n";
-
-                // POV macro - end
-                assets_file << "#end \n";
-            }
         }
 
     }  // end loop on assets of i-th object
@@ -777,17 +763,6 @@ void ChPovRay::_recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& ass
             this->camera_orthographic = mycamera->GetOrthographic();
         }
     }  // end loop on assets
-
-    // Scan again assets in object and write the macros for setting color/texture etc.
-    // (this because the pigments must be last in the POV union{}
-    for (unsigned int k = 0; k < assetlist.size(); k++) {
-        std::shared_ptr<ChAsset> k_asset = assetlist[k];
-
-        if (std::dynamic_pointer_cast<ChPovRayAssetCustom>(k_asset) || std::dynamic_pointer_cast<ChTexture>(k_asset) ||
-            std::dynamic_pointer_cast<ChColorAsset>(k_asset)) {
-            mfilepov << "cm_" << (size_t)k_asset.get() << "()\n";
-        }
-    }
 
     // write the rotation and position
     if (!(parentframe.GetCoord() == CSYSNORM)) {

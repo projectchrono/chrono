@@ -21,7 +21,6 @@
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/utils/ChBenchmark.h"
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"

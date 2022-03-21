@@ -26,7 +26,6 @@
 #include <random>
 #include <cmath>
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"

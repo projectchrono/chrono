@@ -22,7 +22,6 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/particlefactory/ChParticleEmitter.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 

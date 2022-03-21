@@ -37,7 +37,6 @@
 #include "chrono/ChConfig.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #ifdef CHRONO_OPENGL

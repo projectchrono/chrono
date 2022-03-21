@@ -28,7 +28,6 @@
 #include <cstdio>
 
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"

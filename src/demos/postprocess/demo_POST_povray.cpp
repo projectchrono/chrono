@@ -19,7 +19,6 @@
 
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCamera.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChObjShapeFile.h"
 #include "chrono/assets/ChSphereShape.h"

@@ -24,7 +24,6 @@
 #include <ostream>
 #include <unordered_map>
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLoadContainer.h"

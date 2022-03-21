@@ -28,7 +28,6 @@
 #ifndef GRANULAR_TERRAIN_H
 #define GRANULAR_TERRAIN_H
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"

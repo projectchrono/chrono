@@ -26,7 +26,6 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChPointPointShape.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"

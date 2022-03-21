@@ -19,7 +19,6 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/wheeled_vehicle/subchassis/ChBalancer.h"

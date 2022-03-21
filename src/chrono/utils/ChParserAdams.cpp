@@ -31,7 +31,6 @@
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChObjShapeFile.h"

@@ -23,8 +23,6 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
-#include "chrono/assets/ChColorAsset.h"
-
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif

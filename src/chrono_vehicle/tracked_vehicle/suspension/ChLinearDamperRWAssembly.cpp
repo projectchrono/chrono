@@ -19,7 +19,6 @@
 
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChPointPointShape.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperRWAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"

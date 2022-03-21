@@ -61,7 +61,6 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChPointPointShape.h"
 
