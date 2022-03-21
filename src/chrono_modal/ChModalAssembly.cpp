@@ -45,6 +45,8 @@ ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(othe
     modal_q_dtdt = other.modal_q_dtdt;
     custom_F_modal = other.custom_F_modal;
     internal_nodes_update = other.internal_nodes_update;
+    m_custom_F_modal_callback = other.m_custom_F_modal_callback;
+    m_custom_F_full_callback = other.m_custom_F_full_callback;
 
     //// TODO:  deep copy of the object lists (internal_bodylist, internal_linklist, internal_meshlist,  internal_otherphysicslist)
 }
@@ -1022,6 +1024,7 @@ void ChModalAssembly::Setup() {
     n_internal_sysvars_w = n_internal_coords_w + n_internal_doc_w;  // total number of variables (with 6 dof per body)
     n_internal_dof = n_internal_coords_w - n_internal_doc_w;
 
+    this->custom_F_full.resize(this->n_boundary_coords_w + this->n_internal_coords_w);
 
     // For the modal part:
     //
@@ -1083,12 +1086,21 @@ void ChModalAssembly::Update(bool update_assets) {
         for (int ip = 0; ip < (int)internal_meshlist.size(); ++ip) {
             internal_meshlist[ip]->Update(ChTime, update_assets);
         }
+
+        if (m_custom_F_full_callback)
+            m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
     }
     else {
         // If in modal reduction mode, the internal parts would not be updated (actually, these could even be removed)
         // However one still might want to see the internal nodes "moving" during animations, 
         if (this->internal_nodes_update)
             this->SetInternalStateWithModes(update_assets);
+
+        if (m_custom_F_modal_callback)
+            m_custom_F_modal_callback->evaluate(this->custom_F_modal, *this);
+
+        if (m_custom_F_full_callback)
+            m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
     }
 
 }
@@ -1212,6 +1224,9 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
         for (auto& item : internal_otherphysicslist) {
             item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T, full_update);
         }
+
+        if (m_custom_F_full_callback)
+            m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
     }
     else {
         this->modal_q    = x.segment(off_x + this->n_boundary_coords,   this->n_modes_coords_w);
@@ -1222,6 +1237,12 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
         // However one still might want to see the internal nodes "moving" during animations, 
         if (this->internal_nodes_update)
             this->SetInternalStateWithModes(full_update);
+
+        if (m_custom_F_modal_callback)
+            m_custom_F_modal_callback->evaluate(this->custom_F_modal, *this);
+
+        if (m_custom_F_full_callback)
+            m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
     }
 }
 
@@ -1428,6 +1449,11 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         for (auto& item : internal_otherphysicslist) {
             item->IntLoadResidual_F(displ_v + item->GetOffset_w(), R, c);
         }
+
+        // Add custom forces (applied to the original non reduced system) 
+        if (!this->custom_F_full.isZero()) {
+            R.segment(displ_v, this->n_boundary_coords_w + this->n_internal_coords_w) += c * this->custom_F_full;
+        }
     }
     else {
         // 1-
@@ -1445,7 +1471,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
             R.segment(displ_v + this->n_boundary_coords_w, this->n_modes_coords_w) += c * this->custom_F_modal;
 
         // 3-
-        // Add custom forces (applied to the original non reduced system) 
+        // Add custom forces (applied to the original non reduced system, and transformed into reduced) 
         if (!this->custom_F_full.isZero())
             R.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w) += c * this->Psi.transpose() * this->custom_F_full;
 
