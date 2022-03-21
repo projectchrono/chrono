@@ -608,7 +608,6 @@ set(ChronoEngine_assets_SOURCES
     assets/ChCapsuleShape.cpp
     assets/ChTexture.cpp
     assets/ChCamera.cpp
-    assets/ChAssetLevel.cpp
     assets/ChColor.cpp
     assets/ChGlyphs.cpp
     assets/ChColorAsset.cpp
@@ -639,7 +638,6 @@ set(ChronoEngine_assets_HEADERS
     assets/ChCapsuleShape.h
     assets/ChTexture.h
     assets/ChCamera.h
-    assets/ChAssetLevel.h
     assets/ChColor.h
     assets/ChMaterial.h
     assets/ChGlyphs.h

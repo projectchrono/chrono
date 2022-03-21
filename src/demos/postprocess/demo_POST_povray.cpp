@@ -17,7 +17,6 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChAssetLevel.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCamera.h"
 #include "chrono/assets/ChColorAsset.h"
@@ -52,32 +51,27 @@ int main(int argc, char* argv[]) {
 
     // Create a rigid body as usual, and add it
     // to the physical system:
-    auto mfloor = chrono_types::make_shared<ChBody>();
-    mfloor->SetBodyFixed(true);
+    auto floor = chrono_types::make_shared<ChBody>();
+    floor->SetBodyFixed(true);
 
     // Define a collision shape
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    mfloor->GetCollisionModel()->ClearModel();
-    mfloor->GetCollisionModel()->AddBox(floor_mat, 10, 0.5, 10, ChVector<>(0, -1, 0));
-    mfloor->GetCollisionModel()->BuildModel();
-    mfloor->SetCollide(true);
+    floor->GetCollisionModel()->ClearModel();
+    floor->GetCollisionModel()->AddBox(floor_mat, 10, 0.5, 10, ChVector<>(0, -1, 0));
+    floor->GetCollisionModel()->BuildModel();
+    floor->SetCollide(true);
 
     // Add body to system
-    sys.Add(mfloor);
+    sys.Add(floor);
 
     // ==Asset== attach a 'box' shape.
     // Note that assets are managed via shared pointer, so they
     // can also be shared). Do not forget AddAsset() at the end!
-    auto mboxfloor = chrono_types::make_shared<ChBoxShape>();
-    mboxfloor->GetBoxGeometry().Pos = ChVector<>(0, -1, 0);
-    mboxfloor->GetBoxGeometry().Size = ChVector<>(10, 0.5, 10);
-    mfloor->AddAsset(mboxfloor);
-
-    // ==Asset== attach color asset.
-    auto mfloorcolor = chrono_types::make_shared<ChColorAsset>();
-    mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
-    mfloor->AddAsset(mfloorcolor);
+    auto boxfloor = chrono_types::make_shared<ChBoxShape>();
+    boxfloor->GetBoxGeometry().Size = ChVector<>(10, 0.5, 10);
+    boxfloor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
+    floor->AddVisualShape(boxfloor, ChFrame<>(ChVector<>(0, -1, 0)));
 
     /// [Example 1]
     /* End example */
@@ -86,95 +80,54 @@ int main(int argc, char* argv[]) {
     /// [Example 2]
 
     // Textures, colors, asset levels with transformations.
-    // This section shows how to add more advanced types of assets
-    // and how to group assets in ChAssetLevel containers.
 
-    // Create the rigid body as usual (this won't move,
-    // it is only for visualization tests)
-    auto mbody = chrono_types::make_shared<ChBody>();
-    mbody->SetBodyFixed(true);
-    sys.Add(mbody);
+    // Create the rigid body as usual (this won't move, it is only for visualization tests)
+    auto body = chrono_types::make_shared<ChBody>();
+    body->SetBodyFixed(true);
+    sys.Add(body);
 
     // ==Asset== Attach a 'sphere' shape
-    auto msphere = chrono_types::make_shared<ChSphereShape>();
-    msphere->GetSphereGeometry().rad = 0.5;
-    msphere->GetSphereGeometry().center = ChVector<>(-1, 0, 0);
-    mbody->AddAsset(msphere);
+    auto sphere = chrono_types::make_shared<ChSphereShape>();
+    sphere->GetSphereGeometry().rad = 0.5;
+    body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0)));
 
     // ==Asset== Attach also a 'box' shape
     auto mbox = chrono_types::make_shared<ChBoxShape>();
-    mbox->GetBoxGeometry().Pos = ChVector<>(1, 0, 0);
     mbox->GetBoxGeometry().Size = ChVector<>(0.2, 0.5, 0.1);
-    mbody->AddAsset(mbox);
+    body->AddVisualShape(mbox, ChFrame<>(ChVector<>(1, 0, 0)));
 
     // ==Asset== Attach also a 'cylinder' shape
-    auto mcyl = chrono_types::make_shared<ChCylinderShape>();
-    mcyl->GetCylinderGeometry().p1 = ChVector<>(2, -0.2, 0);
-    mcyl->GetCylinderGeometry().p2 = ChVector<>(2.2, 0.5, 0);
-    mcyl->GetCylinderGeometry().rad = 0.3;
-    mbody->AddAsset(mcyl);
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
+    cyl->GetCylinderGeometry().p1 = ChVector<>(2, -0.2, 0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(2.2, 0.5, 0);
+    cyl->GetCylinderGeometry().rad = 0.3;
+    body->AddVisualShape(cyl);
 
-    // ==Asset== Attach color. To set colors for all assets
-    // in the same level, just add this:
-    auto mvisual = chrono_types::make_shared<ChColorAsset>();
-    mvisual->SetColor(ChColor(0.9f, 0.4f, 0.2f));
-    mbody->AddAsset(mvisual);
+    // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file:
+    auto objmesh = chrono_types::make_shared<ChObjShapeFile>();
+    objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
+    objmesh->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2)));
 
-    // ==Asset== Attach a level that contains other assets.
-    // Note: a ChAssetLevel can define a rotation/translation respect to paren level,
-    // Note: a ChAssetLevel can contain colors or textures: if any, they affect only objects in the level.
-    auto mlevelA = chrono_types::make_shared<ChAssetLevel>();
 
-    // ==Asset== Attach, in this level, a 'Wavefront mesh' asset,
-    // referencing a .obj file:
-    auto mobjmesh = chrono_types::make_shared<ChObjShapeFile>();
-    mobjmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
-    mlevelA->AddAsset(mobjmesh);
-
-    // ==Asset== Attach also a texture, that will affect only the
-    // assets in mlevelA.
-    // NOTE: the path to texture is the path relative to this .exe,
-    // as when you are using the Irrlicht visualization.
-    auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
-    mlevelA->AddAsset(mtexture);
-
-    // Change the position of mlevelA, thus moving also its sub-assets:
-    mlevelA->GetFrame().SetPos(ChVector<>(0, 0, 2));
-    mbody->AddAsset(mlevelA);
-
-    // ==Asset== Attach sub level, then add to it an array of sub-levels,
-    // each rotated, and each containing a displaced box, thus making a
-    // spiral of cubes
-    auto mlevelB = chrono_types::make_shared<ChAssetLevel>();
+    // ==Asset== Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
-        // ==Asset== the sub sub level..
-        auto mlevelC = chrono_types::make_shared<ChAssetLevel>();
-
-        // ==Asset== the contained box..
-        auto msmallbox = chrono_types::make_shared<ChBoxShape>();
-        msmallbox->GetBoxGeometry().Pos = ChVector<>(0.4, 0, 0);
-        msmallbox->GetBoxGeometry().Size = ChVector<>(0.1, 0.1, 0.01);
-        mlevelC->AddAsset(msmallbox);
-
-        ChQuaternion<> mrot;
-        mrot.Q_from_AngAxis(j * 21 * CH_C_DEG_TO_RAD, ChVector<>(0, 1, 0));
-        mlevelC->GetFrame().SetRot(mrot);
-        mlevelC->GetFrame().SetPos(ChVector<>(0, j * 0.02, 0));
-
-        mlevelB->AddAsset(mlevelC);
+        auto smallbox = chrono_types::make_shared<ChBoxShape>();
+        smallbox->GetBoxGeometry().Size = ChVector<>(0.1, 0.1, 0.01);
+        smallbox->SetColor(ChColor(j * 0.05f, 1 - j * 0.05f, 0.0f));
+        ChMatrix33<> rot(Q_from_AngY(j * 21 * CH_C_DEG_TO_RAD));
+        ChVector<> pos = rot * ChVector<>(0.4, 0, 0) + ChVector<>(0, j * 0.02, 0);
+        body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
-
-    mbody->AddAsset(mlevelB);
 
     // ==Asset== Attach a video camera. This will be used by Irrlicht,
     // or POVray postprocessing, etc. Note that a camera can also be
     // put in a moving object.
-    auto mcamera = chrono_types::make_shared<ChCamera>();
-    mcamera->SetAngle(50);
-    mcamera->SetPosition(ChVector<>(-3, 4, -5));
-    mcamera->SetAimPoint(ChVector<>(0, 1, 0));
-    mbody->AddAsset(mcamera);
+    auto camera = chrono_types::make_shared<ChCamera>();
+    camera->SetAngle(50);
+    camera->SetPosition(ChVector<>(-3, 4, -5));
+    camera->SetAimPoint(ChVector<>(0, 1, 0));
+    body->AddAsset(camera);
 
     /// [Example 2]
     /* End example */
@@ -188,28 +141,28 @@ int main(int argc, char* argv[]) {
 
     // Create the ChParticleClones, populate it with some random particles,
     // and add it to physical system:
-    auto mparticles = chrono_types::make_shared<ChParticlesClones>();
+    auto particles = chrono_types::make_shared<ChParticlesClones>();
 
     // Note: coll. shape, if needed, must be specified before creating particles
     auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    mparticles->GetCollisionModel()->ClearModel();
-    mparticles->GetCollisionModel()->AddSphere(particle_mat, 0.05);
-    mparticles->GetCollisionModel()->BuildModel();
-    mparticles->SetCollide(true);
+    particles->GetCollisionModel()->ClearModel();
+    particles->GetCollisionModel()->AddSphere(particle_mat, 0.05);
+    particles->GetCollisionModel()->BuildModel();
+    particles->SetCollide(true);
 
     // Create the random particles
     for (int np = 0; np < 100; ++np)
-        mparticles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1, ChRandom() - 0.5)));
+        particles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1, ChRandom() - 0.5)));
 
     // Do not forget to add the particle cluster to the system:
-    sys.Add(mparticles);
+    sys.Add(particles);
 
     //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
     // shape to display all particles when rendering in 3D!
-    auto mspherepart = chrono_types::make_shared<ChSphereShape>();
-    mspherepart->GetSphereGeometry().rad = 0.05;
-    mparticles->AddAsset(mspherepart);
+    auto sphereparticle = chrono_types::make_shared<ChSphereShape>();
+    sphereparticle->GetSphereGeometry().rad = 0.05;
+    particles->AddVisualShape(sphereparticle);
 
     /// [Example 3]
     /* End example */
@@ -261,7 +214,7 @@ int main(int argc, char* argv[]) {
     //   by Irrlicht or other interfaces.
     auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
     mPOVcustom->SetCommands((char*)"pigment { checker rgb<0.9,0.9,0.9>, rgb<0.75,0.8,0.8> }");
-    mfloor->AddAsset(mPOVcustom);
+    floor->AddAsset(mPOVcustom);
 
     // IMPORTANT! Tell to the POVray exporter that
     // he must take care of converting the shapes of
@@ -272,9 +225,9 @@ int main(int argc, char* argv[]) {
     // (Optional: tell selectively which physical items you
     // want to render in the folllowing way...)
     //	pov_exporter.RemoveAll();
-    //	pov_exporter.Add(mfloor);
-    //	pov_exporter.Add(mbody);
-    //	pov_exporter.Add(mparticles);
+    //	pov_exporter.Add(floor);
+    //	pov_exporter.Add(body);
+    //	pov_exporter.Add(particles);
 
     /// [POV exporter]
     /* End example */
