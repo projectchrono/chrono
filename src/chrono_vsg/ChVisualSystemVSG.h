@@ -47,6 +47,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     // activate skybox (converted from Irrlicht skybox)
     void SetUseSkyBox(bool yesno=false) { m_use_skybox = yesno;}
 
+    /// Add a logo in a 3D scene.
+    void AddLogo(std::string logoName);
+
     /// Use Z-up camera rendering (default CameraVerticalDir::Z).
     /// Must be called before Initialize().
     void SetCameraVertical(CameraVerticalDir vert);
@@ -88,6 +91,7 @@ private:
     //
     bool m_use_skybox = false;
     std::string m_skyboxFilename = "vsg/textures/chrono_skybox.ktx2";
+    std::string m_logo_fileName;
     ChColor m_bg_color = ChColor(1,1,1,1);
     //
     vsg::ref_ptr<vsg::Group> m_scenegraph;

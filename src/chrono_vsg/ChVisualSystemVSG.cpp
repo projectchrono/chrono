@@ -18,6 +18,7 @@
 #include <vsgImGui/SendEventsToImGui.h>
 #include <vsgImGui/imgui.h>
 #include "chrono_vsg/tools/createSkybox.h"
+#include "chrono_vsg/tools/createQuad.h"
 #include "ChVisualSystemVSG.h"
 #include "chrono_thirdparty/stb/stb_image_write.h"
 #include "chrono_thirdparty/stb/stb_image_resize.h"
@@ -98,10 +99,8 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
     m_options->paths.push_back(GetChronoDataPath());
     m_options->objectCache = vsg::ObjectCache::create();
-#ifdef vsgXchange_all
     // add vsgXchange's support for reading and writing 3rd party file formats
     m_options->add(vsgXchange::all::create());
-#endif
     m_options->fileCache = vsg::getEnv("VSG_FILE_CACHE");
 }
 
@@ -121,11 +120,19 @@ void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir vert) {
 ChVisualSystemVSG::~ChVisualSystemVSG() {}
 
 void ChVisualSystemVSG::SetClearColor(ChColor cc) {
-    if(!m_initialized) {
+    if (!m_initialized) {
         m_bg_color = cc;
     } else {
         cout << "SetClearColor() can not be used after calling Initialize()!" << endl;
     }
+}
+
+void ChVisualSystemVSG::AddLogo(std::string logoName) {
+    if (!m_initialized) {
+        m_logo_fileName = logoName;
+    } else {
+        cout << "AddLogo() cannot be used after calling Initialize()!" << endl;
+    };
 }
 
 void ChVisualSystemVSG::Initialize() {
@@ -158,11 +165,7 @@ void ChVisualSystemVSG::Initialize() {
     }
     m_viewer->addWindow(m_window);
 
-    VkClearColorValue &clearColor = m_window->clearColor();
-    clearColor.float32[0] = m_bg_color.R;
-    clearColor.float32[1] = m_bg_color.G;
-    clearColor.float32[2] = m_bg_color.B;
-    clearColor.float32[3] = m_bg_color.A;
+    m_window->clearColor() = VkClearColorValue{{m_bg_color.R, m_bg_color.G, m_bg_color.B, m_bg_color.A}};
 
     // holds whole 3d stuff
     m_scenegraph = vsg::Group::create();
@@ -204,13 +207,47 @@ void ChVisualSystemVSG::Initialize() {
     // buffers)
     m_commandGraph = vsg::CommandGraph::create(m_window);
     m_renderGraph = vsg::RenderGraph::create(m_window);
-    m_commandGraph->addChild(m_renderGraph);
 
     // create the normal 3D view of the scene
     m_renderGraph->addChild(vsg::View::create(m_camera, m_scenegraph));
 
+    // Logo drawing?
+    if (!m_logo_fileName.empty()) {
+        cout << "Try to draw logo: " << m_logo_fileName << endl;
+        auto logoData = vsg::read_cast<vsg::Data>(m_logo_fileName, m_options);
+        if (logoData) {
+            vsg::vec3 position = vsg::vec3(0, 0, 0);
+            vsg::vec3 horizontal = vsg::vec3(1.0, 0, 0);
+            vsg::vec3 vertical = vsg::vec3(0, 0, 1.0);
+            auto scenegraph_hud = createQuad(position, horizontal, vertical, logoData);
+            // set up the camera
+            double aspectRatio = double(m_windowTraits->width) / double(m_windowTraits->height);
+            double projectionHeight = 25.0;
+            auto viewport = vsg::ViewportState::create(m_window->extent2D());
+            auto projection =
+                vsg::Orthographic::create(0.0, projectionHeight * aspectRatio, 0.0, projectionHeight, 100.0, 0.0);
+            auto lookAt =
+                vsg::LookAt::create(vsg::dvec3(0.0, 0.0, 2.0), vsg::dvec3(0.0, 0.0, 0.0), vsg::dvec3(0.0, 1.0, 0.0));
+            auto camera = vsg::Camera::create(projection, lookAt, viewport);
+            // clear the depth buffer before view2 gets rendered
+            VkClearValue clearValue{};
+            clearValue.depthStencil = {0.0f, 0};
+            VkClearAttachment attachment{VK_IMAGE_ASPECT_DEPTH_BIT, 1, clearValue};
+            VkClearRect rect{
+                VkRect2D{VkOffset2D{0, 0}, VkExtent2D{m_window->extent2D().width, m_window->extent2D().height}}, 0, 1};
+            auto clearAttachments = vsg::ClearAttachments::create(vsg::ClearAttachments::Attachments{attachment},
+                                                                  vsg::ClearAttachments::Rects{rect});
+            m_renderGraph->addChild(clearAttachments);
+            m_renderGraph->addChild(vsg::View::create(camera, scenegraph_hud));
+        } else {
+            cout << "logo data not loaded!" << endl;
+        }
+    }
+
     // Imgui graphical menu handler
     m_renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, GuiComponent(m_params, this)));
+    m_commandGraph->addChild(m_renderGraph);
+
     // Add the ImGui event handler first to handle events early
     m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
 

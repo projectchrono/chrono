@@ -42,9 +42,12 @@ SET(CE_VSG_RESOURCES_FILES
     resources/lineShader_frag.h
     resources/lineShader_vert.h
     resources/cubemapShaders.h
+    resources/pushConstantShaders.h
 )
 
 SET(CE_VSG_TOOLS_FILES
+        tools/createQuad.cpp
+        tools/createQuad.h
         tools/createSkybox.cpp
         tools/createSkybox.h
         ../chrono_thirdparty/stb/stb_image_write.cpp
