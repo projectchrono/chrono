@@ -17,7 +17,6 @@
 
 #include <string>
 
-#include "chrono/assets/ChAsset.h"
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChVector2.h"
 
@@ -25,7 +24,7 @@ namespace chrono {
 
 /// Class for defining a texture.
 /// Encapsulates the texture filename and texture scale.
-class ChApi ChTexture : public ChAsset {
+class ChApi ChTexture {
   public:
     ChTexture();
     ChTexture(const char* filename);
@@ -61,10 +60,10 @@ class ChApi ChTexture : public ChAsset {
     const ChVector2<float>& GetScale() const { return m_scale; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    void ArchiveOUT(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    void ArchiveIN(ChArchiveIn& marchive);
 
   private:
     std::string m_filename;

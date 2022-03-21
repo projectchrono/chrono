@@ -99,8 +99,6 @@ std::string ChVisualShape::GetTexture() const {
 void ChVisualShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChVisualShape>();
-    // serialize parent class
-    ChAsset::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(Pos);
     ////marchive << CHNVP(Rot);
@@ -110,8 +108,6 @@ void ChVisualShape::ArchiveOUT(ChArchiveOut& marchive) {
 void ChVisualShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChVisualShape>();
-    // deserialize parent class
-    ChAsset::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(Pos);
     ////marchive >> CHNVP(Rot);

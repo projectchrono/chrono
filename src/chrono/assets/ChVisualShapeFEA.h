@@ -15,7 +15,6 @@
 #ifndef CH_VISUAL_SHAPE_FEA_H
 #define CH_VISUAL_SHAPE_FEA_H
 
-#include "chrono/assets/ChAssetLevel.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
@@ -32,7 +31,7 @@ class ChElementBase;
 
 /// FEA mesh visualization.
 /// Adds to the containing visual model a trimesh and a glyphs visual shapes.
-class ChApi ChVisualShapeFEA : public ChAssetLevel {
+class ChApi ChVisualShapeFEA {
   public:
     enum class DataType {
         NONE,
@@ -156,8 +155,6 @@ class ChApi ChVisualShapeFEA : public ChAssetLevel {
 
     /// Update the triangle visualization mesh so that it matches with the FEM mesh.
     void Update(ChPhysicsItem* updater, const ChFrame<>& frame);
-
-    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) override;  //// RADU TODO obsolete
 
   private:
     double ComputeScalarOutput(std::shared_ptr<fea::ChNodeFEAxyz> mnode,

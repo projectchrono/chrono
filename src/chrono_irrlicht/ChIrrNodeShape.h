@@ -36,14 +36,14 @@ namespace irrlicht {
 /// Such a node is a children of a ChIrrNodeModel.
 class ChApiIrr ChIrrNodeShape : public irr::scene::ISceneNode {
   public:
-    ChIrrNodeShape(std::shared_ptr<ChAsset> shape,  ///< Chrono visualization shape
-                   irr::scene::ISceneNode* parent   ///< parent node in Irrlicht hierarchy
+    ChIrrNodeShape(std::shared_ptr<ChVisualShape> shape,  ///< Chrono visualization shape
+                   irr::scene::ISceneNode* parent         ///< parent node in Irrlicht hierarchy
     );
 
     ~ChIrrNodeShape() {}
 
     /// Get the associated visualization shape.
-    std::shared_ptr<ChAsset>& GetVisualShape() { return m_shape; }
+    std::shared_ptr<ChVisualShape>& GetVisualShape() { return m_shape; }
 
     /// Update to reflect possible changes in the associated visual shape.
     void Update();
@@ -66,9 +66,9 @@ class ChApiIrr ChIrrNodeShape : public irr::scene::ISceneNode {
     virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const override { return m_box; }
     virtual ISceneNode* clone(ISceneNode* newParent, irr::scene::ISceneManager* newManager) override;
 
-    irr::core::aabbox3d<irr::f32> m_box;  ///< bounding box
-    std::shared_ptr<ChAsset> m_shape;     ///< associated visualization shape
-    bool m_initial_update;                ///< flag forcing a first update
+    irr::core::aabbox3d<irr::f32> m_box;     ///< bounding box
+    std::shared_ptr<ChVisualShape> m_shape;  ///< associated visualization shape
+    bool m_initial_update;                   ///< flag forcing a first update
 };
 
 /// @} irrlicht_module
