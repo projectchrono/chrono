@@ -42,7 +42,6 @@
 #include "chrono_sensor/filters/ChFilterSave.h"
 #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
-#include "chrono_sensor/utils/ChVisualMaterialUtils.h"
 #include "chrono_sensor/sensors/ChGPSSensor.h"
 #include "chrono_sensor/sensors/ChIMUSensor.h"
 #include "chrono_sensor/sensors/ChNoiseModel.h"
