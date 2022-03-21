@@ -247,7 +247,7 @@ void ChLoadBodyInertia::ComputeJacobian(ChState* state_x,       ///< state posit
     // would fail the default numerical differentiation in ComputeJacobian() for the M=dQ/da matrix, so 
     // we override ComputeJacobian and provide the analytical jacobians)
     auto mbody = std::dynamic_pointer_cast<ChBody>(this->loadable);
-    ChVector<> a_x = mbody->GetPos_dtdt(); // abs. 
+    ChVector<> a_x = mbody->GetA().transpose() * mbody->GetPos_dtdt(); // local 
     ChVector<> a_w = mbody->GetWacc_loc(); // local 
     
     ChStarMatrix33<> wtilde(v_w);  // [w~]
@@ -266,8 +266,8 @@ void ChLoadBodyInertia::ComputeJacobian(ChState* state_x,       ///< state posit
     // R gyroscopic damping matrix terms (6x6, split in 3x3 blocks for convenience)
     jacobians->R.setZero();
     if (this->use_inertial_damping_matrix_R) {
-        //  Ri = [0,  m*[w~][c~]' + m*[([w~]*c)~]'  ; 0 , [w~][I] - [([I]*w)~]  ]
-        jacobians->R.block(0, 3, 3, 3) = this->mass * (wtilde * ctilde.transpose() + (ChStarMatrix33<>(wtilde * c_m)).transpose());
+        //  Ri = [0, - m*[w~][c~] - m*[([w~]*c)~]  ; 0 , [w~][I] - [([I]*w)~]  ]
+        jacobians->R.block(0, 3, 3, 3) = -this->mass * (wtilde * ctilde + ChStarMatrix33<>(wtilde * c_m));
         jacobians->R.block(3, 3, 3, 3) = wtilde * I - ChStarMatrix33<>(I * v_w);
     }
 

@@ -206,8 +206,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle Irrlicht application.
     ChVehicleIrrApp app(&rig->GetVehicle(), L"Suspension Test Rig");
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
+    app.AddTypicalLights();
     app.SetChaseCamera(0.5 * (rig->GetSpindlePos(0, LEFT) + rig->GetSpindlePos(0, RIGHT)), setup.CameraDistance(), 0.5);
     app.SetTimestep(step_size);
 

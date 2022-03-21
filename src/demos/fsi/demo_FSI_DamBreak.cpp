@@ -63,7 +63,7 @@ void SaveParaViewFilesMBD(ChSystemFsi& myFsiSystem,
     double frame_time = 1.0 / paramsH->out_fps;
 
     // Output data to files
-    if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-6) {
+    if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-5) {
         myFsiSystem.PrintParticleToFile(demo_dir);
         std::cout << "\n--------------------------------\n" << std::endl;
         std::cout << "------------ Output Frame:   " << this_frame << std::endl;
@@ -158,9 +158,8 @@ int main(int argc, char* argv[]) {
     }
     myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
 
-    // Set the time integration type and the linear solver type (only for ISPH)
+    // Set the time integration type
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
-    myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
 
     // Dimension of the space domain
     bxDim = paramsH->boxDimX;

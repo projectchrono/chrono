@@ -57,10 +57,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3dfCH(ChVector<>(1, 1.4, -1.2)),
+    application.AddCamera(core::vector3dfCH(ChVector<>(1, 1.4, -1.2)),
                                  core::vector3dfCH(ChVector<>(0, tire_rad, 0)));
     // application.SetContactsDrawMode(irr::tools::CONTACT_DISTANCES);
 

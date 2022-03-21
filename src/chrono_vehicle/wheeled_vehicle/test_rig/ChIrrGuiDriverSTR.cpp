@@ -67,10 +67,10 @@ bool ChIrrGuiDriverSTR::OnEvent(const SEvent& event) {
                 SetDisplacementRight(m_current_post, m_displRight[m_current_post] - m_displDelta);
                 return true;
             case KEY_KEY_A:
-                SetSteering(m_steering - m_steeringDelta);
+                SetSteering(m_steering + m_steeringDelta);
                 return true;
             case KEY_KEY_D:
-                SetSteering(m_steering + m_steeringDelta);
+                SetSteering(m_steering - m_steeringDelta);
                 return true;
             default:
                 break;

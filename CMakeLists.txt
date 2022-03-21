@@ -58,6 +58,14 @@ set(CPACK_PACKAGE_VERSION_PATCH "${CHRONO_VERSION_PATCH}")
 set(CH_VERSION 0x00070000)
 
 #-----------------------------------------------------------------------------
+# Detect operating system and processor for host and target
+#-----------------------------------------------------------------------------
+message(STATUS "We are on a ${CMAKE_HOST_SYSTEM_NAME} system")
+message(STATUS "The host processor is ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+message(STATUS "Building for a ${CMAKE_SYSTEM_NAME} system")
+message(STATUS "The target processor is ${CMAKE_SYSTEM_PROCESSOR}")
+
+#-----------------------------------------------------------------------------
 # Location of additional CMake scripts
 #-----------------------------------------------------------------------------
 

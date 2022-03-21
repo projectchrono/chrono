@@ -97,6 +97,13 @@ class ChFluidDynamics : public ChFsiGeneral {
     std::shared_ptr<ChFsiForce> forceSystem;  ///< Force system object; calculates the force between particles
     CHFSI_TIME_INTEGRATOR integrator_type;    ///< Integrator type
 
+    /// Update activity of SPH particles.
+    /// SPH particles which are in an active domain are set as active particles.
+    /// For example, particles close to a rigid body.
+    virtual void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
+                                std::shared_ptr<SphMarkerDataD> sphMarkersD2,
+                                std::shared_ptr<FsiBodiesDataD> fsiBodiesD);
+
     /// Update SPH particles data.
     /// In an explicit formulation, the function relies on the explicit integration scheme.
     virtual void UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, Real dT);

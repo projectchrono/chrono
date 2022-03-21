@@ -85,20 +85,16 @@ void ChModalAssembly::Clear() {
 }
 
 //---------------------------------------------------------------------------------------
-   
-void ChModalAssembly::SwitchModalReductionON(int n_modes) {
+
+void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, int n_modes) {
     if (is_modal)
         return;
 
-    // 1) compute modes on the full system
-    this->ComputeModes(n_modes);
 
-    // 2) fetch the full (not reduced) mass and stiffness
-    ChSparseMatrix full_M;
-    ChSparseMatrix full_K;
 
-    this->GetSubassemblyMassMatrix(&full_M);
-    this->GetSubassemblyStiffnessMatrix(&full_K);
+    // 1) compute eigenvalue and eigenvectors
+    this->ComputeModesExternalData(full_M, full_K, full_Cq, n_modes);
+
 
     // 3) bound ChVariables etc. to the modal coordinates, resize matrices, set as modal mode
     this->SetModalMode(true);
@@ -122,7 +118,7 @@ void ChModalAssembly::SwitchModalReductionON(int n_modes) {
 
     // avoid computing K_II^{-1}, effectively do n times a LU solve:
     Eigen::SparseMatrix<double> A = K_II; // to column-major
-    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> >   solver;
+    Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> >   solver;
     solver.analyzePattern(A);
     solver.factorize(A); 
 
@@ -186,6 +182,22 @@ void ChModalAssembly::SwitchModalReductionON(int n_modes) {
     }
 }
 
+void ChModalAssembly::SwitchModalReductionON(int n_modes) {
+    if (is_modal)
+        return;
+
+    // 1) fetch the full (not reduced) mass and stiffness
+    ChSparseMatrix full_M;
+    ChSparseMatrix full_K;
+    ChSparseMatrix full_Cq;
+
+    this->GetSubassemblyMassMatrix(&full_M);
+    this->GetSubassemblyStiffnessMatrix(&full_K);
+    this->GetSubassemblyConstraintJacobianMatrix(&full_Cq);
+
+    // 2) compute modal reduction from full_M, full_K
+    this->SwitchModalReductionON(full_M, full_K, full_Cq, n_modes);
+}
 
 
 void ChModalAssembly::SetupModalData(int nmodes_reduction) {
@@ -240,6 +252,56 @@ bool ChModalAssembly::ComputeModes(int nmodes) {
     
     if (is_modal)
         return false;
+    /*
+    this->SetupInitial();
+    this->Setup();
+    this->Update();
+
+    // fetch the state_snapshot
+    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
+    int bou_int_coords_w = this->n_boundary_coords_w   + this->n_internal_coords_w;
+    double fooT;
+    ChStateDelta assembly_v0;
+    assembly_x0.setZero(bou_int_coords, nullptr);
+    assembly_v0.setZero(bou_int_coords_w, nullptr);
+    this->IntStateGather(0, assembly_x0, 0, assembly_v0, fooT);
+
+    // cannot use more modes than n. of tot coords, if so, clamp
+    int nmodes_clamped = ChMin(nmodes, this->ncoords_w);
+
+    this->Setup();
+    */
+    ChSparseMatrix full_M;
+    ChSparseMatrix full_K;
+    ChSparseMatrix full_Cq;
+
+    this->GetSubassemblyMassMatrix(&full_M);
+    this->GetSubassemblyStiffnessMatrix(&full_K);
+    this->GetSubassemblyConstraintJacobianMatrix(&full_Cq);
+
+    // SOLVE EIGENVALUE
+    this->ComputeModesExternalData(full_M, full_K, full_Cq, nmodes);
+
+    /*
+    // SOLVE EIGENVALUE 
+    // for undamped system (use generalized constrained eigen solver)
+    // - Must work with large dimension and sparse matrices only
+    // - Must work also in free-free cases, with 6 rigid body modes at 0 frequency.
+
+    //ChGeneralizedEigenvalueSolverLanczos     eigsolver;   // OK! 
+    ChGeneralizedEigenvalueSolverKrylovSchur eigsolver;   // OK! 
+    eigsolver.Solve(full_M, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, nmodes_clamped);
+    this->modes_damping_ratio.setZero(this->modes_freq.rows());
+
+    this->Setup();
+    */
+    return true;
+}
+
+bool ChModalAssembly::ComputeModesExternalData(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, int nmodes) {
+    
+    if (is_modal)
+        return false;
 
     this->SetupInitial();
     this->Setup();
@@ -259,15 +321,9 @@ bool ChModalAssembly::ComputeModes(int nmodes) {
 
     this->Setup();
 
-    ChSparseMatrix full_M;
-    ChSparseMatrix full_R;
-    ChSparseMatrix full_K;
-    ChSparseMatrix full_Cq;
-
-    this->GetSubassemblyMassMatrix(&full_M);
-    this->GetSubassemblyDampingMatrix(&full_R);
-    this->GetSubassemblyStiffnessMatrix(&full_K);
-    this->GetSubassemblyConstraintJacobianMatrix(&full_Cq);
+    assert(full_M.rows()  == bou_int_coords_w); 
+    assert(full_K.rows()  == bou_int_coords_w); 
+    assert(full_Cq.cols() == bou_int_coords_w); 
 
     // SOLVE EIGENVALUE 
     // for undamped system (use generalized constrained eigen solver)
@@ -1313,6 +1369,43 @@ void ChModalAssembly::IntStateIncrement(const unsigned int off_x,
         x_new.segment(off_x + this->n_boundary_coords, this->n_modes_coords_w) = 
             x.segment(off_x + this->n_boundary_coords,   this->n_modes_coords_w) 
          + Dv.segment(off_v + this->n_boundary_coords_w, this->n_modes_coords_w);
+    }
+}
+
+void ChModalAssembly::IntStateGetIncrement(const unsigned int off_x,
+                                   const ChState& x_new,
+                                   const ChState& x,
+                                   const unsigned int off_v,
+                                   ChStateDelta& Dv) {
+
+    ChAssembly::IntStateGetIncrement(off_x, x_new, x, off_v, Dv);  // parent
+
+    unsigned int displ_x = off_x - this->offset_x;
+    unsigned int displ_v = off_v - this->offset_w;
+
+    if (is_modal == false) {
+        for (auto& body : internal_bodylist) {
+            if (body->IsActive())
+                body->IntStateGetIncrement(displ_x + body->GetOffset_x(), x_new, x, displ_v + body->GetOffset_w(), Dv);
+        }
+
+        for (auto& link : internal_linklist) {
+            if (link->IsActive())
+                link->IntStateGetIncrement(displ_x + link->GetOffset_x(), x_new, x, displ_v + link->GetOffset_w(), Dv);
+        }
+
+        for (auto& mesh : internal_meshlist) {
+            mesh->IntStateGetIncrement(displ_x + mesh->GetOffset_x(), x_new, x, displ_v + mesh->GetOffset_w(), Dv);
+        }
+
+        for (auto& item : internal_otherphysicslist) {
+            item->IntStateGetIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
+        }
+    }
+    else {
+        Dv.segment(off_v + this->n_boundary_coords_w,  this->n_modes_coords_w) = 
+        x_new.segment(off_x + this->n_boundary_coords, this->n_modes_coords_w) - 
+            x.segment(off_x + this->n_boundary_coords, this->n_modes_coords_w);
     }
 }
 

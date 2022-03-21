@@ -169,10 +169,10 @@ my_mesh.AddAsset(mvisualizebeamC)
 # bind a simple user interface, etc. etc.)
 myapplication = chronoirr.ChIrrApp(my_system, 'Test FEA beams', chronoirr.dimension2du(1024,768))
 
-#application.AddTypicalLogo()
-myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddTypicalCamera(chronoirr.vector3df(0.1,0.1,0.2))
+#application.AddLogo()
+myapplication.AddSkyBox()
+myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+myapplication.AddCamera(chronoirr.vector3df(0.1,0.1,0.2))
 myapplication.AddTypicalLights()
 
 # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items

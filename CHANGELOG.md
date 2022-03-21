@@ -5,7 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-  - [Modal analysis](#added-modal-analysis-module)
+  - [Right-handed frames in Chrono::Irrlicht](#changed-right-handed-frames-in-chronoirrlicht)
+  - [Modal analysis module](#added-modal-analysis-module)
   - [Callback mechanism for collision debug visualization](#added-callback-mechanism-for-collision-debug-visualization)
   - [Translational and rotational spring-damper-actuators](#changed-translational-and-rotational-spring-damper-actuators)
   - [Refactor Chrono::Vehicle suspension test rigs](#changed-refactor-chronovehicle-suspension-test-rigs)
@@ -59,6 +60,19 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Right-handed frames in Chrono::Irrlicht
+
+The Irrlicht library, wrapped in the Chrono::Irrlicht run-time visualization library uses the DirectX convention of left-handed frames.  This has been a long standing source of confusion for all Chrono users since Chrono simulations (always conducted using right-handed frames) were "mirrored" during rendering.
+
+This set of changes forces Chrono::Irrlicht to use right-hand projection matrices resulting in renderings that are consistent with the underlying models and simulations.  All changes are internal and transparent to the user.  
+
+We took this opportunity to make a small set of minor API changes, most of them simple function renames:
+- ChIrrApp::AddTypicalLogo() was renamed to ChIrrApp::AddLogo().
+- ChIrrApp::AddTypicalCamera() was renamed to ChIrrApp::AddCamera().
+- ChIrrApp::AddTypicalSky() was renamed to ChIrrApp::AddSkyBox().
+- ChIrrApp::AddTypicalLights() was changed to always construct two point lights with default settings (postions, radii, and colors).  The positions of these lights are different for a Y or Z camera vertical direction.  A user interested in changing the settings of the default lights should use the function ChIrrApp::AddLight() which allows specifying position, radius, and color.
+- ChVehicleIrrApp::SetSkyBox() was obsoleted (the Chrono sky box is automatically added).
 
 ### [Added] Modal analysis module
 

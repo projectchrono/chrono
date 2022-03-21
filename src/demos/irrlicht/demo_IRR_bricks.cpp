@@ -185,10 +185,11 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Bricks test", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
-    application.AddTypicalLights(core::vector3df(70.f, 120.f, -90.f), core::vector3df(30.f, 80.f, 60.f), 290, 190);
-    application.AddTypicalCamera(core::vector3df(-15, 14, -30), core::vector3df(0, 5, 0));
+    application.AddLogo();
+    application.AddSkyBox();
+    application.AddLight(core::vector3df(70.f, 120.f, -90.f), 290, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    application.AddLight(core::vector3df(30.f, 80.f, 60.f), 190, irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
+    application.AddCamera(core::vector3df(-15, 14, -30), core::vector3df(0, 5, 0));
 
     //
     // HERE YOU POPULATE THE MECHANICAL SYSTEM OF CHRONO...

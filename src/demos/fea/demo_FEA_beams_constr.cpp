@@ -80,10 +80,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"Beams and constraints", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0.f, 0.6f, -1.f));
+    application.AddCamera(core::vector3df(0.f, 0.6f, -1.f));
 
     double L = 1;
     double H = 0.25;

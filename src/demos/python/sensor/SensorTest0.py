@@ -73,9 +73,9 @@ mysystem.Add(mlink)
 
 myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky()
-myapplication.AddTypicalLogo()
-myapplication.AddTypicalCamera(chronoirr.vector3df(0.6,0.6,0.8))
+myapplication.AddSkyBox()
+myapplication.AddLogo()
+myapplication.AddCamera(chronoirr.vector3df(0.6,0.6,0.8))
 myapplication.AddTypicalLights()
 
             # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items

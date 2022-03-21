@@ -115,10 +115,10 @@ int main() {
     // ---------------------------------
 
     ChIrrApp application(&system, L"Tire Test Rig", irr::core::dimension2d<irr::u32>(1280, 720), VerticalDir::Z);
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera();
+    application.AddCamera();
 
     application.AssetBindAll();
     application.AssetUpdateAll();

@@ -161,6 +161,18 @@ void ChLinkMotorRotationDriveline::IntStateIncrement(const unsigned int off_x,
     innershaft2->IntStateIncrement(off_x + 1, x_new, x, off_v + 1, Dv);
 }
 
+void ChLinkMotorRotationDriveline::IntStateGetIncrement(const unsigned int off_x,
+                                     const ChState& x_new,
+                                     const ChState& x,
+                                     const unsigned int off_v,
+                                     ChStateDelta& Dv) {
+    // First, inherit to parent class
+    ChLinkMotorRotation::IntStateGetIncrement(off_x, x_new, x, off_v, Dv);
+
+    innershaft1->IntStateGetIncrement(off_x + 0, x_new, x, off_v + 0, Dv);
+    innershaft2->IntStateGetIncrement(off_x + 1, x_new, x, off_v + 1, Dv);
+}
+
 void ChLinkMotorRotationDriveline::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     // First, inherit to parent class
     ChLinkMotorRotation::IntStateGatherReactions(off_L, L);

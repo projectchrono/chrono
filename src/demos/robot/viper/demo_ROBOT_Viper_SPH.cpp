@@ -70,7 +70,7 @@ std::shared_ptr<Viper> rover;
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
     float cr = 0.2f;   // coefficient of restitution
-    float Y  = 2e7f;   // Young's modulus
+    float Y = 2e7f;    // Young's modulus
     float nu = 0.3f;   // Poisson ratio
     float kn = 2e5f;   // normal stiffness
     float gn = 40.0f;  // normal viscous damping
@@ -118,20 +118,17 @@ void AddWall(std::shared_ptr<ChBody> body,
     box->GetBoxGeometry().Pos = loc;
 }
 
-void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
-                      ChSystemFsi& myFsiSystem,
-                      std::shared_ptr<fsi::SimParams> paramsH);
+void CreateSolidPhase(ChSystemNSC& mphysicalSystem, ChSystemFsi& myFsiSystem, std::shared_ptr<fsi::SimParams> paramsH);
 
 void ShowUsage() {
     std::cout << "usage: ./demo_FSI_Granular_Viper <json_file>" << std::endl;
 }
 
-
 int main(int argc, char* argv[]) {
     /// Create a physical system and a corresponding FSI system
     ChSystemNSC mphysicalSystem;
     ChSystemFsi myFsiSystem(mphysicalSystem);
-    
+
     /// Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Viper_granular_NSC.json");
@@ -147,7 +144,13 @@ int main(int argc, char* argv[]) {
     }
     myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
 
-    /// Reset the domain size 
+    /// Set SPH discretization type, consistent or inconsistent
+    myFsiSystem.SetDiscreType(false, false);
+
+    /// Set wall boundary condition
+    myFsiSystem.SetWallBC(BceVersion::ORIGINAL);
+
+    /// Reset the domain size
     bxDim = paramsH->boxDimX + smalldis;
     byDim = paramsH->boxDimY + smalldis;
     bzDim = paramsH->boxDimZ + smalldis;
@@ -158,19 +161,24 @@ int main(int argc, char* argv[]) {
 
     /// Setup the solver based on the input value of the prameters
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
-    myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver); // this is only for ISPH
 
     /// Set the periodic boundary condition
     double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-    ChVector<> cMin(-bxDim / 2 * 10, -byDim / 2 * 10, -bzDim * 10);
-    ChVector<> cMax( bxDim / 2 * 10,  byDim / 2 * 10,  bzDim * 10);
+    ChVector<> cMin(-bxDim / 2 * 2, -byDim / 2 * 2, -bzDim * 10);
+    ChVector<> cMax(bxDim / 2 * 2, byDim / 2 * 2, bzDim * 10);
     myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
-    
+
     /// Setup sub doamins for a faster neighbor particle searching
     myFsiSystem.SetSubDomain(paramsH);
 
     /// Setup the output directory for FSI data
     myFsiSystem.SetFsiOutputDir(paramsH, demo_dir, out_dir, inputJson.c_str());
+
+    /// Set FSI information output
+    myFsiSystem.SetFsiInfoOutput(false);
+
+    /// Set simulation data output length
+    myFsiSystem.SetOutputLength(0);
 
     /// Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
@@ -182,10 +190,10 @@ int main(int argc, char* argv[]) {
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
         double pre_ini = paramsH->rho0 * abs(paramsH->gravity.z) * (-points[i].z() + fzDim);
-        myFsiSystem.AddSphMarker(points[i], paramsH->rho0, pre_ini, paramsH->mu0, paramsH->HSML, -1,
-                                 ChVector<>(0),  // initial velocity
-                                 ChVector<>(0),  // tauxxyyzz
-                                 ChVector<>(0)   // tauxyxzyz
+        myFsiSystem.AddSphMarker(points[i], paramsH->rho0, 0, paramsH->mu0, paramsH->HSML, -1,
+                                 ChVector<>(0),         // initial velocity
+                                 ChVector<>(-pre_ini),  // tauxxyyzz
+                                 ChVector<>(0)          // tauxyxzyz
         );
     }
     myFsiSystem.AddRefArray(0, (int)numPart, -1, -1);
@@ -262,12 +270,10 @@ int main(int argc, char* argv[]) {
 }
 
 //------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid bodies, and if fsi, 
+// Create the objects of the MBD system. Rigid bodies, and if fsi,
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
-                      ChSystemFsi& myFsiSystem,
-                      std::shared_ptr<fsi::SimParams> paramsH) {
+void CreateSolidPhase(ChSystemNSC& mphysicalSystem, ChSystemFsi& myFsiSystem, std::shared_ptr<fsi::SimParams> paramsH) {
     /// Set the gravity force for the simulation
     ChVector<> gravity = ChVector<>(paramsH->gravity.x, paramsH->gravity.y, paramsH->gravity.z);
     mphysicalSystem.Set_G_acc(gravity);
@@ -333,7 +339,11 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
 
         myFsiSystem.AddFsiBody(wheel_body);
         std::string BCE_path = GetChronoDataFile("fsi/demo_BCE/BCE_viperWheel.txt");
-        myFsiSystem.AddBceFile(paramsH, wheel_body, BCE_path, ChVector<>(0), QUNIT, 1.0, true);
+        if (i == 0 || i == 2) {
+            myFsiSystem.AddBceFile(paramsH, wheel_body, BCE_path, ChVector<>(0), Q_from_AngZ(CH_C_PI), 1.0, true);
+        } else {
+            myFsiSystem.AddBceFile(paramsH, wheel_body, BCE_path, ChVector<>(0), QUNIT, 1.0, true);
+        }
     }
 }
 
@@ -348,7 +358,7 @@ void SaveParaViewFiles(ChSystemFsi& myFsiSystem,
     double frame_time = 1.0 / paramsH->out_fps;
     char filename[4096];
 
-    if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-7) {
+    if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-5) {
         /// save the SPH particles
         myFsiSystem.PrintParticleToFile(demo_dir);
 
@@ -418,6 +428,9 @@ void SaveParaViewFiles(ChSystemFsi& myFsiSystem,
             ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
             ChVector<> body_pos = body_ref_frame.GetPos();      // body->GetPos();
             ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
+            if (i == 0 || i == 2) {
+                body_rot.Cross(body_rot, Q_from_AngZ(CH_C_PI));
+            }
 
             auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
             std::string obj_path = GetChronoDataFile("robot/viper/obj/viper_wheel.obj");

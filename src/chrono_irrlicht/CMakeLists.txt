@@ -29,8 +29,8 @@ SET(ChronoEngine_IRRLICHT_SOURCES
   ChIrrNode.cpp
   ChIrrNodeProxyToAsset.cpp
   ChIrrTools.cpp
-  ChIrrUtils.cpp
   ChIrrNodeAsset.cpp
+  ChIrrSkyBoxSceneNode.cpp
 )
 
 SET(ChronoEngine_IRRLICHT_HEADERS
@@ -40,12 +40,12 @@ SET(ChronoEngine_IRRLICHT_HEADERS
   ChIrrApp.h
   ChIrrCamera.h
   ChIrrMeshTools.h
-  ChIrrUtils.h
   ChIrrAssetConverter.h
   ChIrrNode.h
   ChIrrNodeProxyToAsset.h
   ChIrrNodeAsset.h
   ChIrrEffects.h
+  ChIrrSkyBoxSceneNode.h
 )
 
 SOURCE_GROUP("" FILES

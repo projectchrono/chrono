@@ -128,10 +128,10 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht application
     ChIrrApp application(&system, L"ChLinkRSDA demo", core::dimension2d<u32>(800, 600));
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(3, 1, 3));
+    application.AddCamera(core::vector3df(3, 1, 3));
 
     application.AssetBindAll();
     application.AssetUpdateAll();

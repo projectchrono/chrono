@@ -117,10 +117,10 @@ int main(int argc, char* argv[]) {
     ChIrrApp application(&my_system, L"demo_FEA_cosimulate_load", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(f32(1.0), f32(1.4), f32(-1.2)), core::vector3df(0, f32(tire_rad), 0));
+    application.AddCamera(core::vector3df(f32(1.0), f32(1.4), f32(-1.2)), core::vector3df(0, f32(tire_rad), 0));
     application.AddLightWithShadow(core::vector3df(f32(1.5), f32(5.5), f32(-2.5)), core::vector3df(0, 0, 0), 3, 2.2,
                                    7.2, 40, 512, video::SColorf(f32(0.8), f32(0.8), f32(1.0)));
 

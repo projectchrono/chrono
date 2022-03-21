@@ -63,10 +63,10 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&sys, L"Curiosity Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720), VerticalDir::Z);
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
+    application.AddLogo();
+    application.AddSkyBox();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(3, 3, 1));
+    application.AddCamera(core::vector3df(3, 3, 1));
     application.AddLightWithShadow(core::vector3df(2.5f, 7.0f, 0.0f), core::vector3df(0, 0, 0), 50, 4, 25, 130, 512,
                                    video::SColorf(0.8f, 0.8f, 0.8f));
     application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);

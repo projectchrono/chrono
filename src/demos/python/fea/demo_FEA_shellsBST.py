@@ -309,10 +309,10 @@ my_mesh.AddAsset(mvisualizeshellB)
 
 # Create the Irrlicht visualization
 application = chronoirr.ChIrrApp(my_system, "Shells FEA test: triangle BST elements", chronoirr.dimension2du(1024, 768))
-application.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-application.AddTypicalSky()
+application.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+application.AddSkyBox()
 application.AddTypicalLights()
-application.AddTypicalCamera(chronoirr.vector3df(1, .3, 1.3), chronoirr.vector3df(.5, -.3, .5))
+application.AddCamera(chronoirr.vector3df(1, .3, 1.3), chronoirr.vector3df(.5, -.3, .5))
 
 # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
 # in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
