@@ -101,8 +101,8 @@ linux:doxygen:deploy:
   needs:
     - job: linux:arch-gcc:test
       artifacts: false
-    - job: macos-intel:monterey:test
-      artifacts: false
+#    - job: macos-intel:monterey:test
+#      artifacts: false
     - job: macos-apple:monterey:test
       artifacts: false
     - job: windows:vs2022:test
@@ -497,12 +497,12 @@ windows:vs2019:deploy:
   - export CTEST_OUTPUT_ON_FAILURE=1
   - ninja test
 
-macos-intel:monterey:build:
+.macos-intel:monterey:build:
   extends: .macos-monterey-build
   tags:
     - x86
 
-macos-intel:monterey:test:
+.macos-intel:monterey:test:
   extends: .macos-monterey-test
   tags:
     - x86
