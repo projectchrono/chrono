@@ -65,8 +65,6 @@ int main(int argc, char* argv[]) {
     sys.Add(floor);
 
     // ==Asset== attach a 'box' shape.
-    // Note that assets are managed via shared pointer, so they
-    // can also be shared). Do not forget AddAsset() at the end!
     auto boxfloor = chrono_types::make_shared<ChBoxShape>();
     boxfloor->GetBoxGeometry().Size = ChVector<>(10, 0.5, 10);
     boxfloor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
@@ -108,7 +106,6 @@ int main(int argc, char* argv[]) {
     objmesh->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2)));
 
-
     // ==Asset== Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
         auto smallbox = chrono_types::make_shared<ChBoxShape>();
@@ -119,9 +116,8 @@ int main(int argc, char* argv[]) {
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
 
-    // ==Asset== Attach a video camera. This will be used by Irrlicht,
-    // or POVray postprocessing, etc. Note that a camera can also be
-    // put in a moving object.
+    // ==Asset== Attach a video camera. 
+    // Note that a camera can also be attached to a moving object.
     auto camera = chrono_types::make_shared<ChCamera>();
     camera->SetAngle(50);
     camera->SetPosition(ChVector<>(-3, 4, -5));
@@ -215,10 +211,7 @@ int main(int argc, char* argv[]) {
     mPOVcustom->SetCommands((char*)"pigment { checker rgb<0.9,0.9,0.9>, rgb<0.75,0.8,0.8> }");
     floor->AddAsset(mPOVcustom);
 
-    // IMPORTANT! Tell to the POVray exporter that
-    // he must take care of converting the shapes of
-    // all items!
-
+    // Export all existing visual shapes to POV-Ray
     pov_exporter.AddAll();
 
     // (Optional: tell selectively which physical items you

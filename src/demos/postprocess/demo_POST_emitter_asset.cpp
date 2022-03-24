@@ -26,7 +26,6 @@
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_postprocess/ChPovRay.h"
-#include "chrono_postprocess/ChPovRayAsset.h"
 #include "chrono_postprocess/ChPovRayAssetCustom.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -61,6 +60,40 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(0, 4, -6), ChVector<>(0, -2, 0));
 
+    // Create an exporter to POVray
+    ChPovRay pov_exporter = ChPovRay(&sys);
+
+    // Important: set the path to the template:
+    pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
+
+    // Set the path where it will save all .pov, .ini, .asset and .dat files
+    pov_exporter.SetBasePath(GetChronoOutputPath() + "DEMO_EMITTER");
+
+    pov_exporter.SetLight(VNULL, ChColor(0, 0, 0), false);
+    pov_exporter.SetCustomPOVcommandsScript(
+        " \
+         camera { \
+              angle    45 \
+              location <3.0 , 2.5 ,-18.0> \
+              right    x*image_width/image_height \
+              look_at  <0 , -2, 0> \
+              rotate   <0,-180*(clock),0> \
+          } \
+	     light_source {   \
+              <6, 15, -6>  \
+	          color rgb<1.2,1.2,1.2> \
+              area_light <5, 0, 0>, <0, 0, 5>, 8, 8 \
+              adaptive 1 \
+              jitter\
+            } \
+         box \
+            {  \
+                <20, 16, 20>, <0, 16, 0> \
+                texture{ pigment{color rgb<3,3,3> }}    \
+                finish { ambient 1 } \
+            } \
+          ");
+
     // CREATE THE SYSTEM OBJECTS
 
     // Create the floor:
@@ -89,9 +122,6 @@ int main(int argc, char* argv[]) {
                              texture{ Raster(4*0.2, 0.04, rgb<0.8,0.8,0.8>) rotate<0,90,0> } \n\
                               ");
     floor_body->AddAsset(POVcustom);
-
-    // Attach asset for marking it as renderable in PovRay
-    floor_body->AddAsset(chrono_types::make_shared<ChPovRayAsset>());
 
     sys.Add(floor_body);
 
@@ -210,19 +240,20 @@ int main(int argc, char* argv[]) {
                 vis->BindItem(body);
 
                 // Enable PovRay rendering
-                auto pov_asset = chrono_types::make_shared<ChPovRayAsset>();
-                body->AddAsset(pov_asset);
+                pov->Add(body);
 
                 // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
                 body->SetNoGyroTorque(true);
             }
             ChVisualSystemIrrlicht* vis;
+            ChPovRay* pov;
         };
 
         // b- create the callback object...
         auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
         // c- set callback own data that he might need...
         mcreation_callback->vis = vis.get();
+        mcreation_callback->pov = &pov_exporter;
         // d- attach the callback to the emitter!
         emitters[ie].RegisterAddBodyCallback(mcreation_callback);
     }
@@ -230,46 +261,10 @@ int main(int argc, char* argv[]) {
     // Bind all existing visual shapes to the visualization system
     sys.SetVisualSystem(vis);
 
-    // Create an exporter to POVray !!
-    ChPovRay pov_exporter = ChPovRay(&sys);
-
-    // Important: set the path to the template:
-    pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
-
-    // Set the path where it will save all .pov, .ini, .asset and .dat files, a directory will be created if not
-    // existing
-    pov_exporter.SetBasePath(GetChronoOutputPath() + "DEMO_EMITTER");
-
-    pov_exporter.SetLight(VNULL, ChColor(0, 0, 0), false);
-    pov_exporter.SetCustomPOVcommandsScript(
-        " \
-         camera { \
-              angle    45 \
-              location <3.0 , 2.5 ,-18.0> \
-              right    x*image_width/image_height \
-              look_at  <0 , -2, 0> \
-              rotate   <0,-180*(clock),0> \
-          } \
-	     light_source {   \
-              <6, 15, -6>  \
-	          color rgb<1.2,1.2,1.2> \
-              area_light <5, 0, 0>, <0, 0, 5>, 8, 8 \
-              adaptive 1 \
-              jitter\
-            } \
-         box \
-            {  \
-                <20, 16, 20>, <0, 16, 0> \
-                texture{ pigment{color rgb<3,3,3> }}    \
-                finish { ambient 1 } \
-            } \
-          ");
-
-    // Use this function for adding a ChPovRayAsset to all already created items
-    // Otherwise add a ChPovRayAsset on a per-item basis
+    // Export all existing visual shapes to POV-Ray
     pov_exporter.AddAll();
 
-    // Create the two .pov and .ini files for POV-Ray (this must be done only once at the beginning of the simulation)
+    // Create the .pov and .ini files for POV-Ray (this must be done only once at the beginning of the simulation)
     pov_exporter.ExportScript();
 
     // Simulation loop

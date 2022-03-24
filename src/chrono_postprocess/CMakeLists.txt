@@ -24,7 +24,6 @@ SET(ChronoEngine_POSTPROCESS_SOURCES
 SET(ChronoEngine_POSTPROCESS_HEADERS
     ChApiPostProcess.h 
     ChPovRay.h
-    ChPovRayAsset.h
     ChPovRayAssetCustom.h
     ChPostProcessBase.h
     ChGnuPlot.h
