@@ -58,9 +58,9 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     /// Exposes the unnamed enum of irrlicht axes to enforce right values in API usage
     enum JoystickAxes {
         AXIS_X = irr::SEvent::SJoystickEvent::AXIS_X,
-        AXIS_Y = irr::SEvent::SJoystickEvent::AXIS_Y,		
-        AXIS_Z = irr::SEvent::SJoystickEvent::AXIS_Z,		
-        AXIS_R = irr::SEvent::SJoystickEvent::AXIS_R,		
+        AXIS_Y = irr::SEvent::SJoystickEvent::AXIS_Y,
+        AXIS_Z = irr::SEvent::SJoystickEvent::AXIS_Z,
+        AXIS_R = irr::SEvent::SJoystickEvent::AXIS_R,
         AXIS_U = irr::SEvent::SJoystickEvent::AXIS_U,
         AXIS_V = irr::SEvent::SJoystickEvent::AXIS_V,
         NONE
@@ -105,7 +105,7 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     /// Return the current functioning mode as a string.
     std::string GetInputModeAsString() const;
 
-    /// Set joystick axes: throttle, brake, steering, clutch. 
+    /// Set joystick axes: throttle, brake, steering, clutch.
     void SetJoystickAxes(JoystickAxes tr_ax, JoystickAxes br_ax, JoystickAxes st_ax, JoystickAxes cl_ax);
 
     /// Get joystick axes for the throttle.
@@ -121,12 +121,15 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     JoystickAxes GetClutchAxis(JoystickAxes cl_ax) const { return cl_ax; }
 
     /// Feed button number and callback function to implement a custom callback.
-    void SetButtonCallback(int button, void(*cbfun)()) {cb_fun = cbfun; callbackButton=button; }
+    void SetButtonCallback(int button, void (*cbfun)()) {
+        callbackButtons.push_back(button);
+        cb_funs.push_back(cbfun);
+    }
 
   protected:
     ChVehicleIrrApp& m_app;
 
-    InputMode m_mode; ///< current mode of the driver
+    InputMode m_mode;  ///< current mode of the driver
 
     // Variables for mode=KEYBOARD
     double m_steering_target;  ///< current target value for steering input
@@ -151,9 +154,9 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     JoystickAxes steer_axis = AXIS_X;
     JoystickAxes clutch_axis = AXIS_Y;
     // Joystick button associated to the custom callback
-    int callbackButton = -1;
+    std::vector<int> callbackButtons;
     // Custom callback, can be implemented in the application
-    void (*cb_fun)() = nullptr;
+    std::vector<void (*)()> cb_funs;
 
     // Variables for mode=DATAFILE
     double m_time_shift;                          ///< time at which mode was switched to DATAFILE
