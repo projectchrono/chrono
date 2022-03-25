@@ -118,7 +118,7 @@ using namespace chrono::postprocess;
 
 //  core/  classes
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChAsset.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"

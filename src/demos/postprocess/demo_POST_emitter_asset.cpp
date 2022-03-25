@@ -12,12 +12,10 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 //
-// Demo code about using the ChEmitterAsset to attach an emitter to a moving
-// object.
+// Demo code about using particle emitters
 //
 // =============================================================================
 
-#include "chrono/assets/ChEmitterAsset.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/particlefactory/ChParticleEmitter.h"
 #include "chrono/particlefactory/ChParticleRemover.h"

@@ -596,7 +596,6 @@ source_group(geometry FILES
 # Asset group
 
 set(ChronoEngine_assets_SOURCES
-    assets/ChAsset.cpp
     assets/ChObjShapeFile.cpp
     assets/ChTriangleMeshShape.cpp
     assets/ChSphereShape.cpp
@@ -615,7 +614,6 @@ set(ChronoEngine_assets_SOURCES
     assets/ChRoundedConeShape.cpp
     assets/ChPathShape.cpp
     assets/ChLineShape.cpp
-    assets/ChEmitterAsset.cpp
     assets/ChPointPointShape.cpp
     assets/ChSurfaceShape.cpp
     assets/ChVisualMaterial.cpp
@@ -625,7 +623,6 @@ set(ChronoEngine_assets_SOURCES
     )
 
 set(ChronoEngine_assets_HEADERS
-    assets/ChAsset.h
     assets/ChObjShapeFile.h
     assets/ChTriangleMeshShape.h
     assets/ChSphereShape.h
@@ -638,14 +635,12 @@ set(ChronoEngine_assets_HEADERS
     assets/ChTexture.h
     assets/ChCamera.h
     assets/ChColor.h
-    assets/ChMaterial.h
     assets/ChGlyphs.h
     assets/ChRoundedCylinderShape.h
     assets/ChRoundedBoxShape.h
     assets/ChRoundedConeShape.h
     assets/ChPathShape.h
     assets/ChLineShape.h
-    assets/ChEmitterAsset.h
     assets/ChPointPointShape.h
     assets/ChSurfaceShape.h
     assets/ChVisualMaterial.h

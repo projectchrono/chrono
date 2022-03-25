@@ -31,7 +31,6 @@
 #include "chrono_sensor/sensors/ChRadarSensor.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"
 
-#include "chrono/assets/ChAsset.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCapsuleShape.h"
 #include "chrono/assets/ChConeShape.h"

@@ -20,8 +20,6 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChPhysicsItem)
 
 ChPhysicsItem::ChPhysicsItem(const ChPhysicsItem& other) : ChObj(other) {
-    assets = other.assets;
-
     // Do not copy the system; this is initialized at insertion time
     system = NULL;
     offset_x = other.offset_x;
@@ -106,8 +104,6 @@ void ChPhysicsItem::Update(double mytime, bool update_assets) {
     ChTime = mytime;
 
     if (update_assets) {
-        for (unsigned int ia = 0; ia < assets.size(); ++ia)
-            assets[ia]->Update(this, GetVisualModelFrame().GetCoord());
         for (auto& camera : cameras)
             camera->Update();
         if (vis_model_instance)
@@ -124,7 +120,6 @@ void ChPhysicsItem::ArchiveOUT(ChArchiveOut& marchive) {
 
     // serialize all member data:
     // marchive << CHNVP(system); ***TODO***
-    marchive << CHNVP(assets);
     // marchive << CHNVP(offset_x);
     // marchive << CHNVP(offset_w);
     // marchive << CHNVP(offset_L);
@@ -133,14 +128,13 @@ void ChPhysicsItem::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChPhysicsItem::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChPhysicsItem>();
+    /*int version =*/marchive.VersionRead<ChPhysicsItem>();
 
     // deserialize parent class
     ChObj::ArchiveIN(marchive);
 
     // stream in all member data:
     // marchive >> CHNVP(system); ***TODO***
-    marchive >> CHNVP(assets);
     // marchive >> CHNVP(offset_x);
     // marchive >> CHNVP(offset_w);
     // marchive >> CHNVP(offset_L);

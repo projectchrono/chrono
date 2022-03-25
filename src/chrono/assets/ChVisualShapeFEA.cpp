@@ -72,10 +72,7 @@ ChVisualShapeFEA::ChVisualShapeFEA(std::shared_ptr<fea::ChMesh> fea_mesh) {
     undeformed_reference = false;
 
     m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    ////AddAsset(m_trimesh_shape);
-
     m_glyphs_shape = chrono_types::make_shared<ChGlyphs>();
-    ////AddAsset(m_glyphs_shape);
 }
 
 ChColor ChVisualShapeFEA::ComputeFalseColor2(double mv) {
