@@ -12,11 +12,11 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHCASCADESHAPEASSET_H
-#define CHCASCADESHAPEASSET_H
+#ifndef CH_CASCADE_VISUAL_SHAPE_H
+#define CH_CASCADE_VISUAL_SHAPE_H
 
 #include "chrono_cascade/ChApiCASCADE.h"
-#include "chrono/assets/ChAsset.h"
+#include "chrono/assets/ChVisualShape.h"
 
 #include <TopoDS_Shape.hxx>
 
@@ -26,16 +26,14 @@ namespace cascade {
 /// @addtogroup cascade_module
 /// @{
 
-/// Class for an asset that contains an OpenCASCADE shape.
-/// In this way one can attach a 3D cad shape to a physics item.
-
-class ChApiCASCADE ChCascadeShapeAsset : public chrono::ChAsset {
+/// Class for an asset that contains an OpenCASCADE shape which can be included in a visual model.
+class ChApiCASCADE ChCascadeVisualShape : public ChVisualShape {
   public:
-    ChCascadeShapeAsset();
-    ChCascadeShapeAsset(const TopoDS_Shape& ms);
-    virtual ~ChCascadeShapeAsset();
+    ChCascadeVisualShape();
+    ChCascadeVisualShape(const TopoDS_Shape& ms);
+    virtual ~ChCascadeVisualShape();
 
-    /// Access the OpenCASCADE shape
+    /// Access the OpenCASCADE shape.
     TopoDS_Shape& Shape() { return mshape; }
 
     /// Method to allow serialization of transient data to archives.

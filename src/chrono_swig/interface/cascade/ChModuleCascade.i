@@ -47,8 +47,8 @@
 %{
 
 //#include "chrono_cascade/ChApiCASCADE.h"
-//#include "chrono_cascade/ChCascadeShapeAsset.h"
-#include "chrono_cascade/ChBodyEasyCascade.h"
+//#include "chrono_cascade/ChCascadeVisualShape.h"
+#include "chrono_cascade/ChCascadeBodyEasy.h"
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
@@ -102,9 +102,9 @@ using namespace chrono::cascade;
 %shared_ptr(chrono::ChObj)
 %shared_ptr(chrono::ChPhysicsItem)
 
-%shared_ptr(chrono::cascade::ChBodyEasyCascade)
-%shared_ptr(chrono::cascade::ChBodyEasyCascadeProfile)
-%shared_ptr(chrono::cascade::ChCascadeShapeAsset)
+%shared_ptr(chrono::cascade::ChCascadeBodyEasy)
+%shared_ptr(chrono::cascade::ChCascadeBodyEasyProfile)
+%shared_ptr(chrono::cascade::ChCascadeVisualShape)
 
 //
 // TEMPLATES
@@ -141,7 +141,7 @@ using namespace chrono::cascade;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrameMoving.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChAsset.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChPhysicsItem.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
@@ -153,8 +153,8 @@ using namespace chrono::cascade;
 %ignore chrono::cascade::ChCascadeTriangulateNone::clone;
 
 %include "../../../chrono_cascade/ChCascadeTriangulate.h"
-%include "../../../chrono_cascade/ChCascadeShapeAsset.h"
-%include "../../../chrono_cascade/ChBodyEasyCascade.h"
+%include "../../../chrono_cascade/ChCascadeVisualShape.h"
+%include "../../../chrono_cascade/ChCascadeBodyEasy.h"
 %include "../../../chrono_cascade/ChCascadeDoc.h"
 %include "../../../chrono/physics/ChMaterialSurfaceNSC.h"
 %include "../../../chrono/physics/ChMaterialSurfaceSMC.h"
