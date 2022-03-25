@@ -65,8 +65,6 @@ void ChLugreTire::AddVisualizationAssets(VisualizationType vis) {
     double disc_radius = GetRadius();
     const double* disc_locs = GetDiscLocations();
 
-    //// RADU TODO use a shared cyl shape
-
     m_cyl_shapes.resize(GetNumDiscs());
     for (int id = 0; id < GetNumDiscs(); id++) {
         m_cyl_shapes[id] = chrono_types::make_shared<ChCylinderShape>();

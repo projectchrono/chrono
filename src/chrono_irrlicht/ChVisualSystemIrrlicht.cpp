@@ -613,9 +613,6 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
 void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                                              std::shared_ptr<ChVisualModel> model,
                                              const ChFrame<>& parent_frame) {
-    //// RADU TODO - We do not use Pos and Rot from box geometry, or center from sphere geometry.
-    ////             THIS WILL BE OBSOLETED!!!
-
     for (const auto& shape_instance : model->GetShapes()) {
         auto& shape = shape_instance.first;
         auto& shape_frame = shape_instance.second;

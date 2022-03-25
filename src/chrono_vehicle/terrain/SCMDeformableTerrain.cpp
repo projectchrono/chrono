@@ -89,9 +89,8 @@ void SCMDeformableTerrain::SetColor(const ChColor& color) {
 
 // Set the texture and texture scaling.
 void SCMDeformableTerrain::SetTexture(const std::string tex_file, ChVector2<float> tex_scale) {
-    //// RADU TODO: use texture scale
     if (m_ground->GetVisualModel()) {
-        m_ground->GetVisualShape(0)->SetTexture(tex_file);
+        m_ground->GetVisualShape(0)->SetTexture(tex_file, tex_scale);
     }
 }
 

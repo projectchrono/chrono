@@ -107,7 +107,6 @@ ChApiIrr irr::video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMateri
                                                  irr::video::IVideoDriver* driver);
 
 /// Align an Irrlicht object to a the specified coordinate system.
-//// RADU TODO replace second argument to a ChFrame.
 ChApiIrr void alignIrrlichtNode(irr::scene::ISceneNode* mnode, const ChCoordsys<>& mcoords);
 
 /// Draw contact points used by a ChSystem in the current Irrlicht viewer.

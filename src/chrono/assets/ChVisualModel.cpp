@@ -17,10 +17,6 @@
 namespace chrono {
 
 void ChVisualModel::AddShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame) {
-    //// RADU - obsolete this
-    shape->Pos = frame.GetPos();
-    shape->Rot = frame.GetA();
-    ////
     m_shapes.push_back({shape, frame});
 }
 

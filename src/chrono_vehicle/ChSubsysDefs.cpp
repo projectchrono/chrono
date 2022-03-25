@@ -94,8 +94,7 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
         for (auto& line : m_vis_lines) {
             auto line_shape = chrono_types::make_shared<ChLineShape>();
             line_shape->SetLineGeometry(line.m_line);
-            line_shape->Pos = line.m_pos;
-            line_shape->Rot = line.m_rot;
+            body->AddVisualShape(line_shape, ChFrame<>(line.m_pos, line.m_rot));
         }
 
         return;

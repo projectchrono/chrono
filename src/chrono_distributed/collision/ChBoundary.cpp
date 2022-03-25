@@ -50,10 +50,7 @@ void ChBoundary::UpdatePlane(size_t id, const ChFrame<>& frame) {
     m_planes[id].m_normal = frame_abs.GetA().Get_A_Zaxis();
 
     if (m_planes[id].m_vis_box) {
-        double hthick = m_planes[id].m_vis_box->GetBoxGeometry().Size.z();
         ChVector<> normal = m_planes[id].m_frame_loc.GetA().Get_A_Zaxis();
-        m_planes[id].m_vis_box->Pos = m_planes[id].m_frame_loc.GetPos() - normal * hthick;
-        m_planes[id].m_vis_box->Rot = m_planes[id].m_frame_loc.GetRot();
     }
 }
 
