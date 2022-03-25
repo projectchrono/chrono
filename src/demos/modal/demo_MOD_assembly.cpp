@@ -53,7 +53,7 @@ double beam_wy = 0.05;
 double beam_L = 6;
 int n_elements = 8;
 
-void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add_internal_body,  bool add_boundary_body) 
+void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add_internal_body,  bool add_boundary_body, bool add_force) 
 {
     ChSystem* my_system = myapp.GetSystem();
     // Clear previous demo, if any:
@@ -132,7 +132,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
         ChVector<>(0, 1, 0) // the 'Y' up direction of the section for the beam
     );
 
-    my_node_B_boundary->SetForce(ChVector<>(0, 0, 90)); // to trigger some vibration at the free end
+    //my_node_B_boundary->SetForce(ChVector<>(0, 0, 90)); // to trigger some vibration at the free end
 
     if (add_internal_body) {
 
@@ -157,7 +157,26 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
         my_end_constr->Initialize(builder.GetLastBeamNodes().back(), my_body_C, ChFrame<>(ChVector<>(beam_L, 0, 0), QUNIT));
         my_assembly->Add(my_end_constr);
     }
+    
+    if (add_force) {
+        // Add a force (also to internal nodes that will be removed after modal reduction).
+        // This can be done using a callback that will be called all times the time integrator needs it.
+        // You will provide a custom force writing into computed_custom_F_full vector (note: it is up to you to use the proper indexes)
+        class MyCallback : public ChModalAssembly::CustomForceFullCallback {
+        public:
+            MyCallback() {};
+            virtual void evaluate(ChVectorDynamic<>& computed_custom_F_full, //< compute F here, size= n_boundary_coords_w + n_internal_coords_w
+                const ChModalAssembly& link  ///< associated modal assembly
+            ) {
+                computed_custom_F_full.setZero(); // remember! assume F vector is already properly sized, but not zeroed!
+                computed_custom_F_full[computed_custom_F_full.size() - 16] = 90; // just for test, assign a force to a random coordinate of F, here an internal node
+            }
+        };
+        auto my_callback = chrono_types::make_shared<MyCallback>();
 
+        my_assembly->RegisterCallback_CustomForceFull(my_callback);
+    }
+    
 
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
     my_system->Setup();
@@ -231,6 +250,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
         tools::drawGrid(myapp.GetVideoDriver(), 1, 1, 12, 12,
                              ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
                              video::SColor(100, 120, 120, 120), true);
+
         myapp.DoStep();
         myapp.EndScene();
     }
@@ -371,25 +391,29 @@ int main(int argc, char* argv[]) {
                 MakeAndRunDemoCantilever(application,
                     false,    // no modal reduction
                     false,    // no internal body
-                    false);   // no boundary body
+                    false,    // no boundary body
+                    true);    // add force
                 break;
             case 2:
                 MakeAndRunDemoCantilever(application, 
                     true,     //    modal reduction
                     false,    // no internal body
-                    false);   // no boundary body
+                    false,    // no boundary body
+                    true);    // add force
                 break;
             case 3:
                 MakeAndRunDemoCantilever(application,
                     false,    // no modal reduction
                     true,     //    internal body
-                    true);    //    boundary body
+                    true,     //    boundary body
+                    true);    // add force
                 break;
             case 4:
                 MakeAndRunDemoCantilever(application, 
                     true,     //    modal reduction
                     true,     //    internal body
-                    true);    //    boundary body
+                    true,     //    boundary body
+                    true);    // add force
                 break;
             default:
                 break;

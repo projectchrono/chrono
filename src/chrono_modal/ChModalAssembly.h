@@ -134,8 +134,48 @@ public:
     ChVectorDynamic<>& Get_modal_q_dt()  { return modal_q_dt; }
     /// Access the vector of 2nd time derivative of modal coordinates (accelerations)
     ChVectorDynamic<>& Get_modal_q_dtdt()  { return modal_q_dtdt; }
-    /// Access the vector of applied forces to modal coordinates
-    ChVectorDynamic<>& Get_modal_F()  { return modal_F; }
+    
+    /// Class to be used as a callback interface for computing a custom 
+    /// force F applied to the modal coordinates. Assuming F has size= n_modes_coords_w,
+    /// A derived class must implement evaluate().
+    class ChApiModal CustomForceModalCallback {
+      public:
+        virtual ~CustomForceModalCallback() {}
+
+        /// Compute the custom force vector applied on the modal coordinates, at the specified configuration.
+        virtual void evaluate(  ChVectorDynamic<>& computed_custom_F_modal, //< compute F here, size= n_modes_coords_w
+                                const ChModalAssembly& link  ///< associated modal assembly
+                                ) = 0;
+    };
+
+    /// Specify the optional callback object for computing a custom modal force.
+    void RegisterCallback_CustomForceModal(std::shared_ptr<CustomForceModalCallback> mcallback) { m_custom_F_modal_callback = mcallback; }
+
+    /// Class to be used as a callback interface for computing a custom 
+    /// force F applied to the full (not reduced) coordinates; when in reduced mode, this force
+    /// will be applied with an automatic transformation to the reduced coordinates. 
+    /// Assuming F has size= n_boundary_coords_w + n_internal_coords_w.
+    /// A derived class must implement evaluate().
+    class ChApiModal CustomForceFullCallback {
+      public:
+        virtual ~CustomForceFullCallback() {}
+
+        /// Compute the custom force vector applied on the full coordinates, at the specified configuration.
+        virtual void evaluate(  ChVectorDynamic<>& computed_custom_F_full, //< compute F here, size= n_boundary_coords_w + n_internal_coords_w
+                                const ChModalAssembly& link  ///< associated modal assembly
+                                ) = 0;
+    };
+
+    /// Specify the optional callback object for computing a custom force acting on the full (not reduced) coordinates.
+    void RegisterCallback_CustomForceFull(std::shared_ptr<CustomForceFullCallback> mcallback) { m_custom_F_full_callback = mcallback; }
+
+
+    /// Access the current value of vector of custom applied forces to modal coordinates. 
+    /// Use a CustomForceModalCallback to change it.
+    ChVectorDynamic<>& Get_custom_F_modal()  { return custom_F_modal; }
+    /// Access the current value of vector of custom applied forces to original coordinates.
+    /// Use a CustomForceFullCallback to change it.
+    ChVectorDynamic<>& Get_custom_F_full()  { return custom_F_full; }
 
     /// Access the modal mass matrix - read only
     const ChMatrixDynamic<>& Get_modal_M() const { return modal_M; }
@@ -428,7 +468,11 @@ public:
     ChVectorDynamic<> modal_q;
     ChVectorDynamic<> modal_q_dt;
     ChVectorDynamic<> modal_q_dtdt;
-    ChVectorDynamic<> modal_F;
+
+    ChVectorDynamic<> custom_F_modal;
+    ChVectorDynamic<> custom_F_full;
+    std::shared_ptr<CustomForceModalCallback> m_custom_F_modal_callback;
+    std::shared_ptr<CustomForceFullCallback> m_custom_F_full_callback;
 
     ChKblockGeneric   modal_Hblock;
     ChMatrixDynamic<> modal_M;
