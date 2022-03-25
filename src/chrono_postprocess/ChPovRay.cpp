@@ -689,24 +689,23 @@ void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
                 pov_file << "mt_" << (size_t)mat.get() << "()\n";
             }
         }
-
-        //// RADU TODO: deal with camera "assets"
-        /*
-        if (auto mycamera = std::dynamic_pointer_cast<ChCamera>(k_asset)) {
-            camera_found_in_assets = true;
-
-            camera_location = mycamera->GetPosition() >> parentframe;
-            camera_aim = mycamera->GetAimPoint() >> parentframe;
-            camera_up = mycamera->GetUpVector() >> parentframe;
-            camera_angle = mycamera->GetAngle();
-            camera_orthographic = mycamera->GetOrthographic();
-        }
-        */
     }
 
     // Scan FEA visual shapes in the visual model
     for (const auto& shapeFEA : item->GetVisualModel()->GetShapesFEA()) {
         //// RADU TODO
+    }
+
+    // Check for any cameras attached to the physics item
+    //// RADU TODO: allow using more than one camera at a time?
+    for (const auto& camera : item->GetCameras()) {
+        camera_found_in_assets = true;
+
+        camera_location = camera->GetPosition() >> parentframe;
+        camera_aim = camera->GetAimPoint() >> parentframe;
+        camera_up = camera->GetUpVector() >> parentframe;
+        camera_angle = camera->GetAngle();
+        camera_orthographic = camera->IsOrthographic();       
     }
 
     // Invoke the custom commands string (if any)

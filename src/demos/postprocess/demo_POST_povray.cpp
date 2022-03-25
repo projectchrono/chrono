@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     camera->SetAngle(50);
     camera->SetPosition(ChVector<>(-3, 4, -5));
     camera->SetAimPoint(ChVector<>(0, 1, 0));
-    body->AddAsset(camera);
+    body->AddCamera(camera);
 
     /// [Example 2]
     /* End example */

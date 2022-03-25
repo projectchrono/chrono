@@ -448,7 +448,6 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChSphereShape)
 %DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChCylinderShape)
 %DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChTexture)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChCamera)
 %DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChLineShape)
 %DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChSurfaceShape)
 %DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChPathShape)

@@ -86,6 +86,11 @@ std::shared_ptr<ChVisualShapeFEA> ChPhysicsItem::GetVisualShapeFEA(unsigned int 
     return vis_model_instance->GetModel()->GetShapeFEA(i);
 }
 
+void ChPhysicsItem::AddCamera(std::shared_ptr<ChCamera> camera) {
+    camera->m_owner = this;
+    cameras.push_back(camera);
+}
+
 void ChPhysicsItem::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
     bbmin.Set(-1e200, -1e200, -1e200);
     bbmax.Set(1e200, 1e200, 1e200);
@@ -103,6 +108,8 @@ void ChPhysicsItem::Update(double mytime, bool update_assets) {
     if (update_assets) {
         for (unsigned int ia = 0; ia < assets.size(); ++ia)
             assets[ia]->Update(this, GetVisualModelFrame().GetCoord());
+        for (auto& camera : cameras)
+            camera->Update();
         if (vis_model_instance)
             vis_model_instance->Update(GetVisualModelFrame());
     }

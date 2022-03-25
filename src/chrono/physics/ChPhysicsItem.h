@@ -12,10 +12,11 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHPHYSICSITEM_H
-#define CHPHYSICSITEM_H
+#ifndef CH_PHYSICSITEM_H
+#define CH_PHYSICSITEM_H
 
 #include "chrono/assets/ChAsset.h"
+#include "chrono/assets/ChCamera.h"
 #include "chrono/assets/ChVisualModel.h"
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChFrame.h"
@@ -93,9 +94,12 @@ class ChApi ChPhysicsItem : public ChObj {
     /// of a given clone can be obtained by calling GetVisualModelFrame() with the corresponding clone identifier.
     virtual unsigned int GetNumVisualModelClones() const { return 0; }
 
+    /// Attach a ChCamera to this physical item.
+    /// Multiple cameras can be attached to the same physics item.
+    void AddCamera(std::shared_ptr<ChCamera> camera);
 
-
-
+    /// Get the set of cameras attached to this physics item.
+    std::vector<std::shared_ptr<ChCamera>> GetCameras() const { return cameras; }
 
 
 
@@ -455,6 +459,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     std::vector<std::shared_ptr<ChAsset> > assets;              ///< set of assets
     std::shared_ptr<ChVisualModelInstance> vis_model_instance;  ///< instantiated visualization model
+    std::vector<std::shared_ptr<ChCamera> > cameras;            ///< set of cameras
 
     unsigned int offset_x;  ///< offset in vector of state (position part)
     unsigned int offset_w;  ///< offset in vector of state (speed part)
