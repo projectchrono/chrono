@@ -542,8 +542,7 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector<>>& positions,
         for (unsigned int i = 0; i < positions.size(); ++i) {
             auto vshape = chrono_types::make_shared<ChSphereShape>();
             vshape->GetSphereGeometry().rad = radii[i];
-            vshape->GetSphereGeometry().center = offset_positions[i];
-            vmodel->AddShape(vshape);
+            vmodel->AddShape(vshape, ChFrame<>(offset_positions[i]));
         }
         this->AddVisualModel(vmodel);
     }

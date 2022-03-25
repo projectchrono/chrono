@@ -121,11 +121,10 @@ int main(int argc, char* argv[]) {
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(width, thickness, length);
-    box->GetBoxGeometry().Pos = ChVector<>(0, 0, 0);
     box->SetColor(ChColor(0.8f, 0.2f, 0.2f, 0.8f));
 
     auto bin_vis = chrono_types::make_shared<ChVisualModel>();
-    bin_vis->AddShape(box);
+    bin_vis->AddShape(box, ChFrame<>());
     bin->AddVisualModel(bin_vis);
 
     sys.AddBody(bin);

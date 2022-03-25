@@ -437,7 +437,6 @@ void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
                                      std::shared_ptr<ChBoxShape> box_shape,
                                      ChFrame<> asset_frame) {
     ChVector<double> size = box_shape->GetBoxGeometry().GetLengths();
-    // ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos, visual_asset->Rot);
 
     unsigned int mat_id;
     if (box_shape->GetNumMaterials() == 0) {
@@ -454,11 +453,6 @@ void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
                                         ChFrame<> asset_frame) {
     ChVector<double> size = {sphere_shape->GetSphereGeometry().rad, sphere_shape->GetSphereGeometry().rad,
                              sphere_shape->GetSphereGeometry().rad};
-    // ChFrame<double> asset_frame =
-    //     ChFrame<double>(visual_asset->Pos + sphere_shape->GetSphereGeometry().center, visual_asset->Rot);
-
-    ChFrame<double> sphere_frame =
-        asset_frame * ChFrame<double>(sphere_shape->GetSphereGeometry().center, {1, 0, 0, 0});
 
     unsigned int mat_id;
     if (sphere_shape->GetNumMaterials() == 0) {
@@ -466,7 +460,7 @@ void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
     } else {
         mat_id = m_pipeline->GetSphereMaterial(sphere_shape->GetMaterial(0));
     }
-    m_geometry->AddSphere(body, sphere_frame, size, mat_id);
+    m_geometry->AddSphere(body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
 }
 
@@ -478,7 +472,6 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
     ChVector<double> center = (cyl_shape->GetCylinderGeometry().p1 + cyl_shape->GetCylinderGeometry().p2) / 2;
 
     ChVector<double> size = {radius, height, radius};
-    // ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos + center, visual_asset->Rot);
 
     ChFrame<double> cyl_frame = asset_frame * ChFrame<double>(center);
 

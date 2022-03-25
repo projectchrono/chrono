@@ -111,10 +111,7 @@ int main(int argc, char* argv[]) {
 
     // ---Initialize the randomizer for POSITIONS: random points in a large cube
     auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionOnGeometry>();
-
-    std::shared_ptr<ChGeometry> sampled_cube(new ChBox(VNULL, ChMatrix33<>(QUNIT), ChVector<>(50, 50, 50)));
-    emitter_positions->SetGeometry(sampled_cube);
-
+    emitter_positions->SetGeometry(chrono_types::make_shared<ChBox>(50, 50, 50), ChFrame<>());
     emitter.SetParticlePositioner(emitter_positions);
 
     // ---Initialize the randomizer for ALIGNMENTS

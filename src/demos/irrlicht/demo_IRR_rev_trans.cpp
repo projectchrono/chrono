@@ -49,11 +49,10 @@ int main(int argc, char* argv[]) {
     ground->SetCollide(false);
     ground->SetPos(ChVector<>(0, 0, -1));
 
-    auto cyl = chrono_types::make_shared<ChBoxShape>();
-    cyl->GetBoxGeometry().Size = ChVector<>(10, 0.04, 0.06);
-    cyl->GetBoxGeometry().Pos = ChVector<>(5, 0, 0);
-    cyl->SetColor(ChColor(0, 0, 0.6f, 0));
-    ground->AddVisualShape(cyl);
+    auto box = chrono_types::make_shared<ChBoxShape>();
+    box->GetBoxGeometry().Size = ChVector<>(10, 0.04, 0.06);
+    box->SetColor(ChColor(0, 0, 0.6f, 0));
+    ground->AddVisualShape(box, ChFrame<>(ChVector<>(5, 0, 0)));
 
     // Create a pendulum body
     // ----------------------

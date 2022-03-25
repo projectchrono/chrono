@@ -23,15 +23,8 @@ namespace geometry {
 /// A rounded cylinder (sphere-swept cylinder) geometric object for collision and visualization.
 class ChApi ChRoundedCylinder : public ChGeometry {
   public:
-    ChVector<> center;  ///< cylinder center
-    double rad;         ///< cylinder radius
-    double hlen;        ///< cylinder halflength
-    double radsphere;   ///< Radius of sweeping sphere
-
-  public:
-    ChRoundedCylinder() : center(VNULL), rad(0), hlen(0), radsphere(0) {}
-    ChRoundedCylinder(const ChVector<>& mcenter, double mrad, double mhlen, double mradsphere)
-        : center(mcenter), rad(mrad), hlen(mhlen), radsphere(mradsphere) {}
+    ChRoundedCylinder() : rad(0), hlen(0), radsphere(0) {}
+    ChRoundedCylinder(double mrad, double mhlen, double mradsphere) : rad(mrad), hlen(mhlen), radsphere(mradsphere) {}
     ChRoundedCylinder(const ChRoundedCylinder& source);
     ~ChRoundedCylinder() {}
 
@@ -46,11 +39,11 @@ class ChApi ChRoundedCylinder : public ChGeometry {
                                 double& ymax,
                                 double& zmin,
                                 double& zmax,
-                                ChMatrix33<>* Rot = NULL) const override {
+                                ChMatrix33<>* Rot = nullptr) const override {
         //// TODO
     }
 
-    virtual ChVector<> Baricenter() const override { return center; }
+    virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 
     //// TODO obsolete/unused
     virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
@@ -63,6 +56,10 @@ class ChApi ChRoundedCylinder : public ChGeometry {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    double rad;        ///< cylinder radius
+    double hlen;       ///< cylinder halflength
+    double radsphere;  ///< Radius of sweeping sphere
 };
 
 }  // end namespace geometry
