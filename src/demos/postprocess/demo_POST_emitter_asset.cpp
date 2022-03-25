@@ -26,7 +26,6 @@
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_postprocess/ChPovRay.h"
-#include "chrono_postprocess/ChPovRayAssetCustom.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -113,15 +112,12 @@ int main(int argc, char* argv[]) {
     floor_body->GetCollisionModel()->BuildModel();
 
     // Custom rendering in POVray:
-    auto POVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
-    POVcustom->SetCommands(
-        "texture{ pigment{ color rgb<1,1,1>}} \n\
+    pov_exporter.SetCustomCommands(floor_body, "texture{ pigment{ color rgb<1,1,1>}} \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) } \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) rotate<0,90,0> } \n\
                              texture{ Raster(4*0.2, 0.04, rgb<0.8,0.8,0.8>) } \n\
                              texture{ Raster(4*0.2, 0.04, rgb<0.8,0.8,0.8>) rotate<0,90,0> } \n\
                               ");
-    floor_body->AddAsset(POVcustom);
 
     sys.Add(floor_body);
 
@@ -180,13 +176,12 @@ int main(int argc, char* argv[]) {
                                    ChCoordsys<> coords,
                                    ChRandomShapeCreator& creator) override {
                 body->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
-
-                auto POVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
-                POVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.8,0.5,0.3>} }  \n");
-                body->AddAsset(POVcustom);
+                pov->SetCustomCommands(body, " texture {finish { specular 0.9 } pigment{ color rgb<0.8,0.5,0.3>} }\n");
             }
+            ChPovRay* pov;
         };
         auto callback_spheres = chrono_types::make_shared<MyCreator_spheres>();
+        callback_spheres->pov = &pov_exporter;
         creator_spheres->RegisterAddBodyCallback(callback_spheres);
 
         // B)
@@ -204,13 +199,12 @@ int main(int argc, char* argv[]) {
                                    ChCoordsys<> coords,
                                    ChRandomShapeCreator& creator) override {
                 body->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
-
-                auto POVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
-                POVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.4,0.6>} }  \n");
-                body->AddAsset(POVcustom);
+                pov->SetCustomCommands(body, " texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.4,0.6>} }\n");
             }
+            ChPovRay* pov;
         };
         auto callback_hulls = chrono_types::make_shared<MyCreator_hulls>();
+        callback_hulls->pov = &pov_exporter;
         creator_hulls->RegisterAddBodyCallback(callback_hulls);
 
         // Create a parent ChRandomShapeCreator that 'mixes' some generators above,

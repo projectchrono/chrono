@@ -49,7 +49,6 @@
 #include "chrono/solver/ChSolver.h"
 #include "chrono_postprocess/ChPostProcessBase.h"
 #include "chrono_postprocess/ChPovRay.h"
-#include "chrono_postprocess/ChPovRayAssetCustom.h"
 #include "chrono_postprocess/ChGnuPlot.h"
 #include "Eigen/src/Core/util/Memory.h"
 
@@ -97,7 +96,6 @@ using namespace chrono::postprocess;
 %shared_ptr(chrono::ChVisualShape)
 %shared_ptr(chrono::postprocess::ChPostProcessBase)
 %shared_ptr(chrono::postprocess::ChPovRay)
-%shared_ptr(chrono::postprocess::ChPovRayAssetCustom)
 
 
 //
@@ -127,7 +125,6 @@ using namespace chrono::postprocess;
 
 %include "ChPostProcessBase.i"
 %include "ChPovRay.i"
-%include "ChPovRayAssetCustom.i"
 %include "../../../chrono_postprocess/ChGnuPlot.h"
 
 
@@ -144,8 +141,6 @@ using namespace chrono::postprocess;
 // Later, in python, you can do the following:
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
-
-%DefSharedPtrDynamicDowncast2NS(chrono, chrono::postprocess, ChAsset,ChPovRayAssetCustom)
 
 
 //

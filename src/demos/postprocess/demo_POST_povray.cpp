@@ -27,7 +27,6 @@
 #include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_postprocess/ChPovRay.h"
-#include "chrono_postprocess/ChPovRayAssetCustom.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -39,6 +38,46 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;
+
+    /* Start example */
+    /// [POV exporter]
+
+    // Create an exporter to POVray
+    ChPovRay pov_exporter = ChPovRay(&sys);
+
+    // Important: set the path to the template:
+    pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
+
+    // Set the path where it will save all .pov, .ini, .asset and .dat files, a directory will be created if not
+    // existing
+    pov_exporter.SetBasePath(GetChronoOutputPath() + "DEMO_POVRAY");
+
+    // Optional: change the default naming of the generated files:
+    // pov_exporter.SetOutputScriptFile("rendering_frames.pov");
+    // pov_exporter.SetOutputDataFilebase("my_state");
+    // pov_exporter.SetPictureFilebase("picture");
+
+    // --Optional: modify default light
+    pov_exporter.SetLight(ChVector<>(-3, 4, 2), ChColor(0.15f, 0.15f, 0.12f), false);
+
+    // --Optional: add further POV commands, for example in this case:
+    //     create an area light for soft shadows
+    //     create a Grid object; Grid() parameters: step, linewidth, linecolor, planecolor
+    //   Remember to use \ at the end of each line for a multiple-line string.
+    pov_exporter.SetCustomPOVcommandsScript(
+        " \
+	light_source {   \
+      <2, 10, -3>  \
+	  color rgb<1.2,1.2,1.2> \
+      area_light <4, 0, 0>, <0, 0, 4>, 8, 8 \
+      adaptive 1 \
+      jitter\
+    } \
+	object{ Grid(1,0.02, rgb<0.7,0.8,0.8>, rgbt<1,1,1,1>) rotate <0, 0, 90>  } \
+    ");
+
+    /// [POV exporter]
+    /* End example */
 
     /* Start example */
     /// [Example 1]
@@ -116,7 +155,7 @@ int main(int argc, char* argv[]) {
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
 
-    // ==Asset== Attach a video camera. 
+    // ==Asset== Attach a video camera.
     // Note that a camera can also be attached to a moving object.
     auto camera = chrono_types::make_shared<ChCamera>();
     camera->SetAngle(50);
@@ -162,54 +201,8 @@ int main(int argc, char* argv[]) {
     /// [Example 3]
     /* End example */
 
-    /* Start example */
-    /// [POV exporter]
-
-    //
-    // SETUP THE POSTPROCESSING
-    //
-
-    // Create an exporter to POVray !!!
-    ChPovRay pov_exporter = ChPovRay(&sys);
-
-    // Important: set the path to the template:
-    pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
-
-    // Set the path where it will save all .pov, .ini, .asset and .dat files, a directory will be created if not existing
-    pov_exporter.SetBasePath(GetChronoOutputPath() + "DEMO_POVRAY");
-
-    // Optional: change the default naming of the generated files:
-    //pov_exporter.SetOutputScriptFile("rendering_frames.pov");
-    //pov_exporter.SetOutputDataFilebase("my_state");
-    //pov_exporter.SetPictureFilebase("picture");
-
-
-    // --Optional: modify default light
-    pov_exporter.SetLight(ChVector<>(-3, 4, 2), ChColor(0.15f, 0.15f, 0.12f), false);
-
-    // --Optional: add further POV commands, for example in this case:
-    //     create an area light for soft shadows
-    //     create a Grid object; Grid() parameters: step, linewidth, linecolor, planecolor
-    //   Remember to use \ at the end of each line for a multiple-line string.
-    pov_exporter.SetCustomPOVcommandsScript(
-        " \
-	light_source {   \
-      <2, 10, -3>  \
-	  color rgb<1.2,1.2,1.2> \
-      area_light <4, 0, 0>, <0, 0, 4>, 8, 8 \
-      adaptive 1 \
-      jitter\
-    } \
-	object{ Grid(1,0.02, rgb<0.7,0.8,0.8>, rgbt<1,1,1,1>) rotate <0, 0, 90>  } \
-    ");
-
-    // --Optional: attach additional custom POV commands to some of the rigid bodies,
-    //   using the ChPovRayAssetCustom asset. This asset for example projects a
-    //   checkered texture to the floor. This POV specific asset won't be rendered
-    //   by Irrlicht or other interfaces.
-    auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
-    mPOVcustom->SetCommands((char*)"pigment { checker rgb<0.9,0.9,0.9>, rgb<0.75,0.8,0.8> }");
-    floor->AddAsset(mPOVcustom);
+    // --Optional: attach additional custom POV commands to some of the rigid bodies.
+    pov_exporter.SetCustomCommands(floor, "pigment { checker rgb<0.9,0.9,0.9>, rgb<0.75,0.8,0.8> }");
 
     // Export all existing visual shapes to POV-Ray
     pov_exporter.AddAll();
@@ -220,9 +213,6 @@ int main(int argc, char* argv[]) {
     //	pov_exporter.Add(floor);
     //	pov_exporter.Add(body);
     //	pov_exporter.Add(particles);
-
-    /// [POV exporter]
-    /* End example */
 
     /* Start example */
     /// [POV simulation]

@@ -25,7 +25,7 @@
 #include "chrono/physics/ChParticlesClones.h"
 
 #include "chrono_postprocess/ChPovRay.h"
-#include "chrono_postprocess/ChPovRayAssetCustom.h"
+
 #include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
@@ -112,6 +112,10 @@ void ChPovRay::RemoveAll() {
     for (auto& link : mSystem->Get_linklist()) {
         Remove(link);
     }
+}
+
+void ChPovRay::SetCustomCommands(std::shared_ptr<ChPhysicsItem> item, const std::string& commands) {
+    m_custom_commands[(size_t)item.get()] = commands;
 }
 
 void ChPovRay::UpdateRenderList() {
@@ -381,24 +385,24 @@ void ChPovRay::ExportScript(const std::string& filename) {
         // open asset file in append mode
         assets_filename = out_script_filename + ".assets";
         ChStreamOutAsciiFile assets_file((base_path + assets_filename).c_str(), std::ios::app);
-        // populate assets (note that already present
-        // assets won't be appended!)
+        // populate assets (note that already present assets won't be appended!)
         ExportAssets(assets_file);
     }
 }
 
 void ChPovRay::ExportAssets(ChStreamOutAsciiFile& assets_file) {
-    // Write geomteries and materials in the POV assets script for all physics items with a visual model
     for (const auto& item : m_items) {
-        if (item->GetVisualModel()) {
-            ExportShapes(item->GetVisualModel()->GetShapes(), assets_file);
-        }
+        ExportShapes(assets_file, item);
     }
 }
 
-void ChPovRay::ExportShapes(const std::vector<ChVisualModel::ShapeInstance>& shapes,
-                                   ChStreamOutAsciiFile& assets_file) {
-    for (const auto& shape_instance : shapes) {
+// Write geometries and materials in the POV assets script for all physics items with a visual model
+void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<ChPhysicsItem> item) {
+    // Nothing to do if the item does not have a visual model
+    if (!item->GetVisualModel())
+        return;
+
+    for (const auto& shape_instance : item->GetVisualModel()->GetShapes()) {
         const auto& shape = shape_instance.first;
         const auto& shape_frame = shape_instance.second;
 
@@ -470,12 +474,11 @@ void ChPovRay::ExportShapes(const std::vector<ChVisualModel::ShapeInstance>& sha
                 assets_file << " face_indices {\n";
                 assets_file << (int)mesh->m_face_v_indices.size() << ",\n";
                 for (unsigned int it = 0; it < mesh->m_face_v_indices.size(); it++) {
-                    assets_file << "  <" << mesh->m_face_v_indices[it].x() << ","
-                                << mesh->m_face_v_indices[it].y() << "," << mesh->m_face_v_indices[it].z()
-                                << ">";
+                    assets_file << "  <" << mesh->m_face_v_indices[it].x() << "," << mesh->m_face_v_indices[it].y()
+                                << "," << mesh->m_face_v_indices[it].z() << ">";
                     if (mesh->m_colors.size() == mesh->m_vertices.size())
-                        assets_file << mesh->m_face_v_indices[it].x() << "," << mesh->m_face_v_indices[it].y()
-                                    << "," << mesh->m_face_v_indices[it].z();
+                        assets_file << mesh->m_face_v_indices[it].x() << "," << mesh->m_face_v_indices[it].y() << ","
+                                    << mesh->m_face_v_indices[it].z();
                     assets_file << ",\n";
                 }
                 assets_file << " }\n";
@@ -484,9 +487,8 @@ void ChPovRay::ExportShapes(const std::vector<ChVisualModel::ShapeInstance>& sha
                     assets_file << " normal_indices {\n";
                     assets_file << (int)mesh->m_face_n_indices.size() << ",\n";
                     for (unsigned int it = 0; it < mesh->m_face_n_indices.size(); it++)
-                        assets_file << "  <" << mesh->m_face_n_indices[it].x() << ","
-                                    << mesh->m_face_n_indices[it].y() << "," << mesh->m_face_n_indices[it].z()
-                                    << ">,\n";
+                        assets_file << "  <" << mesh->m_face_n_indices[it].x() << "," << mesh->m_face_n_indices[it].y()
+                                    << "," << mesh->m_face_n_indices[it].z() << ">,\n";
                     assets_file << " }\n";
                 }
                 if ((mesh->m_face_uv_indices.size() != mesh->m_face_v_indices.size()) &&
@@ -495,8 +497,8 @@ void ChPovRay::ExportShapes(const std::vector<ChVisualModel::ShapeInstance>& sha
                     assets_file << (int)mesh->m_face_uv_indices.size() << ",\n";
                     for (unsigned int it = 0; it < mesh->m_face_uv_indices.size(); it++)
                         assets_file << "  <" << mesh->m_face_uv_indices[it].x() << ","
-                                    << mesh->m_face_uv_indices[it].y() << ","
-                                    << mesh->m_face_uv_indices[it].z() << ">,\n";
+                                    << mesh->m_face_uv_indices[it].y() << "," << mesh->m_face_uv_indices[it].z()
+                                    << ">,\n";
                     assets_file << " }\n";
                 }
 
@@ -594,11 +596,11 @@ void ChPovRay::ExportShapes(const std::vector<ChVisualModel::ShapeInstance>& sha
             assets_file << "box  {\n";
 
             assets_file << " <" << -box->GetBoxGeometry().Size.x();
-            assets_file << "," <<  -box->GetBoxGeometry().Size.y();
-            assets_file << "," <<  -box->GetBoxGeometry().Size.z() << ">\n";
-            assets_file << " <" <<  box->GetBoxGeometry().Size.x();
-            assets_file << "," <<   box->GetBoxGeometry().Size.y();
-            assets_file << "," <<   box->GetBoxGeometry().Size.z() << ">\n";
+            assets_file << "," << -box->GetBoxGeometry().Size.y();
+            assets_file << "," << -box->GetBoxGeometry().Size.z() << ">\n";
+            assets_file << " <" << box->GetBoxGeometry().Size.x();
+            assets_file << "," << box->GetBoxGeometry().Size.y();
+            assets_file << "," << box->GetBoxGeometry().Size.z() << ">\n";
 
             const auto& pos = shape_frame.GetPos();
             const auto& rot = shape_frame.GetRot();
@@ -617,28 +619,21 @@ void ChPovRay::ExportShapes(const std::vector<ChVisualModel::ShapeInstance>& sha
             assets_file << "#end \n";
         }
 
-        //// RADU TODO: deal with custom POV-Ray commands
-        /*
-        if (auto myobjcommandasset = std::dynamic_pointer_cast<ChPovRayAssetCustom>(k_asset)) {
-            // POV macro to build the asset - begin
-            assets_file << "#macro cm_" << (size_t)k_asset.get() << "()\n";
-
-            // add POV custom commands
-            assets_file << myobjcommandasset->GetCommands().c_str() << "\n";
-
-            // POV macro - end
-            assets_file << "#end \n";
-        }
-        */
-
         // Save materials used by this shape
-        ExportMaterials(shape->GetMaterials(), assets_file);
+        ExportMaterials(assets_file, shape->GetMaterials());
+    }
 
+    // Check if there are custom commands set for this physics item
+    auto commands = m_custom_commands.find((size_t)item.get());
+    if (commands != m_custom_commands.end()) {
+        assets_file << "#macro cm_" << (size_t)item.get() << "()\n";
+        assets_file << commands->second << "\n";
+        assets_file << "#end \n";
     }
 }
 
-void ChPovRay::ExportMaterials(const std::vector<std::shared_ptr<ChVisualMaterial>>& materials,
-                               ChStreamOutAsciiFile& assets_file) {
+void ChPovRay::ExportMaterials(ChStreamOutAsciiFile& assets_file,
+                               const std::vector<std::shared_ptr<ChVisualMaterial>>& materials) {
     for (const auto& mat : materials) {
         // Do nothing if the material was alrwady processed (because it is shared)
         // Otherwise, add the material to the cache list and process it
@@ -647,7 +642,7 @@ void ChPovRay::ExportMaterials(const std::vector<std::shared_ptr<ChVisualMateria
         m_pov_materials.insert({(size_t)mat.get(), mat});
 
         // POV macro to build the asset - begin
-        assets_file << "#macro cm_" << (size_t)mat.get() << "()\n";
+        assets_file << "#macro mt_" << (size_t)mat.get() << "()\n";
 
         // add POV  texture (changing the path to absolute to allow base_path different to the one of .exe)
         if (!mat->GetKdTexture().empty()) {
@@ -673,13 +668,13 @@ void ChPovRay::ExportMaterials(const std::vector<std::shared_ptr<ChVisualMateria
     }
 }
 
-void ChPovRay::ExportObjData(const std::vector<ChVisualModel::ShapeInstance>& shapes,
-                                     const ChFrame<>& parentframe,
-                             ChStreamOutAsciiFile& pov_file) {
+void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
+                             std::shared_ptr<ChPhysicsItem> item,
+                             const ChFrame<>& parentframe) {
     pov_file << "union{\n";  // begin union
 
-    // Scan assets in object and write the macro to set their position
-    for (const auto& shape_instance : shapes) {
+    // Scan visual shapes in the visual model
+    for (const auto& shape_instance : item->GetVisualModel()->GetShapes()) {
         const auto& shape = shape_instance.first;
 
         // Process only "known" shapes (i.e., shapes that were included in the assets file)
@@ -688,10 +683,10 @@ void ChPovRay::ExportObjData(const std::vector<ChVisualModel::ShapeInstance>& sh
             std::dynamic_pointer_cast<ChCylinderShape>(shape) || std::dynamic_pointer_cast<ChBoxShape>(shape)) {
             // Invoke the geometry macro
             pov_file << "sh_" << (size_t)shape.get() << "()\n";
-            
+
             // Invoke the material macros
             for (const auto& mat : shape->GetMaterials()) {
-                pov_file << "cm_" << (size_t)mat.get() << "()\n";
+                pov_file << "mt_" << (size_t)mat.get() << "()\n";
             }
         }
 
@@ -709,7 +704,18 @@ void ChPovRay::ExportObjData(const std::vector<ChVisualModel::ShapeInstance>& sh
         */
     }
 
-    // write the rotation and position
+    // Scan FEA visual shapes in the visual model
+    for (const auto& shapeFEA : item->GetVisualModel()->GetShapesFEA()) {
+        //// RADU TODO
+    }
+
+    // Invoke the custom commands string (if any)
+    auto commands = m_custom_commands.find((size_t)item.get());
+    if (commands != m_custom_commands.end()) {
+        pov_file << "cm_" << (size_t)item.get() << "()\n";
+    }
+
+    // Write the rotation and position
     if (!(parentframe.GetCoord() == CSYSNORM)) {
         pov_file << " quatRotation(<" << parentframe.GetRot().e0();
         pov_file << "," << parentframe.GetRot().e1();
@@ -789,7 +795,7 @@ void ChPovRay::ExportData(const std::string& filename) {
                 assetcsys = bodyframe.GetCoord();
 
                 // Dump the POV macro that generates the contained asset(s) tree
-                ExportObjData(body->GetVisualModel()->GetShapes(), bodyframe, pov_file);
+                ExportObjData(pov_file, body, bodyframe);
 
                 // Show body COG?
                 if (COGs_show) {
@@ -819,7 +825,7 @@ void ChPovRay::ExportData(const std::string& filename) {
                 pov_file << "  #read (MyDatFile, apx, apy, apz, aq0, aq1, aq2, aq3) \n";
                 pov_file << "  union{\n";
                 ChFrame<> nullframe(CSYSNORM);
-                ExportObjData(clones->GetVisualModel()->GetShapes(), nullframe, pov_file);
+                ExportObjData(pov_file, clones, nullframe);
                 pov_file << "  quatRotation(<aq0,aq1,aq2,aq3>)\n";
                 pov_file << "  translate(<apx,apy,apz>)\n";
                 pov_file << "  }\n";
@@ -864,17 +870,10 @@ void ChPovRay::ExportData(const std::string& filename) {
                 }
             }
 
-            //// RADU TODO: deal with FEA meshes
-            /*
             // saving an FEA mesh?
             if (auto fea_mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
-                // Get the current coordinate frame of the i-th object
-                ChFrame<> assetcsys;
-
-                // Dump the POV macro that generates the contained asset(s) tree
-                ExportObjData(fea_mesh->GetVisualModel()->GetShapesFEA(), assetcsys, pov_file);
+                ExportObjData(pov_file, fea_mesh, ChFrame<>());
             }
-            */
 
         }  // end loop on objects
 

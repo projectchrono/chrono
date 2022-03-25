@@ -25,7 +25,6 @@
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_postprocess/ChPovRay.h"
-#include "chrono_postprocess/ChPovRayAssetCustom.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -112,15 +111,13 @@ int main(int argc, char* argv[]) {
     floor_body->GetCollisionModel()->BuildModel();
 
     // Custom rendering in POVray:
-    auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
-    mPOVcustom->SetCommands(
-        "texture{ pigment{ color rgb<1,1,1>}} \n\
+    pov_exporter.SetCustomCommands(floor_body,
+                                   "texture{ pigment{ color rgb<1,1,1>}} \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) } \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) rotate<0,90,0> } \n\
                              texture{ Raster(4*0.2, 0.04, rgb<0.8,0.8,0.8>) } \n\
                              texture{ Raster(4*0.2, 0.04, rgb<0.8,0.8,0.8>) rotate<0,90,0> } \n\
                               ");
-    floor_body->AddAsset(mPOVcustom);
 
     sys.Add(floor_body);
 
@@ -174,21 +171,19 @@ int main(int argc, char* argv[]) {
         chrono_types::make_shared<ChZhangDistribution>(0.15, 0.03));  // Zhang parameters: average val, min val.
     mcreator_spheres->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
 
-    // Optional: define a callback to be exectuted at each creation of a sphere particle:
+    // Optional: define a callback to be exectuted at each creation of a sphere particle.
     class MyCreator_spheres : public ChRandomShapeCreator::AddBodyCallback {
-        // Here do custom stuff on the just-created particle:
       public:
         virtual void OnAddBody(std::shared_ptr<ChBody> body,
                                ChCoordsys<> coords,
                                ChRandomShapeCreator& creator) override {
             body->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
-
-            auto POVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
-            POVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.4,0.4,0.45>} }  \n");
-            body->AddAsset(POVcustom);
+            pov->SetCustomCommands(body, " texture {finish { specular 0.9 } pigment{ color rgb<0.4,0.4,0.45>} }  \n");
         }
+        ChPovRay* pov;
     };
     auto callback_spheres = chrono_types::make_shared<MyCreator_spheres>();
+    callback_spheres->pov = &pov_exporter;
     mcreator_spheres->RegisterAddBodyCallback(callback_spheres);
 
     // B)
@@ -203,25 +198,24 @@ int main(int argc, char* argv[]) {
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
     class MyCreator_plastic : public ChRandomShapeCreator::AddBodyCallback {
-        // Here do custom stuff on the just-created particle:
       public:
         virtual void OnAddBody(std::shared_ptr<ChBody> body,
                                ChCoordsys<> coords,
                                ChRandomShapeCreator& creator) override {
             // Quick randomization of POV colors, without using the ChRandomShapeCreatorFromFamilies
-            auto POVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
-            body->AddAsset(POVcustom);
-
             double icol = ChRandom();
             if (icol < 0.3)
-                POVcustom->SetCommands(" texture {pigment{ color rgb<0.8,0.3,0.3>} }  \n");
+                pov->SetCustomCommands(body, " texture {pigment{ color rgb<0.8,0.3,0.3>} }  \n");
             else if (icol < 0.8)
-                POVcustom->SetCommands(" texture {pigment{ color rgb<0.3,0.8,0.3>} }  \n");
+                pov->SetCustomCommands(body, " texture {pigment{ color rgb<0.3,0.8,0.3>} }  \n");
             else
-                POVcustom->SetCommands(" texture {pigment{ color rgb<0.3,0.3,0.8>} }  \n");
+                pov->SetCustomCommands(body, " texture {pigment{ color rgb<0.3,0.3,0.8>} }  \n");
         }
+        ChPovRay* pov;
     };
-    creator_boxes->RegisterAddBodyCallback(chrono_types::make_shared<MyCreator_plastic>());
+    auto callback_plastic = chrono_types::make_shared<MyCreator_plastic>();
+    callback_plastic->pov = &pov_exporter;
+    creator_boxes->RegisterAddBodyCallback(callback_plastic);
 
     // C)
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
@@ -239,13 +233,13 @@ int main(int argc, char* argv[]) {
                                ChCoordsys<> coords,
                                ChRandomShapeCreator& creator) override {
             body->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
-
-            auto POVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
-            POVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.4,0.6>} }  \n");
-            body->AddAsset(POVcustom);
+            pov->SetCustomCommands(body, " texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.4,0.6>} }  \n");
         }
+        ChPovRay* pov;
     };
-    creator_hulls->RegisterAddBodyCallback(chrono_types::make_shared<MyCreator_hulls>());
+    auto callback_hulls = chrono_types::make_shared<MyCreator_hulls>();
+    callback_hulls->pov = &pov_exporter;
+    creator_hulls->RegisterAddBodyCallback(callback_hulls);
 
     // D)
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
