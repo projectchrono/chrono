@@ -293,6 +293,7 @@ int main(int argc, char* argv[]) {
     // -------------------------------
 
     auto vis = chrono_types::make_shared<robosimian::RoboSimianVisualSystemIrrlicht>(&robot, driver.get());
+    my_sys->SetVisualSystem(vis);
     vis->SetWindowTitle("RoboSimian - Rigid terrain");
     vis->SetWindowSize(ChVector2<int>(800, 600));
     vis->Initialize();
@@ -301,7 +302,7 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector<>(1, -2.75, 0.2), ChVector<>(1, 0, 0));
     vis->AddLight(ChVector<>(100, +100, 100), 290, ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector<>(100, -100, 80), 190, ChColor(0.7f, 0.8f, 0.8f));
-    vis->AddLightWithShadow(ChVector<>(10.0, -6.0, 3.0), ChVector<>(0, 0, 0), 3, -10, 10, 40, 512);
+    ////vis->AddLightWithShadow(ChVector<>(10.0, -6.0, 3.0), ChVector<>(0, 0, 0), 3, -10, 10, 40, 512);
     ////vis->EnableShadows();
 
     // -----------------------------
@@ -351,9 +352,8 @@ int main(int argc, char* argv[]) {
             ChVector<> hdim(length / 2, width / 2, 0.1);
             ChVector<> loc(length / 4, 0, z - 0.1);
             auto ground = CreateTerrain(my_sys, length, width, z, length / 4);
-            SetContactProperties(&robot);
-
             vis->BindItem(ground);
+            SetContactProperties(&robot);
 
             // Release robot
             robot.GetChassisBody()->SetBodyFixed(false);

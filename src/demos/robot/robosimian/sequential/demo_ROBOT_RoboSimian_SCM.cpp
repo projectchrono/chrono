@@ -16,9 +16,6 @@
 //
 // =============================================================================
 
-
-//// RADU TODO - fix issue with crash in Irrlicht 
-
 #include <cmath>
 #include <cstdio>
 #include <vector>
@@ -315,9 +312,9 @@ int main(int argc, char* argv[]) {
     ////robot.SetVisualizationTypeLimb(robosimian::RL, robosimian::VisualizationType::COLLISION);
     ////robot.SetVisualizationTypeLimb(robosimian::RR, robosimian::VisualizationType::COLLISION);
     ////robot.SetVisualizationTypeLimbs(robosimian::VisualizationType::NONE);
-    robot.SetVisualizationTypeChassis(robosimian::VisualizationType::MESH);
-    robot.SetVisualizationTypeSled(robosimian::VisualizationType::MESH);
-    robot.SetVisualizationTypeLimbs(robosimian::VisualizationType::MESH);
+    ////robot.SetVisualizationTypeChassis(robosimian::VisualizationType::MESH);
+    ////robot.SetVisualizationTypeSled(robosimian::VisualizationType::MESH);
+    ////robot.SetVisualizationTypeLimbs(robosimian::VisualizationType::MESH);
 
     // Initialize Robosimian robot
 
@@ -391,6 +388,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<robosimian::RoboSimianVisualSystemIrrlicht> vis;
     if (render) {
         vis = chrono_types::make_shared<robosimian::RoboSimianVisualSystemIrrlicht>(&robot, driver.get());
+        my_sys.SetVisualSystem(vis);
         vis->SetWindowTitle("RoboSimian - SCM terrain");
         vis->SetWindowSize(ChVector2<int>(800, 600));
         vis->Initialize();
@@ -458,11 +456,8 @@ int main(int argc, char* argv[]) {
 
             // Create terrain
             terrain = CreateTerrain(&robot, terrain_length, terrain_width, z, location_offset);
+            vis->BindItem(terrain->GetGroundObject());
             SetContactProperties(&robot);
-
-            if (render) {
-                vis->BindAll();
-            }
 
             // Release robot
             robot.GetChassisBody()->SetBodyFixed(false);
@@ -536,14 +531,14 @@ bool GetProblemSpecs(int argc,
     ChCLI cli(argv[0]);
 
     cli.AddOption<int>("Demo", "mode", "Locomotion mode (0:walk, 1:scull, 2:inchworm, 3:drive)", "0");
-    cli.AddOption<double>("Demo", "step_size", "Integration step size [s]", "5e-4");
-    cli.AddOption<int>("Demo", "cycles", "Number of cycles for constant DBP force", "2");
-    cli.AddOption<double>("Demo", "increment", "DBP factor increment", "0.04");
-    cli.AddOption<double>("Demo", "terrain_length", "Length of terrain patch", "8.0");
-    cli.AddOption<bool>("Demo", "render", "OpenGL rendering?", "true");
-    cli.AddOption<bool>("Demo", "output", "Generate result output files", "false");
-    cli.AddOption<bool>("Demo", "pov_output", "Generate POV-Ray output files", "false");
-    cli.AddOption<bool>("Demo", "img_output", "Generate Irrlicht capture output files", "false");
+    cli.AddOption<double>("Demo", "step_size", "Integration step size [s]", std::to_string(time_step));
+    cli.AddOption<int>("Demo", "cycles", "Number of cycles for constant DBP force", std::to_string(num_cycles));
+    cli.AddOption<double>("Demo", "increment", "DBP factor increment", std::to_string(dbp_incr));
+    cli.AddOption<double>("Demo", "terrain_length", "Length of terrain patch", std::to_string(terrain_length));
+    cli.AddOption<bool>("Demo", "render", "Irrlicht rendering?", std::to_string(render));
+    cli.AddOption<bool>("Demo", "output", "Generate result output files", std::to_string(data_output));
+    cli.AddOption<bool>("Demo", "pov_output", "Generate POV-Ray output files", std::to_string(povray_output));
+    cli.AddOption<bool>("Demo", "img_output", "Generate Irrlicht capture output files", std::to_string(image_output));
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();

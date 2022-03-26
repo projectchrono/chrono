@@ -1097,10 +1097,7 @@ void RS_Sled::Translate(const ChVector<>& shift) {
 
 // =============================================================================
 
-RS_WheelDD::RS_WheelDD(const std::string& name,
-                       int id,
-                       std::shared_ptr<ChMaterialSurface> mat,
-                       ChSystem* system)
+RS_WheelDD::RS_WheelDD(const std::string& name, int id, std::shared_ptr<ChMaterialSurface> mat, ChSystem* system)
     : RS_Part(name, mat, system) {
     double mass = 3.492500;
     ChVector<> com(0, 0, 0);

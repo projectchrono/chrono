@@ -58,12 +58,8 @@ class RS_IEventReceiver : public irr::IEventReceiver {
 
 // -----------------------------------------------------------------------------
 
-RoboSimianVisualSystemIrrlicht::RoboSimianVisualSystemIrrlicht(RoboSimian* robot,
-                                   RS_Driver* driver)
-    : m_robot(robot),
-      m_driver(driver),
-      m_HUD_x(650),
-      m_HUD_y(20) {
+RoboSimianVisualSystemIrrlicht::RoboSimianVisualSystemIrrlicht(RoboSimian* robot, RS_Driver* driver)
+    : m_robot(robot), m_driver(driver), m_HUD_x(650), m_HUD_y(20) {
     m_system = robot->GetSystem();
     m_erecv = new RS_IEventReceiver(this);
     AddUserEventReceiver(m_erecv);
@@ -74,11 +70,11 @@ RoboSimianVisualSystemIrrlicht::~RoboSimianVisualSystemIrrlicht() {
 }
 
 void RoboSimianVisualSystemIrrlicht::renderTextBox(const std::string& msg,
-                                     int xpos,
-                                     int ypos,
-                                     int length,
-                                     int height,
-                                     irr::video::SColor color) {
+                                                   int xpos,
+                                                   int ypos,
+                                                   int length,
+                                                   int height,
+                                                   irr::video::SColor color) {
     irr::core::rect<irr::s32> mclip(xpos, ypos, xpos + length, ypos + height);
     GetVideoDriver()->draw2DRectangle(irr::video::SColor(90, 60, 60, 60),
                                       irr::core::rect<irr::s32>(xpos, ypos, xpos + length, ypos + height), &mclip);
