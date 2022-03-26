@@ -227,7 +227,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Perform necessary setup operations at the beginning of a time step.
     virtual void OnSetup() override;
 
-    /// Perform necessary update operations at the beginning of a time step.
+    /// Perform necessary update operations at the end of a time step.
     virtual void OnUpdate() override;
 
     std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;
