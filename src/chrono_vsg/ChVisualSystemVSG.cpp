@@ -127,19 +127,13 @@ void ChVisualSystemVSG::SetClearColor(ChColor cc) {
     }
 }
 
-void ChVisualSystemVSG::AddLogo(std::string logoName) {
-    if (!m_initialized) {
-        m_logo_fileName = logoName;
-    } else {
-        cout << "AddLogo() cannot be used after calling Initialize()!" << endl;
-    };
-}
-
 void ChVisualSystemVSG::Initialize() {
     m_windowTraits = vsg::WindowTraits::create();
     m_windowTraits->windowTitle = m_windowTitle;
     m_windowTraits->width = m_windowWidth;
     m_windowTraits->height = m_windowHeight;
+    m_windowTraits->x = m_windowPosX;
+    m_windowTraits->y = m_windowPosY;
     m_windowTraits->deviceExtensionNames = {VK_KHR_MULTIVIEW_EXTENSION_NAME, VK_KHR_MAINTENANCE2_EXTENSION_NAME,
                                             VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
                                             VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME};
@@ -211,38 +205,6 @@ void ChVisualSystemVSG::Initialize() {
     // create the normal 3D view of the scene
     m_renderGraph->addChild(vsg::View::create(m_camera, m_scenegraph));
 
-    // Logo drawing?
-    if (!m_logo_fileName.empty()) {
-        cout << "Try to draw logo: " << m_logo_fileName << endl;
-        auto logoData = vsg::read_cast<vsg::Data>(m_logo_fileName, m_options);
-        if (logoData) {
-            vsg::vec3 position = vsg::vec3(0, 0, 0);
-            vsg::vec3 horizontal = vsg::vec3(1.0, 0, 0);
-            vsg::vec3 vertical = vsg::vec3(0, 0, 1.0);
-            auto scenegraph_hud = createQuad(position, horizontal, vertical, logoData);
-            // set up the camera
-            double aspectRatio = double(m_windowTraits->width) / double(m_windowTraits->height);
-            double projectionHeight = 25.0;
-            auto viewport = vsg::ViewportState::create(m_window->extent2D());
-            auto projection =
-                vsg::Orthographic::create(0.0, projectionHeight * aspectRatio, 0.0, projectionHeight, 100.0, 0.0);
-            auto lookAt =
-                vsg::LookAt::create(vsg::dvec3(0.0, 0.0, 2.0), vsg::dvec3(0.0, 0.0, 0.0), vsg::dvec3(0.0, 1.0, 0.0));
-            auto camera = vsg::Camera::create(projection, lookAt, viewport);
-            // clear the depth buffer before view2 gets rendered
-            VkClearValue clearValue{};
-            clearValue.depthStencil = {0.0f, 0};
-            VkClearAttachment attachment{VK_IMAGE_ASPECT_DEPTH_BIT, 1, clearValue};
-            VkClearRect rect{
-                VkRect2D{VkOffset2D{0, 0}, VkExtent2D{m_window->extent2D().width, m_window->extent2D().height}}, 0, 1};
-            auto clearAttachments = vsg::ClearAttachments::create(vsg::ClearAttachments::Attachments{attachment},
-                                                                  vsg::ClearAttachments::Rects{rect});
-            m_renderGraph->addChild(clearAttachments);
-            m_renderGraph->addChild(vsg::View::create(camera, scenegraph_hud));
-        } else {
-            cout << "logo data not loaded!" << endl;
-        }
-    }
 
     // Imgui graphical menu handler
     m_renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, GuiComponent(m_params, this)));
@@ -263,6 +225,8 @@ void ChVisualSystemVSG::Initialize() {
     m_viewer->assignRecordAndSubmitTaskAndPresentation({m_commandGraph});
 
     m_viewer->compile();
+
+    BindAll();
 
     m_initialized = true;
 }
@@ -290,6 +254,15 @@ void ChVisualSystemVSG::SetWindowSize(const ChVector2<int>& win_size) {
         m_windowHeight = win_size[1];
     } else {
         cout << "SetWindowSize() cannot be used after initializing!" << endl;
+    }
+}
+
+void ChVisualSystemVSG::SetWindowPosition(const ChVector2<int>& win_pos) {
+    if (!m_initialized) {
+        m_windowPosX = win_pos[0];
+        m_windowPosY = win_pos[1];
+    } else {
+        cout << "SetWindowPosition() cannot be used after initializing!" << endl;
     }
 }
 
@@ -567,5 +540,16 @@ void ChVisualSystemVSG::export_image() {
     }
 }
 
+void ChVisualSystemVSG::BindAll() {
+    cout << "BindAll() called!" << endl;
+    if(!m_system) {
+        cout << "No system attached, nothing to bind!" << endl;
+        return;
+    }
+    if(m_system->Get_bodylist().size() < 1) {
+        cout << "Attached system must have at least 1 rigid body, nothing to bind!" << endl;
+        return;
+    }
+}
 }  // namespace vsg3d
 }  // namespace chrono

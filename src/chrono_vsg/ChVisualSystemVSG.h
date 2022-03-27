@@ -40,15 +40,16 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Must be called before Initialize().
     void SetWindowSize(const ChVector2<int>& win_size);
 
+    /// Set the window lower left corner position (default 0,0)
+    /// Must be called before Initialize().
+    void SetWindowPosition(const ChVector2<int>& win_pos);
+
     /// Set the window title (default "").
     /// Must be called before Initialize().
     void SetWindowTitle(const std::string& win_title);
 
     // activate skybox (converted from Irrlicht skybox)
     void SetUseSkyBox(bool yesno=false) { m_use_skybox = yesno;}
-
-    /// Add a logo in a 3D scene.
-    void AddLogo(std::string logoName);
 
     /// Use Z-up camera rendering (default CameraVerticalDir::Z).
     /// Must be called before Initialize().
@@ -67,6 +68,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     // terminate
     void Quit();
 
+    /// Process all visual assets in the associated ChSystem.
+    /// This function is called by default by Initialize(), but can also be called later if further modifications to
+    /// visualization assets occur.
+    virtual void BindAll() override;
+
     /// Create a snapshot of the last rendered frame and save it to the provided file.
     /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) override;
@@ -80,6 +86,8 @@ private:
     std::string m_windowTitle = "VSG Visual System";
     int m_windowWidth = 640;
     int m_windowHeight = 480;
+    int m_windowPosX = 0;
+    int m_windowPosY = 0;
     //
     bool m_initialized = false;
     vsg::ref_ptr<vsg::Viewer> m_viewer;

@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
 
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     vis->SetWindowSize(ChVector2<int>(1000, 800));
+    vis->SetWindowPosition(ChVector2<int>(100, 100));
     vis->SetWindowTitle("VSG Test Lab");
     vis->SetUseSkyBox(true); // use built-in path
     vis->SetClearColor(ChColor(0.8,0.85,0.9));
