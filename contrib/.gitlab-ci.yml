@@ -416,7 +416,7 @@ windows:vs2019:test:
   needs: ["windows:vs2019:build"]
   extends: .windows
   script:
-  - cd build
+  - cd buildcat 
   - ctest --output-on-failure
   dependencies: ["windows:vs2019:build"]
 
@@ -430,7 +430,7 @@ windows:vs2019:deploy:
     # get libiomp5md.lib
     #- $libiomppth=Join-Path -Path $Env:CONDA_INSTALL_LOCN -ChildPath "\Library\lib\libiomp5md.lib"
     #- Invoke-WebRequest -Uri http://www.projectchrono.org/assets/downloads/libiomp5md.lib  -OutFile $libiomppth
-    - mkdir ./logs
+    - mkdir ./logs  
     - $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
     # this command is needed to get the git describe data needed by the numbering
     - git fetch --prune --unshallow
@@ -439,11 +439,28 @@ windows:vs2019:deploy:
     #- Invoke-WebRequest -Uri https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe  -OutFile ./Miniconda3-latest-Windows-x86_64.exe >temp.txt
     #- Start-Process -Wait  "Miniconda3-latest-Windows-x86_64.exe" -ArgumentList "/InstallationType=JustMe /RegisterPython=0 /S /D=$env:CONDA_INSTALL_LOCN"
     # Initializing the PowerShell would require to restart it. Since it isn't possible, we use the cmd instead.
-    - Start-Process "cmd.exe" "/c .\contrib\packaging-python\gitlab\build_pychrono.bat >outputfile.txt" -Wait
+    #- Start-Process "cmd.exe" "/c .\contrib\packaging-python\gitlab\build_pychrono.bat >outputfile.txt" -Wait
+    # Attempt to write code from build_pychrono.bat in CI for better debugging
+    #Run conda-hook
+    - '& "C:\Users\builder\miniconda3\shell\condabin\conda-hook.ps1"'
+    #Create conda environment and download dependencies
+    - conda create -n build-env --yes anaconda-client conda-build=3.18.11 -c intel mkl-devel -c conda-forge swig=4.0.2 -c dlr-sc opencascade
+    #Activate conda environment
+    - conda activate build-env
+    #Conda install dependencies
+    - conda install mkl cmake jinja2 --yes
+    - conda build purge-all timeout /t 240
+    - conda build .\contrib\packaging-python\conda --python=3.10 --no-remove-work-dir
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
+    - conda build purge-all  timeout /t 240
+    - conda build .\contrib\packaging-python\conda --python=3.8 --no-remove-work-dir
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
+    - conda build purge  timeout /t 240
+    - conda build .\contrib\packaging-python\conda --python=3.6 --no-remove-work-dir
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
     - get-content outputfile.txt
     - Copy-Item "./outputfile.txt" -Destination "./logs/"
     - Remove-Item $Env:CONDA_INSTALL_LOCN\conda-bld\*pychrono* -Recurse -Force
-
   environment:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
@@ -583,5 +600,3 @@ macos:macos-deploy-python3.8:
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
   when: manual
-
-
