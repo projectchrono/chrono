@@ -444,11 +444,15 @@ windows:vs2019:deploy:
     #Run conda-hook
     - '& "C:\Users\builder\miniconda3\shell\condabin\conda-hook.ps1"'
     #Create conda environment and download dependencies
-    - conda create -n build-env --yes anaconda-client conda-build=3.18.11 -c intel mkl-devel -c conda-forge swig=4.0.2 -c dlr-sc opencascade
+    - conda create -n build-env --yes
     #Activate conda environment
     - conda activate build-env
     #Conda install dependencies
-    - conda install mkl cmake jinja2 --yes
+    - conda install --yes anaconda-client mkl cmake jinja2
+    - conda install --yes conda-build=3.18.11
+    - conda install --yes intel mkl-devel
+    - conda install --yes -c conda-forge swig=4.0.2
+    - conda install -c dlr-sc opencascade --yes
     - conda build purge-all timeout /t 240
     - conda build .\contrib\packaging-python\conda --python=3.10 --no-remove-work-dir
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
@@ -460,7 +464,7 @@ windows:vs2019:deploy:
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
     - get-content outputfile.txt
     - Copy-Item "./outputfile.txt" -Destination "./logs/"
-    - Remove-Item $Env:CONDA_INSTALL_LOCN\conda-bld\*pychrono* -Recurse -Force
+    #- Remove-Item $Env:CONDA_INSTALL_LOCN\conda-bld\*pychrono* -Recurse -Force
   environment:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
