@@ -416,7 +416,7 @@ windows:vs2019:test:
   needs: ["windows:vs2019:build"]
   extends: .windows
   script:
-  - cd buildcat 
+  - cd build
   - ctest --output-on-failure
   dependencies: ["windows:vs2019:build"]
 
@@ -430,7 +430,7 @@ windows:vs2019:deploy:
     # get libiomp5md.lib
     #- $libiomppth=Join-Path -Path $Env:CONDA_INSTALL_LOCN -ChildPath "\Library\lib\libiomp5md.lib"
     #- Invoke-WebRequest -Uri http://www.projectchrono.org/assets/downloads/libiomp5md.lib  -OutFile $libiomppth
-    - mkdir ./logs  
+    - mkdir ./logs
     - $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
     # this command is needed to get the git describe data needed by the numbering
     - git fetch --prune --unshallow
