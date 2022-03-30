@@ -431,7 +431,7 @@ windows:vs2019:deploy:
     #- $libiomppth=Join-Path -Path $Env:CONDA_INSTALL_LOCN -ChildPath "\Library\lib\libiomp5md.lib"
     #- Invoke-WebRequest -Uri http://www.projectchrono.org/assets/downloads/libiomp5md.lib  -OutFile $libiomppth
     - mkdir ./logs
-    - $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
+    #- $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
     # this command is needed to get the git describe data needed by the numbering
     - git fetch --prune --unshallow
     # Uncomment the following lines to get a fresh install of Miniconda
@@ -449,19 +449,19 @@ windows:vs2019:deploy:
     - conda activate build-env
     #Conda install dependencies
     - conda install --yes anaconda-client mkl cmake jinja2
-    - conda install --yes conda-build=3.18.11
+    - conda install --yes conda-build
     - conda install --yes intel mkl-devel
     - conda install --yes -c conda-forge swig=4.0.2
     - conda install -c dlr-sc opencascade --yes
     - conda build purge-all timeout /t 240
     - conda build .\contrib\packaging-python\conda --python=3.10 --no-remove-work-dir
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop >> C:\Users\builder\logs\condauploadlog.txt 2>&1
     - conda build purge-all  timeout /t 240
     - conda build .\contrib\packaging-python\conda --python=3.8 --no-remove-work-dir
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> C:\Users\builder\logs\condauploadlog.txt 2>&1
     - conda build purge  timeout /t 240
     - conda build .\contrib\packaging-python\conda --python=3.6 --no-remove-work-dir
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> C:\Users\builder\logs\condauploadlog.txt 2>&1
     - get-content outputfile.txt
     - Copy-Item "./outputfile.txt" -Destination "./logs/"
     #- Remove-Item $Env:CONDA_INSTALL_LOCN\conda-bld\*pychrono* -Recurse -Force
