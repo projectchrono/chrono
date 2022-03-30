@@ -72,7 +72,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
 
     /// Return current suspension forces or torques, as appropriate (spring and shock).
     /// A ChLinearDamperRWAssembly returns a torque for the spring and a force for the damper.
-    virtual Force ReportSuspensionForce() const override;
+    virtual ForceTorque ReportSuspensionForce() const override;
 
     /// Add visualization assets for the suspension subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;

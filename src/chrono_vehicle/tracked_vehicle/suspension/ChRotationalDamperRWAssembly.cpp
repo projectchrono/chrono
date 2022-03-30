@@ -126,8 +126,8 @@ double ChRotationalDamperRWAssembly::GetCarrierAngle() const {
 }
 
 // -----------------------------------------------------------------------------
-ChRoadWheelAssembly::Force ChRotationalDamperRWAssembly::ReportSuspensionForce() const {
-    ChRoadWheelAssembly::Force force;
+ChRoadWheelAssembly::ForceTorque ChRotationalDamperRWAssembly::ReportSuspensionForce() const {
+    ChRoadWheelAssembly::ForceTorque force;
 
     force.spring_ft = m_spring->GetTorque();
     force.spring_displ = m_spring->GetAngle();

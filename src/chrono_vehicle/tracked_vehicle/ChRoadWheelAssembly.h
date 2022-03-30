@@ -45,7 +45,7 @@ class ChTrackAssembly;
 class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
   public:
     /// Output structure for spring-damper forces or torques.
-    struct Force {
+    struct ForceTorque {
         double spring_ft;        ///< force (torque) in translational (rotational) spring
         double shock_ft;         ///< force (torque) in translational (rotational) damper
         double spring_displ;     ///< translational (rotational) spring displacement
@@ -102,7 +102,7 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
 
     /// Return current suspension forces or torques, as appropriate (spring and shock).
     /// Different derived types (suspension templates) may load different quantities in the output struct.
-    virtual Force ReportSuspensionForce() const = 0;
+    virtual ForceTorque ReportSuspensionForce() const = 0;
 
     /// Enable/disable output for this subsystem.
     /// This function overrides the output setting for all components of this suspension assembly.

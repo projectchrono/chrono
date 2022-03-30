@@ -103,7 +103,7 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-ChRoadWheelAssembly::Force ChTrackAssembly::ReportSuspensionForce(size_t id) const {
+ChRoadWheelAssembly::ForceTorque ChTrackAssembly::ReportSuspensionForce(size_t id) const {
     return m_suspensions[id]->ReportSuspensionForce();
 }
 

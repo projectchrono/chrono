@@ -154,7 +154,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
 
     /// Return current suspension forces or torques, as appropriate (spring and shock) for the specified suspension.
     /// Different suspension types will load different quantities in the output struct.
-    ChRoadWheelAssembly::Force ReportSuspensionForce(size_t id) const;
+    ChRoadWheelAssembly::ForceTorque ReportSuspensionForce(size_t id) const;
 
     /// Set visualization type for the sprocket subsystem.
     void SetSprocketVisualizationType(VisualizationType vis);
