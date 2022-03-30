@@ -103,6 +103,16 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
+ChRoadWheelAssembly::Force ChTrackAssembly::ReportSuspensionForce(size_t id) const {
+    return m_suspensions[id]->ReportSuspensionForce();
+}
+
+double ChTrackAssembly::ReportTrackLength() const {
+    if (GetTrackShoe(0))
+        return GetTrackShoe(0)->GetPitch() * GetNumTrackShoes();
+    return 0;
+}
+
 // -----------------------------------------------------------------------------
 void ChTrackAssembly::SetSprocketVisualizationType(VisualizationType vis) {
     GetSprocket()->SetVisualizationType(vis);

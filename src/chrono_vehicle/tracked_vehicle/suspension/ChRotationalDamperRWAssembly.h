@@ -69,6 +69,10 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
                             ChTrackAssembly* track               ///< [in] containing track assembly
                             ) override;
 
+    /// Return current suspension forces or torques, as appropriate (spring and shock).
+    /// A ChRotationalDamperRWAssembly returns torques for both the spring and the damper.
+    virtual Force ReportSuspensionForce() const override;
+
     /// Add visualization assets for the suspension subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 

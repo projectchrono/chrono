@@ -44,6 +44,16 @@ class ChTrackAssembly;
 /// Base class for tracked vehicle suspension (road-wheel assembly) subsystem.
 class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
   public:
+    /// Output structure for spring-damper forces or torques.
+    struct Force {
+        double spring_ft;        ///< force (torque) in translational (rotational) spring
+        double shock_ft;         ///< force (torque) in translational (rotational) damper
+        double spring_displ;     ///< translational (rotational) spring displacement
+        double spring_velocity;  ///< translational (rotational) spring displacement velocity
+        double shock_displ;      ///< translational (rotational) damper displacement
+        double shock_velocity;   ///< translational (rotational) damper displacement velocity
+    };
+
     ChRoadWheelAssembly(const std::string& name,  ///< [in] name of the subsystem
                         bool has_shock            ///< [in] specify whether or not the suspension has a damper
     );
@@ -89,6 +99,10 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
                             const ChVector<>& location,          ///< [in] location relative to the chassis frame
                             ChTrackAssembly* track               ///< [in] containing track assembly
     );
+
+    /// Return current suspension forces or torques, as appropriate (spring and shock).
+    /// Different derived types (suspension templates) may load different quantities in the output struct.
+    virtual Force ReportSuspensionForce() const = 0;
 
     /// Enable/disable output for this subsystem.
     /// This function overrides the output setting for all components of this suspension assembly.

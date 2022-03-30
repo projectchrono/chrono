@@ -149,6 +149,13 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
                     bool create_shoes = true             ///< [in] control creation of the actual track
     );
 
+    /// Return total assembled track length (sum of pitch over all track shoes).
+    double ReportTrackLength() const;
+
+    /// Return current suspension forces or torques, as appropriate (spring and shock) for the specified suspension.
+    /// Different suspension types will load different quantities in the output struct.
+    ChRoadWheelAssembly::Force ReportSuspensionForce(size_t id) const;
+
     /// Set visualization type for the sprocket subsystem.
     void SetSprocketVisualizationType(VisualizationType vis);
 
