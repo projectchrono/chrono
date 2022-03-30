@@ -487,6 +487,10 @@ double ChSystemGpu::GetMinParticleZ() const {
     return m_sys->GetMaxParticleZ(false);
 }
 
+unsigned int ChSystemGpu::GetNumParticleAboveZ(float ZValue) const {
+    return m_sys->GetNumParticleAboveZ(ZValue);
+}
+
 size_t ChSystemGpu::EstimateMemUsage() const {
     return m_sys->EstimateMemUsage();
 }
