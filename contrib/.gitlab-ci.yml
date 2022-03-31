@@ -450,8 +450,8 @@ windows:vs2019:deploy:
     #Conda install dependencies
     - conda install --yes anaconda-client mkl cmake jinja2
     - conda install --yes conda-build
-    - conda install --yes intel mkl-devel
-    - conda install --yes -c conda-forge swig=4.0.2
+    - conda install --yes -c intel mkl-devel
+    - conda install --yes -c conda-forge glew glfw irrlicht swig=4.0.2  
     - conda install -c dlr-sc opencascade --yes
     - conda build purge-all timeout /t 240
     - conda build .\contrib\packaging-python\conda --python=3.10 --no-remove-work-dir
@@ -465,6 +465,9 @@ windows:vs2019:deploy:
     - get-content outputfile.txt
     - Copy-Item "./outputfile.txt" -Destination "./logs/"
     #- Remove-Item $Env:CONDA_INSTALL_LOCN\conda-bld\*pychrono* -Recurse -Force
+    - conda deactivate build-env
+    - rm -r C:\Users\builder\miniconda3\envs\build-env
+
   environment:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
