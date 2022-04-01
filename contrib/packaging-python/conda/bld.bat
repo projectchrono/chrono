@@ -9,6 +9,11 @@ REM set env variables needed by MKL
 set MKL_INTERFACE_LAYER = LP64
 set MKL_THREADING_LAYER = INTEL
 set CONFIGURATION=Release
+REM echo all environment variables
+ECHO Library_Prefix: %LIBRARY_PREFIX%
+ECHO Prefix: %PREFIX%
+ECHO Conda Install Location: %CONDA_INSTALL_LOCN
+ECHO Configuration: %CONFIGURATION
 REM Configure step
 cmake -G "Visual Studio 16 2019" ^
  -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%" ^
