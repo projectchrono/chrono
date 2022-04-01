@@ -431,7 +431,7 @@ windows:vs2019:deploy:
     #- $libiomppth=Join-Path -Path $Env:CONDA_INSTALL_LOCN -ChildPath "\Library\lib\libiomp5md.lib"
     #- Invoke-WebRequest -Uri http://www.projectchrono.org/assets/downloads/libiomp5md.lib  -OutFile $libiomppth
     - mkdir ./logs
-    - $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
+    #- $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
     # this command is needed to get the git describe data needed by the numbering
     - git fetch --prune --unshallow
     # Uncomment the following lines to get a fresh install of Miniconda
@@ -444,11 +444,15 @@ windows:vs2019:deploy:
     #Run conda-hook
     - '& "C:\Users\builder\miniconda3\shell\condabin\conda-hook.ps1"'
     #Create conda environment and download dependencies
-    - conda create -n build-env --yes anaconda-client conda-build=3.18.11 -c intel mkl-devel -c conda-forge swig=4.0.2 -c dlr-sc opencascade
+    - conda create -n build-env --yes
     #Activate conda environment
     - conda activate build-env
     #Conda install dependencies
-    - conda install mkl cmake jinja2 --yes
+    - conda install --yes anaconda-client mkl cmake jinja2
+    - conda install --yes conda-build
+    - conda install --yes -c intel mkl-devel
+    - conda install --yes -c conda-forge glew glfw irrlicht swig=4.0.2  
+    - conda install -c dlr-sc opencascade --yes
     - conda build purge-all timeout /t 240
     - conda build .\contrib\packaging-python\conda -c conda-forge --python=3.10 --no-remove-work-dir
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
@@ -460,7 +464,10 @@ windows:vs2019:deploy:
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
     - get-content outputfile.txt
     - Copy-Item "./outputfile.txt" -Destination "./logs/"
-    - Remove-Item $Env:CONDA_INSTALL_LOCN\conda-bld\*pychrono* -Recurse -Force
+    #- Remove-Item $Env:CONDA_INSTALL_LOCN\conda-bld\*pychrono* -Recurse -Force
+    - conda deactivate build-env
+    - rm -r C:\Users\builder\miniconda3\envs\build-env
+
   environment:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
