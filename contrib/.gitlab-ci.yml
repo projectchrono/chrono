@@ -450,13 +450,13 @@ windows:vs2019:deploy:
     #Conda install dependencies
     - conda install mkl cmake jinja2 --yes
     - conda build purge-all timeout /t 240
-    - conda build .\contrib\packaging-python\conda --python=3.10 --no-remove-work-dir
+    - conda build .\contrib\packaging-python\conda -c conda-forge --python=3.10 --no-remove-work-dir
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
     - conda build purge-all  timeout /t 240
-    - conda build .\contrib\packaging-python\conda --python=3.8 --no-remove-work-dir
+    - conda build .\contrib\packaging-python\conda -c conda-forge --python=3.8 --no-remove-work-dir
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
     - conda build purge  timeout /t 240
-    - conda build .\contrib\packaging-python\conda --python=3.6 --no-remove-work-dir
+    - conda build .\contrib\packaging-python\conda -c conda-forge --python=3.6 --no-remove-work-dir
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
     - get-content outputfile.txt
     - Copy-Item "./outputfile.txt" -Destination "./logs/"
