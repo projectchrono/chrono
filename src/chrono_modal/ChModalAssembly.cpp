@@ -1130,7 +1130,7 @@ void ChModalAssembly::SetNoSpeedNoAcceleration() {
 }
 
 
-void ChModalAssembly::GetStateIncrement(ChStateDelta& Dx, int off_v) {
+void ChModalAssembly::GetStateLocal(ChStateDelta& Dx, ChStateDelta& v_local) {
 
     if (is_modal == false) {
         // to do? not useful for the moment.
@@ -1140,8 +1140,8 @@ void ChModalAssembly::GetStateIncrement(ChStateDelta& Dx, int off_v) {
         Dx.setZero(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
 
         // fetch the state snapshot (modal reduced)
-        int bou_mod_coords   = this->n_boundary_coords   + this->n_modes_coords_w;
-        int bou_mod_coords_w = this->n_boundary_coords_w   + this->n_internal_coords_w;
+        int bou_mod_coords   = this->n_boundary_coords     + this->n_modes_coords_w;
+        int bou_mod_coords_w = this->n_boundary_coords_w   + this->n_modes_coords_w;
         double fooT;
         ChState       x_mod;
         ChStateDelta  v_mod;
@@ -1156,8 +1156,14 @@ void ChModalAssembly::GetStateIncrement(ChStateDelta& Dx, int off_v) {
         
         this->IntStateGetIncrement(0, x_mod, x0_mod, 0, Dx);
 
+        v_local = v_mod;
+
+        //***TODO***
+        // transform all Dx and all v_local into the local corotated reference. Now works only if no large rotations in modal assembly.
     }
 }
+
+
 
 
 
