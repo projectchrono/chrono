@@ -100,8 +100,8 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
     msection->SetDensity(beam_density);
     msection->SetYoungModulus(beam_Young);
     msection->SetGwithPoissonRatio(0.31);
-    msection->SetBeamRaleyghDampingBeta(0.00001);
-    msection->SetBeamRaleyghDampingAlpha(0.001);
+    msection->SetBeamRaleyghDampingBeta(0.1);
+    msection->SetBeamRaleyghDampingAlpha(0.0001);
     msection->SetAsRectangularSection(beam_wy, beam_wz);
 
     ChBuilderBeamEuler builder;
@@ -169,7 +169,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
                 const ChModalAssembly& link  ///< associated modal assembly
             ) {
                 computed_custom_F_full.setZero(); // remember! assume F vector is already properly sized, but not zeroed!
-                computed_custom_F_full[computed_custom_F_full.size() - 16] = 90; // just for test, assign a force to a random coordinate of F, here an internal node
+                computed_custom_F_full[computed_custom_F_full.size() - 17] = -7; // just for test, assign a force to a random coordinate of F, here an internal node
             }
         };
         auto my_callback = chrono_types::make_shared<MyCallback>();
@@ -188,7 +188,21 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
 
         // HERE PERFORM THE MODAL REDUCTION!
 
-        my_assembly->SwitchModalReductionON(5);
+        my_assembly->SwitchModalReductionON(
+            5,                                        // The number of modes to retain from modal reduction 
+            ChModalDampingRayleigh(0.01, 0.05)        // The damping model - Optional parameter: default is ChModalDampingNone().
+        );
+
+        // Other types of damping that you can try, in SwitchModalReductionON: 
+        //    ChModalDampingNone()                    // no damping (also default)
+        //    ChModalDampingReductionR(*my_assembly)  // transforms the original damping matrix of the full subassembly
+        //    ChModalDampingReductionR(full_R_ext)    // transforms an externally-provided damping matrix of the full subassembly
+        //    ChModalDampingCustom(reduced_R_ext)     // uses an externally-provided damping matrix of the reduced subassembly
+        //    ChModalDampingRayleigh(0.01, 0.05)      // generates a damping matrix from reduced M ad K using Rayleygh alpha-beta
+        //    ChModalDampingFactorRmm(zetas)          // generates a damping matrix from damping factors zetas of dynamic modes
+        //    ChModalDampingFactorRayleigh(zetas,a,b) // generates a damping matrix from damping factors of dynamic modes and rayleigh a,b for boundary nodes
+        //    ChModalDampingFactorAssembly(zetas)     // generates a damping matrix from damping factors of the modes of the subassembly, including masses of boundary
+        //      where for example         ChVectorDynamic<> zetas(4);  zetas << 0.7, 0.5, 0.6, 0.7; // damping factors, other values assumed as last one.
 
         // Just for later reference, dump reduced M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
         my_assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir+"/dump_reduced").c_str());
@@ -215,8 +229,8 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
     //
 
     auto mvisualizeInternalA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh_internal.get()));
-    mvisualizeInternalA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_TX);
-    mvisualizeInternalA->SetColorscaleMinMax(-0.001, 1200);
+    mvisualizeInternalA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MY);
+    mvisualizeInternalA->SetColorscaleMinMax(-600, 600);
     mvisualizeInternalA->SetSmoothFaces(true);
     mvisualizeInternalA->SetWireframe(false);
     my_mesh_internal->AddAsset(mvisualizeInternalA);
@@ -423,20 +437,7 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    while (application.GetDevice()->run()) {
 
-        application.BeginScene();
-
-        application.DrawAll();
-
-        tools::drawGrid(application.GetVideoDriver(), 1, 1, 12, 12,
-                             ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
-                             video::SColor(100, 120, 120, 120), true);
-
-        application.DoStep(); // if application.SetModalShow(true), dynamics is paused and just shows the modes
-
-        application.EndScene();
-    }
 
  
     return 0;
