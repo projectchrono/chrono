@@ -110,8 +110,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void SetFullStateReset();
 
 
-    /// Computes the increment of the subassembly configuration respect to the x0 snapshot configuration.
-    void GetStateIncrement(ChStateDelta& Dx, int off_x);
+    /// Computes the 'local' increment of the subassembly (increment of configuration respect 
+    /// to the x0 snapshot configuration, in local reference),
+    /// and also gets the speed in local reference.
+    void GetStateLocal(ChStateDelta& Dx_local, ChStateDelta& v_local);
+
 
     /// Optimization flag. Default true: when in modal reduced mode, during simulations the internal (discarded) 
     /// nodes are updated anyway by superposition of modal shapes etc., for visualization or postprocessing reasons.
@@ -286,6 +289,34 @@ public:
     int GetN_internal_doc_w_D() const { return n_internal_doc_w_D; }
     /// Get the number of internal system variables (coordinates plus the constraint multipliers).
     int GetN_internal_sysvars_w() const { return n_internal_sysvars_w; }
+
+    /// Get the number of boundary bodies 
+    int GetN_boundary_bodies() const { return n_boundary_bodies; }
+    /// Get the number of boundary links.
+    int GetN_boundary_links() const { return n_boundary_links; }
+    /// Get the number of boundary meshes.
+    int GetN_boundary_meshes() const { return n_boundary_meshes; }
+    /// Get the number of other boundary physics items (other than bodies, links, or meshes).
+    int GetN_boundary_physicsItems() const { return n_boundary_physicsitems; }
+
+    /// Get the number of boundary coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
+    int GetN_boundary_coords() const { return n_boundary_coords; }
+    /// Get the number of boundary degrees of freedom of the assembly.
+    int GetN_boundary_dof() const { return n_boundary_dof; }
+    /// Get the number of boundary scalar constraints added to the assembly, including constraints on quaternion norms because of the 4 dof of quaternions.
+    int GetN_boundary_doc() const { return n_boundary_doc; }
+    /// Get the number of boundary system variables (coordinates plus the constraint multipliers, in case of quaternions).
+    int GetN_boundary_sysvars() const { return n_boundary_sysvars; }
+    /// Get the number of boundary coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
+    int GetN_boundary_coords_w() const { return n_boundary_coords_w; }
+    /// Get the number of boundary scalar constraints added to the assembly.
+    int GetN_boundary_doc_w() const { return n_boundary_doc_w; }
+    /// Get the number of boundary scalar constraints added to the assembly (only bilaterals).
+    int GetN_boundary_doc_w_C() const { return n_boundary_doc_w_C; }
+    /// Get the number of boundary scalar constraints added to the assembly (only unilaterals).
+    int GetN_boundary_doc_w_D() const { return n_boundary_doc_w_D; }
+    /// Get the number of boundary system variables (coordinates plus the constraint multipliers).
+    int GetN_boundary_sysvars_w() const { return n_boundary_sysvars_w; }
 
 
     //
