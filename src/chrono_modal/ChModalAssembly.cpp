@@ -131,7 +131,7 @@ void util_sparse_assembly_2x2symm(Eigen::SparseMatrix<double, Eigen::ColMajor, i
 
 //---------------------------------------------------------------------------------------
 
-void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, int n_modes) {
+void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, int n_modes, const ChModalDamping& damping_model) {
     if (is_modal)
         return;
 
@@ -212,7 +212,10 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMat
     // Modal reduction of the M K matrices
     this->modal_M = Psi.transpose() * full_M * Psi;
     this->modal_K = Psi.transpose() * full_K * Psi;
-    this->modal_R.setZero(this->modal_M.rows(), this->modal_M.cols()); //***TODO*** proper damping, ex. Rayleigh?
+
+    // Modal reduction of R damping matrix: compute using user-provided damping model 
+    damping_model.ComputeR(*this, this->modal_M, this->modal_K, Psi, this->modal_R);
+
 
     // Reset to zero all the atomic masses of the boundary nodes because now their mass is represented by  this->modal_M
     // NOTE! this should be made more generic and future-proof by implementing a virtual method ex. RemoveMass() in all ChPhysicsItem 
@@ -234,7 +237,7 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMat
     }
     
     // Debug dump data. ***TODO*** remove
-    if (false) {
+    if (true) {
         ChStreamOutAsciiFile fileP("dump_modal_Psi.dat");
         fileP.SetNumFormat("%.12g");
         StreamOUTdenseMatlabFormat(Psi, fileP);
@@ -244,10 +247,13 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMat
         ChStreamOutAsciiFile fileK("dump_modal_K.dat");
         fileK.SetNumFormat("%.12g");
         StreamOUTdenseMatlabFormat(this->modal_K, fileK);
+        ChStreamOutAsciiFile fileR("dump_modal_R.dat");
+        fileR.SetNumFormat("%.12g");
+        StreamOUTdenseMatlabFormat(this->modal_R, fileR);
     }
 }
 
-void ChModalAssembly::SwitchModalReductionON(int n_modes) {
+void ChModalAssembly::SwitchModalReductionON(int n_modes, const ChModalDamping& damping_model) {
     if (is_modal)
         return;
 
@@ -261,7 +267,7 @@ void ChModalAssembly::SwitchModalReductionON(int n_modes) {
     this->GetSubassemblyConstraintJacobianMatrix(&full_Cq);
 
     // 2) compute modal reduction from full_M, full_K
-    this->SwitchModalReductionON(full_M, full_K, full_Cq, n_modes);
+    this->SwitchModalReductionON(full_M, full_K, full_Cq, n_modes, damping_model);
 }
 
 
@@ -469,8 +475,10 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
 
     // Fetch current dx state (e reduced)
     ChStateDelta assembly_Dx_reduced;
+    ChStateDelta assembly_v_reduced;
     assembly_Dx_reduced.setZero(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
-    this->GetStateIncrement(assembly_Dx_reduced,0);
+    assembly_v_reduced.setZero (this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
+    this->GetStateLocal(assembly_Dx_reduced,assembly_v_reduced);
 
 
     bool needs_temporary_bou_int = this->is_modal;

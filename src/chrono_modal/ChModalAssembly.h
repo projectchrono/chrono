@@ -16,6 +16,7 @@
 #define CHMODALASSEMBLY_H
 
 #include "chrono_modal/ChApiModal.h"
+#include "chrono_modal/ChModalDamping.h"
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/solver/ChVariablesGeneric.h"
 #include <complex>
@@ -75,18 +76,18 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Perform modal reduction on this assembly, from the current "full" ("boundary"+"internal") assembly.
     /// - An undamped modal analysis will be done on the full assembly with  nodes. 
     /// - The "internal" nodes will be replaced by n_modes modal coordinates.
-    void SwitchModalReductionON(int n_modes);
+    void SwitchModalReductionON(int n_modes, const ChModalDamping& damping_model = ChModalDampingNone());
 
     /// Perform modal reduction on this assembly that contains only the "boundary" nodes, whereas
     /// the "internal" nodes have been modeled only in an external FEA software with the 
     /// full ("boundary"+"internal") modes. 
     /// - with an external FEA software, the full assembly is modeled with "boundary"+"internal" nodes.
-    /// - with an external FEA software, the M mass matrix and the K stiffness matrix are saved t disk.
-    /// - in Chrono, M and K are load from disk and stored in two ChSparseMatrix objects
+    /// - with an external FEA software, the M mass matrix and the K stiffness matrix are saved to disk. 
+    /// - in Chrono, M and K and Cq constraint jacobians (if any) are load from disk and stored in ChSparseMatrix objects
     /// - in Chrono, only boundary nodes are added to a ChModalAssembly
     /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
     /// Note that the size of M (and K) must be at least > n_boundary_coords_w. 
-    void SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, int n_modes);
+    void SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, int n_modes, const ChModalDamping& damping_model = ChModalDampingNone());
 
 
     /// For displaying modes, you can use the following function. It sets the state of this subassembly
