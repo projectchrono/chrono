@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [CMake project configuration script](#changed-cmake-project-configuration-script)
   - [Right-handed frames in Chrono::Irrlicht](#changed-right-handed-frames-in-chronoirrlicht)
   - [Modal analysis module](#added-modal-analysis-module)
   - [Callback mechanism for collision debug visualization](#added-callback-mechanism-for-collision-debug-visualization)
@@ -60,6 +61,17 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] CMake project configuration script
+
+The CMake script `ChronoConfig.cmake`, generated automatically during Chrono CMake configuration and used in configuring third-party applications that depend on Chrono (via calls to `find_project(Chrono ...)`) was modified to produce the compiler and linker flags in CMake list variables (as opposed to space-separated strings as before).  The variables affected by this change are `CHRONO_CXX_FLAGS`, `CHRONO_C_FLAGS`, and `CHRONO_LINKER_FLAGS`.
+
+This allows use of modern CMake in the configuration scripts for such an external project.  See the example in the `template_project/` directory in the Chrono distribution:
+```
+target_compile_definitions(myexe PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
+target_compile_options(myexe PUBLIC ${CHRONO_CXX_FLAGS})
+target_link_options(myexe PUBLIC ${CHRONO_LINKER_FLAGS})
+```
 
 ### [Changed] Right-handed frames in Chrono::Irrlicht
 

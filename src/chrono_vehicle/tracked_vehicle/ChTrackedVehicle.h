@@ -65,6 +65,9 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// (Currently not implemented)
     virtual ChVector<> GetVehicleCOMPos() const override;
 
+    /// Get the current global vehicle inertia tensor.
+    virtual ChMatrix33<> GetVehicleInertia() const override;
+
     /// Get the powertrain attached to this vehicle.
     virtual std::shared_ptr<ChPowertrain> GetPowertrain() const override { return m_powertrain; }
 
