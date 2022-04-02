@@ -1465,11 +1465,10 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         // 1-
         // Add elastic forces from current modal deformations
         ChStateDelta Dx_local(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
-        this->GetStateIncrement(Dx_local, 0);
-        //ChStateDelta v_local;
-        // ...
+        ChStateDelta v_local(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
+        this->GetStateLocal(Dx_local, v_local);
 
-        R.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w) -= c * (this->modal_K * Dx_local); // +this->modal_R * v_local); // ***TODO*** add damping in local sys. Also note -= sign
+        R.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w) -= c * (this->modal_K * Dx_local + this->modal_R * v_local); //  note -= sign
 
         // 2-
         // Add custom forces (in modal coordinates)
