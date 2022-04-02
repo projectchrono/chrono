@@ -24,6 +24,7 @@ build:
 
 requirements:
   build:
+    - {{ compiler('cxx') }}
     - python
     - cmake >=3.9.3
     - swig >=4.0.0
