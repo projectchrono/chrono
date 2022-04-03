@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChVisualShape.h"
+#include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
 
