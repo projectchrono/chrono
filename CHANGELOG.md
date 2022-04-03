@@ -4,6 +4,7 @@
 Change Log
 ==========
 
+- [Release 7.0.2](#release-702---2022-04-03)
 - [Release 7.0.1](#release-701---2022-01-07)
 - [Release 7.0.0](#release-700---2021-11-15) 
   - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
@@ -52,6 +53,14 @@ Change Log
   - [Eigen dense linear algebra](#changed-refactoring-of-dense-linear-algebra)
   - [Eigen sparse matrices](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
 - [Release 4.0.0](#release-400---2019-02-22)
+
+### Release 7.0.2 - 2022-04-03
+
+### [Fixed]
+
+- Fixed bug in ANCF shells 3443 and 3883 where the incorrect Gauss quadrature weights and Jacobian elements were used when multiple layers of different sizes are defined
+- Fixed bug where the active flag for a sub-block of DOFs for a ChBody was incorrectly set
+- Updates to the continuous integration scripts
 
 ## Release 7.0.1 - 2022-01-07
 
