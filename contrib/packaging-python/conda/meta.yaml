@@ -6,6 +6,13 @@ package:
 source:
   path: ../../..
 
+package:
+    name: vs2019
+    version: 16.0
+
+build:
+    run_exports:
+        - vc 16
 
 build:
   rpaths:

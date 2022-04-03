@@ -4,16 +4,10 @@ cd build
 
 REM Remove dot from PY_VER for use in library name
 set MY_PY_VER=%PY_VER:.=%
-
 REM set env variables needed by MKL
 set MKL_INTERFACE_LAYER = LP64
 set MKL_THREADING_LAYER = INTEL
 set CONFIGURATION=Release
-REM echo all environment variables
-ECHO Library_Prefix: %LIBRARY_PREFIX%
-ECHO Prefix: %PREFIX%
-ECHO Conda Install Location: %CONDA_INSTALL_LOCN
-ECHO Configuration: %CONFIGURATION
 REM Configure step
 cmake -G "Visual Studio 16 2019" ^
  -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%" ^
@@ -34,9 +28,6 @@ cmake -G "Visual Studio 16 2019" ^
  -DBUILD_TESTING=OFF ^
  -DBUILD_GMOCK=OFF ^
  -DBUILD_BENCHMARKING=OFF ^
- -DIRRLICHT_ROOT="C:\Users\SBEL CI\Documents\irrlicht-1.8.4" ^
- -DIRRLICHT_LIBRARY="C:\Users\SBEL CI\Documents\irrlicht-1.8.4\lib\Win64-visualStudio\Irrlicht.lib" ^
- -DEIGEN3_INCLUDE_DIR="C:\Users\SBEL CI\Documents\eigen-3.3.9" ^
  -DENABLE_MODULE_CASCADE=ON ^
  -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include\opencascade ^
  -DCASCADE_LIBDIR="%CONDA_INSTALL_LOCN%"\Library\lib ^
