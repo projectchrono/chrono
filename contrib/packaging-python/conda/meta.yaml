@@ -32,7 +32,7 @@ requirements:
     - numpy >=1.16
     - glew
     - glfw
-    - eigen >= 3.3.7
+    - eigen >=3.3.7
     
   run:
     - python
