@@ -6,14 +6,6 @@ package:
 source:
   path: ../../..
 
-package:
-    name: vs2019
-    version: 16.0
-
-build:
-    run_exports:
-        - vc 16
-
 build:
   rpaths:
     - lib/
@@ -21,6 +13,8 @@ build:
     - CC
     - CXX
     - CI_PROJECT_DIR
+    - VS_VERSION=16.0
+    - VS_YEAR=2019
 
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
   binary_relocation: true
