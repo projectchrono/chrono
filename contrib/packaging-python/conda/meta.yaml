@@ -13,8 +13,8 @@ build:
     - CC
     - CXX
     - CI_PROJECT_DIR
-    - VS_VERSION=16.0
-    - VS_YEAR=2019
+    #- VS_VERSION=16.0
+    #- VS_YEAR=2019
 
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
   binary_relocation: true
@@ -25,7 +25,6 @@ build:
 
 requirements:
   build:
-    - {{ compiler('cxx') }}
     - python
     - cmake >=3.9.3
     - swig >=4.0.0
