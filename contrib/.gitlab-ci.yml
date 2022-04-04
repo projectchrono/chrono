@@ -467,6 +467,7 @@ windows:vs2019:deploy:
   - git submodule init
   - git submodule update
   - mkdir -p build
+  - export BREW_PY_VER=$(python3 --version | awk '{print $2;}')
 
 .macos-monterey:
   extends: .macos
