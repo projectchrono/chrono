@@ -55,6 +55,14 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Must be called before Initialize().
     void SetCameraVertical(CameraVerticalDir vert);
 
+    /// Set the direction vector of the 'sun' by acimut and elevation angle [rad]
+    /// Must be called before Initialize().
+    void SetLightDirection(double acimut, double elevation);
+
+    /// Set the intensity of the 'sun' light [0..1]
+    /// Must be called before Initialize().
+    void SetLightIntensity(double intensity);
+
     // Set Clear Color
     /// Must be called before Initialize().
     void SetClearColor(ChColor cc);
@@ -101,6 +109,9 @@ private:
     std::string m_skyboxFilename = "vsg/textures/chrono_skybox.ktx2";
     std::string m_logo_fileName;
     ChColor m_bg_color = ChColor(1,1,1,1);
+    double m_acimut = 0.0;
+    double m_elevation = 0.0;
+    double m_light_intensity = 1.0;
     //
     vsg::ref_ptr<vsg::Group> m_scenegraph;
     //

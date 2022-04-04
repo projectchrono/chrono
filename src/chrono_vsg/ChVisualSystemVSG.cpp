@@ -173,6 +173,26 @@ void ChVisualSystemVSG::Initialize() {
             }
         }
     }
+    auto ambientLight = vsg::AmbientLight::create();
+    ambientLight->name = "ambient";
+    ambientLight->color.set(1.0, 1.0, 1.0);
+    ambientLight->intensity = 0.1;
+
+    auto directionalLight = vsg::DirectionalLight::create();
+    directionalLight->name = "head light";
+    directionalLight->color.set(1.0, 1.0, 1.0);
+    directionalLight->intensity = m_light_intensity;
+    if(m_yup) {
+        directionalLight->direction.set(-cos(m_elevation)*cos(m_acimut), -sin(m_elevation), -cos(m_elevation)*sin(m_acimut));
+    } else {
+        directionalLight->direction.set(-cos(m_elevation)*cos(m_acimut), -cos(m_elevation)*sin(m_acimut), -sin(m_elevation));
+    }
+
+    auto absoluteTransform = vsg::AbsoluteTransform::create();
+    absoluteTransform->addChild(ambientLight);
+    absoluteTransform->addChild(directionalLight);
+
+    m_scenegraph->addChild(absoluteTransform);
 
     // compute the bounds of the scene graph to help position camera
     vsg::ComputeBounds computeBounds;
@@ -549,6 +569,23 @@ void ChVisualSystemVSG::BindAll() {
     if(m_system->Get_bodylist().size() < 1) {
         cout << "Attached system must have at least 1 rigid body, nothing to bind!" << endl;
         return;
+    }
+}
+
+void ChVisualSystemVSG::SetLightDirection(double acimut, double elevation) {
+    if(!m_initialized) {
+        m_acimut = acimut;
+        m_elevation = ChClamp(elevation, 0.0, CH_C_PI_2);
+    }else {
+        cout << "SetLightDirection() cannot be used after initializing!" << endl;
+    }
+}
+
+void ChVisualSystemVSG::SetLightIntensity(double intensity) {
+    if(!m_initialized) {
+        m_light_intensity = ChClamp(intensity,0.0,1.0);
+    } else {
+        cout << "SetLightIntensity() cannot be used after initializing!" << endl;
     }
 }
 }  // namespace vsg3d

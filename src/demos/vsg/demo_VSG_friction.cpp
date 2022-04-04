@@ -132,6 +132,8 @@ int main(int argc, char* argv[]) {
     vis->SetWindowPosition(ChVector2<int>(100, 300));
     vis->SetWindowTitle("Rolling and spinning friction");
     vis->SetUseSkyBox(true);
+    vis->SetLightIntensity(0.9);
+    vis->SetLightDirection(1.5*CH_C_PI_2, CH_C_PI_4);
     vis->Initialize();
 
     // Modify some setting of the physical system for the simulation
