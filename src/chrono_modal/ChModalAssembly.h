@@ -57,10 +57,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         return this->is_modal;
     }
 
-    /// Compute the undamped modes for the entire assembly. 
+    /// Compute the undamped modes for the current assembly. 
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies() etc.
-    /// (Return false and do nothing if in  IsModalMode() , as you cannot do modal analysis
-    /// of an already modal-reduced model; if needed, add this into another ChModalAssembly.)
+    /// Usually done for the assembly in full mode, but can be done also SwitchModalReductionON()
     bool ComputeModes(int nmodes); ///< the n. of lower modes to keep 
 
     /// Compute the undamped modes from M and K matrices. Later you can fetch results via Get_modes_V() etc.
@@ -69,8 +68,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Compute the damped modes for the entire assembly. 
     /// Expect complex eigenvalues/eigenvectors if damping is used. 
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies(), Get_modes_damping_ratios() etc.
-    /// (Return false and do nothing if in  IsModalMode() , as you cannot do modal analysis
-    /// of an already modal-reduced model; if needed, add this into another ChModalAssembly.)
+    /// Usually done for the assembly in full mode, but can be done also SwitchModalReductionON()
     bool ComputeModesDamped(int nmodes); ///< the n. of lower modes to keep 
 
     /// Perform modal reduction on this assembly, from the current "full" ("boundary"+"internal") assembly.
@@ -95,7 +93,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// If you increment the phase during an animation, you will see the n-ht mode 
     /// oscillating on the screen. 
     /// It works also if in IsModalMode(). The mode shape is added to the state snapshot that was taken when doing the
-    /// last ComputeModes() or ComputeModesDamped() or SwitchModalReductionON().
+    /// last ComputeModes() or ComputeModesDamped().
     void SetFullStateWithModeOverlay(int n_mode, double phase, double amplitude);
 
     /// For displaying the deformation using internal nodes, you can use the following function. Works only if IsModalMode().
@@ -107,7 +105,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
 
     /// Resets the state of this subassembly (both boundary and inner items) to the state snapshot that 
-    /// was taken when doing the last ComputeModes() or ComputeModesDamped() or SwitchModalReductionON().
+    /// was taken when doing the last ComputeModes() or ComputeModesDamped().
     void SetFullStateReset();
 
 
@@ -129,7 +127,7 @@ protected:
     void SetupModalData(int nmodes_reduction);
 
 public:
-    /// Get the number of modal coordinates. Use one of the ComputeModes() to change it.
+    /// Get the number of modal coordinates. Use SwitchModalReductionOn() to change it.
     int Get_n_modes_coords_w() { return n_modes_coords_w; }
 
     /// Access the vector of modal coordinates
@@ -187,6 +185,15 @@ public:
     const ChMatrixDynamic<>& Get_modal_K() const { return modal_K; }
     /// Access the modal damping matrix - read only
     const ChMatrixDynamic<>& Get_modal_R() const { return modal_R; }
+    /// Access the Psi matrix as in v_full = Psi * v_reduced, also {v_boundary; v_internal} = Psi * {v_boundary; v_modes} 
+    /// Hence Psi contains the "static modes" and the selected "dynamic modes", as in
+    /// Psi = [I, 0; Psi_s, Psi_d]  where Psi_d is the matrix of the selected eigenvectors after SwitchModalReductionON().
+    const ChMatrixDynamic<>& Get_modal_Psi() const { return Psi; }
+    /// Access the snapshot of initial state of the full assembly just at the beginning of SwitchModalReductionON()
+    const ChVectorDynamic<>& Get_assembly_x0() const { return assembly_x0; }
+
+
+    // Use the following function to access results of ComputeModeDamped() or ComputeModes(): 
 
     /// Access the modal eigenvectors, if previously computed. 
     /// Read only. Use one of the ComputeModes() functions to set it.
@@ -203,6 +210,10 @@ public:
     /// Get a vector of modal damping ratios = damping/critical_damping, if previously computed.
     /// Read only. Use one of the ComputeModes() functions to set it.
     const ChVectorDynamic<double>& Get_modes_damping_ratios() const { return this->modes_damping_ratio; }
+
+    /// Access the snapshot of initial state of the assembly at the moment of the analysis.
+    /// Read only. Use one of the ComputeModes() functions to set it.
+    const ChVectorDynamic<>& Get_modes_assembly_x0() const { return modes_assembly_x0; }
 
 
     //
@@ -511,13 +522,16 @@ public:
     ChMatrixDynamic<> modal_K;
     ChMatrixDynamic<> modal_R;
     ChMatrixDynamic<> Psi; //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
+    ChState           assembly_x0;      // state snapshot of full not reduced assembly at the time of SwitchModalReductionON()
 
+    // Results of eigenvalue analysis like ComputeModes() or ComputeModesDamped(): 
     ChMatrixDynamic<std::complex<double>> modes_V;             // eigenvectors
     ChVectorDynamic<std::complex<double>> modes_eig;           // eigenvalues
     ChVectorDynamic<double>               modes_freq;          // frequencies
     ChVectorDynamic<double>               modes_damping_ratio; // damping ratio
+    ChState                               modes_assembly_x0;   // state snapshot of assembly at the time of eigenvector computation
 
-    ChState               assembly_x0;      // state snapshot of full not reduced assembly at the time of eigenvector computation
+    
 
     // Statistics:
     
