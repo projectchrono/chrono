@@ -1,2 +1,9 @@
-vc:
-  - 16
+c_compiler:
+  - vs2019 # [win]
+  - gcc >=9 # [linux]
+  - clang # [osx]
+
+cxx_compiler:
+  - vs2019 # [win]
+  - gxx >=9 # [linux]
+  - clangxx # [osx]

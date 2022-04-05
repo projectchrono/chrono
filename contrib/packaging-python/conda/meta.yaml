@@ -19,14 +19,17 @@ build:
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
   binary_relocation: true
   #features:
-  #  - vc9               [win and py27]
-  #  - vc14              [win and py35]
-  #  - vc14              [win and py36]
+  #  - vc9              # [win and py27]
+  #  - vc14             # [win and py35]
+  #  - vc14             # [win and py36]
 
 requirements:
   build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
     - python
     - cmake >=3.9.3
+    - ninja # [linux or osx]
     - swig >=4.0.0
     - mkl-devel
     - numpy >=1.16
