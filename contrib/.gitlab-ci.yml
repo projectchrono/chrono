@@ -506,6 +506,7 @@ macos-intel:monterey:build:
     - intel
   script:
     - env
+    - echo $SHELL
     
 macos-intel:monterey:test:
   extends: .macos-monterey-test
