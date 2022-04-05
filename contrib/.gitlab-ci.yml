@@ -501,23 +501,31 @@ windows:vs2019:deploy:
 macos-intel:monterey:build:
   extends: .macos-monterey-build
   tags:
-    - x86
+    - macos
+    - monterey
+    - intel
 
 macos-intel:monterey:test:
   extends: .macos-monterey-test
   tags:
-    - x86
+    - macos
+    - monterey
+    - intel
   needs: ["macos-intel:monterey:build"]
   dependencies: ["macos-intel:monterey:build"]
 
 macos-apple:monterey:build:
   extends: .macos-monterey-build
   tags:
+    - macos
+    - monterey
     - apple
 
 macos-apple:monterey:test:
   extends: .macos-monterey-test
   tags:
+    - macos
+    - monterey
     - apple
   needs: ["macos-apple:monterey:build"]
   dependencies: ["macos-apple:monterey:build"]
