@@ -100,7 +100,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
     msection->SetDensity(beam_density);
     msection->SetYoungModulus(beam_Young);
     msection->SetGwithPoissonRatio(0.31);
-    msection->SetBeamRaleyghDampingBeta(0.1);
+    msection->SetBeamRaleyghDampingBeta(0.01);
     msection->SetBeamRaleyghDampingAlpha(0.0001);
     msection->SetAsRectangularSection(beam_wy, beam_wz);
 
@@ -169,7 +169,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
                 const ChModalAssembly& link  ///< associated modal assembly
             ) {
                 computed_custom_F_full.setZero(); // remember! assume F vector is already properly sized, but not zeroed!
-                computed_custom_F_full[computed_custom_F_full.size() - 17] = -7; // just for test, assign a force to a random coordinate of F, here an internal node
+                computed_custom_F_full[computed_custom_F_full.size() - 16] = -60; // just for test, assign a force to a random coordinate of F, here an internal node
             }
         };
         auto my_callback = chrono_types::make_shared<MyCallback>();
@@ -189,7 +189,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
         // HERE PERFORM THE MODAL REDUCTION!
 
         my_assembly->SwitchModalReductionON(
-            5,                                        // The number of modes to retain from modal reduction 
+            6,                                        // The number of modes to retain from modal reduction 
             ChModalDampingRayleigh(0.01, 0.05)        // The damping model - Optional parameter: default is ChModalDampingNone().
         );
 
@@ -201,14 +201,26 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
         //    ChModalDampingRayleigh(0.01, 0.05)      // generates a damping matrix from reduced M ad K using Rayleygh alpha-beta
         //    ChModalDampingFactorRmm(zetas)          // generates a damping matrix from damping factors zetas of dynamic modes
         //    ChModalDampingFactorRayleigh(zetas,a,b) // generates a damping matrix from damping factors of dynamic modes and rayleigh a,b for boundary nodes
-        //    ChModalDampingFactorAssembly(zetas)     // generates a damping matrix from damping factors of the modes of the subassembly, including masses of boundary
+        //    ChModalDampingFactorAssembly(zetas)     // (not ready) generates a damping matrix from damping factors of the modes of the subassembly, including masses of boundary
         //      where for example         ChVectorDynamic<> zetas(4);  zetas << 0.7, 0.5, 0.6, 0.7; // damping factors, other values assumed as last one.
+
+        // OPTIONAL STUFF: 
 
         // Just for later reference, dump reduced M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
         my_assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir+"/dump_reduced").c_str());
 
         // Use this for high simulation performance (the internal nodes won't be updated for postprocessing)
         //my_assembly->SetInternalNodesUpdate(false);
+
+        // Finally, optional: do an eigenvalue analysis to check if we approximately have the same eigenmodes of the original not reduced assembly:
+        my_assembly->ComputeModesDamped(0);
+
+        // Just for logging the frequencies:
+        for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
+            GetLog()<< "Mode n." << i
+                    << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) 
+                    << "   damping factor z: " <<  my_assembly->Get_modes_damping_ratios()(i)
+                    << "\n";
     }
     else {
 
@@ -218,7 +230,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
         // Just for logging the frequencies:
         for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
             GetLog()<< "Mode n." << i
-                    << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i)
+                    << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) 
                     << "\n";
     }
 
@@ -370,7 +382,7 @@ int main(int argc, char* argv[]) {
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
 
-    application.SetTimestep(0.01);
+    application.SetTimestep(0.05);
    
     /*
     // use HHT second order integrator (but slower)
