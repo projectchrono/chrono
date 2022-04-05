@@ -504,7 +504,9 @@ macos-intel:monterey:build:
     - macos
     - monterey
     - intel
-
+  script:
+    - env
+    
 macos-intel:monterey:test:
   extends: .macos-monterey-test
   tags:
