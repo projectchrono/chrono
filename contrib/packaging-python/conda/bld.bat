@@ -1,7 +1,7 @@
 REM To avoid building in work/ alongside the source. Rather build in work/build/
 mkdir build
 cd build
-REM call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\LaunchDevCmd.bat"
+call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\LaunchDevCmd.bat"
 REM Remove dot from PY_VER for use in library name
 set MY_PY_VER=%PY_VER:.=%
 REM set env variables needed by MKL
