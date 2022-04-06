@@ -30,12 +30,6 @@ SET(CE_VSG_CORE_FILES
 )
 
 SET(CE_VSG_SHAPES_FILES
-  shapes/VSGAsys.cpp
-  shapes/VSGAsys.h
-  shapes/VSGBsys.cpp
-  shapes/VSGBsys.h
-  shapes/VSGCsys.cpp
-  shapes/VSGCsys.h
 )
 
 SET(CE_VSG_RESOURCES_FILES
