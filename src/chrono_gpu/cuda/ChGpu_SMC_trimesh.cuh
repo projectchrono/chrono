@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Ruochun Zhang
+// Authors: Conlain Kelly, Nic Olsen, Ruochun Zhang, Dan Negrut
 // =============================================================================
 
 #pragma once
@@ -33,7 +33,7 @@ using chrono::gpu::ChSystemGpuMesh_impl;
 
 // Triangle bounding box will be enlarged by 1/SAFETY_PARAM, ensuring triangles lie between 2 SDs
 // are getting some love
-const int SAFETY_PARAM = 1000;
+static const int SAFETY_PARAM = 1000;
 
 /// Point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
 /// LRF: local reference frame
@@ -70,31 +70,29 @@ __inline__ __device__ void triangle_figureOutSDBox(const float3& vA,
                                                    int* L,
                                                    int* U,
                                                    ChSystemGpu_impl::GranParamsPtr gran_params) {
-    int3 min_pt;
-    min_pt.x = MIN(vA.x, MIN(vB.x, vC.x));
-    min_pt.y = MIN(vA.y, MIN(vB.y, vC.y));
-    min_pt.z = MIN(vA.z, MIN(vB.z, vC.z));
+    int64_t min_pt_x = MIN(vA.x, MIN(vB.x, vC.x));
+    int64_t min_pt_y = MIN(vA.y, MIN(vB.y, vC.y));
+    int64_t min_pt_z = MIN(vA.z, MIN(vB.z, vC.z));
 
     // Enlarge bounding box
-    min_pt.x -= gran_params->SD_size_X_SU / SAFETY_PARAM;
-    min_pt.y -= gran_params->SD_size_Y_SU / SAFETY_PARAM;
-    min_pt.z -= gran_params->SD_size_Z_SU / SAFETY_PARAM;
+    min_pt_x -= gran_params->SD_size_X_SU / SAFETY_PARAM;
+    min_pt_y -= gran_params->SD_size_Y_SU / SAFETY_PARAM;
+    min_pt_z -= gran_params->SD_size_Z_SU / SAFETY_PARAM;
 
-    int3 max_pt;
-    max_pt.x = MAX(vA.x, MAX(vB.x, vC.x));
-    max_pt.y = MAX(vA.y, MAX(vB.y, vC.y));
-    max_pt.z = MAX(vA.z, MAX(vB.z, vC.z));
+    int64_t max_pt_x = MAX(vA.x, MAX(vB.x, vC.x));
+    int64_t max_pt_y = MAX(vA.y, MAX(vB.y, vC.y));
+    int64_t max_pt_z = MAX(vA.z, MAX(vB.z, vC.z));
 
-    max_pt.x += gran_params->SD_size_X_SU / SAFETY_PARAM;
-    max_pt.y += gran_params->SD_size_Y_SU / SAFETY_PARAM;
-    max_pt.z += gran_params->SD_size_Z_SU / SAFETY_PARAM;
+    max_pt_x += gran_params->SD_size_X_SU / SAFETY_PARAM;
+    max_pt_y += gran_params->SD_size_Y_SU / SAFETY_PARAM;
+    max_pt_z += gran_params->SD_size_Z_SU / SAFETY_PARAM;
 
-    int3 tmp = pointSDTriplet(min_pt.x, min_pt.y, min_pt.z, gran_params);
+    int3 tmp = pointSDTriplet(min_pt_x, min_pt_y, min_pt_z, gran_params);
     L[0] = tmp.x;
     L[1] = tmp.y;
     L[2] = tmp.z;
 
-    tmp = pointSDTriplet(max_pt.x, max_pt.y, max_pt.z, gran_params);
+    tmp = pointSDTriplet(max_pt_x, max_pt_y, max_pt_z, gran_params);
     U[0] = tmp.x;
     U[1] = tmp.y;
     U[2] = tmp.z;
@@ -305,15 +303,15 @@ __global__ void determineCountOfSDsTouchedByEachTriangle(
 /// <param name="TriangleSDCompositeOffsets">- offsets in the array that say each SD what triangles touch it</param>
 /// <param name="Triangle_SDsComposite">- the list of SDs touched by each triangle; triangle by triangle</param>
 /// <param name="Triangle_TriIDsComposite">- array that goes hand in hand with Triangle_SDsComposite; it repeats the
-/// triangle ID for a subsequent sort by key op that is performed elsewhere</param> <param name="gran_params"></param> <param
-/// name="mesh_params"></param> <returns></returns>
+/// triangle ID for a subsequent sort by key op that is performed elsewhere</param> <param name="gran_params"></param>
+/// <param name="mesh_params"></param> <returns></returns>
 __global__ void storeSDsTouchedByEachTriangle(const ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,
-                                             const unsigned int* Triangle_NumSDsTouching,
-                                             const unsigned int* TriangleSDCompositeOffsets,
-                                             unsigned int* Triangle_SDsComposite,
-                                             unsigned int* Triangle_TriIDsComposite,
-                                             ChSystemGpu_impl::GranParamsPtr gran_params,
-                                             ChSystemGpuMesh_impl::MeshParamsPtr mesh_params) {
+                                              const unsigned int* Triangle_NumSDsTouching,
+                                              const unsigned int* TriangleSDCompositeOffsets,
+                                              unsigned int* Triangle_SDsComposite,
+                                              unsigned int* Triangle_TriIDsComposite,
+                                              ChSystemGpu_impl::GranParamsPtr gran_params,
+                                              ChSystemGpuMesh_impl::MeshParamsPtr mesh_params) {
     // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int myTriangleID = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -335,10 +333,10 @@ __global__ void storeSDsTouchedByEachTriangle(const ChSystemGpuMesh_impl::Triang
 /// some SDs are touched by one or more triangles
 /// </summary>
 /// <param name="d_SDs_touched">- list of SDs that happen to be touched by at least one triangle</param>
-/// <param name="d_howManyTrianglesTouchTheTouchedSDs">- if SD is in the list above, it says how many triangles touch it</param>
-/// <param name="nSDs_touchedByTriangles">- how many SDs are actually touched by at least one triangle</param>
-/// <param name="pSD_numTrianglesTouching">- [in/out] array of size SDs, populated with numbre of triangles touched by each SD</param>
-/// <returns></returns>
+/// <param name="d_howManyTrianglesTouchTheTouchedSDs">- if SD is in the list above, it says how many triangles touch
+/// it</param> <param name="nSDs_touchedByTriangles">- how many SDs are actually touched by at least one
+/// triangle</param> <param name="pSD_numTrianglesTouching">- [in/out] array of size SDs, populated with numbre of
+/// triangles touched by each SD</param> <returns></returns>
 __global__ void finalizeSD_numTrianglesTouching(const unsigned int* d_SDs_touched,
                                                 const unsigned int* d_howManyTrianglesTouchTheTouchedSDs,
                                                 const unsigned int* nSDs_touchedByTriangles,

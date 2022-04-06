@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Ruochun Zhang
+// Authors: Conlain Kelly, Nic Olsen, Ruochun Zhang, Dan Negrut
 // =============================================================================
 
 #include <cmath>
@@ -73,6 +73,29 @@ __host__ double ChSystemGpu_impl::GetMaxParticleZ(bool getMax) {
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
     return *(sphere_data->sphere_stats_buffer + nSpheres);
+}
+
+__host__ unsigned int ChSystemGpu_impl::GetNumParticleAboveZ(float ZValue) {
+    size_t nSpheres = sphere_local_pos_Z.size();
+    if (nSpheres == 0)
+        CHGPU_ERROR("ERROR! 0 particle in system! Please call this method after Initialize().\n");
+
+    const unsigned int threadsPerBlock = 1024;
+    unsigned int nBlocks = (nSpheres + threadsPerBlock - 1) / threadsPerBlock;
+    elementalZAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, nSpheres,
+                                                       gran_params, ZValue);
+    gpuErrchk(cudaDeviceSynchronize());
+
+    // Use CUB to find the max or min Z.
+    size_t temp_storage_bytes = 0;
+    cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
+                           sphere_data->sphere_stats_buffer_int + nSpheres, nSpheres);
+    void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
+    cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
+                           sphere_data->sphere_stats_buffer_int + nSpheres, nSpheres);
+    gpuErrchk(cudaDeviceSynchronize());
+    gpuErrchk(cudaPeekAtLastError());
+    return *(sphere_data->sphere_stats_buffer_int + nSpheres);
 }
 
 // Reset broadphase data structures
@@ -356,6 +379,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     // resizing on-the-call, to save time, in case that quarry function is called with a high frequency. The last
     // element in this array is to store the reduced value.
     TRACK_VECTOR_RESIZE(sphere_stats_buffer, nSpheres + 1, "sphere_stats_buffer", 0);
+    TRACK_VECTOR_RESIZE(sphere_stats_buffer_int, nSpheres + 1, "sphere_stats_buffer_int", 0);
 
     // NOTE that this will get resized again later, this is just the first estimate
     TRACK_VECTOR_RESIZE(spheres_in_SD_composite, 2 * nSpheres, "spheres_in_SD_composite", NULL_CHGPU_ID);

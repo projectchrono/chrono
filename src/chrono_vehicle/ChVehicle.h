@@ -87,6 +87,9 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the current global vehicle COM location.
     virtual ChVector<> GetVehicleCOMPos() const = 0;
 
+    /// Get the current global vehicle inertia tensor.
+    virtual ChMatrix33<> GetVehicleInertia() const = 0;
+
     /// Get the vehicle location.
     /// This is the global location of the main chassis reference frame origin.
     const ChVector<>& GetVehiclePos() const { return m_chassis->GetPos(); }

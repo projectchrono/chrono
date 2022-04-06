@@ -27,7 +27,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChLinearDamperRWAssembly::ChLinearDamperRWAssembly(const std::string& name, bool has_shock)
     : ChRoadWheelAssembly(name, has_shock) {
 }
@@ -43,7 +42,6 @@ ChLinearDamperRWAssembly::~ChLinearDamperRWAssembly() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
                                           const ChVector<>& location,
@@ -120,18 +118,35 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 double ChLinearDamperRWAssembly::GetMass() const {
     return GetArmMass() + m_road_wheel->GetWheelMass();
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 double ChLinearDamperRWAssembly::GetCarrierAngle() const {
     return m_spring->GetAngle();
 }
 
 // -----------------------------------------------------------------------------
+ChRoadWheelAssembly::ForceTorque ChLinearDamperRWAssembly::ReportSuspensionForce() const {
+    ChRoadWheelAssembly::ForceTorque force;
+
+    force.spring_ft = m_spring->GetTorque();
+    force.spring_displ = m_spring->GetAngle();
+    force.spring_velocity = m_spring->GetVelocity();
+
+    if (m_has_shock) {
+        force.shock_ft = m_shock->GetForce();
+        force.shock_displ = m_shock->GetLength();
+        force.shock_velocity = m_shock->GetVelocity();
+    } else {
+        force.shock_ft = 0;
+        force.shock_displ = 0;
+        force.shock_velocity = 0;
+    }
+
+    return force;
+}
+
 // -----------------------------------------------------------------------------
 void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -196,7 +211,6 @@ void ChLinearDamperRWAssembly::RemoveVisualizationAssets() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChLinearDamperRWAssembly::LogConstraintViolations() {
     ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
     GetLog() << "  Arm-chassis revolute\n";
@@ -209,7 +223,6 @@ void ChLinearDamperRWAssembly::LogConstraintViolations() {
     m_road_wheel->LogConstraintViolations();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLinearDamperRWAssembly::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChRoadWheelAssembly::ExportComponentList(jsonDocument);

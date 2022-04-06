@@ -21,12 +21,14 @@ MARK_AS_ADVANCED(CLEAR SPECTRA_INCLUDE_DIR)
 
 SET(ChronoEngine_MODAL_SOURCES 
     ChModalAssembly.cpp
+    ChModalDamping.cpp
     ChEigenvalueSolver.cpp
 )
 
 SET(ChronoEngine_MODAL_HEADERS
     ChApiModal.h 
-    ChModalAssembly.h 
+    ChModalAssembly.h
+    ChModalDamping.h
     ChEigenvalueSolver.h
 )
 
