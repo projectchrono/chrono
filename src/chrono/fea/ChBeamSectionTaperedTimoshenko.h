@@ -364,6 +364,11 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     /// an analytical expression is provided. Children calsses must take care of this. Default: false.
     bool compute_Ri_Ki_by_num_diff = false;
 
+    /// A lock to avoid computing avg_sec_par several times, initialized as false by default.
+    /// If one wants to recalculate the avg_sec_par again, set this variable to 'false' and 
+    /// run ComputeAverageSectionParameters() again.
+    bool compute_ave_sec_par = false;
+
   protected:
     /// The length of beam element with two sections.
     double length;
@@ -379,10 +384,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     bool use_lumped_mass_matrix;
 
     // Some important average section parameters, to calculate only once, enable to access them conveniently.
-    std::shared_ptr<AverageSectionParameters> avg_sec_par;
-
-    // A lock to avoid computing avg_sec_par several times, initialized as false by default.
-    bool compute_ave_sec_par = false;
+    std::shared_ptr<AverageSectionParameters> avg_sec_par;    
 
     /// Compute the 12x12 sectional inertia matrix in lumped format, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix)

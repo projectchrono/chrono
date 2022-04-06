@@ -682,11 +682,11 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChSurfaceShape> surface) {
 
                 ChVector<> P;
                 msurface->Evaluate(P, mU, mV);
-                P = vis->Pos + vis->Rot * P;
+                ////P = vis->Pos + vis->Rot * P;
 
                 ChVector<> N;
                 msurface->Normal(N, mU, mV);
-                N = vis->Rot * N;
+                ////N = vis->Rot * N;
 
                 // create two triangles per uv increment
 
@@ -744,7 +744,7 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChSurfaceShape> surface) {
 
                 ChVector<> P;
                 msurface->Evaluate(P, mU, mV);
-                P = vis->Pos + vis->Rot * P;
+                ////P = vis->Pos + vis->Rot * P;
 
                 irrmesh->getVertexBuffer()[iu + iv * (sections_u + 1)] =
                     video::S3DVertex((f32)P.x(), (f32)P.y(), (f32)P.z(), 1, 0, 0, clr, 0, 0);
@@ -766,7 +766,7 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChSurfaceShape> surface) {
 
                 ChVector<> P;
                 msurface->Evaluate(P, mU, mV);
-                P = vis->Pos + vis->Rot * P;
+                ////P = vis->Pos + vis->Rot * P;
 
                 irrmesh->getVertexBuffer()[iv + iu * (sections_v + 1) + stride] =
                     video::S3DVertex((f32)P.x(), (f32)P.y(), (f32)P.z(), 1, 0, 0, clr, 0, 0);
@@ -825,7 +825,7 @@ void ChIrrNodeShape::UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned
 
     ChVector<> t1;
     line->Evaluate(t1, 0);
-    t1 = vis->Pos + vis->Rot * t1;
+    ////t1 = vis->Pos + vis->Rot * t1;
 
     irrmesh->getVertexBuffer()[0] = video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, clr, 0, 0);
 
@@ -838,7 +838,7 @@ void ChIrrNodeShape::UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned
 
         ChVector<> t2;
         line->Evaluate(t2, mU);
-        t2 = vis->Pos + vis->Rot * t2;
+        ////t2 = vis->Pos + vis->Rot * t2;
 
         // create a  small line (a degenerate triangle) per each vector
 

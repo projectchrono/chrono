@@ -51,6 +51,9 @@ class ChApi ChVisualModel {
     /// Get the specified visual shape in the model.
     std::shared_ptr<ChVisualShape> GetShape(unsigned int i) const { return m_shapes[i].first; }
 
+    /// Get the FEA visualization shapes in the model.
+    const std::vector<std::shared_ptr<ChVisualShapeFEA>>& GetShapesFEA() const { return m_shapesFEA; }
+
     /// Get the specified FEA visualization object in the model.
     std::shared_ptr<ChVisualShapeFEA> GetShapeFEA(unsigned int i) const { return m_shapesFEA[i]; }
 

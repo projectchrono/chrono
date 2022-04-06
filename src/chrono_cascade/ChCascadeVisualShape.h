@@ -12,41 +12,43 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHASSET_H
-#define CHASSET_H
+#ifndef CH_CASCADE_VISUAL_SHAPE_H
+#define CH_CASCADE_VISUAL_SHAPE_H
 
-#include "chrono/core/ChCoordsys.h"
-#include "chrono/serialization/ChArchive.h"
+#include "chrono_cascade/ChApiCASCADE.h"
+#include "chrono/assets/ChVisualShape.h"
+
+#include <TopoDS_Shape.hxx>
 
 namespace chrono {
+namespace cascade {
 
-/// @addtogroup chrono_assets
+/// @addtogroup cascade_module
 /// @{
 
-class ChPhysicsItem;
-
-/// Classes for adding user data (such as rendering shapes, reference to files) to ChPhysicsItem objects.
-class ChApi ChAsset {
+/// Class for an asset that contains an OpenCASCADE shape which can be included in a visual model.
+class ChApiCASCADE ChCascadeVisualShape : public ChVisualShape {
   public:
-    ChAsset() {}
-    virtual ~ChAsset() {}
+    ChCascadeVisualShape();
+    ChCascadeVisualShape(const TopoDS_Shape& ms);
+    virtual ~ChCascadeVisualShape();
 
-    /// This is called by the owner, i.e. a ChPhysicsItem. Note that
-    /// the ChAssets can be shared between owners, so an asset might receive
-    /// different updates from different 'updater's each with different 'coords'.
-    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {}
+    /// Access the OpenCASCADE shape.
+    TopoDS_Shape& Shape() { return mshape; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
+
+  protected:
+    TopoDS_Shape mshape;  ///< OpenCASCADE shape
 };
 
-CH_CLASS_VERSION(ChAsset, 0)
+/// @} cascade_module
 
-/// @} chrono_assets
-
+}  // namespace cascade
 }  // end namespace chrono
 
 #endif

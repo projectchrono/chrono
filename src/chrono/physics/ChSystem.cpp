@@ -1558,6 +1558,10 @@ bool ChSystem::DoAssembly(int action) {
     SetSolverTolerance(old_tolerance);
     SetStep(old_step);
 
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate();
+
     return true;
 }
 
@@ -1611,6 +1615,10 @@ bool ChSystem::DoStaticLinear() {
         GetLog() << (mZx - md).lpNorm<Eigen::Infinity>() << "\n";
     }
 
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate();
+
     return true;
 }
 
@@ -1645,6 +1653,10 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
 
     SetSolverMaxIterations(old_maxsteps);
 
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate();
+
     return true;
 }
 
@@ -1663,6 +1675,10 @@ bool ChSystem::DoStaticAnalysis(std::shared_ptr<ChStaticAnalysis> analysis) {
     DescriptorPrepareInject(*descriptor);
 
     analysis->StaticAnalysis();
+
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate();
 
     return true;
 }
@@ -1694,6 +1710,10 @@ bool ChSystem::DoStaticNonlinearRheonomic(int nsteps, bool verbose, std::shared_
     manalysis.StaticAnalysis();
 
     SetSolverMaxIterations(old_maxsteps);
+
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate();
 
     return true;
 }
@@ -1748,6 +1768,11 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
         last_err = true;
         GetLog() << "WARNING: some constraints may be redundant, but couldn't be eliminated \n";
     }
+
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate();
+
     return last_err;
 }
 

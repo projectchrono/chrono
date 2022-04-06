@@ -89,9 +89,8 @@ void SCMDeformableTerrain::SetColor(const ChColor& color) {
 
 // Set the texture and texture scaling.
 void SCMDeformableTerrain::SetTexture(const std::string tex_file, ChVector2<float> tex_scale) {
-    //// RADU TODO: use texture scale
     if (m_ground->GetVisualModel()) {
-        m_ground->GetVisualShape(0)->SetTexture(tex_file);
+        m_ground->GetVisualShape(0)->SetTexture(tex_file, tex_scale);
     }
 }
 
@@ -335,7 +334,6 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
         m_trimesh_shape = std::shared_ptr<ChTriangleMeshShape>(new ChTriangleMeshShape);
         m_trimesh_shape->SetWireframe(true);
         m_trimesh_shape->SetFixedConnectivity();
-        this->AddVisualShape(m_trimesh_shape);
     }
 
     // Default SCM plane and plane normal
@@ -384,6 +382,7 @@ void SCMDeformableSoil::Initialize(double sizeX, double sizeY, double delta) {
         return;
 
     CreateVisualizationMesh(sizeX, sizeY);
+    this->AddVisualShape(m_trimesh_shape);
 }
 
 // Initialize the terrain from a specified height map.

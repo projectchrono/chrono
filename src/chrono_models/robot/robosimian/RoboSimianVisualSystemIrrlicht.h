@@ -36,9 +36,9 @@ namespace robosimian {
 class CH_MODELS_API RoboSimianVisualSystemIrrlicht : public irrlicht::ChVisualSystemIrrlicht {
   public:
     /// Construct a RoboSimian Irrlicht application.
-    RoboSimianVisualSystemIrrlicht(RoboSimian* robot,                     ///< associated RoboSimian robot
-                                   RS_Driver* driver                     ///< associated robot driver
-                                   );
+    RoboSimianVisualSystemIrrlicht(RoboSimian* robot,  ///< associated RoboSimian robot
+                                   RS_Driver* driver   ///< associated robot driver
+    );
 
     ~RoboSimianVisualSystemIrrlicht();
 

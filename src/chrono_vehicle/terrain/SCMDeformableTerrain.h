@@ -289,6 +289,8 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// Print timing and counter information for last step.
     void PrintStepStatistics(std::ostream& os) const;
 
+    std::shared_ptr<SCMDeformableSoil> GetGroundObject() const { return m_ground; }
+
   private:
     std::shared_ptr<SCMDeformableSoil> m_ground;  ///< underlying load container for contact force generation
 };

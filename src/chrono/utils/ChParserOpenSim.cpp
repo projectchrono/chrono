@@ -793,9 +793,8 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             // Create a sphere at the body COM
             auto sphere = chrono_types::make_shared<ChSphereShape>();
             sphere->GetSphereGeometry().rad = 0.1;
-            sphere->Pos = body_info.body->GetFrame_COG_to_REF().GetPos();
             sphere->AddMaterial(vis_mat);
-            body_info.body->AddVisualShape(sphere);
+            body_info.body->AddVisualShape(sphere, ChFrame<>(body_info.body->GetFrame_COG_to_REF().GetPos()));
 
             // Create visualization cylinders
             for (auto cyl_info : body_info.cylinders) {

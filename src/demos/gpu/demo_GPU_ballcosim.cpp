@@ -78,7 +78,7 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     ball_body->SetPos(ball_initial_pos);
     auto sph = chrono_types::make_shared<ChSphereShape>();
     sph->GetSphereGeometry().rad = ball_radius;
-    ball_body->AddAsset(sph);
+    ball_body->AddVisualShape(sph);
     sys_ball.AddBody(ball_body);
 
     ChGpuVisualization gpu_vis(&gpu_sys, &sys_ball);

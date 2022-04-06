@@ -181,6 +181,7 @@ void ChVisualSystemIrrlicht::Initialize() {
 // -----------------------------------------------------------------------------
 
 bool ChVisualSystemIrrlicht::Run() {
+    assert(m_system->GetVisualSystem());
     return m_device->run();
 }
 
@@ -425,6 +426,8 @@ void ChVisualSystemIrrlicht::EnableCollisionShapeDrawing(bool val) {
 
 // Clean canvas at beginning of scene.
 void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor color) {
+    assert(m_system->GetVisualSystem());
+
     utils::ChProfileManager::Reset();
     utils::ChProfileManager::Start_Profile("Irrlicht loop");
     utils::ChProfileManager::Increment_Frame_Counter();
@@ -461,6 +464,8 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
 
 // Call this to end the scene draw at the end of each animation frame.
 void ChVisualSystemIrrlicht::EndScene() {
+    assert(m_system->GetVisualSystem());
+
     utils::ChProfileManager::Stop_Profile();
 
     m_gui->EndScene();
@@ -469,6 +474,8 @@ void ChVisualSystemIrrlicht::EndScene() {
 }
 
 void ChVisualSystemIrrlicht::DrawAll() {
+    assert(m_system->GetVisualSystem());
+
     if (m_use_effects)
         m_effect_handler->update();  // draw 3D scene using Xeffects for shadow maps
     else
@@ -558,11 +565,8 @@ void ChVisualSystemIrrlicht::CreateIrrNode(std::shared_ptr<ChPhysicsItem> item) 
         return;
 
     // Create a new ChIrrNodeModel and, if this is first insertion, populate it.
-    if (m_nodes.insert({item.get(), chrono_types::make_shared<ChIrrNodeModel>(item, m_container, GetSceneManager(), 0)})
-            .second) {
-        auto& node = m_nodes[item.get()];
-        assert(node);
-
+    auto node = chrono_types::make_shared<ChIrrNodeModel>(item, m_container, GetSceneManager(), 0);
+    if (m_nodes.insert({item.get(), node}).second) {
         // Remove all Irrlicht scene nodes from the ChIrrNodeModel
         node->removeAll();
 
@@ -613,9 +617,6 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
 void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                                              std::shared_ptr<ChVisualModel> model,
                                              const ChFrame<>& parent_frame) {
-    //// RADU TODO - We do not use Pos and Rot from box geometry, or center from sphere geometry.
-    ////             THIS WILL BE OBSOLETED!!!
-
     for (const auto& shape_instance : model->GetShapes()) {
         auto& shape = shape_instance.first;
         auto& shape_frame = shape_instance.second;

@@ -13,10 +13,11 @@
 // =============================================================================
 
 #include "chrono/assets/ChVisualShape.h"
+#include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
 
-ChVisualShape::ChVisualShape() : Pos(0), Rot(1), visible(true), is_mutable(true) {}
+ChVisualShape::ChVisualShape() : visible(true), is_mutable(true) {}
 
 int ChVisualShape::AddMaterial(std::shared_ptr<ChVisualMaterial> material) {
     material_list.push_back(material);
@@ -100,8 +101,6 @@ void ChVisualShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChVisualShape>();
     // serialize all member data:
-    marchive << CHNVP(Pos);
-    ////marchive << CHNVP(Rot);
     marchive << CHNVP(visible);
 }
 
@@ -109,8 +108,6 @@ void ChVisualShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChVisualShape>();
     // stream in all member data:
-    marchive >> CHNVP(Pos);
-    ////marchive >> CHNVP(Rot);
     marchive >> CHNVP(visible);
 }
 

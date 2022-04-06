@@ -25,16 +25,10 @@ namespace geometry {
 /// A rounded box (sphere-swept box) geometric object for collisions and visualization.
 class ChApi ChRoundedBox : public ChVolume {
   public:
-    ChMatrix33<> Rot;  /// rotation of box
-    ChVector<> Pos;    /// position of center
-    ChVector<> Size;   /// box halflengths
-    double radsphere;  ///< radius of sweeping sphere
-
   public:
-    ChRoundedBox() : Pos(VNULL), Size(VNULL), Rot(1), radsphere(0) {}
-    ChRoundedBox(const ChVector<>& mpos, const ChMatrix33<>& mrot, const ChVector<>& mlengths, double mradsphere)
-        : Pos(mpos), Size(0.5 * mlengths), Rot(mrot), radsphere(mradsphere) {}
-    ChRoundedBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3);
+    ChRoundedBox() : Size(VNULL), radsphere(0) {}
+    ChRoundedBox(const ChVector<>& lengths, double radsphere) : Size(0.5 * lengths), radsphere(radsphere) {}
+    ////ChRoundedBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3);
     ChRoundedBox(const ChRoundedBox& source);
     ~ChRoundedBox() {}
 
@@ -52,7 +46,7 @@ class ChApi ChRoundedBox : public ChVolume {
                                 ChMatrix33<>* bbRot = NULL) const override;
 
     /// Computes the baricenter of the box
-    virtual ChVector<> Baricenter() const override { return Pos; }
+    virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 
     /// Computes the covariance matrix for the box
     virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
@@ -62,12 +56,6 @@ class ChApi ChRoundedBox : public ChVolume {
 
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
-
-    /// Access the rotation of the box
-    ChMatrix33<>* GetRotm() { return &Rot; }
-
-    /// Access the position of the barycenter of the box
-    ChVector<>& GetPos() { return Pos; }
 
     /// Access the size of the box: a vector with the
     /// three hemi-lengths (lengths divided by two!)
@@ -102,6 +90,9 @@ class ChApi ChRoundedBox : public ChVolume {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    ChVector<> Size;   /// box halflengths
+    double radsphere;  ///< radius of sweeping sphere
 };
 
 }  // end namespace geometry

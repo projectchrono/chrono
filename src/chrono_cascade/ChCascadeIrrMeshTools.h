@@ -12,9 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHIRRCASCADEMESHTOOLS_H
-#define CHIRRCASCADEMESHTOOLS_H
-
+#ifndef CH_CASCADE_IRR_MESHTOOLS_H
+#define CH_CASCADE_IRR_MESHTOOLS_H
 
 #include <irrlicht.h>
 
@@ -50,17 +49,10 @@ namespace scene {
 /// @addtogroup cascade_module
 /// @{
 
-/// Tools to convert an OpenCASCADE shapes into
-/// 'Irrlicht' triangle meshes.
-
-class ChIrrCascadeMeshTools {
+/// Tools to convert OpenCASCADE shapes into 'Irrlicht' triangle meshes.
+class ChCascadeIrrMeshTools {
   public:
-    //---------------------------------------------------------------------------------
-    // CONVERSION TO 'IRRLICHT' MESHES
-
-    /// Function to use to convert a OpenCASCADE face into a Irrlicht mesh,
-    /// so that it can be used for visualizing it.
-
+    /// Function to convert an OpenCASCADE face into a Irrlicht mesh for visualization.
     static void fillIrrlichtMeshFromCascadeFace(scene::IMesh* pMesh,
                                                 const TopoDS_Face& F,
                                                 video::SColor clr = video::SColor(255, 255, 255, 255)) {
@@ -72,7 +64,6 @@ class ChIrrCascadeMeshTools {
         T = BRep_Tool::Triangulation(F, theLocation);
 
         if (!T.IsNull()) {
-
             irr::scene::SMeshBuffer* buffer = new irr::scene::SMeshBuffer();
 
             buffer->Vertices.set_used(T->NbNodes());
@@ -82,7 +73,6 @@ class ChIrrCascadeMeshTools {
 
             Poly::ComputeNormals(T);
             const TShort_Array1OfShortReal& mNormals = T->Normals();
-            
 
             int ivert = 0;
             for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
@@ -91,9 +81,9 @@ class ChIrrCascadeMeshTools {
                 p = mNodes(j).Transformed(theLocation.Transformation());
 
                 chrono::ChVector<> pos(p.X(), p.Y(), p.Z());
-                chrono::ChVector<> nor(mNormals((j-1)*3+1), mNormals((j-1)*3+2), mNormals((j-1)*3+3));
+                chrono::ChVector<> nor(mNormals((j - 1) * 3 + 1), mNormals((j - 1) * 3 + 2), mNormals((j - 1) * 3 + 3));
                 if (F.Orientation() == TopAbs_REVERSED)
-                    nor*= -1;
+                    nor *= -1;
 
                 buffer->Vertices[ivert] =
                     irr::video::S3DVertex((irr::f32)pos.x(), (irr::f32)pos.y(), (irr::f32)pos.z(), (irr::f32)nor.x(),
@@ -123,20 +113,17 @@ class ChIrrCascadeMeshTools {
             mmesh->addMeshBuffer(buffer);
             mmesh->recalculateBoundingBox();
         }
-        
     }
 
-    /// Function to use to convert a OpenCASCADE shape into a Irrlicht mesh,
-    /// so that it can be used for visualizing it.
-
+    /// Function to convert an OpenCASCADE shape into a Irrlicht mesh, for visualization.
     static void fillIrrlichtMeshFromCascade(scene::IMesh* pMesh,
                                             const TopoDS_Shape& mshape,
                                             double deflection = 1,
-                                            bool  relative_deflection = false,
+                                            bool relative_deflection = false,
                                             double angulardeflection = 0.5,
                                             video::SColor clr = video::SColor(255, 255, 255, 255)) {
         BRepTools::Clean(mshape);
-        BRepMesh_IncrementalMesh M(mshape, deflection, relative_deflection , angulardeflection,true);
+        BRepMesh_IncrementalMesh M(mshape, deflection, relative_deflection, angulardeflection, true);
         // GetLog() << "    ..tesselation done \n";
 
         // Loop on faces..
@@ -150,7 +137,7 @@ class ChIrrCascadeMeshTools {
 
 /// @} cascade_module
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // namespace scene
+}  // namespace irr
 
-#endif  // END of header
+#endif

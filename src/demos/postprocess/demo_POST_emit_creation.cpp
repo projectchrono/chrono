@@ -25,8 +25,6 @@
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_postprocess/ChPovRay.h"
-#include "chrono_postprocess/ChPovRayAsset.h"
-#include "chrono_postprocess/ChPovRayAssetCustom.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -60,6 +58,41 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(0, 4, -6), ChVector<>(0, -2, 0));
 
+    // Create an exporter to POVray !!
+    ChPovRay pov_exporter = ChPovRay(&sys);
+
+    // Important: set the path to the template:
+    pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
+
+    // Set the path where it will save all .pov, .ini, .asset and .dat files, a directory will be created if not
+    // existing
+    pov_exporter.SetBasePath(GetChronoOutputPath() + "EMIT_CREATION");
+
+    pov_exporter.SetLight(VNULL, ChColor(0, 0, 0), false);
+    pov_exporter.SetCustomPOVcommandsScript(
+        " \
+         camera { \
+              angle    45 \
+              location <3.0 , 2.5 ,-18.0> \
+              right    x*image_width/image_height \
+              look_at  <0 , -2, 0> \
+              rotate   <0,-180*(clock),0> \
+          } \
+	     light_source {   \
+              <6, 15, -6>  \
+	          color rgb<1.2,1.2,1.2> \
+              area_light <5, 0, 0>, <0, 0, 5>, 8, 8 \
+              adaptive 1 \
+              jitter\
+            } \
+         box \
+            {  \
+                <20, 16, 20>, <0, 16, 0> \
+                texture{ pigment{color rgb<3,3,3> }}    \
+                finish { ambient 1 } \
+            } \
+          ");
+
     // CREATE THE SYSTEM OBJECTS
 
     // Create the floor:
@@ -78,32 +111,24 @@ int main(int argc, char* argv[]) {
     floor_body->GetCollisionModel()->BuildModel();
 
     // Custom rendering in POVray:
-    auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
-    mPOVcustom->SetCommands(
-        "texture{ pigment{ color rgb<1,1,1>}} \n\
+    pov_exporter.SetCustomCommands(floor_body,
+                                   "texture{ pigment{ color rgb<1,1,1>}} \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) } \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) rotate<0,90,0> } \n\
                              texture{ Raster(4*0.2, 0.04, rgb<0.8,0.8,0.8>) } \n\
                              texture{ Raster(4*0.2, 0.04, rgb<0.8,0.8,0.8>) rotate<0,90,0> } \n\
                               ");
-    floor_body->AddAsset(mPOVcustom);
-
-    // Attach asset for marking it as renderable in PovRay
-    floor_body->AddAsset(chrono_types::make_shared<ChPovRayAsset>());
 
     sys.Add(floor_body);
 
     // Create an emitter:
-
     ChParticleEmitter emitter;
 
     // Ok, that object will take care of generating particle flows for you.
     // It accepts a lot of settings, for creating many different types of particle
     // flows, like fountains, outlets of various shapes etc.
     // For instance, set the flow rate, etc:
-
     emitter.ParticlesPerSecond() = 2000;
-
     emitter.SetUseParticleReservoir(true);
     emitter.ParticleReservoirAmount() = 8000;
 
@@ -146,21 +171,19 @@ int main(int argc, char* argv[]) {
         chrono_types::make_shared<ChZhangDistribution>(0.15, 0.03));  // Zhang parameters: average val, min val.
     mcreator_spheres->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
 
-    // Optional: define a callback to be exectuted at each creation of a sphere particle:
+    // Optional: define a callback to be exectuted at each creation of a sphere particle.
     class MyCreator_spheres : public ChRandomShapeCreator::AddBodyCallback {
-        // Here do custom stuff on the just-created particle:
       public:
         virtual void OnAddBody(std::shared_ptr<ChBody> body,
                                ChCoordsys<> coords,
                                ChRandomShapeCreator& creator) override {
             body->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
-
-            auto POVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
-            POVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.4,0.4,0.45>} }  \n");
-            body->AddAsset(POVcustom);
+            pov->SetCustomCommands(body, " texture {finish { specular 0.9 } pigment{ color rgb<0.4,0.4,0.45>} }  \n");
         }
+        ChPovRay* pov;
     };
     auto callback_spheres = chrono_types::make_shared<MyCreator_spheres>();
+    callback_spheres->pov = &pov_exporter;
     mcreator_spheres->RegisterAddBodyCallback(callback_spheres);
 
     // B)
@@ -175,25 +198,24 @@ int main(int argc, char* argv[]) {
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
     class MyCreator_plastic : public ChRandomShapeCreator::AddBodyCallback {
-        // Here do custom stuff on the just-created particle:
       public:
         virtual void OnAddBody(std::shared_ptr<ChBody> body,
                                ChCoordsys<> coords,
                                ChRandomShapeCreator& creator) override {
             // Quick randomization of POV colors, without using the ChRandomShapeCreatorFromFamilies
-            auto POVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
-            body->AddAsset(POVcustom);
-
             double icol = ChRandom();
             if (icol < 0.3)
-                POVcustom->SetCommands(" texture {pigment{ color rgb<0.8,0.3,0.3>} }  \n");
+                pov->SetCustomCommands(body, " texture {pigment{ color rgb<0.8,0.3,0.3>} }  \n");
             else if (icol < 0.8)
-                POVcustom->SetCommands(" texture {pigment{ color rgb<0.3,0.8,0.3>} }  \n");
+                pov->SetCustomCommands(body, " texture {pigment{ color rgb<0.3,0.8,0.3>} }  \n");
             else
-                POVcustom->SetCommands(" texture {pigment{ color rgb<0.3,0.3,0.8>} }  \n");
+                pov->SetCustomCommands(body, " texture {pigment{ color rgb<0.3,0.3,0.8>} }  \n");
         }
+        ChPovRay* pov;
     };
-    creator_boxes->RegisterAddBodyCallback(chrono_types::make_shared<MyCreator_plastic>());
+    auto callback_plastic = chrono_types::make_shared<MyCreator_plastic>();
+    callback_plastic->pov = &pov_exporter;
+    creator_boxes->RegisterAddBodyCallback(callback_plastic);
 
     // C)
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
@@ -211,13 +233,13 @@ int main(int argc, char* argv[]) {
                                ChCoordsys<> coords,
                                ChRandomShapeCreator& creator) override {
             body->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
-
-            auto POVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
-            POVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.4,0.6>} }  \n");
-            body->AddAsset(POVcustom);
+            pov->SetCustomCommands(body, " texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.4,0.6>} }  \n");
         }
+        ChPovRay* pov;
     };
-    creator_hulls->RegisterAddBodyCallback(chrono_types::make_shared<MyCreator_hulls>());
+    auto callback_hulls = chrono_types::make_shared<MyCreator_hulls>();
+    callback_hulls->pov = &pov_exporter;
+    creator_hulls->RegisterAddBodyCallback(callback_hulls);
 
     // D)
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
@@ -272,65 +294,30 @@ int main(int argc, char* argv[]) {
             vis->BindItem(body);
 
             // Enable PovRay rendering
-            auto pov_asset = chrono_types::make_shared<ChPovRayAsset>();
-            body->AddAsset(pov_asset);
+            pov->Add(body);
 
             // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
             body->SetNoGyroTorque(true);
         }
         ChVisualSystemIrrlicht* vis;
+        ChPovRay* pov;
     };
+
     // b- create the callback object...
     auto creation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
     creation_callback->vis = vis.get();
+    creation_callback->pov = &pov_exporter;
     // d- attach the callback to the emitter!
     emitter.RegisterAddBodyCallback(creation_callback);
 
     // Bind all existing visual shapes to the visualization system
     sys.SetVisualSystem(vis);
 
-    // Create an exporter to POVray !!
-    ChPovRay pov_exporter = ChPovRay(&sys);
-
-    // Important: set the path to the template:
-    pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
-
-    // Set the path where it will save all .pov, .ini, .asset and .dat files, a directory will be created if not
-    // existing
-    pov_exporter.SetBasePath(GetChronoOutputPath() + "EMIT_CREATION");
-
-    pov_exporter.SetLight(VNULL, ChColor(0, 0, 0), false);
-    pov_exporter.SetCustomPOVcommandsScript(
-        " \
-         camera { \
-              angle    45 \
-              location <3.0 , 2.5 ,-18.0> \
-              right    x*image_width/image_height \
-              look_at  <0 , -2, 0> \
-              rotate   <0,-180*(clock),0> \
-          } \
-	     light_source {   \
-              <6, 15, -6>  \
-	          color rgb<1.2,1.2,1.2> \
-              area_light <5, 0, 0>, <0, 0, 5>, 8, 8 \
-              adaptive 1 \
-              jitter\
-            } \
-         box \
-            {  \
-                <20, 16, 20>, <0, 16, 0> \
-                texture{ pigment{color rgb<3,3,3> }}    \
-                finish { ambient 1 } \
-            } \
-          ");
-
-    // Use this function for adding a ChPovRayAsset to all already created items (ex. the floor, etc.)
-    // Otherwise add a ChPovRayAsset on a per-item basis
+    // Export all existing visual shapes to POV-Ray
     pov_exporter.AddAll();
 
-    // 1) Create the two .pov and .ini files for POV-Ray (this must be done
-    //    only once at the beginning of the simulation).
+    // Create the .pov and .ini files for POV-Ray (this must be done only once at the beginning of the simulation).
     pov_exporter.ExportScript();
 
     // Modify some setting of the physical system for the simulation, if you want

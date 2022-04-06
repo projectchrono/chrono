@@ -26,7 +26,7 @@
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_modal/ChModalAssembly.h"
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -53,7 +53,7 @@ double beam_wy = 0.05;
 double beam_L = 6;
 int n_elements = 8;
 
-void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add_internal_body,  bool add_boundary_body) 
+void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add_internal_body,  bool add_boundary_body, bool add_force) 
 {
     ChSystem* my_system = myapp.GetSystem();
     // Clear previous demo, if any:
@@ -100,8 +100,8 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
     msection->SetDensity(beam_density);
     msection->SetYoungModulus(beam_Young);
     msection->SetGwithPoissonRatio(0.31);
-    msection->SetBeamRaleyghDampingBeta(0.00001);
-    msection->SetBeamRaleyghDampingAlpha(0.001);
+    msection->SetBeamRaleyghDampingBeta(0.01);
+    msection->SetBeamRaleyghDampingAlpha(0.0001);
     msection->SetAsRectangularSection(beam_wy, beam_wz);
 
     ChBuilderBeamEuler builder;
@@ -132,7 +132,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
         ChVector<>(0, 1, 0) // the 'Y' up direction of the section for the beam
     );
 
-    my_node_B_boundary->SetForce(ChVector<>(0, 0, 90)); // to trigger some vibration at the free end
+    //my_node_B_boundary->SetForce(ChVector<>(0, 0, 90)); // to trigger some vibration at the free end
 
     if (add_internal_body) {
 
@@ -157,7 +157,26 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
         my_end_constr->Initialize(builder.GetLastBeamNodes().back(), my_body_C, ChFrame<>(ChVector<>(beam_L, 0, 0), QUNIT));
         my_assembly->Add(my_end_constr);
     }
+    
+    if (add_force) {
+        // Add a force (also to internal nodes that will be removed after modal reduction).
+        // This can be done using a callback that will be called all times the time integrator needs it.
+        // You will provide a custom force writing into computed_custom_F_full vector (note: it is up to you to use the proper indexes)
+        class MyCallback : public ChModalAssembly::CustomForceFullCallback {
+        public:
+            MyCallback() {};
+            virtual void evaluate(ChVectorDynamic<>& computed_custom_F_full, //< compute F here, size= n_boundary_coords_w + n_internal_coords_w
+                const ChModalAssembly& link  ///< associated modal assembly
+            ) {
+                computed_custom_F_full.setZero(); // remember! assume F vector is already properly sized, but not zeroed!
+                computed_custom_F_full[computed_custom_F_full.size() - 16] = -60; // just for test, assign a force to a random coordinate of F, here an internal node
+            }
+        };
+        auto my_callback = chrono_types::make_shared<MyCallback>();
 
+        my_assembly->RegisterCallback_CustomForceFull(my_callback);
+    }
+    
 
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
     my_system->Setup();
@@ -169,13 +188,39 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
 
         // HERE PERFORM THE MODAL REDUCTION!
 
-        my_assembly->SwitchModalReductionON(5);
+        my_assembly->SwitchModalReductionON(
+            6,                                        // The number of modes to retain from modal reduction 
+            ChModalDampingRayleigh(0.01, 0.05)        // The damping model - Optional parameter: default is ChModalDampingNone().
+        );
+
+        // Other types of damping that you can try, in SwitchModalReductionON: 
+        //    ChModalDampingNone()                    // no damping (also default)
+        //    ChModalDampingReductionR(*my_assembly)  // transforms the original damping matrix of the full subassembly
+        //    ChModalDampingReductionR(full_R_ext)    // transforms an externally-provided damping matrix of the full subassembly
+        //    ChModalDampingCustom(reduced_R_ext)     // uses an externally-provided damping matrix of the reduced subassembly
+        //    ChModalDampingRayleigh(0.01, 0.05)      // generates a damping matrix from reduced M ad K using Rayleygh alpha-beta
+        //    ChModalDampingFactorRmm(zetas)          // generates a damping matrix from damping factors zetas of dynamic modes
+        //    ChModalDampingFactorRayleigh(zetas,a,b) // generates a damping matrix from damping factors of dynamic modes and rayleigh a,b for boundary nodes
+        //    ChModalDampingFactorAssembly(zetas)     // (not ready) generates a damping matrix from damping factors of the modes of the subassembly, including masses of boundary
+        //      where for example         ChVectorDynamic<> zetas(4);  zetas << 0.7, 0.5, 0.6, 0.7; // damping factors, other values assumed as last one.
+
+        // OPTIONAL STUFF: 
 
         // Just for later reference, dump reduced M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
         my_assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir+"/dump_reduced").c_str());
 
         // Use this for high simulation performance (the internal nodes won't be updated for postprocessing)
         //my_assembly->SetInternalNodesUpdate(false);
+
+        // Finally, optional: do an eigenvalue analysis to check if we approximately have the same eigenmodes of the original not reduced assembly:
+        my_assembly->ComputeModesDamped(0);
+
+        // Just for logging the frequencies:
+        for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
+            GetLog()<< "Mode n." << i
+                    << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) 
+                    << "   damping factor z: " <<  my_assembly->Get_modes_damping_ratios()(i)
+                    << "\n";
     }
     else {
 
@@ -185,7 +230,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
         // Just for logging the frequencies:
         for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
             GetLog()<< "Mode n." << i
-                    << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i)
+                    << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) 
                     << "\n";
     }
 
@@ -195,24 +240,24 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
     // VISUALIZATION ASSETS:
     //
 
-    auto mvisualizeInternalA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_internal);
-    mvisualizeInternalA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
-    mvisualizeInternalA->SetColorscaleMinMax(-0.001, 1200);
+    auto mvisualizeInternalA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh_internal.get()));
+    mvisualizeInternalA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MY);
+    mvisualizeInternalA->SetColorscaleMinMax(-600, 600);
     mvisualizeInternalA->SetSmoothFaces(true);
     mvisualizeInternalA->SetWireframe(false);
     my_mesh_internal->AddAsset(mvisualizeInternalA);
 
-    auto mvisualizeInternalB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_internal);
-    mvisualizeInternalB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
-    mvisualizeInternalB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    auto mvisualizeInternalB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh_internal.get()));
+    mvisualizeInternalB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+    mvisualizeInternalB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizeInternalB->SetSymbolsThickness(0.2);
     mvisualizeInternalB->SetSymbolsScale(0.1);
     mvisualizeInternalB->SetZbufferHide(false);
     my_mesh_internal->AddAsset(mvisualizeInternalB);
 
-    auto mvisualizeBoundaryB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_internal);
-    mvisualizeBoundaryB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
-    mvisualizeBoundaryB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    auto mvisualizeBoundaryB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh_boundary.get()));
+    mvisualizeBoundaryB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+    mvisualizeBoundaryB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizeBoundaryB->SetSymbolsThickness(0.4);
     mvisualizeBoundaryB->SetSymbolsScale(4);
     mvisualizeBoundaryB->SetZbufferHide(false);
@@ -231,6 +276,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction, bool add
         tools::drawGrid(myapp.GetVideoDriver(), 1, 1, 12, 12,
                              ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
                              video::SColor(100, 120, 120, 120), true);
+
         myapp.DoStep();
         myapp.EndScene();
     }
@@ -336,7 +382,7 @@ int main(int argc, char* argv[]) {
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
 
-    application.SetTimestep(0.01);
+    application.SetTimestep(0.05);
    
     /*
     // use HHT second order integrator (but slower)
@@ -371,25 +417,29 @@ int main(int argc, char* argv[]) {
                 MakeAndRunDemoCantilever(application,
                     false,    // no modal reduction
                     false,    // no internal body
-                    false);   // no boundary body
+                    false,    // no boundary body
+                    true);    // add force
                 break;
             case 2:
                 MakeAndRunDemoCantilever(application, 
                     true,     //    modal reduction
                     false,    // no internal body
-                    false);   // no boundary body
+                    false,    // no boundary body
+                    true);    // add force
                 break;
             case 3:
                 MakeAndRunDemoCantilever(application,
                     false,    // no modal reduction
                     true,     //    internal body
-                    true);    //    boundary body
+                    true,     //    boundary body
+                    true);    // add force
                 break;
             case 4:
                 MakeAndRunDemoCantilever(application, 
                     true,     //    modal reduction
                     true,     //    internal body
-                    true);    //    boundary body
+                    true,     //    boundary body
+                    true);    // add force
                 break;
             default:
                 break;
@@ -399,20 +449,7 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    while (application.GetDevice()->run()) {
 
-        application.BeginScene();
-
-        application.DrawAll();
-
-        tools::drawGrid(application.GetVideoDriver(), 1, 1, 12, 12,
-                             ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
-                             video::SColor(100, 120, 120, 120), true);
-
-        application.DoStep(); // if application.SetModalShow(true), dynamics is paused and just shows the modes
-
-        application.EndScene();
-    }
 
  
     return 0;

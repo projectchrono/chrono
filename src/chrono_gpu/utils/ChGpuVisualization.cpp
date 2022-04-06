@@ -85,7 +85,7 @@ void ChGpuVisualization::Initialize() {
         body->SetBodyFixed(true);
         auto sph = chrono_types::make_shared<ChSphereShape>();
         sph->GetSphereGeometry().rad = m_systemGPU->GetParticleRadius();
-        body->AddAsset(sph);
+        body->AddVisualShape(sph);
         m_system->AddBody(body);
     }
 

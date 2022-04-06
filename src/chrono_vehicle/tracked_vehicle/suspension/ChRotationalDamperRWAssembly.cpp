@@ -26,7 +26,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChRotationalDamperRWAssembly::ChRotationalDamperRWAssembly(const std::string& name, bool has_shock)
     : ChRoadWheelAssembly(name, has_shock) {}
 
@@ -41,7 +40,6 @@ ChRotationalDamperRWAssembly::~ChRotationalDamperRWAssembly() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRotationalDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
                                               const ChVector<>& location,
@@ -117,18 +115,36 @@ void ChRotationalDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 double ChRotationalDamperRWAssembly::GetMass() const {
     return GetArmMass() + m_road_wheel->GetWheelMass();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double ChRotationalDamperRWAssembly::GetCarrierAngle() const {
     return m_spring->GetAngle();
 }
 
 // -----------------------------------------------------------------------------
+ChRoadWheelAssembly::ForceTorque ChRotationalDamperRWAssembly::ReportSuspensionForce() const {
+    ChRoadWheelAssembly::ForceTorque force;
+
+    force.spring_ft = m_spring->GetTorque();
+    force.spring_displ = m_spring->GetAngle();
+    force.spring_velocity = m_spring->GetVelocity();
+
+    if (m_has_shock) {
+        force.shock_ft = m_shock->GetTorque();
+        force.shock_displ = m_shock->GetAngle();
+        force.shock_velocity = m_shock->GetVelocity();
+    } else {
+        force.shock_ft = 0;
+        force.shock_displ = 0;
+        force.shock_velocity = 0;
+    }
+
+    return force;
+}
+
 // -----------------------------------------------------------------------------
 void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)

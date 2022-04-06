@@ -219,6 +219,8 @@ class ChSystemGpu_impl {
         not_stupid_bool* sphere_fixed;  ///< Flags indicating whether or not a sphere is fixed
 
         float* sphere_stats_buffer;  ///< A buffer array that can store any quantity that the user wish to reduce
+        unsigned int*
+            sphere_stats_buffer_int;  ///< A buffer array that stores int-valued sys info that the user quarries
 
         unsigned int* contact_partners_map;   ///< Contact partners for each sphere. Only in frictional simulations
         not_stupid_bool* contact_active_map;  ///< Whether the frictional contact at an index is active
@@ -338,6 +340,9 @@ class ChSystemGpu_impl {
     /// Get the max z position of the spheres, allows easier co-simulation. True for getting max Z, false for getting
     /// minimum Z.
     double GetMaxParticleZ(bool getMax = true);
+
+    /// Get the number of particles that are higher than a given Z coordinate
+    unsigned int GetNumParticleAboveZ(float ZValue);
 
     /// Return the total kinetic energy of all particles.
     float ComputeTotalKE();
@@ -619,6 +624,7 @@ class ChSystemGpu_impl {
     /// energy using GetParticleKineticEnergy), this array is used to store that particle-wise quantity, and then
     /// potentially reduced via CUB.
     std::vector<float, cudallocator<float>> sphere_stats_buffer;
+    std::vector<unsigned int, cudallocator<unsigned int>> sphere_stats_buffer_int;
 
     /// Set of contact partners for each sphere. Only used in frictional simulations
     std::vector<unsigned int, cudallocator<unsigned int>> contact_partners_map;

@@ -647,18 +647,11 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                     }
                     iter++;  // next loop
                 }
-                ChVector<> oldPos = box->GetBoxGeometry().Pos;
-                // std::cout << "Old pos is " << oldPos.x() << "," << oldPos.y() << "," << oldPos.z() <<std::endl;
-                auto oldRot = box->GetBoxGeometry().Rot.Get_A_quaternion();
-                ChVector<> size = box->GetBoxGeometry().Size;
-                ChVector<> newPos = oldPos + oldRot.Rotate(ChVector<>(size.x(), size.y(), size.z()));
-                // std::cout << "new pos is " << newPos.x() << "," << newPos.y() << "," << newPos.z() <<std::endl;
-
-                box->GetBoxGeometry().Pos = newPos;
             }
         }
     }
 }
+
 // -----------------------------------------------------------------------------
 // Makes a new system and then parses into it
 // -----------------------------------------------------------------------------

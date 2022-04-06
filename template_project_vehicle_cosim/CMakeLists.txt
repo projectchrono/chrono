@@ -95,10 +95,9 @@ add_executable(vehicle_cosim vehicle_cosim.cpp)
 # install tree (if using an installed version of Chrono).
 #--------------------------------------------------------------
 
-set_target_properties(vehicle_cosim PROPERTIES 
-	    COMPILE_FLAGS "${CHRONO_CXX_FLAGS}"
-	    COMPILE_DEFINITIONS "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\""
-	    LINK_FLAGS "${CHRONO_LINKER_FLAGS}")
+target_compile_definitions(vehicle_cosim PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
+target_compile_options(vehicle_cosim PUBLIC ${CHRONO_CXX_FLAGS})
+target_link_options(vehicle_cosim PUBLIC ${CHRONO_LINKER_FLAGS})
 
 #--------------------------------------------------------------
 # Link to Chrono libraries and dependency libraries

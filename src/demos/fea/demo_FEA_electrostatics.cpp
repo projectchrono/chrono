@@ -16,8 +16,6 @@
 //
 // =============================================================================
 
-//// RADU TODO - investigate incorrect visual output
-
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
@@ -156,10 +154,7 @@ int main(int argc, char* argv[]) {
 
     sys.SetSolverForceTolerance(1e-20);
 
-
-    // Note: in electrostatics, here you can have only a single linear (non transient) solution
-    // so at this point you must do:
-
+    // In electrostatics, you have only a single linear (non transient) solution
     sys.DoStaticLinear();
 
     while (vis->Run()) {

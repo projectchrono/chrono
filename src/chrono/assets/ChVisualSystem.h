@@ -56,7 +56,7 @@ class ChApi ChVisualSystem {
     /// Called by the associated ChSystem.
     virtual void OnSetup() {}
 
-    /// Perform any necessary update operations at the beginning of a time step.
+    /// Perform any necessary update operations at the end of a time step.
     /// Called by the associated ChSystem.
     virtual void OnUpdate() {}
 

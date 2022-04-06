@@ -12,14 +12,14 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHPHYSICSITEM_H
-#define CHPHYSICSITEM_H
+#ifndef CH_PHYSICSITEM_H
+#define CH_PHYSICSITEM_H
 
-#include "chrono/assets/ChAsset.h"
-#include "chrono/assets/ChVisualModel.h"
-#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChObject.h"
+#include "chrono/assets/ChCamera.h"
+#include "chrono/assets/ChVisualModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/timestepper/ChState.h"
 
@@ -27,11 +27,12 @@ namespace chrono {
 
 // Forward references
 class ChSystem;
-namespace modal { class ChModalAssembly; }
+namespace modal {
+class ChModalAssembly;
+}
 
-/// Base class for items that can contain objects of ChVariables or ChConstraints,
-/// such as rigid bodies, mechanical joints, etc.
-
+/// Base class for physics items that are part of a simulation.
+/// Such items (e.g., rigid bodies, joints, FEM meshes, etc.) can contain ChVariables or ChConstraints objects.
 class ChApi ChPhysicsItem : public ChObj {
   public:
     ChPhysicsItem() : system(NULL), offset_x(0), offset_w(0), offset_L(0) {}
@@ -41,20 +42,12 @@ class ChApi ChPhysicsItem : public ChObj {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChPhysicsItem* Clone() const override { return new ChPhysicsItem(*this); }
 
-    /// Get the pointer to the parent ChSystem()
+    /// Get the pointer to the parent ChSystem().
     ChSystem* GetSystem() const { return system; }
 
-    /// Set the pointer to the parent ChSystem() and
-    /// also add to new collision system / remove from old coll.system
+    /// Set the pointer to the parent ChSystem().
+    /// Also add to new collision system / remove from old collision system.
     virtual void SetSystem(ChSystem* m_system);
-
-
-
-
-
-
-
-
 
     /// Add an (optional) visualization model.
     /// Not that an instance of the given visual model is associated with this physics ite, thus allowing sharing the
@@ -93,32 +86,15 @@ class ChApi ChPhysicsItem : public ChObj {
     /// of a given clone can be obtained by calling GetVisualModelFrame() with the corresponding clone identifier.
     virtual unsigned int GetNumVisualModelClones() const { return 0; }
 
+    /// Attach a ChCamera to this physical item.
+    /// Multiple cameras can be attached to the same physics item.
+    void AddCamera(std::shared_ptr<ChCamera> camera);
 
+    /// Get the set of cameras attached to this physics item.
+    std::vector<std::shared_ptr<ChCamera>> GetCameras() const { return cameras; }
 
-
-
-
-
-
-
-    /// Add an optional asset (it can be used to define visualization shapes, es ChSphereShape,
-    /// or textures, or custom attached properties that the user can define by
-    /// creating his class inherited from ChAsset)
-    void AddAsset(std::shared_ptr<ChAsset> masset) { assets.push_back(masset); }
-
-    /// Access to the list of optional assets.
-    std::vector<std::shared_ptr<ChAsset> >& GetAssets() { return assets; }
-
-
-
-
-
-
-
-
-
-    //                   --- INTERFACES ---
-    // inherited classes might/should implement some of the following functions.
+    // INTERFACES
+    // inherited classes might/should implement some of the following functions
 
     // Collisions - override these in child classes if needed
 
@@ -283,16 +259,16 @@ class ChApi ChPhysicsItem : public ChObj {
     }
 
     /// Computes Dt = x_new - x, using vectors at specified offsets.
-    /// By default, when DOF = DOF_w, it does just the difference of two state vectors, but in some cases (ex when using quaternions
-    /// for rotations) it could do more complex stuff, and children classes might overload it.
+    /// By default, when DOF = DOF_w, it does just the difference of two state vectors, but in some cases (ex when using
+    /// quaternions for rotations) it could do more complex stuff, and children classes might overload it.
     virtual void IntStateGetIncrement(const unsigned int off_x,  ///< offset in x state vector
-                                   const ChState& x_new,      ///< state vector, final position part
-                                   const ChState& x,          ///< state vector, initial position part
-                                   const unsigned int off_v,  ///< offset in v state vector
-                                   ChStateDelta& Dv           ///< state vector, increment. Here gets the result
+                                      const ChState& x_new,      ///< state vector, final position part
+                                      const ChState& x,          ///< state vector, initial position part
+                                      const unsigned int off_v,  ///< offset in v state vector
+                                      ChStateDelta& Dv           ///< state vector, increment. Here gets the result
     ) {
         for (int i = 0; i < GetDOF(); ++i) {
-             Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
+            Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
         }
     }
 
@@ -337,12 +313,12 @@ class ChApi ChPhysicsItem : public ChObj {
 
     /// Prepare variables and constraints to accommodate a solution:
     virtual void IntToDescriptor(
-        const unsigned int off_v,  ///< offset for \e v and \e R
-        const ChStateDelta& v,  ///< vector that will be copied into the \e q 'unknowns' term of the variables (for warm starting)
-        const ChVectorDynamic<>& R,  ///< vector that will be copied into the \e F 'force' term of the variables
+        const unsigned int off_v,    ///< offset for \e v and \e R
+        const ChStateDelta& v,       ///< vector copied into the \e q 'unknowns' term of the variables
+        const ChVectorDynamic<>& R,  ///< vector copied into the \e F 'force' term of the variables
         const unsigned int off_L,    ///< offset for \e L and \e Qc
-        const ChVectorDynamic<>& L,  ///< vector that will be copied into the \e L 'lagrangian ' term of the constraints (for warm starting)
-        const ChVectorDynamic<>& Qc  ///< vector that will be copied into the \e Qb 'constraint' term of the constraints
+        const ChVectorDynamic<>& L,  ///< vector copied into the \e L 'lagrangian ' term of the constraints
+        const ChVectorDynamic<>& Qc  ///< vector copied into the \e Qb 'constraint' term of the constraints
     ) {}
 
     /// After a solver solution, fetch values from variables and constraints into vectors:
@@ -352,6 +328,7 @@ class ChApi ChPhysicsItem : public ChObj {
         const unsigned int off_L,  ///< offset for \e L
         ChVectorDynamic<>& L       ///< vector to where \e L 'lagrangian ' term of the constraints will be copied
     ) {}
+
     // SOLVER SYSTEM FUNCTIONS
     //
     // These are the functions that are used to manage ChConstraint and/or ChVariable
@@ -440,9 +417,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// NOTE: signs are flipped respect to the ChTimestepper dF/dx terms:  K = -dF/dq, R = -dF/dv
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {}
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
@@ -453,8 +428,8 @@ class ChApi ChPhysicsItem : public ChObj {
   protected:
     ChSystem* system;  ///< parent system
 
-    std::vector<std::shared_ptr<ChAsset> > assets;              ///< set of assets
     std::shared_ptr<ChVisualModelInstance> vis_model_instance;  ///< instantiated visualization model
+    std::vector<std::shared_ptr<ChCamera>> cameras;             ///< set of cameras
 
     unsigned int offset_x;  ///< offset in vector of state (position part)
     unsigned int offset_w;  ///< offset in vector of state (speed part)

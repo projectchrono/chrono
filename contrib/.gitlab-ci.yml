@@ -101,7 +101,9 @@ linux:doxygen:deploy:
   needs:
     - job: linux:arch-gcc:test
       artifacts: false
-    - job: macos:catalina:test
+#    - job: macos-intel:monterey:test
+#      artifacts: false
+    - job: macos-apple:monterey:test
       artifacts: false
     - job: windows:vs2022:test
       artifacts: false
@@ -466,6 +468,61 @@ windows:vs2019:deploy:
   - git submodule update
   - mkdir -p build
 
+.macos-monterey:
+  extends: .macos
+  tags:
+    - monterey
+
+.macos-monterey-build:
+  stage: build
+  extends: .macos-monterey
+  script:
+  - cd build
+  - cmake ../ --preset=macosci
+    -DCMAKE_C_COMPILER=$(which clang)
+    -DCMAKE_CXX_COMPILER=$(which clang++)
+    -DCMAKE_VERBOSE_MAKEFILE=TRUE
+  - export CLANG_FORCE_COLOR_DIAGNOSTICS=1
+  - ninja -j 7
+  artifacts:
+    expire_in: 60m
+    paths:
+    - build/
+
+.macos-monterey-test:
+  stage: test
+  extends: .macos-monterey
+  script:
+  - cd build
+  - export CTEST_OUTPUT_ON_FAILURE=1
+  - ninja test
+
+.macos-intel:monterey:build:
+  extends: .macos-monterey-build
+  tags:
+    - x86
+
+.macos-intel:monterey:test:
+  extends: .macos-monterey-test
+  tags:
+    - x86
+  needs: ["macos-intel:monterey:build"]
+  dependencies: ["macos-intel:monterey:build"]
+
+macos-apple:monterey:build:
+  extends: .macos-monterey-build
+  tags:
+    - apple
+
+macos-apple:monterey:test:
+  extends: .macos-monterey-test
+  tags:
+    - apple
+  needs: ["macos-apple:monterey:build"]
+  dependencies: ["macos-apple:monterey:build"]
+
+
+# macOS Conda Deployment
 
 .macos-deploy-base:
   extends: .macos
@@ -495,35 +552,6 @@ windows:vs2019:deploy:
   environment:
     name: pychrono-macos
     url: https://anaconda.org/projectchrono/pychrono
-
-
-macos:catalina:build:
-  stage: build
-  extends: .macos
-  script:
-  - cd build
-  - cmake ../ --preset=macosci
-    -DCMAKE_C_COMPILER=$(which clang)
-    -DCMAKE_CXX_COMPILER=$(which clang++)
-    -DCMAKE_VERBOSE_MAKEFILE=TRUE
-  - export CLANG_FORCE_COLOR_DIAGNOSTICS=1
-  - ninja -j 8
-  artifacts:
-    expire_in: 60m
-    paths:
-    - build/
-    
-
-macos:catalina:test:
-  stage: test
-  needs: ["macos:catalina:build"]
-  extends: .macos
-  script:
-  - cd build
-  - export CTEST_OUTPUT_ON_FAILURE=1 
-  - ninja test
-  dependencies: ["macos:catalina:build"]
-
 
 macos:macos-deploy-python3.6:
   stage: deploy
@@ -555,3 +583,5 @@ macos:macos-deploy-python3.8:
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
   when: manual
+
+

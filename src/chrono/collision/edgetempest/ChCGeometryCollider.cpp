@@ -52,10 +52,7 @@ int ChGeometryCollider::ComputeCollisions(
         (mgeo2.GetClassType() == geometry::ChGeometry::SPHERE)) {
         geometry::ChSphere* msph1 = (geometry::ChSphere*)&mgeo1;
         geometry::ChSphere* msph2 = (geometry::ChSphere*)&mgeo2;
-        Vector c1, c2;
-        c1 = ChTransform<>::TransformLocalToParent(msph1->center, *T1, *R1);
-        c2 = ChTransform<>::TransformLocalToParent(msph2->center, *T2, *R2);
-        return ComputeSphereSphereCollisions(*msph1, &c1, *msph2, &c2, mcollider, just_intersection);
+        return ComputeSphereSphereCollisions(*msph1, T1, *msph2, T2, mcollider, just_intersection);
     }
 
     if ((mgeo1.GetClassType() == geometry::ChGeometry::BOX) && (mgeo2.GetClassType() == geometry::ChGeometry::BOX)) {
@@ -68,28 +65,24 @@ int ChGeometryCollider::ComputeCollisions(
         (mgeo2.GetClassType() == geometry::ChGeometry::TRIANGLE)) {
         geometry::ChSphere* msph = (geometry::ChSphere*)&mgeo1;
         geometry::ChTriangle* mtri = (geometry::ChTriangle*)&mgeo2;
-        Vector c1 = ChTransform<>::TransformLocalToParent(msph->center, *T1, *R1);
-        return ComputeSphereTriangleCollisions(*msph, &c1, *mtri, R2, T2, mcollider, just_intersection, false);
+        return ComputeSphereTriangleCollisions(*msph, T1, *mtri, R2, T2, mcollider, just_intersection, false);
     }
     if ((mgeo1.GetClassType() == geometry::ChGeometry::TRIANGLE) &&
         (mgeo2.GetClassType() == geometry::ChGeometry::SPHERE)) {
         geometry::ChSphere* msph = (geometry::ChSphere*)&mgeo2;
         geometry::ChTriangle* mtri = (geometry::ChTriangle*)&mgeo1;
-        Vector c2 = ChTransform<>::TransformLocalToParent(msph->center, *T2, *R2);
-        return ComputeSphereTriangleCollisions(*msph, &c2, *mtri, R1, T1, mcollider, just_intersection, true);
+        return ComputeSphereTriangleCollisions(*msph, T2, *mtri, R1, T1, mcollider, just_intersection, true);
     }
 
     if ((mgeo1.GetClassType() == geometry::ChGeometry::SPHERE) && (mgeo2.GetClassType() == geometry::ChGeometry::BOX)) {
         geometry::ChSphere* msph = (geometry::ChSphere*)&mgeo1;
         geometry::ChBox* mbox = (geometry::ChBox*)&mgeo2;
-        Vector c1 = ChTransform<>::TransformLocalToParent(msph->center, *T1, *R1);
-        return ComputeSphereBoxCollisions(*msph, &c1, *mbox, R2, T2, mcollider, just_intersection, false);
+        return ComputeSphereBoxCollisions(*msph, T1, *mbox, R2, T2, mcollider, just_intersection, false);
     }
     if ((mgeo1.GetClassType() == geometry::ChGeometry::BOX) && (mgeo2.GetClassType() == geometry::ChGeometry::SPHERE)) {
         geometry::ChSphere* msph = (geometry::ChSphere*)&mgeo2;
         geometry::ChBox* mbox = (geometry::ChBox*)&mgeo1;
-        Vector c2 = ChTransform<>::TransformLocalToParent(msph->center, *T2, *R2);
-        return ComputeSphereBoxCollisions(*msph, &c2, *mbox, R1, T1, mcollider, just_intersection, true);
+        return ComputeSphereBoxCollisions(*msph, T2, *mbox, R1, T1, mcollider, just_intersection, true);
     }
 
     if ((mgeo1.GetClassType() == geometry::ChGeometry::BOX) &&
@@ -944,12 +937,7 @@ int ChGeometryCollider::ComputeBoxBoxCollisions(
         Vector ArrP[12];     // 8 should be enough
         Vector mnormal;
 
-        ChMatrix33<> aBox1Rot = (*R1) * mgeo1.Rot;
-        ChMatrix33<> aBox2Rot = (*R2) * mgeo2.Rot;
-        Vector aBox1Pos = ChTransform<>::TransformLocalToParent(mgeo1.Pos, (*T1), (*R1));
-        Vector aBox2Pos = ChTransform<>::TransformLocalToParent(mgeo2.Pos, (*T2), (*R2));
-
-        int ncontacts = BoxBoxCollisionTest2::BoxBoxContacts(aBox1Pos, aBox1Rot, mgeo1.Size, aBox2Pos, aBox2Rot,
+        int ncontacts = BoxBoxCollisionTest2::BoxBoxContacts(*T1, *R1, mgeo1.Size, *T2, *R2,
                                                              mgeo2.Size, CH_COLL_ENVELOPE, ArrP, mnormal, ArrDist);
 
         for (int i = 0; i < ncontacts; i++) {
@@ -976,10 +964,7 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
     bool just_intersection,  ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
     bool swap_pairs          ///< if true, pairs are reported as Triangle-Sphere (triangle will be the main ref.)
 ) {
-    ChMatrix33<> aBoxRot = (*R2) * mgeo2.Rot;
-    Vector aBoxPos = ChTransform<>::TransformLocalToParent(mgeo2.Pos, (*T2), (*R2));
-
-    Vector relC = ChTransform<>::TransformParentToLocal(*c1, aBoxPos, aBoxRot);
+    Vector relC = ChTransform<>::TransformParentToLocal(*c1, *T2, *R2);
 
     if (just_intersection) {
         if (((fabs(relC.x()) <= mgeo2.Size.x() + mgeo1.rad) && (fabs(relC.y()) <= mgeo2.Size.y()) &&
@@ -1135,17 +1120,16 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
         for (int i = 1; i <= 8; i++) {
             if (done)
                 break;
-            Vector loc_corner = ChTransform<>::TransformParentToLocal(mgeo2.GetPn(i), mgeo2.Pos, mgeo2.Rot);
-            if (Vlength(loc_corner - relC) <= mgeo1.rad) {
-                pt_loc = loc_corner;
+            if (Vlength(mgeo2.GetPn(i) - relC) <= mgeo1.rad) {
+                pt_loc = mgeo2.GetPn(i);
                 done = true;
             }
         }
 
         if (done) {
-            Vector pt_2 = ChTransform<>::TransformLocalToParent(pt_loc, aBoxPos, aBoxRot);
+            Vector pt_2 = ChTransform<>::TransformLocalToParent(pt_loc, *T2, *R2);
             Vector mnormal = Vnorm(pt_2 - *c1);
-            if (Vdot(mnormal, aBoxPos - *c1) < 0)
+            if (Vdot(mnormal, *T2 - *c1) < 0)
                 mnormal = -mnormal;
             Vector pt_1 = *c1 + (mnormal * mgeo1.rad);
             ChCollisionPair mcoll(&mgeo1, &mgeo2,  // geometries
@@ -1179,13 +1163,10 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
     Vector v_2 = ChTransform<>::TransformLocalToParent(mtri.p2, *T2, *R2);
     Vector v_3 = ChTransform<>::TransformLocalToParent(mtri.p3, *T2, *R2);
 
-    ChMatrix33<> aBoxRot = (*R1) * mbox.Rot;
-    Vector aBoxPos = ChTransform<>::TransformLocalToParent(mbox.Pos, (*T1), (*R1));
-
     Vector v_b[3];
-    v_b[0] = ChTransform<>::TransformParentToLocal(v_1, aBoxPos, aBoxRot);
-    v_b[1] = ChTransform<>::TransformParentToLocal(v_2, aBoxPos, aBoxRot);
-    v_b[2] = ChTransform<>::TransformParentToLocal(v_3, aBoxPos, aBoxRot);
+    v_b[0] = ChTransform<>::TransformParentToLocal(v_1, *T1, *R1);
+    v_b[1] = ChTransform<>::TransformParentToLocal(v_2, *T1, *R1);
+    v_b[2] = ChTransform<>::TransformParentToLocal(v_3, *T1, *R1);
 
     double distc;
     ////bool hit = false;
@@ -1235,8 +1216,8 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
                 P1_b.z() = -mbox.Size.z();
             }
 
-            P1_w = ChTransform<>::TransformLocalToParent(P1_b, aBoxPos, aBoxRot);
-            P2_w = ChTransform<>::TransformLocalToParent(P2_b, aBoxPos, aBoxRot);
+            P1_w = ChTransform<>::TransformLocalToParent(P1_b, *T1, *R1);
+            P2_w = ChTransform<>::TransformLocalToParent(P2_b, *T1, *R1);
             Vector mnormal = Vnorm(P1_w - P2_w);
             ChCollisionPair mcoll(&mbox, &mtri,  // geometries
                                   P1_w,          // p1
