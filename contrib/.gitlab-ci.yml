@@ -448,11 +448,10 @@ windows:vs2019:deploy:
     #Activate conda environment
     - conda activate build-env
     #Conda install dependencies
-    - conda install --yes anaconda-client mkl cmake jinja2
-    - conda install --yes conda-build
-    - conda install --yes -c intel mkl-devel
-    - conda install --yes -c conda-forge glew glfw irrlicht swig=4.0.2  
-    - conda install -c dlr-sc opencascade --yes
+    - conda install --yes anaconda-client conda-build
+    #- conda install --yes -c intel mkl-devel
+    #- conda install --yes -c conda-forge glew glfw irrlicht swig=4.0.2  
+    #- conda install -c dlr-sc opencascade --yes
     - conda build purge-all timeout /t 240
     - conda build .\contrib\packaging-python\conda -c conda-forge --python=3.10 --no-remove-work-dir
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1

@@ -28,7 +28,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - python
-    - cmake >=3.9.3
+    - cmake >=3.10
     - ninja # [linux or osx]
     - swig >=4.0.0
     - mkl-devel

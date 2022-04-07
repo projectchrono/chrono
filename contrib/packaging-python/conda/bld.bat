@@ -1,7 +1,7 @@
 REM To avoid building in work/ alongside the source. Rather build in work/build/
 mkdir build
 cd build
-call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\LaunchDevCmd.bat"
+REM call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\LaunchDevCmd.bat"
 REM Remove dot from PY_VER for use in library name
 set MY_PY_VER=%PY_VER:.=%
 REM set env variables needed by MKL
@@ -9,7 +9,7 @@ set MKL_INTERFACE_LAYER = LP64
 set MKL_THREADING_LAYER = INTEL
 set CONFIGURATION=Release
 REM Configure step
-cmake -G "Visual Studio 17 2022" -T v142 ^
+cmake -G "%CMAKE_GEN%" -T "%CMAKE_GENERATOR_TOOLSET%" ^
  -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%" ^
  -DCMAKE_PREFIX_PATH="%LIBRARY_PREFIX%" ^
  -DCMAKE_SYSTEM_PREFIX_PATH="%LIBRARY_PREFIX%" ^
@@ -36,7 +36,8 @@ cmake -G "Visual Studio 17 2022" -T v142 ^
  -DMKL_RT_LIBRARY="%CONDA_INSTALL_LOCN%"\Library\lib\mkl_rt.lib ^
  -DIOMP5_LIBRARY="%CONDA_INSTALL_LOCN%"\Library\lib\libiomp5md.lib ^
  -DPYCHRONO_DATA_PATH="..\..\..\..\..\Library\data" ^
- .. >> "%LOG_DIR%"\cmakeconfiglog.txt 2>&1
+ .. 
+REM ">> "%LOG_DIR%"\cmakeconfiglog.txt 2>&1"
 if errorlevel 1 exit 1
  
 REM Build step 
