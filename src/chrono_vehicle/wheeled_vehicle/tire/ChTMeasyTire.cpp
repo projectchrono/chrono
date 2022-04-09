@@ -850,7 +850,7 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
     m_TMeasyCoeff.pn_max = 3.5 * m_TMeasyCoeff.pn;
 
     double CZ = tireLoad / defl_max;
-    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetMass());
+    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetTireMass());
 
     SetVerticalStiffness(CZ);
 
@@ -860,9 +860,9 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
 
     m_TMeasyCoeff.dz = DZ;
     m_TMeasyCoeff.cx = 0.9 * CZ;
-    m_TMeasyCoeff.dx = damping_ratio * sqrt(m_TMeasyCoeff.cx * GetMass());
+    m_TMeasyCoeff.dx = damping_ratio * sqrt(m_TMeasyCoeff.cx * GetTireMass());
     m_TMeasyCoeff.cy = 0.8 * CZ;
-    m_TMeasyCoeff.dy = damping_ratio * sqrt(m_TMeasyCoeff.cy * GetMass());
+    m_TMeasyCoeff.dy = damping_ratio * sqrt(m_TMeasyCoeff.cy * GetTireMass());
 
     m_rim_radius = 0.5 * rimDia;
     m_roundness = 0.1;
@@ -935,7 +935,7 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
     m_TMeasyCoeff.mu_0 = 0.8;
 
     double CZ = tireLoad / defl_max;
-    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetMass());
+    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetTireMass());
 
     SetVerticalStiffness(CZ);
 
@@ -945,9 +945,9 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
 
     m_TMeasyCoeff.dz = DZ;
     m_TMeasyCoeff.cx = 0.9 * CZ;
-    m_TMeasyCoeff.dx = damping_ratio * sqrt(m_TMeasyCoeff.cx * GetMass());
+    m_TMeasyCoeff.dx = damping_ratio * sqrt(m_TMeasyCoeff.cx * GetTireMass());
     m_TMeasyCoeff.cy = 0.8 * CZ;
-    m_TMeasyCoeff.dy = damping_ratio * sqrt(m_TMeasyCoeff.cy * GetMass());
+    m_TMeasyCoeff.dy = damping_ratio * sqrt(m_TMeasyCoeff.cy * GetTireMass());
 
     m_rim_radius = 0.5 * rimDia;
     m_roundness = 0.1;

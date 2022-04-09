@@ -127,8 +127,9 @@ void ChVehicle::SetOutput(ChVehicleOutput::Type type,
 
 // -----------------------------------------------------------------------------
 void ChVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    // Calculate total vehicle mass
+    // Calculate total vehicle mass and inertia properties at initial configuration
     CalculateMass();
+    CalculateInertia();
 
     m_initialized = true;
 }
@@ -138,10 +139,6 @@ void ChVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel)
 // ---------------------------------------------------------------------------- -
 void ChVehicle::Advance(double step) {
     assert(m_initialized);
-
-    //// RADU TODO - TAKE THIS OUT!!!!!
-    if (!m_initialized)
-        exit(1);
 
     if (m_output && m_system->GetChTime() >= m_next_output_time) {
         Output(m_output_frame, *m_output_db);

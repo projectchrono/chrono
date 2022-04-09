@@ -67,9 +67,11 @@ class CH_VEHICLE_API ChPart {
     virtual std::string GetTemplateName() const = 0;
 
     /// Get the subsystem mass.
+    /// Note that the correct value is reported only *after* the subsystem is initialized.
     double GetMass() const { return m_mass; }
 
     /// Get the current subsystem COM frame (relative to and expressed in the subsystem's reference frame).
+    /// Note that the correct value is reported only *after* the subsystem is initialized.
     const ChFrame<>& GetCOMFrame() const { return m_com; }
 
     /// Get the current subsystem inertia (relative to the subsystem COM frame).
@@ -80,10 +82,12 @@ class CH_VEHICLE_API ChPart {
     ///  [                                int{x^2+y^2}dm ]
     /// </pre>
     /// represents the inertia tensor relative to the subsystem COM frame.
+    /// Note that the correct value is reported only *after* the subsystem is initialized.
     const ChMatrix33<>& GetInertia() const { return m_inertia; }
 
     /// Get the current subsystem position relative to the global frame.
     /// Note that the vehicle frame is defined to be the reference frame of the (main) chassis.
+    /// Note that the correct value is reported only *after* the subsystem is initialized.
     const ChFrame<>& GetPosition() const { return m_pos; }
 
     /// Set the visualization mode for this subsystem.

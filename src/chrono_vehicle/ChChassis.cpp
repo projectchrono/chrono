@@ -214,9 +214,9 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
     m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
     m_body->SetIdentifier(0);
     m_body->SetNameString(m_name + " body");
-    m_body->SetMass(GetMass());
-    m_body->SetFrame_COG_to_REF(GetCOMFrame());
-    m_body->SetInertia(GetInertia());
+    m_body->SetMass(GetBodyMass());
+    m_body->SetFrame_COG_to_REF(GetBodyCOMFrame());
+    m_body->SetInertia(GetBodyInertia());
     m_body->SetBodyFixed(m_fixed);
 
     m_body->SetFrame_REF_to_abs(chassis_frame);
@@ -228,7 +228,7 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
     system->Add(m_container_forces);
 
     // Add pre-defined marker (COM) on the chassis body.
-    AddMarker("COM", ChCoordsys<>(GetCOMFrame().GetPos(), GetCOMFrame().GetRot()));
+    AddMarker("COM", ChCoordsys<>(GetBodyCOMFrame().GetPos(), GetBodyCOMFrame().GetRot()));
 }
 
 // -----------------------------------------------------------------------------
