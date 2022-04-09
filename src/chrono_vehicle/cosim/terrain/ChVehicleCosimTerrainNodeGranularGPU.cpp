@@ -285,9 +285,9 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         std::vector<ChVector<float>> omg(m_num_particles);
         for (unsigned int i = 0; i < m_num_particles; i++) {
             std::getline(ifile, line);
-            std::istringstream iss(line);
+            std::istringstream iss1(line);
             unsigned int identifier;
-            iss >> identifier >> pos[i].x() >> pos[i].y() >> pos[i].z() >> vel[i].x() >> vel[i].y() >> vel[i].z() >>
+            iss1 >> identifier >> pos[i].x() >> pos[i].y() >> pos[i].z() >> vel[i].x() >> vel[i].y() >> vel[i].z() >>
                 omg[i].x() >> omg[i].y() >> omg[i].z();
             assert(identifier == i);
         }

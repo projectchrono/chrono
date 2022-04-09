@@ -197,10 +197,10 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         std::vector<SCMDeformableTerrain::NodeLevel> nodes(num_nodes);
         for (int i = 0; i < num_nodes; i++) {
             std::getline(ifile, line);
-            std::istringstream iss(line);
+            std::istringstream iss1(line);
             int x, y;
             double h;
-            iss >> x >> y >> h;
+            iss1 >> x >> y >> h;
             nodes[i] = std::make_pair(ChVector2<>(x, y), h);
         }
 

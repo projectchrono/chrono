@@ -58,7 +58,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
     virtual void ConstructTire() override;
 
     /// Return the tire mass.
-    virtual double GetTireMass() const override { return m_tire->ReportMass(); }
+    virtual double GetTireMass() const override { return m_tire->GetMass(); }
 
     /// Return the tire radius.
     virtual double GetTireRadius() const override { return m_tire->GetRadius(); }
