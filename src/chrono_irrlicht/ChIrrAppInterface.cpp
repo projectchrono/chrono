@@ -351,6 +351,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* sys,
       modal_phi(0),
       modal_current_mode_n(0),
       modal_current_freq(0),
+      modal_current_dampingfactor(0),
       videoframe_save(false),
       videoframe_num(0),
       videoframe_each(1),
@@ -544,10 +545,10 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* sys,
 
     gad_modal_show = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 250, 200, 250 + 16), gad_tab2, 9922, L"Show modal shapes");
 
-    gad_modal_mode_n = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 270, 130, 270 + 16), gad_tab2, 9926);
+    gad_modal_mode_n = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 270, 110, 270 + 16), gad_tab2, 9926);
     gad_modal_mode_n->setMax(25);
     gad_modal_mode_n->setSmallStep(1);
-    gad_modal_mode_n_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(135, 270, 220, 270 + 16), false, false, gad_tab2);
+    gad_modal_mode_n_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(115, 270, 240, 270 + 16), false, false, gad_tab2);
 
     // -- gad_tab3
 
@@ -692,9 +693,13 @@ void ChIrrAppInterface::BeginScene(bool backBuffer, bool zBuffer, irr::video::SC
                     mmodalassembly->SetFullStateWithModeOverlay(this->modal_mode_n, this->modal_phi, this->modal_amplitude); 
                     // fetch Hz of this mode
                     this->modal_current_freq = mmodalassembly->Get_modes_frequencies()(this->modal_mode_n);
+                    // fetch damping factor
+                    this->modal_current_dampingfactor = mmodalassembly->Get_modes_damping_ratios()(this->modal_mode_n);
                 }
                 catch (...) {
                     // something failed in SetFullStateWithModeOverlay(), ex. node n was higher than available ones
+                    this->modal_current_freq = 0;
+                    this->modal_current_dampingfactor = 0;
                     mmodalassembly->SetFullStateReset();
                 }
             }
@@ -986,7 +991,9 @@ void ChIrrAppInterface::DrawAll() {
         gad_modal_show->setChecked(modal_show);
 
         gad_modal_mode_n->setPos(modal_mode_n);
-        sprintf(message, "%i mode %.3g Hz", modal_mode_n, this->modal_current_freq);
+        sprintf(message, "n=%i %.3g Hz", modal_mode_n, this->modal_current_freq);
+        if (this->modal_current_dampingfactor)
+            sprintf(message, "n=%i %.3g Hz z=%.2g", modal_mode_n, this->modal_current_freq, this->modal_current_dampingfactor);
         gad_modal_mode_n_info->setText(irr::core::stringw(message).c_str());
         
         gad_modal_mode_n->setEnabled(modal_show);

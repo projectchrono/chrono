@@ -16,6 +16,7 @@
 #define CHMODALASSEMBLY_H
 
 #include "chrono_modal/ChApiModal.h"
+#include "chrono_modal/ChModalDamping.h"
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/solver/ChVariablesGeneric.h"
 #include <complex>
@@ -56,10 +57,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         return this->is_modal;
     }
 
-    /// Compute the undamped modes for the entire assembly. 
+    /// Compute the undamped modes for the current assembly. 
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies() etc.
-    /// (Return false and do nothing if in  IsModalMode() , as you cannot do modal analysis
-    /// of an already modal-reduced model; if needed, add this into another ChModalAssembly.)
+    /// Usually done for the assembly in full mode, but can be done also SwitchModalReductionON()
     bool ComputeModes(int nmodes); ///< the n. of lower modes to keep 
 
     /// Compute the undamped modes from M and K matrices. Later you can fetch results via Get_modes_V() etc.
@@ -68,25 +68,24 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Compute the damped modes for the entire assembly. 
     /// Expect complex eigenvalues/eigenvectors if damping is used. 
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies(), Get_modes_damping_ratios() etc.
-    /// (Return false and do nothing if in  IsModalMode() , as you cannot do modal analysis
-    /// of an already modal-reduced model; if needed, add this into another ChModalAssembly.)
+    /// Usually done for the assembly in full mode, but can be done also SwitchModalReductionON()
     bool ComputeModesDamped(int nmodes); ///< the n. of lower modes to keep 
 
     /// Perform modal reduction on this assembly, from the current "full" ("boundary"+"internal") assembly.
     /// - An undamped modal analysis will be done on the full assembly with  nodes. 
     /// - The "internal" nodes will be replaced by n_modes modal coordinates.
-    void SwitchModalReductionON(int n_modes);
+    void SwitchModalReductionON(int n_modes, const ChModalDamping& damping_model = ChModalDampingNone());
 
     /// Perform modal reduction on this assembly that contains only the "boundary" nodes, whereas
     /// the "internal" nodes have been modeled only in an external FEA software with the 
     /// full ("boundary"+"internal") modes. 
     /// - with an external FEA software, the full assembly is modeled with "boundary"+"internal" nodes.
-    /// - with an external FEA software, the M mass matrix and the K stiffness matrix are saved t disk.
-    /// - in Chrono, M and K are load from disk and stored in two ChSparseMatrix objects
+    /// - with an external FEA software, the M mass matrix and the K stiffness matrix are saved to disk. 
+    /// - in Chrono, M and K and Cq constraint jacobians (if any) are load from disk and stored in ChSparseMatrix objects
     /// - in Chrono, only boundary nodes are added to a ChModalAssembly
     /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
     /// Note that the size of M (and K) must be at least > n_boundary_coords_w. 
-    void SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, int n_modes);
+    void SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, int n_modes, const ChModalDamping& damping_model = ChModalDampingNone());
 
 
     /// For displaying modes, you can use the following function. It sets the state of this subassembly
@@ -94,7 +93,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// If you increment the phase during an animation, you will see the n-ht mode 
     /// oscillating on the screen. 
     /// It works also if in IsModalMode(). The mode shape is added to the state snapshot that was taken when doing the
-    /// last ComputeModes() or ComputeModesDamped() or SwitchModalReductionON().
+    /// last ComputeModes() or ComputeModesDamped().
     void SetFullStateWithModeOverlay(int n_mode, double phase, double amplitude);
 
     /// For displaying the deformation using internal nodes, you can use the following function. Works only if IsModalMode().
@@ -106,12 +105,15 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
 
     /// Resets the state of this subassembly (both boundary and inner items) to the state snapshot that 
-    /// was taken when doing the last ComputeModes() or ComputeModesDamped() or SwitchModalReductionON().
+    /// was taken when doing the last ComputeModes() or ComputeModesDamped().
     void SetFullStateReset();
 
 
-    /// Computes the increment of the subassembly configuration respect to the x0 snapshot configuration.
-    void GetStateIncrement(ChStateDelta& Dx, int off_x);
+    /// Computes the 'local' increment of the subassembly (increment of configuration respect 
+    /// to the x0 snapshot configuration, in local reference),
+    /// and also gets the speed in local reference.
+    void GetStateLocal(ChStateDelta& Dx_local, ChStateDelta& v_local);
+
 
     /// Optimization flag. Default true: when in modal reduced mode, during simulations the internal (discarded) 
     /// nodes are updated anyway by superposition of modal shapes etc., for visualization or postprocessing reasons.
@@ -125,7 +127,7 @@ protected:
     void SetupModalData(int nmodes_reduction);
 
 public:
-    /// Get the number of modal coordinates. Use one of the ComputeModes() to change it.
+    /// Get the number of modal coordinates. Use SwitchModalReductionOn() to change it.
     int Get_n_modes_coords_w() { return n_modes_coords_w; }
 
     /// Access the vector of modal coordinates
@@ -183,6 +185,15 @@ public:
     const ChMatrixDynamic<>& Get_modal_K() const { return modal_K; }
     /// Access the modal damping matrix - read only
     const ChMatrixDynamic<>& Get_modal_R() const { return modal_R; }
+    /// Access the Psi matrix as in v_full = Psi * v_reduced, also {v_boundary; v_internal} = Psi * {v_boundary; v_modes} 
+    /// Hence Psi contains the "static modes" and the selected "dynamic modes", as in
+    /// Psi = [I, 0; Psi_s, Psi_d]  where Psi_d is the matrix of the selected eigenvectors after SwitchModalReductionON().
+    const ChMatrixDynamic<>& Get_modal_Psi() const { return Psi; }
+    /// Access the snapshot of initial state of the full assembly just at the beginning of SwitchModalReductionON()
+    const ChVectorDynamic<>& Get_assembly_x0() const { return assembly_x0; }
+
+
+    // Use the following function to access results of ComputeModeDamped() or ComputeModes(): 
 
     /// Access the modal eigenvectors, if previously computed. 
     /// Read only. Use one of the ComputeModes() functions to set it.
@@ -199,6 +210,10 @@ public:
     /// Get a vector of modal damping ratios = damping/critical_damping, if previously computed.
     /// Read only. Use one of the ComputeModes() functions to set it.
     const ChVectorDynamic<double>& Get_modes_damping_ratios() const { return this->modes_damping_ratio; }
+
+    /// Access the snapshot of initial state of the assembly at the moment of the analysis.
+    /// Read only. Use one of the ComputeModes() functions to set it.
+    const ChVectorDynamic<>& Get_modes_assembly_x0() const { return modes_assembly_x0; }
 
 
     //
@@ -286,6 +301,34 @@ public:
     int GetN_internal_doc_w_D() const { return n_internal_doc_w_D; }
     /// Get the number of internal system variables (coordinates plus the constraint multipliers).
     int GetN_internal_sysvars_w() const { return n_internal_sysvars_w; }
+
+    /// Get the number of boundary bodies 
+    int GetN_boundary_bodies() const { return n_boundary_bodies; }
+    /// Get the number of boundary links.
+    int GetN_boundary_links() const { return n_boundary_links; }
+    /// Get the number of boundary meshes.
+    int GetN_boundary_meshes() const { return n_boundary_meshes; }
+    /// Get the number of other boundary physics items (other than bodies, links, or meshes).
+    int GetN_boundary_physicsItems() const { return n_boundary_physicsitems; }
+
+    /// Get the number of boundary coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
+    int GetN_boundary_coords() const { return n_boundary_coords; }
+    /// Get the number of boundary degrees of freedom of the assembly.
+    int GetN_boundary_dof() const { return n_boundary_dof; }
+    /// Get the number of boundary scalar constraints added to the assembly, including constraints on quaternion norms because of the 4 dof of quaternions.
+    int GetN_boundary_doc() const { return n_boundary_doc; }
+    /// Get the number of boundary system variables (coordinates plus the constraint multipliers, in case of quaternions).
+    int GetN_boundary_sysvars() const { return n_boundary_sysvars; }
+    /// Get the number of boundary coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
+    int GetN_boundary_coords_w() const { return n_boundary_coords_w; }
+    /// Get the number of boundary scalar constraints added to the assembly.
+    int GetN_boundary_doc_w() const { return n_boundary_doc_w; }
+    /// Get the number of boundary scalar constraints added to the assembly (only bilaterals).
+    int GetN_boundary_doc_w_C() const { return n_boundary_doc_w_C; }
+    /// Get the number of boundary scalar constraints added to the assembly (only unilaterals).
+    int GetN_boundary_doc_w_D() const { return n_boundary_doc_w_D; }
+    /// Get the number of boundary system variables (coordinates plus the constraint multipliers).
+    int GetN_boundary_sysvars_w() const { return n_boundary_sysvars_w; }
 
 
     //
@@ -479,13 +522,16 @@ public:
     ChMatrixDynamic<> modal_K;
     ChMatrixDynamic<> modal_R;
     ChMatrixDynamic<> Psi; //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
+    ChState           assembly_x0;      // state snapshot of full not reduced assembly at the time of SwitchModalReductionON()
 
+    // Results of eigenvalue analysis like ComputeModes() or ComputeModesDamped(): 
     ChMatrixDynamic<std::complex<double>> modes_V;             // eigenvectors
     ChVectorDynamic<std::complex<double>> modes_eig;           // eigenvalues
     ChVectorDynamic<double>               modes_freq;          // frequencies
     ChVectorDynamic<double>               modes_damping_ratio; // damping ratio
+    ChState                               modes_assembly_x0;   // state snapshot of assembly at the time of eigenvector computation
 
-    ChState               assembly_x0;      // state snapshot of full not reduced assembly at the time of eigenvector computation
+    
 
     // Statistics:
     

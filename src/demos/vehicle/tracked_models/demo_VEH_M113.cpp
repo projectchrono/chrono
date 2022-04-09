@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     // Set visualization type for vehicle components.
     VisualizationType track_vis =
         (shoe_type == TrackShoeType::SINGLE_PIN) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
-    m113.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetChassisVisualizationType(VisualizationType::MESH);
     m113.SetSprocketVisualizationType(track_vis);
     m113.SetIdlerVisualizationType(track_vis);
     m113.SetRoadWheelAssemblyVisualizationType(track_vis);

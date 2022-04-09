@@ -38,8 +38,8 @@ const double M113_RoadWheel::m_wheel_radius = 0.305;
 const double M113_RoadWheel::m_wheel_width = 0.181;
 const double M113_RoadWheel::m_wheel_gap = 0.051;
 
-const std::string M113_RoadWheelLeft::m_meshFile = "M113/Roller_L.obj";
-const std::string M113_RoadWheelRight::m_meshFile = "M113/Roller_R.obj";
+const std::string M113_RoadWheelLeft::m_meshFile = "M113/meshes/Roller_L.obj";
+const std::string M113_RoadWheelRight::m_meshFile = "M113/meshes/Roller_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

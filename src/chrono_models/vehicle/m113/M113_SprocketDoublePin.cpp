@@ -49,8 +49,8 @@ const double M113_SprocketDoublePin::m_gear_W = 0.0464;  // 1.825''
 
 const double M113_SprocketDoublePin::m_lateral_backlash = 0.02;
 
-const std::string M113_SprocketDoublePinLeft::m_meshFile = "M113/Sprocket2_L.obj";
-const std::string M113_SprocketDoublePinRight::m_meshFile = "M113/Sprocket2_R.obj";
+const std::string M113_SprocketDoublePinLeft::m_meshFile = "M113/meshes/Sprocket2_L.obj";
+const std::string M113_SprocketDoublePinRight::m_meshFile = "M113/meshes/Sprocket2_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
