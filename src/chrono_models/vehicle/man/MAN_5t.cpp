@@ -136,7 +136,7 @@ void MAN_5t::Initialize() {
             m_vehicle->InitializeTire(tire_RLo, m_vehicle->GetAxle(1)->GetWheel(LEFT, OUTER), VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RRo, m_vehicle->GetAxle(1)->GetWheel(RIGHT, OUTER), VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -154,7 +154,7 @@ void MAN_5t::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -181,7 +181,7 @@ void MAN_5t::Initialize() {
                VisualizationType::NONE); m_vehicle->InitializeTire(tire_RRo, m_vehicle->GetAxle(1)->GetWheel(RIGHT,
                OUTER), VisualizationType::NONE);
 
-                        m_tire_mass = tire_FL->ReportMass();
+                        m_tire_mass = tire_FL->GetMass();
 
                         break;
                     }
@@ -208,11 +208,6 @@ void MAN_5t::Synchronize(double time, const ChDriver::Inputs& driver_inputs, con
 // -----------------------------------------------------------------------------
 void MAN_5t::Advance(double step) {
     m_vehicle->Advance(step);
-}
-
-// -----------------------------------------------------------------------------
-double MAN_5t::GetTotalMass() const {
-    return m_vehicle->GetVehicleMass() + 4 * m_tire_mass;
 }
 
 }  // namespace man

@@ -139,11 +139,6 @@ void M113::Advance(double step) {
     m_vehicle->Advance(step);
 }
 
-// -----------------------------------------------------------------------------
-double M113::GetTotalMass() const {
-    return m_vehicle->GetVehicleMass();
-}
-
 }  // namespace m113
 }  // end namespace vehicle
 }  // end namespace chrono

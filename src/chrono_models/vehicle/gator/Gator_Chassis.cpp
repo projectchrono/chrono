@@ -30,26 +30,26 @@ namespace gator {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double Gator_Chassis::m_mass = 800;
-const ChVector<> Gator_Chassis::m_inertiaXX(107.7, 350.8, 457.7);
-const ChVector<> Gator_Chassis::m_inertiaXY(0, 0, 0);
-const ChVector<> Gator_Chassis::m_COM_loc(-0.184, 0, 0.359);
+const double Gator_Chassis::m_body_mass = 800;
+const ChVector<> Gator_Chassis::m_body_inertiaXX(107.7, 350.8, 457.7);
+const ChVector<> Gator_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector<> Gator_Chassis::m_body_COM_loc(-0.184, 0, 0.359);
 const ChCoordsys<> Gator_Chassis::m_driverCsys(ChVector<>(0.3, 0.25, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Gator_Chassis::Gator_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
-    m_inertia(0, 0) = m_inertiaXX.x();
-    m_inertia(1, 1) = m_inertiaXX.y();
-    m_inertia(2, 2) = m_inertiaXX.z();
+    m_body_inertia(0, 0) = m_body_inertiaXX.x();
+    m_body_inertia(1, 1) = m_body_inertiaXX.y();
+    m_body_inertia(2, 2) = m_body_inertiaXX.z();
 
-    m_inertia(0, 1) = m_inertiaXY.x();
-    m_inertia(0, 2) = m_inertiaXY.y();
-    m_inertia(1, 2) = m_inertiaXY.z();
-    m_inertia(1, 0) = m_inertiaXY.x();
-    m_inertia(2, 0) = m_inertiaXY.y();
-    m_inertia(2, 1) = m_inertiaXY.z();
+    m_body_inertia(0, 1) = m_body_inertiaXY.x();
+    m_body_inertia(0, 2) = m_body_inertiaXY.y();
+    m_body_inertia(1, 2) = m_body_inertiaXY.z();
+    m_body_inertia(1, 0) = m_body_inertiaXY.x();
+    m_body_inertia(2, 0) = m_body_inertiaXY.y();
+    m_body_inertia(2, 1) = m_body_inertiaXY.z();
 
     //// TODO:
     //// A more appropriate contact shape from primitives

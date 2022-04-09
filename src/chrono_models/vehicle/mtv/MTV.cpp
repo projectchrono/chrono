@@ -134,7 +134,7 @@ void MTV::Initialize() {
             m_vehicle->InitializeTire(tire_RL2, m_vehicle->GetAxle(2)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR2, m_vehicle->GetAxle(2)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -154,7 +154,7 @@ void MTV::Initialize() {
             m_vehicle->InitializeTire(tire_RL2, m_vehicle->GetAxle(2)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR2, m_vehicle->GetAxle(2)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -179,11 +179,6 @@ void MTV::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const 
 // -----------------------------------------------------------------------------
 void MTV::Advance(double step) {
     m_vehicle->Advance(step);
-}
-
-// -----------------------------------------------------------------------------
-double MTV::GetTotalMass() const {
-    return m_vehicle->GetVehicleMass() + 6 * m_tire_mass;
 }
 
 }  // namespace fmtv
