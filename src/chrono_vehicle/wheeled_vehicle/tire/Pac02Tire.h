@@ -57,8 +57,8 @@ class CH_VEHICLE_API Pac02Tire : public ChPac02Tire {
         return m_PacCoeff.Kz * velocity;
     }
 
-    virtual double GetMass() const override { return m_mass; }
-    virtual ChVector<> GetInertia() const override { return m_inertia; }
+    virtual double GetTireMass() const override { return m_mass; }
+    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
     virtual void SetPac02Params() override {}
 
     virtual double GetVisualizationWidth() const override { return m_visualization_width; }

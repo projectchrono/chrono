@@ -182,17 +182,11 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChSemiTrailingArm::GetMass() const {
-    return 2 * (getSpindleMass() + getArmMass());
+void ChSemiTrailingArm::CalculateMass() {
+    m_mass = 2 * (getSpindleMass() + getArmMass());
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChSemiTrailingArm::GetCOMPos() const {
+void ChSemiTrailingArm::CalculateInertia() {
     ChVector<> com(0, 0, 0);
 
     com += getSpindleMass() * m_spindle[LEFT]->GetPos();
@@ -201,7 +195,9 @@ ChVector<> ChSemiTrailingArm::GetCOMPos() const {
     com += getArmMass() * m_arm[LEFT]->GetPos();
     com += getArmMass() * m_arm[RIGHT]->GetPos();
 
-    return com / GetMass();
+    m_com.coord.pos = com / GetMass();
+
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

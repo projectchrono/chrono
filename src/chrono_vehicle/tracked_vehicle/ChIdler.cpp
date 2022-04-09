@@ -35,7 +35,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChIdler::ChIdler(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
 ChIdler::~ChIdler() {
@@ -49,7 +48,6 @@ ChIdler::~ChIdler() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
     m_track = track;
@@ -117,13 +115,14 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     chassis->GetSystem()->AddLink(m_tensioner);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChIdler::GetMass() const {
-    return GetWheelMass() + GetCarrierMass();
+void ChIdler::CalculateMass() {
+    m_mass = GetWheelMass() + GetCarrierMass();
 }
 
-// -----------------------------------------------------------------------------
+void ChIdler::CalculateInertia() {
+    //// RADU TODO
+}
+
 // -----------------------------------------------------------------------------
 void ChIdler::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -167,7 +166,6 @@ void ChIdler::RemoveVisualizationAssets() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChIdler::LogConstraintViolations() {
     {
         ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
@@ -189,7 +187,6 @@ void ChIdler::LogConstraintViolations() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

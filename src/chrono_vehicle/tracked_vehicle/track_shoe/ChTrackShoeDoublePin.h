@@ -41,8 +41,6 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TrackShoeDoublePin"; }
 
-    /// Get the mass of the track shoe.
-    virtual double GetMass() const override;
     /// Return the pitch length of the track shoe.
     /// This quantity must agree with the pitch of the sprocket gear.
     virtual double GetPitch() const override;
@@ -76,6 +74,9 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
+    virtual void CalculateMass() override;
+    virtual void CalculateInertia() override;
+
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const = 0;
     /// Return the moments of inertia of the shoe body.

@@ -60,7 +60,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Specify whether or not this is an independent suspension.
     virtual bool IsIndependent() const = 0;
 
-    /// Get the location of the suspension subsystem relative to the chassis reference frame.
+    /// Get the location of the suspension subsystem relative to the associated chassis reference frame.
     /// The suspension reference frame is always aligned with the chassis reference frame.
     const ChVector<>& GetLocation() const { return m_location; }
 
@@ -141,12 +141,6 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Specify the body on the specified side for a possible connection to brake subsystem.
     /// The default implementation returns a NULL pointer (indicating that a brake should connect to the chassis).
     virtual std::shared_ptr<ChBody> GetBrakeBody(VehicleSide side) const { return nullptr; }
-
-    /// Get the total mass of the suspension subsystem.
-    virtual double GetMass() const = 0;
-
-    /// Get the current global COM location of the suspension subsystem.
-    virtual ChVector<> GetCOMPos() const = 0;
 
     /// Get the wheel track for the suspension subsystem.
     virtual double GetTrack() = 0;

@@ -235,17 +235,11 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChSingleWishbone::GetMass() const {
-    return 2 * (getSpindleMass() + getCAMass() + getUprightMass());
+void ChSingleWishbone::CalculateMass() {
+    m_mass = 2 * (getSpindleMass() + getCAMass() + getUprightMass());
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChSingleWishbone::GetCOMPos() const {
+void ChSingleWishbone::CalculateInertia() {
     ChVector<> com(0, 0, 0);
 
     com += getSpindleMass() * m_spindle[LEFT]->GetPos();
@@ -257,7 +251,9 @@ ChVector<> ChSingleWishbone::GetCOMPos() const {
     com += getUprightMass() * m_upright[LEFT]->GetPos();
     com += getUprightMass() * m_upright[RIGHT]->GetPos();
 
-    return com / GetMass();
+    m_com.coord.pos = com / GetMass();
+
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

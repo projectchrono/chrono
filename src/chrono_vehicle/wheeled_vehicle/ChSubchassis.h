@@ -46,12 +46,6 @@ class CH_VEHICLE_API ChSubchassis : public ChPart {
     /// Get a handle to the beam body on the specified side.
     std::shared_ptr<ChBody> GetBeam(VehicleSide side) const { return m_beam[side]; }
 
-    /// Get the total mass of the subchassis subsystem.
-    virtual double GetMass() const = 0;
-
-    /// Get the current global COM location of the subchassis subsystem.
-    virtual ChVector<> GetCOMPos() const = 0;
-
     /// Initialize this subchassis subsystem.
     /// The subchassis is initialized by attaching it to the specified chassis at the specified location (with respect
     /// to and expressed in the reference frame of the chassis). It is assumed that the subchassis reference frame is

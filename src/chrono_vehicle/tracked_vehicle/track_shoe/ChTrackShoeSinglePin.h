@@ -45,9 +45,6 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TrackShoeSinglePin"; }
 
-    /// Get the mass of the track shoe.
-    virtual double GetMass() const override;
-
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
@@ -59,6 +56,9 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
                             ) override;
 
   protected:
+    virtual void CalculateMass() override;
+    virtual void CalculateInertia() override;
+
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const = 0;
 

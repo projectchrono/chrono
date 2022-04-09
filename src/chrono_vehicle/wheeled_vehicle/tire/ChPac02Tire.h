@@ -35,7 +35,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
@@ -45,7 +45,7 @@ namespace vehicle {
 /// @{
 
 /// Pacjeka 02 tire model.
-class CH_VEHICLE_API ChPac02Tire : public ChTire {
+class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
   public:
     ChPac02Tire(const std::string& name);
 
@@ -92,12 +92,6 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
     double GetCamberAngle_internal() { return m_gamma * CH_C_DEG_TO_RAD; }
 
   protected:
-    /// Return the vertical tire stiffness contribution to the normal force.
-    virtual double GetNormalStiffnessForce(double depth) const = 0;
-
-    /// Return the vertical tire damping contribution to the normal force.
-    virtual double GetNormalDampingForce(double depth, double velocity) const = 0;
-
     /// Set the parameters in the Pac89 model.
     virtual void SetPac02Params() = 0;
 

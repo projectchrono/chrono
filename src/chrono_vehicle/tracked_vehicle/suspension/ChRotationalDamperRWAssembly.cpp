@@ -115,12 +115,14 @@ void ChRotationalDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis
     ChRoadWheelAssembly::Initialize(chassis, location, track);
 }
 
-// -----------------------------------------------------------------------------
-double ChRotationalDamperRWAssembly::GetMass() const {
-    return GetArmMass() + m_road_wheel->GetWheelMass();
+void ChRotationalDamperRWAssembly::CalculateMass() {
+    m_mass = GetArmMass() + m_road_wheel->GetWheelMass();
 }
 
-// -----------------------------------------------------------------------------
+void ChRotationalDamperRWAssembly::CalculateInertia() {
+    //// RADU TODO
+}
+
 double ChRotationalDamperRWAssembly::GetCarrierAngle() const {
     return m_spring->GetAngle();
 }

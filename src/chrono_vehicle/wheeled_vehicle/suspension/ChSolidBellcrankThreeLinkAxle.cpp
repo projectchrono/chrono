@@ -366,18 +366,12 @@ void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_tierodBodyToBellcrank[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChSolidBellcrankThreeLinkAxle::GetMass() const {
-    return getAxleTubeMass() + getTriangleMass() + getBellcrankMass() + getDraglinkMass() +
-           2 * (getSpindleMass() + getKnuckleMass() + getTierodMass() + getLinkMass());
+void ChSolidBellcrankThreeLinkAxle::CalculateMass() {
+    m_mass = getAxleTubeMass() + getTriangleMass() + getBellcrankMass() + getDraglinkMass() +
+             2 * (getSpindleMass() + getKnuckleMass() + getTierodMass() + getLinkMass());
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChSolidBellcrankThreeLinkAxle::GetCOMPos() const {
+void ChSolidBellcrankThreeLinkAxle::CalculateInertia() {
     ChVector<> com(0, 0, 0);
 
     com += getAxleTubeMass() * m_axleTube->GetPos();
@@ -400,7 +394,9 @@ ChVector<> ChSolidBellcrankThreeLinkAxle::GetCOMPos() const {
 
     com += getTriangleMass() * m_triangleBody->GetPos();
 
-    return com / GetMass();
+    m_com.coord.pos = com / GetMass();
+
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

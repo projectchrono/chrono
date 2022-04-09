@@ -50,6 +50,8 @@ namespace vehicle {
 /// pointing forward, and Y-axis towards the left of the vehicle.
 class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
   public:
+    //// RADU TODO - make constructors protected
+
     /// Construct a vehicle system with a default ChSystem.
     ChWheeledVehicle(const std::string& name,                               ///< [in] vehicle name
                      ChContactMethod contact_method = ChContactMethod::NSC  ///< [in] contact method
@@ -105,16 +107,6 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
 
     /// Get the subchassis system (if none present, returns an empty pointer).
     std::shared_ptr<ChSubchassis> GetSubchassis(int id) const { return m_subchassis[id]; }
-
-    /// Get the vehicle total mass.
-    /// This includes the mass of the chassis and all vehicle subsystems, but not the mass of tires.
-    virtual double GetVehicleMass() const override;
-
-    /// Get the current global vehicle COM location.
-    virtual ChVector<> GetVehicleCOMPos() const override;
-
-    /// Get the current global vehicle inertia tensor.
-    virtual ChMatrix33<> GetVehicleInertia() const override;
 
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
@@ -199,14 +191,6 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// See also ChVehicle::SetOuput.
     void SetDrivelineOutput(bool state);
 
-    /// Initialize this vehicle at the specified global location and orientation.
-    /// This base class implementation only initializes the main chassis subsystem.
-    /// Derived classes must extend this function to initialize all other wheeled
-    /// vehicle subsystems (axles, steerings, driveline).
-    virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
-                            double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
-                            ) override;
-
     /// Initialize the given tire and attach it to the specified wheel.
     /// Optionally, specify tire visualization mode and tire-terrain collision detection method.
     /// This function should be called only after vehicle initialization.
@@ -272,6 +256,12 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual void ExportComponentList(const std::string& filename) const override;
 
   protected:
+    /// Calculate total vehicle mass.
+    virtual void CalculateMass() override final;
+
+    /// Calculate current vehicle inertia properties.
+    virtual void CalculateInertia() override final;
+
     /// Output data for all modeling components in the vehicle system.
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 

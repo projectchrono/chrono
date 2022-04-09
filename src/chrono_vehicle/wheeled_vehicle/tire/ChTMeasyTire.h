@@ -56,7 +56,7 @@
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_vehicle/ChTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -67,7 +67,7 @@ namespace vehicle {
 /// TMeasy tire model.
 /// The Chrono implementation is a basic version of the commercial models available at
 /// <a href="http://www.tmeasy.de/">www.tmeasy.de</a>.
-class CH_VEHICLE_API ChTMeasyTire : public ChTire {
+class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
   public:
     ChTMeasyTire(const std::string& name);
 
@@ -190,6 +190,12 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
   protected:
     /// Set the parameters in the TMeasy model.
     virtual void SetTMeasyParams() = 0;
+
+    /// Return the vertical tire stiffness contribution to the normal force.
+    virtual double GetNormalStiffnessForce(double depth) const override final;
+
+    /// Return the vertical tire damping contribution to the normal force.
+    virtual double GetNormalDampingForce(double depth, double velocity) const override final;
 
     bool m_consider_relaxation;
 

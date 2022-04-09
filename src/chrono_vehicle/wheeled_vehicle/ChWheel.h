@@ -58,12 +58,6 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "Wheel"; }
 
-    /// Get the wheel mass.
-    virtual double GetMass() const = 0;
-
-    /// Get the wheel moments of inertia.
-    virtual ChVector<> GetInertia() const = 0;
-
     /// Get the wheel radius (for visualization only).
     virtual double GetRadius() const { return 0; }
 
@@ -117,6 +111,12 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     const std::string& GetMeshFilename() const { return m_vis_mesh_file; }
 
   protected:
+    virtual void CalculateMass() override;
+    virtual void CalculateInertia() override;
+
+    virtual double GetWheelMass() const = 0;
+    virtual const ChVector<>& GetWheelInertia() const = 0;
+
     std::shared_ptr<ChBody> m_spindle;             ///< associated suspension spindle body
     std::shared_ptr<ChTire> m_tire;                ///< attached tire subsystem
     VehicleSide m_side;                            ///< wheel mounted on left/right side

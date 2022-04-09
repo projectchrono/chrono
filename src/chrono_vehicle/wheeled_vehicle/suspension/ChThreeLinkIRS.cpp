@@ -254,17 +254,12 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChThreeLinkIRS::GetMass() const {
-    return 2 * (getSpindleMass() + getArmMass() + getLowerLinkMass() + getUpperLinkMass());
+
+void ChThreeLinkIRS::CalculateMass() {
+    m_mass = 2 * (getSpindleMass() + getArmMass() + getLowerLinkMass() + getUpperLinkMass());
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChThreeLinkIRS::GetCOMPos() const {
+void ChThreeLinkIRS::CalculateInertia() {
     ChVector<> com(0, 0, 0);
 
     com += getSpindleMass() * m_spindle[LEFT]->GetPos();
@@ -279,7 +274,9 @@ ChVector<> ChThreeLinkIRS::GetCOMPos() const {
     com += getUpperLinkMass() * m_upper[LEFT]->GetPos();
     com += getUpperLinkMass() * m_upper[RIGHT]->GetPos();
 
-    return com / GetMass();
+    m_com.coord.pos = com / GetMass();
+
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

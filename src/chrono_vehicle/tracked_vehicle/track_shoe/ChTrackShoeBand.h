@@ -44,9 +44,6 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
 
     virtual ~ChTrackShoeBand() {}
 
-    /// Get the mass of the track shoe.
-    virtual double GetMass() const override;
-
     /// Return the pitch length of the track shoe.
     /// This quantity must agree with the pitch of the sprocket gear.
     virtual double GetPitch() const override;
@@ -69,6 +66,9 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     void ExportTreadVisualizationMeshPovray(const std::string& out_dir);
 
   protected:
+    virtual void CalculateMass() override;
+    virtual void CalculateInertia() override;
+
     /// Return the mass of the tread body.
     virtual double GetTreadMass() const = 0;
 

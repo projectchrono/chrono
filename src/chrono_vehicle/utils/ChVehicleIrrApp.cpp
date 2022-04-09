@@ -312,7 +312,7 @@ void ChVehicleIrrApp::renderStats() {
     sprintf(msg, "Camera mode: %s", m_camera.GetStateName().c_str());
     renderTextBox(std::string(msg), m_HUD_x, m_HUD_y, 120, 15);
 
-    double speed = m_vehicle->GetVehicleSpeed();
+    double speed = m_vehicle->GetSpeed();
     sprintf(msg, "Speed (m/s): %+.2f", speed);
     renderLinGauge(std::string(msg), speed / 30, false, m_HUD_x, m_HUD_y + 30, 120, 15);
 

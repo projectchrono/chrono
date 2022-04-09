@@ -56,29 +56,12 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 class ChTrackTestRigChassis : public ChRigidChassis {
   public:
-    ChTrackTestRigChassis();
-    virtual double GetMass() const override { return m_mass; }
-    virtual const ChMatrix33<>& GetInertia() const override { return m_inertia; }
-    virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
-    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
-
-  private:
-    ChMatrix33<> m_inertia;
-
-    static const double m_mass;
-    static const ChVector<> m_inertiaXX;
-    static const ChVector<> m_COM_loc;
-    static const ChCoordsys<> m_driverCsys;
+    ChTrackTestRigChassis() : ChRigidChassis("Ground") {}
+    virtual double GetBodyMass() const override { return 1; }
+    virtual ChFrame<> GetBodyCOMFrame() const override { return ChFrame<>(); }
+    virtual ChMatrix33<> GetBodyInertia() const override { return ChMatrix33<>(1); }
+    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
 };
-
-const double ChTrackTestRigChassis::m_mass = 1;
-const ChVector<> ChTrackTestRigChassis::m_inertiaXX(1, 1, 1);
-const ChVector<> ChTrackTestRigChassis::m_COM_loc(0, 0, 0);
-const ChCoordsys<> ChTrackTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
-
-ChTrackTestRigChassis::ChTrackTestRigChassis() : ChRigidChassis("Ground") {
-    m_inertia = ChMatrix33<>(m_inertiaXX);
-}
 
 // -----------------------------------------------------------------------------
 
@@ -261,6 +244,9 @@ void ChTrackTestRig::Initialize() {
     m_driver->SetTimeDelay(m_displ_delay);
     m_driver->Initialize(m_post.size(), locations);
     m_driver->LogInit(m_driver_logfile);
+
+    // Invoke base class method
+    ChVehicle::Initialize(ChCoordsys<>(), 0.0);
 }
 
 // -----------------------------------------------------------------------------

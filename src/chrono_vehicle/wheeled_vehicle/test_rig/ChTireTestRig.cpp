@@ -257,7 +257,7 @@ void ChTireTestRig::CreateMechanism() {
     m_carrier_body->SetIdentifier(1);
     m_carrier_body->SetPos(ChVector<>(0, 0, 0));
     m_carrier_body->SetMass(m_wheel->GetMass());
-    m_carrier_body->SetInertiaXX(m_wheel->GetInertia());
+    m_carrier_body->SetInertiaXX(m_wheel->GetInertia().diagonal());
     {
         auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().rad = dim / 2;
@@ -279,7 +279,7 @@ void ChTireTestRig::CreateMechanism() {
     m_chassis_body->SetIdentifier(2);
     m_chassis_body->SetPos(ChVector<>(0, 0, 0));
     m_chassis_body->SetMass(m_wheel->GetMass());
-    m_chassis_body->SetInertiaXX(m_wheel->GetInertia());
+    m_chassis_body->SetInertiaXX(m_wheel->GetInertia().diagonal());
     {
         auto sphere = chrono_types::make_shared<ChSphereShape>();
         sphere->GetSphereGeometry().rad = dim;
@@ -300,7 +300,7 @@ void ChTireTestRig::CreateMechanism() {
     m_slip_body->SetIdentifier(3);
     m_slip_body->SetPos(ChVector<>(0, 0, -4 * dim));
     m_slip_body->SetMass(m_wheel->GetMass());
-    m_slip_body->SetInertiaXX(m_wheel->GetInertia());
+    m_slip_body->SetInertiaXX(m_wheel->GetInertia().diagonal());
     {
         auto box = chrono_types::make_shared<ChBoxShape>();
         box->GetBoxGeometry().SetLengths(ChVector<>(4 * dim, dim, 4 * dim));

@@ -60,6 +60,9 @@ class CH_VEHICLE_API ChBrake : public ChPart {
     virtual double GetBrakeTorque() = 0;
 
   protected:
+    virtual void CalculateMass() override;
+    virtual void CalculateInertia() override;
+
     bool m_can_lock;  ///< can the brake lock?
 };
 

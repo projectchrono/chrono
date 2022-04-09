@@ -31,7 +31,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChTrackShoeDoublePin::ChTrackShoeDoublePin(const std::string& name) : ChTrackShoeSegmented(name) {}
 
 ChTrackShoeDoublePin::~ChTrackShoeDoublePin() {
@@ -59,7 +58,6 @@ ChTrackShoeDoublePin::~ChTrackShoeDoublePin() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                       const ChVector<>& location,
@@ -128,17 +126,19 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_connector_R->SetRot(chassis->GetRot() * rot_connector);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChTrackShoeDoublePin::GetMass() const {
-    return GetShoeMass() + 2 * GetConnectorMass();
+
+void ChTrackShoeDoublePin::CalculateMass() {
+    m_mass = GetShoeMass() + 2 * GetConnectorMass();
+}
+
+void ChTrackShoeDoublePin::CalculateInertia() {
+    //// RADU TODO
 }
 
 double ChTrackShoeDoublePin::GetPitch() const {
     return GetShoeLength() + GetConnectorLength();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeDoublePin::AddVisualizationAssets(VisualizationType vis) {
     ChTrackShoeSegmented::AddVisualizationAssets(vis);
@@ -187,7 +187,6 @@ void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> con
     connector->AddAsset(col);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
                                    ChTrackAssembly* assembly,
@@ -313,7 +312,6 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeDoublePin::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

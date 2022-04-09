@@ -345,18 +345,12 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_vertRotSpringA[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChSAELeafspringAxle::GetMass() const {
-    return getAxleTubeMass() +
-           2 * (getSpindleMass() + getFrontLeafMass() + getRearLeafMass() + 2.0 * getClampMass() + getShackleMass());
+void ChSAELeafspringAxle::CalculateMass() {
+    m_mass = getAxleTubeMass() +
+             2 * (getSpindleMass() + getFrontLeafMass() + getRearLeafMass() + 2.0 * getClampMass() + getShackleMass());
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChSAELeafspringAxle::GetCOMPos() const {
+void ChSAELeafspringAxle::CalculateInertia() {
     ChVector<> com(0, 0, 0);
 
     com += getAxleTubeMass() * m_axleTube->GetPos();
@@ -379,7 +373,9 @@ ChVector<> ChSAELeafspringAxle::GetCOMPos() const {
     com += getShackleMass() * m_shackle[LEFT]->GetPos();
     com += getShackleMass() * m_shackle[RIGHT]->GetPos();
 
-    return com / GetMass();
+    m_com.coord.pos = com / GetMass();
+
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

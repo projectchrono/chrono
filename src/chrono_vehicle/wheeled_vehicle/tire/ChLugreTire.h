@@ -26,7 +26,7 @@
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_vehicle/ChTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -35,7 +35,7 @@ namespace vehicle {
 /// @{
 
 /// Tire model based on LuGre friction model.
-class CH_VEHICLE_API ChLugreTire : public ChTire {
+class CH_VEHICLE_API ChLugreTire : public ChForceElementTire {
   public:
     ChLugreTire(const std::string& name);
 
@@ -64,11 +64,6 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     /// Return the lateral disc locations.
     /// These locations are relative to the tire center.
     virtual const double* GetDiscLocations() const = 0;
-
-    /// Return the vertical tire stiffness (for normal force calculation).
-    virtual double GetNormalStiffness() const = 0;
-    /// Return the vertical tire damping coefficient (for normal force calculation).
-    virtual double GetNormalDamping() const = 0;
 
     /// Set the parameters in the LuGre friction model.
     virtual void SetLugreParams() = 0;

@@ -138,17 +138,11 @@ void ChRigidPinnedAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChRigidPinnedAxle::GetMass() const {
-    return getAxleTubeMass() + 2 * getSpindleMass();
+void ChRigidPinnedAxle::CalculateMass() {
+    m_mass = getAxleTubeMass() + 2 * getSpindleMass();
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChRigidPinnedAxle::GetCOMPos() const {
+void ChRigidPinnedAxle::CalculateInertia() {
     ChVector<> com(0, 0, 0);
 
     com += getSpindleMass() * m_spindle[LEFT]->GetPos();
@@ -156,7 +150,9 @@ ChVector<> ChRigidPinnedAxle::GetCOMPos() const {
 
     com += getAxleTubeMass() * m_axleTube->GetPos();
 
-    return com / GetMass();
+    m_com.coord.pos = com / GetMass();
+
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

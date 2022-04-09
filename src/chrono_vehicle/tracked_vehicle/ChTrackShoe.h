@@ -64,9 +64,6 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     /// This quantity must agree with the pitch of the sprocket gear.
     virtual double GetPitch() const = 0;
 
-    /// Get the mass of the track shoe assembly.
-    virtual double GetMass() const = 0;
-
     /// Return the location for lateral contact with the sprocket, expressed in the shoe reference frame.
     /// This point, which must be in the median plane of the track shoe, is used to enforce lateral contact with the
     /// sprocket as a detracking prevention mechanism. For track shoes with a central guiding pin, this can be the

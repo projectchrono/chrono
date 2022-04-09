@@ -54,14 +54,12 @@ class CH_VEHICLE_API ChRoller : public ChPart {
     /// Get a handle to the revolute joint.
     std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
 
-    /// Return the mass of the roller body.
-    virtual double GetMass() const = 0;
-  
-    /// Return the moments of inertia of the roller body.
-    virtual const ChVector<>& GetInertia() = 0;
-
     /// Get the radius of the road wheel.
     virtual double GetRadius() const = 0;
+
+    virtual double GetRollerMass() const = 0;
+
+    virtual const ChVector<>& GetRollerInertia() const = 0;
 
     /// Turn on/off collision flag for the road wheel.
     void SetCollide(bool val) { m_wheel->SetCollide(val); }
@@ -82,6 +80,9 @@ class CH_VEHICLE_API ChRoller : public ChPart {
     void LogConstraintViolations();
 
   protected:
+    virtual void CalculateMass() override;
+    virtual void CalculateInertia() override;
+
     /// Create the contact material consistent with the specified contact method.
     virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
 

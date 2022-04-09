@@ -340,18 +340,12 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChHendricksonPRIMAXX::GetMass() const {
-    return getAxlehousingMass() + getTransversebeamMass() +
-           2 * (getSpindleMass() + getKnuckleMass() + getTorquerodMass() + getLowerbeamMass());
+void ChHendricksonPRIMAXX::CalculateMass() {
+    m_mass = getAxlehousingMass() + getTransversebeamMass() +
+             2 * (getSpindleMass() + getKnuckleMass() + getTorquerodMass() + getLowerbeamMass());
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChHendricksonPRIMAXX::GetCOMPos() const {
+void ChHendricksonPRIMAXX::CalculateInertia() {
     ChVector<> com(0, 0, 0);
 
     com += getAxlehousingMass() * m_axlehousing->GetPos();
@@ -369,7 +363,9 @@ ChVector<> ChHendricksonPRIMAXX::GetCOMPos() const {
     com += getLowerbeamMass() * m_lowerbeam[LEFT]->GetPos();
     com += getLowerbeamMass() * m_lowerbeam[RIGHT]->GetPos();
 
-    return com / GetMass();
+    m_com.coord.pos = com / GetMass();
+
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

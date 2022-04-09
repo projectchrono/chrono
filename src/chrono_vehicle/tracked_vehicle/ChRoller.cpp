@@ -26,7 +26,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChRoller::ChRoller(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
 ChRoller::~ChRoller() {
@@ -37,7 +36,6 @@ ChRoller::~ChRoller() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
     m_track = track;
@@ -52,8 +50,8 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
     m_wheel->SetIdentifier(BodyID::ROLER_BODY);
     m_wheel->SetPos(roller_to_abs.GetPos());
     m_wheel->SetRot(roller_to_abs.GetRot());
-    m_wheel->SetMass(GetMass());
-    m_wheel->SetInertiaXX(GetInertia());
+    m_wheel->SetMass(GetRollerMass());
+    m_wheel->SetInertiaXX(GetRollerInertia());
     chassis->GetSystem()->AddBody(m_wheel);
 
     // Create and initialize the revolute joint between roller and chassis.
@@ -65,7 +63,17 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
     chassis->GetSystem()->AddLink(m_revolute);
 }
 
-// -----------------------------------------------------------------------------
+void ChRoller::CalculateMass() {
+    m_mass = GetRollerMass();
+    m_inertia = ChMatrix33<>(0);
+    m_inertia.diagonal() = GetRollerInertia().eigen();
+    m_com = ChFrame<>();
+}
+
+void ChRoller::CalculateInertia() {
+    m_pos = m_wheel->GetFrame_REF_to_abs();
+}
+
 // -----------------------------------------------------------------------------
 void ChRoller::LogConstraintViolations() {
     ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
@@ -77,7 +85,6 @@ void ChRoller::LogConstraintViolations() {
     GetLog() << "  " << C(4) << "\n";
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRoller::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

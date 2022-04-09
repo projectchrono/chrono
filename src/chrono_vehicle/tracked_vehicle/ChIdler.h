@@ -73,9 +73,6 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     /// Turn on/off collision flag for the idler wheel.
     void SetCollide(bool val) { m_wheel->SetCollide(val); }
 
-    /// Get the mass of the idler subsystem.
-    virtual double GetMass() const;
-
     /// Initialize this idler subsystem.
     /// The idler subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
@@ -109,6 +106,9 @@ class CH_VEHICLE_API ChIdler : public ChPart {
         TSDA_CHASSIS,     ///< TSDA connection to chassis
         NUM_POINTS
     };
+
+    virtual void CalculateMass() override;
+    virtual void CalculateInertia() override;
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the idler subsystem reference frame.

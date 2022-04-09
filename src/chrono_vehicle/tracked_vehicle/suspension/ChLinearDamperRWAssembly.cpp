@@ -118,9 +118,12 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
     ChRoadWheelAssembly::Initialize(chassis, location, track);
 }
 
-// -----------------------------------------------------------------------------
-double ChLinearDamperRWAssembly::GetMass() const {
-    return GetArmMass() + m_road_wheel->GetWheelMass();
+void ChLinearDamperRWAssembly::CalculateMass() {
+    m_mass = GetArmMass() + m_road_wheel->GetWheelMass();
+}
+
+void ChLinearDamperRWAssembly::CalculateInertia() {
+    //// RADU TODO
 }
 
 double ChLinearDamperRWAssembly::GetCarrierAngle() const {

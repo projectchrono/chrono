@@ -326,17 +326,12 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChToeBarLeafspringAxle::GetMass() const {
-    return getAxleTubeMass() + getTierodMass() + getDraglinkMass() + 2 * (getSpindleMass() + getKnuckleMass());
+
+void ChToeBarLeafspringAxle::CalculateMass() {
+    m_mass = getAxleTubeMass() + getTierodMass() + getDraglinkMass() + 2 * (getSpindleMass() + getKnuckleMass());
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChToeBarLeafspringAxle::GetCOMPos() const {
+void ChToeBarLeafspringAxle::CalculateInertia() {
     ChVector<> com(0, 0, 0);
 
     com += getAxleTubeMass() * m_axleTube->GetPos();
@@ -349,7 +344,9 @@ ChVector<> ChToeBarLeafspringAxle::GetCOMPos() const {
     com += getKnuckleMass() * m_knuckle[LEFT]->GetPos();
     com += getKnuckleMass() * m_knuckle[RIGHT]->GetPos();
 
-    return com / GetMass();
+    m_com.coord.pos = com / GetMass();
+
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

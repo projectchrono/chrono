@@ -119,10 +119,6 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// It is assumed that the vector of body states was properly sized.
     void GetTrackShoeStates(BodyStates& states) const;
 
-    /// Get the total mass of the track assembly.
-    /// This includes the masses of the sprocket, idler, suspensions, and track shoes.
-    double GetMass() const;
-
     /// Get the relative location of the sprocket subsystem.
     /// The track assembly reference frame is ISO, with origin at the sprocket center.
     virtual const ChVector<> GetSprocketLocation() const = 0;
@@ -198,6 +194,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     ChTrackAssembly(const std::string& name,  ///< [in] name of the subsystem
                     VehicleSide side          ///< [in] assembly on left/right vehicle side
     );
+
+    virtual void CalculateMass() override;
+    virtual void CalculateInertia() override;
 
     /// Assemble track shoes over wheels.
     /// Return true if the track shoes were initialized in a counter clockwise

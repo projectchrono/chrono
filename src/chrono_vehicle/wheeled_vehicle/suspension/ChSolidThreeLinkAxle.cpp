@@ -254,17 +254,11 @@ void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_linkBodyToChassis[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChSolidThreeLinkAxle::GetMass() const {
-    return getAxleTubeMass() + getTriangleMass() + 2 * (getSpindleMass() + getLinkMass());
+void ChSolidThreeLinkAxle::CalculateMass() {
+    m_mass = getAxleTubeMass() + getTriangleMass() + 2 * (getSpindleMass() + getLinkMass());
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChSolidThreeLinkAxle::GetCOMPos() const {
+void ChSolidThreeLinkAxle::CalculateInertia() {
     ChVector<> com(0, 0, 0);
 
     com += getAxleTubeMass() * m_axleTube->GetPos();
@@ -277,7 +271,9 @@ ChVector<> ChSolidThreeLinkAxle::GetCOMPos() const {
 
     com += getTriangleMass() * m_triangleBody->GetPos();
 
-    return com / GetMass();
+    m_com.coord.pos = com / GetMass();
+
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

@@ -36,16 +36,6 @@ ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system)
     : ChVehicle(name, system), m_parking_on(false) {}
 
 // -----------------------------------------------------------------------------
-// Initialize this vehicle at the specified global location and orientation.
-// This base class implementation only initializes the main chassis subsystem.
-// Derived classes must extend this function to initialize all other wheeled
-// vehicle subsystems (axles, steerings, driveline).
-// -----------------------------------------------------------------------------
-void ChWheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
-}
-
-// -----------------------------------------------------------------------------
 // Initialize a tire and attach it to one of the vehicle's wheels.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
@@ -272,65 +262,93 @@ std::shared_ptr<ChBrake> ChWheeledVehicle::GetBrake(int axle, VehicleSide side) 
 }
 
 // -----------------------------------------------------------------------------
-// Calculate and return the total vehicle mass
+// Calculate the total vehicle mass
 // -----------------------------------------------------------------------------
-double ChWheeledVehicle::GetVehicleMass() const {
-    double mass = m_chassis->GetMass();
+void ChWheeledVehicle::CalculateMass() {
+    m_chassis->CalculateMass();
+    m_mass = m_chassis->GetMass();
 
-    for (auto& c : m_chassis_rear)
-        mass += c->GetMass();
-
-    for (auto& sc : m_subchassis)
-        mass += sc->GetMass();
-
-    for (auto& axle : m_axles) {
-        mass += axle->m_suspension->GetMass();
-        for (auto& wheel : axle->GetWheels())
-            mass += wheel->GetMass();
-        if (axle->m_antirollbar)
-            mass += axle->m_antirollbar->GetMass();
+    for (auto& c : m_chassis_rear) {
+        c->CalculateMass();
+        m_mass += c->GetMass();
     }
 
-    for (auto& steering : m_steerings)
-        mass += steering->GetMass();
+    for (auto& sc : m_subchassis) {
+        sc->CalculateMass();
+        m_mass += sc->GetMass();
+    }
 
-    return mass;
+    for (auto& axle : m_axles) {
+        axle->m_suspension->CalculateMass();
+        m_mass += axle->m_suspension->GetMass();
+
+        for (auto& wheel : axle->GetWheels()) {
+            if (wheel->GetTire()) {
+                wheel->GetTire()->CalculateMass();
+                m_mass += wheel->GetTire()->GetMass() - wheel->GetTire()->GetAddedMass();
+            }
+        }
+
+        if (axle->m_antirollbar) {
+            axle->m_antirollbar->CalculateMass();
+            m_mass += axle->m_antirollbar->GetMass();
+        }
+    }
+
+    for (auto& steering : m_steerings) {
+        steering->CalculateMass();
+        m_mass += steering->GetMass();
+    }
 }
 
 // -----------------------------------------------------------------------------
-// Calculate and return the current vehicle COM location
+// Calculate current vehicle inertia properties
 // -----------------------------------------------------------------------------
-ChVector<> ChWheeledVehicle::GetVehicleCOMPos() const {
-    ChVector<> com(0, 0, 0);
+void ChWheeledVehicle::CalculateInertia() {
+    // 1. Calculate the vehicle COM location relative to the global reference frame
+    // 2. Calculate vehicle inertia relative to global reference frame
+    // 3. Express vehicle COM relative to vehicle reference frame
+    // 4. Express inertia relative to vehicle COM frame
 
-    com += m_chassis->GetMass() * m_chassis->GetCOMPos();
+    m_chassis->CalculateInertia();
+    ChVector<> com = m_chassis->GetMass() * m_chassis->GetCOMFrame_abs().GetPos();
 
-    for (auto& c : m_chassis_rear)
-        com += c->GetMass() * c->GetCOMPos();
+    for (auto& c : m_chassis_rear) {
+        c->CalculateInertia();
+        com += c->GetMass() * c->GetCOMFrame_abs().GetPos();
+    }
 
-    for (auto& sc : m_subchassis)
-        com += sc->GetMass() * sc->GetCOMPos();
+    for (auto& sc : m_subchassis) {
+        sc->CalculateInertia();
+        com += sc->GetMass() * sc->GetCOMFrame_abs().GetPos();
+    }
 
     for (auto& axle : m_axles) {
-        com += axle->m_suspension->GetMass() * axle->m_suspension->GetCOMPos();
-        for (auto& wheel : axle->GetWheels())
-            com += wheel->GetMass() * wheel->GetPos();
-        if (axle->m_antirollbar)
-            com += axle->m_antirollbar->GetMass() * axle->m_antirollbar->GetCOMPos();
+        axle->m_suspension->CalculateInertia();
+        com += axle->m_suspension->GetMass() * axle->m_suspension->GetCOMFrame_abs().GetPos();
+
+        for (auto& wheel : axle->GetWheels()) {
+            if (wheel->GetTire()) {
+                wheel->GetTire()->CalculateInertia();
+                com += (wheel->GetTire()->GetMass() - wheel->GetTire()->GetAddedMass()) *
+                       wheel->GetTire()->GetCOMFrame_abs().GetPos();
+            }
+        }
+
+        if (axle->m_antirollbar) {
+            axle->m_antirollbar->CalculateInertia();
+            com += axle->m_antirollbar->GetMass() * axle->m_antirollbar->GetCOMFrame_abs().GetPos();
+        }
     }
     
-    for (auto steering : m_steerings)
-        com += steering->GetMass() * steering->GetCOMPos();
+    for (auto steering : m_steerings) {
+        steering->CalculateInertia();
+        com += steering->GetMass() * steering->GetCOMFrame_abs().GetPos();
+    }
 
-    return com / GetVehicleMass();
-}
+    m_com.coord.pos = com / GetMass();
 
-// -----------------------------------------------------------------------------
-// Calculate and return the current vehicle inertia
-// -----------------------------------------------------------------------------
-ChMatrix33<> ChWheeledVehicle::GetVehicleInertia() const {
-    //// TODO
-    return ChMatrix33<>(1);
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

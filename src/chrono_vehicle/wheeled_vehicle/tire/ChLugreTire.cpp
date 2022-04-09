@@ -32,7 +32,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name) {
+ChLugreTire::ChLugreTire(const std::string& name) : ChForceElementTire(name) {
     m_tireForce.force = ChVector<>(0, 0, 0);
     m_tireForce.point = ChVector<>(0, 0, 0);
     m_tireForce.moment = ChVector<>(0, 0, 0);
@@ -137,7 +137,7 @@ void ChLugreTire::Synchronize(double time,
 
         // Calculate normal contact force. If the resulting force is negative, the disc is moving away from the terrain
         // so fast that no contact force is generated.
-        double Fn_mag = (GetNormalStiffness() * depth - GetNormalDamping() * m_data[id].vel.z()) / GetNumDiscs();
+        double Fn_mag = (GetNormalStiffnessForce(depth) + GetNormalDampingForce(depth, -m_data[id].vel.z())) / GetNumDiscs();
         if (Fn_mag < 0)
             Fn_mag = 0;
         m_data[id].normal_force = Fn_mag;

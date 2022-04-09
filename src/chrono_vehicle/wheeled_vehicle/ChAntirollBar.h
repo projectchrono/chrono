@@ -47,12 +47,6 @@ class CH_VEHICLE_API ChAntirollBar : public ChPart {
                             const ChVector<>& location                 ///< [in] location relative to the chassis frame
                             ) = 0;
 
-    /// Get the total mass of the anti-roll bar subsystem.
-    virtual double GetMass() const = 0;
-
-    /// Get the current global COM location of the anti-roll bar subsystem.
-    virtual ChVector<> GetCOMPos() const = 0;
-
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}
 };

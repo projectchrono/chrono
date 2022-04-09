@@ -51,7 +51,7 @@ ChRackPinion::~ChRackPinion() {
 void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
-    m_position = ChCoordsys<>(location, rotation);
+    m_position = ChFrame<>(location, rotation);
 
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
@@ -107,18 +107,14 @@ void ChRackPinion::Synchronize(double time, double steering) {
         fun->Set_yconst(displ);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the steering subsystem
-// -----------------------------------------------------------------------------
-double ChRackPinion::GetMass() const {
-    return GetSteeringLinkMass();
+void ChRackPinion::CalculateMass() {
+    m_mass = GetSteeringLinkMass();
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the steering subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChRackPinion::GetCOMPos() const {
-    return m_link->GetPos();
+void ChRackPinion::CalculateInertia() {
+    m_com.coord.pos = m_link->GetPos();
+
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

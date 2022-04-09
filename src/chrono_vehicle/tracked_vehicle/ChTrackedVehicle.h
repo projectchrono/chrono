@@ -41,6 +41,8 @@ namespace vehicle {
 /// systems (terrain, driver, etc.)
 class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
   public:
+    //// RADU TODO - make constructors protected
+
     /// Construct a vehicle system with a default ChSystem.
     ChTrackedVehicle(const std::string& name,                               ///< [in] vehicle name
                      ChContactMethod contact_method = ChContactMethod::NSC  ///< [in] contact method
@@ -56,17 +58,6 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
 
     /// Get the name of the vehicle system template.
     virtual std::string GetTemplateName() const override { return "TrackedVehicle"; }
-
-    /// Get the vehicle total mass.
-    /// This includes the mass of the chassis and all vehicle subsystems.
-    virtual double GetVehicleMass() const override;
-
-    /// Get the current global vehicle COM location.
-    /// (Currently not implemented)
-    virtual ChVector<> GetVehicleCOMPos() const override;
-
-    /// Get the current global vehicle inertia tensor.
-    virtual ChMatrix33<> GetVehicleInertia() const override;
 
     /// Get the powertrain attached to this vehicle.
     virtual std::shared_ptr<ChPowertrain> GetPowertrain() const override { return m_powertrain; }
@@ -226,6 +217,12 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     virtual void ExportComponentList(const std::string& filename) const override;
 
   protected:
+    /// Calculate total vehicle mass.
+    virtual void CalculateMass() override final;
+
+    /// Calculate current vehicle inertia properties.
+    virtual void CalculateInertia() override final;
+
     /// Output data for all modeling components in the vehicle system.
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 

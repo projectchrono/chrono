@@ -103,6 +103,61 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
+
+void ChTrackAssembly::CalculateMass() {
+    GetSprocket()->CalculateMass();
+    m_mass = GetSprocket()->GetMass();
+
+    m_idler->CalculateMass();
+    m_mass += m_idler->GetMass();
+
+    for (auto& suspension : m_suspensions) {
+        suspension->CalculateMass();
+        m_mass += suspension->GetMass();
+    }
+
+    for (auto& roller : m_rollers) {
+        roller->CalculateMass();
+        m_mass += roller->GetMass();
+    }
+
+    size_t num_shoes = GetNumTrackShoes();
+    for (size_t i = 0; i < num_shoes; ++i) {
+        GetTrackShoe(i)->CalculateMass();
+        m_mass += GetTrackShoe(i)->GetMass();
+    }
+}
+
+void ChTrackAssembly::CalculateInertia() {
+    ChVector<> com(0, 0, 0);
+
+    GetSprocket()->CalculateInertia();
+    com += GetSprocket()->GetMass() * GetSprocket()->GetCOMFrame_abs().GetPos();
+
+    m_idler->CalculateInertia();
+    com += m_idler->GetMass() * m_idler->GetCOMFrame_abs().GetPos();
+
+    for (size_t i = 0; i < m_suspensions.size(); i++) {
+        m_suspensions[i]->CalculateInertia();
+        com += m_suspensions[i]->GetMass() * m_suspensions[i]->GetCOMFrame_abs().GetPos();
+    }
+
+    for (size_t i = 0; i < m_rollers.size(); i++) {
+        m_rollers[i]->CalculateInertia();
+        com += m_rollers[i]->GetMass() * m_rollers[i]->GetCOMFrame_abs().GetPos();
+    }
+
+    for (size_t i = 0; i < GetNumTrackShoes(); ++i) {
+        GetTrackShoe(i)->CalculateInertia();
+        com += GetTrackShoe(i)->GetMass() * GetTrackShoe(i)->GetCOMFrame_abs().GetPos();
+    }
+
+    m_com.coord.pos = com / GetMass();
+
+    //// RADU TODO
+}
+
+// -----------------------------------------------------------------------------
 ChRoadWheelAssembly::ForceTorque ChTrackAssembly::ReportSuspensionForce(size_t id) const {
     return m_suspensions[id]->ReportSuspensionForce();
 }
@@ -155,21 +210,6 @@ void ChTrackAssembly::SetWheelCollisionType(bool roadwheel_as_cylinder,
     m_roadwheel_as_cylinder = roadwheel_as_cylinder;
     m_idler_as_cylinder = idler_as_cylinder;
     m_roller_as_cylinder = roller_as_cylinder;
-}
-
-// -----------------------------------------------------------------------------
-// Calculate and return the total mass of the track assembly
-// -----------------------------------------------------------------------------
-double ChTrackAssembly::GetMass() const {
-    double mass = GetSprocket()->GetMass() + m_idler->GetMass();
-    for (size_t i = 0; i < m_suspensions.size(); i++)
-        mass += m_suspensions[i]->GetMass();
-    for (size_t i = 0; i < m_rollers.size(); i++)
-        mass += m_rollers[i]->GetMass();
-    for (size_t i = 0; i < GetNumTrackShoes(); ++i)
-        mass += GetTrackShoe(i)->GetMass();
-
-    return mass;
 }
 
 // -----------------------------------------------------------------------------

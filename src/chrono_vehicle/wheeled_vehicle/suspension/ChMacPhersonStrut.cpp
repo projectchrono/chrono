@@ -294,17 +294,11 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChMacPhersonStrut::GetMass() const {
-    return 2 * (getSpindleMass() + getStrutMass() + getLCAMass() + getUprightMass());
+void ChMacPhersonStrut::CalculateMass() {
+    m_mass = 2 * (getSpindleMass() + getStrutMass() + getLCAMass() + getUprightMass());
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChMacPhersonStrut::GetCOMPos() const {
+void ChMacPhersonStrut::CalculateInertia() {
     ChVector<> com(0, 0, 0);
 
     com += getSpindleMass() * m_spindle[LEFT]->GetPos();
@@ -319,7 +313,9 @@ ChVector<> ChMacPhersonStrut::GetCOMPos() const {
     com += getUprightMass() * m_upright[LEFT]->GetPos();
     com += getUprightMass() * m_upright[RIGHT]->GetPos();
 
-    return com / GetMass();
+    m_com.coord.pos = com / GetMass();
+
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

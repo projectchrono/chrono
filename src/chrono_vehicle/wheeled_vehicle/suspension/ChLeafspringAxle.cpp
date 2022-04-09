@@ -195,17 +195,11 @@ void ChLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChLeafspringAxle::GetMass() const {
-    return getAxleTubeMass() + 2 * (getSpindleMass());
+void ChLeafspringAxle::CalculateMass() {
+    m_mass = getAxleTubeMass() + 2 * (getSpindleMass());
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChLeafspringAxle::GetCOMPos() const {
+void ChLeafspringAxle::CalculateInertia() {
     ChVector<> com(0, 0, 0);
 
     com += getAxleTubeMass() * m_axleTube->GetPos();
@@ -213,7 +207,9 @@ ChVector<> ChLeafspringAxle::GetCOMPos() const {
     com += getSpindleMass() * m_spindle[LEFT]->GetPos();
     com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
 
-    return com / GetMass();
+    m_com.coord.pos = com / GetMass();
+
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

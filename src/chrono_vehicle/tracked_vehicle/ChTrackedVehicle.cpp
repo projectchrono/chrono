@@ -36,7 +36,8 @@ ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChContactMethod cont
     m_contact_manager = chrono_types::make_shared<ChTrackContactManager>();
 }
 
-ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChSystem* system) : ChVehicle(name, system) {
+ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChSystem* system)
+    : ChVehicle(name, system) {
     m_contact_manager = chrono_types::make_shared<ChTrackContactManager>();
 }
 
@@ -49,12 +50,12 @@ ChTrackedVehicle::~ChTrackedVehicle() {}
 // vehicle subsystems (the two track assemblies and the driveline).
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, TrackedCollisionFamily::CHASSIS);
-
     // Disable contacts between chassis with all other tracked vehicle subsystems, except the track shoes.
     m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
     m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::WHEELS);
     m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::ROLLERS);
+
+    ChVehicle::Initialize(chassisPos, chassisFwdVel);
 }
 
 // -----------------------------------------------------------------------------
@@ -282,30 +283,47 @@ void ChTrackedVehicle::EnableCustomContact(std::shared_ptr<ChTrackCustomContact>
 }
 
 // -----------------------------------------------------------------------------
-// Calculate and return the total vehicle mass
+// Calculate the total vehicle mass
 // -----------------------------------------------------------------------------
-double ChTrackedVehicle::GetVehicleMass() const {
-    double mass = m_chassis->GetMass();
-    for (auto& c : m_chassis_rear)
-        mass += c->GetMass();
-    mass += m_tracks[0]->GetMass() + m_tracks[1]->GetMass();
-    return mass;
+void ChTrackedVehicle::CalculateMass() {
+    m_chassis->CalculateMass();
+    m_mass = m_chassis->GetMass();
+
+    for (auto& c : m_chassis_rear) {
+        c->CalculateMass();
+        m_mass += c->GetMass();
+    }
+
+    m_tracks[0]->CalculateMass();
+    m_tracks[1]->CalculateMass();
+    m_mass += m_tracks[0]->GetMass() + m_tracks[1]->GetMass();
 }
 
 // -----------------------------------------------------------------------------
-// Calculate and return the current vehicle COM location
+// Calculate current vehicle inertia properties 
 // -----------------------------------------------------------------------------
-ChVector<> ChTrackedVehicle::GetVehicleCOMPos() const {
-    //// TODO
-    return ChVector<>(0, 0, 0);
-}
+void ChTrackedVehicle::CalculateInertia() {
+    // 1. Calculate the vehicle COM location relative to the global reference frame
+    // 2. Calculate vehicle inertia relative to global reference frame
+    // 3. Express vehicle COM relative to vehicle reference frame
+    // 4. Express inertia relative to vehicle COM frame
 
-// -----------------------------------------------------------------------------
-// Calculate and return the current vehicle inertia
-// -----------------------------------------------------------------------------
-ChMatrix33<> ChTrackedVehicle::GetVehicleInertia() const {
-    //// TODO
-    return ChMatrix33<>(1);
+    m_chassis->CalculateInertia();
+    ChVector<> com = m_chassis->GetMass() * m_chassis->GetCOMFrame_abs().GetPos();
+
+    for (auto& c : m_chassis_rear) {
+        c->CalculateInertia();
+        com += c->GetMass() * c->GetCOMFrame_abs().GetPos();
+    }
+
+    m_tracks[0]->CalculateInertia();
+    m_tracks[1]->CalculateInertia();
+    com += m_tracks[0]->GetMass() * m_tracks[0]->GetCOMFrame_abs().GetPos();
+    com += m_tracks[1]->GetMass() * m_tracks[1]->GetCOMFrame_abs().GetPos();
+
+    m_com.coord.pos = com / GetMass();
+
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

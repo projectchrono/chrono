@@ -84,6 +84,9 @@ class CH_VEHICLE_API ChRoadWheel : public ChPart {
     void LogConstraintViolations();
 
   protected:
+    virtual void CalculateMass() override;
+    virtual void CalculateInertia() override;
+
     /// Create the contact material consistent with the specified contact method.
     virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
 

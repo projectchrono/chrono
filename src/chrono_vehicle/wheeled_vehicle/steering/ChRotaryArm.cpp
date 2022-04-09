@@ -45,7 +45,7 @@ ChRotaryArm::~ChRotaryArm() {
 void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
-    m_position = ChCoordsys<>(location, rotation);
+    m_position = ChFrame<>(location, rotation);
 
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
@@ -124,20 +124,16 @@ void ChRotaryArm::Synchronize(double time, double steering) {
     fun->SetSetpoint(getMaxAngle() * steering, time);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the steering subsystem
-// -----------------------------------------------------------------------------
-double ChRotaryArm::GetMass() const {
-    return getPitmanArmMass();
+
+void ChRotaryArm::CalculateMass() {
+    m_mass = getPitmanArmMass();
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the steering subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChRotaryArm::GetCOMPos() const {
+void ChRotaryArm::CalculateInertia() {
     ChVector<> com = getPitmanArmMass() * m_link->GetPos();
+    m_com.coord.pos = com / GetMass();
 
-    return com / GetMass();
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

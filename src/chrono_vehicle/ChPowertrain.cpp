@@ -43,6 +43,15 @@ void ChPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     SetGear(1);
 }
 
+void ChPowertrain::CalculateMass() {
+    m_mass = 0;
+    m_inertia = ChMatrix33<>(0);
+    m_com = ChFrame<>();
+    m_pos = ChFrame<>();
+}
+
+void ChPowertrain::CalculateInertia() {}
+
 void ChPowertrain::ShiftUp() {
     if (m_transmission_mode == TransmissionMode::MANUAL &&  //
         m_drive_mode == DriveMode::FORWARD &&               //

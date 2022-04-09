@@ -88,9 +88,6 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Turn on/off collision flag for the gear wheel.
     void SetCollide(bool val) { m_gear->SetCollide(val); }
 
-    /// Get the mass of the sprocket subsystem.
-    virtual double GetMass() const;
-
     /// Get the sprocket contact material.
     std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
 
@@ -129,6 +126,9 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     void LogConstraintViolations();
 
   protected:
+    virtual void CalculateMass() override;
+    virtual void CalculateInertia() override;
+
     /// Return the mass of the gear body.
     virtual double GetGearMass() const = 0;
 

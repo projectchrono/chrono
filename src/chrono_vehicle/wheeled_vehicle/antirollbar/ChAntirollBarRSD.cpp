@@ -131,20 +131,16 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
     sys->AddLink(m_link_right);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the anti-roll bar subsystem
-// -----------------------------------------------------------------------------
-double ChAntirollBarRSD::GetMass() const {
-    return 2 * getArmMass();
+void ChAntirollBarRSD::CalculateMass() {
+    m_mass = 2 * getArmMass();
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the anti-roll bar subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChAntirollBarRSD::GetCOMPos() const {
+void ChAntirollBarRSD::CalculateInertia() {
     ChVector<> com = getArmMass() * m_arm_left->GetPos() + getArmMass() * m_arm_right->GetPos();
+ 
+    m_com.coord.pos = com / GetMass();
 
-    return com / GetMass();
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

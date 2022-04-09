@@ -24,10 +24,8 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChPart::ChPart(const std::string& name) : m_name(name), m_output(false) {}
+ChPart::ChPart(const std::string& name) : m_name(name), m_output(false), m_mass(0), m_inertia(0) {}
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPart::Create(const rapidjson::Document& d) {
     // Read top-level data
@@ -46,6 +44,13 @@ void ChPart::Create(const rapidjson::Document& d) {
 }
 
 // -----------------------------------------------------------------------------
+ChFrame<> ChPart::GetCOMFrame_abs() const {
+    //// RADU TODO: change ChFrame::TransformLocalToParent to return the transformed frame!!!!
+    ChFrame<> com_abs;
+    m_pos.TransformLocalToParent(m_com, com_abs);
+    return com_abs;
+}
+
 // -----------------------------------------------------------------------------
 void ChPart::SetVisualizationType(VisualizationType vis) {
     RemoveVisualizationAssets();
