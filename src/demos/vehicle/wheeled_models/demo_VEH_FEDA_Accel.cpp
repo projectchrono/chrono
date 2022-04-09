@@ -192,8 +192,8 @@ int main(int argc, char* argv[]) {
     while (app.GetDevice()->run()) {
         time = my_feda.GetSystem()->GetChTime();
 
-        double speed = speed_filter.Add(my_feda.GetVehicle().GetVehicleSpeed());
-        double dist = terrainLength / 2.0 + my_feda.GetVehicle().GetVehiclePos().x();
+        double speed = speed_filter.Add(my_feda.GetVehicle().GetSpeed());
+        double dist = terrainLength / 2.0 + my_feda.GetVehicle().GetPos().x();
         int gear_pos = my_feda.GetPowertrain()->GetCurrentTransmissionGear();
         if (!done) {
             speed_recorder.AddPoint(time, speed);

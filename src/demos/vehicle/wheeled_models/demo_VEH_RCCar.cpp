@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
     }
 
     // output vehicle mass
-    std::cout << "VEHICLE MASS: " << my_rccar.GetVehicle().GetVehicleMass() << std::endl;
+    std::cout << "VEHICLE MASS: " << my_rccar.GetVehicle().GetMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);

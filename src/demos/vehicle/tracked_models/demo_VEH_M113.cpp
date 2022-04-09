@@ -295,7 +295,7 @@ int main(int argc, char* argv[]) {
     ChTrackedVehicleIrrApp app(&m113.GetVehicle(), L"M113 Vehicle Demo");
     app.AddTypicalLights();
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    ////app.SetChaseCameraPosition(m113.GetVehicle().GetVehiclePos() + ChVector<>(0, 2, 0));
+    ////app.SetChaseCameraPosition(m113.GetVehicle().GetPos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
 
     app.AssetBindAll();
@@ -426,7 +426,7 @@ int main(int argc, char* argv[]) {
             cout << "Time: " << m113.GetSystem()->GetChTime() << endl;
             cout << "      Num. contacts: " << m113.GetSystem()->GetNcontacts() << endl;
             const ChFrameMoving<>& c_ref = m113.GetChassisBody()->GetFrame_REF_to_abs();
-            const ChVector<>& c_pos = m113.GetVehicle().GetVehiclePos();
+            const ChVector<>& c_pos = m113.GetVehicle().GetPos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
                 const ChVector<>& i_pos_abs = track_L->GetIdler()->GetWheelBody()->GetPos();

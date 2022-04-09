@@ -282,7 +282,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         if (xpos >= xstart) {
-            ChVector<> seat_acc = vehicle.GetVehiclePointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+            ChVector<> seat_acc = vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
             seat_logger.AddData(seat_acc);
         }
 
@@ -308,7 +308,7 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
 
         if (v_pos >= xstart) {
-            ChVector<> seat_acc = vehicle.GetVehiclePointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+            ChVector<> seat_acc = vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
             seat_logger.AddData(seat_acc);
         }
     }

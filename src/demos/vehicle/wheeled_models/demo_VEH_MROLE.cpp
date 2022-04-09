@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     my_mrole.GetVehicle().LogSubsystemTypes();
-    std::cout << "Vehicle Mass       = " << my_mrole.GetVehicle().GetVehicleMass() << " kg" << std::endl;
+    std::cout << "Vehicle Mass       = " << my_mrole.GetVehicle().GetMass() << " kg" << std::endl;
 
     if (debug_output) {
         GetLog() << "\n\n============ System Configuration ============\n";

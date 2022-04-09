@@ -226,8 +226,7 @@ int main(int argc, char* argv[]) {
     mtv.SetWheelVisualizationType(wheel_vis_type);
     mtv.SetTireVisualizationType(tire_vis_type);
 
-    std::cout << "Vehicle mass:               " << mtv.GetVehicle().GetVehicleMass() << std::endl;
-    std::cout << "Vehicle mass (with tires):  " << mtv.GetTotalMass() << std::endl;
+    std::cout << "Vehicle mass: " << mtv.GetVehicle().GetMass() << std::endl;
 
     // ------------------
     // Create the terrain
@@ -363,9 +362,9 @@ int main(int argc, char* argv[]) {
     double time = 0;
 
 #ifdef USE_IRRLICHT
-    while (app.GetDevice()->run() && (time < tend) && (mtv.GetVehicle().GetVehiclePos().x() < xend)) {
+    while (app.GetDevice()->run() && (time < tend) && (mtv.GetVehicle().GetPos().x() < xend)) {
 #else
-    while ((time < tend) && (mtv.GetVehicle().GetVehiclePos().x() < xend)) {
+    while ((time < tend) && (mtv.GetVehicle().GetPos().x() < xend)) {
 #endif
         time = mtv.GetSystem()->GetChTime();
 
@@ -433,11 +432,10 @@ int main(int argc, char* argv[]) {
                 csv << mtv.GetVehicle().GetSpindleAngVel(axle, LEFT);
                 csv << mtv.GetVehicle().GetSpindleAngVel(axle, RIGHT);
             }
-            csv << mtv.GetVehicle().GetVehicleSpeed();
-            csv << mtv.GetVehicle().GetVehiclePointAcceleration(
-                mtv.GetVehicle().GetChassis()->GetLocalDriverCoordsys().pos);
+            csv << mtv.GetVehicle().GetSpeed();
+            csv << mtv.GetVehicle().GetPointAcceleration(mtv.GetVehicle().GetChassis()->GetLocalDriverCoordsys().pos);
 
-            csv << mtv.GetVehicle().GetVehiclePointAcceleration(vehCOM);
+            csv << mtv.GetVehicle().GetPointAcceleration(vehCOM);
 
             for (auto& axle : mtv.GetVehicle().GetAxles()) {
                 for (auto& wheel : axle->GetWheels()) {
