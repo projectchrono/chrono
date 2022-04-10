@@ -40,7 +40,8 @@ ChBalancer::~ChBalancer() {
 // -----------------------------------------------------------------------------
 
 void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location) {
-    m_location = location;
+    m_parent = chassis;
+    m_rel_loc = location;
 
     // Express the subchassis reference frame in the absolute coordinate system
     ChFrame<> to_abs(location);
@@ -113,6 +114,8 @@ void ChBalancer::InitializeInertiaProperties() {
 }
 
 void ChBalancer::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+
     ChVector<> com = GetBalancerBeamMass() * (m_beam[LEFT]->GetPos() + m_beam[RIGHT]->GetPos());
     m_com.coord.pos = com / GetMass();
 

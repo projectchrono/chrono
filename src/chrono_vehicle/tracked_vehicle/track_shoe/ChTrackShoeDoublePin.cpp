@@ -131,6 +131,8 @@ void ChTrackShoeDoublePin::InitializeInertiaProperties() {
 }
 
 void ChTrackShoeDoublePin::UpdateInertiaProperties() {
+    m_xform = m_shoe->GetFrame_REF_to_abs();
+
     //// RADU TODO
 }
 

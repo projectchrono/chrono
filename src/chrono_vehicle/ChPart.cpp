@@ -24,7 +24,7 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-ChPart::ChPart(const std::string& name) : m_name(name), m_output(false), m_mass(0), m_inertia(0) {}
+ChPart::ChPart(const std::string& name) : m_name(name), m_output(false), m_parent(nullptr), m_mass(0), m_inertia(0) {}
 
 // -----------------------------------------------------------------------------
 void ChPart::Create(const rapidjson::Document& d) {

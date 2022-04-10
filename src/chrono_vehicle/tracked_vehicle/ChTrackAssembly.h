@@ -211,6 +211,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     virtual void Output(ChVehicleOutput& database) const override;
 
     VehicleSide m_side;                     ///< assembly on left/right vehicle side
+    ChVector<> m_rel_loc;                   ///< assembly location relative to chassis
     std::shared_ptr<ChIdler> m_idler;       ///< idler (and tensioner) subsystem
     std::shared_ptr<ChTrackBrake> m_brake;  ///< sprocket brake
     ChRoadWheelAssemblyList m_suspensions;  ///< road-wheel assemblies

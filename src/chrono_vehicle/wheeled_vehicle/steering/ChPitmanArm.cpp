@@ -29,7 +29,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChPitmanArm::ChPitmanArm(const std::string& name, bool vehicle_frame_inertia)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
@@ -44,11 +43,11 @@ ChPitmanArm::~ChPitmanArm() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPitmanArm::Initialize(std::shared_ptr<ChChassis> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
-    m_position = ChFrame<>(location, rotation);
+    m_parent = chassis;
+    m_rel_xform = ChFrame<>(location, rotation);
 
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
@@ -171,7 +170,6 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPitmanArm::Synchronize(double time, double steering) {
     auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_revolute->GetAngleFunction());
     fun->SetSetpoint(getMaxAngle() * steering, time);
@@ -183,14 +181,14 @@ void ChPitmanArm::InitializeInertiaProperties() {
 }
 
 void ChPitmanArm::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
+
+    //// RADU TODO
     ChVector<> com = getSteeringLinkMass() * m_link->GetPos() + getPitmanArmMass() * m_arm->GetPos();
 
     m_com.coord.pos = com / GetMass();
-
-    //// RADU TODO
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArm::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -245,7 +243,6 @@ void ChPitmanArm::RemoveVisualizationAssets() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPitmanArm::LogConstraintViolations() {
     // Revolute joint
     ////{
@@ -277,7 +274,6 @@ void ChPitmanArm::LogConstraintViolations() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArm::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

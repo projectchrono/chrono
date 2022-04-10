@@ -46,9 +46,9 @@ class CH_VEHICLE_API ChDoubleRoller : public ChRoller {
     virtual GuidePinType GetType() const final override { return GuidePinType::CENTRAL_PIN; }
 
     /// Initialize this roller subsystem.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track                  ///< [in] containing track assembly
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
+                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track               ///< [in] containing track assembly
                             ) override;
 
     /// Add visualization assets for the roller subsystem.

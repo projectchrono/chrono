@@ -120,6 +120,8 @@ void ChRotationalDamperRWAssembly::InitializeInertiaProperties() {
 }
 
 void ChRotationalDamperRWAssembly::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+
     //// RADU TODO
 }
 

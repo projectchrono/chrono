@@ -37,12 +37,14 @@ ChRoller::~ChRoller() {
 }
 
 // -----------------------------------------------------------------------------
-void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+void ChRoller::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+    m_parent = chassis;
+    m_rel_loc = location;
     m_track = track;
 
     // Express the roller reference frame in the absolute coordinate system.
     ChFrame<> roller_to_abs(location);
-    roller_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    roller_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Create and initialize the roller body.
     m_wheel = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
@@ -58,7 +60,7 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
     // The axis of rotation is the y axis of the road wheel reference frame.
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
-    m_revolute->Initialize(chassis, m_wheel,
+    m_revolute->Initialize(chassis->GetBody(), m_wheel,
                            ChCoordsys<>(roller_to_abs.GetPos(), roller_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute);
 }

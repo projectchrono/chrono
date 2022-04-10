@@ -65,15 +65,13 @@ class CH_VEHICLE_API ChRoller : public ChPart {
     void SetCollide(bool val) { m_wheel->SetCollide(val); }
 
     /// Initialize this roller subsystem.
-    /// The roller subsystem is initialized by attaching it to the chassis body
-    /// at the specified location (with respect to and expressed in the reference
-    /// frame of the chassis). It is assumed that the roller subsystem reference
-    /// frame is always aligned with the chassis reference frame.
-    /// A derived roller subsystem template class must extend this default
-    /// implementation and specify contact geometry for the roller wheel.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track                  ///< [in] containing track assembly
+    /// The roller subsystem is initialized by attaching it to the chassis body at the specified location (with respect
+    /// to and expressed in the reference frame of the chassis). It is assumed that the roller subsystem reference frame
+    /// is always aligned with the chassis reference frame. A derived roller subsystem template class must extend this
+    /// default implementation and specify contact geometry for the roller wheel.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in]associated chassis
+                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track               ///< [in] containing track assembly
     );
 
     /// Log current constraint violations.
@@ -90,8 +88,9 @@ class CH_VEHICLE_API ChRoller : public ChPart {
 
     virtual void Output(ChVehicleOutput& database) const override;
 
-    std::shared_ptr<ChBody> m_wheel;                 ///< handle to the roller body
-    std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to roller revolute joint
+    ChVector<> m_rel_loc;                            ///< idler subsystem location relative to chassis
+    std::shared_ptr<ChBody> m_wheel;                 ///< roller body
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< roller revolute joint
     std::shared_ptr<ChMaterialSurface> m_material;   ///< contact material;
     ChTrackAssembly* m_track;                        ///< containing track assembly
 

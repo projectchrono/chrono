@@ -62,7 +62,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
 
     /// Get the location of the suspension subsystem relative to the associated chassis reference frame.
     /// The suspension reference frame is always aligned with the chassis reference frame.
-    const ChVector<>& GetLocation() const { return m_location; }
+    const ChVector<>& GetRelPosition() const { return m_rel_loc; }
 
     /// Get a handle to the spindle body on the specified side.
     std::shared_ptr<ChBody> GetSpindle(VehicleSide side) const { return m_spindle[side]; }
@@ -156,7 +156,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     void ApplyParkingBrake(bool brake);
 
   protected:
-    ChVector<> m_location;                               ///< location relative to chassis
+    ChVector<> m_rel_loc;                                ///< location relative to chassis
     std::shared_ptr<ChBody> m_spindle[2];                ///< handles to spindle bodies
     std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors

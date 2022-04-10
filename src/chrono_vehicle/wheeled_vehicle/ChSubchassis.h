@@ -41,7 +41,7 @@ class CH_VEHICLE_API ChSubchassis : public ChPart {
 
     /// Get the location of the subchassis relative to the chassis reference frame.
     /// The subchassis reference frame is always aligned with the chassis reference frame.
-    const ChVector<>& GetLocation() const { return m_location; }
+    const ChVector<>& GetLocation() const { return m_rel_loc; }
 
     /// Get a handle to the beam body on the specified side.
     std::shared_ptr<ChBody> GetBeam(VehicleSide side) const { return m_beam[side]; }
@@ -50,12 +50,12 @@ class CH_VEHICLE_API ChSubchassis : public ChPart {
     /// The subchassis is initialized by attaching it to the specified chassis at the specified location (with respect
     /// to and expressed in the reference frame of the chassis). It is assumed that the subchassis reference frame is
     /// always aligned with the chassis reference frame.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
                             const ChVector<>& location           ///< [in] location relative to the chassis frame
                             ) = 0;
 
   protected:
-    ChVector<> m_location;              ///< location relative to chassis
+    ChVector<> m_rel_loc;               ///< location relative to chassis
     std::shared_ptr<ChBody> m_beam[2];  ///< handles to beam bodies
 };
 

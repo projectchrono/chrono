@@ -68,9 +68,12 @@ void ChTrackAssembly::GetTrackShoeStates(BodyStates& states) const {
 void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
                                  const ChVector<>& location,
                                  bool create_shoes) {
+    m_parent = chassis;
+    m_rel_loc = location;
+
     // Initialize the sprocket, idler, and brake
-    GetSprocket()->Initialize(chassis->GetBody(), location + GetSprocketLocation(), this);
-    m_idler->Initialize(chassis->GetBody(), location + GetIdlerLocation(), this);
+    GetSprocket()->Initialize(chassis, location + GetSprocketLocation(), this);
+    m_idler->Initialize(chassis, location + GetIdlerLocation(), this);
     m_brake->Initialize(chassis, GetSprocket());
 
     // Initialize the suspension subsystems
@@ -80,7 +83,7 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Initialize the roller subsystems
     for (size_t i = 0; i < m_rollers.size(); ++i) {
-        m_rollers[i]->Initialize(chassis->GetBody(), location + GetRollerLocation(static_cast<int>(i)), this);
+        m_rollers[i]->Initialize(chassis, location + GetRollerLocation(static_cast<int>(i)), this);
     }
 
     if (!create_shoes) {
@@ -122,6 +125,8 @@ void ChTrackAssembly::InitializeInertiaProperties() {
 }
 
 void ChTrackAssembly::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+
     ChVector<> com(0);
     ChMatrix33<> inertia(0);
 

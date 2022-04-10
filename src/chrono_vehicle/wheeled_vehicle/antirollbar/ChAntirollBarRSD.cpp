@@ -32,7 +32,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-
 ChAntirollBarRSD::ChAntirollBarRSD(const std::string& name) : ChAntirollBar(name) {}
 
 ChAntirollBarRSD::~ChAntirollBarRSD() {
@@ -48,10 +47,12 @@ ChAntirollBarRSD::~ChAntirollBarRSD() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
                                   std::shared_ptr<ChSuspension> suspension,
                                   const ChVector<>& location) {
+    m_parent = chassis;
+    m_rel_loc = location;
+
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
@@ -136,14 +137,16 @@ void ChAntirollBarRSD::InitializeInertiaProperties() {
 }
 
 void ChAntirollBarRSD::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+
+    //// RADU TODO
+
     ChVector<> com = getArmMass() * m_arm_left->GetPos() + getArmMass() * m_arm_right->GetPos();
  
     m_com.coord.pos = com / GetMass();
 
-    //// RADU TODO
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChAntirollBarRSD::LogConstraintViolations() {
     // Chassis revolute joint
@@ -176,7 +179,6 @@ void ChAntirollBarRSD::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
                                            const ChVector<>& pt_1,
                                            const ChVector<>& pt_2,
@@ -206,7 +208,6 @@ void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
     arm->AddAsset(col);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChAntirollBarRSD::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

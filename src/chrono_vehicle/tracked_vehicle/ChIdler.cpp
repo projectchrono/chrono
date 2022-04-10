@@ -49,12 +49,14 @@ ChIdler::~ChIdler() {
 }
 
 // -----------------------------------------------------------------------------
-void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+void ChIdler::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+    m_parent = chassis;
+    m_rel_loc = location;
     m_track = track;
 
     // Express the idler reference frame in the absolute coordinate system.
     ChFrame<> idler_to_abs(location);
-    idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    idler_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform all points and directions to absolute frame.
     std::vector<ChVector<> > points(NUM_POINTS);
@@ -101,7 +103,7 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     // of the idler reference frame.
     m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetNameString(m_name + "_prismatic");
-    m_prismatic->Initialize(chassis, m_carrier,
+    m_prismatic->Initialize(chassis->GetBody(), m_carrier,
                             ChCoordsys<>(points[CARRIER_CHASSIS],
                                          idler_to_abs.GetRot() * Q_from_AngY(CH_C_PI_2 + GetPrismaticPitchAngle())));
     chassis->GetSystem()->AddLink(m_prismatic);
@@ -109,7 +111,7 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     // Create and initialize the tensioner force element.
     m_tensioner = chrono_types::make_shared<ChLinkTSDA>();
     m_tensioner->SetNameString(m_name + "_tensioner");
-    m_tensioner->Initialize(chassis, m_carrier, false, points[TSDA_CHASSIS], points[TSDA_CARRIER]);
+    m_tensioner->Initialize(chassis->GetBody(), m_carrier, false, points[TSDA_CHASSIS], points[TSDA_CARRIER]);
     m_tensioner->RegisterForceFunctor(GetTensionerForceCallback());
     m_tensioner->SetRestLength(GetTensionerFreeLength());
     chassis->GetSystem()->AddLink(m_tensioner);
@@ -120,6 +122,8 @@ void ChIdler::InitializeInertiaProperties() {
 }
 
 void ChIdler::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+
     //// RADU TODO
 }
 

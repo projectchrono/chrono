@@ -186,10 +186,11 @@ class CH_VEHICLE_API ChPart {
     std::string m_name;  ///< subsystem name
     bool m_output;       ///< specifies whether or not output is generated for this subsystem
 
-    double m_mass;           ///< subsystem mass
-    ChMatrix33<> m_inertia;  ///< inertia tensor (relative to subsystem COM)
-    ChFrame<> m_com;         ///< COM frame (relative to subsystem reference frame)
-    ChFrame<> m_xform;       ///< subsystem frame expressed in the global frame
+    std::shared_ptr<ChPart> m_parent;  ///< parent subsystem (empty if parent is vehicle)
+    double m_mass;                     ///< subsystem mass
+    ChMatrix33<> m_inertia;            ///< inertia tensor (relative to subsystem COM)
+    ChFrame<> m_com;                   ///< COM frame (relative to subsystem reference frame)
+    ChFrame<> m_xform;                 ///< subsystem frame expressed in the global frame
 
   private:
     friend class ChAxle;

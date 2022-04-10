@@ -37,7 +37,7 @@ class CH_VEHICLE_API ChSteering : public ChPart {
     virtual ~ChSteering();
 
     /// Get the frame of the steering subsystem relative to the associated chassis reference frame.
-    const ChFrame<>& GetRelTransform() const { return m_position; }
+    const ChFrame<>& GetRelTransform() const { return m_rel_xform; }
 
     /// Get a handle to the main link of the steering subsystems.
     /// Return a handle to the body to which the tierods of a steerable
@@ -65,7 +65,7 @@ class CH_VEHICLE_API ChSteering : public ChPart {
     virtual void LogConstraintViolations() {}
 
   protected:
-    ChFrame<> m_position;            ///< location and orientation relative to associated chassis
+    ChFrame<> m_rel_xform;           ///< location and orientation relative to associated chassis
     std::shared_ptr<ChBody> m_link;  ///< handle to the main steering link
 };
 

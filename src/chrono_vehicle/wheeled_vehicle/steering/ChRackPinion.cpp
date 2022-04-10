@@ -35,7 +35,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {}
 
 ChRackPinion::~ChRackPinion() {
@@ -47,11 +46,11 @@ ChRackPinion::~ChRackPinion() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
-    m_position = ChFrame<>(location, rotation);
+    m_parent = chassis;
+    m_rel_xform = ChFrame<>(location, rotation);
 
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
@@ -96,7 +95,6 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRackPinion::Synchronize(double time, double steering) {
     // Convert the steering input into an angle of the pinion and then into a
     // displacement of the rack.
@@ -112,12 +110,13 @@ void ChRackPinion::InitializeInertiaProperties() {
 }
 
 void ChRackPinion::UpdateInertiaProperties() {
-    m_com.coord.pos = m_link->GetPos();
+    m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
 
     //// RADU TODO
+
+    m_com.coord.pos = m_link->GetPos();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -141,7 +140,6 @@ void ChRackPinion::RemoveVisualizationAssets() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRackPinion::LogConstraintViolations() {
     // Translational joint
     {
@@ -162,7 +160,6 @@ void ChRackPinion::LogConstraintViolations() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRackPinion::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

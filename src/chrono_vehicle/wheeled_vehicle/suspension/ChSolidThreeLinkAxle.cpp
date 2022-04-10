@@ -76,7 +76,8 @@ void ChSolidThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChVector<>& location,
                                       double left_ang_vel,
                                       double right_ang_vel) {
-    m_location = location;
+    m_parent = chassis;
+    m_rel_loc = location;
 
     // Unit vectors for orientation matrices.
     ChVector<> u;
@@ -259,6 +260,10 @@ void ChSolidThreeLinkAxle::InitializeInertiaProperties() {
 }
 
 void ChSolidThreeLinkAxle::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+
+    //// RADU TODO
+
     ChVector<> com(0, 0, 0);
 
     com += getAxleTubeMass() * m_axleTube->GetPos();
@@ -273,7 +278,6 @@ void ChSolidThreeLinkAxle::UpdateInertiaProperties() {
 
     m_com.coord.pos = com / GetMass();
 
-    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

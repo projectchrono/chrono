@@ -29,7 +29,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChPitmanArmShafts::ChPitmanArmShafts(const std::string& name, bool vehicle_frame_inertia, bool rigid_column)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia), m_rigid(rigid_column) {}
 
@@ -54,11 +53,11 @@ ChPitmanArmShafts::~ChPitmanArmShafts() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
                                    const ChVector<>& location,
                                    const ChQuaternion<>& rotation) {
-    m_position = ChFrame<>(location, rotation);
+    m_parent = chassis;
+    m_rel_xform = ChFrame<>(location, rotation);
 
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
@@ -253,7 +252,6 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPitmanArmShafts::Synchronize(double time, double steering) {
     auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_shaft_motor->GetAngleFunction());
     fun->SetSetpoint(getMaxAngle() * steering, time);
@@ -264,14 +262,14 @@ void ChPitmanArmShafts::InitializeInertiaProperties() {
 }
 
 void ChPitmanArmShafts::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
+
+    //// RADU TODO
     ChVector<> com = getSteeringLinkMass() * m_link->GetPos() + getPitmanArmMass() * m_arm->GetPos();
 
     m_com.coord.pos = com / GetMass();
-
-    //// RADU TODO
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArmShafts::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -325,7 +323,6 @@ void ChPitmanArmShafts::RemoveVisualizationAssets() {
     m_revsph->GetAssets().clear();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArmShafts::LogConstraintViolations() {
     // Revolute joint
@@ -390,7 +387,6 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
     arm_angular_vel = m_arm->GetWvel_loc();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArmShafts::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

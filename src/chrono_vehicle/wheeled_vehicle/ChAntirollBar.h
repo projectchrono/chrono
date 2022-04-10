@@ -49,6 +49,9 @@ class CH_VEHICLE_API ChAntirollBar : public ChPart {
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}
+
+  protected:
+    ChVector<> m_rel_loc;  ///< relative location of antiroll bar subsystem on chassis
 };
 
 /// Vector of handles to antirollbar subsystems.
