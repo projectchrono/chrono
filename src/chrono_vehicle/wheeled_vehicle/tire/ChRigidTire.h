@@ -113,8 +113,8 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// Return the tire moments of inertia (in the tire centroidal frame).
     virtual ChVector<> GetTireInertia() const = 0;
 
-    virtual void CalculateMass() override final;
-    virtual void CalculateInertia() override final;
+    virtual void InitializeInertiaProperties() override final;
+    virtual void UpdateInertiaProperties() override final;
 
     virtual double GetAddedMass() const override final;
     virtual ChVector<> GetAddedInertia() const override final;

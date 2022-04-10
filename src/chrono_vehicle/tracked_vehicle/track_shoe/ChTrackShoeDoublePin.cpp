@@ -127,11 +127,11 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 }
 
 
-void ChTrackShoeDoublePin::CalculateMass() {
+void ChTrackShoeDoublePin::InitializeInertiaProperties() {
     m_mass = GetShoeMass() + 2 * GetConnectorMass();
 }
 
-void ChTrackShoeDoublePin::CalculateInertia() {
+void ChTrackShoeDoublePin::UpdateInertiaProperties() {
     //// RADU TODO
 }
 

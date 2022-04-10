@@ -115,11 +115,11 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     chassis->GetSystem()->AddLink(m_tensioner);
 }
 
-void ChIdler::CalculateMass() {
+void ChIdler::InitializeInertiaProperties() {
     m_mass = GetWheelMass() + GetCarrierMass();
 }
 
-void ChIdler::CalculateInertia() {
+void ChIdler::UpdateInertiaProperties() {
     //// RADU TODO
 }
 

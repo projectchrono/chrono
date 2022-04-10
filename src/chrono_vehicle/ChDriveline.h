@@ -46,8 +46,8 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
     double GetDriveshaftSpeed() const { return -m_driveshaft->GetPos_dt(); }
 
   protected:
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to the powertrain
 };

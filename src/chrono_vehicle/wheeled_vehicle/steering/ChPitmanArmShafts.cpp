@@ -259,11 +259,11 @@ void ChPitmanArmShafts::Synchronize(double time, double steering) {
     fun->SetSetpoint(getMaxAngle() * steering, time);
 }
 
-void ChPitmanArmShafts::CalculateMass() {
+void ChPitmanArmShafts::InitializeInertiaProperties() {
     m_mass = getSteeringLinkMass() + getPitmanArmMass();
 }
 
-void ChPitmanArmShafts::CalculateInertia() {
+void ChPitmanArmShafts::UpdateInertiaProperties() {
     ChVector<> com = getSteeringLinkMass() * m_link->GetPos() + getPitmanArmMass() * m_arm->GetPos();
 
     m_com.coord.pos = com / GetMass();

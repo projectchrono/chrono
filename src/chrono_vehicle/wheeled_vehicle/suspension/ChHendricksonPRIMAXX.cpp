@@ -340,12 +340,12 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-void ChHendricksonPRIMAXX::CalculateMass() {
+void ChHendricksonPRIMAXX::InitializeInertiaProperties() {
     m_mass = getAxlehousingMass() + getTransversebeamMass() +
              2 * (getSpindleMass() + getKnuckleMass() + getTorquerodMass() + getLowerbeamMass());
 }
 
-void ChHendricksonPRIMAXX::CalculateInertia() {
+void ChHendricksonPRIMAXX::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
     com += getAxlehousingMass() * m_axlehousing->GetPos();

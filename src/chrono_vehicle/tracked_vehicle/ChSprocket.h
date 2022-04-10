@@ -126,8 +126,8 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     void LogConstraintViolations();
 
   protected:
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the mass of the gear body.
     virtual double GetGearMass() const = 0;

@@ -327,11 +327,11 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
 }
 
 
-void ChToeBarLeafspringAxle::CalculateMass() {
+void ChToeBarLeafspringAxle::InitializeInertiaProperties() {
     m_mass = getAxleTubeMass() + getTierodMass() + getDraglinkMass() + 2 * (getSpindleMass() + getKnuckleMass());
 }
 
-void ChToeBarLeafspringAxle::CalculateInertia() {
+void ChToeBarLeafspringAxle::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
     com += getAxleTubeMass() * m_axleTube->GetPos();

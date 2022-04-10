@@ -480,13 +480,13 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_vertRotSpringA[side]);
 }
 
-void ChSAEToeBarLeafspringAxle::CalculateMass() {
+void ChSAEToeBarLeafspringAxle::InitializeInertiaProperties() {
     m_mass = getAxleTubeMass() + getTierodMass() + getDraglinkMass() +
              2.0 * (getSpindleMass() + getKnuckleMass() + getFrontLeafMass() + getRearLeafMass() +
                     2.0 * getClampMass() + getShackleMass());
 }
 
-void ChSAEToeBarLeafspringAxle::CalculateInertia() {
+void ChSAEToeBarLeafspringAxle::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
     com += getAxleTubeMass() * m_axleTube->GetPos();

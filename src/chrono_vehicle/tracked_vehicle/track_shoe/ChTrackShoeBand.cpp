@@ -116,11 +116,11 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     AddShoeContact();
 }
 
-void ChTrackShoeBand::CalculateMass() {
+void ChTrackShoeBand::InitializeInertiaProperties() {
     m_mass = GetTreadMass() + GetWebMass();
 }
 
-void ChTrackShoeBand::CalculateInertia() {
+void ChTrackShoeBand::UpdateInertiaProperties() {
     //// RADU TODO
 }
 

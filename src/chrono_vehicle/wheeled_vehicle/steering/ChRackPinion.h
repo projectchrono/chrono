@@ -82,8 +82,8 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     virtual void LogConstraintViolations() override;
 
   protected:
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the mass of the steering link.
     virtual double GetSteeringLinkMass() const = 0;

@@ -151,8 +151,8 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
         NUM_POINTS
     };
 
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.

@@ -128,8 +128,8 @@ void ChVehicle::SetOutput(ChVehicleOutput::Type type,
 // -----------------------------------------------------------------------------
 void ChVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // Calculate total vehicle mass and inertia properties at initial configuration
-    CalculateMass();
-    CalculateInertia();
+    InitializeInertiaProperties();
+    UpdateInertiaProperties();
 
     m_initialized = true;
 }
@@ -151,7 +151,7 @@ void ChVehicle::Advance(double step) {
     }
 
     // Update inertia properties
-    CalculateInertia();
+    UpdateInertiaProperties();
 }
 
 // -----------------------------------------------------------------------------

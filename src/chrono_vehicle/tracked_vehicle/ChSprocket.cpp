@@ -90,14 +90,14 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     chassis->GetSystem()->RegisterCustomCollisionCallback(m_callback);
 }
 
-void ChSprocket::CalculateMass() {
+void ChSprocket::InitializeInertiaProperties() {
     m_mass = GetGearMass();
     m_inertia = ChMatrix33<>(0);
     m_inertia.diagonal() = GetGearInertia().eigen();
     m_com = ChFrame<>();
 }
 
-void ChSprocket::CalculateInertia() {
+void ChSprocket::UpdateInertiaProperties() {
     m_pos = m_gear->GetFrame_REF_to_abs();
 }
 

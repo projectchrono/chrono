@@ -345,12 +345,12 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_vertRotSpringA[side]);
 }
 
-void ChSAELeafspringAxle::CalculateMass() {
+void ChSAELeafspringAxle::InitializeInertiaProperties() {
     m_mass = getAxleTubeMass() +
              2 * (getSpindleMass() + getFrontLeafMass() + getRearLeafMass() + 2.0 * getClampMass() + getShackleMass());
 }
 
-void ChSAELeafspringAxle::CalculateInertia() {
+void ChSAELeafspringAxle::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
     com += getAxleTubeMass() * m_axleTube->GetPos();

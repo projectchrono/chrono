@@ -218,10 +218,10 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
 
   protected:
     /// Calculate total vehicle mass.
-    virtual void CalculateMass() override final;
+    virtual void InitializeInertiaProperties() override final;
 
     /// Calculate current vehicle inertia properties.
-    virtual void CalculateInertia() override final;
+    virtual void UpdateInertiaProperties() override final;
 
     /// Output data for all modeling components in the vehicle system.
     virtual void Output(int frame, ChVehicleOutput& database) const override;

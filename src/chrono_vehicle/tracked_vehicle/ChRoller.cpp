@@ -63,14 +63,14 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
     chassis->GetSystem()->AddLink(m_revolute);
 }
 
-void ChRoller::CalculateMass() {
+void ChRoller::InitializeInertiaProperties() {
     m_mass = GetRollerMass();
     m_inertia = ChMatrix33<>(0);
     m_inertia.diagonal() = GetRollerInertia().eigen();
     m_com = ChFrame<>();
 }
 
-void ChRoller::CalculateInertia() {
+void ChRoller::UpdateInertiaProperties() {
     m_pos = m_wheel->GetFrame_REF_to_abs();
 }
 

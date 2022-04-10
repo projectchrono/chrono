@@ -310,11 +310,11 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-void ChDoubleWishbone::CalculateMass() {
+void ChDoubleWishbone::InitializeInertiaProperties() {
     m_mass = 2 * (getSpindleMass() + getUCAMass() + getLCAMass() + getUprightMass());
 }
 
-void ChDoubleWishbone::CalculateInertia() {
+void ChDoubleWishbone::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
     com += getSpindleMass() * m_spindle[LEFT]->GetPos();

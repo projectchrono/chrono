@@ -80,8 +80,8 @@ class CH_VEHICLE_API ChRoller : public ChPart {
     void LogConstraintViolations();
 
   protected:
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Create the contact material consistent with the specified contact method.
     virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;

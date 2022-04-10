@@ -23,14 +23,14 @@ namespace vehicle {
 
 ChForceElementTire::ChForceElementTire(const std::string& name) : ChTire(name) {}
 
-void ChForceElementTire::CalculateMass() {
+void ChForceElementTire::InitializeInertiaProperties() {
     m_mass = GetTireMass();
     m_inertia.setZero();
     m_inertia.diagonal() = GetTireInertia().eigen();
     m_com = ChFrame<>();
 }
 
-void ChForceElementTire::CalculateInertia() {
+void ChForceElementTire::UpdateInertiaProperties() {
     auto spindle = m_wheel->GetSpindle();
     m_pos = ChFrame<>(spindle->TransformPointLocalToParent(ChVector<>(0, GetOffset(), 0)), spindle->GetRot());
 }

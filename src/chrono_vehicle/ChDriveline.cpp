@@ -33,14 +33,14 @@ ChDriveline::~ChDriveline() {
     }
 }
 
-void ChDriveline::CalculateMass() {
+void ChDriveline::InitializeInertiaProperties() {
     m_mass = 0;
     m_inertia = ChMatrix33<>(0);
     m_com = ChFrame<>();
     m_pos = ChFrame<>();
 }
 
-void ChDriveline::CalculateInertia() {}
+void ChDriveline::UpdateInertiaProperties() {}
 
 }  // end namespace vehicle
 }  // end namespace chrono

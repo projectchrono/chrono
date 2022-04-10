@@ -143,13 +143,13 @@ void ChChassis::RemoveJoint(std::shared_ptr<ChVehicleJoint> joint) {
 
 // -----------------------------------------------------------------------------
 
-void ChChassis::CalculateMass() {
+void ChChassis::InitializeInertiaProperties() {
     m_mass = GetBodyMass();
     m_inertia = GetBodyInertia();
     m_com = GetBodyCOMFrame();
 }
 
-void ChChassis::CalculateInertia() {
+void ChChassis::UpdateInertiaProperties() {
     m_pos = m_body->GetFrame_REF_to_abs();
 }
 
@@ -235,14 +235,14 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
 
 ChChassisConnector::ChChassisConnector(const std::string& name) : ChPart(name) {}
 
-void ChChassisConnector::CalculateMass() {
+void ChChassisConnector::InitializeInertiaProperties() {
     m_mass = 0;
     m_inertia = ChMatrix33<>(0);
     m_com = ChFrame<>();
     m_pos = ChFrame<>();
 }
 
-void ChChassisConnector::CalculateInertia() {}
+void ChChassisConnector::UpdateInertiaProperties() {}
 
 }  // end namespace vehicle
 }  // end namespace chrono

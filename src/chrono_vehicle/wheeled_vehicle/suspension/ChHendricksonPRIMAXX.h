@@ -167,8 +167,8 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     ChHendricksonPRIMAXX(const std::string& name  ///< [in] name of the subsystem
     );
 
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Indicate whether or not tirod bodies are modelled (default: false).
     /// If false, tierods are modelled using distance constraints.

@@ -104,51 +104,51 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
 
 // -----------------------------------------------------------------------------
 
-void ChTrackAssembly::CalculateMass() {
-    GetSprocket()->CalculateMass();
+void ChTrackAssembly::InitializeInertiaProperties() {
+    GetSprocket()->InitializeInertiaProperties();
     m_mass = GetSprocket()->GetMass();
 
-    m_idler->CalculateMass();
+    m_idler->InitializeInertiaProperties();
     m_mass += m_idler->GetMass();
 
     for (auto& suspension : m_suspensions) {
-        suspension->CalculateMass();
+        suspension->InitializeInertiaProperties();
         m_mass += suspension->GetMass();
     }
 
     for (auto& roller : m_rollers) {
-        roller->CalculateMass();
+        roller->InitializeInertiaProperties();
         m_mass += roller->GetMass();
     }
 
     size_t num_shoes = GetNumTrackShoes();
     for (size_t i = 0; i < num_shoes; ++i) {
-        GetTrackShoe(i)->CalculateMass();
+        GetTrackShoe(i)->InitializeInertiaProperties();
         m_mass += GetTrackShoe(i)->GetMass();
     }
 }
 
-void ChTrackAssembly::CalculateInertia() {
+void ChTrackAssembly::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
-    GetSprocket()->CalculateInertia();
+    GetSprocket()->UpdateInertiaProperties();
     com += GetSprocket()->GetMass() * GetSprocket()->GetCOMFrame_abs().GetPos();
 
-    m_idler->CalculateInertia();
+    m_idler->UpdateInertiaProperties();
     com += m_idler->GetMass() * m_idler->GetCOMFrame_abs().GetPos();
 
     for (size_t i = 0; i < m_suspensions.size(); i++) {
-        m_suspensions[i]->CalculateInertia();
+        m_suspensions[i]->UpdateInertiaProperties();
         com += m_suspensions[i]->GetMass() * m_suspensions[i]->GetCOMFrame_abs().GetPos();
     }
 
     for (size_t i = 0; i < m_rollers.size(); i++) {
-        m_rollers[i]->CalculateInertia();
+        m_rollers[i]->UpdateInertiaProperties();
         com += m_rollers[i]->GetMass() * m_rollers[i]->GetCOMFrame_abs().GetPos();
     }
 
     for (size_t i = 0; i < GetNumTrackShoes(); ++i) {
-        GetTrackShoe(i)->CalculateInertia();
+        GetTrackShoe(i)->UpdateInertiaProperties();
         com += GetTrackShoe(i)->GetMass() * GetTrackShoe(i)->GetCOMFrame_abs().GetPos();
     }
 

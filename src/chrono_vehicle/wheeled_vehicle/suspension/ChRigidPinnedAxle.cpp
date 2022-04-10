@@ -138,11 +138,11 @@ void ChRigidPinnedAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-void ChRigidPinnedAxle::CalculateMass() {
+void ChRigidPinnedAxle::InitializeInertiaProperties() {
     m_mass = getAxleTubeMass() + 2 * getSpindleMass();
 }
 
-void ChRigidPinnedAxle::CalculateInertia() {
+void ChRigidPinnedAxle::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
     com += getSpindleMass() * m_spindle[LEFT]->GetPos();

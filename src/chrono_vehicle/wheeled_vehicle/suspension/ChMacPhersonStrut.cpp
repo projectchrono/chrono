@@ -294,11 +294,11 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-void ChMacPhersonStrut::CalculateMass() {
+void ChMacPhersonStrut::InitializeInertiaProperties() {
     m_mass = 2 * (getSpindleMass() + getStrutMass() + getLCAMass() + getUprightMass());
 }
 
-void ChMacPhersonStrut::CalculateInertia() {
+void ChMacPhersonStrut::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
     com += getSpindleMass() * m_spindle[LEFT]->GetPos();

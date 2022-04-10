@@ -195,8 +195,8 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
                     VehicleSide side          ///< [in] assembly on left/right vehicle side
     );
 
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Assemble track shoes over wheels.
     /// Return true if the track shoes were initialized in a counter clockwise

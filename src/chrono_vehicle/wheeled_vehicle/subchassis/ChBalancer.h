@@ -61,8 +61,8 @@ class CH_VEHICLE_API ChBalancer : public ChSubchassis {
 
     ChBalancer(const std::string& name);
 
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the subchassis reference frame.

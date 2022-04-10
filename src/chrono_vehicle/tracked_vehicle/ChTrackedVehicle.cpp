@@ -285,39 +285,39 @@ void ChTrackedVehicle::EnableCustomContact(std::shared_ptr<ChTrackCustomContact>
 // -----------------------------------------------------------------------------
 // Calculate the total vehicle mass
 // -----------------------------------------------------------------------------
-void ChTrackedVehicle::CalculateMass() {
-    m_chassis->CalculateMass();
+void ChTrackedVehicle::InitializeInertiaProperties() {
+    m_chassis->InitializeInertiaProperties();
     m_mass = m_chassis->GetMass();
 
     for (auto& c : m_chassis_rear) {
-        c->CalculateMass();
+        c->InitializeInertiaProperties();
         m_mass += c->GetMass();
     }
 
-    m_tracks[0]->CalculateMass();
-    m_tracks[1]->CalculateMass();
+    m_tracks[0]->InitializeInertiaProperties();
+    m_tracks[1]->InitializeInertiaProperties();
     m_mass += m_tracks[0]->GetMass() + m_tracks[1]->GetMass();
 }
 
 // -----------------------------------------------------------------------------
 // Calculate current vehicle inertia properties 
 // -----------------------------------------------------------------------------
-void ChTrackedVehicle::CalculateInertia() {
+void ChTrackedVehicle::UpdateInertiaProperties() {
     // 1. Calculate the vehicle COM location relative to the global reference frame
     // 2. Calculate vehicle inertia relative to global reference frame
     // 3. Express vehicle COM relative to vehicle reference frame
     // 4. Express inertia relative to vehicle COM frame
 
-    m_chassis->CalculateInertia();
+    m_chassis->UpdateInertiaProperties();
     ChVector<> com = m_chassis->GetMass() * m_chassis->GetCOMFrame_abs().GetPos();
 
     for (auto& c : m_chassis_rear) {
-        c->CalculateInertia();
+        c->UpdateInertiaProperties();
         com += c->GetMass() * c->GetCOMFrame_abs().GetPos();
     }
 
-    m_tracks[0]->CalculateInertia();
-    m_tracks[1]->CalculateInertia();
+    m_tracks[0]->UpdateInertiaProperties();
+    m_tracks[1]->UpdateInertiaProperties();
     com += m_tracks[0]->GetMass() * m_tracks[0]->GetCOMFrame_abs().GetPos();
     com += m_tracks[1]->GetMass() * m_tracks[1]->GetCOMFrame_abs().GetPos();
 

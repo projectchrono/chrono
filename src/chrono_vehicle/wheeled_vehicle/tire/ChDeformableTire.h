@@ -171,10 +171,10 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     virtual ChVector<> GetAddedInertia() const final { return ChVector<>(0, 0, 0); }
 
      /// Return the tire mass.
-    virtual void CalculateMass() override final;
+    virtual void InitializeInertiaProperties() override final;
 
     /// Return the tire moments of inertia (in the tire centroidal frame).
-    virtual void CalculateInertia() override final;
+    virtual void UpdateInertiaProperties() override final;
 
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;

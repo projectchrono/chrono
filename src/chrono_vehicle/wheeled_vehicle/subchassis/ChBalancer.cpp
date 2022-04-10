@@ -108,11 +108,11 @@ void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>
     }
 }
 
-void ChBalancer::CalculateMass() {
+void ChBalancer::InitializeInertiaProperties() {
     m_mass = 2 * GetBalancerBeamMass();
 }
 
-void ChBalancer::CalculateInertia() {
+void ChBalancer::UpdateInertiaProperties() {
     ChVector<> com = GetBalancerBeamMass() * (m_beam[LEFT]->GetPos() + m_beam[RIGHT]->GetPos());
     m_com.coord.pos = com / GetMass();
 

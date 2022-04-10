@@ -195,11 +195,11 @@ void ChLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-void ChLeafspringAxle::CalculateMass() {
+void ChLeafspringAxle::InitializeInertiaProperties() {
     m_mass = getAxleTubeMass() + 2 * (getSpindleMass());
 }
 
-void ChLeafspringAxle::CalculateInertia() {
+void ChLeafspringAxle::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
     com += getAxleTubeMass() * m_axleTube->GetPos();

@@ -338,11 +338,11 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-void ChMultiLink::CalculateMass() {
+void ChMultiLink::InitializeInertiaProperties() {
     m_mass = 2 * (getSpindleMass() + getUpperArmMass() + getLateralMass() + getTrailingLinkMass() + getUprightMass());
 }
 
-void ChMultiLink::CalculateInertia() {
+void ChMultiLink::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
     com += getSpindleMass() * m_spindle[LEFT]->GetPos();

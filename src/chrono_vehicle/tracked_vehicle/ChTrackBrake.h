@@ -52,8 +52,8 @@ class CH_VEHICLE_API ChTrackBrake : public ChPart {
     virtual double GetBrakeTorque() = 0;
 
   protected:
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 };
 
 /// Vector of handles to brake subsystems.

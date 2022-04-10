@@ -255,11 +255,11 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
 }
 
 
-void ChThreeLinkIRS::CalculateMass() {
+void ChThreeLinkIRS::InitializeInertiaProperties() {
     m_mass = 2 * (getSpindleMass() + getArmMass() + getLowerLinkMass() + getUpperLinkMass());
 }
 
-void ChThreeLinkIRS::CalculateInertia() {
+void ChThreeLinkIRS::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
     com += getSpindleMass() * m_spindle[LEFT]->GetPos();

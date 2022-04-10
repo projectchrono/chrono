@@ -72,14 +72,14 @@ void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
 }
 
-void ChTrackShoeSinglePin::CalculateMass() {
+void ChTrackShoeSinglePin::InitializeInertiaProperties() {
     m_mass = GetShoeMass();
     m_inertia = ChMatrix33<>(0);
     m_inertia.diagonal() = GetShoeInertia().eigen();
     m_com = ChFrame<>();
 }
 
-void ChTrackShoeSinglePin::CalculateInertia() {
+void ChTrackShoeSinglePin::UpdateInertiaProperties() {
     m_pos = m_shoe->GetFrame_REF_to_abs();
 }
 

@@ -111,8 +111,8 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     const std::string& GetMeshFilename() const { return m_vis_mesh_file; }
 
   protected:
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     virtual double GetWheelMass() const = 0;
     virtual const ChVector<>& GetWheelInertia() const = 0;

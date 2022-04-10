@@ -68,14 +68,14 @@ void ChRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     chassis->GetSystem()->AddLink(m_revolute);
 }
 
-void ChRoadWheel::CalculateMass() {
+void ChRoadWheel::InitializeInertiaProperties() {
     m_mass = GetWheelMass();
     m_inertia = ChMatrix33<>(0);
     m_inertia.diagonal() = GetWheelInertia().eigen();
     m_com = ChFrame<>();
 }
 
-void ChRoadWheel::CalculateInertia() {
+void ChRoadWheel::UpdateInertiaProperties() {
     m_pos = m_wheel->GetFrame_REF_to_abs();
 }
 

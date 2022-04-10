@@ -88,6 +88,10 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the current vehicle inertia (relative to the vehicle COM frame).
     const ChMatrix33<>& GetInertia() const { return m_inertia; }
 
+    /// Get the current vehicle position relative to the global frame.
+    /// This is the same as the global position of the main chassis.
+    const ChFrame<>& GetPosition() const { return m_chassis->GetPosition(); }
+
     /// Get the vehicle global location.
     /// This is the global location of the main chassis reference frame origin.
     const ChVector<>& GetPos() const { return m_chassis->GetPos(); }
@@ -196,10 +200,10 @@ class CH_VEHICLE_API ChVehicle {
     void SetSystem(ChSystem* sys) { m_system = sys; }
 
     /// Calculate total vehicle mass from subsystems.
-    virtual void CalculateMass() = 0;
+    virtual void InitializeInertiaProperties() = 0;
 
     /// Calculate current vehicle inertia properties from subsystems.
-    virtual void CalculateInertia() = 0;
+    virtual void UpdateInertiaProperties() = 0;
 
     /// Utility function for testing if any subsystem in a list generates output.
     template <typename T>

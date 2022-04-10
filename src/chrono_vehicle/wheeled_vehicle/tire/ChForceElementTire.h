@@ -49,8 +49,8 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     virtual double GetNormalDampingForce(double depth, double velocity) const = 0;
 
   private:
-    virtual void CalculateMass() override final;
-    virtual void CalculateInertia() override final;
+    virtual void InitializeInertiaProperties() override final;
+    virtual void UpdateInertiaProperties() override final;
 
     virtual double GetAddedMass() const override final;
     virtual ChVector<> GetAddedInertia() const override final;

@@ -366,12 +366,12 @@ void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_tierodBodyToBellcrank[side]);
 }
 
-void ChSolidBellcrankThreeLinkAxle::CalculateMass() {
+void ChSolidBellcrankThreeLinkAxle::InitializeInertiaProperties() {
     m_mass = getAxleTubeMass() + getTriangleMass() + getBellcrankMass() + getDraglinkMass() +
              2 * (getSpindleMass() + getKnuckleMass() + getTierodMass() + getLinkMass());
 }
 
-void ChSolidBellcrankThreeLinkAxle::CalculateInertia() {
+void ChSolidBellcrankThreeLinkAxle::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
     com += getAxleTubeMass() * m_axleTube->GetPos();

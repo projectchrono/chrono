@@ -74,8 +74,8 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const = 0;

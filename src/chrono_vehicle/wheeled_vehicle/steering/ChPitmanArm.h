@@ -113,8 +113,8 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
     /// before Initialize().
     void SetVehicleFrameInertiaFlag(bool val) { m_vehicle_frame_inertia = val; }
 
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.

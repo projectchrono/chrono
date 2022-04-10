@@ -125,11 +125,11 @@ void ChRotaryArm::Synchronize(double time, double steering) {
 }
 
 
-void ChRotaryArm::CalculateMass() {
+void ChRotaryArm::InitializeInertiaProperties() {
     m_mass = getPitmanArmMass();
 }
 
-void ChRotaryArm::CalculateInertia() {
+void ChRotaryArm::UpdateInertiaProperties() {
     ChVector<> com = getPitmanArmMass() * m_link->GetPos();
     m_com.coord.pos = com / GetMass();
 

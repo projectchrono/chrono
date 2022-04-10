@@ -69,8 +69,8 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
     virtual void LogConstraintViolations() override;
 
   protected:
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the mass of the arm body.
     virtual double getArmMass() const = 0;

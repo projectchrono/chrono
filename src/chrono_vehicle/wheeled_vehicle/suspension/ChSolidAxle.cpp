@@ -387,12 +387,12 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-void ChSolidAxle::CalculateMass() {
+void ChSolidAxle::InitializeInertiaProperties() {
     m_mass = getAxleTubeMass() + getTierodMass() + getDraglinkMass() + getBellCrankMass() +
              2 * (getSpindleMass() + getULMass() + getLLMass() + getKnuckleMass());
 }
 
-void ChSolidAxle::CalculateInertia() {
+void ChSolidAxle::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
     com += getAxleTubeMass() * m_axleTube->GetPos();

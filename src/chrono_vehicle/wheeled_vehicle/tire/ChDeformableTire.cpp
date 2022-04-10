@@ -124,14 +124,14 @@ std::shared_ptr<ChContactSurface> ChDeformableTire::GetContactSurface() const {
 }
 
 // -----------------------------------------------------------------------------
-void ChDeformableTire::CalculateMass() {
+void ChDeformableTire::InitializeInertiaProperties() {
     ChVector<> com;
     m_mesh->ComputeMassProperties(m_mass, com, m_inertia);
     m_com = ChFrame<>(com, QUNIT);
 }
 
-void ChDeformableTire::CalculateInertia() {
-    CalculateMass();
+void ChDeformableTire::UpdateInertiaProperties() {
+    InitializeInertiaProperties();
 
     auto spindle = m_wheel->GetSpindle();
     m_pos = ChFrame<>(spindle->TransformPointLocalToParent(ChVector<>(0, GetOffset(), 0)), spindle->GetRot());

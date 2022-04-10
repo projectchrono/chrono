@@ -125,16 +125,27 @@ class CH_VEHICLE_API ChPart {
         );
 
   protected:
-    /// Calculate the subsystem mass.
-    /// Derived classes must override this function and set m_mass.
-    virtual void CalculateMass() = 0;
+    /// Initialize subsystem inertia properties.
+    /// Derived classes must override this function and set the subsystem mass (m_mass) and, if constant, the subsystem
+    /// COM frame and its inertia tensor. This function is called during initialization of the vehicle system.
+    virtual void InitializeInertiaProperties() = 0;
 
-    /// Calculate the current inertia properties and global frame of this subsystem.
-    /// Derived classes must implement this function and set m_inertia, m_com, and m_pos.
-    virtual void CalculateInertia() = 0;
+    /// Update subsystem inertia properties.
+    /// Derived classes must override this function and set the global position of the subsystem reference frame (m_pos)
+    /// and, unless constant, the subsystem COM frame (m_com) and its inertia tensor (m_inertia). Calculate the current
+    /// inertia properties and global frame of this subsystem. This function is called every time the state of the
+    /// vehicle system is advanced in time.
+    virtual void UpdateInertiaProperties() = 0;
 
     /// Get the subsystem COM frame in the absolute frame.
     ChFrame<> GetCOMFrame_abs() const;
+
+    /// Add this subsystem's inertia properties.
+    /// This utility function first invokes UpdateInertiaProperties and then incorporates the contribution from this
+    /// subsystem to the provided quantities:
+    /// - com:  COM expressed in the global frame (scaled by the subsystem mass)
+    /// - inertia: inertia tensor relative to the global reference frame
+    void AddInertiaProperties(ChVector<>& com, ChMatrix33<>& inertia);
 
     /// Create a vehicle subsystem from JSON data.
     /// A derived class must override this function and first invoke the base class implementation.

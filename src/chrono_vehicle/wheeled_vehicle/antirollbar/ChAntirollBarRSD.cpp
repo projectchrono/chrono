@@ -131,11 +131,11 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
     sys->AddLink(m_link_right);
 }
 
-void ChAntirollBarRSD::CalculateMass() {
+void ChAntirollBarRSD::InitializeInertiaProperties() {
     m_mass = 2 * getArmMass();
 }
 
-void ChAntirollBarRSD::CalculateInertia() {
+void ChAntirollBarRSD::UpdateInertiaProperties() {
     ChVector<> com = getArmMass() * m_arm_left->GetPos() + getArmMass() * m_arm_right->GetPos();
  
     m_com.coord.pos = com / GetMass();

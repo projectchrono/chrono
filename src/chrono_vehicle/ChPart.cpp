@@ -57,6 +57,10 @@ void ChPart::SetVisualizationType(VisualizationType vis) {
     AddVisualizationAssets(vis);
 }
 
+void ChPart::AddInertiaProperties(ChVector<>& com, ChMatrix33<>& inertia) {
+    //// RADU TODO: change ChFrame::TransformLocalToParent to return the transformed frame!!!!
+}
+
 // -----------------------------------------------------------------------------
 // Utility function for transforming inertia tensors between centroidal frames.
 // It converts an inertia matrix specified in a centroidal frame aligned with the

@@ -23,14 +23,14 @@ namespace vehicle {
 
 ChTrackBrake::ChTrackBrake(const std::string& name) : ChPart(name) {}
 
-void ChTrackBrake::CalculateMass() {
+void ChTrackBrake::InitializeInertiaProperties() {
     m_mass = 0;
     m_inertia = ChMatrix33<>(0);
     m_com = ChFrame<>();
     m_pos = ChFrame<>();
 }
 
-void ChTrackBrake::CalculateInertia() {}
+void ChTrackBrake::UpdateInertiaProperties() {}
 
 }  // end namespace vehicle
 }  // end namespace chrono

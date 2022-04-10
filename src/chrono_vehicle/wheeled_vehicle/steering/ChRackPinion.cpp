@@ -107,11 +107,11 @@ void ChRackPinion::Synchronize(double time, double steering) {
         fun->Set_yconst(displ);
 }
 
-void ChRackPinion::CalculateMass() {
+void ChRackPinion::InitializeInertiaProperties() {
     m_mass = GetSteeringLinkMass();
 }
 
-void ChRackPinion::CalculateInertia() {
+void ChRackPinion::UpdateInertiaProperties() {
     m_com.coord.pos = m_link->GetPos();
 
     //// RADU TODO

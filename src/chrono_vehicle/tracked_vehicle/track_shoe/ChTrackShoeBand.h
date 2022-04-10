@@ -66,8 +66,8 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     void ExportTreadVisualizationMeshPovray(const std::string& out_dir);
 
   protected:
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the mass of the tread body.
     virtual double GetTreadMass() const = 0;

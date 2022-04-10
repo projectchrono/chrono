@@ -154,8 +154,8 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Utility force to add an external load to the chassis body.
     void AddExternalForce(std::shared_ptr<ExternalForce> force);
 
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
   protected:
     virtual double GetBodyMass() const = 0;
@@ -233,8 +233,8 @@ class CH_VEHICLE_API ChChassisConnector : public ChPart {
     ) {}
 
   private:
-    virtual void CalculateMass() override;
-    virtual void CalculateInertia() override;
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 };
 
 /// Vector of handles to rear chassis subsystems.

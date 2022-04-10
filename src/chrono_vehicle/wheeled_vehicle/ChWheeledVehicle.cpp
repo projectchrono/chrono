@@ -264,39 +264,39 @@ std::shared_ptr<ChBrake> ChWheeledVehicle::GetBrake(int axle, VehicleSide side) 
 // -----------------------------------------------------------------------------
 // Calculate the total vehicle mass
 // -----------------------------------------------------------------------------
-void ChWheeledVehicle::CalculateMass() {
-    m_chassis->CalculateMass();
+void ChWheeledVehicle::InitializeInertiaProperties() {
+    m_chassis->InitializeInertiaProperties();
     m_mass = m_chassis->GetMass();
 
     for (auto& c : m_chassis_rear) {
-        c->CalculateMass();
+        c->InitializeInertiaProperties();
         m_mass += c->GetMass();
     }
 
     for (auto& sc : m_subchassis) {
-        sc->CalculateMass();
+        sc->InitializeInertiaProperties();
         m_mass += sc->GetMass();
     }
 
     for (auto& axle : m_axles) {
-        axle->m_suspension->CalculateMass();
+        axle->m_suspension->InitializeInertiaProperties();
         m_mass += axle->m_suspension->GetMass();
 
         for (auto& wheel : axle->GetWheels()) {
             if (wheel->GetTire()) {
-                wheel->GetTire()->CalculateMass();
+                wheel->GetTire()->InitializeInertiaProperties();
                 m_mass += wheel->GetTire()->GetMass() - wheel->GetTire()->GetAddedMass();
             }
         }
 
         if (axle->m_antirollbar) {
-            axle->m_antirollbar->CalculateMass();
+            axle->m_antirollbar->InitializeInertiaProperties();
             m_mass += axle->m_antirollbar->GetMass();
         }
     }
 
     for (auto& steering : m_steerings) {
-        steering->CalculateMass();
+        steering->InitializeInertiaProperties();
         m_mass += steering->GetMass();
     }
 }
@@ -304,51 +304,38 @@ void ChWheeledVehicle::CalculateMass() {
 // -----------------------------------------------------------------------------
 // Calculate current vehicle inertia properties
 // -----------------------------------------------------------------------------
-void ChWheeledVehicle::CalculateInertia() {
-    // 1. Calculate the vehicle COM location relative to the global reference frame
+void ChWheeledVehicle::UpdateInertiaProperties() {
+    // 1. Calculate vehicle COM location relative to the global reference frame
     // 2. Calculate vehicle inertia relative to global reference frame
-    // 3. Express vehicle COM relative to vehicle reference frame
-    // 4. Express inertia relative to vehicle COM frame
+    ChVector<> com(0);
+    ChMatrix33<> inertia(0);
 
-    m_chassis->CalculateInertia();
-    ChVector<> com = m_chassis->GetMass() * m_chassis->GetCOMFrame_abs().GetPos();
+    m_chassis->AddInertiaProperties(com, inertia);
 
-    for (auto& c : m_chassis_rear) {
-        c->CalculateInertia();
-        com += c->GetMass() * c->GetCOMFrame_abs().GetPos();
-    }
+    for (auto& c : m_chassis_rear)
+        c->AddInertiaProperties(com, inertia);
 
-    for (auto& sc : m_subchassis) {
-        sc->CalculateInertia();
-        com += sc->GetMass() * sc->GetCOMFrame_abs().GetPos();
-    }
+    for (auto& sc : m_subchassis)
+        sc->AddInertiaProperties(com, inertia);
 
     for (auto& axle : m_axles) {
-        axle->m_suspension->CalculateInertia();
-        com += axle->m_suspension->GetMass() * axle->m_suspension->GetCOMFrame_abs().GetPos();
+        axle->m_suspension->AddInertiaProperties(com, inertia);
 
-        for (auto& wheel : axle->GetWheels()) {
-            if (wheel->GetTire()) {
-                wheel->GetTire()->CalculateInertia();
-                com += (wheel->GetTire()->GetMass() - wheel->GetTire()->GetAddedMass()) *
-                       wheel->GetTire()->GetCOMFrame_abs().GetPos();
-            }
-        }
+        for (auto& wheel : axle->GetWheels())
+            if (wheel->GetTire()) 
+                wheel->GetTire()->AddInertiaProperties(com, inertia);
 
-        if (axle->m_antirollbar) {
-            axle->m_antirollbar->CalculateInertia();
-            com += axle->m_antirollbar->GetMass() * axle->m_antirollbar->GetCOMFrame_abs().GetPos();
-        }
-    }
-    
-    for (auto steering : m_steerings) {
-        steering->CalculateInertia();
-        com += steering->GetMass() * steering->GetCOMFrame_abs().GetPos();
+        if (axle->m_antirollbar)
+            axle->m_antirollbar->AddInertiaProperties(com, inertia);
     }
 
-    m_com.coord.pos = com / GetMass();
+    for (auto steering : m_steerings)
+        steering->AddInertiaProperties(com, inertia);
 
     //// RADU TODO
+    // 4. Express inertia relative to vehicle COM frame
+    //    Notes: - vehicle COM frame aligned with vehicle frame
+    //           - 'com' still scaled by total mass here
 }
 
 // -----------------------------------------------------------------------------

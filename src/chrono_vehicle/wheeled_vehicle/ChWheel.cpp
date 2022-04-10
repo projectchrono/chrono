@@ -51,14 +51,14 @@ void ChWheel::Initialize(std::shared_ptr<ChBody> spindle, VehicleSide side, doub
     m_spindle->SetInertiaXX(m_spindle->GetInertiaXX() + GetWheelInertia());
 }
 
-void ChWheel::CalculateMass() {
+void ChWheel::InitializeInertiaProperties() {
     m_mass = GetWheelMass();
     m_inertia = ChMatrix33<>(0);
     m_inertia.diagonal() = GetWheelInertia().eigen();
     m_com = ChFrame<>();
 }
 
-void ChWheel::CalculateInertia() {
+void ChWheel::UpdateInertiaProperties() {
     m_pos = ChFrame<>(m_spindle->TransformPointLocalToParent(ChVector<>(0, m_offset, 0)), m_spindle->GetRot());
 }
 

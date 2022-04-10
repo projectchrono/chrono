@@ -254,11 +254,11 @@ void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_linkBodyToChassis[side]);
 }
 
-void ChSolidThreeLinkAxle::CalculateMass() {
+void ChSolidThreeLinkAxle::InitializeInertiaProperties() {
     m_mass = getAxleTubeMass() + getTriangleMass() + 2 * (getSpindleMass() + getLinkMass());
 }
 
-void ChSolidThreeLinkAxle::CalculateInertia() {
+void ChSolidThreeLinkAxle::UpdateInertiaProperties() {
     ChVector<> com(0, 0, 0);
 
     com += getAxleTubeMass() * m_axleTube->GetPos();

@@ -80,14 +80,14 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     wheel_body->GetCollisionModel()->BuildModel();
 }
 
-void ChRigidTire::CalculateMass() {
+void ChRigidTire::InitializeInertiaProperties() {
     m_mass = GetTireMass();
     m_inertia.setZero();
     m_inertia.diagonal() = GetTireInertia().eigen();
     m_com = ChFrame<>();
 }
 
-void ChRigidTire::CalculateInertia() {
+void ChRigidTire::UpdateInertiaProperties() {
     auto spindle = m_wheel->GetSpindle();
     m_pos = ChFrame<>(spindle->TransformPointLocalToParent(ChVector<>(0, GetOffset(), 0)), spindle->GetRot());
 }
