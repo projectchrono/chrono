@@ -80,7 +80,7 @@ void ChTrackShoeSinglePin::InitializeInertiaProperties() {
 }
 
 void ChTrackShoeSinglePin::UpdateInertiaProperties() {
-    m_pos = m_shoe->GetFrame_REF_to_abs();
+    m_xform = m_shoe->GetFrame_REF_to_abs();
 }
 
 // -----------------------------------------------------------------------------

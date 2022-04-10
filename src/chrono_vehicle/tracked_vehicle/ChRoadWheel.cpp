@@ -76,7 +76,7 @@ void ChRoadWheel::InitializeInertiaProperties() {
 }
 
 void ChRoadWheel::UpdateInertiaProperties() {
-    m_pos = m_wheel->GetFrame_REF_to_abs();
+    m_xform = m_wheel->GetFrame_REF_to_abs();
 }
 
 // -----------------------------------------------------------------------------

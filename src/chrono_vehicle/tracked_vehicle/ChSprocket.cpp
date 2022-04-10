@@ -98,7 +98,7 @@ void ChSprocket::InitializeInertiaProperties() {
 }
 
 void ChSprocket::UpdateInertiaProperties() {
-    m_pos = m_gear->GetFrame_REF_to_abs();
+    m_xform = m_gear->GetFrame_REF_to_abs();
 }
 
 // -----------------------------------------------------------------------------

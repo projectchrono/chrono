@@ -32,7 +32,7 @@ void ChForceElementTire::InitializeInertiaProperties() {
 
 void ChForceElementTire::UpdateInertiaProperties() {
     auto spindle = m_wheel->GetSpindle();
-    m_pos = ChFrame<>(spindle->TransformPointLocalToParent(ChVector<>(0, GetOffset(), 0)), spindle->GetRot());
+    m_xform = ChFrame<>(spindle->TransformPointLocalToParent(ChVector<>(0, GetOffset(), 0)), spindle->GetRot());
 }
 
 double ChForceElementTire::GetAddedMass() const {

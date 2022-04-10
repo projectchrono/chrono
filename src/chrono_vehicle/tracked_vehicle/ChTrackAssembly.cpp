@@ -105,56 +105,44 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
 // -----------------------------------------------------------------------------
 
 void ChTrackAssembly::InitializeInertiaProperties() {
-    GetSprocket()->InitializeInertiaProperties();
-    m_mass = GetSprocket()->GetMass();
+    m_mass = 0;
 
-    m_idler->InitializeInertiaProperties();
-    m_mass += m_idler->GetMass();
+    GetSprocket()->AddMass(m_mass);
 
-    for (auto& suspension : m_suspensions) {
-        suspension->InitializeInertiaProperties();
-        m_mass += suspension->GetMass();
-    }
+    m_idler->AddMass(m_mass);
 
-    for (auto& roller : m_rollers) {
-        roller->InitializeInertiaProperties();
-        m_mass += roller->GetMass();
-    }
+    for (auto& suspension : m_suspensions)
+        suspension->AddMass(m_mass);
 
-    size_t num_shoes = GetNumTrackShoes();
-    for (size_t i = 0; i < num_shoes; ++i) {
-        GetTrackShoe(i)->InitializeInertiaProperties();
-        m_mass += GetTrackShoe(i)->GetMass();
-    }
+    for (auto& roller : m_rollers)
+        roller->AddMass(m_mass);
+
+    for (size_t i = 0; i < GetNumTrackShoes(); ++i)
+        GetTrackShoe(i)->AddMass(m_mass);
 }
 
 void ChTrackAssembly::UpdateInertiaProperties() {
-    ChVector<> com(0, 0, 0);
+    ChVector<> com(0);
+    ChMatrix33<> inertia(0);
 
-    GetSprocket()->UpdateInertiaProperties();
-    com += GetSprocket()->GetMass() * GetSprocket()->GetCOMFrame_abs().GetPos();
+    GetSprocket()->AddInertiaProperties(com, inertia);
 
-    m_idler->UpdateInertiaProperties();
-    com += m_idler->GetMass() * m_idler->GetCOMFrame_abs().GetPos();
+    m_idler->AddInertiaProperties(com, inertia);
 
-    for (size_t i = 0; i < m_suspensions.size(); i++) {
-        m_suspensions[i]->UpdateInertiaProperties();
-        com += m_suspensions[i]->GetMass() * m_suspensions[i]->GetCOMFrame_abs().GetPos();
-    }
+    for (auto& suspension : m_suspensions)
+        suspension->AddInertiaProperties(com, inertia);
 
-    for (size_t i = 0; i < m_rollers.size(); i++) {
-        m_rollers[i]->UpdateInertiaProperties();
-        com += m_rollers[i]->GetMass() * m_rollers[i]->GetCOMFrame_abs().GetPos();
-    }
+    for (auto& roller : m_rollers)
+        roller->AddInertiaProperties(com, inertia);
 
-    for (size_t i = 0; i < GetNumTrackShoes(); ++i) {
-        GetTrackShoe(i)->UpdateInertiaProperties();
-        com += GetTrackShoe(i)->GetMass() * GetTrackShoe(i)->GetCOMFrame_abs().GetPos();
-    }
+    for (size_t i = 0; i < GetNumTrackShoes(); ++i)
+        GetTrackShoe(i)->AddInertiaProperties(com, inertia);
 
-    m_com.coord.pos = com / GetMass();
+    m_com.coord.pos = GetTransform().TransformPointParentToLocal(com / GetMass());
+    m_com.coord.rot = GetTransform().GetRot();
 
-    //// RADU TODO
+    const ChMatrix33<>& A = GetTransform().GetA();
+    m_inertia = A.transpose() * (inertia - ChPart::InertiaShiftMatrix(com)) * A;
 }
 
 // -----------------------------------------------------------------------------

@@ -88,7 +88,7 @@ class CH_VEHICLE_API ChPart {
     /// Get the current subsystem position relative to the global frame.
     /// Note that the vehicle frame is defined to be the reference frame of the (main) chassis.
     /// Note that the correct value is reported only *after* the subsystem is initialized.
-    const ChFrame<>& GetPosition() const { return m_pos; }
+    const ChFrame<>& GetTransform() const { return m_xform; }
 
     /// Set the visualization mode for this subsystem.
     void SetVisualizationType(VisualizationType vis);
@@ -124,6 +124,10 @@ class CH_VEHICLE_API ChPart {
         const ChMatrix33<>& body_rot      ///< body absolute orientation matrix
         );
 
+    /// Utility function for calculating an inertia shift matrix from a given vector.
+    /// This matrix is used when applying the parallel axis theorem.
+    static ChMatrix33<> InertiaShiftMatrix(const ChVector<>& v);
+
   protected:
     /// Initialize subsystem inertia properties.
     /// Derived classes must override this function and set the subsystem mass (m_mass) and, if constant, the subsystem
@@ -131,14 +135,15 @@ class CH_VEHICLE_API ChPart {
     virtual void InitializeInertiaProperties() = 0;
 
     /// Update subsystem inertia properties.
-    /// Derived classes must override this function and set the global position of the subsystem reference frame (m_pos)
-    /// and, unless constant, the subsystem COM frame (m_com) and its inertia tensor (m_inertia). Calculate the current
-    /// inertia properties and global frame of this subsystem. This function is called every time the state of the
-    /// vehicle system is advanced in time.
+    /// Derived classes must override this function and set the global subsystem transform (m_xform) and, unless
+    /// constant, the subsystem COM frame (m_com) and its inertia tensor (m_inertia). Calculate the current inertia
+    /// properties and global frame of this subsystem. This function is called every time the state of the vehicle
+    /// system is advanced in time.
     virtual void UpdateInertiaProperties() = 0;
 
-    /// Get the subsystem COM frame in the absolute frame.
-    ChFrame<> GetCOMFrame_abs() const;
+    /// Add this subsystem's mass.
+    /// This utility function first invokes InitializeInertiaProperties and then increments the given total mass.
+    void AddMass(double& mass);
 
     /// Add this subsystem's inertia properties.
     /// This utility function first invokes UpdateInertiaProperties and then incorporates the contribution from this
@@ -184,7 +189,7 @@ class CH_VEHICLE_API ChPart {
     double m_mass;           ///< subsystem mass
     ChMatrix33<> m_inertia;  ///< inertia tensor (relative to subsystem COM)
     ChFrame<> m_com;         ///< COM frame (relative to subsystem reference frame)
-    ChFrame<> m_pos;         ///< global position of the subsystem frame
+    ChFrame<> m_xform;       ///< subsystem frame expressed in the global frame
 
   private:
     friend class ChAxle;

@@ -37,7 +37,7 @@ void ChDriveline::InitializeInertiaProperties() {
     m_mass = 0;
     m_inertia = ChMatrix33<>(0);
     m_com = ChFrame<>();
-    m_pos = ChFrame<>();
+    m_xform = ChFrame<>();
 }
 
 void ChDriveline::UpdateInertiaProperties() {}

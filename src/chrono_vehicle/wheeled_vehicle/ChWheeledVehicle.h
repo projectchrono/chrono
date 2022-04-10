@@ -257,9 +257,11 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
 
   protected:
     /// Calculate total vehicle mass.
+    /// This function is called at the end of the vehicle initialization.
     virtual void InitializeInertiaProperties() override final;
 
     /// Calculate current vehicle inertia properties.
+    /// This function is called at the end of each vehicle state advance.
     virtual void UpdateInertiaProperties() override final;
 
     /// Output data for all modeling components in the vehicle system.

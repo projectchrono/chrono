@@ -88,9 +88,9 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the current vehicle inertia (relative to the vehicle COM frame).
     const ChMatrix33<>& GetInertia() const { return m_inertia; }
 
-    /// Get the current vehicle position relative to the global frame.
-    /// This is the same as the global position of the main chassis.
-    const ChFrame<>& GetPosition() const { return m_chassis->GetPosition(); }
+    /// Get the current vehicle transform relative to the global frame.
+    /// This is the same as the global transform of the main chassis.
+    const ChFrame<>& GetTransform() const { return m_chassis->GetTransform(); }
 
     /// Get the vehicle global location.
     /// This is the global location of the main chassis reference frame origin.
@@ -200,9 +200,11 @@ class CH_VEHICLE_API ChVehicle {
     void SetSystem(ChSystem* sys) { m_system = sys; }
 
     /// Calculate total vehicle mass from subsystems.
+    /// This function is called at the end of the vehicle initialization.
     virtual void InitializeInertiaProperties() = 0;
 
     /// Calculate current vehicle inertia properties from subsystems.
+    /// This function is called at the end of each vehicle state advance.
     virtual void UpdateInertiaProperties() = 0;
 
     /// Utility function for testing if any subsystem in a list generates output.
@@ -218,8 +220,8 @@ class CH_VEHICLE_API ChVehicle {
     bool m_ownsSystem;   ///< true if system created at construction
 
     double m_mass;           ///< total vehicle mass
-    ChMatrix33<> m_inertia;  ///< current total vehicle inertia
-    ChFrame<> m_com;         ///< current vehicle COM
+    ChFrame<> m_com;         ///< current vehicle COM (relative to the vehicle reference frame)
+    ChMatrix33<> m_inertia;  ///< current total vehicle inertia (Relative to the vehicle COM frame)
 
     bool m_output;                 ///< generate ouput for this vehicle system
     ChVehicleOutput* m_output_db;  ///< vehicle output database

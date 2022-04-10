@@ -71,7 +71,7 @@ void ChRoller::InitializeInertiaProperties() {
 }
 
 void ChRoller::UpdateInertiaProperties() {
-    m_pos = m_wheel->GetFrame_REF_to_abs();
+    m_xform = m_wheel->GetFrame_REF_to_abs();
 }
 
 // -----------------------------------------------------------------------------

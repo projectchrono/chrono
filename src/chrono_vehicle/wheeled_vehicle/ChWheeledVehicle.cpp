@@ -265,23 +265,22 @@ std::shared_ptr<ChBrake> ChWheeledVehicle::GetBrake(int axle, VehicleSide side) 
 // Calculate the total vehicle mass
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::InitializeInertiaProperties() {
-    m_chassis->InitializeInertiaProperties();
-    m_mass = m_chassis->GetMass();
+    m_mass = 0;
 
-    for (auto& c : m_chassis_rear) {
-        c->InitializeInertiaProperties();
-        m_mass += c->GetMass();
-    }
+    m_chassis->AddMass(m_mass);
 
-    for (auto& sc : m_subchassis) {
-        sc->InitializeInertiaProperties();
-        m_mass += sc->GetMass();
-    }
+    for (auto& c : m_chassis_rear)
+        c->AddMass(m_mass);
+
+    for (auto& sc : m_subchassis)
+        sc->AddMass(m_mass);
 
     for (auto& axle : m_axles) {
-        axle->m_suspension->InitializeInertiaProperties();
-        m_mass += axle->m_suspension->GetMass();
+        axle->m_suspension->AddMass(m_mass);
 
+        // Special treatment for wheels and tires:
+        // - wheel mass already included in suspension mass (through spindle body)
+        // - include mass only from tires that do not add mass to the spindle
         for (auto& wheel : axle->GetWheels()) {
             if (wheel->GetTire()) {
                 wheel->GetTire()->InitializeInertiaProperties();
@@ -289,16 +288,12 @@ void ChWheeledVehicle::InitializeInertiaProperties() {
             }
         }
 
-        if (axle->m_antirollbar) {
-            axle->m_antirollbar->InitializeInertiaProperties();
-            m_mass += axle->m_antirollbar->GetMass();
-        }
+        if (axle->m_antirollbar)
+            axle->m_antirollbar->AddMass(m_mass);
     }
 
-    for (auto& steering : m_steerings) {
-        steering->InitializeInertiaProperties();
-        m_mass += steering->GetMass();
-    }
+    for (auto& steering : m_steerings)
+        steering->AddMass(m_mass);
 }
 
 // -----------------------------------------------------------------------------
@@ -321,21 +316,31 @@ void ChWheeledVehicle::UpdateInertiaProperties() {
     for (auto& axle : m_axles) {
         axle->m_suspension->AddInertiaProperties(com, inertia);
 
-        for (auto& wheel : axle->GetWheels())
-            if (wheel->GetTire()) 
+        //// RADU TODO
+        // Special treatment for wheels and tires:
+        // - wheel inertia already included in suspension inertia (through spindle body)
+        // - include inertia only from tires that do not add inertia to the spindle
+        for (auto& wheel : axle->GetWheels()) {
+            if (wheel->GetTire())
                 wheel->GetTire()->AddInertiaProperties(com, inertia);
+        }
 
         if (axle->m_antirollbar)
             axle->m_antirollbar->AddInertiaProperties(com, inertia);
     }
 
-    for (auto steering : m_steerings)
+    for (auto& steering : m_steerings)
         steering->AddInertiaProperties(com, inertia);
 
-    //// RADU TODO
+    // 3. Express vehicle COM frame relative to vehicle reference frame
+    m_com.coord.pos = GetTransform().TransformPointParentToLocal(com / GetMass());
+    m_com.coord.rot = GetTransform().GetRot();
+
     // 4. Express inertia relative to vehicle COM frame
     //    Notes: - vehicle COM frame aligned with vehicle frame
     //           - 'com' still scaled by total mass here
+    const ChMatrix33<>& A = GetTransform().GetA();
+    m_inertia = A.transpose() * (inertia - ChPart::InertiaShiftMatrix(com)) * A;
 }
 
 // -----------------------------------------------------------------------------

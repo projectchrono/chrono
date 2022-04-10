@@ -59,7 +59,7 @@ void ChWheel::InitializeInertiaProperties() {
 }
 
 void ChWheel::UpdateInertiaProperties() {
-    m_pos = ChFrame<>(m_spindle->TransformPointLocalToParent(ChVector<>(0, m_offset, 0)), m_spindle->GetRot());
+    m_xform = ChFrame<>(m_spindle->TransformPointLocalToParent(ChVector<>(0, m_offset, 0)), m_spindle->GetRot());
 }
 
 void ChWheel::Synchronize() {

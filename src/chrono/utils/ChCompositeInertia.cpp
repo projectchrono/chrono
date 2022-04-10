@@ -69,7 +69,7 @@ void CompositeInertia::AddComponent(
     offset(1, 2) = -com.y() * com.z();
     offset(2, 1) = -com.y() * com.z();
 
-    ChMatrix33<> increment = A.transpose() * inertia * A + offset * mass;
+    ChMatrix33<> increment = A * inertia * A.transpose() + offset * mass;
     if (is_void)
         m_inertia -= increment;
     else

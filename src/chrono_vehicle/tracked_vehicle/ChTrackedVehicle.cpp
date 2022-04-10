@@ -286,17 +286,15 @@ void ChTrackedVehicle::EnableCustomContact(std::shared_ptr<ChTrackCustomContact>
 // Calculate the total vehicle mass
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::InitializeInertiaProperties() {
-    m_chassis->InitializeInertiaProperties();
-    m_mass = m_chassis->GetMass();
+    m_mass = 0;
 
-    for (auto& c : m_chassis_rear) {
-        c->InitializeInertiaProperties();
-        m_mass += c->GetMass();
-    }
+    m_chassis->AddMass(m_mass);
 
-    m_tracks[0]->InitializeInertiaProperties();
-    m_tracks[1]->InitializeInertiaProperties();
-    m_mass += m_tracks[0]->GetMass() + m_tracks[1]->GetMass();
+    for (auto& c : m_chassis_rear)
+        c->AddMass(m_mass);
+
+    m_tracks[0]->AddMass(m_mass);
+    m_tracks[1]->AddMass(m_mass);
 }
 
 // -----------------------------------------------------------------------------
@@ -305,25 +303,26 @@ void ChTrackedVehicle::InitializeInertiaProperties() {
 void ChTrackedVehicle::UpdateInertiaProperties() {
     // 1. Calculate the vehicle COM location relative to the global reference frame
     // 2. Calculate vehicle inertia relative to global reference frame
-    // 3. Express vehicle COM relative to vehicle reference frame
+    ChVector<> com(0);
+    ChMatrix33<> inertia(0);
+    
+    m_chassis->AddInertiaProperties(com, inertia);
+
+    for (auto& c : m_chassis_rear)
+        c->AddInertiaProperties(com, inertia);
+
+    m_tracks[0]->AddInertiaProperties(com, inertia);
+    m_tracks[1]->AddInertiaProperties(com, inertia);
+
+    // 3. Express vehicle COM frame relative to vehicle reference frame
+    m_com.coord.pos = GetTransform().TransformPointParentToLocal(com / GetMass());
+    m_com.coord.rot = GetTransform().GetRot();
+
     // 4. Express inertia relative to vehicle COM frame
-
-    m_chassis->UpdateInertiaProperties();
-    ChVector<> com = m_chassis->GetMass() * m_chassis->GetCOMFrame_abs().GetPos();
-
-    for (auto& c : m_chassis_rear) {
-        c->UpdateInertiaProperties();
-        com += c->GetMass() * c->GetCOMFrame_abs().GetPos();
-    }
-
-    m_tracks[0]->UpdateInertiaProperties();
-    m_tracks[1]->UpdateInertiaProperties();
-    com += m_tracks[0]->GetMass() * m_tracks[0]->GetCOMFrame_abs().GetPos();
-    com += m_tracks[1]->GetMass() * m_tracks[1]->GetCOMFrame_abs().GetPos();
-
-    m_com.coord.pos = com / GetMass();
-
-    //// RADU TODO
+    //    Notes: - vehicle COM frame aligned with vehicle frame
+    //           - 'com' still scaled by total mass here
+    const ChMatrix33<>& A = GetTransform().GetA();
+    m_inertia = A.transpose() * (inertia - ChPart::InertiaShiftMatrix(com)) * A;
 }
 
 // -----------------------------------------------------------------------------

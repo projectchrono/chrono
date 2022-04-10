@@ -37,7 +37,7 @@ class CH_VEHICLE_API ChSteering : public ChPart {
     virtual ~ChSteering();
 
     /// Get the frame of the steering subsystem relative to the associated chassis reference frame.
-    const ChFrame<>& GetPosition() const { return m_position; }
+    const ChFrame<>& GetRelTransform() const { return m_position; }
 
     /// Get a handle to the main link of the steering subsystems.
     /// Return a handle to the body to which the tierods of a steerable

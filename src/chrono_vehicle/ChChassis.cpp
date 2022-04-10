@@ -150,7 +150,7 @@ void ChChassis::InitializeInertiaProperties() {
 }
 
 void ChChassis::UpdateInertiaProperties() {
-    m_pos = m_body->GetFrame_REF_to_abs();
+    m_xform = m_body->GetFrame_REF_to_abs();
 }
 
 // -----------------------------------------------------------------------------
@@ -239,7 +239,7 @@ void ChChassisConnector::InitializeInertiaProperties() {
     m_mass = 0;
     m_inertia = ChMatrix33<>(0);
     m_com = ChFrame<>();
-    m_pos = ChFrame<>();
+    m_xform = ChFrame<>();
 }
 
 void ChChassisConnector::UpdateInertiaProperties() {}
