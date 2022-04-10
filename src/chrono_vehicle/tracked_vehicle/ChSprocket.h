@@ -30,12 +30,6 @@
 #ifndef CH_SPROCKET_H
 #define CH_SPROCKET_H
 
-#include <vector>
-
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
 #include "chrono/geometry/ChLinePath.h"
@@ -44,7 +38,7 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
 
 namespace chrono {
 namespace vehicle {

@@ -24,13 +24,7 @@
 #ifndef CH_TRACK_ASSEMBLY_H
 #define CH_TRACK_ASSEMBLY_H
 
-#include <vector>
-
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChBodyAuxRef.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"

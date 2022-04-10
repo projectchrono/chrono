@@ -19,10 +19,7 @@
 #ifndef CH_SUBCHASSIS_H
 #define CH_SUBCHASSIS_H
 
-#include "chrono/physics/ChBodyAuxRef.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChChassis.h"
 
 namespace chrono {

@@ -24,9 +24,6 @@
 #ifndef CH_WHEEL_H
 #define CH_WHEEL_H
 
-#include <vector>
-
-#include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 

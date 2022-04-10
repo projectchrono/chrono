@@ -22,8 +22,6 @@
 #ifndef CH_WHEELED_VEHICLE_H
 #define CH_WHEELED_VEHICLE_H
 
-#include <vector>
-
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"

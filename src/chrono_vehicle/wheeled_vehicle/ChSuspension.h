@@ -19,10 +19,6 @@
 #ifndef CH_SUSPENSION_H
 #define CH_SUSPENSION_H
 
-#include <string>
-#include <vector>
-
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
 #include "chrono/assets/ChCylinderShape.h"

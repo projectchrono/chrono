@@ -19,10 +19,8 @@
 #ifndef CH_BRAKE_H
 #define CH_BRAKE_H
 
-#include <vector>
-
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
 namespace chrono {

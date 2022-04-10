@@ -24,9 +24,6 @@
 #ifndef CH_AXLE_H
 #define CH_AXLE_H
 
-#include <string>
-#include <vector>
-
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
