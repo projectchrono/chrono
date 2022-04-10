@@ -127,7 +127,6 @@ private:
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
     //
     void export_image();
-    void export_image_vk();
 };
 }  // namespace vsg3d
 }  // namespace chrono
