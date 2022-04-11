@@ -3,7 +3,7 @@ mkdir build
 cd build
 REM Getting VS variables
 mkdir attempt_to_run_vsbat_file
-call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\LaunchDevCmd.bat"
+REM call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\LaunchDevCmd.bat"
 mkdir ran_vsbat_file
 REM Remove dot from PY_VER for use in library name
 set MY_PY_VER=%PY_VER:.=%
