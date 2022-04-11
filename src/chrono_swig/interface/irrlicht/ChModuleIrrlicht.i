@@ -71,7 +71,7 @@ using namespace gui;
 #define ChApiIrr 
 #define ChApi 
 #define IRRLICHT_API
-#define _IRR_DEPRECATED_ //
+#define _IRR_DEPRECATED_
 #define CH_DEPRECATED(msg)
 
 // Include other .i configuration files for SWIG. 

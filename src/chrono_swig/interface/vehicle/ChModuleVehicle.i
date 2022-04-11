@@ -350,6 +350,16 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import(module = "pychrono.core")  "../../../chrono/physics/ChLinkBase.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTexture.i"
 %import(module = "pychrono.core")  "../../../chrono/assets/ChTriangleMeshShape.h"
+
+#ifdef CHRONO_IRRLICHT
+
+#define ChApiIrr 
+#define IRRLICHT_API
+#define _IRR_DEPRECATED_
+
+%include "chrono_swig/interface/vehicle/ChVehicleVisualSystemIrrlicht.i"
+#endif
+
 #endif
 
 // TODO: 
