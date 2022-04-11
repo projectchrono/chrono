@@ -36,8 +36,7 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DMKL_RT_LIBRARY="%CONDA_INSTALL_LOCN%"\Library\lib\mkl_rt.lib ^
  -DIOMP5_LIBRARY="%CONDA_INSTALL_LOCN%"\Library\lib\libiomp5md.lib ^
  -DPYCHRONO_DATA_PATH="..\..\..\..\..\Library\data" ^
- .. 
-REM ">> "%LOG_DIR%"\cmakeconfiglog.txt 2>&1"
+ .. >> "%LOG_DIR%"\cmakeconfiglog.txt 2>&1
 if errorlevel 1 exit 1
  
 REM Build step 
