@@ -116,10 +116,16 @@ void ChBalancer::InitializeInertiaProperties() {
 void ChBalancer::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    ChVector<> com = GetBalancerBeamMass() * (m_beam[LEFT]->GetPos() + m_beam[RIGHT]->GetPos());
-    m_com.coord.pos = com / GetMass();
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_beam[LEFT]->GetFrame_COG_to_abs(), m_beam[LEFT]->GetMass(), m_beam[LEFT]->GetInertia());
+    composite.AddComponent(m_beam[RIGHT]->GetFrame_COG_to_abs(), m_beam[RIGHT]->GetMass(), m_beam[RIGHT]->GetInertia());
 
-    //// RADU TODO
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 // -----------------------------------------------------------------------------

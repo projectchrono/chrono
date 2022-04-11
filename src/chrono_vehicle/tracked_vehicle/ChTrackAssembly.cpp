@@ -147,7 +147,7 @@ void ChTrackAssembly::UpdateInertiaProperties() {
     m_com.coord.rot = GetTransform().GetRot();
 
     const ChMatrix33<>& A = GetTransform().GetA();
-    m_inertia = A.transpose() * (inertia - ChPart::InertiaShiftMatrix(com)) * A;
+    m_inertia = A.transpose() * (inertia - utils::CompositeInertia::InertiaShiftMatrix(com)) * A;
 }
 
 // -----------------------------------------------------------------------------

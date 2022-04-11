@@ -183,10 +183,16 @@ void ChPitmanArm::InitializeInertiaProperties() {
 void ChPitmanArm::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
 
-    //// RADU TODO
-    ChVector<> com = getSteeringLinkMass() * m_link->GetPos() + getPitmanArmMass() * m_arm->GetPos();
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_link->GetFrame_COG_to_abs(), m_link->GetMass(), m_link->GetInertia());
+    composite.AddComponent(m_arm->GetFrame_COG_to_abs(), m_arm->GetMass(), m_arm->GetInertia());
 
-    m_com.coord.pos = com / GetMass();
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = m_xform.coord.rot;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 // -----------------------------------------------------------------------------

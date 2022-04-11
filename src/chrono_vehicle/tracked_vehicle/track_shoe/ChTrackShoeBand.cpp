@@ -33,7 +33,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-
 // Utility function to calculate the center of a circle of given radius which passes through two given points.
 static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
     // midpoint
@@ -63,6 +62,7 @@ static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, 
     return O;
 }
 
+// -----------------------------------------------------------------------------
 ChTrackShoeBand::ChTrackShoeBand(const std::string& name) : ChTrackShoe(name) {}
 
 void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
@@ -114,16 +114,6 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Add contact geometry for the tread body
     CreateContactMaterials(chassis->GetSystem()->GetContactMethod());
     AddShoeContact();
-}
-
-void ChTrackShoeBand::InitializeInertiaProperties() {
-    m_mass = GetTreadMass() + GetWebMass();
-}
-
-void ChTrackShoeBand::UpdateInertiaProperties() {
-    m_xform = m_shoe->GetFrame_REF_to_abs();
-
-    //// RADU TODO
 }
 
 double ChTrackShoeBand::GetPitch() const {

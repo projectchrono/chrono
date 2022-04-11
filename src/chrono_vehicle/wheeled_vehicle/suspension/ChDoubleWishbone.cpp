@@ -318,24 +318,26 @@ void ChDoubleWishbone::InitializeInertiaProperties() {
 void ChDoubleWishbone::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    //// RADU TODO
+    // Calculate COM and inertia expressed in global frame 
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), m_spindle[LEFT]->GetMass(),
+                      m_spindle[LEFT]->GetInertia());
+    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), m_spindle[RIGHT]->GetMass(),
+                           m_spindle[RIGHT]->GetInertia());
+    composite.AddComponent(m_UCA[LEFT]->GetFrame_COG_to_abs(), m_UCA[LEFT]->GetMass(), m_UCA[LEFT]->GetInertia());
+    composite.AddComponent(m_UCA[RIGHT]->GetFrame_COG_to_abs(), m_UCA[RIGHT]->GetMass(), m_UCA[RIGHT]->GetInertia());
+    composite.AddComponent(m_LCA[LEFT]->GetFrame_COG_to_abs(), m_LCA[LEFT]->GetMass(), m_LCA[LEFT]->GetInertia());
+    composite.AddComponent(m_LCA[RIGHT]->GetFrame_COG_to_abs(), m_LCA[RIGHT]->GetMass(), m_LCA[RIGHT]->GetInertia());
+    composite.AddComponent(m_upright[LEFT]->GetFrame_COG_to_abs(), m_upright[LEFT]->GetMass(),
+                           m_upright[LEFT]->GetInertia());
+    composite.AddComponent(m_upright[RIGHT]->GetFrame_COG_to_abs(), m_upright[RIGHT]->GetMass(),
+                           m_upright[RIGHT]->GetInertia());
 
-    ChVector<> com(0, 0, 0);
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
 
-    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
-    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
-
-    com += getUCAMass() * m_UCA[LEFT]->GetPos();
-    com += getUCAMass() * m_UCA[RIGHT]->GetPos();
-
-    com += getLCAMass() * m_LCA[LEFT]->GetPos();
-    com += getLCAMass() * m_LCA[RIGHT]->GetPos();
-
-    com += getUprightMass() * m_upright[LEFT]->GetPos();
-    com += getUprightMass() * m_upright[RIGHT]->GetPos();
-
-    m_com.coord.pos = com / GetMass();
-
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 // -----------------------------------------------------------------------------

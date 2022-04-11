@@ -124,17 +124,13 @@ void ChRotaryArm::Synchronize(double time, double steering) {
 
 
 void ChRotaryArm::InitializeInertiaProperties() {
-    m_mass = getPitmanArmMass();
+    m_mass = m_link->GetMass();
+    m_com = ChFrame<>(0.5 * (getLocation(ARM_L) + getLocation(ARM_C)), QUNIT);
+    m_inertia = m_link->GetInertia();
 }
 
 void ChRotaryArm::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
-
-    //// RADU TODO
-
-    ChVector<> com = getPitmanArmMass() * m_link->GetPos();
-    m_com.coord.pos = com / GetMass();
-
 }
 
 // -----------------------------------------------------------------------------

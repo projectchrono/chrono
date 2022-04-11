@@ -30,7 +30,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChTrackShoeBandBushing::ChTrackShoeBandBushing(const std::string& name)
     : ChTrackShoeBand(name),
       m_Klin(7e7),
@@ -51,7 +50,6 @@ ChTrackShoeBandBushing::~ChTrackShoeBandBushing() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::SetBushingParameters(double Klin,
                                                   double Krot_dof,
                                                   double Krot_other,
@@ -66,7 +64,6 @@ void ChTrackShoeBandBushing::SetBushingParameters(double Klin,
     m_Drot_other = Drot_other;
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                         const ChVector<>& location,
@@ -102,7 +99,6 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                         const std::vector<ChCoordsys<>>& component_pos) {
     // Check the number of provided locations and orientations.
@@ -121,7 +117,28 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 }
 
-// -----------------------------------------------------------------------------
+void ChTrackShoeBandBushing::InitializeInertiaProperties() {
+    m_mass = GetTreadMass() + GetWebMass();
+}
+
+void ChTrackShoeBandBushing::UpdateInertiaProperties() {
+    m_xform = m_shoe->GetFrame_REF_to_abs();
+
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_shoe->GetFrame_COG_to_abs(), m_shoe->GetMass(), m_shoe->GetInertia());
+    for (int is = 0; is < GetNumWebSegments(); is++) {
+        composite.AddComponent(m_web_segments[is]->GetFrame_COG_to_abs(), m_web_segments[is]->GetMass(),
+                               m_web_segments[is]->GetInertia());
+    }
+
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+}
+
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment) {
     segment->GetCollisionModel()->ClearModel();
@@ -134,7 +151,6 @@ void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment) {
     segment->GetCollisionModel()->BuildModel();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -169,7 +185,6 @@ void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment
     segment->AddAsset(cyl);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
                                      ChTrackAssembly* assembly,
@@ -258,7 +273,6 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

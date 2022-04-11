@@ -68,29 +68,10 @@ void ChPart::AddInertiaProperties(ChVector<>& com, ChMatrix33<>& inertia) {
 
     // Shift inertia away from COM (parallel axis theorem)
     // Express inertia relative to global frame.
-    inertia +=
-        com_abs.GetA() * m_inertia * com_abs.GetA().transpose() + GetMass() * InertiaShiftMatrix(com_abs.GetPos());
+    inertia += com_abs.GetA() * m_inertia * com_abs.GetA().transpose() +
+               GetMass() * utils::CompositeInertia::InertiaShiftMatrix(com_abs.GetPos());
 }
 
-// -----------------------------------------------------------------------------
-// Utility function for calculating an inertia shift matrix from a given vector.
-// This matrix is used when applying the parallel axis theorem.
-// -----------------------------------------------------------------------------
-ChMatrix33<> ChPart::InertiaShiftMatrix(const ChVector<>& v) {
-    ChMatrix33<> shift;
-    shift(0, 0) = v.y() * v.y() + v.z() * v.z();
-    shift(1, 1) = v.x() * v.x() + v.z() * v.z();
-    shift(2, 2) = v.x() * v.x() + v.y() * v.y();
-    shift(0, 1) = -v.x() * v.y();
-    shift(1, 0) = -v.x() * v.y();
-    shift(0, 2) = -v.x() * v.z();
-    shift(2, 0) = -v.x() * v.z();
-    shift(1, 2) = -v.y() * v.z();
-    shift(2, 1) = -v.y() * v.z();
-
-    return shift;
-}
-    
 // -----------------------------------------------------------------------------
 // Utility function for transforming inertia tensors between centroidal frames.
 // It converts an inertia matrix specified in a centroidal frame aligned with the

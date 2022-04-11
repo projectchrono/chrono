@@ -73,6 +73,9 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
     /// Get the number of shell elements across the web length (from tread body to tread body).
     virtual int GetNumElementsLength() const = 0;
 

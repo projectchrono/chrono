@@ -107,14 +107,13 @@ void ChRackPinion::Synchronize(double time, double steering) {
 
 void ChRackPinion::InitializeInertiaProperties() {
     m_mass = GetSteeringLinkMass();
+    m_com = ChFrame<>(GetSteeringLinkCOM(), QUNIT);
+    m_inertia.setZero();
+    m_inertia.diagonal() = GetSteeringLinkInertia().eigen();
 }
 
 void ChRackPinion::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
-
-    //// RADU TODO
-
-    m_com.coord.pos = m_link->GetPos();
 }
 
 // -----------------------------------------------------------------------------

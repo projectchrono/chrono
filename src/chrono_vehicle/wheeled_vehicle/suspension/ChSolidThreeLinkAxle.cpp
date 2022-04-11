@@ -262,22 +262,27 @@ void ChSolidThreeLinkAxle::InitializeInertiaProperties() {
 void ChSolidThreeLinkAxle::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    //// RADU TODO
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), m_spindle[LEFT]->GetMass(),
+                           m_spindle[LEFT]->GetInertia());
+    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), m_spindle[RIGHT]->GetMass(),
+                           m_spindle[RIGHT]->GetInertia());
 
-    ChVector<> com(0, 0, 0);
+    composite.AddComponent(m_linkBody[LEFT]->GetFrame_COG_to_abs(), m_linkBody[LEFT]->GetMass(),
+                           m_linkBody[LEFT]->GetInertia());
+    composite.AddComponent(m_linkBody[RIGHT]->GetFrame_COG_to_abs(), m_linkBody[RIGHT]->GetMass(),
+                           m_linkBody[RIGHT]->GetInertia());
 
-    com += getAxleTubeMass() * m_axleTube->GetPos();
+    composite.AddComponent(m_axleTube->GetFrame_COG_to_abs(), m_axleTube->GetMass(), m_axleTube->GetInertia());
+    composite.AddComponent(m_triangleBody->GetFrame_COG_to_abs(), m_triangleBody->GetMass(),
+                           m_triangleBody->GetInertia());
 
-    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
-    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
 
-    com += getLinkMass() * m_linkBody[LEFT]->GetPos();
-    com += getLinkMass() * m_linkBody[RIGHT]->GetPos();
-
-    com += getTriangleMass() * m_triangleBody->GetPos();
-
-    m_com.coord.pos = com / GetMass();
-
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 // -----------------------------------------------------------------------------

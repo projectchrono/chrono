@@ -349,27 +349,37 @@ void ChHendricksonPRIMAXX::InitializeInertiaProperties() {
 void ChHendricksonPRIMAXX::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    //// RADU TODO
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), m_spindle[LEFT]->GetMass(),
+                           m_spindle[LEFT]->GetInertia());
+    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), m_spindle[RIGHT]->GetMass(),
+                           m_spindle[RIGHT]->GetInertia());
 
-    ChVector<> com(0, 0, 0);
+    composite.AddComponent(m_knuckle[LEFT]->GetFrame_COG_to_abs(), m_knuckle[LEFT]->GetMass(),
+                           m_knuckle[LEFT]->GetInertia());
+    composite.AddComponent(m_knuckle[RIGHT]->GetFrame_COG_to_abs(), m_knuckle[RIGHT]->GetMass(),
+                           m_knuckle[RIGHT]->GetInertia());
 
-    com += getAxlehousingMass() * m_axlehousing->GetPos();
-    com += getTransversebeamMass() * m_transversebeam->GetPos();
+    composite.AddComponent(m_torquerod[LEFT]->GetFrame_COG_to_abs(), m_torquerod[LEFT]->GetMass(),
+                           m_torquerod[LEFT]->GetInertia());
+    composite.AddComponent(m_torquerod[RIGHT]->GetFrame_COG_to_abs(), m_torquerod[RIGHT]->GetMass(),
+                           m_torquerod[RIGHT]->GetInertia());
 
-    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
-    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+    composite.AddComponent(m_lowerbeam[LEFT]->GetFrame_COG_to_abs(), m_lowerbeam[LEFT]->GetMass(),
+                           m_lowerbeam[LEFT]->GetInertia());
+    composite.AddComponent(m_lowerbeam[RIGHT]->GetFrame_COG_to_abs(), m_lowerbeam[RIGHT]->GetMass(),
+                           m_lowerbeam[RIGHT]->GetInertia());
 
-    com += getKnuckleMass() * m_knuckle[LEFT]->GetPos();
-    com += getKnuckleMass() * m_knuckle[RIGHT]->GetPos();
+    composite.AddComponent(m_axlehousing->GetFrame_COG_to_abs(), m_axlehousing->GetMass(), m_axlehousing->GetInertia());
+    composite.AddComponent(m_transversebeam->GetFrame_COG_to_abs(), m_transversebeam->GetMass(),
+                           m_transversebeam->GetInertia());
 
-    com += getTorquerodMass() * m_torquerod[LEFT]->GetPos();
-    com += getTorquerodMass() * m_torquerod[RIGHT]->GetPos();
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
 
-    com += getLowerbeamMass() * m_lowerbeam[LEFT]->GetPos();
-    com += getLowerbeamMass() * m_lowerbeam[RIGHT]->GetPos();
-
-    m_com.coord.pos = com / GetMass();
-
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 // -----------------------------------------------------------------------------

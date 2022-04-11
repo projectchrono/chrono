@@ -139,12 +139,16 @@ void ChAntirollBarRSD::InitializeInertiaProperties() {
 void ChAntirollBarRSD::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    //// RADU TODO
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_arm_left->GetFrame_COG_to_abs(), m_arm_left->GetMass(), m_arm_left->GetInertia());
+    composite.AddComponent(m_arm_right->GetFrame_COG_to_abs(), m_arm_right->GetMass(), m_arm_right->GetInertia());
 
-    ChVector<> com = getArmMass() * m_arm_left->GetPos() + getArmMass() * m_arm_right->GetPos();
- 
-    m_com.coord.pos = com / GetMass();
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
 
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 // -----------------------------------------------------------------------------

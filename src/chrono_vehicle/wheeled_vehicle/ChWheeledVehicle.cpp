@@ -16,8 +16,6 @@
 //
 // =============================================================================
 
-#include <fstream>
-
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
@@ -282,9 +280,10 @@ void ChWheeledVehicle::InitializeInertiaProperties() {
         // - wheel mass already included in suspension mass (through spindle body)
         // - include mass only from tires that do not add mass to the spindle
         for (auto& wheel : axle->GetWheels()) {
-            if (wheel->GetTire()) {
-                wheel->GetTire()->InitializeInertiaProperties();
-                m_mass += wheel->GetTire()->GetMass() - wheel->GetTire()->GetAddedMass();
+            auto tire = wheel->GetTire();
+            if (tire) {
+                tire->InitializeInertiaProperties();
+                m_mass += tire->GetMass() - tire->GetAddedMass();
             }
         }
 
@@ -316,13 +315,20 @@ void ChWheeledVehicle::UpdateInertiaProperties() {
     for (auto& axle : m_axles) {
         axle->m_suspension->AddInertiaProperties(com, inertia);
 
-        //// RADU TODO
         // Special treatment for wheels and tires:
         // - wheel inertia already included in suspension inertia (through spindle body)
         // - include inertia only from tires that do not add inertia to the spindle
         for (auto& wheel : axle->GetWheels()) {
-            if (wheel->GetTire())
-                wheel->GetTire()->AddInertiaProperties(com, inertia);
+            auto tire = wheel->GetTire();
+            if (tire) {
+                tire->UpdateInertiaProperties();
+                double tire_mass = tire->GetMass() - tire->GetAddedMass();
+                ChFrame<> com_abs;
+                tire->m_xform.TransformLocalToParent(tire->m_com, com_abs);
+                com += tire_mass * com_abs.GetPos();
+                inertia += com_abs.GetA() * m_inertia * com_abs.GetA().transpose() +
+                           tire_mass * utils::CompositeInertia::InertiaShiftMatrix(com_abs.GetPos());
+            }
         }
 
         if (axle->m_antirollbar)
@@ -340,7 +346,7 @@ void ChWheeledVehicle::UpdateInertiaProperties() {
     //    Notes: - vehicle COM frame aligned with vehicle frame
     //           - 'com' still scaled by total mass here
     const ChMatrix33<>& A = GetTransform().GetA();
-    m_inertia = A.transpose() * (inertia - ChPart::InertiaShiftMatrix(com)) * A;
+    m_inertia = A.transpose() * (inertia - utils::CompositeInertia::InertiaShiftMatrix(com)) * A;
 }
 
 // -----------------------------------------------------------------------------

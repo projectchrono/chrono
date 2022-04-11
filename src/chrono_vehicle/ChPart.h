@@ -32,6 +32,8 @@
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 
+#include "chrono/utils/ChCompositeInertia.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleJoint.h"
@@ -123,10 +125,6 @@ class CH_VEHICLE_API ChPart {
         const ChMatrix33<>& vehicle_rot,  ///< vehicle absolute orientation matrix
         const ChMatrix33<>& body_rot      ///< body absolute orientation matrix
         );
-
-    /// Utility function for calculating an inertia shift matrix from a given vector.
-    /// This matrix is used when applying the parallel axis theorem.
-    static ChMatrix33<> InertiaShiftMatrix(const ChVector<>& v);
 
   protected:
     /// Initialize subsystem inertia properties.

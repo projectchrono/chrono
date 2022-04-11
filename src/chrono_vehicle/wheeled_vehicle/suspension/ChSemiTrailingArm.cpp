@@ -190,18 +190,20 @@ void ChSemiTrailingArm::InitializeInertiaProperties() {
 void ChSemiTrailingArm::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    //// RADU TODO
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), m_spindle[LEFT]->GetMass(),
+                           m_spindle[LEFT]->GetInertia());
+    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), m_spindle[RIGHT]->GetMass(),
+                           m_spindle[RIGHT]->GetInertia());
+    composite.AddComponent(m_arm[LEFT]->GetFrame_COG_to_abs(), m_arm[LEFT]->GetMass(), m_arm[LEFT]->GetInertia());
+    composite.AddComponent(m_arm[RIGHT]->GetFrame_COG_to_abs(), m_arm[RIGHT]->GetMass(), m_arm[RIGHT]->GetInertia());
 
-    ChVector<> com(0, 0, 0);
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
 
-    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
-    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
-
-    com += getArmMass() * m_arm[LEFT]->GetPos();
-    com += getArmMass() * m_arm[RIGHT]->GetPos();
-
-    m_com.coord.pos = com / GetMass();
-
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 // -----------------------------------------------------------------------------

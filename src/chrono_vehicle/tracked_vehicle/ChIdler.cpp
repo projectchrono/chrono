@@ -124,7 +124,18 @@ void ChIdler::InitializeInertiaProperties() {
 void ChIdler::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    //// RADU TODO
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_wheel->GetFrame_COG_to_abs(), m_wheel->GetMass(),
+                           m_wheel->GetInertia());
+    composite.AddComponent(m_carrier->GetFrame_COG_to_abs(), m_carrier->GetMass(),
+                           m_carrier->GetInertia());
+
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 // -----------------------------------------------------------------------------
