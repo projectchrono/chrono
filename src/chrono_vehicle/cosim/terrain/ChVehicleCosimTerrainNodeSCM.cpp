@@ -241,7 +241,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         m_vsys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
         m_system->SetVisualSystem(m_vsys);
         m_vsys->SetCameraVertical(irrlicht::CameraVerticalDir::Z);
-        m_vsys->SetWindowSize(ChVector2<int>(1280, 720));
+        m_vsys->SetWindowSize(1280, 720);
         m_vsys->SetWindowTitle("Terrain Node (SCM)");
         m_vsys->Initialize();
         m_vsys->AddLogo();

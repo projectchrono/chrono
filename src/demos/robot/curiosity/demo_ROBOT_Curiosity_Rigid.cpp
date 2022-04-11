@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     sys.SetVisualSystem(vis);
     vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Curiosity Rover on Rigid Terrain");
     vis->Initialize();
     vis->AddLogo();

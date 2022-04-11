@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     sys.SetVisualSystem(vis);
-    vis->SetWindowSize(ChVector2<int>(1280, 720));
+    vis->SetWindowSize(1280, 720);
     vis->SetWindowTitle("FEA contacts");
     vis->Initialize();
     vis->AddLogo();

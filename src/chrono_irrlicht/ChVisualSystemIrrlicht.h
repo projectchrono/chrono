@@ -66,7 +66,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Set the window size (default 640x480).
     /// Must be called before Initialize().
-    void SetWindowSize(const ChVector2<int>& win_size);
+    void SetWindowSize(unsigned int width, unsigned int height);
 
     /// Set the windoiw title (default "").
     /// Must be called before Initialize().

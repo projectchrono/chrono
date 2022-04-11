@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(ChVector2<int>(1024, 768));
+    vis->SetWindowSize(1024, 768);
     vis->SetWindowTitle("Truss FEA test: use ChElementSpring and ChElementBar");
     vis->Initialize();
     vis->AddLogo();

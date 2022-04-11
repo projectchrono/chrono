@@ -156,7 +156,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
         // Create the Irrlicht visualization system
         m_vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
         m_vis->SetCameraVertical(irrlicht::CameraVerticalDir::Z);
-        m_vis->SetWindowSize(ChVector2<int>(1280, 720));
+        m_vis->SetWindowSize(1280, 720);
         m_vis->SetWindowTitle("Custom terrain node");
         m_vis->Initialize();
         m_vis->AddLogo();

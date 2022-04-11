@@ -957,7 +957,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     sys.SetVisualSystem(vis);
-    vis->SetWindowSize(ChVector2<int>(1024, 768));
+    vis->SetWindowSize(1024, 768);
     vis->SetWindowTitle("Soil bin demo");
     vis->Initialize();
     vis->AddLogo();

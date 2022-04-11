@@ -295,7 +295,7 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<robosimian::RoboSimianVisualSystemIrrlicht>(&robot, driver.get());
     my_sys->SetVisualSystem(vis);
     vis->SetWindowTitle("RoboSimian - Rigid terrain");
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();

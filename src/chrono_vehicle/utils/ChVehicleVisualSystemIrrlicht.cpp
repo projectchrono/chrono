@@ -113,7 +113,7 @@ ChVehicleVisualSystemIrrlicht::ChVehicleVisualSystemIrrlicht()
       m_HUD_x(700),
       m_HUD_y(20) {
     // Set default window size and title
-    SetWindowSize(ChVector2<int>(1000, 800));
+    SetWindowSize(1000, 800);
     SetWindowTitle("Chrono::Vehicle");
 
     // Default camera uses Z up

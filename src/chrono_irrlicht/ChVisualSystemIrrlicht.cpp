@@ -106,8 +106,8 @@ void ChVisualSystemIrrlicht::SetShadows(bool val) {
 void ChVisualSystemIrrlicht::SetDriverType(irr::video::E_DRIVER_TYPE driver_type) {
     m_device_params.DriverType = driver_type;
 }
-void ChVisualSystemIrrlicht::SetWindowSize(const ChVector2<int>& win_size) {
-    m_device_params.WindowSize = irr::core::dimension2d<irr::u32>((u32)win_size.x(), (u32)win_size.y());
+void ChVisualSystemIrrlicht::SetWindowSize(unsigned int width, unsigned int height) {
+    m_device_params.WindowSize = irr::core::dimension2d<irr::u32>((u32)width, (u32)height);
 }
 void ChVisualSystemIrrlicht::SetWindowTitle(const std::string& win_title) {
     m_win_title = win_title;
