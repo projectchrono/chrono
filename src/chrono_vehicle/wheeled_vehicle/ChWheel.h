@@ -47,9 +47,6 @@ class ChTire;
 /// (which are associated with the suspension's spindle body).
 class CH_VEHICLE_API ChWheel : public ChPart {
   public:
-    ChWheel(const std::string& name  ///< [in] name of the subsystem
-            );
-
     virtual ~ChWheel() {}
 
     /// Get the name of the vehicle subsystem template.
@@ -108,6 +105,9 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     const std::string& GetMeshFilename() const { return m_vis_mesh_file; }
 
   protected:
+    /// Construct a wheel subsystem with given name.
+    ChWheel(const std::string& name);
+
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
 

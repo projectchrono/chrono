@@ -54,10 +54,6 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
         double shock_velocity;   ///< translational (rotational) damper displacement velocity
     };
 
-    ChRoadWheelAssembly(const std::string& name,  ///< [in] name of the subsystem
-                        bool has_shock            ///< [in] specify whether or not the suspension has a damper
-    );
-
     virtual ~ChRoadWheelAssembly() {}
 
     /// Return the type of track shoe consistent with this road wheel.
@@ -108,6 +104,10 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
     virtual void LogConstraintViolations() = 0;
 
   protected:
+    ChRoadWheelAssembly(const std::string& name,  ///< [in] name of the subsystem
+                        bool has_shock            ///< [in] specify whether or not the suspension has a damper
+    );
+
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     GuidePinType m_type;  ///< type of the track shoe matching this road wheel

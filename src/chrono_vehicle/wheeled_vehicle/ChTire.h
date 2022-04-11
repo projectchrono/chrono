@@ -46,9 +46,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
   public:
     enum class CollisionType { SINGLE_POINT, FOUR_POINTS, ENVELOPE };
 
-    ChTire(const std::string& name  ///< [in] name of this tire system
-    );
-
     virtual ~ChTire() {}
 
     /// Set the value of the integration step size for the underlying dynamics (if applicable).
@@ -123,6 +120,9 @@ class CH_VEHICLE_API ChTire : public ChPart {
     virtual void Advance(double step) {}
 
   protected:
+    /// Construct a tire subsystem with given name.
+    ChTire(const std::string& name);
+
     /// Calculate kinematics quantities based on the given state of the associated wheel body.
     void CalculateKinematics(double time,                    ///< [in] current time
                              const WheelState& wheel_state,  ///< [in] current state of associated wheel body

@@ -51,12 +51,6 @@ namespace vehicle {
 /// It manages the part's name, visualization assets, and output.
 class CH_VEHICLE_API ChPart {
   public:
-    //// RADU TODO - protected constructor
-
-    /// Construct a vehicle subsystem with the specified name.
-    ChPart(const std::string& name  ///< [in] name of the subsystem
-           );
-
     virtual ~ChPart() {}
 
     /// Get the name identifier for this subsystem.
@@ -127,6 +121,9 @@ class CH_VEHICLE_API ChPart {
         );
 
   protected:
+    /// Construct a vehicle subsystem with the specified name.
+    ChPart(const std::string& name);
+
     /// Initialize subsystem inertia properties.
     /// Derived classes must override this function and set the subsystem mass (m_mass) and, if constant, the subsystem
     /// COM frame and its inertia tensor. This function is called during initialization of the vehicle system.

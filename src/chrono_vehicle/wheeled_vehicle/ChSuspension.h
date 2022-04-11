@@ -46,8 +46,6 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
         double shock_velocity;
     };
 
-    ChSuspension(const std::string& name);
-
     virtual ~ChSuspension();
 
     /// Specify whether or not this suspension can be steered.
@@ -152,6 +150,9 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     void ApplyParkingBrake(bool brake);
 
   protected:
+    /// Construct a suspension subsystem with given name.
+    ChSuspension(const std::string& name);
+
     ChVector<> m_rel_loc;                                ///< location relative to chassis
     std::shared_ptr<ChBody> m_spindle[2];                ///< handles to spindle bodies
     std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts

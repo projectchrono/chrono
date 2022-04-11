@@ -41,9 +41,6 @@ class ChTrackAssembly;
 /// Base class for a road wheel subsystem.
 class CH_VEHICLE_API ChRoadWheel : public ChPart {
   public:
-    ChRoadWheel(const std::string& name  ///< [in] name of the subsystem
-                );
-
     virtual ~ChRoadWheel();
 
     /// Return the type of track shoe consistent with this road wheel.
@@ -84,6 +81,9 @@ class CH_VEHICLE_API ChRoadWheel : public ChPart {
     void LogConstraintViolations();
 
   protected:
+    /// Construct a road-wheel subsystem with given name.
+    ChRoadWheel(const std::string& name);
+
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
 

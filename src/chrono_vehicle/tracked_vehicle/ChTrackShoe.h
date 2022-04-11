@@ -36,9 +36,6 @@ class ChTrackAssembly;
 /// Base class for a track shoe.
 class CH_VEHICLE_API ChTrackShoe : public ChPart {
   public:
-    ChTrackShoe(const std::string& name  ///< [in] name of the subsystem
-                );
-
     virtual ~ChTrackShoe();
 
     /// Return the type of track shoe (guiding pin).
@@ -91,6 +88,9 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
                          ) = 0;
 
   protected:
+    /// Construct a track shoe subsystem with given name.
+    ChTrackShoe(const std::string& name);
+
     size_t m_index;                  ///< index of this track shoe within its containing track assembly
     std::shared_ptr<ChBody> m_shoe;  ///< handle to the shoe body
 

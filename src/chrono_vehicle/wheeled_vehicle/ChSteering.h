@@ -31,9 +31,6 @@ namespace vehicle {
 /// Base class for a steering subsystem.
 class CH_VEHICLE_API ChSteering : public ChPart {
   public:
-    ChSteering(const std::string& name  ///< [in] name of the subsystem
-               );
-
     virtual ~ChSteering();
 
     /// Get the frame of the steering subsystem relative to the associated chassis reference frame.
@@ -65,6 +62,9 @@ class CH_VEHICLE_API ChSteering : public ChPart {
     virtual void LogConstraintViolations() {}
 
   protected:
+    /// Construct a steering subsystem with given name.
+    ChSteering(const std::string& name);
+
     ChFrame<> m_rel_xform;           ///< location and orientation relative to associated chassis
     std::shared_ptr<ChBody> m_link;  ///< handle to the main steering link
 };

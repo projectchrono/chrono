@@ -39,18 +39,6 @@ namespace vehicle {
 /// systems (terrain, driver, etc.)
 class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
   public:
-    //// RADU TODO - make constructors protected
-
-    /// Construct a vehicle system with a default ChSystem.
-    ChTrackedVehicle(const std::string& name,                               ///< [in] vehicle name
-                     ChContactMethod contact_method = ChContactMethod::NSC  ///< [in] contact method
-    );
-
-    /// Construct a vehicle system using the specified ChSystem.
-    ChTrackedVehicle(const std::string& name,  ///< [in] vehicle name
-                     ChSystem* system          ///< [in] containing mechanical system
-                     );
-
     /// Destructor.
     virtual ~ChTrackedVehicle();
 
@@ -215,6 +203,16 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     virtual void ExportComponentList(const std::string& filename) const override;
 
   protected:
+    /// Construct a vehicle system with a default ChSystem.
+    ChTrackedVehicle(const std::string& name,                               ///< [in] vehicle name
+                     ChContactMethod contact_method = ChContactMethod::NSC  ///< [in] contact method
+    );
+
+    /// Construct a vehicle system using the specified ChSystem.
+    ChTrackedVehicle(const std::string& name,  ///< [in] vehicle name
+                     ChSystem* system          ///< [in] containing mechanical system
+    );
+
     /// Calculate total vehicle mass.
     /// This function is called at the end of the vehicle initialization.
     virtual void InitializeInertiaProperties() override final;

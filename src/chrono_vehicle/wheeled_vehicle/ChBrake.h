@@ -32,8 +32,6 @@ namespace vehicle {
 /// Base class for a brake subsystem.
 class CH_VEHICLE_API ChBrake : public ChPart {
   public:
-    ChBrake(const std::string& name);
-
     virtual ~ChBrake() {}
 
     /// Initialize the brake by associating it to an existing suspension subsystem.
@@ -58,6 +56,8 @@ class CH_VEHICLE_API ChBrake : public ChPart {
     virtual double GetBrakeTorque() = 0;
 
   protected:
+    ChBrake(const std::string& name);
+
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
 

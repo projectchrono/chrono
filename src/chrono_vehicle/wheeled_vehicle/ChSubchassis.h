@@ -31,9 +31,6 @@ namespace vehicle {
 /// Base class for a sub-chassis system for wheeled vehicles.
 class CH_VEHICLE_API ChSubchassis : public ChPart {
   public:
-    ChSubchassis(const std::string& name  ///< [in] name of the subsystem
-    );
-
     virtual ~ChSubchassis();
 
     /// Get the location of the subchassis relative to the chassis reference frame.
@@ -52,6 +49,9 @@ class CH_VEHICLE_API ChSubchassis : public ChPart {
                             ) = 0;
 
   protected:
+    /// Construct a subchassis subsystem with given name.
+    ChSubchassis(const std::string& name);
+
     ChVector<> m_rel_loc;               ///< location relative to chassis
     std::shared_ptr<ChBody> m_beam[2];  ///< handles to beam bodies
 };

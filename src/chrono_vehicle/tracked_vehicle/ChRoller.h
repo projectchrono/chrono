@@ -36,9 +36,6 @@ class ChTrackAssembly;
 /// Base class for a roller wheel subsystem.
 class CH_VEHICLE_API ChRoller : public ChPart {
   public:
-    ChRoller(const std::string& name  ///< [in] name of the subsystem
-             );
-
     virtual ~ChRoller();
 
     /// Return the type of track shoe consistent with this roller wheel.
@@ -74,6 +71,9 @@ class CH_VEHICLE_API ChRoller : public ChPart {
     void LogConstraintViolations();
 
   protected:
+    /// Construct a roller subsystem with given name.
+    ChRoller(const std::string& name);
+
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
 

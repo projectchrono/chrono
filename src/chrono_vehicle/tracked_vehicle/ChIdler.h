@@ -47,9 +47,6 @@ class ChTrackAssembly;
 /// through a translational joint. A linear actuator acts as a tensioner.
 class CH_VEHICLE_API ChIdler : public ChPart {
   public:
-    ChIdler(const std::string& name  ///< [in] name of the subsystem
-            );
-
     virtual ~ChIdler();
 
     /// Return the type of track shoe consistent with this idler.
@@ -98,6 +95,9 @@ class CH_VEHICLE_API ChIdler : public ChPart {
         TSDA_CHASSIS,     ///< TSDA connection to chassis
         NUM_POINTS
     };
+
+    /// Construct an idler subsystem with given name.
+    ChIdler(const std::string& name);
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;

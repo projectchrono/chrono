@@ -53,9 +53,6 @@ class ChTrackAssembly;
 /// A sprocket is responsible for contact processing with the track shoes of the containing track assembly.
 class CH_VEHICLE_API ChSprocket : public ChPart {
   public:
-    ChSprocket(const std::string& name  ///< [in] name of the subsystem
-               );
-
     virtual ~ChSprocket();
 
     /// Get the number of teeth of the gear.
@@ -119,6 +116,9 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     void LogConstraintViolations();
 
   protected:
+    /// Construct a sprocket subsystem with given name.
+    ChSprocket(const std::string& name);
+
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
 
