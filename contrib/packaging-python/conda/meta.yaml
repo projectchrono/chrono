@@ -25,10 +25,10 @@ build:
 
 requirements:
   build:
-    - {{ compiler('c') }}
-    - {{ compiler('cxx') }}
+    - {{ compiler('c') }}   # [not win]
+    - {{ compiler('cxx') }} # [not win]
     - python
-    - cmake >=3.10
+    - cmake >=3.10          # [not win]
     - ninja # [linux or osx]
     - swig >=4.0.0
     - mkl-devel
