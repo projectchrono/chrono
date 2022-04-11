@@ -58,6 +58,10 @@ scene::ISceneNode* ChIrrNodeModel::clone(scene::ISceneNode* new_parent, scene::I
     return nb;
 }
 
+scene::ESCENE_NODE_TYPE ChIrrNodeModel::getType() const {
+    return (scene::ESCENE_NODE_TYPE)ESNT_CHIRRNODE_MODEL;
+}
+
 bool ChIrrNodeModel::SetupClones() {
     unsigned int needed_clones = m_physicsitem.lock()->GetNumVisualModelClones();
 

@@ -40,6 +40,10 @@ scene::ISceneNode* ChIrrNodeShape::clone(ISceneNode* newParent, scene::ISceneMan
     return nb;
 }
 
+scene::ESCENE_NODE_TYPE ChIrrNodeShape::getType() const {
+    return (scene::ESCENE_NODE_TYPE)ESNT_CHIRRNODE_SHAPE;
+}
+
 void ChIrrNodeShape::Update() {
     if (!m_shape)
         return;

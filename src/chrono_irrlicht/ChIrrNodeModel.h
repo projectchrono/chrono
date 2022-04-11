@@ -59,9 +59,7 @@ class ChApiIrr ChIrrNodeModel : public irr::scene::ISceneNode {
   private:
     void UpdateChildren_recursive(irr::scene::ISceneNode* node);
 
-    virtual irr::scene::ESCENE_NODE_TYPE getType() const override {
-        return (irr::scene::ESCENE_NODE_TYPE)ESNT_CHIRRNODE_MODEL;
-    }
+    virtual irr::scene::ESCENE_NODE_TYPE getType() const override;
     virtual void OnRegisterSceneNode() override;
     virtual void render() override {}
     virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const override { return m_box; }
