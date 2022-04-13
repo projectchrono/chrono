@@ -131,7 +131,6 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void AddTypicalLights();
 
     /// Attach a custom event receiver to the application.
-    /// Has no effect, unless called after Initialize().
     void AddUserEventReceiver(irr::IEventReceiver* receiver);
 
     /// Enable shadow maps for all visual models in a scene or only for a single physics item.
@@ -142,24 +141,51 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void EnableShadows(std::shared_ptr<ChPhysicsItem> item = nullptr);
 
     /// Enable contact rendering (default: none).
-    /// Has no effect, unless called after Initialize().
+    /// Has no effect, unless called after the visual system is initialized and attached.
     void EnableContactDrawing(IrrContactsDrawMode mode);
 
     /// Enable rendering of link (joint) frames (default: none).
-    /// Has no effect, unless called after Initialize().
+    /// Has no effect, unless called after the visual system is initialized and attached.
     void EnableLinkDrawing(IrrLinkDrawMode mode);
 
     /// Enable rendering of body frames (default: false).
-    /// Has no effect, unless called after Initialize().
+    /// Has no effect, unless called after the visual system is initialized and attached.
     void EnableBodyFrameDrawing(bool val);
 
     /// Enable rendering of link frames (default: false).
-    /// Has no effect, unless called after Initialize().
+    /// Has no effect, unless called after the visual system is initialized and attached.
     void EnableLinkFrameDrawing(bool val);
 
     /// Enable rendering of collision shapes (default: false).
-    /// Has no effect, unless called after Initialize().
+    /// Has no effect, unless called after the visual system is initialized and attached.
     void EnableCollisionShapeDrawing(bool val);
+
+    /// Enable modal analysis visualization (default: false).
+    /// If true, visualize an oscillatory motion of the nth mode (only if some ChModalAssembly is found).
+    /// Otherwise, visualize the dynamic evolution of the associated system.
+    void EnableModalAnalysis(bool val);
+
+    /// Set the mode to be shown (only if some ChModalAssembly is found).
+    void SetModalModeNumber(int val);
+
+    /// Set the amplitude of the shown mode (only if some ChModalAssembly is found).
+    void SetModalAmplitude(double val);
+
+    /// Set the speed of the shown mode (only if some ChModalAssembly is found).
+    void SetModalSpeed(double val);
+
+    /// Show the realtime profiler in the 3D view.
+    void ShowProfiler(bool val);
+
+    /// Show the object explorer.
+    void ShowExplorer(bool val);
+
+    /// Show the info panel in the 3D view.
+    void ShowInfoPanel(bool val);
+
+    /// Set the active tab on the info panel.
+    /// Has no effect, unless called after the visual system is initialized and attached.
+    void SetInfoTab(int ntab);
 
     irr::IrrlichtDevice* GetDevice() { return m_device; }
     irr::video::IVideoDriver* GetVideoDriver() { return m_device->getVideoDriver(); }
@@ -179,12 +205,10 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Run the Irrlicht device.
     /// Returns `false` if the device wants to be deleted.
-    bool Run(); 
+    bool Run();
 
     /// Clean the canvas at the beginning of each animation frame.
-    virtual void BeginScene(bool backBuffer = true,
-                            bool zBuffer = true,
-                            ChColor color = ChColor(0, 0, 0, 1));
+    virtual void BeginScene(bool backBuffer = true, bool zBuffer = true, ChColor color = ChColor(0, 0, 0, 1));
 
     /// Draw all 3D shapes and GUI elements at the current frame.
     /// This function is typically called inside a loop such as
@@ -201,9 +225,6 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     virtual void WriteImageToFile(const std::string& filename) override;
 
   private:
-    /// Create the associated Irrlicht GUI.
-    void CreateGUI();
-
     /// Create the ChIrrNodes for all visual model instances in the specified assembly.
     void CreateIrrNodes(const ChAssembly* assembly, std::unordered_set<const ChAssembly*>& trace);
 
@@ -232,16 +253,15 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;
 
-    bool m_yup;                                          ///< use Y-up if true, Z-up if false
-    std::string m_win_title;                             ///< window title
-    irr::SIrrlichtCreationParameters m_device_params;    ///< Irrlicht device parameters
-    irr::IrrlichtDevice* m_device;                       ///< Irrlicht visualization device
-    irr::scene::ISceneNode* m_container;                 ///< Irrlicht scene container
-    std::unique_ptr<ChIrrGUI> m_gui;                     ///< associated Irrlicht GUI and event receiver
-    std::vector<irr::IEventReceiver*> m_user_receivers;  ///< optional user-defined receivers
-    std::unique_ptr<EffectHandler> m_effect_handler;     ///< effect handler for shadow maps
-    bool m_use_effects;                                  ///< flag to enable/disable effects
-    double m_symbol_scale;                               ///< scale for symbol drawing
+    bool m_yup;                                        ///< use Y-up if true, Z-up if false
+    std::string m_win_title;                           ///< window title
+    irr::SIrrlichtCreationParameters m_device_params;  ///< Irrlicht device parameters
+    irr::IrrlichtDevice* m_device;                     ///< Irrlicht visualization device
+    irr::scene::ISceneNode* m_container;               ///< Irrlicht scene container
+    std::unique_ptr<ChIrrGUI> m_gui;                   ///< associated Irrlicht GUI and event receiver
+    std::unique_ptr<EffectHandler> m_effect_handler;   ///< effect handler for shadow maps
+    bool m_use_effects;                                ///< flag to enable/disable effects
+    bool m_modal;                                      ///< visualize modal analysis
 
     // shared meshes
     irr::scene::IAnimatedMesh* sphereMesh;

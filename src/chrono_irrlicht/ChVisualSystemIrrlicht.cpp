@@ -52,7 +52,7 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
       m_win_title(""),
       m_yup(true),
       m_use_effects(false),
-      m_symbol_scale(1) {
+      m_modal(false) {
     // Set default device parameter values
     m_device_params.AntiAlias = true;
     m_device_params.Bits = 32;
@@ -61,6 +61,9 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
     m_device_params.WindowSize = irr::core::dimension2d<irr::u32>(640, 480);
     m_device_params.Stencilbuffer = false;
     m_device_params.LoggingLevel = irr::ELL_INFORMATION;
+
+    // Create the GUI
+    m_gui = std::unique_ptr<ChIrrGUI>(new ChIrrGUI());
 
     // Create shared meshes
     sphereMesh = createEllipticalMesh(1.0, 1.0, -2, +2, 0, 15, 8);
@@ -119,8 +122,8 @@ void ChVisualSystemIrrlicht::SetCameraVertical(CameraVerticalDir vert) {
     m_yup = (vert == CameraVerticalDir::Y);
 }
 void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
-    m_symbol_scale = scale;
-    if (m_gui)
+    m_gui->symbolscale = scale;
+    if (m_gui->initialized)
         m_gui->SetSymbolscale(scale);
 }
 
@@ -169,8 +172,8 @@ void ChVisualSystemIrrlicht::Initialize() {
     // If the visualization system is already attached to a ChSystem
     if (m_system) {
         // Create an Irrlicht GUI
-        assert(!m_gui);
-        CreateGUI();
+        assert(!m_gui->initialized);
+        m_gui->Initialize(m_device, m_system);
 
         // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
         // This is a recursive call to accomodate any existing sub-assemblies.
@@ -188,8 +191,8 @@ bool ChVisualSystemIrrlicht::Run() {
 void ChVisualSystemIrrlicht::OnAttach() {
     // If the visualization system is already initialized
     if (m_device) {
-        assert(!m_gui);
-        CreateGUI();
+        assert(!m_gui->initialized);
+        m_gui->Initialize(m_device, m_system);
 
         // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
         // This is a recursive call to accomodate any existing sub-assemblies.
@@ -223,20 +226,6 @@ void ChVisualSystemIrrlicht::PurgeIrrNodes() {
 
     for (auto&& item : items_to_remove)
         m_nodes.erase(item);
-}
-
-// -----------------------------------------------------------------------------
-
-// Called from Initialize() or from OnAttach(), whichever is invoked last.
-void ChVisualSystemIrrlicht::CreateGUI() {
-    assert(m_device);
-    assert(m_system);
-
-    m_gui = std::unique_ptr<ChIrrGUI>(new ChIrrGUI(m_device, m_system));
-
-    m_gui->SetSymbolscale(m_symbol_scale);
-    for (auto recv : m_user_receivers)
-        m_gui->AddUserEventReceiver(recv);
 }
 
 // -----------------------------------------------------------------------------
@@ -330,20 +319,41 @@ irr::scene::ILightSceneNode* ChVisualSystemIrrlicht::AddLightWithShadow(const Ch
     m_effect_handler->addShadowLight(SShadowLight(
         (irr::u32)resolution, irr::core::vector3dfCH(pos), irr::core::vector3dfCH(aim), tools::ToIrrlichtSColorf(color),
         (irr::f32)near_value, (irr::f32)far_value, (irr::f32)angle * irr::core::DEGTORAD, directional));
-    
-    if (clipborder == false) {
-        m_effect_handler->getShadowLight(m_effect_handler->getShadowLightCount() - 1).setClipBorder(clipborder);
-    }
+
+    if (!clipborder)
+        m_effect_handler->getShadowLight(m_effect_handler->getShadowLightCount() - 1).setClipBorder(false);
 
     m_use_effects = true;
     return mlight;
 }
 
 void ChVisualSystemIrrlicht::AddUserEventReceiver(irr::IEventReceiver* receiver) {
-    if (m_gui)
-        m_gui->AddUserEventReceiver(receiver);
-    else
-        m_user_receivers.push_back(receiver);
+    m_gui->AddUserEventReceiver(receiver);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChVisualSystemIrrlicht::EnableModalAnalysis(bool val) {
+    m_modal = val;
+    m_gui->modal_show = val;
+    m_gui->modal_phi = 0;
+}
+
+void ChVisualSystemIrrlicht::SetModalModeNumber(int val) {
+    m_gui->modal_mode_n = val;
+    m_gui->modal_phi = 0;
+}
+
+void ChVisualSystemIrrlicht::SetModalAmplitude(double val) {
+    m_gui->modal_amplitude = val;
+    if (m_gui->initialized)
+        m_gui->SetModalAmplitude(val);
+}
+
+void ChVisualSystemIrrlicht::SetModalSpeed(double val) {
+    m_gui->modal_speed = val;
+    if (m_gui->initialized)
+        m_gui->SetModalSpeed(val);
 }
 
 // -----------------------------------------------------------------------------
@@ -393,33 +403,45 @@ void ChVisualSystemIrrlicht::AddShadowToIrrNode(scene::ISceneNode* node) {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemIrrlicht::EnableContactDrawing(IrrContactsDrawMode mode) {
-    if (!m_device)
-        return;
-    m_gui->SetContactsDrawMode(mode);
+    if (m_gui->initialized)
+        m_gui->SetContactsDrawMode(mode);
 }
 
 void ChVisualSystemIrrlicht::EnableLinkDrawing(IrrLinkDrawMode mode) {
-    if (!m_device)
-        return;
-    m_gui->SetLinksDrawMode(mode);
+    if (m_gui->initialized)
+        m_gui->SetLinksDrawMode(mode);
 }
 
 void ChVisualSystemIrrlicht::EnableBodyFrameDrawing(bool val) {
-    if (!m_device)
-        return;
-    m_gui->SetPlotCOGFrames(val);
+    if (m_gui->initialized)
+        m_gui->SetPlotCOGFrames(val);
 }
 
 void ChVisualSystemIrrlicht::EnableLinkFrameDrawing(bool val) {
-    if (!m_device)
-        return;
-    m_gui->SetPlotLinkFrames(val);
+    if (m_gui->initialized)
+        m_gui->SetPlotLinkFrames(val);
 }
 
 void ChVisualSystemIrrlicht::EnableCollisionShapeDrawing(bool val) {
-    if (!m_device)
-        return;
-    m_gui->SetPlotCollisionShapes(val);
+    if (m_gui->initialized)
+        m_gui->SetPlotCollisionShapes(val);
+}
+
+void ChVisualSystemIrrlicht::ShowInfoPanel(bool val) {
+    m_gui->show_infos = val;
+}
+
+void ChVisualSystemIrrlicht::SetInfoTab(int ntab) {
+    if (m_gui->initialized)
+        m_gui->SetInfoTab(ntab);
+}
+
+void ChVisualSystemIrrlicht::ShowProfiler(bool val) {
+    m_gui->show_profiler = val;
+}
+
+void ChVisualSystemIrrlicht::ShowExplorer(bool val) {
+    m_gui->show_explorer = val;
 }
 
 // -----------------------------------------------------------------------------
@@ -435,27 +457,28 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
     GetVideoDriver()->beginScene(backBuffer, zBuffer, tools::ToIrrlichtSColor(color));
 
 #ifdef CHRONO_MODAL
-    if (this->modal_phi || this->modal_show) {
-        if (this->modal_show)
-            this->modal_phi += this->modal_speed * 0.01;
-        else
-            this->modal_phi = 0;  // return to normal dynamics
+    if (m_modal) {
+        m_gui->modal_phi += m_gui->modal_speed * 0.01;
         // scan for modal assemblies, if any
-        for (auto item : this->system->Get_otherphysicslist()) {
-            if (auto mmodalassembly = std::dynamic_pointer_cast<modal::ChModalAssembly>(item)) {
+        for (const auto& item : m_system->Get_otherphysicslist()) {
+            if (auto modalassembly = std::dynamic_pointer_cast<modal::ChModalAssembly>(item)) {
                 try {
                     // superposition of modal shape
-                    mmodalassembly->SetFullStateWithModeOverlay(this->modal_mode_n, this->modal_phi,
-                                                                this->modal_amplitude);
+                    modalassembly->SetFullStateWithModeOverlay(m_gui->modal_mode_n, m_gui->modal_phi,
+                                                               m_gui->modal_amplitude);
                     // fetch Hz of this mode
-                    this->modal_current_freq = mmodalassembly->Get_modes_frequencies()(this->modal_mode_n);
+                    m_gui->modal_current_freq = modalassembly->Get_modes_frequencies()(m_gui->modal_mode_n);
+                    // fetch damping factor
+                    m_gui->modal_current_dampingfactor = modalassembly->Get_modes_damping_ratios()(m_gui->modal_mode_n);
                 } catch (...) {
+                    m_gui->modal_current_freq = 0;
+                    m_gui->modal_current_dampingfactor = 0;
                     // something failed in SetFullStateWithModeOverlay(), ex. node n was higher than available ones
-                    mmodalassembly->SetFullStateReset();
+                    modalassembly->SetFullStateReset();
                 }
             }
         }
-        this->modal_current_mode_n = this->modal_mode_n;
+        m_gui->modal_current_mode_n = m_gui->modal_mode_n;
     }
 #endif
 
@@ -539,22 +562,22 @@ void ChVisualSystemIrrlicht::CreateIrrNodes(const ChAssembly* assembly, std::uno
 
 #ifdef CHRONO_MODAL
     // Modal assemblies contain custom internal items that might be useful to visualize
-    if (auto myassy_modal = dynamic_cast<const chrono::modal::ChModalAssembly*>(massy)) {
-        for (auto body : myassy_modal->Get_internal_bodylist()) {
-            Bind(body);
+    if (auto assy_modal = dynamic_cast<const chrono::modal::ChModalAssembly*>(assembly)) {
+        for (auto body : assy_modal->Get_internal_bodylist()) {
+            CreateIrrNode(body);
         }
-        for (auto& mesh : myassy_modal->Get_internal_meshlist()) {
-            Bind(mesh);
+        for (auto& mesh : assy_modal->Get_internal_meshlist()) {
+            CreateIrrNode(mesh);
         }
-        for (auto ph : myassy_modal->Get_internal_otherphysicslist()) {
-            Bind(ph);
+        for (auto ph : assy_modal->Get_internal_otherphysicslist()) {
+            CreateIrrNode(ph);
             // If the assembly holds another assemblies, also bind their contents.
-            if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(ph)) {
-                BindAllContentsOfAssembly(myassy.get(), mtrace);
+            if (auto a = std::dynamic_pointer_cast<ChAssembly>(ph)) {
+                CreateIrrNodes(a.get(), trace);
             }
         }
-        for (auto link : myassy_modal->Get_internal_linklist()) {
-            Bind(link);
+        for (auto link : assy_modal->Get_internal_linklist()) {
+            CreateIrrNode(link);
         }
     }
 #endif
@@ -742,7 +765,6 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 mchildnode->setPosition(m4.getTranslation());
                 mchildnode->setRotation(m4.getRotationDegrees());
 
-
                 SetVisualMaterial(mchildnode, cylinder);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
             }
@@ -759,7 +781,6 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
                 mchildnode->setScale(irrsize);
                 mchildnode->setPosition(shape_m4.getTranslation());
                 mchildnode->setRotation(shape_m4.getRotationDegrees());
-
 
                 SetVisualMaterial(mchildnode, capsule);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);

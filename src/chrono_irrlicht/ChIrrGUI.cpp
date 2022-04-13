@@ -47,13 +47,13 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
     if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
             case irr::KEY_KEY_I:
-                m_gui->SetShowInfos(!m_gui->GetShowInfos());
+                m_gui->show_infos = !m_gui->show_infos;
                 return true;
             case irr::KEY_KEY_O:
-                m_gui->SetShowProfiler(!m_gui->GetShowProfiler());
+                m_gui->show_profiler = !m_gui->show_profiler;
                 return true;
             case irr::KEY_KEY_U:
-                m_gui->SetShowExplorer(!m_gui->GetShowExplorer());
+                m_gui->show_explorer = !m_gui->show_explorer;
                 return true;
             case irr::KEY_F8: {
                 GetLog() << "Saving system in JSON format to dump.json file \n";
@@ -110,13 +110,34 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
 
         switch (event.GUIEvent.EventType) {
             case irr::gui::EGET_EDITBOX_ENTER:
-                if (id == 9921) {
-                    double scale = 0.01;
-                    scale =
-                        atof(irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
-                    m_gui->SetSymbolscale(scale);
-                    break;
+                switch (id) {
+                    case 9921: {
+                        double val = atof(
+                            irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
+                        m_gui->SetSymbolscale(val);
+                    } break;
+                    case 9927: {
+                        double val = atof(
+                            irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
+                        m_gui->SetModalAmplitude(val);
+
+                    } break;
+                    case 9928: {
+                        double val = atof(
+                            irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
+                        m_gui->SetModalSpeed(val);
+
+                    } break;
                 }
+                break;
+
+            case irr::gui::EGET_SCROLL_BAR_CHANGED:
+                switch (id) {
+                    case 9926:
+                        m_gui->modal_mode_n = ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
+                        break;
+                }
+                break;
 
             default:
                 break;
@@ -150,14 +171,29 @@ class DebugDrawer : public collision::ChCollisionSystem::VisualizationCallback {
 
 // -----------------------------------------------------------------------------
 
-ChIrrGUI::ChIrrGUI(irr::IrrlichtDevice* device, ChSystem* sys)
-    : m_device(device),
-      m_system(sys),
+ChIrrGUI::ChIrrGUI()
+    : m_device(nullptr),
+      m_system(nullptr),
+      initialized(false),
       show_explorer(false),
       show_infos(false),
       show_profiler(false),
+      modal_show(false),
+      modal_mode_n(0),
+      modal_amplitude(0.1),
+      modal_speed(1),
+      modal_phi(0),
+      modal_current_mode_n(0),
+      modal_current_freq(0),
+      modal_current_dampingfactor(0),
       symbolscale(1),
-      camera_auto_rotate_speed(0) {
+      camera_auto_rotate_speed(0) {}
+
+void ChIrrGUI::Initialize(irr::IrrlichtDevice* device, ChSystem* sys) {
+    m_device = device;
+    m_system = sys;
+    initialized = true;
+
     // Set the default event receiver
     m_receiver = new ChIrrEventReceiver(this);
     m_device->setEventReceiver(m_receiver);
@@ -180,72 +216,89 @@ ChIrrGUI::ChIrrGUI(irr::IrrlichtDevice* device, ChSystem* sys)
     skin->setColor(irr::gui::EGDC_3D_HIGH_LIGHT, irr::video::SColor(200, 210, 210, 210));
 
     // Create GUI gadgets
-    gad_tabbed = guienv->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 510), 0, true, true);
-    auto gad_tab1 = gad_tabbed->addTab(L"Stats");
-    auto gad_tab2 = gad_tabbed->addTab(L"Help");
+    g_tabbed = guienv->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 550), 0, true, true);
+    auto g_tab1 = g_tabbed->addTab(L"Dynamic");
+    auto g_tab2 = g_tabbed->addTab(L"Modal");
+    auto g_tab3 = g_tabbed->addTab(L"Help");
 
-    gad_textFPS = guienv->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 230), true, true, gad_tab1);
+    g_textFPS = guienv->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 200), true, true, g_tab1);
 
-    gad_labelcontacts = guienv->addComboBox(irr::core::rect<irr::s32>(10, 240, 200, 240 + 20), gad_tab1, 9901);
-    gad_labelcontacts->addItem(L"Contact distances");
-    gad_labelcontacts->addItem(L"Contact force modulus");
-    gad_labelcontacts->addItem(L"Contact force (normal)");
-    gad_labelcontacts->addItem(L"Contact force (tangent)");
-    gad_labelcontacts->addItem(L"Contact torque modulus");
-    gad_labelcontacts->addItem(L"Contact torque (spinning)");
-    gad_labelcontacts->addItem(L"Contact torque (rolling)");
-    gad_labelcontacts->addItem(L"Don't print contact values");
-    gad_labelcontacts->setSelected(7);
+    g_labelcontacts = guienv->addComboBox(irr::core::rect<irr::s32>(10, 210, 200, 210 + 20), g_tab1, 9901);
+    g_labelcontacts->addItem(L"Contact distances");
+    g_labelcontacts->addItem(L"Contact force modulus");
+    g_labelcontacts->addItem(L"Contact force (normal)");
+    g_labelcontacts->addItem(L"Contact force (tangent)");
+    g_labelcontacts->addItem(L"Contact torque modulus");
+    g_labelcontacts->addItem(L"Contact torque (spinning)");
+    g_labelcontacts->addItem(L"Contact torque (rolling)");
+    g_labelcontacts->addItem(L"Do not print contact values");
+    g_labelcontacts->setSelected(7);
 
-    gad_drawcontacts = guienv->addComboBox(irr::core::rect<irr::s32>(10, 260, 200, 260 + 20), gad_tab1, 9901);
-    gad_drawcontacts->addItem(L"Contact normals");
-    gad_drawcontacts->addItem(L"Contact distances");
-    gad_drawcontacts->addItem(L"Contact N forces");
-    gad_drawcontacts->addItem(L"Contact forces");
-    gad_drawcontacts->addItem(L"Don't draw contacts");
-    gad_drawcontacts->setSelected(4);
+    g_drawcontacts = guienv->addComboBox(irr::core::rect<irr::s32>(10, 230, 200, 230 + 20), g_tab1, 9901);
+    g_drawcontacts->addItem(L"Contact normals");
+    g_drawcontacts->addItem(L"Contact distances");
+    g_drawcontacts->addItem(L"Contact N forces");
+    g_drawcontacts->addItem(L"Contact forces");
+    g_drawcontacts->addItem(L"Do not draw contacts");
+    g_drawcontacts->setSelected(4);
 
-    gad_labellinks = guienv->addComboBox(irr::core::rect<irr::s32>(10, 280, 200, 280 + 20), gad_tab1, 9923);
-    gad_labellinks->addItem(L"Link react.force modulus");
-    gad_labellinks->addItem(L"Link react.force X");
-    gad_labellinks->addItem(L"Link react.force Y");
-    gad_labellinks->addItem(L"Link react.force Z");
-    gad_labellinks->addItem(L"Link react.torque modulus");
-    gad_labellinks->addItem(L"Link react.torque X");
-    gad_labellinks->addItem(L"Link react.torque Y");
-    gad_labellinks->addItem(L"Link react.torque Z");
-    gad_labellinks->addItem(L"Don't print link values");
-    gad_labellinks->setSelected(8);
+    g_labellinks = guienv->addComboBox(irr::core::rect<irr::s32>(10, 250, 200, 250 + 20), g_tab1, 9923);
+    g_labellinks->addItem(L"Link react.force modulus");
+    g_labellinks->addItem(L"Link react.force X");
+    g_labellinks->addItem(L"Link react.force Y");
+    g_labellinks->addItem(L"Link react.force Z");
+    g_labellinks->addItem(L"Link react.torque modulus");
+    g_labellinks->addItem(L"Link react.torque X");
+    g_labellinks->addItem(L"Link react.torque Y");
+    g_labellinks->addItem(L"Link react.torque Z");
+    g_labellinks->addItem(L"Do not print link values");
+    g_labellinks->setSelected(8);
 
-    gad_drawlinks = guienv->addComboBox(irr::core::rect<irr::s32>(10, 300, 200, 300 + 20), gad_tab1, 9924);
-    gad_drawlinks->addItem(L"Link reaction forces");
-    gad_drawlinks->addItem(L"Link reaction torques");
-    gad_drawlinks->addItem(L"Don't draw link vectors");
-    gad_drawlinks->setSelected(2);
+    g_drawlinks = guienv->addComboBox(irr::core::rect<irr::s32>(10, 270, 200, 270 + 20), g_tab1, 9924);
+    g_drawlinks->addItem(L"Link reaction forces");
+    g_drawlinks->addItem(L"Link reaction torques");
+    g_drawlinks->addItem(L"Do not draw link vectors");
+    g_drawlinks->setSelected(2);
 
-    gad_plot_aabb =
-        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 330, 200, 330 + 15), gad_tab1, 9914, L"Draw AABB");
+    g_plot_aabb =
+        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 300, 200, 300 + 15), g_tab1, 9914, L"Draw AABB");
 
-    gad_plot_cogs =
-        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 345, 200, 345 + 15), gad_tab1, 9915, L"Draw COGs");
+    g_plot_cogs =
+        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 315, 200, 315 + 15), g_tab1, 9915, L"Draw COGs");
 
-    gad_plot_linkframes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 360, 200, 360 + 15), gad_tab1, 9920,
-                                              L"Draw link frames");
+    g_plot_linkframes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 330, 200, 330 + 15), g_tab1, 9920,
+                                            L"Draw link frames");
 
-    gad_plot_collisionshapes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 375, 200, 375 + 15), gad_tab1,
-                                                   9902, L"Draw collision shapes");
+    g_plot_collisionshapes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 345, 200, 345 + 15), g_tab1, 9902,
+                                                 L"Draw collision shapes");
 
-    gad_plot_convergence = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 390, 200, 390 + 15), gad_tab1, 9902,
-                                               L"Plot convergence");
+    g_plot_convergence = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 360, 200, 360 + 15), g_tab1, 9902,
+                                             L"Plot convergence");
 
-    gad_symbolscale = guienv->addEditBox(L"", irr::core::rect<irr::s32>(170, 330, 200, 330 + 15), true, gad_tab1, 9921);
-    gad_symbolscale_info = guienv->addStaticText(L"Symbols scale", irr::core::rect<irr::s32>(110, 330, 170, 330 + 15),
-                                                 false, false, gad_tab1);
+    guienv->addStaticText(L"Symbols scale", irr::core::rect<irr::s32>(130, 300, 200, 300 + 15), false, false, g_tab1);
+    g_symbolscale = guienv->addEditBox(L"", irr::core::rect<irr::s32>(170, 315, 200, 315 + 15), true, g_tab1, 9921);
     SetSymbolscale(symbolscale);
 
-    // -- gad_tab2
+    // -- g_tab2
 
-    gad_textHelp = guienv->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 380), true, true, gad_tab2);
+    guienv->addStaticText(L"Amplitude", irr::core::rect<irr::s32>(10, 10, 80, 10 + 15), false, false, g_tab2);
+    g_modal_amplitude = guienv->addEditBox(L"", irr::core::rect<irr::s32>(80, 10, 120, 10 + 15), true, g_tab2, 9927);
+    SetModalAmplitude(modal_amplitude);
+    guienv->addStaticText(L"Speed", irr::core::rect<irr::s32>(10, 25, 80, 25 + 15), false, false, g_tab2);
+    g_modal_speed = guienv->addEditBox(L"", irr::core::rect<irr::s32>(80, 25, 120, 25 + 15), true, g_tab2, 9928);
+    SetModalSpeed(modal_speed);
+
+    guienv->addStaticText(L"Mode", irr::core::rect<irr::s32>(10, 50, 100, 50 + 15), false, false, g_tab2);
+    g_modal_mode_n =
+        GetGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 65, 120, 65 + 15), g_tab2, 9926);
+    g_modal_mode_n->setMax(25);
+    g_modal_mode_n->setSmallStep(1);
+    g_modal_mode_n_info =
+        GetGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(10, 85, 340, 85 + 45), false, false, g_tab2);
+
+    // -- g_tab3
+
+    g_textHelp = guienv->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 380), true, true, g_tab3);
     irr::core::stringw hstr = "Instructions for interface.\n\n";
     hstr += "MOUSE \n\n";
     hstr += " left button: camera rotation \n";
@@ -267,11 +320,11 @@ ChIrrGUI::ChIrrGUI(irr::IrrlichtDevice* device, ChSystem* sys)
     hstr += " 'F10' key: non-linear statics.\n";
     hstr += " 'F11' key: linear statics.\n";
     hstr += " 'F2-F3-F4' key: auto rotate camera.\n";
-    gad_textHelp->setText(hstr.c_str());
+    g_textHelp->setText(hstr.c_str());
 
-    gad_treeview = guienv->addTreeView(
+    g_treeview = guienv->addTreeView(
         irr::core::rect<irr::s32>(2, 80, 300, GetVideoDriver()->getScreenSize().Height - 4), 0, 9919, true, true, true);
-    auto child = gad_treeview->getRoot()->addChildBack(L"System", 0);
+    auto child = g_treeview->getRoot()->addChildBack(L"System", 0);
     child->setExpanded(true);
 }
 
@@ -287,7 +340,21 @@ void ChIrrGUI::SetSymbolscale(double val) {
     symbolscale = ChMax(10e-12, val);
     char message[50];
     sprintf(message, "%g", symbolscale);
-    gad_symbolscale->setText(irr::core::stringw(message).c_str());
+    g_symbolscale->setText(irr::core::stringw(message).c_str());
+}
+
+void ChIrrGUI::SetModalAmplitude(double val) {
+    modal_amplitude = ChMax(0.0, val);
+    char message[50];
+    sprintf(message, "%g", modal_amplitude);
+    g_modal_amplitude->setText(irr::core::stringw(message).c_str());
+}
+
+void ChIrrGUI::SetModalSpeed(double val) {
+    modal_speed = ChMax(0.0, val);
+    char message[50];
+    sprintf(message, "%g", modal_speed);
+    g_modal_speed->setText(irr::core::stringw(message).c_str());
 }
 
 // -----------------------------------------------------------------------------
@@ -393,53 +460,68 @@ void ChIrrGUI::DrawAll() {
     str += "\n  CPU Update time:  ";
     str += (int)(1000 * m_system->GetTimerUpdate());
     str += " ms";
-    str += "\n\nN.of active bodies:  ";
+    str += "\n\nNum. active bodies:  ";
     str += m_system->GetNbodies();
-    str += "\nN.of sleeping bodies:  ";
+    str += "\nNum. sleeping bodies:  ";
     str += m_system->GetNbodiesSleeping();
-    str += "\nN.of contacts:  ";
+    str += "\nNum. contacts:  ";
     str += m_system->GetNcontacts();
-    str += "\nN.of coords:  ";
+    str += "\nNum. coords:  ";
     str += m_system->GetNcoords_w();
-    str += "\nN.of constr:  ";
+    str += "\nNum. constr:  ";
     str += m_system->GetNdoc_w();
-    str += "\nN.of variables:  ";
+    str += "\nNum. variables:  ";
     str += m_system->GetNsysvars_w();
-    gad_textFPS->setText(str.c_str());
+    g_textFPS->setText(str.c_str());
 
-    int dmode = gad_drawcontacts->getSelected();
+    int dmode = g_drawcontacts->getSelected();
     tools::drawAllContactPoints(m_system->GetContactContainer(), GetVideoDriver(), symbolscale,
                                 (IrrContactsDrawMode)dmode);
 
-    int lmode = gad_labelcontacts->getSelected();
+    int lmode = g_labelcontacts->getSelected();
     tools::drawAllContactLabels(m_system->GetContactContainer(), GetDevice(), (IrrContactsLabelMode)lmode);
 
-    int dmodeli = gad_drawlinks->getSelected();
+    int dmodeli = g_drawlinks->getSelected();
     tools::drawAllLinks(*m_system, GetVideoDriver(), symbolscale, (IrrLinkDrawMode)dmodeli);
 
-    int lmodeli = gad_labellinks->getSelected();
+    int lmodeli = g_labellinks->getSelected();
     tools::drawAllLinkLabels(*m_system, GetDevice(), (IrrLinkLabelMode)lmodeli);
 
-    if (gad_plot_aabb->isChecked())
+    if (g_plot_aabb->isChecked())
         tools::drawAllBoundingBoxes(*m_system, GetVideoDriver());
 
-    if (gad_plot_cogs->isChecked())
+    if (g_plot_cogs->isChecked())
         tools::drawAllCOGs(*m_system, GetVideoDriver(), symbolscale);
 
-    if (gad_plot_linkframes->isChecked())
+    if (g_plot_linkframes->isChecked())
         tools::drawAllLinkframes(*m_system, GetVideoDriver(), symbolscale);
 
-    if (gad_plot_collisionshapes->isChecked())
+    if (g_plot_collisionshapes->isChecked())
         DrawCollisionShapes(irr::video::SColor(50, 0, 0, 110));
 
-    if (gad_plot_convergence->isChecked())
+    if (g_plot_convergence->isChecked())
         tools::drawHUDviolation(GetVideoDriver(), GetDevice(), *m_system, 240, 370, 300, 100, 100.0);
 
-    gad_tabbed->setVisible(show_infos);
-    gad_treeview->setVisible(show_explorer);
+    g_tabbed->setVisible(show_infos);
+    g_treeview->setVisible(show_explorer);
     if (show_explorer) {
         chrono::ChValueSpecific<ChSystem> root(*m_system, "system", 0);
-        recurse_update_tree_node(&root, gad_treeview->getRoot());
+        recurse_update_tree_node(&root, g_treeview->getRoot());
+    }
+
+    g_modal_mode_n->setEnabled(modal_show);
+    g_modal_mode_n_info->setEnabled(modal_show);
+    g_modal_amplitude->setEnabled(modal_show);
+    g_modal_speed->setEnabled(modal_show);
+    if (modal_show) {
+        char message[50];
+        if (modal_current_dampingfactor)
+            sprintf(message, "n=%i\n%.3g Hz\nz=%.2g", modal_mode_n, modal_current_freq, modal_current_dampingfactor);
+        else
+            sprintf(message, "n=%i\n%.3g Hz", modal_mode_n, modal_current_freq);
+        g_modal_mode_n_info->setText(irr::core::stringw(message).c_str());
+
+        g_modal_mode_n->setPos(modal_mode_n);
     }
 
     GetGUIEnvironment()->drawAll();
