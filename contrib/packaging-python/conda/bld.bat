@@ -12,6 +12,9 @@ set MKL_INTERFACE_LAYER = LP64
 set MKL_THREADING_LAYER = INTEL
 set CONFIGURATION=Release
 REM Configure step
+
+REM THIS STATIC LIBRARY DOESN'T APPEAR ANYMORE, USE THE VERSION FROM THE INTEL oneAPI COMPILER SUITE -DIOMP5_LIBRARY="%PREFIX%"\Library\lib\libiomp5md.lib ^
+
 mkdir cmake_began
 cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%" ^
@@ -39,7 +42,7 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DENABLE_MODULE_PARDISO_MKL=ON ^
  -DMKL_INCLUDE_DIR="%PREFIX%"\Library\include ^
  -DMKL_RT_LIBRARY="%PREFIX%"\Library\lib\mkl_rt.lib ^
- -DIOMP5_LIBRARY="%PREFIX%"\Library\lib\libiomp5md.lib ^
+ -DIOMP5_LIBRARY="C:/Program Files (x86)/Intel/oneAPI/compiler/latest/windows/compiler/lib/intel64_win/libiomp5md.lib" ^
  -DPYCHRONO_DATA_PATH="..\..\..\..\..\Library\data" ^
  .. >> "%LOG_DIR%"\cmakeconfiglog.txt 2>&1
 if errorlevel 1 exit 1

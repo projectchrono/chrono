@@ -31,6 +31,7 @@ requirements:
     - cmake >=3.10          # [not win]
     - ninja # [linux or osx]
     - swig >=4.0.0
+    - mkl
     - mkl-devel
     - irrlicht
     - opencascade
