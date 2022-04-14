@@ -161,18 +161,18 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void EnableCollisionShapeDrawing(bool val);
 
     /// Enable modal analysis visualization (default: false).
-    /// If true, visualize an oscillatory motion of the nth mode (only if some ChModalAssembly is found).
+    /// If true, visualize an oscillatory motion of the n-th mode (only if some ChModalAssembly is found).
     /// Otherwise, visualize the dynamic evolution of the associated system.
-    void EnableModalAnalysis(bool val);
+    virtual void EnableModalAnalysis(bool val) override;
 
     /// Set the mode to be shown (only if some ChModalAssembly is found).
-    void SetModalModeNumber(int val);
+    virtual void SetModalModeNumber(int val) override;
 
     /// Set the amplitude of the shown mode (only if some ChModalAssembly is found).
-    void SetModalAmplitude(double val);
+    virtual void SetModalAmplitude(double val) override;
 
     /// Set the speed of the shown mode (only if some ChModalAssembly is found).
-    void SetModalSpeed(double val);
+    virtual void SetModalSpeed(double val) override;
 
     /// Show the realtime profiler in the 3D view.
     void ShowProfiler(bool val);
@@ -250,6 +250,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Perform necessary update operations at the end of a time step.
     virtual void OnUpdate() override;
+
+    /// Remove all visualization objects from this visualization system.
+    virtual void OnClear() override;
 
     std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;
 

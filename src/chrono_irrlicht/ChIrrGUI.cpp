@@ -294,7 +294,7 @@ void ChIrrGUI::Initialize(irr::IrrlichtDevice* device, ChSystem* sys) {
     g_modal_mode_n->setMax(25);
     g_modal_mode_n->setSmallStep(1);
     g_modal_mode_n_info =
-        GetGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(10, 85, 340, 85 + 45), false, false, g_tab2);
+        GetGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(130, 65, 340, 65 + 45), false, false, g_tab2);
 
     // -- g_tab3
 
@@ -516,9 +516,9 @@ void ChIrrGUI::DrawAll() {
     if (modal_show) {
         char message[50];
         if (modal_current_dampingfactor)
-            sprintf(message, "n=%i\n%.3g Hz\nz=%.2g", modal_mode_n, modal_current_freq, modal_current_dampingfactor);
+            sprintf(message, "n = %i\nf = %.3g Hz\nz = %.2g", modal_mode_n, modal_current_freq, modal_current_dampingfactor);
         else
-            sprintf(message, "n=%i\n%.3g Hz", modal_mode_n, modal_current_freq);
+            sprintf(message, "n = %i\nf = %.3g Hz", modal_mode_n, modal_current_freq);
         g_modal_mode_n_info->setText(irr::core::stringw(message).c_str());
 
         g_modal_mode_n->setPos(modal_mode_n);

@@ -42,6 +42,20 @@ class ChApi ChVisualSystem {
     /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) {}
 
+    /// Enable modal analysis visualization.
+    /// If supported, visualize an oscillatory motion of the n-th mode (if the associated system contains a
+    /// ChModalAssembly).
+    virtual void EnableModalAnalysis(bool val) {}
+
+    /// Set the mode to be shown (only if some ChModalAssembly is found).
+    virtual void SetModalModeNumber(int val) {}
+
+    /// Set the amplitude of the shown mode (only if some ChModalAssembly is found).
+    virtual void SetModalAmplitude(double val) {}
+
+    /// Set the speed of the shown mode (only if some ChModalAssembly is found).
+    virtual void SetModalSpeed(double val) {}
+
     /// Get the associated Chrono system.
     const ChSystem& GetSystem() const { return *m_system; }
 
@@ -59,6 +73,10 @@ class ChApi ChVisualSystem {
     /// Perform any necessary update operations at the end of a time step.
     /// Called by the associated ChSystem.
     virtual void OnUpdate() {}
+
+    /// Remove all visualization objects from this visualization system.
+    /// Called by the associated ChSystem.
+    virtual void OnClear() {}
 
     ChSystem* m_system;  ///< associated Chrono system
 

@@ -210,6 +210,14 @@ void ChVisualSystemIrrlicht::OnUpdate() {
     }
 }
 
+void ChVisualSystemIrrlicht::OnClear() {
+    for (auto& node : m_nodes) {
+        node.second->removeAll();
+        node.second->remove();
+    }
+    m_nodes.clear();
+}
+
 void ChVisualSystemIrrlicht::PurgeIrrNodes() {
     // Remove Irrlicht nodes associated with a deleted physics item
     std::vector<ChPhysicsItem*> items_to_remove;
@@ -334,9 +342,10 @@ void ChVisualSystemIrrlicht::AddUserEventReceiver(irr::IEventReceiver* receiver)
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemIrrlicht::EnableModalAnalysis(bool val) {
+    if (!m_modal)
+        m_gui->modal_phi = 0;
     m_modal = val;
     m_gui->modal_show = val;
-    m_gui->modal_phi = 0;
 }
 
 void ChVisualSystemIrrlicht::SetModalModeNumber(int val) {
@@ -457,8 +466,12 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
     GetVideoDriver()->beginScene(backBuffer, zBuffer, tools::ToIrrlichtSColor(color));
 
 #ifdef CHRONO_MODAL
-    if (m_modal) {
-        m_gui->modal_phi += m_gui->modal_speed * 0.01;
+    if (m_modal || m_gui->modal_phi > 0) {
+        if (m_modal)
+            m_gui->modal_phi += m_gui->modal_speed * 0.01;
+        else
+            m_gui->modal_phi = 0;
+
         // scan for modal assemblies, if any
         for (const auto& item : m_system->Get_otherphysicslist()) {
             if (auto modalassembly = std::dynamic_pointer_cast<modal::ChModalAssembly>(item)) {
@@ -470,6 +483,8 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
                     m_gui->modal_current_freq = modalassembly->Get_modes_frequencies()(m_gui->modal_mode_n);
                     // fetch damping factor
                     m_gui->modal_current_dampingfactor = modalassembly->Get_modes_damping_ratios()(m_gui->modal_mode_n);
+                    // Force an update of the visual system
+                    OnUpdate();
                 } catch (...) {
                     m_gui->modal_current_freq = 0;
                     m_gui->modal_current_dampingfactor = 0;
