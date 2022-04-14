@@ -5,11 +5,13 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [CMake project configuration script](#changed-cmake-project-configuration-script)
   - [Right-handed frames in Chrono::Irrlicht](#changed-right-handed-frames-in-chronoirrlicht)
   - [Modal analysis module](#added-modal-analysis-module)
   - [Callback mechanism for collision debug visualization](#added-callback-mechanism-for-collision-debug-visualization)
   - [Translational and rotational spring-damper-actuators](#changed-translational-and-rotational-spring-damper-actuators)
   - [Refactor Chrono::Vehicle suspension test rigs](#changed-refactor-chronovehicle-suspension-test-rigs)
+- [Release 7.0.2](#release-702---2022-04-03)  
 - [Release 7.0.1](#release-701---2022-01-07)  
 - [Release 7.0.0](#release-700---2021-11-15) 
   - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
@@ -60,6 +62,17 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] CMake project configuration script
+
+The CMake script `ChronoConfig.cmake`, generated automatically during Chrono CMake configuration and used in configuring third-party applications that depend on Chrono (via calls to `find_project(Chrono ...)`) was modified to produce the compiler and linker flags in CMake list variables (as opposed to space-separated strings as before).  The variables affected by this change are `CHRONO_CXX_FLAGS`, `CHRONO_C_FLAGS`, and `CHRONO_LINKER_FLAGS`.
+
+This allows use of modern CMake in the configuration scripts for such an external project.  See the example in the `template_project/` directory in the Chrono distribution:
+```
+target_compile_definitions(myexe PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
+target_compile_options(myexe PUBLIC ${CHRONO_CXX_FLAGS})
+target_link_options(myexe PUBLIC ${CHRONO_LINKER_FLAGS})
+```
 
 ### [Changed] Right-handed frames in Chrono::Irrlicht
 
@@ -165,6 +178,14 @@ See `demo_VEH_SuspensionTestRig` for various examples and options, and look at t
 Note also that the format for a data file with STR actuation information (used by a ChDataDriverSTR) was modified by moving the steering input in the 2nd column.
 In other words, each line of this ASCII file should now contain:<br>
 `    time  steering_input  left_post_0  right_post_0 left_post_1 right_post_1 …`
+
+### Release 7.0.2 - 2022-04-03
+
+### [Fixed]
+
+- Fixed bug in ANCF shells 3443 and 3883 where the incorrect Gauss quadrature weights and Jacobian elements were used when multiple layers of different sizes are defined
+- Fixed bug where the active flag for a sub-block of DOFs for a ChBody was incorrectly set
+- Updates to the continuous integration scripts
 
 ## Release 7.0.1 - 2022-01-07
 

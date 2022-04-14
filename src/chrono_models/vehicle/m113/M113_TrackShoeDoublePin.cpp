@@ -78,7 +78,7 @@ M113_TrackShoeDoublePin::M113_TrackShoeDoublePin(const std::string& name) : ChTr
         ChVehicleGeometry::CylinderShape(ChVector<>(-0.0492, 0, 0), QUNIT, 0.01, 0.3381, -1));
 
     m_geometry.m_has_mesh = false;
-    m_geometry.m_vis_mesh_file = "M113/TrackShoeDoublePin.obj";
+    m_geometry.m_vis_mesh_file = "M113/meshes/TrackShoeDoublePin.obj";
 }
 
 void M113_TrackShoeDoublePin::CreateContactMaterials(ChContactMethod contact_method) {

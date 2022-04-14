@@ -154,6 +154,8 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M,  /
 	int m = 2 * n_modes >= 30 ? 2 * n_modes : 30;  // minimum subspace size   //**TO DO*** make parametric?
 	if (m > n_vars + n_constr-1)
 		m = n_vars + n_constr-1;
+	if (m <= n_modes)
+		m = n_modes+1;
 
 	// Construct matrix operation objects using the wrapper classes
 	using OpType = SymShiftInvert<double, Eigen::Sparse, Eigen::Sparse>;
@@ -255,8 +257,10 @@ bool ChGeneralizedEigenvalueSolverLanczos::Solve(const ChSparseMatrix& M,  ///< 
 	sparse_assembly_2x2symm(B, M, O);
 
 	int m = 2 * n_modes >= 20 ? 2 * n_modes : 20;  // minimum subspace size   
-	if (m > n_vars + n_constr)
-		m = n_vars + n_constr;
+	if (m > n_vars + n_constr -1)
+		m = n_vars + n_constr -1;
+	if (m <= n_modes)
+		m = n_modes+1;
 
 	// Construct matrix operation objects using the wrapper classes
     using OpType = SymShiftInvert<double, Eigen::Sparse, Eigen::Sparse>;

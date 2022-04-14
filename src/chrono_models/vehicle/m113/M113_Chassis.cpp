@@ -84,7 +84,7 @@ M113_Chassis::M113_Chassis(const std::string& name, bool fixed, CollisionType ch
     m_geometry.m_vis_boxes.push_back(box2);
 
     m_geometry.m_has_mesh = true;
-    m_geometry.m_vis_mesh_file = "M113/Chassis.obj";
+    m_geometry.m_vis_mesh_file = "M113/meshes/Chassis.obj";
 
     m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
@@ -95,7 +95,7 @@ M113_Chassis::M113_Chassis(const std::string& name, bool fixed, CollisionType ch
             m_geometry.m_coll_boxes.push_back(box2);
             break;
         case CollisionType::HULLS: {
-            ChVehicleGeometry::ConvexHullsShape hull("M113/Chassis_Hulls.obj", 0);
+            ChVehicleGeometry::ConvexHullsShape hull("M113/meshes/Chassis_Hulls.obj", 0);
             m_geometry.m_coll_hulls.push_back(hull);
             break;
         }

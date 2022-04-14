@@ -301,6 +301,14 @@ ChVector<> ChTrackedVehicle::GetVehicleCOMPos() const {
 }
 
 // -----------------------------------------------------------------------------
+// Calculate and return the current vehicle inertia
+// -----------------------------------------------------------------------------
+ChMatrix33<> ChTrackedVehicle::GetVehicleInertia() const {
+    //// TODO
+    return ChMatrix33<>(1);
+}
+
+// -----------------------------------------------------------------------------
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::LogConstraintViolations() {

@@ -11,7 +11,7 @@
 // Holds internal functions and kernels for running a sphere-sphere timestep
 //
 // =============================================================================
-// Contributors: Conlain Kelly, Nic Olsen, Dan Negrut, Ruochun Zhang
+// Contributors: Conlain Kelly, Nic Olsen, Ruochun Zhang, Dan Negrut
 // =============================================================================
 
 #pragma once
@@ -34,9 +34,9 @@
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 #include "chrono_gpu/cuda/ChGpuHelpers.cuh"
 #include "chrono_gpu/cuda/ChGpuBoundaryConditions.cuh"
-#include <math_constants.h>
+//#include <math_constants.h>
 
-
+#define PI_F 3.1415926
 using chrono::gpu::ChSystemGpu_impl;
 
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;
@@ -137,6 +137,23 @@ static __global__ void elementalZLocalToGlobal(float* posZ,
         z_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
         z_UU += ((int64_t)ownerSD_triplet.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
         posZ[mySphereID] = z_UU;
+    }
+}
+
+/// A light-weight kernel that writes 0 or 1 depending on whether a particle's Z coord is higher than a given value
+static __global__ void elementalZAboveValue(unsigned int* YorN,
+                                            ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                            size_t nSpheres,
+                                            ChSystemGpu_impl::GranParamsPtr gran_params,
+                                            float ZValue) {
+    size_t mySphereID = (threadIdx.x + blockIdx.x * blockDim.x);
+    if (mySphereID < nSpheres) {
+        int zPos_local = sphere_data->sphere_local_pos_Z[mySphereID];
+        int3 ownerSD_triplet = SDIDTriplet(sphere_data->sphere_owner_SDs[mySphereID], gran_params);
+        float z_UU = zPos_local * gran_params->LENGTH_UNIT;
+        z_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
+        z_UU += ((int64_t)ownerSD_triplet.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
+        YorN[mySphereID] = z_UU >= ZValue ? 1 : 0;
     }
 }
 
@@ -685,7 +702,7 @@ inline __device__ float3 computeSphereNormalForces_matBased(float3& vrel_t,
     float Sn = 2. * gran_params->E_eff_s2s_SU * sqrt_Rd;
 
     float loge = (gran_params->COR_s2s_SU < EPSILON) ? log(EPSILON) : log(gran_params->COR_s2s_SU);
-    beta = loge / sqrt(loge * loge + CUDART_PI_F * CUDART_PI_F);
+    beta = loge / sqrt(loge * loge + PI_F * PI_F);
 
     // stiffness and damping coefficient
     float kn = (2.0 / 3.0) * Sn;
@@ -891,7 +908,7 @@ inline __device__ bool evaluateRollingFriction(ChSystemGpu_impl::GranParamsPtr g
     float d_coeff = gn_simple / (2.f * sqrtf(kn_simple * m_eff));
 
     if (d_coeff < 1) {
-        t_collision = CUDART_PI_F * sqrtf(m_eff / (kn_simple * (1.f - d_coeff * d_coeff)));
+        t_collision = PI_F * sqrtf(m_eff / (kn_simple * (1.f - d_coeff * d_coeff)));
         if (time_contact <= t_collision * powf(gran_params->LENGTH_UNIT, 0.25f)) {
             return false;
         }

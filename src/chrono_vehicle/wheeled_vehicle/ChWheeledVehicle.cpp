@@ -326,6 +326,13 @@ ChVector<> ChWheeledVehicle::GetVehicleCOMPos() const {
 }
 
 // -----------------------------------------------------------------------------
+// Calculate and return the current vehicle inertia
+// -----------------------------------------------------------------------------
+ChMatrix33<> ChWheeledVehicle::GetVehicleInertia() const {
+    //// TODO
+    return ChMatrix33<>(1);
+}
+
 // -----------------------------------------------------------------------------
 const ChVector<>& ChWheeledVehicle::GetSpindlePos(int axle, VehicleSide side) const {
     return m_axles[axle]->m_suspension->GetSpindlePos(side);
