@@ -154,7 +154,7 @@ class Model3 :
 
             msphere = chrono.ChSphereShape()
             msphere.GetSphereGeometry().rad = 0.02
-            constraint_hinge.AddAsset(msphere)
+            constraint_hinge.AddVisualShape(msphere)
 
             # make a box and connect it
             mbox = chrono.ChBodyEasyBox(0.2, 0.04, 0.04, 1000)
