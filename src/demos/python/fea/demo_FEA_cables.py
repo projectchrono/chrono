@@ -9,12 +9,6 @@
 # http:#projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
-# Authors: Simone Benatti
-# =============================================================================
-#
-# FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
-#
-# =============================================================================
 
 import pychrono as chrono
 import pychrono.fea as fea
@@ -50,7 +44,6 @@ sys.Add(mesh)
 # coordinates and vertex colors as in the FEM elements.
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
 # postprocessor that can handle a colored ChTriangleMeshShape).
-# Do not forget AddAsset() at the end!
 
 visualizebeamA = chrono.ChVisualShapeFEA(mesh)
 visualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)
