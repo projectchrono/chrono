@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(hx, hy, hz);
-    box->SetTexture(GetChronoDataFile("textures/checker1.png"), ChVector2<float>(4, 2));
+    box->SetTexture(GetChronoDataFile("textures/checker1.png"), 4, 2);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, -hy, 0), QUNIT));
 
     // Create the Irrlicht visualization system

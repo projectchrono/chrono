@@ -28,35 +28,27 @@ class ChApi ChTexture {
   public:
     ChTexture();
     ChTexture(const char* filename);
-    ChTexture(const std::string& filename, ChVector2<float> scale = ChVector2<float>(1, 1));
+    ChTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
 
     ~ChTexture() {}
 
     /// Get the texture filename.
-    const std::string& GetTextureFilename() const { return m_filename; }
+    const std::string& GetFilename() const { return m_filename; }
 
     /// Set the texture filename.
-    void SetTextureFilename(const std::string& filename) { m_filename = filename; }
+    void SetFilename(const std::string& filename) { m_filename = filename; }
 
     /// Set the texture scale (in X and Y directions).
-    void SetTextureScale(float sx, float sy) {
-        scale_x = sx;
-        scale_y = sy;
-        m_scale = ChVector2<float>(sx, sy);
-    }
+    void SetScale(float sx, float sy);
 
     /// Set the texture scale (in X and Y directions).
-    void SetScale(const ChVector2<float>& scale) {
-        scale_x = scale.x();
-        scale_y = scale.y();
-        m_scale = scale;
-    }
+    void SetScale(const ChVector2<float>& scale);
 
-    // Get the texture scales (in X and Y directions)
-    float GetTextureScaleX() const { return scale_x; }
-    float GetTextureScaleY() const { return scale_y; }
+    /// Get the texture scales (in X and Y directions)
+    float GetScaleX() const { return m_scale.x(); }
+    float GetScaleY() const { return m_scale.y(); }
 
-    /// Get the texture scale.
+    /// Get the texture scales (in X and Y directions)
     const ChVector2<float>& GetScale() const { return m_scale; }
 
     /// Method to allow serialization of transient data to archives.
@@ -68,8 +60,6 @@ class ChApi ChTexture {
   private:
     std::string m_filename;
     ChVector2<float> m_scale;
-    float scale_x;
-    float scale_y;
 };
 
 CH_CLASS_VERSION(ChTexture, 0)

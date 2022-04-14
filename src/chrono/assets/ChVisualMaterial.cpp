@@ -32,29 +32,29 @@ ChVisualMaterial::ChVisualMaterial()
       class_id(0),
       instance_id(0) {}
 
-void ChVisualMaterial::SetKdTexture(const std::string& filename, ChVector2<float> scale) {
-    kd_texture.SetTextureFilename(filename);
-    kd_texture.SetScale(scale);
+void ChVisualMaterial::SetKdTexture(const std::string& filename, float scale_x, float scale_y) {
+    kd_texture.SetFilename(filename);
+    kd_texture.SetScale(scale_x, scale_y);
 }
-void ChVisualMaterial::SetKsTexture(const std::string& filename, ChVector2<float> scale) {
-    ks_texture.SetTextureFilename(filename);
-    ks_texture.SetScale(scale);
+void ChVisualMaterial::SetKsTexture(const std::string& filename, float scale_x, float scale_y) {
+    ks_texture.SetFilename(filename);
+    ks_texture.SetScale(scale_x, scale_y);
 }
-void ChVisualMaterial::SetNormalMapTexture(const std::string& filename, ChVector2<float> scale) {
-    normal_texture.SetTextureFilename(filename);
-    normal_texture.SetScale(scale);
+void ChVisualMaterial::SetNormalMapTexture(const std::string& filename, float scale_x, float scale_y) {
+    normal_texture.SetFilename(filename);
+    normal_texture.SetScale(scale_x, scale_y);
 }
-void ChVisualMaterial::SetMetallicTexture(const std::string& filename, ChVector2<float> scale) {
-    metallic_texture.SetTextureFilename(filename);
-    metallic_texture.SetScale(scale);
+void ChVisualMaterial::SetMetallicTexture(const std::string& filename, float scale_x, float scale_y) {
+    metallic_texture.SetFilename(filename);
+    metallic_texture.SetScale(scale_x, scale_y);
 }
-void ChVisualMaterial::SetRoughnessTexture(const std::string& filename, ChVector2<float> scale) {
-    roughness_texture.SetTextureFilename(filename);
-    roughness_texture.SetScale(scale);
+void ChVisualMaterial::SetRoughnessTexture(const std::string& filename, float scale_x, float scale_y) {
+    roughness_texture.SetFilename(filename);
+    roughness_texture.SetScale(scale_x, scale_y);
 }
-void ChVisualMaterial::SetOpacityTexture(const std::string& filename, ChVector2<float> scale) {
-    opacity_texture.SetTextureFilename(filename);
-    opacity_texture.SetScale(scale);
+void ChVisualMaterial::SetOpacityTexture(const std::string& filename, float scale_x, float scale_y) {
+    opacity_texture.SetFilename(filename);
+    opacity_texture.SetScale(scale_x, scale_y);
 }
 
 void ChVisualMaterial::SetAmbientColor(const ChVector<float>& rgb) {

@@ -529,7 +529,7 @@ void AddFixedObstacles(ChSystem* system) {
     shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
     shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
     shape->GetCylinderGeometry().rad = radius;
-    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), ChVector2<float>(10, 10));
+    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
     obstacle->AddVisualShape(shape);
 
     // Contact

@@ -43,12 +43,12 @@ class ChApi ChVisualMaterial {
     void SetOpacity(float o);
     void SetIllumination(int i);
 
-    void SetKdTexture(const std::string& filename, ChVector2<float> scale = ChVector2<float>(1, 1));
-    void SetKsTexture(const std::string& filename, ChVector2<float> scale = ChVector2<float>(1, 1));
-    void SetNormalMapTexture(const std::string& filename, ChVector2<float> scale = ChVector2<float>(1, 1));
-    void SetMetallicTexture(const std::string& filename, ChVector2<float> scale = ChVector2<float>(1, 1));
-    void SetRoughnessTexture(const std::string& filename, ChVector2<float> scale = ChVector2<float>(1, 1));
-    void SetOpacityTexture(const std::string& filename, ChVector2<float> scale = ChVector2<float>(1, 1));
+    void SetKdTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
+    void SetKsTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
+    void SetNormalMapTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
+    void SetMetallicTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
+    void SetRoughnessTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
+    void SetOpacityTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
 
     void SetFresnelExp(float exp);
     void SetFresnelMax(float max);
@@ -69,12 +69,12 @@ class ChApi ChVisualMaterial {
     float GetOpacity() const { return d; }
     int GetIllumination() const { return illum; }
     
-    const std::string& GetKdTexture() const { return kd_texture.GetTextureFilename(); }
-    const std::string& GetKsTexture() const { return ks_texture.GetTextureFilename(); }
-    const std::string& GetNormalMapTexture() const { return normal_texture.GetTextureFilename(); }
-    const std::string& GetMetallicTexture() const { return metallic_texture.GetTextureFilename(); }
-    const std::string& GetRoughnessTexture() const { return roughness_texture.GetTextureFilename(); }
-    const std::string& GetOpacityTexture() const { return opacity_texture.GetTextureFilename(); }
+    const std::string& GetKdTexture() const { return kd_texture.GetFilename(); }
+    const std::string& GetKsTexture() const { return ks_texture.GetFilename(); }
+    const std::string& GetNormalMapTexture() const { return normal_texture.GetFilename(); }
+    const std::string& GetMetallicTexture() const { return metallic_texture.GetFilename(); }
+    const std::string& GetRoughnessTexture() const { return roughness_texture.GetFilename(); }
+    const std::string& GetOpacityTexture() const { return opacity_texture.GetFilename(); }
 
     const ChVector2<float>& GetKdTextureScale() const { return kd_texture.GetScale(); }
     const ChVector2<float>& GetKsTextureScale() const { return ks_texture.GetScale(); }

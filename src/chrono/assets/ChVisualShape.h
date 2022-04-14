@@ -56,7 +56,7 @@ class ChApi ChVisualShape {
     /// Set the diffuse texture map for this shape.
     /// This changes the texture of the first material in the list of materials for this shape.
     /// If no materials are defined for a shape, one is first created by duplicating the default material.
-    void SetTexture(const std::string& filename, ChVector2<float> scale = ChVector2<float>(1, 1));
+    void SetTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
 
     /// Return the diffuse texture map of the first material in the list of materials for this shape.
     /// If no materials are defined, return an empty string (no texture for the default material).

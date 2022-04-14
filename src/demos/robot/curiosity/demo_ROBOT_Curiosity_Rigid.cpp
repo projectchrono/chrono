@@ -136,7 +136,7 @@ void CreateTerrain(ChSystem& sys) {
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(30, 30, 1, 1000, true, true, ground_mat);
     ground->SetPos(ChVector<>(0, 0, -0.5));
     ground->SetBodyFixed(true);
-    ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), ChVector2<float>(60, 45));
+    ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 60, 45);
     sys.Add(ground);
 
     // Create the first step of the stair-shaped obstacle
