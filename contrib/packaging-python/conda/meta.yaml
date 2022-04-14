@@ -6,7 +6,6 @@ package:
 source:
   path: ../../..
 
-
 build:
   rpaths:
     - lib/
@@ -14,24 +13,33 @@ build:
     - CC
     - CXX
     - CI_PROJECT_DIR
+    #- VS_VERSION=16.0
+    #- VS_YEAR=2019
 
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
   binary_relocation: true
   #features:
-  #  - vc9               [win and py27]
-  #  - vc14              [win and py35]
-  #  - vc14              [win and py36]
+  #  - vc9              # [win and py27]
+  #  - vc14             # [win and py35]
+  #  - vc14             # [win and py36]
 
 requirements:
   build:
+    - {{ compiler('c') }}   # [not win]
+    - {{ compiler('cxx') }} # [not win]
     - python
-    - cmake >=3.9.3
+    - cmake >=3.10          # [not win]
+    - ninja # [linux or osx]
     - swig >=4.0.0
+    - mkl
     - mkl-devel
+    - irrlicht
+    - opencascade
     - numpy >=1.16
     - glew
     - glfw
-
+    - eigen >=3.3.7
+    
   run:
     - python
     - mkl
