@@ -1,12 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Han Wang
+# Copyright (c) 2014 projectchrono.org
+# All rights reserved.
 #
-# Created:     6/16/2020
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 
 import pychrono.core as chrono
@@ -51,8 +53,7 @@ sys.Add(floor)
 
 
 # ==Asset== attach a 'box' shape.
-# Note that assets are managed via shared pointer, so they
-# can also be shared. Do not forget AddAsset() at the end!
+# Note that assets are managed via shared pointer, so they can also be shared.
 boxfloor = chrono.ChBoxShape()
 boxfloor.GetBoxGeometry().Size = chrono.ChVectorD(10, 0.5, 10)
 boxfloor.SetColor(chrono.ChColor(0.2, 0.3, 1.0))

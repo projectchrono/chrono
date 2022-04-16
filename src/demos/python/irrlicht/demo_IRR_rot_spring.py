@@ -1,5 +1,5 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.

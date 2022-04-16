@@ -1,12 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Alessandro Tasora
+# Copyright (c) 2014 projectchrono.org
+# All rights reserved.
 #
-# Created:     1/01/2019
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 
 import pychrono.core as chrono
@@ -35,7 +37,7 @@ mysystem.Add(mbody1)
 
 mboxasset = chrono.ChBoxShape()
 mboxasset.GetBoxGeometry().Size = chrono.ChVectorD(0.2,0.5,0.1)
-mbody1.AddAsset(mboxasset)
+mbody1.AddVisualShape(mboxasset)
 
 
 
@@ -47,11 +49,8 @@ mysystem.Add(mbody2)
 
 mboxasset = chrono.ChBoxShape()
 mboxasset.GetBoxGeometry().Size = chrono.ChVectorD(0.2,0.5,0.1)
-mbody2.AddAsset(mboxasset)
-
-mboxtexture = chrono.ChTexture()
-mboxtexture.SetTextureFilename('../../../data/textures/concrete.jpg')
-mbody2.GetAssets().push_back(mboxtexture)
+mboxAsset.SetTexture('../../../data/textures/concrete.jpg')
+mbody2.AddVisualShape(mboxasset)
 
 
 # Create a revolute constraint
