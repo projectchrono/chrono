@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     // Set visualization type for vehicle components.
     VisualizationType track_vis =
         (shoe_type == TrackShoeType::SINGLE_PIN) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
-    m113.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetChassisVisualizationType(VisualizationType::MESH);
     m113.SetSprocketVisualizationType(track_vis);
     m113.SetIdlerVisualizationType(track_vis);
     m113.SetRoadWheelAssemblyVisualizationType(track_vis);
@@ -529,7 +529,7 @@ void AddFixedObstacles(ChSystem* system) {
     shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
     shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
     shape->GetCylinderGeometry().rad = radius;
-    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), ChVector2<float>(10, 10));
+    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
     obstacle->AddVisualShape(shape);
 
     // Contact

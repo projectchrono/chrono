@@ -59,9 +59,7 @@ class ChApiIrr ChIrrNodeShape : public irr::scene::ISceneNode {
     void UpdateSurface(std::shared_ptr<ChSurfaceShape> surface);
     void UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned int nvertexes);
 
-    virtual irr::scene::ESCENE_NODE_TYPE getType() const override {
-        return (irr::scene::ESCENE_NODE_TYPE)ESNT_CHIRRNODE_SHAPE;
-    }
+    virtual irr::scene::ESCENE_NODE_TYPE getType() const override;
     virtual void render() override {}
     virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const override { return m_box; }
     virtual ISceneNode* clone(ISceneNode* newParent, irr::scene::ISceneManager* newManager) override;

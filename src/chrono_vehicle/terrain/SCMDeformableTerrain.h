@@ -141,8 +141,9 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     void SetColor(const ChColor& color);
 
     /// Set texture properties.
-    void SetTexture(const std::string tex_file,          ///< [in] texture filename
-                    ChVector2<float> tex_scale = {1, 1}  ///< [in] texture scale (X,Y)
+    void SetTexture(const std::string tex_file,  ///< [in] texture filename
+                    float scale_x = 1,           ///< [in] texture X scale
+                    float scale_y = 1            ///< [in] texture Y scale
     );
 
     /// Add a new moving patch.

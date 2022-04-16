@@ -89,7 +89,6 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChMeshSurface.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/core/ChTensors.h"
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoadsBody.h"
@@ -307,7 +306,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChLoadBeamWrenchDistributed)
 %shared_ptr(chrono::fea::ChExtruderBeamEuler)
 %shared_ptr(chrono::fea::ChExtruderBeamIGA)
-%shared_ptr(chrono::ChVisualShapeFEA)
 %shared_ptr(chrono::fea::ChLoadXYZROTnode)
 %shared_ptr(chrono::fea::ChLoadXYZROTnodeForceAbsolute)
 %shared_ptr(chrono::fea::ChLoadXYZROTnodeXYZROTnode)
@@ -449,7 +447,6 @@ using namespace chrono::fea;
 %template(vector_ChElementBase) std::vector< std::shared_ptr<chrono::fea::ChElementBase> >;
 %include "../../../chrono/fea/ChMesh.h"
 %include "../../../chrono/fea/ChMeshSurface.h"
-%include "../../../chrono/assets/ChVisualShapeFEA.h"
 %include "../../../chrono/fea/ChLinkDirFrame.h"
 %include "../../../chrono/fea/ChLinkPointFrame.h"
 %include "../../../chrono/fea/ChLinkPointPoint.h"

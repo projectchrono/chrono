@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Particle emitter");
     vis->Initialize();
     vis->AddLogo();

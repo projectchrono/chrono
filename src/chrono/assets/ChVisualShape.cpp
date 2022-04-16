@@ -81,14 +81,14 @@ float ChVisualShape::GetOpacity() const {
     return A;
 }
 
-void ChVisualShape::SetTexture(const std::string& filename, ChVector2<float> scale) {
+void ChVisualShape::SetTexture(const std::string& filename, float scale_x, float scale_y) {
     // Ensure that material_list[0] is a new material
     if (material_list.empty())
         material_list.push_back(std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default()));
     else if (material_list[0] == ChVisualMaterial::Default())
         material_list[0] = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
 
-    material_list[0]->SetKdTexture(filename, scale);
+    material_list[0]->SetKdTexture(filename, scale_x, scale_y);
 }
 
 std::string ChVisualShape::GetTexture() const {

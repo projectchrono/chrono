@@ -135,7 +135,7 @@ void ChainTest<N>::SimulateVis() {
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
     m_system->SetVisualSystem(vis);
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Pendulum chain");
     vis->Initialize();
     vis->AddLogo();

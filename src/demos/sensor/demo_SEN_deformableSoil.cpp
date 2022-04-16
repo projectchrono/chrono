@@ -126,7 +126,7 @@ float end_time = 20.0f;
 bool save = false;
 
 // Render camera images
-bool vis = true;
+bool visualize = true;
 
 // =============================================================================
 
@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
     cam->SetCollectionWindow(exposure_time);
 
     // Renders the image at current point in the filter graph
-    if (vis)
+    if (visualize)
         cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(int(image_width * 3 / 4),
                                                                      int(image_height * 3 / 4), "SCM Camera"));
 

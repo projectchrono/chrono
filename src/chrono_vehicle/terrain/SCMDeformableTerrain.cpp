@@ -88,9 +88,9 @@ void SCMDeformableTerrain::SetColor(const ChColor& color) {
 }
 
 // Set the texture and texture scaling.
-void SCMDeformableTerrain::SetTexture(const std::string tex_file, ChVector2<float> tex_scale) {
+void SCMDeformableTerrain::SetTexture(const std::string tex_file, float scale_x, float scale_y) {
     if (m_ground->GetVisualModel()) {
-        m_ground->GetVisualShape(0)->SetTexture(tex_file, tex_scale);
+        m_ground->GetVisualShape(0)->SetTexture(tex_file, scale_x, scale_y);
     }
 }
 

@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     sys.SetVisualSystem(vis);
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("ChLinkRSDA demo");
     vis->Initialize();
     vis->AddLogo();

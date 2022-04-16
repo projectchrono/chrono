@@ -147,8 +147,7 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem* sys, double length, double width
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(length / 2, width / 2, 0.1);
-    box->SetTexture(GetChronoDataFile("textures/pinkwhite.png"),
-                    ChVector2<float>(10 * (float)length, 10 * (float)width));
+    box->SetTexture(GetChronoDataFile("textures/pinkwhite.png"), 10 * (float)length, 10 * (float)width);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(offset, 0, height - 0.1), QUNIT));
 
     sys->AddBody(ground);
@@ -295,7 +294,7 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<robosimian::RoboSimianVisualSystemIrrlicht>(&robot, driver.get());
     my_sys->SetVisualSystem(vis);
     vis->SetWindowTitle("RoboSimian - Rigid terrain");
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();

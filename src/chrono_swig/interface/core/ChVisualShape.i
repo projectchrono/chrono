@@ -1,10 +1,8 @@
 %{
-
-/* Includes the header in the wrapper code */
 #include "chrono/assets/ChVisualShape.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 using namespace chrono;
-
 %}
 
 namespace chrono {
@@ -21,8 +19,5 @@ class ChElementBase;
 %shared_ptr(chrono::ChVisualShape)
 %shared_ptr(chrono::ChVisualShapeFEA)
 
-/* Parse the header file to generate wrappers */
 %include "../../../chrono/assets/ChVisualShape.h"    
-
-
-
+%include "../../../chrono/assets/ChVisualShapeFEA.h"    

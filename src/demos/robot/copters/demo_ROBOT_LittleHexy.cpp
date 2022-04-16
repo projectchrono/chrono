@@ -121,14 +121,14 @@ int main(int argc, char* argv[]) {
                                                            ground_mat);  // contact material
     ground->SetPos(ChVector<>(0, 0, -3));
     ground->SetBodyFixed(true);
-    ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), ChVector2<float>(100, 100));
+    ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 100, 100);
     sys.Add(ground);
 
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     sys.SetVisualSystem(vis);
     vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("HexaCopter Test");
     vis->Initialize();
     vis->AddLogo();

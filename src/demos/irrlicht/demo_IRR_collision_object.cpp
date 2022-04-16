@@ -291,13 +291,13 @@ int main(int argc, char* argv[]) {
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(hx, hy, hz);
-    box->SetTexture(GetChronoDataFile("textures/checker1.png"), ChVector2<float>(4, 2));
+    box->SetTexture(GetChronoDataFile("textures/checker1.png"), 4, 2);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, -hy, 0), QUNIT));
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     system->SetVisualSystem(vis);
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Collision test");
     vis->Initialize();
     vis->AddLogo();

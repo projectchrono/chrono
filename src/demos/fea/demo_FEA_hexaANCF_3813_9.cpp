@@ -320,7 +320,7 @@ void DPCapPress() {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
     vis->Initialize();
     vis->AddLogo();
@@ -703,7 +703,7 @@ void ShellBrickContact() {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
     vis->Initialize();
     vis->AddLogo();
@@ -1005,7 +1005,7 @@ void SimpleBoxContact() {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
     vis->Initialize();
     vis->AddLogo();
@@ -1323,7 +1323,7 @@ void SoilBin() {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
     vis->Initialize();
     vis->AddLogo();
@@ -1821,7 +1821,7 @@ void BendingQuasiStatic() {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
     vis->Initialize();
     vis->AddLogo();
@@ -2046,7 +2046,7 @@ void SwingingShell() {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
     vis->Initialize();
     vis->AddLogo();

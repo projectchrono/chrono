@@ -33,11 +33,8 @@ class ChIrrEventReceiver;
 /// Irrlicht GUI attached to a ChVisualSystemIrrlicht.
 class ChApiIrr ChIrrGUI {
   public:
-    ChIrrGUI(irr::IrrlichtDevice* device, ChSystem* sys);
+    ChIrrGUI();
     ~ChIrrGUI();
-
-    /// Attach a custom event receiver to the application.
-    void AddUserEventReceiver(irr::IEventReceiver* receiver);
 
     /// Perform operations after opening the Irrlicht scene for the current frame.
     void BeginScene();
@@ -49,6 +46,8 @@ class ChApiIrr ChIrrGUI {
     void EndScene();
 
   private:
+    void Initialize(irr::IrrlichtDevice* device, ChSystem* sys);
+
     void DrawCollisionShapes(irr::video::SColor color);
 
     void DumpSystemMatrices();
@@ -59,41 +58,41 @@ class ChApiIrr ChIrrGUI {
     irr::scene::ICameraSceneNode* GetActiveCamera() { return m_device->getSceneManager()->getActiveCamera(); }
     irr::gui::IGUIEnvironment* GetGUIEnvironment() { return m_device->getGUIEnvironment(); }
 
-    /// Show the info panel in the 3D view
-    void SetShowInfos(bool val) { show_infos = val; }
-    bool GetShowInfos() { return show_infos; }
+    /// Attach a custom event receiver to the application.
+    void AddUserEventReceiver(irr::IEventReceiver* receiver);
 
-    void SetInfosTab(int ntab) { gad_tabbed->setActiveTab(ntab); }
+    /// Set the active tab on the info panel.
+    void SetInfoTab(int ntab) { g_tabbed->setActiveTab(ntab); }
 
-    /// Show the realtime profiler in the 3D view
-    void SetShowProfiler(bool val) { show_profiler = val; }
-    bool GetShowProfiler() { return show_profiler; }
+    /// Set the amplitude of the shown mode (only if some ChModalAssembly is found).
+    void SetModalAmplitude(double val);
 
-    /// Show the object explorer
-    void SetShowExplorer(bool val) { show_explorer = val; }
-    bool GetShowExplorer() { return show_explorer; }
+    /// Set the speed of the shown mode (only if some ChModalAssembly is found).
+    void SetModalSpeed(double val);
 
     /// Set the label mode for contacts
-    void SetContactsLabelMode(IrrContactsLabelMode mm) { gad_labelcontacts->setSelected((int)mm); }
+    void SetContactsLabelMode(IrrContactsLabelMode mm) { g_labelcontacts->setSelected((int)mm); }
     /// Set the draw mode for contacts
-    void SetContactsDrawMode(IrrContactsDrawMode mm) { gad_drawcontacts->setSelected((int)mm); }
+    void SetContactsDrawMode(IrrContactsDrawMode mm) { g_drawcontacts->setSelected((int)mm); }
     /// Set the label mode for links
-    void SetLinksLabelMode(IrrLinkLabelMode mm) { gad_labellinks->setSelected((int)mm); }
+    void SetLinksLabelMode(IrrLinkLabelMode mm) { g_labellinks->setSelected((int)mm); }
     /// Set the draw mode for links
-    void SetLinksDrawMode(IrrLinkDrawMode mm) { gad_drawlinks->setSelected((int)mm); }
+    void SetLinksDrawMode(IrrLinkDrawMode mm) { g_drawlinks->setSelected((int)mm); }
     /// Set if the AABB collision shapes will be plotted
-    void SetPlotAABB(bool val) { gad_plot_aabb->setChecked(val); }
+    void SetPlotAABB(bool val) { g_plot_aabb->setChecked(val); }
     /// Set if the COG frames will be plotted
-    void SetPlotCOGFrames(bool val) { gad_plot_cogs->setChecked(val); }
+    void SetPlotCOGFrames(bool val) { g_plot_cogs->setChecked(val); }
     /// Set if the collision shapes will be plotted
-    void SetPlotCollisionShapes(bool val) { gad_plot_collisionshapes->setChecked(val); }
+    void SetPlotCollisionShapes(bool val) { g_plot_collisionshapes->setChecked(val); }
     /// Set if the link frames will be plotted
-    void SetPlotLinkFrames(bool val) { gad_plot_linkframes->setChecked(val); }
+    void SetPlotLinkFrames(bool val) { g_plot_linkframes->setChecked(val); }
     /// Set if the COG frames will be plotted
-    void SetPlotConvergence(bool val) { gad_plot_convergence->setChecked(val); }
+    void SetPlotConvergence(bool val) { g_plot_convergence->setChecked(val); }
 
     /// Set the scale for symbol drawing (link frames, COGs, etc.)
     void SetSymbolscale(double val);
+
+    bool initialized;
 
     bool show_infos;
     bool show_profiler;
@@ -103,6 +102,15 @@ class ChApiIrr ChIrrGUI {
 
     double camera_auto_rotate_speed;
 
+    bool modal_show;
+    int modal_mode_n;
+    double modal_amplitude;
+    double modal_speed;
+    double modal_phi;
+    double modal_current_mode_n;
+    double modal_current_freq;
+    double modal_current_dampingfactor;
+
     ChSystem* m_system;
     irr::IrrlichtDevice* m_device;
 
@@ -111,24 +119,28 @@ class ChApiIrr ChIrrGUI {
 
     std::shared_ptr<collision::ChCollisionSystem::VisualizationCallback> m_drawer;  ///< collision callback
 
-    irr::gui::IGUITabControl* gad_tabbed;
+    irr::gui::IGUITabControl* g_tabbed;
 
-    irr::gui::IGUIStaticText* gad_textFPS;
-    irr::gui::IGUIComboBox* gad_drawcontacts;
-    irr::gui::IGUIComboBox* gad_labelcontacts;
-    irr::gui::IGUIComboBox* gad_drawlinks;
-    irr::gui::IGUIComboBox* gad_labellinks;
-    irr::gui::IGUICheckBox* gad_plot_aabb;
-    irr::gui::IGUICheckBox* gad_plot_cogs;
-    irr::gui::IGUICheckBox* gad_plot_collisionshapes;
-    irr::gui::IGUICheckBox* gad_plot_linkframes;
-    irr::gui::IGUICheckBox* gad_plot_convergence;
+    irr::gui::IGUIStaticText* g_textFPS;
+    irr::gui::IGUIComboBox* g_drawcontacts;
+    irr::gui::IGUIComboBox* g_labelcontacts;
+    irr::gui::IGUIComboBox* g_drawlinks;
+    irr::gui::IGUIComboBox* g_labellinks;
+    irr::gui::IGUICheckBox* g_plot_aabb;
+    irr::gui::IGUICheckBox* g_plot_cogs;
+    irr::gui::IGUICheckBox* g_plot_collisionshapes;
+    irr::gui::IGUICheckBox* g_plot_linkframes;
+    irr::gui::IGUICheckBox* g_plot_convergence;
 
-    irr::gui::IGUIEditBox* gad_symbolscale;
-    irr::gui::IGUIStaticText* gad_symbolscale_info;
-    irr::gui::IGUIStaticText* gad_textHelp;
+    irr::gui::IGUIEditBox* g_symbolscale;
+    irr::gui::IGUIStaticText* g_textHelp;
 
-    irr::gui::IGUITreeView* gad_treeview;
+    irr::gui::IGUIScrollBar* g_modal_mode_n;
+    irr::gui::IGUIStaticText* g_modal_mode_n_info;
+    irr::gui::IGUIEditBox* g_modal_amplitude;
+    irr::gui::IGUIEditBox* g_modal_speed;
+
+    irr::gui::IGUITreeView* g_treeview;
 
     friend class ChIrrEventReceiver;
     friend class ChVisualSystemIrrlicht;

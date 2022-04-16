@@ -52,6 +52,8 @@
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrEffects.h"
 #include "chrono_irrlicht/ChIrrTools.h"
+#include "chrono_irrlicht/ChIrrNodeShape.h"
+#include "chrono_irrlicht/ChIrrNodeModel.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -69,7 +71,7 @@ using namespace gui;
 #define ChApiIrr 
 #define ChApi 
 #define IRRLICHT_API
-#define _IRR_DEPRECATED_ //
+#define _IRR_DEPRECATED_
 #define CH_DEPRECATED(msg)
 
 // Include other .i configuration files for SWIG. 
@@ -110,7 +112,6 @@ using namespace gui;
 %shared_ptr(chrono::irrlicht::ChVisualSystemIrrlicht)
 %shared_ptr(chrono::irrlicht::ChIrrNodeShape)
 %shared_ptr(chrono::irrlicht::ChIrrNodeModel)
-
 
 //
 // B- INCLUDE HEADERS
@@ -164,12 +165,14 @@ using namespace gui;
 %include "dimension2d.h"
 %template(dimension2du) irr::core::dimension2d<irr::u32>;
 
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChVisualSystem.i"
+
 %ignore chrono::irrlicht::ScreenQuadCB;
-%include "chrono_irrlicht/ChIrrEffects.h"
-%include "chrono_irrlicht/ChIrrTools.h"
-%include "ChVisualSystemIrrlicht.i"
-
-
+%include "../../../chrono_irrlicht/ChIrrEffects.h"
+%include "../../../chrono_irrlicht/ChIrrTools.h"
+%include "../../../chrono_irrlicht/ChIrrNodeShape.h"    
+%include "../../../chrono_irrlicht/ChIrrNodeModel.h"    
+%include "../../../chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
@@ -185,6 +188,8 @@ using namespace gui;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
+
+%DefSharedPtrDynamicDowncast2NS(chrono, chrono::irrlicht, ChVisualSystem, ChVisualSystemIrrlicht)
 
 
 //

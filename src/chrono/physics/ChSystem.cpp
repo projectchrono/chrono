@@ -145,6 +145,9 @@ ChSystem::~ChSystem() {
 void ChSystem::Clear() {
     assembly.Clear();
 
+    if (visual_system)
+        visual_system->OnClear();
+
     // contact_container->RemoveAllContacts();
 
     // ResetTimers();
