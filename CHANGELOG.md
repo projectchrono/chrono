@@ -4,6 +4,7 @@
 Change Log
 ==========
 
+- [Release 7.0.3](#release-703---2022-04-17)
 - [Release 7.0.2](#release-702---2022-04-03)
 - [Release 7.0.1](#release-701---2022-01-07)
 - [Release 7.0.0](#release-700---2021-11-15) 
@@ -53,6 +54,15 @@ Change Log
   - [Eigen dense linear algebra](#changed-refactoring-of-dense-linear-algebra)
   - [Eigen sparse matrices](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
 - [Release 4.0.0](#release-400---2019-02-22)
+
+
+
+### Release 7.0.3 - 2022-04-17
+
+### [Fixed]
+
+- SIMD detection is combined into one cmake script.
+- Fixed SIMD feature detection with Clang, allowing support for Apple-M1 and generic AArch64 CPUs
 
 ### Release 7.0.2 - 2022-04-03
 
