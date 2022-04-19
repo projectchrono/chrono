@@ -16,12 +16,17 @@
 //
 // =============================================================================
 
+#include <sstream>
+
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/solver/ChSolverBB.h"
-#include "chrono/physics/ChSystemSMC.h"
+
+#include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
@@ -61,11 +66,39 @@ double terrainHeight = 0;
 double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
-// Simulation step size
-double step_size = 5e-4;
+// Specification of vehicle inputs
+enum class DriverMode {
+    KEYBOARD,  // interactive (Irrlicht) driver
+    DATAFILE   // inputs from data file
+};
+std::string driver_file("M113/driver/Acceleration.txt");  // used for mode=DATAFILE
+DriverMode driver_mode = DriverMode::DATAFILE;
 
-// Use HHT + MKL
-bool use_mkl = false;
+// Contact formulation (NSC or SMC)
+ChContactMethod contact_method = ChContactMethod::SMC;
+
+// Simulation step size
+double step_size_NSC = 1e-3;
+double step_size_SMC = 5e-4;
+
+// Solver and integrator types
+////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
+////ChSolver::Type slvr_type = ChSolver::Type::PSOR;
+////ChSolver::Type slvr_type = ChSolver::Type::MINRES;
+////ChSolver::Type slvr_type = ChSolver::Type::GMRES;
+////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_LU;
+////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_QR;
+ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
+////ChSolver::Type slvr_type = ChSolver::Type::MUMPS;
+
+////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT;
+ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+////ChTimestepper::Type intgr_type = ChTimestepper::Type::HHT;
+
+// Verbose output level (solver and integrator)
+bool verbose_solver = false;
+bool verbose_integrator = false;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 120;  // FPS = 120
@@ -90,6 +123,130 @@ void AddFixedObstacles(ChSystem* system);
 void AddFallingObjects(ChSystem* system);
 
 // =============================================================================
+
+void SelectSolver(ChSystem& sys, ChSolver::Type& solver_type, ChTimestepper::Type& integrator_type) {
+    // For NSC systems, use implicit linearized Euler and an iterative VI solver
+    if (sys.GetContactMethod() == ChContactMethod::NSC) {
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+        if (solver_type != ChSolver::Type::BARZILAIBORWEIN && solver_type != ChSolver::Type::APGD &&
+            solver_type != ChSolver::Type::PSOR && solver_type != ChSolver::Type::PSSOR) {
+            solver_type = ChSolver::Type::BARZILAIBORWEIN;
+        }
+    }
+
+    // If none of the direct sparse solver modules is enabled, default to SPARSE_QR
+    if (solver_type == ChSolver::Type::PARDISO_MKL) {
+#ifndef CHRONO_PARDISO_MKL
+        solver_type = ChSolver::Type::SPARSE_QR;
+#endif
+    } else if (solver_type == ChSolver::Type::PARDISO_PROJECT) {
+#ifndef CHRONO_PARDISOPROJECT
+        solver_type = ChSolver::Type::SPARSE_QR;
+#endif
+    } else if (solver_type == ChSolver::Type::MUMPS) {
+#ifndef CHRONO_MUMPS
+        solver_type = ChSolver::Type::SPARSE_QR;
+#endif
+    }
+
+    if (solver_type == ChSolver::Type::PARDISO_MKL) {
+#ifdef CHRONO_PARDISO_MKL
+        auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+        solver->LockSparsityPattern(true);
+        sys.SetSolver(solver);
+#endif
+    } else if (solver_type == ChSolver::Type::PARDISO_PROJECT) {
+#ifdef CHRONO_PARDISOPROJECT
+        auto solver = chrono_types::make_shared<ChSolverPardisoProject>();
+        solver->LockSparsityPattern(true);
+        sys->SetSolver(solver);
+#endif
+    } else if (solver_type == ChSolver::Type::MUMPS) {
+#ifdef CHRONO_MUMPS
+        auto solver = chrono_types::make_shared<ChSolverMumps>();
+        solver->LockSparsityPattern(true);
+        solver->EnableNullPivotDetection(true);
+        solver->GetMumpsEngine().SetICNTL(14, 50);
+        sys.SetSolver(solver);
+#endif
+    } else {
+        sys.SetSolverType(solver_type);
+        switch (solver_type) {
+            case ChSolver::Type::SPARSE_LU:
+            case ChSolver::Type::SPARSE_QR: {
+                auto solver = std::static_pointer_cast<ChDirectSolverLS>(sys.GetSolver());
+                solver->LockSparsityPattern(false);
+                solver->UseSparsityPatternLearner(false);
+                break;
+            }
+            case ChSolver::Type::BARZILAIBORWEIN:
+            case ChSolver::Type::APGD:
+            case ChSolver::Type::PSOR: {
+                auto solver = std::static_pointer_cast<ChIterativeSolverVI>(sys.GetSolver());
+                solver->SetMaxIterations(100);
+                solver->SetOmega(0.8);
+                solver->SetSharpnessLambda(1.0);
+
+                ////sys.SetMaxPenetrationRecoverySpeed(1.5);
+                ////sys.SetMinBounceSpeed(2.0);
+                break;
+            }
+            case ChSolver::Type::BICGSTAB:
+            case ChSolver::Type::MINRES:
+            case ChSolver::Type::GMRES: {
+                auto solver = std::static_pointer_cast<ChIterativeSolverLS>(sys.GetSolver());
+                solver->SetMaxIterations(200);
+                solver->SetTolerance(1e-10);
+                solver->EnableDiagonalPreconditioner(true);
+                break;
+            }
+        }
+    }
+
+    sys.SetTimestepperType(integrator_type);
+    switch (integrator_type) {
+        case ChTimestepper::Type::HHT: {
+            auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
+            integrator->SetAlpha(-0.2);
+            integrator->SetMaxiters(50);
+            integrator->SetAbsTolerances(1e-4, 1e2);
+            integrator->SetMode(ChTimestepperHHT::ACCELERATION);
+            integrator->SetStepControl(false);
+            integrator->SetModifiedNewton(false);
+            integrator->SetScaling(false);
+            break;
+        }
+        case ChTimestepper::Type::EULER_IMPLICIT: {
+            auto integrator = std::static_pointer_cast<ChTimestepperEulerImplicit>(sys.GetTimestepper());
+            integrator->SetMaxiters(50);
+            integrator->SetAbsTolerances(1e-4, 1e2);
+            break;
+        }
+        case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
+        case ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
+            break;
+    }
+}
+
+void ReportTiming(ChSystem& sys) {
+    std::stringstream ss;
+    ss.precision(4);
+    ss << std::fixed << sys.GetChTime() << " | ";
+    ss << sys.GetTimerStep() << " " << sys.GetTimerAdvance() << " " << sys.GetTimerUpdate() << " | ";
+    ss << sys.GetTimerJacobian() << " " << sys.GetTimerLSsetup() << " " << sys.GetTimerLSsolve() << " | ";
+    ss << sys.GetTimerCollision() << " " << sys.GetTimerCollisionBroad() << " " << sys.GetTimerCollisionNarrow();
+
+    auto LS = std::dynamic_pointer_cast<ChDirectSolverLS>(sys.GetSolver());
+    if (LS) {
+        ss << " | ";
+        ss << LS->GetTimeSetup_Assembly() << " " << LS->GetTimeSetup_SolverCall() << " ";
+        ss << LS->GetTimeSolve_Assembly() << " " << LS->GetTimeSolve_SolverCall();
+        LS->ResetTimers();
+    }
+    std::cout << ss.str() << std::endl;
+}
+
+// =============================================================================
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -100,10 +257,9 @@ int main(int argc, char* argv[]) {
     bool fix_chassis = false;
     bool create_track = true;
 
-    ChContactMethod contact_method = ChContactMethod::SMC;
     collision::ChCollisionSystemType collsys_type = collision::ChCollisionSystemType::BULLET;
     CollisionType chassis_collision_type = CollisionType::NONE;
-    TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
+    TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
     BrakeType brake_type = BrakeType::SIMPLE;
     DrivelineTypeTV driveline_type = DrivelineTypeTV::BDS;
     PowertrainModelType powertrain_type = PowertrainModelType::SHAFTS;
@@ -135,7 +291,7 @@ int main(int argc, char* argv[]) {
     // Set visualization type for vehicle components.
     VisualizationType track_vis =
         (shoe_type == TrackShoeType::SINGLE_PIN) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
-    m113.SetChassisVisualizationType(VisualizationType::MESH);
+    m113.SetChassisVisualizationType(VisualizationType::NONE);
     m113.SetSprocketVisualizationType(track_vis);
     m113.SetIdlerVisualizationType(track_vis);
     m113.SetRoadWheelAssemblyVisualizationType(track_vis);
@@ -305,18 +461,29 @@ int main(int argc, char* argv[]) {
     // Create the driver system
     // ------------------------
 
-    ChIrrGuiDriver driver(app);
+    std::shared_ptr<ChDriver> driver;
+    switch (driver_mode) {
+        case DriverMode::KEYBOARD: {
+            auto irr_driver = chrono_types::make_shared<ChIrrGuiDriver>(app);
+            double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
+            double throttle_time = 1.0;  // time to go from 0 to +1
+            double braking_time = 0.3;   // time to go from 0 to +1
+            irr_driver->SetSteeringDelta(render_step_size / steering_time);
+            irr_driver->SetThrottleDelta(render_step_size / throttle_time);
+            irr_driver->SetBrakingDelta(render_step_size / braking_time);
+            irr_driver->SetGains(2, 5, 5);
+            driver = irr_driver;
+            break;
+        }
+        case DriverMode::DATAFILE: {
+            auto data_driver =
+                chrono_types::make_shared<ChDataDriver>(m113.GetVehicle(), vehicle::GetDataFile(driver_file));
+            driver = data_driver;
+            break;
+        }
+    }
 
-    // Set the time response for keyboard inputs.
-    double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
-    double throttle_time = 1.0;  // time to go from 0 to +1
-    double braking_time = 0.3;   // time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetThrottleDelta(render_step_size / throttle_time);
-    driver.SetBrakingDelta(render_step_size / braking_time);
-    driver.SetGains(2, 5, 5);
-
-    driver.Initialize();
+    driver->Initialize();
 
     // -----------------
     // Initialize output
@@ -354,51 +521,24 @@ int main(int argc, char* argv[]) {
     // Solver and integrator settings
     // ------------------------------
 
+    double step_size = 1e-3;
     switch (contact_method) {
         case ChContactMethod::NSC:
             std::cout << "Use NSC" << std::endl;
-            // Cannot use HHT + MKL with NSC contact
-            use_mkl = false;
+            step_size = step_size_NSC;
             break;
         case ChContactMethod::SMC:
             std::cout << "Use SMC" << std::endl;
+            step_size = step_size_SMC;
             break;
     }
 
-#ifndef CHRONO_PARDISO_MKL
-    use_mkl = false;
-#endif
+    SelectSolver(*m113.GetSystem(), slvr_type, intgr_type);
+    m113.GetSystem()->GetSolver()->SetVerbose(verbose_solver);
+    m113.GetSystem()->GetTimestepper()->SetVerbose(verbose_integrator);
 
-    if (use_mkl) {
-#ifdef CHRONO_PARDISO_MKL
-        std::cout << "Solver: PardisoMKL" << std::endl;
-        std::cout << "Integrator: HHT" << std::endl;
-
-        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-        mkl_solver->LockSparsityPattern(true);
-        m113.GetSystem()->SetSolver(mkl_solver);
-
-        m113.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
-        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m113.GetSystem()->GetTimestepper());
-        integrator->SetAlpha(-0.2);
-        integrator->SetMaxiters(50);
-        integrator->SetAbsTolerances(1e-4, 1e2);
-        integrator->SetMode(ChTimestepperHHT::ACCELERATION);
-        integrator->SetStepControl(false);
-        integrator->SetModifiedNewton(false);
-        integrator->SetScaling(true);
-        ////integrator->SetVerbose(true);
-#endif
-    } else {
-        auto solver = chrono_types::make_shared<ChSolverBB>();
-        solver->SetMaxIterations(120);
-        solver->SetOmega(0.8);
-        solver->SetSharpnessLambda(1.0);
-        m113.GetSystem()->SetSolver(solver);
-
-        m113.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-        m113.GetSystem()->SetMinBounceSpeed(2.0);
-    }
+    std::cout << "SOLVER TYPE:     " << (int)slvr_type << std::endl;
+    std::cout << "INTEGRATOR TYPE: " << (int)intgr_type << std::endl;
 
     // ---------------
     // Simulation loop
@@ -480,22 +620,24 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect output data from modules
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        ChDriver::Inputs driver_inputs = driver->GetInputs();
         m113.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
         m113.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
         double time = m113.GetVehicle().GetChTime();
-        driver.Synchronize(time);
+        driver->Synchronize(time);
         terrain.Synchronize(time);
         m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
         app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
+        driver->Advance(step_size);
         terrain.Advance(step_size);
         m113.Advance(step_size);
         app.Advance(step_size);
+
+        ReportTiming(*m113.GetSystem());
 
         // Report if the chassis experienced a collision
         if (m113.GetVehicle().IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
