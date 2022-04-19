@@ -89,6 +89,8 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
                          bool ccw                            ///< [in] track assembled in counter clockwise direction
                          ) override final;
 
+    virtual void EnableTrackBendingStiffness(bool val) override;
+
     std::shared_ptr<ChVehicleJoint> m_connection_joint;  ///< connection to neighboring track shoe
     std::shared_ptr<ChLinkRSDA> m_connection_rsda;       ///< optional RSDA on connection
 

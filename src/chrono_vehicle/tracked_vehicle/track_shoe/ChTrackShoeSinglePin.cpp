@@ -84,6 +84,11 @@ void ChTrackShoeSinglePin::UpdateInertiaProperties() {
 }
 
 // -----------------------------------------------------------------------------
+
+void ChTrackShoeSinglePin::EnableTrackBendingStiffness(bool val) {
+    m_connection_rsda->SetDisabled(val);
+}
+
 void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
                                    ChTrackAssembly* assembly,
                                    ChChassis* chassis,

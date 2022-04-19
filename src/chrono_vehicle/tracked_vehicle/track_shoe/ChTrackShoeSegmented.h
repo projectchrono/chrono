@@ -47,6 +47,9 @@ class CH_VEHICLE_API ChTrackShoeSegmented : public ChTrackShoe {
     /// contact materials for the collision shapes of the shoe itself (for contact with the wheels, idler, and ground).
     virtual void CreateContactMaterials(ChContactMethod contact_method) = 0;
 
+    /// Activate or deactivate the RSDA elements used to model track bending stiffness.
+    virtual void EnableTrackBendingStiffness(bool val) = 0;
+
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
@@ -55,6 +58,8 @@ class CH_VEHICLE_API ChTrackShoeSegmented : public ChTrackShoe {
 
     ChVehicleGeometry m_geometry;                             ///< collection of visualization and collision shapes
     std::shared_ptr<ChMaterialSurface> m_shoe_sprk_material;  ///< contact material for shoe shape contacting sprocket
+
+    friend class ChTrackAssemblySegmented;
 };
 
 /// @} vehicle_tracked_shoe

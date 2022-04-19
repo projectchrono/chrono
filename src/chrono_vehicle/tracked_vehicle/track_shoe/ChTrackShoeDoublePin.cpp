@@ -199,6 +199,14 @@ void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> con
 }
 
 // -----------------------------------------------------------------------------
+
+void ChTrackShoeDoublePin::EnableTrackBendingStiffness(bool val) {
+    m_rsda_L->SetDisabled(val);
+    m_rsda_R->SetDisabled(val);
+    m_connection_rsda_L->SetDisabled(val);
+    m_connection_rsda_R->SetDisabled(val);
+}
+
 void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
                                    ChTrackAssembly* assembly,
                                    ChChassis* chassis,
