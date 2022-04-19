@@ -96,7 +96,7 @@
 #include "chrono_sensor/filters/ChFilterRadarSavePC.h"
 #include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
 #include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
-
+#include "chrono_sensor/filters/ChFilterCameraNoise.h"
 
 using namespace chrono;
 using namespace chrono::sensor;
@@ -236,6 +236,9 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::ChFilterImgAlias)
 %shared_ptr(chrono::sensor::ChFilterImageResize)
 %shared_ptr(chrono::sensor::ChFilterImageHalf4ToRGBA8)
+%shared_ptr(chrono::sensor::ChFilterCameraNoiseConstNormal)
+%shared_ptr(chrono::sensor::ChFilterCameraNoisePixDep)
+
 
 //
 // B- INCLUDE HEADERS
@@ -308,6 +311,7 @@ using namespace chrono::sensor;
 %include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
 %include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
 %include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
+%include "chrono_sensor/filters/ChFilterCameraNoise.h"
 
 %include "chrono_sensor/optix/scene/ChScene.h"
 %include "chrono_sensor/optix/ChOptixDefinitions.h"
