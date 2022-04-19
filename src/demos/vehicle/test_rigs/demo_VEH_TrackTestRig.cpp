@@ -66,9 +66,10 @@ enum class DriverMode {
     DATAFILE,    // inputs from data file
     ROADPROFILE  // inputs to follow road profile
 };
-std::string driver_file("M113/test_rig/TTR_inputs.dat");  // used for mode=DATAFILE
-std::string road_file("M113/test_rig/TTR_road.dat");      // used for mode=ROADPROFILE
-double road_speed = 10;                                   // used for mode=ROADPROFILE
+std::string driver_file("M113/test_rig/TTR_inputs.dat");   // used for mode=DATAFILE
+////std::string driver_file("M113/test_rig/TTR_inputs2.dat");  // used for mode=DATAFILE
+std::string road_file("M113/test_rig/TTR_road.dat");       // used for mode=ROADPROFILE
+double road_speed = 10;                                    // used for mode=ROADPROFILE
 DriverMode driver_mode = DriverMode::ROADPROFILE;
 
 // Contact method
@@ -101,6 +102,10 @@ bool verbose_integrator = false;
 bool output = true;
 const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
 double out_step_size = 1e-2;
+
+// Test detracking
+bool detracking_control = true;
+bool apply_detracking_force = false;
 
 // =============================================================================
 
@@ -221,7 +226,7 @@ int main(int argc, char* argv[]) {
 
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, contact_method);
+        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, contact_method), detracking_control;
         std::cout << "Rig uses track assembly from JSON file: " << vehicle::GetDataFile(filename) << std::endl;
     } else {
         VehicleSide side = LEFT;
@@ -243,7 +248,7 @@ int main(int argc, char* argv[]) {
                 return 1;
         }
 
-        rig = new ChTrackTestRig(track_assembly, create_track, contact_method);
+        rig = new ChTrackTestRig(track_assembly, create_track, contact_method, detracking_control);
         std::cout << "Rig uses M113 track assembly:  type " << (int)shoe_type << " side " << side << std::endl;
     }
 
@@ -365,10 +370,18 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    // Grab pointer to first track shoe
+    auto shoe_body = rig->GetTrackAssembly()->GetTrackShoe(0)->GetShoeBody();
+
     // Initialize simulation frame counter
     int step_number = 0;
 
     while (app.GetDevice()->run()) {
+        if (apply_detracking_force) {
+            shoe_body->Empty_forces_accumulators();
+            shoe_body->Accumulate_force(ChVector<>(0, 20000, 0), ChVector<>(0, 0, 0), true);
+        }
+
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
