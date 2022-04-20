@@ -1476,17 +1476,17 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         ChStateDelta v_local(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
         this->GetStateLocal(Dx_local, v_local);
 
-        R.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w) -= c * (this->modal_K * Dx_local + this->modal_R * v_local); //  note -= sign
+        R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -= c * (this->modal_K * Dx_local + this->modal_R * v_local); //  note -= sign
 
         // 2-
         // Add custom forces (in modal coordinates)
         if (!this->custom_F_modal.isZero())
-            R.segment(displ_v + this->n_boundary_coords_w, this->n_modes_coords_w) += c * this->custom_F_modal;
+            R.segment(off + this->n_boundary_coords_w, this->n_modes_coords_w) += c * this->custom_F_modal;
 
         // 3-
         // Add custom forces (applied to the original non reduced system, and transformed into reduced) 
         if (!this->custom_F_full.isZero())
-            R.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w) += c * this->Psi.transpose() * this->custom_F_full;
+            R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) += c * this->Psi.transpose() * this->custom_F_full;
 
     }
 }
@@ -1517,8 +1517,8 @@ void ChModalAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offse
         }
     } 
     else {
-        ChVectorDynamic<> w_modal = w.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w);
-        R.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w) += c * (this->modal_M * w_modal);
+        ChVectorDynamic<> w_modal = w.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w);
+        R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) += c * (this->modal_M * w_modal);
     }
 }
 
@@ -1635,8 +1635,8 @@ void ChModalAssembly::IntToDescriptor(const unsigned int off_v,
         }
     } 
     else {
-        this->modal_variables->Get_qb() = v.segment(displ_v + this->n_boundary_coords_w,  this->n_modes_coords_w);
-        this->modal_variables->Get_fb() = R.segment(displ_v + this->n_boundary_coords_w,  this->n_modes_coords_w);
+        this->modal_variables->Get_qb() = v.segment(off_v + this->n_boundary_coords_w,  this->n_modes_coords_w);
+        this->modal_variables->Get_fb() = R.segment(off_v + this->n_boundary_coords_w,  this->n_modes_coords_w);
     }
 }
 
@@ -1670,7 +1670,7 @@ void ChModalAssembly::IntFromDescriptor(const unsigned int off_v,
         }
     }
     else {
-        v.segment(displ_v + this->n_boundary_coords_w,  this->n_modes_coords_w) = this->modal_variables->Get_qb();
+        v.segment(off_v + this->n_boundary_coords_w,  this->n_modes_coords_w) = this->modal_variables->Get_qb();
     }
 }
 
