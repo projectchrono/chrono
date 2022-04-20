@@ -113,6 +113,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Get the current global vehicle COM location.
     virtual ChVector<> GetVehicleCOMPos() const override;
 
+    /// Get the current global vehicle inertia tensor.
+    virtual ChMatrix33<> GetVehicleInertia() const override;
+
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
 

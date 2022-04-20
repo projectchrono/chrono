@@ -286,6 +286,7 @@ class ChApiIrr ChIrrAppInterface {
     double modal_phi;
     double modal_current_mode_n;
     double modal_current_freq;
+    double modal_current_dampingfactor;
 
 #ifdef CHRONO_POSTPROCESS
     bool povray_save;
