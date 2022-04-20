@@ -49,8 +49,8 @@ const double M113_SprocketBand::m_gear_RA = 0.2307 * 1.04;
 
 const double M113_SprocketBand::m_lateral_backlash = 0.02;
 
-const std::string M113_SprocketBandLeft::m_meshFile = "M113/Sprocket2_L.obj";
-const std::string M113_SprocketBandRight::m_meshFile = "M113/Sprocket2_R.obj";
+const std::string M113_SprocketBandLeft::m_meshFile = "M113/meshes/Sprocket2_L.obj";
+const std::string M113_SprocketBandRight::m_meshFile = "M113/meshes/Sprocket2_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
