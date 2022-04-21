@@ -42,6 +42,7 @@ void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
                                       ChTire::CollisionType tire_coll) {
     wheel->m_tire = tire;
     tire->Initialize(wheel);
+    tire->InitializeInertiaProperties();
     tire->SetVisualizationType(tire_vis);
     tire->SetCollisionType(tire_coll);
 }
@@ -323,10 +324,12 @@ void ChWheeledVehicle::UpdateInertiaProperties() {
             if (tire) {
                 tire->UpdateInertiaProperties();
                 double tire_mass = tire->GetMass() - tire->GetAddedMass();
+                ChMatrix33<> tire_inertia = tire->GetInertia();
+                tire_inertia.diagonal() -= tire->GetAddedInertia().eigen();
                 ChFrame<> com_abs;
                 tire->m_xform.TransformLocalToParent(tire->m_com, com_abs);
                 com += tire_mass * com_abs.GetPos();
-                inertia += com_abs.GetA() * m_inertia * com_abs.GetA().transpose() +
+                inertia += com_abs.GetA() * tire_inertia * com_abs.GetA().transpose() +
                            tire_mass * utils::CompositeInertia::InertiaShiftMatrix(com_abs.GetPos());
             }
         }
@@ -346,7 +349,7 @@ void ChWheeledVehicle::UpdateInertiaProperties() {
     //    Notes: - vehicle COM frame aligned with vehicle frame
     //           - 'com' still scaled by total mass here
     const ChMatrix33<>& A = GetTransform().GetA();
-    m_inertia = A.transpose() * (inertia - utils::CompositeInertia::InertiaShiftMatrix(com)) * A;
+    m_inertia = A.transpose() * (inertia - utils::CompositeInertia::InertiaShiftMatrix(com) / GetMass()) * A;
 }
 
 // -----------------------------------------------------------------------------
