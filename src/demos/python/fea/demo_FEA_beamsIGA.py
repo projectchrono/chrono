@@ -161,7 +161,7 @@ mesh.AddVisualShapeFEA(mvisualizebeamC)
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
 sys.SetVisualSystem(vis)
-vis.SetWindowSize(800, 600)
+vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Test FEA: the Jeffcott rotor with IGA beams')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))

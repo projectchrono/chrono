@@ -163,7 +163,7 @@ mesh.AddVisualShapeFEA(visualizebeamC)
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
 sys.SetVisualSystem(vis)
-vis.SetWindowSize(800, 600)
+vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('FEA beams')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))

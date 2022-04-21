@@ -267,7 +267,7 @@ caster = RayCaster(sys, chrono.ChFrameD(chrono.ChVectorD(0, -2, -1), chrono.Q_fr
 
 vis = chronoirr.ChVisualSystemIrrlicht()
 sys.SetVisualSystem(vis)
-vis.SetWindowSize(800, 600)
+vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('RoboSimian - Rigid terrain')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))

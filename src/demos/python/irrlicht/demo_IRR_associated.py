@@ -1,12 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Alessandro Tasora
+# Copyright (c) 2019 projectchrono.org
+# All rights reserved.
 #
-# Created:     1/01/2019
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 
 import math
@@ -23,11 +25,11 @@ print ("Example: study the associative effect of friction.");
 
 # ---------------------------------------------------------------------
 #
-#  Create the simulation system and add items
+#  Create the simulation sys and add items
 #
 
 
-mysystem      = chrono.ChSystemNSC()
+sys      = chrono.ChSystemNSC()
 
 # Global collision tolerances
 chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.01)
@@ -67,7 +69,7 @@ Dz = chrono.ChVectorD(0,0, thick)
 if False:
     mbodyS = chrono.ChBodyEasySphere(0.1,1000,True,True,brick_material)
     mbodyS.SetPos( S0 )
-    mysystem.Add(mbodyS)
+    sys.Add(mbodyS)
 else:
     S1 = Sl + Dl * 0.2;
     S2 = Sl - Dl * 0.2;
@@ -77,7 +79,7 @@ else:
     pointsS = chrono.vector_ChVectorD([S1+Dzz, S2+Dzz, S3+Dzz, S4+Dzz, S1-Dzz, S2-Dzz, S3-Dzz, S4-Dzz])
 
     mbodyS = chrono.ChBodyEasyConvexHullAuxRef(pointsS, 1000,True,True,brick_material)
-    mysystem.Add(mbodyS)
+    sys.Add(mbodyS)
 
 L1 = Sl + Dl * 0.5;
 L2 = Sl - Dl * 0.5;
@@ -87,7 +89,7 @@ pointsL = chrono.vector_ChVectorD([L1+Dz, L2+Dz, L3+Dz, L4+Dz, L1-Dz, L2-Dz, L3-
 
 mbodyL = chrono.ChBodyEasyConvexHullAuxRef(pointsL, 1000,True,True,L_material)
 mbodyL.SetBodyFixed(fixed_L)
-mysystem.Add(mbodyL)
+sys.Add(mbodyL)
 
 
 R1 = Sr + Dr * 0.5;
@@ -98,39 +100,30 @@ pointsR = chrono.vector_ChVectorD([R1+Dz, R2+Dz, R3+Dz, R4+Dz, R1-Dz, R2-Dz, R3-
 
 mbodyR = chrono.ChBodyEasyConvexHullAuxRef(pointsR, 1000,True,True,brick_material)
 mbodyR.SetBodyFixed(True)
-mysystem.Add(mbodyR)
+sys.Add(mbodyR)
 
 
 if not(fixed_L):
     mbodyG = chrono.ChBodyEasyBox(1,0.5 , thick*2.2, 1000,True,True,brick_material)
     mbodyG.SetPos( chrono.ChVectorD(-1, L2.y-0.5/2, 0 ) )
     mbodyG.SetBodyFixed(True)
-    mysystem.Add(mbodyG)
+    sys.Add(mbodyG)
 
 
 # ---------------------------------------------------------------------
 #
-#  Create an Irrlicht application to visualize the system
+#  Create an Irrlicht application to visualize the sys
 #
 
-myapplication = chronoirr.ChIrrApp(mysystem, 'Test', chronoirr.dimension2du(1024,768))
-
-myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddSkyBox()
-myapplication.AddCamera(chronoirr.vector3df(0.6,0.6,0.8))
-myapplication.AddTypicalLights()
-
-            # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-			# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-			# If you need a finer control on which item really needs a visualization proxy in
-			# Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-myapplication.AssetBindAll();
-
-			# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-			# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-myapplication.AssetUpdateAll();
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Test')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0.6,0.6,0.8))
+vis.AddTypicalLights()
 
 
 # ---------------------------------------------------------------------
@@ -141,21 +134,18 @@ myapplication.AssetUpdateAll();
 # Integration settings
 
 solver = chrono.ChSolverBB()
-mysystem.SetSolver(solver)
+sys.SetSolver(solver)
 solver.SetMaxIterations(500)
 solver.EnableWarmStart(True);
 
-mysystem.SetMaxPenetrationRecoverySpeed(10.01);
-mysystem.SetMinBounceSpeed(10);
+sys.SetMaxPenetrationRecoverySpeed(10.01);
+sys.SetMinBounceSpeed(10);
 
-myapplication.SetTimestep(0.0005)
-
-
-while(myapplication.GetDevice().run()):
-    myapplication.BeginScene()
-    myapplication.DrawAll()
-    myapplication.DoStep()
-    myapplication.EndScene()
+while vis.Run():
+    vis.BeginScene() 
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(5e-4)
 
 
 

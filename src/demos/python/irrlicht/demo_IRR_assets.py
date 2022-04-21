@@ -16,7 +16,7 @@ import pychrono.irrlicht as chronoirr
 import math as m
 
 
-print (" Demo of using the assets system to create shapes for Irrlicht visualization")
+print (" Demo of using the assets sys to create shapes for Irrlicht visualization")
 
 
 # The path to the Chrono directory containing various assets(meshes, textures, data files)
@@ -24,7 +24,7 @@ print (" Demo of using the assets system to create shapes for Irrlicht visualiza
 # If running from a different directory, you must change the path to the data directory with:
 # chrono.SetChronoDataPath('relative/path/to/data/directory')
 
-# Create a Chrono::Engine physical system
+# Create a Chrono::Engine physical sys
 sys = chrono.ChSystemNSC()
 
 # Example 1:
@@ -33,7 +33,7 @@ sys = chrono.ChSystemNSC()
 # Note: these assets are independent from collision shapes!
 
 # Create a rigid body as usual, and add it
-# to the physical system:
+# to the physical sys:
 floor = chrono.ChBody()
 floor.SetBodyFixed(True)
 
@@ -48,7 +48,7 @@ floor.GetCollisionModel().AddBox(floor_mat, 10, 0.5, 10, chrono.ChVectorD(0, -1,
 floor.GetCollisionModel().BuildModel()
 floor.SetCollide(True)
 
-# Add body to system
+# Add body to sys
 sys.Add(floor)
 
 
@@ -183,7 +183,7 @@ for j in range(20):
 # N times in Irrlicht.
 
 # Create the ChParticlesClones, populate it with random particles,
-# and add it to physical system:
+# and add it to physical sys:
 particles = chrono.ChParticlesClones()
 
 # Note: coll. shape, if needed, must be specified before creating particles.
@@ -204,7 +204,7 @@ for i in range(100):
 particles.SetMass(0.1)
 particles.SetInertiaXX(chrono.ChVectorD(0.001, 0.001, 0.001))
 
-# Do not forget to add the particles cluster to the system
+# Do not forget to add the particles cluster to the sys
 sys.Add(particles)
 
 # ==Asset== Attach a 'sphere' shape asset. it will be used as a sample
@@ -230,7 +230,7 @@ sys.Add(hull)
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
 sys.SetVisualSystem(vis)
-vis.SetWindowSize(800, 600)
+vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Chrono::Irrlicht visualization')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))

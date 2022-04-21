@@ -1,12 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Lijing Yang
+# Copyright (c) 2022 projectchrono.org
+# All rights reserved.
 #
-# Created:     6/10/2020
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 
 import pychrono.core as chrono
@@ -22,11 +24,11 @@ print ("Example: demonstration of a universal joint")
 
 # ---------------------------------------------------------------------
 #
-#  Create the simulation system and add items
+#  Create the simulation sys and add items
 #
 
-mysystem      = chrono.ChSystemNSC()
-mysystem.Set_G_acc(chrono.ChVectorD(0, 0, 0))
+sys      = chrono.ChSystemNSC()
+sys.Set_G_acc(chrono.ChVectorD(0, 0, 0))
 
 # Set the half-length of the two shafts
 hl = 2
@@ -44,7 +46,7 @@ ground = chrono.ChBody()
 ground.SetIdentifier(-1)
 ground.SetBodyFixed(True)
 ground.SetCollide(False)
-mysystem.Add(ground)
+sys.Add(ground)
 
 # attach visualization assets to represent the revolute and cylindrical
 # joints that connect the two shafts to ground
@@ -52,19 +54,19 @@ cyl_1 = chrono.ChCylinderShape()
 cyl_1.GetCylinderGeometry().p1 = chrono.ChVectorD(0, 0, -hl - 0.2)
 cyl_1.GetCylinderGeometry().p2 = chrono.ChVectorD(0, 0, -hl + 0.2)
 cyl_1.GetCylinderGeometry().rad = 0.3
-ground.AddAsset(cyl_1)
+ground.AddVisualShape(cyl_1)
 
 cyl_2 = chrono.ChCylinderShape()
 cyl_2.GetCylinderGeometry().p1 = chrono.ChVectorD(0, -(hl - 0.2) * sina, (hl - 0.2) * cosa)
 cyl_2.GetCylinderGeometry().p2 = chrono.ChVectorD(0, -(hl + 0.2) * sina, (hl + 0.2) * cosa)
 cyl_2.GetCylinderGeometry().rad = 0.3
-ground.AddAsset(cyl_2)
+ground.AddVisualShape(cyl_2)
 
 
 # Create the first shaft body
 # ---------------------------
 shaft_1 = chrono.ChBody()
-mysystem.AddBody(shaft_1)
+sys.AddBody(shaft_1)
 shaft_1.SetIdentifier(1)
 shaft_1.SetBodyFixed(False)
 shaft_1.SetCollide(False)
@@ -77,17 +79,14 @@ shaft_1.SetRot(chrono.ChQuaternionD(1, 0, 0, 0))
 # universal joint's cross associated with this shaft (a cylinder)
 box_1 = chrono.ChBoxShape()
 box_1.GetBoxGeometry().Size = chrono.ChVectorD(0.15, 0.15, 0.9 * hl)
-shaft_1.AddAsset(box_1)
+shaft_1.AddVisualShape(box_1)
 
 cyl_2 = chrono.ChCylinderShape()
 cyl_2.GetCylinderGeometry().p1 = chrono.ChVectorD(-0.2, 0, hl)
 cyl_2.GetCylinderGeometry().p2 = chrono.ChVectorD(0.2, 0, hl)
 cyl_2.GetCylinderGeometry().rad = 0.05
-shaft_1.AddAsset(cyl_2)
-
-col = chrono.ChColorAsset()
-col.SetColor(chrono.ChColor(0.9, 0.4, 0.1))
-shaft_1.AddAsset(col)
+cyl_2.SetColor(chrono.ChColor(0.9, 0.4, 0.1))
+shaft_1.AddVisualShape(cyl_2)
 
 # Create the second shaft body
 # ----------------------------
@@ -96,7 +95,7 @@ shaft_1.AddAsset(col)
 # equal to the specified bend angle.
 
 shaft_2 = chrono.ChBody()
-mysystem.AddBody(shaft_2)
+sys.AddBody(shaft_2)
 shaft_2.SetIdentifier(1)
 shaft_2.SetBodyFixed(False)
 shaft_2.SetCollide(False)
@@ -109,17 +108,14 @@ shaft_2.SetRot(rot)
 # universal joint's cross associated with this shaft (a cylinder)
 box_1 = chrono.ChBoxShape()
 box_1.GetBoxGeometry().Size = chrono.ChVectorD(0.15, 0.15, 0.9 * hl)
-shaft_2.AddAsset(box_1)
+shaft_2.AddVisualShape(box_1)
 
 cyl_2 = chrono.ChCylinderShape()
 cyl_2.GetCylinderGeometry().p1 = chrono.ChVectorD(0, -0.2, -hl)
 cyl_2.GetCylinderGeometry().p2 = chrono.ChVectorD(0, 0.2, -hl)
 cyl_2.GetCylinderGeometry().rad = 0.05
-shaft_2.AddAsset(cyl_2)
-
-col = chrono.ChColorAsset()
-col.SetColor(chrono.ChColor(0.2, 0.4, 0.8))
-shaft_2.AddAsset(col)
+cyl_2.SetColor(chrono.ChColor(0.2, 0.4, 0.8))
+shaft_2.AddVisualShape(cyl_2)
 
 # Connect the first shaft to ground
 # ---------------------------------
@@ -133,7 +129,7 @@ motor.Initialize(ground,
                  shaft_1,
                  chrono.ChFrameD(chrono.ChVectorD(0, 0, -hl), chrono.ChQuaternionD(1, 0, 0, 0)))
 motor.SetAngleFunction(chrono.ChFunction_Ramp(0, 1))
-mysystem.AddLink(motor)
+sys.AddLink(motor)
 
 # Connect the second shaft to ground through a cylindrical joint
 # --------------------------------------------------------------
@@ -143,7 +139,7 @@ mysystem.AddLink(motor)
 # the joint is located at the origin of the second shaft.
 
 cyljoint = chrono.ChLinkLockCylindrical()
-mysystem.AddLink(cyljoint)
+sys.AddLink(cyljoint)
 cyljoint.Initialize(ground, 
                     shaft_2,
                     chrono.ChCoordsysD(chrono.ChVectorD(0, -hl * sina, hl * cosa), rot))
@@ -155,55 +151,38 @@ cyljoint.Initialize(ground,
 # enforce orthogonality of the associated cross.
 
 ujoint = chrono.ChLinkUniversal()
-mysystem.AddLink(ujoint)
+sys.AddLink(ujoint)
 ujoint.Initialize(shaft_1,
                   shaft_2,
                   chrono.ChFrameD(chrono.ChVectorD(0, 0, 0), rot))
 
-# ---------------------------------------------------------------------
-#
-#  Create an Irrlicht application to visualize the system
-#
 
-myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example: universal joint', chronoirr.dimension2du(1024,768))
-
-myapplication.AddSkyBox()
-myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddCamera(chronoirr.vector3df(3, 1, -1.5))
-myapplication.AddTypicalLights()
-
-# ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-# If you need a finer control on which item really needs a visualization proxy in
-# Irrlicht, just use application.AssetBind(myitem) on a per-item basis.
-
-myapplication.AssetBindAll()
-
-# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-myapplication.AssetUpdateAll()
+# Create the Irrlicht visualization
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Universal joint demo')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(3, 1, -1.5))
+vis.AddTypicalLights()
 
 
-# ---------------------------------------------------------------------
-#
 #  Run the simulation
-#
-myapplication.SetTimestep(0.001)
-myapplication.SetTryRealtime(True)
 frame = 0
 
-while(myapplication.GetDevice().run()):
-    myapplication.BeginScene()
-    myapplication.DrawAll()
-    myapplication.DoStep()
-    myapplication.EndScene()
+while vis.Run():
+    vis.BeginScene() 
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(1e-3)
     frame += 1
 
     if frame % 20 == 0:
         omega_1 = shaft_1.GetWvel_loc().z
         omega_2 = shaft_2.GetWvel_loc().z
-        print('{:.4}'.format(str(mysystem.GetChTime())), '{:.6}'.format(str(omega_1)), '{:.6}'.format(str(omega_2)))
+        print('{:.4}'.format(str(sys.GetChTime())), '{:.6}'.format(str(omega_1)), '{:.6}'.format(str(omega_2)))
 
 
 
