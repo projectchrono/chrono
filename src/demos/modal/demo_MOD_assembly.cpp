@@ -21,7 +21,7 @@
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChLinkMotorRotationAngle.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
@@ -56,7 +56,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
                               bool do_modal_reduction,
                               bool add_internal_body,
                               bool add_boundary_body,
-                              bool add_force) {
+                              bool add_force,
+                              bool add_other_assemblies) {
     // Clear previous demo, if any:
     sys.Clear();
     sys.SetChTime(0);
@@ -134,7 +135,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
                       ChVector<>(0, 1, 0)  // the 'Y' up direction of the section for the beam
     );
 
-    // my_node_B_boundary->SetForce(ChVector<>(0, 0, 90)); // to trigger some vibration at the free end
+    my_node_B_boundary->SetForce(ChVector<>(0, 0, 90));  // to trigger some vibration at the free end
 
     if (add_internal_body) {
         // BODY: in the middle, as internal
@@ -158,6 +159,48 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         my_end_constr->Initialize(builder.GetLastBeamNodes().back(), my_body_C,
                                   ChFrame<>(ChVector<>(beam_L, 0, 0), QUNIT));
         my_assembly->Add(my_end_constr);
+    }
+
+    if (add_other_assemblies) {
+        // Test how to connect the boundary nodes/bodies of a ChModalAssembly to some other ChAssembly
+        // or to other items (bodies, etc.) that are added to the ChSystem, like in this way
+        //   ChSystem
+        //       ChModalAssembly
+        //           internal ChBody, ChNode, etc.
+        //           boundary ChBody, ChNode, etc.
+        //       ChBody
+        //       ChAssembly
+        //           ChBody
+        //       etc.
+
+        // example if putting additional items directly in the ChSystem:
+        auto my_body_D = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.4, 0.4, 200);
+        my_body_D->SetPos(ChVector<>(beam_L * 1.1, 0, 0));
+        sys.Add(my_body_D);
+
+        auto my_end_constr2 = chrono_types::make_shared<ChLinkMateGeneric>();
+        my_end_constr2->Initialize(builder.GetLastBeamNodes().back(), my_body_D,
+                                   ChFrame<>(ChVector<>(beam_L, 0, 0), QUNIT));
+        sys.Add(my_end_constr2);
+
+        // example if putting additional items in a second assembly (just a simple rotating blade)
+        auto my_assembly0 = chrono_types::make_shared<ChAssembly>();
+        sys.Add(my_assembly0);
+
+        auto my_body_blade = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.6, 0.2, 150);
+        my_body_blade->SetPos(ChVector<>(beam_L * 1.15, 0.3, 0));
+        my_assembly0->Add(my_body_blade);
+
+        auto rotmotor1 = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
+        rotmotor1->Initialize(
+            my_body_blade,                                                     // slave
+            my_body_D,                                                         // master
+            ChFrame<>(my_body_D->GetPos(), Q_from_AngAxis(CH_C_PI_2, VECT_Y))  // motor frame, in abs. coords
+        );
+        auto mwspeed =
+            chrono_types::make_shared<ChFunction_Const>(CH_C_2PI);  // constant angular speed, in [rad/s], 2PI/s =360°/s
+        rotmotor1->SetSpeedFunction(mwspeed);
+        my_assembly0->Add(rotmotor1);
     }
 
     if (add_force) {
@@ -299,6 +342,12 @@ class MyEventReceiver : public irr::IEventReceiver {
                 case irr::KEY_KEY_4:
                     ID_current_example = 4;
                     return true;
+                case irr::KEY_KEY_5:
+                    ID_current_example = 5;
+                    return true;
+                case irr::KEY_KEY_6:
+                    ID_current_example = 6;
+                    return true;
                 case irr::KEY_SPACE:
                     modal_analysis = !modal_analysis;
                     m_vis->EnableModalAnalysis(modal_analysis);
@@ -357,7 +406,9 @@ int main(int argc, char* argv[]) {
         L" Press 1: cantilever - original\n"
         L" Press 2: cantilever - modal reduction\n"
         L" Press 3: cantilever and boxes - original\n"
-        L" Press 4: cantilever and boxes - modal reduction\n\n"
+        L" Press 4: cantilever and boxes - modal reduction\n"
+        L" Press 5: cantilever plus other assembly - original\n"
+        L" Press 6: cantilever plus other assembly - modal reduction\n\n"
         L"Press space: toggle between dynamic and modal analysis",
         irr::core::rect<irr::s32>(400, 80, 850, 200), false, true, 0);
 
@@ -391,31 +442,51 @@ int main(int argc, char* argv[]) {
         switch (ID_current_example) {
             case 1:
                 MakeAndRunDemoCantilever(sys,
-                                         false,  // no modal reduction
-                                         false,  // no internal body
-                                         false,  // no boundary body
-                                         true);  // add force
+                                         false,   // no modal reduction
+                                         false,   // no internal body
+                                         false,   // no boundary body
+                                         true,    // add force
+                                         false);  // no ther assemblies
                 break;
             case 2:
                 MakeAndRunDemoCantilever(sys,
-                                         true,   // modal reduction
-                                         false,  // no internal body
-                                         false,  // no boundary body
-                                         true);  // add force
+                                         true,    // modal reduction
+                                         false,   // no internal body
+                                         false,   // no boundary body
+                                         true,    // add force
+                                         false);  // no ther assemblies
                 break;
             case 3:
                 MakeAndRunDemoCantilever(sys,
-                                         false,  // no modal reduction
-                                         true,   // internal body
-                                         true,   // boundary body
-                                         true);  // add force
+                                         false,   // no modal reduction
+                                         true,    // internal body
+                                         true,    // boundary body
+                                         true,    // add force
+                                         false);  // no ther assemblies
                 break;
             case 4:
                 MakeAndRunDemoCantilever(sys,
-                                         true,   // modal reduction
-                                         true,   // internal body
-                                         true,   // boundary body
-                                         true);  // add force
+                                         true,    // modal reduction
+                                         true,    // internal body
+                                         true,    // boundary body
+                                         true,    // add force
+                                         false);  // no ther assemblies
+                break;
+            case 5:
+                MakeAndRunDemoCantilever(sys,
+                                         false,  // no modal reduction
+                                         true,   //    internal body
+                                         true,   //    boundary body
+                                         true,   //    add force
+                                         true);  //    other assembly/items
+                break;
+            case 6:
+                MakeAndRunDemoCantilever(sys,
+                                         true,   //    modal reduction
+                                         true,   //    internal body
+                                         true,   //    boundary body
+                                         true,   //    add force
+                                         true);  //    other assembly/items
                 break;
             default:
                 break;
