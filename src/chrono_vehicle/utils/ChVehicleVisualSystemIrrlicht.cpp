@@ -117,7 +117,7 @@ ChVehicleVisualSystemIrrlicht::ChVehicleVisualSystemIrrlicht()
     SetWindowTitle("Chrono::Vehicle");
 
     // Default camera uses Z up
-    SetCameraVertical(irrlicht::CameraVerticalDir::Z);
+    SetCameraVertical(CameraVerticalDir::Z);
 
 #ifdef CHRONO_IRRKLANG
     m_sound_engine = 0;

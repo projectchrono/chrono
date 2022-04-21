@@ -9,13 +9,12 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Radu Serban
+// Radu Serban, Alessandro Tasora
 // =============================================================================
 
 #include <codecvt>
 #include <locale>
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChProfiler.h"
 
 #include "chrono/assets/ChTriangleMeshShape.h"

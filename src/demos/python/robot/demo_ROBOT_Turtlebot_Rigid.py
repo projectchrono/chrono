@@ -48,7 +48,7 @@ robot.Initialize()
 # Create run-time visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
 system.SetVisualSystem(vis)
-vis.SetCameraVertical(chronoirr.CameraVerticalDir_Z)
+vis.SetCameraVertical(chrono.CameraVerticalDir_Z)
 vis.SetWindowSize(1280, 720)
 vis.SetWindowTitle('Turtlebot Robot - Rigid terrain')
 vis.Initialize()

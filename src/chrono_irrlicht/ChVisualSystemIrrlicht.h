@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Radu Serban
+// Radu Serban, Alessandro Tasora
 // =============================================================================
 
 #ifndef CH_VISUAL_SYSTEM_IRRLICHT_H
@@ -40,13 +40,11 @@
 namespace chrono {
 namespace irrlicht {
 
-/// Vertical direction
-enum class CameraVerticalDir { Y, Z };
-
+/// Irrlicht-based Chrono run-time visualization system.
 class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
   public:
     ChVisualSystemIrrlicht();
-    ~ChVisualSystemIrrlicht();
+    virtual ~ChVisualSystemIrrlicht();
 
     /// Enable/disable antialias (default true).
     /// Must be called before Initialize().

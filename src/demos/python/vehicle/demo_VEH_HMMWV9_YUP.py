@@ -64,7 +64,7 @@ def main():
     # Create the vehicle Irrlicht interface
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
     my_hmmwv.GetVehicle().SetVisualSystem(vis)
-    vis.SetCameraVertical(irr.CameraVerticalDir_Y)
+    vis.SetCameraVertical(chrono.CameraVerticalDir_Y)
     vis.SetWindowTitle('HMMWV-9 YUP world frame')
     vis.SetWindowSize(1280, 1024)
     vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
