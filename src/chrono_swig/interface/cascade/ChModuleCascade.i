@@ -50,6 +50,7 @@
 //#include "chrono_cascade/ChCascadeVisualShape.h"
 #include "chrono_cascade/ChCascadeBodyEasy.h"
 #include "chrono_cascade/ChCascadeDoc.h"
+#include "chrono_cascade/ChCascadeTriangulate.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "Eigen/src/Core/util/Memory.h"
@@ -105,6 +106,7 @@ using namespace chrono::cascade;
 %shared_ptr(chrono::cascade::ChCascadeBodyEasy)
 %shared_ptr(chrono::cascade::ChCascadeBodyEasyProfile)
 %shared_ptr(chrono::cascade::ChCascadeVisualShape)
+%shared_ptr(chrono::cascade::ChCascadeTriangulate)
 
 //
 // TEMPLATES
