@@ -139,16 +139,18 @@ terrain.Initialize()
 # Create the driver system
 # -------------------------------------
 
-app = veh.ChWheeledVehicleIrrApp(gator.GetVehicle(), 'Gator')
-app.AddTypicalLights()
-
-app.SetChaseCamera(trackPoint, 6.0, 0.5)
-app.SetTimestep(step_size)
-app.AssetBindAll()
-app.AssetUpdateAll()
+vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+gator.GetVehicle().SetVisualSystem(vis)
+vis.SetWindowTitle('Gator')
+vis.SetWindowSize(1280, 1024)
+vis.SetChaseCamera(trackPoint, 6.0, 0.5)
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddTypicalLights()
+vis.AddSkyBox()
 
 # Create the interactive driver system
-driver = veh.ChIrrGuiDriver(app)
+driver = veh.ChIrrGuiDriver(vis)
 
 # Set the time response for steering and throttle keyboard inputs.
 steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
@@ -214,13 +216,13 @@ orbit_radius = 15
 orbit_rate = 1
 
 realtime_timer = chrono.ChRealtimeStepTimer()
-while (app.GetDevice().run()) :
+while vis.Run() :
     time = gator.GetSystem().GetChTime()
 
     # Render scene
-    app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-    app.DrawAll()
-    app.EndScene()
+    vis.BeginScene()
+    vis.DrawAll()
+    vis.EndScene()
 
     # Collect output data from modules (for inter-module communication)
     driver_inputs = driver.GetInputs()
@@ -229,7 +231,7 @@ while (app.GetDevice().run()) :
     driver.Synchronize(time)
     terrain.Synchronize(time)
     gator.Synchronize(time, driver_inputs, terrain)
-    app.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+    vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
 
     # Update sensor manager
     cam1.SetOffsetPose(chrono.ChFrameD(
@@ -241,7 +243,7 @@ while (app.GetDevice().run()) :
     driver.Advance(step_size)
     terrain.Advance(step_size)
     gator.Advance(step_size)
-    app.Advance(step_size)
+    vis.Advance(step_size)
 
     # Spin in place for real time to catch up
     realtime_timer.Spin(step_size)

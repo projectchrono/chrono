@@ -275,15 +275,18 @@ vis_mat.SetFresnelMax(.1)
 patch.GetGroundBody().GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # Create the vehicle Irrlicht interface
-app = veh.ChWheeledVehicleIrrApp(my_rccar.GetVehicle())
-app.AddTypicalLights()
-app.AddLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
-app.SetChaseCamera(trackPoint, 1.5, 0.5)
-app.SetTimestep(step_size)
-
+vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+my_rccar.GetVehicle().SetVisualSystem(vis)
+vis.SetWindowTitle('RC car')
+vis.SetWindowSize(1280, 1024)
+vis.SetChaseCamera(trackPoint, 1.5, 0.5)
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddTypicalLights()
+vis.AddSkyBox()
 
 # Create the driver system
-# driver = veh.ChIrrGuiDriver(app)
+# driver = veh.ChIrrGuiDriver(vis)
 driver = veh.ChDriver(my_rccar.GetVehicle())
 
 # Set the time response for steering and throttle keyboard inputs.
@@ -334,8 +337,7 @@ for points in (track.left.points, track.right.points):
         print("Added box to world")
 
 
-app.AssetBindAll()
-app.AssetUpdateAll()
+vis.BindAll()
 
 # Number of simulation steps between miscellaneous events
 render_steps = math.ceil(render_step_size / step_size)
@@ -443,7 +445,7 @@ steering = 0
 throttle = 0
 braking = 0
 
-while (app.GetDevice().run()):
+while vis.Run():
     t = my_rccar.GetSystem().GetChTime()
 
     manager.Update()
@@ -454,9 +456,9 @@ while (app.GetDevice().run()):
 
     # Render scene and output POV-Ray data
     if (step_number % render_steps == 0):
-        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-        app.DrawAll()
-        app.EndScene()
+        vis.BeginScene()
+        vis.DrawAll()
+        vis.EndScene()
         render_frame += 1
 
     if (step_number % control_steps == 0):
@@ -522,18 +524,16 @@ while (app.GetDevice().run()):
     # driver.Synchronize(t)
     terrain.Synchronize(t)
     my_rccar.Synchronize(t, driver_inputs, terrain)
-    app.Synchronize("lidar driver", driver_inputs)
+    vis.Synchronize("lidar driver", driver_inputs)
 
     # Advance simulation for one timestep for all modules
     # driver.Advance(step_size)
     terrain.Advance(step_size)
     my_rccar.Advance(step_size)
-    app.Advance(step_size)
+    vis.Advance(step_size)
 
     # Increment frame number
     step_number += 1
 
     # Spin in place for real time to catch up
     # realtime_timer.Spin(step_size)
-
-del app

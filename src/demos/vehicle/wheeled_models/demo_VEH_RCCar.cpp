@@ -156,6 +156,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(trackPoint, 1.5, 0.05);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     my_rccar.GetVehicle().SetVisualSystem(vis);
 
     // -----------------

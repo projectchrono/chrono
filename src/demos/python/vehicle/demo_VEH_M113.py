@@ -88,6 +88,7 @@ def main():
     vis.Initialize()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddTypicalLights()
+    vis.AddSkyBox()
 
     # Create the interactive driver system
     # ------------------------------------

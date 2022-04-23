@@ -97,6 +97,7 @@ def main():
     vis.Initialize()
     vis.AddTypicalLights()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddSkyBox()
 
     # Simulation loop
     realtime_timer = chrono.ChRealtimeStepTimer()

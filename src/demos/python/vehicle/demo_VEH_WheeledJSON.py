@@ -59,6 +59,7 @@ def main() :
     vis.Initialize()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddTypicalLights()
+    vis.AddSkyBox()
 
     driver = veh.ChIrrGuiDriver(vis)
 

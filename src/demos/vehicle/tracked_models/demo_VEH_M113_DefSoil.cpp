@@ -165,6 +165,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCameraMultipliers(1e-4, 10);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     m113.GetVehicle().SetVisualSystem(vis);
 
     // ------------------------

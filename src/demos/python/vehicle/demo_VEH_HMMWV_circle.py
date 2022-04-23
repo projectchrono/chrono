@@ -90,6 +90,7 @@ vis.Initialize()
 vis.AddLogo()
 vis.AddTypicalLights()
 vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
+vis.AddSkyBox()
 
 # Visualization of controller points (sentinel & target)
 ballS = vis.GetSceneManager().addSphereSceneNode(0.1)

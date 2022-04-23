@@ -24,7 +24,7 @@ import pychrono.vehicle as veh
 import pychrono.irrlicht as irr
 import math as m
 
-#// =============================================================================
+# =============================================================================
 
 def main():
     #print("Copyright (c) 2017 projectchrono.org\nChrono version: ", CHRONO_VERSION , "\n\n")
@@ -84,6 +84,7 @@ def main():
     vis.Initialize()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddTypicalLights()
+    vis.AddSkyBox()
 
    	# Visualization of controller points (sentinel & target)
     ballS = vis.GetSceneManager().addSphereSceneNode(0.1);

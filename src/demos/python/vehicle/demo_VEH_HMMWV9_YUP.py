@@ -23,8 +23,7 @@ import pychrono.irrlicht as irr
 import os
 import math as m
 
-
-#// =============================================================================
+# =============================================================================
 
 def main():
     #print("Copyright (c) 2017 projectchrono.org\nChrono version: ", CHRONO_VERSION , "\n\n")
@@ -71,6 +70,7 @@ def main():
     vis.Initialize()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddTypicalLights()
+    vis.AddSkyBox()
 
     # Create the interactive driver system
     driver = veh.ChIrrGuiDriver(vis)

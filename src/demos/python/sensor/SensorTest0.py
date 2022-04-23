@@ -26,14 +26,14 @@ chrono.SetChronoDataPath("../../../data/")
 #  Create the simulation system and add items
 #
 
-mysystem      = chrono.ChSystemNSC()
+sys      = chrono.ChSystemNSC()
 
 # Create a fixed rigid body
 
 mbody1 = chrono.ChBody()
 mbody1.SetBodyFixed(True)
 mbody1.SetPos( chrono.ChVectorD(0,0,-0.2))
-mysystem.Add(mbody1)
+sys.Add(mbody1)
 
 mboxasset = chrono.ChBoxShape()
 mboxasset.GetBoxGeometry().Size = chrono.ChVectorD(0.2,0.5,0.1)
@@ -45,7 +45,7 @@ mbody1.AddVisualShape(mboxasset)
 
 mbody2 = chrono.ChBody()
 mbody2.SetBodyFixed(False)
-mysystem.Add(mbody2)
+sys.Add(mbody2)
 
 mboxasset = chrono.ChBoxShape()
 mboxasset.GetBoxGeometry().Size = chrono.ChVectorD(0.2,0.5,0.1)
@@ -63,31 +63,18 @@ mframe = chrono.ChFrameD(chrono.ChVectorD(0.1,0.5,0))
     # initialize the constraint telling which part must be connected, and where:
 mlink.Initialize(mbody1,mbody2, mframe)
 
-mysystem.Add(mlink)
+sys.Add(mlink)
 
-# ---------------------------------------------------------------------
-#
 #  Create an Irrlicht application to visualize the system
-#
-
-myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example', chronoirr.dimension2du(1024,768))
-
-myapplication.AddSkyBox()
-myapplication.AddLogo()
-myapplication.AddCamera(chronoirr.vector3df(0.6,0.6,0.8))
-myapplication.AddTypicalLights()
-
-            # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-			# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-			# If you need a finer control on which item really needs a visualization proxy in
-			# Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-myapplication.AssetBindAll();
-
-			# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-			# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-myapplication.AssetUpdateAll();
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('PyChrono example')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0.6,0.6,0.8))
+vis.AddTypicalLights()
 
 
 # ---------------------------------------------------------------------
@@ -95,10 +82,7 @@ myapplication.AssetUpdateAll();
 #  Run the simulation
 #
 
-
-myapplication.SetTimestep(0.005)
-
-manager = sens.ChSensorManager(mysystem)
+manager = sens.ChSensorManager(sys)
 
 imu = sens.ChIMUSensor(mbody2, 2, chrono.ChFrameD(chrono.ChVectorD(0,0,0)))
 imu.SetName("IMU")
@@ -127,12 +111,14 @@ manager.AddSensor(imu)
 #print(type(my_filacc))
 
 
-while(myapplication.GetDevice().run()):
-    myapplication.BeginScene()
-    myapplication.DrawAll()
-    myapplication.DoStep()
+while vis.Run():
+    vis.BeginScene()
+    vis.DrawAll()
+    vis.EndScene()
+
+    sys.DoStepDynamics(5e-3)
     manager.Update()
-    myapplication.EndScene()
+    
     #rec_buf = imu.GetMostRecentIMUBuffer()
     fil0 = fl[0]
     #print(type(fil0))

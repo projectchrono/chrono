@@ -122,6 +122,7 @@ vis.SetChaseCamera(trackPoint, 15.0, 0.5)
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddTypicalLights()
+vis.AddSkyBox()
 
 # Create the driver system
 driver = veh.ChIrrGuiDriver(vis)

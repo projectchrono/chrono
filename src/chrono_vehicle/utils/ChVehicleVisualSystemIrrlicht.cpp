@@ -142,10 +142,6 @@ void ChVehicleVisualSystemIrrlicht::Initialize() {
         ChVector<> cam_target = m_camera->GetTargetPos();
         AddCamera(cam_pos, cam_target);
     }
-
-    // Add a default sky box and the Chrono logo
-    AddSkyBox();
-    AddLogo();
 }
 
 void ChVehicleVisualSystemIrrlicht::OnAttachToVehicle() {

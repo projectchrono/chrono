@@ -81,6 +81,7 @@ def main():
     vis.Initialize()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddTypicalLights()
+    vis.AddSkyBox()
 
     # Initialize output
 
@@ -126,7 +127,7 @@ def main():
 
     if (contact_vis):
         vis.SetSymbolscale(1e-4);
-        #vis.SetContactsDrawMode(irr.eCh_ContactsDrawMode::CONTACT_FORCES);
+        # vis.EnableContactDrawing(irr.IrrContactsDrawMode_CONTACT_FORCES);
 
     realtime_timer = chrono.ChRealtimeStepTimer()
     while vis.Run() :

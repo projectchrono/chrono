@@ -18,6 +18,7 @@
 # Y pointing to the left.
 #
 # =============================================================================
+
 import pychrono.core as chrono
 import pychrono.irrlicht as irr
 import pychrono.vehicle as veh
@@ -121,7 +122,7 @@ vis.SetChaseCamera(trackPoint, 10.0, 0.5)
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddTypicalLights()
-
+vis.AddSkyBox()
 
 # Create the driver system
 driver = veh.ChIrrGuiDriver(vis)

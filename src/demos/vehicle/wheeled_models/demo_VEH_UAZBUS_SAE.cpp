@@ -150,6 +150,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(trackPoint, 6.0, 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     uaz.GetVehicle().SetVisualSystem(vis);
 
     // Create the interactive driver system

@@ -77,6 +77,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     my_sedan.GetVehicle().SetVisualSystem(vis);
 
     // Create the driver system

@@ -166,7 +166,6 @@ vis.AddSkyBox()
 vis.AddCamera(chrono.ChVectorD(2.0,1.4,0.0), chrono.ChVectorD(0,tire_rad,0))
 vis.AddTypicalLights()
 
-
 # ------------------
 # Run the simulation
 # ------------------

@@ -24,7 +24,7 @@ import pychrono.vehicle as veh
 import pychrono.irrlicht as irr
 import math as m
 
-#// =============================================================================
+# =============================================================================
 
 class MyDriver (veh.ChDriver):
 	def __init__(self, vehicle, delay):
@@ -99,6 +99,7 @@ def main():
     vis.Initialize()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddTypicalLights()
+    vis.AddSkyBox()
 
     # Simulation loop
     while vis.Run() :

@@ -155,6 +155,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(trackPoint, 14.0, 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     my_bus.GetVehicle().SetVisualSystem(vis);
 
     // -----------------

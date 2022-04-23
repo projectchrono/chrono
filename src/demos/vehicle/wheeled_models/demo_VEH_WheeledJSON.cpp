@@ -273,6 +273,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model.CameraDistance(), 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     vehicle.SetVisualSystem(vis);
 
     // Create the interactive driver

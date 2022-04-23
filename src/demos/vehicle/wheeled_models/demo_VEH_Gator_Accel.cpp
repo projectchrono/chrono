@@ -130,6 +130,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     gator.GetVehicle().SetVisualSystem(vis);
 
     // ---------------
