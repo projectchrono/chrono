@@ -238,16 +238,14 @@ my_rccar.SetSteeringVisualizationType(steering_vis_type)
 my_rccar.SetWheelVisualizationType(wheel_vis_type)
 my_rccar.SetTireVisualizationType(tire_vis_type)
 
-chassis_asset = my_rccar.GetChassisBody().GetAssets()[0]
-visual_asset = chrono.CastToChVisualization(chassis_asset)
-vis_mat = chrono.ChVisualMaterial()
-vis_mat.SetAmbientColor(chrono.ChVectorF(0, 0, 0))
-vis_mat.SetDiffuseColor(chrono.ChVectorF(.5, .5, .5))
-vis_mat.SetSpecularColor(chrono.ChVectorF(1, 1, 1))
-vis_mat.SetFresnelMin(0)
-vis_mat.SetFresnelMax(1)
-if(visual_asset):
-    visual_asset.material_list.append(vis_mat)
+if my_rccar.GetChassisBody().GetVisualShape(0):
+    vis_mat = chrono.ChVisualMaterial()
+    vis_mat.SetAmbientColor(chrono.ChVectorF(0, 0, 0))
+    vis_mat.SetDiffuseColor(chrono.ChVectorF(.5, .5, .5))
+    vis_mat.SetSpecularColor(chrono.ChVectorF(1, 1, 1))
+    vis_mat.SetFresnelMin(0)
+    vis_mat.SetFresnelMax(1)
+    my_rccar.GetChassisBody().GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # Create the terrain
 terrain = veh.RigidTerrain(my_rccar.GetSystem())
@@ -260,6 +258,7 @@ elif (contact_method == chrono.ChContactMethod_SMC):
     patch_mat.SetFriction(0.9)
     patch_mat.SetRestitution(0.01)
     patch_mat.SetYoungModulus(2e7)
+
 patch = terrain.AddPatch(patch_mat,
                          chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1),
                          terrainLength, terrainWidth)
@@ -267,19 +266,13 @@ patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
 terrain.Initialize()
 
-
-patch_asset = patch.GetGroundBody().GetAssets()[0]
-patch_visual_asset = chrono.CastToChVisualization(patch_asset)
-
 vis_mat = chrono.ChVisualMaterial()
 # vis_mat.SetAmbientColor(chrono.ChVectorF(0, 0, 0))
-vis_mat.SetKdTexture(chrono.GetChronoDataFile(
-    "vehicle/terrain/textures/dirt.jpg"))
+vis_mat.SetKdTexture(chrono.GetChronoDataFile("vehicle/terrain/textures/dirt.jpg"))
 vis_mat.SetSpecularColor(chrono.ChVectorF(.0, .0, .0))
 vis_mat.SetFresnelMin(0)
 vis_mat.SetFresnelMax(.1)
-
-patch_visual_asset.material_list.append(vis_mat)
+patch.GetGroundBody().GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # Create the vehicle Irrlicht interface
 app = veh.ChWheeledVehicleIrrApp(my_rccar.GetVehicle())
@@ -323,8 +316,6 @@ for points in (track.left.points, track.right.points):
         q = chrono.Q_from_AngZ(ang)
         box.SetRot(q)
         box.SetBodyFixed(True)
-        box_asset = box.GetAssets()[0]
-        visual_asset = chrono.CastToChVisualization(box_asset)
 
         vis_mat = chrono.ChVisualMaterial()
         vis_mat.SetAmbientColor(chrono.ChVectorF(0, 0, 0))
@@ -337,7 +328,8 @@ for points in (track.left.points, track.right.points):
         vis_mat.SetFresnelMin(0)
         vis_mat.SetFresnelMax(.7)
 
-        visual_asset.material_list.append(vis_mat)
+        bos.GetVisualShape(0).SetMaterial(0, vis_mat)
+
         my_rccar.GetSystem().Add(box)
         print("Added box to world")
 

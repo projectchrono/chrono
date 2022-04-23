@@ -48,10 +48,8 @@ def main():
         box = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 1000, True, False)
         box.SetPos(chrono.ChVectorD(5+x, y, z))
         box.SetPos_dt(chrono.ChVectorD(-0.5, 0, 0))
+        box.GetVisualShape(0).SetMaterial(0, red)
         mphysicalSystem.Add(box)
-        asset = floor.GetAssets()[0]
-        visual_asset = chrono.CastToChVisualization(asset)
-        visual_asset.material_list.append(red)
     
     for i in range(10):
         x = random.uniform(0,30)
@@ -60,10 +58,8 @@ def main():
         box = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 1000, True, False)
         box.SetPos(chrono.ChVectorD(10-x, y, z))
         box.SetPos_dt(chrono.ChVectorD(0.5, 0, 0))
+        box.GetVisualShape(0).SetMaterial(0, red)
         mphysicalSystem.Add(box)
-        asset = floor.GetAssets()[0]
-        visual_asset = chrono.CastToChVisualization(asset)
-        visual_asset.material_list.append(red)
 
     # -----------------------
     # Create a sensor manager

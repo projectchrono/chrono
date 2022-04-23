@@ -55,15 +55,12 @@ def main():
     sphere.SetRot(chrono.Q_from_AngAxis(.2,chrono.ChVectorD(1,0,0)))
     mphysicalSystem.Add(sphere)
 
-    sphere_asset = sphere.GetAssets()[0]
-    visual_asset = chrono.CastToChVisualization(sphere_asset)
-
     vis_mat = chrono.ChVisualMaterial()
     vis_mat.SetAmbientColor(chrono.ChVectorF(0, 0, 0))
     vis_mat.SetDiffuseColor(chrono.ChVectorF(.2,.2,.9))
     vis_mat.SetSpecularColor(chrono.ChVectorF(.9,.9,.9))
+    sphere.GetVisualShape(0).SetMaterial(0, vis_mat)
 
-    visual_asset.material_list.append(vis_mat)
 
     # -----------------------
     # Create a sensor manager
