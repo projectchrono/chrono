@@ -127,7 +127,7 @@ sys.Add(body)
 
 # Create a shared visual material
 orange_mat = chrono.ChVisualMaterial()
-orange_mat.SetDiffuseColor(chrono.ChVectorF(0.9, 0.4, 0.2))
+orange_mat.SetDiffuseColor(chrono.ChColor(0.9, 0.4, 0.2))
 
 # ==Asset== Attach a 'sphere' shape
 sphere = chrono.ChSphereShape()

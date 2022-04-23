@@ -13,9 +13,9 @@ class simulation:
         self.system = chrono.ChSystemNSC()
         self.system.Set_G_acc(chrono.ChVectorD(0,0,0))
 
-        green = self.init_vis_mat(chrono.ChVectorF(0,1,0))
-        black = self.init_vis_mat(chrono.ChVectorF(1,1,1))
-        yellow = self.init_vis_mat(chrono.ChVectorF(1,1,0))
+        green = self.init_vis_mat(chrono.ChColor(0,1,0))
+        black = self.init_vis_mat(chrono.ChColor(1,1,1))
+        yellow = self.init_vis_mat(chrono.ChColor(1,1,0))
 
         ground = chrono.ChBodyEasyBox(1000,40,1,1000,True,False)
         ground.SetPos(chrono.ChVectorD(0,0,-1))
@@ -59,20 +59,16 @@ class simulation:
     def init_vis_mat(self, color):
         vis_mat = chrono.ChVisualMaterial()
         vis_mat.SetDiffuseColor(color)
-        vis_mat.SetSpecularColor(chrono.ChVectorF(1,1,1))
+        vis_mat.SetSpecularColor(chrono.ChColor(1,1,1))
         return vis_mat
 
     def adding_sensors(self, body, offset_pose):
         self.manager = sens.ChSensorManager(self.system)
         intensity = 1.0
-        self.manager.scene.AddPointLight(chrono.ChVectorF(
-            2, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
-        self.manager.scene.AddPointLight(chrono.ChVectorF(
-            9, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
-        self.manager.scene.AddPointLight(chrono.ChVectorF(
-            16, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
-        self.manager.scene.AddPointLight(chrono.ChVectorF(
-            23, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
+        self.manager.scene.AddPointLight(chrono.ChVectorF(2, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+        self.manager.scene.AddPointLight(chrono.ChVectorF(9, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+        self.manager.scene.AddPointLight(chrono.ChVectorF(16, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+        self.manager.scene.AddPointLight(chrono.ChVectorF(23, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
        
         update_rate = 30
         lag = 0

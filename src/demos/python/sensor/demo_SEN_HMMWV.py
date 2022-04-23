@@ -131,7 +131,8 @@ def main():
     # Create a sensor manager and add a point light
     # ---------------------------------------------
     manager = sens.ChSensorManager(my_hmmwv.GetSystem())
-    manager.scene.AddPointLight(chrono.ChVectorF(0, 0, 100), chrono.ChVectorF(2, 2, 2), 5000)
+    manager.scene.AddPointLight(chrono.ChVectorF(0, 0, 100), chrono.ChColor(2, 2, 2), 5000)
+
     # ------------------------------------------------
     # Create a camera and add it to the sensor manager
     # ------------------------------------------------

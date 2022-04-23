@@ -56,9 +56,9 @@ def main():
     mphysicalSystem.Add(sphere)
 
     vis_mat = chrono.ChVisualMaterial()
-    vis_mat.SetAmbientColor(chrono.ChVectorF(0, 0, 0))
-    vis_mat.SetDiffuseColor(chrono.ChVectorF(.2,.2,.9))
-    vis_mat.SetSpecularColor(chrono.ChVectorF(.9,.9,.9))
+    vis_mat.SetAmbientColor(chrono.ChColor(0, 0, 0))
+    vis_mat.SetDiffuseColor(chrono.ChColor(.2,.2,.9))
+    vis_mat.SetSpecularColor(chrono.ChColor(.9,.9,.9))
     sphere.GetVisualShape(0).SetMaterial(0, vis_mat)
 
 
@@ -66,8 +66,8 @@ def main():
     # Create a sensor manager
     # -----------------------
     manager = sens.ChSensorManager(mphysicalSystem)
-    manager.scene.AddPointLight(chrono.ChVectorF(100,100,100),chrono.ChVectorF(1,1,1),1000.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(-100,-100,100),chrono.ChVectorF(1,1,1),1000.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(100,100,100),chrono.ChColor(1,1,1),1000.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(-100,-100,100),chrono.ChColor(1,1,1),1000.0)
 
 
     # ------------------------------------------------

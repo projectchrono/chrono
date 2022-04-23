@@ -25,12 +25,12 @@ def main():
     mphysicalSystem.Set_G_acc(chrono.ChVectorD(0,0,0))
 
     red = chrono.ChVisualMaterial()
-    red.SetDiffuseColor(chrono.ChVectorF(1,0,0))
-    red.SetSpecularColor(chrono.ChVectorF(1,1,1))
+    red.SetDiffuseColor(chrono.ChColor(1,0,0))
+    red.SetSpecularColor(chrono.ChColor(1,1,1))
 
     green = chrono.ChVisualMaterial()
-    green.SetDiffuseColor(chrono.ChVectorF(0,1,0))
-    green.SetSpecularColor(chrono.ChVectorF(1,1,1))
+    green.SetDiffuseColor(chrono.ChColor(0,1,0))
+    green.SetSpecularColor(chrono.ChColor(1,1,1))
 
     #------------------------------
     # add body for sensor to attach

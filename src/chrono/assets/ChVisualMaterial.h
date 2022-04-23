@@ -35,10 +35,10 @@ class ChApi ChVisualMaterial {
     ChVisualMaterial();
 
     // Setting functions
-    void SetAmbientColor(const ChVector<float>& rgb);
-    void SetDiffuseColor(const ChVector<float>& rgb);
-    void SetSpecularColor(const ChVector<float>& rgb);
-    void SetEmissiveColor(const ChVector<float>& rgb);
+    void SetAmbientColor(const ChColor& rgb);
+    void SetDiffuseColor(const ChColor& rgb);
+    void SetSpecularColor(const ChColor& rgb);
+    void SetEmissiveColor(const ChColor& rgb);
 
     void SetSpecularExponent(float exponent);
     void SetOpacity(float o);
@@ -62,14 +62,14 @@ class ChApi ChVisualMaterial {
     void SetInstanceID(unsigned short int id) { instance_id = id; }
 
     // accessor functions
-    const ChVector<float>& GetAmbientColor() const { return Ka; }
-    const ChVector<float>& GetDiffuseColor() const { return Kd; }
-    const ChVector<float>& GetSpecularColor() const { return Ks; }
-    const ChVector<float>& GetEmissiveColor() const { return Ke; }
+    const ChColor& GetAmbientColor() const { return Ka; }
+    const ChColor& GetDiffuseColor() const { return Kd; }
+    const ChColor& GetSpecularColor() const { return Ks; }
+    const ChColor& GetEmissiveColor() const { return Ke; }
     float GetSpecularExponent() const { return Ns; }
     float GetOpacity() const { return d; }
     int GetIllumination() const { return illum; }
-    
+
     const std::string& GetKdTexture() const { return kd_texture.GetFilename(); }
     const std::string& GetKsTexture() const { return ks_texture.GetFilename(); }
     const std::string& GetNormalMapTexture() const { return normal_texture.GetFilename(); }
@@ -96,10 +96,10 @@ class ChApi ChVisualMaterial {
     static std::shared_ptr<ChVisualMaterial> Default();
 
   private:
-    ChVector<float> Ka;  ///< ambient color
-    ChVector<float> Kd;  ///< diffuse color
-    ChVector<float> Ks;  ///< specular color
-    ChVector<float> Ke;  ///< emissive color
+    ChColor Ka;  ///< ambient color
+    ChColor Kd;  ///< diffuse color
+    ChColor Ks;  ///< specular color
+    ChColor Ke;  ///< emissive color
 
     float fresnel_max;
     float fresnel_min;

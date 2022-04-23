@@ -19,6 +19,7 @@
 #include <cmath>
 #include <map>
 
+#include "chrono/assets/ChColor.h"
 #include "chrono/core/ChVector2.h"
 #include "chrono/geometry/ChTriangleMesh.h"
 
@@ -31,7 +32,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::vector<ChVector<double>> m_vertices;
     std::vector<ChVector<double>> m_normals;
     std::vector<ChVector2<double>> m_UV;
-    std::vector<ChVector<float>> m_colors;
+    std::vector<ChColor> m_colors;
 
     std::vector<ChVector<int>> m_face_v_indices;
     std::vector<ChVector<int>> m_face_n_indices;
@@ -52,7 +53,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::vector<ChVector<double>>& getCoordsVertices() { return m_vertices; }
     std::vector<ChVector<double>>& getCoordsNormals() { return m_normals; }
     std::vector<ChVector2<double>>& getCoordsUV() { return m_UV; }
-    std::vector<ChVector<float>>& getCoordsColors() { return m_colors; }
+    std::vector<ChColor>& getCoordsColors() { return m_colors; }
 
     std::vector<ChVector<int>>& getIndicesVertexes() { return m_face_v_indices; }
     std::vector<ChVector<int>>& getIndicesNormals() { return m_face_n_indices; }

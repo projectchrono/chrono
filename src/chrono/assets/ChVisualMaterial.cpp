@@ -18,8 +18,9 @@ namespace chrono {
 
 ChVisualMaterial::ChVisualMaterial()
     : Ka({0.2f, 0.2f, 0.2f}),
-      Kd({1.0f, 2.0f, 2.0f}),
+      Kd({1.0f, 1.0f, 1.0f}),
       Ks({0.2f, 0.2f, 0.2f}),
+      Ke({0.0f, 0.0f, 0.0f}),
       Ns(88),
       d(1),
       fresnel_exp(5),
@@ -57,27 +58,27 @@ void ChVisualMaterial::SetOpacityTexture(const std::string& filename, float scal
     opacity_texture.SetScale(scale_x, scale_y);
 }
 
-void ChVisualMaterial::SetAmbientColor(const ChVector<float>& rgb) {
+void ChVisualMaterial::SetAmbientColor(const ChColor& rgb) {
     // valid rgb range [0,1]
-    if (rgb.x() >= 0 && rgb.y() >= 0 && rgb.z() >= 0 && rgb.x() <= 1 && rgb.y() <= 1 && rgb.z() <= 1) {
+    if (rgb.R >= 0 && rgb.G >= 0 && rgb.B >= 0 && rgb.R <= 1 && rgb.G <= 1 && rgb.B <= 1) {
         Ka = rgb;
     }
 }
-void ChVisualMaterial::SetDiffuseColor(const ChVector<float>& rgb) {
+void ChVisualMaterial::SetDiffuseColor(const ChColor& rgb) {
     // valid rgb range [0,1]
-    if (rgb.x() >= 0 && rgb.y() >= 0 && rgb.z() >= 0 && rgb.x() <= 1 && rgb.y() <= 1 && rgb.z() <= 1) {
+    if (rgb.R >= 0 && rgb.G >= 0 && rgb.B >= 0 && rgb.R <= 1 && rgb.G <= 1 && rgb.B <= 1) {
         Kd = rgb;
     }
 }
-void ChVisualMaterial::SetSpecularColor(const ChVector<float>& rgb) {
+void ChVisualMaterial::SetSpecularColor(const ChColor& rgb) {
     // valid rgb range [0,1]
-    if (rgb.x() >= 0 && rgb.y() >= 0 && rgb.z() >= 0 && rgb.x() <= 1 && rgb.y() <= 1 && rgb.z() <= 1) {
+    if (rgb.R >= 0 && rgb.G >= 0 && rgb.B >= 0 && rgb.R <= 1 && rgb.G <= 1 && rgb.B <= 1) {
         Ks = rgb;
     }
 }
-void ChVisualMaterial::SetEmissiveColor(const ChVector<float>& rgb) {
+void ChVisualMaterial::SetEmissiveColor(const ChColor& rgb) {
     // valid rgb range [0,1]
-    if (rgb.x() >= 0 && rgb.y() >= 0 && rgb.z() >= 0 && rgb.x() <= 1 && rgb.y() <= 1 && rgb.z() <= 1) {
+    if (rgb.R >= 0 && rgb.G >= 0 && rgb.B >= 0 && rgb.R <= 1 && rgb.G <= 1 && rgb.B <= 1) {
         Ke = rgb;
     }
 }

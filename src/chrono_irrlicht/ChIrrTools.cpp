@@ -71,16 +71,12 @@ using namespace irr;
 
 // -----------------------------------------------------------------------------
 
-video::SColorf ToIrrlichtSColorf(const ChColor col) {
+video::SColorf ToIrrlichtSColorf(const ChColor& col) {
     return video::SColorf(col.R, col.G, col.B, 1.0);
 }
 
-video::SColor ToIrrlichtSColor(const ChColor col) {
-    return video::SColor(255, (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
-}
-
-video::SColor ToIrrlichtSColor(const ChVector<float>& col, float alpha) {
-    return video::SColor((u32)(alpha * 255), (u32)(col.x() * 255), (u32)(col.y() * 255), (u32)(col.z() * 255));
+video::SColor ToIrrlichtSColor(const ChColor& col, float alpha) {
+    return video::SColor((u32)(alpha * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
 }
 
 // -----------------------------------------------------------------------------

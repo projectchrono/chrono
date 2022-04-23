@@ -121,7 +121,7 @@ class MySimpleTank {
         wheel_mat->SetFriction(1.0);
 
         auto wheel_mat_vis = chrono_types::make_shared<ChVisualMaterial>();
-        wheel_mat_vis->SetDiffuseColor(ChVector<>(0.2f, 0.2f, 0.2f));
+        wheel_mat_vis->SetDiffuseColor(ChColor(0.2f, 0.2f, 0.2f));
 
         // --- Right Front suspension ---
 

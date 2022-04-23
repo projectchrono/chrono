@@ -163,8 +163,7 @@ class ChApi ChVisualShapeFEA {
     double ComputeScalarOutput(std::shared_ptr<fea::ChNodeFEAxyzP> mnode,
                                int nodeID,
                                std::shared_ptr<fea::ChElementBase> melement);
-    ChVector<float> ComputeFalseColor(double in);
-    ChColor ComputeFalseColor2(double in);
+    ChColor ComputeFalseColor(double in);
     void UpdateBuffers_Hex(std::shared_ptr<fea::ChElementBase> element,
                            geometry::ChTriangleMeshConnected& trianglemesh,
                            unsigned int& i_verts,

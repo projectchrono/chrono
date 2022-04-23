@@ -94,13 +94,10 @@ enum class IrrLinkLabelMode {
 namespace tools {
 
 /// Convert a ChColor to an Irrlicht SColorf.
-ChApiIrr irr::video::SColorf ToIrrlichtSColorf(const ChColor col);
-
-/// Convert a ChColor to an Irrlicht SColor.
-ChApiIrr irr::video::SColor ToIrrlichtSColor(const ChColor col);
+ChApiIrr irr::video::SColorf ToIrrlichtSColorf(const ChColor& col);
 
 /// Convert an RGB set and an opacity value to an Irrlicht SColor.
-ChApiIrr irr::video::SColor ToIrrlichtSColor(const ChVector<float>& col, float alpha = 1.0);
+ChApiIrr irr::video::SColor ToIrrlichtSColor(const ChColor& col, float alpha = 1.0);
 
 /// Convert a ChVisualMaterial to an Irrlicht material.
 ChApiIrr irr::video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat,

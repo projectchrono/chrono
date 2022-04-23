@@ -695,7 +695,9 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
         case 3: {
             if (mesh.m_colors.empty())
                 return false;
-            ChVector<float> Vnew = (mesh.m_colors[i1] + mesh.m_colors[i2]) * 0.5;
+            ChColor Vnew = {(mesh.m_colors[i1].R + mesh.m_colors[i2].R) * 0.5f,
+                            (mesh.m_colors[i1].G + mesh.m_colors[i2].G) * 0.5f,
+                            (mesh.m_colors[i1].B + mesh.m_colors[i2].B) * 0.5f};
             mesh.m_colors.push_back(Vnew);
             created_index = (int)mesh.m_colors.size() - 1;
             return true;

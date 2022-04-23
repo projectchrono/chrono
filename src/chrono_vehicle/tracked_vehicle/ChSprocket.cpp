@@ -127,7 +127,7 @@ void ChSprocket::RemoveVisualizationAssets() {
 std::shared_ptr<geometry::ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(double radius,
                                                                                        double width,
                                                                                        double delta,
-                                                                                       ChVector<float> color) const {
+                                                                                       ChColor color) const {
     auto sep = GetSeparation();
     auto profile = GetProfile();
 
@@ -160,7 +160,7 @@ std::shared_ptr<geometry::ChTriangleMeshConnected> ChSprocket::CreateVisualizati
     std::vector<ChVector<int>>& idx_vertices = mesh->getIndicesVertexes();
     std::vector<ChVector<int>>& idx_normals = mesh->getIndicesNormals();
     ////std::vector<ChVector2<>>& uv_coords = mesh->getCoordsUV();
-    std::vector<ChVector<float>>& colors = mesh->getCoordsColors();
+    std::vector<ChColor>& colors = mesh->getCoordsColors();
 
     // Calculate number of vertices, normals, and faces. Resize mesh arrays.
     auto npoints = ppoints.size();

@@ -240,9 +240,9 @@ my_rccar.SetTireVisualizationType(tire_vis_type)
 
 if my_rccar.GetChassisBody().GetVisualShape(0):
     vis_mat = chrono.ChVisualMaterial()
-    vis_mat.SetAmbientColor(chrono.ChVectorF(0, 0, 0))
-    vis_mat.SetDiffuseColor(chrono.ChVectorF(.5, .5, .5))
-    vis_mat.SetSpecularColor(chrono.ChVectorF(1, 1, 1))
+    vis_mat.SetAmbientColor(chrono.ChColor(0, 0, 0))
+    vis_mat.SetDiffuseColor(chrono.ChColor(.5, .5, .5))
+    vis_mat.SetSpecularColor(chrono.ChColor(1, 1, 1))
     vis_mat.SetFresnelMin(0)
     vis_mat.SetFresnelMax(1)
     my_rccar.GetChassisBody().GetVisualShape(0).SetMaterial(0, vis_mat)
@@ -267,9 +267,9 @@ patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
 terrain.Initialize()
 
 vis_mat = chrono.ChVisualMaterial()
-# vis_mat.SetAmbientColor(chrono.ChVectorF(0, 0, 0))
+# vis_mat.SetAmbientColor(chrono.ChColor(0, 0, 0))
 vis_mat.SetKdTexture(chrono.GetChronoDataFile("vehicle/terrain/textures/dirt.jpg"))
-vis_mat.SetSpecularColor(chrono.ChVectorF(.0, .0, .0))
+vis_mat.SetSpecularColor(chrono.ChColor(.0, .0, .0))
 vis_mat.SetFresnelMin(0)
 vis_mat.SetFresnelMax(.1)
 patch.GetGroundBody().GetVisualShape(0).SetMaterial(0, vis_mat)
@@ -318,13 +318,13 @@ for points in (track.left.points, track.right.points):
         box.SetBodyFixed(True)
 
         vis_mat = chrono.ChVisualMaterial()
-        vis_mat.SetAmbientColor(chrono.ChVectorF(0, 0, 0))
+        vis_mat.SetAmbientColor(chrono.ChColor(0, 0, 0))
 
         if i % 2 == 0:
-            vis_mat.SetDiffuseColor(chrono.ChVectorF(.8, 0, 0))
+            vis_mat.SetDiffuseColor(chrono.ChColor(.8, 0, 0))
         else:
-            vis_mat.SetDiffuseColor(chrono.ChVectorF(.8, .8, .8))
-        vis_mat.SetSpecularColor(chrono.ChVectorF(.2, .2, .2))
+            vis_mat.SetDiffuseColor(chrono.ChColor(.8, .8, .8))
+        vis_mat.SetSpecularColor(chrono.ChColor(.2, .2, .2))
         vis_mat.SetFresnelMin(0)
         vis_mat.SetFresnelMax(.7)
 
@@ -349,10 +349,8 @@ render_frame = 0
 
 
 manager = sens.ChSensorManager(my_rccar.GetSystem())
-manager.scene.AddPointLight(chrono.ChVectorF(
-    100, 100, 100), chrono.ChVectorF(1, 1, 1), 500.0)
-manager.scene.AddPointLight(
-    chrono.ChVectorF(-100, 100, 100), chrono.ChVectorF(1, 1, 1), 500.0)
+manager.scene.AddPointLight(chrono.ChVectorF(100, 100, 100), chrono.ChColor(1, 1, 1), 500.0)
+manager.scene.AddPointLight(chrono.ChVectorF(-100, 100, 100), chrono.ChColor(1, 1, 1), 500.0)
 
 
 # field of view:

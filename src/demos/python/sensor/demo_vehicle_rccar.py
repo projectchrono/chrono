@@ -146,8 +146,8 @@ driver.Initialize()
 manager = sens.ChSensorManager(my_rccar.GetSystem())
 f = 3
 for i in range(8):
-    manager.scene.AddPointLight(chrono.ChVectorF(f,1.25,2.3),chrono.ChVectorF(1,1,1),5)
-    manager.scene.AddPointLight(chrono.ChVectorF(f,3.75,2.3),chrono.ChVectorF(1,1,1),5)
+    manager.scene.AddPointLight(chrono.ChVectorF(f,1.25,2.3),chrono.ChColor(1,1,1),5)
+    manager.scene.AddPointLight(chrono.ChVectorF(f,3.75,2.3),chrono.ChColor(1,1,1),5)
     f += 3
 
 factor = 2

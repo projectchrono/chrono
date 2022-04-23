@@ -56,14 +56,10 @@ def main():
     manager = sens.ChSensorManager(mphysicalSystem)
 
     intensity = 1.0
-    manager.scene.AddPointLight(chrono.ChVectorF(
-        2, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(
-        9, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(
-        16, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(
-        23, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(2, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(9, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(16, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(23, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
 
     # ------------------------------------------------
     # Create a camera and add it to the sensor manager
