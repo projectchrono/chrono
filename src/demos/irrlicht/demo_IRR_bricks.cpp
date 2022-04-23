@@ -179,8 +179,8 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddLight(ChVector<>(70, 120, -90), 290, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    vis->AddLight(ChVector<>(30, 80, 60), 190, ChColor(0.7f, 0.8f, 0.8f, 1.0f));
+    vis->AddLight(ChVector<>(70, 120, -90), 290, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(30, 80, 60), 190, ChColor(0.7f, 0.8f, 0.8f));
     vis->AddCamera(ChVector<>(-15, 14, -30), ChVector<>(0, 5, 0));
 
     // Prepare the physical system for the simulation

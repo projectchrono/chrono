@@ -25,10 +25,11 @@
 
 #include "chrono/core/ChVector.h"
 #include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChColor.h"
 
 namespace chrono {
 
-/// Visual material.
+/// Definition of a visual material.
 class ChApi ChVisualMaterial {
   public:
     ChVisualMaterial();
@@ -95,30 +96,30 @@ class ChApi ChVisualMaterial {
     static std::shared_ptr<ChVisualMaterial> Default();
 
   private:
-    ChVector<float> Ka;  // ambient color 0-1
-    ChVector<float> Kd;  // diffuse color 0-1
-    ChVector<float> Ks;  // specular color 0-1
-    ChVector<float> Ke;  // emissive color 0-1
+    ChVector<float> Ka;  ///< ambient color
+    ChVector<float> Kd;  ///< diffuse color
+    ChVector<float> Ks;  ///< specular color
+    ChVector<float> Ke;  ///< emissive color
 
     float fresnel_max;
     float fresnel_min;
     float fresnel_exp;
-    float Ns;  // specular exponent
-    float d;   // transparency
+    float Ns;  ///< specular exponent
+    float d;   ///< opacity
 
-    int illum;  // illumination model (see http://www.fileformat.info/format/material/)
+    int illum;  ///< illumination model (see http://www.fileformat.info/format/material/)
 
     float roughness;
     float metallic;
 
     bool use_specular_workflow;
 
-    ChTexture kd_texture;
-    ChTexture ks_texture;
-    ChTexture normal_texture;
-    ChTexture metallic_texture;
-    ChTexture roughness_texture;
-    ChTexture opacity_texture;
+    ChTexture kd_texture;         ///< diffuse texture map
+    ChTexture ks_texture;         ///< specular texture map
+    ChTexture normal_texture;     ///< normal texture map
+    ChTexture metallic_texture;   ///< metallic texture map
+    ChTexture roughness_texture;  ///< roughness texture map
+    ChTexture opacity_texture;    ///< opacity texture map
 
     unsigned short int class_id;
     unsigned short int instance_id;

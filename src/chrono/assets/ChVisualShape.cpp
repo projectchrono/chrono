@@ -43,7 +43,6 @@ void ChVisualShape::SetColor(const ChColor& col) {
         material_list[0] = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
 
     material_list[0]->SetDiffuseColor(ChVector<float>(col.R, col.G, col.B));
-    material_list[0]->SetOpacity(col.A);
 }
 
 ChColor ChVisualShape::GetColor() const {
@@ -57,7 +56,7 @@ ChColor ChVisualShape::GetColor() const {
         A = material_list[0]->GetOpacity();
     }
 
-    return ChColor(RGB[0], RGB[1], RGB[2], A);
+    return ChColor(RGB[0], RGB[1], RGB[2]);
 }
 
 void ChVisualShape::SetOpacity(float val) {

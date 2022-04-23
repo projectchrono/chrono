@@ -106,7 +106,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Has no effect, unles called after Initialize().
     irr::scene::ILightSceneNode* AddLight(const ChVector<>& pos,
                                           double radius,
-                                          ChColor color = ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+                                          ChColor color = ChColor(0.7f, 0.7f, 0.7f));
 
     /// Add a point light that cast shadow (using soft shadows/shadow maps)
     /// Note that the quality of the shadow strictly depends on how close 'near_value' and 'far_value' are to the
@@ -119,7 +119,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
                                                     double far_value,
                                                     double angle,
                                                     unsigned int resolution = 512,
-                                                    ChColor color = ChColor(1, 1, 1, 1),
+                                                    ChColor color = ChColor(1, 1, 1),
                                                     bool directional = false,
                                                     bool clipborder = true);
 
@@ -206,7 +206,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     bool Run();
 
     /// Clean the canvas at the beginning of each animation frame.
-    virtual void BeginScene(bool backBuffer = true, bool zBuffer = true, ChColor color = ChColor(0, 0, 0, 1));
+    virtual void BeginScene(bool backBuffer = true, bool zBuffer = true, ChColor color = ChColor(0, 0, 0));
 
     /// Draw all 3D shapes and GUI elements at the current frame.
     /// This function is typically called inside a loop such as

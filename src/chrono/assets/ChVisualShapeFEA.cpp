@@ -66,8 +66,8 @@ ChVisualShapeFEA::ChVisualShapeFEA(std::shared_ptr<fea::ChMesh> fea_mesh) {
     beam_resolution_section = 10;
     shell_resolution = 3;
 
-    meshcolor = ChColor(1, 1, 1, 0);
-    symbolscolor = ChColor(0, 0.5, 0.5, 0);
+    meshcolor = ChColor(1, 1, 1);
+    symbolscolor = ChColor(0, 0.5, 0.5);
 
     undeformed_reference = false;
 

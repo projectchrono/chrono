@@ -141,9 +141,9 @@ pov_exporter.SetBasePath("povray_pychrono_generated")
 
 # Some  settings for the POV rendering:
 pov_exporter.SetCamera(chrono.ChVectorD(0.2,0.3,0.5), chrono.ChVectorD(0,0,0), 35)
-pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(1.1,1.2,1.2), True)
+pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(1,1,1), True)
 pov_exporter.SetPictureSize(640,480)
-pov_exporter.SetAmbientLight(chrono.ChColor(2,2,2))
+pov_exporter.SetAmbientLight(chrono.ChColor(0.8,0.8,0.8))
 
  # Add additional POV objects/lights/materials in the following way
 pov_exporter.SetCustomPOVcommandsScript(
