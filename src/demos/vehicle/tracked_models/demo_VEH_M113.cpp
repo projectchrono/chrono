@@ -71,7 +71,7 @@ enum class DriverMode {
     KEYBOARD,  // interactive (Irrlicht) driver
     DATAFILE   // inputs from data file
 };
-std::string driver_file("M113/driver/Acceleration.txt");  // used for mode=DATAFILE
+std::string driver_file("M113/driver/Acceleration2.txt");  // used for mode=DATAFILE
 DriverMode driver_mode = DriverMode::DATAFILE;
 
 // Contact formulation (NSC or SMC)
@@ -280,13 +280,15 @@ int main(int argc, char* argv[]) {
     ////m113.GetDriveline()->SetGyrationMode(true);
 
     // Change collision shape for road wheels and idlers (true: cylinder; false: cylshell)
-    m113.SetWheelCollisionType(false, false);
+    ////m113.SetWheelCollisionType(true, true);
 
     // ------------------------------------------------
     // Initialize the vehicle at the specified position
     // ------------------------------------------------
     m113.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     m113.Initialize();
+
+    auto& vehicle = m113.GetVehicle();
 
     // Set visualization type for vehicle components.
     VisualizationType track_vis =
@@ -311,38 +313,38 @@ int main(int argc, char* argv[]) {
     // --------------------------------------------------
 
     // Enable contact on all tracked vehicle parts, except the left sprocket
-    ////m113.GetVehicle().SetCollide(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
+    ////vehicle.SetCollide(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
 
     // Disable contact for all tracked vehicle parts
-    ////m113.GetVehicle().SetCollide(TrackedCollisionFlag::NONE);
+    ////vehicle.SetCollide(TrackedCollisionFlag::NONE);
 
     // Disable all contacts for vehicle chassis (if chassis collision was defined)
-    ////m113.GetVehicle().SetChassisCollide(false);
+    ////vehicle.SetChassisCollide(false);
 
     // Disable only contact between chassis and track shoes (if chassis collision was defined)
-    ////m113.GetVehicle().SetChassisVehicleCollide(false);
+    ////vehicle.SetChassisVehicleCollide(false);
 
     // Monitor internal contacts for the chassis, left sprocket, left idler, and first shoe on the left track.
-    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::CHASSIS | TrackedCollisionFlag::SPROCKET_LEFT |
+    ////vehicle.MonitorContacts(TrackedCollisionFlag::CHASSIS | TrackedCollisionFlag::SPROCKET_LEFT |
     ////                        TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
 
     // Monitor only contacts involving the chassis.
-    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::CHASSIS);
+    ////vehicle.MonitorContacts(TrackedCollisionFlag::CHASSIS);
 
     // Monitor contacts involving one of the sprockets.
-    m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SPROCKET_RIGHT);
+    vehicle.MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SPROCKET_RIGHT);
 
     // Monitor only contacts involving the left idler.
-    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::IDLER_LEFT);
+    ////vehicle.MonitorContacts(TrackedCollisionFlag::IDLER_LEFT);
     
     // Render contact normals and/or contact forces.
-    m113.GetVehicle().SetRenderContactNormals(true);
-    ////m113.GetVehicle().SetRenderContactForces(true, 1e-4);
+    vehicle.SetRenderContactNormals(true);
+    ////vehicle.SetRenderContactForces(true, 1e-4);
 
     // Collect contact information.
     // If enabled, number of contacts and local contact point locations are collected for all
     // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
-    ////m113.GetVehicle().SetContactCollection(true);
+    ////vehicle.SetContactCollection(true);
 
     // Demonstration of user callback for specifying contact between track shoe and
     // idlers and/or road wheels and/or ground.
@@ -420,7 +422,7 @@ int main(int argc, char* argv[]) {
 
     // Enable custom contact force calculation for road wheel - track shoe collisions.
     // If enabled, the underlying Chrono contact processing does not compute any forces.
-    ////m113.GetVehicle().EnableCustomContact(chrono_types::make_shared<MyCustomContact>());
+    ////vehicle.EnableCustomContact(chrono_types::make_shared<MyCustomContact>());
 
     // ------------------
     // Create the terrain
@@ -448,10 +450,10 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChTrackedVehicleIrrApp app(&m113.GetVehicle(), L"M113 Vehicle Demo");
+    ChTrackedVehicleIrrApp app(&vehicle, L"M113 Vehicle Demo");
     app.AddTypicalLights();
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    ////app.SetChaseCameraPosition(m113.GetVehicle().GetPos() + ChVector<>(0, 2, 0));
+    ////app.SetChaseCameraPosition(vehicle.GetPos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
 
     app.AssetBindAll();
@@ -476,8 +478,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case DriverMode::DATAFILE: {
-            auto data_driver =
-                chrono_types::make_shared<ChDataDriver>(m113.GetVehicle(), vehicle::GetDataFile(driver_file));
+            auto data_driver = chrono_types::make_shared<ChDataDriver>(vehicle, vehicle::GetDataFile(driver_file));
             driver = data_driver;
             break;
         }
@@ -510,12 +511,17 @@ int main(int argc, char* argv[]) {
     }
 
     // Set up vehicle output
-    ////m113.GetVehicle().SetChassisOutput(true);
-    ////m113.GetVehicle().SetTrackAssemblyOutput(VehicleSide::LEFT, true);
-    ////m113.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    ////vehicle.SetChassisOutput(true);
+    ////vehicle.SetTrackAssemblyOutput(VehicleSide::LEFT, true);
+    ////vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
-    ////m113.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
+    ////vehicle.ExportComponentList(out_dir + "/component_list.json");
+
+    std::cout << "Track shoe type: " << vehicle.GetTrackShoe(LEFT, 0)->GetTemplateName() << std::endl;
+    std::cout << "Driveline type:  " << vehicle.GetDriveline()->GetTemplateName() << std::endl;
+    std::cout << "Powertrain type: " << m113.GetPowertrain()->GetTemplateName() << std::endl;
+    std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
 
     // ------------------------------
     // Solver and integrator settings
@@ -545,10 +551,10 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Inter-module communication data
-    BodyStates shoe_states_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
-    BodyStates shoe_states_right(m113.GetVehicle().GetNumTrackShoes(RIGHT));
-    TerrainForces shoe_forces_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
-    TerrainForces shoe_forces_right(m113.GetVehicle().GetNumTrackShoes(RIGHT));
+    BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
+    BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
+    TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
+    TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -561,12 +567,12 @@ int main(int argc, char* argv[]) {
     while (app.GetDevice()->run()) {
         // Debugging output
         if (dbg_output) {
-            auto track_L = m113.GetVehicle().GetTrackAssembly(LEFT);
-            auto track_R = m113.GetVehicle().GetTrackAssembly(RIGHT);
+            auto track_L = vehicle.GetTrackAssembly(LEFT);
+            auto track_R = vehicle.GetTrackAssembly(RIGHT);
             cout << "Time: " << m113.GetSystem()->GetChTime() << endl;
             cout << "      Num. contacts: " << m113.GetSystem()->GetNcontacts() << endl;
             const ChFrameMoving<>& c_ref = m113.GetChassisBody()->GetFrame_REF_to_abs();
-            const ChVector<>& c_pos = m113.GetVehicle().GetPos();
+            const ChVector<>& c_pos = vehicle.GetPos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
                 const ChVector<>& i_pos_abs = track_L->GetIdler()->GetWheelBody()->GetPos();
@@ -621,11 +627,11 @@ int main(int argc, char* argv[]) {
 
         // Collect output data from modules
         ChDriver::Inputs driver_inputs = driver->GetInputs();
-        m113.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
-        m113.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
+        vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
+        vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
-        double time = m113.GetVehicle().GetChTime();
+        double time = vehicle.GetChTime();
         driver->Synchronize(time);
         terrain.Synchronize(time);
         m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
@@ -637,10 +643,10 @@ int main(int argc, char* argv[]) {
         m113.Advance(step_size);
         app.Advance(step_size);
 
-        ReportTiming(*m113.GetSystem());
+        ////ReportTiming(*m113.GetSystem());
 
         // Report if the chassis experienced a collision
-        if (m113.GetVehicle().IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
+        if (vehicle.IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
             std::cout << time << "  chassis contact" << std::endl;
         }
 
@@ -651,7 +657,7 @@ int main(int argc, char* argv[]) {
         realtime_timer.Spin(step_size);
     }
 
-    m113.GetVehicle().WriteContacts(out_dir + "/M113_contacts.out");
+    vehicle.WriteContacts(out_dir + "/M113_contacts.out");
 
     return 0;
 }

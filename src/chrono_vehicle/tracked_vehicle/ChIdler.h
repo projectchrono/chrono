@@ -58,6 +58,9 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     /// Get a handle to the revolute joint.
     std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
 
+    /// Get the tensioner force element.
+    std::shared_ptr<ChLinkTSDA> GetTensioner() const { return m_tensioner; }
+
     /// Get the radius of the idler wheel.
     virtual double GetWheelRadius() const = 0;
 

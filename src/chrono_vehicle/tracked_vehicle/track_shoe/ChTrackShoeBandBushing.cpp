@@ -167,7 +167,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
     // Connect tread body to the first web segment.
     {
         ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
-        ChQuaternion<>& rot = m_shoe->GetRot() * z2y;
+        ChQuaternion<> rot = m_shoe->GetRot() * z2y;
         auto bushing = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_shoe, m_web_segments[0],
             ChCoordsys<>(loc, rot), GetBushingData());
@@ -178,7 +178,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
     // Connect the web segments to each other.
     for (size_t is = 0; is < GetNumWebSegments() - 1; is++) {
         ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
-        ChQuaternion<>& rot = m_web_segments[is]->GetRot() * z2y;
+        ChQuaternion<> rot = m_web_segments[is]->GetRot() * z2y;
         auto bushing = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[is],
             m_web_segments[is + 1], ChCoordsys<>(loc, rot), GetBushingData());
@@ -190,7 +190,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
         // Connect the last web segment to the tread body from the next track shoe.
         int is = GetNumWebSegments() - 1;
         ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
-        ChQuaternion<>& rot = m_web_segments[is]->GetRot() * z2y;
+        ChQuaternion<> rot = m_web_segments[is]->GetRot() * z2y;
         auto bushing = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[is],
             next->GetShoeBody(), ChCoordsys<>(loc, rot), GetBushingData());
