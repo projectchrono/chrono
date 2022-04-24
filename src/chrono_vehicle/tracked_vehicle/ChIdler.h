@@ -30,14 +30,8 @@
 #ifndef CH_IDLER_H
 #define CH_IDLER_H
 
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChLinkLock.h"
-#include "chrono/physics/ChLinkTSDA.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
 
 namespace chrono {
 namespace vehicle {
@@ -53,9 +47,6 @@ class ChTrackAssembly;
 /// through a translational joint. A linear actuator acts as a tensioner.
 class CH_VEHICLE_API ChIdler : public ChPart {
   public:
-    ChIdler(const std::string& name  ///< [in] name of the subsystem
-            );
-
     virtual ~ChIdler();
 
     /// Return the type of track shoe consistent with this idler.
@@ -67,25 +58,23 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     /// Get a handle to the revolute joint.
     std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
 
+    /// Get the tensioner force element.
+    std::shared_ptr<ChLinkTSDA> GetTensioner() const { return m_tensioner; }
+
     /// Get the radius of the idler wheel.
     virtual double GetWheelRadius() const = 0;
 
     /// Turn on/off collision flag for the idler wheel.
     void SetCollide(bool val) { m_wheel->SetCollide(val); }
 
-    /// Get the mass of the idler subsystem.
-    virtual double GetMass() const;
-
     /// Initialize this idler subsystem.
-    /// The idler subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis). It is assumed that the idler subsystem
-    /// reference frame is always aligned with the chassis reference frame.
-    /// A derived idler subsystem template class must extend this default implementation
-    /// and specify contact geometry for the idler wheel.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track                  ///< [in] containing track assembly
+    /// The idler subsystem is initialized by attaching it to the specified chassis at the specified location (with
+    /// respect to and expressed in the reference frame of the chassis). It is assumed that the idler subsystem
+    /// reference frame is always aligned with the chassis reference frame. A derived idler subsystem template class
+    /// must extend this default implementation and specify contact geometry for the idler wheel.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
+                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track               ///< [in] containing track assembly
     );
 
     /// Add visualization assets for the idler subsystem.
@@ -109,6 +98,12 @@ class CH_VEHICLE_API ChIdler : public ChPart {
         TSDA_CHASSIS,     ///< TSDA connection to chassis
         NUM_POINTS
     };
+
+    /// Construct an idler subsystem with given name.
+    ChIdler(const std::string& name);
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the idler subsystem reference frame.
@@ -142,11 +137,12 @@ class CH_VEHICLE_API ChIdler : public ChPart {
 
     virtual void Output(ChVehicleOutput& database) const override;
 
-    std::shared_ptr<ChBody> m_wheel;                   ///< handle to the idler wheel body
-    std::shared_ptr<ChBody> m_carrier;                 ///< handle to the carrier body
-    std::shared_ptr<ChLinkLockRevolute> m_revolute;    ///< handle to wheel-carrier revolute joint
-    std::shared_ptr<ChLinkLockPrismatic> m_prismatic;  ///< handle to carrier-chassis translational joint
-    std::shared_ptr<ChLinkTSDA> m_tensioner;           ///< handle to the TSDA tensioner element
+    ChVector<> m_rel_loc;                              ///< idler subsystem location relative to chassis
+    std::shared_ptr<ChBody> m_wheel;                   ///< idler wheel body
+    std::shared_ptr<ChBody> m_carrier;                 ///< carrier body
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;    ///< wheel-carrier revolute joint
+    std::shared_ptr<ChLinkLockPrismatic> m_prismatic;  ///< carrier-chassis translational joint
+    std::shared_ptr<ChLinkTSDA> m_tensioner;           ///< TSDA tensioner element
     std::shared_ptr<ChMaterialSurface> m_material;     ///< contact material;
     ChTrackAssembly* m_track;                          ///< containing track assembly
 

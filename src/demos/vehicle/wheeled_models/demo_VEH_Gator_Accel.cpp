@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     gator.GetVehicle().LogSubsystemTypes();
-    std::cout << "\nVehicle mass: " << gator.GetTotalMass() << std::endl;
+    std::cout << "\nVehicle mass: " << gator.GetVehicle().GetMass() << std::endl;
 
     // Initialize simulation frame counters
     int step_number = 0;
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
 
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
-        if (gator.GetVehicle().GetVehiclePos().x() > 4) {
+        if (gator.GetVehicle().GetPos().x() > 4) {
             driver_inputs.m_braking = 1;
             driver_inputs.m_throttle = 0;
         }

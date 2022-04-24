@@ -65,7 +65,7 @@ ChAdaptiveSpeedController::~ChAdaptiveSpeedController() {
 }
 
 void ChAdaptiveSpeedController::Reset(const ChVehicle& vehicle) {
-    m_speed = vehicle.GetVehicleSpeed();
+    m_speed = vehicle.GetSpeed();
     m_err = 0;
     m_erri = 0;
     m_errd = 0;
@@ -79,7 +79,7 @@ double ChAdaptiveSpeedController::Advance(const ChVehicle& vehicle,
                                           double step
                                           ) {
     // Current vehicle speed.
-    m_speed = vehicle.GetVehicleSpeed();
+    m_speed = vehicle.GetSpeed();
 
     double desired_gap = target_speed / target_following_time;
     double distance = current_distance;

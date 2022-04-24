@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
     app.AddLogo();
     app.AddTypicalLights();
     app.SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
-    ////app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
+    ////app.SetChaseCameraPosition(vehicle.GetPos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();
@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     while (step_number < sim_steps) {
-        const ChVector<>& c_pos = vehicle.GetVehiclePos();
+        const ChVector<>& c_pos = vehicle.GetPos();
 
         // File output
         if (output) {

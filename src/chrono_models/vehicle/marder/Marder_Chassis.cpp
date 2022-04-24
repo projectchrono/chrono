@@ -32,26 +32,26 @@ namespace marder {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double Marder_Chassis::m_mass = 25000.00;
-const ChVector<> Marder_Chassis::m_inertiaXX(13653.38542, 98182.70833, 101954.4271);
-const ChVector<> Marder_Chassis::m_inertiaXY(0, 0, 0);
-const ChVector<> Marder_Chassis::m_COM_loc(-2.7958, 0, 0.0);
+const double Marder_Chassis::m_body_mass = 25000.00;
+const ChVector<> Marder_Chassis::m_body_inertiaXX(13653.38542, 98182.70833, 101954.4271);
+const ChVector<> Marder_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector<> Marder_Chassis::m_body_COM_loc(-2.7958, 0, 0.0);
 const ChCoordsys<> Marder_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 0.0), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Marder_Chassis::Marder_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
-    m_inertia(0, 0) = m_inertiaXX.x();
-    m_inertia(1, 1) = m_inertiaXX.y();
-    m_inertia(2, 2) = m_inertiaXX.z();
+    m_body_inertia(0, 0) = m_body_inertiaXX.x();
+    m_body_inertia(1, 1) = m_body_inertiaXX.y();
+    m_body_inertia(2, 2) = m_body_inertiaXX.z();
 
-    m_inertia(0, 1) = m_inertiaXY.x();
-    m_inertia(0, 2) = m_inertiaXY.y();
-    m_inertia(1, 2) = m_inertiaXY.z();
-    m_inertia(1, 0) = m_inertiaXY.x();
-    m_inertia(2, 0) = m_inertiaXY.y();
-    m_inertia(2, 1) = m_inertiaXY.z();
+    m_body_inertia(0, 1) = m_body_inertiaXY.x();
+    m_body_inertia(0, 2) = m_body_inertiaXY.y();
+    m_body_inertia(1, 2) = m_body_inertiaXY.z();
+    m_body_inertia(1, 0) = m_body_inertiaXY.x();
+    m_body_inertia(2, 0) = m_body_inertiaXY.y();
+    m_body_inertia(2, 1) = m_body_inertiaXY.z();
 
     // Belly shape (all dimensions in cm)
     //   width: 170

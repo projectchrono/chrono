@@ -220,9 +220,9 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_run_once = false;
     }
 
-    auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame (ISO frame)
-    auto& chassis_rot = chassis_frame.GetRot();                               // chassis ref-to-world rotation (ISO frame)
-    double u = m_vehicle.GetVehicleSpeed();                                   // vehicle speed
+    auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame
+    auto& chassis_rot = chassis_frame.GetRot();                               // chassis ref-to-world rotation
+    double u = m_vehicle.GetSpeed();                                          // vehicle speed
 
     m_distance = m_UIntegrator.Filter(u);
     m_travel_time += step;
@@ -233,7 +233,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_speed_min = u;
     }
 
-    double acc = m_acc_filter.Filter(m_vehicle.GetVehiclePointAcceleration(ChVector<>(0, 0, 0)).y());
+    double acc = m_acc_filter.Filter(m_vehicle.GetPointAcceleration(ChVector<>(0, 0, 0)).y());
     if (acc > m_left_acc) {
         m_left_acc = acc;
     }

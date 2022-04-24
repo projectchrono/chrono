@@ -33,7 +33,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChPac02Tire::ChPac02Tire(const std::string& name)
-    : ChTire(name),
+    : ChForceElementTire(name),
       m_kappa(0),
       m_alpha(0),
       m_gamma(0),

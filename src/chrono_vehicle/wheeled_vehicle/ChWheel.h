@@ -24,9 +24,6 @@
 #ifndef CH_WHEEL_H
 #define CH_WHEEL_H
 
-#include <vector>
-
-#include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 
@@ -50,19 +47,10 @@ class ChTire;
 /// (which are associated with the suspension's spindle body).
 class CH_VEHICLE_API ChWheel : public ChPart {
   public:
-    ChWheel(const std::string& name  ///< [in] name of the subsystem
-            );
-
     virtual ~ChWheel() {}
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "Wheel"; }
-
-    /// Get the wheel mass.
-    virtual double GetMass() const = 0;
-
-    /// Get the wheel moments of inertia.
-    virtual ChVector<> GetInertia() const = 0;
 
     /// Get the wheel radius (for visualization only).
     virtual double GetRadius() const { return 0; }
@@ -117,6 +105,15 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     const std::string& GetMeshFilename() const { return m_vis_mesh_file; }
 
   protected:
+    /// Construct a wheel subsystem with given name.
+    ChWheel(const std::string& name);
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
+    virtual double GetWheelMass() const = 0;
+    virtual const ChVector<>& GetWheelInertia() const = 0;
+
     std::shared_ptr<ChBody> m_spindle;             ///< associated suspension spindle body
     std::shared_ptr<ChTire> m_tire;                ///< attached tire subsystem
     VehicleSide m_side;                            ///< wheel mounted on left/right side
@@ -128,6 +125,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
 
     friend class ChTire;
     friend class ChWheeledVehicle;
+    friend class ChTireTestRig;
 };
 
 /// Vector of handles to wheel subsystems.

@@ -43,11 +43,6 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChWheeledTrailer {
   public:
-    /// Construct a trailer system using the specified ChSystem.
-    ChWheeledTrailer(const std::string& name,  ///< [in] trailer system name
-                     ChSystem* system          ///< [in] containing mechanical system
-    );
-
     /// Destructor.
     virtual ~ChWheeledTrailer() {}
 
@@ -112,6 +107,11 @@ class CH_VEHICLE_API ChWheeledTrailer {
     void Advance(double step);
 
   protected:
+    /// Construct a trailer system using the specified ChSystem.
+    ChWheeledTrailer(const std::string& name,  ///< [in] trailer system name
+                     ChSystem* system          ///< [in] containing mechanical system
+    );
+
     std::string m_name;  ///< trailer system name
 
     std::shared_ptr<ChChassisRear> m_chassis;              ///< trailer chassis

@@ -22,8 +22,6 @@
 #ifndef CH_TRACKED_VEHICLE_H
 #define CH_TRACKED_VEHICLE_H
 
-#include <vector>
-
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
@@ -41,32 +39,11 @@ namespace vehicle {
 /// systems (terrain, driver, etc.)
 class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
   public:
-    /// Construct a vehicle system with a default ChSystem.
-    ChTrackedVehicle(const std::string& name,                               ///< [in] vehicle name
-                     ChContactMethod contact_method = ChContactMethod::NSC  ///< [in] contact method
-    );
-
-    /// Construct a vehicle system using the specified ChSystem.
-    ChTrackedVehicle(const std::string& name,  ///< [in] vehicle name
-                     ChSystem* system          ///< [in] containing mechanical system
-                     );
-
     /// Destructor.
     virtual ~ChTrackedVehicle();
 
     /// Get the name of the vehicle system template.
     virtual std::string GetTemplateName() const override { return "TrackedVehicle"; }
-
-    /// Get the vehicle total mass.
-    /// This includes the mass of the chassis and all vehicle subsystems.
-    virtual double GetVehicleMass() const override;
-
-    /// Get the current global vehicle COM location.
-    /// (Currently not implemented)
-    virtual ChVector<> GetVehicleCOMPos() const override;
-
-    /// Get the current global vehicle inertia tensor.
-    virtual ChMatrix33<> GetVehicleInertia() const override;
 
     /// Get the powertrain attached to this vehicle.
     virtual std::shared_ptr<ChPowertrain> GetPowertrain() const override { return m_powertrain; }
@@ -226,6 +203,24 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     virtual void ExportComponentList(const std::string& filename) const override;
 
   protected:
+    /// Construct a vehicle system with a default ChSystem.
+    ChTrackedVehicle(const std::string& name,                               ///< [in] vehicle name
+                     ChContactMethod contact_method = ChContactMethod::NSC  ///< [in] contact method
+    );
+
+    /// Construct a vehicle system using the specified ChSystem.
+    ChTrackedVehicle(const std::string& name,  ///< [in] vehicle name
+                     ChSystem* system          ///< [in] containing mechanical system
+    );
+
+    /// Calculate total vehicle mass.
+    /// This function is called at the end of the vehicle initialization.
+    virtual void InitializeInertiaProperties() override final;
+
+    /// Calculate current vehicle inertia properties.
+    /// This function is called at the end of each vehicle state advance.
+    virtual void UpdateInertiaProperties() override final;
+
     /// Output data for all modeling components in the vehicle system.
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 

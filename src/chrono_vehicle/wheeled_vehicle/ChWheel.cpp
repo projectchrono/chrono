@@ -44,11 +44,22 @@ void ChWheel::Initialize(std::shared_ptr<ChBody> spindle, VehicleSide side, doub
     m_side = side;
     m_offset = (side == LEFT) ? offset : -offset;
 
-    //// RADU
-    //// Todo:  Properly account for offset in adjusting inertia.
-    ////        This requires changing the spindle to a ChBodyAuxRef.
-    m_spindle->SetMass(m_spindle->GetMass() + GetMass());
-    m_spindle->SetInertiaXX(m_spindle->GetInertiaXX() + GetInertia());
+    //// RADU TODO
+    //// Properly account for offset in adjusting inertia.
+    //// This requires changing the spindle to a ChBodyAuxRef.
+    m_spindle->SetMass(m_spindle->GetMass() + GetWheelMass());
+    m_spindle->SetInertiaXX(m_spindle->GetInertiaXX() + GetWheelInertia());
+}
+
+void ChWheel::InitializeInertiaProperties() {
+    m_mass = GetWheelMass();
+    m_inertia = ChMatrix33<>(0);
+    m_inertia.diagonal() = GetWheelInertia().eigen();
+    m_com = ChFrame<>();
+}
+
+void ChWheel::UpdateInertiaProperties() {
+    m_xform = ChFrame<>(m_spindle->TransformPointLocalToParent(ChVector<>(0, m_offset, 0)), m_spindle->GetRot());
 }
 
 void ChWheel::Synchronize() {

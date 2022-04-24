@@ -76,12 +76,6 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
                              double steering  ///< [in] current steering input [-1,+1]
                              ) override;
 
-    /// Get the total mass of the steering subsystem.
-    virtual double GetMass() const override;
-
-    /// Get the current global COM location of the steering subsystem.
-    virtual ChVector<> GetCOMPos() const override;
-
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
@@ -109,6 +103,9 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
     /// centroidal frame (flag=false).  Note that this function must be called
     /// before Initialize().
     void SetVehicleFrameInertiaFlag(bool val) { m_vehicle_frame_inertia = val; }
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.

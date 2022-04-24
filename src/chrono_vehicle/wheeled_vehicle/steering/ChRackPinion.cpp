@@ -35,7 +35,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {}
 
 ChRackPinion::~ChRackPinion() {
@@ -47,11 +46,11 @@ ChRackPinion::~ChRackPinion() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
-    m_position = ChCoordsys<>(location, rotation);
+    m_parent = chassis;
+    m_rel_xform = ChFrame<>(location, rotation);
 
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
@@ -96,7 +95,6 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRackPinion::Synchronize(double time, double steering) {
     // Convert the steering input into an angle of the pinion and then into a
     // displacement of the rack.
@@ -107,21 +105,17 @@ void ChRackPinion::Synchronize(double time, double steering) {
         fun->Set_yconst(displ);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the steering subsystem
-// -----------------------------------------------------------------------------
-double ChRackPinion::GetMass() const {
-    return GetSteeringLinkMass();
+void ChRackPinion::InitializeInertiaProperties() {
+    m_mass = GetSteeringLinkMass();
+    m_com = ChFrame<>(GetSteeringLinkCOM(), QUNIT);
+    m_inertia.setZero();
+    m_inertia.diagonal() = GetSteeringLinkInertia().eigen();
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the steering subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChRackPinion::GetCOMPos() const {
-    return m_link->GetPos();
+void ChRackPinion::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -145,7 +139,6 @@ void ChRackPinion::RemoveVisualizationAssets() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRackPinion::LogConstraintViolations() {
     // Translational joint
     {
@@ -166,7 +159,6 @@ void ChRackPinion::LogConstraintViolations() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRackPinion::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

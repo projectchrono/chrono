@@ -24,10 +24,8 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChPart::ChPart(const std::string& name) : m_name(name), m_output(false) {}
+ChPart::ChPart(const std::string& name) : m_name(name), m_output(false), m_parent(nullptr), m_mass(0), m_inertia(0) {}
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPart::Create(const rapidjson::Document& d) {
     // Read top-level data
@@ -46,10 +44,32 @@ void ChPart::Create(const rapidjson::Document& d) {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPart::SetVisualizationType(VisualizationType vis) {
     RemoveVisualizationAssets();
     AddVisualizationAssets(vis);
+}
+
+// -----------------------------------------------------------------------------
+void ChPart::AddMass(double& mass) {
+    InitializeInertiaProperties();
+    mass += m_mass;
+}
+
+void ChPart::AddInertiaProperties(ChVector<>& com, ChMatrix33<>& inertia) {
+    //// RADU TODO: change ChFrame::TransformLocalToParent to return the transformed frame!!!!
+    UpdateInertiaProperties();
+
+    // Express the COM frame in global frame
+    ChFrame<> com_abs;
+    m_xform.TransformLocalToParent(m_com, com_abs);
+
+    // Increment total COM position
+    com += GetMass() * com_abs.GetPos();
+
+    // Shift inertia away from COM (parallel axis theorem)
+    // Express inertia relative to global frame.
+    inertia += com_abs.GetA() * m_inertia * com_abs.GetA().transpose() +
+               GetMass() * utils::CompositeInertia::InertiaShiftMatrix(com_abs.GetPos());
 }
 
 // -----------------------------------------------------------------------------

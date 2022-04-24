@@ -32,7 +32,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-
 ChAntirollBarRSD::ChAntirollBarRSD(const std::string& name) : ChAntirollBar(name) {}
 
 ChAntirollBarRSD::~ChAntirollBarRSD() {
@@ -48,10 +47,12 @@ ChAntirollBarRSD::~ChAntirollBarRSD() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
                                   std::shared_ptr<ChSuspension> suspension,
                                   const ChVector<>& location) {
+    m_parent = chassis;
+    m_rel_loc = location;
+
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
@@ -131,23 +132,25 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
     sys->AddLink(m_link_right);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the anti-roll bar subsystem
-// -----------------------------------------------------------------------------
-double ChAntirollBarRSD::GetMass() const {
-    return 2 * getArmMass();
+void ChAntirollBarRSD::InitializeInertiaProperties() {
+    m_mass = 2 * getArmMass();
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the anti-roll bar subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChAntirollBarRSD::GetCOMPos() const {
-    ChVector<> com = getArmMass() * m_arm_left->GetPos() + getArmMass() * m_arm_right->GetPos();
+void ChAntirollBarRSD::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    return com / GetMass();
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_arm_left->GetFrame_COG_to_abs(), m_arm_left->GetMass(), m_arm_left->GetInertia());
+    composite.AddComponent(m_arm_right->GetFrame_COG_to_abs(), m_arm_right->GetMass(), m_arm_right->GetInertia());
+
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChAntirollBarRSD::LogConstraintViolations() {
     // Chassis revolute joint
@@ -180,7 +183,6 @@ void ChAntirollBarRSD::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
                                            const ChVector<>& pt_1,
                                            const ChVector<>& pt_2,
@@ -210,7 +212,6 @@ void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
     arm->AddAsset(col);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChAntirollBarRSD::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

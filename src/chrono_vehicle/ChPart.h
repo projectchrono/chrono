@@ -20,6 +20,7 @@
 #define CH_PART_H
 
 #include <string>
+#include <vector>
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChShaft.h"
@@ -30,6 +31,8 @@
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
+
+#include "chrono/utils/ChCompositeInertia.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -48,10 +51,6 @@ namespace vehicle {
 /// It manages the part's name, visualization assets, and output.
 class CH_VEHICLE_API ChPart {
   public:
-    /// Construct a vehicle subsystem with the specified name.
-    ChPart(const std::string& name  ///< [in] name of the subsystem
-           );
-
     virtual ~ChPart() {}
 
     /// Get the name identifier for this subsystem.
@@ -63,9 +62,33 @@ class CH_VEHICLE_API ChPart {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const = 0;
 
+    /// Get the subsystem mass.
+    /// Note that the correct value is reported only *after* the subsystem is initialized.
+    double GetMass() const { return m_mass; }
+
+    /// Get the current subsystem COM frame (relative to and expressed in the subsystem's reference frame).
+    /// Note that the correct value is reported only *after* the subsystem is initialized.
+    const ChFrame<>& GetCOMFrame() const { return m_com; }
+
+    /// Get the current subsystem inertia (relative to the subsystem COM frame).
+    /// The return 3x3 symmetric matrix
+    /// <pre>
+    ///  [ int{x^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
+    ///  [                  int{x^2+z^2}   -int{yz}dm    ]
+    ///  [                                int{x^2+y^2}dm ]
+    /// </pre>
+    /// represents the inertia tensor relative to the subsystem COM frame.
+    /// Note that the correct value is reported only *after* the subsystem is initialized.
+    const ChMatrix33<>& GetInertia() const { return m_inertia; }
+
+    /// Get the current subsystem position relative to the global frame.
+    /// Note that the vehicle frame is defined to be the reference frame of the (main) chassis.
+    /// Note that the correct value is reported only *after* the subsystem is initialized.
+    const ChFrame<>& GetTransform() const { return m_xform; }
+
     /// Set the visualization mode for this subsystem.
     void SetVisualizationType(VisualizationType vis);
-
+   
     /// Add visualization assets to this subsystem, for the specified visualization mode.
     virtual void AddVisualizationAssets(VisualizationType vis) {}
 
@@ -98,6 +121,32 @@ class CH_VEHICLE_API ChPart {
         );
 
   protected:
+    /// Construct a vehicle subsystem with the specified name.
+    ChPart(const std::string& name);
+
+    /// Initialize subsystem inertia properties.
+    /// Derived classes must override this function and set the subsystem mass (m_mass) and, if constant, the subsystem
+    /// COM frame and its inertia tensor. This function is called during initialization of the vehicle system.
+    virtual void InitializeInertiaProperties() = 0;
+
+    /// Update subsystem inertia properties.
+    /// Derived classes must override this function and set the global subsystem transform (m_xform) and, unless
+    /// constant, the subsystem COM frame (m_com) and its inertia tensor (m_inertia). Calculate the current inertia
+    /// properties and global frame of this subsystem. This function is called every time the state of the vehicle
+    /// system is advanced in time.
+    virtual void UpdateInertiaProperties() = 0;
+
+    /// Add this subsystem's mass.
+    /// This utility function first invokes InitializeInertiaProperties and then increments the given total mass.
+    void AddMass(double& mass);
+
+    /// Add this subsystem's inertia properties.
+    /// This utility function first invokes UpdateInertiaProperties and then incorporates the contribution from this
+    /// subsystem to the provided quantities:
+    /// - com:  COM expressed in the global frame (scaled by the subsystem mass)
+    /// - inertia: inertia tensor relative to the global reference frame
+    void AddInertiaProperties(ChVector<>& com, ChMatrix33<>& inertia);
+
     /// Create a vehicle subsystem from JSON data.
     /// A derived class must override this function and first invoke the base class implementation.
     virtual void Create(const rapidjson::Document& d);
@@ -126,11 +175,22 @@ class CH_VEHICLE_API ChPart {
                                     std::vector<std::shared_ptr<ChLinkRSDA>> springs);
 
     /// Export the list of body-body loads to the specified JSON document.
-    static void ExportBodyLoadList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLoadBodyBody>> loads);
+    static void ExportBodyLoadList(rapidjson::Document& jsonDocument,
+                                   std::vector<std::shared_ptr<ChLoadBodyBody>> loads);
 
     std::string m_name;  ///< subsystem name
+    bool m_output;       ///< specifies whether or not output is generated for this subsystem
 
-    bool m_output;  ///< specifies whether or not output is generated for this subsystem
+    std::shared_ptr<ChPart> m_parent;  ///< parent subsystem (empty if parent is vehicle)
+    double m_mass;                     ///< subsystem mass
+    ChMatrix33<> m_inertia;            ///< inertia tensor (relative to subsystem COM)
+    ChFrame<> m_com;                   ///< COM frame (relative to subsystem reference frame)
+    ChFrame<> m_xform;                 ///< subsystem frame expressed in the global frame
+
+  private:
+    friend class ChAxle;
+    friend class ChWheeledVehicle;
+    friend class ChTrackedVehicle;
 };
 
 // Utility class with material information for a collision shape.

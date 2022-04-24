@@ -46,9 +46,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
   public:
     enum class CollisionType { SINGLE_POINT, FOUR_POINTS, ENVELOPE };
 
-    ChTire(const std::string& name  ///< [in] name of this tire system
-    );
-
     virtual ~ChTire() {}
 
     /// Set the value of the integration step size for the underlying dynamics (if applicable).
@@ -67,20 +64,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
     /// Get the tire width.
     virtual double GetWidth() const = 0;
-
-    /// Get the tire mass.
-    /// Note that this should not include the mass of the wheel (rim).
-    virtual double GetMass() const = 0;
-
-    /// Report the tire mass.
-    /// Certain tire models (e.g. those based on FEA) must return 0 in GetMass()
-    /// so that the tire mass is not double counted in the underlying mechanical system.
-    /// For reporting purposes, use this function instead.
-    virtual double ReportMass() const;
-
-    /// Get the tire moments of inertia.
-    /// Note that these should not include the inertia of the wheel (rim).
-    virtual ChVector<> GetInertia() const = 0;
 
     /// Report the tire force and moment.
     /// This function can be used for reporting purposes or else to calculate tire
@@ -137,6 +120,9 @@ class CH_VEHICLE_API ChTire : public ChPart {
     virtual void Advance(double step) {}
 
   protected:
+    /// Construct a tire subsystem with given name.
+    ChTire(const std::string& name);
+
     /// Calculate kinematics quantities based on the given state of the associated wheel body.
     void CalculateKinematics(double time,                    ///< [in] current time
                              const WheelState& wheel_state,  ///< [in] current state of associated wheel body
@@ -146,6 +132,17 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Get offset from spindle center.
     /// This queries the associated wheel, so it must be called only after the wheel was initialized.
     double GetOffset() const { return m_wheel->m_offset; }
+
+    /// Get the mass added to the associated spindle body. 
+    /// Certain tires (e.g., those FEA-based) have their own physical representation and hence do not add mass and inertia to the spindle body.
+    /// All others increment the spindle body mass by the amount repoirted by this function.
+    virtual double GetAddedMass() const = 0;
+
+    /// Get the inertia added to the associated spindle body.
+    /// Certain tires (e.g., those FEA-based) have their own physical representation and hence do not add mass and
+    /// inertia to the spindle body. All others increment the spindle body moments of inertia by the amount reported by
+    /// this function.
+    virtual ChVector<> GetAddedInertia() const = 0;
 
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
@@ -237,6 +234,8 @@ class CH_VEHICLE_API ChTire : public ChPart {
     double m_camber_angle;
 
     friend class ChWheel;
+    friend class ChWheeledVehicle;
+    friend class ChWheeledTrailer;
 };
 
 /// Vector of handles to tire subsystems.

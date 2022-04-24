@@ -101,6 +101,9 @@ void Kraz_tractor::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     // Initialize the driveline subsystem (6x4 = rear axles are driven)
     std::vector<int> driven_susp = {1, 2};
     m_driveline->Initialize(m_chassis, m_axles, driven_susp);
+
+    // Invoke base class method
+    ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
 }
 
 // -----------------------------------------------------------------------------

@@ -58,7 +58,8 @@ void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChChassis> chassis,
                                    const ChVector<>& location,
                                    double left_ang_vel,
                                    double right_ang_vel) {
-    m_location = location;
+    m_parent = chassis;
+    m_rel_loc = location;
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
@@ -138,25 +139,26 @@ void ChRigidPinnedAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChRigidPinnedAxle::GetMass() const {
-    return getAxleTubeMass() + 2 * getSpindleMass();
+void ChRigidPinnedAxle::InitializeInertiaProperties() {
+    m_mass = getAxleTubeMass() + 2 * getSpindleMass();
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChRigidPinnedAxle::GetCOMPos() const {
-    ChVector<> com(0, 0, 0);
+void ChRigidPinnedAxle::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
-    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), m_spindle[LEFT]->GetMass(),
+                           m_spindle[LEFT]->GetInertia());
+    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), m_spindle[RIGHT]->GetMass(),
+                           m_spindle[RIGHT]->GetInertia());
+    composite.AddComponent(m_axleTube->GetFrame_COG_to_abs(), m_axleTube->GetMass(), m_axleTube->GetInertia());
 
-    com += getAxleTubeMass() * m_axleTube->GetPos();
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
 
-    return com / GetMass();
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 // -----------------------------------------------------------------------------

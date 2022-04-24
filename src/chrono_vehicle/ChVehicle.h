@@ -79,45 +79,46 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Get the vehicle total mass.
     /// This includes the mass of the chassis and all vehicle subsystems.
-    virtual double GetVehicleMass() const = 0;
+    double GetMass() const { return m_mass; }
 
-    /// Get the current global vehicle COM location.
-    virtual ChVector<> GetVehicleCOMPos() const = 0;
+    /// Get the current vehicle COM frame (relative to and expressed in the vehicle reference frame).
+    /// This is a frame aligned with the vehicle reference frame and origin at the current vehicle COM.
+    const ChFrame<>& GetCOMFrame() const { return m_com; }
 
-    /// Get the current global vehicle inertia tensor.
-    virtual ChMatrix33<> GetVehicleInertia() const = 0;
+    /// Get the current vehicle inertia (relative to the vehicle COM frame).
+    const ChMatrix33<>& GetInertia() const { return m_inertia; }
 
-    /// Get the vehicle location.
+    /// Get the current vehicle transform relative to the global frame.
+    /// This is the same as the global transform of the main chassis.
+    const ChFrame<>& GetTransform() const { return m_chassis->GetTransform(); }
+
+    /// Get the vehicle global location.
     /// This is the global location of the main chassis reference frame origin.
-    const ChVector<>& GetVehiclePos() const { return m_chassis->GetPos(); }
-    
+    const ChVector<>& GetPos() const { return m_chassis->GetPos(); }
+
     /// Get the vehicle orientation.
-    /// This is the main chassis orientation, returned as a quaternion representing a
-    /// rotation with respect to the global reference frame.
-    ChQuaternion<> GetVehicleRot() const { return m_chassis->GetRot(); }
+    /// This is the main chassis orientation, returned as a quaternion representing a rotation with respect to the
+    /// global reference frame.
+    ChQuaternion<> GetRot() const { return m_chassis->GetRot(); }
 
     /// Get the vehicle speed.
     /// Return the speed measured at the origin of the main chassis reference frame.
-    double GetVehicleSpeed() const { return m_chassis->GetSpeed(); }
-
-    /// Get the speed of the chassis COM.
-    /// Return the speed measured at the main chassis center of mass.
-    double GetVehicleSpeedCOM() const { return m_chassis->GetCOMSpeed(); }
+    double GetSpeed() const { return m_chassis->GetSpeed(); }
 
     /// Get the global position of the specified point.
     /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned location is expressed in the global reference frame.
-    ChVector<> GetVehiclePointLocation(const ChVector<>& locpos) const { return m_chassis->GetPointLocation(locpos); }
+    ChVector<> GetPointLocation(const ChVector<>& locpos) const { return m_chassis->GetPointLocation(locpos); }
 
     /// Get the global velocity of the specified point.
     /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned velocity is expressed in the global reference frame.
-    ChVector<> GetVehiclePointVelocity(const ChVector<>& locpos) const { return m_chassis->GetPointVelocity(locpos); }
+    ChVector<> GetPointVelocity(const ChVector<>& locpos) const { return m_chassis->GetPointVelocity(locpos); }
 
     /// Get the acceleration at the specified point.
     /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned acceleration is expressed in the chassis reference frame.
-    ChVector<> GetVehiclePointAcceleration(const ChVector<>& locpos) const { return m_chassis->GetPointAcceleration(locpos); }
+    ChVector<> GetPointAcceleration(const ChVector<>& locpos) const { return m_chassis->GetPointAcceleration(locpos); }
 
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const = 0;
@@ -138,9 +139,10 @@ class CH_VEHICLE_API ChVehicle {
     );
 
     /// Initialize this vehicle at the specified global location and orientation.
+    /// Derived classes must invoke this base class implementation after they initialize all their subsystem.
     virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
                             double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
-                            ) = 0;
+                            );
 
     /// Set visualization mode for the chassis subsystem.
     void SetChassisVisualizationType(VisualizationType vis);
@@ -197,6 +199,14 @@ class CH_VEHICLE_API ChVehicle {
     /// Set the associated Chrono system.
     void SetSystem(ChSystem* sys) { m_system = sys; }
 
+    /// Calculate total vehicle mass from subsystems.
+    /// This function is called at the end of the vehicle initialization.
+    virtual void InitializeInertiaProperties() = 0;
+
+    /// Calculate current vehicle inertia properties from subsystems.
+    /// This function is called at the end of each vehicle state advance.
+    virtual void UpdateInertiaProperties() = 0;
+
     /// Utility function for testing if any subsystem in a list generates output.
     template <typename T>
     static bool AnyOutput(const std::vector<std::shared_ptr<T>>& list) {
@@ -209,6 +219,10 @@ class CH_VEHICLE_API ChVehicle {
     ChSystem* m_system;  ///< pointer to the Chrono system
     bool m_ownsSystem;   ///< true if system created at construction
 
+    double m_mass;           ///< total vehicle mass
+    ChFrame<> m_com;         ///< current vehicle COM (relative to the vehicle reference frame)
+    ChMatrix33<> m_inertia;  ///< current total vehicle inertia (Relative to the vehicle COM frame)
+
     bool m_output;                 ///< generate ouput for this vehicle system
     ChVehicleOutput* m_output_db;  ///< vehicle output database
     double m_output_step;          ///< output time step
@@ -218,6 +232,9 @@ class CH_VEHICLE_API ChVehicle {
     std::shared_ptr<ChChassis> m_chassis;         ///< handle to the main chassis subsystem
     ChChassisRearList m_chassis_rear;             ///< list of rear chassis subsystems (can be empty)
     ChChassisConnectorList m_chassis_connectors;  ///< list of chassis connector (must match m_chassis_rear)
+
+  private:
+    bool m_initialized;
 
     friend class ChVehicleCosimVehicleNode;
 };

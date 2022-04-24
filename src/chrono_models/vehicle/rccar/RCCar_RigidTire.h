@@ -43,8 +43,8 @@ class CH_MODELS_API RCCar_RigidTire : public chrono::vehicle::ChRigidTire {
 
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
-    virtual double GetMass() const override { return m_mass; }
-    virtual ChVector<> GetInertia() const override { return m_inertia; }
+    virtual double GetTireMass() const override { return m_mass; }
+    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;

@@ -384,6 +384,9 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     if (m_powertrain) {
         InitializePowertrain(m_powertrain);
     }
+
+    // Invoke base class method
+    ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
 }
 
 }  // end namespace vehicle

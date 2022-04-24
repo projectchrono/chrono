@@ -256,8 +256,8 @@ void ChTireTestRig::CreateMechanism() {
     m_carrier_body->SetName("rig_carrier");
     m_carrier_body->SetIdentifier(1);
     m_carrier_body->SetPos(ChVector<>(0, 0, 0));
-    m_carrier_body->SetMass(m_wheel->GetMass());
-    m_carrier_body->SetInertiaXX(m_wheel->GetInertia());
+    m_carrier_body->SetMass(m_wheel->GetWheelMass());
+    m_carrier_body->SetInertiaXX(m_wheel->GetWheelInertia());
     {
         auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().rad = dim / 2;
@@ -278,8 +278,8 @@ void ChTireTestRig::CreateMechanism() {
     m_chassis_body->SetName("rig_chassis");
     m_chassis_body->SetIdentifier(2);
     m_chassis_body->SetPos(ChVector<>(0, 0, 0));
-    m_chassis_body->SetMass(m_wheel->GetMass());
-    m_chassis_body->SetInertiaXX(m_wheel->GetInertia());
+    m_chassis_body->SetMass(m_wheel->GetWheelMass());
+    m_chassis_body->SetInertiaXX(m_wheel->GetWheelInertia());
     {
         auto sphere = chrono_types::make_shared<ChSphereShape>();
         sphere->GetSphereGeometry().rad = dim;
@@ -299,8 +299,8 @@ void ChTireTestRig::CreateMechanism() {
     m_slip_body->SetName("rig_slip");
     m_slip_body->SetIdentifier(3);
     m_slip_body->SetPos(ChVector<>(0, 0, -4 * dim));
-    m_slip_body->SetMass(m_wheel->GetMass());
-    m_slip_body->SetInertiaXX(m_wheel->GetInertia());
+    m_slip_body->SetMass(m_wheel->GetWheelMass());
+    m_slip_body->SetInertiaXX(m_wheel->GetWheelInertia());
     {
         auto box = chrono_types::make_shared<ChBoxShape>();
         box->GetBoxGeometry().SetLengths(ChVector<>(4 * dim, dim, 4 * dim));
@@ -361,6 +361,14 @@ void ChTireTestRig::CreateMechanism() {
         revolute->Initialize(m_spindle_body, m_slip_body, ChCoordsys<>(ChVector<>(0, 3 * dim, -4 * dim), z2y));
     }
 
+    // Initialize subsystems
+    m_wheel->Initialize(m_spindle_body, LEFT);
+    m_wheel->SetVisualizationType(VisualizationType::NONE);
+    m_wheel->SetTire(m_tire);
+    m_tire->SetStepsize(m_tire_step);
+    m_tire->Initialize(m_wheel);
+    m_tire->SetVisualizationType(m_tire_vis);
+
     // Calculate required body force on chassis (to enforce given normal load)
     m_total_mass = m_chassis_body->GetMass() + m_slip_body->GetMass() + m_spindle_body->GetMass() + m_wheel->GetMass() +
                    m_tire->GetMass();
@@ -374,14 +382,6 @@ void ChTireTestRig::CreateMechanism() {
     ////auto load_container = chrono_types::make_shared<ChLoadContainer>();
     ////load_container->Add(load);
     ////m_system->Add(load_container);
-
-    // Initialize subsystems
-    m_wheel->Initialize(m_spindle_body, LEFT);
-    m_wheel->SetVisualizationType(VisualizationType::NONE);
-    m_wheel->SetTire(m_tire);
-    m_tire->SetStepsize(m_tire_step);
-    m_tire->Initialize(m_wheel);
-    m_tire->SetVisualizationType(m_tire_vis);
 
     // Set terrain offset (based on wheel center) and terrain height (below tire)
     m_terrain_offset = 3 * dim;

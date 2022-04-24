@@ -499,6 +499,8 @@ source_group("wheeled_vehicle\\test_rig" FILES ${CV_WV_TEST_RIG_FILES} ${CVIRR_W
 set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChRigidTire.h
     wheeled_vehicle/tire/ChRigidTire.cpp
+    wheeled_vehicle/tire/ChForceElementTire.h
+    wheeled_vehicle/tire/ChForceElementTire.cpp
     wheeled_vehicle/tire/ChPacejkaTire.h
     wheeled_vehicle/tire/ChPacejkaTire.cpp
     wheeled_vehicle/tire/ChPac02Tire.h

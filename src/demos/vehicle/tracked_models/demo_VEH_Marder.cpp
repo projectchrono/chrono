@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
     ChTrackedVehicleIrrApp app(&marder.GetVehicle(), L"Marder Vehicle Demo");
     app.AddTypicalLights();
     app.SetChaseCamera(trackPoint, 10.0, 0.5);
-    ////app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
+    ////app.SetChaseCameraPosition(vehicle.GetPos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
 
     app.AssetBindAll();
@@ -342,7 +342,7 @@ int main(int argc, char* argv[]) {
             cout << "Time: " << marder.GetSystem()->GetChTime() << endl;
             cout << "      Num. contacts: " << marder.GetSystem()->GetNcontacts() << endl;
             const ChFrameMoving<>& c_ref = marder.GetChassisBody()->GetFrame_REF_to_abs();
-            const ChVector<>& c_pos = marder.GetVehicle().GetVehiclePos();
+            const ChVector<>& c_pos = marder.GetVehicle().GetPos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
                 const ChVector<>& i_pos_abs = track_L->GetIdler()->GetWheelBody()->GetPos();

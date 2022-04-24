@@ -30,12 +30,6 @@
 #ifndef CH_SPROCKET_H
 #define CH_SPROCKET_H
 
-#include <vector>
-
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
 #include "chrono/geometry/ChLinePath.h"
@@ -44,7 +38,7 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
 
 namespace chrono {
 namespace vehicle {
@@ -59,9 +53,6 @@ class ChTrackAssembly;
 /// A sprocket is responsible for contact processing with the track shoes of the containing track assembly.
 class CH_VEHICLE_API ChSprocket : public ChPart {
   public:
-    ChSprocket(const std::string& name  ///< [in] name of the subsystem
-               );
-
     virtual ~ChSprocket();
 
     /// Get the number of teeth of the gear.
@@ -88,9 +79,6 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Turn on/off collision flag for the gear wheel.
     void SetCollide(bool val) { m_gear->SetCollide(val); }
 
-    /// Get the mass of the sprocket subsystem.
-    virtual double GetMass() const;
-
     /// Get the sprocket contact material.
     std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
 
@@ -98,12 +86,11 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     void DisableLateralContact() { m_lateral_contact = false; }
 
     /// Initialize this sprocket subsystem.
-    /// The sprocket subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis).
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track                  ///< [in] pointer to containing track assembly
+    /// The sprocket subsystem is initialized by attaching it to the specified chassis body at the specified location
+    /// (with respect to and expressed in the reference frame of the chassis).
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
+                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track               ///< [in] pointer to containing track assembly
     );
 
     /// Apply the provided torque to the sprocket's axle (for debugging and testing).
@@ -129,6 +116,12 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     void LogConstraintViolations();
 
   protected:
+    /// Construct a sprocket subsystem with given name.
+    ChSprocket(const std::string& name);
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
     /// Return the mass of the gear body.
     virtual double GetGearMass() const = 0;
 
@@ -165,10 +158,11 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Output data for this subsystem's component list to the specified database.
     virtual void Output(ChVehicleOutput& database) const override;
 
-    std::shared_ptr<ChBody> m_gear;                   ///< handle to the sprocket gear body
-    std::shared_ptr<ChShaft> m_axle;                  ///< handle to gear shafts
-    std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< handle to gear-shaft connector
-    std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
+    ChVector<> m_rel_loc;                             ///< sprocket subsystem location relative to chassis
+    std::shared_ptr<ChBody> m_gear;                   ///< sprocket gear body
+    std::shared_ptr<ChShaft> m_axle;                  ///< gear shafts
+    std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< gear-shaft connector
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< sprocket revolute joint
     std::shared_ptr<ChMaterialSurface> m_material;    ///< contact material;
 
     std::shared_ptr<ChSystem::CustomCollisionCallback> m_callback;  ///< cached collision callback

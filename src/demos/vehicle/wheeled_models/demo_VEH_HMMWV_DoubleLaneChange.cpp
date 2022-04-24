@@ -503,19 +503,17 @@ int main(int argc, char* argv[]) {
     double xend = helper.GetXmax();
     while (app.GetDevice()->run()) {
         time = my_hmmwv.GetSystem()->GetChTime();
-        double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetVehicleSpeed());
+        double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetSpeed());
         double accel = accel_filter.Filter(
-            my_hmmwv.GetVehicle().GetVehiclePointAcceleration(ChVector<>(-wheel_base / 2, 0, 0)).y());
+            my_hmmwv.GetVehicle().GetPointAcceleration(ChVector<>(-wheel_base / 2, 0, 0)).y());
 
         speed_recorder.AddPoint(time, speed);
         accel_recorder.AddPoint(time, accel);
-        xpos = my_hmmwv.GetVehicle().GetVehiclePos().x();
-        ChVector<> pFrontLeft = my_hmmwv.GetVehicle().GetVehiclePointLocation(ChVector<>(0, vehicle_width / 2, 1));
-        ChVector<> pRearLeft =
-            my_hmmwv.GetVehicle().GetVehiclePointLocation(ChVector<>(-wheel_base, vehicle_width / 2, 1));
-        ChVector<> pFrontRight = my_hmmwv.GetVehicle().GetVehiclePointLocation(ChVector<>(0, -vehicle_width / 2, 1));
-        ChVector<> pRearRight =
-            my_hmmwv.GetVehicle().GetVehiclePointLocation(ChVector<>(-wheel_base, -vehicle_width / 2, 1));
+        xpos = my_hmmwv.GetVehicle().GetPos().x();
+        ChVector<> pFrontLeft = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(0, vehicle_width / 2, 1));
+        ChVector<> pRearLeft = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(-wheel_base, vehicle_width / 2, 1));
+        ChVector<> pFrontRight = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(0, -vehicle_width / 2, 1));
+        ChVector<> pRearRight = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(-wheel_base, -vehicle_width / 2, 1));
         if (!helper.GateTestLeft(pFrontLeft)) {
             GetLog() << "Test Failure: vehicle left the course with the front left wheel.\n";
             break;

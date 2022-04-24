@@ -132,7 +132,8 @@ void ChSAEToeBarLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
                                            const ChVector<>& location,
                                            double left_ang_vel,
                                            double right_ang_vel) {
-    m_location = location;
+    m_parent = chassis;
+    m_rel_loc = location;
 
     m_left_knuckle_steers = isLeftKnuckleActuated();
 
@@ -480,47 +481,62 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_vertRotSpringA[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChSAEToeBarLeafspringAxle::GetMass() const {
-    return getAxleTubeMass() + getTierodMass() + getDraglinkMass() +
-           2.0 * (getSpindleMass() + getKnuckleMass() + getFrontLeafMass() + getRearLeafMass() + 2.0 * getClampMass() +
-                  getShackleMass());
+void ChSAEToeBarLeafspringAxle::InitializeInertiaProperties() {
+    m_mass = getAxleTubeMass() + getTierodMass() + getDraglinkMass() +
+             2.0 * (getSpindleMass() + getKnuckleMass() + getFrontLeafMass() + getRearLeafMass() +
+                    2.0 * getClampMass() + getShackleMass());
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChSAEToeBarLeafspringAxle::GetCOMPos() const {
-    ChVector<> com(0, 0, 0);
+void ChSAEToeBarLeafspringAxle::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    com += getAxleTubeMass() * m_axleTube->GetPos();
-    com += getTierodMass() * m_tierod->GetPos();
-    com += getDraglinkMass() * m_draglink->GetPos();
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), m_spindle[LEFT]->GetMass(),
+                           m_spindle[LEFT]->GetInertia());
+    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), m_spindle[RIGHT]->GetMass(),
+                           m_spindle[RIGHT]->GetInertia());
 
-    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
-    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+    composite.AddComponent(m_knuckle[LEFT]->GetFrame_COG_to_abs(), m_knuckle[LEFT]->GetMass(),
+                           m_knuckle[LEFT]->GetInertia());
+    composite.AddComponent(m_knuckle[RIGHT]->GetFrame_COG_to_abs(), m_knuckle[RIGHT]->GetMass(),
+                           m_knuckle[RIGHT]->GetInertia());
 
-    com += getKnuckleMass() * m_knuckle[LEFT]->GetPos();
-    com += getKnuckleMass() * m_knuckle[RIGHT]->GetPos();
+    composite.AddComponent(m_frontleaf[LEFT]->GetFrame_COG_to_abs(), m_frontleaf[LEFT]->GetMass(),
+                           m_frontleaf[LEFT]->GetInertia());
+    composite.AddComponent(m_frontleaf[RIGHT]->GetFrame_COG_to_abs(), m_frontleaf[RIGHT]->GetMass(),
+                           m_frontleaf[RIGHT]->GetInertia());
 
-    com += getFrontLeafMass() * m_frontleaf[LEFT]->GetPos();
-    com += getFrontLeafMass() * m_frontleaf[RIGHT]->GetPos();
+    composite.AddComponent(m_rearleaf[LEFT]->GetFrame_COG_to_abs(), m_rearleaf[LEFT]->GetMass(),
+                           m_rearleaf[LEFT]->GetInertia());
+    composite.AddComponent(m_rearleaf[RIGHT]->GetFrame_COG_to_abs(), m_rearleaf[RIGHT]->GetMass(),
+                           m_rearleaf[RIGHT]->GetInertia());
 
-    com += getRearLeafMass() * m_rearleaf[LEFT]->GetPos();
-    com += getRearLeafMass() * m_rearleaf[RIGHT]->GetPos();
+    composite.AddComponent(m_clampA[LEFT]->GetFrame_COG_to_abs(), m_clampA[LEFT]->GetMass(),
+                           m_clampA[LEFT]->GetInertia());
+    composite.AddComponent(m_clampA[RIGHT]->GetFrame_COG_to_abs(), m_clampA[RIGHT]->GetMass(),
+                           m_clampA[RIGHT]->GetInertia());
 
-    com += getClampMass() * m_clampA[LEFT]->GetPos();
-    com += getClampMass() * m_clampA[RIGHT]->GetPos();
+    composite.AddComponent(m_clampB[LEFT]->GetFrame_COG_to_abs(), m_clampB[LEFT]->GetMass(),
+                           m_clampB[LEFT]->GetInertia());
+    composite.AddComponent(m_clampB[RIGHT]->GetFrame_COG_to_abs(), m_clampB[RIGHT]->GetMass(),
+                           m_clampB[RIGHT]->GetInertia());
 
-    com += getClampMass() * m_clampB[LEFT]->GetPos();
-    com += getClampMass() * m_clampB[RIGHT]->GetPos();
+    composite.AddComponent(m_shackle[LEFT]->GetFrame_COG_to_abs(), m_shackle[LEFT]->GetMass(),
+                           m_shackle[LEFT]->GetInertia());
+    composite.AddComponent(m_shackle[RIGHT]->GetFrame_COG_to_abs(), m_shackle[RIGHT]->GetMass(),
+                           m_shackle[RIGHT]->GetInertia());
 
-    com += getShackleMass() * m_shackle[LEFT]->GetPos();
-    com += getShackleMass() * m_shackle[RIGHT]->GetPos();
+    composite.AddComponent(m_axleTube->GetFrame_COG_to_abs(), m_axleTube->GetMass(), m_axleTube->GetInertia());
+    composite.AddComponent(m_tierod->GetFrame_COG_to_abs(), m_tierod->GetMass(), m_tierod->GetInertia());
+    composite.AddComponent(m_draglink->GetFrame_COG_to_abs(), m_draglink->GetMass(), m_draglink->GetInertia());
 
-    return com / GetMass();
+
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 // -----------------------------------------------------------------------------

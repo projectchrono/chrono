@@ -29,7 +29,7 @@
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_vehicle/ChTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac2002_data.h"
 
 namespace chrono {
@@ -52,7 +52,7 @@ struct relaxationL;
 struct bessel;
 
 /// Concrete tire class that implements the Pacejka tire model.
-class CH_VEHICLE_API ChPacejkaTire : public ChTire {
+class CH_VEHICLE_API ChPacejkaTire : public ChForceElementTire {
   public:
     /// Default constructor for a Pacejka tire.
     /// Construct a Pacejka tire for which the vertical load is calculated
@@ -177,6 +177,10 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
   private:
     virtual void Create(const rapidjson::Document& d) override {}
+
+    // These two functions not used in the ChPacejka model.
+    virtual double GetNormalStiffnessForce(double depth) const override final { return 0; }
+    virtual double GetNormalDampingForce(double depth, double velocity) const override final { return 0; }
 
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the

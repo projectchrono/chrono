@@ -29,7 +29,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChPitmanArm::ChPitmanArm(const std::string& name, bool vehicle_frame_inertia)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
@@ -44,11 +43,11 @@ ChPitmanArm::~ChPitmanArm() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPitmanArm::Initialize(std::shared_ptr<ChChassis> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
-    m_position = ChCoordsys<>(location, rotation);
+    m_parent = chassis;
+    m_rel_xform = ChFrame<>(location, rotation);
 
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
@@ -171,29 +170,31 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPitmanArm::Synchronize(double time, double steering) {
     auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_revolute->GetAngleFunction());
     fun->SetSetpoint(getMaxAngle() * steering, time);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the steering subsystem
-// -----------------------------------------------------------------------------
-double ChPitmanArm::GetMass() const {
-    return getSteeringLinkMass() + getPitmanArmMass();
+
+void ChPitmanArm::InitializeInertiaProperties() {
+    m_mass = getSteeringLinkMass() + getPitmanArmMass();
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the steering subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChPitmanArm::GetCOMPos() const {
-    ChVector<> com = getSteeringLinkMass() * m_link->GetPos() + getPitmanArmMass() * m_arm->GetPos();
+void ChPitmanArm::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
 
-    return com / GetMass();
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_link->GetFrame_COG_to_abs(), m_link->GetMass(), m_link->GetInertia());
+    composite.AddComponent(m_arm->GetFrame_COG_to_abs(), m_arm->GetMass(), m_arm->GetInertia());
+
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = m_xform.coord.rot;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArm::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -248,7 +249,6 @@ void ChPitmanArm::RemoveVisualizationAssets() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPitmanArm::LogConstraintViolations() {
     // Revolute joint
     ////{
@@ -280,7 +280,6 @@ void ChPitmanArm::LogConstraintViolations() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArm::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

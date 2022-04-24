@@ -29,7 +29,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChPitmanArmShafts::ChPitmanArmShafts(const std::string& name, bool vehicle_frame_inertia, bool rigid_column)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia), m_rigid(rigid_column) {}
 
@@ -54,11 +53,11 @@ ChPitmanArmShafts::~ChPitmanArmShafts() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
                                    const ChVector<>& location,
                                    const ChQuaternion<>& rotation) {
-    m_position = ChCoordsys<>(location, rotation);
+    m_parent = chassis;
+    m_rel_xform = ChFrame<>(location, rotation);
 
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
@@ -253,29 +252,30 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPitmanArmShafts::Synchronize(double time, double steering) {
     auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_shaft_motor->GetAngleFunction());
     fun->SetSetpoint(getMaxAngle() * steering, time);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the steering subsystem
-// -----------------------------------------------------------------------------
-double ChPitmanArmShafts::GetMass() const {
-    return getSteeringLinkMass() + getPitmanArmMass();
+void ChPitmanArmShafts::InitializeInertiaProperties() {
+    m_mass = getSteeringLinkMass() + getPitmanArmMass();
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the steering subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChPitmanArmShafts::GetCOMPos() const {
-    ChVector<> com = getSteeringLinkMass() * m_link->GetPos() + getPitmanArmMass() * m_arm->GetPos();
+void ChPitmanArmShafts::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
 
-    return com / GetMass();
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_link->GetFrame_COG_to_abs(), m_link->GetMass(), m_link->GetInertia());
+    composite.AddComponent(m_arm->GetFrame_COG_to_abs(), m_arm->GetMass(), m_arm->GetInertia());
+
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = m_xform.coord.rot;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArmShafts::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -329,7 +329,6 @@ void ChPitmanArmShafts::RemoveVisualizationAssets() {
     m_revsph->GetAssets().clear();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArmShafts::LogConstraintViolations() {
     // Revolute joint
@@ -394,7 +393,6 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
     arm_angular_vel = m_arm->GetWvel_loc();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArmShafts::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

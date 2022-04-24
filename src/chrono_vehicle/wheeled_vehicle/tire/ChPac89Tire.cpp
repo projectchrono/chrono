@@ -41,7 +41,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChPac89Tire::ChPac89Tire(const std::string& name)
-    : ChTire(name), m_kappa(0), m_alpha(0), m_gamma(0), m_gamma_limit(3), m_mu(0), m_mu0(0.8) {
+    : ChForceElementTire(name), m_kappa(0), m_alpha(0), m_gamma(0), m_gamma_limit(3), m_mu(0), m_mu0(0.8) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);

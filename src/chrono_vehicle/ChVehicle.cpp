@@ -45,7 +45,10 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
       m_output_step(0),
       m_output_db(nullptr),
       m_next_output_time(0),
-      m_output_frame(0) {
+      m_output_frame(0),
+      m_mass(0),
+      m_inertia(0),
+      m_initialized(false) {
     m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                         : static_cast<ChSystem*>(new ChSystemSMC);
 
@@ -75,7 +78,10 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
       m_output_step(0),
       m_output_db(nullptr),
       m_next_output_time(0),
-      m_output_frame(0) {}
+      m_output_frame(0),
+      m_mass(0),
+      m_inertia(0),
+      m_initialized(false) {}
 
 // -----------------------------------------------------------------------------
 // Destructor for ChVehicle
@@ -120,9 +126,20 @@ void ChVehicle::SetOutput(ChVehicleOutput::Type type,
 }
 
 // -----------------------------------------------------------------------------
+void ChVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
+    // Calculate total vehicle mass and inertia properties at initial configuration
+    InitializeInertiaProperties();
+    UpdateInertiaProperties();
+
+    m_initialized = true;
+}
+
+// -----------------------------------------------------------------------------
 // Advance the state of the system.
 // ---------------------------------------------------------------------------- -
 void ChVehicle::Advance(double step) {
+    assert(m_initialized);
+
     if (m_output && m_system->GetChTime() >= m_next_output_time) {
         Output(m_output_frame, *m_output_db);
         m_next_output_time += m_output_step;
@@ -132,6 +149,9 @@ void ChVehicle::Advance(double step) {
     if (m_ownsSystem) {
         m_system->DoStepDynamics(step);
     }
+
+    // Update inertia properties
+    UpdateInertiaProperties();
 }
 
 // -----------------------------------------------------------------------------

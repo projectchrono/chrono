@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
 
     // output vehicle mass
     gator.GetVehicle().LogSubsystemTypes();
-    std::cout << "\nVehicle mass: " << gator.GetTotalMass() << std::endl;
+    std::cout << "\nVehicle mass: " << gator.GetVehicle().GetMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);

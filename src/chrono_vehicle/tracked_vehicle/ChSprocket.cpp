@@ -45,10 +45,13 @@ ChSprocket::~ChSprocket() {
 }
 
 // -----------------------------------------------------------------------------
-void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+    m_parent = chassis;
+    m_rel_loc = location;
+
     // The sprocket reference frame is aligned with that of the chassis and centered at the specified location.
-    ChVector<> loc = chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(location);
-    ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+    ChVector<> loc = chassis->GetBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(location);
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
     ChQuaternion<> y2z = Q_from_AngX(CH_C_PI_2);
     ChMatrix33<> rot_y2z(y2z);
 
@@ -66,7 +69,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     ChCoordsys<> rev_csys(loc, chassisRot * y2z);
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
-    m_revolute->Initialize(chassis, m_gear, rev_csys);
+    m_revolute->Initialize(chassis->GetBody(), m_gear, rev_csys);
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Create and initialize the axle shaft and its connection to the gear. Note that the
@@ -90,9 +93,15 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     chassis->GetSystem()->RegisterCustomCollisionCallback(m_callback);
 }
 
-// -----------------------------------------------------------------------------
-double ChSprocket::GetMass() const {
-    return GetGearMass();
+void ChSprocket::InitializeInertiaProperties() {
+    m_mass = GetGearMass();
+    m_inertia = ChMatrix33<>(0);
+    m_inertia.diagonal() = GetGearInertia().eigen();
+    m_com = ChFrame<>();
+}
+
+void ChSprocket::UpdateInertiaProperties() {
+    m_xform = m_gear->GetFrame_REF_to_abs();
 }
 
 // -----------------------------------------------------------------------------

@@ -33,8 +33,7 @@ namespace vehicle {
 ChDoubleRoller::ChDoubleRoller(const std::string& name) : ChRoller(name) {}
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChDoubleRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChDoubleRoller::Initialize(std::shared_ptr<ChChassis> chassis,
                                 const ChVector<>& location,
                                 ChTrackAssembly* track) {
     // Invoke the base class method
@@ -67,7 +66,6 @@ void ChDoubleRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_wheel->GetCollisionModel()->BuildModel();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleRoller::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)

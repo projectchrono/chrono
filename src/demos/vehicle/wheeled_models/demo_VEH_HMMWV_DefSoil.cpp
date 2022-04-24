@@ -285,7 +285,7 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-    std::cout << "Total vehicle mass: " << my_hmmwv.GetTotalMass() << std::endl;
+    std::cout << "Total vehicle mass: " << my_hmmwv.GetVehicle().GetMass() << std::endl;
 
     // Solver settings.
     system->SetSolverMaxIterations(50);

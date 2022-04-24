@@ -147,7 +147,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -162,7 +162,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -177,7 +177,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -192,7 +192,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -207,7 +207,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -222,7 +222,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -242,7 +242,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -257,7 +257,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -272,7 +272,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -299,11 +299,6 @@ void HMMWV::Synchronize(double time, const ChDriver::Inputs& driver_inputs, cons
 // -----------------------------------------------------------------------------
 void HMMWV::Advance(double step) {
     m_vehicle->Advance(step);
-}
-
-// -----------------------------------------------------------------------------
-double HMMWV::GetTotalMass() const {
-    return m_vehicle->GetVehicleMass() + 4 * m_tire_mass;
 }
 
 // =============================================================================

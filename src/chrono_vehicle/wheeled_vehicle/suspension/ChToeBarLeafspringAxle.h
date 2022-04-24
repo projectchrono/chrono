@@ -102,12 +102,6 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
     /// Remove visualization assets for the suspension subsystem.
     virtual void RemoveVisualizationAssets() override;
 
-    /// Get the total mass of the suspension subsystem.
-    virtual double GetMass() const override;
-
-    /// Get the current global COM location of the suspension subsystem.
-    virtual ChVector<> GetCOMPos() const override;
-
     /// Get the wheel track for the suspension subsystem.
     virtual double GetTrack() override;
 
@@ -163,6 +157,9 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
         DRAGLINK_C,   ///< draglink, chassis
         NUM_POINTS
     };
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.

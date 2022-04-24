@@ -36,15 +36,6 @@ class CH_MODELS_API Kraz_tractor_Chassis : public ChRigidChassis {
     Kraz_tractor_Chassis(const std::string& name);
     ~Kraz_tractor_Chassis() {}
 
-    /// Return the mass of the chassis body.
-    virtual double GetMass() const override { return m_mass; }
-
-    /// Return the inertia tensor of the chassis body.
-    virtual const ChMatrix33<>& GetInertia() const override { return m_inertia; }
-
-    /// Get the location of the center of mass in the chassis frame.
-    virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
-
     /// Get the location (in the local frame of this chassis) of the connection to the rear chassis.
     virtual const ChVector<> GetLocalPosRearConnector() const override { return m_connector_loc; }
 
@@ -53,12 +44,16 @@ class CH_MODELS_API Kraz_tractor_Chassis : public ChRigidChassis {
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
   protected:
-    chrono::ChMatrix33<> m_inertia;
+    virtual double GetBodyMass() const override { return m_body_mass; }
+    virtual ChMatrix33<> GetBodyInertia() const override { return m_body_inertia; }
+    virtual ChFrame<> GetBodyCOMFrame() const override { return ChFrame<>(m_body_COM_loc, QUNIT); }
 
-    static const double m_mass;
-    static const ChVector<> m_inertiaXX;
-    static const ChVector<> m_inertiaXY;
-    static const ChVector<> m_COM_loc;
+    ChMatrix33<> m_body_inertia;
+
+    static const double m_body_mass;
+    static const ChVector<> m_body_inertiaXX;
+    static const ChVector<> m_body_inertiaXY;
+    static const ChVector<> m_body_COM_loc;
     static const ChVector<> m_connector_loc;
     static const ChCoordsys<> m_driverCsys;
 };

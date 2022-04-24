@@ -39,7 +39,13 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChFialaTire::ChFialaTire(const std::string& name)
-    : ChTire(name), m_dynamic_mode(false), m_mu(0.8), m_mu_0(0.8), m_time_trans(0.2), m_c_slip(0), m_c_alpha(0) {
+    : ChForceElementTire(name),
+      m_dynamic_mode(false),
+      m_mu(0.8),
+      m_mu_0(0.8),
+      m_time_trans(0.2),
+      m_c_slip(0),
+      m_c_alpha(0) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
