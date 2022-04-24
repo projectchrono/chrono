@@ -39,6 +39,7 @@ class CH_MODELS_API HMMWV_VehicleReduced : public HMMWV_Vehicle {
     HMMWV_VehicleReduced(const bool fixed,
                          DrivelineTypeWV drive_type,
                          BrakeType brake_type,
+                         SteeringTypeWV steering_type,
                          ChContactMethod contact_method,
                          CollisionType chassis_collision_type);
 
@@ -46,6 +47,7 @@ class CH_MODELS_API HMMWV_VehicleReduced : public HMMWV_Vehicle {
                          const bool fixed,
                          DrivelineTypeWV drive_type,
                          BrakeType brake_type,
+                         SteeringTypeWV steering_type,
                          CollisionType chassis_collision_type);
 
     ~HMMWV_VehicleReduced();
@@ -53,7 +55,7 @@ class CH_MODELS_API HMMWV_VehicleReduced : public HMMWV_Vehicle {
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
   private:
-    void Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type);
+    void Create(bool fixed, BrakeType brake_type, SteeringTypeWV steering_type, CollisionType chassis_collision_type);
 };
 
 /// @} vehicle_models_hmmwv

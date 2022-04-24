@@ -32,6 +32,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_SimpleDriveline.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArmShafts.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_RackPinion.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 namespace chrono {
@@ -81,6 +82,9 @@ void HMMWV_VehicleFull::Create(bool fixed,
             break;
         case SteeringTypeWV::PITMAN_ARM_SHAFTS:
             m_steerings[0] = chrono_types::make_shared<HMMWV_PitmanArmShafts>("Steering", rigid_steering_column);
+            break;
+        case SteeringTypeWV::RACK_PINION:
+            m_steerings[0] = chrono_types::make_shared<HMMWV_RackPinion>("Steering");
             break;
         default:
             GetLog() << "Steering type NOT supported\n";
