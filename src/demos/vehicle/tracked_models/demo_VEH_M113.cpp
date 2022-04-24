@@ -51,6 +51,12 @@ using std::endl;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
+
+TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
+BrakeType brake_type = BrakeType::SIMPLE;
+DrivelineTypeTV driveline_type = DrivelineTypeTV::BDS;
+PowertrainModelType powertrain_type = PowertrainModelType::SHAFTS;
+
 // Initial vehicle position
 ChVector<> initLoc(-40, 0, 0.8);
 
@@ -91,9 +97,9 @@ double step_size_SMC = 5e-4;
 ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
 ////ChSolver::Type slvr_type = ChSolver::Type::MUMPS;
 
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT;
-ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
 ////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT;
 ////ChTimestepper::Type intgr_type = ChTimestepper::Type::HHT;
 
 // Verbose output level (solver and integrator)
@@ -259,10 +265,6 @@ int main(int argc, char* argv[]) {
 
     collision::ChCollisionSystemType collsys_type = collision::ChCollisionSystemType::BULLET;
     CollisionType chassis_collision_type = CollisionType::NONE;
-    TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
-    BrakeType brake_type = BrakeType::SIMPLE;
-    DrivelineTypeTV driveline_type = DrivelineTypeTV::BDS;
-    PowertrainModelType powertrain_type = PowertrainModelType::SHAFTS;
 
     M113 m113;
     m113.SetContactMethod(contact_method);

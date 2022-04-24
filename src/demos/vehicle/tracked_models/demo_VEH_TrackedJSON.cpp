@@ -55,18 +55,9 @@ using namespace chrono::vehicle;
 // USER SETTINGS
 // =============================================================================
 
-// JSON file for vehicle model
-std::string vehicle_file("M113/vehicle/M113_Vehicle_SinglePin.json");
-////std::string vehicle_file("M113/vehicle/M113_Vehicle_SinglePin_box.json");
-////std::string vehicle_file("M113/vehicle/M113_Vehicle_SinglePin_mesh.json");
-////std::string vehicle_file("M113/vehicle/M113_Vehicle_DoublePin.json");
-
-// JSON file for powertrain
-std::string powertrain_file("M113/powertrain/M113_SimpleCVTPowertrain.json");
-////std::string powertrain_file("M113/powertrain/M113_SimpleMapPowertrain.json");
-
-// JSON files for terrain (rigid plane)
-std::string rigidterrain_file("terrain/RigidPlane.json");
+TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
+DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
+PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE_CVT;
 
 // Initial vehicle position
 ChVector<> initLoc(0, 0, 0.8);
@@ -77,6 +68,9 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
 // ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
 // ChQuaternion<> initRot(0, 0, 0, 1);
+
+// JSON files for terrain (rigid plane)
+std::string rigidterrain_file("terrain/RigidPlane.json");
 
 // Specification of vehicle inputs
 enum class DriverMode {
@@ -103,9 +97,9 @@ ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
 ////ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
 ////ChSolver::Type slvr_type = ChSolver::Type::MUMPS;
 
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT;
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
 ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT;
 ////ChTimestepper::Type intgr_type = ChTimestepper::Type::HHT;
 
 // Verbose output level (solver and integrator)
@@ -250,6 +244,30 @@ int main(int argc, char* argv[]) {
     // --------------------------
     // Create the various modules
     // --------------------------
+    std::string vehicle_file;
+    std::string powertrain_file;
+
+    switch (shoe_type) {
+        case TrackShoeType::SINGLE_PIN:
+            vehicle_file = "M113/vehicle/M113_Vehicle_SinglePin";
+            vehicle_file = vehicle_file + (driveline_type == DrivelineTypeTV::SIMPLE ? ".json" : "_BDS.json");
+            break;
+        case TrackShoeType::DOUBLE_PIN:
+            vehicle_file = "M113/vehicle/M113_Vehicle_DoublePin";
+            vehicle_file = vehicle_file + (driveline_type == DrivelineTypeTV::SIMPLE ? ".json" : "_BDS.json");
+            break;
+    }
+    switch (powertrain_type) {
+        case PowertrainModelType::SIMPLE_CVT:
+            powertrain_file = "M113/powertrain/M113_SimpleCVTPowertrain.json";
+            break;
+        case PowertrainModelType::SIMPLE_MAP:
+            powertrain_file = "M113/powertrain/M113_SimpleMapPowertrain.json";
+            break;
+        case PowertrainModelType::SHAFTS:
+            powertrain_file = "M113/powertrain/M113_ShaftsPowertrain.json";
+            break;
+    }
 
     // Create the vehicle system
     TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), contact_method);
@@ -400,6 +418,8 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         vehicle.Advance(step_size);
         app.Advance(step_size);
+
+        ////ReportTiming(*vehicle.GetSystem());
 
         // Increment frame number
         step_number++;
