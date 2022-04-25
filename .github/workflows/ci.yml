@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: main
+
+jobs:
+  build-test:
+    name: Tests
+    runs-on: [ubuntu-20.04]
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get -y libeigen3-dev libirrlicht-dev
+          cmake -B ${{github.workspace}}/build >
+              -DCMAKE_BUILD_TYPE=Release >
+              -DBUILD_DEMOS=ON >
+              -DENABLE_HDF5=ON >
+              -DENABLE_MODULE_COSIMULATION=ON >
+              -DENABLE_MODULE_GPU=ON >
+              -DENABLE_MODULE_IRRLICHT=ON >
+              -DENABLE_MODULE_OPENGL=ON >
+              -DENABLE_MODULE_MULTICORE=ON >
+              -DENABLE_MODULE_POSTPROCESS=ON
+          make -j8 
+          make install
