@@ -22,6 +22,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
 ////#include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac2002_data.h"
@@ -41,6 +42,7 @@
 %shared_ptr(chrono::vehicle::ChTire)
 %shared_ptr(chrono::vehicle::ChTMeasyTire)
 %shared_ptr(chrono::vehicle::ChRigidTire)
+%shared_ptr(chrono::vehicle::ChForceElementTire)
 %shared_ptr(chrono::vehicle::ChReissnerTire)
 ////%shared_ptr(chrono::vehicle::ChPacejkaTire)
 %shared_ptr(chrono::vehicle::ChPac2002_data)
@@ -74,6 +76,7 @@
 
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 %ignore chrono::vehicle::ChReissnerTire::ChReissnerTire;
 ////%include "../../../chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChPac2002_data.h"
