@@ -30,12 +30,10 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChRigidTire::ChRigidTire(const std::string& name) : ChTire(name), m_use_contact_mesh(false), m_trimesh(nullptr) {}
 
 ChRigidTire::~ChRigidTire() {}
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRigidTire::SetMeshFilename(const std::string& mesh_file, double sweep_sphere_radius) {
     m_use_contact_mesh = true;
@@ -43,7 +41,6 @@ void ChRigidTire::SetMeshFilename(const std::string& mesh_file, double sweep_sph
     m_sweep_sphere_radius = sweep_sphere_radius;
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
@@ -82,7 +79,26 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     wheel_body->GetCollisionModel()->BuildModel();
 }
 
-// -----------------------------------------------------------------------------
+void ChRigidTire::InitializeInertiaProperties() {
+    m_mass = GetTireMass();
+    m_inertia.setZero();
+    m_inertia.diagonal() = GetTireInertia().eigen();
+    m_com = ChFrame<>();
+}
+
+void ChRigidTire::UpdateInertiaProperties() {
+    auto spindle = m_wheel->GetSpindle();
+    m_xform = ChFrame<>(spindle->TransformPointLocalToParent(ChVector<>(0, GetOffset(), 0)), spindle->GetRot());
+}
+
+double ChRigidTire::GetAddedMass() const {
+    return GetTireMass();
+}
+
+ChVector<> ChRigidTire::GetAddedInertia() const {
+    return GetTireInertia();
+}
+
 // -----------------------------------------------------------------------------
 void ChRigidTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -103,8 +119,6 @@ void ChRigidTire::RemoveVisualizationAssets() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
 // Callback class to process contacts on a rigid tire.
 // Accumulate contact forces and torques on the associated wheel body.
 // Express them in the global frame, as applied to the wheel center.
@@ -189,7 +203,6 @@ TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
     return tire_force;
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 unsigned int ChRigidTire::GetNumVertices() const {
     assert(m_use_contact_mesh);

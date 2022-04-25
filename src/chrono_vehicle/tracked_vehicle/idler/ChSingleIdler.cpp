@@ -29,13 +29,11 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChSingleIdler::ChSingleIdler(const std::string& name) : ChIdler(name) {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSingleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChSingleIdler::Initialize(std::shared_ptr<ChChassis> chassis,
                                const ChVector<>& location,
                                ChTrackAssembly* track) {
     // Invoke the base class method
@@ -64,7 +62,6 @@ void ChSingleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_wheel->GetCollisionModel()->BuildModel();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSingleIdler::AddVisualizationAssets(VisualizationType vis) {
     ChIdler::AddVisualizationAssets(vis);

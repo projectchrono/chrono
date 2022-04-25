@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Vehicle inertia properties](#changed-vehicle-inertia-properties)
   - [CMake project configuration script](#changed-cmake-project-configuration-script)
   - [Right-handed frames in Chrono::Irrlicht](#changed-right-handed-frames-in-chronoirrlicht)
   - [Modal analysis module](#added-modal-analysis-module)
@@ -63,6 +64,17 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Vehicle inertia properties
+
+The underlying mechanism for setting and querying inertia properties (mass, COM location, and inertia matrix) for vehicle systems and subsystems was redesign for consistency.  At the user API level, this change is reflected through a uniform manner to hoe these quantities are reported.
+
+Any vehicle subsystem (of type `ChPart`), as well as any vehicle system (`ChWheeledVehicle` or `ChTrackedVehicle`) provide the following set of accessor methods:
+- `GetMass()` returns the mass of the (sub)system.  In the case of a vehicle, this includes the mass of all vehicle subsystems.  Furthermore, the mass of a wheeled vehicle includes the mass of the tires.
+- `GetCOMFrame()` returns the current COM (centroidal) frame.  This frame is relative to and expressed in the reference frame of the part or of the vehicle.
+- `GetInertia()` returns the current inertia matrix (that is the articulated inertia).  The reported inertia matrix is given with respect to the centroidal frame of the part or vehicle.
+
+In addition, a `ChPart` or `ChVehicle` also provide a method `GetTransform()` which returns the vehicle transform (translation and orientation encapsulated in a `ChFrame`) relative to the global (absolute) frame. Recall that, by convention, the vehicle reference frame is that of its main chassis.
 
 ### [Changed] CMake project configuration script
 

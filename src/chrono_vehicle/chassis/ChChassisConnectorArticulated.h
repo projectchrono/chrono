@@ -63,10 +63,6 @@ class CH_VEHICLE_API ChChassisConnectorArticulated : public ChChassisConnector {
     virtual double GetMaxSteeringAngle() const = 0;
 
     std::shared_ptr<ChLinkMotorRotationAngle> m_motor;  ///< steering motor
-
-  private:
-    virtual double GetMass() const override final { return 0; }
-    virtual ChVector<> GetCOMPos() const override final { return ChVector<>(0, 0, 0); }
 };
 
 /// @} vehicle

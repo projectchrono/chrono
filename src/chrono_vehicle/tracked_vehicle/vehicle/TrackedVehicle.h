@@ -19,10 +19,6 @@
 #ifndef TRACKED_VEHICLE_H
 #define TRACKED_VEHICLE_H
 
-#include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChMaterialSurface.h"
-
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 
 namespace chrono {

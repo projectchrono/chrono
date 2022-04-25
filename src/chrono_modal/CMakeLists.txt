@@ -42,6 +42,7 @@ SOURCE_GROUP("" FILES
 SET(SPECTRA_INCLUDE_DIR "" CACHE PATH "Path to the SPECTRA include dir, ex. C:/foo/Spectra/includes.")
 
 INCLUDE_DIRECTORIES(${SPECTRA_INCLUDE_DIR})
+set(CH_MODAL_INCLUDES "${SPECTRA_INCLUDE_DIR}" PARENT_SCOPE)
 
 # The MODAL library is added to the project,
 # and some custom properties of this target are set.

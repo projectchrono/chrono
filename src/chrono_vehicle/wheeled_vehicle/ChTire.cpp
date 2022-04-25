@@ -48,20 +48,11 @@ ChTire::ChTire(const std::string& name)
 void ChTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_wheel = wheel;
 
-    //// RADU
-    //// Todo:  Properly account for offset in adjusting inertia.
-    ////        This requires changing the spindle to a ChBodyAuxRef.
-    wheel->GetSpindle()->SetMass(wheel->GetSpindle()->GetMass() + GetMass());
-    wheel->GetSpindle()->SetInertiaXX(wheel->GetSpindle()->GetInertiaXX() + GetInertia());
-}
-
-// -----------------------------------------------------------------------------
-// Default implementation of ReportMass simply returns the value from GetMass.
-// However, concrete tire models which need to return 0 from GetMass (so that
-// the mass of the tire is not double counted) will override this function.
-// -----------------------------------------------------------------------------
-double ChTire::ReportMass() const {
-    return GetMass();
+    //// RADU TODO 
+    //// Properly account for offset in adjusting inertia.
+    //// This requires changing the spindle to a ChBodyAuxRef.
+    wheel->GetSpindle()->SetMass(wheel->GetSpindle()->GetMass() + GetAddedMass());
+    wheel->GetSpindle()->SetInertiaXX(wheel->GetSpindle()->GetInertiaXX() + GetAddedInertia());
 }
 
 // -----------------------------------------------------------------------------

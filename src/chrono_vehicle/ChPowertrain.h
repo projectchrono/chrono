@@ -102,6 +102,9 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
   protected:
     ChPowertrain(const std::string& name);
 
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
     /// Initialize this powertrain system by attaching it to an existing vehicle chassis.
     /// A derived class override must first call this base class version.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis);
@@ -136,6 +139,9 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
     std::vector<double> m_gear_ratios;  ///< gear ratios (0: reverse, 1+: forward)
     int m_current_gear;                 ///< current transmission gear (0: reverse, 1+: forward)
     double m_current_gear_ratio;        ///< current gear ratio (positive for forward, negative for reverse)
+
+  private:
+    ////virtual void UpdateInertiaProperties() override final;
 
     friend class ChWheeledVehicle;
     friend class ChTrackedVehicle;

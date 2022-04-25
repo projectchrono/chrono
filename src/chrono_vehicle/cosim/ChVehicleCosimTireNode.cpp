@@ -49,11 +49,14 @@ namespace vehicle {
 // Dummy ChWheel subsystem (needed to attach a ChTire)
 class DummyWheel : public ChWheel {
   public:
-    DummyWheel() : ChWheel("tire_wheel") {}
-    virtual double GetMass() const override { return 0; }
-    virtual ChVector<> GetInertia() const override { return ChVector<>(0); }
+    DummyWheel() : ChWheel("tire_wheel"), m_inertia(ChVector<>(0)) {}
+    virtual double GetWheelMass() const override { return 0; }
+    virtual const ChVector<>& GetWheelInertia() const override { return m_inertia; }
     virtual double GetRadius() const override { return 1; }
     virtual double GetWidth() const override { return 1; }
+
+  private:
+    ChVector<> m_inertia;
 };
 
 // =============================================================================

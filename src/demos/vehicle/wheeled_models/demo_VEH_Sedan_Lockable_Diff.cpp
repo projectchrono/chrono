@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         double time = my_sedan.GetSystem()->GetChTime();
 
-        if (time > 15 || my_sedan.GetVehicle().GetVehiclePos().x() > 49)
+        if (time > 15 || my_sedan.GetVehicle().GetPos().x() > 49)
             break;
 
         // Render scene

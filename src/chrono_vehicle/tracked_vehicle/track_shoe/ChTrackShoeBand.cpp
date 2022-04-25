@@ -31,8 +31,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
 // Utility function to calculate the center of a circle of given radius which passes through two given points.
 static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
     // midpoint
@@ -62,6 +60,7 @@ static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, 
     return O;
 }
 
+// -----------------------------------------------------------------------------
 ChTrackShoeBand::ChTrackShoeBand(const std::string& name) : ChTrackShoe(name) {}
 
 void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
@@ -115,12 +114,6 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     AddShoeContact();
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChTrackShoeBand::GetMass() const {
-    return GetTreadMass() + GetWebMass();
-}
-
 double ChTrackShoeBand::GetPitch() const {
     return GetToothBaseLength() + GetWebLength();
 }
@@ -129,7 +122,6 @@ ChVector<> ChTrackShoeBand::GetLateralContactPoint() const {
     return ChVector<>(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + GetGuideBoxDimensions().z() / 2);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeBand::AddShoeContact() {
     m_shoe->GetCollisionModel()->ClearModel();
@@ -155,7 +147,6 @@ void ChTrackShoeBand::AddShoeContact() {
     m_shoe->GetCollisionModel()->BuildModel();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChColor ChTrackShoeBand::GetColor(size_t index) {
     if (index == 0)

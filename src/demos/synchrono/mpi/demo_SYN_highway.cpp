@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
     // ----------
     // Controller
     // ----------
-    auto loc = vehicle.GetVehiclePos();
+    auto loc = vehicle.GetPos();
 
     // Make node_ids >= 4 start the other direction on the highway, going in a straight line
     auto curve_pts = node_id < 4 ? std::vector<ChVector<>>({loc, loc + ChVector<>(0, 140, 0)})   //

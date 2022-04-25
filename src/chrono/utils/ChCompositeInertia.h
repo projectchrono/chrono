@@ -60,6 +60,10 @@ class ChApi CompositeInertia {
                       bool is_void = false          ///< indicate if sub-component represents a material void
                       );
 
+    /// Utility function for calculating an inertia shift matrix from a given vector.
+    /// This matrix is used when applying the parallel axis theorem.
+    static ChMatrix33<> InertiaShiftMatrix(const ChVector<>& v);
+
   private:
     ChMatrix33<> m_inertia;  ///< inertia tensor w.r.t reference frame
     ChVector<> m_com;        ///< location of COM (relative to reference frame)

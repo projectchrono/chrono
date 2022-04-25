@@ -28,28 +28,26 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChRoadWheelAssembly::ChRoadWheelAssembly(const std::string& name, bool has_shock)
     : ChPart(name), m_has_shock(has_shock), m_track(nullptr) {}
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRoadWheelAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
                                      const ChVector<>& location,
                                      ChTrackAssembly* track) {
+    m_parent = chassis;
+    m_rel_loc = location;
     m_track = track;
 
     m_road_wheel->Initialize(chassis->GetBody(), GetCarrierBody(), location, track);
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRoadWheelAssembly::SetOutput(bool state) {
     m_output = state;
     m_road_wheel->SetOutput(state);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRoadWheelAssembly::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

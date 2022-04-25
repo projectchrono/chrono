@@ -23,13 +23,14 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
-
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <cstring>
+
+#include "chrono/core/ChMathematics.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
 
 namespace chrono {
 namespace vehicle {
@@ -148,6 +149,7 @@ void ChDataDriverTTR::Synchronize(double time) {
         m_curve_displ[i]->Evaluate(time, m_displ[i], m_displSpeed[i], dummy);
     }
     m_curve_throttle->Evaluate(time, m_throttle, dummy, dummy);
+    ChClampValue(m_throttle, 0.0, 1.0);
 }
 
 bool ChDataDriverTTR::Ended() const {

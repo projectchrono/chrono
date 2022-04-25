@@ -23,27 +23,17 @@
 
 namespace chrono {
 
-/// ChFrame: a class for coordinate systems in 3D space.
+/// Representation of a 3D transform.
+/// A 'frame' coordinate system has a translation and a rotation respect to a 'parent' coordinate system, usually the
+/// absolute (world) coordinates. Differently from a simple ChCoordsys object, the ChFrame also stores the 3x3 rotation
+/// matrix implements, which permits some optimizations, especially when a large number of vectors must be transformed
+/// by the same frame.
 ///
-///  A 'frame' coordinate system has a translation and
-/// a rotation respect to a 'parent' coordinate system,
-/// usually the absolute (world) coordinates.
-///
-///  Differently from a simple ChCoordsys object, however,
-/// the ChFrame implements some optimizations because
-/// each ChFrame stores also a 3x3 rotation matrix, which
-/// can speed up coordinate transformations when a large
-/// amount of vectors must be transformed by the same
-/// coordinate frame.
-///
-/// Further info at the @ref coordinate_transformations manual page.
-
+/// See @ref coordinate_transformations manual page.
 template <class Real = double>
 class ChFrame {
   public:
-    ChCoordsys<Real> coord;  ///< Rotation and position, as vector+quaternion
-
-    // Auxiliary, for faster transformation of many coordinates
+    ChCoordsys<Real> coord;    ///< Rotation and position, as vector+quaternion
     ChMatrix33<Real> Amatrix;  ///< 3x3 orthogonal rotation matrix
 
     /// Default constructor, or construct from pos and rot (as a quaternion)

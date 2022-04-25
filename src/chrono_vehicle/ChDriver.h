@@ -45,8 +45,8 @@ class CH_VEHICLE_API ChDriver {
         double m_braking;
     };
 
-    ChDriver(ChVehicle& vehicle  ///< associated vehicle
-    );
+    /// Construct a driver subsystem associated with the given vehicle.
+    ChDriver(ChVehicle& vehicle);
 
     virtual ~ChDriver() {}
 

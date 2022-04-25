@@ -200,11 +200,10 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     void CollectPlotData(double time);
 
     // Overrides of ChVehicle methods
+    virtual void InitializeInertiaProperties() override {}
+    virtual void UpdateInertiaProperties() override {}
     virtual std::string GetTemplateName() const override { return "TrackTestRig"; }
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
-    virtual double GetVehicleMass() const override { return GetMass(); }
-    virtual ChVector<> GetVehicleCOMPos() const override { return ChVector<>(0, 0, 0); }
-    virtual ChMatrix33<> GetVehicleInertia() const override { return ChMatrix33<>(1); }
     virtual std::string ExportComponentList() const override { return ""; }
     virtual void ExportComponentList(const std::string& filename) const override {}
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override { Initialize(); }

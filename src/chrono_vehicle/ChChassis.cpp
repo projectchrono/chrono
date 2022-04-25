@@ -44,13 +44,12 @@ ChChassis::~ChChassis() {
 }
 
 // -----------------------------------------------------------------------------
+const ChVector<>& ChChassis::GetPos() const {
+    return m_body->GetFrame_REF_to_abs().GetPos();
+}
 
 ChQuaternion<> ChChassis::GetRot() const {
     return m_body->GetFrame_REF_to_abs().GetRot() * ChWorldFrame::Quaternion();
-}
-
-ChQuaternion<> ChChassis::GetCOMRot() const {
-    return m_body->GetRot() * ChWorldFrame::Quaternion();
 }
 
 ChVector<> ChChassis::GetPointLocation(const ChVector<>& locpos) const {
@@ -81,9 +80,9 @@ void ChChassis::Initialize(ChSystem* system,
     m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
     m_body->SetIdentifier(0);
     m_body->SetNameString(m_name + " body");
-    m_body->SetMass(GetMass());
-    m_body->SetFrame_COG_to_REF(ChFrame<>(GetLocalPosCOM(), ChQuaternion<>(1, 0, 0, 0)));
-    m_body->SetInertia(GetInertia());
+    m_body->SetMass(GetBodyMass());
+    m_body->SetFrame_COG_to_REF(GetBodyCOMFrame());
+    m_body->SetInertia(GetBodyInertia());
     m_body->SetBodyFixed(m_fixed);
 
     m_body->SetFrame_REF_to_abs(chassis_pos);
@@ -97,7 +96,7 @@ void ChChassis::Initialize(ChSystem* system,
 
     // Add pre-defined markers (driver position and COM) on the chassis body.
     AddMarker("driver position", GetLocalDriverCoordsys());
-    AddMarker("COM", ChCoordsys<>(GetLocalPosCOM()));
+    AddMarker("COM", ChCoordsys<>(GetCOMFrame().GetPos(), GetCOMFrame().GetRot()));
 }
 
 void ChChassis::AddMarker(const std::string& name, const ChCoordsys<>& pos) {
@@ -141,6 +140,20 @@ void ChChassis::RemoveJoint(std::shared_ptr<ChVehicleJoint> joint) {
     }
     // Note: bushing are removed when the load container is removed
 }
+
+// -----------------------------------------------------------------------------
+
+void ChChassis::InitializeInertiaProperties() {
+    m_mass = GetBodyMass();
+    m_inertia = GetBodyInertia();
+    m_com = GetBodyCOMFrame();
+}
+
+void ChChassis::UpdateInertiaProperties() {
+    m_xform = m_body->GetFrame_REF_to_abs();
+}
+
+// -----------------------------------------------------------------------------
 
 // Chassis drag force implemented as an external force.
 class ChassisDragForce : public ChChassis::ExternalForce {
@@ -201,9 +214,9 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
     m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
     m_body->SetIdentifier(0);
     m_body->SetNameString(m_name + " body");
-    m_body->SetMass(GetMass());
-    m_body->SetFrame_COG_to_REF(ChFrame<>(GetLocalPosCOM(), ChQuaternion<>(1, 0, 0, 0)));
-    m_body->SetInertia(GetInertia());
+    m_body->SetMass(GetBodyMass());
+    m_body->SetFrame_COG_to_REF(GetBodyCOMFrame());
+    m_body->SetInertia(GetBodyInertia());
     m_body->SetBodyFixed(m_fixed);
 
     m_body->SetFrame_REF_to_abs(chassis_frame);
@@ -215,12 +228,21 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
     system->Add(m_container_forces);
 
     // Add pre-defined marker (COM) on the chassis body.
-    AddMarker("COM", ChCoordsys<>(GetLocalPosCOM()));
+    AddMarker("COM", ChCoordsys<>(GetBodyCOMFrame().GetPos(), GetBodyCOMFrame().GetRot()));
 }
 
 // -----------------------------------------------------------------------------
 
 ChChassisConnector::ChChassisConnector(const std::string& name) : ChPart(name) {}
+
+void ChChassisConnector::InitializeInertiaProperties() {
+    m_mass = 0;
+    m_inertia = ChMatrix33<>(0);
+    m_com = ChFrame<>();
+    m_xform = ChFrame<>();
+}
+
+void ChChassisConnector::UpdateInertiaProperties() {}
 
 }  // end namespace vehicle
 }  // end namespace chrono

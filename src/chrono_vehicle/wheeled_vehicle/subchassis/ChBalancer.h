@@ -45,12 +45,6 @@ class CH_VEHICLE_API ChBalancer : public ChSubchassis {
                             const ChVector<>& location           ///< [in] location relative to the chassis frame
                             ) override;
 
-    /// Get the total mass of the subchassis subsystem.
-    virtual double GetMass() const override;
-
-    /// Get the current global COM location of the subchassis subsystem.
-    virtual ChVector<> GetCOMPos() const override;
-
     /// Add visualization assets for the balancer subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
@@ -58,14 +52,17 @@ class CH_VEHICLE_API ChBalancer : public ChSubchassis {
     virtual void RemoveVisualizationAssets() override;
 
   protected:
-    ChBalancer(const std::string& name);
-
     /// Identifiers for the various hardpoints.
     enum PointId {
         BEAM,      ///< beam location
         REVOLUTE,  ///< location of revolute joint
         NUM_POINTS
     };
+
+    ChBalancer(const std::string& name);
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the subchassis reference frame.

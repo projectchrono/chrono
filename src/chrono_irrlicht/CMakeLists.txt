@@ -121,9 +121,6 @@ set(LIBRARIES
     )
 
 if (ENABLE_MODULE_POSTPROCESS)
-    #include_directories(${CH_POSTPROCESS_INCLUDES})  # nothing to append
-    #set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_POSTPROCESS_CXX_FLAGS}") # nothing to append
-    #set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_POSTPROCESS_LINK_FLAGS}") # nothing to append
     set(LIBRARIES ${LIBRARIES} ChronoEngine_postprocess)
 endif()
 if (ENABLE_MODULE_MODAL)
