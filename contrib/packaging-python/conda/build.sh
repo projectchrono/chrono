@@ -1,4 +1,5 @@
 
+echo Started build.sh
 mkdir ./build
 cd ./build
 echo $CI_PROJECT_DIR
