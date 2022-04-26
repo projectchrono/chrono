@@ -108,8 +108,8 @@ int main(int argc, char* argv[]) {
     auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     // Create the system
     // -----------------
-    ChSystemNSC mphysicalSystem;
-    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, 0));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, 0));
 
     // ----------------------
     // color visual materials
@@ -129,57 +129,28 @@ int main(int argc, char* argv[]) {
     floor->SetBodyFixed(true);
     //    floor->SetWvel_par(ChVector<>(-0.2,-0.4,-0.3));
     //    floor->SetPos_dt(ChVector<>(0.1, 0, 0));
-    mphysicalSystem.Add(floor);
-    {
-        auto asset = floor->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(green);
-        }
-    }
+    sys.Add(floor);
+    floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
-//    auto wall = chrono_types::make_shared<ChBodyEasyBox>(1,30,30, 1000, true, false);
-//    wall->SetPos({15,0,4});
-//    wall->SetBodyFixed(true);
-//    mphysicalSystem.Add(wall);
-//    {
-//        auto asset = wall->GetAssets()[0];
-//        if(auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
-//            visual_asset->material_list.push_back(red);
-//        }
-//    }
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
     box->SetPos({4,3,2});
     box->SetBodyFixed(true);
-    mphysicalSystem.Add(box);
-    {
-        auto asset = box->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
-            visual_asset->material_list.push_back(green);
-        }
-    }
+    sys.Add(box);
+    box->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+
 
     auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
     box1->SetPos({4,-3,2});
     box1->SetBodyFixed(true);
-    mphysicalSystem.Add(box1);
-    {
-        auto asset = box->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
-            visual_asset->material_list.push_back(green);
-        }
-    }
+    sys.Add(box1);
+    box1->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
     auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
     box2->SetPos({4,0,2});
     box2->SetBodyFixed(true);
-    mphysicalSystem.Add(box2);
-    {
-        auto asset = box->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
-            visual_asset->material_list.push_back(green);
-        }
-    }
+    box2->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+    sys.Add(box2);
 
     // -------------------------------------------
     // add a few box bodies to be sense by a radar
@@ -187,13 +158,9 @@ int main(int argc, char* argv[]) {
 //    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
 //    floor->SetPos({0, 0, -1});
 //    floor->SetBodyFixed(true);
-//    mphysicalSystem.Add(floor);
-//    {
-//        auto asset = floor->GetAssets()[0];
-//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//            visual_asset->material_list.push_back(green);
-//        }
-//    }
+//    sys.Add(floor);
+//    floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+
 //
 //    for (int i = 0; i < 10; i++) {
 //        float x = rand() % 50;
@@ -202,13 +169,8 @@ int main(int argc, char* argv[]) {
 //        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
 //        box_body->SetPos({5 + x, y, z});
 //        box_body->SetPos_dt({-0.5, 0, 0});
-//        mphysicalSystem.Add(box_body);
-//        {
-//            auto asset = box_body->GetAssets()[0];
-//            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//                visual_asset->material_list.push_back(red);
-//            }
-//        }
+//        sys.Add(box_body);
+//        box_body->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
 //    }
 //
 //    for (int i = 0; i < 10; i++) {
@@ -218,19 +180,14 @@ int main(int argc, char* argv[]) {
 //        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
 //        box_body->SetPos({10 - x, y, z});
 //        box_body->SetPos_dt({0.5, 0, 0});
-//        mphysicalSystem.Add(box_body);
-//        {
-//            auto asset = box_body->GetAssets()[0];
-//            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//                visual_asset->material_list.push_back(red);
-//            }
-//        }
+//        sys.Add(box_body);
+//        box_body->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
 //    }
 
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     float intensity = 0.3f;
     manager->scene->AddPointLight({100, 100, 100}, {intensity, intensity, intensity}, 500);
 
@@ -276,9 +233,9 @@ int main(int argc, char* argv[]) {
     while (ch_time < end_time) {
         manager->Update();
 
-        mphysicalSystem.DoStepDynamics(step_size);
+        sys.DoStepDynamics(step_size);
 
         // Get the current time of the simulation
-        ch_time = (float)mphysicalSystem.GetChTime();
+        ch_time = (float)sys.GetChTime();
     }
 }

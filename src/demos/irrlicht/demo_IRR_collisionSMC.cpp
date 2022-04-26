@@ -20,7 +20,7 @@
 #include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include <irrlicht.h>
 
@@ -56,11 +56,8 @@ void AddFallingItems(ChSystemSMC& sys) {
 
                 auto sphere = chrono_types::make_shared<ChSphereShape>();
                 sphere->GetSphereGeometry().rad = radius;
-                body->AddAsset(sphere);
-
-                auto texture = chrono_types::make_shared<ChTexture>();
-                texture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
-                body->AddAsset(texture);
+                sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+                body->AddVisualShape(sphere);
 
                 sys.AddBody(body);
             }
@@ -81,11 +78,8 @@ void AddFallingItems(ChSystemSMC& sys) {
 
                 auto box = chrono_types::make_shared<ChBoxShape>();
                 box->GetBoxGeometry().Size = hsize;
-                body->AddAsset(box);
-
-                auto texture = chrono_types::make_shared<ChTexture>();
-                texture->SetTextureFilename(GetChronoDataFile("textures/cubetexture_pinkwhite.png"));
-                body->AddAsset(texture);
+                box->SetTexture(GetChronoDataFile("textures/cubetexture_pinkwhite.png"));
+                body->AddVisualShape(box);
 
                 sys.AddBody(body);
             }
@@ -95,6 +89,7 @@ void AddFallingItems(ChSystemSMC& sys) {
 
 void AddContainerWall(std::shared_ptr<ChBody> body,
                       std::shared_ptr<ChMaterialSurface> mat,
+                      std::shared_ptr<ChVisualMaterial> vis_mat,
                       const ChVector<>& size,
                       const ChVector<>& pos,
                       bool visible = true) {
@@ -104,9 +99,9 @@ void AddContainerWall(std::shared_ptr<ChBody> body,
 
     if (visible) {
         auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().Pos = pos;
         box->GetBoxGeometry().Size = hsize;
-        body->AddAsset(box);
+        box->SetMaterial(0, vis_mat);
+        body->AddVisualShape(box, ChFrame<>(pos, QUNIT));
     }
 }
 
@@ -121,18 +116,16 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
 
     // Contact material for container
     auto fixed_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto fixed_mat_vis = chrono_types::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
+    fixed_mat_vis->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
 
     fixedBody->GetCollisionModel()->ClearModel();
-    AddContainerWall(fixedBody, fixed_mat, ChVector<>(20, 1, 20), ChVector<>(0, -5, 0));
-    AddContainerWall(fixedBody, fixed_mat, ChVector<>(1, 10, 20.99), ChVector<>(-10, 0, 0));
-    AddContainerWall(fixedBody, fixed_mat, ChVector<>(1, 10, 20.99), ChVector<>(10, 0, 0));
-    AddContainerWall(fixedBody, fixed_mat, ChVector<>(20.99, 10, 1), ChVector<>(0, 0, -10), false);
-    AddContainerWall(fixedBody, fixed_mat, ChVector<>(20.99, 10, 1), ChVector<>(0, 0, 10));
+    AddContainerWall(fixedBody, fixed_mat, fixed_mat_vis, ChVector<>(20, 1, 20), ChVector<>(0, -5, 0));
+    AddContainerWall(fixedBody, fixed_mat, fixed_mat_vis, ChVector<>(1, 10, 20.99), ChVector<>(-10, 0, 0));
+    AddContainerWall(fixedBody, fixed_mat, fixed_mat_vis, ChVector<>(1, 10, 20.99), ChVector<>(10, 0, 0));
+    AddContainerWall(fixedBody, fixed_mat, fixed_mat_vis, ChVector<>(20.99, 10, 1), ChVector<>(0, 0, -10), false);
+    AddContainerWall(fixedBody, fixed_mat, fixed_mat_vis, ChVector<>(20.99, 10, 1), ChVector<>(0, 0, 10));
     fixedBody->GetCollisionModel()->BuildModel();
-
-    auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    fixedBody->AddAsset(texture);
 
     sys.AddBody(fixedBody);
 
@@ -155,9 +148,8 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = hsize;
-    rotatingBody->AddAsset(box);
-
-    rotatingBody->AddAsset(texture);
+    box->SetTexture(GetChronoDataFile("textures/blue.png"));
+    rotatingBody->AddVisualShape(box);
 
     sys.AddBody(rotatingBody);
 
@@ -184,34 +176,32 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
     sys.SetCollisionSystemType(collision_type);
 
-    // Create the Irrlicht visualization
-    ChIrrApp application(&sys, L"SMC collision demo", core::dimension2d<u32>(800, 600));
-
-    // Add camera, lights, logo and sky in Irrlicht scene
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 18, -20));
-
     // Add fixed and moving bodies
     auto mixer = AddContainer(sys);
     AddFallingItems(sys);
 
-    // Complete asset specification: convert all assets to Irrlicht
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("SMC collision demo");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 18, -20));
+    vis->AddTypicalLights();
 
     // Simulation loop
     double out_time = 0;
 
-    while (application.GetDevice()->run()) {
+    while (vis->Run()) {
         sys.DoStepDynamics(time_step);
 
         double time = sys.GetChTime();
         if (time >= out_time) {
-            application.BeginScene();
-            application.DrawAll();
-            application.EndScene();
+            vis->BeginScene();
+            vis->DrawAll();
+            vis->EndScene();
 
             ////auto frc = mixer->GetAppliedForce();
             ////auto trq = mixer->GetAppliedTorque();

@@ -100,10 +100,10 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
 
     /// Utility function to create a sprocket visualization mesh.
     std::shared_ptr<geometry::ChTriangleMeshConnected> CreateVisualizationMesh(
-        double radius,                                    ///< inner radius
-        double width,                                     ///< gear width
-        double delta,                                     ///< arclength between points
-        ChVector<float> color = ChVector<float>(1, 1, 1)  ///< mesh color
+        double radius,                    ///< inner radius
+        double width,                     ///< gear width
+        double delta,                     ///< arclength between points
+        ChColor color = ChColor(1, 1, 1)  ///< mesh color
     ) const;
 
     /// Add visualization assets for the sprocket subsystem.

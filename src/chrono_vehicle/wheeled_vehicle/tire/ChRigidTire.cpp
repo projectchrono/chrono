@@ -58,8 +58,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     if (m_use_contact_mesh) {
         // Mesh contact
-        m_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        m_trimesh->LoadWavefrontMesh(m_contact_meshFile, true, false);
+        m_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(m_contact_meshFile, true, false);
 
         //// RADU
         // Hack to deal with current limitation: cannot set offset on a trimesh collision shape!
@@ -109,28 +108,14 @@ void ChRigidTire::AddVisualizationAssets(VisualizationType vis) {
     m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
     m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetWidth() / 2, 0);
     m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetWidth() / 2, 0);
-    m_wheel->GetSpindle()->AddAsset(m_cyl_shape);
-
-    m_texture = chrono_types::make_shared<ChTexture>();
-    m_texture->SetTextureFilename(GetChronoDataFile("textures/greenwhite.png"));
-    m_wheel->GetSpindle()->AddAsset(m_texture);
+    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
+    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
 }
 
 void ChRigidTire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChRigidTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    {
-        auto it = std::find(assets.begin(), assets.end(), m_cyl_shape);
-        if (it != assets.end())
-            assets.erase(it);
-    }
-    {
-        auto it = std::find(assets.begin(), assets.end(), m_texture);
-        if (it != assets.end())
-            assets.erase(it);
-    }
+    // This is important for the ChTire object because a wheel may add its own assets to the same body (the spindle/wheel).
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
 }
 
 // -----------------------------------------------------------------------------

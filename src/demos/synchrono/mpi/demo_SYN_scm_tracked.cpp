@@ -42,7 +42,7 @@
 #include "chrono_synchrono/utils/SynLog.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+    #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
 #endif
 
 #ifdef CHRONO_SENSOR
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetSpecularColor({.1f, .1f, .1f});
     vis_mat->SetKdTexture(GetChronoDataFile("sensor/textures/grass_texture.jpg"));
-    terrain->GetMesh()->material_list.push_back(vis_mat);
+    terrain->GetMesh()->AddMaterial(vis_mat);
 
     // Create the driver for the vehicle
 
@@ -224,14 +224,14 @@ int main(int argc, char* argv[]) {
     // -------------
 #ifdef CHRONO_IRRLICHT
     // Create the vehicle Irrlicht interface
-    std::shared_ptr<ChTrackedVehicleIrrApp> app;
+    std::shared_ptr<ChTrackedVehicleVisualSystemIrrlicht> app;
     if (cli.HasValueInVector<int>("irr", node_id)) {
-        app = chrono_types::make_shared<ChTrackedVehicleIrrApp>(&m113.GetVehicle(), L"SynChrono SCM Demo");
-        app->AddTypicalLights();
+        app = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+        app->SetWindowTitle("SynChrono SCM Demo");
         app->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 10.0, 0.5);
-        app->SetTimestep(step_size);
-        app->AssetBindAll();
-        app->AssetUpdateAll();
+        app->Initialize();
+        app->AddTypicalLights();
+        m113.GetVehicle().SetVisualSystem(app);
     }
 
     // Time interval between two render frames (1/FPS)
@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene
         if (app && step_number % render_steps == 0) {
-            app->BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app->BeginScene();
             app->DrawAll();
             app->EndScene();
         }

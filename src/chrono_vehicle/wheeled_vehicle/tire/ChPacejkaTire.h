@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_vehicle/ChTerrain.h"
@@ -428,7 +427,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChForceElementTire {
     bessel* m_bessel;
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
-    std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset
 };
 
 // -----------------------------------------------------------------------------

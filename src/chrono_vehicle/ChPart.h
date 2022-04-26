@@ -178,6 +178,12 @@ class CH_VEHICLE_API ChPart {
     static void ExportBodyLoadList(rapidjson::Document& jsonDocument,
                                    std::vector<std::shared_ptr<ChLoadBodyBody>> loads);
 
+    /// Erase all visual shapes from the visual model associated with the specified physics item (if any).
+    static void RemoveVisualizationAssets(std::shared_ptr<ChPhysicsItem> item);
+
+    /// Erase the given shape from the visual model associated with the specified physics item (if any).
+    static void RemoveVisualizationAsset(std::shared_ptr<ChPhysicsItem> item, std::shared_ptr<ChVisualShape> shape);
+
     std::string m_name;  ///< subsystem name
     bool m_output;       ///< specifies whether or not output is generated for this subsystem
 

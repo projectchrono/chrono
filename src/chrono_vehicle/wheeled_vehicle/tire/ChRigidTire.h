@@ -26,7 +26,6 @@
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -135,7 +134,6 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< contact mesh
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
-    std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset
 };
 
 /// @} vehicle_wheeled_tire

@@ -20,41 +20,20 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkTrajectory.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespace of Chrono
 using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
-
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemNSC mphysicalSystem;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Paths", core::dimension2d<u32>(1200, 900));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 4, -6));
-
-    // This means that contactforces will be shown in Irrlicht application
-    application.SetSymbolscale(0.2);
-    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_NORMALS);
+    ChSystemNSC sys;
 
     //
     // EXAMPLE 1:
@@ -62,52 +41,52 @@ int main(int argc, char* argv[]) {
 
     // Create a ChBody that contains the trajectory (a floor, fixed body)
 
-    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(3, 0.2, 3, 1000, true, false);
-    mfloor->SetBodyFixed(true);
-    // mfloor->SetRot(Q_from_AngAxis(0.1,VECT_Z));
-    application.GetSystem()->Add(mfloor);
+    auto floor = chrono_types::make_shared<ChBodyEasyBox>(3, 0.2, 3, 1000, true, false);
+    floor->SetBodyFixed(true);
+    // floor->SetRot(Q_from_AngAxis(0.1,VECT_Z));
+    sys.Add(floor);
 
     // Create a ChLinePath geometry, and insert sub-paths:
-    auto mpath = chrono_types::make_shared<ChLinePath>();
+    auto path = chrono_types::make_shared<ChLinePath>();
     ChLineSegment mseg1(ChVector<>(1, 2, 0), ChVector<>(2, 2, 0));
-    mpath->AddSubLine(mseg1);
+    path->AddSubLine(mseg1);
     ChLineArc marc1(ChCoordsys<>(ChVector<>(2, 2.5, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2, true);
-    mpath->AddSubLine(marc1);
+    path->AddSubLine(marc1);
     ChLineSegment mseg2(ChVector<>(2, 3, 0), ChVector<>(1, 3, 0));
-    mpath->AddSubLine(mseg2);
+    path->AddSubLine(mseg2);
     ChLineArc marc2(ChCoordsys<>(ChVector<>(1, 2.5, 0)), 0.5, CH_C_PI_2, -CH_C_PI_2, true);
-    mpath->AddSubLine(marc2);
-    mpath->Set_closed(true);
+    path->AddSubLine(marc2);
+    path->Set_closed(true);
 
     // Create a ChLineShape, a visualization asset for lines.
     // The ChLinePath is a special type of ChLine and it can be visualized.
-    auto mpathasset = chrono_types::make_shared<ChLineShape>();
-    mpathasset->SetLineGeometry(mpath);
-    mfloor->AddAsset(mpathasset);
+    auto pathasset = chrono_types::make_shared<ChLineShape>();
+    pathasset->SetLineGeometry(path);
+    floor->AddVisualShape(pathasset);
 
     // Create a body that will follow the trajectory
 
-    auto mpendulum = chrono_types::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000, true, false);
-    mpendulum->SetPos(ChVector<>(1, 1.5, 0));
-    application.GetSystem()->Add(mpendulum);
+    auto pendulum = chrono_types::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000, true, false);
+    pendulum->SetPos(ChVector<>(1, 1.5, 0));
+    sys.Add(pendulum);
 
     // The trajectory constraint:
 
-    auto mtrajectory = chrono_types::make_shared<ChLinkTrajectory>();
+    auto trajectory = chrono_types::make_shared<ChLinkTrajectory>();
 
     // Define which parts are connected (the trajectory is considered in the 2nd body).
-    mtrajectory->Initialize(mpendulum,              // body1 that follows the trajectory
-                            mfloor,                 // body2 that 'owns' the trajectory
-                            ChVector<>(0, 0.5, 0),  // point on body1 that will follow the trajectory
-                            mpath                   // the trajectory (reuse the one already added to body2 as asset)
-                            );
+    trajectory->Initialize(pendulum,               // body1 that follows the trajectory
+                           floor,                  // body2 that 'owns' the trajectory
+                           ChVector<>(0, 0.5, 0),  // point on body1 that will follow the trajectory
+                           path                    // the trajectory (reuse the one already added to body2 as asset)
+    );
 
     // Optionally, set a function that gets the curvilinear
     // abscyssa s of the line, as a function of time s(t). By default it was simply  s=t.
     auto mspacefx = chrono_types::make_shared<ChFunction_Ramp>(0, 0.5);
-    mtrajectory->Set_space_fx(mspacefx);
+    trajectory->Set_space_fx(mspacefx);
 
-    application.GetSystem()->Add(mtrajectory);
+    sys.Add(trajectory);
 
     //
     // EXAMPLE 2:
@@ -115,85 +94,82 @@ int main(int argc, char* argv[]) {
 
     // Create a ChBody that contains the trajectory
 
-    auto mwheel = chrono_types::make_shared<ChBody>();
-    mwheel->SetPos(ChVector<>(-3, 2, 0));
-    application.GetSystem()->Add(mwheel);
+    auto wheel = chrono_types::make_shared<ChBody>();
+    wheel->SetPos(ChVector<>(-3, 2, 0));
+    sys.Add(wheel);
 
     // Create a motor that spins the wheel
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    motor->Initialize(mwheel, mfloor, ChFrame<>(ChVector<>(-3, 2, 0)));
+    motor->Initialize(wheel, floor, ChFrame<>(ChVector<>(-3, 2, 0)));
     motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 4.0));
-    mphysicalSystem.AddLink(motor);
+    sys.AddLink(motor);
 
     // Create a ChLinePath geometry, and insert sub-paths:
-    auto mglyph = chrono_types::make_shared<ChLinePath>();
+    auto glyph = chrono_types::make_shared<ChLinePath>();
     ChLineSegment ms1(ChVector<>(-0.5, -0.5, 0), ChVector<>(0.5, -0.5, 0));
-    mglyph->AddSubLine(ms1);
+    glyph->AddSubLine(ms1);
     ChLineArc ma1(ChCoordsys<>(ChVector<>(0.5, 0, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2, true);
-    mglyph->AddSubLine(ma1);
+    glyph->AddSubLine(ma1);
     ChLineSegment ms2(ChVector<>(0.5, 0.5, 0), ChVector<>(-0.5, 0.5, 0));
-    mglyph->AddSubLine(ms2);
+    glyph->AddSubLine(ms2);
     ChLineArc ma2(ChCoordsys<>(ChVector<>(-0.5, 0, 0)), 0.5, CH_C_PI_2, -CH_C_PI_2, true);
-    mglyph->AddSubLine(ma2);
-    mglyph->SetPathDuration(1);
-    mglyph->Set_closed(true);
+    glyph->AddSubLine(ma2);
+    glyph->SetPathDuration(1);
+    glyph->Set_closed(true);
 
     // Create a ChLineShape, a visualization asset for lines.
     // The ChLinePath is a special type of ChLine and it can be visualized.
-    auto mglyphasset = chrono_types::make_shared<ChLineShape>();
-    mglyphasset->SetLineGeometry(mglyph);
-    mwheel->AddAsset(mglyphasset);
+    auto glyphasset = chrono_types::make_shared<ChLineShape>();
+    glyphasset->SetLineGeometry(glyph);
+    wheel->AddVisualShape(glyphasset);
 
     // Create a body that will slide on the glyph
 
-    auto mpendulum2 = chrono_types::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000, true, false);
-    mpendulum2->SetPos(ChVector<>(-3, 1, 0));
-    application.GetSystem()->Add(mpendulum2);
+    auto pendulum2 = chrono_types::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000, true, false);
+    pendulum2->SetPos(ChVector<>(-3, 1, 0));
+    sys.Add(pendulum2);
 
     // The glyph constraint:
 
-    auto mglyphconstraint = chrono_types::make_shared<ChLinkPointSpline>();
+    auto glyphconstraint = chrono_types::make_shared<ChLinkPointSpline>();
 
     // Define which parts are connected (the trajectory is considered in the 2nd body).
-    mglyphconstraint->Initialize(mpendulum2,  // body1 that follows the trajectory
-                                 mwheel,      // body2 that 'owns' the trajectory
-                                 true,
-                                 ChCoordsys<>(ChVector<>(0, 0.5, 0)),  // point on body1 that will follow the trajectory
-                                 ChCoordsys<>());
+    glyphconstraint->Initialize(pendulum2,  // body1 that follows the trajectory
+                                wheel,      // body2 that 'owns' the trajectory
+                                true,
+                                ChCoordsys<>(ChVector<>(0, 0.5, 0)),  // point on body1 that will follow the trajectory
+                                ChCoordsys<>());
 
-    mglyphconstraint->Set_trajectory_line(mglyph);
+    glyphconstraint->Set_trajectory_line(glyph);
 
-    application.GetSystem()->Add(mglyphconstraint);
+    sys.Add(glyphconstraint);
 
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Paths");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 4, -6));
+    vis->AddTypicalLights();
 
+    // This means that contactforces will be shown in Irrlicht application
+    vis->SetSymbolScale(0.2);
+    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_NORMALS);
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
+    // Simulation loop
+    double timestep = 0.01;
+    ChRealtimeStepTimer realtime_timer;
 
-    application.AssetBindAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-    application.AssetUpdateAll();
-
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
-    application.SetTimestep(0.01);
-    application.SetTryRealtime(true);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        application.DrawAll();
-
-        application.DoStep();
-
-        application.EndScene();
+        sys.DoStepDynamics(timestep);
+        realtime_timer.Spin(timestep);
     }
 
     return 0;

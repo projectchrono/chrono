@@ -373,8 +373,6 @@ int main(int argc, char* argv[]) {
     m113.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     m113.Initialize();
 
-    ChVehicleGeometry::EnableVisualizationAssetLevels(false);
-
     m113.SetChassisVisualizationType(VisualizationType::NONE);
     m113.SetSprocketVisualizationType(VisualizationType::MESH);
     m113.SetIdlerVisualizationType(VisualizationType::MESH);

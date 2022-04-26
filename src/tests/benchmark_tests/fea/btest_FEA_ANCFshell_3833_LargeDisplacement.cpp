@@ -33,10 +33,10 @@
 #include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChIrrApp.h"
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
 
 #ifdef CHRONO_PARDISO_MKL
@@ -203,22 +203,22 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
     m_system->Add(mesh);
 
     // Setup visualization
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemesh->SetSmoothFaces(true);
-    mesh->AddAsset(mvisualizemesh);
+    mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshlines = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    mvisualizemeshlines->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizemeshlines = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    mvisualizemeshlines->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshlines->SetWireframe(true);
     mvisualizemeshlines->SetDrawInUndeformedReference(false);
-    mesh->AddAsset(mvisualizemeshlines);
+    mesh->AddVisualShapeFEA(mvisualizemeshlines);
 
-    auto mvisualizemeshnode = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    mvisualizemeshnode->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshnode->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizemeshnode = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    mvisualizemeshnode->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshnode->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshnode->SetSymbolsThickness(0.004);
-    mesh->AddAsset(mvisualizemeshnode);
+    mesh->AddVisualShapeFEA(mvisualizemeshnode);
 
     // Populate the mesh container with a the nodes and elements for the meshed beam
     double dx = length / (4 * num_elements);
@@ -292,28 +292,30 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
 
 void ANCFShellTest::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp application(m_system, L"ANCF Shells 3833", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(-0.4f, 0.4f, 0.4f), irr::core::vector3df(0, 0, 0));
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+    m_system->SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("ANCF Shells 3833");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.4, 0.4, 0.4), ChVector<>(0, 0, 0));
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
-
-    while (application.GetDevice()->run()) {
+    while (vis->Run()) {
         std::cout << "Time(s): " << this->m_system->GetChTime() << "  Corner Pos(m): " << this->GetCornerPointPos()
                   << std::endl;
-        application.BeginScene();
-        application.DrawAll();
-        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
+        vis->BeginScene();
+        vis->DrawAll();
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
                                      irr::video::SColor(255, 255, 0, 0));
-        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
                                      irr::video::SColor(255, 0, 255, 0));
-        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
                                      irr::video::SColor(255, 0, 0, 255));
         ExecuteStep();
-        application.EndScene();
+        vis->EndScene();
     }
 #endif
 }

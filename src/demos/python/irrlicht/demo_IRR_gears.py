@@ -25,19 +25,8 @@ import math as m
 
 print("Copyright (c) 2017 projectchrono.org")
 
-# Create a Chrono::Engine physical system
-mphysicalSystem = chrono.ChSystemNSC()
-
-# Create the Irrlicht visualization (open the Irrlicht device,
-# bind a simple user interface, etc, etc.)
-application = chronoirr.ChIrrApp(mphysicalSystem, "Gears annd pulleys", chronoirr.dimension2du(800, 600))
-
-
-# Easy shortcuts to add camera, lights, logo, and sky in Irrlicht scene:
-application.AddLogo()
-application.AddSkyBox()
-application.AddTypicalLights()
-application.AddCamera(chronoirr.vector3df(12, 15, -20))
+# Create a Chrono::Engine physical sys
+sys = chrono.ChSystemNSC()
 
 # Contact material shared among all bodies
 mat = chrono.ChMaterialSurfaceNSC()
@@ -49,59 +38,61 @@ radB = 4
 
 # ...the truss
 mbody_truss = chrono.ChBodyEasyBox(20, 10, 2, 1000, True, False, mat)
-mphysicalSystem.Add(mbody_truss)
+sys.Add(mbody_truss)
 mbody_truss.SetBodyFixed(True)
 mbody_truss.SetPos(chrono.ChVectorD(0, 0, 3))
 
-# ...a texture asset that will be shared among the four wheels
-cylinder_texture = chrono.ChTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"))
+# Shared visualization material
+vis_mat = chrono.ChVisualMaterial()
+vis_mat.SetKdTexture(chrono.GetChronoDataFile('textures/pinkwhite.png'))
+
 
 # ...the rotating bar support for the two epicycloidal wheels
 mbody_train = chrono.ChBodyEasyBox(8, 1.5, 1.0, 1000, True, False, mat)
-mphysicalSystem.Add(mbody_train)
+sys.Add(mbody_train)
 mbody_train.SetPos(chrono.ChVectorD(3, 0, 0))
 
 # ...which must rotate respect to truss along Z axis, in 0,0,0
 link_revoluteTT = chrono.ChLinkLockRevolute()
 link_revoluteTT.Initialize(mbody_truss, mbody_train, 
                            chrono.ChCoordsysD(chrono.ChVectorD(0,0,0), chrono.QUNIT))
-mphysicalSystem.AddLink(link_revoluteTT)
+sys.AddLink(link_revoluteTT)
 
 # ...the first gear
 mbody_gearA = chrono.ChBodyEasyCylinder(radA, 0.5, 1000, True, False, mat)
-mphysicalSystem.Add(mbody_gearA)
+sys.Add(mbody_gearA)
 mbody_gearA.SetPos(chrono.ChVectorD(0, 0, -1))
 mbody_gearA.SetRot(chrono.Q_from_AngX(m.pi / 2))
-mbody_gearA.AddAsset(cylinder_texture)
+mbody_gearA.GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # for aesthetic reasons, also add a thin cylinder only as a visualization
 mshaft_shape = chrono.ChCylinderShape()
 mshaft_shape.GetCylinderGeometry().p1 = chrono.ChVectorD(0, -3, 0)
 mshaft_shape.GetCylinderGeometry().p2 = chrono.ChVectorD(0, 10, 0)
 mshaft_shape.GetCylinderGeometry().rad = radA * 0.4
-mbody_gearA.AddAsset(mshaft_shape)
+mbody_gearA.AddVisualShape(mshaft_shape)
 
 # ...impose rotation speed between the first gear and the fixed truss
 link_motor = chrono.ChLinkMotorRotationSpeed()
 link_motor.Initialize(mbody_gearA, mbody_truss, 
                         chrono.ChFrameD(chrono.ChVectorD(0, 0, 0), chrono.QUNIT))
 link_motor.SetSpeedFunction(chrono.ChFunction_Const(6))
-mphysicalSystem.AddLink(link_motor)
+sys.AddLink(link_motor)
 
 
 # ...the second gear
 interaxis12 = radA + radB
 mbody_gearB = chrono.ChBodyEasyCylinder(radB, 0.4, 1000, True, False, mat)
-mphysicalSystem.Add(mbody_gearB)
+sys.Add(mbody_gearB)
 mbody_gearB.SetPos(chrono.ChVectorD(interaxis12, 0, -1))
 mbody_gearB.SetRot(chrono.Q_from_AngX(m.pi / 2))
-mbody_gearB.AddAsset(cylinder_texture)
+mbody_gearB.GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # ...the second gear is fixed to the rotating bar
 link_revolute = chrono.ChLinkLockRevolute()
 link_revolute.Initialize(mbody_gearB, mbody_train, 
                         chrono.ChCoordsysD(chrono.ChVectorD(interaxis12, 0, 0), chrono.QUNIT))
-mphysicalSystem.AddLink(link_revolute)
+sys.AddLink(link_revolute)
 
 # ...the gear constraint between the two wheels A and B.
 #    As transmission ratio (=speed of wheel B / speed of wheel A) to enter in  Set_tau(), we
@@ -120,7 +111,7 @@ link_gearAB.Set_local_shaft1(chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngX(-m
 link_gearAB.Set_local_shaft2(chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngX(-m.pi / 2)))
 link_gearAB.Set_tau(radA / radB)
 link_gearAB.Set_checkphase(True)
-mphysicalSystem.AddLink(link_gearAB)
+sys.AddLink(link_gearAB)
 
 # ...the gear constraint between the second wheel B and a large wheel C with inner teeth, that
 #    does not necessarily need to be created as a new body because it is the 'fixed' part of the
@@ -132,15 +123,15 @@ link_gearBC.Set_local_shaft1(chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngX(-m
 link_gearBC.Set_local_shaft2(chrono.ChFrameD(chrono.ChVectorD(0, 0, -4), chrono.QUNIT))
 link_gearBC.Set_tau(radB / radC)
 link_gearBC.Set_epicyclic(True) # <-- this means: use a wheel with internal teeth!
-mphysicalSystem.AddLink(link_gearBC)
+sys.AddLink(link_gearBC)
 
 # ...the bevel gear at the side,
 radD = 5
 mbody_gearD = chrono.ChBodyEasyCylinder(radD, 0.8, 1000, True, False, mat)
-mphysicalSystem.Add(mbody_gearD)
+sys.Add(mbody_gearD)
 mbody_gearD.SetPos(chrono.ChVectorD(-10, 0, -9))
 mbody_gearD.SetRot(chrono.Q_from_AngZ(m.pi / 2))
-mbody_gearD.AddAsset(cylinder_texture)
+mbody_gearD.GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # ...it is fixed to the truss using a revolute joint with horizontal axis (must rotate
 #    the default ChLink creation coordys 90 degrees on the Y vertical, since the revolute
@@ -149,7 +140,7 @@ link_revoluteD = chrono.ChLinkLockRevolute()
 link_revoluteD.Initialize(mbody_gearD, mbody_truss, 
                           chrono.ChCoordsysD(chrono.ChVectorD(-10, 0, -9), 
                           chrono.Q_from_AngY(m.pi / 2)))
-mphysicalSystem.AddLink(link_revoluteD)
+sys.AddLink(link_revoluteD)
 
 # ... Let's make a 1:1 gear between wheel A and wheel D as a bevel gear: Chrono does not require
 #     special info for this case -the position of the two shafts and the transmission ratio are enough-
@@ -158,22 +149,22 @@ link_gearAD.Initialize(mbody_gearA, mbody_gearD, chrono.CSYSNORM)
 link_gearAD.Set_local_shaft1(chrono.ChFrameD(chrono.ChVectorD(0, -7, 0), chrono.Q_from_AngX(-m.pi / 2)))
 link_gearAD.Set_local_shaft2(chrono.ChFrameD(chrono.ChVectorD(0, -7, 0), chrono.Q_from_AngX(-m.pi / 2)))
 link_gearAD.Set_tau(1)
-mphysicalSystem.AddLink(link_gearAD)
+sys.AddLink(link_gearAD)
 
 # ...the pulley at the side,
 radE = 2;
 mbody_pulleyE = chrono.ChBodyEasyCylinder(radE, 0.8, 1000, True, False, mat)
-mphysicalSystem.Add(mbody_pulleyE)
+sys.Add(mbody_pulleyE)
 mbody_pulleyE.SetPos(chrono.ChVectorD(-10, -11, -9))
 mbody_pulleyE.SetRot(chrono.Q_from_AngZ(m.pi / 2))
-mbody_pulleyE.AddAsset(cylinder_texture)
+mbody_pulleyE.GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # ... it is fixed to the truss using a revolute joint with horizontal axis (must rotate
 #     default ChLink creation coordys 90� on the Y vertical, since the revolute axis is the Z axis).
 link_revoluteE = chrono.ChLinkLockRevolute()
 link_revoluteE.Initialize(mbody_pulleyE, mbody_truss,
                           chrono.ChCoordsysD(chrono.ChVectorD(-10, -11, -9), chrono.Q_from_AngY(m.pi / 2)))
-mphysicalSystem.AddLink(link_revoluteE)
+sys.AddLink(link_revoluteE)
 
 # ... Let's make a synchro belt constraint between pulley D and pulley E. The user must be
 #     sure that the two shafts are parallel in absolute space. Also, interaxial distance should not change.
@@ -184,36 +175,36 @@ link_pulleyDE.Set_local_shaft2(chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngX(
 link_pulleyDE.Set_r1(radD);
 link_pulleyDE.Set_r2(radE);
 link_pulleyDE.Set_checkphase(True); # synchro belts don't tolerate slipping: this avoids it as numerical errors accumulate.
-mphysicalSystem.AddLink(link_pulleyDE);
+sys.AddLink(link_pulleyDE);
 
-# Complete construction of Irrlicht assets
-application.AssetBindAll();
-application.AssetUpdateAll();
+
+# Create the Irrlicht visualization
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Gears annd pulleys')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(12, 15, -20))
+vis.AddTypicalLights()
 
 # Set intergator type
-mphysicalSystem.SetTimestepperType(chrono.ChTimestepper.Type_EULER_IMPLICIT_PROJECTED)
+sys.SetTimestepperType(chrono.ChTimestepper.Type_EULER_IMPLICIT_PROJECTED)
 
 # Simulation loop
-application.SetTimestep(0.001)
-application.SetTryRealtime(True)
-
-while (application.GetDevice().run()):
-    application.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192));
-
-    application.DrawAll();
-
+while vis.Run():
+    vis.BeginScene() 
+    vis.DrawAll()
     # Draw some segments for a simplified representation of pulley
-    chronoirr.drawSegment(application.GetVideoDriver(),
+    chronoirr.drawSegment(vis.GetVideoDriver(),
                           link_pulleyDE.Get_belt_up1(),
                           link_pulleyDE.Get_belt_up2(),
                           chronoirr.SColor(255, 0, 255, 0), True);
-    chronoirr.drawSegment(application.GetVideoDriver(),
+    chronoirr.drawSegment(vis.GetVideoDriver(),
                           link_pulleyDE.Get_belt_low1(),
                           link_pulleyDE.Get_belt_low2(),
                           chronoirr.SColor(255, 0, 255, 0), True);
-
-    # Advance simulation for one step
-    application.DoStep();
-
-    application.EndScene();
+    vis.EndScene()
+    sys.DoStepDynamics(1e-3)
 

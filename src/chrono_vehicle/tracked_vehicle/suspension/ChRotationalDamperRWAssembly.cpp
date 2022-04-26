@@ -18,7 +18,6 @@
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/tracked_vehicle/suspension/ChRotationalDamperRWAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
@@ -173,7 +172,7 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
         cyl->GetCylinderGeometry().p1 = m_pA;
         cyl->GetCylinderGeometry().p2 = m_pAW;
         cyl->GetCylinderGeometry().rad = radius;
-        m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
 
     if ((m_pA - m_pAC).Length2() > threshold2) {
@@ -181,7 +180,7 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
         cyl->GetCylinderGeometry().p1 = m_pA;
         cyl->GetCylinderGeometry().p2 = m_pAC;
         cyl->GetCylinderGeometry().rad = radius;
-        m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
 
     // Revolute joint (arm-chassis)
@@ -190,7 +189,7 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
         cyl->GetCylinderGeometry().p1 = m_pAC - radius * m_dY;
         cyl->GetCylinderGeometry().p2 = m_pAC + radius * m_dY;
         cyl->GetCylinderGeometry().rad = 1.5 * radius;
-        m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
 
     // Revolute joint (arm-wheel)
@@ -200,16 +199,12 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
         cyl->GetCylinderGeometry().p1 = m_pO;
         cyl->GetCylinderGeometry().p2 = m_pAW + (m_pAW - m_pO) * radius/len;
         cyl->GetCylinderGeometry().rad = radius;
-        m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.6f, 0.3f));
-    m_arm->AddAsset(col);
 }
 
 void ChRotationalDamperRWAssembly::RemoveVisualizationAssets() {
-    m_arm->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_arm);
 }
 
 // -----------------------------------------------------------------------------

@@ -74,6 +74,8 @@
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
 
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
+
 // Wheeled vehicle
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
@@ -219,6 +221,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::WheeledVehicle)
 %shared_ptr(chrono::vehicle::WheeledTrailer)
 
+%shared_ptr(chrono::vehicle::ChVehicleVisualSystem)
+
 %shared_ptr(chrono::vehicle::ChSuspensionTestRig)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPushrod)
@@ -299,9 +303,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import  "chrono_swig/interface/core/ChLinkRSDA.i"
 %import  "chrono_swig/interface/core/ChLoad.i"
 %import  "chrono_swig/interface/core/ChShaft.i"
-%import  "chrono_swig/interface/core/ChAsset.i"
-%import  "chrono_swig/interface/core/ChAssetLevel.i"
-%import  "chrono_swig/interface/core/ChVisualization.i"
+%import  "chrono_swig/interface/core/ChVisualShape.i"
 %import  "chrono_swig/interface/core/ChContactContainer.i"
 %import  "../../../chrono/motion_functions/ChFunction.h"
 %import  "chrono_swig/interface/core/ChMaterialSurface.i"
@@ -337,9 +339,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkRSDA.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLoad.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChShaft.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChAsset.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChAssetLevel.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualization.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactContainer.i"
 %import(module = "pychrono.core")  "../../../chrono/motion_functions/ChFunction.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChMaterialSurface.i"
@@ -350,6 +350,16 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import(module = "pychrono.core")  "../../../chrono/physics/ChLinkBase.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTexture.i"
 %import(module = "pychrono.core")  "../../../chrono/assets/ChTriangleMeshShape.h"
+
+#ifdef CHRONO_IRRLICHT
+
+#define ChApiIrr 
+#define IRRLICHT_API
+#define _IRR_DEPRECATED_
+
+%include "chrono_swig/interface/vehicle/ChVehicleVisualSystemIrrlicht.i"
+#endif
+
 #endif
 
 // TODO: 
@@ -371,6 +381,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../../chrono_vehicle/ChVehicle.h"
 %include "ChDriver.i"
 %include "ChTerrain.i"
+%include "../../../chrono_vehicle/ChVehicleVisualSystem.h"
+
 //TODO: antirollbar
 
 // Wheeled vehicles

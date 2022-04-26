@@ -24,7 +24,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -42,18 +42,14 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono physical system
-    ChSystemNSC mphysicalSystem;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Gears and pulleys", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(12, 15, -20));
+    ChSystemNSC sys;
 
     // Contact material shared among all bodies
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
+    // Shared visualization material
+    auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
+    vis_mat->SetKdTexture(GetChronoDataFile("textures/pinkwhite.png"));
 
     // Create all the rigid bodies.
 
@@ -62,56 +58,51 @@ int main(int argc, char* argv[]) {
 
     // ...the truss
     auto mbody_truss = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, false, mat);
-    mphysicalSystem.Add(mbody_truss);
+    sys.Add(mbody_truss);
     mbody_truss->SetBodyFixed(true);
     mbody_truss->SetPos(ChVector<>(0, 0, 3));
 
-    // ...a texture asset that will be shared among the four wheels
-    auto cylinder_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/pinkwhite.png"));
-
     // ...the rotating bar support for the two epicycloidal wheels
     auto mbody_train = chrono_types::make_shared<ChBodyEasyBox>(8, 1.5, 1.0, 1000, true, false, mat);
-    mphysicalSystem.Add(mbody_train);
+    sys.Add(mbody_train);
     mbody_train->SetPos(ChVector<>(3, 0, 0));
 
     // ...which must rotate respect to truss along Z axis, in 0,0,0,
     auto link_revoluteTT = chrono_types::make_shared<ChLinkLockRevolute>();
-    link_revoluteTT->Initialize(mbody_truss, mbody_train,
-                                ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
-    mphysicalSystem.AddLink(link_revoluteTT);
+    link_revoluteTT->Initialize(mbody_truss, mbody_train, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+    sys.AddLink(link_revoluteTT);
 
     // ...the first gear
     auto mbody_gearA = chrono_types::make_shared<ChBodyEasyCylinder>(radA, 0.5, 1000, true, false, mat);
-    mphysicalSystem.Add(mbody_gearA);
+    sys.Add(mbody_gearA);
     mbody_gearA->SetPos(ChVector<>(0, 0, -1));
     mbody_gearA->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
-    mbody_gearA->AddAsset(cylinder_texture);
+    mbody_gearA->GetVisualShape(0)->SetMaterial(0, vis_mat);
     // for aesthetic reasons, also add a thin cylinder only as a visualization:
     auto mshaft_shape = chrono_types::make_shared<ChCylinderShape>();
-    mshaft_shape->GetCylinderGeometry().p1 = ChVector<>(0,-3,0);
-    mshaft_shape->GetCylinderGeometry().p2 = ChVector<>(0, 10,0);
-    mshaft_shape->GetCylinderGeometry().rad = radA*0.4;
-    mbody_gearA->AddAsset(mshaft_shape);
+    mshaft_shape->GetCylinderGeometry().p1 = ChVector<>(0, -3, 0);
+    mshaft_shape->GetCylinderGeometry().p2 = ChVector<>(0, 10, 0);
+    mshaft_shape->GetCylinderGeometry().rad = radA * 0.4;
+    mbody_gearA->AddVisualShape(mshaft_shape);
 
     // ...impose rotation speed between the first gear and the fixed truss
     auto link_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     link_motor->Initialize(mbody_gearA, mbody_truss, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
     link_motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(6));
-    mphysicalSystem.AddLink(link_motor);
+    sys.AddLink(link_motor);
 
     // ...the second gear
     double interaxis12 = radA + radB;
     auto mbody_gearB = chrono_types::make_shared<ChBodyEasyCylinder>(radB, 0.4, 1000, true, false, mat);
-    mphysicalSystem.Add(mbody_gearB);
+    sys.Add(mbody_gearB);
     mbody_gearB->SetPos(ChVector<>(interaxis12, 0, -1));
     mbody_gearB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
-    mbody_gearB->AddAsset(cylinder_texture);
+    mbody_gearB->GetVisualShape(0)->SetMaterial(0, vis_mat);
 
     // ... the second gear is fixed to the rotating bar
     auto link_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    link_revolute->Initialize(mbody_gearB, mbody_train,
-                              ChCoordsys<>(ChVector<>(interaxis12, 0, 0), QUNIT));
-    mphysicalSystem.AddLink(link_revolute);
+    link_revolute->Initialize(mbody_gearB, mbody_train, ChCoordsys<>(ChVector<>(interaxis12, 0, 0), QUNIT));
+    sys.AddLink(link_revolute);
 
     // ...the gear constraint between the two wheels A and B.
     //    As transmission ratio (=speed of wheel B / speed of wheel A) to enter in  Set_tau(), we
@@ -130,7 +121,7 @@ int main(int argc, char* argv[]) {
     link_gearAB->Set_local_shaft2(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
     link_gearAB->Set_tau(radA / radB);
     link_gearAB->Set_checkphase(true);
-    mphysicalSystem.AddLink(link_gearAB);
+    sys.AddLink(link_gearAB);
 
     // ...the gear constraint between the second wheel B and a large wheel C with inner teeth, that
     //    does not necessarily need to be created as a new body because it is the 'fixed' part of the
@@ -142,22 +133,22 @@ int main(int argc, char* argv[]) {
     link_gearBC->Set_local_shaft2(ChFrame<>(ChVector<>(0, 0, -4), QUNIT));
     link_gearBC->Set_tau(radB / radC);
     link_gearBC->Set_epicyclic(true);  // <-- this means: use a wheel with internal teeth!
-    mphysicalSystem.AddLink(link_gearBC);
+    sys.AddLink(link_gearBC);
 
     // ...the bevel gear at the side,
     double radD = 5;
     auto mbody_gearD = chrono_types::make_shared<ChBodyEasyCylinder>(radD, 0.8, 1000, true, false, mat);
-    mphysicalSystem.Add(mbody_gearD);
+    sys.Add(mbody_gearD);
     mbody_gearD->SetPos(ChVector<>(-10, 0, -9));
     mbody_gearD->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
-    mbody_gearD->AddAsset(cylinder_texture);
+    mbody_gearD->GetVisualShape(0)->SetMaterial(0, vis_mat);
 
     // ... it is fixed to the truss using a revolute joint with horizontal axis (must rotate
     //     default ChLink creation coordys 90° on the Y vertical, since the revolute axis is the Z axis).
     auto link_revoluteD = chrono_types::make_shared<ChLinkLockRevolute>();
     link_revoluteD->Initialize(mbody_gearD, mbody_truss,
                                ChCoordsys<>(ChVector<>(-10, 0, -9), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
-    mphysicalSystem.AddLink(link_revoluteD);
+    sys.AddLink(link_revoluteD);
 
     // ... Let's make a 1:1 gear between wheel A and wheel D as a bevel gear: Chrono does not require
     //     special info for this case -the position of the two shafts and the transmission ratio are enough-
@@ -166,22 +157,22 @@ int main(int argc, char* argv[]) {
     link_gearAD->Set_local_shaft1(ChFrame<>(ChVector<>(0, -7, 0), chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
     link_gearAD->Set_local_shaft2(ChFrame<>(ChVector<>(0, -7, 0), chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
     link_gearAD->Set_tau(1);
-    mphysicalSystem.AddLink(link_gearAD);
+    sys.AddLink(link_gearAD);
 
     // ...the pulley at the side,
     double radE = 2;
     auto mbody_pulleyE = chrono_types::make_shared<ChBodyEasyCylinder>(radE, 0.8, 1000, true, false, mat);
-    mphysicalSystem.Add(mbody_pulleyE);
+    sys.Add(mbody_pulleyE);
     mbody_pulleyE->SetPos(ChVector<>(-10, -11, -9));
     mbody_pulleyE->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
-    mbody_pulleyE->AddAsset(cylinder_texture);
+    mbody_pulleyE->GetVisualShape(0)->SetMaterial(0, vis_mat);
 
     // ... it is fixed to the truss using a revolute joint with horizontal axis (must rotate
     //     default ChLink creation coordys 90° on the Y vertical, since the revolute axis is the Z axis).
     auto link_revoluteE = chrono_types::make_shared<ChLinkLockRevolute>();
     link_revoluteE->Initialize(mbody_pulleyE, mbody_truss,
                                ChCoordsys<>(ChVector<>(-10, -11, -9), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
-    mphysicalSystem.AddLink(link_revoluteE);
+    sys.AddLink(link_revoluteE);
 
     // ... Let's make a synchro belt constraint between pulley D and pulley E. The user must be
     //     sure that the two shafts are parallel in absolute space. Also, interaxial distance should not change.
@@ -191,64 +182,62 @@ int main(int argc, char* argv[]) {
     link_pulleyDE->Set_local_shaft2(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
     link_pulleyDE->Set_r1(radD);
     link_pulleyDE->Set_r2(radE);
-    link_pulleyDE->Set_checkphase(true); // synchro belts don't tolerate slipping: this avoids it as numerical errors accumulate.
-    mphysicalSystem.AddLink(link_pulleyDE);
+    link_pulleyDE->Set_checkphase(
+        true);  // synchro belts don't tolerate slipping: this avoids it as numerical errors accumulate.
+    sys.AddLink(link_pulleyDE);
 
-
-    
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
-    application.AssetBindAll();
-
-    // Use this function for 'converting' assets into Irrlicht meshes
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Gears and pulleys");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(12, 15, -20));
+    vis->AddTypicalLights();
 
     // Prepare the physical system for the simulation
 
-    mphysicalSystem.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // Simulation loop
 
-    application.SetTimestep(0.001);
-    application.SetTryRealtime(true);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-
-        application.DrawAll();
+    double timestep = 0.001;
+    ChRealtimeStepTimer realtime_timer;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
         // .. draw also some circle lines representing gears - just for aesthetical reasons
 
-        tools::drawCircle(application.GetVideoDriver(), link_gearBC->Get_r2(),
-                               (link_gearBC->Get_local_shaft2() >> *link_gearBC->GetBody2()).GetCoord(),
-                               video::SColor(255, 255, 0, 0), 50, true);
-        tools::drawCircle(application.GetVideoDriver(), link_gearAD->Get_r1(),
-                               (link_gearAD->Get_local_shaft1() >> *link_gearAD->GetBody1()).GetCoord(),
-                               video::SColor(255, 255, 0, 0), 30, true);
-        tools::drawCircle(application.GetVideoDriver(), link_gearAD->Get_r2(),
-                               (link_gearAD->Get_local_shaft2() >> *link_gearAD->GetBody2()).GetCoord(),
-                               video::SColor(255, 255, 0, 0), 30, true);
+        tools::drawCircle(vis->GetVideoDriver(), link_gearBC->Get_r2(),
+                          (link_gearBC->Get_local_shaft2() >> *link_gearBC->GetBody2()).GetCoord(),
+                          video::SColor(255, 255, 0, 0), 50, true);
+        tools::drawCircle(vis->GetVideoDriver(), link_gearAD->Get_r1(),
+                          (link_gearAD->Get_local_shaft1() >> *link_gearAD->GetBody1()).GetCoord(),
+                          video::SColor(255, 255, 0, 0), 30, true);
+        tools::drawCircle(vis->GetVideoDriver(), link_gearAD->Get_r2(),
+                          (link_gearAD->Get_local_shaft2() >> *link_gearAD->GetBody2()).GetCoord(),
+                          video::SColor(255, 255, 0, 0), 30, true);
 
-        tools::drawCircle(application.GetVideoDriver(), 0.1,
-                               ChCoordsys<>(link_gearAB->GetMarker2()->GetAbsCoord().pos, QUNIT));
-        tools::drawCircle(application.GetVideoDriver(), 0.1,
-                               ChCoordsys<>(link_gearAD->GetMarker2()->GetAbsCoord().pos, QUNIT));
-        tools::drawCircle(application.GetVideoDriver(), 0.1,
-                               ChCoordsys<>(link_gearBC->GetMarker2()->GetAbsCoord().pos, QUNIT));
+        tools::drawCircle(vis->GetVideoDriver(), 0.1,
+                          ChCoordsys<>(link_gearAB->GetMarker2()->GetAbsCoord().pos, QUNIT));
+        tools::drawCircle(vis->GetVideoDriver(), 0.1,
+                          ChCoordsys<>(link_gearAD->GetMarker2()->GetAbsCoord().pos, QUNIT));
+        tools::drawCircle(vis->GetVideoDriver(), 0.1,
+                          ChCoordsys<>(link_gearBC->GetMarker2()->GetAbsCoord().pos, QUNIT));
 
         // ..draw also some segments for a simplified representation of pulley
-        tools::drawSegment(application.GetVideoDriver(), link_pulleyDE->Get_belt_up1(),
-                                link_pulleyDE->Get_belt_up2(), video::SColor(255, 0, 255, 0), true);
-        tools::drawSegment(application.GetVideoDriver(), link_pulleyDE->Get_belt_low1(),
-                                link_pulleyDE->Get_belt_low2(), video::SColor(255, 0, 255, 0), true);
+        tools::drawSegment(vis->GetVideoDriver(), link_pulleyDE->Get_belt_up1(), link_pulleyDE->Get_belt_up2(),
+                           video::SColor(255, 0, 255, 0), true);
+        tools::drawSegment(vis->GetVideoDriver(), link_pulleyDE->Get_belt_low1(), link_pulleyDE->Get_belt_low2(),
+                           video::SColor(255, 0, 255, 0), true);
 
-        // ADVANCE THE SIMULATION FOR ONE STEP
+        vis->EndScene();
 
-        application.DoStep();
-
-        application.EndScene();
+        sys.DoStepDynamics(timestep);
+        realtime_timer.Spin(timestep);
     }
 
     return 0;

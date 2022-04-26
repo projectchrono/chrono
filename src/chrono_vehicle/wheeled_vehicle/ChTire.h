@@ -161,10 +161,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
     std::shared_ptr<ChTriangleMeshShape> AddVisualizationMesh(const std::string& mesh_file_left,
                                                               const std::string& mesh_file_right);
 
-    /// Remove the specified mesh shape from the visualization assets of the body associated with this tire (a wheel
-    /// spindle body).
-    void RemoveVisualizationMesh(std::shared_ptr<ChTriangleMeshShape> trimesh_shape);
-
     /// Perform disc-terrain collision detection.
     /// This utility function checks for contact between a disc of specified
     /// radius with given position and orientation (specified as the location of

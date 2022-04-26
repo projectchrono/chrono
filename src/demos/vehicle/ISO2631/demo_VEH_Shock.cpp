@@ -42,7 +42,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 // specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
 #endif
@@ -152,6 +152,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
+    terrain.Initialize();
 
     // Create and initialize the powertrain system
     auto powertrain = chrono_types::make_shared<SimplePowertrain>(vehicle::GetDataFile(simplepowertrain_file));
@@ -205,46 +206,44 @@ int main(int argc, char* argv[]) {
 
     ChISO2631_Shock_SeatCushionLogger seat_logger(step_size);
 
-#ifdef USE_IRRLICHT
-    std::wstring windowTitle = L"Vehicle Shock Test Demo ";
-
-    switch (iTire) {
-        default:
-        case 1:
-            windowTitle.append(L"(TMeasy Tire) - " + std::to_wstring(heightVals[iObstacle]) + L" mm Obstacle Height");
-            break;
-        case 2:
-            windowTitle.append(L"(Fiala Tire) - " + std::to_wstring(heightVals[iObstacle]) + L" mm Obstacle Height");
-            break;
-        case 3:
-            windowTitle.append(L"(Pacejka Tire) - " + std::to_wstring(heightVals[iObstacle]) + L" mm Obstacle Height");
-            break;
-        case 4:
-            windowTitle.append(L"(Pacejka89 Tire) - " + std::to_wstring(heightVals[iObstacle]) +
-                               L" mm Obstacle Height");
-            break;
-        case 5:
-            windowTitle.append(L"(Pacejka02 Tire) - " + std::to_wstring(heightVals[iObstacle]) +
-                               L" mm Obstacle Height");
-            break;
-    }
-
-    ChWheeledVehicleIrrApp app(&vehicle, windowTitle);
-
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-
-    app.SetTimestep(step_size);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-#endif
-
     // Create the driver
     auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
     ChPathFollowerDriver driver(vehicle, vehicle::GetDataFile(steering_controller_file),
                                 vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed, false);
     driver.Initialize();
+
+#ifdef USE_IRRLICHT
+    std::string windowTitle = "Vehicle Shock Test Demo ";
+
+    switch (iTire) {
+        default:
+        case 1:
+            windowTitle.append("(TMeasy Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            break;
+        case 2:
+            windowTitle.append("(Fiala Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            break;
+        case 3:
+            windowTitle.append("(Pacejka Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            break;
+        case 4:
+            windowTitle.append("(Pacejka89 Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            break;
+        case 5:
+            windowTitle.append("(Pacejka02 Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            break;
+    }
+
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle(windowTitle);
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vehicle.SetVisualSystem(vis);
+
+#endif
 
     // ---------------
     // Simulation loop
@@ -256,10 +255,10 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_IRRLICHT
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -269,13 +268,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
-        app.Synchronize("", driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         vehicle.Advance(step_size);
         terrain.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         double xpos = vehicle.GetSpindlePos(0, LEFT).x();
         if (xpos >= xend) {
@@ -286,7 +285,7 @@ int main(int argc, char* argv[]) {
             seat_logger.AddData(seat_acc);
         }
 
-        app.EndScene();
+        vis->EndScene();
     }
 
 #else

@@ -24,9 +24,9 @@
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
@@ -42,48 +42,38 @@ const std::string out_dir = GetChronoOutputPath() + "BEAM_BUCKLING";
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-/*
-//***TEST***
-    ChVector<> mFi, mTi;
-    ChVector<> mWvel = (1, 2, 3);
-    ChVector<> mWacc =  (0.3, -0.2, 0.4);
-    ChVector<> mXacc =  (0.5, 0.6, -0.9); // ok
-    ChMatrixNM<double,6,6> mMi, mKi, mRi;
-    ChMatrixNM<double,6,6> mKi_num, mRi_num;
-    auto minertia1 = chrono_types::make_shared<ChInertiaCosseratAdvanced>(270.0, 0.1, 0.2, 5, 8, 0.5);
-    minertia1->ComputeQuadraticTerms(mFi, mTi, mWvel);
-    GetLog() << "ComputeQuadraticTerms: \n";
-    GetLog() << " Fi_v= " << mFi;
-    GetLog() << " Ti_v = " << mTi;
-    minertia1->ComputeInertialForce(mFi, mTi, mWvel, mWacc, mXacc);
-    GetLog() << "ComputeInertialForce: \n";
-    GetLog() << " Fi = " << mFi;
-    GetLog() << " Ti = " << mTi;
-    minertia1->ComputeInertiaMatrix(mMi);
-    GetLog() << " Mi: \n" << mMi << "\n";
-    minertia1->ComputeInertiaDampingMatrix(mRi,mWvel);
-    GetLog() << " Ri: \n" << mRi << "\n";
-    minertia1->ComputeInertiaStiffnessMatrix(mKi,mWvel,mWacc,mXacc);
-    GetLog() << " Ki: \n" << mKi << "\n";
-    minertia1->compute_Ri_Ki_by_num_diff = true;
-    minertia1->ComputeInertiaDampingMatrix(mRi_num,mWvel);
-    GetLog() << " Ri_num: \n" << mRi_num << "\n";
-    minertia1->ComputeInertiaStiffnessMatrix(mKi_num,mWvel,mWacc,mXacc);
-    GetLog() << " Ki_num: \n" << mKi_num << "\n";
- return 1;
- */
+    /*
+    //***TEST***
+        ChVector<> mFi, mTi;
+        ChVector<> mWvel = (1, 2, 3);
+        ChVector<> mWacc =  (0.3, -0.2, 0.4);
+        ChVector<> mXacc =  (0.5, 0.6, -0.9); // ok
+        ChMatrixNM<double,6,6> mMi, mKi, mRi;
+        ChMatrixNM<double,6,6> mKi_num, mRi_num;
+        auto minertia1 = chrono_types::make_shared<ChInertiaCosseratAdvanced>(270.0, 0.1, 0.2, 5, 8, 0.5);
+        minertia1->ComputeQuadraticTerms(mFi, mTi, mWvel);
+        GetLog() << "ComputeQuadraticTerms: \n";
+        GetLog() << " Fi_v= " << mFi;
+        GetLog() << " Ti_v = " << mTi;
+        minertia1->ComputeInertialForce(mFi, mTi, mWvel, mWacc, mXacc);
+        GetLog() << "ComputeInertialForce: \n";
+        GetLog() << " Fi = " << mFi;
+        GetLog() << " Ti = " << mTi;
+        minertia1->ComputeInertiaMatrix(mMi);
+        GetLog() << " Mi: \n" << mMi << "\n";
+        minertia1->ComputeInertiaDampingMatrix(mRi,mWvel);
+        GetLog() << " Ri: \n" << mRi << "\n";
+        minertia1->ComputeInertiaStiffnessMatrix(mKi,mWvel,mWacc,mXacc);
+        GetLog() << " Ki: \n" << mKi << "\n";
+        minertia1->compute_Ri_Ki_by_num_diff = true;
+        minertia1->ComputeInertiaDampingMatrix(mRi_num,mWvel);
+        GetLog() << " Ri_num: \n" << mRi_num << "\n";
+        minertia1->ComputeInertiaStiffnessMatrix(mKi_num,mWvel,mWacc,mXacc);
+        GetLog() << " Ki_num: \n" << mKi_num << "\n";
+     return 1;
+     */
     // Create a Chrono::Engine physical system
-    ChSystemSMC my_system;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Beams and constraints", core::dimension2d<u32>(800, 600));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0.f, 0.6f, -1.f));
+    ChSystemSMC sys;
 
     double L = 1;
     double H = 0.25;
@@ -98,25 +88,23 @@ int main(int argc, char* argv[]) {
     auto body_truss = chrono_types::make_shared<ChBody>();
     body_truss->SetBodyFixed(true);
 
-    my_system.AddBody(body_truss);
+    sys.AddBody(body_truss);
 
     // Attach a 'box' shape asset for visualization.
     auto mboxtruss = chrono_types::make_shared<ChBoxShape>();
-    mboxtruss->GetBoxGeometry().Pos = ChVector<>(-0.01, 0, 0);
     mboxtruss->GetBoxGeometry().SetLengths(ChVector<>(0.02, 0.2, 0.1));
-    body_truss->AddAsset(mboxtruss);
+    body_truss->AddVisualShape(mboxtruss, ChFrame<>(ChVector<>(-0.01, 0, 0)));
 
     // Create body for crank
     auto body_crank = chrono_types::make_shared<ChBody>();
 
     body_crank->SetPos((vB + vG) * 0.5);
-    my_system.AddBody(body_crank);
+    sys.AddBody(body_crank);
 
     // Attach a 'box' shape asset for visualization.
     auto mboxcrank = chrono_types::make_shared<ChBoxShape>();
-    mboxcrank->GetBoxGeometry().Pos = ChVector<>(0, 0, 0);
     mboxcrank->GetBoxGeometry().SetLengths(ChVector<>(K, 0.02, 0.02));
-    body_crank->AddAsset(mboxcrank);
+    body_crank->AddVisualShape(mboxcrank, ChFrame<>());
 
     // Create a motor between the truss and the crank:
     class ChFunction_myf : public ChFunction {
@@ -134,7 +122,7 @@ int main(int argc, char* argv[]) {
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->Initialize(body_truss, body_crank, ChFrame<>(vG));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunction_myf>());
-    my_system.Add(motor);
+    sys.Add(motor);
 
     // Create a FEM mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -147,15 +135,16 @@ int main(int argc, char* argv[]) {
 
     // Create a section for the IGA beam.
     // IGA beams require ChBeamSectionCosserat sections, containing at least
-	// a ChElasticityCosserat and ChInertiaCosserat models, and optional ChDampingCosserat and ChPlasticityCosserat.
+    // a ChElasticityCosserat and ChInertiaCosserat models, and optional ChDampingCosserat and ChPlasticityCosserat.
 
-	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
-	minertia->SetAsRectangularSection(beam_wy, beam_wz, 2700);  // automatically sets A etc., from width, height, density
+    auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
+    minertia->SetAsRectangularSection(beam_wy, beam_wz,
+                                      2700);  // automatically sets A etc., from width, height, density
 
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(73.0e9);
     melasticity->SetGwithPoissonRatio(0.3);
-	melasticity->SetAsRectangularSection(beam_wy, beam_wz);
+    melasticity->SetAsRectangularSection(beam_wy, beam_wz);
 
     auto msection1 = chrono_types::make_shared<ChBeamSectionCosserat>(minertia, melasticity);
 
@@ -196,7 +185,7 @@ int main(int argc, char* argv[]) {
     // Create a constraint between the vertical and horizontal beams:
     auto constr_bb = chrono_types::make_shared<ChLinkMateGeneric>();
     constr_bb->Initialize(node_top, node_tip, false, node_top->Frame(), node_top->Frame());
-    my_system.Add(constr_bb);
+    sys.Add(constr_bb);
 
     constr_bb->SetConstrainedCoords(true, true, true,      // x, y, z
                                     false, false, false);  // Rx, Ry, Rz
@@ -204,7 +193,7 @@ int main(int argc, char* argv[]) {
     // For example, attach small shape to show the constraint
     auto msphereconstr2 = chrono_types::make_shared<ChSphereShape>();
     msphereconstr2->GetSphereGeometry().rad = 0.01;
-    constr_bb->AddAsset(msphereconstr2);
+    constr_bb->AddVisualShape(msphereconstr2);
 
     // Create a beam as a crank
     auto msection3 = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
@@ -228,7 +217,7 @@ int main(int argc, char* argv[]) {
     // Create a constraint between the crank beam and body crank:
     auto constr_cbd = chrono_types::make_shared<ChLinkMateGeneric>();
     constr_cbd->Initialize(node_crankG, body_crank, false, node_crankG->Frame(), node_crankG->Frame());
-    my_system.Add(constr_cbd);
+    sys.Add(constr_cbd);
 
     constr_cbd->SetConstrainedCoords(true, true, true,   // x, y, z
                                      true, true, true);  // Rx, Ry, Rz
@@ -236,7 +225,7 @@ int main(int argc, char* argv[]) {
     // Create a constraint between the vertical beam and the crank beam:
     auto constr_bc = chrono_types::make_shared<ChLinkMateGeneric>();
     constr_bc->Initialize(node_down, node_crankB, false, node_crankB->Frame(), node_crankB->Frame());
-    my_system.Add(constr_bc);
+    sys.Add(constr_bc);
 
     constr_bc->SetConstrainedCoords(true, true, true,    // x, y, z
                                     true, true, false);  // Rx, Ry, Rz
@@ -244,7 +233,7 @@ int main(int argc, char* argv[]) {
     // For example, attach small shape to show the constraint
     auto msphereconstr3 = chrono_types::make_shared<ChSphereShape>();
     msphereconstr3->GetSphereGeometry().rad = 0.01;
-    constr_bc->AddAsset(msphereconstr3);
+    constr_bc->AddVisualShape(msphereconstr3);
 
     //
     // Final touches..
@@ -254,54 +243,49 @@ int main(int argc, char* argv[]) {
     my_mesh->SetAutomaticGravity(false);
 
     // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
-    // ==Asset== attach a visualization of the FEM mesh.
+    // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChTriangleMeshShape).
-    // Do not forget AddAsset() at the end!
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MX);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MX);
     mvisualizebeamA->SetColorscaleMinMax(-500, 500);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
-    my_mesh->AddAsset(mvisualizebeamA);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizebeamC);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-    application.AssetBindAll();
-
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Beams and constraints");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    sys.SetVisualSystem(vis);
 
     // SIMULATION LOOP
 
     // Use a solver that can handle stiffnss matrices:
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-    my_system.SetSolver(mkl_solver);
-
-    application.SetTimestep(0.001);
-    application.SetVideoframeSaveInterval(10);
+    sys.SetSolver(mkl_solver);
 
     // Use the following for less numerical damping, 2nd order accuracy (but slower)
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
         // mystepper->SetVerbose(true);
         mystepper->SetStepControl(false);
     }
@@ -315,23 +299,21 @@ int main(int argc, char* argv[]) {
     std::string filename = out_dir + "/buckling_mid.dat";
     chrono::ChStreamOutAsciiFile file_out1(filename.c_str());
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
-        application.DrawAll();
+        tools::drawGrid(vis->GetVideoDriver(), 0.05, 0.05, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_Z),
+                        video::SColor(50, 90, 90, 90), true);
 
-        tools::drawGrid(application.GetVideoDriver(), 0.05, 0.05, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_Z),
-                             video::SColor(50, 90, 90, 90), true);
-
-        application.DoStep();
+        sys.DoStepDynamics(0.001);
 
         // Save output for the first 0.4 seconds
-        if (application.GetSystem()->GetChTime() <= 0.4) {
-            file_out1 << application.GetSystem()->GetChTime() << " " << node_mid->GetPos().z() << " "
-                      << node_mid->GetWvel_par().x() << "\n";
+        if (sys.GetChTime() <= 0.4) {
+            file_out1 << sys.GetChTime() << " " << node_mid->GetPos().z() << " " << node_mid->GetWvel_par().x() << "\n";
         }
 
-        application.EndScene();
+        vis->EndScene();
     }
 
     return 0;

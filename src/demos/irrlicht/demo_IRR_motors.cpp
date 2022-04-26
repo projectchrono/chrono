@@ -18,8 +18,6 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/assets/ChTexture.h"
-#include "chrono/motion_functions/ChFunction_Sine.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
@@ -32,7 +30,11 @@
 #include "chrono/physics/ChShaftsMotorAngle.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
 #include "chrono/physics/ChShaftsGear.h"
-#include "chrono_irrlicht/ChIrrApp.h"
+
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/motion_functions/ChFunction_Sine.h"
+
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -48,59 +50,54 @@ collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemTy
 // just to simplify the creation of multiple linear motors in this demo.
 // (skip this and go to main() for the tutorial)
 
-void CreateSliderGuide(std::shared_ptr<ChBody>& mguide,
-                       std::shared_ptr<ChBody>& mslider,
+void CreateSliderGuide(std::shared_ptr<ChBody>& guide,
+                       std::shared_ptr<ChBody>& slider,
                        std::shared_ptr<ChMaterialSurface> material,
-                       ChSystem& msystem,
+                       ChSystem& sys,
                        const ChVector<> mpos) {
-    mguide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material, collision_type);
-    mguide->SetPos(mpos);
-    mguide->SetBodyFixed(true);
-    msystem.Add(mguide);
+    guide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material, collision_type);
+    guide->SetPos(mpos);
+    guide->SetBodyFixed(true);
+    sys.Add(guide);
 
-    mslider = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.2, 0.5, 1000, material, collision_type);
-    mslider->SetPos(mpos + ChVector<>(0, 0.3, 0));
-    msystem.Add(mslider);
-
-    auto mcolor = chrono_types::make_shared<ChColorAsset>(0.6f, 0.6f, 0.0f);
-    mslider->AddAsset(mcolor);
+    slider = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.2, 0.5, 1000, material, collision_type);
+    slider->SetPos(mpos + ChVector<>(0, 0.3, 0));
+    slider->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.0f));
+    sys.Add(slider);
 
     auto obstacle = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.4, 0.4, 8000, material, collision_type);
     obstacle->SetPos(mpos + ChVector<>(1.5, 0.4, 0));
-    msystem.Add(obstacle);
-    auto mcolorobstacle = chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.2f);
-    mslider->AddAsset(mcolorobstacle);
+    obstacle->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.2f, 0.2f));
+    sys.Add(obstacle);
 }
 
 // Shortcut function that creates two bodies (a stator and a rotor) in a given position,
 // just to simplify the creation of multiple linear motors in this demo
 // (skip this and go to main() for the tutorial)
 
-void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
-                       std::shared_ptr<ChBody>& mrotor,
+void CreateStatorRotor(std::shared_ptr<ChBody>& stator,
+                       std::shared_ptr<ChBody>& rotor,
                        std::shared_ptr<ChMaterialSurface> material,
-                       ChSystem& msystem,
+                       ChSystem& sys,
                        const ChVector<>& mpos) {
-    mstator = chrono_types::make_shared<ChBodyEasyCylinder>(0.5, 0.1, 1000, material, collision_type);
-    mstator->SetPos(mpos);
-    mstator->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_X));
-    mstator->SetBodyFixed(true);
-    msystem.Add(mstator);
+    stator = chrono_types::make_shared<ChBodyEasyCylinder>(0.5, 0.1, 1000, material, collision_type);
+    stator->SetPos(mpos);
+    stator->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_X));
+    stator->SetBodyFixed(true);
+    sys.Add(stator);
 
-    mrotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material, collision_type);
-    mrotor->SetPos(mpos + ChVector<>(0.5, 0, -0.15));
-    msystem.Add(mrotor);
-
-    auto mcolor = chrono_types::make_shared<ChColorAsset>(0.6f, 0.6f, 0.0f);
-    mrotor->AddAsset(mcolor);
+    rotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material, collision_type);
+    rotor->SetPos(mpos + ChVector<>(0.5, 0, -0.15));
+    rotor->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.0f));
+    sys.Add(rotor);
 }
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
-    mphysicalSystem.SetCollisionSystemType(collision_type);
+    ChSystemNSC sys;
+    sys.SetCollisionSystemType(collision_type);
 
     // Contact material shared among all objects
     auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -109,11 +106,8 @@ int main(int argc, char* argv[]) {
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, material, collision_type);
     floorBody->SetPos(ChVector<>(0, -2, 0));
     floorBody->SetBodyFixed(true);
-    mphysicalSystem.Add(floorBody);
-
-    auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("textures/blue.png"));
-    floorBody->AddAsset(mtexture);
+    floorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
+    sys.Add(floorBody);
 
     // In the following we will create different types of motors
     // - rotational motors: examples A.1, A.2, etc.
@@ -137,7 +131,7 @@ int main(int argc, char* argv[]) {
     ChVector<> positionA1(-3, 2, -3);
     std::shared_ptr<ChBody> stator1;
     std::shared_ptr<ChBody> rotor1;
-    CreateStatorRotor(stator1, rotor1, material, mphysicalSystem, positionA1);
+    CreateStatorRotor(stator1, rotor1, material, sys, positionA1);
 
     // Create the motor
     auto rotmotor1 = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -147,7 +141,7 @@ int main(int argc, char* argv[]) {
                           stator1,               // body B (master)
                           ChFrame<>(positionA1)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(rotmotor1);
+    sys.Add(rotmotor1);
 
     // Create a ChFunction to be used for the ChLinkMotorRotationSpeed
     auto mwspeed =
@@ -183,7 +177,7 @@ int main(int argc, char* argv[]) {
     ChVector<> positionA2(-3, 2, -2);
     std::shared_ptr<ChBody> stator2;
     std::shared_ptr<ChBody> rotor2;
-    CreateStatorRotor(stator2, rotor2, material, mphysicalSystem, positionA2);
+    CreateStatorRotor(stator2, rotor2, material, sys, positionA2);
 
     // Create the motor
     auto rotmotor2 = chrono_types::make_shared<ChLinkMotorRotationAngle>();
@@ -193,7 +187,7 @@ int main(int argc, char* argv[]) {
                           stator2,               // body B (master)
                           ChFrame<>(positionA2)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(rotmotor2);
+    sys.Add(rotmotor2);
 
     // Create a ChFunction to be used for the ChLinkMotorRotationAngle
     auto msineangle = chrono_types::make_shared<ChFunction_Sine>(0,       // phase [rad]
@@ -217,7 +211,7 @@ int main(int argc, char* argv[]) {
     ChVector<> positionA3(-3, 2, -1);
     std::shared_ptr<ChBody> stator3;
     std::shared_ptr<ChBody> rotor3;
-    CreateStatorRotor(stator3, rotor3, material, mphysicalSystem, positionA3);
+    CreateStatorRotor(stator3, rotor3, material, sys, positionA3);
 
     // Create the motor
     auto rotmotor3 = chrono_types::make_shared<ChLinkMotorRotationTorque>();
@@ -227,7 +221,7 @@ int main(int argc, char* argv[]) {
                           stator3,               // body B (master)
                           ChFrame<>(positionA3)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(rotmotor3);
+    sys.Add(rotmotor3);
 
     // The torque(time) function:
     auto mtorquetime = chrono_types::make_shared<ChFunction_Sine>(0,   // phase [rad]
@@ -247,7 +241,7 @@ int main(int argc, char* argv[]) {
     ChVector<> positionA4(-3, 2, 0);
     std::shared_ptr<ChBody> stator4;
     std::shared_ptr<ChBody> rotor4;
-    CreateStatorRotor(stator4, rotor4, material, mphysicalSystem, positionA4);
+    CreateStatorRotor(stator4, rotor4, material, sys, positionA4);
 
     // Create the motor
     auto rotmotor4 = chrono_types::make_shared<ChLinkMotorRotationTorque>();
@@ -257,7 +251,7 @@ int main(int argc, char* argv[]) {
                           stator4,               // body B (master)
                           ChFrame<>(positionA4)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(rotmotor4);
+    sys.Add(rotmotor4);
 
     // Implement our custom  torque function.
     // We could use pre-defined ChFunction classes like sine, constant, ramp, etc.,
@@ -322,7 +316,7 @@ int main(int argc, char* argv[]) {
     ChVector<> positionA5(-3, 2, 1);
     std::shared_ptr<ChBody> stator5;
     std::shared_ptr<ChBody> rotor5;
-    CreateStatorRotor(stator5, rotor5, material, mphysicalSystem, positionA5);
+    CreateStatorRotor(stator5, rotor5, material, sys, positionA5);
 
     // Create the motor
     auto rotmotor5 = chrono_types::make_shared<ChLinkMotorRotationDriveline>();
@@ -332,7 +326,7 @@ int main(int argc, char* argv[]) {
                           stator5,               // body B (master)
                           ChFrame<>(positionA5)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(rotmotor5);
+    sys.Add(rotmotor5);
 
     // You may want to change the inertia of 'inner' 1d shafts, (each has default 1kg/m^2)
     // Note: they adds up to 3D inertia when 3D parts rotate about the link shaft.
@@ -361,7 +355,7 @@ int main(int argc, char* argv[]) {
 
     auto my_shaftA = chrono_types::make_shared<ChShaft>();
     my_shaftA->SetInertia(0.03);
-    mphysicalSystem.AddShaft(my_shaftA);
+    sys.AddShaft(my_shaftA);
 
     // Create 'DRIVE', the hi-speed motor model - as a simple example use a 'imposed speed' motor: this
     // is the equivalent of the ChLinkMotorRotationSpeed, but for 1D elements:
@@ -370,7 +364,7 @@ int main(int argc, char* argv[]) {
     my_drive->Initialize(my_shaftA,                   // A , the rotor of the drive
                          rotmotor5->GetInnerShaft2()  // S2, the stator of the drive
     );
-    mphysicalSystem.Add(my_drive);
+    sys.Add(my_drive);
     // Create a speed(time) function, and use it in my_drive:
     auto my_driveangle = chrono_types::make_shared<ChFunction_Const>(25 * CH_C_2PI);  // 25 [rps] = 1500 [rpm]
     my_drive->SetSpeedFunction(my_driveangle);
@@ -386,7 +380,7 @@ int main(int argc, char* argv[]) {
                            rotmotor5->GetInnerShaft1()   // S1, the output shaft
     );
     my_reducer->SetTransmissionRatioOrdinary(1.0 / 100.0);  // ratio between wR/wA
-    mphysicalSystem.Add(my_reducer);
+    sys.Add(my_reducer);
 
     // Btw:  later, if you want, you can access / plot speeds and
     // torques for whatever part of the driveline by putting lines like the following
@@ -416,7 +410,7 @@ int main(int argc, char* argv[]) {
     ChVector<> positionB1(0, 0, -3);
     std::shared_ptr<ChBody> guide1;
     std::shared_ptr<ChBody> slider1;
-    CreateSliderGuide(guide1, slider1, material, mphysicalSystem, positionB1);
+    CreateSliderGuide(guide1, slider1, material, sys, positionB1);
 
     // Create the linear motor
     auto motor1 = chrono_types::make_shared<ChLinkMotorLinearPosition>();
@@ -426,7 +420,7 @@ int main(int argc, char* argv[]) {
                        guide1,                // body B (master)
                        ChFrame<>(positionB1)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(motor1);
+    sys.Add(motor1);
 
     // Create a ChFunction to be used for the ChLinkMotorLinearPosition
     auto msine = chrono_types::make_shared<ChFunction_Sine>(0,    // phase
@@ -458,7 +452,7 @@ int main(int argc, char* argv[]) {
     ChVector<> positionB2(0, 0, -2);
     std::shared_ptr<ChBody> guide2;
     std::shared_ptr<ChBody> slider2;
-    CreateSliderGuide(guide2, slider2, material, mphysicalSystem, positionB2);
+    CreateSliderGuide(guide2, slider2, material, sys, positionB2);
 
     // Create the linear motor
     auto motor2 = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
@@ -468,7 +462,7 @@ int main(int argc, char* argv[]) {
                        guide2,                // body B (master)
                        ChFrame<>(positionB2)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(motor2);
+    sys.Add(motor2);
 
     // Create a ChFunction to be used for the ChLinkMotorLinearSpeed
     auto msp = chrono_types::make_shared<ChFunction_Sine>(CH_C_PI_2,            // phase
@@ -511,7 +505,7 @@ int main(int argc, char* argv[]) {
     ChVector<> positionB3(0, 0, -1);
     std::shared_ptr<ChBody> guide3;
     std::shared_ptr<ChBody> slider3;
-    CreateSliderGuide(guide3, slider3, material, mphysicalSystem, positionB3);
+    CreateSliderGuide(guide3, slider3, material, sys, positionB3);
 
     // just for fun: modify the initial speed of slider to match other examples
     slider3->SetPos_dt(ChVector<>(1.6 * 0.5 * CH_C_2PI));
@@ -524,7 +518,7 @@ int main(int argc, char* argv[]) {
                        guide3,                // body B (master)
                        ChFrame<>(positionB3)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(motor3);
+    sys.Add(motor3);
 
     // Create a ChFunction to be used for F(t) in ChLinkMotorLinearForce.
     auto mF = chrono_types::make_shared<ChFunction_Const>(200);
@@ -550,7 +544,7 @@ int main(int argc, char* argv[]) {
     ChVector<> positionB4(0, 0, 0);
     std::shared_ptr<ChBody> guide4;
     std::shared_ptr<ChBody> slider4;
-    CreateSliderGuide(guide4, slider4, material, mphysicalSystem, positionB4);
+    CreateSliderGuide(guide4, slider4, material, sys, positionB4);
 
     // Create the linear motor
     auto motor4 = chrono_types::make_shared<ChLinkMotorLinearForce>();
@@ -560,7 +554,7 @@ int main(int argc, char* argv[]) {
                        guide4,                // body B (master)
                        ChFrame<>(positionB4)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(motor4);
+    sys.Add(motor4);
 
     // Create a ChFunction that computes F by a user-defined algorithm, as a callback.
     // One quick option would be to inherit from the ChFunction base class, and implement the Get_y()
@@ -647,7 +641,7 @@ int main(int argc, char* argv[]) {
     ChVector<> positionB5(0, 0, 1);
     std::shared_ptr<ChBody> guide5;
     std::shared_ptr<ChBody> slider5;
-    CreateSliderGuide(guide5, slider5, material, mphysicalSystem, positionB5);
+    CreateSliderGuide(guide5, slider5, material, sys, positionB5);
 
     // Create the motor
     auto motor5 = chrono_types::make_shared<ChLinkMotorLinearDriveline>();
@@ -657,7 +651,7 @@ int main(int argc, char* argv[]) {
                        guide5,                // body B (master)
                        ChFrame<>(positionB5)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(motor5);
+    sys.Add(motor5);
 
     // You may want to change the inertia of 'inner' 1D shafts, ("translating" shafts: each has default 1kg)
     // Note: they adds up to 3D inertia when 3D parts translate about the link shaft.
@@ -695,7 +689,7 @@ int main(int argc, char* argv[]) {
 
     auto my_shaftB = chrono_types::make_shared<ChShaft>();
     my_shaftB->SetInertia(0.33);  // [kg/m^2]
-    mphysicalSystem.AddShaft(my_shaftB);
+    sys.AddShaft(my_shaftB);
 
     // Create 'DRIVE', the hispeed motor - as a simple example use a 'imposed speed' motor: this
     // is the equivalent of the ChLinkMotorRotationAngle, but for 1D elements:
@@ -704,7 +698,7 @@ int main(int argc, char* argv[]) {
     my_driveli->Initialize(my_shaftB,                   // B    , the rotor of the drive
                            motor5->GetInnerShaft2rot()  // S2rot, the stator of the drive
     );
-    mphysicalSystem.Add(my_driveli);
+    sys.Add(my_driveli);
 
     // Create a angle(time) function. It could be something as simple as
     //   auto my_functangle = chrono_types::make_shared<ChFunction_Ramp>(0,  180);
@@ -736,7 +730,7 @@ int main(int argc, char* argv[]) {
                               motor5->GetInnerShaft1lin()   // S1lin, the output shaft
     );
     my_rackpinion->SetTransmissionRatios(-1, -1.0 / 100.0, 1);
-    mphysicalSystem.Add(my_rackpinion);
+    sys.Add(my_rackpinion);
 
     // Btw:  later, if you want, you can access / plot speeds and
     // torques for whatever part of the driveline by putting lines like the   following
@@ -774,7 +768,7 @@ int main(int argc, char* argv[]) {
     ChVector<> positionB6(0, 0, 2);
     std::shared_ptr<ChBody> guide6;
     std::shared_ptr<ChBody> slider6;
-    CreateSliderGuide(guide6, slider6, material, mphysicalSystem, positionB6);
+    CreateSliderGuide(guide6, slider6, material, sys, positionB6);
 
     // Create the linear motor
     auto motor6 = chrono_types::make_shared<ChLinkMotorLinearPosition>();
@@ -784,7 +778,7 @@ int main(int argc, char* argv[]) {
                        guide6,                // body B (master)
                        ChFrame<>(positionB6)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(motor6);
+    sys.Add(motor6);
 
     // Create a ChFunction to be used for the ChLinkMotorLinearPosition;
     // Note! look later in the while{...} simulation loop, we'll continuously
@@ -793,50 +787,39 @@ int main(int argc, char* argv[]) {
     // Let the motor use this motion function:
     motor6->SetMotionFunction(motor6setpoint);
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Motors", core::dimension2d<u32>(800, 600));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(1, 3, -7));
-    application.AddLightWithShadow(vector3df(20.0f, 35.0f, -25.0f), vector3df(0, 0, 0), 55, 20, 55, 35, 512,
-                                   video::SColorf(0.6f, 0.8f, 1.0f));
-
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
-    application.AssetBindAll();
-
-    // Use this function for 'converting' assets into Irrlicht meshes
-    application.AssetUpdateAll();
-
-    // This is to enable shadow maps (shadow casting with soft shadows) in Irrlicht
-    // for all objects (or use application.AddShadow(..) for enable shadow on a per-item basis)
-    application.AddShadowAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Motors");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(1, 3, -7));
+    vis->AddTypicalLights();
+    vis->AddLightWithShadow(ChVector<>(20.0, 35.0, -25.0), ChVector<>(0, 0, 0), 55, 20, 55, 35, 512,
+                            ChColor(0.6f, 0.8f, 1.0f));
+    vis->EnableShadows();
 
     // Modify some setting of the physical system for the simulation, if you want
-    mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
-    mphysicalSystem.SetSolverMaxIterations(50);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(50);
 
-    application.SetTimestep(0.005);
-    application.SetTryRealtime(true);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene(true, true, video::SColor(255, 140, 161, 192));
-
-        application.DrawAll();
+    double timestep = 0.005;
+    ChRealtimeStepTimer realtime_timer;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         // Example B.6 requires the setpoint to be changed in the simulation loop:
         // for example use a clamped sinusoid, just for fun:
-        double t = mphysicalSystem.GetChTime();
+        double t = sys.GetChTime();
         double Sp = ChMin(ChMax(2.6 * sin(t * 1.8), -1.4), 1.4);
         motor6setpoint->SetSetpoint(Sp, t);
 
-        application.DoStep();
-
-        application.EndScene();
+        sys.DoStepDynamics(timestep);
+        realtime_timer.Spin(timestep);
     }
 
     return 0;

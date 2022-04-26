@@ -24,9 +24,8 @@
 #include "chrono/particlefactory/ChParticleEmitter.h"
 #include "chrono/particlefactory/ChParticleRemover.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChColorAsset.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the main namespace of Chrono, and other chrono namespaces
 using namespace chrono;
@@ -44,20 +43,18 @@ using namespace irr::gui;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
+    // Create a Chrono system
+    ChSystemNSC sys;
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Particle emitter, remover, processor", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 7, -10));
-
-    //
-    // CREATE THE SYSTEM OBJECTS
-    //
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Particle emitter, remover, processor");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0, 7, -10));
 
     // Create the floor:
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -65,12 +62,9 @@ int main(int argc, char* argv[]) {
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
+    floorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
 
-    auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    floorBody->AddAsset(mtexture);
-
-    mphysicalSystem.Add(floorBody);
+    sys.Add(floorBody);
 
     // Create an emitter:
 
@@ -130,10 +124,7 @@ int main(int argc, char* argv[]) {
         virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
                                ChCoordsys<> mcoords,
                                ChRandomShapeCreator& mcreator) override {
-            // Ex.: attach some optional assets, ex for visualization
-            auto mvisual = chrono_types::make_shared<ChColorAsset>();
-            mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
-            mbody->AddAsset(mvisual);
+            mbody->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
         }
     };
     auto callback_plastic = chrono_types::make_shared<MyCreator_plastic>();
@@ -141,7 +132,6 @@ int main(int argc, char* argv[]) {
 
     // Finally, tell to the emitter that it must use the creator above:
     emitter.SetParticleCreator(mcreator_plastic);
-
 
     // --- Optional: what to do by default on ALL newly created particles?
     //     A callback executed at each particle creation can be attached to the emitter.
@@ -154,18 +144,18 @@ int main(int argc, char* argv[]) {
                                ChCoordsys<> mcoords,
                                ChRandomShapeCreator& mcreator) override {
             // Enable Irrlicht visualization for all particles
-            airrlicht_application->AssetBind(mbody);
-            airrlicht_application->AssetUpdate(mbody);
+            vis->BindItem(mbody);
 
-            // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
+            // Disable gyroscopic forces for increased integrator stabilty
             mbody->SetNoGyroTorque(true);
         }
-        ChIrrApp* airrlicht_application;
+        ChVisualSystemIrrlicht* vis;
     };
+
     // b- create the callback object...
     auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
-    mcreation_callback->airrlicht_application = &application;
+    mcreation_callback->vis = vis.get();
     // d- attach the callback to the emitter!
     emitter.RegisterAddBodyCallback(mcreation_callback);
 
@@ -177,8 +167,7 @@ int main(int argc, char* argv[]) {
 
     ChParticleRemoverBox remover;
     remover.SetRemoveOutside(true);
-    remover.GetBox().Pos = ChVector<>(0, 0, 0);
-    remover.GetBox().SetLengths(ChVector<>(5, 20, 5));
+    remover.SetBox(ChVector<>(5, 20, 5), ChFrame<>());
 
     // Test also a ChParticleProcessor configured as a
     // counter of particles that flow into a rectangle:
@@ -194,41 +183,31 @@ int main(int argc, char* argv[]) {
     processor_flowcount.SetEventTrigger(rectangleflow);
     processor_flowcount.SetParticleEventProcessor(counter);
 
-    // Use this function for adding a ChIrrNodeAsset to all already created items (ex. the floor, etc.)
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
-    application.AssetBindAll();
-
-    // Use this function for 'converting' assets into Irrlicht meshes
-    application.AssetUpdateAll();
+    // Bind all existing visual shapes to the visualization system
+    sys.SetVisualSystem(vis);
 
     // Modify some setting of the physical system for the simulation, if you want
-    mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
-    mphysicalSystem.SetSolverMaxIterations(40);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(40);
 
-    application.SetTimestep(0.02);
-
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-
-        application.DrawAll();
+    // Simulation loop
+    double timestep = 0.02;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         // Continuosly create particle flow:
-        emitter.EmitParticles(mphysicalSystem, application.GetTimestep());
+        emitter.EmitParticles(sys, timestep);
 
         // Continuosly check if some particle must be removed:
-        remover.ProcessParticles(mphysicalSystem);
+        remover.ProcessParticles(sys);
 
         // Use the processor to count particle flow in the rectangle section:
-        processor_flowcount.ProcessParticles(mphysicalSystem);
+        processor_flowcount.ProcessParticles(sys);
         GetLog() << "Particles being flown across rectangle:" << counter->counter << "\n";
 
-        application.DoStep();
-
-        application.EndScene();
+        sys.DoStepDynamics(timestep);
     }
 
     return 0;

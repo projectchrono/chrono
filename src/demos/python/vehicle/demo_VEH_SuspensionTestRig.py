@@ -1,12 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2022 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 # Authors: Radu Serban
@@ -58,11 +58,15 @@ def main() :
 
     # Create the vehicle Irrlicht application
     cam_loc = (rig.GetSpindlePos(0, veh.LEFT) + rig.GetSpindlePos(0, veh.RIGHT)) * 0.5
-    app = veh.ChVehicleIrrApp(rig.GetVehicle(), 'Suspension Test Rig')
-    app.AddTypicalLights()
-    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    app.SetChaseCamera(cam_loc, 4.0, 0.5)
-    app.SetTimestep(step_size)
+    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+    rig.GetVehicle().SetVisualSystem(vis)
+    vis.SetWindowTitle('Suspension Test Rig')
+    vis.SetWindowSize(1280, 1024)
+    vis.Initialize()
+    vis.AddTypicalLights()
+    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.SetChaseCamera(cam_loc, 4.0, 0.5)
+    vis.AddSkyBox()
 
     # Create and attach an STR driver
     driver = veh.ChDataDriverSTR(driver_file)
@@ -70,8 +74,8 @@ def main() :
 
     # Initialize suspension test rig
     rig.Initialize()
-    app.AssetBindAll()
-    app.AssetUpdateAll()
+
+    vis.BindAll()
 
     # Set output
     try:
@@ -86,12 +90,12 @@ def main() :
         rig.SetPlotOutput(out_step_size)
 
     # Simulation loop
-    while (app.GetDevice().run()):
+    while vis.Run() :
 
         # Render scene
-        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-        app.DrawAll()
-        app.EndScene()
+        vis.BeginScene()
+        vis.DrawAll()
+        vis.EndScene()
 
         # Advance simulation of the rig 
         rig.Advance(step_size)
@@ -101,8 +105,8 @@ def main() :
         driver_inputs.m_steering = rig.GetSteeringInput()
         driver_inputs.m_throttle = 0.0
         driver_inputs.m_braking = 0.0
-        app.Synchronize(rig.GetDriverMessage(), driver_inputs)
-        app.Advance(step_size)
+        vis.Synchronize(rig.GetDriverMessage(), driver_inputs)
+        vis.Advance(step_size)
 
         if rig.DriverEnded():
             break

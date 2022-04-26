@@ -25,19 +25,11 @@
 #include "chrono/core/ChTimer.h"
 #include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
 using namespace chrono::irrlicht;
-
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
 
 // This function will be used to apply forces caused by
 // a rotating fan, to all objects in front of it (a simple
@@ -82,19 +74,9 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a ChronoENGINE physical system
-    ChSystemNSC my_system;
+    ChSystemNSC sys;
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"A simple pendulum example", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 14, -20));
-
-    //
-    // Create all the rigid bodies!!!!
-    //
+    // Create all the rigid bodies
 
     // ..create the five pendulums
 
@@ -108,28 +90,28 @@ int main(int argc, char* argv[]) {
                                                                     false);     // collision?
         mrigidBody0->SetPos(ChVector<>(0, 0, z_step));
         mrigidBody0->SetBodyFixed(true);  // the truss does not move!
-        my_system.Add(mrigidBody0);
+        sys.Add(mrigidBody0);
 
         auto mrigidBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 6, 1,  // x,y,z size
                                                                     1,        // density
                                                                     true,     // visualization?
                                                                     false);   // collision?
         mrigidBody1->SetPos(ChVector<>(0, -3, z_step));
-        my_system.Add(mrigidBody1);
+        sys.Add(mrigidBody1);
 
         auto mrigidBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 6, 1,  // x,y,z size
                                                                     1,        // density
                                                                     true,     // visualization?
                                                                     false);   // collision?
         mrigidBody2->SetPos(ChVector<>(0, -9, z_step));
-        my_system.Add(mrigidBody2);
+        sys.Add(mrigidBody2);
 
         auto mrigidBody3 = chrono_types::make_shared<ChBodyEasyBox>(6, 1, 1,  // x,y,z size
                                                                     1,        // density
                                                                     true,     // visualization?
                                                                     false);   // collision?
         mrigidBody3->SetPos(ChVector<>(3, -12, z_step));
-        my_system.Add(mrigidBody3);
+        sys.Add(mrigidBody3);
 
         //
         // Create the links between bodies!!!!
@@ -144,77 +126,69 @@ int main(int argc, char* argv[]) {
         my_link_01->GetLimit_X().SetMax(1.0);
         my_link_01->GetLimit_X().SetMin(-1.0);
 
-        my_system.AddLink(my_link_01);
+        sys.AddLink(my_link_01);
 
         // .. a spherical joint
         auto my_link_12 = chrono_types::make_shared<ChLinkLockSpherical>();
         my_link_12->Initialize(mrigidBody2, mrigidBody1, ChCoordsys<>(ChVector<>(0, -6, z_step)));
-        my_system.AddLink(my_link_12);
+        sys.AddLink(my_link_12);
 
         // .. a spherical joint
         auto my_link_23 = chrono_types::make_shared<ChLinkLockSpherical>();
         my_link_23->Initialize(mrigidBody3, mrigidBody2, ChCoordsys<>(ChVector<>(0, -12, z_step)));
-        my_system.AddLink(my_link_23);     
+        sys.AddLink(my_link_23);
     }
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("A simple pendulum example");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 14, -20));
+    vis->AddTypicalLights();
 
-    // Create a 'fan ventilator' object, using Irrlicht mesh loading and handling 
+    // Create a 'fan ventilator' object, using Irrlicht mesh loading and handling
     // (this object is here for aesthetical reasons, it is NOT handled by Chrono)
     double fan_radius = 5.3;
-    IAnimatedMesh* fanMesh = application.GetSceneManager()->getMesh(GetChronoDataFile("models/fan2.obj").c_str());
-    IAnimatedMeshSceneNode* fanNode = application.GetSceneManager()->addAnimatedMeshSceneNode(fanMesh);
+    irr::scene::IAnimatedMesh* fanMesh = vis->GetSceneManager()->getMesh(GetChronoDataFile("models/fan2.obj").c_str());
+    irr::scene::IAnimatedMeshSceneNode* fanNode = vis->GetSceneManager()->addAnimatedMeshSceneNode(fanMesh);
     fanNode->setScale(irr::core::vector3df((irr::f32)fan_radius, (irr::f32)fan_radius, (irr::f32)fan_radius));
 
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
-    application.AssetBindAll();
+    ////application.GetSystem()->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
 
-    // Use this function for 'converting' assets into Irrlicht meshes
-    application.AssetUpdateAll();
-
-    application.SetTimestep(0.01);
-    application.SetTryRealtime(true);
-
-    //application.GetSystem()->SetSolverType(ChSolver::Type::BARZILAIBORWEIN); // if you need a more precise CCP solver..
-
-
-    while (application.GetDevice()->run()) {
-        // Irrlicht must prepare frame to draw
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-
-        // Irrlicht application draws all 3D objects and all GUI items
-        application.DrawAll();
-
-        // Draw also a grid on the horizontal XZ plane
-        tools::drawGrid(application.GetVideoDriver(), 2, 2, 20, 20,
-                             ChCoordsys<>(ChVector<>(0, -20, 0), Q_from_AngX(CH_C_PI_2)),
-                             video::SColor(255, 80, 100, 100), true);
+    // Simulation loop
+    double timestep = 0.01;
+    ChRealtimeStepTimer realtime_timer;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        tools::drawGrid(vis->GetVideoDriver(), 2, 2, 20, 20,
+                        ChCoordsys<>(ChVector<>(0, -20, 0), Q_from_AngX(CH_C_PI_2)),
+                        irr::video::SColor(255, 80, 100, 100), true);
 
         // Update the position of the spinning fan (an Irrlicht
         // node, which is here just for aesthetical reasons!)
         ChQuaternion<> my_fan_rotation;
-        my_fan_rotation.Q_from_AngY(my_system.GetChTime() * -0.5);
+        my_fan_rotation.Q_from_AngY(sys.GetChTime() * -0.5);
         ChQuaternion<> my_fan_spin;
-        my_fan_spin.Q_from_AngZ(my_system.GetChTime() * 4);
+        my_fan_spin.Q_from_AngZ(sys.GetChTime() * 4);
         ChCoordsys<> my_fan_coord(ChVector<>(12, -6, 0), my_fan_rotation);
         ChFrame<> my_fan_framerotation(my_fan_coord);
         ChFrame<> my_fan_framespin(ChCoordsys<>(VNULL, my_fan_spin));
         ChCoordsys<> my_fan_coordsys = (my_fan_framespin >> my_fan_framerotation).GetCoord();
-        tools::alignIrrlichtNodeToChronoCsys(fanNode, my_fan_coordsys);
+        tools::alignIrrlichtNode(fanNode, my_fan_coordsys);
+
+        vis->EndScene();
 
         // Apply forces caused by fan & wind if Chrono rigid bodies are
         // in front of the fan, using a simple tutorial function (see above):
-        apply_fan_force(&my_system, my_fan_coord, fan_radius, 5.2, 0.5);
+        apply_fan_force(&sys, my_fan_coord, fan_radius, 5.2, 0.5);
 
-        // HERE CHRONO INTEGRATION IS PERFORMED: THE
-        // TIME OF THE SIMULATION ADVANCES FOR A SINGLE
-        // STEP:
-        application.DoStep();
-
-        application.EndScene();
+        sys.DoStepDynamics(timestep);
+        realtime_timer.Spin(timestep);
     }
 
     return 0;

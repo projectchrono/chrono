@@ -27,10 +27,10 @@
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -50,22 +50,7 @@ int main(int argc, char* argv[]) {
     double tire_w0 = tire_vel_z0 / tire_rad;
 
     // Create a Chrono::Engine physical system
-    ChSystemSMC my_system;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3dfCH(ChVector<>(1, 1.4, -1.2)),
-                                 core::vector3dfCH(ChVector<>(0, tire_rad, 0)));
-    // application.SetContactsDrawMode(irr::tools::CONTACT_DISTANCES);
-
-    application.AddLightWithShadow(core::vector3dfCH(ChVector<>(1.5, 5.5, -2.5)), core::vector3df(0, 0, 0), 3, 2.2, 7.2,
-                                   40, 512, video::SColorf((f32)0.8, (f32)0.8, (f32)1.0));
+    ChSystemSMC sys;
 
     //
     // CREATE THE PHYSICAL SYSTEM
@@ -89,18 +74,15 @@ int main(int argc, char* argv[]) {
     // Create some rigid bodies, for instance a floor:
     auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.2, 6, 2700, true, true, mysurfmaterial);
     mfloor->SetBodyFixed(true);
-    my_system.Add(mfloor);
-
-    auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    mfloor->AddAsset(mtexture);
+    mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+    sys.Add(mfloor);
 
     // Create a step
     if (false) {
         auto mfloor_step = chrono_types::make_shared<ChBodyEasyBox>(1, 0.2, 0.5, 2700, true, true, mysurfmaterial);
         mfloor_step->SetPos(ChVector<>(0, 0.1, -0.2));
         mfloor_step->SetBodyFixed(true);
-        my_system.Add(mfloor_step);
+        sys.Add(mfloor_step);
     }
 
     // Create some bent rectangular fixed slabs
@@ -115,10 +97,7 @@ int main(int argc, char* argv[]) {
             mcube->Move(ChCoordsys<>(VNULL, vrot));
             mcube->SetPos(ChVector<>((ChRandom() - 0.5) * 1.8, ChRandom() * 0.1, -ChRandom() * 3.2 + 0.9));
             mcube->SetBodyFixed(true);
-            my_system.Add(mcube);
-            auto mcubecol = chrono_types::make_shared<ChColorAsset>();
-            mcubecol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-            mcube->AddAsset(mcubecol);
+            sys.Add(mcube);
         }
     }
 
@@ -130,10 +109,7 @@ int main(int argc, char* argv[]) {
             vrot.Q_from_AngAxis(ChRandom() * CH_C_2PI, VECT_Y);
             mcube->Move(ChCoordsys<>(VNULL, vrot));
             mcube->SetPos(ChVector<>((ChRandom() - 0.5) * 1.4, ChRandom() * 0.2 + 0.05, -ChRandom() * 2.6 + 0.2));
-            my_system.Add(mcube);
-            auto mcubecol = chrono_types::make_shared<ChColorAsset>();
-            mcubecol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-            mcube->AddAsset(mcubecol);
+            sys.Add(mcube);
         }
     }
 
@@ -182,7 +158,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
     // Add a rim
     auto mwheel_rim = chrono_types::make_shared<ChBody>();
@@ -192,11 +168,11 @@ int main(int argc, char* argv[]) {
     mwheel_rim->SetRot(tire_alignment);
     mwheel_rim->SetPos_dt(ChVector<>(0, 0, tire_vel_z0));
     mwheel_rim->SetWvel_par(ChVector<>(tire_w0, 0, 0));
-    application.GetSystem()->Add(mwheel_rim);
+    sys.Add(mwheel_rim);
 
     auto mobjmesh = chrono_types::make_shared<ChObjShapeFile>();
     mobjmesh->SetFilename(GetChronoDataFile("models/tractor_wheel/tractor_wheel_rim.obj"));
-    mwheel_rim->AddAsset(mobjmesh);
+    mwheel_rim->AddVisualShape(mobjmesh);
 
     // Connect rim and tire using constraints.
     // the BC_RIMTIRE nodeset, in the Abaqus INP file, lists the nodes involved
@@ -204,7 +180,7 @@ int main(int argc, char* argv[]) {
     for (auto i = 0; i < node_sets.at(nodeset_sel).size(); ++i) {
         auto mlink = chrono_types::make_shared<ChLinkPointFrame>();
         mlink->Initialize(std::dynamic_pointer_cast<ChNodeFEAxyz>(node_sets[nodeset_sel][i]), mwheel_rim);
-        my_system.Add(mlink);
+        sys.Add(mlink);
     }
 
     // Create a mesh surface, for applying loads:
@@ -217,7 +193,7 @@ int main(int argc, char* argv[]) {
 
     // Apply load to all surfaces in the mesh surface
     auto mloadcontainer = chrono_types::make_shared<ChLoadContainer>();
-    my_system.Add(mloadcontainer);
+    sys.Add(mloadcontainer);
 
     for (auto i = 0; i < mmeshsurf->GetFacesList().size(); ++i) {
         auto aface = std::shared_ptr<ChLoadableUV>(mmeshsurf->GetFacesList()[i]);
@@ -230,76 +206,70 @@ int main(int argc, char* argv[]) {
     // Optional...  visualization
     //
 
-    // ==Asset== attach a visualization of the FEM mesh.
+    // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChTriangleMeshShape).
-    // Do not forget AddAsset() at the end!
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizemesh);
+    my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
     /*
-        auto mvisualizemeshB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-        mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+        auto mvisualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+        mvisualizemeshB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
         mvisualizemeshB->SetWireframe(true);
-        my_mesh->AddAsset(mvisualizemeshB);
+        my_mesh->AddVisualShapeFEA(mvisualizemeshB);
     */
     /*
-        auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-        mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-        mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+        auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+        mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+        mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
         mvisualizemeshC->SetSymbolsThickness(0.006);
-        my_mesh->AddAsset(mvisualizemeshC);
+        my_mesh->AddVisualShapeFEA(mvisualizemeshC);
      */
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(1280, 720);
+    vis->SetWindowTitle("FEA contacts");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(1.0, 1.4, -1.2), ChVector<>(0, tire_rad, 0));
+    vis->AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512,
+                           ChColor(0.8f, 0.8f, 1.0f));
+    vis->EnableShadows();
 
-    application.AssetBindAll();
-
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-    application.AssetUpdateAll();
-
-    // Use shadows in realtime view
-    application.AddShadowAll();
-
-    //
     // SIMULATION LOOP
-    //
 
     // Change solver to Pardiso from Chrono::PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
-    my_system.SetSolver(mkl_solver);
-    my_system.Update();
+    sys.SetSolver(mkl_solver);
+    sys.Update();
 
     // Change type of integrator:
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    // my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    // sys.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step
 
     // if later you want to change integrator settings:
-    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
+    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
         mystepper->SetAlpha(-0.2);
         mystepper->SetMaxiters(2);
         mystepper->SetAbsTolerances(1e-6);
     }
 
-    application.SetTimestep(0.001);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
-        application.DoStep();
-        application.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
+        sys.DoStepDynamics(0.001);
     }
 
     return 0;

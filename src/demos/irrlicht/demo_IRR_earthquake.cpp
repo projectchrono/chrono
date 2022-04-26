@@ -21,10 +21,10 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/assets/ChTexture.h"
 #include "chrono/motion_functions/ChFunction_Sine.h"
+#include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -42,7 +42,7 @@ using namespace irr::gui;
 // For convex hulls, you just need to build a vector of points, it does not matter the order,
 // because they will be considered 'wrapped' in a convex hull anyway.
 
-void create_column(ChSystemNSC& mphysicalSystem,
+void create_column(ChSystemNSC& sys,
                    ChCoordsys<> base_pos,
                    std::shared_ptr<ChMaterialSurface> material,
                    int col_nedges = 10,
@@ -71,42 +71,22 @@ void create_column(ChSystemNSC& mphysicalSystem,
     ChCoordsys<> cog_column(ChVector<>(0, col_base + col_height / 2, 0));
     ChCoordsys<> abs_cog_column = cog_column >> base_pos;
     bodyColumn->SetCoord(abs_cog_column);
-    mphysicalSystem.Add(bodyColumn);
+    sys.Add(bodyColumn);
 }
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Collisions between objects", core::dimension2d<u32>(800, 600),
-                         VerticalDir::Y, false, true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(1, 3, -10));
-    application.AddLightWithShadow(vector3df(1.0f, 25.0f, -5.0f), vector3df(0, 0, 0), 35, 0.2, 35, 35, 512,
-                                   video::SColorf(0.6f, 0.8f, 1.0f));
-
-    // Create all the rigid bodies.
+    ChSystemNSC sys;
 
     // Create a floor that is fixed (that is used also to represent the absolute reference)
 
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, true, false);
     floorBody->SetPos(ChVector<>(0, -2, 0));
     floorBody->SetBodyFixed(true);
-
-    mphysicalSystem.Add(floorBody);
-
-    // optional, attach a texture for better visualization
-    auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("textures/blue.png"));
-    floorBody->AddAsset(mtexture);
+    floorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
+    sys.Add(floorBody);
 
     // Create the table that is subject to earthquake
 
@@ -114,13 +94,8 @@ int main(int argc, char* argv[]) {
 
     auto tableBody = chrono_types::make_shared<ChBodyEasyBox>(15, 1, 15, 3000, true, true, table_mat);
     tableBody->SetPos(ChVector<>(0, -0.5, 0));
-
-    mphysicalSystem.Add(tableBody);
-
-    // optional, attach a texture for better visualization
-    auto mtextureconcrete = chrono_types::make_shared<ChTexture>();
-    mtextureconcrete->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    tableBody->AddAsset(mtextureconcrete);
+    tableBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+    sys.Add(tableBody);
 
     // Create the constraint between ground and table. If no earthquacke, it just
     // keeps the table in position.
@@ -131,7 +106,7 @@ int main(int argc, char* argv[]) {
     auto mmotion_x = chrono_types::make_shared<ChFunction_Sine>(0, 0.6, 0.2);  // phase freq ampl
     linkEarthquake->SetMotion_X(mmotion_x);
 
-    mphysicalSystem.Add(linkEarthquake);
+    sys.Add(linkEarthquake);
 
     // Create few column chunks
 
@@ -143,13 +118,13 @@ int main(int argc, char* argv[]) {
     double density = 3000;
     for (int icol = 0; icol < 5; ++icol) {
         ChCoordsys<> base_position1(ChVector<>(icol * spacing, 0, 0));
-        create_column(mphysicalSystem, base_position1, column_mat, 10, 0.45, 0.5, 1.5, density);
+        create_column(sys, base_position1, column_mat, 10, 0.45, 0.5, 1.5, density);
 
         ChCoordsys<> base_position2(ChVector<>(icol * spacing, 1.5, 0));
-        create_column(mphysicalSystem, base_position2, column_mat, 10, 0.40, 0.45, 1.5, density);
+        create_column(sys, base_position2, column_mat, 10, 0.40, 0.45, 1.5, density);
 
         ChCoordsys<> base_position3(ChVector<>(icol * spacing, 3.0, 0));
-        create_column(mphysicalSystem, base_position3, column_mat, 10, 0.35, 0.40, 1.5, density);
+        create_column(sys, base_position3, column_mat, 10, 0.35, 0.40, 1.5, density);
 
         if (icol < 4) {
             auto bodyTop = chrono_types::make_shared<ChBodyEasyBox>(spacing, 0.4, 1.2,  // x y z sizes
@@ -160,43 +135,40 @@ int main(int argc, char* argv[]) {
             ChCoordsys<> cog_top(ChVector<>(icol * spacing + spacing / 2, 4.5 + 0.4 / 2, 0));
             bodyTop->SetCoord(cog_top);
 
-            mphysicalSystem.Add(bodyTop);
+            sys.Add(bodyTop);
         }
     }
 
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
-    application.AssetBindAll();
-
-    // Use this function for 'converting' assets into Irrlicht meshes
-    application.AssetUpdateAll();
-
-    // This is to enable shadow maps (shadow casting with soft shadows) in Irrlicht
-    // for all objects (or use application.AddShadow(..) for enable shadow on a per-item basis)
-
-    application.AddShadowAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Collisions between objects");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(1, 3, -10));
+    vis->AddTypicalLights();
+    vis->AddLightWithShadow(ChVector<>(1.0, 25.0, -5.0), ChVector<>(0, 0, 0), 35, 0.2, 35, 35, 512,
+                            ChColor(0.6f, 0.8f, 1.0f));
+    vis->EnableShadows();
 
     // Modify some setting of the physical system for the simulation, if you want
-    mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
-    mphysicalSystem.SetSolverMaxIterations(50);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(50);
 
-    // mphysicalSystem.SetUseSleeping(true);
+    // sys.SetUseSleeping(true);
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // Simulation loop
+    double timestep = 0.005;
+    ChRealtimeStepTimer m_realtime_timer;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
-    application.SetTimestep(0.005);
-    application.SetTryRealtime(true);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-
-        application.DrawAll();
-
-        application.DoStep();
-
-        application.EndScene();
+        sys.DoStepDynamics(timestep);
+        m_realtime_timer.Spin(timestep);
     }
 
     return 0;

@@ -22,17 +22,14 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/particlefactory/ChParticleEmitter.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChColorAsset.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
-// Use the main namespace of Chrono, and other chrono namespaces
 using namespace chrono;
 using namespace chrono::particlefactory;
 using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
-// Use the main namespaces of Irrlicht
 using namespace irr;
 using namespace irr::core;
 using namespace irr::scene;
@@ -42,73 +39,59 @@ using namespace irr::gui;
 
 //     A callback executed at each particle creation can be attached to the emitter.
 //     For example, we need that new particles will be bound to Irrlicht visualization:
-
 class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
   public:
     virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
                            ChCoordsys<> mcoords,
                            ChRandomShapeCreator& mcreator) override {
-        // optional: add further assets, ex for improving visualization:
-        auto mtexture = chrono_types::make_shared<ChTexture>();
-        mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
-        mbody->AddAsset(mtexture);
+        // Set material texture of first visual shape
+        mbody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+        vis->BindItem(mbody);
 
-        // Enable Irrlicht visualization for all particles
-        airrlicht_application->AssetBind(mbody);
-        airrlicht_application->AssetUpdate(mbody);
-
-        // Other stuff, ex. disable gyroscopic forces for increased integrator stability
+        // Dsable gyroscopic forces for increased integrator stability
         mbody->SetNoGyroTorque(true);
     }
-    ChIrrApp* airrlicht_application;
+    ChVisualSystemIrrlicht* vis;
 };
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Particle emitter", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 14, -20));
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Particle emitter");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0, 14, -20));
 
-    //
-    // CREATE THE SYSTEM OBJECTS
-    //
-
-    // Example: create a ChBody rigid body.
+    // Create a rigid body
     auto sphere_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     sphere_mat->SetFriction(0.2f);
 
-    auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(2.1,          // radius size
+    auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(2.1,          // radius size
                                                                    1800,         // density
                                                                    true,         // visualization?
                                                                    true,         // collision?
                                                                    sphere_mat);  // contact material
-    msphereBody->SetPos(ChVector<>(1, 1, 0));
+    sphereBody->SetPos(ChVector<>(1, 1, 0));
+    sphereBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+    sys.Add(sphereBody);
 
-    // optional: add further assets, ex for improving visualization:
-    auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    msphereBody->AddAsset(mtexture);
-
-    mphysicalSystem.Add(msphereBody);
-
-    // Ok, creating particles using ChBody or the ChBodyEasyXXYYZZ shortcuts
-    // can be enough, ex. if you put in a for() loop you can create a cluster.
+    // Creating particles using ChBody or the ChBodyEasyXXYYZZ shortcuts
+    // can be enough, e.g. if you put in a for() loop you can create a cluster.
     // However there is an easier way to the creation of cluster of particles,
     // namely the ChEmitter helper class. Here we show hof to use it.
 
     // Create an emitter:
-
     ChParticleEmitter emitter;
 
-    // Ok, that object will take care of generating particle flows for you.
+    // This object will take care of generating particle flows for you.
     // It accepts a lot of settings, for creating many different types of particle
     // flows, like fountains, outlets of various shapes etc.
     // For instance, set the flow rate, etc:
@@ -128,10 +111,7 @@ int main(int argc, char* argv[]) {
 
     // ---Initialize the randomizer for POSITIONS: random points in a large cube
     auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionOnGeometry>();
-
-    std::shared_ptr<ChGeometry> sampled_cube(new ChBox(VNULL, ChMatrix33<>(QUNIT), ChVector<>(50, 50, 50)));
-    emitter_positions->SetGeometry(sampled_cube);
-
+    emitter_positions->SetGeometry(chrono_types::make_shared<ChBox>(50, 50, 50), ChFrame<>());
     emitter.SetParticlePositioner(emitter_positions);
 
     // ---Initialize the randomizer for ALIGNMENTS
@@ -175,51 +155,43 @@ int main(int argc, char* argv[]) {
     // b- create the callback object...
     auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
-    mcreation_callback->airrlicht_application = &application;
+    mcreation_callback->vis = vis.get();
     // d- attach the callback to the emitter!
     emitter.RegisterAddBodyCallback(mcreation_callback);
 
-    // Use this function for adding a ChIrrNodeAsset to all already created items (ex. a floor, a wall, etc.)
-    // Otherwise use application.AssetBind(myitem); on a per-item basis, as in the creation callback.
-    application.AssetBindAll();
-
-    // Use this function for 'converting' assets into Irrlicht meshes
-    application.AssetUpdateAll();
+    // Bind all existing visual shapes to the visualization system
+    sys.SetVisualSystem(vis);
 
     // Modify some setting of the physical system for the simulation, if you want
-    mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
-    mphysicalSystem.SetSolverMaxIterations(40);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(40);
 
     // Turn off default -9.8 downward gravity
-    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector<>(0, 0, 0));
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
-    application.SetTimestep(0.01);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-
-        application.DrawAll();
+    // Simulation loop
+    double timestep = 0.01;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         // Create particle flow
-        emitter.EmitParticles(mphysicalSystem, application.GetTimestep());
+        emitter.EmitParticles(sys, timestep);
 
         // Apply custom forcefield (brute force approach..)
         // A) reset 'user forces accumulators':
-        for (auto body : mphysicalSystem.Get_bodylist()) {
+        for (auto body : sys.Get_bodylist()) {
             body->Empty_forces_accumulators();
         }
 
         // B) store user computed force:
         // double G_constant = 6.674e-11; // gravitational constant
         double G_constant = 6.674e-3;  // gravitational constant - HACK to speed up simulation
-        for (unsigned int i = 0; i < mphysicalSystem.Get_bodylist().size(); i++) {
-            auto abodyA = mphysicalSystem.Get_bodylist()[i];
-            for (unsigned int j = i + 1; j < mphysicalSystem.Get_bodylist().size(); j++) {
-                auto abodyB = mphysicalSystem.Get_bodylist()[j];
+        for (unsigned int i = 0; i < sys.Get_bodylist().size(); i++) {
+            auto abodyA = sys.Get_bodylist()[i];
+            for (unsigned int j = i + 1; j < sys.Get_bodylist().size(); j++) {
+                auto abodyB = sys.Get_bodylist()[j];
                 ChVector<> D_attract = abodyB->GetPos() - abodyA->GetPos();
                 double r_attract = D_attract.Length();
                 double f_attract = G_constant * (abodyA->GetMass() * abodyB->GetMass()) / (pow(r_attract, 2));
@@ -231,9 +203,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Perform the integration timestep
-        application.DoStep();
-
-        application.EndScene();
+        sys.DoStepDynamics(timestep);
     }
 
     return 0;

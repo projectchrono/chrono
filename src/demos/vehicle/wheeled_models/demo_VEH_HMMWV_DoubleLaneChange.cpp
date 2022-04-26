@@ -32,7 +32,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -167,13 +167,6 @@ class ISO3888_Helper {
         m_rightCones.push_back((m_rightLine[4] + m_rightLine[5]) / 2);
         m_rightCones.push_back(m_rightLine[5]);
 
-        ////std::ofstream tst("bla.txt");
-        ////for (int i = 0; i < m_leftLine.size(); i++) {
-        ////    tst << m_leftLine[i].x() << "\t" << centerLine[i].x() << "\t" << m_leftLine[i].y() << "\t" <<
-        ///centerLine[i].y() /        << "\t" << m_rightLine[i].y() << std::endl;
-        ////}
-        ////tst.close();
-
         // prepare path spline definition
         ChVector<> offset(m_lengthB / 3, 0, 0);
         for (size_t i = 0; i < m_centerLine.size(); i++) {
@@ -295,7 +288,7 @@ double tire_step_size = 1e-3;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    std::wstring wtitle;
+    std::string wtitle;
     DLC_Variant dlc_mode = ISO3888_1;
     int velkmh = 30;
     bool left_turn = true;
@@ -304,20 +297,20 @@ int main(int argc, char* argv[]) {
         default:
             // no parameters given
             if (left_turn) {
-                wtitle = L"ISO 3888-1 Double Lane Change Test v = " + std::to_wstring(velkmh) + L" km/h - Left Turn";
+                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - Left Turn";
 
             } else {
-                wtitle = L"ISO 3888-1 Double Lane Change Test v = " + std::to_wstring(velkmh) + L" km/h - Right Turn";
+                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - Right Turn";
             }
             break;
         case 2:
             // one parameter given (velkmh)
             velkmh = ChClamp(atoi(argv[1]), 10, 100);
             if (left_turn) {
-                wtitle = L"ISO 3888-1 Double Lane Change Test v = " + std::to_wstring(velkmh) + L" km/h - Left Turn";
+                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - Left Turn";
 
             } else {
-                wtitle = L"ISO 3888-1 Double Lane Change Test v = " + std::to_wstring(velkmh) + L" km/h - Right Turn";
+                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - Right Turn";
             }
             break;
         case 3:
@@ -333,15 +326,15 @@ int main(int argc, char* argv[]) {
                     break;
             }
             if (dlc_mode == ISO3888_1) {
-                wtitle = L"ISO 3888-1 Double Lane Change Test v = " + std::to_wstring(velkmh) + L" km/h - ";
+                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - ";
             } else {
-                wtitle = L"ISO 3888-2 Moose Test v = " + std::to_wstring(velkmh) + L" km/h - ";
+                wtitle = "ISO 3888-2 Moose Test v = " + std::to_string(velkmh) + " km/h - ";
             }
             if (left_turn) {
-                wtitle += L" Left Turn";
+                wtitle += " Left Turn";
 
             } else {
-                wtitle += L" Right Turn";
+                wtitle += " Right Turn";
             }
             break;
         case 4:
@@ -366,15 +359,15 @@ int main(int argc, char* argv[]) {
                     left_turn = true;
             }
             if (dlc_mode == ISO3888_1) {
-                wtitle = L"ISO 3888-1 Double Lane Change Test v = " + std::to_wstring(velkmh) + L" km/h - ";
+                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - ";
             } else {
-                wtitle = L"ISO 3888-2 Moose Test v = " + std::to_wstring(velkmh) + L" km/h - ";
+                wtitle = "ISO 3888-2 Moose Test v = " + std::to_string(velkmh) + " km/h - ";
             }
             if (left_turn) {
-                wtitle += L" Left Turn";
+                wtitle += " Left Turn";
 
             } else {
-                wtitle += L" Right Turn";
+                wtitle += " Right Turn";
             }
             break;
     }
@@ -427,10 +420,14 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), wtitle.c_str());
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.SetTimestep(step_size);
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle(wtitle);
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
     // ---------------------------------------------------
     // Create the lane change path and the driver system
@@ -448,25 +445,19 @@ int main(int argc, char* argv[]) {
     for (size_t i = 0; i < helper.GetConePositions(); i++) {
         ChVector<> pL = helper.GetConePosition(i, true) + ChVector<>(0, coneBaseWidth / 2, 0);
         irr::scene::IAnimatedMesh* mesh_coneL =
-            app.GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
-        irr::scene::IAnimatedMeshSceneNode* node_coneL = app.GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneL);
+            vis->GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
+        irr::scene::IAnimatedMeshSceneNode* node_coneL = vis->GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneL);
         node_coneL->getMaterial(0).EmissiveColor = irr::video::SColor(0, 100, 0, 0);
         node_coneL->setPosition(irr::core::vector3dfCH(pL));
 
         ChVector<> pR = helper.GetConePosition(i, false) + ChVector<>(0, -coneBaseWidth / 2, 0);
         irr::scene::IAnimatedMesh* mesh_coneR =
-            app.GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
-        irr::scene::IAnimatedMeshSceneNode* node_coneR = app.GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneR);
+            vis->GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
+        irr::scene::IAnimatedMeshSceneNode* node_coneR = vis->GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneR);
         node_coneR->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 100, 0);
         node_coneR->setPosition(irr::core::vector3dfCH(pR));
     }
 
-    // ---------------------------------------------
-    // Finalize construction of visualization assets
-    // ---------------------------------------------
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
 
     // ---------------
     // Simulation loop
@@ -501,7 +492,7 @@ int main(int argc, char* argv[]) {
     double time = 0;
     double xpos = 0;
     double xend = helper.GetXmax();
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         time = my_hmmwv.GetSystem()->GetChTime();
         double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetSpeed());
         double accel = accel_filter.Filter(
@@ -536,8 +527,8 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -551,18 +542,18 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("Double lane change test", driver_inputs);
+        vis->Synchronize("Double lane change test", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;
 
-        app.EndScene();
+        vis->EndScene();
     }
 
 #ifdef CHRONO_POSTPROCESS

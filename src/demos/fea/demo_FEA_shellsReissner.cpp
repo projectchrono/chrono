@@ -27,9 +27,9 @@
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
@@ -59,26 +59,16 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a Chrono::Engine physical system
-    ChSystemSMC my_system;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Shells FEA", core::dimension2d<u32>(800, 600));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0.f, 6.0f, -10.f));
+    ChSystemSMC sys;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
-    // my_system.Set_G_acc(VNULL); or
+    // sys.Set_G_acc(VNULL); or
     my_mesh->SetAutomaticGravity(false);
 
     std::shared_ptr<ChNodeFEAxyzrot> nodePlotA;
@@ -108,12 +98,12 @@ int main(int argc, char* argv[]) {
         double E = 1.2e6;
         double nu = 0.0;
 
-		auto melasticity = chrono_types::make_shared<ChElasticityReissnerIsothropic>(E, nu, 1.0, 0.01);
-		auto mat = chrono_types::make_shared<ChMaterialShellReissner>(melasticity);
-		// In case you need also damping it would add...
-		//auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(melasticity,0.01);
-		//auto mat = chrono_types::make_shared<ChMaterialShellReissner>(melasticity, nullptr, mdamping);
-		mat->SetDensity(rho);
+        auto melasticity = chrono_types::make_shared<ChElasticityReissnerIsothropic>(E, nu, 1.0, 0.01);
+        auto mat = chrono_types::make_shared<ChMaterialShellReissner>(melasticity);
+        // In case you need also damping it would add...
+        // auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(melasticity,0.01);
+        // auto mat = chrono_types::make_shared<ChMaterialShellReissner>(melasticity, nullptr, mdamping);
+        mat->SetDensity(rho);
 
         // Create the nodes
 
@@ -319,8 +309,8 @@ int main(int argc, char* argv[]) {
         auto mat = chrono_types::make_shared<ChMaterialShellReissnerIsothropic>(rho, E, nu, 1.0, 0.01);
 
         // In case you want to test laminated shells, use this:
-        auto mat_ortho = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(rho, 2.0685e7, 0.517e7, 0.3, 0.795e7,
-                                                                              0.795e7, 0.795e7, 1.0, 0.01);
+        auto mat_ortho = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(
+            rho, 2.0685e7, 0.517e7, 0.3, 0.795e7, 0.795e7, 0.795e7, 1.0, 0.01);
 
         // Create the nodes
 
@@ -390,16 +380,16 @@ int main(int argc, char* argv[]) {
 
         auto mtruss = chrono_types::make_shared<ChBody>();
         mtruss->SetBodyFixed(true);
-        my_system.Add(mtruss);
+        sys.Add(mtruss);
         for (auto mendnode : nodes_left) {
             auto mlink = chrono_types::make_shared<ChLinkMateGeneric>(false, true, false, true, false, true);
             mlink->Initialize(mendnode, mtruss, false, mendnode->Frame(), mendnode->Frame());
-            my_system.Add(mlink);
+            sys.Add(mlink);
         }
         for (auto mendnode : nodes_right) {
             auto mlink = chrono_types::make_shared<ChLinkMateGeneric>(false, true, false, true, false, true);
             mlink->Initialize(mendnode, mtruss, false, mendnode->Frame(), mendnode->Frame());
-            my_system.Add(mlink);
+            sys.Add(mlink);
         }
 
         load_force = ChVector<>(0, -2000, 0);
@@ -418,80 +408,73 @@ int main(int argc, char* argv[]) {
         ref_X.AddPoint(1.00, 1 - 1.71);
     }
 
-    // ==Asset== attach a visualization of the FEM mesh.
+    //Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChTriangleMeshShape).
-    // Do not forget AddAsset() at the end!
 
-    auto mvisualizeshellA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizeshellA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizeshellA->SetSmoothFaces(true);
     mvisualizeshellA->SetWireframe(true);
-    my_mesh->AddAsset(mvisualizeshellA);
+    my_mesh->AddVisualShapeFEA(mvisualizeshellA);
     /*
-    auto mvisualizeshellB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizeshellB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizeshellB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+    auto mvisualizeshellB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizeshellB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    mvisualizeshellB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizeshellB->SetSymbolsThickness(0.01);
-    my_mesh->AddAsset(mvisualizeshellB);
+    my_mesh->AddVisualShapeFEA(mvisualizeshellB);
     */
 
-    auto mvisualizeshellC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizeshellC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    // mvisualizeshellC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+    auto mvisualizeshellC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizeshellC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    // mvisualizeshellC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
     mvisualizeshellC->SetSymbolsThickness(0.05);
     mvisualizeshellC->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizeshellC);
+    my_mesh->AddVisualShapeFEA(mvisualizeshellC);
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Shells FEA");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0.0, 6.0, -10.0));
+    sys.SetVisualSystem(vis);
 
-    application.AssetBindAll();
-
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-    application.AssetUpdateAll();
-
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
-    my_system.SetSolver(mkl_solver);
+    sys.SetSolver(mkl_solver);
 
     // Change type of integrator:
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
-    //my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    //my_system.SetTimestepperType(ChTimestepper::Type::HHT);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
+    // sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    // sys.SetTimestepperType(ChTimestepper::Type::HHT);
 
-    if (auto mint = std::dynamic_pointer_cast<ChImplicitIterativeTimestepper>(my_system.GetTimestepper())) {
+    if (auto mint = std::dynamic_pointer_cast<ChImplicitIterativeTimestepper>(sys.GetTimestepper())) {
         mint->SetMaxiters(5);
         mint->SetAbsTolerances(1e-12, 1e-12);
     }
 
     double timestep = 0.1;
-    application.SetTimestep(timestep);
-    my_system.Setup();
-    my_system.Update();
+    sys.Setup();
+    sys.Update();
 
     ChFunction_Recorder rec_X;
     ChFunction_Recorder rec_Y;
 
     double mtime = 0;
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        application.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
         // .. draw also a grid
-        tools::drawGrid(application.GetVideoDriver(), 1, 1);
+        tools::drawGrid(vis->GetVideoDriver(), 1, 1);
 
         // ...update load at end nodes, as simple lumped nodal forces
 
@@ -501,21 +484,20 @@ int main(int argc, char* argv[]) {
             mendnode->SetTorque(load_torque * load_scale * (1. / (double)nodesLoad.size()));
         }
 
-        // application.DoStep();
-        // mtime = my_system.GetChTime();
-        application.GetSystem()->DoStaticNonlinear(3);
-        // application.GetSystem()->DoStaticLinear();
+        // mtime = sys.GetChTime();
+        sys.DoStaticNonlinear(3);
+        // sys.DoStaticLinear();
         mtime += timestep;
 
-        if (!application.GetPaused() && nodePlotA && nodePlotB) {
+        if (nodePlotA && nodePlotB) {
             rec_Y.AddPoint(load_scale, nodePlotA->GetPos().y());
             rec_X.AddPoint(load_scale, nodePlotB->GetPos().y());
         }
 
-        application.EndScene();
+        vis->EndScene();
 
         if (load_scale > 1)
-            application.GetDevice()->closeDevice();
+            vis->GetDevice()->closeDevice();
     }
 
     // Outputs results in a GNUPLOT plot:

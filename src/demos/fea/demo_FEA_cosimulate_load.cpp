@@ -31,8 +31,8 @@
 #include "chrono/fea/ChLoadContactSurfaceMesh.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -45,7 +45,7 @@ using namespace irr;
 // In a real cosimulation scenario, this procedure could even reside
 // on a different computing node and manage inputs/outputs via MPI or such.
 
-void PerformEsternalCosimulation(const std::vector<ChVector<>>& input_vert_pos,
+void PerformExternalCosimulation(const std::vector<ChVector<>>& input_vert_pos,
                                  const std::vector<ChVector<>>& input_vert_vel,
                                  const std::vector<ChVector<int>>& input_triangles,
                                  std::vector<ChVector<>>& vert_output_forces,
@@ -73,7 +73,7 @@ void PerformEsternalCosimulation(const std::vector<ChVector<>>& input_vert_pos,
 // Utility to draw some triangles that are affected by cosimulation.
 // Also plot forces as vectors.
 // Mostly for debugging.
-void draw_affected_triangles(ChIrrApp& application,
+void draw_affected_triangles(ChVisualSystemIrrlicht& vis,
                              std::vector<ChVector<>>& vert_pos,
                              std::vector<ChVector<int>>& triangles,
                              std::vector<int>& vert_indexes,
@@ -89,15 +89,14 @@ void draw_affected_triangles(ChIrrApp& application,
         if (vert_hit == true) {
             std::vector<chrono::ChVector<>> fourpoints = {vert_pos[triangles[it].x()], vert_pos[triangles[it].y()],
                                                           vert_pos[triangles[it].z()], vert_pos[triangles[it].x()]};
-            tools::drawPolyline(application.GetVideoDriver(), fourpoints, irr::video::SColor(255, 240, 200, 0),
-                                     true);
+            tools::drawPolyline(vis.GetVideoDriver(), fourpoints, irr::video::SColor(255, 240, 200, 0), true);
         }
     }
     if (forcescale > 0)
         for (int io = 0; io < vert_indexes.size(); ++io) {
             std::vector<chrono::ChVector<>> forceline = {vert_pos[vert_indexes[io]],
                                                          vert_pos[vert_indexes[io]] + vert_forces[io] * forcescale};
-            tools::drawPolyline(application.GetVideoDriver(), forceline, irr::video::SColor(100, 240, 0, 0), true);
+            tools::drawPolyline(vis.GetVideoDriver(), forceline, irr::video::SColor(100, 240, 0, 0), true);
         }
 }
 
@@ -110,19 +109,7 @@ int main(int argc, char* argv[]) {
     ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y));  // create rotated 180° on y
 
     // Create a Chrono::Engine physical system
-    ChSystemSMC my_system;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"demo_FEA_cosimulate_load", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(f32(1.0), f32(1.4), f32(-1.2)), core::vector3df(0, f32(tire_rad), 0));
-    application.AddLightWithShadow(core::vector3df(f32(1.5), f32(5.5), f32(-2.5)), core::vector3df(0, 0, 0), 3, 2.2,
-                                   7.2, 40, 512, video::SColorf(f32(0.8), f32(0.8), f32(1.0)));
+    ChSystemSMC sys;
 
     //
     // CREATE A FINITE ELEMENT MESH
@@ -141,7 +128,7 @@ int main(int argc, char* argv[]) {
     // of FEA elements and their referenced nodes.
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
     // Create a material, that must be assigned to each solid element in the mesh,
     // and set its parameters
@@ -163,7 +150,7 @@ int main(int argc, char* argv[]) {
         ChMeshFileLoader::FromAbaqusFile(my_mesh,
                                          GetChronoDataFile("models/tractor_wheel/tractor_wheel_coarse.INP").c_str(),
                                          mmaterial, node_sets, tire_center, tire_alignment);
-    } catch (const ChException &myerr) {
+    } catch (const ChException& myerr) {
         GetLog() << myerr.what();
         return 0;
     }
@@ -179,7 +166,7 @@ int main(int argc, char* argv[]) {
     // (forces on nodes will be computed by an external procedure)
 
     auto mloadcontainer = chrono_types::make_shared<ChLoadContainer>();
-    my_system.Add(mloadcontainer);
+    sys.Add(mloadcontainer);
 
     auto mmeshload = chrono_types::make_shared<ChLoadContactSurfaceMesh>(mcontactsurf);
     mloadcontainer->Add(mmeshload);
@@ -188,16 +175,16 @@ int main(int argc, char* argv[]) {
     // Optional...  visualization
     //
 
-    // ==Asset== attach a visualization of the FEM mesh.
+    // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizemesh);
+    my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
     //
     // CREATE A RIGID BODY WITH A MESH
@@ -208,32 +195,36 @@ int main(int argc, char* argv[]) {
     // will use the ChLoadBodyMesh class:
 
     auto mrigidbody = chrono_types::make_shared<ChBody>();
-    my_system.Add(mrigidbody);
+    sys.Add(mrigidbody);
     mrigidbody->SetMass(200);
     mrigidbody->SetInertiaXX(ChVector<>(20, 20, 20));
     mrigidbody->SetPos(tire_center + ChVector<>(-1, 0, 0));
 
-    auto mrigidmesh = chrono_types::make_shared<ChTriangleMeshShape>();
-    mrigidmesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.obj"));
-    mrigidmesh->GetMesh()->Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
-    mrigidbody->AddAsset(mrigidmesh);
-
-    auto mcol = chrono_types::make_shared<ChColorAsset>();
-    mcol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-    mrigidbody->AddAsset(mcol);
+    auto mesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+        GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.obj"));
+    mesh->Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
+    auto mesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
+    mesh_asset->SetMesh(mesh);
+    mrigidbody->AddVisualShape(mesh_asset);
 
     // this is used to use the mesh in cosimulation!
-    auto mrigidmeshload = chrono_types::make_shared<ChLoadBodyMesh>(mrigidbody, *mrigidmesh->GetMesh());
+    auto mrigidmeshload = chrono_types::make_shared<ChLoadBodyMesh>(mrigidbody, *mesh);
     mloadcontainer->Add(mrigidmeshload);
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    application.AssetBindAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(1280, 720);
+    vis->SetWindowTitle("demo_FEA_cosimulate_load");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512,
+                            ChColor(0.8f, 0.8f, 1.0f));
+    vis->AddCamera(ChVector<>(1.0, 1.4, -1.2), ChVector<>(0, tire_rad, 0));
 
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    application.AssetUpdateAll();
-
-    // Use shadows in realtime view
-    application.AddShadowAll();
+    vis->EnableShadows();
 
     //
     // THE SOFT-REAL-TIME CYCLE
@@ -244,25 +235,22 @@ int main(int argc, char* argv[]) {
     // if you need higher precision, and switch to its MKL solver - see demos for FEA & MKL.
 
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(40);
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // Enable for better convergence if using Euler implicit linearized
 
-    my_system.SetSolverForceTolerance(1e-10);
+    sys.SetSolverForceTolerance(1e-10);
 
     // Change type of integrator:
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
-    application.SetTimestep(0.005);
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        application.DrawAll();
-
-        application.DoStep();
+        sys.DoStepDynamics(0.005);
 
         // -------------------------------------------------------------------------
         // Here do the cosimulation
@@ -282,13 +270,13 @@ int main(int argc, char* argv[]) {
 
         mmeshload->OutputSimpleMesh(vert_pos, vert_vel, triangles);
 
-        PerformEsternalCosimulation(vert_pos, vert_vel, triangles, vert_forces, vert_indexes);
+        PerformExternalCosimulation(vert_pos, vert_vel, triangles, vert_forces, vert_indexes);
 
         mmeshload->InputSimpleForces(vert_forces, vert_indexes);
 
         // now, just for debugging and some fun, draw some triangles
         // (only those that have a vertex that has a force applied):
-        draw_affected_triangles(application, vert_pos, triangles, vert_indexes, vert_forces, 0.01);
+        draw_affected_triangles(*vis, vert_pos, triangles, vert_indexes, vert_forces, 0.01);
 
         // Other example: call another cosimulation, this time for the rigid body
         // mesh (the second tire, the rigid one):
@@ -300,21 +288,21 @@ int main(int argc, char* argv[]) {
 
         mrigidmeshload->OutputSimpleMesh(vert_pos, vert_vel, triangles);
 
-        PerformEsternalCosimulation(vert_pos, vert_vel, triangles, vert_forces, vert_indexes);
+        PerformExternalCosimulation(vert_pos, vert_vel, triangles, vert_forces, vert_indexes);
 
         mrigidmeshload->InputSimpleForces(vert_forces, vert_indexes);
 
         // now, just for debugging and some fun, draw some triangles
         // (only those that have a vertex that has a force applied):
-        draw_affected_triangles(application, vert_pos, triangles, vert_indexes, vert_forces, 0.01);
+        draw_affected_triangles(*vis, vert_pos, triangles, vert_indexes, vert_forces, 0.01);
 
         // End of cosimulation block
         // -------------------------------------------------------------------------
 
-        tools::drawGrid(application.GetVideoDriver(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X),
-                             video::SColor(50, 90, 90, 90), true);
+        tools::drawGrid(vis->GetVideoDriver(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X),
+                        video::SColor(50, 90, 90, 90), true);
 
-        application.EndScene();
+        vis->EndScene();
     }
 
     return 0;

@@ -231,7 +231,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     std::shared_ptr<ChTrackCollisionManager> m_collision_manager;  ///< manager for internal collisions
     std::shared_ptr<ChTrackContactManager> m_contact_manager;      ///< manager for internal contacts
 
-    friend class ChTrackedVehicleIrrApp;
+    friend class ChTrackedVehicleVisualSystemIrrlicht;
 };
 
 /// @} vehicle_tracked

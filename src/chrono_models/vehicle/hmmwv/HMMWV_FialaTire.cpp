@@ -109,8 +109,8 @@ void HMMWV_FialaTire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void HMMWV_FialaTire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChFialaTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace hmmwv

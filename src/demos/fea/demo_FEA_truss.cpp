@@ -28,9 +28,9 @@
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a Chrono::Engine physical system
-    ChSystemSMC my_system;
+    ChSystemSMC sys;
 
     // Create two meshes (the second just for containing the 'dumb' massless nodes,
     // so that they can be plot with a different color)
@@ -63,8 +63,8 @@ int main(int argc, char* argv[]) {
     auto my_mesh_dumb = chrono_types::make_shared<ChMesh>();
 
     // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
-    my_system.Add(my_mesh_dumb);
+    sys.Add(my_mesh);
+    sys.Add(my_mesh_dumb);
 
     //
     // BENCHMARK n.1
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
         // Create a fixed body (reference)
         auto ground = chrono_types::make_shared<ChBody>();
         ground->SetBodyFixed(true);
-        my_system.Add(ground);
+        sys.Add(ground);
 
         int nnodes_x = 20;
         int nnodes_y = 10;
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
                     // Create a constraint between a node and the truss
                     // auto constraintA = chrono_types::make_shared<ChLinkPointFrame>();
                     // constraintA->Initialize(mnode, ground);  // body to be connected to
-                    // my_system.Add(constraintA);
+                    // sys.Add(constraintA);
                 }
                 if (ix == nnodes_x - 1) {
                     mnode->SetForce(ChVector<>(0, -0.00, 0));
@@ -187,87 +187,70 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // ==Asset== attach a visualization of the FEM mesh.
+    // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChTriangleMeshShape).
-    // Do not forget AddAsset() at the end!
 
-    auto mvisualizeA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizeA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizeA->SetWireframe(true);
-    my_mesh->AddAsset(mvisualizeA);
+    my_mesh->AddVisualShapeFEA(mvisualizeA);
 
-    auto mvisualizeB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizeB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizeB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+    auto mvisualizeB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizeB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    mvisualizeB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizeB->SetSymbolsThickness(0.015);
-    my_mesh->AddAsset(mvisualizeB);
+    my_mesh->AddVisualShapeFEA(mvisualizeB);
 
-    auto mvisualizeC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh_dumb.get()));
-    mvisualizeC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizeC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+    auto mvisualizeC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_dumb);
+    mvisualizeC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    mvisualizeC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizeC->SetDefaultSymbolsColor(ChColor(1, 1, 0));
     mvisualizeC->SetSymbolsThickness(0.01);
-    my_mesh->AddAsset(mvisualizeC);
+    my_mesh->AddVisualShapeFEA(mvisualizeC);
 
     //
     // VISUALIZATION
     //
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Truss FEA test: use ChElementSpring and ChElementBar",
-                         core::dimension2d<u32>(1024, 768));
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(1024, 768);
+    vis->SetWindowTitle("Truss FEA test: use ChElementSpring and ChElementBar");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0.0, 1.0, -1.0));
+    sys.SetVisualSystem(vis);
 
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0.f, 1.0f, -1.f));
-
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-    application.AssetBindAll();
-
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-    application.AssetUpdateAll();
-
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // Simulation loop
 
     // Change solver to MKL
     // auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     // mkl_solver->LockSparsityPattern(true);
-    // my_system.SetSolver(mkl_solver);
+    // sys.SetSolver(mkl_solver);
 
     // Change solver to GMRES
     auto gmres_solver = chrono_types::make_shared<ChSolverGMRES>();
     gmres_solver->SetMaxIterations(300);
-    my_system.SetSolver(gmres_solver);
+    sys.SetSolver(gmres_solver);
 
     double timestep = 0.01;
-    application.SetTimestep(timestep);
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        application.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
         // draw spring elements as lines
         for (auto mspring : springs) {
             if (mspring->GetSpringK() > 0) {
-                tools::drawSegment(application.GetVideoDriver(),
-                                        std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(0))->GetPos(),
-                                        std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(1))->GetPos(),
-                                        irr::video::SColor(255, 255, 255, 255), true);
+                tools::drawSegment(vis->GetVideoDriver(),
+                                   std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(0))->GetPos(),
+                                   std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(1))->GetPos(),
+                                   irr::video::SColor(255, 255, 255, 255), true);
             }
             // cut springs if beyond a stress limit
             if (fabs(mspring->GetCurrentForce()) > 100) {
@@ -288,9 +271,9 @@ int main(int argc, char* argv[]) {
             mnode->SetPos(offposition);
         }
 
-        application.DoStep();
+        sys.DoStepDynamics(timestep);
 
-        application.EndScene();
+        vis->EndScene();
     }
 
     return 0;

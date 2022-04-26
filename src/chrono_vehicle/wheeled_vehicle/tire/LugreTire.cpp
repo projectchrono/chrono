@@ -116,8 +116,8 @@ void LugreTire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void LugreTire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChLugreTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace vehicle

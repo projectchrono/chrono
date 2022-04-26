@@ -22,8 +22,9 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -41,21 +42,14 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a physical system
-    ChSystemNSC mphysicalSystem;
-
-    // Create the Irrlicht visualization, attach camera and lights, set sky and logo
-    ChIrrApp application(&mphysicalSystem, L"Rolling friction", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddLight(irr::core::vector3df(30.f, 100.f, 30.f), 290, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    application.AddLight(irr::core::vector3df(-30.f, 100.f, -30.f), 190, irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
-    application.AddCamera(vector3df(0, 14, -20));
+    ChSystemNSC sys;
 
     // Create all the rigid bodies.
     double mradius = 0.5;
 
-    // Create a texture asset. It can be shared between bodies.
-    auto textureasset = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/bluewhite.png"));
+    // Create a shared visualization material.
+    auto sph_vis_mat = chrono_types::make_shared<ChVisualMaterial>();
+    sph_vis_mat->SetKdTexture(GetChronoDataFile("textures/bluewhite.png"));
 
     // Create some spheres that roll horizontally, with increasing rolling friction values
     for (int bi = 0; bi < 10; bi++) {
@@ -63,24 +57,24 @@ int main(int argc, char* argv[]) {
         mat->SetFriction(0.4f);
         mat->SetRollingFriction(((float)bi / 10) * 0.05f);
 
-        auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,  // radius size
-                                                                       1000,     // density
-                                                                       true,     // visualization?
-                                                                       true,     // collision?
-                                                                       mat);     // contact material
+        auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,  // radius size
+                                                                      1000,     // density
+                                                                      true,     // visualization?
+                                                                      true,     // collision?
+                                                                      mat);     // contact material
 
         // Set some properties
-        msphereBody->SetPos(ChVector<>(-7, mradius - 0.5, -5 + bi * mradius * 2.5));
-        msphereBody->AddAsset(textureasset);  // assets can be shared
+        sphereBody->SetPos(ChVector<>(-7, mradius - 0.5, -5 + bi * mradius * 2.5));
+        sphereBody->GetVisualShape(0)->SetMaterial(0, sph_vis_mat);
 
         // Set initial speed: rolling in horizontal direction
         double initial_angspeed = 10;
         double initial_linspeed = initial_angspeed * mradius;
-        msphereBody->SetWvel_par(ChVector<>(0, 0, -initial_angspeed));
-        msphereBody->SetPos_dt(ChVector<>(initial_linspeed, 0, 0));
+        sphereBody->SetWvel_par(ChVector<>(0, 0, -initial_angspeed));
+        sphereBody->SetPos_dt(ChVector<>(initial_linspeed, 0, 0));
 
         // Add to the system
-        mphysicalSystem.Add(msphereBody);
+        sys.Add(sphereBody);
     }
 
     // Create some spheres that spin on place, for a 'drilling friction' case, with increasing spinning friction values
@@ -89,20 +83,20 @@ int main(int argc, char* argv[]) {
         mat->SetFriction(0.4f);
         mat->SetSpinningFriction(((float)bi / 10) * 0.02f);
 
-        auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,  // radius size
-                                                                       1000,     // density
-                                                                       true,     // visualization?
-                                                                       true,     // collision?
-                                                                       mat);     // contact material
+        auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,  // radius size
+                                                                      1000,     // density
+                                                                      true,     // visualization?
+                                                                      true,     // collision?
+                                                                      mat);     // contact material
         // Set some properties
-        msphereBody->SetPos(ChVector<>(-8, 1 + mradius - 0.5, -5 + bi * mradius * 2.5));
-        msphereBody->AddAsset(textureasset);  // assets can be shared
+        sphereBody->SetPos(ChVector<>(-8, 1 + mradius - 0.5, -5 + bi * mradius * 2.5));
+        sphereBody->GetVisualShape(0)->SetMaterial(0, sph_vis_mat);
 
         // Set initial speed: spinning in vertical direction
-        msphereBody->SetWvel_par(ChVector<>(0, 20, 0));
+        sphereBody->SetWvel_par(ChVector<>(0, 20, 0));
 
         // Add to the system
-        mphysicalSystem.Add(msphereBody);
+        sys.Add(sphereBody);
 
         // Notes:
         // - setting nonzero spinning friction and/or setting nonzero rolling friction
@@ -123,36 +117,51 @@ int main(int argc, char* argv[]) {
     bin_mat->SetRollingFriction(1);
     bin_mat->SetSpinningFriction(1);
 
+    // Create a shared visualization material.
+    auto bin_vis_mat = chrono_types::make_shared<ChVisualMaterial>();
+    bin_vis_mat->SetKdTexture(GetChronoDataFile("textures/blue.png"));
+
     // Add collision geometry and visualization shapes for the floor and the 4 walls
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20, 1, 20) / 2.0, ChVector<>(0, 0, 0));
-    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(-10, 1, 0));
-    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(10, 1, 0));
-    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 1, -10));
-    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 1, 10));
+    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20, 1, 20) / 2.0, ChVector<>(0, 0, 0), QUNIT, true,
+                          bin_vis_mat);
+    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(-10, 1, 0), QUNIT, true,
+                          bin_vis_mat);
+    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(10, 1, 0), QUNIT, true,
+                          bin_vis_mat);
+    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 1, -10), QUNIT, true,
+                          bin_vis_mat);
+    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 1, 10), QUNIT, true,
+                          bin_vis_mat);
     bin->GetCollisionModel()->BuildModel();
 
-    bin->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/blue.png")));
+    sys.Add(bin);
 
-    mphysicalSystem.Add(bin);
-
-    // Complete asset construction
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Rolling and spinning friction");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 14, -20));
+    vis->AddLight(ChVector<>(30.f, 100.f, 30.f), 290, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(-30.f, 100.f, -30.f), 190, ChColor(0.7f, 0.8f, 0.8f));
 
     // Modify some setting of the physical system for the simulation
-    mphysicalSystem.SetSolverType(ChSolver::Type::APGD);
-    mphysicalSystem.SetSolverMaxIterations(100);
+    sys.SetSolverType(ChSolver::Type::APGD);
+    sys.SetSolverMaxIterations(100);
 
     // Simulation loop
-    application.SetTimestep(0.005);
-    application.SetTryRealtime(true);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-        application.DrawAll();
-        application.DoStep();
-        application.EndScene();
+    double timestep = 0.005;
+    ChRealtimeStepTimer realtime_timer;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
+        sys.DoStepDynamics(timestep);
+        realtime_timer.Spin(timestep);
     }
 
     return 0;

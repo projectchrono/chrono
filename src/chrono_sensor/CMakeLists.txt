@@ -399,14 +399,12 @@ ENDIF()
 # LIST THE UTILITY FILES THAT WILL BE EXPOSED TO THE USER
 #-----------------------------------------------------------------------------
 set(ChronoEngine_sensor_UTILS_SOURCES
-    utils/ChVisualMaterialUtils.cpp
     utils/ChUtilsJSON.cpp
     utils/ChGPSUtils.cpp
     utils/Kdtree.cpp
     utils/Dbscan.cpp
 )
 set(ChronoEngine_sensor_UTILS_HEADERS
-    utils/ChVisualMaterialUtils.h
   	utils/CudaMallocHelper.h
     utils/ChUtilsJSON.h
     utils/ChGPSUtils.h

@@ -22,7 +22,7 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/collision/ChConvexDecomposition.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono_irrlicht/ChIrrMeshTools.h"
 
 #include <irrlicht.h>
@@ -53,7 +53,7 @@ double hacd_fusetolerance;
 
 // LOAD A TRIANGLE MESH USING IRRLICHT IMPORTERS
 //
-void LoadModel(ChIrrAppInterface* application, const char* filename) {
+void LoadModel(ChVisualSystemIrrlicht* vis, const char* filename) {
     if (modelNode)
         modelNode->remove();
     modelNode = 0;
@@ -64,12 +64,12 @@ void LoadModel(ChIrrAppInterface* application, const char* filename) {
 
     // Load a mesh using the Irrlicht I/O conversion
     // from mesh file formats.
-    modelMesh = application->GetSceneManager()->getMesh(filename);
-    modelNode = application->GetSceneManager()->addAnimatedMeshSceneNode(modelMesh);
+    modelMesh = vis->GetSceneManager()->getMesh(filename);
+    modelNode = vis->GetSceneManager()->addAnimatedMeshSceneNode(modelMesh);
     modelNode->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
 }
 
-void DecomposeModel(ChIrrAppInterface* application) {
+void DecomposeModel(ChVisualSystemIrrlicht* vis) {
     if (decompositionNode)
         decompositionNode->remove();
     decompositionNode = 0;
@@ -77,7 +77,7 @@ void DecomposeModel(ChIrrAppInterface* application) {
     if (!modelNode)
         return;
 
-    decompositionNode = application->GetSceneManager()->addEmptySceneNode();
+    decompositionNode = vis->GetSceneManager()->addEmptySceneNode();
 
     // Convert the Irrlicht mesh into a Chrono::Engine mesh.
     ChTriangleMeshSoup chmesh;
@@ -114,15 +114,15 @@ void DecomposeModel(ChIrrAppInterface* application) {
         mmesh->drop();
 
         scene::IAnimatedMeshSceneNode* piece_node =
-            application->GetSceneManager()->addAnimatedMeshSceneNode(Amesh, decompositionNode);
+            vis->GetSceneManager()->addAnimatedMeshSceneNode(Amesh, decompositionNode);
         piece_node->getMaterial(0).EmissiveColor.set(255, 40, 40, 50);  // 255, 50, 50, 50);
         // piece_node->getMaterial(0).AmbientColor.set(255,30,30,30);//100, 0,0,0);
-        piece_node->getMaterial(0)
-            .DiffuseColor.set(255, clr.getRed(), clr.getGreen(), clr.getBlue());  // 255, 50, 50, 50);
+        piece_node->getMaterial(0).DiffuseColor.set(255, clr.getRed(), clr.getGreen(),
+                                                    clr.getBlue());  // 255, 50, 50, 50);
         // piece_node->getMaterial(0).Lighting = true;
         piece_node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
         scene::IAnimatedMeshSceneNode* piece_node2 =
-            application->GetSceneManager()->addAnimatedMeshSceneNode(Amesh, decompositionNode);
+            vis->GetSceneManager()->addAnimatedMeshSceneNode(Amesh, decompositionNode);
         piece_node2->getMaterial(0).Lighting = true;
         piece_node2->getMaterial(0).Wireframe = true;
         piece_node2->getMaterial(0).Thickness = 2;
@@ -131,7 +131,7 @@ void DecomposeModel(ChIrrAppInterface* application) {
     modelNode->setVisible(false);
 }
 
-void SaveHullsWavefront(ChIrrAppInterface* application, const char* filename) {
+void SaveHullsWavefront(ChVisualSystemIrrlicht* vis, const char* filename) {
     // Save the convex decomposition to a
     // file using the .obj fileformat.
 
@@ -139,11 +139,11 @@ void SaveHullsWavefront(ChIrrAppInterface* application, const char* filename) {
         ChStreamOutAsciiFile decomposed_objfile(filename);
         mydecompositionHACDv2.WriteConvexHullsAsWavefrontObj(decomposed_objfile);
     } catch (const ChException&) {
-        application->GetIGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
+        vis->GetGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
 }
 
-void SaveHullsChulls(ChIrrAppInterface* application, const char* filename) {
+void SaveHullsChulls(ChVisualSystemIrrlicht* vis, const char* filename) {
     // Save the convex decomposition to a
     // file using the .obj fileformat.
 
@@ -151,7 +151,7 @@ void SaveHullsChulls(ChIrrAppInterface* application, const char* filename) {
         ChStreamOutAsciiFile decomposed_objfile(filename);
         mydecompositionHACDv2.WriteConvexHullsAsChullsFile(decomposed_objfile);
     } catch (const ChException&) {
-        application->GetIGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
+        vis->GetGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
 }
 
@@ -162,14 +162,11 @@ void SaveHullsChulls(ChIrrAppInterface* application, const char* filename) {
 
 class MyEventReceiver : public IEventReceiver {
   public:
-    MyEventReceiver(ChIrrAppInterface* mapp) {
-        // store pointer to physical system & other stuff so we can tweak them by user keyboard
-        app = mapp;
-
-        app->GetDevice()->setEventReceiver(this);
+    MyEventReceiver(ChVisualSystemIrrlicht* vsys) : vis(vsys) {
+        vis->GetDevice()->setEventReceiver(this);
 
         // create menu
-        gui::IGUIContextMenu* menu = app->GetIGUIEnvironment()->addMenu();
+        gui::IGUIContextMenu* menu = vis->GetGUIEnvironment()->addMenu();
         menu->addItem(L"File", -1, true, true);
         menu->addItem(L"View", -1, true, true);
 
@@ -186,47 +183,47 @@ class MyEventReceiver : public IEventReceiver {
         submenu->addItem(L"View decomposition", 94);
 
         text_algo_type =
-            app->GetIGUIEnvironment()->addStaticText(L"HACDv2 algorithm", core::rect<s32>(510, 35, 650, 50), false);
+            vis->GetGUIEnvironment()->addStaticText(L"HACDv2 algorithm", core::rect<s32>(510, 35, 650, 50), false);
 
         // ..add a GUI
-        edit_hacd_maxhullcount = app->GetIGUIEnvironment()->addEditBox(
+        edit_hacd_maxhullcount = vis->GetGUIEnvironment()->addEditBox(
             irr::core::stringw((int)hacd_maxhullcount).c_str(), core::rect<s32>(510, 60, 650, 75), true, 0, 121);
         text_hacd_maxhullcount =
-            app->GetIGUIEnvironment()->addStaticText(L"Max. hull count ", core::rect<s32>(650, 60, 750, 75), false);
+            vis->GetGUIEnvironment()->addStaticText(L"Max. hull count ", core::rect<s32>(650, 60, 750, 75), false);
 
         // ..add a GUI
-        edit_hacd_maxhullmerge = app->GetIGUIEnvironment()->addEditBox(
+        edit_hacd_maxhullmerge = vis->GetGUIEnvironment()->addEditBox(
             irr::core::stringw((int)hacd_maxhullmerge).c_str(), core::rect<s32>(510, 85, 650, 100), true, 0, 122);
         text_hacd_maxhullmerge =
-            app->GetIGUIEnvironment()->addStaticText(L"Max. hull merge ", core::rect<s32>(650, 85, 750, 100), false);
+            vis->GetGUIEnvironment()->addStaticText(L"Max. hull merge ", core::rect<s32>(650, 85, 750, 100), false);
 
         // ..add a GUI
-        edit_hacd_maxhullvertexes = app->GetIGUIEnvironment()->addEditBox(
+        edit_hacd_maxhullvertexes = vis->GetGUIEnvironment()->addEditBox(
             irr::core::stringw((int)hacd_maxhullvertexes).c_str(), core::rect<s32>(510, 110, 650, 125), true, 0, 123);
-        text_hacd_maxhullvertexes = app->GetIGUIEnvironment()->addStaticText(
-            L"Max. vertexes per hull", core::rect<s32>(650, 110, 750, 125), false);
+        text_hacd_maxhullvertexes = vis->GetGUIEnvironment()->addStaticText(L"Max. vertexes per hull",
+                                                                            core::rect<s32>(650, 110, 750, 125), false);
 
         // ..add a GUI
-        edit_hacd_concavity = app->GetIGUIEnvironment()->addEditBox(irr::core::stringw(hacd_concavity).c_str(),
-                                                                    core::rect<s32>(510, 135, 650, 150), true, 0, 124);
-        text_hacd_concavity = app->GetIGUIEnvironment()->addStaticText(L"Max. concavity (0..1)",
-                                                                       core::rect<s32>(650, 135, 750, 150), false);
+        edit_hacd_concavity = vis->GetGUIEnvironment()->addEditBox(irr::core::stringw(hacd_concavity).c_str(),
+                                                                   core::rect<s32>(510, 135, 650, 150), true, 0, 124);
+        text_hacd_concavity = vis->GetGUIEnvironment()->addStaticText(L"Max. concavity (0..1)",
+                                                                      core::rect<s32>(650, 135, 750, 150), false);
 
         // ..add a GUI
-        edit_hacd_smallclusterthreshold = app->GetIGUIEnvironment()->addEditBox(
+        edit_hacd_smallclusterthreshold = vis->GetGUIEnvironment()->addEditBox(
             irr::core::stringw(hacd_smallclusterthreshold).c_str(), core::rect<s32>(510, 160, 650, 175), true, 0, 125);
-        text_hacd_smallclusterthreshold = app->GetIGUIEnvironment()->addStaticText(
+        text_hacd_smallclusterthreshold = vis->GetGUIEnvironment()->addStaticText(
             L"Small cluster threshold", core::rect<s32>(650, 160, 750, 175), false);
 
         // ..add a GUI
-        edit_hacd_fusetolerance = app->GetIGUIEnvironment()->addEditBox(
+        edit_hacd_fusetolerance = vis->GetGUIEnvironment()->addEditBox(
             irr::core::stringw(hacd_fusetolerance).c_str(), core::rect<s32>(510, 185, 650, 200), true, 0, 126);
-        text_hacd_fusetolerance = app->GetIGUIEnvironment()->addStaticText(L"Vertex fuse tolerance",
-                                                                           core::rect<s32>(650, 185, 750, 200), false);
+        text_hacd_fusetolerance = vis->GetGUIEnvironment()->addStaticText(L"Vertex fuse tolerance",
+                                                                          core::rect<s32>(650, 185, 750, 200), false);
 
         // .. add buttons..
-        button_decompose = app->GetIGUIEnvironment()->addButton(core::rect<s32>(510, 210, 650, 225), 0, 106,
-                                                                L"Decompose", L"Perform convex decomposition");
+        button_decompose = vis->GetGUIEnvironment()->addButton(core::rect<s32>(510, 210, 650, 225), 0, 106,
+                                                               L"Decompose", L"Perform convex decomposition");
 
         text_hacd_maxhullcount->setVisible(true);
         edit_hacd_maxhullcount->setVisible(true);
@@ -246,7 +243,7 @@ class MyEventReceiver : public IEventReceiver {
         // check if user moved the sliders with mouse..
         if (event.EventType == EET_GUI_EVENT) {
             s32 id = event.GUIEvent.Caller->getID();
-            gui::IGUIEnvironment* env = app->GetIGUIEnvironment();
+            gui::IGUIEnvironment* env = vis->GetGUIEnvironment();
 
             switch (event.GUIEvent.EventType) {
                 case gui::EGET_MENU_ITEM_SELECTED: {
@@ -269,7 +266,7 @@ class MyEventReceiver : public IEventReceiver {
                             env->addFileOpenDialog(L"Save decomposed convex hulls in .chulls 3D format", true, 0, 86);
                             break;
                         case 92:  // File -> Quit
-                            app->GetDevice()->closeDevice();
+                            vis->GetDevice()->closeDevice();
                             break;
                         case 93:
                             if (modelNode)
@@ -293,16 +290,16 @@ class MyEventReceiver : public IEventReceiver {
 
                     switch (id) {
                         case 80:
-                            LoadModel(app, core::stringc(dialog->getFileName()).c_str());
+                            LoadModel(vis, core::stringc(dialog->getFileName()).c_str());
                             break;
                         case 85:
                             // LoadStepModel(app, core::stringc(dialog->getFileName()).c_str() );
                             break;
                         case 81:
-                            SaveHullsWavefront(app, core::stringc(dialog->getFileName()).c_str());
+                            SaveHullsWavefront(vis, core::stringc(dialog->getFileName()).c_str());
                             break;
                         case 86:
-                            SaveHullsChulls(app, core::stringc(dialog->getFileName()).c_str());
+                            SaveHullsChulls(vis, core::stringc(dialog->getFileName()).c_str());
                             break;
                     }
                 } break;
@@ -338,7 +335,7 @@ class MyEventReceiver : public IEventReceiver {
                 case gui::EGET_BUTTON_CLICKED: {
                     switch (id) {
                         case 106:
-                            DecomposeModel(app);
+                            DecomposeModel(vis);
                             return true;
                         default:
                             return false;
@@ -355,7 +352,7 @@ class MyEventReceiver : public IEventReceiver {
     }
 
   private:
-    ChIrrAppInterface* app;
+    ChVisualSystemIrrlicht* vis;
 
     gui::IGUIButton* button_decompose;
     gui::IGUIStaticText* text_algo_type;
@@ -382,16 +379,7 @@ int main(int argc, char* argv[]) {
 
     // 1- Create a ChronoENGINE physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
-    ChSystemNSC my_system;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Convex decomposition of a mesh", core::dimension2d<u32>(800, 600));
-    //application.AddLogo();
-    application.AddSkyBox();
-    application.AddLight(irr::core::vector3df(30, 100, 30), 200, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    application.AddLight(irr::core::vector3df(30, -80, -30), 130, irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
-    application.AddCamera(core::vector3df(0, 1.5, -2));
+    ChSystemNSC sys;
 
     // Initial settings
     modelMesh = 0;
@@ -405,34 +393,27 @@ int main(int argc, char* argv[]) {
     hacd_smallclusterthreshold = 0.0;
     hacd_fusetolerance = 1e-9;
 
-    //
-    // USER INTERFACE
-    //
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Convex decomposition of a mesh");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 1.5, -2));
+    vis->AddLight(ChVector<>(30, 100, 30), 200, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(30, -80, -30), 130, ChColor(0.7f, 0.8f, 0.8f));
 
-    // Create some graphical-user-interface (GUI) items to show on the screen.
-    // This requires an event receiver object.
-    MyEventReceiver receiver(&application);
+    // Create a custom event receiver for a GUI
+    MyEventReceiver receiver(vis.get());
+    vis->AddUserEventReceiver(&receiver);
 
-    // note how to add a custom event receiver to the default interface:
-    application.SetUserEventReceiver(&receiver);
-
-    //
-    // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
-    //
-
-    while (application.GetDevice()->run()) {
-        // Irrlicht must prepare frame to draw
-        application.BeginScene(true, true, video::SColor(255, 140, 161, 192));
-
-        // .. draw solid 3D items (boxes, cylinders, shapes) belonging to Irrlicht scene, if any
-        application.DrawAll();
-
-        // .. draw also a grid (rotated so that it's horizontal)
-        // tools::drawGrid(application.GetVideoDriver(), 2, 2, 30,30,
-        //	ChCoordsys<>(ChVector<>(0,0.01,0), Q_from_AngX(CH_C_PI_2) ),
-        //	video::SColor(40, 90,130,140), true);
-
-        application.EndScene();
+    // Simulation loop
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
     }
 
     return 0;

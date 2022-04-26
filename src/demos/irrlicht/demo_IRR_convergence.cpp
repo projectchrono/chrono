@@ -21,7 +21,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -39,8 +39,7 @@ using namespace irr::gui;
 
 std::vector<std::shared_ptr<ChBody> > mspheres;
 
-
-void create_items(ChIrrAppInterface& application) {
+void create_items(ChSystem& sys) {
     // Create some spheres in a vertical stack
 
     auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -71,54 +70,52 @@ void create_items(ChIrrAppInterface& application) {
             if (do_oddmass && bi == (nbodies - 1))
                 sphrad = sphrad * pow(oddfactor, 1. / 3.);
 
-            std::shared_ptr<ChBody> mrigidBody;
+            std::shared_ptr<ChBody> rigidBody;
 
             if (do_spheres) {
-                mrigidBody = chrono_types::make_shared<ChBodyEasySphere>(sphrad,     // radius
-                                                                         dens,       // density
-                                                                         true,       // visualization?
-                                                                         true,       // collision?
-                                                                         material);  // contact material
-                mrigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
-                mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/bluewhite.png")));
+                rigidBody = chrono_types::make_shared<ChBodyEasySphere>(sphrad,     // radius
+                                                                        dens,       // density
+                                                                        true,       // visualization?
+                                                                        true,       // collision?
+                                                                        material);  // contact material
+                rigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
+                rigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
 
-                application.GetSystem()->Add(mrigidBody);
+                sys.Add(rigidBody);
             } else {
-                mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(sphrad, sphrad, sphrad,  // x,y,z size
-                                                                      dens,                    // density
-                                                                      true,                    // visualization?
-                                                                      true,                    // collision?
-                                                                      material);               // contact material
-                mrigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
-                mrigidBody->AddAsset(
-                    chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/cubetexture_bluewhite.png")));
+                rigidBody = chrono_types::make_shared<ChBodyEasyBox>(sphrad, sphrad, sphrad,  // x,y,z size
+                                                                     dens,                    // density
+                                                                     true,                    // visualization?
+                                                                     true,                    // collision?
+                                                                     material);               // contact material
+                rigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
+                rigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
 
-                application.GetSystem()->Add(mrigidBody);
+                sys.Add(rigidBody);
             }
 
-            mspheres.push_back(mrigidBody);
+            mspheres.push_back(rigidBody);
 
             level += sphrad * 2;
-            totmass += mrigidBody->GetMass();
+            totmass += rigidBody->GetMass();
         }
 
-        GetLog() << "Expected contact force at bottom F=" << (totmass * application.GetSystem()->Get_G_acc().y()) << "\n";
+        GetLog() << "Expected contact force at bottom F=" << (totmass * sys.Get_G_acc().y()) << "\n";
     }
 
     if (do_wall) {
-        for (int ai = 0; ai < 1; ai++) {                                                         // N. of walls
-            for (int bi = 0; bi < 10; bi++) {                                                    // N. of vert. bricks
-                for (int ui = 0; ui < 15; ui++) {                                                // N. of hor. bricks
-                    auto mrigidWall = chrono_types::make_shared<ChBodyEasyBox>(0.396, 0.2, 0.4,  // size
-                                                                               dens,             // density
-                                                                               true,             // visualization?
-                                                                               true,             // collision?
-                                                                               material);        // contact material
-                    mrigidWall->SetPos(ChVector<>(-0.8 + ui * 0.4 + 0.2 * (bi % 2), 0.10 + bi * 0.2, -0.5 + ai * 0.6));
-                    mrigidWall->AddAsset(
-                        chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/cubetexture_bluewhite.png")));
+        for (int ai = 0; ai < 1; ai++) {                                                        // N. of walls
+            for (int bi = 0; bi < 10; bi++) {                                                   // N. of vert. bricks
+                for (int ui = 0; ui < 15; ui++) {                                               // N. of hor. bricks
+                    auto rigidWall = chrono_types::make_shared<ChBodyEasyBox>(0.396, 0.2, 0.4,  // size
+                                                                              dens,             // density
+                                                                              true,             // visualization?
+                                                                              true,             // collision?
+                                                                              material);        // contact material
+                    rigidWall->SetPos(ChVector<>(-0.8 + ui * 0.4 + 0.2 * (bi % 2), 0.10 + bi * 0.2, -0.5 + ai * 0.6));
+                    rigidWall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
 
-                    application.GetSystem()->Add(mrigidWall);
+                    sys.Add(rigidWall);
                 }
             }
         }
@@ -128,40 +125,39 @@ void create_items(ChIrrAppInterface& application) {
         double sphrad = 0.2;
         double hfactor = 100;
 
-        auto mrigidHeavy = chrono_types::make_shared<ChBodyEasySphere>(sphrad,          // radius
-                                                                       dens * hfactor,  // density
-                                                                       true,            // visualization?
-                                                                       true,            // collision?
-                                                                       material);       // contact material
-        mrigidHeavy->SetPos(ChVector<>(0.5, sphrad + 0.6, -1));
-        mrigidHeavy->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/pinkwhite.png")));
+        auto rigidHeavy = chrono_types::make_shared<ChBodyEasySphere>(sphrad,          // radius
+                                                                      dens * hfactor,  // density
+                                                                      true,            // visualization?
+                                                                      true,            // collision?
+                                                                      material);       // contact material
+        rigidHeavy->SetPos(ChVector<>(0.5, sphrad + 0.6, -1));
+        rigidHeavy->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));
 
-        application.GetSystem()->Add(mrigidHeavy);
+        sys.Add(rigidHeavy);
 
         GetLog() << "Expected contact deformation at side sphere="
-                 << (mrigidHeavy->GetMass() * application.GetSystem()->Get_G_acc().y()) * material->GetCompliance()
-                 << "\n";
+                 << (rigidHeavy->GetMass() * sys.Get_G_acc().y()) * material->GetCompliance() << "\n";
     }
 
     // Create the floor using a fixed rigid body of 'box' type:
 
-    auto mrigidFloor = chrono_types::make_shared<ChBodyEasyBox>(50, 4, 50,  // radius
-                                                                dens,       // density
-                                                                true,       // visualization?
-                                                                true,       // collision?
-                                                                material);  // contact material
-    mrigidFloor->SetPos(ChVector<>(0, -2, 0));
-    mrigidFloor->SetBodyFixed(true);
-    mrigidFloor->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg")));
+    auto rigidFloor = chrono_types::make_shared<ChBodyEasyBox>(50, 4, 50,  // radius
+                                                               dens,       // density
+                                                               true,       // visualization?
+                                                               true,       // collision?
+                                                               material);  // contact material
+    rigidFloor->SetPos(ChVector<>(0, -2, 0));
+    rigidFloor->SetBodyFixed(true);
+    rigidFloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
 
-    application.GetSystem()->Add(mrigidFloor);
+    sys.Add(rigidFloor);
 }
 
 // Function that forces all spheres in the 'parent' level to be on the same vertical
 // axis, without needing any constraint (for simplifying the solver benchmark).
 // Also impose no rotation.
 
-void align_spheres(ChIrrAppInterface& application) {
+void align_spheres() {
     for (unsigned int i = 0; i < mspheres.size(); ++i) {
         std::shared_ptr<ChBody> body = mspheres[i];
         ChVector<> mpos = body->GetPos();
@@ -176,52 +172,40 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Critical cases for convergence, and compliance", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(1, 2, 6), core::vector3df(0, 2, 0));
+    ChSystemNSC sys;
 
     // Create all the rigid bodies.
-    create_items(application);
+    create_items(sys);
 
-    // Use this function for adding a ChIrrNodeAsset to all already created items (ex. a floor, a wall, etc.)
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Critical cases for convergence and compliance");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(1, 2, 6), ChVector<>(0, 2, 0));
+    vis->AddTypicalLights();
 
     // Modify some setting of the physical system for the simulation, if you want
 
-    mphysicalSystem.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    mphysicalSystem.SetSolverMaxIterations(60);
+    sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    sys.SetSolverMaxIterations(60);
 
-	// When using compliance, exp. for large compliances, the max. penetration recovery speed
-	// also affects reaction forces, thus it must be deactivated (or used as a very large value)
-    mphysicalSystem.SetMaxPenetrationRecoverySpeed(100000);
+    // When using compliance, exp. for large compliances, the max. penetration recovery speed
+    // also affects reaction forces, thus it must be deactivated (or used as a very large value)
+    sys.SetMaxPenetrationRecoverySpeed(100000);
 
-    application.SetTimestep(0.005);
-    application.SetPaused(true);
+    // Simulation loop
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
-    
+        align_spheres();  // just to simplify test, on y axis only
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-
-        application.DrawAll();
-
-        align_spheres(application);  // just to simplify test, on y axis only
-
-        application.DoStep();
-
-        application.EndScene();
+        sys.DoStepDynamics(0.005);
     }
 
     return 0;

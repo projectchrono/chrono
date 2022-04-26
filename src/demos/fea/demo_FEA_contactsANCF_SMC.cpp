@@ -36,11 +36,10 @@
 #include "chrono/fea/ChLoadContactSurfaceMesh.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 
 #include <iostream>
@@ -70,22 +69,9 @@ double dz = 0.01;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    ChSystemSMC my_system;
+    ChSystemSMC sys;
 
-    my_system.SetNumThreads(ChOMP::GetNumProcs(), 0, 1);
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"ANCF Contact", core::dimension2d<u32>(800, 600), VerticalDir::Z);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(+0.5f, 0.5f, 0.3f),  // camera location
-                                 core::vector3df(0.0f, 0.f, 0.f));    // "look at" location
-
-    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
+    sys.SetNumThreads(ChOMP::GetNumProcs(), 0, 1);
 
     // collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0); // not needed, already 0 when using
     collision::ChCollisionModel::SetDefaultSuggestedMargin(
@@ -113,12 +99,9 @@ int main(int argc, char* argv[]) {
     // Adding the ground
     if (true) {
         auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(3, 3, 0.2, 8000, true, true, mysurfmaterial);
-
         mfloor->SetBodyFixed(true);
-        my_system.Add(mfloor);
-        auto masset_texture = chrono_types::make_shared<ChTexture>();
-        masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-        mfloor->AddAsset(masset_texture);
+        mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+        sys.Add(mfloor);
     }
 
     std::vector<int> BC_NODES;
@@ -164,83 +147,92 @@ int main(int argc, char* argv[]) {
     // Switch off mesh class gravity
 
     my_mesh->SetAutomaticGravity(addGravity);
-    my_system.Set_G_acc(ChVector<>(0, 0, -9.8));
+    sys.Set_G_acc(ChVector<>(0, 0, -9.8));
 
     // Add the mesh to the system
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
     // Mark completion of system construction
 
     //    ////////////////////////////////////////
     //    // Options for visualization in irrlicht
     //    ////////////////////////////////////////
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizemesh);
+    my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemeshcoll->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_CONTACTSURFACES);
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
-    my_mesh->AddAsset(mvisualizemeshcoll);
+    my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
 
-    auto mvisualizemeshbeam = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemeshbeam->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    auto mvisualizemeshbeam = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizemeshbeam->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemeshbeam->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemeshbeam->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizemeshbeam);
+    my_mesh->AddVisualShapeFEA(mvisualizemeshbeam);
 
-    auto mvisualizemeshbeamnodes = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemeshbeamnodes->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshbeamnodes->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizemeshbeamnodes = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizemeshbeamnodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshbeamnodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshbeamnodes->SetSymbolsThickness(0.0008);
-    my_mesh->AddAsset(mvisualizemeshbeamnodes);
-    application.AssetBindAll();
-    application.AssetUpdateAll();
-    application.AddShadowAll();
+    my_mesh->AddVisualShapeFEA(mvisualizemeshbeamnodes);
+
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("ANCF Contact");
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0.5, 0.5, 0.3), ChVector<>(0.0, 0.0, 0.0));
+    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_DISTANCES);
+    vis->EnableShadows();
 
     // ---------------
     // Simulation loop
     // ---------------
 
     ////auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-    ////my_system.SetSolver(mkl_solver);
+    ////sys.SetSolver(mkl_solver);
     ////mkl_solver->LockSparsityPattern(true);
-    ////my_system.Update();
+    ////sys.Update();
 
     // Setup solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(150);
     solver->SetTolerance(1e-8);
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // Enable for better convergence if using Euler implicit linearized
 
     // HHT or EULER_IMPLICIT_LINEARIZED
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(200);
     mystepper->SetAbsTolerances(1e-06);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
     mystepper->SetVerbose(false);
-    ////my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    ////sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
-    application.SetTimestep(time_step);
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
-        ////std::cout << "Time t = " << my_system.GetChTime() << "s \t";
-        ////std::cout << "n contacts: " << my_system.GetNcontacts() << "\t";
-        ////std::cout << "pos.y = " << sampleNode->pos.y - y0 << "vs. " << -0.5 * 9.8 * pow(my_system.GetChTime(), 2)
+        ////std::cout << "Time t = " << sys.GetChTime() << "s \t";
+        ////std::cout << "n contacts: " << sys.GetNcontacts() << "\t";
+        ////std::cout << "pos.y = " << sampleNode->pos.y - y0 << "vs. " << -0.5 * 9.8 * pow(sys.GetChTime(), 2)
         ////          << "\n";
-
-        application.DoStep();
-        application.EndScene();
+        sys.DoStepDynamics(time_step);
     }
 
     return 0;

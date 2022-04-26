@@ -9,21 +9,81 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHCAMERA_H
-#define CHCAMERA_H
+#ifndef CH_CAMERA_H
+#define CH_CAMERA_H
 
-#include "chrono/assets/ChAsset.h"
 #include "chrono/core/ChVector.h"
 
 namespace chrono {
 
-/// Class for defining a videocamera point of view
-/// with basic settings
+// Forward declaration
+class ChPhysicsItem;
 
-class ChApi ChCamera : public ChAsset {
+/// Class for defining a camera point of view with basic settings.
+class ChApi ChCamera {
+  public:
+    ChCamera();
+    virtual ~ChCamera() {}
+
+    /// Sets the position of the observer (eye point).
+    /// Expressed in the local coordinate system.
+    void SetPosition(const ChVector<>& pos) { position = pos; }
+    /// Gets the position of the observer (eye point).
+    /// Expressed in the local coordinate system.
+    const ChVector<>& GetPosition() const { return position; }
+
+    /// Sets the position of the target point (aim point).
+    /// Expressed in the local coordinate system.
+    void SetAimPoint(const ChVector<>& point) { aimpoint = point; }
+    /// Gets the position of the target point (aim point).
+    /// Expressed in the local coordinate system.
+    const ChVector<>& GetAimPoint() const { return aimpoint; }
+
+    /// Sets the position of the 'up' direction of the camera (default is vertical, VECT_Y).
+    /// Expressed in the local coordinate system.
+    void SetUpVector(const ChVector<>& up) { upvector = up.GetNormalized(); }
+    /// Gets the position of the 'up' direction of the camera (default is vertical, VECT_Y).
+    /// Expressed in the local coordinate system.
+    const ChVector<>& GetUpVector() const { return upvector; }
+
+    /// Sets the opening angle of the lenses, in degrees, on horizontal direction.
+    /// E.g., 60=wide angle, 30=tele, etc.
+    void SetAngle(double deg) { angle = deg; }
+    /// Gets the opening angle of the lenses, in degrees, on horizontal direction
+    double GetAngle() const { return angle; }
+
+    /// Sets the Field Of View, if the visualization supports focusing.
+    void SetFOV(double f) { fov = f; }
+    /// Gets the Field Of View, if the visualization supports focusing.
+    double GetFOV() const { return fov; }
+
+    /// Sets the Horizontal/Vertical size ratio. Default = 4/3.
+    /// For instance, 4/3 can be used if rendering to 800x600 images with square pixels.
+    void SetHVratio(double mf) { hvratio = mf; }
+    /// Gets the Horizontal/Vertical size ratio. Default = 4/3.
+    /// For instance, 4/3 can be used if rendering to 800x600 images with square pixels.
+    double GetHVratio() const { return hvratio; }
+
+    /// Set to 'true' if you want to disable perspective and get a 'flat' view.
+    /// This must be supported by the visualization system. By default is 'false'.
+    void SetOrthographic(bool mode) { isometric = mode; }
+    /// If 'true' it means that perspective projection is disabled and you get a 'flat' view.
+    /// This must be supported by the visualization system. By default is 'false'.
+    bool IsOrthographic() const { return isometric; }
+
+    /// Update the camera state.
+    /// This function is automatically called by the owner physics item.
+    virtual void Update() {}
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& archive);
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& archive);
+
   private:
     ChVector<> position;
     ChVector<> aimpoint;
@@ -33,62 +93,9 @@ class ChApi ChCamera : public ChAsset {
     double hvratio;
     bool isometric;
 
-  public:
-    ChCamera();
+    ChPhysicsItem* m_owner;
 
-    virtual ~ChCamera() {}
-
-    /// Sets the position of the observer (eye point).
-    /// Expressed in the local coordinate system (ex. of the owner ChBody, of ChAssetLevel,..)
-    void SetPosition(ChVector<> mv) { this->position = mv; }
-    /// Gets the position of the observer (eye point).
-    /// Expressed in the local coordinate system (ex. of the owner ChBody, of ChAssetLevel,..)
-    ChVector<> GetPosition() { return this->position; }
-
-    /// Sets the position of the target point (aim point).
-    /// Expressed in the local coordinate system (ex. of the owner ChBody, of ChAssetLevel,..)
-    void SetAimPoint(ChVector<> mv) { this->aimpoint = mv; }
-    /// Gets the position of the target point (aim point).
-    /// Expressed in the local coordinate system (ex. of the owner ChBody, of ChAssetLevel,..)
-    ChVector<> GetAimPoint() { return this->aimpoint; }
-
-    /// Sets the position of the 'up' direction of the camera (default is vertical, VECT_Y)
-    /// Expressed in the local coordinate system (ex. of the owner ChBody, of ChAssetLevel,..)
-    void SetUpVector(ChVector<> mv) { this->upvector = mv.GetNormalized(); }
-    /// Gets the position of the 'up' direction of the camera (default is vertical, VECT_Y)
-    /// Expressed in the local coordinate system (ex. of the owner ChBody, of ChAssetLevel,..)
-    ChVector<> GetUpVector() { return this->upvector; }
-
-    /// Sets the opening angle of the lenses, in degrees, on horizontal direction.
-    /// Ex. 60=wide angle, 30=tele, etc.
-    void SetAngle(double mdeg) { this->angle = mdeg; }
-    /// Gets the opening angle of the lenses, in degrees, on horizontal direction
-    double GetAngle() { return this->angle; }
-
-    /// Sets the Field Of View, if the visualization supports focusing.
-    void SetFOV(double mf) { this->fov = mf; }
-    /// Gets the Field Of View, if the visualization supports focusing.
-    double GetFOV() { return this->fov; }
-
-    /// Sets the Horizontal/Vertical size ratio. Default = 4/3.
-    /// For instance, 4/3 can be used if rendering to 800x600 images with square pixels.
-    void SetHVratio(double mf) { this->hvratio = mf; }
-    /// Gets the Horizontal/Vertical size ratio. Default = 4/3.
-    /// For instance, 4/3 can be used if rendering to 800x600 images with square pixels.
-    double GetHVratio() { return this->hvratio; }
-
-    /// Set to 'true' if you want to disable perspective and get a 'flat' view.
-    /// This must be supported by the visualization system. By default is 'false'.
-    void SetOrthographic(bool mb) { this->isometric = mb; }
-    /// If 'true' it means that perspective projection is disabled and you get a 'flat' view.
-    /// This must be supported by the visualization system. By default is 'false'.
-    bool GetOrthographic() { return this->isometric; }
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
-
-    /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    friend class ChPhysicsItem;
 };
 
 CH_CLASS_VERSION(ChCamera, 0)

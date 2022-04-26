@@ -1,12 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All right reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 # Authors: Rainer Gericke
@@ -120,9 +120,9 @@ patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
 patch = terrain.AddPatch(patch_mat, 
                          chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
-                         600, 600)
+                         200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
-patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 1200, 1200)
+patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
 terrain.Initialize()
 
 # -------------------------------------
@@ -130,16 +130,18 @@ terrain.Initialize()
 # Create the driver system
 # -------------------------------------
 
-app = veh.ChWheeledVehicleIrrApp(uaz.GetVehicle(), 'UAZBUS')
-app.AddTypicalLights()
-
-app.SetChaseCamera(trackPoint, 6.0, 0.5)
-app.SetTimestep(step_size)
-app.AssetBindAll()
-app.AssetUpdateAll()
+vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+uaz.GetVehicle().SetVisualSystem(vis)
+vis.SetWindowTitle('UAZ bus')
+vis.SetWindowSize(1280, 1024)
+vis.SetChaseCamera(trackPoint, 6.0, 0.5)
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddTypicalLights()
+vis.AddSkyBox()
 
 # Create the interactive driver system
-driver = veh.ChIrrGuiDriver(app)
+driver = veh.ChIrrGuiDriver(vis)
 
 # Set the time response for steering and throttle keyboard inputs.
 steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
@@ -169,14 +171,14 @@ render_frame = 0
 maxKingpinAngle = 0.0
 
 realtime_timer = chrono.ChRealtimeStepTimer()
-while (app.GetDevice().run()) :
+while vis.Run() :
     time = uaz.GetSystem().GetChTime()
 
     # Render scene
     if (step_number % render_steps == 0) :
-        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-        app.DrawAll()
-        app.EndScene()
+        vis.BeginScene()
+        vis.DrawAll()
+        vis.EndScene()
 
 
     # Collect output data from modules (for inter-module communication)
@@ -186,7 +188,7 @@ while (app.GetDevice().run()) :
     driver.Synchronize(time)
     terrain.Synchronize(time)
     uaz.Synchronize(time, driver_inputs, terrain)
-    app.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+    vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
 
     # Test for validity of kingpin angles (max.allowed by UAZ: 27deg)
     suspF = veh.CastToChToeBarLeafspringAxle(uaz.GetVehicle().GetSuspension(0))
@@ -201,7 +203,7 @@ while (app.GetDevice().run()) :
     driver.Advance(step_size)
     terrain.Advance(step_size)
     uaz.Advance(step_size)
-    app.Advance(step_size)
+    vis.Advance(step_size)
 
     # Increment frame number
     step_number += 1

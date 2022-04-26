@@ -34,10 +34,10 @@
 #include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChIrrApp.h"
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
 
 #ifdef CHRONO_PARDISO_MKL
@@ -211,17 +211,17 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     m_system->Add(mesh);
 
     // Setup visualization
-    auto vis_surf = chrono_types::make_shared<ChVisualizationFEAmesh>(*mesh);
-    vis_surf->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto vis_surf = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_surf->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     vis_surf->SetWireframe(true);
     vis_surf->SetDrawInUndeformedReference(true);
-    mesh->AddAsset(vis_surf);
+    mesh->AddVisualShapeFEA(vis_surf);
 
-    auto vis_node = chrono_types::make_shared<ChVisualizationFEAmesh>(*mesh);
-    vis_node->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    vis_node->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto vis_node = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_node->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    vis_node->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     vis_node->SetSymbolsThickness(0.01);
-    mesh->AddAsset(vis_node);
+    mesh->AddVisualShapeFEA(vis_node);
 
     // Populate the mesh container with a the nodes and elements for the meshed beam
     int num_nodes = (2 * num_elements) + 1;
@@ -273,28 +273,30 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
 
 void ANCFBeamTest::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp application(m_system, L"ANCF Beam 3333", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(-0.4f, 0.4f, 0.4f), irr::core::vector3df(0, 0, 0));
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+    m_system->SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("ANCF Beam 3333");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.4, 0.4, 0.4), ChVector<>(0, 0, 0));
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
-
-    while (application.GetDevice()->run()) {
+    while (vis->Run()) {
         std::cout << "Time(s): " << this->m_system->GetChTime() << "  Tip Pos(m): " << this->GetBeamEndPointPos()
                   << std::endl;
-        application.BeginScene();
-        application.DrawAll();
-        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
+        vis->BeginScene();
+        vis->DrawAll();
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
                                      irr::video::SColor(255, 255, 0, 0));
-        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
                                      irr::video::SColor(255, 0, 255, 0));
-        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
+        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
                                      irr::video::SColor(255, 0, 0, 255));
         ExecuteStep();
-        application.EndScene();
+        vis->EndScene();
     }
 #endif
 }

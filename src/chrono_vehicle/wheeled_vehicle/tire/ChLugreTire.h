@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_vehicle/ChTerrain.h"
@@ -52,7 +51,7 @@ class CH_VEHICLE_API ChLugreTire : public ChForceElementTire {
 
     /// Get the tire width.
     /// This is just an approximation of a tire width.
-    double GetWidth() const;
+    double GetWidth() const override;
 
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireForce; }
@@ -114,7 +113,6 @@ class CH_VEHICLE_API ChLugreTire : public ChForceElementTire {
     std::vector<DiscState> m_state;
 
     std::vector<std::shared_ptr<ChCylinderShape>> m_cyl_shapes;  ///< visualization cylinder assets
-    std::shared_ptr<ChTexture> m_texture;                        ///< visualization texture asset
 };
 
 /// @} vehicle_wheeled_tire

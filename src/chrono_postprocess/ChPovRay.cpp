@@ -9,13 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/assets/ChAssetLevel.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCamera.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChObjShapeFile.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -27,8 +25,7 @@
 #include "chrono/physics/ChParticlesClones.h"
 
 #include "chrono_postprocess/ChPovRay.h"
-#include "chrono_postprocess/ChPovRayAsset.h"
-#include "chrono_postprocess/ChPovRayAssetCustom.h"
+
 #include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
@@ -37,144 +34,97 @@ namespace postprocess {
 using namespace geometry;
 
 ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system) {
-    this->base_path = "";
-    this->pic_path = "anim";
-    this->out_path = "output";
-    this->pic_filename = "picture";
-    this->template_filename = GetChronoDataFile("_template_POV.pov");
-    this->out_script_filename = "render_frames.pov";
-    this->out_data_filename = "state";
-    this->framenumber = 0;
-    this->camera_location = ChVector<>(0, 1.5, -2);
-    this->camera_aim = ChVector<>(0, 0, 0);
-    this->camera_up = ChVector<>(0, 1, 0);
-    this->camera_angle = 30;
-    this->camera_orthographic = false;
-    this->camera_found_in_assets = false;
-    this->def_light_location = ChVector<>(2, 3, -1);
-    this->def_light_color = ChColor(1, 1, 1);
-    this->def_light_cast_shadows = true;
-    this->background = ChColor(1, 1, 1);
-    this->antialias = false;
-    this->antialias_depth = 2;
-    this->antialias_treshold = 0.1;
-    this->picture_height = 600;
-    this->picture_width = 800;
-    this->ambient_light = ChColor(2, 2, 2);
-    this->COGs_show = false;
-    this->COGs_size = 0.04;
-    this->frames_show = false;
-    this->frames_size = 0.05;
-    this->links_show = false;
-    this->links_size = 0.04;
-    this->contacts_show = false;
-    this->contacts_maxsize = 0.1;
-    this->contacts_scale = 0.01;
-    this->contacts_scale_mode = SYMBOL_VECTOR_SCALELENGTH;
-    this->contacts_width = 0.001;
-    this->contacts_colormap_startscale = 0;
-    this->contacts_colormap_endscale = 10;
-    this->contacts_do_colormap = true;
-    this->wireframe_thickness = 0.001;
-    this->single_asset_file = true;
+    base_path = "";
+    pic_path = "anim";
+    out_path = "output";
+    pic_filename = "picture";
+    template_filename = GetChronoDataFile("_template_POV.pov");
+    out_script_filename = "render_frames.pov";
+    out_data_filename = "state";
+    framenumber = 0;
+    camera_location = ChVector<>(0, 1.5, -2);
+    camera_aim = ChVector<>(0, 0, 0);
+    camera_up = ChVector<>(0, 1, 0);
+    camera_angle = 30;
+    camera_orthographic = false;
+    camera_found_in_assets = false;
+    def_light_location = ChVector<>(2, 3, -1);
+    def_light_color = ChColor(1, 1, 1);
+    def_light_cast_shadows = true;
+    background = ChColor(1, 1, 1);
+    antialias = false;
+    antialias_depth = 2;
+    antialias_treshold = 0.1;
+    picture_height = 600;
+    picture_width = 800;
+    ambient_light = ChColor(2, 2, 2);
+    COGs_show = false;
+    COGs_size = 0.04;
+    frames_show = false;
+    frames_size = 0.05;
+    links_show = false;
+    links_size = 0.04;
+    contacts_show = false;
+    contacts_maxsize = 0.1;
+    contacts_scale = 0.01;
+    contacts_scale_mode = ContactSymbol::VECTOR_SCALELENGTH;
+    contacts_width = 0.001;
+    contacts_colormap_startscale = 0;
+    contacts_colormap_endscale = 10;
+    contacts_do_colormap = true;
+    wireframe_thickness = 0.001;
+    single_asset_file = true;
 }
 
-void ChPovRay::Add(std::shared_ptr<ChPhysicsItem> mitem) {
-    // flag as renderable by adding a ChPovAsset into assets of the item
-    if (!this->IsAdded(mitem)) {
-        auto mpov_asset = chrono_types::make_shared<ChPovRayAsset>();
-        mitem->AddAsset(mpov_asset);
-    }
+void ChPovRay::Add(std::shared_ptr<ChPhysicsItem> item) {
+    m_items.insert(item);
 }
 
-void ChPovRay::Remove(std::shared_ptr<ChPhysicsItem> mitem) {
-    // unflag as renderable by removing the ChPovAsset from assets of the item
-    std::vector<std::shared_ptr<ChAsset> > assetlist = mitem->GetAssets();
-    std::vector<std::shared_ptr<ChAsset> >::iterator iasset = assetlist.begin();
-    while (iasset != assetlist.end()) {
-        if (std::dynamic_pointer_cast<ChPovRayAsset>(*iasset)) {
-            assetlist.erase(iasset);
-            return;
-        }
-        iasset++;
-    }
+void ChPovRay::Remove(std::shared_ptr<ChPhysicsItem> item) {
+    m_items.erase(item);
 }
 
 void ChPovRay::AddAll() {
-    for (auto body : mSystem->Get_bodylist()) {
+    for (const auto& body : mSystem->Get_bodylist()) {
         Add(body);
     }
-    for (auto& mesh : mSystem->Get_meshlist()) {
+    for (const auto& mesh : mSystem->Get_meshlist()) {
         Add(mesh);
     }
-    for (auto ph : mSystem->Get_otherphysicslist()) {
+    for (const auto& ph : mSystem->Get_otherphysicslist()) {
         Add(ph);
     }
-    for (auto link : mSystem->Get_linklist()) {
+    for (const auto& link : mSystem->Get_linklist()) {
         Add(link);
     }
 }
 
 void ChPovRay::RemoveAll() {
-    for (auto body : mSystem->Get_bodylist()) {
+    for (auto& body : mSystem->Get_bodylist()) {
         Remove(body);
     }
     for (auto& mesh : mSystem->Get_meshlist()) {
         Remove(mesh);
     }
-    for (auto ph : mSystem->Get_otherphysicslist()) {
+    for (auto& ph : mSystem->Get_otherphysicslist()) {
         Remove(ph);
     }
-    for (auto link : mSystem->Get_linklist()) {
+    for (auto& link : mSystem->Get_linklist()) {
         Remove(link);
     }
 }
 
-bool ChPovRay::IsAdded(std::shared_ptr<ChPhysicsItem> mitem) {
-    std::vector<std::shared_ptr<ChAsset> > assetlist = mitem->GetAssets();
-
-    for (unsigned int k = 0; k < assetlist.size(); k++) {
-        std::shared_ptr<ChAsset> k_asset = assetlist[k];
-        if (std::dynamic_pointer_cast<ChPovRayAsset>(k_asset)) {
-            return true;
-        }
-    }
-    return false;
+void ChPovRay::SetCustomCommands(std::shared_ptr<ChPhysicsItem> item, const std::string& commands) {
+    m_custom_commands[(size_t)item.get()] = commands;
 }
 
-void ChPovRay::SetupLists() {
-    // reset the list of items to render
-    mdata.clear();
-
-    // See if some asset in exporter cache is not used anymore (except for 1 reference from this cache),
-    // this would mean that the body/bodies that owned such asset have been removed.
-    std::unordered_map<size_t, std::shared_ptr<ChAsset> >::iterator mcachedasset = pov_assets.begin();
-    while (mcachedasset != pov_assets.end()) {
-        if (mcachedasset->second.use_count() == 1) {
-            // cached asset not used anymore! remove from hashtable...
-            size_t keytodelete = mcachedasset->first;
-            mcachedasset++;
-            pov_assets.erase(keytodelete);
-        } else
-            mcachedasset++;
-    }
-
-    // scan all items in ChSystem to see which were marked by a ChPovAsset asset
-    for (auto body : mSystem->Get_bodylist()) {
-        if (IsAdded(body))
-            mdata.push_back(body);
-    }
-    for (auto& mesh : mSystem->Get_meshlist()) {
-        if (IsAdded(mesh))
-            mdata.push_back(mesh);
-    }
-    for (auto ph : mSystem->Get_otherphysicslist()) {
-        if (IsAdded(ph))
-            mdata.push_back(ph);
-    }
-    for (auto link : mSystem->Get_linklist()) {
-        if (IsAdded(link))
-            mdata.push_back(link);
+void ChPovRay::UpdateRenderList() {
+    // Remove physics items from the render list if the only reference to them is in this list.
+    for (auto item = m_items.begin(); item != m_items.end();) {
+        if (item->use_count() == 1)
+            item = m_items.erase(item);
+        else
+            ++item;
     }
 }
 
@@ -197,59 +147,61 @@ std::string replaceAll(std::string result, const std::string& replaceWhat, const
 }
 
 void ChPovRay::SetCamera(ChVector<> location, ChVector<> aim, double angle, bool ortho) {
-    this->camera_location = location;
-    this->camera_aim = aim;
-    this->camera_angle = angle;
-    this->camera_orthographic = ortho;
+    camera_location = location;
+    camera_aim = aim;
+    camera_angle = angle;
+    camera_orthographic = ortho;
 }
 
 void ChPovRay::SetLight(ChVector<> location, ChColor color, bool cast_shadow) {
-    this->def_light_location = location;
-    this->def_light_color = color;
-    this->def_light_cast_shadows = cast_shadow;
+    def_light_location = location;
+    def_light_color = color;
+    def_light_cast_shadows = cast_shadow;
 }
 
 void ChPovRay::SetShowCOGs(bool show, double msize) {
-    this->COGs_show = show;
+    COGs_show = show;
     if (show)
-        this->COGs_size = msize;
+        COGs_size = msize;
 }
 void ChPovRay::SetShowFrames(bool show, double msize) {
-    this->frames_show = show;
+    frames_show = show;
     if (show)
-        this->frames_size = msize;
+        frames_size = msize;
 }
 void ChPovRay::SetShowLinks(bool show, double msize) {
-    this->links_show = show;
+    links_show = show;
     if (show)
-        this->links_size = msize;
+        links_size = msize;
 }
 void ChPovRay::SetShowContacts(bool show,
-                               eChContactSymbol mode,
+                               ContactSymbol mode,
                                double scale,
                                double width,
                                double max_size,
                                bool do_colormap,
                                double colormap_start,
                                double colormap_end) {
-    this->contacts_show = show;
+    contacts_show = show;
     if (show) {
-        this->contacts_scale_mode = mode;
-        this->contacts_scale = scale;
-        this->contacts_width = width;
-        this->contacts_maxsize = max_size;
-        this->contacts_do_colormap = do_colormap;
-        this->contacts_colormap_startscale = colormap_start;
-        this->contacts_colormap_endscale = colormap_end;
+        contacts_scale_mode = mode;
+        contacts_scale = scale;
+        contacts_width = width;
+        contacts_maxsize = max_size;
+        contacts_do_colormap = do_colormap;
+        contacts_colormap_startscale = colormap_start;
+        contacts_colormap_endscale = colormap_end;
     }
 }
 
 void ChPovRay::ExportScript(const std::string& filename) {
-    this->out_script_filename = filename;
+    // Regenerate the list of objects that need POV rendering
+    UpdateRenderList();
 
-    pov_assets.clear();
+    out_script_filename = filename;
 
-    this->SetupLists();
+    m_pov_shapes.clear();
+    m_pov_materials.clear();
 
     // Create directories
     if (base_path != "") {
@@ -279,16 +231,16 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     ini_file << "; Script for rendering an animation with POV-Ray. \n";
     ini_file << "; Generated automatically by Chrono::Engine. \n\n";
-    if (this->antialias)
+    if (antialias)
         ini_file << "Antialias=On \n";
     else
         ini_file << "Antialias=Off\n";
-    ini_file << "Antialias_Threshold=" << this->antialias_treshold << "\n";
-    ini_file << "Antialias_Depth=" << this->antialias_depth << "\n";
-    ini_file << "Height=" << this->picture_height << "\n";
-    ini_file << "Width =" << this->picture_width << "\n";
+    ini_file << "Antialias_Threshold=" << antialias_treshold << "\n";
+    ini_file << "Antialias_Depth=" << antialias_depth << "\n";
+    ini_file << "Height=" << picture_height << "\n";
+    ini_file << "Width =" << picture_width << "\n";
     ini_file << "Input_File_Name=\"" << out_script_filename << "\"\n";
-    ini_file << "Output_File_Name=\"" << (this->pic_path + "/" + pic_filename).c_str() << "\"\n";
+    ini_file << "Output_File_Name=\"" << (pic_path + "/" + pic_filename).c_str() << "\"\n";
     ini_file << "Initial_Frame=0000\n";
     ini_file << "Final_Frame=0999\n";
     ini_file << "Initial_Clock=0\n";
@@ -359,9 +311,9 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     // Write POV custom code
 
-    if (this->custom_script.size() > 0) {
+    if (custom_script.size() > 0) {
         mfile << "// Custom user-added script: \n\n";
-        mfile << this->custom_script;
+        mfile << custom_script;
         mfile << "\n\n";
     }
 
@@ -373,50 +325,47 @@ void ChPovRay::ExportScript(const std::string& filename) {
     // Write POV code to open the n.th scene file
 
     mfile << "// Include POV code to for the n.th scene file: \n\n";
-    mfile << "#declare scene_file = concat(\"" << (this->out_path + "/" + this->out_data_filename).c_str()
+    mfile << "#declare scene_file = concat(\"" << (out_path + "/" + out_data_filename).c_str()
           << "\", str(frame_number,-5,0), \".pov\") \n";
     mfile << "#include scene_file \n\n";
 
     // Write POV code to load and display contacts
 
-    if (this->contacts_show) {
+    if (contacts_show) {
         mfile << "// Load contacts and create objects to show them: \n\n";
 
-        mfile << "#declare contacts_scale=" << this->contacts_scale << ";\n";
-        mfile << "#declare contacts_width=" << this->contacts_width << ";\n";
-        mfile << "#declare contacts_maxsize=" << this->contacts_maxsize << ";\n";
-        mfile << "#declare contacts_do_colormap=" << ((int)this->contacts_do_colormap) << ";\n";
-        mfile << "#declare contacts_colormap_startscale=" << this->contacts_colormap_startscale << ";\n";
-        mfile << "#declare contacts_colormap_endscale=" << this->contacts_colormap_endscale << ";\n";
+        mfile << "#declare contacts_scale=" << contacts_scale << ";\n";
+        mfile << "#declare contacts_width=" << contacts_width << ";\n";
+        mfile << "#declare contacts_maxsize=" << contacts_maxsize << ";\n";
+        mfile << "#declare contacts_do_colormap=" << ((int)contacts_do_colormap) << ";\n";
+        mfile << "#declare contacts_colormap_startscale=" << contacts_colormap_startscale << ";\n";
+        mfile << "#declare contacts_colormap_endscale=" << contacts_colormap_endscale << ";\n";
         mfile << "#declare contacts_defaultcolor= rgb<0.0,0.9,0.2>; \n";
-        if (this->contacts_scale_mode == SYMBOL_VECTOR_SCALELENGTH) {
-            mfile << "#declare contacts_scale_mode=1;\n";
-            mfile << "#declare draw_contacts_asspheres =0;\n";
-            mfile << "#declare draw_contacts_ascylinders =1;\n";
-        }
-        if (this->contacts_scale_mode == SYMBOL_VECTOR_SCALERADIUS) {
-            mfile << "#declare contacts_scale_mode=2;\n";
-            mfile << "#declare draw_contacts_asspheres =0;\n";
-            mfile << "#declare draw_contacts_ascylinders =1;\n";
-        }
-        if (this->contacts_scale_mode == SYMBOL_VECTOR_NOSCALE) {
-            mfile << "#declare contacts_scale_mode=0;\n";
-            mfile << "#declare draw_contacts_asspheres =0;\n";
-            mfile << "#declare draw_contacts_ascylinders =1;\n";
-        }
-        if (this->contacts_scale_mode == SYMBOL_SPHERE_SCALERADIUS) {
-            mfile << "#declare contacts_scale_mode=1;\n";
-            mfile << "#declare draw_contacts_asspheres =1;\n";
-            mfile << "#declare draw_contacts_ascylinders =0;\n";
-        }
-        if (this->contacts_scale_mode == SYMBOL_VECTOR_NOSCALE) {
-            mfile << "#declare contacts_scale_mode=0;\n";
-            mfile << "#declare draw_contacts_asspheres =1;\n";
-            mfile << "#declare draw_contacts_ascylinders =0;\n";
+        switch (contacts_scale_mode) {
+            case ContactSymbol::VECTOR_SCALELENGTH:
+                mfile << "#declare contacts_scale_mode=1;\n";
+                mfile << "#declare draw_contacts_asspheres =0;\n";
+                mfile << "#declare draw_contacts_ascylinders =1;\n";
+                break;
+            case ContactSymbol::VECTOR_SCALERADIUS:
+                mfile << "#declare contacts_scale_mode=2;\n";
+                mfile << "#declare draw_contacts_asspheres =0;\n";
+                mfile << "#declare draw_contacts_ascylinders =1;\n";
+                break;
+            case ContactSymbol::VECTOR_NOSCALE:
+                mfile << "#declare contacts_scale_mode=0;\n";
+                mfile << "#declare draw_contacts_asspheres =0;\n";
+                mfile << "#declare draw_contacts_ascylinders =1;\n";
+                break;
+            case ContactSymbol::SPHERE_SCALERADIUS:
+                mfile << "#declare contacts_scale_mode=1;\n";
+                mfile << "#declare draw_contacts_asspheres =1;\n";
+                mfile << "#declare draw_contacts_ascylinders =0;\n";
+                break;
         }
         mfile << "\n";
 
-        mfile << "#declare contacts_file = concat(\"" << (this->out_path + "/" + this->out_data_filename).c_str()
+        mfile << "#declare contacts_file = concat(\"" << (out_path + "/" + out_data_filename).c_str()
               << "\", str(frame_number,-5,0), \".contacts\") \n";
         mfile << "#fopen MyContactsFile contacts_file read \n";
 
@@ -434,570 +383,501 @@ void ChPovRay::ExportScript(const std::string& filename) {
     // animation someone created an object with asset)
     if (single_asset_file) {
         // open asset file in append mode
-        assets_filename = this->out_script_filename + ".assets";
+        assets_filename = out_script_filename + ".assets";
         ChStreamOutAsciiFile assets_file((base_path + assets_filename).c_str(), std::ios::app);
-        // populate assets (note that already present
-        // assets won't be appended!)
-        this->ExportAssets(assets_file);
+        // populate assets (note that already present assets won't be appended!)
+        ExportAssets(assets_file);
     }
-}
-
-void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& assetlist,
-                                    ChStreamOutAsciiFile& assets_file) {
-    // Scan assets
-    for (unsigned int k = 0; k < assetlist.size(); k++) {
-        std::shared_ptr<ChAsset> k_asset = assetlist[k];
-
-        std::unordered_map<size_t, std::shared_ptr<ChAsset> >::iterator mcached =
-            pov_assets.find((size_t)k_asset.get());
-        if (mcached == pov_assets.end()) {
-            // Ok, add the asset in POV file, it was not already saved.
-            // Otherwise it was a shared asset.
-            pov_assets.insert({(size_t)k_asset.get(), k_asset});
-
-            // Do dynamic casting of the shared pointer to see which type
-            // of asset is contained...
-
-            // *) asset k of object i references an .obj wavefront mesh?
-            auto myobjshapeasset = std::dynamic_pointer_cast<ChObjShapeFile>(k_asset);
-            auto mytrimeshshapeasset = std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset);
-
-            if (myobjshapeasset || mytrimeshshapeasset) {
-                ChTriangleMeshConnected* mytrimesh = nullptr;
-                ChTriangleMeshConnected* temp_allocated_loadtrimesh = nullptr;
-                bool wireframe = false;
-
-                if (myobjshapeasset) {
-                    try {
-                        temp_allocated_loadtrimesh = new (ChTriangleMeshConnected);
-
-                        // Load from the .obj file and convert.
-                        temp_allocated_loadtrimesh->LoadWavefrontMesh(myobjshapeasset->GetFilename(), true, true);
-
-                        mytrimesh = temp_allocated_loadtrimesh;
-                    } catch (const ChException&) {
-                        if (temp_allocated_loadtrimesh)
-                            delete temp_allocated_loadtrimesh;
-                        temp_allocated_loadtrimesh = 0;
-
-                        char error[400];
-                        sprintf(error, "Asset n.%d: can't read .obj file %s", k,
-                                myobjshapeasset->GetFilename().c_str());
-                        throw(ChException(error));
-                    }
-                }
-
-                if (mytrimeshshapeasset) {
-                    mytrimesh = mytrimeshshapeasset->GetMesh().get();
-                    wireframe = mytrimeshshapeasset->IsWireframe();
-                }
-
-                // POV macro to build the asset - begin
-                assets_file << "#macro sh_" << (size_t)k_asset.get()
-                            << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
-
-                if (!wireframe) {
-                    // Create mesh
-                    assets_file << "mesh2  {\n";
-
-                    assets_file << " vertex_vectors {\n";
-                    assets_file << (int)mytrimesh->m_vertices.size() << ",\n";
-                    for (unsigned int iv = 0; iv < mytrimesh->m_vertices.size(); iv++)
-                        assets_file << "  <" << mytrimesh->m_vertices[iv].x() << "," << mytrimesh->m_vertices[iv].y()
-                                    << "," << mytrimesh->m_vertices[iv].z() << ">,\n";
-                    assets_file << " }\n";
-
-                    assets_file << " normal_vectors {\n";
-                    assets_file << (int)mytrimesh->m_normals.size() << ",\n";
-                    for (unsigned int iv = 0; iv < mytrimesh->m_normals.size(); iv++)
-                        assets_file << "  <" << mytrimesh->m_normals[iv].x() << "," << mytrimesh->m_normals[iv].y()
-                                    << "," << mytrimesh->m_normals[iv].z() << ">,\n";
-                    assets_file << " }\n";
-
-                    assets_file << " uv_vectors {\n";
-                    assets_file << (int)mytrimesh->m_UV.size() << ",\n";
-                    for (unsigned int iv = 0; iv < mytrimesh->m_UV.size(); iv++)
-                        assets_file << "  <" << mytrimesh->m_UV[iv].x() << "," << mytrimesh->m_UV[iv].y() << ">,\n";
-                    assets_file << " }\n";
-
-                    if (mytrimesh->m_colors.size() == mytrimesh->m_vertices.size()) {
-                        assets_file << " texture_list {\n";
-                        assets_file << (int)(mytrimesh->m_colors.size()) << ",\n";
-                        for (unsigned int iv = 0; iv < mytrimesh->m_vertices.size(); iv++) {
-                            assets_file << " texture{pigment{rgb <" << mytrimesh->m_colors[iv].x() << ","
-                                        << mytrimesh->m_colors[iv].y() << "," << mytrimesh->m_colors[iv].z()
-                                        << ">}},\n";
-                        }
-                        assets_file << " }\n";
-                    }
-
-                    assets_file << " face_indices {\n";
-                    assets_file << (int)mytrimesh->m_face_v_indices.size() << ",\n";
-                    for (unsigned int it = 0; it < mytrimesh->m_face_v_indices.size(); it++) {
-                        assets_file << "  <" << mytrimesh->m_face_v_indices[it].x() << ","
-                                    << mytrimesh->m_face_v_indices[it].y() << "," << mytrimesh->m_face_v_indices[it].z()
-                                    << ">";
-                        if (mytrimesh->m_colors.size() == mytrimesh->m_vertices.size())
-                            assets_file << mytrimesh->m_face_v_indices[it].x() << ","
-                                        << mytrimesh->m_face_v_indices[it].y() << ","
-                                        << mytrimesh->m_face_v_indices[it].z();
-                        assets_file << ",\n";
-                    }
-                    assets_file << " }\n";
-
-                    // if ((mytrimesh->m_face_n_indices.size() != mytrimesh->m_face_v_indices.size()) &&
-                    if (mytrimesh->m_face_n_indices.size() > 0)  //)
-                    {
-                        assets_file << " normal_indices {\n";
-                        assets_file << (int)mytrimesh->m_face_n_indices.size() << ",\n";
-                        for (unsigned int it = 0; it < mytrimesh->m_face_n_indices.size(); it++)
-                            assets_file << "  <" << mytrimesh->m_face_n_indices[it].x() << ","
-                                        << mytrimesh->m_face_n_indices[it].y() << ","
-                                        << mytrimesh->m_face_n_indices[it].z() << ">,\n";
-                        assets_file << " }\n";
-                    }
-                    if ((mytrimesh->m_face_uv_indices.size() != mytrimesh->m_face_v_indices.size()) &&
-                        (mytrimesh->m_face_uv_indices.size() > 0)) {
-                        assets_file << " uv_indices {\n";
-                        assets_file << (int)mytrimesh->m_face_uv_indices.size() << ",\n";
-                        for (unsigned int it = 0; it < mytrimesh->m_face_uv_indices.size(); it++)
-                            assets_file << "  <" << mytrimesh->m_face_uv_indices[it].x() << ","
-                                        << mytrimesh->m_face_uv_indices[it].y() << ","
-                                        << mytrimesh->m_face_uv_indices[it].z() << ">,\n";
-                        assets_file << " }\n";
-                    }
-
-                    assets_file << "}\n";
-                } else {
-                    // wireframed mesh
-                    std::map<std::pair<int, int>, std::pair<int, int> > medges;
-                    mytrimesh->ComputeWingedEdges(medges, true);
-                    for (auto& medge : medges) {
-                        assets_file << " cylinder {<" << mytrimesh->m_vertices[medge.first.first].x() << ","
-                                    << mytrimesh->m_vertices[medge.first.first].y() << ","
-                                    << mytrimesh->m_vertices[medge.first.first].z() << ">,";
-                        assets_file << "<" << mytrimesh->m_vertices[medge.first.second].x() << ","
-                                    << mytrimesh->m_vertices[medge.first.second].y() << ","
-                                    << mytrimesh->m_vertices[medge.first.second].z() << ">,";
-                        assets_file << (this->wireframe_thickness * 0.5) << "\n no_shadow ";
-                        if (mytrimesh->m_colors.size() == mytrimesh->m_vertices.size())
-                            assets_file << "finish{ ambient rgb<" << mytrimesh->m_colors[medge.first.first].x() << ","
-                                        << mytrimesh->m_colors[medge.first.first].y() << ","
-                                        << mytrimesh->m_colors[medge.first.first].z() << "> diffuse 0}";
-                        assets_file << "}\n";
-                    }
-                }
-
-                // POV macro - end
-                assets_file << "#end \n";
-
-                if (temp_allocated_loadtrimesh)
-                    delete temp_allocated_loadtrimesh;
-                temp_allocated_loadtrimesh = 0;
-            }
-
-            // *) asset k of object i is a sphere ?
-            if (auto myobjshapeassetS = std::dynamic_pointer_cast<ChSphereShape>(k_asset)) {
-                // POV macro to build the asset - begin
-                assets_file << "#macro sh_" << (size_t)k_asset.get()
-                            << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
-
-                // POV will make the sphere
-                assets_file << "sphere  {\n";
-
-                assets_file << " <" << myobjshapeassetS->GetSphereGeometry().center.x();
-                assets_file << "," << myobjshapeassetS->GetSphereGeometry().center.y();
-                assets_file << "," << myobjshapeassetS->GetSphereGeometry().center.z() << ">\n";
-                assets_file << " " << myobjshapeassetS->GetSphereGeometry().rad << "\n";
-
-                assets_file << "}\n";
-
-                // POV macro - end
-                assets_file << "#end \n";
-            }
-
-            // *) asset k of object i is an ellipsoid ?
-            if (auto myobjshapeassetE = std::dynamic_pointer_cast<ChEllipsoidShape>(k_asset)) {
-                // POV macro to build the asset - begin
-                assets_file << "#macro sh_" << (size_t)k_asset.get()
-                            << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
-
-                // POV will make the sphere
-                assets_file << "sphere  {\n";
-
-                assets_file << " <" << myobjshapeassetE->GetEllipsoidGeometry().center.x();
-                assets_file << "," << myobjshapeassetE->GetEllipsoidGeometry().center.y();
-                assets_file << "," << myobjshapeassetE->GetEllipsoidGeometry().center.z() << ">\n";
-                assets_file << " " << 1.0 << "\n";
-                assets_file << " scale ";
-                assets_file << "<" << myobjshapeassetE->GetEllipsoidGeometry().rad.x();
-                assets_file << "," << myobjshapeassetE->GetEllipsoidGeometry().rad.y();
-                assets_file << "," << myobjshapeassetE->GetEllipsoidGeometry().rad.z() << ">\n";
-                assets_file << "}\n";
-
-                // POV macro - end
-                assets_file << "#end \n";
-            }
-
-            // *) asset k of object i is a cylinder ?
-            if (auto myobjshapeassetC = std::dynamic_pointer_cast<ChCylinderShape>(k_asset)) {
-                // POV macro to build the asset - begin
-                assets_file << "#macro sh_" << (size_t)k_asset.get()
-                            << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
-
-                // POV will make the sphere
-                assets_file << "cylinder  {\n";
-
-                assets_file << " <" << myobjshapeassetC->GetCylinderGeometry().p1.x();
-                assets_file << "," << myobjshapeassetC->GetCylinderGeometry().p1.y();
-                assets_file << "," << myobjshapeassetC->GetCylinderGeometry().p1.z() << ">,\n";
-                assets_file << " <" << myobjshapeassetC->GetCylinderGeometry().p2.x();
-                assets_file << "," << myobjshapeassetC->GetCylinderGeometry().p2.y();
-                assets_file << "," << myobjshapeassetC->GetCylinderGeometry().p2.z() << ">,\n";
-                assets_file << " " << myobjshapeassetC->GetCylinderGeometry().rad << "\n";
-
-                assets_file << "}\n";
-
-                // POV macro - end
-                assets_file << "#end \n";
-            }
-
-            // *) asset k of object i is a box ?
-            if (auto myobjshapeassetB = std::dynamic_pointer_cast<ChBoxShape>(k_asset)) {
-                // POV macro to build the asset - begin
-                assets_file << "#macro sh_" << (size_t)k_asset.get()
-                            << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
-
-                // POV will make the box
-                assets_file << "union  {\n";
-                assets_file << "box  {\n";
-
-                assets_file << " <" << -myobjshapeassetB->GetBoxGeometry().Size.x();
-                assets_file << "," << -myobjshapeassetB->GetBoxGeometry().Size.y();
-                assets_file << "," << -myobjshapeassetB->GetBoxGeometry().Size.z() << ">\n";
-                assets_file << " <" << myobjshapeassetB->GetBoxGeometry().Size.x();
-                assets_file << "," << myobjshapeassetB->GetBoxGeometry().Size.y();
-                assets_file << "," << myobjshapeassetB->GetBoxGeometry().Size.z() << ">\n";
-
-                ChQuaternion<> boxrot = myobjshapeassetB->GetBoxGeometry().Rot.Get_A_quaternion();
-                assets_file << " quatRotation(<" << boxrot.e0();
-                assets_file << "," << boxrot.e1();
-                assets_file << "," << boxrot.e2();
-                assets_file << "," << boxrot.e3() << ">) \n";
-                assets_file << " translate  <" << myobjshapeassetB->GetBoxGeometry().Pos.x();
-                assets_file << "," << myobjshapeassetB->GetBoxGeometry().Pos.y();
-                assets_file << "," << myobjshapeassetB->GetBoxGeometry().Pos.z() << "> \n";
-
-                assets_file << "}\n";  // end box
-
-                assets_file << "}\n";  // end union
-
-                // POV macro - end
-                assets_file << "#end \n";
-            }
-
-            // *) asset k of object i is a custom POV ray command ?
-            if (auto myobjcommandasset = std::dynamic_pointer_cast<ChPovRayAssetCustom>(k_asset)) {
-                // POV macro to build the asset - begin
-                assets_file << "#macro cm_" << (size_t)k_asset.get() << "()\n";
-
-                // add POV custom commands
-                assets_file << myobjcommandasset->GetCommands().c_str() << "\n";
-
-                // POV macro - end
-                assets_file << "#end \n";
-            }
-
-            // *) asset k of object i is a texture ?
-            if (auto myobjtextureasset = std::dynamic_pointer_cast<ChTexture>(k_asset)) {
-                // POV macro to build the asset - begin
-                assets_file << "#macro cm_" << (size_t)k_asset.get() << "()\n";
-
-                // add POV  texture (changing the path to absolute to allow base_path different to the one of .exe)
-                auto reltexturepath = filesystem::path(myobjtextureasset->GetTextureFilename());
-                auto abstexturepath = reltexturepath.make_absolute().str();
-
-                std::string texture_extension = "";
-                if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 5,
-                                                                   1) == ".")
-                    texture_extension = (abstexturepath.substr(abstexturepath.length() - 4, 4)).c_str();
-
-                if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 4,
-                                                                   1) == ".")
-                    texture_extension = (abstexturepath.substr(abstexturepath.length() - 3, 3)).c_str();
-                if (texture_extension == "jpg")
-                    texture_extension = "jpeg";
-
-                assets_file << "texture { uv_mapping pigment { image_map {";
-                assets_file << texture_extension.c_str() << " ";
-                assets_file << "\"" << abstexturepath.c_str() << "\"";
-                assets_file << " }}}\n";
-
-                // POV macro - end
-                assets_file << "#end \n";
-            }
-
-            // *) asset k of object i is a color ?
-            if (auto myobjasset = std::dynamic_pointer_cast<ChColorAsset>(k_asset)) {
-                // POV macro to build the asset - begin
-                assets_file << "#macro cm_" << (size_t)k_asset.get() << "()\n";
-
-                // add POV  pigment
-                assets_file << " pigment {color rgbt <" << myobjasset->GetColor().R << "," << myobjasset->GetColor().G
-                            << "," << myobjasset->GetColor().B << "," << myobjasset->GetFading() << "> }\n";
-
-                // POV macro - end
-                assets_file << "#end \n";
-            }
-
-            // *) asset k of object i is a level with sub assets? ?
-            if (auto mylevel = std::dynamic_pointer_cast<ChAssetLevel>(k_asset)) {
-                // recurse level...
-                std::vector<std::shared_ptr<ChAsset> >& subassetlist = mylevel->GetAssets();
-                _recurseExportAssets(subassetlist, assets_file);
-            }
-        }
-
-    }  // end loop on assets of i-th object
 }
 
 void ChPovRay::ExportAssets(ChStreamOutAsciiFile& assets_file) {
-    // This will scan all the ChPhysicsItem added objects, and if
-    // they have some reference to renderizable assets, write geoemtries in
-    // the POV assets script.
-
-    for (unsigned int i = 0; i < this->mdata.size(); i++) {
-        _recurseExportAssets(mdata[i]->GetAssets(), assets_file);
-
-    }  // end loop on objects
+    for (const auto& item : m_items) {
+        ExportShapes(assets_file, item);
+    }
 }
 
-void ChPovRay::_recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& assetlist,
-                                     ChFrame<> parentframe,
-                                     ChStreamOutAsciiFile& mfilepov) {
-    mfilepov << "union{\n";  // begin union
+// Write geometries and materials in the POV assets script for all physics items with a visual model
+void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<ChPhysicsItem> item) {
+    // Nothing to do if the item does not have a visual model
+    if (!item->GetVisualModel())
+        return;
 
-    // Scan assets in object and write the macro to set their position
-    for (unsigned int k = 0; k < assetlist.size(); k++) {
-        std::shared_ptr<ChAsset> k_asset = assetlist[k];
+    for (const auto& shape_instance : item->GetVisualModel()->GetShapes()) {
+        const auto& shape = shape_instance.first;
+        const auto& shape_frame = shape_instance.second;
 
-        // asset k of object i references a mesh, a box, a sphere, i.e. any exported shape?
-        if (std::dynamic_pointer_cast<ChObjShapeFile>(k_asset) ||
-            std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset) ||
-            std::dynamic_pointer_cast<ChSphereShape>(k_asset) || std::dynamic_pointer_cast<ChEllipsoidShape>(k_asset) ||
-            std::dynamic_pointer_cast<ChCylinderShape>(k_asset) || std::dynamic_pointer_cast<ChBoxShape>(k_asset)) {
-            mfilepov << "sh_" << (size_t)k_asset.get() << "()\n";
+        // Do nothing if the shape was already processed (because it is shared)
+        // Otherwise, add the shape to the cache list and process it
+        if (m_pov_shapes.find((size_t)shape.get()) != m_pov_shapes.end())
+            continue;
+        m_pov_shapes.insert({(size_t)shape.get(), shape});
+
+        auto obj_shape = std::dynamic_pointer_cast<ChObjShapeFile>(shape);
+        auto mesh_shape = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape);
+
+        if (obj_shape || mesh_shape) {
+            std::shared_ptr<ChTriangleMeshConnected> mesh;
+            bool wireframe = false;
+
+            if (obj_shape) {
+                auto temp_allocated_loadtrimesh =
+                    ChTriangleMeshConnected::CreateFromWavefrontFile(obj_shape->GetFilename(), true, true);
+                if (temp_allocated_loadtrimesh) {
+                    mesh = temp_allocated_loadtrimesh;
+                } else {
+                    char error[400];
+                    sprintf(error, "Cannot read .obj file %s", obj_shape->GetFilename().c_str());
+                    throw(ChException(error));
+                }
+            } else if (mesh_shape) {
+                mesh = mesh_shape->GetMesh();
+                wireframe = mesh_shape->IsWireframe();
+            }
+
+            // POV macro to build the asset - begin
+            assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";
+
+            if (!wireframe) {
+                // Create mesh
+                assets_file << "mesh2  {\n";
+
+                assets_file << " vertex_vectors {\n";
+                assets_file << (int)mesh->m_vertices.size() << ",\n";
+                for (unsigned int iv = 0; iv < mesh->m_vertices.size(); iv++)
+                    assets_file << "  <" << mesh->m_vertices[iv].x() << "," << mesh->m_vertices[iv].y() << ","
+                                << mesh->m_vertices[iv].z() << ">,\n";
+                assets_file << " }\n";
+
+                assets_file << " normal_vectors {\n";
+                assets_file << (int)mesh->m_normals.size() << ",\n";
+                for (unsigned int iv = 0; iv < mesh->m_normals.size(); iv++)
+                    assets_file << "  <" << mesh->m_normals[iv].x() << "," << mesh->m_normals[iv].y() << ","
+                                << mesh->m_normals[iv].z() << ">,\n";
+                assets_file << " }\n";
+
+                assets_file << " uv_vectors {\n";
+                assets_file << (int)mesh->m_UV.size() << ",\n";
+                for (unsigned int iv = 0; iv < mesh->m_UV.size(); iv++)
+                    assets_file << "  <" << mesh->m_UV[iv].x() << "," << mesh->m_UV[iv].y() << ">,\n";
+                assets_file << " }\n";
+
+                if (mesh->m_colors.size() == mesh->m_vertices.size()) {
+                    assets_file << " texture_list {\n";
+                    assets_file << (int)(mesh->m_colors.size()) << ",\n";
+                    for (unsigned int iv = 0; iv < mesh->m_vertices.size(); iv++) {
+                        assets_file << " texture{pigment{rgb <" << mesh->m_colors[iv].R << "," << mesh->m_colors[iv].G
+                                    << "," << mesh->m_colors[iv].B << ">}},\n";
+                    }
+                    assets_file << " }\n";
+                }
+
+                assets_file << " face_indices {\n";
+                assets_file << (int)mesh->m_face_v_indices.size() << ",\n";
+                for (unsigned int it = 0; it < mesh->m_face_v_indices.size(); it++) {
+                    assets_file << "  <" << mesh->m_face_v_indices[it].x() << "," << mesh->m_face_v_indices[it].y()
+                                << "," << mesh->m_face_v_indices[it].z() << ">";
+                    if (mesh->m_colors.size() == mesh->m_vertices.size())
+                        assets_file << mesh->m_face_v_indices[it].x() << "," << mesh->m_face_v_indices[it].y() << ","
+                                    << mesh->m_face_v_indices[it].z();
+                    assets_file << ",\n";
+                }
+                assets_file << " }\n";
+
+                if (mesh->m_face_n_indices.size() > 0) {
+                    assets_file << " normal_indices {\n";
+                    assets_file << (int)mesh->m_face_n_indices.size() << ",\n";
+                    for (unsigned int it = 0; it < mesh->m_face_n_indices.size(); it++)
+                        assets_file << "  <" << mesh->m_face_n_indices[it].x() << "," << mesh->m_face_n_indices[it].y()
+                                    << "," << mesh->m_face_n_indices[it].z() << ">,\n";
+                    assets_file << " }\n";
+                }
+                if ((mesh->m_face_uv_indices.size() != mesh->m_face_v_indices.size()) &&
+                    (mesh->m_face_uv_indices.size() > 0)) {
+                    assets_file << " uv_indices {\n";
+                    assets_file << (int)mesh->m_face_uv_indices.size() << ",\n";
+                    for (unsigned int it = 0; it < mesh->m_face_uv_indices.size(); it++)
+                        assets_file << "  <" << mesh->m_face_uv_indices[it].x() << ","
+                                    << mesh->m_face_uv_indices[it].y() << "," << mesh->m_face_uv_indices[it].z()
+                                    << ">,\n";
+                    assets_file << " }\n";
+                }
+
+                assets_file << "}\n";
+            } else {
+                // wireframed mesh
+                std::map<std::pair<int, int>, std::pair<int, int>> edges;
+                mesh->ComputeWingedEdges(edges, true);
+                for (const auto& edge : edges) {
+                    assets_file << " cylinder {<" << mesh->m_vertices[edge.first.first].x() << ","
+                                << mesh->m_vertices[edge.first.first].y() << ","
+                                << mesh->m_vertices[edge.first.first].z() << ">,";
+                    assets_file << "<" << mesh->m_vertices[edge.first.second].x() << ","
+                                << mesh->m_vertices[edge.first.second].y() << ","
+                                << mesh->m_vertices[edge.first.second].z() << ">,";
+                    assets_file << (wireframe_thickness * 0.5) << "\n no_shadow ";
+                    if (mesh->m_colors.size() == mesh->m_vertices.size())
+                        assets_file << "finish{ ambient rgb<" << mesh->m_colors[edge.first.first].R << ","
+                                    << mesh->m_colors[edge.first.first].G << "," << mesh->m_colors[edge.first.first].B
+                                    << "> diffuse 0}";
+                    assets_file << "}\n";
+                }
+            }
+
+            // POV macro - end
+            assets_file << "#end \n";
         }
 
-        if (auto mycamera = std::dynamic_pointer_cast<ChCamera>(k_asset)) {
-            this->camera_found_in_assets = true;
+        if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+            // POV macro to build the asset - begin
+            assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";
 
-            this->camera_location = mycamera->GetPosition() >> parentframe;
-            this->camera_aim = mycamera->GetAimPoint() >> parentframe;
-            this->camera_up = mycamera->GetUpVector() >> parentframe;
-            this->camera_angle = mycamera->GetAngle();
-            this->camera_orthographic = mycamera->GetOrthographic();
+            // POV will make the sphere
+            assets_file << "sphere  {\n";
+
+            assets_file << " <" << shape_frame.GetPos().x();
+            assets_file << "," << shape_frame.GetPos().y();
+            assets_file << "," << shape_frame.GetPos().z() << ">\n";
+            assets_file << " " << sphere->GetSphereGeometry().rad << "\n";
+
+            assets_file << "}\n";
+
+            // POV macro - end
+            assets_file << "#end \n";
         }
 
-        if (auto mylevel = std::dynamic_pointer_cast<ChAssetLevel>(k_asset)) {
-            // recurse level...
-            ChFrame<> composedframe = mylevel->GetFrame() >> parentframe;
-            ChFrame<> subassetframe = mylevel->GetFrame();
+        if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
+            // POV macro to build the asset - begin
+            assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";
 
-            std::vector<std::shared_ptr<ChAsset> >& subassetlist = mylevel->GetAssets();
-            _recurseExportObjData(subassetlist, subassetframe, mfilepov);
+            // POV will make the sphere
+            assets_file << "sphere  {\n";
+
+            assets_file << " <" << shape_frame.GetPos().x();
+            assets_file << "," << shape_frame.GetPos().y();
+            assets_file << "," << shape_frame.GetPos().z() << ">\n";
+            assets_file << " " << 1.0 << "\n";
+            assets_file << " scale ";
+            assets_file << "<" << ellipsoid->GetEllipsoidGeometry().rad.x();
+            assets_file << "," << ellipsoid->GetEllipsoidGeometry().rad.y();
+            assets_file << "," << ellipsoid->GetEllipsoidGeometry().rad.z() << ">\n";
+            assets_file << "}\n";
+
+            // POV macro - end
+            assets_file << "#end \n";
         }
 
-    }  // end loop on assets
+        if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+            // POV macro to build the asset - begin
+            assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";
 
-    // Scan again assets in object and write the macros for setting color/texture etc.
-    // (this because the pigments must be last in the POV union{}
-    for (unsigned int k = 0; k < assetlist.size(); k++) {
-        std::shared_ptr<ChAsset> k_asset = assetlist[k];
+            // POV will make the sphere
+            assets_file << "cylinder  {\n";
 
-        if (std::dynamic_pointer_cast<ChPovRayAssetCustom>(k_asset) || std::dynamic_pointer_cast<ChTexture>(k_asset) ||
-            std::dynamic_pointer_cast<ChColorAsset>(k_asset)) {
-            mfilepov << "cm_" << (size_t)k_asset.get() << "()\n";
+            assets_file << " <" << cylinder->GetCylinderGeometry().p1.x();
+            assets_file << "," << cylinder->GetCylinderGeometry().p1.y();
+            assets_file << "," << cylinder->GetCylinderGeometry().p1.z() << ">,\n";
+            assets_file << " <" << cylinder->GetCylinderGeometry().p2.x();
+            assets_file << "," << cylinder->GetCylinderGeometry().p2.y();
+            assets_file << "," << cylinder->GetCylinderGeometry().p2.z() << ">,\n";
+            assets_file << " " << cylinder->GetCylinderGeometry().rad << "\n";
+
+            assets_file << "}\n";
+
+            // POV macro - end
+            assets_file << "#end \n";
+        }
+
+        if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+            // POV macro to build the asset - begin
+            assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";
+
+            // POV will make the box
+            assets_file << "union  {\n";
+            assets_file << "box  {\n";
+
+            assets_file << " <" << -box->GetBoxGeometry().Size.x();
+            assets_file << "," << -box->GetBoxGeometry().Size.y();
+            assets_file << "," << -box->GetBoxGeometry().Size.z() << ">\n";
+            assets_file << " <" << box->GetBoxGeometry().Size.x();
+            assets_file << "," << box->GetBoxGeometry().Size.y();
+            assets_file << "," << box->GetBoxGeometry().Size.z() << ">\n";
+
+            const auto& pos = shape_frame.GetPos();
+            const auto& rot = shape_frame.GetRot();
+            assets_file << " quatRotation(<" << rot.e0();
+            assets_file << "," << rot.e1();
+            assets_file << "," << rot.e2();
+            assets_file << "," << rot.e3() << ">) \n";
+            assets_file << " translate  <" << pos.x();
+            assets_file << "," << pos.y();
+            assets_file << "," << pos.z() << "> \n";
+
+            assets_file << "}\n";  // end box
+            assets_file << "}\n";  // end union
+
+            // POV macro - end
+            assets_file << "#end \n";
+        }
+
+        // Save materials used by this shape
+        ExportMaterials(assets_file, shape->GetMaterials());
+    }
+
+    // Check if there are custom commands set for this physics item
+    auto commands = m_custom_commands.find((size_t)item.get());
+    if (commands != m_custom_commands.end()) {
+        assets_file << "#macro cm_" << (size_t)item.get() << "()\n";
+        assets_file << commands->second << "\n";
+        assets_file << "#end \n";
+    }
+}
+
+void ChPovRay::ExportMaterials(ChStreamOutAsciiFile& assets_file,
+                               const std::vector<std::shared_ptr<ChVisualMaterial>>& materials) {
+    for (const auto& mat : materials) {
+        // Do nothing if the material was alrwady processed (because it is shared)
+        // Otherwise, add the material to the cache list and process it
+        if (m_pov_materials.find((size_t)mat.get()) != m_pov_materials.end())
+            continue;
+        m_pov_materials.insert({(size_t)mat.get(), mat});
+
+        // POV macro to build the asset - begin
+        assets_file << "#macro mt_" << (size_t)mat.get() << "()\n";
+
+        // add POV  texture (changing the path to absolute to allow base_path different to the one of .exe)
+        if (!mat->GetKdTexture().empty()) {
+            auto rel_path = filesystem::path(mat->GetKdTexture());
+            auto abs_path = rel_path.make_absolute().str();
+            auto ext = rel_path.extension();
+            if (ext == "jpg")
+                ext = "jpeg";
+
+            assets_file << "texture { uv_mapping pigment { image_map {";
+            assets_file << ext.c_str() << " ";
+            assets_file << "\"" << abs_path.c_str() << "\"";
+            assets_file << " }}}\n";
+        }
+
+        // add POV  pigment
+        const auto& color = mat->GetDiffuseColor();
+        assets_file << "pigment {color rgbt <" << color.R << "," << color.G << "," << color.B << ","
+                    << 1 - mat->GetOpacity() << "> }\n";
+
+        // POV macro - end
+        assets_file << "#end \n";
+    }
+}
+
+void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
+                             std::shared_ptr<ChPhysicsItem> item,
+                             const ChFrame<>& parentframe) {
+    pov_file << "union{\n";  // begin union
+
+    // Scan visual shapes in the visual model
+    for (const auto& shape_instance : item->GetVisualModel()->GetShapes()) {
+        const auto& shape = shape_instance.first;
+
+        // Process only "known" shapes (i.e., shapes that were included in the assets file)
+        if (std::dynamic_pointer_cast<ChObjShapeFile>(shape) || std::dynamic_pointer_cast<ChTriangleMeshShape>(shape) ||
+            std::dynamic_pointer_cast<ChSphereShape>(shape) || std::dynamic_pointer_cast<ChEllipsoidShape>(shape) ||
+            std::dynamic_pointer_cast<ChCylinderShape>(shape) || std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+            // Invoke the geometry macro
+            pov_file << "sh_" << (size_t)shape.get() << "()\n";
+
+            // Invoke the material macros
+            for (const auto& mat : shape->GetMaterials()) {
+                pov_file << "mt_" << (size_t)mat.get() << "()\n";
+            }
         }
     }
 
-    // write the rotation and position
+    // Scan FEA visual shapes in the visual model
+    for (const auto& shapeFEA : item->GetVisualModel()->GetShapesFEA()) {
+        //// RADU TODO
+    }
+
+    // Check for any cameras attached to the physics item
+    //// RADU TODO: allow using more than one camera at a time?
+    for (const auto& camera : item->GetCameras()) {
+        camera_found_in_assets = true;
+
+        camera_location = camera->GetPosition() >> parentframe;
+        camera_aim = camera->GetAimPoint() >> parentframe;
+        camera_up = camera->GetUpVector() >> parentframe;
+        camera_angle = camera->GetAngle();
+        camera_orthographic = camera->IsOrthographic();       
+    }
+
+    // Invoke the custom commands string (if any)
+    auto commands = m_custom_commands.find((size_t)item.get());
+    if (commands != m_custom_commands.end()) {
+        pov_file << "cm_" << (size_t)item.get() << "()\n";
+    }
+
+    // Write the rotation and position
     if (!(parentframe.GetCoord() == CSYSNORM)) {
-        mfilepov << " quatRotation(<" << parentframe.GetRot().e0();
-        mfilepov << "," << parentframe.GetRot().e1();
-        mfilepov << "," << parentframe.GetRot().e2();
-        mfilepov << "," << parentframe.GetRot().e3() << ">) \n";
-        mfilepov << " translate  <" << parentframe.GetPos().x();
-        mfilepov << "," << parentframe.GetPos().y();
-        mfilepov << "," << parentframe.GetPos().z() << "> \n";
+        pov_file << " quatRotation(<" << parentframe.GetRot().e0();
+        pov_file << "," << parentframe.GetRot().e1();
+        pov_file << "," << parentframe.GetRot().e2();
+        pov_file << "," << parentframe.GetRot().e3() << ">) \n";
+        pov_file << " translate  <" << parentframe.GetPos().x();
+        pov_file << "," << parentframe.GetPos().y();
+        pov_file << "," << parentframe.GetPos().z() << "> \n";
     }
 
-    mfilepov << "}\n";  // end union
+    pov_file << "}\n";  // end union
 }
 
-/// This function is used at each timestep to export data
-/// formatted in a way that it can be load with the POV
-/// scripts generated by ExportScript().
-/// The generated filename must be set at the beginning of
-/// the animation via SetOutputDataFilebase(), and then a
-/// number is automatically appended and incremented at each
-/// ExportData(), ex.
-///  state0001.dat, state0002.dat,
-/// The user should call this function in the while() loop
-/// of the simulation, once per frame.
-
+// This function is used at each timestep to export data formatted in a way that it can be load with the POV scripts
+// generated by ExportScript(). The generated filename must be set at the beginning of the animation via
+// SetOutputDataFilebase(), and then a number is automatically appended and incremented at each ExportData(), e.g.,
+//  state0001.dat, state0002.dat, ...
+// The user should call this function in the while() loop of the simulation, once per frame.
 void ChPovRay::ExportData() {
     char fullname[200];
-    sprintf(fullname, "%s%05d", this->out_data_filename.c_str(), this->framenumber);
-    this->ExportData((this->out_path + "/" + std::string(fullname)));
+    sprintf(fullname, "%s%05d", out_data_filename.c_str(), framenumber);
+    ExportData((out_path + "/" + std::string(fullname)));
 }
 
 void ChPovRay::ExportData(const std::string& filename) {
-    // Regenerate the list of objects that need POV rendering, by
-    // scanning all ChPhysicsItems in the ChSystem that have a ChPovRayAsse attached.
-    // Note that SetupLists() happens at each ExportData (i.e. at each timestep)
-    // because maybe some object has been added or deleted during the simulation.
+    // Regenerate the list of objects that need POV rendering
+    UpdateRenderList();
 
-    this->SetupLists();
-
-    // If using a single-file asset, update it (because maybe that during the
-    // animation someone created an object with asset)
+    // If using a single-file asset, update it (in case new visual shapes were created during simulation)
     if (single_asset_file) {
         // open asset file in append mode
-        std::string assets_filename = this->out_script_filename + ".assets";
+        std::string assets_filename = out_script_filename + ".assets";
         ChStreamOutAsciiFile assets_file((base_path + assets_filename).c_str(), std::ios::app);
-        // populate assets (note that already present
-        // assets won't be appended!)
-        this->ExportAssets(assets_file);
+        // populate assets (already present assets will not be appended)
+        ExportAssets(assets_file);
     }
 
     // Generate the nnnn.dat and nnnn.pov files:
-
     try {
         char pathdat[200];
         sprintf(pathdat, "%s.dat", filename.c_str());
-        ChStreamOutAsciiFile mfiledat((base_path + filename + ".dat").c_str());
+        ChStreamOutAsciiFile data_file((base_path + filename + ".dat").c_str());
+        ChStreamOutAsciiFile pov_file((base_path + filename + ".pov").c_str());
 
-        ChStreamOutAsciiFile mfilepov((base_path + filename + ".pov").c_str());
-
-        this->camera_found_in_assets = false;
+        camera_found_in_assets = false;
 
         // If embedding assets in the .pov file:
         if (!single_asset_file) {
-            this->pov_assets.clear();
-            this->ExportAssets(mfilepov);
+            m_pov_shapes.clear();
+            ExportAssets(pov_file);
         }
 
         // Write custom data commands, if provided by the user
-        if (this->custom_data.size() > 0) {
-            mfilepov << "// Custom user-added script: \n\n";
-            mfilepov << this->custom_data;
-            mfilepov << "\n\n";
+        if (custom_data.size() > 0) {
+            pov_file << "// Custom user-added script: \n\n";
+            pov_file << custom_data;
+            pov_file << "\n\n";
         }
 
         // Tell POV to open the .dat file, that could be used by
         // ChParticleClones for efficiency (xyz raw data with center of particles will
         // be saved in dat and load using a #while POV loop, helping to reduce size of .pov file)
-        mfilepov << "#declare dat_file = \"" << (filename + ".dat").c_str() << "\"\n";
-        mfilepov << "#fopen MyDatFile dat_file read \n\n";
+        pov_file << "#declare dat_file = \"" << (filename + ".dat").c_str() << "\"\n";
+        pov_file << "#fopen MyDatFile dat_file read \n\n";
 
-        // Save time-dependent data for the geometry of objects in ...nnnn.POV
-        // and in ...nnnn.DAT file
+        // Save time-dependent data for the geometry of objects in ...nnnn.POV and in ...nnnn.DAT file
+        for (const auto& item : m_items) {
+            // Nothing to do if no visual model attached to this physics item
+            if (!item->GetVisualModel())
+                continue;
 
-        for (unsigned int i = 0; i < this->mdata.size(); i++) {
-            // #) saving a body ?
-            if (auto mybody = std::dynamic_pointer_cast<ChBody>(mdata[i])) {
+            // saving a body?
+            if (const auto& body = std::dynamic_pointer_cast<ChBody>(item)) {
                 // Get the current coordinate frame of the i-th object
                 ChCoordsys<> assetcsys = CSYSNORM;
-                const ChFrame<>& bodyframe = mybody->GetFrame_REF_to_abs();
+                const ChFrame<>& bodyframe = body->GetFrame_REF_to_abs();
                 assetcsys = bodyframe.GetCoord();
 
-                // Dump the POV macro that generates the contained asset(s) tree!!!
-                _recurseExportObjData(mdata[i]->GetAssets(), bodyframe, mfilepov);
+                // Dump the POV macro that generates the contained asset(s) tree
+                ExportObjData(pov_file, body, bodyframe);
 
                 // Show body COG?
-                if (this->COGs_show) {
-                    const ChCoordsys<>& cogcsys = mybody->GetFrame_COG_to_abs().GetCoord();
-                    mfilepov << "sh_csysCOG(";
-                    mfilepov << cogcsys.pos.x() << "," << cogcsys.pos.y() << "," << cogcsys.pos.z() << ",";
-                    mfilepov << cogcsys.rot.e0() << "," << cogcsys.rot.e1() << "," << cogcsys.rot.e2() << ","
+                if (COGs_show) {
+                    const ChCoordsys<>& cogcsys = body->GetFrame_COG_to_abs().GetCoord();
+                    pov_file << "sh_csysCOG(";
+                    pov_file << cogcsys.pos.x() << "," << cogcsys.pos.y() << "," << cogcsys.pos.z() << ",";
+                    pov_file << cogcsys.rot.e0() << "," << cogcsys.rot.e1() << "," << cogcsys.rot.e2() << ","
                              << cogcsys.rot.e3() << ",";
-                    mfilepov << this->COGs_size << ")\n";
+                    pov_file << COGs_size << ")\n";
                 }
                 // Show body frame ref?
-                if (this->frames_show) {
-                    mfilepov << "sh_csysFRM(";
-                    mfilepov << assetcsys.pos.x() << "," << assetcsys.pos.y() << "," << assetcsys.pos.z() << ",";
-                    mfilepov << assetcsys.rot.e0() << "," << assetcsys.rot.e1() << "," << assetcsys.rot.e2() << ","
+                if (frames_show) {
+                    pov_file << "sh_csysFRM(";
+                    pov_file << assetcsys.pos.x() << "," << assetcsys.pos.y() << "," << assetcsys.pos.z() << ",";
+                    pov_file << assetcsys.rot.e0() << "," << assetcsys.rot.e1() << "," << assetcsys.rot.e2() << ","
                              << assetcsys.rot.e3() << ",";
-                    mfilepov << this->frames_size << ")\n";
+                    pov_file << frames_size << ")\n";
                 }
             }
 
-            // #) saving a cluster of particles ?  (NEW method that uses a POV '#while' loop and a .dat file)
-            if (auto myclones = std::dynamic_pointer_cast<ChParticlesClones>(mdata[i])) {
-                mfilepov << " \n";
-                // mfilepov << "union{\n";
-                mfilepov << "#declare Index = 0; \n";
-                mfilepov << "#while(Index < " << myclones->GetNparticles() << ") \n";
-                mfilepov << "  #read (MyDatFile, apx, apy, apz, aq0, aq1, aq2, aq3) \n";
-                mfilepov << "  union{\n";
+            // saving a cluster of particles?
+            if (const auto& clones = std::dynamic_pointer_cast<ChParticlesClones>(item)) {
+                pov_file << " \n";
+                // pov_file << "union{\n";
+                pov_file << "#declare Index = 0; \n";
+                pov_file << "#while(Index < " << clones->GetNparticles() << ") \n";
+                pov_file << "  #read (MyDatFile, apx, apy, apz, aq0, aq1, aq2, aq3) \n";
+                pov_file << "  union{\n";
                 ChFrame<> nullframe(CSYSNORM);
-                _recurseExportObjData(mdata[i]->GetAssets(), nullframe, mfilepov);
-                mfilepov << "  quatRotation(<aq0,aq1,aq2,aq3>)\n";
-                mfilepov << "  translate(<apx,apy,apz>)\n";
-                mfilepov << "  }\n";
-                mfilepov << "  #declare Index = Index + 1; \n";
-                mfilepov << "#end \n";
-                // mfilepov << "} \n";
+                ExportObjData(pov_file, clones, nullframe);
+                pov_file << "  quatRotation(<aq0,aq1,aq2,aq3>)\n";
+                pov_file << "  translate(<apx,apy,apz>)\n";
+                pov_file << "  }\n";
+                pov_file << "  #declare Index = Index + 1; \n";
+                pov_file << "#end \n";
+                // pov_file << "} \n";
 
                 // Loop on all particle clones
-                for (unsigned int m = 0; m < myclones->GetNparticles(); ++m) {
+                for (unsigned int m = 0; m < clones->GetNparticles(); ++m) {
                     // Get the current coordinate frame of the i-th particle
                     ChCoordsys<> assetcsys = CSYSNORM;
-                    assetcsys = myclones->GetParticle(m).GetCoord();
+                    assetcsys = clones->GetParticle(m).GetCoord();
 
-                    mfiledat << assetcsys.pos.x() << ", ";
-                    mfiledat << assetcsys.pos.y() << ", ";
-                    mfiledat << assetcsys.pos.z() << ", ";
-                    mfiledat << assetcsys.rot.e0() << ", ";
-                    mfiledat << assetcsys.rot.e1() << ", ";
-                    mfiledat << assetcsys.rot.e2() << ", ";
-                    mfiledat << assetcsys.rot.e3() << ", \n";
+                    data_file << assetcsys.pos.x() << ", ";
+                    data_file << assetcsys.pos.y() << ", ";
+                    data_file << assetcsys.pos.z() << ", ";
+                    data_file << assetcsys.rot.e0() << ", ";
+                    data_file << assetcsys.rot.e1() << ", ";
+                    data_file << assetcsys.rot.e2() << ", ";
+                    data_file << assetcsys.rot.e3() << ", \n";
                 }  // end loop on particles
             }
 
-            // #) saving a ChLinkMateGeneric constraint ?
-            if (auto mylinkmate = std::dynamic_pointer_cast<ChLinkMateGeneric>(mdata[i])) {
-                if (mylinkmate->GetBody1() && mylinkmate->GetBody2() && this->links_show) {
-                    ChFrame<> frAabs = mylinkmate->GetFrame1() >> *mylinkmate->GetBody1();
-                    ChFrame<> frBabs = mylinkmate->GetFrame2() >> *mylinkmate->GetBody2();
-                    mfilepov << "sh_csysFRM(";
-                    mfilepov << frAabs.GetPos().x() << "," << frAabs.GetPos().y() << "," << frAabs.GetPos().z() << ",";
-                    mfilepov << frAabs.GetRot().e0() << "," << frAabs.GetRot().e1() << "," << frAabs.GetRot().e2()
+            //// RADU TODO: add capability for springs and dampers
+            //// RADU TODO: why only MateGeneric links?!?
+
+            // saving a ChLinkMateGeneric constraint?
+            if (auto linkmate = std::dynamic_pointer_cast<ChLinkMateGeneric>(item)) {
+                if (linkmate->GetBody1() && linkmate->GetBody2() && links_show) {
+                    ChFrame<> frAabs = linkmate->GetFrame1() >> *linkmate->GetBody1();
+                    ChFrame<> frBabs = linkmate->GetFrame2() >> *linkmate->GetBody2();
+                    pov_file << "sh_csysFRM(";
+                    pov_file << frAabs.GetPos().x() << "," << frAabs.GetPos().y() << "," << frAabs.GetPos().z() << ",";
+                    pov_file << frAabs.GetRot().e0() << "," << frAabs.GetRot().e1() << "," << frAabs.GetRot().e2()
                              << "," << frAabs.GetRot().e3() << ",";
-                    mfilepov << this->links_size * 0.7 << ")\n";  // smaller, as 'slave' csys.
-                    mfilepov << "sh_csysFRM(";
-                    mfilepov << frBabs.GetPos().x() << "," << frBabs.GetPos().y() << "," << frBabs.GetPos().z() << ",";
-                    mfilepov << frBabs.GetRot().e0() << "," << frBabs.GetRot().e1() << "," << frBabs.GetRot().e2()
+                    pov_file << links_size * 0.7 << ")\n";  // smaller, as 'slave' csys.
+                    pov_file << "sh_csysFRM(";
+                    pov_file << frBabs.GetPos().x() << "," << frBabs.GetPos().y() << "," << frBabs.GetPos().z() << ",";
+                    pov_file << frBabs.GetRot().e0() << "," << frBabs.GetRot().e1() << "," << frBabs.GetRot().e2()
                              << "," << frBabs.GetRot().e3() << ",";
-                    mfilepov << this->links_size << ")\n";
+                    pov_file << links_size << ")\n";
                 }
             }
 
-            // #) saving a FEA mesh?
-            if (auto mymesh = std::dynamic_pointer_cast<fea::ChMesh>(mdata[i])) {
-                // Get the current coordinate frame of the i-th object
-                ChFrame<> assetcsys;
-
-                // Dump the POV macro that generates the contained asset(s) tree!!!
-                _recurseExportObjData(mdata[i]->GetAssets(), assetcsys, mfilepov);
+            // saving an FEA mesh?
+            if (auto fea_mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
+                ExportObjData(pov_file, fea_mesh, ChFrame<>());
             }
 
         }  // end loop on objects
 
         // #) saving contacts ?
-        if (this->contacts_show) {
+        if (contacts_show) {
             ChStreamOutAsciiFile data_contacts((base_path + filename + ".contacts").c_str());
 
             class _reporter_class : public ChContactContainer::ReportContactCallback {
@@ -1038,33 +918,33 @@ void ChPovRay::ExportData(const std::string& filename) {
             my_contact_reporter->mfile = &data_contacts;
 
             // scan all contacts
-            this->mSystem->GetContactContainer()->ReportAllContacts(my_contact_reporter);
+            mSystem->GetContactContainer()->ReportAllContacts(my_contact_reporter);
         }
 
         // If a camera have been found in assets, create it and override the default one
-        if (this->camera_found_in_assets) {
-            mfilepov << "camera { \n";
+        if (camera_found_in_assets) {
+            pov_file << "camera { \n";
             if (camera_orthographic) {
-                mfilepov << " orthographic \n";
-                mfilepov << " right x * " << (camera_location - camera_aim).Length() << " * tan ((( " << camera_angle
+                pov_file << " orthographic \n";
+                pov_file << " right x * " << (camera_location - camera_aim).Length() << " * tan ((( " << camera_angle
                          << " *0.5)/180)*3.14) \n";
-                mfilepov << " up y * image_height/image_width * " << (camera_location - camera_aim).Length()
+                pov_file << " up y * image_height/image_width * " << (camera_location - camera_aim).Length()
                          << " * tan (((" << camera_angle << "*0.5)/180)*3.14) \n";
                 ChVector<> mdir = (camera_aim - camera_location) * 0.00001;
-                mfilepov << " direction <" << mdir.x() << "," << mdir.y() << "," << mdir.z() << "> \n";
+                pov_file << " direction <" << mdir.x() << "," << mdir.y() << "," << mdir.z() << "> \n";
             } else {
-                mfilepov << " right -x*image_width/image_height \n";
-                mfilepov << " angle " << camera_angle << " \n";
+                pov_file << " right -x*image_width/image_height \n";
+                pov_file << " angle " << camera_angle << " \n";
             }
-            mfilepov << " location <" << camera_location.x() << "," << camera_location.y() << "," << camera_location.z()
+            pov_file << " location <" << camera_location.x() << "," << camera_location.y() << "," << camera_location.z()
                      << "> \n"
                      << " look_at <" << camera_aim.x() << "," << camera_aim.y() << "," << camera_aim.z() << "> \n"
                      << " sky <" << camera_up.x() << "," << camera_up.y() << "," << camera_up.z() << "> \n";
-            mfilepov << "}\n\n\n";
+            pov_file << "}\n\n\n";
         }
 
         // At the end of the .pov file, remember to close the .dat
-        mfilepov << "\n\n#fclose MyDatFile \n";
+        pov_file << "\n\n#fclose MyDatFile \n";
     } catch (const ChException&) {
         char error[400];
         sprintf(error, "Can't save data into file %s.pov (or .dat)", filename.c_str());
@@ -1072,7 +952,7 @@ void ChPovRay::ExportData(const std::string& filename) {
     }
 
     // Increment the number of the frame.
-    this->framenumber++;
+    framenumber++;
 }
 
 }  // end namespace postprocess

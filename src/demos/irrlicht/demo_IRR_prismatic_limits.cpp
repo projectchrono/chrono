@@ -22,9 +22,10 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -32,36 +33,30 @@ using namespace chrono::irrlicht;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    ChSystemNSC system;
+    ChSystemNSC sys;
 
     // Create the ground body
     // ----------------------
 
     auto ground = chrono_types::make_shared<ChBody>();
-    system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
 
     auto rail1 = chrono_types::make_shared<ChBoxShape>();
     rail1->GetBoxGeometry().SetLengths(ChVector<>(8, 0.1, 0.1));
-    rail1->GetBoxGeometry().Pos = ChVector<>(0, 0, -1);
-    ground->AddAsset(rail1);
+    ground->AddVisualShape(rail1, ChFrame<>(ChVector<>(0, 0, -1), QUNIT));
 
     auto rail2 = chrono_types::make_shared<ChBoxShape>();
     rail2->GetBoxGeometry().SetLengths(ChVector<>(8, 0.1, 0.1));
-    rail2->GetBoxGeometry().Pos = ChVector<>(0, 0, +1);
-    ground->AddAsset(rail2);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.6f, 0.6f, 0.6f));
-    ground->AddAsset(col);
+    ground->AddVisualShape(rail2, ChFrame<>(ChVector<>(0, 0, +1), QUNIT));
 
     // Create the slider bodies
     // ------------------------
 
     auto slider1 = chrono_types::make_shared<ChBody>();
-    system.AddBody(slider1);
+    sys.AddBody(slider1);
     slider1->SetIdentifier(1);
     slider1->SetBodyFixed(false);
     slider1->SetCollide(false);
@@ -73,14 +68,11 @@ int main(int argc, char* argv[]) {
     cyl1->GetCylinderGeometry().p1 = ChVector<>(-0.2, 0, 0);
     cyl1->GetCylinderGeometry().p2 = ChVector<>(+0.2, 0, 0);
     cyl1->GetCylinderGeometry().rad = 0.2;
-    slider1->AddAsset(cyl1);
-
-    auto col1 = chrono_types::make_shared<ChColorAsset>();
-    col1->SetColor(ChColor(0.6f, 0, 0));
-    slider1->AddAsset(col1);
+    cyl1->SetColor(ChColor(0.6f, 0, 0));
+    slider1->AddVisualShape(cyl1);
 
     auto slider2 = chrono_types::make_shared<ChBody>();
-    system.AddBody(slider2);
+    sys.AddBody(slider2);
     slider2->SetIdentifier(1);
     slider2->SetBodyFixed(false);
     slider2->SetCollide(false);
@@ -92,11 +84,8 @@ int main(int argc, char* argv[]) {
     cyl2->GetCylinderGeometry().p1 = ChVector<>(-0.2, 0, 0);
     cyl2->GetCylinderGeometry().p2 = ChVector<>(+0.2, 0, 0);
     cyl2->GetCylinderGeometry().rad = 0.2;
-    slider2->AddAsset(cyl2);
-
-    auto col2 = chrono_types::make_shared<ChColorAsset>();
-    col2->SetColor(ChColor(0, 0, 0.6f));
-    slider2->AddAsset(col2);
+    cyl2->SetColor(ChColor(0, 0, 0.6f));
+    slider2->AddVisualShape(cyl2);
 
     // Create prismatic joints between ground and sliders
     // --------------------------------------------------
@@ -107,11 +96,11 @@ int main(int argc, char* argv[]) {
     prismatic1->Initialize(ground, slider1, ChCoordsys<>(ChVector<>(0, 0, -1), Q_from_AngY(CH_C_PI_2)));
     prismatic1->GetLimit_Z().SetActive(true);
     prismatic1->GetLimit_Z().SetMin(-6);
-    system.AddLink(prismatic1);
+    sys.AddLink(prismatic1);
 
     auto prismatic2 = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic2->Initialize(ground, slider2, ChCoordsys<>(ChVector<>(0, 0, +1), Q_from_AngY(CH_C_PI_2)));
-    system.AddLink(prismatic2);
+    sys.AddLink(prismatic2);
 
     // Add linear springs to the sliders
     // ---------------------------------
@@ -121,53 +110,58 @@ int main(int argc, char* argv[]) {
     spring1->SetRestLength(0.0);
     spring1->SetSpringCoefficient(10);
     spring1->SetDampingCoefficient(0);
-    system.AddLink(spring1);
-    spring1->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.1, 80, 15));
+    sys.AddLink(spring1);
+    spring1->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.1, 80, 15));
 
     auto spring2 = chrono_types::make_shared<ChLinkTSDA>();
     spring2->Initialize(ground, slider2, true, ChVector<>(0, 0, +1), ChVector<>(0, 0, 0));
     spring2->SetRestLength(0.0);
     spring2->SetSpringCoefficient(10);
     spring2->SetDampingCoefficient(0);
-    system.AddLink(spring2);
-    spring2->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.1, 80, 15));
+    sys.AddLink(spring2);
+    spring2->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.1, 80, 15));
 
     // Create the Irrlicht application
     // -------------------------------
 
-    ChIrrApp application(&system, L"Limits on LinkLockPrismatic demo", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(-1, 1.5, -6));
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Limits on LinkLockPrismatic demo");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(-1, 1.5, -6));
+    vis->AddTypicalLights();
+    vis->EnableLinkFrameDrawing(true);
 
     // Simulation loop
     // ---------------
 
-    application.SetTimestep(0.001);
+    double timestep = 0.001;
+    ChRealtimeStepTimer realtime_timer;
     bool max_lim_enabled = false;
 
-    while (application.GetDevice()->run()) {
+    while (vis->Run()) {
         // Enable also the Z max limit on the 1st prismatic joint
         if (!max_lim_enabled && slider1->GetPos().x() > 0) {
             prismatic1->GetLimit_Z().SetMax(-3);
             max_lim_enabled = true;
         }
 
-        application.BeginScene();
-        application.DrawAll();
-        tools::drawSegment(application.GetVideoDriver(), ChVector<>(+2, 0, 0), ChVector<>(+2, 0, -2),
-                                irr::video::SColor(255, 255, 150, 0), true);
+        vis->BeginScene();
+        vis->DrawAll();
+        tools::drawSegment(vis->GetVideoDriver(), ChVector<>(+2, 0, 0), ChVector<>(+2, 0, -2),
+                           irr::video::SColor(255, 255, 150, 0), true);
         if (max_lim_enabled) {
-            tools::drawSegment(application.GetVideoDriver(), ChVector<>(-1, 0, 0), ChVector<>(-1, 0, -2),
-                                    irr::video::SColor(255, 255, 150, 0), true);
+            tools::drawSegment(vis->GetVideoDriver(), ChVector<>(-1, 0, 0), ChVector<>(-1, 0, -2),
+                               irr::video::SColor(255, 255, 150, 0), true);
         }
-        tools::drawAllLinkframes(system, application.GetVideoDriver(), 1.0);
-        application.DoStep();
-        application.EndScene();
+        vis->EndScene();
+
+        sys.DoStepDynamics(timestep);
+        realtime_timer.Spin(timestep);
     }
 
     return 0;

@@ -252,6 +252,16 @@ void ChPart::ExportBodyLoadList(rapidjson::Document& jsonDocument, std::vector<s
     jsonDocument.AddMember("body-body loads", jsonArray, allocator);
 }
 
+void ChPart::RemoveVisualizationAssets(std::shared_ptr<ChPhysicsItem> item) {
+    if (item->GetVisualModel())
+        item->GetVisualModel()->Clear();
+}
+
+void ChPart::RemoveVisualizationAsset(std::shared_ptr<ChPhysicsItem> item, std::shared_ptr<ChVisualShape> shape) {
+    if (item->GetVisualModel())
+        item->GetVisualModel()->Erase(shape);
+}
+
 // =============================================================================
 
 MaterialInfo::MaterialInfo() : mu(0.8f), cr(0.01f), Y(2e7f), nu(0.3f), kn(2e5f), gn(40.0f), kt(2e5f), gt(20.0f) {}

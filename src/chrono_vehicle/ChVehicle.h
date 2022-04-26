@@ -33,6 +33,9 @@
 namespace chrono {
 namespace vehicle {
 
+// Forward reference
+class ChVehicleVisualSystem;
+
 /// @addtogroup vehicle
 /// @{
 
@@ -130,6 +133,12 @@ class CH_VEHICLE_API ChVehicle {
     /// Note that this function should be called *before* initialization of the vehicle system in order to create
     /// consistent collision models.
     void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type);
+
+    /// Attach a vehicle visualization system.
+    void SetVisualSystem(std::shared_ptr<ChVehicleVisualSystem> vsys);
+
+    /// Get the associated visualization system (if any).
+    std::shared_ptr<ChVehicleVisualSystem> GetVisualSystem() const;
 
     /// Enable output for this vehicle system.
     void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB

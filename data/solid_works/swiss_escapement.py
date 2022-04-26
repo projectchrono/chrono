@@ -30,20 +30,12 @@ body_1.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(-0.00959089760382167
 # Visualization shape 
 body_1_1_shape = chrono.ChObjShapeFile() 
 body_1_1_shape.SetFilename(shapes_dir +'body_1_1.obj') 
-body_1_1_level = chrono.ChAssetLevel() 
-body_1_1_level.GetFrame().SetPos(chrono.ChVectorD(0.0654391949504455,0.043691361648147,-0.187114016856069)) 
-body_1_1_level.GetFrame().SetRot(chrono.ChQuaternionD(0.667465028254667,-0.66746502825467,-0.233431865984475,-0.233431865984475)) 
-body_1_1_level.GetAssets().push_back(body_1_1_shape) 
-body_1.GetAssets().push_back(body_1_1_level) 
+body_1.AddVisualShape(body_1_1_shape, chrono.ChFrameD(chrono.ChVectorD(0.0654391949504455,0.043691361648147,-0.187114016856069), chrono.ChQuaternionD(0.667465028254667,-0.66746502825467,-0.233431865984475,-0.233431865984475)))
 
 # Visualization shape 
 body_1_2_shape = chrono.ChObjShapeFile() 
 body_1_2_shape.SetFilename(shapes_dir +'body_1_2.obj') 
-body_1_2_level = chrono.ChAssetLevel() 
-body_1_2_level.GetFrame().SetPos(chrono.ChVectorD(0.0654391949504455,0.053691361648147,-0.187114016856069)) 
-body_1_2_level.GetFrame().SetRot(chrono.ChQuaternionD(0.667465028254667,-0.66746502825467,-0.233431865984476,-0.233431865984475)) 
-body_1_2_level.GetAssets().push_back(body_1_2_shape) 
-body_1.GetAssets().push_back(body_1_2_level) 
+body_1.AddVisualShape(body_1_2_shape, chrono.ChFrameD(chrono.ChVectorD(0.0654391949504455,0.053691361648147,-0.187114016856069), chrono.ChQuaternionD(0.667465028254667,-0.66746502825467,-0.233431865984476,-0.233431865984475)))
 
 # Collision material 
 mat_1 = chrono.ChMaterialSurfaceNSC()
@@ -111,11 +103,8 @@ body_2.SetBodyFixed(True)
 # Visualization shape 
 body_2_1_shape = chrono.ChObjShapeFile() 
 body_2_1_shape.SetFilename(shapes_dir +'body_2_1.obj') 
-body_2_1_level = chrono.ChAssetLevel() 
-body_2_1_level.GetFrame().SetPos(chrono.ChVectorD(0,0,0)) 
-body_2_1_level.GetFrame().SetRot(chrono.ChQuaternionD(1,0,0,0)) 
-body_2_1_level.GetAssets().push_back(body_2_1_shape) 
-body_2.GetAssets().push_back(body_2_1_level) 
+body_2.AddVisualShape(body_2_1_shape, chrono.ChFrameD(chrono.ChVectorD(0,0,0), chrono.ChQuaternionD(1,0,0,0)))
+
 
 # Collision material 
 mat_2 = chrono.ChMaterialSurfaceNSC()
@@ -152,11 +141,8 @@ body_3.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(0.21901864850551,0.0
 # Visualization shape 
 body_3_1_shape = chrono.ChObjShapeFile() 
 body_3_1_shape.SetFilename(shapes_dir +'body_3_1.obj') 
-body_3_1_level = chrono.ChAssetLevel() 
-body_3_1_level.GetFrame().SetPos(chrono.ChVectorD(0,0,0)) 
-body_3_1_level.GetFrame().SetRot(chrono.ChQuaternionD(1,0,0,0)) 
-body_3_1_level.GetAssets().push_back(body_3_1_shape) 
-body_3.GetAssets().push_back(body_3_1_level) 
+body_3.AddVisualShape(body_3_1_shape, chrono.ChFrameD(chrono.ChVectorD(0,0,0), chrono.ChQuaternionD(1,0,0,0)))
+
 
 # Collision material 
 mat_3 = chrono.ChMaterialSurfaceNSC()
@@ -188,11 +174,8 @@ body_4.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(-1.55722279465587e-1
 # Visualization shape 
 body_4_1_shape = chrono.ChObjShapeFile() 
 body_4_1_shape.SetFilename(shapes_dir +'body_4_1.obj') 
-body_4_1_level = chrono.ChAssetLevel() 
-body_4_1_level.GetFrame().SetPos(chrono.ChVectorD(0,0,0)) 
-body_4_1_level.GetFrame().SetRot(chrono.ChQuaternionD(1,0,0,0)) 
-body_4_1_level.GetAssets().push_back(body_4_1_shape) 
-body_4.GetAssets().push_back(body_4_1_level) 
+body_4.AddVisualShape(body_4_1_shape, chrono.ChFrameD(chrono.ChVectorD(0,0,0), chrono.ChQuaternionD(1,0,0,0)))
+
 
 # Collision material 
 mat_4 = chrono.ChMaterialSurfaceNSC()

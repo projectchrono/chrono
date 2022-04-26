@@ -18,8 +18,9 @@
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemChronoMulticore.h"
-#include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono/core/ChRealtimeStep.h"
+
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -43,7 +44,7 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
 // ====================================================================================
 
 int main(int argc, char* argv[]) {
-    // Collision detection system
+    // Collision detection sys
     collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::CHRONO;
 
     // Narrowphase algorithm
@@ -128,10 +129,10 @@ int main(int argc, char* argv[]) {
     std::cout << "-----------------------" << std::endl;
 
     // -----------------
-    // Create the system
+    // Create the sys
     // -----------------
 
-    ChSystemMulticore* system = nullptr;
+    ChSystemMulticore* sys = nullptr;
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
@@ -145,7 +146,7 @@ int main(int argc, char* argv[]) {
             sysNSC->GetSettings()->solver.alpha = 0;
             sysNSC->GetSettings()->solver.contact_recovery_speed = 10;
             sysNSC->GetSettings()->collision.collision_envelope = collision_envelope;
-            system = sysNSC;
+            sys = sysNSC;
             break;
         }
         case ChContactMethod::SMC: {
@@ -154,43 +155,30 @@ int main(int argc, char* argv[]) {
             sysSMC->GetSettings()->solver.contact_force_model = ChSystemSMC::Hertz;
             sysSMC->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::OneStep;
             sysSMC->GetSettings()->collision.collision_envelope = 0;
-            system = sysSMC;
+            sys = sysSMC;
             break;
         }
     }
 
-    system->SetCollisionSystemType(collision_type);
-    system->Set_G_acc(ChVector<>(0, -9.81, 0));
-    //system->Set_G_acc(ChVector<>(0, 0, 0));
+    sys->SetCollisionSystemType(collision_type);
+    sys->Set_G_acc(ChVector<>(0, -9.81, 0));
+    //sys->Set_G_acc(ChVector<>(0, 0, 0));
 
     // Set number of threads
-    system->SetNumThreads(2);
+    sys->SetNumThreads(2);
 
-    system->GetSettings()->solver.use_full_inertia_tensor = false;
-    system->GetSettings()->solver.tolerance = 0;
+    sys->GetSettings()->solver.use_full_inertia_tensor = false;
+    sys->GetSettings()->solver.tolerance = 0;
 
-    system->GetSettings()->collision.narrowphase_algorithm = narrowphase_algorithm;
-    system->GetSettings()->collision.bins_per_axis = vec3(1, 1, 1);
-
-    // Create the Irrlicht visualization
-    ChIrrApp application(system, L"Collision test (Chrono::Multicore)", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(3, 1, (float)init_z), irr::core::vector3df(0, 0, (float)init_z));
-
-    // Render contact forces or normals
-    application.SetSymbolscale(5e-4);
-    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_FORCES);
-    ////application.SetSymbolscale(1);
-    ////application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_NORMALS);
+    sys->GetSettings()->collision.narrowphase_algorithm = narrowphase_algorithm;
+    sys->GetSettings()->collision.bins_per_axis = vec3(1, 1, 1);
 
     // Rotation Z->Y (because meshes used here assume Z up)
     ChQuaternion<> z2y = Q_from_AngX(-CH_C_PI_2);
 
     // Create the falling object
-    auto object = std::shared_ptr<ChBody>(system->NewBody());
-    system->AddBody(object);
+    auto object = std::shared_ptr<ChBody>(sys->NewBody());
+    sys->AddBody(object);
 
     object->SetName("object");
     object->SetMass(1500);
@@ -223,7 +211,8 @@ int main(int argc, char* argv[]) {
 
             auto sphere = chrono_types::make_shared<ChSphereShape>();
             sphere->GetSphereGeometry().rad = radius;
-            object->AddAsset(sphere);
+            sphere->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+            object->AddVisualShape(sphere);
 
             break;
         }
@@ -236,7 +225,8 @@ int main(int argc, char* argv[]) {
             cyl->GetCylinderGeometry().p1 = ChVector<>(0, +hlen, 0);
             cyl->GetCylinderGeometry().p2 = ChVector<>(0, -hlen, 0);
             cyl->GetCylinderGeometry().rad = radius;
-            object->AddAsset(cyl);
+            cyl->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+            object->AddVisualShape(cyl);
 
             break;
         }
@@ -248,7 +238,8 @@ int main(int argc, char* argv[]) {
             auto cap = chrono_types::make_shared<ChCapsuleShape>();
             cap->GetCapsuleGeometry().rad = radius;
             cap->GetCapsuleGeometry().hlen = hlen;
-            object->AddAsset(cap);
+            cap->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+            object->AddVisualShape(cap);
 
             break;
         }
@@ -261,14 +252,15 @@ int main(int argc, char* argv[]) {
             cyl->GetCylinderGeometry().p1 = ChVector<>(0, +hlen, 0);
             cyl->GetCylinderGeometry().p2 = ChVector<>(0, -hlen, 0);
             cyl->GetCylinderGeometry().rad = radius;
-            object->AddAsset(cyl);
+            cyl->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+            object->AddVisualShape(cyl);
 
             break;
         }
         case CollisionShape::MESH: {
             double sphere_r = 0.005;
-            auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-            if (!trimesh->LoadWavefrontMesh(tire_mesh_file, true, false))
+            auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(tire_mesh_file);
+            if (!trimesh)
                 return 1;
 
             object->GetCollisionModel()->ClearModel();
@@ -279,18 +271,16 @@ int main(int argc, char* argv[]) {
             auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh);
             ////trimesh_shape->SetWireframe(true);
-            object->AddAsset(trimesh_shape);
+            trimesh_shape->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+            object->AddVisualShape(trimesh_shape);
 
             break;
         }
     }
 
-    auto tex = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg"));
-    object->AddAsset(tex);
-
     // Create ground body
-    auto ground = std::shared_ptr<ChBody>(system->NewBody());
-    system->AddBody(ground);
+    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
+    sys->AddBody(ground);
 
     ground->SetName("ground");
     ground->SetMass(1);
@@ -317,38 +307,47 @@ int main(int argc, char* argv[]) {
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(hx, hy, hz);
-    box->GetBoxGeometry().Pos = ChVector<>(0, -hy, 0);
-    ground->AddAsset(box);
+    box->SetTexture(GetChronoDataFile("textures/checker1.png"), 4, 2);
+    ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, -hy, 0), QUNIT));
 
-    auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(GetChronoDataFile("textures/checker1.png"));
-    texture->SetTextureScale(4, 2);
-    ground->AddAsset(texture);
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys->SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Collision test (Chrono::Multicore)");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(3, 1, init_z), ChVector<>(0, 0, init_z));
+    vis->AddTypicalLights();
 
-    // Complete asset construction
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Render contact forces or normals
+    vis->SetSymbolScale(5e-4);
+    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_FORCES);
+    ////vis->SetSymbolScale(1);
+    ////vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_NORMALS);
+
 
     auto cmanager = chrono_types::make_shared<ContactManager>();
 
     // Simulation loop
     ChRealtimeStepTimer rt;
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
-        application.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
-        system->DoStepDynamics(time_step);
+        sys->DoStepDynamics(time_step);
 
         /*
-        std::cout << "----\nTime: " << system->GetChTime() << "  " << system->GetNcontacts() << std::endl;
+        std::cout << "----\nTime: " << sys->GetChTime() << "  " << sys->GetNcontacts() << std::endl;
         std::cout << "Object position: " << object->GetPos() << std::endl;
-        if (system->GetNcontacts()) {
+        if (sys->GetNcontacts()) {
             // Report all contacts
-            system->GetContactContainer()->ReportAllContacts(cmanager);
+            sys->GetContactContainer()->ReportAllContacts(cmanager);
 
             // Cumulative contact force on object
-            system->GetContactContainer()->ComputeContactForces();
+            sys->GetContactContainer()->ComputeContactForces();
             ChVector<> frc1 = object->GetContactForce();
             ChVector<> trq1 = object->GetContactTorque();
             std::cout << "Contact force at COM:  " << frc1 << std::endl;

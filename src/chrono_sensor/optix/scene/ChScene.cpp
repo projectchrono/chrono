@@ -37,10 +37,10 @@ CH_SENSOR_API ChScene::ChScene() {
 
 CH_SENSOR_API ChScene::~ChScene() {}
 
-CH_SENSOR_API unsigned int ChScene::AddPointLight(ChVector<float> pos, ChVector<float> color, float max_range) {
+CH_SENSOR_API unsigned int ChScene::AddPointLight(ChVector<float> pos, ChColor color, float max_range) {
     PointLight p;
     p.pos = {pos.x(), pos.y(), pos.z()};
-    p.color = {color.x(), color.y(), color.z()};
+    p.color = {color.R, color.G, color.B};
     p.max_range = max_range;
     m_pointlights.push_back(p);
     lights_changed = true;

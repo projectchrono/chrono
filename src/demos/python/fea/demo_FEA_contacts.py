@@ -1,18 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
-#
-# =============================================================================
-# Authors: Simone Benatti
-# =============================================================================
-#
-# FEA contacts
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 
@@ -27,21 +21,7 @@ import pychrono.irrlicht as chronoirr
 print("Copyright (c) 2017 projectchrono.org")
 
 # Create a Chrono::Engine physical system
-my_system = chrono.ChSystemSMC()
-
-# Create the Irrlicht visualization (open the Irrlicht device,
-# bind a simple user interface, etc. etc.)
-application = chronoirr.ChIrrApp(my_system, "FEA contacts", chronoirr.dimension2du(1024, 768))
-
-# Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-application.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-application.AddSkyBox()
-application.AddTypicalLights()
-application.AddCamera(chronoirr.vector3df(0, 0.6, -1))
-application.AddLightWithShadow(chronoirr.vector3df(1.5, 5.5, -2.5), chronoirr.vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-                               chronoirr.SColorf(1, 1, 1))
-
-application.SetContactsDrawMode(chronoirr.IrrContactsDrawMode_CONTACT_DISTANCES)
+sys = chrono.ChSystemSMC()
 
 #
 # CREATE THE PHYSICAL SYSTEM
@@ -80,7 +60,7 @@ if (do_mesh_collision_floor) :
     mfloor = chrono.chronoChBody()
     mfloor.SetPos(chrono.ChVectorD(0, -1, 0))
     mfloor.SetBodyFixed(True)
-    my_system.Add(mfloor)
+    sys.Add(mfloor)
     
     mfloor.GetCollisionModel().ClearModel()
     mfloor.GetCollisionModel().AddTriangleMesh(mysurfmaterial, mmeshbox, False, False, chrono.VNULL, chrono.ChMatrix33D(1),
@@ -90,33 +70,30 @@ if (do_mesh_collision_floor) :
     
     masset_meshbox = chrono.ChTriangleMeshShape()
     masset_meshbox.SetMesh(mmeshbox)
-    mfloor.AddAsset(masset_meshbox)
+    mfloor.AddVisualShape(masset_meshbox)
     
     masset_texture = chrono.ChTexture()
     masset_texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
-    mfloor.AddAsset(masset_texture)
+    mfloor.AddVisualShapeFEA(masset_texture)
 
 else :
     # floor as a simple collision primitive:
     
     mfloor = chrono.ChBodyEasyBox(2, 0.1, 2, 2700, True, True, mysurfmaterial)
     mfloor.SetBodyFixed(True)
-    my_system.Add(mfloor)
-    
-    masset_texture = chrono.ChTexture()
-    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
-    mfloor.AddAsset(masset_texture)
+    mfloor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
+    sys.Add(mfloor)
 
 
 # two falling objects:
 
 mcube = chrono.ChBodyEasyBox(0.1, 0.1, 0.1, 2700, True, True, mysurfmaterial)
 mcube.SetPos(chrono.ChVectorD(0.6, 0.5, 0.6))
-my_system.Add(mcube)
+sys.Add(mcube)
 
 msphere = chrono.ChBodyEasySphere(0.1, 2700, True, True, mysurfmaterial)
 msphere.SetPos(chrono.ChVectorD(0.8, 0.5, 0.6))
-my_system.Add(msphere)
+sys.Add(msphere)
 
 #
 # Example 1: tetrahedrons, with collisions
@@ -124,7 +101,7 @@ my_system.Add(msphere)
 
 # Create a mesh. We will use it for tetrahedrons.
 
-my_mesh = fea.ChMesh()
+mesh = fea.ChMesh()
 
 # 1) a FEA tetrahedron(s):
 
@@ -145,7 +122,7 @@ for i in range(4) :
         cydisp = chrono.ChCoordsysD(chrono.ChVectorD(-0.3, 0.1 + i * 0.1, -0.3))
         ctot = cydisp.TransformLocalToParent(crot.TransformLocalToParent(cdown))
         mrot = chrono.ChMatrix33D(ctot.rot)
-        fea.ChMeshFileLoader.FromTetGenFile(my_mesh, chrono.GetChronoDataFile("fea/beam.node"),
+        fea.ChMeshFileLoader.FromTetGenFile(mesh, chrono.GetChronoDataFile("fea/beam.node"),
                                      chrono.GetChronoDataFile("fea/beam.ele"), mmaterial, ctot.pos, mrot)
     except :
         print('Error Loading meshes')
@@ -157,13 +134,13 @@ for i in range(4) :
 # In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collsions.
 
 mcontactsurf = fea.ChContactSurfaceMesh(mysurfmaterial)
-my_mesh.AddContactSurface(mcontactsurf)
+mesh.AddContactSurface(mcontactsurf)
 
 mcontactsurf.AddFacesFromBoundary(sphere_swept_thickness)  # do this after my_meshAddContactSurface
 
 
 # Remember to add the mesh to the system!
-my_system.Add(my_mesh)
+sys.Add(mesh)
 
 #
 # Example 2: beams, with collisions
@@ -199,7 +176,7 @@ mcontactcloud.AddAllNodes(0.025)  # use larger posize to match beam section radi
 
 
 # Remember to add the mesh to the system!
-my_system.Add(my_mesh_beams)
+sys.Add(my_mesh_beams)
 
 #
 # Optional...  visualization
@@ -211,63 +188,59 @@ my_system.Add(my_mesh_beams)
 # coordinates and vertex colors as in the FEM elements.
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
 # postprocessor that can handle a colored ChTriangleMeshShape).
-# Do not forget AddAsset() at the end!
 
-mvisualizemesh = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizemesh.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NODE_SPEED_NORM)
+mvisualizemesh = chrono.ChVisualShapeFEA(mesh)
+mvisualizemesh.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
 mvisualizemesh.SetColorscaleMinMax(0.0, 5.50)
 mvisualizemesh.SetSmoothFaces(True)
-my_mesh.AddAsset(mvisualizemesh)
+mesh.AddVisualShapeFEA(mvisualizemesh)
 
-mvisualizemeshcoll = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizemeshcoll.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_CONTACTSURFACES)
+mvisualizemeshcoll = chrono.ChVisualShapeFEA(mesh)
+mvisualizemeshcoll.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_CONTACTSURFACES)
 mvisualizemeshcoll.SetWireframe(True)
 mvisualizemeshcoll.SetDefaultMeshColor(chrono.ChColor(1, 0.5, 0))
-my_mesh.AddAsset(mvisualizemeshcoll)
+mesh.AddVisualShapeFEA(mvisualizemeshcoll)
 
-mvisualizemeshbeam = fea.ChVisualizationFEAmesh(my_mesh_beams)
-mvisualizemeshbeam.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NODE_SPEED_NORM)
+mvisualizemeshbeam = chrono.ChVisualShapeFEA(my_mesh_beams)
+mvisualizemeshbeam.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
 mvisualizemeshbeam.SetColorscaleMinMax(0.0, 5.50)
 mvisualizemeshbeam.SetSmoothFaces(True)
-my_mesh.AddAsset(mvisualizemeshbeam)
+mesh.AddVisualShapeFEA(mvisualizemeshbeam)
 
-mvisualizemeshbeamnodes = fea.ChVisualizationFEAmesh(my_mesh_beams)
-mvisualizemeshbeamnodes.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_NODE_DOT_POS)
-mvisualizemeshbeamnodes.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NONE)
+mvisualizemeshbeamnodes = chrono.ChVisualShapeFEA(my_mesh_beams)
+mvisualizemeshbeamnodes.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS)
+mvisualizemeshbeamnodes.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 mvisualizemeshbeamnodes.SetSymbolsThickness(0.008)
-my_mesh.AddAsset(mvisualizemeshbeamnodes)
+mesh.AddVisualShapeFEA(mvisualizemeshbeamnodes)
 
-# ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-# If you need a finer control on which item really needs a visualization proxy in
-# Irrlicht, just use application.AssetBind(myitem) on a per-item basis.
+# Create the Irrlicht visualization
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('FEA contacts')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0, 0.6, -1))
+vis.AddTypicalLights()
 
-application.AssetBindAll()
-
-# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-application.AssetUpdateAll()
-
-# Use shadows in realtime view
-application.AddShadowAll()
+vis.EnableContactDrawing(chronoirr.IrrContactsDrawMode_CONTACT_DISTANCES)
 
 # SIMULATION LOOP
 
 solver = chrono.ChSolverMINRES()
-my_system.SetSolver(solver)
+sys.SetSolver(solver)
 solver.SetMaxIterations(40)
 solver.SetTolerance(1e-12)
 solver.EnableDiagonalPreconditioner(True)
 solver.EnableWarmStart(True)  # Enable for better convergence when using Euler implicit linearized
 
-my_system.SetSolverForceTolerance(1e-10)
+sys.SetSolverForceTolerance(1e-10)
 
-application.SetTimestep(0.001)
-
-while application.GetDevice().run() :
-    application.BeginScene()
-    application.DrawAll()
-    application.DoStep()
-    application.EndScene()
+# Simulation loop
+while vis.Run():
+    vis.BeginScene()
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(0.001)
 

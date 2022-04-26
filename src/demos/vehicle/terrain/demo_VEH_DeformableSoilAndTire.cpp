@@ -12,7 +12,7 @@
 //   Demo code (advanced), about
 //
 //     - using the SCM semi-empirical model for deformable soil
-//     - using a deformable tire  
+//     - using a deformable tire
 // =============================================================================
 
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -20,7 +20,8 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -42,36 +43,22 @@ int main(int argc, char* argv[]) {
     ChVector<> tire_center(0, tire_rad, 0);
 
     // Create a Chrono physical system
-    ChSystemSMC my_system;
+    ChSystemSMC sys;
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Deformable soil and deformable tire", core::dimension2d<u32>(1280, 720),
-                         VerticalDir::Y, false, true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(1.0f, 1.4f, -1.2f), core::vector3df(0, (f32)tire_rad, 0));
-    application.AddLightWithShadow(core::vector3df(1.5f, 5.5f, -2.5f), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-                                   video::SColorf(0.8f, 0.8f, 1.0f));
-
-    std::shared_ptr<ChBody> mtruss (new ChBody);
+    std::shared_ptr<ChBody> mtruss(new ChBody);
     mtruss->SetBodyFixed(true);
-    my_system.Add(mtruss);
+    sys.Add(mtruss);
 
-
-    // 
+    //
     // CREATE A DEFORMABLE TIRE
     //
- 
-    // The rim body: 
+
+    // The rim body:
     auto mrim = chrono_types::make_shared<ChBody>();
-    my_system.Add(mrim);
+    sys.Add(mrim);
     mrim->SetMass(80);
-    mrim->SetInertiaXX(ChVector<>(1,1,1));
-    mrim->SetPos(tire_center + ChVector<>(0,0.2,0));
+    mrim->SetInertiaXX(ChVector<>(1, 1, 1));
+    mrim->SetPos(tire_center + ChVector<>(0, 0.2, 0));
     mrim->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_Z));
 
     // The wheel object:
@@ -79,7 +66,8 @@ int main(int argc, char* argv[]) {
     wheel->Initialize(mrim, LEFT);
 
     // The tire:
-    auto tire_reissner = chrono_types::make_shared<ReissnerTire>(vehicle::GetDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));
+    auto tire_reissner =
+        chrono_types::make_shared<ReissnerTire>(vehicle::GetDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));
     tire_reissner->EnablePressure(false);
     tire_reissner->EnableContact(true);
     tire_reissner->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
@@ -95,15 +83,14 @@ int main(int argc, char* argv[]) {
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
     motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
     motor->Initialize(mrim, mtruss, ChFrame<>(tire_center, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
-    my_system.Add(motor);
-
+    sys.Add(motor);
 
     //
     // THE DEFORMABLE TERRAIN
     //
-    
+
     // Create the 'deformable terrain' object
-    vehicle::SCMDeformableTerrain mterrain(&my_system);
+    vehicle::SCMDeformableTerrain mterrain(&sys);
 
     // Displace/rotate the terrain reference plane.
     // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
@@ -114,12 +101,12 @@ int main(int argc, char* argv[]) {
     mterrain.Initialize(1.5, 6, 0.075);
 
     // Set the soil terramechanical parameters:
-     mterrain.SetSoilParameters(1.2e6,  // Bekker Kphi
-                                0,      // Bekker Kc
-                                1.1,    // Bekker n exponent
-                                0,      // Mohr cohesive limit (Pa)
-                                30,     // Mohr friction limit (degrees)
-                                0.01,   // Janosi shear coefficient (m)
+    mterrain.SetSoilParameters(1.2e6,  // Bekker Kphi
+                               0,      // Bekker Kc
+                               1.1,    // Bekker n exponent
+                               0,      // Mohr cohesive limit (Pa)
+                               30,     // Mohr friction limit (degrees)
+                               0.01,   // Janosi shear coefficient (m)
                                5e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
                                2e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
@@ -131,43 +118,44 @@ int main(int argc, char* argv[]) {
         10);  // number of concentric vertex selections subject to erosion
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
-    //mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
-    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
+    // mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
+    // mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
     mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.15);
-    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
-    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
-    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
-    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_ISLAND_ID, 0, 8);
-    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
+    // mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+    // mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
+    // mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
+    // mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
+    // mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_ISLAND_ID, 0, 8);
+    // mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
     mterrain.GetMesh()->SetWireframe(true);
-    
 
-
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    application.AssetBindAll();
-
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    application.AssetUpdateAll();
-
-    // Use shadows in realtime view
-    application.AddShadowAll();
-
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Deformable soil and deformable tire");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(1.0, 1.4, -1.2), ChVector<>(0, tire_rad, 0));
+    vis->AddTypicalLights();
+    vis->AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512,
+                            ChColor(0.8f, 0.8f, 1.0f));
+    vis->EnableShadows();
 
     //
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    // change the solver to PardisoMKL: 
+    // change the solver to PardisoMKL:
     GetLog() << "Using PardisoMKL solver\n";
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
-    my_system.SetSolver(mkl_solver);
-    
-    
-    // Change the timestepper to HHT: 
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    sys.SetSolver(mkl_solver);
+
+    // Change the timestepper to HHT:
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(8);
     integrator->SetAbsTolerances(5e-05, 1.8e00);
@@ -175,22 +163,13 @@ int main(int argc, char* argv[]) {
     integrator->SetModifiedNewton(false);
     integrator->SetScaling(true);
     integrator->SetVerbose(true);
-    
-    
 
-    
-    application.SetTimestep(0.002);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        application.DrawAll();
-
-        application.DoStep();
-
-        tools::drawColorbar(0,30000, "Pressure yield [Pa]", application.GetDevice(),  1180);
-
-        application.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        tools::drawColorbar(0, 30000, "Pressure yield [Pa]", vis->GetDevice(), 1180);
+        vis->EndScene();
+        sys.DoStepDynamics(0.002);
     }
 
     return 0;

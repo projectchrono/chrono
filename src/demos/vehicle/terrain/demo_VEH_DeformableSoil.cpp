@@ -21,7 +21,7 @@
     #include "chrono/collision/ChCollisionSystemChrono.h"
 #endif
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
@@ -100,31 +100,20 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono::Engine physical system
     auto collsys_type = collision::ChCollisionSystemType::BULLET;
-    ChSystemSMC my_system;
-    my_system.SetNumThreads(4, 8, 1);
+    ChSystemSMC sys;
+    sys.SetNumThreads(4, 8, 1);
     if (collsys_type == collision::ChCollisionSystemType::CHRONO) {
 #ifdef CHRONO_COLLISION
         auto collsys = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
         collsys->SetBroadphaseGridResolution(ChVector<int>(20, 20, 10));
-        my_system.SetCollisionSystem(collsys);
+        sys.SetCollisionSystem(collsys);
 #endif
     }
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Deformable soil", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(2.0f, 1.4f, 0.0f), core::vector3df(0, (f32)tire_rad, 0));
-    //application.AddLightWithShadow(core::vector3df(1.5f, 5.5f, -2.5f), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-    //                               video::SColorf(0.8f, 0.8f, 1.0f));
 
     auto mtruss = chrono_types::make_shared<ChBody>(collsys_type);
     mtruss->SetBodyFixed(true);
-    my_system.Add(mtruss);
+    sys.Add(mtruss);
 
     // Initialize output
     if (output) {
@@ -140,7 +129,7 @@ int main(int argc, char* argv[]) {
     //
 
     auto mrigidbody = chrono_types::make_shared<ChBody>(collsys_type);
-    my_system.Add(mrigidbody);
+    sys.Add(mrigidbody);
     mrigidbody->SetMass(500);
     mrigidbody->SetInertiaXX(ChVector<>(20, 20, 20));
     mrigidbody->SetPos(tire_center + ChVector<>(0, 0.3, 0));
@@ -149,12 +138,13 @@ int main(int argc, char* argv[]) {
     mrigidbody->GetCollisionModel()->ClearModel();
     switch (tire_type) {
         case TireType::LUGGED: {
-            auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-            trimesh->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
+            auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+                GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
             std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
             mrigidmesh->SetMesh(trimesh);
-            mrigidbody->AddAsset(mrigidmesh);
+            mrigidmesh->SetColor(ChColor(0.3f, 0.3f, 0.3f));
+            mrigidbody->AddVisualShape(mrigidmesh);
 
             mrigidbody->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, VNULL, ChMatrix33<>(1),
                                                              0.01);
@@ -169,7 +159,8 @@ int main(int argc, char* argv[]) {
             cyl_shape->GetCylinderGeometry().rad = radius;
             cyl_shape->GetCylinderGeometry().p1 = ChVector<>(+width / 2, 0, 0);
             cyl_shape->GetCylinderGeometry().p2 = ChVector<>(-width / 2, 0, 0);
-            mrigidbody->AddAsset(cyl_shape);
+            cyl_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
+            mrigidbody->AddVisualShape(cyl_shape);
 
             break;
         }
@@ -177,22 +168,18 @@ int main(int argc, char* argv[]) {
     mrigidbody->GetCollisionModel()->BuildModel();
     mrigidbody->SetCollide(true);
 
-    std::shared_ptr<ChColorAsset> mcol(new ChColorAsset);
-    mcol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-    mrigidbody->AddAsset(mcol);
-
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
     motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
     motor->Initialize(mrigidbody, mtruss, ChFrame<>(tire_center, Q_from_AngY(CH_C_PI_2)));
-    my_system.Add(motor);
+    sys.Add(motor);
 
     //
     // THE DEFORMABLE TERRAIN
     //
 
     // Create the 'deformable terrain' object
-    vehicle::SCMDeformableTerrain mterrain(&my_system);
+    vehicle::SCMDeformableTerrain mterrain(&sys);
 
     // Displace/rotate the terrain reference plane.
     // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
@@ -267,22 +254,25 @@ int main(int argc, char* argv[]) {
     ////mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
     mterrain.SetMeshWireframe(true);
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    application.AssetBindAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Deformable soil");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(2.0, 1.4, 0.0), ChVector<>(0, tire_rad, 0));
+    vis->AddTypicalLights();
 
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    application.AssetUpdateAll();
-
-    // Use shadows in realtime view
-    application.AddShadowAll();
 
     //
     // THE SOFT-REAL-TIME CYCLE
     //
     /*
         // Change the timestepper to HHT:
-        my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+        sys.SetTimestepperType(ChTimestepper::Type::HHT);
+        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
         integrator->SetAlpha(-0.2);
         integrator->SetMaxiters(8);
         integrator->SetAbsTolerances(1e-05, 1.8e00);
@@ -292,13 +282,11 @@ int main(int argc, char* argv[]) {
         integrator->SetVerbose(true);
     */
     /*
-        my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
+        sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
     */
 
-    application.SetTimestep(0.002);
-
-    while (application.GetDevice()->run()) {
-        double time = my_system.GetChTime();
+    while (vis->Run()) {
+        double time = sys.GetChTime();
         if (output) {
             vehicle::TerrainForce frc = mterrain.GetContactForce(mrigidbody);
             csv << time << frc.force << frc.moment << frc.point << std::endl;
@@ -308,13 +296,13 @@ int main(int argc, char* argv[]) {
         ////std::cout << "Wheel pos: " << mrigidbody->GetPos() << std::endl;
         ////std::cout << "Wheel rot: " << mrigidbody->GetRot() << std::endl;
 
-        application.BeginScene();
-        application.GetActiveCamera()->setTarget(core::vector3dfCH(mrigidbody->GetPos()));
-        application.DrawAll();
-        application.DoStep();
-        tools::drawColorbar(0, 30000, "Pressure yield [Pa]", application.GetDevice(), 1180);
-        application.EndScene();
+        vis->BeginScene();
+        vis->GetActiveCamera()->setTarget(core::vector3dfCH(mrigidbody->GetPos()));
+        vis->DrawAll();
+        tools::drawColorbar(0, 30000, "Pressure yield [Pa]", vis->GetDevice(), 1180);
+        vis->EndScene();
 
+        sys.DoStepDynamics(0.002);
         ////mterrain.PrintStepStatistics(std::cout);
     }
 

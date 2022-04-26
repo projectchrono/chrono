@@ -28,7 +28,6 @@
 #include <cstdio>
 
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -369,30 +368,32 @@ void ChTrackTestRig::LogConstraintViolations() {
 void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
                                           std::shared_ptr<ChBody> chassis,
                                           const ChColor& color) {
+    auto mat = chrono_types::make_shared<ChVisualMaterial>();
+    mat->SetDiffuseColor({color.R, color.G, color.B});
+
     // Platform (on post body)
     auto base_cyl = chrono_types::make_shared<ChCylinderShape>();
     base_cyl->GetCylinderGeometry().rad = m_post_radius;
     base_cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
     base_cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -2 * m_post_hheight);
-    post->AddAsset(base_cyl);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(color);
-    post->AddAsset(col);
+    base_cyl->AddMaterial(mat);
+    post->AddVisualShape(base_cyl);
 
     // Piston (on post body)
     auto piston = chrono_types::make_shared<ChCylinderShape>();
     piston->GetCylinderGeometry().rad = m_post_radius / 6.0;
     piston->GetCylinderGeometry().p1 = ChVector<>(0, 0, -2 * m_post_hheight);
     piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -30 * m_post_hheight);
-    post->AddAsset(piston);
+    piston->AddMaterial(mat);
+    post->AddVisualShape(piston);
 
     // Post sleeve (on chassis/ground body)
     auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().rad = m_post_radius / 4.0;
     cyl->GetCylinderGeometry().p1 = post->GetPos() - ChVector<>(0, 0, 16 * m_post_hheight);
     cyl->GetCylinderGeometry().p2 = post->GetPos() - ChVector<>(0, 0, 32 * m_post_hheight);
-    chassis->AddAsset(cyl);
+    cyl->AddMaterial(mat);
+    chassis->AddVisualShape(cyl);
 }
 
 // -----------------------------------------------------------------------------

@@ -1,23 +1,15 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
-# Authors: Simone Benatti
-# =============================================================================
-#
-# Main driver function for the RCCar model.
-#
-# The vehicle reference frame has Z up, X towards the front of the vehicle, and
-# Y pointing to the left.
-#
-# =============================================================================
+
 import pychrono.core as chrono
 import pychrono.irrlicht as irr
 import pychrono.vehicle as veh
@@ -114,9 +106,9 @@ terrain.Initialize()
 # trimesh_shape = chrono.ChTriangleMeshShape()
 # trimesh_shape.SetMesh(vis_mesh)
 # trimesh_shape.SetName("mesh_name")
-# trimesh_shape.SetStatic(True)
+# trimesh_shape.SetMutable(False)
 #
-# patch.GetGroundBody().AddAsset(trimesh_shape)
+# patch.GetGroundBody().AddVisualShape(trimesh_shape)
 #
 # patch.SetContactFrictionCoefficient(0.9)
 # patch.SetContactRestitutionCoefficient(0.01)
@@ -126,16 +118,18 @@ terrain.Initialize()
 # terrain.Initialize()
 
 # Create the vehicle Irrlicht interface
-# app = veh.ChWheeledVehicleIrrApp(my_rccar.GetVehicle())
-# app.AddTypicalLights()
-# app.AddLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
-# app.SetChaseCamera(trackPoint, 1.5, 0.5)
-# app.SetTimestep(step_size)
-# app.AssetBindAll()
-# app.AssetUpdateAll()
+#vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+#my_rccar.GetVehicle().SetVisualSystem(vis)
+#vis.SetWindowTitle('RCcar')
+#vis.SetWindowSize(1280, 1024)
+#vis.SetChaseCamera(trackPoint, 1.5, 0.5)
+#vis.Initialize()
+#vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+#vis.AddTypicalLights()
+
 
 # Create the driver system
-# driver = veh.ChIrrGuiDriver(app)
+# driver = veh.ChIrrGuiDriver(vis)
 driver = veh.ChDriver(my_rccar.GetVehicle())
 
 # Set the time response for steering and throttle keyboard inputs.
@@ -152,8 +146,8 @@ driver.Initialize()
 manager = sens.ChSensorManager(my_rccar.GetSystem())
 f = 3
 for i in range(8):
-    manager.scene.AddPointLight(chrono.ChVectorF(f,1.25,2.3),chrono.ChVectorF(1,1,1),5)
-    manager.scene.AddPointLight(chrono.ChVectorF(f,3.75,2.3),chrono.ChVectorF(1,1,1),5)
+    manager.scene.AddPointLight(chrono.ChVectorF(f,1.25,2.3),chrono.ChColor(1,1,1),5)
+    manager.scene.AddPointLight(chrono.ChVectorF(f,3.75,2.3),chrono.ChColor(1,1,1),5)
     f += 3
 
 factor = 2
@@ -203,7 +197,7 @@ render_frame = 0
 
 while True :
     print('test')
-    # if not app.GetDevice().run():
+    # if not vis.Run():
     #     break
     time = my_rccar.GetSystem().GetChTime()
 
@@ -213,9 +207,9 @@ while True :
 
     # Render scene and output POV-Ray data
     # if (step_number % render_steps == 0) :
-    #     app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-    #     app.DrawAll()
-    #     app.EndScene()
+    #     vis.BeginScene()
+    #     vis.DrawAll()
+    #     vis.EndScene()
     #     render_frame += 1
 
     # Get driver inputs
@@ -225,13 +219,13 @@ while True :
     driver.Synchronize(time)
     terrain.Synchronize(time)
     my_rccar.Synchronize(time, driver_inputs, terrain)
-    # app.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+    # vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
 
     # Advance simulation for one timestep for all modules
     driver.Advance(step_size)
     terrain.Advance(step_size)
     my_rccar.Advance(step_size)
-    # app.Advance(step_size)
+    # vis.Advance(step_size)
     my_rccar.GetSystem().DoStepDynamics(step_size)
 
     manager.Update()
@@ -242,4 +236,3 @@ while True :
     # Spin in place for real time to catch up
     realtime_timer.Spin(step_size)
 
-del app

@@ -33,7 +33,6 @@
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -339,7 +338,6 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     TerrainForce m_tireforce;
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
-    std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset
 
     double CalcFx(double kappa, double Fz, double gamma);
     double CalcFy(double alpha, double Fz, double gamma);

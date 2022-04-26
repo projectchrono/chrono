@@ -162,6 +162,8 @@ set(CV_BASE_FILES
     ChVehicle.cpp
     ChVehicleModelData.h
     ChVehicleModelData.cpp
+    ChVehicleVisualSystem.h
+    ChVehicleVisualSystem.cpp
     ChVehicleOutput.h
     ChWorldFrame.cpp
     ChWorldFrame.h
@@ -277,8 +279,8 @@ set(CV_UTILS_FILES
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_UTILS_FILES
-        utils/ChVehicleIrrApp.h
-        utils/ChVehicleIrrApp.cpp
+        utils/ChVehicleVisualSystemIrrlicht.h
+        utils/ChVehicleVisualSystemIrrlicht.cpp
     )
 else()
     set(CVIRR_UTILS_FILES "")
@@ -553,8 +555,8 @@ set(CV_WV_UTILS_FILES
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_WV_UTILS_FILES
-        wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h
-        wheeled_vehicle/utils/ChWheeledVehicleIrrApp.cpp
+        wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h
+        wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.cpp
     )
 else()
     set(CVIRR_WV_UTILS_FILES "")
@@ -768,10 +770,10 @@ set(CV_TV_UTILS_FILES
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_TV_UTILS_FILES
-        tracked_vehicle/utils/ChTrackedVehicleIrrApp.h
-        tracked_vehicle/utils/ChTrackedVehicleIrrApp.cpp
-        tracked_vehicle/utils/ChTrackTestRigIrrApp.h
-        tracked_vehicle/utils/ChTrackTestRigIrrApp.cpp
+        tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h
+        tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.cpp
+        tracked_vehicle/utils/ChTrackTestRigVisualSystemIrrlicht.h
+        tracked_vehicle/utils/ChTrackTestRigVisualSystemIrrlicht.cpp
     )
 else()
     set(CVIRR_TV_UTILS_FILES "")

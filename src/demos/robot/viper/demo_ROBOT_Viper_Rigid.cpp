@@ -36,7 +36,7 @@
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChLinkDistance.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -98,31 +98,16 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    // Create the Irrlicht visualization
-    ChIrrApp application(&sys, L"Viper Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720), VerticalDir::Z,
-                         false, false, true);
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddLight(irr::core::vector3df(30.f, 30.f, 150.f), 290, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    application.AddLight(irr::core::vector3df(-30.f, -30.f, 150.f), 190, irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
-    application.AddCamera(core::vector3df(3, 3, 1));
-    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
-
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
     // Create the ground.
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(30, 30, 1, 1000, true, true, ground_mat);
-
     ground->SetPos(ChVector<>(0, 0, -0.5));
     ground->SetBodyFixed(true);
+    ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 60, 45);
     sys.Add(ground);
-
-    auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    texture->SetTextureScale(60, 45);
-    ground->AddAsset(texture);
 
     // Construct a Viper rover and the asociated driver
     ////auto driver = chrono_types::make_shared<ViperSpeedDriver>(1.0, 5.0);
@@ -148,17 +133,26 @@ int main(int argc, char* argv[]) {
     std::cout << "  wheel:          " << viper.GetWheel(ViperWheelID::V_LF)->GetBody()->GetMass() << std::endl;
     std::cout << std::endl;
 
-    // Complete construction of visual assets
-    application.AssetBindAll();
-    application.AssetUpdateAll();
-
-    // Use shadows in realtime view
-    application.AddShadowAll();
-
-    application.SetTimestep(time_step);
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Viper Rover on Rigid Terrain");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(3, 3, 1));
+    vis->AddTypicalLights();
+    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_DISTANCES);
+    vis->EnableShadows();
 
     // Simulation loop
-    while (application.GetDevice()->run()) {
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
+
         // Set current steering angle
         double time = viper.GetSystem()->GetChTime();
         double max_steering = CH_C_PI / 6;
@@ -186,10 +180,7 @@ int main(int argc, char* argv[]) {
         // Read rover chassis acceleration
         ////std::cout << "Rover acceleration: "<< viper.GetChassisAcc() << std::endl;
 
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-        application.DrawAll();
-        application.DoStep();
-        application.EndScene();
+        sys.DoStepDynamics(time_step);
     }
 
     return 0;

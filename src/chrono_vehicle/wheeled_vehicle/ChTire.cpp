@@ -104,29 +104,16 @@ std::shared_ptr<ChTriangleMeshShape> ChTire::AddVisualizationMesh(const std::str
     ChQuaternion<> rot = left ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
     m_vis_mesh_file = left ? mesh_file_left : mesh_file_right;
 
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_vis_mesh_file), false, false);
-    trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(rot));
+    auto trimesh =
+        geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file), true, true);
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->Pos = ChVector<>(0, GetOffset(), 0);
-    trimesh_shape->Rot = ChMatrix33<>(rot);
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
-    trimesh_shape->SetStatic(true);
-
-    m_wheel->GetSpindle()->AddAsset(trimesh_shape);
+    trimesh_shape->SetMutable(false);
+    m_wheel->GetSpindle()->AddVisualShape(trimesh_shape, ChFrame<>(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(rot)));
 
     return trimesh_shape;
-}
-
-// Remove visualization mesh shape. Make sure to only remove the specified asset.  A associated body (a wheel spindle)
-// may have additional assets.
-void ChTire::RemoveVisualizationMesh(std::shared_ptr<ChTriangleMeshShape> trimesh_shape) {
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    auto it = std::find(assets.begin(), assets.end(), trimesh_shape);
-    if (it != assets.end())
-        assets.erase(it);
 }
 
 // -----------------------------------------------------------------------------

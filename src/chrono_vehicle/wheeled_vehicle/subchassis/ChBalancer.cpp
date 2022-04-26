@@ -19,7 +19,6 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/wheeled_vehicle/subchassis/ChBalancer.h"
@@ -136,18 +135,16 @@ void ChBalancer::AddVisualizationAssets(VisualizationType vis) {
 
     auto box_left = chrono_types::make_shared<ChBoxShape>();
     box_left->GetBoxGeometry().SetLengths(GetBalancerBeamDimensions());
-    m_beam[LEFT]->AddAsset(box_left);
-    m_beam[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.2f));
+    m_beam[LEFT]->AddVisualShape(box_left);
 
     auto box_right = chrono_types::make_shared<ChBoxShape>();
     box_right->GetBoxGeometry().SetLengths(GetBalancerBeamDimensions());
-    m_beam[RIGHT]->AddAsset(box_right);
-    m_beam[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.2f));
+    m_beam[RIGHT]->AddVisualShape(box_right);
 }
 
 void ChBalancer::RemoveVisualizationAssets() {
-    m_beam[LEFT]->GetAssets().clear();
-    m_beam[RIGHT]->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_beam[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_beam[RIGHT]);
 }
 
 // -----------------------------------------------------------------------------

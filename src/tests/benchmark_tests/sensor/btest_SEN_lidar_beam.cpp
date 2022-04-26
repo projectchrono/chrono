@@ -18,7 +18,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Create the system
     // -----------------
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     // ---------------------------------------
     // add a mesh to be visualized by a camera
@@ -55,22 +55,22 @@ int main(int argc, char* argv[]) {
     auto floor = std::make_shared<ChBodyEasyBox>(100, 100, .1, 1000, true, true);
     floor->SetPos({0, 0, -1});
     floor->SetBodyFixed(true);
-    mphysicalSystem.Add(floor);
+    sys.Add(floor);
 
     auto first_wall = std::make_shared<ChBodyEasyBox>(.1, 1, 1, 1000, true, true);
     first_wall->SetPos({50.05, 0, 0});
     first_wall->SetBodyFixed(true);
-    mphysicalSystem.Add(first_wall);
+    sys.Add(first_wall);
 
     auto second_wall = std::make_shared<ChBodyEasyBox>(.1, 10, 10, 1000, true, true);
     second_wall->SetPos({60.05, 0, 0});
     second_wall->SetBodyFixed(true);
-    mphysicalSystem.Add(second_wall);
+    sys.Add(second_wall);
 
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = std::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 1000);
 
     // ------------------------------------------------
@@ -133,11 +133,11 @@ int main(int argc, char* argv[]) {
     UserDIBufferPtr data3 = lidar3->GetMostRecentBuffer<UserDIBufferPtr>();
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-    while (mphysicalSystem.GetChTime() < end_time) {
+    while (sys.GetChTime() < end_time) {
         // move the wall
 
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
 
         UserDIBufferPtr tmp_data1 = lidar1->GetMostRecentBuffer<UserDIBufferPtr>();
         UserDIBufferPtr tmp_data2 = lidar2->GetMostRecentBuffer<UserDIBufferPtr>();
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     csv.write_to_file("lidar_beam_results.csv");
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-    std::cout << "Simulation time: " << mphysicalSystem.GetChTime() << " seconds, wall time: " << wall_time.count()
+    std::cout << "Simulation time: " << sys.GetChTime() << " seconds, wall time: " << wall_time.count()
               << " seconds.\n";
 
     return 0;

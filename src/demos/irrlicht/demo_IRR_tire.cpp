@@ -23,7 +23,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include <irrlicht.h>
 
@@ -40,14 +40,13 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
-std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& mapplication) {
-
+std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChSystem& sys) {
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.005);
     ChCollisionModel::SetDefaultSuggestedMargin(0.004);
 
-    // create a basic rigid body, it comes with no visualization or collision shapes 
+    // create a basic rigid body, it comes with no visualization or collision shapes
     auto mrigidBody = chrono_types::make_shared<ChBody>();
-    mapplication.GetSystem()->Add(mrigidBody);
+    sys.Add(mrigidBody);
     mrigidBody->SetMass(50);
     mrigidBody->SetInertiaXX(ChVector<>(10, 10, 10));
     mrigidBody->SetPos(mposition);
@@ -55,7 +54,7 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
     // now attach a visualization shape, as a mesh from disk
     auto tireMesh = chrono_types::make_shared<ChObjShapeFile>();
     tireMesh->SetFilename(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj").c_str());
-    mrigidBody->AddAsset(tireMesh);
+    mrigidBody->AddVisualShape(tireMesh);
 
     // contact material shared by all collision shapes of the wheel
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -82,7 +81,7 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
     return mrigidBody;
 }
 
-void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver) {
+void create_some_falling_items(ChSystemNSC& sys) {
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
     ChCollisionModel::SetDefaultSuggestedMargin(0.002);
 
@@ -103,11 +102,10 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
         randrot.Normalize();
 
         auto mrigidBody = chrono_types::make_shared<ChBodyEasySphere>(sphrad, sphdens, true, true, pebble_mat);
-        mphysicalSystem.Add(mrigidBody);
+        sys.Add(mrigidBody);
         mrigidBody->SetRot(randrot);
-        mrigidBody->SetPos(ChVector<>(-0.5 * bed_x + ChRandom() * bed_x, 
-                            0.01 + 0.04 * ((double)bi / (double)n_pebbles),
-                              -0.5 * bed_z + ChRandom() * bed_z));
+        mrigidBody->SetPos(ChVector<>(-0.5 * bed_x + ChRandom() * bed_x, 0.01 + 0.04 * ((double)bi / (double)n_pebbles),
+                                      -0.5 * bed_z + ChRandom() * bed_z));
     }
 
     // Create the a plane using body of 'box' type:
@@ -115,59 +113,45 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
     ground_mat->SetFriction(0.5f);
 
     auto mrigidBodyB = chrono_types::make_shared<ChBodyEasyBox>(10, 1, 10, 1000, true, true, ground_mat);
-    mphysicalSystem.Add(mrigidBodyB);
+    sys.Add(mrigidBodyB);
     mrigidBodyB->SetBodyFixed(true);
     mrigidBodyB->SetPos(ChVector<>(0, -0.5, 0));
-    auto mcolor = chrono_types::make_shared<ChColorAsset>();
-    mcolor->SetColor(ChColor(0.2f,0.2f,0.2f));
-    mrigidBodyB->AddAsset(mcolor);
 }
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Convex decomposed wheel", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(3.5f, 2.5f, -2.4f));
+    ChSystemNSC sys;
 
     // Create some debris
 
-    create_some_falling_items(mphysicalSystem, application.GetSceneManager(), application.GetVideoDriver());
+    create_some_falling_items(sys);
 
     // Create the wheel
 
-    std::shared_ptr<ChBody> mwheelBody = create_wheel(ChVector<>(0, 1, 0), application);
+    std::shared_ptr<ChBody> mwheelBody = create_wheel(ChVector<>(0, 1, 0), sys);
 
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Convex decomposed wheel");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(3.5, 2.5, -2.4));
+    vis->AddTypicalLights();
 
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
-    application.AssetBindAll();
-
-    // Use this function for 'converting' assets into Irrlicht meshes
-    application.AssetUpdateAll();
-
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
-    application.SetTimestep(0.01);
-    application.SetTryRealtime(true);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-
-        application.DrawAll();
-
-        application.DoStep();
-
-        application.EndScene();
+    // Simulation loop
+    double timestep = 0.01;
+    ChRealtimeStepTimer realtime_timer;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
+        sys.DoStepDynamics(timestep);
+        realtime_timer.Spin(timestep);
     }
 
     return 0;

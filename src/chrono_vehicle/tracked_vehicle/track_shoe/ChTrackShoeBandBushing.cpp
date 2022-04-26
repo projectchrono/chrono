@@ -18,7 +18,6 @@
 // =============================================================================
 
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChGlobal.h"
@@ -127,32 +126,28 @@ void ChTrackShoeBandBushing::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     AddShoeVisualization();
-    for (auto segment : m_web_segments)
+    for (auto& segment : m_web_segments)
         AddWebVisualization(segment);
 }
 
 void ChTrackShoeBandBushing::RemoveVisualizationAssets() {
-    m_shoe->GetAssets().clear();
-    for (auto segment : m_web_segments) {
-        segment->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_shoe);
+    for (auto& segment : m_web_segments) {
+        ChPart::RemoveVisualizationAssets(segment);
     }
 }
 
 void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment) {
-    ChColor col1 = GetColor(m_index);
-    ChColor col2(col1.R + 0.1f, col1.G + 0.1f, col1.B + 0.1f);
-    segment->AddAsset(chrono_types::make_shared<ChColorAsset>(col2));
-
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(m_seg_length, GetBeltWidth(), GetWebThickness()));
-    segment->AddAsset(box);
+    segment->AddVisualShape(box);
 
     auto cyl = chrono_types::make_shared<ChCylinderShape>();
     double radius = GetWebThickness() / 4;
     cyl->GetCylinderGeometry().rad = radius;
     cyl->GetCylinderGeometry().p1 = ChVector<>(m_seg_length / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(m_seg_length / 2, +GetBeltWidth() / 2 + 2 * radius, 0);
-    segment->AddAsset(cyl);
+    segment->AddVisualShape(cyl);
 }
 
 // -----------------------------------------------------------------------------

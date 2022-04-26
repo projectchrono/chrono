@@ -26,7 +26,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -40,10 +40,7 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
-// First of all, define a class for the 'forklift' (that is, a set of
-// bodies and links which are grouped within this class; so it is
-// easier to manage data structures in this example).
-
+// Definition of the forklift MBS
 class MySimpleForklift {
   public:
     // THE DATA
@@ -55,7 +52,7 @@ class MySimpleForklift {
     // The parts making the forklift, as 3d Irrlicht scene nodes, each containing
     // the ChBody object
     // .. truss:
-    std::shared_ptr<ChBody> truss;
+    std::shared_ptr<ChBody> chassis;
     // .. right front wheel:
     std::shared_ptr<ChBody> wheelRF;
     std::shared_ptr<ChLinkLockRevolute> link_revoluteRF;
@@ -75,14 +72,11 @@ class MySimpleForklift {
     std::shared_ptr<ChLinkLinActuator> link_actuatorFork;
     std::shared_ptr<ChLinkLockPrismatic> link_prismaticFork;
 
-    video::ITexture* forkliftTiremap;
-
-    // THE FUNCTIONS
 
     // Build and initialize the forklift, creating all bodies corresponding to
     // the various parts and adding them to the physical system - also creating
     // and adding constraints to the system.
-    MySimpleForklift(ChIrrAppInterface* app, ChVector<> offset = ChVector<>(0, 0, 0)) {
+    MySimpleForklift(ChSystem* sys, ChVector<> offset = ChVector<>(0, 0, 0)) {
         throttle = 0;  // initially, gas throttle is 0.
         steer = 0;
         lift = 0;
@@ -98,75 +92,64 @@ class MySimpleForklift {
         double RAD_back_wheel = 0.28;
         double RAD_front_wheel = 0.28;
 
-        forkliftTiremap = app->GetVideoDriver()->getTexture(GetChronoDataFile("textures/tire_truck.png").c_str());
-
         // --- The car body ---
 
-        truss = chrono_types::make_shared<ChBody>();
-        app->GetSystem()->Add(truss);
-        truss->SetPos(COG_truss);
-        truss->SetMass(200);
-        truss->SetInertiaXX(ChVector<>(100, 100, 100));
+        chassis = chrono_types::make_shared<ChBody>();
+        sys->Add(chassis);
+        chassis->SetPos(COG_truss);
+        chassis->SetMass(200);
+        chassis->SetInertiaXX(ChVector<>(100, 100, 100));
 
         // collision properties:
-        auto truss_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto chassis_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-        truss->GetCollisionModel()->ClearModel();
-        truss->GetCollisionModel()->AddBox(truss_mat, 1.227 / 2., 1.621 / 2., 1.864 / 2., ChVector<>(-0.003, 1.019, 0.192));
-        truss->GetCollisionModel()->AddBox(truss_mat, 0.187 / 2., 0.773 / 2., 1.201 / 2., ChVector<>(0.486, 0.153, -0.047));
-        truss->GetCollisionModel()->AddBox(truss_mat, 0.187 / 2., 0.773 / 2., 1.201 / 2., ChVector<>(-0.486, 0.153, -0.047));
-        truss->GetCollisionModel()->BuildModel();
-        truss->SetCollide(true);
+        chassis->GetCollisionModel()->ClearModel();
+        chassis->GetCollisionModel()->AddBox(chassis_mat, 1.227 / 2., 1.621 / 2., 1.864 / 2., ChVector<>(-0.003, 1.019, 0.192));
+        chassis->GetCollisionModel()->AddBox(chassis_mat, 0.187 / 2., 0.773 / 2., 1.201 / 2., ChVector<>(0.486, 0.153, -0.047));
+        chassis->GetCollisionModel()->AddBox(chassis_mat, 0.187 / 2., 0.773 / 2., 1.201 / 2., ChVector<>(-0.486, 0.153, -0.047));
+        chassis->GetCollisionModel()->BuildModel();
+        chassis->SetCollide(true);
 
         // visualization properties:
-        auto truss_asset_assembly = chrono_types::make_shared<ChAssetLevel>();
-        truss_asset_assembly->GetFrame().SetPos(-COG_truss);
-        truss->AddAsset(truss_asset_assembly);
-        auto truss_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        truss_mesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
-        truss_asset_assembly->AddAsset(truss_mesh);
-        auto truss_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/tire_truck.png"));
-        truss_asset_assembly->AddAsset(truss_texture);
+        auto chassis_mesh = chrono_types::make_shared<ChObjShapeFile>();
+        chassis_mesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
+        chassis_mesh->SetTexture(GetChronoDataFile("textures/tire_truck.png"));
+        chassis->AddVisualShape(chassis_mesh, ChFrame<>(-COG_truss, QUNIT));
 
         // contact material shared among all wheels
         auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-        // ..the right-front wheel
+        // visualization shape, shared among all wheels
+        auto wheel_mesh = chrono_types::make_shared<ChObjShapeFile>();
+        wheel_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
+        wheel_mesh->SetTexture(GetChronoDataFile("textures/tire_truck.png"));
 
+
+        // ..the right-front wheel
         wheelRF = chrono_types::make_shared<ChBody>();
-        app->GetSystem()->Add(wheelRF);
+        sys->Add(wheelRF);
         wheelRF->SetPos(COG_wheelRF);
         wheelRF->SetMass(20);
-        wheelRF->SetInertiaXX(ChVector<>(2, 2, 2));
+        wheelRF->SetInertiaXX(ChVector<>(2, 2, 2));        
         // collision properties:
-        ChMatrix33<> Arot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
+        ChMatrix33<> Arot(chrono::Q_from_AngZ(CH_C_PI / 2));
         wheelRF->GetCollisionModel()->ClearModel();
         wheelRF->GetCollisionModel()->AddCylinder(wheel_mat, RAD_front_wheel, RAD_front_wheel, 0.1, ChVector<>(0, 0, 0), Arot);
         wheelRF->GetCollisionModel()->BuildModel();
         wheelRF->SetCollide(true);
         // visualization properties:
-        auto wheelRF_asset_assembly = chrono_types::make_shared<ChAssetLevel>();
-        wheelRF_asset_assembly->GetFrame().SetPos(-COG_wheelRF);
-        wheelRF->AddAsset(wheelRF_asset_assembly);
-        auto wheelRF_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        wheelRF_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
-        wheelRF_asset_assembly->AddAsset(wheelRF_mesh);
-        auto wheelRF_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/tire_truck.png"));
-        wheelRF_asset_assembly->AddAsset(wheelRF_texture);
+        wheelRF->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
 
         // .. create the revolute joint between the wheel and the truss
-
         link_revoluteRF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
-        link_revoluteRF->Initialize(wheelRF, truss,
-                                    ChCoordsys<>(COG_wheelRF, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
-        app->GetSystem()->AddLink(link_revoluteRF);
+        link_revoluteRF->Initialize(wheelRF, chassis, ChCoordsys<>(COG_wheelRF, chrono::Q_from_AngY(CH_C_PI / 2)));
+        sys->AddLink(link_revoluteRF);
 
         // ..the left-front wheel
-
         wheelLF = chrono_types::make_shared<ChBody>();
-        app->GetSystem()->Add(wheelLF);
+        sys->Add(wheelLF);
         wheelLF->SetPos(COG_wheelLF);
-        wheelLF->SetRot(chrono::Q_from_AngAxis(CH_C_PI, VECT_Y));  // reuse RF wheel shape, flipped
+        wheelLF->SetRot(chrono::Q_from_AngY(CH_C_PI));  // reuse RF wheel shape, flipped
         wheelLF->SetMass(20);
         wheelLF->SetInertiaXX(ChVector<>(2, 2, 2));
         // collision properties:
@@ -175,24 +158,16 @@ class MySimpleForklift {
         wheelLF->GetCollisionModel()->BuildModel();
         wheelLF->SetCollide(true);
         // visualization properties:
-        auto wheelLF_asset_assembly = chrono_types::make_shared<ChAssetLevel>();
-        wheelLF_asset_assembly->GetFrame().SetPos(-COG_wheelRF);
-        wheelLF->AddAsset(wheelLF_asset_assembly);
-        auto wheelLF_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        wheelLF_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
-        wheelLF_asset_assembly->AddAsset(wheelLF_mesh);
-        auto wheelLF_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/tire_truck.png"));
-        wheelLF_asset_assembly->AddAsset(wheelLF_texture);
+        wheelLF->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
 
         // .. create the revolute joint between the wheel and the truss
         link_revoluteLF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
-        link_revoluteLF->Initialize(wheelLF, truss,
-                                    ChCoordsys<>(COG_wheelLF, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
-        app->GetSystem()->AddLink(link_revoluteLF);
+        link_revoluteLF->Initialize(wheelLF, chassis, ChCoordsys<>(COG_wheelLF, chrono::Q_from_AngY(CH_C_PI / 2)));
+        sys->AddLink(link_revoluteLF);
 
-        // ..the back steering spindle (invisible, no mesh)
+        // ..the back steering spindle (invisible)
         spindleB = chrono_types::make_shared<ChBody>();
-        app->GetSystem()->Add(spindleB);
+        sys->Add(spindleB);
         spindleB->SetPos(COG_wheelB);
         spindleB->SetMass(10);
         spindleB->SetInertiaXX(ChVector<>(1, 1, 1));
@@ -200,16 +175,14 @@ class MySimpleForklift {
         // .. create the vertical steering link between the spindle structure and the truss
         link_steer_engineB = chrono_types::make_shared<ChLinkMotorRotationAngle>();
         link_steer_engineB->SetAngleFunction(chrono_types::make_shared<ChFunction_Const>(0));
-        link_steer_engineB->Initialize(spindleB, truss,
-                                       ChFrame<>(COG_wheelB, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_X)));
-        app->GetSystem()->AddLink(link_steer_engineB);
+        link_steer_engineB->Initialize(spindleB, chassis, ChFrame<>(COG_wheelB, chrono::Q_from_AngX(CH_C_PI / 2)));
+        sys->AddLink(link_steer_engineB);
 
         // ..the back wheel
-
         wheelB = chrono_types::make_shared<ChBody>();
-        app->GetSystem()->Add(wheelB);
+        sys->Add(wheelB);
         wheelB->SetPos(COG_wheelB);
-        wheelB->SetRot(chrono::Q_from_AngAxis(CH_C_PI, VECT_Y));  // reuse RF wheel shape, flipped
+        wheelB->SetRot(chrono::Q_from_AngAxis(CH_C_PI, VECT_Y));
         wheelB->SetMass(20);
         wheelB->SetInertiaXX(ChVector<>(2, 2, 2));
         // collision properties:
@@ -217,49 +190,37 @@ class MySimpleForklift {
         wheelB->GetCollisionModel()->AddCylinder(wheel_mat, RAD_back_wheel, RAD_back_wheel, 0.1, ChVector<>(0, 0, 0), Arot);
         wheelB->GetCollisionModel()->BuildModel();
         wheelB->SetCollide(true);
-
         // visualization properties:
-        auto wheelB_asset_assembly = chrono_types::make_shared<ChAssetLevel>();
-        wheelB_asset_assembly->GetFrame().SetPos(-COG_wheelRF);
-        wheelB->AddAsset(wheelB_asset_assembly);
-        auto wheelB_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        wheelB_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
-        wheelB_asset_assembly->AddAsset(wheelB_mesh);
-        auto wheelB_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/tire_truck.png"));
-        wheelB_asset_assembly->AddAsset(wheelB_texture);
+        wheelB->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
 
         // .. create the motor between the back wheel and the steering spindle structure
         link_engineB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         link_engineB->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0));
-        link_engineB->Initialize(wheelB, spindleB, ChFrame<>(COG_wheelB, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
-        app->GetSystem()->AddLink(link_engineB);
+        link_engineB->Initialize(wheelB, spindleB, ChFrame<>(COG_wheelB, chrono::Q_from_AngY(CH_C_PI / 2)));
+        sys->AddLink(link_engineB);
 
         // ..the arm
         arm = chrono_types::make_shared<ChBody>();
-        app->GetSystem()->Add(arm);
+        sys->Add(arm);
         arm->SetPos(COG_arm);
         arm->SetMass(100);
         arm->SetInertiaXX(ChVector<>(30, 30, 30));
         // visualization properties:
-        auto arm_asset_assembly = chrono_types::make_shared<ChAssetLevel>();
-        arm_asset_assembly->GetFrame().SetPos(-COG_arm);
-        arm->AddAsset(arm_asset_assembly);
         auto arm_mesh = chrono_types::make_shared<ChObjShapeFile>();
         arm_mesh->SetFilename(GetChronoDataFile("models/forklift/arm.obj"));
-        arm_asset_assembly->AddAsset(arm_mesh);
+        arm->AddVisualShape(arm_mesh, ChFrame<>(-COG_arm, QUNIT));
 
         // .. create the revolute joint between the arm and the truss
         link_engineArm = chrono_types::make_shared<ChLinkMotorRotationAngle>();
         link_engineArm->SetAngleFunction(chrono_types::make_shared<ChFunction_Const>(0));
-        link_engineArm->Initialize(arm, truss, ChFrame<>(POS_pivotarm, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
-        app->GetSystem()->AddLink(link_engineArm);
+        link_engineArm->Initialize(arm, chassis, ChFrame<>(POS_pivotarm, chrono::Q_from_AngY(CH_C_PI / 2)));
+        sys->AddLink(link_engineArm);
 
         // ..the fork
-
         auto fork_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
         fork = chrono_types::make_shared<ChBody>();
-        app->GetSystem()->Add(fork);
+        sys->Add(fork);
         fork->SetPos(COG_fork);
         fork->SetMass(60);
         fork->SetInertiaXX(ChVector<>(15, 15, 15));
@@ -271,28 +232,23 @@ class MySimpleForklift {
         fork->GetCollisionModel()->BuildModel();
         fork->SetCollide(true);
         // visualization properties:
-        auto fork_asset_assembly = chrono_types::make_shared<ChAssetLevel>();
-        fork_asset_assembly->GetFrame().SetPos(-COG_fork);
-        fork->AddAsset(fork_asset_assembly);
         auto fork_mesh = chrono_types::make_shared<ChObjShapeFile>();
         fork_mesh->SetFilename(GetChronoDataFile("models/forklift/forks.obj"));
-        fork_asset_assembly->AddAsset(fork_mesh);
+        fork->AddVisualShape(fork_mesh, ChFrame<>(-COG_fork, QUNIT));
 
         // .. create the prismatic joint between the fork and arm
         // (set joint as vertical; default would be aligned to z, horizontal)
         link_prismaticFork = chrono_types::make_shared<ChLinkLockPrismatic>();
-        link_prismaticFork->Initialize(fork, arm,
-                                       ChCoordsys<>(POS_prismatic, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_X)));
-        app->GetSystem()->AddLink(link_prismaticFork);
+        link_prismaticFork->Initialize(fork, arm, ChCoordsys<>(POS_prismatic, chrono::Q_from_AngX(CH_C_PI / 2)));
+        sys->AddLink(link_prismaticFork);
 
         // .. create the linear actuator that pushes upward the fork
         link_actuatorFork = chrono_types::make_shared<ChLinkLinActuator>();
         link_actuatorFork->Initialize(fork, arm, false, ChCoordsys<>(POS_prismatic + ChVector<>(0, 0.01, 0), QUNIT),
                                       ChCoordsys<>(POS_prismatic, QUNIT));
-        app->GetSystem()->AddLink(link_actuatorFork);
+        sys->AddLink(link_actuatorFork);
 
         // ..a pallet
-
         auto pallet_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
         // Create a body with a mesh visualization and collision shape.
@@ -306,20 +262,16 @@ class MySimpleForklift {
             true,                                                 // enable collision with mesh
             pallet_mat,                                           // contact material
             0.001);                                               // radius of mesh sweeping sphere
-        app->GetSystem()->Add(pallet);
+        sys->Add(pallet);
         pallet->SetPos(ChVector<>(0, 0.4, 3));
 
-        // apply also a texture to the pallet:
-        auto pallet_texture = chrono_types::make_shared<ChTexture>();
-        pallet_texture->SetTextureFilename(GetChronoDataFile("textures/cubetexture.png"));
-        pallet->AddAsset(pallet_texture);
+        // apply a texture to the pallet:
+        pallet->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture.png"));
 
-        //
         // Move the forklift to initial offset position
-        //
 
         ////pallet->Move(offset);
-        truss->Move(offset);
+        chassis->Move(offset);
         wheelRF->Move(offset);
         wheelLF->Move(offset);
         wheelB->Move(offset);
@@ -332,7 +284,7 @@ class MySimpleForklift {
     // the various parts and removing them from the physical system.  Also
     // removes constraints from the system.
     ~MySimpleForklift() {
-        ChSystem* mysystem = truss->GetSystem();  // trick to get the system here
+        ChSystem* mysystem = chassis->GetSystem();
 
         mysystem->Remove(link_revoluteRF);
         mysystem->Remove(link_revoluteLF);
@@ -341,7 +293,7 @@ class MySimpleForklift {
         mysystem->Remove(link_engineArm);
         mysystem->Remove(link_prismaticFork);
         mysystem->Remove(link_actuatorFork);
-        mysystem->Remove(truss);
+        mysystem->Remove(chassis);
         mysystem->Remove(wheelRF);
         mysystem->Remove(wheelLF);
         mysystem->Remove(wheelB);
@@ -352,12 +304,10 @@ class MySimpleForklift {
 };
 
 // Define a MyEventReceiver class which will be used to manage input from the GUI graphical user interface.
-
 class MyEventReceiver : public IEventReceiver {
   public:
-    MyEventReceiver(ChIrrAppInterface* myapp, MySimpleForklift* mlift) {
+    MyEventReceiver(MySimpleForklift* mlift) {
         // store pointer to physical system & other stuff so we can tweak them by user keyboard
-        app = myapp;
         forklift = mlift;
     }
 
@@ -414,7 +364,6 @@ class MyEventReceiver : public IEventReceiver {
     }
 
   private:
-    ChIrrAppInterface* app;
     MySimpleForklift* forklift;
 };
 
@@ -426,19 +375,10 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a ChronoENGINE physical system
-    ChSystemNSC my_system;
+    ChSystemNSC sys;
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Drive a forklift", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(-6, 3, -6));
 
-    // add text with info
-    application.GetIGUIEnvironment()->addStaticText(L"Keys: steer=Q,W; throttle=A,Z; lift=S,X; bank=D,C",
-                                                    rect<s32>(150, 10, 430, 40), true);
+
 
     // Contact material for ground
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -446,66 +386,61 @@ int main(int argc, char* argv[]) {
 
     // ..the world
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, ground_mat);
-    my_system.Add(my_ground);
+    sys.Add(my_ground);
     my_ground->SetBodyFixed(true);
     my_ground->SetPos(ChVector<>(0, -1, 0));
-    my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg")));
+    my_ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
 
     // ..some obstacles on the ground:
     for (int i = 0; i < 6; i++) {
         auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(1, 0.5, 1, 200, true, true, ground_mat);
-        my_system.Add(my_obstacle);
+        sys.Add(my_obstacle);
         my_obstacle->SetPos(ChVector<>(20 * ChRandom(), 2, 20 * ChRandom()));
-        my_obstacle->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/cubetexture_wood.png")));
+        my_obstacle->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_wood.png"));
     }
 
     // ..the forklift (this class - see above - is a 'set' of bodies and links, automatically added at creation)
-    MySimpleForklift* myforklift = new MySimpleForklift(&application);
+    MySimpleForklift* myforklift = new MySimpleForklift(&sys);
 
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
-    application.AssetBindAll();
-
-    // Use this function for 'converting' assets into Irrlicht meshes
-    application.AssetUpdateAll();
-
-    //
-    // USER INTERFACE
-    //
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Forklift demo");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-6, 3, -6));
 
     // Create some graphical-user-interface (GUI) items to show on the screen.
     // This requires an event receiver object -see above.
     // This is for GUI tweaking of system parameters..
-    MyEventReceiver receiver(&application, myforklift);
+    MyEventReceiver receiver(myforklift);
     // note how to add a custom event receiver to the default interface:
-    application.SetUserEventReceiver(&receiver);
+    vis->AddUserEventReceiver(&receiver);
 
-    //
-    // SETTINGS
-    //
+    // add text with info
+    vis->GetGUIEnvironment()->addStaticText(L"Keys: steer=Q,W; throttle=A,Z; lift=S,X; bank=D,C",
+                                            rect<s32>(150, 10, 430, 40), true);
 
-    my_system.SetSolverType(ChSolver::Type::PSOR);
-    my_system.SetSolverMaxIterations(20);  // the higher, the easier to keep the constraints satisfied.
+    // Solver settings
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(20);  // the higher, the easier to keep the constraints satisfied.
 
-    //
-    // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
-    //
-
-    application.SetTimestep(0.005);
-    application.SetTryRealtime(true);
-
-    while (application.GetDevice()->run()) {
-        // Irrlicht must prepare frame to draw
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-
-        // Irrlicht application draws all 3D objects and all GUI items
-        application.DrawAll();
+    // Simulation loop
+    double timestep = 0.005;
+    ChRealtimeStepTimer realtime_timer;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Advance the simulation time step
-        application.DoStep();
+        sys.DoStepDynamics(timestep);
 
-        // Irrlicht must finish drawing the frame
-        application.EndScene();
+        vis->EndScene();
+
+        realtime_timer.Spin(timestep);
     }
 
     if (myforklift)

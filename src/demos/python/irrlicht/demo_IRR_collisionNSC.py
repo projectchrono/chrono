@@ -1,12 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Lijing Yang
+# Copyright (c) 2019 projectchrono.org
+# All rights reserved.
 #
-# Created:     6/10/2020
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 
 import pychrono.core as chrono
@@ -34,11 +36,8 @@ def AddFallingItems(sys):
                                               True,     # collision?
                                               sph_mat)  # contact material
         msphereBody.SetPos(chrono.ChVectorD(-5 + chrono.ChRandom() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom() * 10))
+        msphereBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
         sys.Add(msphereBody)
-
-        mtexture = chrono.ChTexture()
-        mtexture.SetTextureFilename(chrono.GetChronoDataFile("textures/bluewhite.png"))
-        msphereBody.AddAsset(mtexture)
 
         mboxBody = chrono.ChBodyEasyBox(1.5, 1.5, 1.5, # x,y,z size
                                         100,           # density
@@ -46,12 +45,8 @@ def AddFallingItems(sys):
                                         True,          # collision?
                                         box_mat)       # contact material
         mboxBody.SetPos(chrono.ChVectorD(-5 + chrono.ChRandom() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom() * 10))
-
+        mboxBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/cubetexture_bluewhite.png"))
         sys.Add(mboxBody)
-
-        mtexturebox = chrono.ChTexture()
-        mtexturebox.SetTextureFilename(chrono.GetChronoDataFile("textures/cubetexture_bluewhite.png"))
-        mboxBody.AddAsset(mtexturebox)
 
         mcylBody = chrono.ChBodyEasyCylinder(0.75, 0.5, # radius, height
                                              100,       # density
@@ -59,32 +54,34 @@ def AddFallingItems(sys):
                                              True,      # collision?
                                              cyl_mat)   # contact material
         mcylBody.SetPos(chrono.ChVectorD(-5 + chrono.ChRandom() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom() * 10))
-
+        mcylBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"))
         sys.Add(mcylBody)
-
-        # optional, attach a texture for better visualization
-        mtexturecyl = chrono.ChTexture()
-        mtexturecyl.SetTextureFilename(chrono.GetChronoDataFile("textures/pinkwhite.png"))
-        mcylBody.AddAsset(mtexturecyl)
 
 def AddContainer(sys):
     # Contact material for container
     ground_mat = chrono.ChMaterialSurfaceNSC()
 
+    # Visualization material for container
+    ground_vis_mat = chrono.ChVisualMaterial()
+    ground_vis_mat.SetKdTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
+
     # Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type
     floorBody = chrono.ChBodyEasyBox(20, 1, 20, 1000, True, True, ground_mat)
     floorBody.SetPos(chrono.ChVectorD(0, -5, 0))
     floorBody.SetBodyFixed(True)
+    floorBody.GetVisualShape(0).SetMaterial(0, ground_vis_mat)
     sys.Add(floorBody)
 
     wallBody1 = chrono.ChBodyEasyBox(1, 10, 20.99, 1000, True, True, ground_mat)
     wallBody1.SetPos(chrono.ChVectorD(-10, 0, 0))
     wallBody1.SetBodyFixed(True)
+    wallBody1.GetVisualShape(0).SetMaterial(0, ground_vis_mat)
     sys.Add(wallBody1)
 
     wallBody2 = chrono.ChBodyEasyBox(1, 10, 20.99, 1000, True, True, ground_mat)
     wallBody2.SetPos(chrono.ChVectorD(10, 0, 0))
     wallBody2.SetBodyFixed(True)
+    wallBody2.GetVisualShape(0).SetMaterial(0, ground_vis_mat)
     sys.Add(wallBody2)
 
     wallBody3 = chrono.ChBodyEasyBox(20.99, 10, 1, 1000, False, True, ground_mat)
@@ -95,16 +92,8 @@ def AddContainer(sys):
     wallBody4 = chrono.ChBodyEasyBox(20.99, 10, 1, 1000, True, True, ground_mat)
     wallBody4.SetPos(chrono.ChVectorD(0, 0, 10))
     wallBody4.SetBodyFixed(True)
+    wallBody4.GetVisualShape(0).SetMaterial(0, ground_vis_mat)
     sys.Add(wallBody4)
-
-    # optional, attach  textures for better visualization
-    mtexturewall = chrono.ChTexture()
-    mtexturewall.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
-    wallBody1.AddAsset(mtexturewall)  # note: most assets can be shared
-    wallBody2.AddAsset(mtexturewall)
-    wallBody3.AddAsset(mtexturewall)
-    wallBody4.AddAsset(mtexturewall)
-    floorBody.AddAsset(mtexturewall)
 
     # Add the rotating mixer
     mixer_mat = chrono.ChMaterialSurfaceNSC()
@@ -128,101 +117,47 @@ def AddContainer(sys):
     my_motor.SetSpeedFunction(mfun)
     sys.AddLink(my_motor)
 
-    # NOTE: Instead of creating five separate 'box' bodies to make
-    # the walls of the container, you could have used a single body
-    # made of five box shapes, which build a single collision description,
-    # as in the alternative approach:
-
-    """
-    # create a plain ChBody (no colliding shape nor visualization mesh is used yet)
-    mrigidBody = chrono.ChBody()
-
-    # set as fixed body, and turn collision ON, otherwise no collide by default
-    mrigidBody.SetBodyFixed(True)
-    mrigidBody.SetCollide(True)
-
-    # Clear model. The colliding shape description MUST be between  ClearModel() .. BuildModel() pair.
-    mrigidBody.GetCollisionModel().ClearModel()
-    # Describe the (invisible) colliding shape by adding five boxes (the walls and floor)
-    mrigidBody.GetCollisionModel().AddBox(ground_mat, 20, 1, 20, chrono.ChVectorD(0, -10, 0))
-    mrigidBody.GetCollisionModel().AddBox(ground_mat, 1, 40, 20, chrono.ChVectorD(-11, 0, 0))
-    mrigidBody.GetCollisionModel().AddBox(ground_mat, 1, 40, 20, chrono.ChVectorD(11, 0, 0))
-    mrigidBody.GetCollisionModel().AddBox(ground_mat, 20, 40, 1, chrono.ChVectorD(0, 0, -11))
-    mrigidBody.GetCollisionModel().AddBox(ground_mat, 20, 40, 1, chrono.ChVectorD(0, 0, 11))
-    # Complete the description of collision shape.
-    mrigidBody.GetCollisionModel().BuildModel()
-
-    # Attach some visualization shapes if needed:
-    vshape = chrono.ChBoxShape()
-    vshape.GetBoxGeometry().SetLengths(chrono.ChVectorD(20, 1, 20))
-    vshape.GetBoxGeometry().Pos = chrono.ChVectorD(0, -5, 0)
-    this.AddAsset(vshape)
-    # etc. for other 4 box shapes..
-    """
-
     return rotatingBody
 
 # ---------------------------------------------------------------------
-#
-#  Create the simulation system and add items
-#
 
-mysystem      = chrono.ChSystemNSC()
+#  Create the simulation sys and add items
+sys = chrono.ChSystemNSC()
 
-# ---------------------------------------------------------------------
-#
-#  Create an Irrlicht application to visualize the system
-#
+mixer = AddContainer(sys)
+AddFallingItems(sys)
 
-myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example: Collisions between objects', chronoirr.dimension2du(1024,768))
-
-myapplication.AddSkyBox()
-myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddCamera(chronoirr.vector3df(0, 14 , -20))
-myapplication.AddTypicalLights()
-
-mixer = AddContainer(mysystem)
-AddFallingItems(mysystem)
-
-# ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-# If you need a finer control on which item really needs a visualization proxy in
-# Irrlicht, just use application.AssetBind(myitem) on a per-item basis.
-
-myapplication.AssetBindAll()
-
-# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-myapplication.AssetUpdateAll()
+# Create the Irrlicht visualization
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Collisions between objects')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0, 14 , -20))
+vis.AddTypicalLights()
 
 # Modify some setting of the physical syustem for the simulation, if you want
-mysystem.SetSolverType(chrono.ChSolver.Type_PSOR)
-mysystem.SetSolverMaxIterations(20)
+sys.SetSolverType(chrono.ChSolver.Type_PSOR)
+sys.SetSolverMaxIterations(20)
 
-# ---------------------------------------------------------------------
-#
 #  Run the simulation
-#
-
-myapplication.SetTimestep(0.02)
-myapplication.SetTryRealtime(True)
-
-while(myapplication.GetDevice().run()):
-    myapplication.BeginScene()
-    myapplication.DrawAll()
-    myapplication.DoStep()
-    myapplication.EndScene()
+while vis.Run():
+    vis.BeginScene() 
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(0.02)
    
     # print out contact force and torque
     # frc = mixer.GetAppliedForce()
     # trq = mixer.GetAppliedTorque()
-    # print(mysystem.GetChTime())
+    # print(sys.GetChTime())
     # print("force: ", frc)
     # print("torque: ", trq)
     # c_frc = mixer.GetContactForce()
     # c_trq = mixer.GetContactTorque()
-    # print(mysystem.GetChTime())
+    # print(sys.GetChTime())
     # print("contact force: ", c_frc)
     # print("contact torque: ", c_trq)
 

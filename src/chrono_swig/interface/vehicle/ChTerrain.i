@@ -4,7 +4,6 @@
 
 #include "chrono/core/ChVector.h"
 #include "chrono/assets/ChColor.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
@@ -26,7 +25,6 @@
 %import "chrono_swig/interface/core/ChBody.i"
 %import "chrono_swig/interface/core/ChLoadContainer.i"
 %import "../../../chrono/assets/ChTriangleMeshShape.h"
-%import "chrono_swig/interface/core/ChColorAsset.i"
 #endif
 
 #ifdef SWIGPYTHON
@@ -36,7 +34,6 @@
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChBody.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChLoadContainer.i"
 %import(module = "pychrono.core") "../../../chrono/assets/ChTriangleMeshShape.h"
-%import(module = "pychrono.core") "chrono_swig/interface/core/ChColorAsset.i"
 #endif
 
 %shared_ptr(chrono::vehicle::ChTerrain)

@@ -23,13 +23,8 @@ namespace geometry {
 /// A capsule geometric object for collision and visualization.
 class ChApi ChCapsule : public ChGeometry {
   public:
-    ChVector<> center;  ///< capsule center
-    double rad;         ///< capsule radius
-    double hlen;        ///< capsule halflength
-
-  public:
-    ChCapsule() : center(VNULL), rad(0), hlen(0) {}
-    ChCapsule(const ChVector<>& mcenter, double mrad, double mhlen) : center(mcenter), rad(mrad), hlen(mhlen) {}
+    ChCapsule() : rad(0), hlen(0) {}
+    ChCapsule(const ChVector<>& mcenter, double mrad, double mhlen) : rad(mrad), hlen(mhlen) {}
     ChCapsule(const ChCapsule& source);
     ~ChCapsule() {}
 
@@ -46,7 +41,7 @@ class ChApi ChCapsule : public ChGeometry {
                                 double& zmax,
                                 ChMatrix33<>* Rot = NULL) const override;
 
-    virtual ChVector<> Baricenter() const override { return center; }
+    virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 
     virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
 
@@ -58,6 +53,9 @@ class ChApi ChCapsule : public ChGeometry {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    double rad;   ///< capsule radius
+    double hlen;  ///< capsule halflength
 };
 
 }  // end namespace geometry

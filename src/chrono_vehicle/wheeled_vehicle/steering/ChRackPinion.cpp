@@ -26,7 +26,6 @@
 #include <vector>
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/wheeled_vehicle/steering/ChRackPinion.h"
@@ -127,15 +126,11 @@ void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, length / 2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -length / 2, 0);
     cyl->GetCylinderGeometry().rad = GetSteeringLinkRadius();
-    m_link->AddAsset(cyl);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.8f, 0.8f, 0.2f));
-    m_link->AddAsset(col);
+    m_link->AddVisualShape(cyl);
 }
 
 void ChRackPinion::RemoveVisualizationAssets() {
-    m_link->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_link);
 }
 
 // -----------------------------------------------------------------------------

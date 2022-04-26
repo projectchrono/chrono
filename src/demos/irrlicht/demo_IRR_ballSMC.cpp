@@ -19,7 +19,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChContactContainerSMC.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -28,17 +28,6 @@ using namespace chrono::irrlicht;
 // Use the main namespaces of Irrlicht
 using namespace irr;
 using namespace irr::core;
-
-void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc, std::shared_ptr<ChMaterialSurface> mat) {
-    body->GetCollisionModel()->AddBox(mat, dim.x(), dim.y(), dim.z(), loc);
-
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = dim;
-    box->GetBoxGeometry().Pos = loc;
-    box->SetColor(ChColor(1, 0, 0));
-    box->SetFading(0.6f);
-    body->AddAsset(box);
-}
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -67,31 +56,18 @@ int main(int argc, char* argv[]) {
     auto collision_type = collision::ChCollisionSystemType::BULLET;
 
     // Create the system
-    ChSystemSMC msystem;
+    ChSystemSMC sys;
 
-    msystem.Set_G_acc(ChVector<>(0, gravity, 0));
-    msystem.SetCollisionSystemType(collision_type);
+    sys.Set_G_acc(ChVector<>(0, gravity, 0));
+    sys.SetCollisionSystemType(collision_type);
 
     // The following two lines are optional, since they are the default options. They are added for future reference,
     // i.e. when needed to change those models.
-    msystem.SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
-    msystem.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
+    sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
+    sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
 
-    // Change the default collision effective radius of curvature 
+    // Change the default collision effective radius of curvature
     collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
-
-    // Create the Irrlicht visualization
-    ChIrrApp application(&msystem, L"SMC demo", core::dimension2d<u32>(800, 600));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 3, -6));
-
-    // This means that contactforces will be shown in Irrlicht application
-    application.SetSymbolscale(1e-4);
-    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_FORCES);
 
     // Create a material (will be used by both objects)
     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -120,13 +96,14 @@ int main(int argc, char* argv[]) {
 
     auto sphere = chrono_types::make_shared<ChSphereShape>();
     sphere->GetSphereGeometry().rad = radius;
-    ball->AddAsset(sphere);
+    sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+    sphere->SetOpacity(1.0f);
 
-    auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
-    ball->AddAsset(mtexture);
+    auto ball_vis = chrono_types::make_shared<ChVisualModel>();
+    ball_vis->AddShape(sphere);
+    ball->AddVisualModel(ball_vis);
 
-    msystem.AddBody(ball);
+    sys.AddBody(ball);
 
     // Create container
     auto bin = chrono_types::make_shared<ChBody>(collision_type);
@@ -139,39 +116,48 @@ int main(int argc, char* argv[]) {
     bin->SetBodyFixed(true);
 
     bin->GetCollisionModel()->ClearModel();
-    AddWall(bin, ChVector<>(width, thickness, length), ChVector<>(0, 0, 0), material);
-    ////AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(-width + thickness, height, 0), material);
-    ////AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(width - thickness, height, 0), material);
-    ////AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, -length + thickness), material);
-    ////AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness), material);
+    bin->GetCollisionModel()->AddBox(material, width, thickness, length);
     bin->GetCollisionModel()->BuildModel();
 
-    msystem.AddBody(bin);
+    auto box = chrono_types::make_shared<ChBoxShape>();
+    box->GetBoxGeometry().Size = ChVector<>(width, thickness, length);
+    box->SetColor(ChColor(0.8f, 0.2f, 0.2f));
+    box->SetOpacity(0.8f);
 
-    // Complete asset construction
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    auto bin_vis = chrono_types::make_shared<ChVisualModel>();
+    bin_vis->AddShape(box, ChFrame<>());
+    bin->AddVisualModel(bin_vis);
+
+    sys.AddBody(bin);
+
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("SMC demonstration");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0, 3, -6));
+    sys.SetVisualSystem(vis);
 
     // The soft-real-time cycle
     double time = 0.0;
     double out_time = 0.0;
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        application.DrawAll();
-
-        tools::drawGrid(application.GetVideoDriver(), 0.2, 0.2, 20, 20,
-                             ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
-                             video::SColor(255, 80, 100, 100), true);
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        tools::drawGrid(vis->GetVideoDriver(), 0.2, 0.2, 20, 20,
+                        ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)), video::SColor(255, 80, 100, 100),
+                        true);
+        vis->EndScene();
 
         while (time < out_time) {
-            msystem.DoStepDynamics(time_step);
+            sys.DoStepDynamics(time_step);
             time += time_step;
         }
         out_time += out_step;
-
-        application.EndScene();
     }
 
     return 0;

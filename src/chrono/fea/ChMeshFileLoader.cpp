@@ -705,16 +705,15 @@ void ChMeshFileLoader::BSTShellFromObjFile(
     ChVector<> pos_transform,                               // optional displacement of imported mesh
     ChMatrix33<> rot_transform                              // optional rotation/scaling of imported mesh
 ) {
-    auto mmesh = geometry::ChTriangleMeshConnected();
-    mmesh.LoadWavefrontMesh(std::string(filename), false, false);
+    auto mmesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(std::string(filename), false, false);
+    const auto& v_indices = mmesh->m_face_v_indices;
 
     std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;
-    mmesh.ComputeWingedEdges(winged_edges);
+    mmesh->ComputeWingedEdges(winged_edges);
 
     std::vector<std::shared_ptr<ChNodeFEAxyz>> shapenodes;
-
-    for (size_t i = 0; i < mmesh.m_vertices.size(); i++) {
-        ChVector<double> pos = mmesh.m_vertices[i];
+    for (size_t i = 0; i < mmesh->m_vertices.size(); i++) {
+        ChVector<double> pos = mmesh->m_vertices[i];
         pos = rot_transform * pos;
         pos += pos_transform;
         auto mnode = chrono_types::make_shared<ChNodeFEAxyz>();
@@ -723,10 +722,10 @@ void ChMeshFileLoader::BSTShellFromObjFile(
         shapenodes.push_back(mnode);  // for future reference when adding faces
     }
 
-    for (size_t j = 0; j < mmesh.m_face_v_indices.size(); j++) {
-        int i0 = mmesh.m_face_v_indices[j][0];
-        int i1 = mmesh.m_face_v_indices[j][1];
-        int i2 = mmesh.m_face_v_indices[j][2];
+    for (size_t j = 0; j < v_indices.size(); j++) {
+        int i0 = v_indices[j][0];
+        int i1 = v_indices[j][1];
+        int i2 = v_indices[j][2];
         // GetLog() << "nodes 012 ids= " << i0 << " " << i1 << " " << i2 << " " << "\n";
 
         std::pair<int, int> medge0(i1, i2);
@@ -748,8 +747,8 @@ void ChMeshFileLoader::BSTShellFromObjFile(
         else
             itri = winged_edges[medge0].second;
         for (int vi = 0; vi < 3; ++vi) {
-            if (mmesh.m_face_v_indices[itri][vi] != medge0.first && mmesh.m_face_v_indices[itri][vi] != medge0.second)
-                ivert = mmesh.m_face_v_indices[itri][vi];
+            if (v_indices[itri][vi] != medge0.first && v_indices[itri][vi] != medge0.second)
+                ivert = v_indices[itri][vi];
         }
         if (ivert != -1)
             node3 = shapenodes[ivert];
@@ -761,8 +760,8 @@ void ChMeshFileLoader::BSTShellFromObjFile(
         else
             itri = winged_edges[medge1].second;
         for (int vi = 0; vi < 3; ++vi) {
-            if (mmesh.m_face_v_indices[itri][vi] != medge1.first && mmesh.m_face_v_indices[itri][vi] != medge1.second)
-                ivert = mmesh.m_face_v_indices[itri][vi];
+            if (v_indices[itri][vi] != medge1.first && v_indices[itri][vi] != medge1.second)
+                ivert = v_indices[itri][vi];
         }
         if (ivert != -1)
             node4 = shapenodes[ivert];
@@ -774,8 +773,8 @@ void ChMeshFileLoader::BSTShellFromObjFile(
         else
             itri = winged_edges[medge2].second;
         for (int vi = 0; vi < 3; ++vi) {
-            if (mmesh.m_face_v_indices[itri][vi] != medge2.first && mmesh.m_face_v_indices[itri][vi] != medge2.second)
-                ivert = mmesh.m_face_v_indices[itri][vi];
+            if (v_indices[itri][vi] != medge2.first && v_indices[itri][vi] != medge2.second)
+                ivert = v_indices[itri][vi];
         }
         if (ivert != -1)
             node5 = shapenodes[ivert];

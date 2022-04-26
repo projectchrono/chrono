@@ -24,7 +24,7 @@
 
 #include "chrono/fea/ChElementHexaANCF_3813_9.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChWorldFrame.h"
@@ -243,12 +243,13 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(m_mesh);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.995);
     mvisualizemesh->SetSmoothFaces(false);
-    m_mesh->AddAsset(mvisualizemesh);
+    m_mesh->AddVisualShapeFEA(mvisualizemesh);
 }
+
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -1,12 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Lijing Yang
+# Copyright (c) 2019 projectchrono.org
+# All rights reserved.
 #
-# Created:     6/12/2020
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 
 import pychrono.core as chrono
@@ -27,14 +29,12 @@ class MyObstacle:
         self.radius = r
         self.center = pos
     def GetVisualization(self):
-        level = chrono.ChAssetLevel()
         cyl = chrono.ChCylinderShape()
         cyl.GetCylinderGeometry().rad = self.radius
         cyl.GetCylinderGeometry().p1 = self.center + chrono.ChVectorD(0, 0, 0)
         cyl.GetCylinderGeometry().p2 = self.center + chrono.ChVectorD(0, 1.1, 0)
-        level.AddAsset(cyl)
-        level.AddAsset(chrono.ChColorAsset(0.6, 0.3, 0.0))
-        return level
+        cyl.SetColor(chrono.ChColor(0.6, 0.3, 0.0))
+        return cyl
 
 # Custom collision detection callback class
 class MyCustomCollisionDetection(chrono.CustomCollisionCallback):
@@ -90,7 +90,7 @@ class MyCustomCollisionDetection(chrono.CustomCollisionCallback):
 
 # ---------------------------------------------------------------------
 #
-#  Create the simulation system and add items
+#  Create the simulation sys and add items
 #
 
 # Change use_NSC to specify different contact method
@@ -101,7 +101,7 @@ obst_radius = 2.0
 obst_center = chrono.ChVectorD(2.9, 0, 2.9)
 obstacle = MyObstacle(obst_radius, obst_center)
 
-# Create the system and the various contact materials
+# Create the sys and the various contact materials
 if use_NSC:
     sys = chrono.ChSystemNSC()
     g_mat = chrono.ChMaterialSurfaceNSC()
@@ -157,35 +157,36 @@ ground.GetCollisionModel().AddBox(ground_mat, 5.1, 1.0, 0.1, chrono.ChVectorD(0,
 ground.GetCollisionModel().AddBox(ground_mat, 5.1, 1.0, 0.1, chrono.ChVectorD(0, 1,  5))
 ground.GetCollisionModel().BuildModel()
 
+ground_vis_mat = chrono.ChVisualMaterial()
+ground_vis_mat.SetKdTexture(chrono.GetChronoDataFile("textures/blue.png"))
+
 vshape_1 = chrono.ChBoxShape()
 vshape_1.GetBoxGeometry().SetLengths(chrono.ChVectorD(10, 2, 10))
-vshape_1.GetBoxGeometry().Pos = chrono.ChVectorD(0, -1, 0)
-ground.AddAsset(vshape_1)
+vshape_1.SetMaterial(0, ground_vis_mat)
+ground.AddVisualShape(vshape_1, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0)))
 
 vshape_2 = chrono.ChBoxShape()
 vshape_2.GetBoxGeometry().SetLengths(chrono.ChVectorD(0.2, 2, 10.2))
-vshape_2.GetBoxGeometry().Pos = chrono.ChVectorD(-5, 0, 0)
-ground.AddAsset(vshape_2)
+vshape_2.SetMaterial(0, ground_vis_mat)
+ground.AddVisualShape(vshape_2, chrono.ChFrameD(chrono.ChVectorD(-5, 0, 0)))
 
 vshape_3 = chrono.ChBoxShape()
 vshape_3.GetBoxGeometry().SetLengths(chrono.ChVectorD(0.2, 2, 10.2))
-vshape_3.GetBoxGeometry().Pos = chrono.ChVectorD(5, 0, 0)
-ground.AddAsset(vshape_3)
+vshape_3.SetMaterial(0, ground_vis_mat)
+ground.AddVisualShape(vshape_3, chrono.ChFrameD(chrono.ChVectorD(5, 0, 0)))
 
 vshape_4 = chrono.ChBoxShape()
 vshape_4.GetBoxGeometry().SetLengths(chrono.ChVectorD(10.2, 2, 0.2))
-vshape_4.GetBoxGeometry().Pos = chrono.ChVectorD(0, 0, -5)
-ground.AddAsset(vshape_4)
+vshape_4.SetMaterial(0, ground_vis_mat)
+ground.AddVisualShape(vshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 0, -5)))
 
 vshape_5 = chrono.ChBoxShape()
 vshape_5.GetBoxGeometry().SetLengths(chrono.ChVectorD(10.2, 2, 0.2))
-vshape_5.GetBoxGeometry().Pos = chrono.ChVectorD(0, 0, 5)
-ground.AddAsset(vshape_5)
+vshape_5.SetMaterial(0, ground_vis_mat)
+ground.AddVisualShape(vshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 0, 5)))
 
-ground.AddAsset(chrono.ChTexture(chrono.GetChronoDataFile("textures/blue.png")))
-
-# Add obstacle visualization (in a separate level with a different color).
-ground.AddAsset(obstacle.GetVisualization())
+# Add obstacle visualization
+ground.AddVisualShape(obstacle.GetVisualization())
 
 # Create the falling ball
 ball = chrono.ChBody()
@@ -204,37 +205,28 @@ ball.GetCollisionModel().BuildModel()
 vshape_s = chrono.ChSphereShape()
 vshape_s.GetSphereGeometry().rad = ball_radius
 vshape_s.GetSphereGeometry().Pos = ball.GetPos()
-ball.AddAsset(vshape_s)
-ball.AddAsset(chrono.ChTexture(chrono.GetChronoDataFile("textures/bluewhite.png")))
+vshape_s.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
+ball.AddVisualShape(vshape_s)
 
-# Create a custom collision detection callback object and register it with the system
+# Create a custom collision detection callback object and register it with the sys
 my_collision = MyCustomCollisionDetection(ball, ground, ball_mat, obst_mat, ball_radius, obstacle)
 sys.RegisterCustomCollisionCallback(my_collision)
 
 
 # ---------------------------------------------------------------------
 #
-#  Create an Irrlicht application to visualize the system
+#  Create an Irrlicht application to visualize the sys
 #
 
-myapplication = chronoirr.ChIrrApp(sys, 'PyChrono example: Custom contact', chronoirr.dimension2du(1024,768))
-
-myapplication.AddSkyBox()
-myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddCamera(chronoirr.vector3df(8, 8, -6))
-myapplication.AddTypicalLights()
-
-# ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-# If you need a finer control on which item really needs a visualization proxy in
-# Irrlicht, just use application.AssetBind(myitem) on a per-item basis.
-
-myapplication.AssetBindAll()
-
-# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-myapplication.AssetUpdateAll()
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Custom contact demo')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(8, 8, -6))
+vis.AddTypicalLights()
 
 
 # ---------------------------------------------------------------------
@@ -242,16 +234,13 @@ myapplication.AssetUpdateAll()
 #  Run the simulation
 #
 
-myapplication.SetTimestep(1e-4)
-myapplication.SetTryRealtime(True)
-
 frame = 0
-while(myapplication.GetDevice().run()):
+while vis.Run():
     if frame % 100 == 0:
-        myapplication.BeginScene()
-        myapplication.DrawAll()
-        myapplication.EndScene()
-    myapplication.DoStep()
+        vis.BeginScene() 
+        vis.DrawAll()
+        vis.EndScene()
+    sys.DoStepDynamics(1e-4)
     frame += 1
 
 

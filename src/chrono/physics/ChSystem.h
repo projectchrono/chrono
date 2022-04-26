@@ -42,8 +42,10 @@
 namespace chrono {
 
 // Forward references
-namespace modal { class ChModalAssembly; }
-
+class ChVisualSystem;
+namespace modal {
+class ChModalAssembly;
+}
 
 /// Physical system.
 ///
@@ -84,9 +86,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Concrete derived classes must implement this.
     virtual ChSystem* Clone() const = 0;
 
-    //
-    // PROPERTIES
-    //
+    /// Attach a visualization system.
+    void SetVisualSystem(std::shared_ptr<ChVisualSystem> vsys);
+
+    /// Get the associated visualization system (if any).
+    std::shared_ptr<ChVisualSystem> GetVisualSystem() const { return visual_system; }
 
     /// Sets the time step used for integration (dynamical simulation).
     /// The lower this value, the more precise the simulation. Usually, values
@@ -96,6 +100,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
         if (m_step > 0)
             step = m_step;
     }
+
     /// Gets the current time step used for the integration (dynamical simulation).
     double GetStep() const { return step; }
 
@@ -114,6 +119,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
         if (m_step_max > step_min)
             step_max = m_step_max;
     }
+
     /// Gets the upper limit for time step
     double GetStepMax() const { return step_max; }
 
@@ -140,6 +146,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Sets outer iteration limit for assembly constraints. When trying to keep constraints together,
     /// the iterative process is stopped if this max.number of iterations (or tolerance) is reached.
     void SetMaxiter(int m_maxiter) { maxiter = m_maxiter; }
+
     /// Gets iteration limit for assembly constraints.
     int GetMaxiter() const { return maxiter; }
 
@@ -703,7 +710,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Change the underlying collision system.
     /// By default, a ChSystem uses a Bullet-based collision detection engine.
-    virtual void SetCollisionSystem(std::shared_ptr<collision::ChCollisionSystem> newcollsystem);
+    virtual void SetCollisionSystem(std::shared_ptr<collision::ChCollisionSystem> coll_sys);
 
     /// Access the underlying collision system.
     /// Usually this is not needed, as the collision system is automatically handled by the ChSystem.
@@ -963,6 +970,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     collision::ChCollisionSystemType collision_system_type;                     ///< type of the collision engine
     std::shared_ptr<collision::ChCollisionSystem> collision_system;             ///< collision engine
+    std::shared_ptr<ChVisualSystem> visual_system;                              ///< run-time visualization engine
     std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;  ///< user-defined collision callbacks
     std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;        /// material composition strategy
 
@@ -996,10 +1004,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     friend class ChContactContainerNSC;
     friend class ChContactContainerSMC;
-    
-    //#ifdef CHRONO_MODAL
-        friend class modal::ChModalAssembly;
-    //#endif
+
+    friend class ChVisualSystem;
+
+    friend class modal::ChModalAssembly;
 };
 
 CH_CLASS_VERSION(ChSystem, 0)

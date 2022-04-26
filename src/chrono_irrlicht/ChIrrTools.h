@@ -19,6 +19,8 @@
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/motion_functions/ChFunction_Base.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -27,15 +29,19 @@
 namespace irr {
 namespace core {
 
-/// Utility class to easily convert a Chrono vector into an Irrlicht vector3df.
+/// Utility class to convert a Chrono vector into an Irrlicht vector3df.
 class ChApiIrr vector3dfCH : public vector3df {
   public:
-    vector3dfCH(const chrono::ChVector<>& mch) {
-        X = ((f32)mch.x());
-        Y = ((f32)mch.y());
-        Z = ((f32)mch.z());
-    }
+    vector3dfCH(const chrono::ChVector<>& mch);
 };
+
+/// Utility class to convert a Chrono frame into an Irrlicht transform.
+class ChApiIrr matrix4CH : public matrix4 {
+  public:
+    matrix4CH(const chrono::ChCoordsys<>& csys);
+    matrix4CH(const chrono::ChFrame<>& frame);
+};
+
 
 }  // end namespace core
 }  // end namespace irr
@@ -87,8 +93,18 @@ enum class IrrLinkLabelMode {
 
 namespace tools {
 
-/// Align an Irrlicht object to a Chrono coordsys.
-ChApiIrr void alignIrrlichtNodeToChronoCsys(irr::scene::ISceneNode* mnode, const ChCoordsys<>& mcoords);
+/// Convert a ChColor to an Irrlicht SColorf.
+ChApiIrr irr::video::SColorf ToIrrlichtSColorf(const ChColor& col);
+
+/// Convert an RGB set and an opacity value to an Irrlicht SColor.
+ChApiIrr irr::video::SColor ToIrrlichtSColor(const ChColor& col, float alpha = 1.0);
+
+/// Convert a ChVisualMaterial to an Irrlicht material.
+ChApiIrr irr::video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat,
+                                                 irr::video::IVideoDriver* driver);
+
+/// Align an Irrlicht object to a the specified coordinate system.
+ChApiIrr void alignIrrlichtNode(irr::scene::ISceneNode* mnode, const ChCoordsys<>& mcoords);
 
 /// Draw contact points used by a ChSystem in the current Irrlicht viewer.
 /// The contact points are visually represented with short lines, of length mlen, aligned to contact normals.
@@ -104,25 +120,25 @@ ChApiIrr int drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontactco
                                   irr::video::SColor mcol = irr::video::SColor(255, 255, 255, 255));
 
 /// Draw reaction forces in all contacts in current Irrlicht viewer.
-ChApiIrr int drawAllLinks(ChSystem& mphysicalSystem,
+ChApiIrr int drawAllLinks(ChSystem& sys,
                           irr::video::IVideoDriver* driver,
                           double mlen = 1.0,
                           IrrLinkDrawMode drawtype = IrrLinkDrawMode::LINK_REACT_FORCE);
 
 /// Draw contact informations as labels at the contact point.
-ChApiIrr int drawAllLinkLabels(ChSystem& mphysicalSystem,
+ChApiIrr int drawAllLinkLabels(ChSystem& sys,
                                irr::IrrlichtDevice* device,
                                IrrLinkLabelMode labeltype = IrrLinkLabelMode::LINK_REACT_FORCE_X,
                                irr::video::SColor mcol = irr::video::SColor(255, 255, 255, 255));
 
 /// Draw collision objects bounding boxes for rigid bodies (if they have a collision shape).
-ChApiIrr int drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver);
+ChApiIrr int drawAllBoundingBoxes(ChSystem& sys, irr::video::IVideoDriver* driver);
 
 /// Draw coordinate systems of ChBody objects.
-ChApiIrr int drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale = 0.01);
+ChApiIrr int drawAllCOGs(ChSystem& sys, irr::video::IVideoDriver* driver, double scale = 0.01);
 
 /// Draw coordinate systems of link frames.
-ChApiIrr int drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale = 0.01);
+ChApiIrr int drawAllLinkframes(ChSystem& sys, irr::video::IVideoDriver* driver, double scale = 0.01);
 
 ChApiIrr void drawHUDviolation(irr::video::IVideoDriver* driver,
                                irr::IrrlichtDevice* mdevice,

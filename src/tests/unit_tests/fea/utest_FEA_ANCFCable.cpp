@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     fileMid.close();
 
     // Create a Chrono::Engine physical system
-    ChSystemNSC my_system;
+    ChSystemNSC sys;
     unsigned int num_steps = 200;
     utils::Data m_data;  // Matrices to store data
 
@@ -136,10 +136,10 @@ int main(int argc, char* argv[]) {
 
     auto constraint_hinge = chrono_types::make_shared<ChLinkPointFrame>();
     constraint_hinge->Initialize(hnodeancf1, mtruss);
-    my_system.Add(constraint_hinge);
+    sys.Add(constraint_hinge);
 
     // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
     // Set Angular velocity initial condition
     hnodeancf1->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 0.0));
@@ -150,21 +150,21 @@ int main(int argc, char* argv[]) {
 
     // Change solver settings
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(200);
     solver->SetTolerance(1e-15);
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(false);
 
-    my_system.SetSolverForceTolerance(1e-14);
+    sys.SetSolverForceTolerance(1e-14);
 
     // Change type of integrator:
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    //  my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    //  sys.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step
 
     // if later you want to change integrator settings:
-    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
+    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
         mystepper->SetAlpha(0.0);
         mystepper->SetMaxiters(60);
         mystepper->SetAbsTolerances(1e-14);
@@ -178,8 +178,8 @@ int main(int argc, char* argv[]) {
          m_data[col].resize(num_steps);*/
 
     for (unsigned int it = 0; it < num_steps; it++) {
-        my_system.DoStepDynamics(0.0001);
-        std::cout << "Time t = " << my_system.GetChTime() << "s \n";
+        sys.DoStepDynamics(0.0001);
+        std::cout << "Time t = " << sys.GetChTime() << "s \n";
         // Checking midpoint and tip Y displacement
         double AbsVal = std::abs(hnodeancf3->GetPos().y() - FileInputMat(it, 4));
         double AbsVal2 = std::abs(hnodeancf5->GetPos().z() - FileInputMat(it, 6));
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Unit test check succeeded \n";
     /*
     // This code snippet creates the benchmark file.
-    m_data[0][it] = my_system.GetChTime();
+    m_data[0][it] = sys.GetChTime();
     m_data[1][it] = hnodeancf1->GetD().x(),
     m_data[2][it] = hnodeancf1->GetD().y();
     m_data[3][it] = hnodeancf1->GetD().z();
@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
     csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << m_data[3][it] << m_data[4][it] << m_data[5][it] <<
     m_data[6][it] << std::endl;
     // Advance system state
-    std::cout << "Time t = " << my_system.GetChTime() << "s \n";
+    std::cout << "Time t = " << sys.GetChTime() << "s \n";
     csv.write_to_file("UT_ANCFBeam.txt"); */
 
     return 0;

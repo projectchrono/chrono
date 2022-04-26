@@ -51,26 +51,22 @@ class ChParticleEventTriggerNever : public ChParticleEventTrigger {
     virtual bool TriggerEvent(std::shared_ptr<ChBody> mbody, ChSystem& msystem) { return false; }
 };
 
-/// This can be used to trigger events when particles are
-/// inside a box volume. Event is triggered all the times
-/// that the particle processor is run, not only the 1st time
-/// that particle enters the volume.
-/// Only the center of gravity of particle is taken
-/// into consideration, regardless of its size.
+/// Event trigger for particles inside a box volume.
+/// The event is triggered every time that the particle processor is run, not only the 1st time that particle enters the volume.
+/// Only the center of gravity of particle is taken into consideration, regardless of its size.
 class ChParticleEventTriggerBox : public ChParticleEventTrigger {
   public:
     ChParticleEventTriggerBox() { invert_volume = false; }
 
-    /// This function triggers the a particle event according to the fact
-    /// the the particle is inside a box.
+    /// This function triggers the a particle event according to the fact the the particle is inside a box.
     /// If SetTriggerOutside(true), viceversa triggers event outside the box.
     virtual bool TriggerEvent(std::shared_ptr<ChBody> mbody, ChSystem& msystem) {
         ChVector<> particle_pos = mbody->GetPos();
 
-        ChVector<> localpos = mbox.Pos + mbox.Rot * particle_pos;
+        ChVector<> pos = m_frame.TransformPointParentToLocal(particle_pos);
 
-        if (((fabs(localpos.x()) < mbox.Size.x()) && (fabs(localpos.y()) < mbox.Size.y()) && (fabs(localpos.z()) < mbox.Size.z())) ^
-            invert_volume)  // XOR
+        if (((fabs(pos.x()) < m_box.Size.x()) && (fabs(pos.y()) < m_box.Size.y()) && (fabs(pos.z()) < m_box.Size.z())) ^
+            invert_volume)
             return true;
         else
             return false;
@@ -78,7 +74,8 @@ class ChParticleEventTriggerBox : public ChParticleEventTrigger {
 
     void SetTriggerOutside(bool minvert) { invert_volume = minvert; }
 
-    geometry::ChBox mbox;
+    geometry::ChBox m_box;  ///< box volume
+    ChFrame<> m_frame;      ///< box position and orientation
 
   protected:
     bool invert_volume;

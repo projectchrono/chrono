@@ -361,7 +361,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
             body->SetBodyFixed(true);
             auto sph = chrono_types::make_shared<ChSphereShape>();
             sph->GetSphereGeometry().rad = m_radius_g;
-            body->AddAsset(sph);
+            body->AddVisualShape(sph);
             m_system->AddBody(body);
         }
     }
@@ -396,9 +396,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
-        trimesh_shape->Pos = ChVector<>(0, 0, 0);
-        trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-        body->GetAssets().push_back(trimesh_shape);
+        body->AddVisualShape(trimesh_shape, ChFrame<>());
 
         m_system->AddBody(body);   
 
@@ -660,9 +658,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateWheelProxy(unsigned int i) {
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("wheel_" + std::to_string(i));
-    trimesh_shape->Pos = ChVector<>(0, 0, 0);
-    trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-    body->GetAssets().push_back(trimesh_shape);
+    body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     // Add collision shape (only if obstacles are present)
     auto material_tire = m_mat_props[i].CreateMaterial(m_method);

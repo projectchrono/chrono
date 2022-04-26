@@ -137,7 +137,7 @@ ContactForceTest::ContactForceTest() {
         auto sphere = chrono_types::make_shared<ChSphereShape>();
         sphere->GetSphereGeometry().rad = radius;
         sphere->SetColor(ChColor(1, 0, 1));
-        ball->AddAsset(sphere);
+        ball->AddVisualShape(sphere);
 
         system->AddBody(ball);
         balls[i] = ball;

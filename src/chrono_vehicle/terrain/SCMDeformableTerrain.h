@@ -24,7 +24,6 @@
 #include <ostream>
 #include <unordered_map>
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLoadContainer.h"
@@ -143,8 +142,8 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
 
     /// Set texture properties.
     void SetTexture(const std::string tex_file,  ///< [in] texture filename
-                    float tex_scale_x = 1,       ///< [in] texture scale in X
-                    float tex_scale_y = 1        ///< [in] texture scale in Y
+                    float scale_x = 1,           ///< [in] texture X scale
+                    float scale_y = 1            ///< [in] texture Y scale
     );
 
     /// Add a new moving patch.
@@ -290,6 +289,8 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
 
     /// Print timing and counter information for last step.
     void PrintStepStatistics(std::ostream& os) const;
+
+    std::shared_ptr<SCMDeformableSoil> GetGroundObject() const { return m_ground; }
 
   private:
     std::shared_ptr<SCMDeformableSoil> m_ground;  ///< underlying load container for contact force generation
@@ -521,7 +522,6 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     double m_test_offset_up;    // offset for ray end
 
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  // mesh visualization asset
-    std::shared_ptr<ChColorAsset> m_color;                 // mesh edge default color
 
     // SCM parameters
     double m_Bekker_Kphi;    ///< frictional modulus in Bekker model

@@ -1,12 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 # Authors: Simone Benatti
@@ -18,6 +18,7 @@
 # Y pointing to the left.
 #
 # =============================================================================
+
 import pychrono.core as chrono
 import pychrono.irrlicht as irr
 import pychrono.vehicle as veh
@@ -113,16 +114,18 @@ patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
 terrain.Initialize()
 
 # Create the vehicle Irrlicht interface
-app = veh.ChWheeledVehicleIrrApp(my_bus.GetVehicle(), 'Citybus')
-app.AddTypicalLights()
-app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-app.SetChaseCamera(trackPoint, 15.0, 0.5)
-app.SetTimestep(step_size)
-app.AssetBindAll()
-app.AssetUpdateAll()
+vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+my_bus.GetVehicle().SetVisualSystem(vis)
+vis.SetWindowTitle('Citybus')
+vis.SetWindowSize(1280, 1024)
+vis.SetChaseCamera(trackPoint, 15.0, 0.5)
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddTypicalLights()
+vis.AddSkyBox()
 
 # Create the driver system
-driver = veh.ChIrrGuiDriver(app)
+driver = veh.ChIrrGuiDriver(vis)
 
 # Set the time response for steering and throttle keyboard inputs.
 steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
@@ -149,7 +152,7 @@ realtime_timer = chrono.ChRealtimeStepTimer()
 step_number = 0
 render_frame = 0
 
-while (app.GetDevice().run()) :
+while vis.Run() :
     time = my_bus.GetSystem().GetChTime()
 
     # End simulation
@@ -158,9 +161,9 @@ while (app.GetDevice().run()) :
 
     # Render scene and output POV-Ray data
     if (step_number % render_steps == 0) :
-        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-        app.DrawAll()
-        app.EndScene()
+        vis.BeginScene()
+        vis.DrawAll()
+        vis.EndScene()
         render_frame += 1
     
     # Get driver inputs
@@ -170,18 +173,16 @@ while (app.GetDevice().run()) :
     driver.Synchronize(time)
     terrain.Synchronize(time)
     my_bus.Synchronize(time, driver_inputs, terrain)
-    app.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+    vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
 
     # Advance simulation for one timestep for all modules
     driver.Advance(step_size)
     terrain.Advance(step_size)
     my_bus.Advance(step_size)
-    app.Advance(step_size)
+    vis.Advance(step_size)
 
     # Increment frame number
     step_number += 1
 
     # Spin in place for real time to catch up
     realtime_timer.Spin(step_size)
-
-del app

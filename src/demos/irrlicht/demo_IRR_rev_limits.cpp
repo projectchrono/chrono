@@ -27,7 +27,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -37,13 +37,13 @@ using namespace irr;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    ChSystemNSC system;
+    ChSystemNSC sys;
 
     // Create the ground body
     // ----------------------
 
     auto ground = chrono_types::make_shared<ChBody>();
-    system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
@@ -52,13 +52,13 @@ int main(int argc, char* argv[]) {
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0.2);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -0.2);
     cyl->GetCylinderGeometry().rad = 0.04;
-    ground->AddAsset(cyl);
+    ground->AddVisualShape(cyl);
 
     // Create a pendulum body
     // ----------------------
 
     auto pend = chrono_types::make_shared<ChBody>();
-    system.AddBody(pend);
+    sys.AddBody(pend);
     pend->SetIdentifier(1);
     pend->SetBodyFixed(false);
     pend->SetCollide(false);
@@ -73,17 +73,14 @@ int main(int argc, char* argv[]) {
     cyl_p->GetCylinderGeometry().p1 = ChVector<>(-1.46, 0, 0);
     cyl_p->GetCylinderGeometry().p2 = ChVector<>(1.46, 0, 0);
     cyl_p->GetCylinderGeometry().rad = 0.2;
-    pend->AddAsset(cyl_p);
-
-    auto col_p = chrono_types::make_shared<ChColorAsset>();
-    col_p->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddAsset(col_p);
+    cyl_p->SetColor(ChColor(0.6f, 0, 0));
+    pend->AddVisualShape(cyl_p);
 
     // Create a revolute joint to connect pendulum to ground
     // -----------------------------------------------------
 
     auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
-    system.AddLink(rev);
+    sys.AddLink(rev);
 
     // Add limits to the Z rotation of the revolute joint
     double min_angle = 0;
@@ -92,39 +89,40 @@ int main(int argc, char* argv[]) {
     rev->GetLimit_Rz().SetMin(min_angle);
     rev->GetLimit_Rz().SetMax(max_angle);
 
-    // Initialize the joint specifying a coordinate system (expressed in the absolute frame).
+    // Initialize the joint specifying a coordinate sys (expressed in the absolute frame).
     rev->Initialize(ground, pend, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
 
     // Create the Irrlicht application
     // -------------------------------
 
-    ChIrrApp application(&system, L"Limits on LinkLockRevolute demo", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(-2, 1.5, 5));
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Limits on LinkLockRevolute demo");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(-2, 1.5, 5));
+    vis->AddTypicalLights();
+    vis->EnableLinkFrameDrawing(true);
 
     // Simulation loop
     // ---------------
 
-    application.SetTimestep(0.001);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
-    system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
         ChVector<> p0(0, 0, 0);
         ChVector<> p1(std::cos(min_angle), -std::sin(min_angle), 0);
         ChVector<> p2(std::cos(max_angle), -std::sin(max_angle), 0);
-        tools::drawSegment(application.GetVideoDriver(), p0, p0 + 4.0 * p1, video::SColor(255, 255, 150, 0), true);
-        tools::drawSegment(application.GetVideoDriver(), p0, p0 + 4.0 * p2, video::SColor(255, 255, 150, 0), true);
-        tools::drawAllLinkframes(system, application.GetVideoDriver(), 1.0);
-        application.DoStep();
-        application.EndScene();
+        tools::drawSegment(vis->GetVideoDriver(), p0, p0 + 4.0 * p1, video::SColor(255, 255, 150, 0), true);
+        tools::drawSegment(vis->GetVideoDriver(), p0, p0 + 4.0 * p2, video::SColor(255, 255, 150, 0), true);
+        vis->EndScene();
+
+        sys.DoStepDynamics(1e-3);
     }
 
     return 0;

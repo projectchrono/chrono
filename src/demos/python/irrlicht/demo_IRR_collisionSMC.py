@@ -1,12 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Lijing Yang
+# Copyright (c) 2019 projectchrono.org
+# All rights reserved.
 #
-# Created:     6/10/2020
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 
 import pychrono.core as chrono
@@ -42,11 +44,8 @@ def AddFallingItems(sys):
 
             sphere = chrono.ChSphereShape()
             sphere.GetSphereGeometry().rad = radius
-            body.AddAsset(sphere)
-
-            texture = chrono.ChTexture()
-            texture.SetTextureFilename(chrono.GetChronoDataFile("textures/bluewhite.png"))
-            body.AddAsset(texture)
+            sphere.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
+            body.AddVisualShape(sphere)
 
             sys.AddBody(body)
 
@@ -65,11 +64,8 @@ def AddFallingItems(sys):
 
             box = chrono.ChBoxShape()
             box.GetBoxGeometry().Size = hsize
-            body.AddAsset(box)
-
-            texture = chrono.ChTexture()
-            texture.SetTextureFilename(chrono.GetChronoDataFile("textures/pinkwhite.png"))
-            body.AddAsset(texture)
+            box.SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"))
+            body.AddVisualShape(box)
 
             sys.AddBody(body)
 
@@ -78,9 +74,9 @@ def AddContainerWall(body, mat, size, pos, visible=True):
     body.GetCollisionModel().AddBox(mat, hsize.x, hsize.y, hsize.z, pos)
     if visible:
         box = chrono.ChBoxShape()
-        box.GetBoxGeometry().Pos = pos
         box.GetBoxGeometry().Size = hsize
-        body.AddAsset(box)
+        box.SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
+        body.AddVisualShape(box, chrono.ChFrameD(pos))
 
 def AddContainer(sys):
     # The fixed body (5 walls)
@@ -101,10 +97,6 @@ def AddContainer(sys):
     AddContainerWall(fixedBody, fixed_mat, chrono.ChVectorD(20.99, 10, 1), chrono.ChVectorD(0, 0, -10), False)
     AddContainerWall(fixedBody, fixed_mat, chrono.ChVectorD(20.99, 10, 1), chrono.ChVectorD(0, 0, 10))
     fixedBody.GetCollisionModel().BuildModel()
-
-    texture = chrono.ChTexture()
-    texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
-    fixedBody.AddAsset(texture)
 
     sys.AddBody(fixedBody)
 
@@ -127,9 +119,7 @@ def AddContainer(sys):
 
     box = chrono.ChBoxShape()
     box.GetBoxGeometry().Size = hsize
-    rotatingBody.AddAsset(box)
-
-    rotatingBody.AddAsset(texture)
+    rotatingBody.AddVisualShape(box)
 
     sys.AddBody(rotatingBody)
 
@@ -149,65 +139,47 @@ def AddContainer(sys):
 
 # ---------------------------------------------------------------------
 #
-#  Create the simulation system and add items
+#  Create the simulation sys and add items
 #
 
-mysystem  = chrono.ChSystemSMC()
+sys  = chrono.ChSystemSMC()
 
 # Simulation and rendering time-step
 time_step = 1e-4
 out_step  = 1.0 / 20
 
-# ---------------------------------------------------------------------
-#
-#  Create an Irrlicht application to visualize the system
-#
-
-myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example: Collisions between objects', chronoirr.dimension2du(1024,768))
-
-myapplication.AddSkyBox()
-myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddCamera(chronoirr.vector3df(0, 18, -20))
-myapplication.AddTypicalLights()
-
 # Add fixed and moving bodies
-mixer = AddContainer(mysystem)
-AddFallingItems(mysystem)
+mixer = AddContainer(sys)
+AddFallingItems(sys)
 
-# ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-# If you need a finer control on which item really needs a visualization proxy in
-# Irrlicht, just use application.AssetBind(myitem) on a per-item basis.
-
-myapplication.AssetBindAll()
-
-# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-myapplication.AssetUpdateAll()
-
-# ---------------------------------------------------------------------
-#
-#  Run the simulation
-#
+# Create the Irrlicht visualization
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Collisions between objects')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0, 18, -20))
+vis.AddTypicalLights()
 
 # Simulation loop
 time     = 0.0
 out_time = 0.0
 
-while(myapplication.GetDevice().run()):
-    mysystem.DoStepDynamics(time_step)
-    time = mysystem.GetChTime()
+while vis.Run():
+    sys.DoStepDynamics(time_step)
+    time = sys.GetChTime()
     if (time >= out_time):
-        myapplication.BeginScene()
-        myapplication.DrawAll()
-        myapplication.EndScene()
+        vis.BeginScene() 
+        vis.DrawAll()
+        vis.EndScene()
         out_time += out_step
    
         # print out contact force and torque
         # frc = mixer.GetAppliedForce()
         # trq = mixer.GetAppliedTorque()
-        # print(mysystem.GetChTime())
+        # print(sys.GetChTime())
         # print("force: ", frc)
         # print("torque: ", trq)
 

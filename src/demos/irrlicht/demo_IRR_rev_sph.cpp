@@ -24,7 +24,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -34,14 +34,14 @@ using namespace irr;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    ChSystemNSC system;
-    system.Set_G_acc(ChVector<>(1, -1, 1));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(1, -1, 1));
 
     // Create the ground body
     // ----------------------
 
     auto ground = chrono_types::make_shared<ChBody>();
-    system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
@@ -50,13 +50,13 @@ int main(int argc, char* argv[]) {
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 1.2);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0.8);
     cyl->GetCylinderGeometry().rad = 0.04;
-    ground->AddAsset(cyl);
+    ground->AddVisualShape(cyl);
 
     // Create a pendulum body
     // ----------------------
 
     auto pend = chrono_types::make_shared<ChBody>();
-    system.AddBody(pend);
+    sys.AddBody(pend);
     pend->SetIdentifier(1);
     pend->SetBodyFixed(false);
     pend->SetCollide(false);
@@ -71,22 +71,19 @@ int main(int argc, char* argv[]) {
     cyl_p->GetCylinderGeometry().p1 = ChVector<>(-0.96, 0, 0);
     cyl_p->GetCylinderGeometry().p2 = ChVector<>(0.96, 0, 0);
     cyl_p->GetCylinderGeometry().rad = 0.2;
-    pend->AddAsset(cyl_p);
+    cyl_p->SetColor(ChColor(0.6f, 0, 0));
+    pend->AddVisualShape(cyl_p);
 
     auto sph_p = chrono_types::make_shared<ChSphereShape>();
-    sph_p->Pos = ChVector<>(-1, 0, 0);
     sph_p->GetSphereGeometry().rad = 0.04;
-    pend->AddAsset(sph_p);
-
-    auto col_p = chrono_types::make_shared<ChColorAsset>();
-    col_p->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddAsset(col_p);
+    sph_p->SetColor(ChColor(0.6f, 0, 0));
+    pend->AddVisualShape(sph_p, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
 
     // Create a revolute-spherical joint to connect pendulum to ground.
     auto rev_sph = chrono_types::make_shared<ChLinkRevoluteSpherical>();
-    system.AddLink(rev_sph);
+    sys.AddLink(rev_sph);
 
-    // Initialize the pendulum specifying a coordinate system (expressed in the
+    // Initialize the pendulum specifying a coordinate sys (expressed in the
     // absolute frame) and a distance.
     rev_sph->Initialize(ground, pend, ChCoordsys<>(ChVector<>(0, 0, 1), ChQuaternion<>(1, 0, 0, 0)), 0.5);
 
@@ -97,41 +94,39 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht application
     // -------------------------------
 
-    ChIrrApp application(&system, L"ChLinkRevoluteSpherical demo", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 3, 6));
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("ChLinkRevoluteSpherical demo");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 3, 6));
+    vis->AddTypicalLights();
 
     // Cache for point trajectory plot
     std::vector<ChVector<> > trajectory;
 
     // Simulation loop
-    application.SetTimestep(0.005);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        application.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Render the rev-sph massless link.
-        tools::drawSegment(application.GetVideoDriver(), rev_sph->GetPoint1Abs(), rev_sph->GetPoint2Abs(),
-                                video::SColor(255, 0, 20, 0), true);
+        tools::drawSegment(vis->GetVideoDriver(), rev_sph->GetPoint1Abs(), rev_sph->GetPoint2Abs(),
+                           video::SColor(255, 0, 20, 0), true);
 
         // Render the point trajectory
-        tools::drawPolyline(application.GetVideoDriver(), trajectory, video::SColor(255, 0, 150, 0), false);
+        tools::drawPolyline(vis->GetVideoDriver(), trajectory, video::SColor(255, 0, 150, 0), false);
 
-        application.DoStep();
+        vis->EndScene();
+
+        sys.DoStepDynamics(0.005);
 
         // Add latest point to trajectory. Only keep a buffer of latest 1500 points.
         trajectory.push_back(rev_sph->GetPoint2Abs());
         if (trajectory.size() > 1500)
             trajectory.erase(trajectory.begin());
-
-        application.EndScene();
     }
 
     return 0;

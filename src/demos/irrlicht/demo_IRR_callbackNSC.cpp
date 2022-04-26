@@ -25,9 +25,10 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/physics/ChSystemNSC.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
+using namespace chrono::irrlicht;
 
 // -----------------------------------------------------------------------------
 // Callback class for contact reporting
@@ -46,9 +47,6 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
                                  const ChVector<>& ctorque,
                                  ChContactable* modA,
                                  ChContactable* modB) override {
-
-
-
         // Check if contact involves box1
         if (modA == m_box1.get()) {
             printf("  A contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
@@ -137,8 +135,7 @@ int main(int argc, char* argv[]) {
     container->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(container.get(), material, ChVector<>(4, 0.5, 4), ChVector<>(0, -0.5, 0));
     container->GetCollisionModel()->BuildModel();
-
-    container->AddAsset(chrono_types::make_shared<ChColorAsset>(ChColor(0.4f, 0.4f, 0.4f)));
+    container->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
 
     auto box1 = chrono_types::make_shared<ChBody>();
     box1->SetMass(10);
@@ -151,8 +148,7 @@ int main(int argc, char* argv[]) {
     box1->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(box1.get(), material, ChVector<>(0.4, 0.2, 0.1));
     box1->GetCollisionModel()->BuildModel();
-
-    box1->AddAsset(chrono_types::make_shared<ChColorAsset>(ChColor(0.1f, 0.1f, 0.4f)));
+    box1->GetVisualShape(0)->SetColor(ChColor(0.1f, 0.1f, 0.4f));
 
     system.AddBody(box1);
 
@@ -167,8 +163,7 @@ int main(int argc, char* argv[]) {
     box2->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(box2.get(), material, ChVector<>(0.4, 0.2, 0.1));
     box2->GetCollisionModel()->BuildModel();
-
-    box2->AddAsset(chrono_types::make_shared<ChColorAsset>(ChColor(0.4f, 0.1f, 0.1f)));
+    box2->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.1f, 0.1f));
 
     system.AddBody(box2);
 
@@ -176,14 +171,15 @@ int main(int argc, char* argv[]) {
     // Create the visualization window
     // -------------------------------
 
-    irrlicht::ChIrrApp application(&system, L"NSC callbacks", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(4, 4, -6));
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    system.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("NSC callbacks");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(4, 4, -6));
+    vis->AddTypicalLights();
 
     // ---------------
     // Simulate system
@@ -194,19 +190,17 @@ int main(int argc, char* argv[]) {
     auto cmaterial = chrono_types::make_shared<ContactMaterial>();
     system.GetContactContainer()->RegisterAddContactCallback(cmaterial);
 
-    application.SetTimestep(1e-3);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        application.DrawAll();
-        irrlicht::tools::drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
-                                       ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
-        application.DoStep();
-        application.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        irrlicht::tools::drawGrid(vis->GetVideoDriver(), 0.5, 0.5, 12, 12,
+                                  ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
+        system.DoStepDynamics(1e-3);
+        vis->EndScene();
 
         // Process contacts
         std::cout << system.GetChTime() << "  " << system.GetNcontacts() << std::endl;
-        system.GetContactContainer()->ReportAllContacts(creporter);       
+        system.GetContactContainer()->ReportAllContacts(creporter);
 
         // Cumulative contact force and torque on boxes (as applied to COM)
         ChVector<> frc1 = box1->GetContactForce();

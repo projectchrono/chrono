@@ -25,7 +25,7 @@
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -40,7 +40,6 @@
 // #include "chrono_sensor/filters/ChFilterSave.h"
 // #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
 // #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
-#include "chrono_sensor/utils/ChVisualMaterialUtils.h"
 
 using namespace chrono;
 using namespace chrono::geometry;
@@ -212,24 +211,17 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    auto ground_body = patch->GetGroundBody();
-    auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(ground_body->GetAssets()[0]);
-    auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-    vis_mat->SetKdTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"));
-    vis_mat->SetSpecularColor({.0f, .0f, .0f});
-    vis_mat->SetRoughness(1.f);
-    vis_mat->SetUseSpecularWorkflow(false);
-    visual_asset->material_list.push_back(vis_mat);
-
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"HMMWV Demo");
-    app.AddTypicalLights();
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("HMMWV Demo");
+    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
     // -----------------
     // Initialize output
@@ -265,7 +257,7 @@ int main(int argc, char* argv[]) {
     // ------------------------
 
     // Create the interactive driver system
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
 
     // Set the time response for steering and throttle keyboard inputs.
     double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
@@ -301,8 +293,8 @@ int main(int argc, char* argv[]) {
     double time = 0;
 
     if (contact_vis) {
-        app.SetSymbolscale(1e-4);
-        app.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_FORCES);
+        vis->SetSymbolScale(1e-4);
+        vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_FORCES);
     }
 
     // ---------------------------------------------
@@ -423,7 +415,7 @@ int main(int argc, char* argv[]) {
     float orbit_radius = 15.f;
     float orbit_rate = 1;
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         time = my_hmmwv.GetSystem()->GetChTime();
 
         // End simulation
@@ -436,9 +428,9 @@ int main(int argc, char* argv[]) {
 
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+            vis->BeginScene();
+            vis->DrawAll();
+            vis->EndScene();
 
             if (povray_output) {
                 char filename[100];
@@ -469,14 +461,14 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         double step = step_size;
         driver.Advance(step);
         terrain.Advance(step);
         my_hmmwv.Advance(step);
-        app.Advance(step);
+        vis->Advance(step);
 
         // Update the sensor manager
         // Will render/save/filter automatically

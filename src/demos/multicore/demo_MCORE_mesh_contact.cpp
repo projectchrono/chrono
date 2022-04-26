@@ -164,8 +164,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_coarse.obj"), true, false);
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+        GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_coarse.obj"));
 
     object->GetCollisionModel()->ClearModel();
     object->GetCollisionModel()->AddTriangleMesh(object_mat, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("tire");
-    object->AddAsset(trimesh_shape);
+    object->AddVisualShape(trimesh_shape);
 
     // Create ground body
     auto ground = std::shared_ptr<ChBody>(sys->NewBody());
@@ -217,9 +217,7 @@ int main(int argc, char* argv[]) {
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(width, length, thickness);
-    ////box->GetBoxGeometry().Pos = ChVector<>(0, 0, -thickness); // not interpreted in multicore collision sys
-    box->Pos = ChVector<>(0, 0, -thickness);
-    ground->AddAsset(box);
+    ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -thickness)));
 
     // Create the visualization window
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();

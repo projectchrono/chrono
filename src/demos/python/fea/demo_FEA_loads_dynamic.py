@@ -1,18 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
-#
-# =============================================================================
-# Authors: Simone Benatti
-# =============================================================================
-#
-# FEA demo on applying loads to beams
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 
@@ -38,19 +32,12 @@ except OSError as exc:
 
 
 # Create the physical system
-my_system = chrono.ChSystemSMC()
+sys = chrono.ChSystemSMC()
 
-# Create the Irrlicht visualization
-
-application = chronoirr.ChIrrApp(my_system, "Loads on beams", chronoirr.dimension2du(800, 600))
-application.AddLogo()
-application.AddSkyBox()
-application.AddTypicalLights()
-application.AddCamera(chronoirr.vector3df(0.5, 0.0, -3.0), chronoirr.vector3df(0.5, 0.0, 0.0))
 
 # Create a mesh
 mesh = fea.ChMesh()
-my_system.Add(mesh)
+sys.Add(mesh)
 
 # Create some nodes (with default mass 0)
 nodeA = fea.ChNodeFEAxyzrot(chrono.ChFrameD(chrono.ChVectorD(0, 0, 0)))
@@ -79,12 +66,12 @@ mesh.AddElement(elementA)
 # Create the ground body
 ground = chrono.ChBody()
 ground.SetBodyFixed(True)
-my_system.Add(ground)
+sys.Add(ground)
 
 # Create a constraat the end of the beam
 constrA = chrono.ChLinkMateGeneric()
 constrA.Initialize(nodeA, ground, False, nodeA.Frame(), nodeA.Frame())
-my_system.Add(constrA)
+sys.Add(constrA)
 constrA.SetConstrainedCoords(True, True, True,   # x, y, z
                               True, True, True)  # Rx, Ry, Rz
 
@@ -93,7 +80,7 @@ constrA.SetConstrainedCoords(True, True, True,   # x, y, z
 
 # Create the load container
 loadcontainer = chrono.ChLoadContainer()
-my_system.Add(loadcontainer)
+sys.Add(loadcontainer)
 
 
 #define LOAD_5
@@ -183,50 +170,53 @@ loadcontainer.Add(ch_bushing)
 # -----------------------------------------------------------------
 # Set visualization of the FEM mesh.
 
-mvisualizebeamA = fea.ChVisualizationFEAmesh(mesh)
-mvisualizebeamA.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_ELEM_BEAM_MZ)
+mvisualizebeamA = chrono.ChVisualShapeFEA(mesh)
+mvisualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)
 mvisualizebeamA.SetColorscaleMinMax(-400, 200)
 mvisualizebeamA.SetSmoothFaces(True)
 mvisualizebeamA.SetWireframe(False)
-mesh.AddAsset(mvisualizebeamA)
+mesh.AddVisualShapeFEA(mvisualizebeamA)
 
-mvisualizebeamC = fea.ChVisualizationFEAmesh(mesh)
-mvisualizebeamC.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_NODE_CSYS)
-mvisualizebeamC.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NONE)
+mvisualizebeamC = chrono.ChVisualShapeFEA(mesh)
+mvisualizebeamC.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_CSYS)
+mvisualizebeamC.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 mvisualizebeamC.SetSymbolsThickness(0.006)
 mvisualizebeamC.SetSymbolsScale(0.01)
 mvisualizebeamC.SetZbufferHide(False)
-mesh.AddAsset(mvisualizebeamC)
+mesh.AddVisualShapeFEA(mvisualizebeamC)
 
-application.AssetBindAll()
-application.AssetUpdateAll()
+# Create the Irrlicht visualization
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Loads on beams')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0.5, 0.0, -3.0), chrono.ChVectorD(0.5, 0.0, 0.0))
+vis.AddTypicalLights()
 
 # -----------------------------------------------------------------
 
 # Setup a MINRES solver. For FEA one cannot use the default PSOR type solver.
 solver = chrono.ChSolverMINRES()
-my_system.SetSolver(solver)
+sys.SetSolver(solver)
 solver.SetMaxIterations(200)
 solver.SetTolerance(1e-15)
 solver.EnableDiagonalPreconditioner(True)
 solver.SetVerbose(False)
 
-my_system.SetSolverForceTolerance(1e-13)
+sys.SetSolverForceTolerance(1e-13)
 
 # Set integrator
-ts = chrono.ChTimestepperEulerImplicitLinearized(my_system)
-my_system.SetTimestepper(ts)
+ts = chrono.ChTimestepperEulerImplicitLinearized(sys)
+sys.SetTimestepper(ts)
+
 
 # Simulation loop
-
-application.SetTimestep(1e-3)
-
-while (application.GetDevice().run()) :
-    application.BeginScene()
-    application.DrawAll()
-    application.DoStep()
-    if not application.GetPaused() :
-        time = my_system.GetChTime()
-        posB = nodeB.GetPos()
-    application.EndScene()
+while vis.Run():
+    vis.BeginScene()
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(0.001)
 

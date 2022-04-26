@@ -28,6 +28,10 @@ using namespace chrono;
 
 %}
 
+namespace chrono { 
+class ChVisualSystem; 
+}
+
 %shared_ptr(chrono::ChSystem)
 %shared_ptr(chrono::ChSystem::CustomCollisionCallback)
 

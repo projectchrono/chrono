@@ -26,6 +26,8 @@
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/ChVehicle.h"
 
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
+
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 #ifdef CHRONO_HAS_HDF5
     #include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
@@ -98,6 +100,23 @@ ChVehicle::~ChVehicle() {
 void ChVehicle::SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) {
     if (m_ownsSystem)
         m_system->SetCollisionSystemType(collsys_type);
+}
+
+// -----------------------------------------------------------------------------
+// Set/get the vehicle visualization system
+// -----------------------------------------------------------------------------
+void ChVehicle::SetVisualSystem(std::shared_ptr<ChVehicleVisualSystem> vsys) {
+    if (m_system) {
+        m_system->SetVisualSystem(vsys);
+        vsys->m_vehicle = this;
+        vsys->OnAttachToVehicle();
+    }
+}
+
+std::shared_ptr<ChVehicleVisualSystem> ChVehicle::GetVisualSystem() const {
+    if (m_system)
+        return std::dynamic_pointer_cast<ChVehicleVisualSystem>(m_system->GetVisualSystem());
+    return nullptr;
 }
 
 // -----------------------------------------------------------------------------

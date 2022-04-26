@@ -9,92 +9,117 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Asher Elmquist
+// Authors: Asher Elmquist, Radu Serban
 // =============================================================================
 //
 // Visual assets that can be used for higher quality rendering such as that
 // used by the sensing module. These materials follow, in part, from the
-// wavefront obj mtl specification.
+// Wavefront obj mtl specification.
 //
 // =============================================================================
 
 #ifndef CHVISUALMATERIAL_H
 #define CHVISUALMATERIAL_H
 
-#include "chrono/assets/ChAsset.h"
+#include <string>
+
+#include "chrono/core/ChVector.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChColor.h"
 
 namespace chrono {
 
-/// Class for setting a color (used by ChVisualization)
-class ChApi ChVisualMaterial : public ChAsset {
+/// Definition of a visual material.
+class ChApi ChVisualMaterial {
   public:
-    /// Constructors
     ChVisualMaterial();
 
     // Setting functions
-    void SetAmbientColor(ChVector<float> rgb);
-    void SetDiffuseColor(ChVector<float> rgb);
-    void SetSpecularColor(ChVector<float> rgb);
+    void SetAmbientColor(const ChColor& rgb);
+    void SetDiffuseColor(const ChColor& rgb);
+    void SetSpecularColor(const ChColor& rgb);
+    void SetEmissiveColor(const ChColor& rgb);
+
     void SetSpecularExponent(float exponent);
-    void SetTransparency(float tr);
-    void SetKdTexture(std::string filename) { kd_texture = filename; };
-    void SetKsTexture(std::string filename) { ks_texture = filename; };
-    void SetNormalMapTexture(std::string filename) { normal_texture = filename; };
-    void SetMetallicTexture(std::string filename) { metallic_texture = filename; };
-    void SetRoughnessTexture(std::string filename) { roughness_texture = filename; };
-    void SetOpacityTexture(std::string filename) { opacity_texture = filename; };
+    void SetOpacity(float o);
+    void SetIllumination(int i);
+
+    void SetKdTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
+    void SetKsTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
+    void SetNormalMapTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
+    void SetMetallicTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
+    void SetRoughnessTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
+    void SetOpacityTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
+
     void SetFresnelExp(float exp);
     void SetFresnelMax(float max);
     void SetFresnelMin(float min);
     void SetRoughness(float r);
     void SetMetallic(float m);
     void SetUseSpecularWorkflow(bool s) { use_specular_workflow = s; }
+
     void SetClassID(unsigned short int id) { class_id = id; }
     void SetInstanceID(unsigned short int id) { instance_id = id; }
 
     // accessor functions
-    ChVector<float> GetAmbientColor() { return Ka; }
-    ChVector<float> GetDiffuseColor() { return Kd; }
-    ChVector<float> GetSpecularColor() { return Ks; }
-    float GetSpecularExponent() { return Ns; }
-    float GetTransparency() { return d; }
-    std::string GetKdTexture() { return kd_texture; };
-    std::string GetKsTexture() { return ks_texture; };
-    std::string GetNormalMapTexture() { return normal_texture; };
-    std::string GetMetallicTexture() { return metallic_texture; };
-    std::string GetRoughnessTexture() { return roughness_texture; };
-    std::string GetOpacityTexture() { return opacity_texture; };
-    float GetFresnelExp() { return fresnel_exp; }
-    float GetFresnelMax() { return fresnel_max; }
-    float GetFresnelMin() { return fresnel_min; }
-    float GetRoughness() { return roughness; }
-    float GetMetallic() { return metallic; }
-    bool GetUseSpecularWorkflow() { return use_specular_workflow; }
-    unsigned short int GetClassID() { return class_id; }
-    unsigned short int GetInstanceID() { return instance_id; }
+    const ChColor& GetAmbientColor() const { return Ka; }
+    const ChColor& GetDiffuseColor() const { return Kd; }
+    const ChColor& GetSpecularColor() const { return Ks; }
+    const ChColor& GetEmissiveColor() const { return Ke; }
+    float GetSpecularExponent() const { return Ns; }
+    float GetOpacity() const { return d; }
+    int GetIllumination() const { return illum; }
+
+    const std::string& GetKdTexture() const { return kd_texture.GetFilename(); }
+    const std::string& GetKsTexture() const { return ks_texture.GetFilename(); }
+    const std::string& GetNormalMapTexture() const { return normal_texture.GetFilename(); }
+    const std::string& GetMetallicTexture() const { return metallic_texture.GetFilename(); }
+    const std::string& GetRoughnessTexture() const { return roughness_texture.GetFilename(); }
+    const std::string& GetOpacityTexture() const { return opacity_texture.GetFilename(); }
+
+    const ChVector2<float>& GetKdTextureScale() const { return kd_texture.GetScale(); }
+    const ChVector2<float>& GetKsTextureScale() const { return ks_texture.GetScale(); }
+    const ChVector2<float>& GetNormalMapTextureScale() const { return normal_texture.GetScale(); }
+    const ChVector2<float>& GetMetallicTextureScale() const { return metallic_texture.GetScale(); }
+    const ChVector2<float>& GetRoughnessTextureScale() const { return roughness_texture.GetScale(); }
+    const ChVector2<float>& GetOpacityTextureScale() const { return opacity_texture.GetScale(); }
+
+    float GetFresnelExp() const { return fresnel_exp; }
+    float GetFresnelMax() const { return fresnel_max; }
+    float GetFresnelMin() const { return fresnel_min; }
+    float GetRoughness() const { return roughness; }
+    float GetMetallic() const { return metallic; }
+    bool GetUseSpecularWorkflow() const { return use_specular_workflow; }
+    unsigned short int GetClassID() const { return class_id; }
+    unsigned short int GetInstanceID() const { return instance_id; }
+
+    static std::shared_ptr<ChVisualMaterial> Default();
 
   private:
-    ChVector<float> Ka;  // ambient color 0-1
-    ChVector<float> Kd;  // diffuse color   0-1
-    ChVector<float> Ks;  // specular color 0-1
+    ChColor Ka;  ///< ambient color
+    ChColor Kd;  ///< diffuse color
+    ChColor Ks;  ///< specular color
+    ChColor Ke;  ///< emissive color
 
     float fresnel_max;
     float fresnel_min;
     float fresnel_exp;
-    float Ns;  // specular exponent
-    float d;   // transparency
+    float Ns;  ///< specular exponent
+    float d;   ///< opacity
+
+    int illum;  ///< illumination model (see http://www.fileformat.info/format/material/)
 
     float roughness;
     float metallic;
 
     bool use_specular_workflow;
 
-    std::string kd_texture;
-    std::string ks_texture;
-    std::string normal_texture;
-    std::string metallic_texture;
-    std::string roughness_texture;
-    std::string opacity_texture;
+    ChTexture kd_texture;         ///< diffuse texture map
+    ChTexture ks_texture;         ///< specular texture map
+    ChTexture normal_texture;     ///< normal texture map
+    ChTexture metallic_texture;   ///< metallic texture map
+    ChTexture roughness_texture;  ///< roughness texture map
+    ChTexture opacity_texture;    ///< opacity texture map
 
     unsigned short int class_id;
     unsigned short int instance_id;

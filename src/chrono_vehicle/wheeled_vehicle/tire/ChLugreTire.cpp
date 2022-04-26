@@ -71,28 +71,16 @@ void ChLugreTire::AddVisualizationAssets(VisualizationType vis) {
         m_cyl_shapes[id]->GetCylinderGeometry().rad = disc_radius;
         m_cyl_shapes[id]->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + disc_locs[id] + discWidth / 2, 0);
         m_cyl_shapes[id]->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() + disc_locs[id] - discWidth / 2, 0);
-        m_wheel->GetSpindle()->AddAsset(m_cyl_shapes[id]);
+        m_cyl_shapes[id]->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
+        m_wheel->GetSpindle()->AddVisualShape(m_cyl_shapes[id]);
     }
-
-    m_texture = chrono_types::make_shared<ChTexture>();
-    m_texture->SetTextureFilename(GetChronoDataFile("textures/greenwhite.png"));
-    m_wheel->GetSpindle()->AddAsset(m_texture);
 }
 
 void ChLugreTire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChLugreTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    for (int id = 0; id < m_cyl_shapes.size(); id++) {
-        auto it = std::find(assets.begin(), assets.end(), m_cyl_shapes[id]);
-        if (it != assets.end())
-            assets.erase(it);
-    }
-    {
-        auto it = std::find(assets.begin(), assets.end(), m_texture);
-        if (it != assets.end())
-            assets.erase(it);
+    // This is important for the ChTire object because a wheel may add its own assets to the same body (the spindle/wheel).
+    for (int id = 0; id < GetNumDiscs(); id++) {
+        ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shapes[id]);
     }
     m_cyl_shapes.clear();
 }

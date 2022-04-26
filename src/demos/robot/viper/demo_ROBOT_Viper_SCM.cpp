@@ -41,7 +41,7 @@
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChLinkDistance.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
@@ -146,18 +146,6 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&sys, L"Viper Rover on SCM", core::dimension2d<u32>(1280, 720), VerticalDir::Z, false, true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(2.0f, 0.0f, 1.4f), core::vector3df(0, 0, (f32)wheel_range));
-    application.AddLightWithShadow(core::vector3df(-5.0f, -0.5f, 8.0f), core::vector3df(-1.0, 0, 0), 100, 1, 35, 85,
-                                   512, video::SColorf(0.8f, 0.8f, 1.0f));
-
     // Initialize output
     if (output) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -245,32 +233,36 @@ int main(int argc, char* argv[]) {
 
     terrain.SetMeshWireframe(true);
 
-    // Use this function for adding a ChIrrNodeAsset to all items
-    application.AssetBindAll();
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Viper Rover on SCM");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(2.0, 0.0, 1.4), ChVector<>(0, 0, wheel_range));
+    vis->AddTypicalLights();
+    vis->AddLightWithShadow(ChVector<>(-5.0, -0.5, 8.0), ChVector<>(-1, 0, 0), 100, 1, 35, 85, 512,
+                            ChColor(0.8f, 0.8f, 0.8f));
+    vis->EnableShadows();
 
-    // Use this function for 'converting' into Irrlicht meshes the assets
-    application.AssetUpdateAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->GetActiveCamera()->setTarget(core::vector3dfCH(Body_1->GetPos()));
+        vis->DrawAll();
+        tools::drawColorbar(0, 20000, "Pressure yield [Pa]", vis->GetDevice(), 1180);
+        vis->EndScene();
 
-    // Use shadows in realtime view
-    application.AddShadowAll();
-
-    application.SetTimestep(5e-4);
-
-    while (application.GetDevice()->run()) {
         if (output) {
             // write drive torques of all four wheels into file
             csv << sys.GetChTime() << viper.GetWheelTracTorque(ViperWheelID::V_LF)
                 << viper.GetWheelTracTorque(ViperWheelID::V_RF) << viper.GetWheelTracTorque(ViperWheelID::V_LB)
                 << viper.GetWheelTracTorque(ViperWheelID::V_RB) << std::endl;
         }
-        application.BeginScene();
 
-        application.GetActiveCamera()->setTarget(core::vector3dfCH(Body_1->GetPos()));
-        application.DrawAll();
-
-        application.DoStep();
-        tools::drawColorbar(0, 20000, "Pressure yield [Pa]", application.GetDevice(), 1180);
-        application.EndScene();
+        sys.DoStepDynamics(5e-4);
         viper.Update();
         ////terrain.PrintStepStatistics(std::cout);
     }

@@ -15,14 +15,14 @@
 #ifndef CHLINESHAPE_H
 #define CHLINESHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChLine.h"
 #include "chrono/geometry/ChLineSegment.h"
 
 namespace chrono {
 
 /// Class for referencing a ChLine that can be visualized in some way.
-class ChApi ChLineShape : public ChVisualization {
+class ChApi ChLineShape : public ChVisualShape {
   public:
     ChLineShape();
     ChLineShape(std::shared_ptr<geometry::ChLine>& mline);

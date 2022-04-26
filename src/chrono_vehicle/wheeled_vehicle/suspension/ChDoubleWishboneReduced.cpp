@@ -26,8 +26,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
-#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChDoubleWishboneReduced.h"
 
@@ -232,61 +231,49 @@ void ChDoubleWishboneReduced::AddVisualizationAssets(VisualizationType vis) {
                             m_pointsR[LCA_U], m_pointsR[TIEROD_U], getUprightRadius());
 
     // Add visualization for the spring-dampers
-    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
 
     // Add visualization for the arm and tie-rod distance constraints
-    ChColor col_tierod(0.8f, 0.3f, 0.3f);
-    ChColor col_upperarm(0.1f, 0.4f, 0.1f);
-    ChColor col_lowerarm(0.1f, 0.1f, 0.4f);
+    m_distTierod[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_distTierod[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 
-    m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_tierod));
-    m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_tierod));
+    m_distUCA_F[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_distUCA_F[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 
-    m_distUCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distUCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distUCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_upperarm));
-    m_distUCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_upperarm));
+    m_distUCA_B[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_distUCA_B[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 
-    m_distUCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distUCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distUCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_upperarm));
-    m_distUCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_upperarm));
+    m_distLCA_F[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_distLCA_F[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 
-    m_distLCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distLCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distLCA_F[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_lowerarm));
-    m_distLCA_F[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_lowerarm));
-
-    m_distLCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distLCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distLCA_B[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_lowerarm));
-    m_distLCA_B[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(col_lowerarm));
+    m_distLCA_B[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_distLCA_B[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 }
 
 void ChDoubleWishboneReduced::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_upright[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_upright[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_shock[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_shock[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_distTierod[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_distTierod[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_distUCA_F[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_distUCA_F[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_distUCA_B[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_distUCA_B[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_distLCA_F[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_distLCA_F[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_distLCA_B[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_distLCA_B[RIGHT]);
+
     ChSuspension::RemoveVisualizationAssets();
-
-    m_upright[LEFT]->GetAssets().clear();
-    m_upright[RIGHT]->GetAssets().clear();
-
-    m_shock[LEFT]->GetAssets().clear();
-    m_shock[RIGHT]->GetAssets().clear();
-
-    m_distTierod[LEFT]->GetAssets().clear();
-    m_distTierod[RIGHT]->GetAssets().clear();
-
-    m_distUCA_F[LEFT]->GetAssets().clear();
-    m_distUCA_F[RIGHT]->GetAssets().clear();
-    m_distUCA_B[LEFT]->GetAssets().clear();
-    m_distUCA_B[RIGHT]->GetAssets().clear();
-
-    m_distLCA_F[LEFT]->GetAssets().clear();
-    m_distLCA_F[RIGHT]->GetAssets().clear();
-    m_distLCA_B[LEFT]->GetAssets().clear();
-    m_distLCA_B[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
@@ -310,7 +297,7 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> up
         cyl_L->GetCylinderGeometry().p1 = p_L;
         cyl_L->GetCylinderGeometry().p2 = p_C;
         cyl_L->GetCylinderGeometry().rad = radius;
-        upright->AddAsset(cyl_L);
+        upright->AddVisualShape(cyl_L);
     }
 
     if ((p_U - p_C).Length2() > threshold2) {
@@ -318,7 +305,7 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> up
         cyl_U->GetCylinderGeometry().p1 = p_U;
         cyl_U->GetCylinderGeometry().p2 = p_C;
         cyl_U->GetCylinderGeometry().rad = radius;
-        upright->AddAsset(cyl_U);
+        upright->AddVisualShape(cyl_U);
     }
 
     if ((p_T - p_C).Length2() > threshold2) {
@@ -326,12 +313,8 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> up
         cyl_T->GetCylinderGeometry().p1 = p_T;
         cyl_T->GetCylinderGeometry().p2 = p_C;
         cyl_T->GetCylinderGeometry().rad = radius;
-        upright->AddAsset(cyl_T);
+        upright->AddVisualShape(cyl_T);
     }
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
-    upright->AddAsset(col);
 }
 
 // -----------------------------------------------------------------------------

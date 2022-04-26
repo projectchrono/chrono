@@ -23,9 +23,9 @@
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
@@ -43,29 +43,18 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemSMC my_system;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Statics of beam", core::dimension2d<u32>(800, 600));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    // application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0.f, 0.6f, -1.f));
+    ChSystemSMC sys;
 
     // Create a truss:
     auto my_body_A = chrono_types::make_shared<ChBody>();
 
     my_body_A->SetBodyFixed(true);
-    my_system.AddBody(my_body_A);
+    sys.AddBody(my_body_A);
 
     // Attach a 'box' shape asset for visualization.
     auto mboxtruss = chrono_types::make_shared<ChBoxShape>();
-    mboxtruss->GetBoxGeometry().Pos = ChVector<>(-0.01, -0.2, -0.25);
     mboxtruss->GetBoxGeometry().SetLengths(ChVector<>(0.02, 0.5, 0.5));
-    my_body_A->AddAsset(mboxtruss);
+    my_body_A->AddVisualShape(mboxtruss, ChFrame<>(ChVector<>(-0.01, -0.2, -0.25)));
 
     // Create a FEM mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -136,56 +125,50 @@ int main(int argc, char* argv[]) {
     // Final touches..
     //
 
-    // note, this benchmark not using gravity.. use my_system.Set_G_acc(VNULL); or..
+    // note, this benchmark not using gravity.. use sys.Set_G_acc(VNULL); or..
     my_mesh->SetAutomaticGravity(false);
 
     // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
-    // ==Asset== attach a visualization of the FEM mesh.
+    // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChTriangleMeshShape).
-    // Do not forget AddAsset() at the end!
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MY);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MY);
     mvisualizebeamA->SetColorscaleMinMax(-0.001, 6);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
-    my_mesh->AddAsset(mvisualizebeamA);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizebeamC->SetSymbolsThickness(0.02);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizebeamC);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-    application.AssetBindAll();
-
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Statics of beam");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    sys.SetVisualSystem(vis);
 
     // Use a solver that can handle stiffness matrices:
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-    my_system.SetSolver(mkl_solver);
-
-    application.SetTimestep(0.001);
-    application.SetVideoframeSaveInterval(10);
+    sys.SetSolver(mkl_solver);
 
     // Perform nonlinear statics
-    my_system.DoStaticNonlinear(20, true);
-    application.SetPaused(true);
+    sys.DoStaticNonlinear(20, true);
 
     // Output data
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -228,26 +211,24 @@ int main(int argc, char* argv[]) {
 
     // 3D view
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
-        application.DrawAll();
+        tools::drawGrid(vis->GetVideoDriver(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector<>(0.25, -0.20, 0), 0, VECT_Y),
+                        video::SColor(50, 120, 120, 120), true);
 
-        tools::drawGrid(application.GetVideoDriver(), 0.05, 0.05, 10, 10,
-                             ChCoordsys<>(ChVector<>(0.25, -0.20, 0), 0, VECT_Y), video::SColor(50, 120, 120, 120),
-                             true);
+        tools::drawGrid(vis->GetVideoDriver(), 0.05, 0.05, 10, 10,
+                        ChCoordsys<>(ChVector<>(0.25, -0.45, -0.25), CH_C_PI_2, VECT_X),
+                        video::SColor(50, 120, 120, 120), true);
 
-        tools::drawGrid(application.GetVideoDriver(), 0.05, 0.05, 10, 10,
-                             ChCoordsys<>(ChVector<>(0.25, -0.45, -0.25), CH_C_PI_2, VECT_X),
-                             video::SColor(50, 120, 120, 120), true);
+        tools::drawGrid(vis->GetVideoDriver(), 0.05, 0.05, 10, 10,
+                        ChCoordsys<>(ChVector<>(0.001, -0.20, -0.25), CH_C_PI_2, VECT_Y),
+                        video::SColor(50, 160, 160, 160), true);
 
-        tools::drawGrid(application.GetVideoDriver(), 0.05, 0.05, 10, 10,
-                             ChCoordsys<>(ChVector<>(0.001, -0.20, -0.25), CH_C_PI_2, VECT_Y),
-                             video::SColor(50, 160, 160, 160), true);
+        sys.DoStepDynamics(0.001);
 
-        application.DoStep();
-
-        application.EndScene();
+        vis->EndScene();
     }
 
     return 0;

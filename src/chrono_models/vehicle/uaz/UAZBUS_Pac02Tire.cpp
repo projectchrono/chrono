@@ -200,8 +200,8 @@ void UAZBUS_Pac02Tire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void UAZBUS_Pac02Tire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChPac02Tire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // namespace uaz

@@ -18,6 +18,7 @@
 #ifdef CHRONO_COLLISION
     #include "chrono/collision/ChCollisionSystemChrono.h"
 #endif
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
@@ -67,6 +68,7 @@ ChSystem::ChSystem()
       write_matrix(false),
       ncontacts(0),
       composition_strategy(new ChMaterialCompositionStrategy),
+      visual_system(nullptr),
       nthreads_chrono(ChOMP::GetNumProcs()),
       nthreads_eigen(1),
       nthreads_collision(1),
@@ -119,6 +121,8 @@ ChSystem::ChSystem(const ChSystem& other) {
 
     collision_system_type = other.collision_system_type;
 
+    visual_system = nullptr;
+
     min_bounce_speed = other.min_bounce_speed;
     max_penetration_recovery_speed = other.max_penetration_recovery_speed;
     SetSolverType(other.GetSolverType());
@@ -140,6 +144,9 @@ ChSystem::~ChSystem() {
 
 void ChSystem::Clear() {
     assembly.Clear();
+
+    if (visual_system)
+        visual_system->OnClear();
 
     // contact_container->RemoveAllContacts();
 
@@ -222,8 +229,13 @@ void ChSystem::Remove(std::shared_ptr<ChPhysicsItem> item) {
 }
 
 // -----------------------------------------------------------------------------
-// Set/Get routines
-// -----------------------------------------------------------------------------
+
+void ChSystem::SetVisualSystem(std::shared_ptr<ChVisualSystem> vsys) {
+    assert(vsys);
+    visual_system = vsys;
+    visual_system->m_system = this;
+    visual_system->OnAttach();
+}
 
 void ChSystem::SetSolverMaxIterations(int max_iters) {
     if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
@@ -364,11 +376,11 @@ void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
     collision_system->SetSystem(this);
 }
 
-void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsystem) {
+void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_sys) {
     assert(assembly.GetNbodies() == 0);
-    assert(newcollsystem);
-    collision_system = newcollsystem;
-    collision_system_type = newcollsystem->GetType();
+    assert(coll_sys);
+    collision_system = coll_sys;
+    collision_system_type = coll_sys->GetType();
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
 }
@@ -761,6 +773,10 @@ void ChSystem::Update(bool update_assets) {
 
     // Update all contacts, if any
     contact_container->Update(ch_time, update_assets);
+
+    // Update any attached visualization system only when also updating assets
+    if (visual_system && update_assets)
+        visual_system->OnUpdate();
 
     timer_update.stop();
 }
@@ -1436,6 +1452,10 @@ bool ChSystem::Integrate_Y() {
     solvecount = 0;
     setupcount = 0;
 
+    // Let the visualization system (if any) perform setup operations
+    if (visual_system)
+        visual_system->OnSetup();
+
     // Compute contacts and create contact constraints
     int ncontacts_old = ncontacts;
     ComputeCollisions();
@@ -1488,6 +1508,10 @@ bool ChSystem::Integrate_Y() {
     // Time elapsed for step
     timer_step.stop();
 
+    // Update the run-time visualization system, if present
+    if (visual_system)
+        visual_system->OnUpdate();
+
     // Tentatively mark system as unchanged (i.e., no updated necessary)
     is_updated = true;
 
@@ -1539,6 +1563,10 @@ bool ChSystem::DoAssembly(int action) {
     SetSolverMaxIterations(old_max_iters);
     SetSolverTolerance(old_tolerance);
     SetStep(old_step);
+
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate();
 
     return true;
 }
@@ -1593,6 +1621,10 @@ bool ChSystem::DoStaticLinear() {
         GetLog() << (mZx - md).lpNorm<Eigen::Infinity>() << "\n";
     }
 
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate();
+
     return true;
 }
 
@@ -1627,6 +1659,10 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
 
     SetSolverMaxIterations(old_maxsteps);
 
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate();
+
     return true;
 }
 
@@ -1645,6 +1681,10 @@ bool ChSystem::DoStaticAnalysis(std::shared_ptr<ChStaticAnalysis> analysis) {
     DescriptorPrepareInject(*descriptor);
 
     analysis->StaticAnalysis();
+
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate();
 
     return true;
 }
@@ -1676,6 +1716,10 @@ bool ChSystem::DoStaticNonlinearRheonomic(int nsteps, bool verbose, std::shared_
     manalysis.StaticAnalysis();
 
     SetSolverMaxIterations(old_maxsteps);
+
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate();
 
     return true;
 }
@@ -1730,6 +1774,11 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
         last_err = true;
         GetLog() << "WARNING: some constraints may be redundant, but couldn't be eliminated \n";
     }
+
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate();
+
     return last_err;
 }
 

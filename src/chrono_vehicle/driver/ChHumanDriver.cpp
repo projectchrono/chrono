@@ -202,13 +202,15 @@ void ChHumanDriver::Create() {
     auto road = std::shared_ptr<ChBody>(m_vehicle.GetSystem()->NewBody());
     road->SetBodyFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
+
     auto num_points = static_cast<unsigned int>(m_path->getNumPoints());
     auto path_asset = chrono_types::make_shared<ChLineShape>();
     path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(m_path));
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
-    road->AddAsset(path_asset);
+
+    road->AddVisualShape(path_asset);
 }
 
 void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.

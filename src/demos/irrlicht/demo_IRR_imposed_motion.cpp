@@ -22,8 +22,9 @@
 #include "chrono/physics/ChLinkTrajectory.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/geometry/ChLineBspline.h"
+#include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono/motion_functions/ChFunctionPosition_line.h"
 #include "chrono/motion_functions/ChFunctionPosition_XYZfunctions.h"
@@ -53,7 +54,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     // Create a floor. This is an absolute fixed reference that we will use as
     // a reference for imposing position and rotations of moved bodies.
@@ -61,7 +62,7 @@ int main(int argc, char* argv[]) {
     auto mfloor =
         chrono_types::make_shared<ChBodyEasyBox>(3, 0.2, 3, 1000, false, false);  // no visualization, no collision
     mfloor->SetBodyFixed(true);
-    mphysicalSystem.Add(mfloor);
+    sys.Add(mfloor);
 
     //
     // EXAMPLE 1
@@ -73,8 +74,9 @@ int main(int argc, char* argv[]) {
     // rotation:  use a fixed axis of rotation and an angle(time) function defined via a ChFunction
 
     // Create the object to move
-    auto mmoved_1 = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
-    mphysicalSystem.Add(mmoved_1);
+    auto mmoved_1 =
+        chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
+    sys.Add(mmoved_1);
     mmoved_1->SetPos(ChVector<>(-0.5, 0, 0));
 
     // Create a position function p(t) from three x,y,z distinct ChFunction objects,
@@ -96,7 +98,7 @@ int main(int argc, char* argv[]) {
     // We initially set both frame1 and frame2 in the same absolute position, btw in the
     // main reference of the moved mesh, by setting it during the Initialize() method.
     auto impose_1 = chrono_types::make_shared<ChLinkMotionImposed>();
-    mphysicalSystem.Add(impose_1);
+    sys.Add(impose_1);
     impose_1->Initialize(mmoved_1, mfloor, ChFrame<>(mmoved_1->GetPos()));
     impose_1->SetPositionFunction(f_xyz);
     impose_1->SetRotationFunction(f_rot_axis);
@@ -112,8 +114,9 @@ int main(int argc, char* argv[]) {
     // rotation:  use a quaternion spline.
 
     // Create the object to move
-    auto mmoved_2 = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
-    mphysicalSystem.Add(mmoved_2);
+    auto mmoved_2 =
+        chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
+    sys.Add(mmoved_2);
     mmoved_2->SetPos(ChVector<>(0.5, 0, 0));
 
     // Create a spline geometry:
@@ -157,7 +160,7 @@ int main(int argc, char* argv[]) {
 
     // Create the constraint to impose motion and rotation:
     auto impose_2 = chrono_types::make_shared<ChLinkMotionImposed>();
-    mphysicalSystem.Add(impose_2);
+    sys.Add(impose_2);
     impose_2->Initialize(mmoved_2, mfloor, ChFrame<>(mmoved_2->GetPos()));
     impose_2->SetPositionFunction(f_line);
     impose_2->SetRotationFunction(f_rotspline);
@@ -165,7 +168,7 @@ int main(int argc, char* argv[]) {
     // btw: do you want to visualize the position spline? do this:
     auto mglyphasset = chrono_types::make_shared<ChLineShape>();
     mglyphasset->SetLineGeometry(mspline);
-    impose_2->AddAsset(mglyphasset);
+    impose_2->AddVisualShape(mglyphasset);
 
     // Btw for periodic closed splines, the 1st contr point is not exactly the start of spline,
     // so better move the sample object exactly to beginning:
@@ -182,8 +185,9 @@ int main(int argc, char* argv[]) {
     // rotation:  use a continuous setpoint (FOH first order hold).
 
     // Create the object to move
-    auto mmoved_3 = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
-    mphysicalSystem.Add(mmoved_3);
+    auto mmoved_3 =
+        chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
+    sys.Add(mmoved_3);
     mmoved_3->SetPos(ChVector<>(1.5, 0, 0));
 
     // Create the position function: use ChFunctionPosition_setpoint as a proxy to an external continuous setpoint
@@ -194,7 +198,7 @@ int main(int argc, char* argv[]) {
 
     // Create the constraint to impose motion and rotation:
     auto impose_3 = chrono_types::make_shared<ChLinkMotionImposed>();
-    mphysicalSystem.Add(impose_3);
+    sys.Add(impose_3);
     impose_3->Initialize(mmoved_3, mfloor, ChFrame<>(mmoved_3->GetPos()));
     impose_3->SetPositionFunction(f_pos_setpoint);
     impose_3->SetRotationFunction(f_rot_setpoint);
@@ -212,7 +216,7 @@ int main(int argc, char* argv[]) {
     // Create the object to move
     auto mmoved_4 =
         chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
-    mphysicalSystem.Add(mmoved_4);
+    sys.Add(mmoved_4);
     mmoved_4->SetPos(ChVector<>(2.5, 0, 0));
 
     // Create the rotation function: use 3 distinct A,B,C functions of time to set Eulero or Cardano or Rxyz angles:
@@ -223,7 +227,7 @@ int main(int argc, char* argv[]) {
 
     // Create the constraint to impose motion and rotation:
     auto impose_4 = chrono_types::make_shared<ChLinkMotionImposed>();
-    mphysicalSystem.Add(impose_4);
+    sys.Add(impose_4);
     impose_4->Initialize(mmoved_4, mfloor, ChFrame<>(mmoved_4->GetPos()));
     impose_4->SetRotationFunction(f_abc_angles);
 
@@ -237,8 +241,9 @@ int main(int argc, char* argv[]) {
     // rotation:  use a SQUAD (smooth interpolation of quaternion rotations as in Shoemake 1987 paper).
 
     // Create the object to move
-    auto mmoved_5 = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
-    mphysicalSystem.Add(mmoved_5);
+    auto mmoved_5 =
+        chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
+    sys.Add(mmoved_5);
     mmoved_5->SetPos(ChVector<>(1, 1, 0));
 
     // Create a spline rotation interpolation based on SQUAD smooth quaternion interpolation.
@@ -257,62 +262,40 @@ int main(int argc, char* argv[]) {
 
     // Create the constraint to impose motion and rotation:
     auto impose_5 = chrono_types::make_shared<ChLinkMotionImposed>();
-    mphysicalSystem.Add(impose_5);
+    sys.Add(impose_5);
     impose_5->Initialize(mmoved_5, mfloor, ChFrame<>(mmoved_5->GetPos()));
     impose_5->SetRotationFunction(f_squad);
 
-    //
-    // VISUALIZATION
-    //
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Imposing rotation and position to bodies");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 2, -3));
+    vis->AddTypicalLights();
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Imposing rotation and position to bodies",
-                         core::dimension2d<u32>(800, 600));
+    // Simulation loop
+    double timestep = 0.01;
+    ChRealtimeStepTimer realtime_timer;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 2, -3));
+        sys.DoStepDynamics(timestep);
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
+        double t = sys.GetChTime();
 
-    application.AssetBindAll();
-
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-    application.AssetUpdateAll();
-
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
-    application.SetTimestep(0.01);
-    application.SetTryRealtime(true);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        application.DrawAll();
-
-        application.DoStep();
-
-        double t = application.GetSystem()->GetChTime();
-
-        if (application.GetSystem()->GetStepcount() % 10 == 0) {
+        if (sys.GetStepcount() % 10 == 0) {
             f_pos_setpoint->SetSetpoint(0.2 * ChVector<>(cos(t * 12), sin(t * 12), 0), t);
             // f_rot_setpoint->SetSetpoint(Q_from_AngAxis(t*0.5, VECT_Z), t );
             // GetLog() << "set p = " << f_setpoint->Get_p(t).y() << " at t=" << t  << "\n";
         }
-        // GetLog() << "p = " << f_setpoint->Get_p(t).y() << "  p_ds = " << f_setpoint->Get_p_ds(t).y() << "   p_dsds= "
-        // << f_setpoint->Get_p_dsds(t).y() << "\n"; if (!application.GetPaused()) 	mmoved_5->SetRot(f_squad->Get_q(t));
 
-        application.EndScene();
+        realtime_timer.Spin(timestep);
     }
 
     return 0;

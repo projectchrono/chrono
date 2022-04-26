@@ -34,7 +34,7 @@
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChLinkDistance.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -89,24 +89,10 @@ double time_step = 0.0005;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
     // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     // set gravity
-    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Turtlebot Robot on Rigid Terrain", core::dimension2d<u32>(1280, 720),
-                         VerticalDir::Z, false, true);
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 0.5, 0.5));
-
-    application.AddLightWithShadow(core::vector3df(1.5f, 1.5f, 5.5f), core::vector3df(0, 0, 0), 3, 4, 10, 40, 512,
-                                   video::SColorf(0.8f, 0.8f, 1.0f));
-
-    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
@@ -114,14 +100,10 @@ int main(int argc, char* argv[]) {
     // Create a floor
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, 1, 1000, true, true, floor_mat);
-
     mfloor->SetPos(ChVector<>(0, 0, -1));
     mfloor->SetBodyFixed(true);
-    mphysicalSystem.Add(mfloor);
-
-    auto masset_texture = chrono_types::make_shared<ChTexture>();
-    masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    mfloor->AddAsset(masset_texture);
+    mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+    sys.Add(mfloor);
 
     // Create a Turtlebot Robot with default parameters.
     // The default rotational speed of the Motor is speed w=3.145 rad/sec.
@@ -129,29 +111,33 @@ int main(int argc, char* argv[]) {
 
     ChVector<double> body_pos(0, 0, -0.45);
 
-    robot = chrono_types::make_shared<TurtleBot>(&mphysicalSystem, body_pos, QUNIT);
+    robot = chrono_types::make_shared<TurtleBot>(&sys, body_pos, QUNIT);
 
     robot->Initialize();
 
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
-    application.AssetBindAll();
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Turtlebot Robot on Rigid Terrain");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 0.5, 0.5));
+    vis->AddTypicalLights();
+    vis->AddLightWithShadow(ChVector<>(1.5, 1.5, 5.5), ChVector<>(0, 0, 0), 3, 4, 10, 40, 512,
+                            ChColor(0.8f, 0.8f, 1.0f));
+    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_DISTANCES);
+    vis->EnableShadows();
 
-    // Use this function for 'converting' assets into Irrlicht meshes
-    application.AssetUpdateAll();
-
-    // Use shadows in realtime view
-    application.AddShadowAll();
-
-    application.SetTimestep(time_step);
-
-    //
     // Simulation loop
-    //
-
     float time = 0.0f;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
-    while (application.GetDevice()->run()) {
         // at time = 1 s, start left turn
         if (abs(time - 1.0f) < 1e-4) {
             robot->SetMotorSpeed(-0.f, WheelID::LD);
@@ -172,10 +158,7 @@ int main(int argc, char* argv[]) {
         // increment time indicator
         time = time + time_step;
 
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-        application.DrawAll();
-        application.DoStep();
-        application.EndScene();
+        sys.DoStepDynamics(time_step);
     }
 
     return 0;

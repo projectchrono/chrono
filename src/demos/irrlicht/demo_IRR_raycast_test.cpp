@@ -21,7 +21,7 @@
 #include "chrono/collision/ChCollisionSystemChrono.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -67,7 +67,7 @@ RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2<>& 
     m_glyphs->SetGlyphsSize(0.1);
     m_glyphs->SetZbufferHide(true);
     m_glyphs->SetDrawMode(ChGlyphs::GLYPH_POINT);
-    m_body->AddAsset(m_glyphs);
+    m_body->AddVisualShape(m_glyphs);
 }
 
 void RayCaster::Update() {
@@ -110,14 +110,14 @@ void CreateSpheres(ChSystemSMC& sys) {
 
     auto s1 = chrono_types::make_shared<ChBodyEasySphere>(2.0, 1, mat, collision_type);
     s1->SetPos(ChVector<>(0, 0, 0));
-    s1->AddAsset(chrono_types::make_shared<ChColorAsset>(0.4f, 0, 0));
+    s1->GetVisualShape(0)->SetColor(ChColor(0.4f, 0, 0));
     s1->GetCollisionModel()->SetFamily(1);
     s1->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     sys.Add(s1);
 
     auto s2 = chrono_types::make_shared<ChBodyEasySphere>(2.0, 1, mat, collision_type);
     s2->SetPos(ChVector<>(2, 0, 3));
-    s2->AddAsset(chrono_types::make_shared<ChColorAsset>(0.4f, 0, 0));
+    s2->GetVisualShape(0)->SetColor(ChColor(0.4f, 0, 0));
     s2->GetCollisionModel()->SetFamily(1);
     s2->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     sys.Add(s2);
@@ -129,14 +129,14 @@ void CreateBoxes(ChSystemSMC& sys) {
     auto b1 = chrono_types::make_shared<ChBodyEasyBox>(3.0, 2.0, 1.0, 1, mat, collision_type);
     b1->SetPos(ChVector<>(0, 0, 0));
     b1->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
-    b1->AddAsset(chrono_types::make_shared<ChColorAsset>(0, 0.4f, 0));
+    b1->GetVisualShape(0)->SetColor(ChColor(0, 0.4f, 0));
     b1->GetCollisionModel()->SetFamily(1);
     b1->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     sys.Add(b1);
 
     auto b2 = chrono_types::make_shared<ChBodyEasyBox>(5.0, 4.0, 1.0, 1, mat, collision_type);
     b2->SetPos(ChVector<>(0, 0, +3));
-    b2->AddAsset(chrono_types::make_shared<ChColorAsset>(0, 0.4f, 0));
+    b2->GetVisualShape(0)->SetColor(ChColor(0, 0.4f, 0));
     b2->GetCollisionModel()->SetFamily(1);
     b2->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     sys.Add(b2);
@@ -148,7 +148,7 @@ void CreateCylinders(ChSystemSMC& sys) {
     auto c1 = chrono_types::make_shared<ChBodyEasyCylinder>(1.0, 2.0, 1, mat, collision_type);
     c1->SetPos(ChVector<>(0, 0, 0));
     c1->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
-    c1->AddAsset(chrono_types::make_shared<ChColorAsset>(0, 0, 0.4f));
+    c1->GetVisualShape(0)->SetColor(ChColor(0, 0, 0.4f));
     c1->GetCollisionModel()->SetFamily(1);
     c1->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     sys.Add(c1);
@@ -156,7 +156,7 @@ void CreateCylinders(ChSystemSMC& sys) {
     auto c2 = chrono_types::make_shared<ChBodyEasyCylinder>(2.0, 4.0, 1, mat, collision_type);
     c2->SetPos(ChVector<>(0, 0, 3));
     c2->SetRot(Q_from_AngZ(CH_C_PI / 4));
-    c2->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6, 0.6, 0.7f));
+    c2->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.7f));
     c2->GetCollisionModel()->SetFamily(1);
     c2->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     sys.Add(c2);
@@ -173,7 +173,7 @@ void CreateShapes(ChSystemSMC& sys) {
     for (int i = 0; i < points.size() / 3; i++) {
         auto s = chrono_types::make_shared<ChBodyEasySphere>(0.75 * scale, 1, mat, collision_type);
         s->SetPos(points[3 * i + 0]);
-        s->AddAsset(chrono_types::make_shared<ChColorAsset>(0.4f, 0, 0));
+        s->GetVisualShape(0)->SetColor(ChColor(0.4f, 0, 0));
         s->GetCollisionModel()->SetFamily(1);
         s->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         sys.Add(s);
@@ -182,7 +182,7 @@ void CreateShapes(ChSystemSMC& sys) {
             chrono_types::make_shared<ChBodyEasyBox>(1.0 * scale, 1.5 * scale, 1.25 * scale, 1, mat, collision_type);
         b->SetPos(points[3 * i + 1]);
         b->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
-        b->AddAsset(chrono_types::make_shared<ChColorAsset>(0, 0.4f, 0));
+        b->GetVisualShape(0)->SetColor(ChColor(0, 0.4f, 0));
         b->GetCollisionModel()->SetFamily(1);
         b->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         sys.Add(b);
@@ -190,7 +190,7 @@ void CreateShapes(ChSystemSMC& sys) {
         auto c = chrono_types::make_shared<ChBodyEasyCylinder>(0.75 * scale, 0.75 * scale, 1, mat, collision_type);
         c->SetPos(points[3 * i + 2]);
         c->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
-        c->AddAsset(chrono_types::make_shared<ChColorAsset>(0, 0, 0.4f));
+        c->GetVisualShape(0)->SetColor(ChColor(0, 0, 0.4f));
         c->GetCollisionModel()->SetFamily(1);
         c->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         sys.Add(c);
@@ -200,15 +200,14 @@ void CreateShapes(ChSystemSMC& sys) {
 void CreateMeshes(ChSystemSMC& sys) {
     auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile("models/sphere.obj"));
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/sphere.obj"));
     trimesh->Transform(ChVector<>(0), ChMatrix33<>(2));
     std::shared_ptr<ChTriangleMeshShape> vismesh(new ChTriangleMeshShape);
     vismesh->SetMesh(trimesh);
+    vismesh->SetColor(ChColor(0.4f, 0, 0));
 
     auto m1 = chrono_types::make_shared<ChBody>(collision_type);
-    m1->AddAsset(vismesh);
-    m1->AddAsset(chrono_types::make_shared<ChColorAsset>(0.4f, 0, 0));
+    m1->AddVisualShape(vismesh);
     m1->GetCollisionModel()->ClearModel();
     m1->GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
     m1->GetCollisionModel()->BuildModel();
@@ -248,7 +247,7 @@ void CreateTestSet(ChSystemSMC& sys) {
     for (int i = 0; i < 8; i++) {
         auto b = chrono_types::make_shared<ChBodyEasyBox>(2.0, 2.0, 2.0, 1, mat, collision_type);
         b->SetPos(loc[i] - ChVector<>(5, 5, 0));
-        b->AddAsset(chrono_types::make_shared<ChColorAsset>(0, 0.4f, 0));
+        b->GetVisualShape(0)->SetColor(ChColor(0, 0.4f, 0));
         b->GetCollisionModel()->SetFamily(1);
         b->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         sys.Add(b);
@@ -283,16 +282,18 @@ int main(int argc, char* argv[]) {
     // Cast rays in collision models (in Z direction of specified frame)
     RayCaster caster(&sys, ChFrame<>(ChVector<>(0, 0, -20), Q_from_AngX(0)), ChVector2<>(10, 10), 0.5);
 
-    // Create the Irrlicht visualization
-    ChIrrApp application(&sys, L"Ray intersection test", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 0, -60));
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Ray intersection test");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 0, -60));
+    vis->AddTypicalLights();
 
-    auto camera = application.GetActiveCamera();
+    auto camera = vis->GetActiveCamera();
     camera->setFOV(core::PI / 10.0f);
 
     if (rotate_shapes) {
@@ -300,21 +301,21 @@ int main(int argc, char* argv[]) {
             b->SetWvel_loc(ChVector<>(0.1, 0.1, 0.1));
     }
 
-    while (application.GetDevice()->run()) {
+    while (vis->Run()) {
         sys.DoStepDynamics(0.01);
         caster.Update();
 
-        application.BeginScene();
-        application.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         if (draw_rays) {
             for (auto& p : caster.GetPoints()) {
-                tools::drawSegment(application.GetVideoDriver(), p - ChVector<>(0, 0, 100), p,
+                tools::drawSegment(vis->GetVideoDriver(), p - ChVector<>(0, 0, 100), p,
                                    video::SColor(0, 150, 150, 150), true);
             }
         }
 
-        application.EndScene();
+        vis->EndScene();
     }
 
     return 0;

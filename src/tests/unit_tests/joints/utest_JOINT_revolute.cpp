@@ -147,20 +147,20 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
 
     std::cout << "  Create system..." << std::endl;
 
-    ChSystemNSC my_system;
-    my_system.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
 
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    my_system.SetSolverType(ChSolver::Type::PSOR);
-    my_system.SetSolverMaxIterations(100);
-    my_system.SetSolverForceTolerance(1e-4);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(100);
+    sys.SetSolverForceTolerance(1e-4);
 
     // Create the ground body
 
     std::cout << "  Create bodies..." << std::endl;
 
     auto ground = chrono_types::make_shared<ChBody>();
-    my_system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetBodyFixed(true);
 
     // Create the pendulum body in an initial configuration at rest, with an
@@ -169,7 +169,7 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
     // The pendulum CG is assumed to be at half its length.
 
     auto pendulum = chrono_types::make_shared<ChBody>();
-    my_system.AddBody(pendulum);
+    sys.AddBody(pendulum);
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
     pendulum->SetRot(jointRot);
     pendulum->SetMass(mass);
@@ -185,7 +185,7 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
     revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
     ////ChSharedPtr<ChLinkRevolute>  revoluteJoint(new ChLinkRevolute);
     ////revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
-    my_system.AddLink(revoluteJoint);
+    sys.AddLink(revoluteJoint);
 
     // Perform the simulation (record results option)
     // ------------------------------------------------
@@ -261,7 +261,7 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
     // Perform a system assembly to ensure we have the correct accelerations at
     // the initial time.
     std::cout << "  Perform system assembly..." << std::endl;
-    my_system.DoFullAssembly();
+    sys.DoFullAssembly();
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();
@@ -338,7 +338,7 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
         }
 
         // Advance simulation by one step
-        my_system.DoStepDynamics(simTimeStep);
+        sys.DoStepDynamics(simTimeStep);
 
         // Increment simulation time
         simTime += simTimeStep;

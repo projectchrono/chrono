@@ -1,18 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
-#
-# =============================================================================
-# Authors: Simone Benatti
-# =============================================================================
-#
-# FEA using the brick element
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 
@@ -25,19 +19,8 @@ import numpy as np
 
 print( "Copyright (c) 2017 projectchrono.org")
 
-my_system = chrono.ChSystemSMC()
+sys = chrono.ChSystemSMC()
 
-# Create the Irrlicht visualization (open the Irrlicht device,
-# bind a simple user interface, etc. etc.)
-application = chronoirr.ChIrrApp(my_system, "Brick Elements", chronoirr.dimension2du(800, 600))
-
-# Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-application.AddLogo()
-application.AddSkyBox()
-application.AddTypicalLights()
-
-application.AddCamera(chronoirr.vector3df(1.2, 0.6, 0.3),   # camera location
-							 chronoirr.vector3df(0.2, -0.2, 0.))   # "look at" location
 
 print( "-----------------------------------------------------------")
 print( "-----------------------------------------------------------")
@@ -47,7 +30,7 @@ print( "-----------------------------------------------------------")
 # The physical system: it contains all physical objects.
 # Create a mesh, that is a container for groups
 # of elements and their referenced nodes.
-my_mesh = fea.ChMesh()
+mesh = fea.ChMesh()
 # Geometry of the plate
 plate_lenght_x = 1
 plate_lenght_y = 1
@@ -156,27 +139,27 @@ i = 0
 while i < TotalNumNodes :
 	node = fea.ChNodeFEAxyz(chrono.ChVectorD(COORDFlex[i, 0], COORDFlex[i, 1], COORDFlex[i, 2]))
 	node.SetMass(0.0)
-	my_mesh.AddNode(node)
+	mesh.AddNode(node)
 	if (NDR[i, 0] == 1 and NDR[i, 1] == 1 and NDR[i, 2] == 1) :
 		node.SetFixed(True)
 	
 	i += 1 
 
-nodetip = fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(my_mesh.GetNode(TotalNumNodes - 1)))
+nodetip = fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(TotalNumNodes - 1)))
 
 elemcount = 0
 while elemcount < TotalNumElements : 
     element = fea.ChElementHexaANCF_3813()
     InertFlexVec  = chrono.ChVectorD(ElemLengthXY[elemcount, 0], ElemLengthXY[elemcount, 1], ElemLengthXY[elemcount, 2]) # read element length
     element.SetInertFlexVec(InertFlexVec)
-    element.SetNodes(fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(my_mesh.GetNode(int(NumNodes[elemcount, 0])))),
-					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(my_mesh.GetNode(int(NumNodes[elemcount, 1])))),
-					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(my_mesh.GetNode(int(NumNodes[elemcount, 2])))),
-					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(my_mesh.GetNode(int(NumNodes[elemcount, 3])))),
-					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(my_mesh.GetNode(int(NumNodes[elemcount, 4])))),
-					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(my_mesh.GetNode(int(NumNodes[elemcount, 5])))),
-					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(my_mesh.GetNode(int(NumNodes[elemcount, 6])))),
-					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(my_mesh.GetNode(int(NumNodes[elemcount, 7])))))
+    element.SetNodes(fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(int(NumNodes[elemcount, 0])))),
+					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(int(NumNodes[elemcount, 1])))),
+					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(int(NumNodes[elemcount, 2])))),
+					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(int(NumNodes[elemcount, 3])))),
+					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(int(NumNodes[elemcount, 4])))),
+					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(int(NumNodes[elemcount, 5])))),
+					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(int(NumNodes[elemcount, 6])))),
+					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(int(NumNodes[elemcount, 7])))))
 
     element.SetMaterial(mmaterial)
     element.SetElemNum(elemcount)            # for EAS
@@ -185,65 +168,74 @@ while elemcount < TotalNumElements :
     element.SetStockAlpha(stock_alpha_EAS[0], stock_alpha_EAS[1], stock_alpha_EAS[2],
                                stock_alpha_EAS[3], stock_alpha_EAS[4], stock_alpha_EAS[5],
                                stock_alpha_EAS[6], stock_alpha_EAS[7], stock_alpha_EAS[8])
-    my_mesh.AddElement(element)
+    mesh.AddElement(element)
     elemcount += 1
 
-my_system.Set_G_acc(chrono.ChVectorD(0, 0, -9.81))
+sys.Set_G_acc(chrono.ChVectorD(0, 0, -9.81))
 # Remember to add the mesh to the system!
-my_system.Add(my_mesh)
+sys.Add(mesh)
 
 # Options for visualization in irrlicht
-mvisualizemesh = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizemesh.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NODE_P)
+mvisualizemesh = chrono.ChVisualShapeFEA(mesh)
+mvisualizemesh.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_P)
 mvisualizemesh.SetShrinkElements(True, 0.85)
 mvisualizemesh.SetSmoothFaces(False)
-my_mesh.AddAsset(mvisualizemesh)
+mesh.AddVisualShapeFEA(mvisualizemesh)
 
-mvisualizemeshref = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizemeshref.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_SURFACE)
+mvisualizemeshref = chrono.ChVisualShapeFEA(mesh)
+mvisualizemeshref.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 mvisualizemeshref.SetWireframe(True)
 mvisualizemeshref.SetDrawInUndeformedReference(True)
-my_mesh.AddAsset(mvisualizemeshref)
+mesh.AddVisualShapeFEA(mvisualizemeshref)
 
-mvisualizemeshC = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizemeshC.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_NODE_DOT_POS)
-mvisualizemeshC.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_SURFACE)
+mvisualizemeshC = chrono.ChVisualShapeFEA(mesh)
+mvisualizemeshC.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS)
+mvisualizemeshC.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 mvisualizemeshC.SetSymbolsThickness(0.015)
-my_mesh.AddAsset(mvisualizemeshC)
+mesh.AddVisualShapeFEA(mvisualizemeshC)
 
-mvisualizemeshD = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizemeshD.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_NONE)
-mvisualizemeshD.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_SURFACE)
+mvisualizemeshD = chrono.ChVisualShapeFEA(mesh)
+mvisualizemeshD.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NONE)
+mvisualizemeshD.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 mvisualizemeshD.SetSymbolsScale(1)
 mvisualizemeshD.SetColorscaleMinMax(-0.5, 5)
 mvisualizemeshD.SetZbufferHide(False)
-my_mesh.AddAsset(mvisualizemeshD)
+mesh.AddVisualShapeFEA(mvisualizemeshD)
 
-application.AssetBindAll()
-application.AssetUpdateAll()
+# Create the Irrlicht visualization
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Brick Elements')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(1.2, 0.6, 0.3), chrono.ChVectorD(0.2, -0.2, 0))
+vis.AddTypicalLights()
+
 
 # Perform a dynamic time integration:
 
 solver = chrono.ChSolverMINRES()
-my_system.SetSolver(solver)
+sys.SetSolver(solver)
 solver.SetMaxIterations(1000)
 solver.SetTolerance(1e-10)
 solver.EnableDiagonalPreconditioner(True)
 solver.SetVerbose(False)
 
-mystepper = chrono.ChTimestepperHHT(my_system)
-my_system.SetTimestepper(mystepper)
+mystepper = chrono.ChTimestepperHHT(sys)
+sys.SetTimestepper(mystepper)
 mystepper.SetAlpha(-0.2)
 mystepper.SetMaxiters(100)
 mystepper.SetAbsTolerances(1e-5)
 mystepper.SetMode(chrono.ChTimestepperHHT.POSITION)
 mystepper.SetScaling(True)
-application.SetTimestep(0.004)
 
-while application.GetDevice().run() :
-	application.BeginScene()
-	application.DrawAll()
-	application.DoStep()
-	application.EndScene()
+# Simulation loop
+while vis.Run():
+    vis.BeginScene()
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(0.004)
 
 

@@ -49,23 +49,18 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     // Functions that can be used
     // for cosimulation  A <----> B
 
-    /// A --> B
-    /// Get the collision mesh in a pointer-less way, where vertex are
-    /// given in a vector of xyz points, and triangles are given as indexes to the three
-    /// vertexes in that vector. Similarly to Wavefront .OBJ meshes. Note, indexes are 0-based.
-    /// These vectors can be later sent to another computing node that computes, say, CFD forces on the mesh.
+    /// Get the collision mesh in a pointer-less way, where vertices are given in a vector of xyz points, and triangles
+    /// are given as indexes to the three vertexes in that vector (similar to Wavefront OBJ meshes) Note, indexes are
+    /// 0-based. These vectors can be later sent to another computing node that computes, say, CFD forces on the mesh.
     void OutputSimpleMesh(
         std::vector<ChVector<>>& vert_pos,     ///< array of vertexes (absolute xyz positions)
         std::vector<ChVector<>>& vert_vel,     ///< array of vertexes (absolute xyz velocities, might be useful)
         std::vector<ChVector<int>>& triangles  ///< array of triangles (indexes to vertexes, ccw)
     );
 
-    /// A <-- B
-    /// Set the forces to the nodes in a pointer-less way, where forces are
-    /// given as a vector of xyz vectors and indexes to the referenced vertex, as
-    /// obtained by OutputSimpleMesh.
-    /// NOTE! do not insert/remove nodes from the collision mesh
-    ///       between the OutputSimpleMesh-InputSimpleForces pair!
+    /// Set the forces to the nodes in a pointer-less way, where forces are given as a vector of xyz vectors and indexes
+    /// to the referenced vertex, as obtained by OutputSimpleMesh.
+    /// NOTE: do not insert/remove nodes from the collision mesh between the OutputSimpleMesh-InputSimpleForces pair!
     void InputSimpleForces(
         const std::vector<ChVector<>> vert_forces,  ///< array of forces (absolute xyz forces in [N])
         const std::vector<int> vert_ind             ///< array of indexes to vertexes to which forces are applied
@@ -113,7 +108,7 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
 
     virtual void CreateJacobianMatrices() override;
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;
-    virtual void LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {}; // nothing here because no M
+    virtual void LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) override {}
     virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 

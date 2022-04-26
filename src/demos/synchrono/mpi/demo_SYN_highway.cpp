@@ -25,7 +25,7 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_synchrono/SynConfig.h"
 #include "chrono_synchrono/SynChronoManager.h"
@@ -174,12 +174,12 @@ int main(int argc, char* argv[]) {
     auto patch =
         terrain.AddPatch(patch_mat, CSYSNORM, synchrono::GetDataFile("meshes/Highway_col.obj"), true, 0.01, false);
 
-    auto vis_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    vis_mesh->LoadWavefrontMesh(synchrono::GetDataFile("meshes/Highway_vis.obj"), true, true);
+    auto vis_mesh =
+        ChTriangleMeshConnected::CreateFromWavefrontFile(synchrono::GetDataFile("meshes/Highway_vis.obj"), true, true);
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(vis_mesh);
-    trimesh_shape->SetStatic(true);
-    patch->GetGroundBody()->AddAsset(trimesh_shape);
+    trimesh_shape->SetMutable(false);
+    patch->GetGroundBody()->AddVisualShape(trimesh_shape);
     terrain.Initialize();
 
     // ----------
@@ -231,14 +231,14 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the vehicle Irrlicht interface
-    std::shared_ptr<ChWheeledVehicleIrrApp> app;
+    std::shared_ptr<ChWheeledVehicleVisualSystemIrrlicht> app;
     if (cli.HasValueInVector<int>("irr", node_id)) {
-        app = chrono_types::make_shared<ChWheeledVehicleIrrApp>(&vehicle, L"SynChrono Vehicle Demo");
-        app->AddTypicalLights();
+        app = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+        app->SetWindowTitle("SynChrono Vehicle Demo");
         app->SetChaseCamera(trackPoint, 6.0, 0.5);
-        app->SetTimestep(step_size);
-        app->AssetBindAll();
-        app->AssetUpdateAll();
+        app->Initialize();
+        app->AddTypicalLights();
+        vehicle.SetVisualSystem(app);
     }
 
 #ifdef CHRONO_SENSOR
@@ -312,7 +312,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0 && app) {
-            app->BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app->BeginScene();
             app->DrawAll();
             app->EndScene();
         }

@@ -90,7 +90,7 @@ void ChGlyphs::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChGlyphs>();
     // serialize parent class
-    ChVisualization::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(points);
     marchive << CHNVP(colors);
@@ -106,7 +106,7 @@ void ChGlyphs::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChGlyphs>();
     // deserialize parent class
-    ChVisualization::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(points);
     marchive >> CHNVP(colors);

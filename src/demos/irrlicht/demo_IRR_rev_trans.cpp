@@ -24,7 +24,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -34,35 +34,31 @@ using namespace irr;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    ChSystemNSC system;
-    system.Set_G_acc(ChVector<>(0.01, -1, 1));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0.01, -1, 1));
 
-    double L = 0.5; // distance for the revolute-translational joint
+    double L = 0.5;  // distance for the revolute-translational joint
 
     // Create the ground body
     // ----------------------
 
     auto ground = chrono_types::make_shared<ChBody>();
-    system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
     ground->SetPos(ChVector<>(0, 0, -1));
 
-    auto cyl = chrono_types::make_shared<ChBoxShape>();
-    cyl->GetBoxGeometry().Size = ChVector<>(10, 0.04, 0.06);
-    cyl->GetBoxGeometry().Pos = ChVector<>(5, 0, 0);
-    ground->AddAsset(cyl);
-
-    auto col_g = chrono_types::make_shared<ChColorAsset>();
-    col_g->SetColor(ChColor(0, 0, 0.6f, 0));
-    ground->AddAsset(col_g);
+    auto box = chrono_types::make_shared<ChBoxShape>();
+    box->GetBoxGeometry().Size = ChVector<>(10, 0.04, 0.06);
+    box->SetColor(ChColor(0, 0, 0.6f));
+    ground->AddVisualShape(box, ChFrame<>(ChVector<>(5, 0, 0)));
 
     // Create a pendulum body
     // ----------------------
 
     auto pend = chrono_types::make_shared<ChBody>();
-    system.AddBody(pend);
+    sys.AddBody(pend);
     pend->SetIdentifier(1);
     pend->SetBodyFixed(false);
     pend->SetCollide(false);
@@ -77,23 +73,21 @@ int main(int argc, char* argv[]) {
     cyl_p->GetCylinderGeometry().p1 = ChVector<>(-1.46, 0, 0);
     cyl_p->GetCylinderGeometry().p2 = ChVector<>(1.46, 0, 0);
     cyl_p->GetCylinderGeometry().rad = 0.2;
-    pend->AddAsset(cyl_p);
+    cyl_p->SetColor(ChColor(0.6f, 0, 0));
+    pend->AddVisualShape(cyl_p);
 
     auto cyl_j = chrono_types::make_shared<ChCylinderShape>();
     cyl_j->GetCylinderGeometry().p1 = ChVector<>(-1.5, 0, 0.2);
     cyl_j->GetCylinderGeometry().p2 = ChVector<>(-1.5, 0, -0.2);
     cyl_j->GetCylinderGeometry().rad = 0.04;
-    pend->AddAsset(cyl_j);
-
-    auto col_p = chrono_types::make_shared<ChColorAsset>();
-    col_p->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddAsset(col_p);
+    cyl_j->SetColor(ChColor(0.6f, 0, 0));
+    pend->AddVisualShape(cyl_j);
 
     // Create a revolute-translational joint to connect pendulum to ground.
     auto rev_trans = chrono_types::make_shared<ChLinkRevoluteTranslational>();
-    system.AddLink(rev_trans);
+    sys.AddLink(rev_trans);
 
-    // Initialize the joint specifying a coordinate system (expressed in the
+    // Initialize the joint specifying a coordinate sys (expressed in the
     // absolute frame) and a distance. The revolute side is attached to the
     // pendulum and the translational side to the ground.
     rev_trans->Initialize(pend, ground, ChCoordsys<>(ChVector<>(0, -L, -1), Q_from_AngZ(CH_C_PI_2)), L);
@@ -101,37 +95,36 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht application
     // -------------------------------
 
-    ChIrrApp application(&system, L"ChLinkRevoluteTranslational demo", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(-1.5, 2, 3));
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("ChLinkRevoluteTranslational demo");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(-1.5, 2, 3));
+    vis->AddTypicalLights();
 
     // Simulation loop
-    application.SetTimestep(0.001);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        application.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Render the connecting body.
         // Recall that the joint reference frame is given in the Body coordinates.
         ChCoordsys<> joint_csys = ground->GetCoord() >> rev_trans->GetLinkRelativeCoords();
         ChVector<> point1 = joint_csys.pos;
         ChVector<> point2 = joint_csys.TransformPointLocalToParent(ChVector<>(L, 0, 0));
-        tools::drawSegment(application.GetVideoDriver(), point1, point2, video::SColor(255, 0, 20, 0), true);
+        tools::drawSegment(vis->GetVideoDriver(), point1, point2, video::SColor(255, 0, 20, 0), true);
 
         // Render a line between the two points of the revolute-translational joint.
-        tools::drawSegment(application.GetVideoDriver(), rev_trans->GetPoint1Abs(), rev_trans->GetPoint2Abs(),
-                                video::SColor(255, 120, 120, 120), true);
+        tools::drawSegment(vis->GetVideoDriver(), rev_trans->GetPoint1Abs(), rev_trans->GetPoint2Abs(),
+                           video::SColor(255, 120, 120, 120), true);
 
-        application.DoStep();
+        vis->EndScene();
 
-        application.EndScene();
+        sys.DoStepDynamics(1e-3);
     }
 
     return 0;

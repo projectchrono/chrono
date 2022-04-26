@@ -23,12 +23,8 @@ namespace geometry {
 /// An ellipsoid geometric object for collisions and such.
 class ChApi ChEllipsoid : public ChGeometry {
   public:
-    ChVector<> center;  ///< ellipsoid center
-    ChVector<> rad;     ///< ellipsoid semi-axes
-
-  public:
-    ChEllipsoid() : center(VNULL), rad(0) {}
-    ChEllipsoid(const ChVector<>& mc, const ChVector<>& mrad) : center(mc), rad(mrad) {}
+    ChEllipsoid() : rad(0) {}
+    ChEllipsoid(const ChVector<>& mc, const ChVector<>& mrad) : rad(mrad) {}
     ChEllipsoid(const ChEllipsoid& source);
     ~ChEllipsoid() {}
 
@@ -45,7 +41,7 @@ class ChApi ChEllipsoid : public ChGeometry {
                                 double& zmax,
                                 ChMatrix33<>* Rot = NULL) const override;
 
-    virtual ChVector<> Baricenter() const override { return center; }
+    virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 
     virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
 
@@ -57,6 +53,8 @@ class ChApi ChEllipsoid : public ChGeometry {
 
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    ChVector<> rad;  ///< ellipsoid semi-axes
 };
 
 }  // end namespace geometry

@@ -20,8 +20,9 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChParserAdams.h"
+#include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include <cassert>
 #include <cmath>
@@ -44,14 +45,14 @@ int main(int argc, char* argv[]) {
     filename = GetChronoDataFile(filename);
 
     // Make a system
-    ChSystemSMC my_system;
+    ChSystemSMC sys;
 
     // Create parser instance and set options.
     // Use LOADED to read the ADAMS primitives
     ChParserAdams parser;
     parser.SetVisualizationType(ChParserAdams::VisType::LOADED);
     parser.SetVerbose(true);
-    parser.Parse(my_system, filename);
+    parser.Parse(sys, filename);
 
     // Get a full report on parsed elements
     auto rep = parser.GetReport();
@@ -61,37 +62,33 @@ int main(int argc, char* argv[]) {
 
     // Adda a ground for perspective (no collision)
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, false);
-    my_system.AddBody(my_ground);
+    sys.AddBody(my_ground);
     my_ground->SetBodyFixed(true);
     my_ground->SetPos(ChVector<>(0, -2.9, 0));
     my_ground->SetNameString(std::string("ground"));
-    my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg")));
+    my_ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
 
-    // Set up Irrlicht
-    ChIrrApp application(&my_system, L"Model loaded from ADAMS file", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 0, 2));
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Model loaded from ADAMS file");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 0, 2));
+    vis->AddTypicalLights();
 
     // Simulation loop
-    application.SetTimestep(0.005);
-
-    while (application.GetDevice()->run()) {
-        // for (auto body : my_system.Get_bodylist()) {
-        //     std::cout << "Body " << body->GetNameString() << " mass: " << body->GetMass() << std::endl;
-        //     std::cout << "Pos: " << body->GetPos().x() << "," << body->GetPos().y() << "," << body->GetPos().z() <<
-        //     ","
-        //               << std::endl;
-        //     std::cout << "fixed? " << body->GetBodyFixed() << std::endl;
-        // }
-        application.BeginScene();
-        application.DrawAll();
-        application.DoStep();
-        application.EndScene();
+    double timestep = 0.005;
+    ChRealtimeStepTimer realtime_timer;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
+        sys.DoStepDynamics(timestep);
+        realtime_timer.Spin(timestep);
     }
+
     return 0;
 }

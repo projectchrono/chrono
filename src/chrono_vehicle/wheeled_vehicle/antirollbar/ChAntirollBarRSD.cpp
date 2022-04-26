@@ -24,7 +24,6 @@
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/ChAntirollBarRSD.h"
 
@@ -193,23 +192,19 @@ void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
     cyl_1->GetCylinderGeometry().p1 = pt_1;
     cyl_1->GetCylinderGeometry().p2 = pt_2;
     cyl_1->GetCylinderGeometry().rad = radius;
-    arm->AddAsset(cyl_1);
+    arm->AddVisualShape(cyl_1);
 
     auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = pt_2;
     cyl_2->GetCylinderGeometry().p2 = pt_3;
     cyl_2->GetCylinderGeometry().rad = radius;
-    arm->AddAsset(cyl_2);
+    arm->AddVisualShape(cyl_2);
 
     auto cyl_3 = chrono_types::make_shared<ChCylinderShape>();
     cyl_3->GetCylinderGeometry().p1 = pt_1 + ChVector<>(0, 0, 3 * radius);
     cyl_3->GetCylinderGeometry().p2 = pt_1 - ChVector<>(0, 0, 3 * radius);
     cyl_3->GetCylinderGeometry().rad = radius / 2;
-    arm->AddAsset(cyl_3);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(color);
-    arm->AddAsset(col);
+    arm->AddVisualShape(cyl_3);
 }
 
 // -----------------------------------------------------------------------------

@@ -23,7 +23,6 @@ namespace geometry {
 CH_FACTORY_REGISTER(ChSphere)
 
 ChSphere::ChSphere(const ChSphere& source) {
-    center = source.center;
     rad = source.rad;
 }
 
@@ -34,23 +33,16 @@ void ChSphere::GetBoundingBox(double& xmin,
                               double& zmin,
                               double& zmax,
                               ChMatrix33<>* Rot) const {
-    ChVector<> trsfCenter = center;
-    if (Rot) {
-        trsfCenter = Rot->transpose() * center;
-    }
-    xmin = trsfCenter.x() - rad;
-    xmax = trsfCenter.x() + rad;
-    ymin = trsfCenter.y() - rad;
-    ymax = trsfCenter.y() + rad;
-    zmin = trsfCenter.z() - rad;
-    zmax = trsfCenter.z() + rad;
+    xmin = -rad;
+    xmax = +rad;
+    ymin = -rad;
+    ymax = +rad;
+    zmin = -rad;
+    zmax = +rad;
 }
 
 void ChSphere::CovarianceMatrix(ChMatrix33<>& C) const {
     C.setZero();
-    C(0, 0) = center.x() * center.x();
-    C(1, 1) = center.y() * center.y();
-    C(2, 2) = center.z() * center.z();
 }
 
 void ChSphere::ArchiveOUT(ChArchiveOut& marchive) {
@@ -59,7 +51,6 @@ void ChSphere::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize parent class
     ChGeometry::ArchiveOUT(marchive);
     // serialize all member data:
-    marchive << CHNVP(center);
     marchive << CHNVP(rad);
 }
 
@@ -69,7 +60,6 @@ void ChSphere::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize parent class
     ChGeometry::ArchiveIN(marchive);
     // stream in all member data:
-    marchive >> CHNVP(center);
     marchive >> CHNVP(rad);
 }
 

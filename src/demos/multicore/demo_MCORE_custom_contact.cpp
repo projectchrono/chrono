@@ -18,8 +18,9 @@
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -30,15 +31,13 @@ class MyObstacle {
   public:
     MyObstacle() : radius(2), center(2.9, 0, 2.9) {}
 
-    std::shared_ptr<ChAssetLevel> GetVisualization() {
-        auto level = chrono_types::make_shared<ChAssetLevel>();
+    std::shared_ptr<ChCylinderShape> GetVisualization() {
         auto cyl = chrono_types::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().rad = radius;
         cyl->GetCylinderGeometry().p1 = center + ChVector<>(0, 0, 0);
         cyl->GetCylinderGeometry().p2 = center + ChVector<>(0, 1.1, 0);
-        level->AddAsset(cyl);
-        level->AddAsset(chrono_types::make_shared<ChColorAsset>(0.9f, 0.3f, 0.0f));
-        return level;
+        cyl->SetColor(ChColor(0.9f, 0.3f, 0.0f));
+        return cyl;
     }
 
     double radius;
@@ -169,6 +168,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    auto ground_mat_vis = chrono_types::make_shared<ChVisualMaterial>();
+    ground_mat_vis->SetKdTexture(GetChronoDataFile("textures/blue.png"));
+
     sys->Set_G_acc(ChVector<>(0, -9.8, 0));
 
     // Create the ground body with a plate and side walls (both collision and visualization).
@@ -179,15 +181,14 @@ int main(int argc, char* argv[]) {
     ground->SetBodyFixed(true);
 
     ground->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.0, 1, 5.0), ChVector<>(0, -1, 0));
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.1, 1, 5.1), ChVector<>(-5, 0, 0));
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.1, 1, 5.1), ChVector<>(+5, 0, 0));
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, -5));
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, +5));
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.0, 1, 5.0), ChVector<>(0, -1, 0), QUNIT, true, ground_mat_vis);
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.1, 1, 5.1), ChVector<>(-5, 0, 0), QUNIT, true, ground_mat_vis);
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.1, 1, 5.1), ChVector<>(+5, 0, 0), QUNIT, true, ground_mat_vis);
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, -5), QUNIT, true, ground_mat_vis);
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, +5), QUNIT, true, ground_mat_vis);
     ground->GetCollisionModel()->BuildModel();
 
-    ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/blue.png")));
-    ground->AddAsset(obstacle.GetVisualization());
+    ground->AddVisualShape(obstacle.GetVisualization());
 
     // Create the falling ball
     auto ball = std::shared_ptr<ChBody>(sys->NewBody());
@@ -202,38 +203,37 @@ int main(int argc, char* argv[]) {
     utils::AddSphereGeometry(ball.get(), ball_mat, ball_radius);
     ball->GetCollisionModel()->BuildModel();
 
-    ball->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/bluewhite.png")));
+    ball->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
 
     // Create a custom collision detection callback object and register it with the system
     auto my_collision =
         chrono_types::make_shared<MyCustomCollisionDetection>(ball, ground, ball_mat, obst_mat, ball_radius, obstacle);
     sys->RegisterCustomCollisionCallback(my_collision);
 
-    // Create the Irrlicht visualization
-    ChIrrApp application(sys, L"Custom contact demo (Chrono::Multicore)", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(8, 8, -6));
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys->SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Custom contact demo (Chrono::Multicore)");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(8, 8, -6));
+    vis->AddTypicalLights();
 
     // Simulation loop
-    application.SetTimestep(time_step);
-    application.SetTryRealtime(true);
-
     int frame = 0;
-    while (application.GetDevice()->run()) {
+    ChRealtimeStepTimer realtime_timer;
+    while (vis->Run()) {
         if (frame % frame_skip == 0) {
-            application.BeginScene();
-            application.DrawAll();
-            application.EndScene();
+            vis->BeginScene();
+            vis->DrawAll();
+            vis->EndScene();
         }
-
-        application.DoStep();
-        frame++;
+        sys->DoStepDynamics(time_step);
+        realtime_timer.Spin(time_step);
     }
+
 
     delete sys;
     return 0;

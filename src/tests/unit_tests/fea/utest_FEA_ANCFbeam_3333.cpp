@@ -43,13 +43,13 @@ using namespace chrono::fea;
 
 int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
-    ChSystemNSC my_system;
+    ChSystemNSC sys;
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
-    my_system.Set_G_acc(ChVector<>(0, -9.81, 0.0));
+    sys.Set_G_acc(ChVector<>(0, -9.81, 0.0));
     const double beam_h = 0.5;  // Beam height (y)
     const double beam_w = 0.1;  // Beam width (z)
     const double beam_l = 2.0;  // Beam length
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     my_mesh->SetAutomaticGravity(false);
 
     // Remember to add the mesh to the system
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
 #ifndef CHRONO_PARDISO_MKL
     use_mkl = false;
@@ -143,22 +143,22 @@ int main(int argc, char* argv[]) {
         auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(false);
         mkl_solver->SetVerbose(false);
-        my_system.SetSolver(mkl_solver);
+        sys.SetSolver(mkl_solver);
 #endif
     } else {
         auto solver = chrono_types::make_shared<ChSolverMINRES>();
-        my_system.SetSolver(solver);
+        sys.SetSolver(solver);
         solver->SetMaxIterations(100);
         solver->SetTolerance(1e-15);
         solver->EnableDiagonalPreconditioner(true);
         solver->SetVerbose(false);
 
-        my_system.SetSolverForceTolerance(1e-14);
+        sys.SetSolverForceTolerance(1e-14);
     }
 
     // Setup integrator
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(10);
     mystepper->SetAbsTolerances(1e-10);
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
          //std::cout << "Lat. Position of the tip: " << hnodeancf5->GetPos().z() << " m. \n";
 
         hnodeancf5->SetForce(ChVector<>(0, -5e5 * std::pow(0.5, 3), 0));
-        my_system.DoStepDynamics(time_Step);
+        sys.DoStepDynamics(time_Step);
     }
     double error_y = (hnodeancf5->GetPos().y() + u_y_Ref) / u_y_Ref;
     double error_x = (hnodeancf5->GetPos().x() + u_x_Ref - 2.0) / u_x_Ref;

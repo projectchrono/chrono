@@ -1,5 +1,5 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
@@ -27,11 +27,11 @@ import math as m
 
 print("Copyright (c) 2017 projectchrono.org")
 
-system = chrono.ChSystemNSC()
+sys = chrono.ChSystemNSC()
 
 # Create ground body
 ground = chrono.ChBody()
-system.AddBody(ground)
+sys.AddBody(ground)
 ground.SetIdentifier(-1)
 ground.SetBodyFixed(True)
 ground.SetCollide(False)
@@ -41,11 +41,11 @@ cyl_rev = chrono.ChCylinderShape()
 cyl_rev.GetCylinderGeometry().p1 = chrono.ChVectorD(0, 0, 0.2)
 cyl_rev.GetCylinderGeometry().p2 = chrono.ChVectorD(0, 0, -0.2)
 cyl_rev.GetCylinderGeometry().rad = 0.04
-ground.AddAsset(cyl_rev)
+ground.AddVisualShape(cyl_rev)
 
 # Create a pendulum body
 pend = chrono.ChBody()
-system.AddBody(pend)
+sys.AddBody(pend)
 pend.SetIdentifier(1)
 pend.SetBodyFixed(False)
 pend.SetCollide(False)
@@ -60,15 +60,12 @@ cyl_p = chrono.ChCylinderShape()
 cyl_p.GetCylinderGeometry().p1 = chrono.ChVectorD(-1.46, 0, 0)
 cyl_p.GetCylinderGeometry().p2 = chrono.ChVectorD(1.46, 0, 0)
 cyl_p.GetCylinderGeometry().rad = 0.2
-pend.AddAsset(cyl_p)
-
-col_p = chrono.ChColorAsset()
-col_p.SetColor(chrono.ChColor(0.6, 0, 0))
-pend.AddAsset(col_p)
+cyl_p.SetColor(chrono.ChColor(0.6, 0, 0))
+pend.AddVisualShape(cyl_p)
 
 # Create a revolute joint to connect pendulum to ground
 rev = chrono.ChLinkLockRevolute()
-system.AddLink(rev)
+sys.AddLink(rev)
 
 # Add limits to the Z rotation of the revolute joint
 min_angle = 0
@@ -77,17 +74,19 @@ rev.GetLimit_Rz().SetActive(True)
 rev.GetLimit_Rz().SetMin(min_angle)
 rev.GetLimit_Rz().SetMax(max_angle)
 
-# Initialize the joint specifying a coordinate system (expressed in the absolute frame).
+# Initialize the joint specifying a coordinate sys (expressed in the absolute frame).
 rev.Initialize(ground, pend, chrono.ChCoordsysD(chrono.VNULL, chrono.QUNIT))
 
 # Create the Irrlicht application
-application = irr.ChIrrApp(system, "Limits on LinkLockRevolute demo", irr.dimension2du(800, 600))
-application.AddLogo()
-application.AddSkyBox()
-application.AddTypicalLights()
-application.AddCamera(irr.vector3df(-2, 1.5, 5))
-application.AssetBindAll()
-application.AssetUpdateAll()
+vis = irr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Limits on LinkLockRevolute demo')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(-2, 1.5, 5))
+vis.AddTypicalLights()
 
 # Points for drawing line segments
 p0 = chrono.ChVectorD(0, 0, 0)
@@ -95,13 +94,10 @@ p1 = chrono.ChVectorD(m.cos(min_angle), -m.sin(min_angle), 0)
 p2 = chrono.ChVectorD(m.cos(max_angle), -m.sin(max_angle), 0)
 
 # Simulation loop
-application.SetTimestep(0.01)
-application.SetTryRealtime(True)
-
-while (application.GetDevice().run()) :
-    application.BeginScene()
-    application.DrawAll()
-    irr.drawSegment(application.GetVideoDriver(), p0, p0 + p1 * 4, irr.SColor(255, 255, 150, 0), True);
-    irr.drawSegment(application.GetVideoDriver(), p0, p0 + p2 * 4, irr.SColor(255, 255, 150, 0), True);
-    application.DoStep()
-    application.EndScene()
+while vis.Run():
+    vis.BeginScene() 
+    vis.DrawAll()
+    irr.drawSegment(vis.GetVideoDriver(), p0, p0 + p1 * 4, irr.SColor(255, 255, 150, 0), True);
+    irr.drawSegment(vis.GetVideoDriver(), p0, p0 + p2 * 4, irr.SColor(255, 255, 150, 0), True);
+    vis.EndScene()
+    sys.DoStepDynamics(1e-3)
