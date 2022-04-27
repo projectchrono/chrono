@@ -1,9 +1,9 @@
 c_compiler:
   # - vs2022 # [win]
   - gcc >=9.0 # [linux]
-  - clang # [osx]
+  - clang     # [osx]
 
 cxx_compiler:
   # - vs2022 # [win]
   - gxx >=9.0 # [linux]
-  - clangxx # [osx]
+  - clangxx   # [osx]
