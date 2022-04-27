@@ -274,7 +274,7 @@ linux:ubuntu2004:deploy-python3.6:
   script:
     - pwd
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
+    - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.6
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   when: manual
 
