@@ -249,6 +249,8 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("LMTV ride & twist test");
     vis->SetChaseCamera(trackPoint, 9.0, 0.5);
     vis->Initialize();
+    vis->AddSkyBox();
+    vis->AddLogo();
     vis->GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
     vis->AddLight(ChVector<>(-50, -30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector<>(+10, +30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));

@@ -175,6 +175,7 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
+    terrain.Initialize();
 
     // ----------------------------
     // Create the powertrain system

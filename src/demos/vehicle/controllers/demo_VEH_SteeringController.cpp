@@ -223,7 +223,8 @@ int main(int argc, char* argv[]) {
     vis->SetHUDLocation(500, 20);
     vis->SetChaseCamera(trackPoint, 6.0, 0.5);
     vis->Initialize();
-
+    vis->AddSkyBox();
+    vis->AddLogo();
     vis->AddLight(ChVector<>(-150, -150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector<>(-150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector<>(+150, -150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));

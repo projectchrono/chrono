@@ -36,7 +36,9 @@
 
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
@@ -68,10 +70,10 @@ ChVector<> initLoc(0, 0, 0.8);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
-// ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
-// ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
-// ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
-// ChQuaternion<> initRot(0, 0, 0, 1);
+////ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
+////ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
+////ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
+////ChQuaternion<> initRot(0, 0, 0, 1);
 
 // JSON files for terrain (rigid plane)
 std::string rigidterrain_file("terrain/RigidPlane.json");
@@ -79,9 +81,12 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 // Specification of vehicle inputs
 enum class DriverMode {
     KEYBOARD,  // interactive (Irrlicht) driver
-    DATAFILE   // inputs from data file
+    DATAFILE,  // inputs from data file
+    PATH       // drives in a straight line
 };
 std::string driver_file("M113/driver/Acceleration2.txt");  // used for mode=DATAFILE
+double target_speed = 2;                                   // used for mode=PATH
+
 DriverMode driver_mode = DriverMode::DATAFILE;
 
 // Contact formulation (NSC or SMC)
@@ -313,6 +318,7 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
+    terrain.Initialize();
 
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("JSON Tracked Vehicle Demo");
@@ -321,7 +327,6 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    vehicle.SetVisualSystem(vis);
 
     // ------------------------
     // Create the driver system
@@ -346,6 +351,14 @@ int main(int argc, char* argv[]) {
             driver = data_driver;
             break;
         }
+        case DriverMode::PATH: {
+            auto path = chrono::vehicle::StraightLinePath(chrono::ChVector<>(0, 0, 0.02), chrono::ChVector<>(500, 0, 0.02), 50);
+            auto path_driver = std::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
+            path_driver->GetSteeringController().SetLookAheadDistance(5.0);
+            path_driver->GetSteeringController().SetGains(0.5, 0, 0);
+            path_driver->GetSpeedController().SetGains(0.4, 0, 0);
+            driver = path_driver;
+        }
     }
 
     driver->Initialize();
@@ -354,6 +367,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Driveline type:  " << vehicle.GetDriveline()->GetTemplateName() << std::endl;
     std::cout << "Powertrain type: " << powertrain->GetTemplateName() << std::endl;
     std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
+
+    vehicle.SetVisualSystem(vis);
 
     // ------------------------------
     // Solver and integrator settings
