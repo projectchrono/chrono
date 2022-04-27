@@ -855,6 +855,9 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             mproxynode->Update();  // force syncing of triangle positions & face indexes
             mproxynode->drop();
 
+            mchildnode->setPosition(shape_m4.getTranslation());
+            mchildnode->setRotation(shape_m4.getRotationDegrees());
+
             SetVisualMaterial(mchildnode, shape);
 
             ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
@@ -862,8 +865,6 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
         }
     }
 }
-
-// -----------------------------------------------------------------------------
 
 }  // namespace irrlicht
 }  // namespace chrono
