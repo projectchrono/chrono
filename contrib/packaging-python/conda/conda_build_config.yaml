@@ -1,8 +1,8 @@
-c_compiler_version:
-  - 9.0 # [linux]
+#c_compiler_version:
+#  - 9.0 # [linux]
 
-cxx_compiler_version:
-  - 9.0 # [linux]
+#cxx_compiler_version:
+#  - 9.0 # [linux]
 
 c_compiler:
   # - vs2022 # [win]
