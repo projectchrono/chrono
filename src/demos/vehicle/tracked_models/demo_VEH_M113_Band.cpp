@@ -203,10 +203,12 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("M113 Band-track Vehicle Demo");
     vis->SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
-    ////vis->SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
+    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector<>(0, 2, 0));
     vis->SetChaseCameraMultipliers(1e-4, 10);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     vehicle.SetVisualSystem(vis);
 
     // ------------------------
@@ -345,7 +347,7 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     while (step_number < sim_steps) {
-        const ChVector<>& c_pos = vehicle.GetVehiclePos();
+        const ChVector<>& c_pos = vehicle.GetPos();
 
         // File output
         if (output) {

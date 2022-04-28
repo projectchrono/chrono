@@ -128,14 +128,16 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("FEDA acceleration test");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 8.0, 0.5);
     vis->Initialize();
-    vis->AddLight(ChVector<>(0, -30, 100), 250,    ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    vis->AddLight(ChVector<>(0, 50, 100), 130,     ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    vis->AddLight(ChVector<>(-300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    vis->AddLight(ChVector<>(-300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    vis->AddLight(ChVector<>(+300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    vis->AddLight(ChVector<>(+300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vis->AddLight(ChVector<>(0, -30, 100), 250,    ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(0, 50, 100), 130,     ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(-300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(-300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(+300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(+300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f));
     my_feda.GetVehicle().SetVisualSystem(vis);
 
     // Prepare output
@@ -178,8 +180,8 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         time = my_feda.GetSystem()->GetChTime();
 
-        double speed = speed_filter.Add(my_feda.GetVehicle().GetVehicleSpeed());
-        double dist = terrainLength / 2.0 + my_feda.GetVehicle().GetVehiclePos().x();
+        double speed = speed_filter.Add(my_feda.GetVehicle().GetSpeed());
+        double dist = terrainLength / 2.0 + my_feda.GetVehicle().GetPos().x();
         int gear_pos = my_feda.GetPowertrain()->GetCurrentTransmissionGear();
         if (!done) {
             speed_recorder.AddPoint(time, speed);

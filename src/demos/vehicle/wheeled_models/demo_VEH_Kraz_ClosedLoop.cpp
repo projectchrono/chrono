@@ -113,6 +113,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     truck.GetTractor().SetVisualSystem(vis);
 
     // ---------------
@@ -136,7 +138,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         time = truck.GetSystem()->GetChTime();
 
-        double speed = speed_filter.Add(truck.GetTractor().GetVehicleSpeed());
+        double speed = speed_filter.Add(truck.GetTractor().GetSpeed());
         if (!done) {
             speed_recorder.AddPoint(time, speed);
             if (time > 6 && std::abs((speed - last_speed) / step_size) < 2e-4) {

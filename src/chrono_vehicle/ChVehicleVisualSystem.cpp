@@ -31,8 +31,8 @@ ChVehicleVisualSystem::ChVehicleVisualSystem()
       m_camera_state(utils::ChChaseCamera::State::Chase),
       m_camera_pos(VNULL),
       m_camera_angle(0),
-      m_camera_minMult(1),
-      m_camera_maxMult(1),
+      m_camera_minMult(0.5),
+      m_camera_maxMult(10),
       m_steering(0),
       m_throttle(0),
       m_braking(0) {}

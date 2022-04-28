@@ -45,7 +45,7 @@ const double M113_SprocketSinglePin::m_gear_RC = 0.3;
 const double M113_SprocketSinglePin::m_gear_R = 0.089;
 const double M113_SprocketSinglePin::m_gear_RA = 0.245;
 
-const double M113_SprocketSinglePin::m_lateral_backlash = 0.01;
+const double M113_SprocketSinglePin::m_lateral_backlash = 0.02;
 
 const std::string M113_SprocketSinglePinLeft::m_meshFile = "M113/meshes/Sprocket_L.obj";
 const std::string M113_SprocketSinglePinRight::m_meshFile = "M113/meshes/Sprocket_R.obj";

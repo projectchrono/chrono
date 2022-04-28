@@ -452,11 +452,10 @@ void WriteVisualizationAssets(ChSystem* system,
             }
 
             if (supported) {
-                ChVector<float> col = ChVisualMaterial::Default()->GetDiffuseColor();
+                ChColor col = ChVisualMaterial::Default()->GetDiffuseColor();
                 if (shape->GetNumMaterials() > 0)
                     col = shape->GetMaterial(0)->GetDiffuseColor();
-                ChColor color(col[0], col[1], col[2]);
-                csv << body->GetIdentifier() << body->IsActive() << pos << rot << color << gss.str() << std::endl;
+                csv << body->GetIdentifier() << body->IsActive() << pos << rot << col << gss.str() << std::endl;
             }
         }
     }

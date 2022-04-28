@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     // Contact material shared among all bodies
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    // Shared visualizatin material
+    // Shared visualization material
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetKdTexture(GetChronoDataFile("textures/pinkwhite.png"));
 

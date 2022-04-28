@@ -125,7 +125,7 @@ void ChVehicleCosimVehicleNode::InitializeMBS(const std::vector<ChVector<>>& tir
     m_num_spindles = 2 * num_axles;
     assert(m_num_spindles == (int)m_num_tire_nodes);
 
-    auto total_mass = m_vehicle->GetVehicleMass();
+    auto total_mass = m_vehicle->GetMass();
     for (int is = 0; is < m_num_spindles; is++) {
         auto tire_mass = tire_info[is].x();
         m_spindle_loads.push_back(tire_mass + total_mass / m_num_spindles);
@@ -201,7 +201,7 @@ void ChVehicleCosimVehicleNode::OnOutputData(int frame) {
     if (m_outf.is_open()) {
         std::string del("  ");
 
-        const ChVector<>& pos = m_vehicle->GetVehiclePos();
+        const ChVector<>& pos = m_vehicle->GetPos();
 
         m_outf << m_system->GetChTime() << del;
         // Body states

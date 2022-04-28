@@ -1,3 +1,15 @@
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2014 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
+
 import pychrono as chrono
 import pychrono.vehicle as veh
 import pychrono.irrlicht as irr
@@ -41,7 +53,7 @@ def main() :
     trailer.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
     trailer.SetWheelVisualizationType(veh.VisualizationType_NONE)
 
-    # Create abd initialize the trailer tires
+    # Create and initialize the trailer tires
     for axle in trailer.GetAxles() :
         tireL = veh.TMeasyTire(trailer_tire_file)
         trailer.InitializeTire(tireL, axle.m_wheels[0], veh.VisualizationType_PRIMITIVES)
@@ -50,16 +62,20 @@ def main() :
 
     # Create the ground
     terrain = veh.RigidTerrain(vehicle.GetSystem(), rigidterrain_file)
+    terrain.Initialize()
 
-    app = veh.ChVehicleIrrApp(vehicle, 'Sedan+Trailer (JSON specification)')
-    app.AddTypicalLights()
-    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    app.SetChaseCamera(trackPoint, 6.0, 0.5)
-    app.SetTimestep(step_size)
-    app.AssetBindAll()
-    app.AssetUpdateAll()
+    # Create the vehicle Irrlicht interface
+    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+    vehicle.SetVisualSystem(vis)
+    vis.SetWindowTitle('Sedan+Trailer (JSON specification)')
+    vis.SetWindowSize(1280, 1024)
+    vis.SetChaseCamera(trackPoint, 6.0, 0.5)
+    vis.Initialize()
+    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddTypicalLights()
+    vis.AddSkyBox()
 
-    driver = veh.ChIrrGuiDriver(app)
+    driver = veh.ChIrrGuiDriver(vis)
 
     # Set the time response for steering and throttle keyboard inputs.
     # NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -77,12 +93,12 @@ def main() :
     # ---------------
 
     realtime_timer = chrono.ChRealtimeStepTimer()
-    while (app.GetDevice().run()) :
+    while vis.Run() :
 
         # Render scene
-        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-        app.DrawAll()
-        app.EndScene()
+        vis.BeginScene()
+        vis.DrawAll()
+        vis.EndScene()
 
         # Collect output data from modules (for inter-module communication)
         driver_inputs = driver.GetInputs()
@@ -93,14 +109,14 @@ def main() :
         vehicle.Synchronize(time, driver_inputs, terrain)
         trailer.Synchronize(time, driver_inputs.m_braking, terrain)
         terrain.Synchronize(time)
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+        vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)
         vehicle.Advance(step_size)
         trailer.Advance(step_size)
         terrain.Advance(step_size)
-        app.Advance(step_size)
+        vis.Advance(step_size)
 
         # Spin in place for real time to catch up
         realtime_timer.Spin(step_size)

@@ -47,8 +47,8 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 VisualizationType chassis_vis_type = VisualizationType::MESH;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
-VisualizationType wheel_vis_type = VisualizationType::NONE;
-VisualizationType tire_vis_type = VisualizationType::NONE;
+VisualizationType wheel_vis_type = VisualizationType::MESH;
+VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 CollisionType chassis_collision_type = CollisionType::NONE;
@@ -148,6 +148,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     gator.GetVehicle().SetVisualSystem(vis);
 
     // -----------------
@@ -189,7 +191,7 @@ int main(int argc, char* argv[]) {
 
     // output vehicle mass
     gator.GetVehicle().LogSubsystemTypes();
-    std::cout << "\nVehicle mass: " << gator.GetTotalMass() << std::endl;
+    std::cout << "\nVehicle mass: " << gator.GetVehicle().GetMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);

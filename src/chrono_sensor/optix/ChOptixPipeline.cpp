@@ -622,8 +622,8 @@ CUdeviceptr ChOptixPipeline::GetMaterialPool() {
 unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat) {
     if (mat) {
         MaterialParameters material;
-        material.Kd = {mat->GetDiffuseColor().x(), mat->GetDiffuseColor().y(), mat->GetDiffuseColor().z()};
-        material.Ks = {mat->GetSpecularColor().x(), mat->GetSpecularColor().y(), mat->GetSpecularColor().z()};
+        material.Kd = {mat->GetDiffuseColor().R, mat->GetDiffuseColor().G, mat->GetDiffuseColor().B};
+        material.Ks = {mat->GetSpecularColor().R, mat->GetSpecularColor().G, mat->GetSpecularColor().B};
         material.fresnel_exp = mat->GetFresnelExp();
         material.fresnel_min = mat->GetFresnelMin();
         material.fresnel_max = mat->GetFresnelMax();

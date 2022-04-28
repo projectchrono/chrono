@@ -211,10 +211,12 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("Marder Vehicle Demo");
     vis->SetChaseCamera(trackPoint, 10.0, 0.5);
-    ////vis->SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
+    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector<>(0, 2, 0));
     vis->SetChaseCameraMultipliers(1e-4, 10);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     marder.GetVehicle().SetVisualSystem(vis);
 
     // ------------------------
@@ -342,7 +344,7 @@ int main(int argc, char* argv[]) {
             cout << "Time: " << marder.GetSystem()->GetChTime() << endl;
             cout << "      Num. contacts: " << marder.GetSystem()->GetNcontacts() << endl;
             const ChFrameMoving<>& c_ref = marder.GetChassisBody()->GetFrame_REF_to_abs();
-            const ChVector<>& c_pos = marder.GetVehicle().GetVehiclePos();
+            const ChVector<>& c_pos = marder.GetVehicle().GetPos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
                 const ChVector<>& i_pos_abs = track_L->GetIdler()->GetWheelBody()->GetPos();

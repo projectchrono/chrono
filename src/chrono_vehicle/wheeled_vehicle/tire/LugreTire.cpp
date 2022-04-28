@@ -96,6 +96,14 @@ void LugreTire::Create(const rapidjson::Document& d) {
     }
 }
 
+double LugreTire::GetNormalStiffnessForce(double depth) const {
+    return m_normalStiffness * depth;
+}
+
+double LugreTire::GetNormalDampingForce(double depth, double velocity) const {
+    return m_normalDamping * velocity;
+}
+
 // -----------------------------------------------------------------------------
 void LugreTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {

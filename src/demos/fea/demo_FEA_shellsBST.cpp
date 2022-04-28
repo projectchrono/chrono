@@ -321,8 +321,8 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddCamera(ChVector<>(1, 0.3, 1.3), ChVector<>(0.5, -0.3, 0.5));
     vis->AddLightWithShadow(ChVector<>(2, 2, 2), ChVector<>(0, 0, 0), 6, 0.2, 6, 50);
-    vis->AddLight(ChVector<>(-2, -2, 0), 6, ChColor(0.6f, 1.0f, 1.0f, 1.0f));
-    vis->AddLight(ChVector<>(0, -2, -2), 6, ChColor(0.6f, 1.0f, 1.0f, 1.0f));
+    vis->AddLight(ChVector<>(-2, -2, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis->AddLight(ChVector<>(0, -2, -2), 6, ChColor(0.6f, 1.0f, 1.0f));
     vis->EnableShadows();
 
     // Change solver to PardisoMKL

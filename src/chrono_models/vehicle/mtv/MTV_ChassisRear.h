@@ -38,27 +38,22 @@ class CH_MODELS_API MTV_ChassisRear : public ChRigidChassisRear {
     MTV_ChassisRear(const std::string& name, CollisionType chassis_collision_type = CollisionType::NONE);
     ~MTV_ChassisRear() {}
 
-    /// Return the mass of the rear chassis body.
-    virtual double GetMass() const override { return m_mass; }
-
-    /// Return the inertia tensor of the chassis body.
-    virtual const ChMatrix33<>& GetInertia() const override { return m_inertia; }
-
-    /// Get the location of the center of mass in the chassis frame.
-    virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
-
     /// Get the location (in the local frame of this chassis) of the connection to the front chassis.
     virtual const ChVector<>& GetLocalPosFrontConnector() const override { return m_connector_loc; }
 
   protected:
+    virtual double GetBodyMass() const override { return m_body_mass; }
+    virtual ChMatrix33<> GetBodyInertia() const override { return m_body_inertia; }
+    virtual ChFrame<> GetBodyCOMFrame() const override { return ChFrame<>(m_body_COM_loc, QUNIT); }
+
     virtual void CreateContactMaterials(ChContactMethod contact_method) override;
 
-    ChMatrix33<> m_inertia;
+    ChMatrix33<> m_body_inertia;
 
-    static const double m_mass;
-    static const ChVector<> m_inertiaXX;
-    static const ChVector<> m_inertiaXY;
-    static const ChVector<> m_COM_loc;
+    static const double m_body_mass;
+    static const ChVector<> m_body_inertiaXX;
+    static const ChVector<> m_body_inertiaXY;
+    static const ChVector<> m_body_COM_loc;
 
     static const ChVector<> m_connector_loc;
 };

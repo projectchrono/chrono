@@ -1,12 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 
@@ -205,7 +205,7 @@ mesh.AddVisualShapeFEA(mvisualizemeshD)
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
 sys.SetVisualSystem(vis)
-vis.SetWindowSize(800, 600)
+vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Brick Elements')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))

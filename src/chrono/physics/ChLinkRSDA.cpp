@@ -205,6 +205,9 @@ void ChLinkRSDA::Update(double time, bool update_assets) {
 }
 
 void ChLinkRSDA::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    if (!IsActive())
+        return;
+
     // Applied torque in absolute frame
     ChVector<> torque = m_torque * m_axis;
 
@@ -218,6 +221,9 @@ void ChLinkRSDA::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R,
 }
 
 void ChLinkRSDA::ConstraintsFbLoadForces(double factor) {
+    if (!IsActive())
+        return;
+
     // Applied torque in absolute frame
     ChVector<> torque = m_torque * m_axis;
 

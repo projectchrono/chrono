@@ -25,19 +25,20 @@
 
 #include "chrono/core/ChVector.h"
 #include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChColor.h"
 
 namespace chrono {
 
-/// Visual material.
+/// Definition of a visual material.
 class ChApi ChVisualMaterial {
   public:
     ChVisualMaterial();
 
     // Setting functions
-    void SetAmbientColor(const ChVector<float>& rgb);
-    void SetDiffuseColor(const ChVector<float>& rgb);
-    void SetSpecularColor(const ChVector<float>& rgb);
-    void SetEmissiveColor(const ChVector<float>& rgb);
+    void SetAmbientColor(const ChColor& rgb);
+    void SetDiffuseColor(const ChColor& rgb);
+    void SetSpecularColor(const ChColor& rgb);
+    void SetEmissiveColor(const ChColor& rgb);
 
     void SetSpecularExponent(float exponent);
     void SetOpacity(float o);
@@ -61,14 +62,14 @@ class ChApi ChVisualMaterial {
     void SetInstanceID(unsigned short int id) { instance_id = id; }
 
     // accessor functions
-    const ChVector<float>& GetAmbientColor() const { return Ka; }
-    const ChVector<float>& GetDiffuseColor() const { return Kd; }
-    const ChVector<float>& GetSpecularColor() const { return Ks; }
-    const ChVector<float>& GetEmissiveColor() const { return Ke; }
+    const ChColor& GetAmbientColor() const { return Ka; }
+    const ChColor& GetDiffuseColor() const { return Kd; }
+    const ChColor& GetSpecularColor() const { return Ks; }
+    const ChColor& GetEmissiveColor() const { return Ke; }
     float GetSpecularExponent() const { return Ns; }
     float GetOpacity() const { return d; }
     int GetIllumination() const { return illum; }
-    
+
     const std::string& GetKdTexture() const { return kd_texture.GetFilename(); }
     const std::string& GetKsTexture() const { return ks_texture.GetFilename(); }
     const std::string& GetNormalMapTexture() const { return normal_texture.GetFilename(); }
@@ -95,30 +96,30 @@ class ChApi ChVisualMaterial {
     static std::shared_ptr<ChVisualMaterial> Default();
 
   private:
-    ChVector<float> Ka;  // ambient color 0-1
-    ChVector<float> Kd;  // diffuse color 0-1
-    ChVector<float> Ks;  // specular color 0-1
-    ChVector<float> Ke;  // emissive color 0-1
+    ChColor Ka;  ///< ambient color
+    ChColor Kd;  ///< diffuse color
+    ChColor Ks;  ///< specular color
+    ChColor Ke;  ///< emissive color
 
     float fresnel_max;
     float fresnel_min;
     float fresnel_exp;
-    float Ns;  // specular exponent
-    float d;   // transparency
+    float Ns;  ///< specular exponent
+    float d;   ///< opacity
 
-    int illum;  // illumination model (see http://www.fileformat.info/format/material/)
+    int illum;  ///< illumination model (see http://www.fileformat.info/format/material/)
 
     float roughness;
     float metallic;
 
     bool use_specular_workflow;
 
-    ChTexture kd_texture;
-    ChTexture ks_texture;
-    ChTexture normal_texture;
-    ChTexture metallic_texture;
-    ChTexture roughness_texture;
-    ChTexture opacity_texture;
+    ChTexture kd_texture;         ///< diffuse texture map
+    ChTexture ks_texture;         ///< specular texture map
+    ChTexture normal_texture;     ///< normal texture map
+    ChTexture metallic_texture;   ///< metallic texture map
+    ChTexture roughness_texture;  ///< roughness texture map
+    ChTexture opacity_texture;    ///< opacity texture map
 
     unsigned short int class_id;
     unsigned short int instance_id;

@@ -30,27 +30,27 @@ namespace man {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double MAN_10t_Chassis::m_mass = 7085 + 1200 + 2500;
-// const ChVector<> MAN_10t_Chassis::m_inertiaXX(222.8, 944.1, 1053.5);
-const ChVector<> MAN_10t_Chassis::m_inertiaXX(5238, 43361, 44746);
-const ChVector<> MAN_10t_Chassis::m_inertiaXY(0, 0, 0);
-const ChVector<> MAN_10t_Chassis::m_COM_loc(-2.248, 0, 0.744);
+const double MAN_10t_Chassis::m_body_mass = 7085 + 1200 + 2500;
+// const ChVector<> MAN_10t_Chassis::m_body_inertiaXX(222.8, 944.1, 1053.5);
+const ChVector<> MAN_10t_Chassis::m_body_inertiaXX(5238, 43361, 44746);
+const ChVector<> MAN_10t_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector<> MAN_10t_Chassis::m_body_COM_loc(-2.248, 0, 0.744);
 const ChCoordsys<> MAN_10t_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 MAN_10t_Chassis::MAN_10t_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
-    m_inertia(0, 0) = m_inertiaXX.x();
-    m_inertia(1, 1) = m_inertiaXX.y();
-    m_inertia(2, 2) = m_inertiaXX.z();
+    m_body_inertia(0, 0) = m_body_inertiaXX.x();
+    m_body_inertia(1, 1) = m_body_inertiaXX.y();
+    m_body_inertia(2, 2) = m_body_inertiaXX.z();
 
-    m_inertia(0, 1) = m_inertiaXY.x();
-    m_inertia(0, 2) = m_inertiaXY.y();
-    m_inertia(1, 2) = m_inertiaXY.z();
-    m_inertia(1, 0) = m_inertiaXY.x();
-    m_inertia(2, 0) = m_inertiaXY.y();
-    m_inertia(2, 1) = m_inertiaXY.z();
+    m_body_inertia(0, 1) = m_body_inertiaXY.x();
+    m_body_inertia(0, 2) = m_body_inertiaXY.y();
+    m_body_inertia(1, 2) = m_body_inertiaXY.z();
+    m_body_inertia(1, 0) = m_body_inertiaXY.x();
+    m_body_inertia(2, 0) = m_body_inertiaXY.y();
+    m_body_inertia(2, 1) = m_body_inertiaXY.z();
 
     //// TODO:
     //// A more appropriate contact shape from primitives

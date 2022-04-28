@@ -1,12 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Alessandro Tasora
+# Copyright (c) 2019 projectchrono.org
+# All rights reserved.
 #
-# Created:     1/01/2019
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 
 import pychrono.core as chrono
@@ -23,10 +25,10 @@ print ("Example: create a slider crank and plot results");
 
 # ---------------------------------------------------------------------
 #
-#  Create the simulation system and add items
+#  Create the simulation sys and add items
 #
 
-mysystem      = chrono.ChSystemNSC()
+sys      = chrono.ChSystemNSC()
 
 # Some data shared in the following
 crank_center = chrono.ChVectorD(-1,0.5,0)
@@ -41,25 +43,25 @@ rod_length   = 1.5
 mfloor = chrono.ChBodyEasyBox(3, 1, 3, 1000)
 mfloor.SetPos(chrono.ChVectorD(0,-0.5,0))
 mfloor.SetBodyFixed(True)
-mysystem.Add(mfloor)
+sys.Add(mfloor)
 
 # Create the flywheel crank
 mcrank = chrono.ChBodyEasyCylinder(crank_rad, crank_thick, 1000)
 mcrank.SetPos(crank_center + chrono.ChVectorD(0, 0, -0.1))
 # Since ChBodyEasyCylinder creates a vertical (y up) cylinder, here rotate it:
 mcrank.SetRot(chrono.Q_ROTATE_Y_TO_Z)
-mysystem.Add(mcrank)
+sys.Add(mcrank)
 
 # Create a stylized rod
 mrod = chrono.ChBodyEasyBox(rod_length, 0.1, 0.1, 1000)
 mrod.SetPos(crank_center + chrono.ChVectorD(crank_rad+rod_length/2 , 0, 0))
-mysystem.Add(mrod)
+sys.Add(mrod)
 
 # Create a stylized piston
 mpiston = chrono.ChBodyEasyCylinder(0.2, 0.3, 1000)
 mpiston.SetPos(crank_center + chrono.ChVectorD(crank_rad+rod_length, 0, 0))
 mpiston.SetRot(chrono.Q_ROTATE_Y_TO_X)
-mysystem.Add(mpiston)
+sys.Add(mpiston)
 
 
 # Now create constraints and motors between the bodies.
@@ -71,21 +73,21 @@ my_motor.Initialize(mcrank,   # the first connected body
                     chrono.ChFrameD(crank_center)) # where to create the motor in abs.space
 my_angularspeed = chrono.ChFunction_Const(chrono.CH_C_PI) # ang.speed: 180°/s
 my_motor.SetMotorFunction(my_angularspeed)
-mysystem.Add(my_motor)
+sys.Add(my_motor)
 
 # Create crank-rod joint
 mjointA = chrono.ChLinkLockRevolute()
 mjointA.Initialize(mrod,
                    mcrank, 
                    chrono.ChCoordsysD( crank_center + chrono.ChVectorD(crank_rad,0,0) ))
-mysystem.Add(mjointA)
+sys.Add(mjointA)
 
 # Create rod-piston joint
 mjointB = chrono.ChLinkLockRevolute()
 mjointB.Initialize(mpiston,
                    mrod, 
                    chrono.ChCoordsysD( crank_center + chrono.ChVectorD(crank_rad+rod_length,0,0) ))
-mysystem.Add(mjointB)
+sys.Add(mjointB)
 
 # Create piston-truss joint
 mjointC = chrono.ChLinkLockPrismatic()
@@ -95,33 +97,24 @@ mjointC.Initialize(mpiston,
                                crank_center + chrono.ChVectorD(crank_rad+rod_length,0,0), 
                                chrono.Q_ROTATE_Z_TO_X)
                   )
-mysystem.Add(mjointC)
+sys.Add(mjointC)
 
 
 
 # ---------------------------------------------------------------------
 #
-#  Create an Irrlicht application to visualize the system
+#  Create an Irrlicht application to visualize the sys
 #
 
-myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example', chronoirr.dimension2du(1024,768))
-
-myapplication.AddSkyBox()
-myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddCamera(chronoirr.vector3df(1,1,3), chronoirr.vector3df(0,1,0))
-myapplication.AddTypicalLights()
-
-            # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-            # in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-            # If you need a finer control on which item really needs a visualization proxy in
-            # Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-myapplication.AssetBindAll();
-
-            # ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-            # that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-myapplication.AssetUpdateAll();
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Crank demo')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(1,1,3), chrono.ChVectorD(0,1,0))
+vis.AddTypicalLights()
 
 
 # ---------------------------------------------------------------------
@@ -135,27 +128,24 @@ array_angle  = []
 array_pos    = []
 array_speed  = []
 
-myapplication.SetTimestep(0.005)
-myapplication.SetTryRealtime(True)
-
 # Run the interactive simulation loop
-while(myapplication.GetDevice().run()):
+while vis.Run():
     
     # for plotting, append instantaneous values:
-    array_time.append(mysystem.GetChTime())
+    array_time.append(sys.GetChTime())
     array_angle.append(my_motor.GetMotorRot())
     array_pos.append(mpiston.GetPos().x)
     array_speed.append(mpiston.GetPos_dt().x)
     
     # here happens the visualization and step time integration
-    myapplication.BeginScene()
-    myapplication.DrawAll()
-    myapplication.DoStep()
-    myapplication.EndScene()
+    vis.BeginScene() 
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(5e-3)
     
     # stop simulation after 2 seconds
-    if mysystem.GetChTime() > 20:
-          myapplication.GetDevice().closeDevice()
+    if sys.GetChTime() > 20:
+          vis.GetDevice().closeDevice()
 
 
 # Use matplotlib to make two plots when simulation ended:

@@ -16,8 +16,6 @@
 //
 // =============================================================================
 
-#include <fstream>
-
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
@@ -36,16 +34,6 @@ ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system)
     : ChVehicle(name, system), m_parking_on(false) {}
 
 // -----------------------------------------------------------------------------
-// Initialize this vehicle at the specified global location and orientation.
-// This base class implementation only initializes the main chassis subsystem.
-// Derived classes must extend this function to initialize all other wheeled
-// vehicle subsystems (axles, steerings, driveline).
-// -----------------------------------------------------------------------------
-void ChWheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
-}
-
-// -----------------------------------------------------------------------------
 // Initialize a tire and attach it to one of the vehicle's wheels.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
@@ -54,6 +42,7 @@ void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
                                       ChTire::CollisionType tire_coll) {
     wheel->m_tire = tire;
     tire->Initialize(wheel);
+    tire->InitializeInertiaProperties();
     tire->SetVisualizationType(tire_vis);
     tire->SetCollisionType(tire_coll);
 }
@@ -272,65 +261,95 @@ std::shared_ptr<ChBrake> ChWheeledVehicle::GetBrake(int axle, VehicleSide side) 
 }
 
 // -----------------------------------------------------------------------------
-// Calculate and return the total vehicle mass
+// Calculate the total vehicle mass
 // -----------------------------------------------------------------------------
-double ChWheeledVehicle::GetVehicleMass() const {
-    double mass = m_chassis->GetMass();
+void ChWheeledVehicle::InitializeInertiaProperties() {
+    m_mass = 0;
+
+    m_chassis->AddMass(m_mass);
 
     for (auto& c : m_chassis_rear)
-        mass += c->GetMass();
+        c->AddMass(m_mass);
 
     for (auto& sc : m_subchassis)
-        mass += sc->GetMass();
+        sc->AddMass(m_mass);
 
     for (auto& axle : m_axles) {
-        mass += axle->m_suspension->GetMass();
-        for (auto& wheel : axle->GetWheels())
-            mass += wheel->GetMass();
+        axle->m_suspension->AddMass(m_mass);
+
+        // Special treatment for wheels and tires:
+        // - wheel mass already included in suspension mass (through spindle body)
+        // - include mass only from tires that do not add mass to the spindle
+        for (auto& wheel : axle->GetWheels()) {
+            auto tire = wheel->GetTire();
+            if (tire) {
+                tire->InitializeInertiaProperties();
+                m_mass += tire->GetMass() - tire->GetAddedMass();
+            }
+        }
+
         if (axle->m_antirollbar)
-            mass += axle->m_antirollbar->GetMass();
+            axle->m_antirollbar->AddMass(m_mass);
     }
 
     for (auto& steering : m_steerings)
-        mass += steering->GetMass();
-
-    return mass;
+        steering->AddMass(m_mass);
 }
 
 // -----------------------------------------------------------------------------
-// Calculate and return the current vehicle COM location
+// Calculate current vehicle inertia properties
 // -----------------------------------------------------------------------------
-ChVector<> ChWheeledVehicle::GetVehicleCOMPos() const {
-    ChVector<> com(0, 0, 0);
+void ChWheeledVehicle::UpdateInertiaProperties() {
+    // 1. Calculate vehicle COM location relative to the global reference frame
+    // 2. Calculate vehicle inertia relative to global reference frame
+    ChVector<> com(0);
+    ChMatrix33<> inertia(0);
 
-    com += m_chassis->GetMass() * m_chassis->GetCOMPos();
+    m_chassis->AddInertiaProperties(com, inertia);
 
     for (auto& c : m_chassis_rear)
-        com += c->GetMass() * c->GetCOMPos();
+        c->AddInertiaProperties(com, inertia);
 
     for (auto& sc : m_subchassis)
-        com += sc->GetMass() * sc->GetCOMPos();
+        sc->AddInertiaProperties(com, inertia);
 
     for (auto& axle : m_axles) {
-        com += axle->m_suspension->GetMass() * axle->m_suspension->GetCOMPos();
-        for (auto& wheel : axle->GetWheels())
-            com += wheel->GetMass() * wheel->GetPos();
+        axle->m_suspension->AddInertiaProperties(com, inertia);
+
+        // Special treatment for wheels and tires:
+        // - wheel inertia already included in suspension inertia (through spindle body)
+        // - include inertia only from tires that do not add inertia to the spindle
+        for (auto& wheel : axle->GetWheels()) {
+            auto tire = wheel->GetTire();
+            if (tire) {
+                tire->UpdateInertiaProperties();
+                double tire_mass = tire->GetMass() - tire->GetAddedMass();
+                ChMatrix33<> tire_inertia = tire->GetInertia();
+                tire_inertia.diagonal() -= tire->GetAddedInertia().eigen();
+                ChFrame<> com_abs;
+                tire->m_xform.TransformLocalToParent(tire->m_com, com_abs);
+                com += tire_mass * com_abs.GetPos();
+                inertia += com_abs.GetA() * tire_inertia * com_abs.GetA().transpose() +
+                           tire_mass * utils::CompositeInertia::InertiaShiftMatrix(com_abs.GetPos());
+            }
+        }
+
         if (axle->m_antirollbar)
-            com += axle->m_antirollbar->GetMass() * axle->m_antirollbar->GetCOMPos();
+            axle->m_antirollbar->AddInertiaProperties(com, inertia);
     }
-    
-    for (auto steering : m_steerings)
-        com += steering->GetMass() * steering->GetCOMPos();
 
-    return com / GetVehicleMass();
-}
+    for (auto& steering : m_steerings)
+        steering->AddInertiaProperties(com, inertia);
 
-// -----------------------------------------------------------------------------
-// Calculate and return the current vehicle inertia
-// -----------------------------------------------------------------------------
-ChMatrix33<> ChWheeledVehicle::GetVehicleInertia() const {
-    //// TODO
-    return ChMatrix33<>(1);
+    // 3. Express vehicle COM frame relative to vehicle reference frame
+    m_com.coord.pos = GetTransform().TransformPointParentToLocal(com / GetMass());
+    m_com.coord.rot = GetTransform().GetRot();
+
+    // 4. Express inertia relative to vehicle COM frame
+    //    Notes: - vehicle COM frame aligned with vehicle frame
+    //           - 'com' still scaled by total mass here
+    const ChMatrix33<>& A = GetTransform().GetA();
+    m_inertia = A.transpose() * (inertia - utils::CompositeInertia::InertiaShiftMatrix(com) / GetMass()) * A;
 }
 
 // -----------------------------------------------------------------------------

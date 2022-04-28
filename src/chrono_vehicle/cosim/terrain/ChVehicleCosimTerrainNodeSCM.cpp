@@ -188,10 +188,10 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         std::vector<SCMDeformableTerrain::NodeLevel> nodes(num_nodes);
         for (int i = 0; i < num_nodes; i++) {
             std::getline(ifile, line);
-            std::istringstream iss(line);
+            std::istringstream iss1(line);
             int x, y;
             double h;
-            iss >> x >> y >> h;
+            iss1 >> x >> y >> h;
             nodes[i] = std::make_pair(ChVector2<>(x, y), h);
         }
 
@@ -240,7 +240,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     if (m_render) {
         m_vsys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
         m_system->SetVisualSystem(m_vsys);
-        m_vsys->SetCameraVertical(irrlicht::CameraVerticalDir::Z);
+        m_vsys->SetCameraVertical(CameraVerticalDir::Z);
         m_vsys->SetWindowSize(1280, 720);
         m_vsys->SetWindowTitle("Terrain Node (SCM)");
         m_vsys->Initialize();

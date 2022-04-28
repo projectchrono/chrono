@@ -45,9 +45,6 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TrackShoeSinglePin"; }
 
-    /// Get the mass of the track shoe.
-    virtual double GetMass() const override;
-
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
@@ -59,6 +56,9 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
                             ) override;
 
   protected:
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const = 0;
 
@@ -88,6 +88,8 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
                          ChChassis* chassis,                 ///< [in] associated chassis
                          bool ccw                            ///< [in] track assembled in counter clockwise direction
                          ) override final;
+
+    virtual void EnableTrackBendingStiffness(bool val) override;
 
     std::shared_ptr<ChVehicleJoint> m_connection_joint;  ///< connection to neighboring track shoe
     std::shared_ptr<ChLinkRSDA> m_connection_rsda;       ///< optional RSDA on connection

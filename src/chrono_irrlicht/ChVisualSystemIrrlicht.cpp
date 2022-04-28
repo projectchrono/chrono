@@ -9,13 +9,12 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Radu Serban
+// Radu Serban, Alessandro Tasora
 // =============================================================================
 
 #include <codecvt>
 #include <locale>
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChProfiler.h"
 
 #include "chrono/assets/ChTriangleMeshShape.h"
@@ -269,11 +268,11 @@ void ChVisualSystemIrrlicht::AddTypicalLights() {
         return;
 
     if (m_yup) {
-        AddLight(ChVector<>(30, 80, +30), 280, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-        AddLight(ChVector<>(30, 80, -30), 280, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+        AddLight(ChVector<>(30, 80, +30), 280, ChColor(0.7f, 0.7f, 0.7f));
+        AddLight(ChVector<>(30, 80, -30), 280, ChColor(0.7f, 0.7f, 0.7f));
     } else {
-        AddLight(ChVector<>(30, +30, 80), 280, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-        AddLight(ChVector<>(30, -30, 80), 280, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+        AddLight(ChVector<>(30, +30, 80), 280, ChColor(0.7f, 0.7f, 0.7f));
+        AddLight(ChVector<>(30, -30, 80), 280, ChColor(0.7f, 0.7f, 0.7f));
     }
 }
 
@@ -856,6 +855,9 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             mproxynode->Update();  // force syncing of triangle positions & face indexes
             mproxynode->drop();
 
+            mchildnode->setPosition(shape_m4.getTranslation());
+            mchildnode->setRotation(shape_m4.getRotationDegrees());
+
             SetVisualMaterial(mchildnode, shape);
 
             ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
@@ -863,8 +865,6 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
         }
     }
 }
-
-// -----------------------------------------------------------------------------
 
 }  // namespace irrlicht
 }  // namespace chrono

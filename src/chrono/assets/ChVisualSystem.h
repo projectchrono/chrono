@@ -23,6 +23,10 @@
 
 namespace chrono {
 
+/// Vertical direction
+enum class CameraVerticalDir { Y, Z };
+
+/// Base class for a Chrono run-time visualization system.
 class ChApi ChVisualSystem {
   public:
     virtual ~ChVisualSystem() {}

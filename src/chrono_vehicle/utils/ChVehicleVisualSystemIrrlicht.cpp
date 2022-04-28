@@ -117,7 +117,7 @@ ChVehicleVisualSystemIrrlicht::ChVehicleVisualSystemIrrlicht()
     SetWindowTitle("Chrono::Vehicle");
 
     // Default camera uses Z up
-    SetCameraVertical(irrlicht::CameraVerticalDir::Z);
+    SetCameraVertical(CameraVerticalDir::Z);
 
 #ifdef CHRONO_IRRKLANG
     m_sound_engine = 0;
@@ -142,10 +142,6 @@ void ChVehicleVisualSystemIrrlicht::Initialize() {
         ChVector<> cam_target = m_camera->GetTargetPos();
         AddCamera(cam_pos, cam_target);
     }
-
-    // Add a default sky box and the Chrono logo
-    AddSkyBox();
-    AddLogo();
 }
 
 void ChVehicleVisualSystemIrrlicht::OnAttachToVehicle() {
@@ -307,7 +303,7 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
     sprintf(msg, "Camera mode: %s", m_camera->GetStateName().c_str());
     renderTextBox(std::string(msg), m_HUD_x, m_HUD_y, 120, 15);
 
-    double speed = m_vehicle->GetVehicleSpeed();
+    double speed = m_vehicle->GetSpeed();
     sprintf(msg, "Speed (m/s): %+.2f", speed);
     renderLinGauge(std::string(msg), speed / 30, false, m_HUD_x, m_HUD_y + 30, 120, 15);
 

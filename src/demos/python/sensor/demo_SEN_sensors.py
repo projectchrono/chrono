@@ -1,12 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2019 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 # Authors: Asher Elmquist
@@ -55,22 +55,19 @@ def main():
     sphere.SetRot(chrono.Q_from_AngAxis(.2,chrono.ChVectorD(1,0,0)))
     mphysicalSystem.Add(sphere)
 
-    sphere_asset = sphere.GetAssets()[0]
-    visual_asset = chrono.CastToChVisualization(sphere_asset)
-
     vis_mat = chrono.ChVisualMaterial()
-    vis_mat.SetAmbientColor(chrono.ChVectorF(0, 0, 0))
-    vis_mat.SetDiffuseColor(chrono.ChVectorF(.2,.2,.9))
-    vis_mat.SetSpecularColor(chrono.ChVectorF(.9,.9,.9))
+    vis_mat.SetAmbientColor(chrono.ChColor(0, 0, 0))
+    vis_mat.SetDiffuseColor(chrono.ChColor(.2,.2,.9))
+    vis_mat.SetSpecularColor(chrono.ChColor(.9,.9,.9))
+    sphere.GetVisualShape(0).SetMaterial(0, vis_mat)
 
-    visual_asset.material_list.append(vis_mat)
 
     # -----------------------
     # Create a sensor manager
     # -----------------------
     manager = sens.ChSensorManager(mphysicalSystem)
-    manager.scene.AddPointLight(chrono.ChVectorF(100,100,100),chrono.ChVectorF(1,1,1),1000.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(-100,-100,100),chrono.ChVectorF(1,1,1),1000.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(100,100,100),chrono.ChColor(1,1,1),1000.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(-100,-100,100),chrono.ChColor(1,1,1),1000.0)
 
 
     # ------------------------------------------------

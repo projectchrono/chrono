@@ -1,12 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 # Authors: Simone Benatti
@@ -18,6 +18,7 @@
 # Y pointing to the left.
 #
 # =============================================================================
+
 import pychrono.core as chrono
 import pychrono.irrlicht as irr
 import pychrono.vehicle as veh
@@ -116,10 +117,12 @@ terrain.Initialize()
 vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
 my_bus.GetVehicle().SetVisualSystem(vis)
 vis.SetWindowTitle('Citybus')
+vis.SetWindowSize(1280, 1024)
 vis.SetChaseCamera(trackPoint, 15.0, 0.5)
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddTypicalLights()
+vis.AddSkyBox()
 
 # Create the driver system
 driver = veh.ChIrrGuiDriver(vis)

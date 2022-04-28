@@ -49,7 +49,7 @@ rover.Initialize(chrono.ChFrameD(chrono.ChVectorD(0, -0.2, 0), chrono.ChQuaterni
 # Create run-time visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
 system.SetVisualSystem(vis)
-vis.SetCameraVertical(chronoirr.CameraVerticalDir_Z)
+vis.SetCameraVertical(chrono.CameraVerticalDir_Z)
 vis.SetWindowSize(1280, 720)
 vis.SetWindowTitle('Viper rover - Rigid terrain')
 vis.Initialize()

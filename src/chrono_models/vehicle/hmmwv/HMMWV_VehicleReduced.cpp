@@ -30,6 +30,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_Driveline2WD.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_SimpleDriveline.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_RackPinion.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
@@ -48,28 +49,43 @@ static const double in2m = 0.0254;
 HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
                                            DrivelineTypeWV drive_type,
                                            BrakeType brake_type,
+                                           SteeringTypeWV steering_type,
                                            ChContactMethod contact_method,
                                            CollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVreduced", contact_method, drive_type) {
-    Create(fixed, brake_type, chassis_collision_type);
+    Create(fixed, brake_type, steering_type, chassis_collision_type);
 }
 
 HMMWV_VehicleReduced::HMMWV_VehicleReduced(ChSystem* system,
                                            const bool fixed,
                                            DrivelineTypeWV drive_type,
                                            BrakeType brake_type,
+                                           SteeringTypeWV steering_type,
                                            CollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVreduced", system, drive_type) {
-    Create(fixed, brake_type, chassis_collision_type);
+    Create(fixed, brake_type, steering_type, chassis_collision_type);
 }
 
-void HMMWV_VehicleReduced::Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type) {
+void HMMWV_VehicleReduced::Create(bool fixed,
+                                  BrakeType brake_type,
+                                  SteeringTypeWV steering_type,
+                                  CollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<HMMWV_Chassis>("Chassis", fixed, chassis_collision_type);
 
     // Create the steering subsystem
     m_steerings.resize(1);
-    m_steerings[0] = chrono_types::make_shared<HMMWV_RackPinion>("Steering");
+    switch (steering_type) {
+        case SteeringTypeWV::PITMAN_ARM:
+            m_steerings[0] = chrono_types::make_shared<HMMWV_PitmanArm>("Steering");
+            break;
+        case SteeringTypeWV::RACK_PINION:
+            m_steerings[0] = chrono_types::make_shared<HMMWV_RackPinion>("Steering");
+            break;
+        default:
+            GetLog() << "Steering type NOT supported\n";
+            break;
+    }
 
     // Create the axle subsystems
     m_axles.resize(2);
@@ -155,6 +171,9 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double cha
     }
 
     m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
+
+    // Invoke base class method
+    ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
 }
 
 }  // end namespace hmmwv

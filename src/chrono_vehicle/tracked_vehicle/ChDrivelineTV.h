@@ -36,8 +36,6 @@ namespace vehicle {
 /// Base class for a tracked vehicle driveline.
 class CH_VEHICLE_API ChDrivelineTV : public ChDriveline {
   public:
-    ChDrivelineTV(const std::string& name);
-
     virtual ~ChDrivelineTV() {}
 
     /// Get the motor torque to be applied to the specified sprocket.
@@ -63,6 +61,8 @@ class CH_VEHICLE_API ChDrivelineTV : public ChDriveline {
     virtual void Synchronize(double steering, double torque);
 
   protected:
+    ChDrivelineTV(const std::string& name);
+
     virtual void CombineDriverInputs(const ChDriver::Inputs& driver_inputs,
                                      double& braking_left,
                                      double& braking_right);

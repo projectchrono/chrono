@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
 
     // Create a shared visualization material
     auto orange_mat = chrono_types::make_shared<ChVisualMaterial>();
-    orange_mat->SetDiffuseColor(ChVector<float>(0.9f, 0.4f, 0.2f));
+    orange_mat->SetDiffuseColor(ChColor(0.9f, 0.4f, 0.2f));
 
     // ==Asset== Attach a 'sphere' shape
     auto sphere = chrono_types::make_shared<ChSphereShape>();

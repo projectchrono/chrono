@@ -112,6 +112,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCameraState(utils::ChChaseCamera::Track);
     vis->SetChaseCameraPosition(ChVector<>(-15, 0, 2.0));
     vis->Initialize();
+    vis->AddSkyBox();
+    vis->AddLogo();
     vis->AddTypicalLights();
     hmmwv_1.GetVehicle().SetVisualSystem(vis);
 

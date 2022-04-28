@@ -59,11 +59,12 @@ void Balancer::Create(const rapidjson::Document& d) {
     // Read joint data
     m_points[REVOLUTE] = ReadVectorJSON(d["Beam"]["Pin Location"]);
     if (d["Beam"].HasMember("Bushing Data")) {
+        // Read bushing properties
         m_bushingData = ReadBushingDataJSON(d["Beam"]["Bushing Data"]);
+    } else {
+        // Read pitch limits
+        m_beam_max_pitch = d["Maximum Pitch"].GetDouble();
     }
-
-    // Read pitch limits
-    m_beam_max_pitch = d["Maximum Pitch"].GetDouble();
 }
 
 

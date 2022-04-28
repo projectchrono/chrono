@@ -1,15 +1,17 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Han Wang
+# Copyright (c) 2019 projectchrono.org
+# All rights reserved.
 #
-# Created:     6/17/2020
-# Copyright:   (c) ProjectChrono 2019
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
 #
+# =============================================================================
 # To demonstrate the use of ChBodyAuxRef, this simple example constructs two
 # identical pendulums, one modeled as a ChBody, the other as a ChBodyAuxRef.
-# The system is modeled in a (right-hand) frame with Y up.
+# The sys is modeled in a (right-hand) frame with Y up.
 #
 # The two pendulums have length 2 and are pinned to ground through revolute
 # joints with the rotation axis along the Z axis. The absolute locations of
@@ -29,21 +31,21 @@
 #
 # Recall that Irrlicht uses a left-hand frame, so everything is rendered with
 # left and right flipped.
-#-----------------------------------------------------------------------------
+# =============================================================================
 
 import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
 import math
 
 
-system = chrono.ChSystemNSC()
+sys = chrono.ChSystemNSC()
 
-system.Set_G_acc(chrono.ChVectorD(0, -9.81, 0))
+sys.Set_G_acc(chrono.ChVectorD(0, -9.81, 0))
 
 # Create the ground body with two visualization cylinders
 
 ground = chrono.ChBody()
-system.Add(ground)
+sys.Add(ground)
 ground.SetIdentifier(-1)
 ground.SetBodyFixed(True)
 ground.SetCollide(False)
@@ -52,19 +54,19 @@ cyl_1 = chrono.ChCylinderShape()
 cyl_1.GetCylinderGeometry().p1 = chrono.ChVectorD(0, 0, 1.2)
 cyl_1.GetCylinderGeometry().p2 = chrono.ChVectorD(0, 0, 0.8)
 cyl_1.GetCylinderGeometry().rad = 0.2
-ground.AddAsset(cyl_1)
+ground.AddVisualShape(cyl_1)
 
 cyl_2 = chrono.ChCylinderShape()
 cyl_2.GetCylinderGeometry().p1 = chrono.ChVectorD(0, 0, -1.2)
 cyl_2.GetCylinderGeometry().p2 = chrono.ChVectorD(0, 0, -0.8)
 cyl_2.GetCylinderGeometry().rad = 0.2
-ground.AddAsset(cyl_2)
+ground.AddVisualShape(cyl_2)
 
 
 # Create a pendulum modeled using ChBody
 
 pend_1 =  chrono.ChBody()
-system.AddBody(pend_1)
+sys.AddBody(pend_1)
 pend_1.SetIdentifier(1)
 pend_1.SetBodyFixed(False)
 pend_1.SetCollide(False)
@@ -78,9 +80,8 @@ cyl_1 = chrono.ChCylinderShape()
 cyl_1.GetCylinderGeometry().p1 = chrono.ChVectorD(-1, 0, 0)
 cyl_1.GetCylinderGeometry().p2 = chrono.ChVectorD(1, 0, 0)
 cyl_1.GetCylinderGeometry().rad = 0.2
-pend_1.AddAsset(cyl_1)
-col_1 = chrono.ChColorAsset(0.6, 0, 0)
-pend_1.AddAsset(col_1)
+cyl_1.SetColor(chrono.ChColor(0.6, 0, 0))
+pend_1.AddVisualShape(cyl_1)
 
 
 # Specify the intial position of the pendulum (horizontal, pointing towards
@@ -92,11 +93,11 @@ pend_1.SetPos(chrono.ChVectorD(1, 0, 1))
 # coordinate frame in the absolute frame.
 rev_1 = chrono.ChLinkLockRevolute()
 rev_1.Initialize(ground, pend_1, chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 1), chrono.ChQuaternionD(1, 0, 0, 0)))
-system.AddLink(rev_1)
+sys.AddLink(rev_1)
 
 # Create a pendulum modeled using ChBodyAuxRef
 pend_2 = chrono.ChBodyAuxRef()
-system.Add(pend_2)
+sys.Add(pend_2)
 pend_2.SetIdentifier(2)
 pend_2.SetBodyFixed(False)
 pend_2.SetCollide(False)
@@ -110,9 +111,8 @@ cyl_2 = chrono.ChCylinderShape()
 cyl_2.GetCylinderGeometry().p1 = chrono.ChVectorD(0, 0, 0)
 cyl_2.GetCylinderGeometry().p2 = chrono.ChVectorD(2, 0, 0)
 cyl_2.GetCylinderGeometry().rad = 0.2
-pend_2.AddAsset(cyl_2)
-col_2 = chrono.ChColorAsset(0, 0, 0.6)
-pend_2.AddAsset(col_2)
+cyl_2.SetColor(chrono.ChColor(0, 0, 0.6))
+pend_2.AddVisualShape(cyl_2)
 
 
 # In this case, we must specify the centroidal frame, relative to the body
@@ -144,35 +144,34 @@ pend_2.SetFrame_REF_to_abs(chrono.ChFrameD(chrono.ChVectorD(0, 0, -1)))
 # coordinate frame in the absolute frame.
 rev_2 = chrono.ChLinkLockRevolute()
 rev_2.Initialize(ground, pend_2, chrono.ChCoordsysD(chrono.ChVectorD(0, 0, -2), chrono.ChQuaternionD(1, 0, 0, 0)))
-system.AddLink(rev_2)
+sys.AddLink(rev_2)
 
-
-# Create the Irrlicht application
-application = chronoirr.ChIrrApp(system, "ChBodyAuxRef demo", chronoirr.dimension2du(800, 600))
-application.AddLogo()
-application.AddSkyBox()
-application.AddTypicalLights()
-application.AddCamera(chronoirr.vector3df(0, 3, 6))
-
-application.AssetBindAll()
-application.AssetUpdateAll()
+# Create the Irrlicht visualization
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('ChBodyAuxRef demo')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0, 3, 6))
+vis.AddTypicalLights()
 
 # Simulation Loop
-application.SetTimestep(0.001)
-
 log_info = True
 
-while application.GetDevice().run():
-    application.BeginScene() 
-    application.DrawAll()
-    application.DoStep()
+while vis.Run():
+    vis.BeginScene() 
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(1e-3)
 
-    if log_info and system.GetChTime() > 1:
+    if log_info and sys.GetChTime() > 1:
         # Note that GetPos() and similar functions will return information for
         # the centroidal frame for both pendulums:
         pos_1 = pend_1.GetPos()
         pos_2 = pend_2.GetPos()
-        chrono.GetLog() << "t = "<< system.GetChTime() << "\n"
+        chrono.GetLog() << "t = "<< sys.GetChTime() << "\n"
         chrono.GetLog() << "     " << pos_1.x << "  " << pos_1.y << "\n"
         chrono.GetLog() << "     " << pos_2.x << "  " << pos_2.y << "\n"
         frame_2 = pend_2.GetFrame_REF_to_abs()
@@ -197,4 +196,3 @@ while application.GetDevice().run():
         log_info = False
 
 
-    application.EndScene()

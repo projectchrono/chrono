@@ -32,8 +32,6 @@ namespace vehicle {
 /// Base class for a wheeled vehicle driveline subsystem.
 class CH_VEHICLE_API ChDrivelineWV : public ChDriveline {
   public:
-    ChDrivelineWV(const std::string& name);
-
     virtual ~ChDrivelineWV() {}
 
     /// Return the number of driven axles.
@@ -69,6 +67,8 @@ class CH_VEHICLE_API ChDrivelineWV : public ChDriveline {
     virtual void Disconnect() = 0;
 
   protected:
+    ChDrivelineWV(const std::string& name);
+
     std::vector<int> m_driven_axles;  ///< indexes of the driven vehicle axles
 };
 

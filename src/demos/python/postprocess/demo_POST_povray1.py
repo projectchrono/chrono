@@ -1,17 +1,14 @@
-#-------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Alessandro Tasora
+# Copyright (c) 2014 projectchrono.org
+# All rights reserved.
 #
-# Created:     1/01/2019
-# Copyright:   (c) ProjectChrono 2019
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
 #
-#
-# This file shows how to use POV ray for postprocessing, thanks to the
-# utility functions in the unit_POSTPROCESS of Chrono::Engine.
-#
-#-------------------------------------------------------------------------------
+# =============================================================================
 
 print ("Third tutorial: use the postprocess module.");
 
@@ -35,13 +32,14 @@ my_system.Add(body_1)
 # Attach a visualization asset to the body (ex.: a sphere)
 myasset = chrono.ChSphereShape()
 myasset.GetSphereGeometry().rad =0.2
-body_1.GetAssets().push_back(myasset)
+body_1.AddVisualShape(myasset)
+
 
 # Assets can be shared, ex. to save memory...
 body_2= chrono.ChBodyAuxRef()
 body_2.SetPos(chrono.ChVectorD(0.5,0,0))
 my_system.Add(body_2)
-body_2.GetAssets().push_back(myasset)
+body_2.AddVisualShape(myasset)
 
 #
 # Create an exporter to POVray !!!

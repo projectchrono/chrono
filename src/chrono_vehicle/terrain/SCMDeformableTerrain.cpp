@@ -570,7 +570,7 @@ void SCMDeformableSoil::CreateVisualizationMesh(double sizeX, double sizeY) {
     std::vector<ChVector<int>>& idx_vertices = trimesh->getIndicesVertexes();
     std::vector<ChVector<int>>& idx_normals = trimesh->getIndicesNormals();
     std::vector<ChVector2<>>& uv_coords = trimesh->getCoordsUV();
-    std::vector<ChVector<float>>& colors = trimesh->getCoordsColors();
+    std::vector<ChColor>& colors = trimesh->getCoordsColors();
 
     // Resize mesh arrays.
     vertices.resize(n_verts);
@@ -608,7 +608,7 @@ void SCMDeformableSoil::CreateVisualizationMesh(double sizeX, double sizeY) {
                 normals[iv] = ChVector<>(0, 0, 0);
             }
             // Assign color white to all vertices
-            colors[iv] = ChVector<float>(1, 1, 1);
+            colors[iv] = ChColor(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
             uv_coords[iv] = ChVector2<>(ix * x_scale, iy * y_scale);
             ++iv;
@@ -1631,7 +1631,7 @@ void SCMDeformableSoil::RemoveMaterialFromNode(double amount, NodeRecord& nr) {
 void SCMDeformableSoil::UpdateMeshVertexCoordinates(const ChVector2<int> ij, int iv, const NodeRecord& nr) {
     auto& trimesh = *m_trimesh_shape->GetMesh();
     std::vector<ChVector<>>& vertices = trimesh.getCoordsVertices();
-    std::vector<ChVector<float>>& colors = trimesh.getCoordsColors();
+    std::vector<ChColor>& colors = trimesh.getCoordsColors();
 
     // Update visualization mesh vertex position
     vertices[iv] = m_plane.TransformPointLocalToParent(ChVector<>(ij.x() * m_delta, ij.y() * m_delta, nr.level));
@@ -1688,7 +1688,7 @@ void SCMDeformableSoil::UpdateMeshVertexCoordinates(const ChVector2<int> ij, int
             case SCMDeformableTerrain::PLOT_NONE:
                 break;
         }
-        colors[iv] = {mcolor.R, mcolor.G, mcolor.B};
+        colors[iv] = mcolor;
     }
 }
 

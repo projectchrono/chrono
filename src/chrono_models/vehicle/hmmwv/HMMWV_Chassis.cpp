@@ -30,10 +30,10 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double HMMWV_Chassis::m_mass = 2086.52;
-const ChVector<> HMMWV_Chassis::m_inertiaXX(1078.52, 2955.66, 3570.20);
-const ChVector<> HMMWV_Chassis::m_inertiaXY(0, 0, 0);
-const ChVector<> HMMWV_Chassis::m_COM_loc(0.056, 0, 0.213);
+const double HMMWV_Chassis::m_body_mass = 2086.52;
+const ChVector<> HMMWV_Chassis::m_body_inertiaXX(1078.52, 2955.66, 3570.20);
+const ChVector<> HMMWV_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector<> HMMWV_Chassis::m_body_COM_loc(0.056, 0, 0.213);
 const ChVector<> HMMWV_Chassis::m_connector_rear_loc(-2.5, 0, -0.25);
 const ChCoordsys<> HMMWV_Chassis::m_driverCsys(ChVector<>(0.87, 0.27, 1.05), ChQuaternion<>(1, 0, 0, 0));
 
@@ -41,16 +41,16 @@ const ChCoordsys<> HMMWV_Chassis::m_driverCsys(ChVector<>(0.87, 0.27, 1.05), ChQ
 // -----------------------------------------------------------------------------
 HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
-    m_inertia(0, 0) = m_inertiaXX.x();
-    m_inertia(1, 1) = m_inertiaXX.y();
-    m_inertia(2, 2) = m_inertiaXX.z();
+    m_body_inertia(0, 0) = m_body_inertiaXX.x();
+    m_body_inertia(1, 1) = m_body_inertiaXX.y();
+    m_body_inertia(2, 2) = m_body_inertiaXX.z();
 
-    m_inertia(0, 1) = m_inertiaXY.x();
-    m_inertia(0, 2) = m_inertiaXY.y();
-    m_inertia(1, 2) = m_inertiaXY.z();
-    m_inertia(1, 0) = m_inertiaXY.x();
-    m_inertia(2, 0) = m_inertiaXY.y();
-    m_inertia(2, 1) = m_inertiaXY.z();
+    m_body_inertia(0, 1) = m_body_inertiaXY.x();
+    m_body_inertia(0, 2) = m_body_inertiaXY.y();
+    m_body_inertia(1, 2) = m_body_inertiaXY.z();
+    m_body_inertia(1, 0) = m_body_inertiaXY.x();
+    m_body_inertia(2, 0) = m_body_inertiaXY.y();
+    m_body_inertia(2, 1) = m_body_inertiaXY.z();
 
     //// TODO:
     //// A more appropriate contact shape from primitives

@@ -48,23 +48,6 @@ class CH_VEHICLE_API ChChassis : public ChPart {
 
     virtual ~ChChassis();
 
-    /// Get the chassis mass.
-    virtual double GetMass() const = 0;
-
-    /// Get the inertia tensor of the chassis body.
-    /// The return 3x3 symmetric matrix contains the following values:
-    /// <pre>
-    ///  [ int{x^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
-    ///  [                  int{x^2+z^2}   -int{yz}dm    ]
-    ///  [                                int{x^2+y^2}dm ]
-    /// </pre>
-    /// and represents the inertia tensor with respect to a centroidal frame
-    /// aligned with the chassis reference frame.
-    virtual const ChMatrix33<>& GetInertia() const = 0;
-
-    /// Get the location of the center of mass in the chassis frame.
-    virtual const ChVector<>& GetLocalPosCOM() const = 0;
-
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const = 0;
@@ -79,20 +62,11 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     ChSystem* GetSystem() const { return m_body->GetSystem(); }
 
     /// Get the global location of the chassis reference frame origin.
-    const ChVector<>& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
+    const ChVector<>& GetPos() const;
 
     /// Get the orientation of the chassis reference frame.
-    /// The chassis orientation is returned as a quaternion representing a
-    /// rotation with respect to the global reference frame.
+    /// Returns a rotation with respect to the global reference frame.
     ChQuaternion<> GetRot() const;
-
-    /// Get the global location of the chassis center of mass.
-    const ChVector<>& GetCOMPos() const { return m_body->GetPos(); }
-
-    /// Get the orientation of the chassis centroidal frame.
-    /// The chassis orientation is returned as a quaternion representing a
-    /// rotation with respect to the global reference frame.
-    ChQuaternion<> GetCOMRot() const;
 
     /// Get the global location of the driver.
     ChVector<> GetDriverPos() const;
@@ -180,7 +154,14 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Utility force to add an external load to the chassis body.
     void AddExternalForce(std::shared_ptr<ExternalForce> force);
 
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
   protected:
+    virtual double GetBodyMass() const = 0;
+    virtual ChFrame<> GetBodyCOMFrame() const = 0;
+    virtual ChMatrix33<> GetBodyInertia() const = 0;
+
     std::shared_ptr<ChBodyAuxRef> m_body;                  ///< handle to the chassis body
     std::shared_ptr<ChLoadContainer> m_bushings;           ///< load container for vehicle bushings
     std::shared_ptr<ChLoadContainer> m_container_forces;   ///< load container for external forces
@@ -234,12 +215,6 @@ class CH_VEHICLE_API ChChassisConnector : public ChPart {
 
     virtual ~ChChassisConnector() {}
 
-    /// Get the total mass of the chassis connector subsystem.
-    virtual double GetMass() const = 0;
-
-    /// Get the current global COM location of the chassis connector subsystem.
-    virtual ChVector<> GetCOMPos() const = 0;
-
     /// Initialize this chassis connector subsystem.
     /// The subsystem is initialized by attaching it to the specified front and rear
     /// chassis bodies at the specified location (with respect to and expressed in
@@ -256,6 +231,10 @@ class CH_VEHICLE_API ChChassisConnector : public ChPart {
     virtual void Synchronize(double time,     ///< [in] current time
                              double steering  ///< [in] current steering input [-1,+1]
     ) {}
+
+  private:
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 };
 
 /// Vector of handles to rear chassis subsystems.

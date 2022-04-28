@@ -230,6 +230,8 @@ int main(int argc, char* argv[]) {
 
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     rig->GetVehicle().SetVisualSystem(vis);
 
     // Set up rig output

@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     // add a mesh to be visualized by a camera
     // ---------------------------------------
 
-    ChVector<> dif = {1, 0, 0};
+    ChColor dif = {1, 0, 0};
 
     auto color1 = std::make_shared<ChVisualMaterial>();
     color1->SetDiffuseColor(dif);

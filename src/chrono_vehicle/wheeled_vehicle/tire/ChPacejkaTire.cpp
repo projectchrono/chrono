@@ -55,7 +55,7 @@ static double phiT_thresh = 99;
 // Constructors
 // -----------------------------------------------------------------------------
 ChPacejkaTire::ChPacejkaTire(const std::string& name, const std::string& pacTire_paramFile)
-    : ChTire(name),
+    : ChForceElementTire(name),
       m_paramFile(pacTire_paramFile),
       m_params_defined(false),
       m_use_transient_slip(true),
@@ -67,7 +67,7 @@ ChPacejkaTire::ChPacejkaTire(const std::string& name,
                              const std::string& pacTire_paramFile,
                              double Fz_override,
                              bool use_transient_slip)
-    : ChTire(name),
+    : ChForceElementTire(name),
       m_paramFile(pacTire_paramFile),
       m_params_defined(false),
       m_use_transient_slip(use_transient_slip),

@@ -104,6 +104,9 @@ void RCCar_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwd
     // Initialize the driveline subsystem (4WD)
     std::vector<int> driven_susp_indexes = {0, 0};
     m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
+
+    // Invoke base class method
+    ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
 }
 
 // -----------------------------------------------------------------------------

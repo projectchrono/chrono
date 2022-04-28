@@ -788,7 +788,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             // Assign a color based on the body's level in the tree hierarchy
             float colorVal = (1.0f * body_info.level) / max_depth_level;
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-            vis_mat->SetDiffuseColor(ChVector<float>(colorVal, 1.0f - colorVal, 0.0f));
+            vis_mat->SetDiffuseColor(ChColor(colorVal, 1.0f - colorVal, 0.0f));
 
             // Create a sphere at the body COM
             auto sphere = chrono_types::make_shared<ChSphereShape>();

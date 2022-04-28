@@ -102,6 +102,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.5), 4.0, 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     my_sedan.GetVehicle().SetVisualSystem(vis);
 
     // Initialize output
@@ -115,7 +117,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         double time = my_sedan.GetSystem()->GetChTime();
 
-        if (time > 15 || my_sedan.GetVehicle().GetVehiclePos().x() > 49)
+        if (time > 15 || my_sedan.GetVehicle().GetPos().x() > 49)
             break;
 
         // Render scene

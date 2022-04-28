@@ -465,8 +465,8 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
                     assets_file << " texture_list {\n";
                     assets_file << (int)(mesh->m_colors.size()) << ",\n";
                     for (unsigned int iv = 0; iv < mesh->m_vertices.size(); iv++) {
-                        assets_file << " texture{pigment{rgb <" << mesh->m_colors[iv].x() << ","
-                                    << mesh->m_colors[iv].y() << "," << mesh->m_colors[iv].z() << ">}},\n";
+                        assets_file << " texture{pigment{rgb <" << mesh->m_colors[iv].R << "," << mesh->m_colors[iv].G
+                                    << "," << mesh->m_colors[iv].B << ">}},\n";
                     }
                     assets_file << " }\n";
                 }
@@ -516,9 +516,9 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
                                 << mesh->m_vertices[edge.first.second].z() << ">,";
                     assets_file << (wireframe_thickness * 0.5) << "\n no_shadow ";
                     if (mesh->m_colors.size() == mesh->m_vertices.size())
-                        assets_file << "finish{ ambient rgb<" << mesh->m_colors[edge.first.first].x() << ","
-                                    << mesh->m_colors[edge.first.first].y() << ","
-                                    << mesh->m_colors[edge.first.first].z() << "> diffuse 0}";
+                        assets_file << "finish{ ambient rgb<" << mesh->m_colors[edge.first.first].R << ","
+                                    << mesh->m_colors[edge.first.first].G << "," << mesh->m_colors[edge.first.first].B
+                                    << "> diffuse 0}";
                     assets_file << "}\n";
                 }
             }
@@ -660,7 +660,7 @@ void ChPovRay::ExportMaterials(ChStreamOutAsciiFile& assets_file,
 
         // add POV  pigment
         const auto& color = mat->GetDiffuseColor();
-        assets_file << "pigment {color rgbt <" << color[0] << "," << color[1] << "," << color[2] << ","
+        assets_file << "pigment {color rgbt <" << color.R << "," << color.G << "," << color.B << ","
                     << 1 - mat->GetOpacity() << "> }\n";
 
         // POV macro - end

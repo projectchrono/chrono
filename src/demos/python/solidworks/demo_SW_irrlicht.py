@@ -1,12 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Alessandro Tasora
+# Copyright (c) 2014 projectchrono.org
+# All rights reserved.
 #
-# Created:     1/01/2019
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 
 import pychrono as chrono
@@ -24,7 +26,7 @@ import pychrono.irrlicht as chronoirr
 #  (Do not create parts and constraints programmatically here, we will
 #  load a mechanism from file)
 
-my_system = chrono.ChSystemNSC()
+sys = chrono.ChSystemNSC()
 
 
 # Set the collision margins. This is expecially important for very large or
@@ -46,12 +48,12 @@ exported_items = chrono.ImportSolidWorksSystem(chrono.GetChronoDataFile('solid_w
 print ("...done!");
 
 # Print exported items
-for my_item in exported_items:
-    print (my_item.GetName())
+for item in exported_items:
+    print (item.GetName())
 
 # Add items to the physical system
-for my_item in exported_items:
-    my_system.Add(my_item)
+for item in exported_items:
+    sys.Add(item)
 
 
 # ---------------------------------------------------------------------
@@ -59,24 +61,15 @@ for my_item in exported_items:
 #  Create an Irrlicht application to visualize the system
 #
 
-myapplication = chronoirr.ChIrrApp(my_system, 'Test: using data exported by Chrono::Solidworks', chronoirr.dimension2du(1024,768))
-
-myapplication.AddSkyBox()
-myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddCamera(chronoirr.vector3df(0.3,0.3,0.4))
-myapplication.AddTypicalLights()
-
-            # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-			# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-			# If you need a finer control on which item really needs a visualization proxy in
-			# Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-myapplication.AssetBindAll();
-
-			# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-			# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-myapplication.AssetUpdateAll();
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Test: using data exported by Chrono::Solidworks')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0.3,0.3,0.4))
+vis.AddTypicalLights()
 
 
 # ---------------------------------------------------------------------
@@ -85,15 +78,14 @@ myapplication.AssetUpdateAll();
 #
 
 
-myapplication.GetSystem().SetMaxPenetrationRecoverySpeed(0.002);
-myapplication.SetTimestep(0.002)
+sys.SetMaxPenetrationRecoverySpeed(0.002);
 
 
-while(myapplication.GetDevice().run()):
-    myapplication.BeginScene()
-    myapplication.DrawAll()
-    myapplication.DoStep()
-    myapplication.EndScene()
+while vis.Run():
+    vis.BeginScene()
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(0.002)
 
 
 

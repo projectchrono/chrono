@@ -342,6 +342,8 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("OpenCRG Steering");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
+    vis->AddSkyBox();
+    vis->AddLogo();
     for (auto& loc : light_locs)
         vis->AddLight(ChWorldFrame::FromISO(loc), 500);
     my_hmmwv.GetVehicle().SetVisualSystem(vis);

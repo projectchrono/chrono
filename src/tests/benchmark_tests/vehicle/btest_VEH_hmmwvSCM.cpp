@@ -89,7 +89,7 @@ class HmmwvScmTest : public utils::ChBenchmarkTest {
     void SimulateVis();
 
     double GetTime() const { return m_hmmwv->GetSystem()->GetChTime(); }
-    double GetLocation() const { return m_hmmwv->GetVehicle().GetVehiclePos().x(); }
+    double GetLocation() const { return m_hmmwv->GetVehicle().GetPos().x(); }
 
   private:
     HMMWV_Full* m_hmmwv;

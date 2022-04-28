@@ -1,12 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Han Wang
+# Copyright (c) 2014 projectchrono.org
+# All rights reserved.
 #
-# Created:     6/16/2020
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 
 import pychrono.core as chrono
@@ -14,7 +16,7 @@ import pychrono.irrlicht as chronoirr
 import math as m
 
 
-print (" Demo of using the assets system to create shapes for Irrlicht visualization")
+print (" Demo of using the assets sys to create shapes for Irrlicht visualization")
 
 
 # The path to the Chrono directory containing various assets(meshes, textures, data files)
@@ -22,7 +24,7 @@ print (" Demo of using the assets system to create shapes for Irrlicht visualiza
 # If running from a different directory, you must change the path to the data directory with:
 # chrono.SetChronoDataPath('relative/path/to/data/directory')
 
-# Create a Chrono::Engine physical system
+# Create a Chrono::Engine physical sys
 sys = chrono.ChSystemNSC()
 
 # Example 1:
@@ -31,7 +33,7 @@ sys = chrono.ChSystemNSC()
 # Note: these assets are independent from collision shapes!
 
 # Create a rigid body as usual, and add it
-# to the physical system:
+# to the physical sys:
 floor = chrono.ChBody()
 floor.SetBodyFixed(True)
 
@@ -46,13 +48,12 @@ floor.GetCollisionModel().AddBox(floor_mat, 10, 0.5, 10, chrono.ChVectorD(0, -1,
 floor.GetCollisionModel().BuildModel()
 floor.SetCollide(True)
 
-# Add body to system
+# Add body to sys
 sys.Add(floor)
 
 
 # ==Asset== attach a 'box' shape.
-# Note that assets are managed via shared pointer, so they
-# can also be shared. Do not forget AddAsset() at the end!
+# Note that assets are managed via shared pointer, so they can also be shared.
 boxfloor = chrono.ChBoxShape()
 boxfloor.GetBoxGeometry().Size = chrono.ChVectorD(10, 0.5, 10)
 boxfloor.SetColor(chrono.ChColor(0.2, 0.3, 1.0))
@@ -126,7 +127,7 @@ sys.Add(body)
 
 # Create a shared visual material
 orange_mat = chrono.ChVisualMaterial()
-orange_mat.SetDiffuseColor(chrono.ChVectorF(0.9, 0.4, 0.2))
+orange_mat.SetDiffuseColor(chrono.ChColor(0.9, 0.4, 0.2))
 
 # ==Asset== Attach a 'sphere' shape
 sphere = chrono.ChSphereShape()
@@ -182,7 +183,7 @@ for j in range(20):
 # N times in Irrlicht.
 
 # Create the ChParticlesClones, populate it with random particles,
-# and add it to physical system:
+# and add it to physical sys:
 particles = chrono.ChParticlesClones()
 
 # Note: coll. shape, if needed, must be specified before creating particles.
@@ -203,7 +204,7 @@ for i in range(100):
 particles.SetMass(0.1)
 particles.SetInertiaXX(chrono.ChVectorD(0.001, 0.001, 0.001))
 
-# Do not forget to add the particles cluster to the system
+# Do not forget to add the particles cluster to the sys
 sys.Add(particles)
 
 # ==Asset== Attach a 'sphere' shape asset. it will be used as a sample
@@ -229,7 +230,7 @@ sys.Add(hull)
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
 sys.SetVisualSystem(vis)
-vis.SetWindowSize(800, 600)
+vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Chrono::Irrlicht visualization')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))

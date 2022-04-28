@@ -223,8 +223,7 @@ int main(int argc, char* argv[]) {
     lmtv.SetWheelVisualizationType(wheel_vis_type);
     lmtv.SetTireVisualizationType(tire_vis_type);
 
-    std::cout << "Vehicle mass:               " << lmtv.GetVehicle().GetVehicleMass() << std::endl;
-    std::cout << "Vehicle mass (with tires):  " << lmtv.GetTotalMass() << std::endl;
+    std::cout << "Vehicle mass: " << lmtv.GetVehicle().GetMass() << std::endl;
 
     // ------------------
     // Create the terrain
@@ -250,9 +249,11 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("LMTV ride & twist test");
     vis->SetChaseCamera(trackPoint, 9.0, 0.5);
     vis->Initialize();
+    vis->AddSkyBox();
+    vis->AddLogo();
     vis->GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
-    vis->AddLight(ChVector<>(-50, -30, 40), 200, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
-    vis->AddLight(ChVector<>(+10, +30, 40), 200, ChColor(0.7f, 0.7f, 0.7f, 1.0f));
+    vis->AddLight(ChVector<>(-50, -30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(+10, +30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
     lmtv.GetVehicle().SetVisualSystem(vis);
 
     // Visualization of controller points (sentinel & target)
@@ -354,9 +355,9 @@ int main(int argc, char* argv[]) {
     double time = 0;
 
 #ifdef USE_IRRLICHT
-    while (vis->Run() && (time < tend) && (lmtv.GetVehicle().GetVehiclePos().x() < xmax)) {
+    while (vis->Run() && (time < tend) && (lmtv.GetVehicle().GetPos().x() < xmax)) {
 #else
-    while ((time < tend) && (lmtv.GetVehicle().GetVehiclePos().x() < xmax)) {
+    while ((time < tend) && (lmtv.GetVehicle().GetPos().x() < xmax)) {
 #endif
         time = lmtv.GetSystem()->GetChTime();
 
@@ -378,7 +379,6 @@ int main(int argc, char* argv[]) {
             vis->DrawAll();
             vis->EndScene();
         }
-
 #endif
 
         if (povray_output && step_number % render_steps == 0) {
@@ -424,11 +424,10 @@ int main(int argc, char* argv[]) {
                 csv << lmtv.GetVehicle().GetSpindleAngVel(axle, LEFT);
                 csv << lmtv.GetVehicle().GetSpindleAngVel(axle, RIGHT);
             }
-            csv << lmtv.GetVehicle().GetVehicleSpeed();
-            csv << lmtv.GetVehicle().GetVehiclePointAcceleration(
-                lmtv.GetVehicle().GetChassis()->GetLocalDriverCoordsys().pos);
+            csv << lmtv.GetVehicle().GetSpeed();
+            csv << lmtv.GetVehicle().GetPointAcceleration(lmtv.GetVehicle().GetChassis()->GetLocalDriverCoordsys().pos);
 
-            csv << lmtv.GetVehicle().GetVehiclePointAcceleration(vehCOM);
+            csv << lmtv.GetVehicle().GetPointAcceleration(vehCOM);
 
             for (auto& axle : lmtv.GetVehicle().GetAxles()) {
                 for (auto& wheel : axle->GetWheels()) {

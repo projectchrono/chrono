@@ -156,6 +156,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(trackPoint, 6.0, 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     my_sedan.GetVehicle().SetVisualSystem(vis);
 
     // -----------------
@@ -211,7 +213,7 @@ int main(int argc, char* argv[]) {
     }
 
     my_sedan.GetVehicle().LogSubsystemTypes();
-    std::cout << "\nVehicle mass: " << my_sedan.GetVehicle().GetVehicleMass() << std::endl;
+    std::cout << "\nVehicle mass: " << my_sedan.GetVehicle().GetMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);

@@ -219,6 +219,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(trackPoint, 6.0, 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
     // -----------------
@@ -279,7 +281,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // output vehicle mass
-    std::cout << "VEHICLE MASS: " << my_hmmwv.GetVehicle().GetVehicleMass() << std::endl;
+    std::cout << "VEHICLE MASS: " << my_hmmwv.GetVehicle().GetMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);

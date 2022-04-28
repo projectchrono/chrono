@@ -75,7 +75,7 @@ void ChIrrNodeShape::Update() {
 static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
                                          const ChVector<>& nrm,
                                          const ChVector2<>& uv,
-                                         const ChVector<float>& col) {
+                                         const ChColor& col) {
     video::S3DVertex vertex;
     vertex.Pos = core::vector3df((f32)pos.x(), (f32)pos.y(), (f32)pos.z());
     vertex.Normal = core::vector3df((f32)nrm.x(), (f32)nrm.y(), (f32)nrm.z());
@@ -147,13 +147,12 @@ void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMeshShape>
     irr_vertices.set_used(nvertexes);
 
     // Set the Irrlicht vertex and index buffers for the mesh buffer
-    ChVector<> t[3];         // positions of trianlge vertices
-    ChVector<> n[3];         // normals at the triangle vertices
-    ChVector2<> uv[3];       // UV coordinates at the triangle vertices
-    ChVector<float> col[3];  // color coordinates at the triangle vertices
+    ChVector<> t[3];    // positions of trianlge vertices
+    ChVector<> n[3];    // normals at the triangle vertices
+    ChVector2<> uv[3];  // UV coordinates at the triangle vertices
+    ChColor col[3];     // color coordinates at the triangle vertices
 
     auto default_color = trianglemesh->GetColor();
-    auto default_RGB = ChVector<float>(default_color.R, default_color.G, default_color.B);
 
     for (unsigned int itri = 0; itri < ntriangles; itri++) {
         for (int iv = 0; iv < 3; iv++)
@@ -184,7 +183,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMeshShape>
                 col[iv] = colors[v_indices[itri][iv]];
         } else {
             for (int iv = 0; iv < 3; iv++)
-                col[iv] = default_RGB;
+                col[iv] = default_color;
         }
 
         for (int iv = 0; iv < 3; iv++) {
@@ -367,7 +366,7 @@ void ChIrrNodeShape::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChTrian
     std::vector<ChVector<>>& vertices = mesh->getCoordsVertices();
     std::vector<ChVector<>>& normals = mesh->getCoordsNormals();
     std::vector<ChVector2<>>& uvs = mesh->getCoordsUV();
-    std::vector<ChVector<float>>& colors = mesh->getCoordsColors();
+    std::vector<ChColor>& colors = mesh->getCoordsColors();
     std::vector<ChVector<int>>& idx_vertices = mesh->getIndicesVertexes();
 
     unsigned int ntriangles = (unsigned int)mesh->getIndicesVertexes().size();
@@ -390,9 +389,9 @@ void ChIrrNodeShape::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChTrian
         for (unsigned int i = 0; i < nvertices; i++) {
             video::SColor color(255, 255, 255, 255);
             if (has_colors) {
-                color.setRed((u32)(colors[i].x() * 255));
-                color.setGreen((u32)(colors[i].x() * 255));
-                color.setBlue((u32)(colors[i].x() * 255));
+                color.setRed((u32)(colors[i].R * 255));
+                color.setGreen((u32)(colors[i].G * 255));
+                color.setBlue((u32)(colors[i].B * 255));
             }
             f32 u = 0;
             f32 v = 0;

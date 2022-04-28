@@ -310,6 +310,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(trackPoint, 6.0, 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
     // -----------------
@@ -359,7 +361,7 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-    std::cout << "Total vehicle mass: " << my_hmmwv.GetTotalMass() << std::endl;
+    std::cout << "Vehicle mass: " << my_hmmwv.GetVehicle().GetMass() << std::endl;
 
     // Solver settings.
     system->SetSolverMaxIterations(50);

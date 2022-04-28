@@ -28,7 +28,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChRotaryArm::ChRotaryArm(const std::string& name, bool vehicle_frame_inertia)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
@@ -40,11 +39,11 @@ ChRotaryArm::~ChRotaryArm() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
-    m_position = ChCoordsys<>(location, rotation);
+    m_parent = chassis;
+    m_rel_xform = ChFrame<>(location, rotation);
 
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
@@ -117,29 +116,22 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRotaryArm::Synchronize(double time, double steering) {
     auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_revolute->GetAngleFunction());
     fun->SetSetpoint(getMaxAngle() * steering, time);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the steering subsystem
-// -----------------------------------------------------------------------------
-double ChRotaryArm::GetMass() const {
-    return getPitmanArmMass();
+
+void ChRotaryArm::InitializeInertiaProperties() {
+    m_mass = m_link->GetMass();
+    m_com = ChFrame<>(0.5 * (getLocation(ARM_L) + getLocation(ARM_C)), QUNIT);
+    m_inertia = m_link->GetInertia();
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the steering subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChRotaryArm::GetCOMPos() const {
-    ChVector<> com = getPitmanArmMass() * m_link->GetPos();
-
-    return com / GetMass();
+void ChRotaryArm::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRotaryArm::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -160,7 +152,6 @@ void ChRotaryArm::RemoveVisualizationAssets() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRotaryArm::LogConstraintViolations() {
     // Revolute joint
     ////{
@@ -174,7 +165,6 @@ void ChRotaryArm::LogConstraintViolations() {
     ////}
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRotaryArm::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

@@ -50,6 +50,7 @@ HMMWV::HMMWV()
       m_fixed(false),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
+      m_steeringType(SteeringTypeWV::PITMAN_ARM),
       m_driveType(DrivelineTypeWV::AWD),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
@@ -69,6 +70,7 @@ HMMWV::HMMWV(ChSystem* system)
       m_fixed(false),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
+      m_steeringType(SteeringTypeWV::PITMAN_ARM),
       m_driveType(DrivelineTypeWV::AWD),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
@@ -145,7 +147,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -160,7 +162,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -175,7 +177,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -190,7 +192,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -205,7 +207,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -220,7 +222,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -240,7 +242,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -255,7 +257,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -270,7 +272,7 @@ void HMMWV::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL->GetMass();
 
             break;
         }
@@ -299,12 +301,15 @@ void HMMWV::Advance(double step) {
     m_vehicle->Advance(step);
 }
 
-// -----------------------------------------------------------------------------
-double HMMWV::GetTotalMass() const {
-    return m_vehicle->GetVehicleMass() + 4 * m_tire_mass;
+// =============================================================================
+
+HMMWV_Full::HMMWV_Full() : m_rigidColumn(false), m_use_tierod_bodies(false) {
+    m_steeringType = SteeringTypeWV::PITMAN_ARM;
 }
 
-// =============================================================================
+HMMWV_Full::HMMWV_Full(ChSystem* system) : HMMWV(system), m_rigidColumn(false), m_use_tierod_bodies(false) {
+    m_steeringType = SteeringTypeWV::PITMAN_ARM;
+}
 
 HMMWV_Vehicle* HMMWV_Full::CreateVehicle() {
     if (m_system) {
@@ -316,12 +321,22 @@ HMMWV_Vehicle* HMMWV_Full::CreateVehicle() {
                                  m_contactMethod, m_chassisCollisionType);
 }
 
+HMMWV_Reduced::HMMWV_Reduced() {
+    m_steeringType = SteeringTypeWV::RACK_PINION;
+}
+
+HMMWV_Reduced::HMMWV_Reduced(ChSystem* system) : HMMWV(system) {
+    m_steeringType = SteeringTypeWV::RACK_PINION;
+}
+
 HMMWV_Vehicle* HMMWV_Reduced::CreateVehicle() {
     if (m_system) {
-        return new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_brake_type, m_chassisCollisionType);
+        return new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_brake_type, m_steeringType,
+                                        m_chassisCollisionType);
     }
 
-    return new HMMWV_VehicleReduced(m_fixed, m_driveType, m_brake_type, m_contactMethod, m_chassisCollisionType);
+    return new HMMWV_VehicleReduced(m_fixed, m_driveType, m_brake_type, m_steeringType, m_contactMethod,
+                                    m_chassisCollisionType);
 }
 
 }  // end namespace hmmwv

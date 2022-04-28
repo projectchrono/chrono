@@ -78,16 +78,13 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
                              double steering  ///< [in] current steering input [-1,+1]
                              ) override;
 
-    /// Get the total mass of the steering subsystem.
-    virtual double GetMass() const override;
-
-    /// Get the current global COM location of the steering subsystem.
-    virtual ChVector<> GetCOMPos() const override;
-
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
   protected:
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
     /// Return the mass of the steering link.
     virtual double GetSteeringLinkMass() const = 0;
 

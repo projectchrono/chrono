@@ -66,8 +66,8 @@ ChVisualShapeFEA::ChVisualShapeFEA(std::shared_ptr<fea::ChMesh> fea_mesh) {
     beam_resolution_section = 10;
     shell_resolution = 3;
 
-    meshcolor = ChColor(1, 1, 1, 0);
-    symbolscolor = ChColor(0, 0.5, 0.5, 0);
+    meshcolor = ChColor(1, 1, 1);
+    symbolscolor = ChColor(0, 0.5, 0.5);
 
     undeformed_reference = false;
 
@@ -75,19 +75,13 @@ ChVisualShapeFEA::ChVisualShapeFEA(std::shared_ptr<fea::ChMesh> fea_mesh) {
     m_glyphs_shape = chrono_types::make_shared<ChGlyphs>();
 }
 
-ChColor ChVisualShapeFEA::ComputeFalseColor2(double mv) {
+ChColor ChVisualShapeFEA::ComputeFalseColor(double mv) {
     ChColor c = ChColor::ComputeFalseColor(mv, colorscale_min, colorscale_max, true);
 
     if (fem_data_type == DataType::SURFACE)
-        c = ChColor(meshcolor.R, meshcolor.G, meshcolor.B);
+        c = meshcolor;
 
     return c;
-}
-
-ChVector<float> ChVisualShapeFEA::ComputeFalseColor(double mv) {
-    ChColor c = ComputeFalseColor2(mv);
-    ChVector<float> vc(c.R, c.G, c.B);
-    return vc;
 }
 
 double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> mnode,
@@ -672,7 +666,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                             default:
                                 break;
                         }
-                        ChVector<float> mcol = ComputeFalseColor(sresult);
+                        ChColor mcol = ComputeFalseColor(sresult);
 
                         int subline_stride = 0;
 
@@ -754,7 +748,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                             ChVector<> P;
                             myshell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
 
-                            ChVector<float> mcol(1, 1, 1);
+                            ChColor mcol(1, 1, 1);
                             /*
                             ChVector<> vresult;
                             ChVector<> vresultB;
@@ -767,7 +761,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                                     break;
 
                             }
-                            ChVector<float> mcol = ComputeFalseColor(sresult);
+                            ChColor mcol = ComputeFalseColor(sresult);
                             */
 
                             trianglemesh->getCoordsVertices()[i_verts] = P;
@@ -818,7 +812,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                             ChVector<> P;
                             myshell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
 
-                            ChVector<float> mcol(1, 1, 1);
+                            ChColor mcol(1, 1, 1);
                             /*
                             ChVector<> vresult;
                             ChVector<> vresultB;
@@ -831,7 +825,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                                     break;
 
                             }
-                            ChVector<float> mcol = ComputeFalseColor(sresult);
+                            ChColor mcol = ComputeFalseColor(sresult);
                             */
 
                             trianglemesh->getCoordsVertices()[i_verts] = P;
@@ -941,11 +935,11 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                     ++i_verts;
 
                     // color
-                    trianglemesh->getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+                    trianglemesh->getCoordsColors()[i_vcols] = meshcolor;
                     ++i_vcols;
-                    trianglemesh->getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+                    trianglemesh->getCoordsColors()[i_vcols] = meshcolor;
                     ++i_vcols;
-                    trianglemesh->getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+                    trianglemesh->getCoordsColors()[i_vcols] = meshcolor;
                     ++i_vcols;
 
                     // faces indexes
@@ -993,11 +987,11 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                     ++i_verts;
 
                     // color
-                    trianglemesh->getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+                    trianglemesh->getCoordsColors()[i_vcols] = meshcolor;
                     ++i_vcols;
-                    trianglemesh->getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+                    trianglemesh->getCoordsColors()[i_vcols] = meshcolor;
                     ++i_vcols;
-                    trianglemesh->getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+                    trianglemesh->getCoordsColors()[i_vcols] = meshcolor;
                     ++i_vcols;
 
                     // faces indexes
@@ -1115,13 +1109,13 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                 //// TODO: better placement in Gauss point
                 ChVector<> mPoint = (n0->GetPos() + n1->GetPos() + n2->GetPos() + n3->GetPos()) * 0.25;
                 m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v1 * e1 * symbols_scale,
-                                               ComputeFalseColor2(e1));
+                                               ComputeFalseColor(e1));
                 ++nglyvect;
                 m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v2 * e2 * symbols_scale,
-                                               ComputeFalseColor2(e2));
+                                               ComputeFalseColor(e2));
                 ++nglyvect;
                 m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v3 * e3 * symbols_scale,
-                                               ComputeFalseColor2(e3));
+                                               ComputeFalseColor(e3));
                 ++nglyvect;
             }
     }
@@ -1146,13 +1140,13 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                 //// TODO: better placement in Gauss point
                 ChVector<> mPoint = (n0->GetPos() + n1->GetPos() + n2->GetPos() + n3->GetPos()) * 0.25;
                 m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v1 * e1 * symbols_scale,
-                                               ComputeFalseColor2(e1));
+                                               ComputeFalseColor(e1));
                 ++nglyvect;
                 m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v2 * e2 * symbols_scale,
-                                               ComputeFalseColor2(e2));
+                                               ComputeFalseColor(e2));
                 ++nglyvect;
                 m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v3 * e3 * symbols_scale,
-                                               ComputeFalseColor2(e3));
+                                               ComputeFalseColor(e3));
                 ++nglyvect;
             }
     }

@@ -238,6 +238,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
     vis->Initialize();
     vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
     gator.GetVehicle().SetVisualSystem(vis);
 
     // -----------------
@@ -447,7 +449,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // output vehicle mass
-    std::cout << "VEHICLE MASS: " << gator.GetTotalMass() << std::endl;
+    std::cout << "VEHICLE MASS: " << gator.GetVehicle().GetMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);

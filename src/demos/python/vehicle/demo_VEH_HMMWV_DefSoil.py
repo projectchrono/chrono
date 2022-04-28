@@ -24,7 +24,7 @@ import pychrono.vehicle as veh
 import pychrono.irrlicht as irr
 import math as m
 
-#// =============================================================================
+# =============================================================================
 
 class MyDriver (veh.ChDriver):
 	def __init__(self, vehicle, delay):
@@ -91,16 +91,18 @@ def main():
     terrain.Initialize(terrainLength, terrainWidth, delta);
 
     # Create the vehicle Irrlicht interface
-    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV Deformable Soil Demo')
-    app.AddTypicalLights()
-    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    app.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
-    app.SetTimestep(step_size)
-    app.AssetBindAll()
-    app.AssetUpdateAll()
+    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+    my_hmmwv.GetVehicle().SetVisualSystem(vis)
+    vis.SetWindowTitle('HMMWV Deformable Soil Demo')
+    vis.SetWindowSize(1280, 1024)
+    vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
+    vis.Initialize()
+    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddTypicalLights()
+    vis.AddSkyBox()
 
     # Simulation loop
-    while (app.GetDevice().run()):
+    while vis.Run() :
         time = my_hmmwv.GetSystem().GetChTime()
 
         # End simulation
@@ -108,9 +110,9 @@ def main():
             break
 
         # Draw scene
-        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-        app.DrawAll()
-        app.EndScene()
+        vis.BeginScene()
+        vis.DrawAll()
+        vis.EndScene()
 
         # Get driver inputs
         driver_inputs = driver.GetInputs()
@@ -120,13 +122,13 @@ def main():
         driver.Synchronize(time)
         terrain.Synchronize(time)
         my_hmmwv.Synchronize(time, driver_inputs, terrain)
-        app.Synchronize("", driver_inputs)
+        vis.Synchronize("", driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)
         terrain.Advance(step_size)
         my_hmmwv.Advance(step_size)
-        app.Advance(step_size)
+        vis.Advance(step_size)
 
     return 0
   

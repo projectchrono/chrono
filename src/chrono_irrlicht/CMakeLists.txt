@@ -121,9 +121,6 @@ set(LIBRARIES
     )
 
 if (ENABLE_MODULE_POSTPROCESS)
-    #include_directories(${CH_POSTPROCESS_INCLUDES})  # nothing to append
-    #set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_POSTPROCESS_CXX_FLAGS}") # nothing to append
-    #set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_POSTPROCESS_LINK_FLAGS}") # nothing to append
     set(LIBRARIES ${LIBRARIES} ChronoEngine_postprocess)
 endif()
 if (ENABLE_MODULE_MODAL)
@@ -171,7 +168,9 @@ endif()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-  IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
+  IF(DEFINED ENV{CONDA_BUILD})
+    SET(CH_IRRLICHT_DLL "$ENV{PREFIX}/Library/bin/Irrlicht.dll")
+  ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
     SET(CH_IRRLICHT_DLL "${IRRLICHT_ROOT}/bin/Win32-VisualStudio/Irrlicht.dll")
   ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
     SET(CH_IRRLICHT_DLL "${IRRLICHT_ROOT}/bin/Win64-VisualStudio/Irrlicht.dll")

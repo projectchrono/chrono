@@ -6,7 +6,7 @@
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 # Authors: Radu Serban
@@ -33,8 +33,8 @@ class DebugDrawer(chrono.VisualizationCallback):
         super().__init__()
 
     def DrawLine(self, pA, pB, color):
-        print("       ", pA.x, pA.y, pA.z)
-        print("       ", pB.x, pB.y, pB.z)     
+        print("   pA = ", pA.x, pA.y, pA.z)
+        print("   pB = ", pB.x, pB.y, pB.z)
 
 # -----------------------------------------------------------------------------
 
@@ -45,7 +45,7 @@ class DebugDrawer(chrono.VisualizationCallback):
 
 print( "Copyright (c) 2022 projectchrono.org")
 
-# Create system, contact material, and bodies
+# Create sys, contact material, and bodies
 sys = chrono.ChSystemNSC()
 
 mat = chrono.ChMaterialSurfaceNSC()
@@ -75,27 +75,32 @@ mesh = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile("models/cube.obj"), 100, T
 mesh.SetPos(chrono.ChVectorD(2.0, 3.5, -2.0))
 sys.AddBody(mesh)
 
-# Create run-time visualization
-myapplication = chronoirr.ChIrrApp(sys, 'Collision visualization demo', chronoirr.dimension2du(1024,768))
-myapplication.AddSkyBox()
-myapplication.AddTypicalLights()
-myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddCamera(chronoirr.vector3df(0, 8 , 6))
-
-myapplication.AssetBindAll()
-myapplication.AssetUpdateAll()
+# Create the Irrlicht visualization
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Collision visualization demo')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0, 8 , 6))
+vis.AddTypicalLights()
 
 # Create collision shape drawer
 drawer = DebugDrawer()
 sys.GetCollisionSystem().RegisterVisualizationCallback(drawer)
 
+# Specify what information is visualized
+mode = chrono.ChCollisionSystem.VIS_Shapes
+
+use_zbuffer = True
+
 #  Run the simulation
-myapplication.SetTimestep(0.001)
-while(myapplication.GetDevice().run()):
-    myapplication.BeginScene()
-    myapplication.DrawAll()
-    myapplication.DoStep()
-    myapplication.EndScene()
+while vis.Run():
+    vis.BeginScene() 
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(1e-3)
 
     print(sys.GetChTime(), "  ", sys.GetNcontacts())
     sys.GetCollisionSystem().Visualize(chrono.ChCollisionSystem.VIS_Shapes)
