@@ -108,7 +108,7 @@ private:
     bool m_use_skybox = false;
     std::string m_skyboxFilename = "vsg/textures/chrono_skybox.ktx2";
     std::string m_logo_fileName;
-    ChColor m_bg_color = ChColor(1,1,1,1);
+    ChColor m_bg_color;
     double m_acimut = 0.0;
     double m_elevation = 0.0;
     double m_light_intensity = 1.0;

@@ -159,7 +159,7 @@ void ChVisualSystemVSG::Initialize() {
     }
     m_viewer->addWindow(m_window);
 
-    m_window->clearColor() = VkClearColorValue{{m_bg_color.R, m_bg_color.G, m_bg_color.B, m_bg_color.A}};
+    m_window->clearColor() = VkClearColorValue{{m_bg_color.R, m_bg_color.G, m_bg_color.B, 1}};
 
     // holds whole 3d stuff
     m_scenegraph = vsg::Group::create();
