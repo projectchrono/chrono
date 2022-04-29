@@ -159,7 +159,7 @@ linux:arch-llvm:test:
   tags:
     - linux
   image:
-    name: nvidia/cuda:11.4.0-devel-ubuntu20.04
+    name: nvidia/cuda:11.6.0-devel-ubuntu20.04
   before_script:
     - uname -a
     - export DEBIAN_FRONTEND=noninteractive
