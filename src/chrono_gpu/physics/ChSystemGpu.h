@@ -239,6 +239,9 @@ class CH_GPU_API ChSystemGpu {
     /// Return the number of particles that are higher than a given Z coordinate
     unsigned int GetNumParticleAboveZ(float ZValue) const;
 
+    /// Return the number of particles that are higher than a given X coordinate
+    unsigned int GetNumParticleAboveX(float XValue) const;
+
     /// Return the radius of a spherical particle.
     float GetParticleRadius() const;
 

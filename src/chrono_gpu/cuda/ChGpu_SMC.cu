@@ -82,11 +82,34 @@ __host__ unsigned int ChSystemGpu_impl::GetNumParticleAboveZ(float ZValue) {
 
     const unsigned int threadsPerBlock = 1024;
     unsigned int nBlocks = (nSpheres + threadsPerBlock - 1) / threadsPerBlock;
-    elementalZAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, nSpheres,
-                                                       gran_params, ZValue);
+    elementalCoordAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, nSpheres,
+                                                           gran_params, sphere_data->sphere_local_pos_Z, ZValue);
     gpuErrchk(cudaDeviceSynchronize());
 
     // Use CUB to find the max or min Z.
+    size_t temp_storage_bytes = 0;
+    cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
+                           sphere_data->sphere_stats_buffer_int + nSpheres, nSpheres);
+    void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
+    cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
+                           sphere_data->sphere_stats_buffer_int + nSpheres, nSpheres);
+    gpuErrchk(cudaDeviceSynchronize());
+    gpuErrchk(cudaPeekAtLastError());
+    return *(sphere_data->sphere_stats_buffer_int + nSpheres);
+}
+
+__host__ unsigned int ChSystemGpu_impl::GetNumParticleAboveX(float XValue) {
+    size_t nSpheres = sphere_local_pos_X.size();
+    if (nSpheres == 0)
+        CHGPU_ERROR("ERROR! 0 particle in system! Please call this method after Initialize().\n");
+
+    const unsigned int threadsPerBlock = 1024;
+    unsigned int nBlocks = (nSpheres + threadsPerBlock - 1) / threadsPerBlock;
+    elementalCoordAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, nSpheres,
+                                                           gran_params, sphere_data->sphere_local_pos_X, XValue);
+    gpuErrchk(cudaDeviceSynchronize());
+
+    // Use CUB to find the max or min X.
     size_t temp_storage_bytes = 0;
     cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
                            sphere_data->sphere_stats_buffer_int + nSpheres, nSpheres);

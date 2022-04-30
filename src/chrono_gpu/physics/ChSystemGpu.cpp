@@ -491,6 +491,10 @@ unsigned int ChSystemGpu::GetNumParticleAboveZ(float ZValue) const {
     return m_sys->GetNumParticleAboveZ(ZValue);
 }
 
+unsigned int ChSystemGpu::GetNumParticleAboveX(float XValue) const {
+    return m_sys->GetNumParticleAboveX(XValue);
+}
+
 size_t ChSystemGpu::EstimateMemUsage() const {
     return m_sys->EstimateMemUsage();
 }

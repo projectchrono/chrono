@@ -141,19 +141,20 @@ static __global__ void elementalZLocalToGlobal(float* posZ,
 }
 
 /// A light-weight kernel that writes 0 or 1 depending on whether a particle's Z coord is higher than a given value
-static __global__ void elementalZAboveValue(unsigned int* YorN,
-                                            ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                            size_t nSpheres,
-                                            ChSystemGpu_impl::GranParamsPtr gran_params,
-                                            float ZValue) {
+static __global__ void elementalCoordAboveValue(unsigned int* YorN,
+                                                ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                                size_t nSpheres,
+                                                ChSystemGpu_impl::GranParamsPtr gran_params,
+                                                int* sphere_local_pos,
+                                                float Value) {
     size_t mySphereID = (threadIdx.x + blockIdx.x * blockDim.x);
     if (mySphereID < nSpheres) {
-        int zPos_local = sphere_data->sphere_local_pos_Z[mySphereID];
+        int pos_local = sphere_local_pos[mySphereID];
         int3 ownerSD_triplet = SDIDTriplet(sphere_data->sphere_owner_SDs[mySphereID], gran_params);
-        float z_UU = zPos_local * gran_params->LENGTH_UNIT;
-        z_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
-        z_UU += ((int64_t)ownerSD_triplet.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
-        YorN[mySphereID] = z_UU >= ZValue ? 1 : 0;
+        float pos_UU = pos_local * gran_params->LENGTH_UNIT;
+        pos_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
+        pos_UU += ((int64_t)ownerSD_triplet.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
+        YorN[mySphereID] = pos_UU >= Value ? 1 : 0;
     }
 }
 
