@@ -82,8 +82,8 @@ __host__ unsigned int ChSystemGpu_impl::GetNumParticleAboveZ(float ZValue) {
 
     const unsigned int threadsPerBlock = 1024;
     unsigned int nBlocks = (nSpheres + threadsPerBlock - 1) / threadsPerBlock;
-    elementalCoordAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, nSpheres,
-                                                           gran_params, sphere_data->sphere_local_pos_Z, ZValue);
+    elementalZAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, nSpheres,
+                                                       gran_params, ZValue);
     gpuErrchk(cudaDeviceSynchronize());
 
     // Use CUB to find the max or min Z.
@@ -105,8 +105,8 @@ __host__ unsigned int ChSystemGpu_impl::GetNumParticleAboveX(float XValue) {
 
     const unsigned int threadsPerBlock = 1024;
     unsigned int nBlocks = (nSpheres + threadsPerBlock - 1) / threadsPerBlock;
-    elementalCoordAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, nSpheres,
-                                                           gran_params, sphere_data->sphere_local_pos_X, XValue);
+    elementalXAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, nSpheres,
+                                                       gran_params, XValue);
     gpuErrchk(cudaDeviceSynchronize());
 
     // Use CUB to find the max or min X.
