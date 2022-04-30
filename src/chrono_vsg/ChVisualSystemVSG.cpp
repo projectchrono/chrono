@@ -98,8 +98,7 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_options = vsg::Options::create();
     m_options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
     m_options->paths.push_back(GetChronoDataPath());
-    m_options->objectCache = vsg::ObjectCache::create();
-    // add vsgXchange's support for reading and writing 3rd party file formats
+    // add vsgXchange's support for reading and writing 3rd party file formats, mandatory for chrono_vsg!
     m_options->add(vsgXchange::all::create());
     m_options->fileCache = vsg::getEnv("VSG_FILE_CACHE");
 }
