@@ -27,7 +27,7 @@ requirements:
   build:
     - {{ compiler('c') }}   # [not win]
     - {{ compiler('cxx') }} # [not win]
-    - python 
+    - python
     - cmake >=3.10          # [not win]
     - ninja # [linux or osx]
     - swig >=4.0.0
