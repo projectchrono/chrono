@@ -58,6 +58,7 @@ std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json"
 ////std::string filename("M113/track_assembly/M113_TrackAssemblyDoublePin_Left.json");
 
 TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
+DoublePinTrackShoeType shoe_topology = DoublePinTrackShoeType::ONE_CONNECTOR;
 bool add_track_RSDA = true;
 
 // Specification of test rig inputs
@@ -239,8 +240,8 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case TrackShoeType::DOUBLE_PIN: {
-                track_assembly =
-                    chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side, brake_type, add_track_RSDA);
+                track_assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side, shoe_topology, brake_type,
+                                                                                        add_track_RSDA);
                 break;
             }
             default:

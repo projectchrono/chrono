@@ -54,6 +54,7 @@ class CH_MODELS_API M113 {
 
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTrackShoeType(TrackShoeType shoe_type) { m_shoe_type = shoe_type; }
+    void SetDoublePinTrackShoeType(DoublePinTrackShoeType topology) { m_shoe_topology = topology; }
     void SetDrivelineType(DrivelineTypeTV driveline_type) { m_driveline_type = driveline_type; }
     void SetPowertrainType(PowertrainModelType powertrain_type) { m_powertrain_type = powertrain_type; }
 
@@ -105,6 +106,7 @@ class CH_MODELS_API M113 {
 
     BrakeType m_brake_type;
     TrackShoeType m_shoe_type;
+    DoublePinTrackShoeType m_shoe_topology;
     DrivelineTypeTV m_driveline_type;
     PowertrainModelType m_powertrain_type;
 

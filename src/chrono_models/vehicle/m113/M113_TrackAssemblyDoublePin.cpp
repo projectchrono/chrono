@@ -53,7 +53,10 @@ const ChVector<> M113_TrackAssemblyDoublePin::m_susp_locs_R[5] = {
 // Constructor for the M113 track assembly using double-pin track shoes.
 // Create the suspensions, idler, brake, sprocket, and track shoes.
 // -----------------------------------------------------------------------------
-M113_TrackAssemblyDoublePin::M113_TrackAssemblyDoublePin(VehicleSide side, BrakeType brake_type, bool add_RSDA)
+M113_TrackAssemblyDoublePin::M113_TrackAssemblyDoublePin(VehicleSide side,
+                                                         DoublePinTrackShoeType topology,
+                                                         BrakeType brake_type,
+                                                         bool add_RSDA)
     : ChTrackAssemblyDoublePin("", side) {
     size_t num_shoes = 0;
     std::string suspName("M113_Suspension");
@@ -87,7 +90,7 @@ M113_TrackAssemblyDoublePin::M113_TrackAssemblyDoublePin(VehicleSide side, Brake
     m_suspensions[4] = chrono_types::make_shared<M113_Suspension>(suspName + "4", side, 4, true);
 
     for (size_t it = 0; it < num_shoes; it++) {
-        m_shoes.push_back(chrono_types::make_shared<M113_TrackShoeDoublePin>(shoeName + std::to_string(it)));
+        m_shoes.push_back(chrono_types::make_shared<M113_TrackShoeDoublePin>(shoeName + std::to_string(it), topology));
     }
 
     if (add_RSDA) {

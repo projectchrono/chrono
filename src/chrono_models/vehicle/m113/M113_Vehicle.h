@@ -38,6 +38,7 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
     /// Construct the M113 vehicle within an automatically created Chrono system.
     M113_Vehicle(bool fixed,
                  TrackShoeType shoe_type,
+                 DoublePinTrackShoeType shoe_topology,
                  DrivelineTypeTV driveline_type,
                  BrakeType brake_type,
                  bool add_track_RSDA,
@@ -47,6 +48,7 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
     /// Construct the M113 vehicle within the specified Chrono system.
     M113_Vehicle(bool fixed,
                  TrackShoeType shoe_type,
+                 DoublePinTrackShoeType shoe_topology,
                  DrivelineTypeTV driveline_type,
                  BrakeType brake_type,
                  bool add_track_RSDA,
@@ -64,6 +66,7 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
   private:
     void Create(bool fixed,
                 TrackShoeType shoe_type,
+                DoublePinTrackShoeType shoe_topology,
                 DrivelineTypeTV driveline_type,
                 BrakeType brake_type,
                 bool add_track_RSDA,
