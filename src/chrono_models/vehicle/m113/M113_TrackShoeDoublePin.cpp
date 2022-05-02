@@ -50,7 +50,8 @@ const double M113_TrackShoeDoublePin::m_connector_width = 0.02;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_TrackShoeDoublePin::M113_TrackShoeDoublePin(const std::string& name) : ChTrackShoeDoublePin(name) {
+M113_TrackShoeDoublePin::M113_TrackShoeDoublePin(const std::string& name, DoublePinTrackShoeType topology)
+    : ChTrackShoeDoublePin(name, topology) {
     // Collision box: pad bottom (ground contact)
     ChVehicleGeometry::BoxShape box_bottom(ChVector<>(0, 0, -0.015), QUNIT, ChVector<>(0.11, 0.19, 0.03), 0);
 

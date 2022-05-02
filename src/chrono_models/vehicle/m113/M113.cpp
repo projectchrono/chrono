@@ -44,6 +44,7 @@ M113::M113()
       m_create_track(true),
       m_brake_type(BrakeType::SIMPLE),
       m_shoe_type(TrackShoeType::SINGLE_PIN),
+      m_shoe_topology(DoublePinTrackShoeType::TWO_CONNECTORS),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_powertrain_type(PowertrainModelType::SIMPLE_CVT),
       m_add_track_RSDA(false),
@@ -63,6 +64,7 @@ M113::M113(ChSystem* system)
       m_create_track(true),
       m_brake_type(BrakeType::SIMPLE),
       m_shoe_type(TrackShoeType::SINGLE_PIN),
+      m_shoe_topology(DoublePinTrackShoeType::TWO_CONNECTORS),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_powertrain_type(PowertrainModelType::SIMPLE_CVT),
       m_add_track_RSDA(false),
@@ -87,11 +89,11 @@ void M113::SetAerodynamicDrag(double Cd, double area, double air_density) {
 void M113::Initialize() {
     // Create and initialize the M113 vehicle
     if (m_system) {
-        m_vehicle = new M113_Vehicle(m_fixed, m_shoe_type, m_driveline_type, m_brake_type, m_add_track_RSDA, m_system,
-                                     m_chassisCollisionType);
+        m_vehicle = new M113_Vehicle(m_fixed, m_shoe_type, m_shoe_topology, m_driveline_type, m_brake_type,
+                                     m_add_track_RSDA, m_system, m_chassisCollisionType);
     } else {
-        m_vehicle = new M113_Vehicle(m_fixed, m_shoe_type, m_driveline_type, m_brake_type, m_add_track_RSDA,
-                                     m_contactMethod, m_chassisCollisionType);
+        m_vehicle = new M113_Vehicle(m_fixed, m_shoe_type, m_shoe_topology, m_driveline_type, m_brake_type,
+                                     m_add_track_RSDA, m_contactMethod, m_chassisCollisionType);
         m_vehicle->SetCollisionSystemType(m_collsysType);
     }
     m_vehicle->CreateTrack(m_create_track);

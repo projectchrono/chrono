@@ -57,6 +57,7 @@ using std::endl;
 // =============================================================================
 
 TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
+DoublePinTrackShoeType shoe_topology = DoublePinTrackShoeType::ONE_CONNECTOR;
 BrakeType brake_type = BrakeType::SIMPLE;
 DrivelineTypeTV driveline_type = DrivelineTypeTV::BDS;
 PowertrainModelType powertrain_type = PowertrainModelType::SHAFTS;
@@ -274,6 +275,7 @@ int main(int argc, char* argv[]) {
     m113.SetContactMethod(contact_method);
     m113.SetCollisionSystemType(collsys_type);
     m113.SetTrackShoeType(shoe_type);
+    m113.SetDoublePinTrackShoeType(shoe_topology);
     m113.SetDrivelineType(driveline_type);
     m113.SetBrakeType(brake_type);
     m113.SetPowertrainType(powertrain_type);
