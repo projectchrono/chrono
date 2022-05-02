@@ -608,6 +608,16 @@ enum class TrackShoeType {
     BAND_ANCF      ///< rigid tooth-ANCF web continuous band track shoe and sprocket
 };
 
+/// Topology of the double-pin track shoe.
+/// The "full" double-pin track shoe mechanism uses separate bodies for the left and right connector bodies.  The
+/// "reduced" model uses a single connector body. The mass and inertia of the composite connector body in the reduced
+/// model are calculated based on the provided values for an individual connector body.  Furthermore, the collision
+/// geometry is the same, meaning both models of a double-pin track shoe can interact with the same type of sprocket.
+enum class DoublePinTrackShoeType {
+    TWO_CONNECTORS,  ///< two connector bodies
+    ONE_CONNECTOR    ///< one connector body
+};
+
 /// Enum for guide pin (track shoe/roadwheel/idler).
 enum class GuidePinType {
     CENTRAL_PIN,  ///< track shoes with central guiding pin and double wheels
