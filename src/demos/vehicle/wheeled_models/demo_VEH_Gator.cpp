@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             patch =
                 terrain.AddPatch(patch_mat, ChVector<>(10, 0, 0), Q_from_AngY(-10 * CH_C_DEG_TO_RAD).GetZaxis(), 5, 10);
-            patch->SetColor(ChColor(0.8f, 0.2f, 0.5f));
+            patch->SetColor(ChColor(0.6f, 0.5f, 0.2f));
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
             patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
@@ -147,7 +147,8 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("Gator Demo");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional(70, 20);
+    ////vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
     gator.GetVehicle().SetVisualSystem(vis);
