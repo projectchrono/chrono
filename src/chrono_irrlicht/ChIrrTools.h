@@ -42,7 +42,6 @@ class ChApiIrr matrix4CH : public matrix4 {
     matrix4CH(const chrono::ChFrame<>& frame);
 };
 
-
 }  // end namespace core
 }  // end namespace irr
 
@@ -51,10 +50,13 @@ class ChApiIrr matrix4CH : public matrix4 {
 namespace chrono {
 namespace irrlicht {
 
+// Forward declaration
+class ChVisualSystemIrrlicht;
+
 /// @addtogroup irrlicht_module
 /// @{
 
-enum class IrrContactsDrawMode {
+enum class ContactsDrawMode {
     CONTACT_NORMALS = 0,  // draw normals
     CONTACT_DISTANCES,    // draw lines connecting two contact points
     CONTACT_FORCES_N,     // draw contact forces (only normal component) applied to 2nd body
@@ -62,7 +64,7 @@ enum class IrrContactsDrawMode {
     CONTACT_NONE          // draw nothing
 };
 
-enum class IrrContactsLabelMode {
+enum class ContactsLabelMode {
     CONTACT_DISTANCES_VAL,  // print distance
     CONTACT_FORCES_VAL,     // print contact forces modulus
     CONTACT_FORCES_N_VAL,   // print contact forces (only normal component)
@@ -73,13 +75,13 @@ enum class IrrContactsLabelMode {
     CONTACT_NONE_VAL        // print nothing
 };
 
-enum class IrrLinkDrawMode {
+enum class LinkDrawMode {
     LINK_REACT_FORCE = 0,  // draw reaction force
     LINK_REACT_TORQUE,     // draw reaction torque
     LINK_NONE              // draw nothing
 };
 
-enum class IrrLinkLabelMode {
+enum class LinkLabelMode {
     LINK_REACT_FORCE_VAL = 0,  // print reaction force modulus
     LINK_REACT_FORCE_X,        // print reaction force x
     LINK_REACT_FORCE_Y,        // print reaction force y
@@ -101,55 +103,49 @@ ChApiIrr irr::video::SColor ToIrrlichtSColor(const ChColor& col, float alpha = 1
 
 /// Convert a ChVisualMaterial to an Irrlicht material.
 ChApiIrr irr::video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat,
-                                                 irr::video::IVideoDriver* driver);
+                                                  irr::video::IVideoDriver* driver);
 
 /// Align an Irrlicht object to a the specified coordinate system.
 ChApiIrr void alignIrrlichtNode(irr::scene::ISceneNode* mnode, const ChCoordsys<>& mcoords);
 
 /// Draw contact points used by a ChSystem in the current Irrlicht viewer.
 /// The contact points are visually represented with short lines, of length mlen, aligned to contact normals.
-ChApiIrr int drawAllContactPoints(std::shared_ptr<ChContactContainer> mcontactcontainer,
-                                  irr::video::IVideoDriver* driver,
+ChApiIrr int drawAllContactPoints(ChVisualSystemIrrlicht* vis,
                                   double mlen = 1.0,
-                                  IrrContactsDrawMode drawtype = IrrContactsDrawMode::CONTACT_NORMALS);
+                                  ContactsDrawMode drawtype = ContactsDrawMode::CONTACT_NORMALS);
 
 /// Draw contact informations as labels at the contact point.
-ChApiIrr int drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontactcontainer,
-                                  irr::IrrlichtDevice* device,
-                                  IrrContactsLabelMode labeltype = IrrContactsLabelMode::CONTACT_FORCES_N_VAL,
-                                  irr::video::SColor mcol = irr::video::SColor(255, 255, 255, 255));
+ChApiIrr int drawAllContactLabels(ChVisualSystemIrrlicht* vis,
+                                  ContactsLabelMode labeltype = ContactsLabelMode::CONTACT_FORCES_N_VAL,
+                                  ChColor col = ChColor(1, 1, 1));
 
 /// Draw reaction forces in all contacts in current Irrlicht viewer.
-ChApiIrr int drawAllLinks(ChSystem& sys,
-                          irr::video::IVideoDriver* driver,
+ChApiIrr int drawAllLinks(ChVisualSystemIrrlicht* vis,
                           double mlen = 1.0,
-                          IrrLinkDrawMode drawtype = IrrLinkDrawMode::LINK_REACT_FORCE);
+                          LinkDrawMode drawtype = LinkDrawMode::LINK_REACT_FORCE);
 
 /// Draw contact informations as labels at the contact point.
-ChApiIrr int drawAllLinkLabels(ChSystem& sys,
-                               irr::IrrlichtDevice* device,
-                               IrrLinkLabelMode labeltype = IrrLinkLabelMode::LINK_REACT_FORCE_X,
-                               irr::video::SColor mcol = irr::video::SColor(255, 255, 255, 255));
+ChApiIrr int drawAllLinkLabels(ChVisualSystemIrrlicht* vis,
+                               LinkLabelMode labeltype = LinkLabelMode::LINK_REACT_FORCE_X,
+                               ChColor col = ChColor(1, 1, 1));
 
 /// Draw collision objects bounding boxes for rigid bodies (if they have a collision shape).
-ChApiIrr int drawAllBoundingBoxes(ChSystem& sys, irr::video::IVideoDriver* driver);
+ChApiIrr int drawAllBoundingBoxes(ChVisualSystemIrrlicht* vis);
 
 /// Draw coordinate systems of ChBody objects.
-ChApiIrr int drawAllCOGs(ChSystem& sys, irr::video::IVideoDriver* driver, double scale = 0.01);
+ChApiIrr int drawAllCOGs(ChVisualSystemIrrlicht* vis, double scale = 0.01);
 
 /// Draw coordinate systems of link frames.
-ChApiIrr int drawAllLinkframes(ChSystem& sys, irr::video::IVideoDriver* driver, double scale = 0.01);
+ChApiIrr int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale = 0.01);
 
-ChApiIrr void drawHUDviolation(irr::video::IVideoDriver* driver,
-                               irr::IrrlichtDevice* mdevice,
-                               ChSystem& asystem,
+ChApiIrr void drawHUDviolation(ChVisualSystemIrrlicht* vis,
                                int mx = 10,
                                int my = 290,
                                int sx = 300,
                                int sy = 100,
                                double spfact = 100.0);
 
-ChApiIrr void drawChFunction(irr::IrrlichtDevice* mdevice,
+ChApiIrr void drawChFunction(ChVisualSystemIrrlicht* vis,
                              ChFunction* fx,
                              double xmin = 0,
                              double xmax = 1,
@@ -161,78 +157,78 @@ ChApiIrr void drawChFunction(irr::IrrlichtDevice* mdevice,
                              int sy = 100);
 
 /// Draw line segments in 3D space with given color.
-ChApiIrr void drawSegment(irr::video::IVideoDriver* driver,
-                          ChVector<> mstart,
-                          ChVector<> mend,
-                          irr::video::SColor mcol = irr::video::SColor(255, 0, 0, 0),
+ChApiIrr void drawSegment(ChVisualSystemIrrlicht* vis,
+                          ChVector<> start,
+                          ChVector<> end,
+                          ChColor col = ChColor(1, 1, 1),
                           bool use_Zbuffer = false);
 
 /// Draw a polyline in 3D space, given the array of points.
-ChApiIrr void drawPolyline(irr::video::IVideoDriver* driver,
-                           std::vector<ChVector<> >& mpoints,
-                           irr::video::SColor mcol = irr::video::SColor(255, 0, 0, 0),
+ChApiIrr void drawPolyline(ChVisualSystemIrrlicht* vis,
+                           std::vector<ChVector<> >& points,
+                           ChColor col = ChColor(1, 1, 1),
                            bool use_Zbuffer = false);
 
 /// Draw a circle line in 3D space with given color.
 /// The circle is centered in the X-Y plane of the provided coordinate system.
-ChApiIrr void drawCircle(irr::video::IVideoDriver* driver,
+ChApiIrr void drawCircle(ChVisualSystemIrrlicht* vis,
                          double radius,
-                         ChCoordsys<> mpos = CSYSNORM,
-                         irr::video::SColor mcol = irr::video::SColor(255, 0, 0, 0),
-                         int mresolution = 36,
+                         ChCoordsys<> pos = CSYSNORM,
+                         ChColor col = ChColor(1, 1, 1),
+                         int resolution = 36,
                          bool use_Zbuffer = false);
 
 /// Draw a spring in 3D space with given color.
 /// Specify the radius, the end points in absolute space, the resolution (i.e. the number of segments approximating the
 /// helix) and the number of turns.
-ChApiIrr void drawSpring(irr::video::IVideoDriver* driver,
+ChApiIrr void drawSpring(ChVisualSystemIrrlicht* vis,
                          double radius,
                          ChVector<> start,
                          ChVector<> end,
-                         irr::video::SColor mcol = irr::video::SColor(255, 0, 0, 0),
-                         int mresolution = 65,
+                         ChColor col = ChColor(1, 1, 1),
+                         int resolution = 65,
                          double turns = 5,
                          bool use_Zbuffer = false);
 
-ChApiIrr void drawRotSpring(irr::video::IVideoDriver* driver,
+ChApiIrr void drawRotSpring(ChVisualSystemIrrlicht* vis,
                             ChCoordsys<> pos,
                             double radius,
                             double start_angle,
                             double end_angle,
-                            irr::video::SColor col = irr::video::SColor(255, 0, 0, 0),
+                            ChColor col = ChColor(1, 1, 1),
                             int resolution = 65,
                             bool use_Zbuffer = false);
 
 /// Draw grids in 3D space with given orientation, color, and spacing.
-ChApiIrr void drawGrid(irr::video::IVideoDriver* driver,
+ChApiIrr void drawGrid(ChVisualSystemIrrlicht* vis,
                        double ustep = 0.1,
                        double vstep = 0.1,
                        int nu = 20,
                        int nv = 20,
-                       ChCoordsys<> mpos = CSYSNORM,
-                       irr::video::SColor mcol = irr::video::SColor(50, 80, 110, 110),
+                       ChCoordsys<> pos = CSYSNORM,
+                       ChColor col = ChColor(0.7f, 0.7f, 0.7f),
                        bool use_Zbuffer = false);
 
 /// Draw color bar with a color map and 2D legend.
-ChApiIrr void drawColorbar(double vmin,
+ChApiIrr void drawColorbar(ChVisualSystemIrrlicht* vis,
+                           double vmin,
                            double vmax,
                            const std::string& label,
-                           irr::IrrlichtDevice* mdevice,
                            int mx = 740,
                            int my = 20,
                            int sx = 30,
                            int sy = 300);
 
-ChApiIrr void drawPlot3D(irr::video::IVideoDriver* driver,
+ChApiIrr void drawPlot3D(ChVisualSystemIrrlicht* vis,
                          ChMatrixConstRef X,  // x of points, in local csys x
                          ChMatrixConstRef Y,  // y of points, in local csys y
                          ChMatrixConstRef Z,  // z height map of points, in local csys z
-                         ChCoordsys<> mpos = CSYSNORM,
-                         irr::video::SColor mcol = irr::video::SColor(50, 80, 110, 110),
+                         ChCoordsys<> pos = CSYSNORM,
+                         ChColor col = ChColor(1, 1, 1),
                          bool use_Zbuffer = false);
 
 /// Render run-time profiler info.
-ChApiIrr void drawProfiler(irr::IrrlichtDevice* device);
+ChApiIrr void drawProfiler(ChVisualSystemIrrlicht* vis);
 
 }  // end namespace tools
 

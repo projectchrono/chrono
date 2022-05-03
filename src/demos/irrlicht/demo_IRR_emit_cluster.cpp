@@ -30,13 +30,6 @@ using namespace chrono::particlefactory;
 using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
-
 //     A callback executed at each particle creation can be attached to the emitter.
 //     For example, we need that new particles will be bound to Irrlicht visualization:
 class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {

@@ -32,14 +32,6 @@ using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
-
 std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChSystem& sys) {
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.005);
     ChCollisionModel::SetDefaultSuggestedMargin(0.004);

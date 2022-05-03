@@ -40,12 +40,6 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace chrono::turtlebot;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-
 // Use custom material for the turtlebot wheels
 bool use_custom_mat = false;
 
@@ -128,7 +122,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddLightWithShadow(ChVector<>(1.5, 1.5, 5.5), ChVector<>(0, 0, 0), 3, 4, 10, 40, 512,
                             ChColor(0.8f, 0.8f, 1.0f));
-    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_DISTANCES);
+    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
     vis->EnableShadows();
 
     // Simulation loop

@@ -165,9 +165,8 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
-        tools::drawGrid(vis->GetVideoDriver(), 2, 2, 20, 20,
-                        ChCoordsys<>(ChVector<>(0, -20, 0), Q_from_AngX(CH_C_PI_2)),
-                        irr::video::SColor(255, 80, 100, 100), true);
+        tools::drawGrid(vis.get(), 2, 2, 20, 20, ChCoordsys<>(ChVector<>(0, -20, 0), Q_from_AngX(CH_C_PI_2)),
+                        ChColor(0.3f, 0.5f, 0.5f), true);
 
         // Update the position of the spinning fan (an Irrlicht
         // node, which is here just for aesthetical reasons!)

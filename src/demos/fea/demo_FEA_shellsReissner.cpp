@@ -474,7 +474,7 @@ int main(int argc, char* argv[]) {
         vis->DrawAll();
 
         // .. draw also a grid
-        tools::drawGrid(vis->GetVideoDriver(), 1, 1);
+        tools::drawGrid(vis.get(), 1, 1);
 
         // ...update load at end nodes, as simple lumped nodal forces
 

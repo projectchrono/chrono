@@ -28,10 +28,6 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-
 collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET;
 
 void AddFallingItems(ChSystemSMC& sys) {

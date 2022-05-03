@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
-        tools::drawGrid(vis->GetVideoDriver(), 0.1, 0.1, 20, 20, CSYSNORM, irr::video::SColor(255, 100, 100, 100), true);
+        tools::drawGrid(vis.get(), 0.1, 0.1, 20, 20, CSYSNORM, ChColor(0.4f, 0.4f, 0.4f), true);
 
         sys.DoStepDynamics(0.0002);
 

@@ -286,12 +286,9 @@ void ANCFBeamTest::SimulateVis() {
                   << std::endl;
         vis->BeginScene();
         vis->DrawAll();
-        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
-                                     irr::video::SColor(255, 255, 0, 0));
-        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
-                                     irr::video::SColor(255, 0, 255, 0));
-        irrlicht::tools::drawSegment(vis->GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
-                                     irr::video::SColor(255, 0, 0, 255));
+        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(1, 0, 0), ChColor(1, 0, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 1, 0), ChColor(0, 1, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 0, 1), ChColor(0, 0, 1));
         ExecuteStep();
         vis->EndScene();
     }

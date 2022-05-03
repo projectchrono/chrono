@@ -30,12 +30,6 @@ using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -162,7 +156,7 @@ int main(int argc, char* argv[]) {
                            ChColor(0.8f, 0.8f, 1.0f));
     vis->EnableShadows();
 
-    ////application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
+    ////application.SetContactsDrawMode(ContactsDrawMode::CONTACT_DISTANCES);
 
     // Simulation loop
     while (vis->Run()) {

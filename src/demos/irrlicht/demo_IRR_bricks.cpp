@@ -29,14 +29,6 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
-
 // Create a bunch of ChronoENGINE rigid bodies that
 // represent bricks in a large wall.
 
@@ -196,9 +188,9 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     while (vis->Run()) {
         vis->BeginScene();
-        tools::drawGrid(vis->GetVideoDriver(), 5, 5, 20, 20,
+        tools::drawGrid(vis.get(), 5, 5, 20, 20,
                         ChCoordsys<>(ChVector<>(0, 0.04, 0), Q_from_AngAxis(CH_C_PI / 2, VECT_X)),
-                        video::SColor(50, 90, 90, 150), true);
+                        ChColor(0.35f, 0.35f, 0.59f), true);
         vis->DrawAll();
         vis->EndScene();
 

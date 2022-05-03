@@ -152,11 +152,11 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Enable contact rendering (default: none).
     /// Has no effect, unless called after the visual system is initialized and attached.
-    void EnableContactDrawing(IrrContactsDrawMode mode);
+    void EnableContactDrawing(ContactsDrawMode mode);
 
     /// Enable rendering of link (joint) frames (default: none).
     /// Has no effect, unless called after the visual system is initialized and attached.
-    void EnableLinkDrawing(IrrLinkDrawMode mode);
+    void EnableLinkDrawing(LinkDrawMode mode);
 
     /// Enable rendering of body frames (default: false).
     /// Has no effect, unless called after the visual system is initialized and attached.

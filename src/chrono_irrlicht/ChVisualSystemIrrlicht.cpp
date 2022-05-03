@@ -173,7 +173,7 @@ void ChVisualSystemIrrlicht::Initialize() {
     if (m_system) {
         // Create an Irrlicht GUI
         assert(!m_gui->initialized);
-        m_gui->Initialize(m_device, m_system);
+        m_gui->Initialize(this);
 
         // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
         // This is a recursive call to accomodate any existing sub-assemblies.
@@ -192,7 +192,7 @@ void ChVisualSystemIrrlicht::OnAttach() {
     // If the visualization system is already initialized
     if (m_device) {
         assert(!m_gui->initialized);
-        m_gui->Initialize(m_device, m_system);
+        m_gui->Initialize(this);
 
         // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
         // This is a recursive call to accomodate any existing sub-assemblies.
@@ -434,12 +434,12 @@ void ChVisualSystemIrrlicht::AddShadowToIrrNode(scene::ISceneNode* node) {
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemIrrlicht::EnableContactDrawing(IrrContactsDrawMode mode) {
+void ChVisualSystemIrrlicht::EnableContactDrawing(ContactsDrawMode mode) {
     if (m_gui->initialized)
         m_gui->SetContactsDrawMode(mode);
 }
 
-void ChVisualSystemIrrlicht::EnableLinkDrawing(IrrLinkDrawMode mode) {
+void ChVisualSystemIrrlicht::EnableLinkDrawing(LinkDrawMode mode) {
     if (m_gui->initialized)
         m_gui->SetLinksDrawMode(mode);
 }

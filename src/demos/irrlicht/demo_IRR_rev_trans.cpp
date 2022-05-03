@@ -116,11 +116,11 @@ int main(int argc, char* argv[]) {
         ChCoordsys<> joint_csys = ground->GetCoord() >> rev_trans->GetLinkRelativeCoords();
         ChVector<> point1 = joint_csys.pos;
         ChVector<> point2 = joint_csys.TransformPointLocalToParent(ChVector<>(L, 0, 0));
-        tools::drawSegment(vis->GetVideoDriver(), point1, point2, video::SColor(255, 0, 20, 0), true);
+        tools::drawSegment(vis.get(), point1, point2, ChColor(0, 0.2f, 0), true);
 
         // Render a line between the two points of the revolute-translational joint.
-        tools::drawSegment(vis->GetVideoDriver(), rev_trans->GetPoint1Abs(), rev_trans->GetPoint2Abs(),
-                           video::SColor(255, 120, 120, 120), true);
+        tools::drawSegment(vis.get(), rev_trans->GetPoint1Abs(), rev_trans->GetPoint2Abs(),
+                           ChColor(0.6f, 0.6f, 0.6f), true);
 
         vis->EndScene();
 

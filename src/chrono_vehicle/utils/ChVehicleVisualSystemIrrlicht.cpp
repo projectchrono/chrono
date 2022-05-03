@@ -107,11 +107,7 @@ bool ChChaseCameraEventReceiver::OnEvent(const SEvent& event) {
 // Construct a vehicle Irrlicht application.
 // -----------------------------------------------------------------------------
 ChVehicleVisualSystemIrrlicht::ChVehicleVisualSystemIrrlicht()
-    : ChVisualSystemIrrlicht(),
-      m_camera_control(nullptr),
-      m_renderStats(true),
-      m_HUD_x(700),
-      m_HUD_y(20) {
+    : ChVisualSystemIrrlicht(), m_camera_control(nullptr), m_renderStats(true), m_HUD_x(700), m_HUD_y(20) {
     // Set default window size and title
     SetWindowSize(1000, 800);
     SetWindowTitle("Chrono::Vehicle");
@@ -150,7 +146,7 @@ void ChVehicleVisualSystemIrrlicht::OnAttachToVehicle() {
     if (GetDevice()) {
         ChVector<> cam_pos = m_camera->GetCameraPos();
         ChVector<> cam_target = m_camera->GetTargetPos();
-        AddCamera(cam_pos, cam_target);  
+        AddCamera(cam_pos, cam_target);
     }
 }
 
@@ -168,7 +164,8 @@ void ChVehicleVisualSystemIrrlicht::EnableSound(bool sound) {
         // To play a sound, call play2D(). The second parameter tells the engine to
         // play it looped.
         if (m_sound_engine) {
-            m_car_sound = m_sound_engine->play2D(GetChronoDataFile("vehicle/sounds/carsound.ogg").c_str(), true, false, true);
+            m_car_sound =
+                m_sound_engine->play2D(GetChronoDataFile("vehicle/sounds/carsound.ogg").c_str(), true, false, true);
             m_car_sound->setIsPaused(true);
         } else
             GetLog() << "Cannot start sound engine Irrklang \n";
@@ -236,9 +233,8 @@ void ChVehicleVisualSystemIrrlicht::DrawAll() {
 
 // Render a horizontal grid
 void ChVehicleVisualSystemIrrlicht::RenderGrid(const ChVector<>& loc, int num_divs, double delta) {
-    irrlicht::tools::drawGrid(GetVideoDriver(), delta, delta, num_divs, num_divs,
-                                   ChCoordsys<>(loc, ChWorldFrame::Quaternion()),
-                                   irr::video::SColor(255, 255, 200, 0), true);
+    irrlicht::tools::drawGrid(this, delta, delta, num_divs, num_divs, ChCoordsys<>(loc, ChWorldFrame::Quaternion()),
+                              ChColor(1.00f, 0.78f, 0.00f), true);
 }
 
 // Render the specified reference frame
@@ -247,19 +243,19 @@ void ChVehicleVisualSystemIrrlicht::RenderFrame(const ChFrame<>& frame, double a
     const auto& u = frame.GetA().Get_A_Xaxis();
     const auto& v = frame.GetA().Get_A_Yaxis();
     const auto& w = frame.GetA().Get_A_Zaxis();
-    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + u * axis_length, irr::video::SColor(255, 255, 0, 0));
-    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + v * axis_length, irr::video::SColor(255, 0, 255, 0));
-    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + w * axis_length, irr::video::SColor(255, 0, 0, 255));
+    irrlicht::tools::drawSegment(this, loc, loc + u * axis_length, ChColor(1, 0, 0));
+    irrlicht::tools::drawSegment(this, loc, loc + v * axis_length, ChColor(0, 1, 0));
+    irrlicht::tools::drawSegment(this, loc, loc + w * axis_length, ChColor(0, 0, 1));
 }
 
 // Render a linear gauge in the HUD.
 void ChVehicleVisualSystemIrrlicht::renderLinGauge(const std::string& msg,
-                                     double factor,
-                                     bool sym,
-                                     int xpos,
-                                     int ypos,
-                                     int length,
-                                     int height) {
+                                                   double factor,
+                                                   bool sym,
+                                                   int xpos,
+                                                   int ypos,
+                                                   int length,
+                                                   int height) {
     irr::core::rect<s32> mclip(xpos, ypos, xpos + length, ypos + height);
     GetVideoDriver()->draw2DRectangle(irr::video::SColor(90, 60, 60, 60),
                                       irr::core::rect<s32>(xpos, ypos, xpos + length, ypos + height), &mclip);
@@ -283,11 +279,11 @@ void ChVehicleVisualSystemIrrlicht::renderLinGauge(const std::string& msg,
 
 // Render text in a box.
 void ChVehicleVisualSystemIrrlicht::renderTextBox(const std::string& msg,
-                                    int xpos,
-                                    int ypos,
-                                    int length,
-                                    int height,
-                                    irr::video::SColor color) {
+                                                  int xpos,
+                                                  int ypos,
+                                                  int length,
+                                                  int height,
+                                                  irr::video::SColor color) {
     irr::core::rect<s32> mclip(xpos, ypos, xpos + length, ypos + height);
     GetVideoDriver()->draw2DRectangle(irr::video::SColor(90, 60, 60, 60),
                                       irr::core::rect<s32>(xpos, ypos, xpos + length, ypos + height), &mclip);

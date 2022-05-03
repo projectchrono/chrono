@@ -17,6 +17,7 @@
 #include "chrono/serialization/ChArchiveExplorer.h"
 
 #include "chrono_irrlicht/ChIrrGUI.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 namespace chrono {
 namespace irrlicht {
@@ -172,7 +173,8 @@ class DebugDrawer : public collision::ChCollisionSystem::VisualizationCallback {
 // -----------------------------------------------------------------------------
 
 ChIrrGUI::ChIrrGUI()
-    : m_device(nullptr),
+    : m_vis(nullptr),
+      m_device(nullptr),
       m_system(nullptr),
       initialized(false),
       show_explorer(false),
@@ -189,9 +191,10 @@ ChIrrGUI::ChIrrGUI()
       symbolscale(1),
       camera_auto_rotate_speed(0) {}
 
-void ChIrrGUI::Initialize(irr::IrrlichtDevice* device, ChSystem* sys) {
-    m_device = device;
-    m_system = sys;
+void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
+    m_vis = vis;
+    m_device = vis->GetDevice();
+    m_system = &vis->GetSystem();
     initialized = true;
 
     // Set the default event receiver
@@ -475,32 +478,31 @@ void ChIrrGUI::DrawAll() {
     g_textFPS->setText(str.c_str());
 
     int dmode = g_drawcontacts->getSelected();
-    tools::drawAllContactPoints(m_system->GetContactContainer(), GetVideoDriver(), symbolscale,
-                                (IrrContactsDrawMode)dmode);
+    tools::drawAllContactPoints(m_vis, symbolscale, (ContactsDrawMode)dmode);
 
     int lmode = g_labelcontacts->getSelected();
-    tools::drawAllContactLabels(m_system->GetContactContainer(), GetDevice(), (IrrContactsLabelMode)lmode);
+    tools::drawAllContactLabels(m_vis, (ContactsLabelMode)lmode);
 
     int dmodeli = g_drawlinks->getSelected();
-    tools::drawAllLinks(*m_system, GetVideoDriver(), symbolscale, (IrrLinkDrawMode)dmodeli);
+    tools::drawAllLinks(m_vis, symbolscale, (LinkDrawMode)dmodeli);
 
     int lmodeli = g_labellinks->getSelected();
-    tools::drawAllLinkLabels(*m_system, GetDevice(), (IrrLinkLabelMode)lmodeli);
+    tools::drawAllLinkLabels(m_vis, (LinkLabelMode)lmodeli);
 
     if (g_plot_aabb->isChecked())
-        tools::drawAllBoundingBoxes(*m_system, GetVideoDriver());
+        tools::drawAllBoundingBoxes(m_vis);
 
     if (g_plot_cogs->isChecked())
-        tools::drawAllCOGs(*m_system, GetVideoDriver(), symbolscale);
+        tools::drawAllCOGs(m_vis, symbolscale);
 
     if (g_plot_linkframes->isChecked())
-        tools::drawAllLinkframes(*m_system, GetVideoDriver(), symbolscale);
+        tools::drawAllLinkframes(m_vis, symbolscale);
 
     if (g_plot_collisionshapes->isChecked())
         DrawCollisionShapes(irr::video::SColor(50, 0, 0, 110));
 
     if (g_plot_convergence->isChecked())
-        tools::drawHUDviolation(GetVideoDriver(), GetDevice(), *m_system, 240, 370, 300, 100, 100.0);
+        tools::drawHUDviolation(m_vis, 240, 370, 300, 100, 100.0);
 
     g_tabbed->setVisible(show_infos);
     g_treeview->setVisible(show_explorer);
@@ -516,7 +518,8 @@ void ChIrrGUI::DrawAll() {
     if (modal_show) {
         char message[50];
         if (modal_current_dampingfactor)
-            sprintf(message, "n = %i\nf = %.3g Hz\nz = %.2g", modal_mode_n, modal_current_freq, modal_current_dampingfactor);
+            sprintf(message, "n = %i\nf = %.3g Hz\nz = %.2g", modal_mode_n, modal_current_freq,
+                    modal_current_dampingfactor);
         else
             sprintf(message, "n = %i\nf = %.3g Hz", modal_mode_n, modal_current_freq);
         g_modal_mode_n_info->setText(irr::core::stringw(message).c_str());
@@ -554,7 +557,7 @@ void ChIrrGUI::BeginScene() {
 
 void ChIrrGUI::EndScene() {
     if (show_profiler)
-        tools::drawProfiler(m_device);
+        tools::drawProfiler(m_vis);
 }
 
 }  // end namespace irrlicht

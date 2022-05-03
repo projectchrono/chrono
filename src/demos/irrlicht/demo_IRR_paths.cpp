@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
 
     // This means that contactforces will be shown in Irrlicht application
     vis->SetSymbolScale(0.2);
-    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_NORMALS);
+    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
 
     // Simulation loop
     double timestep = 0.01;

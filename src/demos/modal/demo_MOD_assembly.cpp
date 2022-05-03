@@ -313,8 +313,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     while (ID_current_example == current_example && vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
-        tools::drawGrid(vis->GetVideoDriver(), 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
-                        irr::video::SColor(100, 120, 120, 120), true);
+        tools::drawGrid(vis.get(), 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
+                        ChColor(0.5f, 0.5f, 0.5f), true);
         vis->EndScene();
 
         if (!modal_analysis)

@@ -33,12 +33,6 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace chrono::curiosity;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-
 // Specify rover chassis type
 // The options are Scarecrow and FullRover
 CuriosityChassisType chassis_type = CuriosityChassisType::FullRover;
@@ -100,7 +94,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddLightWithShadow(ChVector<>(2.5, 7.0, 0.0), ChVector<>(0, 0, 0), 50, 4, 25, 130, 512,
                             ChColor(0.8f, 0.8f, 0.8f));
-    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_DISTANCES);
+    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
     vis->EnableShadows();
 
     // Simulation loop

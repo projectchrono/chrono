@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
 
     if (contact_vis) {
         vis->SetSymbolScale(1e-4);
-        vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_FORCES);
+        vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     }
 
     ChRealtimeStepTimer realtime_timer;
