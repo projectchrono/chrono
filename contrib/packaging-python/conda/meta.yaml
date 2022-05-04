@@ -35,7 +35,7 @@ requirements:
     - llvm-openmp   # [linux]
     - libglvnd-glx-cos7-x86_64 # [linux]
     - swig >=4.0.0
-    - mkl
+    #- mkl
     - mkl-devel
     - irrlicht
     - opencascade
