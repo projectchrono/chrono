@@ -142,7 +142,7 @@ driver.Initialize()
 # ---------------
 
 # output vehicle mass
-print( "VEHICLE MASS: ",  my_truck.GetVehicle().GetVehicleMass())
+print( "VEHICLE MASS: ",  my_truck.GetVehicle().GetMass())
 
 # Number of simulation steps between miscellaneous events
 render_steps = math.ceil(render_step_size / step_size)
