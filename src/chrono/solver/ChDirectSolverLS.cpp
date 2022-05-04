@@ -215,11 +215,11 @@ double ChDirectSolverLS::SolveCurrent() {
 void ChDirectSolverLS::WriteMatrix(const std::string& filename, const ChSparseMatrix& M) {
     ChStreamOutAsciiFile file(filename.c_str());
     file.SetNumFormat("%.12g");
-    for (int ii = 0; ii < M.rows(); ii++) {
-        for (int jj = 0; jj < M.cols(); jj++) {
-            double elVal = M.coeff(ii, jj);
-            if (elVal || (ii == M.rows() - 1 && jj == M.cols() - 1)) {
-                file << ii + 1 << " " << jj + 1 << " " << elVal << "\n";
+    for (int i = 0; i < M.rows(); i++) {
+        for (int j = 0; j < M.cols(); j++) {
+            double elVal = M.coeff(i, j);
+            if (elVal || (i == M.rows() - 1 && j == M.cols() - 1)) {
+                file << i + 1 << " " << j + 1 << " " << elVal << "\n";
             }
         }
     }
@@ -228,8 +228,8 @@ void ChDirectSolverLS::WriteMatrix(const std::string& filename, const ChSparseMa
 void ChDirectSolverLS::WriteVector(const std::string& filename, const ChVectorDynamic<double>& v) {
     ChStreamOutAsciiFile file(filename.c_str());
     file.SetNumFormat("%.12g");
-    for (auto val : v)
-        file << val << "\n";
+    for (int i = 0; i < v.size(); i++)
+        file << v(i) << "\n";
 }
 
 // ---------------------------------------------------------------------------
