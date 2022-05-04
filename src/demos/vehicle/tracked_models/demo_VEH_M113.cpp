@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <sstream>
+#include <iomanip>
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/core/ChRealtimeStep.h"
@@ -112,7 +113,7 @@ ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
 ////ChTimestepper::Type intgr_type = ChTimestepper::Type::HHT;
 
 // Verbose output level (solver and integrator)
-bool verbose_solver = false;
+bool verbose_solver = true;
 bool verbose_integrator = false;
 
 // Time interval between two render frames
@@ -679,11 +680,15 @@ int main(int argc, char* argv[]) {
             std::cout << time << "  chassis contact" << std::endl;
         }
 
-        // Increment frame number
-        step_number++;
-
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);
+        if (step_number % 10 == 0) {
+            printf("\rRTF: %3.0f", realtime_timer.RTF);
+            fflush(stdout);
+        }
+
+        // Increment frame number
+        step_number++;
     }
 
     vehicle.WriteContacts(out_dir + "/M113_contacts.out");
