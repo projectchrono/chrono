@@ -1129,6 +1129,8 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         StreamOUTdenseMatlabFormat(v, file_v);
     }
 
+    GetSolver()->EnableWrite(write_matrix, std::to_string(stepcount) + "_" + std::to_string(solvecount), output_dir);
+
     // If indicated, first perform a solver setup.
     // Return 'false' if the setup phase fails.
     if (force_setup) {

@@ -85,10 +85,16 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
 
     m_timer_setup_assembly.stop();
 
+    if (write_matrix)
+        WriteMatrix("LS_" + frame_id + "_A.dat", m_mat);
+
     // Let the concrete solver perform the facorization
     m_timer_setup_solvercall.start();
     bool result = FactorizeMatrix();
     m_timer_setup_solvercall.stop();
+
+    if (write_matrix)
+        WriteMatrix("LS_" + frame_id + "_F.dat", m_mat);
 
     if (verbose) {
         GetLog() << " Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros()
@@ -115,10 +121,16 @@ double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
     m_sol.resize(m_rhs.size());
     m_timer_solve_assembly.stop();
 
+    if (write_matrix)
+        WriteVector("LS_" + frame_id + "_b.dat", m_rhs);
+
     // Let the concrete solver compute the solution
     m_timer_solve_solvercall.start();
     bool result = SolveSystem();
     m_timer_solve_solvercall.stop();
+
+    if (write_matrix)
+        WriteVector("LS_" + frame_id + "_x.dat", m_sol);
 
     // Scatter solution vector to the system descriptor
     m_timer_solve_assembly.start();
@@ -141,7 +153,6 @@ double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
     return result;
 }
 
-
 bool ChDirectSolverLS::SetupCurrent() {
     m_timer_setup_assembly.start();
 
@@ -156,8 +167,8 @@ bool ChDirectSolverLS::SetupCurrent() {
     m_timer_setup_solvercall.stop();
 
     if (verbose) {
-        GetLog() << " Solver SetupCurrent() [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros()
-                 << "\n";
+        GetLog() << " Solver SetupCurrent() [" << m_setup_call << "] n = " << m_dim
+                 << "  nnz = " << (int)m_mat.nonZeros() << "\n";
         GetLog() << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s\n"
                  << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s\n";
     }
@@ -199,7 +210,29 @@ double ChDirectSolverLS::SolveCurrent() {
     return result;
 }
 
+// ---------------------------------------------------------------------------
 
+void ChDirectSolverLS::WriteMatrix(const std::string& filename, const ChSparseMatrix& M) {
+    ChStreamOutAsciiFile file(filename.c_str());
+    file.SetNumFormat("%.12g");
+    for (int ii = 0; ii < M.rows(); ii++) {
+        for (int jj = 0; jj < M.cols(); jj++) {
+            double elVal = M.coeff(ii, jj);
+            if (elVal || (ii == M.rows() - 1 && jj == M.cols() - 1)) {
+                file << ii + 1 << " " << jj + 1 << " " << elVal << "\n";
+            }
+        }
+    }
+}
+
+void ChDirectSolverLS::WriteVector(const std::string& filename, const ChVectorDynamic<double>& v) {
+    ChStreamOutAsciiFile file(filename.c_str());
+    file.SetNumFormat("%.12g");
+    for (auto val : v)
+        file << val << "\n";
+}
+
+// ---------------------------------------------------------------------------
 
 void ChDirectSolverLS::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
@@ -217,7 +250,7 @@ void ChDirectSolverLS::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChDirectSolverLS::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChDirectSolverLS>();
+    /*int version =*/marchive.VersionRead<ChDirectSolverLS>();
 
     // deserialize parent class
     ChSolver::ArchiveIN(marchive);
