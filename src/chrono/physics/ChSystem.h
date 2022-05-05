@@ -815,7 +815,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// where l \f$\in Y, c \in Ny\f$, normal cone to Y
 
     /// Enable/disable debug output of system matrices.
-    void EnableSolverMatrixWrite(bool val, const std::string& out_dir = "");
+    void EnableSolverMatrixWrite(bool val, const std::string& out_dir = ".");
     bool IsSolverMatrixWriteEnabled() const { return write_matrix; }
 
     /// Dump the current M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian

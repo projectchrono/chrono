@@ -38,6 +38,12 @@ class my_enum_mappers : public ChSolver {
     CH_ENUM_MAPPER_END(Type);
 };
 
+void ChSolver::EnableWrite(bool val, const std::string& frame, const std::string& out_dir) {
+    write_matrix = val;
+    output_dir = out_dir;
+    frame_id = frame;
+}
+
 void ChSolver::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSolver>();
@@ -51,7 +57,7 @@ void ChSolver::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChSolver::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSolver>();
+    /*int version =*/marchive.VersionRead<ChSolver>();
     // solver type:
     my_enum_mappers::Type_mapper typemapper;
     Type type = GetType();
