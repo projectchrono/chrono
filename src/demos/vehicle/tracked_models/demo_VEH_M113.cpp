@@ -90,7 +90,7 @@ double target_speed = 5;                                   // used for mode=PATH
 DriverMode driver_mode = DriverMode::PATH;
 
 // Contact formulation (NSC or SMC)
-ChContactMethod contact_method = ChContactMethod::SMC;
+ChContactMethod contact_method = ChContactMethod::NSC;
 
 // Simulation step size
 double step_size_NSC = 1e-3;
@@ -98,6 +98,7 @@ double step_size_SMC = 5e-4;
 
 // Solver and integrator types
 ////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
+////ChSolver::Type slvr_type = ChSolver::Type::APGD;
 ////ChSolver::Type slvr_type = ChSolver::Type::PSOR;
 ////ChSolver::Type slvr_type = ChSolver::Type::MINRES;
 ////ChSolver::Type slvr_type = ChSolver::Type::GMRES;
@@ -112,7 +113,7 @@ ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
 ////ChTimestepper::Type intgr_type = ChTimestepper::Type::HHT;
 
 // Verbose output level (solver and integrator)
-bool verbose_solver = true;
+bool verbose_solver = false;
 bool verbose_integrator = false;
 
 // Time interval between two render frames
@@ -259,6 +260,48 @@ void ReportTiming(ChSystem& sys) {
         LS->ResetTimers();
     }
     std::cout << ss.str() << std::endl;
+}
+
+void ReportConstraintViolation(ChSystem& sys, double threshold = 1e-3) {
+    Eigen::Index imax = 0;
+    double vmax = 0;
+    std::string nmax = "";
+    for (auto joint : sys.Get_linklist()) {
+        if (joint->GetConstraintViolation().size() == 0)
+            continue;
+        Eigen::Index cimax;
+        auto cmax = joint->GetConstraintViolation().maxCoeff(&cimax);
+        if (cmax > vmax) {
+            vmax = cmax;
+            imax = cimax;
+            nmax = joint->GetNameString();
+        }
+    }
+    if (vmax > threshold)
+        std::cout << vmax << "  in  " << nmax << " [" << imax << "]" <<  std::endl;
+}
+
+bool ReportTrackFailure(ChTrackedVehicle& veh, double threshold = 1e-2) {
+    for (int i = 0; i < 2; i++) {
+        auto track = veh.GetTrackAssembly(VehicleSide(i));
+        auto nshoes = track->GetNumTrackShoes();
+        auto shoe1 = track->GetTrackShoe(0).get();
+        for (int j = 1; j < nshoes; j++) {
+            auto shoe2 = track->GetTrackShoe(j % (nshoes - 1)).get();
+            auto dir = shoe2->GetShoeBody()->TransformDirectionParentToLocal(shoe2->GetTransform().GetPos() -
+                                                                             shoe1->GetTransform().GetPos());
+            if (std::abs(dir.y()) > threshold) {
+                std::cout << "...Track " << i << " broken between shoes " << j - 1 << " and " << j << std::endl;
+                std::cout << "time " << veh.GetChTime() << std::endl;
+                std::cout << "shoe " << j - 1 << " position: " << shoe1->GetTransform().GetPos() << std::endl;
+                std::cout << "shoe " << j << " position: " << shoe2->GetTransform().GetPos() << std::endl;
+                std::cout << "Lateral offset: " << dir.y() << std::endl;
+                return true;
+            }
+            shoe1 = shoe2;
+        }
+    }
+    return false;
 }
 
 // =============================================================================
@@ -501,7 +544,7 @@ int main(int argc, char* argv[]) {
             auto path_driver = std::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
             path_driver->GetSteeringController().SetLookAheadDistance(5.0);
             path_driver->GetSteeringController().SetGains(0.5, 0, 0);
-            path_driver->GetSpeedController().SetGains(0.4, 0, 0);
+            path_driver->GetSpeedController().SetGains(0.6, 0.3, 0);
             driver = path_driver;
         }
     }
@@ -672,6 +715,11 @@ int main(int argc, char* argv[]) {
         vis->Advance(step_size);
 
         ////ReportTiming(*m113.GetSystem());
+
+        if (ReportTrackFailure(vehicle, 0.1)) {
+            ReportConstraintViolation(*m113.GetSystem());
+            break;
+        }
 
         // Report if the chassis experienced a collision
         if (vehicle.IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
