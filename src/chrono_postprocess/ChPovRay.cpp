@@ -651,17 +651,20 @@ void ChPovRay::ExportMaterials(ChStreamOutAsciiFile& assets_file,
             auto ext = rel_path.extension();
             if (ext == "jpg")
                 ext = "jpeg";
+            auto abs_path_no_ext = abs_path.substr(0, abs_path.size() - ext.size()); // strip .jpg etc. as if in "jpeg" mode, .jpg files give issues in POV
 
             assets_file << "texture { uv_mapping pigment { image_map {";
             assets_file << ext.c_str() << " ";
-            assets_file << "\"" << abs_path.c_str() << "\"";
+            assets_file << "\"" << abs_path_no_ext << "\"";
             assets_file << " }}}\n";
         }
 
-        // add POV  pigment
-        const auto& color = mat->GetDiffuseColor();
-        assets_file << "pigment {color rgbt <" << color.R << "," << color.G << "," << color.B << ","
-                    << 1 - mat->GetOpacity() << "> }\n";
+        // add POV  pigment (only if no texture has been added, otherwise POV complains)
+        if (mat->GetKdTexture().empty()) {
+            const auto& color = mat->GetDiffuseColor();
+            assets_file << "pigment {color rgbt <" << color.R << "," << color.G << "," << color.B << ","
+                << 1 - mat->GetOpacity() << "> }\n";
+        }
 
         // POV macro - end
         assets_file << "#end \n";
