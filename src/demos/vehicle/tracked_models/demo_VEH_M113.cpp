@@ -20,7 +20,6 @@
 #include <iomanip>
 
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/solver/ChIterativeSolverVI.h"
@@ -593,7 +592,6 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    ChRealtimeStepTimer realtime_timer;
     while (vis->Run()) {
         // Debugging output
         if (dbg_output) {
@@ -678,13 +676,6 @@ int main(int argc, char* argv[]) {
         // Report if the chassis experienced a collision
         if (vehicle.IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
             std::cout << time << "  chassis contact" << std::endl;
-        }
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
-        if (step_number % 10 == 0) {
-            printf("\rRTF: %3.0f", realtime_timer.RTF);
-            fflush(stdout);
         }
 
         // Increment frame number
