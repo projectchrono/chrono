@@ -120,6 +120,9 @@ void Marder::Initialize() {
             break;
         }
     }
+
+    // Recalculate vehicle mass, to properly account for all subsystems
+    m_vehicle->InitializeInertiaProperties();
 }
 
 // -----------------------------------------------------------------------------

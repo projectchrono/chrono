@@ -153,6 +153,10 @@ class CH_VEHICLE_API ChVehicle {
                             double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
                             );
 
+    /// Calculate total vehicle mass from subsystems.
+    /// This function is called at the end of the vehicle initialization, but can also be called explicitly.
+    virtual void InitializeInertiaProperties() = 0;
+
     /// Set visualization mode for the chassis subsystem.
     void SetChassisVisualizationType(VisualizationType vis);
 
@@ -207,10 +211,6 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Set the associated Chrono system.
     void SetSystem(ChSystem* sys) { m_system = sys; }
-
-    /// Calculate total vehicle mass from subsystems.
-    /// This function is called at the end of the vehicle initialization.
-    virtual void InitializeInertiaProperties() = 0;
 
     /// Calculate current vehicle inertia properties from subsystems.
     /// This function is called at the end of each vehicle state advance.

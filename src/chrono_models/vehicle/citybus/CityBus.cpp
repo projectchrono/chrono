@@ -178,6 +178,9 @@ void CityBus::Initialize() {
     }
 
     m_vehicle->EnableBrakeLocking(m_brake_locking);
+
+    // Recalculate vehicle mass, to properly account for all subsystems
+    m_vehicle->InitializeInertiaProperties();
 }
 
 // -----------------------------------------------------------------------------

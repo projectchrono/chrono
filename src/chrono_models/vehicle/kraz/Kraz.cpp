@@ -152,6 +152,9 @@ void Kraz::Initialize() {
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }
     }
+
+    // Recalculate vehicle mass, to properly account for all subsystems
+    m_tractor->InitializeInertiaProperties();
 }
 
 void Kraz::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {

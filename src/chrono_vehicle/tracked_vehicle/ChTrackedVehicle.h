@@ -177,6 +177,10 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
     void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
 
+    /// Calculate total vehicle mass.
+    /// This function is called at the end of the vehicle initialization, but can also be called explicitly.
+    virtual void InitializeInertiaProperties() override final;
+
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
     /// braking between 0 and 1) and terrain forces on the track shoes (expressed in the global reference frame).
@@ -212,10 +216,6 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     ChTrackedVehicle(const std::string& name,  ///< [in] vehicle name
                      ChSystem* system          ///< [in] containing mechanical system
     );
-
-    /// Calculate total vehicle mass.
-    /// This function is called at the end of the vehicle initialization.
-    virtual void InitializeInertiaProperties() override final;
 
     /// Calculate current vehicle inertia properties.
     /// This function is called at the end of each vehicle state advance.
