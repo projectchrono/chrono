@@ -24,7 +24,6 @@
 #include <vector>
 
 #include "chrono/core/ChStream.h"
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/solver/ChIterativeSolverLS.h"
@@ -245,6 +244,48 @@ void ReportTiming(ChSystem& sys) {
     std::cout << ss.str() << std::endl;
 }
 
+void ReportConstraintViolation(ChSystem& sys, double threshold = 1e-3) {
+    Eigen::Index imax = 0;
+    double vmax = 0;
+    std::string nmax = "";
+    for (auto joint : sys.Get_linklist()) {
+        if (joint->GetConstraintViolation().size() == 0)
+            continue;
+        Eigen::Index cimax;
+        auto cmax = joint->GetConstraintViolation().maxCoeff(&cimax);
+        if (cmax > vmax) {
+            vmax = cmax;
+            imax = cimax;
+            nmax = joint->GetNameString();
+        }
+    }
+    if (vmax > threshold)
+        std::cout << vmax << "  in  " << nmax << " [" << imax << "]" << std::endl;
+}
+
+bool ReportTrackFailure(ChTrackedVehicle& veh, double threshold = 1e-2) {
+    for (int i = 0; i < 2; i++) {
+        auto track = veh.GetTrackAssembly(VehicleSide(i));
+        auto nshoes = track->GetNumTrackShoes();
+        auto shoe1 = track->GetTrackShoe(0).get();
+        for (int j = 1; j < nshoes; j++) {
+            auto shoe2 = track->GetTrackShoe(j % (nshoes - 1)).get();
+            auto dir = shoe2->GetShoeBody()->TransformDirectionParentToLocal(shoe2->GetTransform().GetPos() -
+                                                                             shoe1->GetTransform().GetPos());
+            if (std::abs(dir.y()) > threshold) {
+                std::cout << "...Track " << i << " broken between shoes " << j - 1 << " and " << j << std::endl;
+                std::cout << "time " << veh.GetChTime() << std::endl;
+                std::cout << "shoe " << j - 1 << " position: " << shoe1->GetTransform().GetPos() << std::endl;
+                std::cout << "shoe " << j << " position: " << shoe2->GetTransform().GetPos() << std::endl;
+                std::cout << "Lateral offset: " << dir.y() << std::endl;
+                return true;
+            }
+            shoe1 = shoe2;
+        }
+    }
+    return false;
+}
+
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -409,7 +450,6 @@ int main(int argc, char* argv[]) {
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
 
-    ChRealtimeStepTimer realtime_timer;
     while (vis->Run()) {
         if (step_number % render_steps == 0) {
             // Render scene
@@ -438,11 +478,13 @@ int main(int argc, char* argv[]) {
 
         ////ReportTiming(*vehicle.GetSystem());
 
+        if (ReportTrackFailure(vehicle, 0.1)) {
+            ReportConstraintViolation(*vehicle.GetSystem());
+            break;
+        }
+
         // Increment frame number
         step_number++;
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     return 0;
