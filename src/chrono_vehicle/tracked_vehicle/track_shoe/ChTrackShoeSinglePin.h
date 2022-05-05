@@ -91,8 +91,8 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
 
     virtual void EnableTrackBendingStiffness(bool val) override;
 
-    std::shared_ptr<ChVehicleJoint> m_connection_joint;  ///< connection to neighboring track shoe
-    std::shared_ptr<ChLinkRSDA> m_connection_rsda;       ///< optional RSDA on connection
+    std::shared_ptr<ChVehicleJoint> m_joint;  ///< connection to neighboring track shoe
+    std::shared_ptr<ChLinkRSDA> m_rsda;       ///< optional RSDA on connection
 
     friend class ChSprocketSinglePin;
     friend class SprocketSinglePinContactCB;
