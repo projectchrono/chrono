@@ -625,23 +625,28 @@ void ChVisualSystemIrrlicht::CreateIrrNode(std::shared_ptr<ChPhysicsItem> item) 
     if (!item->GetVisualModel())
         return;
 
-    // Create a new ChIrrNodeModel and, if this is first insertion, populate it.
+    // Do nothing if an Irrlicht node already exists for this physics item
+    if (m_nodes.find(item.get()) != m_nodes.end())
+        return;
+
+    // Create a new ChIrrNodeModel and populate it
     auto node = chrono_types::make_shared<ChIrrNodeModel>(item, m_container, GetSceneManager(), 0);
-    if (m_nodes.insert({item.get(), node}).second) {
-        // Remove all Irrlicht scene nodes from the ChIrrNodeModel
-        node->removeAll();
+    bool ok = m_nodes.insert({item.get(), node}).second;
+    assert(ok);
 
-        // If the physics item uses clones of its visual model, create an intermediate Irrlicht scene node
-        irr::scene::ISceneNode* fillnode = node.get();
-        if (item->GetNumVisualModelClones() > 0) {
-            fillnode = GetSceneManager()->addEmptySceneNode(node.get());
-        }
+    // Remove all Irrlicht scene nodes from the ChIrrNodeModel
+    node->removeAll();
 
-        // Recursively populate the ChIrrNodeModel with Irrlicht scene nodes for each visual shape.
-        // Begin with identity transform relative to the physics item.
-        ChFrame<> frame;
-        PopulateIrrNode(fillnode, item->GetVisualModel(), frame);
+    // If the physics item uses clones of its visual model, create an intermediate Irrlicht scene node
+    irr::scene::ISceneNode* fillnode = node.get();
+    if (item->GetNumVisualModelClones() > 0) {
+        fillnode = GetSceneManager()->addEmptySceneNode(node.get());
     }
+
+    // Recursively populate the ChIrrNodeModel with Irrlicht scene nodes for each visual shape.
+    // Begin with identity transform relative to the physics item.
+    ChFrame<> frame;
+    PopulateIrrNode(fillnode, item->GetVisualModel(), frame);
 }
 
 static void mflipSurfacesOnX(IMesh* mesh) {
