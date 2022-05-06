@@ -108,10 +108,10 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
     /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
     double GetCamberAngle_internal() { return m_gamma; }
 
-    /// Get maximum tire load from Load Index (LI) in N [0:279]
+    /// Get maximum tire load from Load Index (LI) in N [0:279].
     static double GetTireMaxLoad(unsigned int li);
 
-    /// Guess Tire Parameters from characteristic truck tire parameter pattern (Ratio = 80%)
+    /// Guess Tire Parameters from characteristic truck tire parameter pattern (Ratio = 80%).
     void GuessTruck80Par(unsigned int li,            ///< tire load index
                          double tireWidth,           ///< tire width [m]
                          double ratio,               ///< use 0.75 meaning 75%
@@ -130,7 +130,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
                          double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
     );
 
-    /// Guess Tire Parameters from characteristic passenger car tire parameter pattern (Ratio = 70%)
+    /// Guess Tire Parameters from characteristic passenger car tire parameter pattern (Ratio = 70%).
     void GuessPassCar70Par(unsigned int li,            ///< tire load index
                            double tireWidth,           ///< tire width [m]
                            double ratio,               ///< use 0.75 meaning 75%
@@ -171,19 +171,19 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
     /// This function creates a Gnuplot script file with the specified name.
     void WritePlots(const std::string& plFileName, const std::string& plTireFormat);
 
-    /// Get the tire deflection
+    /// Get the tire deflection.
     virtual double GetDeflection() const override { return m_data.depth; }
 
     /// Using tire relaxation, we have three tire deflections
     ChVector<> GetDeflection3() { return ChVector<>(m_states.xe, m_states.ye, m_data.depth); }
 
-    /// Export a TMeasy Tire Parameter File
+    /// Export a TMeasy Tire Parameter File.
     void ExportParameterFile(std::string fileName);
 
-    /// Export a TMeasy Tire Parameter File in JSON format
+    /// Export a TMeasy Tire Parameter File in JSON format.
     void ExportJSONFile(std::string jsonFileName);
 
-    /// Simple parameter consistency test
+    /// Simple parameter consistency test.
     bool CheckParameters();
 
   protected:

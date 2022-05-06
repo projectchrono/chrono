@@ -149,15 +149,17 @@ void ChVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel)
     // Calculate total vehicle mass and inertia properties at initial configuration
     InitializeInertiaProperties();
     UpdateInertiaProperties();
-
-    m_initialized = true;
 }
 
 // -----------------------------------------------------------------------------
 // Advance the state of the system.
 // ---------------------------------------------------------------------------- -
 void ChVehicle::Advance(double step) {
-    assert(m_initialized);
+    // Ensure the vehicle mass includes the mass of subsystems that may have been initialized after the vehicle
+    if (!m_initialized) {
+        InitializeInertiaProperties();
+        m_initialized = true;
+    }
 
     if (m_output && m_system->GetChTime() >= m_next_output_time) {
         Output(m_output_frame, *m_output_db);

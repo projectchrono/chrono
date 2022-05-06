@@ -76,6 +76,9 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
     /// reported by ChTire::GetCamberAngle.
     double GetCamberAngle_internal() { return GetCamberAngle(); }
 
+    /// Get the tire deflection.
+    virtual double GetDeflection() const override { return m_data.depth; }
+
     /// Generate basic tire plots.
     /// This function creates a Gnuplot script file with the specified name.
     void WritePlots(const std::string& plFileName, const std::string& plTireFormat);
