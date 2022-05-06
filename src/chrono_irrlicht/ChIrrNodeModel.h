@@ -68,6 +68,7 @@ class ChApiIrr ChIrrNodeModel : public irr::scene::ISceneNode {
 
     irr::core::aabbox3d<irr::f32> m_box;
     std::weak_ptr<ChPhysicsItem> m_physicsitem;
+    bool m_clones;
 };
 
 /// @} irrlicht_module
