@@ -64,6 +64,10 @@ BrakeType brake_type = BrakeType::SIMPLE;
 DrivelineTypeTV driveline_type = DrivelineTypeTV::BDS;
 PowertrainModelType powertrain_type = PowertrainModelType::SHAFTS;
 
+bool use_track_bushings = false;
+bool use_suspension_bushings = false;
+bool use_track_RSDA = false;
+
 // Initial vehicle position
 ChVector<> initLoc(-40, 0, 0.8);
 
@@ -278,7 +282,7 @@ void ReportConstraintViolation(ChSystem& sys, double threshold = 1e-3) {
         }
     }
     if (vmax > threshold)
-        std::cout << vmax << "  in  " << nmax << " [" << imax << "]" <<  std::endl;
+        std::cout << vmax << "  in  " << nmax << " [" << imax << "]" << std::endl;
 }
 
 bool ReportTrackFailure(ChTrackedVehicle& veh, double threshold = 1e-2) {
@@ -305,8 +309,24 @@ bool ReportTrackFailure(ChTrackedVehicle& veh, double threshold = 1e-2) {
 }
 
 // =============================================================================
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
+    // Compatibility checks
+    if (use_track_bushings || use_suspension_bushings) {
+        if (contact_method == ChContactMethod::NSC) {
+            cout << "The NSC iterative solvers cannot be used if bushings are present." << endl;
+            return 1;
+        }
+    }
+    
+    if (shoe_type == TrackShoeType::DOUBLE_PIN && shoe_topology == DoublePinTrackShoeType::TWO_CONNECTORS) {
+        if (!use_track_bushings) {
+            cout << "Double-pin two-connector track shoes must use bushings." << endl;
+            return 1;
+        }
+    }
 
     // --------------------------
     // Construct the M113 vehicle
@@ -323,6 +343,9 @@ int main(int argc, char* argv[]) {
     m113.SetCollisionSystemType(collsys_type);
     m113.SetTrackShoeType(shoe_type);
     m113.SetDoublePinTrackShoeType(shoe_topology);
+    m113.SetTrackBushings(use_track_bushings);
+    m113.SetSuspensionBushings(use_suspension_bushings);
+    m113.SetTrackStiffness(use_track_RSDA);
     m113.SetDrivelineType(driveline_type);
     m113.SetBrakeType(brake_type);
     m113.SetPowertrainType(powertrain_type);

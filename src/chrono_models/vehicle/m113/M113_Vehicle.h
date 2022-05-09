@@ -41,7 +41,9 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
                  DoublePinTrackShoeType shoe_topology,
                  DrivelineTypeTV driveline_type,
                  BrakeType brake_type,
-                 bool add_track_RSDA,
+                 bool use_track_bushings,
+                 bool use_suspension_bushings,
+                 bool use_track_RSDA,
                  ChContactMethod contact_method = ChContactMethod::NSC,
                  CollisionType chassis_collision_type = CollisionType::NONE);
 
@@ -51,7 +53,9 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
                  DoublePinTrackShoeType shoe_topology,
                  DrivelineTypeTV driveline_type,
                  BrakeType brake_type,
-                 bool add_track_RSDA,
+                 bool use_track_bushings,
+                 bool use_suspension_bushings,
+                 bool use_track_RSDA,
                  ChSystem* system,
                  CollisionType chassis_collision_type = CollisionType::NONE);
 
@@ -69,7 +73,9 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
                 DoublePinTrackShoeType shoe_topology,
                 DrivelineTypeTV driveline_type,
                 BrakeType brake_type,
-                bool add_track_RSDA,
+                bool use_track_bushings,
+                bool use_suspension_bushings,
+                bool use_track_RSDA,
                 CollisionType chassis_collision_type);
 
     bool m_create_track;

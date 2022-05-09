@@ -149,12 +149,12 @@ int main(int argc, char* argv[]) {
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::BAND_BUSHING: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandBushing>(side, brake_type);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandBushing>(side, brake_type, false);
                 track_assembly = assembly;
                 break;
             }
             case TrackShoeType::BAND_ANCF: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(side, brake_type);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(side, brake_type, false);
                 assembly->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
                 track_assembly = assembly;
                 break;

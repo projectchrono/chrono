@@ -36,7 +36,7 @@ namespace m113 {
 /// Linear-damper M113 suspension (road-wheel assembly).
 class CH_MODELS_API M113_Suspension : public ChLinearDamperRWAssembly {
   public:
-    M113_Suspension(const std::string& name, VehicleSide side, int index, bool has_shock);
+    M113_Suspension(const std::string& name, VehicleSide side, int index, bool use_bushings, bool has_shock);
     ~M113_Suspension();
 
     /// Return the location of the specified hardpoint.
@@ -49,6 +49,9 @@ class CH_MODELS_API M113_Suspension : public ChLinearDamperRWAssembly {
     virtual const ChVector<>& GetArmInertia() const override { return m_arm_inertia; }
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
+
+    /// Return bushing data.
+    virtual std::shared_ptr<ChVehicleBushingData> getArmBushingData() const override { return m_bushing_data; }
 
     /// Return the functor object for the torsional spring torque.
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetSpringTorqueFunctor() const override {
@@ -63,6 +66,7 @@ class CH_MODELS_API M113_Suspension : public ChLinearDamperRWAssembly {
 
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_spring_torqueCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shock_forceCB;
+    std::shared_ptr<ChVehicleBushingData> m_bushing_data;
 
     static const double m_arm_mass;
     static const ChVector<> m_arm_inertia;
