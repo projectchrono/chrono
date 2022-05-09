@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 
     CollisionType chassis_collision_type = CollisionType::PRIMITIVES;
     M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, DoublePinTrackShoeType::TWO_CONNECTORS,
-                         DrivelineTypeTV::SIMPLE, BrakeType::SIMPLE, false, ChContactMethod::SMC,
+                         DrivelineTypeTV::SIMPLE, BrakeType::SIMPLE, false, false, false, ChContactMethod::SMC,
                          chassis_collision_type);
 
     // Disable gravity in this simulation

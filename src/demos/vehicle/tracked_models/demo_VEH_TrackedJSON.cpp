@@ -39,6 +39,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
@@ -56,6 +57,9 @@
 using namespace chrono;
 using namespace chrono::vehicle;
 
+using std::cout;
+using std::endl;
+
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
@@ -72,7 +76,6 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 ////ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
 ////ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
 ////ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
-////ChQuaternion<> initRot(0, 0, 0, 1);
 
 // JSON files for terrain (rigid plane)
 std::string rigidterrain_file("terrain/RigidPlane.json");
@@ -96,17 +99,17 @@ double step_size_NSC = 1e-3;
 double step_size_SMC = 5e-4;
 
 // Solver and integrator types
-ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
+////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
 ////ChSolver::Type slvr_type = ChSolver::Type::PSOR;
 ////ChSolver::Type slvr_type = ChSolver::Type::MINRES;
 ////ChSolver::Type slvr_type = ChSolver::Type::GMRES;
 ////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_LU;
 ////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_QR;
-////ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
+ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
 ////ChSolver::Type slvr_type = ChSolver::Type::MUMPS;
 
-ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
 ////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT;
 ////ChTimestepper::Type intgr_type = ChTimestepper::Type::HHT;
 
@@ -360,6 +363,14 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
     terrain.Initialize();
+
+    // Compatibility checks
+    if (vehicle.HasBushings()) {
+        if (contact_method == ChContactMethod::NSC) {
+            cout << "The NSC iterative solvers cannot be used if bushings are present." << endl;
+            return 1;
+        }
+    }
 
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("JSON Tracked Vehicle Demo");

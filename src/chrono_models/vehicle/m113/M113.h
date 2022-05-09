@@ -58,7 +58,9 @@ class CH_MODELS_API M113 {
     void SetDrivelineType(DrivelineTypeTV driveline_type) { m_driveline_type = driveline_type; }
     void SetPowertrainType(PowertrainModelType powertrain_type) { m_powertrain_type = powertrain_type; }
 
-    void SetTrackRSDA(bool val) { m_add_track_RSDA = val; }
+    void SetTrackBushings(bool val) { m_use_track_bushings = val; }
+    void SetSuspensionBushings(bool val) { m_use_suspension_bushings = val; }
+    void SetTrackStiffness(bool val) { m_use_track_RSDA = val; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
@@ -110,7 +112,9 @@ class CH_MODELS_API M113 {
     DrivelineTypeTV m_driveline_type;
     PowertrainModelType m_powertrain_type;
 
-    bool m_add_track_RSDA;
+    bool m_use_track_bushings;
+    bool m_use_suspension_bushings;
+    bool m_use_track_RSDA;
 
     ChCoordsys<> m_initPos;
     double m_initFwdVel;
