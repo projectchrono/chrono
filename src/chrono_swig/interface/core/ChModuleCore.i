@@ -602,11 +602,20 @@ using namespace chrono::fea;
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
 //
 
+%extend chrono::ChBezierCurveTracker {
+public:
+  double ClosestPointCurvature(const chrono::ChVector<double>& loc, chrono::ChFrame<>& tnb) {
+    double curvature;
+    int foo = $self->calcClosestPoint(loc, tnb, curvature);
+    return curvature;
+  }
+};
+
 %inline %{
 
-	// Create a custom ChLog class for logging directly in the Python shell,
-	// because the default ChLog was redirecting to std::cout that is not 
-	// necessarily the console display of python.
+// Create a custom ChLog class for logging directly in the Python shell,
+// because the default ChLog was redirecting to std::cout that is not 
+// necessarily the console display of python.
 namespace chrono
 {
 class ChLogPython : public ChLog 
@@ -626,7 +635,8 @@ public:
 		}
 private:
 };
-};
+
+}
 
 %}
 
