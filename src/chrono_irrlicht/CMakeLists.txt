@@ -94,7 +94,9 @@ endif()
 
 # Add path to IRRLICHT headers
 
-IF(EXISTS "${IRRLICHT_ROOT}/include")
+IF(EXISTS "${IRRLICHT_ROOT}/include/irrlicht")
+  SET(CH_IRRLICHTINC "${IRRLICHT_ROOT}/include/irrlicht")
+ELSEIF(EXISTS "${IRRLICHT_ROOT}/include")
   SET(CH_IRRLICHTINC "${IRRLICHT_ROOT}/include")
 ELSE()
   SET(CH_IRRLICHTINC "${IRRLICHT_ROOT}")
