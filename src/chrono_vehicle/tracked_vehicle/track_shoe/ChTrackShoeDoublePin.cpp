@@ -347,8 +347,8 @@ void ChTrackShoeDoublePin::Connect2(std::shared_ptr<ChTrackShoe> next,
                                     ChChassis* chassis,
                                     bool ccw) {
     assert(m_topology == DoublePinTrackShoeType::TWO_CONNECTORS);
-
     auto track = static_cast<ChTrackAssemblyDoublePin*>(assembly);
+    assert(track->GetBushingData());
     ChSystem* system = m_shoe->GetSystem();
     double sign = ccw ? +1 : -1;
 
@@ -408,44 +408,18 @@ void ChTrackShoeDoublePin::Connect2(std::shared_ptr<ChTrackShoe> next,
     loc_L = m_connector_L->TransformPointLocalToParent(pConnector);
     loc_R = m_connector_R->TransformPointLocalToParent(pConnector);
 
-    if (!track->GetBushingData()) {
-        // Connect left connector
-        if (m_index == 0) {
-            // Pointline joint (sliding along X)
-            rot = m_connector_L->GetRot() * Q_from_AngZ(CH_C_PI_2);
-            m_connection_joint_L =
-                chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::POINTLINE, m_name + "_cpin_L",
-                                                          m_connector_L, next->GetShoeBody(), ChCoordsys<>(loc_L, rot));
-            chassis->AddJoint(m_connection_joint_L);
-        } else {
-            // Revolute joint
-            rot = m_connector_L->GetRot() * Q_from_AngX(CH_C_PI_2);
-            m_connection_joint_L =
-                chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_cpin_L",
-                                                          m_connector_L, next->GetShoeBody(), ChCoordsys<>(loc_L, rot));
-            chassis->AddJoint(m_connection_joint_L);
-        }
+    // Create and initialize revolute bushings between connector bodies and next shoe body.
+    rot = m_connector_L->GetRot() * Q_from_AngX(CH_C_PI_2);
+    m_connection_joint_L = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_cpin_L",
+                                                                     m_connector_L, next->GetShoeBody(),
+                                                                     ChCoordsys<>(loc_L, rot), track->GetBushingData());
+    chassis->AddJoint(m_connection_joint_L);
 
-        // Connect right connector through a point-plane joint (normal along Z axis)
-        rot = m_connector_R->GetRot();
-        m_connection_joint_R =
-            chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::POINTPLANE, m_name + "_cpin_R",
-                                                      m_connector_R, next->GetShoeBody(), ChCoordsys<>(loc_R, rot));
-        chassis->AddJoint(m_connection_joint_R);
-    } else {
-        // Create and initialize revolute bushings between connector bodies and next shoe body.
-        rot = m_connector_L->GetRot() * Q_from_AngX(CH_C_PI_2);
-        m_connection_joint_L = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::REVOLUTE, m_name + "_cpin_L", m_connector_L, next->GetShoeBody(),
-            ChCoordsys<>(loc_L, rot), track->GetBushingData());
-        chassis->AddJoint(m_connection_joint_L);
-
-        rot = m_connector_R->GetRot() * Q_from_AngX(CH_C_PI_2);
-        m_connection_joint_R = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::REVOLUTE, m_name + "_cpin_R", m_connector_R, next->GetShoeBody(),
-            ChCoordsys<>(loc_R, rot), track->GetBushingData());
-        chassis->AddJoint(m_connection_joint_R);
-    }
+    rot = m_connector_R->GetRot() * Q_from_AngX(CH_C_PI_2);
+    m_connection_joint_R = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_cpin_R",
+                                                                     m_connector_R, next->GetShoeBody(),
+                                                                     ChCoordsys<>(loc_R, rot), track->GetBushingData());
+    chassis->AddJoint(m_connection_joint_R);
 
     // Optionally, include rotational spring-dampers to model track bending stiffness
     // The RSDA frames are aligned with the corresponding body frames and the springs have a default zero rest angle.
