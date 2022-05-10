@@ -20,11 +20,19 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCylinderShape)
 
+ChCylinderShape::ChCylinderShape() {
+    SetMutable(false);
+}
+
+ChCylinderShape::ChCylinderShape(const geometry::ChCylinder& cyl) : gcylinder(cyl) {
+    SetMutable(false);
+}
+
 void ChCylinderShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChCylinderShape>();
     // serialize parent class
-    ChVisualization::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(gcylinder);
 }
@@ -33,7 +41,7 @@ void ChCylinderShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChCylinderShape>();
     // deserialize parent class
-    ChVisualization::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(gcylinder);
 }

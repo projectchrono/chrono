@@ -297,7 +297,6 @@ void ChSystemDistributed::RemoveBody(std::shared_ptr<ChBody> body) {
     if (index < ddm->first_empty)
         ddm->first_empty = index;
     ddm->gid_to_localid.erase(body->GetGid());
-    body->GetAssets().clear();
 }
 
 // Used to end the program on an error and print a message.

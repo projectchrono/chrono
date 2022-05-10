@@ -23,7 +23,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -52,31 +52,31 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Create the system
     // -----------------
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     // ---------------------------------------
     // add a mesh to be visualized by a camera
     // ---------------------------------------
-    auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
+    auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"),
+                                                                  false, true);
     mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(2));  // scale to a different size
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(mmesh);
     trimesh_shape->SetName("HMMWV Chassis Mesh");
-    trimesh_shape->SetStatic(true);
+    trimesh_shape->SetMutable(false);
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
-    mesh_body->AddAsset(trimesh_shape);
+    mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
     mesh_body->SetBodyFixed(true);
-    mphysicalSystem.Add(mesh_body);
+    sys.Add(mesh_body);
 
     // -----------------------
     // Create a sensor manager
     // -----------------------
     float intensity = .5;
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({2, 2.5, 100}, {intensity, intensity, intensity}, 5000);
     manager->scene->AddPointLight({9, 2.5, 100}, {intensity, intensity, intensity}, 5000);
     manager->scene->AddPointLight({16, 2.5, 100}, {intensity, intensity, intensity}, 5000);
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
     int num_imu_updates = 0;
 
     while (ch_time < end_time) {
-        mphysicalSystem.DoStepDynamics(0.001);
+        sys.DoStepDynamics(0.001);
         manager->Update();
 
         cam->SetOffsetPose(chrono::ChFrame<double>(
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
             // std::cout << "Data recieved from imu. Frame: " << num_imu_updates << std::endl;
         }
 
-        ch_time = (float)mphysicalSystem.GetChTime();
+        ch_time = (float)sys.GetChTime();
     }
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

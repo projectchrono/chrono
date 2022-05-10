@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
         mixer = chrono_types::make_shared<ChBody>();
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(mixer_mesh);
-        mixer->AddAsset(trimesh_shape);
+        mixer->AddVisualShape(trimesh_shape, ChFrame<>());
         gpu_vis.AddProxyBody(mixer);
 
         gpu_vis.SetTitle("Chrono::Gpu mixer demo");

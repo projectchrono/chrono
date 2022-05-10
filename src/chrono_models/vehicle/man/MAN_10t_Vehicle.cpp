@@ -180,6 +180,9 @@ void MAN_10t_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
         driven_susp_indexes[1] = 3;
         m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
     }
+
+    // Invoke base class method
+    ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
 }
 
 // -----------------------------------------------------------------------------

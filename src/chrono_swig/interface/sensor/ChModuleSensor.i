@@ -96,7 +96,7 @@
 #include "chrono_sensor/filters/ChFilterRadarSavePC.h"
 #include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
 #include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
-
+#include "chrono_sensor/filters/ChFilterCameraNoise.h"
 
 using namespace chrono;
 using namespace chrono::sensor;
@@ -147,7 +147,6 @@ using namespace chrono::sensor;
 //
 
 //%template(ChFrameDList) std::vector<chrono::ChFrame<double>> ;
-//%template(ChFrameDList) std::vector< std::shared_ptr<chrono::ChAsset> >;
 
 
 //
@@ -236,6 +235,9 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::ChFilterImgAlias)
 %shared_ptr(chrono::sensor::ChFilterImageResize)
 %shared_ptr(chrono::sensor::ChFilterImageHalf4ToRGBA8)
+%shared_ptr(chrono::sensor::ChFilterCameraNoiseConstNormal)
+%shared_ptr(chrono::sensor::ChFilterCameraNoisePixDep)
+
 
 //
 // B- INCLUDE HEADERS
@@ -260,6 +262,7 @@ using namespace chrono::sensor;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core") "chrono/assets/ChTriangleMeshShape.h"
 
 %template(vector_ChFrameD) std::vector< chrono::ChFrame<double> >;
@@ -308,6 +311,7 @@ using namespace chrono::sensor;
 %include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
 %include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
 %include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
+%include "chrono_sensor/filters/ChFilterCameraNoise.h"
 
 %include "chrono_sensor/optix/scene/ChScene.h"
 %include "chrono_sensor/optix/ChOptixDefinitions.h"

@@ -25,8 +25,7 @@
 
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
-#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
@@ -34,7 +33,6 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChIdler::ChIdler(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
@@ -50,13 +48,14 @@ ChIdler::~ChIdler() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+void ChIdler::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+    m_parent = chassis;
+    m_rel_loc = location;
     m_track = track;
 
     // Express the idler reference frame in the absolute coordinate system.
     ChFrame<> idler_to_abs(location);
-    idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    idler_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform all points and directions to absolute frame.
     std::vector<ChVector<> > points(NUM_POINTS);
@@ -103,7 +102,7 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     // of the idler reference frame.
     m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetNameString(m_name + "_prismatic");
-    m_prismatic->Initialize(chassis, m_carrier,
+    m_prismatic->Initialize(chassis->GetBody(), m_carrier,
                             ChCoordsys<>(points[CARRIER_CHASSIS],
                                          idler_to_abs.GetRot() * Q_from_AngY(CH_C_PI_2 + GetPrismaticPitchAngle())));
     chassis->GetSystem()->AddLink(m_prismatic);
@@ -111,19 +110,33 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     // Create and initialize the tensioner force element.
     m_tensioner = chrono_types::make_shared<ChLinkTSDA>();
     m_tensioner->SetNameString(m_name + "_tensioner");
-    m_tensioner->Initialize(chassis, m_carrier, false, points[TSDA_CHASSIS], points[TSDA_CARRIER]);
+    m_tensioner->Initialize(chassis->GetBody(), m_carrier, false, points[TSDA_CHASSIS], points[TSDA_CARRIER]);
     m_tensioner->RegisterForceFunctor(GetTensionerForceCallback());
     m_tensioner->SetRestLength(GetTensionerFreeLength());
     chassis->GetSystem()->AddLink(m_tensioner);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChIdler::GetMass() const {
-    return GetWheelMass() + GetCarrierMass();
+void ChIdler::InitializeInertiaProperties() {
+    m_mass = GetWheelMass() + GetCarrierMass();
 }
 
-// -----------------------------------------------------------------------------
+void ChIdler::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_wheel->GetFrame_COG_to_abs(), m_wheel->GetMass(),
+                           m_wheel->GetInertia());
+    composite.AddComponent(m_carrier->GetFrame_COG_to_abs(), m_carrier->GetMass(),
+                           m_carrier->GetInertia());
+
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+}
+
 // -----------------------------------------------------------------------------
 void ChIdler::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -137,7 +150,7 @@ void ChIdler::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p1 = m_pW;
         cyl->GetCylinderGeometry().p2 = m_pC;
         cyl->GetCylinderGeometry().rad = radius;
-        m_carrier->AddAsset(cyl);
+        m_carrier->AddVisualShape(cyl);
     }
 
     if ((m_pC - m_pT).Length2() > threshold2) {
@@ -145,28 +158,21 @@ void ChIdler::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p1 = m_pC;
         cyl->GetCylinderGeometry().p2 = m_pT;
         cyl->GetCylinderGeometry().rad = radius;
-        m_carrier->AddAsset(cyl);
+        m_carrier->AddVisualShape(cyl);
     }
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(3 * radius, radius, radius);
-    box->Pos = m_pT;
-    box->Rot = ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0));
-    m_carrier->AddAsset(box);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
-    m_carrier->AddAsset(col);
+    m_carrier->AddVisualShape(box, ChFrame<>(m_pT, ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0))));
 
     // Visualization of the tensioner spring (with default color)
-    m_tensioner->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_tensioner->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
 }
 
 void ChIdler::RemoveVisualizationAssets() {
-    m_carrier->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_carrier);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChIdler::LogConstraintViolations() {
     {
@@ -189,7 +195,6 @@ void ChIdler::LogConstraintViolations() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

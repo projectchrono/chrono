@@ -27,7 +27,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
@@ -205,10 +205,9 @@ int main(int argc, char* argv[]) {
     rig->SetTireVisualizationType(VisualizationType::MESH);
 
     // Create the vehicle Irrlicht application.
-    ChVehicleIrrApp app(&rig->GetVehicle(), L"Suspension Test Rig");
-    app.AddTypicalLights();
-    app.SetChaseCamera(0.5 * (rig->GetSpindlePos(0, LEFT) + rig->GetSpindlePos(0, RIGHT)), setup.CameraDistance(), 0.5);
-    app.SetTimestep(step_size);
+    auto vis = chrono_types::make_shared<ChVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Suspension Test Rig");
+    vis->SetChaseCamera(0.5 * (rig->GetSpindlePos(0, LEFT) + rig->GetSpindlePos(0, RIGHT)), setup.CameraDistance(), 0.5);
 
     // Create and attach the driver system.
     switch (driver_mode) {
@@ -218,7 +217,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case DriverMode::INTERACTIVE: {
-            auto driver = chrono_types::make_shared<ChIrrGuiDriverSTR>(app);
+            auto driver = chrono_types::make_shared<ChIrrGuiDriverSTR>(*vis);
             driver->SetSteeringDelta(1.0 / 50);
             driver->SetDisplacementDelta(1.0 / 250);
             rig->SetDriver(driver);
@@ -229,8 +228,11 @@ int main(int argc, char* argv[]) {
     // Initialize suspension test rig.
     rig->Initialize();
 
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    rig->GetVehicle().SetVisualSystem(vis);
 
     // Set up rig output
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -245,18 +247,18 @@ int main(int argc, char* argv[]) {
     }
 
     // Simulation loop
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        app.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         // Advance simulation of the rig
         rig->Advance(step_size);
 
         // Update visualization app
-        app.Synchronize(rig->GetDriverMessage(), {rig->GetSteeringInput(), 0, 0});
-        app.Advance(step_size);
+        vis->Synchronize(rig->GetDriverMessage(), {rig->GetSteeringInput(), 0, 0});
+        vis->Advance(step_size);
 
         if (rig->DriverEnded())
             break;

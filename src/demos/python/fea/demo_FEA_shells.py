@@ -1,18 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
-#
-# =============================================================================
-# Authors: Alessandro Tasora
-# =============================================================================
-#
-# FEA for shells of Reissner 6-field type
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 
@@ -40,27 +34,17 @@ except OSError as exc:
 
 
 # Create a Chrono::Engine physical system
-my_system = chrono.ChSystemSMC()
-
-# Create the Irrlicht visualization (open the Irrlicht device,
-# bind a simple user interface, etc. etc.)
-application = chronoirr.ChIrrApp(my_system, "Shells FEA", chronoirr.dimension2du(800, 600))
-
-# Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-application.AddLogo()
-application.AddSkyBox()
-application.AddTypicalLights()
-application.AddCamera(chronoirr.vector3df(0, 6.0, -10))
+sys = chrono.ChSystemSMC()
 
 # Create a mesh, that is a container for groups
 # of elements and their referenced nodes.
-my_mesh = fea.ChMesh()
+mesh = fea.ChMesh()
 
 # Remember to add the mesh to the system!
-my_system.Add(my_mesh)
+sys.Add(mesh)
 
-# my_system.Set_G_acc(VNULL) or
-my_mesh.SetAutomaticGravity(False)
+# sys.Set_G_acc(VNULL) or
+mesh.SetAutomaticGravity(False)
 
 nodePlotA = fea.ChNodeFEAxyzrot()
 nodePlotB = fea.ChNodeFEAxyzrot()
@@ -109,7 +93,7 @@ if (bench1):  # set as 'True' to execute this
             noderot = chrono.ChQuaternionD(chrono.QUNIT)
             nodeframe = chrono.ChFrameD(nodepos, noderot)
             mnode = fea.ChNodeFEAxyzrot(nodeframe)
-            my_mesh.AddNode(mnode)
+            mesh.AddNode(mnode)
             for i in range(3):
                 mnode.GetInertia()[i,i] = 0   # approx]
             mnode.SetMass(0)
@@ -121,7 +105,7 @@ if (bench1):  # set as 'True' to execute this
             # Make elements
             if (il > 0 and iw > 0) :
                 melement = fea.ChElementShellReissner4()
-                my_mesh.AddElement(melement)
+                mesh.AddElement(melement)
                 melement.SetNodes(nodearray[(il - 1) * (nels_W + 1) + (iw - 1)],
 								   nodearray[(il) * (nels_W + 1) + (iw - 1)], nodearray[(il) * (nels_W + 1) + (iw)],
 								   nodearray[(il - 1) * (nels_W + 1) + (iw)])
@@ -196,7 +180,7 @@ if (bench2):  # set as 'True' to execute this
             noderot = chrono.ChQuaternionD(chrono.QUNIT)
             nodeframe = chrono.ChFrameD(nodepos, noderot)
             mnode = fea.ChNodeFEAxyzrot(nodeframe)
-            my_mesh.AddNode(mnode)
+            mesh.AddNode(mnode)
             for i in range(3):
                 mnode.GetInertia()[i,i] = 0
             mnode.SetMass(0)
@@ -208,7 +192,7 @@ if (bench2):  # set as 'True' to execute this
 			# Make elements
             if (iu > 0 and iw > 0) :
                 melement = fea.ChElementShellReissner4()
-                my_mesh.AddElement(melement)
+                mesh.AddElement(melement)
                 melement.SetNodes(nodearray[(iu) * (nels_W + 1) + (iw)], nodearray[(iu - 1) * (nels_W + 1) + (iw)],
 								   nodearray[(iu - 1) * (nels_W + 1) + (iw - 1)],
 								   nodearray[(iu) * (nels_W + 1) + (iw - 1)])
@@ -288,7 +272,7 @@ if (bench3):
             noderot = chrono.ChQuaternionD(chrono.QUNIT)
             nodeframe = chrono.ChFrameD(nodepos, noderot)
             mnode = fea.ChNodeFEAxyzrot(nodeframe)
-            my_mesh.AddNode(mnode)
+            mesh.AddNode(mnode)
             for i in range(3):
                 mnode.GetInertia()[i,i] = 0
             mnode.SetMass(0.0)
@@ -305,7 +289,7 @@ if (bench3):
 			# Make elements
             if (iu > 0 and iw > 0) :
                 melement = fea.ChElementShellReissner4()
-                my_mesh.AddElement(melement)
+                mesh.AddElement(melement)
                 melement.SetNodes(nodearray[(iu) * (nels_W + 1) + (iw)], nodearray[(iu - 1) * (nels_W + 1) + (iw)],
 								   nodearray[(iu - 1) * (nels_W + 1) + (iw - 1)],
 								   nodearray[(iu) * (nels_W + 1) + (iw - 1)])
@@ -327,16 +311,16 @@ if (bench3):
 
     mtruss = chrono.ChBody()
     mtruss.SetBodyFixed(True)
-    my_system.Add(mtruss)
+    sys.Add(mtruss)
     for mendnode in nodes_left :
         mlink = chrono.ChLinkMateGeneric(False, True, False, True, False, True)
         mlink.Initialize(mendnode, mtruss, False, mendnode.Frame(), mendnode.Frame())
-        my_system.Add(mlink)
+        sys.Add(mlink)
         
     for mendnode in nodes_right :
         mlink = chrono.ChLinkMateGeneric(False, True, False, True, False, True)
         mlink.Initialize(mendnode, mtruss, False, mendnode.Frame(), mendnode.Frame())
-        my_system.Add(mlink)
+        sys.Add(mlink)
 
     load_force = chrono.ChVectorD(0, -2000, 0)
     load_torque = chrono.VNULL
@@ -360,81 +344,74 @@ if (bench3):
 # coordinates and vertex colors as in the FEM elements.
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
 # postprocessor that can handle a colored ChTriangleMeshShape).
-# Do not forget AddAsset() at the end!
 
-mvisualizeshellA = fea.ChVisualizationFEAmesh(my_mesh)
+mvisualizeshellA = chrono.ChVisualShapeFEA(mesh)
 mvisualizeshellA.SetSmoothFaces(True)
 mvisualizeshellA.SetWireframe(True)
-my_mesh.AddAsset(mvisualizeshellA)
+mesh.AddVisualShapeFEA(mvisualizeshellA)
 
-mvisualizeshellC = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizeshellC.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NONE)
-mvisualizeshellC.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_NODE_CSYS)
+mvisualizeshellC = chrono.ChVisualShapeFEA(mesh)
+mvisualizeshellC.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
+mvisualizeshellC.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_CSYS)
 mvisualizeshellC.SetSymbolsThickness(0.05)
 mvisualizeshellC.SetZbufferHide(False)
-my_mesh.AddAsset(mvisualizeshellC)
+mesh.AddVisualShapeFEA(mvisualizeshellC)
 
-# ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-# If you need a finer control on which item really needs a visualization proxy in
-# Irrlicht, just use application.AssetBind(myitem) on a per-item basis.
+# Create the Irrlicht visualization
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Shells FEA')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0, 6.0, -10))
+vis.AddTypicalLights()
 
-application.AssetBindAll()
 
-# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-application.AssetUpdateAll()
-
-#
-# THE SOFT-REAL-TIME CYCLE
-#
 # Change solver to PardisoMKL
 mkl_solver = mkl.ChSolverPardisoMKL()
 mkl_solver.LockSparsityPattern(True)
-my_system.SetSolver(mkl_solver)
+sys.SetSolver(mkl_solver)
 
 # Set integrator
-ts = chrono.ChTimestepperEulerImplicit(my_system)
-my_system.SetTimestepper(ts)
+ts = chrono.ChTimestepperEulerImplicit(sys)
+sys.SetTimestepper(ts)
 
 ts.SetMaxiters(5)
 ts.SetAbsTolerances(1e-12, 1e-12)
 
 timestep = 0.1
-application.SetTimestep(timestep)
-my_system.Setup()
-my_system.Update()
+sys.Setup()
+sys.Update()
 
 rec_X = []
 rec_Y = []
 load = []
 mtime = 0
 
-while (application.GetDevice().run()) :
-    application.BeginScene()
-    application.DrawAll()
+# Simulation loop
+while vis.Run():
+    vis.BeginScene()
+    vis.DrawAll()
+
     # .. draw also a grid
-    chronoirr.drawGrid(application.GetVideoDriver(), 1, 1)
+    chronoirr.drawGrid(vis.GetVideoDriver(), 1, 1)
     # ...update load at end nodes, as simple lumped nodal forces
     load_scale = mtime * 0.1
     for mendnode in(nodesLoad) :
         mendnode.SetForce(load_force * load_scale * (1. / len(nodesLoad)))
         mendnode.SetTorque(load_torque * load_scale * (1. / len(nodesLoad)))
-    # application.DoStep()
-    # mtime = my_system.GetChTime()
-    application.GetSystem().DoStaticNonlinear(3)
-    # application.GetSystem().DoStaticLinear()
+    vis.EndScene()
+
+    sys.DoStaticNonlinear(3)
+    # sys.DoStaticLinear()
     mtime += timestep
 
-    if (not application.GetPaused() and nodePlotA and nodePlotB) :
+    if (nodePlotA and nodePlotB) :
         rec_Y.append(nodePlotA.GetPos().y)
         rec_X.append(nodePlotB.GetPos().y)
         load.append(load_scale)
-	
-    application.EndScene()
-    #if (load_scale > 1):
-    #    application.GetDevice().closeDevice()
 
 # Outputs results in a MatPlotLib plot:
 

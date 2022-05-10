@@ -18,13 +18,12 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
-#include "chrono_sensor/utils/ChVisualMaterialUtils.h"
 
 #include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
@@ -55,22 +54,21 @@ int main(int argc, char* argv[]) {
         // -----------------
         // Create the system
         // -----------------
-        ChSystemNSC mphysicalSystem;
+        ChSystemNSC sys;
 
         // ---------------------------------------
         // add a mesh to be visualized by a camera
         // ---------------------------------------
-        auto mmesh = std::make_shared<ChTriangleMeshConnected>();
-        // mmesh->LoadWavefrontMesh(GetChronoDataFile("models/ob_chess_table.obj"), false, true);
-        mmesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
+        auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
+            GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
         mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
         auto base_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         base_trimesh_shape->SetMesh(mmesh);
-        if (base_trimesh_shape->material_list.size() == 0) {
-            // Create a "proper" set of materials if they don't already exist
-            CreateModernMeshAssets(base_trimesh_shape);
-        }
+        // if (base_trimesh_shape->GetNumMaterials() == 0) {
+        //     // Create a "proper" set of materials if they don't already exist
+        //     CreateModernMeshAssets(base_trimesh_shape);
+        // }
 
         int x_instances = q;
         int y_instances = q;
@@ -84,11 +82,11 @@ int main(int argc, char* argv[]) {
                     auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
                     trimesh_shape->SetMesh(mmesh);
                     // trimesh_shape->SetName("HMMWV Chassis Mesh");
-                    trimesh_shape->SetStatic(true);
+                    trimesh_shape->SetMutable(false);
                     float scale = .5 * randf() + .1;
                     trimesh_shape->SetScale({scale, scale, scale});
                     // trimesh_shape->SetScale({.8, .8, .8});
-                    trimesh_shape->material_list = base_trimesh_shape->material_list;
+                    trimesh_shape->GetMaterials() = base_trimesh_shape->GetMaterials();
 
                     auto mesh_body = std::make_shared<ChBody>();
                     // auto mesh_body = std::make_shared<ChBodyEasyBox>(2 * randf() + .1, 2 * randf() + .1,
@@ -98,21 +96,21 @@ int main(int argc, char* argv[]) {
                     ChQuaternion<> quat = {randf(), randf(), randf(), randf()};
                     quat.Normalize();
                     mesh_body->SetRot(quat);
-                    mesh_body->AddAsset(trimesh_shape);
+                    mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
                     mesh_body->SetBodyFixed(true);
-                    mphysicalSystem.Add(mesh_body);
+                    sys.Add(mesh_body);
                 }
             }
         }
 
         auto cam_body = chrono_types::make_shared<ChBodyEasyBox>(.01, .01, .01, 1000, false, false);
         cam_body->SetBodyFixed(true);
-        mphysicalSystem.Add(cam_body);
+        sys.Add(cam_body);
 
         // -----------------------
         // Create a sensor manager
         // -----------------------
-        auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
+        auto manager = std::make_shared<ChSensorManager>(&sys);
         manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 5000);
         // manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 5000);
         // manager->scene->AddPointLight({100, -100, 100}, {1, 1, 1}, 5000);
@@ -156,9 +154,9 @@ int main(int argc, char* argv[]) {
                 Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
 
             manager->Update();
-            mphysicalSystem.DoStepDynamics(0.01);
+            sys.DoStepDynamics(0.01);
 
-            ch_time = (float)mphysicalSystem.GetChTime();
+            ch_time = (float)sys.GetChTime();
         }
         std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

@@ -37,7 +37,7 @@
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -75,8 +75,8 @@ int main(int argc, char* argv[]) {
     }
     // Create the physical system
 
-    ChSystemNSC my_system;
-    my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
@@ -221,18 +221,18 @@ int main(int argc, char* argv[]) {
     }
 
     // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
     // Perform a dynamic time integration:
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(100);
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(10000);
     mystepper->SetAbsTolerances(1e-08);
@@ -252,11 +252,11 @@ int main(int argc, char* argv[]) {
         out.stream().precision(7);
         int Iterations = 0;
         // Simulate to final time, while saving position of tip node.
-        while (my_system.GetChTime() < sim_time) {
-            my_system.DoStepDynamics(step_size);
+        while (sys.GetChTime() < sim_time) {
+            sys.DoStepDynamics(step_size);
             Iterations += mystepper->GetNumIterations();
-            out << my_system.GetChTime() << nodetip->GetPos().z() << std::endl;
-            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
+            out << sys.GetChTime() << nodetip->GetPos().z() << std::endl;
+            GetLog() << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
                      << nodetip->GetForce().z() << "\t" << Iterations << "\n";
         }
         // Write results to output file.
@@ -268,10 +268,10 @@ int main(int argc, char* argv[]) {
         int stepNo = 0;
         double AbsVal = 0.0;
         // Simulate to final time, while accumulating number of iterations.
-        while (my_system.GetChTime() < sim_time_UT) {
-            my_system.DoStepDynamics(step_size);
+        while (sys.GetChTime() < sim_time_UT) {
+            sys.DoStepDynamics(step_size);
             AbsVal = std::abs(nodetip->GetPos().z() - FileInputMat(stepNo, 1));
-            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << "\n";
+            GetLog() << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\n";
             if (AbsVal > precision) {
                 std::cout << "Unit test check failed \n";
                 return 1;

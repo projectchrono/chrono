@@ -29,7 +29,7 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAbase.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 namespace chrono {
 namespace vehicle {
@@ -73,6 +73,9 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
     /// Get the number of shell elements across the web length (from tread body to tread body).
     virtual int GetNumElementsLength() const = 0;
 

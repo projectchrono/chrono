@@ -1,12 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 # Authors: Simone Benatti
@@ -79,7 +79,7 @@ class RayCaster:
         self.m_glyphs.SetGlyphsSize(0.004)
         self.m_glyphs.SetZbufferHide(True)
         self.m_glyphs.SetDrawMode(chrono.ChGlyphs.GLYPH_POINT)
-        self.m_body.AddAsset(self.m_glyphs)
+        self.m_body.AddVisualShape(self.m_glyphs)
 
     def Update(self):
         m_points = []
@@ -125,15 +125,8 @@ def CreateTerrain(sys, length, width, height, offset) :
 
     box = chrono.ChBoxShape()
     box.GetBoxGeometry().Size = chrono.ChVectorD(length / 2, width / 2, 0.1)
-    box.GetBoxGeometry().Pos = chrono.ChVectorD(offset, 0, height - 0.1)
-    ground.AddAsset(box)
-
-    texture = chrono.ChTexture()
-    texture.SetTextureFilename(chrono.GetChronoDataFile("textures/pinkwhite.png"))
-    texture.SetTextureScale(10 * length, 10 * width)
-    ground.AddAsset(texture)
-
-    ground.AddAsset(chrono.ChColorAsset(0.8, 0.8, 0.8))
+    box.SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"), 10 * length, 10 * width)
+    ground.AddVisualShape(box, chrono.ChFrameD(chrono.ChVectorD(offset, 0, height - 0.1), chrono.QUNIT))
 
     sys.AddBody(ground)
 
@@ -172,25 +165,24 @@ time_end = time_start + duration_sim                      # end simulation after
 # -------------
 
 if  contact_method == chrono.ChContactMethod_NSC :
-        my_sys = chrono.ChSystemNSC()
+        sys = chrono.ChSystemNSC()
         chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.001)
         chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 
 if  contact_method == chrono.ChContactMethod_SMC :
-		my_sys = chrono.ChSystemSMC()
+		sys = chrono.ChSystemSMC()
 
 
+sys.SetSolverMaxIterations(200)
+sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
 
-my_sys.SetSolverMaxIterations(200)
-my_sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
-
-my_sys.Set_G_acc(chrono.ChVectorD(0, 0, -9.8))
+sys.Set_G_acc(chrono.ChVectorD(0, 0, -9.8))
 
 # -----------------------
 # Create RoboSimian robot
 # -----------------------
 
-robot = robosimian.RoboSimian(my_sys, True, True)
+robot = robosimian.RoboSimian(sys, True, True)
 
 # Set output directory
 
@@ -267,21 +259,22 @@ robot.SetDriver(driver)
 # Cast rays into collision models
 # -------------------------------
 
-caster = RayCaster(my_sys, chrono.ChFrameD(chrono.ChVectorD(0, -2, -1), chrono.Q_from_AngX(-chrono.CH_C_PI_2)), [2.5, 2.5], 0.02)
+caster = RayCaster(sys, chrono.ChFrameD(chrono.ChVectorD(0, -2, -1), chrono.Q_from_AngX(-chrono.CH_C_PI_2)), [2.5, 2.5], 0.02)
 
 # -------------------------------
 # Create the visualization window
 # -------------------------------
 
-application = chronoirr.ChIrrApp(my_sys, "RoboSimian - Rigid terrain", chronoirr.dimension2du(800, 600))
-application.AddLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
-application.AddSkyBox()
-application.AddCamera(chronoirr.vector3df(1, -2.75, 0.2), chronoirr.vector3df(1, 0, 0))
-application.AddTypicalLights()
-application.AddLightWithShadow(chronoirr.vector3df(10, -6, 3), chronoirr.vector3df(0, 0, 0), 3, -10, 10, 40, 512)
-
-application.AssetBindAll()
-application.AssetUpdateAll()
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('RoboSimian - Rigid terrain')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(1, -2.75, 0.2), chrono.ChVectorD(1, 0, 0))
+vis.AddLight(chrono.ChVectorD(100, +100, 100), 290)
+vis.AddLight(chrono.ChVectorD(100, -100, 80), 190)
 
 # -----------------------------
 # Initialize output directories
@@ -310,10 +303,10 @@ render_frame = 0
 
 terrain_created = False
 
-while (application.GetDevice().run()) :
+while (vis.Run()) :
 	##caster.Update()
 
-    if (drop and not terrain_created and my_sys.GetChTime() > time_create_terrain) :
+    if (drop and not terrain_created and sys.GetChTime() > time_create_terrain) :
 		# Set terrain height
         z = robot.GetWheelPos(robosimian.FR).z - 0.15
 
@@ -324,18 +317,17 @@ while (application.GetDevice().run()) :
         # Create terrain
         hdim = chrono.ChVectorD(length / 2, width / 2, 0.1)
         loc = chrono.ChVectorD(length / 4, 0, z - 0.1)
-        ground = CreateTerrain(my_sys, length, width, z, length / 4)
+        ground = CreateTerrain(sys, length, width, z, length / 4)
         SetContactProperties(robot)
 
-        application.AssetBind(ground)
-        application.AssetUpdate(ground)
+        vis.BindItem(ground)
 
         robot.GetChassisBody().SetBodyFixed(False)
         terrain_created = True
 
 
-    application.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
-    application.DrawAll()
+    vis.BeginScene()
+    vis.DrawAll()
 
     if data_output and sim_frame % output_steps == 0 :
         robot.Output()
@@ -344,13 +336,13 @@ while (application.GetDevice().run()) :
     if sim_frame % render_steps == 0 :
         if (povray_output) :
             filename = pov_dir + '/data_' + str(render_frame + 1) +'04d.dat' 
-            chrono.WriteVisualizationAssets(my_sys, filename)
+            chrono.WriteVisualizationAssets(sys, filename)
 
         if image_output :
             filename = img_dir + '/img_' + str(render_frame + 1) +'04d.jpg' 
-            image = application.GetVideoDriver().createScreenShot()
+            image = vis.GetVideoDriver().createScreenShot()
             if image :
-                application.GetVideoDriver().writeImageToFile(image, filename)
+                vis.GetVideoDriver().writeImageToFile(image, filename)
                 image.drop()
 
         render_frame += 1
@@ -359,10 +351,10 @@ while (application.GetDevice().run()) :
 
     sim_frame += 1
 
-    application.EndScene()
+    vis.EndScene()
 
 
 print("avg. speed: "  + str(cbk.GetAvgSpeed()) + '\n')
 
-del my_sys
+del sys
 

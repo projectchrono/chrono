@@ -26,7 +26,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChRoller::ChRoller(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
 ChRoller::~ChRoller() {
@@ -38,13 +37,14 @@ ChRoller::~ChRoller() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+void ChRoller::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+    m_parent = chassis;
+    m_rel_loc = location;
     m_track = track;
 
     // Express the roller reference frame in the absolute coordinate system.
     ChFrame<> roller_to_abs(location);
-    roller_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    roller_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Create and initialize the roller body.
     m_wheel = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
@@ -52,20 +52,30 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
     m_wheel->SetIdentifier(BodyID::ROLER_BODY);
     m_wheel->SetPos(roller_to_abs.GetPos());
     m_wheel->SetRot(roller_to_abs.GetRot());
-    m_wheel->SetMass(GetMass());
-    m_wheel->SetInertiaXX(GetInertia());
+    m_wheel->SetMass(GetRollerMass());
+    m_wheel->SetInertiaXX(GetRollerInertia());
     chassis->GetSystem()->AddBody(m_wheel);
 
     // Create and initialize the revolute joint between roller and chassis.
     // The axis of rotation is the y axis of the road wheel reference frame.
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
-    m_revolute->Initialize(chassis, m_wheel,
+    m_revolute->Initialize(chassis->GetBody(), m_wheel,
                            ChCoordsys<>(roller_to_abs.GetPos(), roller_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute);
 }
 
-// -----------------------------------------------------------------------------
+void ChRoller::InitializeInertiaProperties() {
+    m_mass = GetRollerMass();
+    m_inertia = ChMatrix33<>(0);
+    m_inertia.diagonal() = GetRollerInertia().eigen();
+    m_com = ChFrame<>();
+}
+
+void ChRoller::UpdateInertiaProperties() {
+    m_xform = m_wheel->GetFrame_REF_to_abs();
+}
+
 // -----------------------------------------------------------------------------
 void ChRoller::LogConstraintViolations() {
     ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
@@ -77,7 +87,6 @@ void ChRoller::LogConstraintViolations() {
     GetLog() << "  " << C(4) << "\n";
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRoller::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

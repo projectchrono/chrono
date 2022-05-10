@@ -33,7 +33,7 @@
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeBypass.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChIrrApp.h"
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
 
 using std::cout;
@@ -83,7 +83,7 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
     std::vector<std::shared_ptr<ChBody>> m_bodies;  // proxy tire bodies
 
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp* m_irrapp;  // Irrlicht run-time visualizatino
+    std::shared_ptr<irrlicht::ChVisualSystemIrrlicht> m_vis;  // Irrlicht run-time visualization
 #endif
 };
 
@@ -92,30 +92,13 @@ MyTerrain::MyTerrain(double length, double width) : ChVehicleCosimTerrainNode(le
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
     m_system->SetNumThreads(1);
     m_system->SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
-#ifdef CHRONO_IRRLICHT
-    m_irrapp = nullptr;
-#endif
 }
 
 MyTerrain::~MyTerrain() {
     delete m_system;
-#ifdef CHRONO_IRRLICHT
-    delete m_irrapp;
-#endif
 }
 
 void MyTerrain::OnInitialize(unsigned int num_tires) {
-    // Create the Irrlicht visualization system
-#ifdef CHRONO_IRRLICHT
-    if (m_render) {
-        m_irrapp = new irrlicht::ChIrrApp(m_system, L"Custom terrain node", irr::core::dimension2d<irr::u32>(1280, 720),
-                                          irrlicht::VerticalDir::Z);
-        m_irrapp->AddLogo();
-        m_irrapp->AddSkyBox();
-        m_irrapp->AddTypicalLights();
-        m_irrapp->AddCamera(irr::core::vector3df(2.0f, 1.4f, 1.0f), irr::core::vector3df(0, 0, 0));
-    }
-#endif
 
     // Create the rigid terrain box with its top surface at init height = 0
     auto ground = std::shared_ptr<ChBody>(m_system->NewBody());
@@ -169,10 +152,19 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     m_system->SetChTime(0);
 
 #ifdef CHRONO_IRRLICHT
-    // Bind Irrlicht assets
     if (m_render) {
-        m_irrapp->AssetBindAll();
-        m_irrapp->AssetUpdateAll();
+        // Create the Irrlicht visualization system
+        m_vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+        m_vis->SetCameraVertical(CameraVerticalDir::Z);
+        m_vis->SetWindowSize(1280, 720);
+        m_vis->SetWindowTitle("Custom terrain node");
+        m_vis->Initialize();
+        m_vis->AddLogo();
+        m_vis->AddSkyBox();
+        m_vis->AddCamera(ChVector<>(2, 1.4, 1));
+        m_vis->AddTypicalLights();
+
+        m_system->SetVisualSystem(m_vis);
     }
 #endif
 }
@@ -188,12 +180,12 @@ void MyTerrain::OnAdvance(double step_size) {
 
 void MyTerrain::Render(double time) {
 #ifdef CHRONO_IRRLICHT
-    if (!m_irrapp->GetDevice()->run()) {
+    if (!m_vis->Run()) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
-    m_irrapp->BeginScene();
-    m_irrapp->DrawAll();
-    m_irrapp->EndScene();
+    m_vis->BeginScene();
+    m_vis->DrawAll();
+    m_vis->EndScene();
 #endif
 }
 

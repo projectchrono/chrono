@@ -258,8 +258,8 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     int id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(GetChronoDataFile(b.m_mesh_filename), true, true);
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename),
+                                                                                  true, true);
         double mass;
         ChVector<> baricenter;
         ChMatrix33<> inertia;
@@ -284,9 +284,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
-        trimesh_shape->Pos = ChVector<>(0, 0, 0);
-        trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-        body->GetAssets().push_back(trimesh_shape);
+        body->AddVisualShape(trimesh_shape, ChFrame<>());
 
         m_system->AddBody(body);
     }
@@ -402,9 +400,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateWheelProxy(unsigned int i) {
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("wheel_" + std::to_string(i));
-    trimesh_shape->Pos = ChVector<>(0, 0, 0);
-    trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-    body->GetAssets().push_back(trimesh_shape);
+    body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     m_system->AddBody(body);
     m_proxies[i].push_back(ProxyBody(body, 0));

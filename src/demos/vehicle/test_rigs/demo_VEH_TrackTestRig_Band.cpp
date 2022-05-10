@@ -22,7 +22,7 @@
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyBandBushing.h"
@@ -176,14 +176,13 @@ int main(int argc, char* argv[]) {
     ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
     ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
 
-    ChVehicleIrrApp app(rig, L"Continuous Band Track Test Rig");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 3.0, 0.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(-2, 3, 0));
-    app.SetChaseCameraState(utils::ChChaseCamera::Free);
-    app.SetChaseCameraAngle(-CH_C_PI_2);
-    app.SetChaseCameraMultipliers(1e-4, 10);
-    app.SetTimestep(step_size);
+    auto vis = chrono_types::make_shared<ChVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Continuous Band Track Test Rig");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 3.0, 0.0);
+    vis->SetChaseCameraPosition(target_point + ChVector<>(-2, 3, 0));
+    vis->SetChaseCameraState(utils::ChChaseCamera::Free);
+    vis->SetChaseCameraAngle(-CH_C_PI_2);
+    vis->SetChaseCameraMultipliers(1e-4, 10);
 
     // -----------------------------------
     // Create and attach the driver system
@@ -195,7 +194,7 @@ int main(int argc, char* argv[]) {
         auto data_driver = new ChDataDriverTTR(vehicle::GetDataFile(driver_file));
         driver = std::unique_ptr<ChDriverTTR>(data_driver);
     } else {
-        auto irr_driver = new ChIrrGuiDriverTTR(app);
+        auto irr_driver = new ChIrrGuiDriverTTR(*vis);
         irr_driver->SetThrottleDelta(1.0 / 50);
         irr_driver->SetDisplacementDelta(1.0 / 250);
         driver = std::unique_ptr<ChDriverTTR>(irr_driver);
@@ -228,8 +227,11 @@ int main(int argc, char* argv[]) {
 
     rig->Initialize();
 
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    rig->SetVisualSystem(vis);
 
     // ---------------------------------------
     // Contact reporter object (for debugging)
@@ -289,17 +291,9 @@ int main(int argc, char* argv[]) {
     // -----------------
 
     auto sys = rig->GetSystem();
-    std::vector<size_t> nassets;
-    for (auto& mesh : sys->Get_meshlist()) {
-        nassets.push_back(mesh->GetAssets().size());
-    }
     cout << "Number of bodies:        " << sys->Get_bodylist().size() << endl;
     cout << "Number of physics items: " << sys->Get_otherphysicslist().size() << endl;
     cout << "Number of FEA meshes:    " << sys->Get_meshlist().size() << endl;
-    cout << "Number of assets/mesh:   ";
-    for (auto i : nassets)
-        cout << i << " ";
-    cout << endl;
 
     // -----------------
     // Initialize output
@@ -320,7 +314,7 @@ int main(int argc, char* argv[]) {
     // Initialize simulation frame counter
     int step_number = 0;
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = rig->GetChTime();
 
         // Debugging output
@@ -335,20 +329,20 @@ int main(int argc, char* argv[]) {
             cout << "      sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
         }
 
-        if (!app.GetDevice()->run())
+        if (!vis->Run())
             break;
 
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        app.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         // Advance simulation of the rig
         rig->Advance(step_size);
 
         // Update visualization app
-        app.Synchronize(rig->GetDriverMessage(), { 0, rig->GetThrottleInput(), 0 });
-        app.Advance(step_size);
+        vis->Synchronize(rig->GetDriverMessage(), { 0, rig->GetThrottleInput(), 0 });
+        vis->Advance(step_size);
 
         // Parse all contacts in system
         ////reporter.Process();

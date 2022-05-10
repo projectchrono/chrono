@@ -20,15 +20,12 @@
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
-//to import/wrap
-//#include "chrono_irrlicht/ChIrrApp.h"
-
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 //using namespace chrono::irrlicht;
 //using namespace irr;
@@ -52,8 +49,7 @@
 
 #ifdef CHRONO_IRRLICHT
 %import(module = "pychrono.irrlicht") "dimension2d.h"
-%import(module = "pychrono.irrlicht") "../irrlicht/ChIrrAppInterface.i"
-%import(module = "pychrono.irrlicht") "../irrlicht/ChIrrApp.i"
+%import(module = "pychrono.irrlicht") "../irrlicht/ChVisualSystemIrrlicht.i"
 #endif
 
 #endif             // --------------------------------------------------------------------- PYTHON
@@ -100,11 +96,11 @@
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 #ifdef CHRONO_IRRLICHT
-%include "../../../chrono_vehicle/utils/ChVehicleIrrApp.h"
+%include "../../../chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
 %include "../../../chrono_vehicle/driver/ChIrrGuiDriver.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
-%include "../../../chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-%include "../../../chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
+%include "../../../chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
 %include "irrTypes.h"
 %include "vector2d.h"
 %include "dimension2d.h"

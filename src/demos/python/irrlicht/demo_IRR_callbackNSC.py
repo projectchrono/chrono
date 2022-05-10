@@ -1,12 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 # Authors: Simone Benatti
@@ -81,16 +81,16 @@ friction = 0.6
 collision_envelope = .001
 
 # -----------------
-# Create the system
+# Create the sys
 # -----------------
 
-system = chrono.ChSystemNSC()
-system.Set_G_acc(chrono.ChVectorD(0, -10, 0))
+sys = chrono.ChSystemNSC()
+sys.Set_G_acc(chrono.ChVectorD(0, -10, 0))
 
 # Set solver settings
-system.SetSolverMaxIterations(100)
-system.SetMaxPenetrationRecoverySpeed(1e8)
-system.SetSolverForceTolerance(0)
+sys.SetSolverMaxIterations(100)
+sys.SetMaxPenetrationRecoverySpeed(1e8)
+sys.SetSolverForceTolerance(0)
 
 # --------------------------------------------------
 # Create a contact material, shared among all bodies
@@ -104,7 +104,7 @@ material.SetFriction(friction)
 # ----------
 
 container = chrono.ChBody()
-system.Add(container)
+sys.Add(container)
 container.SetPos(chrono.ChVectorD(0, 0, 0))
 container.SetBodyFixed(True)
 container.SetIdentifier(-1)
@@ -115,7 +115,7 @@ container.GetCollisionModel().ClearModel()
 chrono.AddBoxGeometry(container, material, chrono.ChVectorD(4, 0.5, 4), chrono.ChVectorD(0, -0.5, 0))
 container.GetCollisionModel().BuildModel()
 
-container.AddAsset(chrono.ChColorAsset(chrono.ChColor(0.4, 0.4, 0.4)))
+container.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
 
 box1 = chrono.ChBody()
 box1.SetMass(10)
@@ -129,11 +129,11 @@ box1.GetCollisionModel().ClearModel()
 chrono.AddBoxGeometry(box1, material, chrono.ChVectorD(0.4, 0.2, 0.1))
 box1.GetCollisionModel().BuildModel()
 
-box1.AddAsset(chrono.ChColorAsset(chrono.ChColor(0.1, 0.1, 0.4)))
+box1.GetVisualShape(0).SetColor(chrono.ChColor(0.1, 0.1, 0.4))
 
-system.AddBody(box1)
+sys.AddBody(box1)
 
-box2 = chrono.ChBody(system.NewBody())
+box2 = chrono.ChBody(sys.NewBody())
 box2.SetMass(10)
 box2.SetInertiaXX(chrono.ChVectorD(1, 1, 1))
 box2.SetPos(chrono.ChVectorD(-1, 0.21, +1))
@@ -145,44 +145,44 @@ box2.GetCollisionModel().ClearModel()
 chrono.AddBoxGeometry(box2, material, chrono.ChVectorD(0.4, 0.2, 0.1))
 box2.GetCollisionModel().BuildModel()
 
-box2.AddAsset(chrono.ChColorAsset(chrono.ChColor(0.4, 0.1, 0.1)))
+box2.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.1, 0.1))
 
-system.AddBody(box2)
+sys.AddBody(box2)
 
 # -------------------------------
 # Create the visualization window
 # -------------------------------
 
-application = chronoirr.ChIrrApp(system, "NSC callbacks", chronoirr.dimension2du(800, 600))
-application.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-application.AddSkyBox()
-application.AddTypicalLights()
-application.AddCamera(chronoirr.vector3df(4, 4, -6))
-
-application.AssetBindAll()
-application.AssetUpdateAll()
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('NSC callbacks')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(4, 4, -6))
+vis.AddTypicalLights()
 
 # ---------------
-# Simulate system
+# Simulate sys
 # ---------------
 
 creporter = ContactReporter(box1)
 
 cmaterial = ContactMaterial()
-system.GetContactContainer().RegisterAddContactCallback(cmaterial)
+sys.GetContactContainer().RegisterAddContactCallback(cmaterial)
 
-application.SetTimestep(1e-3)
-
-while (application.GetDevice().run()) :
-    application.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
-    application.DrawAll()
-    chronoirr.drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
-                                   chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
-    application.DoStep()
-    application.EndScene()
+while vis.Run():
+    vis.BeginScene() 
+    vis.DrawAll()
+    chronoirr.drawGrid(vis.GetVideoDriver(), 0.5, 0.5, 12, 12,
+                       chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
+    chronoirr.drawAllCOGs(sys, vis.GetVideoDriver(), 1.0)
+    vis.EndScene()
+    sys.DoStepDynamics(1e-3)
     
     # Process contacts
-    print(str(system.GetChTime() ) + "  "  + str(system.GetNcontacts()) )
-    system.GetContactContainer().ReportAllContacts(creporter)
+    print(str(sys.GetChTime() ) + "  "  + str(sys.GetNcontacts()) )
+    sys.GetContactContainer().ReportAllContacts(creporter)
     
 

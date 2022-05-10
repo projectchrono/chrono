@@ -20,7 +20,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChTexture.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -28,7 +28,7 @@ using namespace chrono::irrlicht;
 // Callback class for contact processing.
 class ContactManager : public ChContactContainer::ReportContactCallback {
   public:
-    ContactManager(ChSystem* system) : m_system(system) {}
+    ContactManager(ChSystem* sys) : m_system(sys) {}
 
     // Return the current total number of contacts experienced by the specified body.
     unsigned int GetNcontacts(std::shared_ptr<ChBody> body) const {
@@ -80,17 +80,10 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create the system.
-    ChSystemNSC system;
-    system.SetSolverType(ChSolver::Type::PSOR);
-    system.SetSolverMaxIterations(20);
-
-    // Create the Irrlicht application.
-    ChIrrApp application(&system, L"Number of collisions", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(0, 14, -20));
+    // Create the sys.
+    ChSystemNSC sys;
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(20);
 
     // Create a contact material shared by all collision shapes
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -106,7 +99,7 @@ int main(int argc, char* argv[]) {
     container->GetCollisionModel()->AddBox(mat, 20, 40, 1, ChVector<>(0, 0, -11));
     container->GetCollisionModel()->AddBox(mat, 20, 40, 1, ChVector<>(0, 0, 11));
     container->GetCollisionModel()->BuildModel();
-    system.AddBody(container);
+    sys.AddBody(container);
 
     // Create falling rigid bodies with different shapes and mark one of each type.
     std::shared_ptr<ChBody> my_sphere;
@@ -114,59 +107,60 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChBody> my_cylinder;
     for (int bi = 0; bi < 20; bi++) {
         auto sphere = chrono_types::make_shared<ChBodyEasySphere>(1.1, 1000, true, true, mat);
-        system.Add(sphere);
+        sys.Add(sphere);
         sphere->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
-            sphere->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/bluewhite.png")));
+            sphere->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
             my_sphere = sphere;
         }
 
         auto box = chrono_types::make_shared<ChBodyEasyBox>(1.5, 1.5, 1.5, 100, true, true, mat);
-        system.Add(box);
+        sys.Add(box);
         box->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
-            box->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/cubetexture_bluewhite.png")));
+            box->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
             my_box = box;
         }
 
         auto cylinder = chrono_types::make_shared<ChBodyEasyCylinder>(0.75, 0.5, 100, true, true, mat);
-        system.Add(cylinder);
+        sys.Add(cylinder);
         cylinder->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
-            cylinder->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/pinkwhite.png")));
+            cylinder->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));
             my_cylinder = cylinder;
         }
     }
 
-    // Complete visualization asset construction.
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Number of collisions");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 14, -20));
+    vis->AddTypicalLights();
 
     // Create the contact manager.
-    ContactManager manager(&system);
+    ContactManager manager(&sys);
 
     // Simulation loop.
-    application.SetTimestep(0.02);
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        // Render scene.
-        application.DrawAll();
-
-        // Advance dynamics.
-        application.DoStep();
+        sys.DoStepDynamics(0.02);
 
         // Process current collisions and report number of contacts on a few bodies.
         manager.Process();
-        std::cout << "Time: " << system.GetChTime();
+        std::cout << "Time: " << sys.GetChTime();
         std::cout << "   container: " << manager.GetNcontacts(container);
         std::cout << "   my_sphere: " << manager.GetNcontacts(my_sphere);
         std::cout << "   my_box: " << manager.GetNcontacts(my_box);
         std::cout << "   my_cylinder: " << manager.GetNcontacts(my_cylinder);
         std::cout << std::endl;
-
-        application.EndScene();
     }
 
     return 0;

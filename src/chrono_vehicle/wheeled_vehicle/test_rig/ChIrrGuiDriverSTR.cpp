@@ -29,13 +29,13 @@ using namespace irr;
 namespace chrono {
 namespace vehicle {
 
-ChIrrGuiDriverSTR::ChIrrGuiDriverSTR(irrlicht::ChIrrApp& app)
-    : m_current_post(0), m_msg("Active post: 0"), m_app(app), m_displDelta(1.0 / 50), m_steeringDelta(1.0 / 250) {
-    app.SetUserEventReceiver(this);
+ChIrrGuiDriverSTR::ChIrrGuiDriverSTR(irrlicht::ChVisualSystemIrrlicht& vsys)
+    : m_current_post(0), m_msg("Active post: 0"), m_vsys(vsys), m_displDelta(1.0 / 50), m_steeringDelta(1.0 / 250) {
+    vsys.AddUserEventReceiver(this);
 }
 
 bool ChIrrGuiDriverSTR::OnEvent(const SEvent& event) {
-    if (m_app.GetSystem()->GetChTime() < m_delay)
+    if (m_vsys.GetSystem().GetChTime() < m_delay)
         return false;
 
     // Only interpret keyboard inputs.

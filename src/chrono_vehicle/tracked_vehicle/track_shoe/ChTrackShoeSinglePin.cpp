@@ -18,10 +18,8 @@
 // =============================================================================
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/assets/ChAssetLevel.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h"
@@ -30,7 +28,6 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChTrackShoeSinglePin::ChTrackShoeSinglePin(const std::string& name) : ChTrackShoeSegmented(name) {}
 
@@ -46,7 +43,6 @@ ChTrackShoeSinglePin::~ChTrackShoeSinglePin() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                       const ChVector<>& location,
@@ -74,14 +70,23 @@ void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChTrackShoeSinglePin::GetMass() const {
-    return GetShoeMass();
+void ChTrackShoeSinglePin::InitializeInertiaProperties() {
+    m_mass = GetShoeMass();
+    m_inertia = ChMatrix33<>(0);
+    m_inertia.diagonal() = GetShoeInertia().eigen();
+    m_com = ChFrame<>();
+}
+
+void ChTrackShoeSinglePin::UpdateInertiaProperties() {
+    m_xform = m_shoe->GetFrame_REF_to_abs();
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
+void ChTrackShoeSinglePin::EnableTrackBendingStiffness(bool val) {
+    m_connection_rsda->SetDisabled(val);
+}
+
 void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
                                    ChTrackAssembly* assembly,
                                    ChChassis* chassis,
@@ -126,7 +131,6 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeSinglePin::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

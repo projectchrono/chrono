@@ -22,11 +22,10 @@
 #include <vector>
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_vehicle/ChTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -35,7 +34,7 @@ namespace vehicle {
 /// @{
 
 /// Tire model based on LuGre friction model.
-class CH_VEHICLE_API ChLugreTire : public ChTire {
+class CH_VEHICLE_API ChLugreTire : public ChForceElementTire {
   public:
     ChLugreTire(const std::string& name);
 
@@ -52,7 +51,7 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
 
     /// Get the tire width.
     /// This is just an approximation of a tire width.
-    double GetWidth() const;
+    double GetWidth() const override;
 
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireForce; }
@@ -64,11 +63,6 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     /// Return the lateral disc locations.
     /// These locations are relative to the tire center.
     virtual const double* GetDiscLocations() const = 0;
-
-    /// Return the vertical tire stiffness (for normal force calculation).
-    virtual double GetNormalStiffness() const = 0;
-    /// Return the vertical tire damping coefficient (for normal force calculation).
-    virtual double GetNormalDamping() const = 0;
 
     /// Set the parameters in the LuGre friction model.
     virtual void SetLugreParams() = 0;
@@ -119,7 +113,6 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     std::vector<DiscState> m_state;
 
     std::vector<std::shared_ptr<ChCylinderShape>> m_cyl_shapes;  ///< visualization cylinder assets
-    std::shared_ptr<ChTexture> m_texture;                        ///< visualization texture asset
 };
 
 /// @} vehicle_wheeled_tire

@@ -43,7 +43,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -70,13 +70,13 @@ int main(int argc, char* argv[]) {
         cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, 0, 1.2);
         cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0.8);
         cyl_1->GetCylinderGeometry().rad = 0.2;
-        ground->AddAsset(cyl_1);
+        ground->AddVisualShape(cyl_1);
 
         auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
         cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, 0, -1.2);
         cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, 0, -0.8);
         cyl_2->GetCylinderGeometry().rad = 0.2;
-        ground->AddAsset(cyl_2);
+        ground->AddVisualShape(cyl_2);
     }
 
     // Create a pendulum modeled using ChBody
@@ -97,10 +97,8 @@ int main(int argc, char* argv[]) {
     cyl_1->GetCylinderGeometry().p1 = ChVector<>(-1, 0, 0);
     cyl_1->GetCylinderGeometry().p2 = ChVector<>(1, 0, 0);
     cyl_1->GetCylinderGeometry().rad = 0.2;
-    pend_1->AddAsset(cyl_1);
-    auto col_1 = chrono_types::make_shared<ChColorAsset>();
-    col_1->SetColor(ChColor(0.6f, 0, 0));
-    pend_1->AddAsset(col_1);
+    cyl_1->SetColor(ChColor(0.6f, 0, 0));
+    pend_1->AddVisualShape(cyl_1);
 
     // Specify the initial position of the pendulum (horizontal, pointing towards
     // positive X). In this case, we set the absolute position of its center of
@@ -131,10 +129,8 @@ int main(int argc, char* argv[]) {
     cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
     cyl_2->GetCylinderGeometry().p2 = ChVector<>(2, 0, 0);
     cyl_2->GetCylinderGeometry().rad = 0.2;
-    pend_2->AddAsset(cyl_2);
-    auto col_2 = chrono_types::make_shared<ChColorAsset>();
-    col_2->SetColor(ChColor(0, 0, 0.6f));
-    pend_2->AddAsset(col_2);
+    cyl_2->SetColor(ChColor(0, 0, 0.6f));
+    pend_2->AddVisualShape(cyl_2);
 
     // In this case, we must specify the centroidal frame, relative to the body
     // reference frame.
@@ -169,26 +165,25 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht application
     // -------------------------------
 
-    ChIrrApp application(&system, L"ChBodyAuxRef demo", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 3, 6));
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    system.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("ChBodyAuxRef demo");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 3, 6));
+    vis->AddTypicalLights();
 
     // Simulation loop
-    application.SetTimestep(0.001);
-
     bool log_info = true;
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
-        application.DrawAll();
-
-        application.DoStep();
+        system.DoStepDynamics(1e-3);
 
         if (log_info && system.GetChTime() > 1.0) {
             // Note that GetPos() and similar functions will return information for
@@ -222,7 +217,6 @@ int main(int argc, char* argv[]) {
             log_info = false;
         }
 
-        application.EndScene();
     }
 
     return 0;

@@ -17,10 +17,8 @@
 // =============================================================================
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/assets/ChAssetLevel.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -30,7 +28,6 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChTrackShoeDoublePin::ChTrackShoeDoublePin(const std::string& name) : ChTrackShoeSegmented(name) {}
 
@@ -59,7 +56,6 @@ ChTrackShoeDoublePin::~ChTrackShoeDoublePin() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                       const ChVector<>& location,
@@ -128,17 +124,30 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_connector_R->SetRot(chassis->GetRot() * rot_connector);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChTrackShoeDoublePin::GetMass() const {
-    return GetShoeMass() + 2 * GetConnectorMass();
+void ChTrackShoeDoublePin::InitializeInertiaProperties() {
+    m_mass = GetShoeMass() + 2 * GetConnectorMass();
+}
+
+void ChTrackShoeDoublePin::UpdateInertiaProperties() {
+    m_xform = m_shoe->GetFrame_REF_to_abs();
+
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_shoe->GetFrame_COG_to_abs(), m_shoe->GetMass(), m_shoe->GetInertia());
+    composite.AddComponent(m_connector_L->GetFrame_COG_to_abs(), m_connector_L->GetMass(), m_connector_L->GetInertia());
+    composite.AddComponent(m_connector_R->GetFrame_COG_to_abs(), m_connector_R->GetMass(), m_connector_R->GetInertia());
+
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 double ChTrackShoeDoublePin::GetPitch() const {
     return GetShoeLength() + GetConnectorLength();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeDoublePin::AddVisualizationAssets(VisualizationType vis) {
     ChTrackShoeSegmented::AddVisualizationAssets(vis);
@@ -147,9 +156,9 @@ void ChTrackShoeDoublePin::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChTrackShoeDoublePin::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_connector_L);
+    ChPart::RemoveVisualizationAssets(m_connector_R);
     ChTrackShoeSegmented::RemoveVisualizationAssets();
-    m_connector_L->GetAssets().clear();
-    m_connector_R->GetAssets().clear();
 }
 
 void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> connector, VisualizationType vis) {
@@ -164,31 +173,28 @@ void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> con
     cyl_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * c_length, -0.5 * c_width, 0);
     cyl_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * c_length, +0.5 * c_width, 0);
     cyl_rear->GetCylinderGeometry().rad = c_radius;
-    connector->AddAsset(cyl_rear);
+    connector->AddVisualShape(cyl_rear);
 
     auto cyl_front = chrono_types::make_shared<ChCylinderShape>();
     cyl_front->GetCylinderGeometry().p1 = ChVector<>(0.5 * c_length, -0.5 * c_width, 0);
     cyl_front->GetCylinderGeometry().p2 = ChVector<>(0.5 * c_length, +0.5 * c_width, 0);
     cyl_front->GetCylinderGeometry().rad = c_radius;
-    connector->AddAsset(cyl_front);
+    connector->AddVisualShape(cyl_front);
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(c_length, c_width, 2 * c_radius));
-    box->Pos = ChVector<>(0, 0, 0);
-    connector->AddAsset(box);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    if (m_index == 0)
-        col->SetColor(ChColor(0.7f, 0.4f, 0.4f));
-    else if (m_index % 2 == 0)
-        col->SetColor(ChColor(0.4f, 0.7f, 0.4f));
-    else
-        col->SetColor(ChColor(0.4f, 0.4f, 0.7f));
-    connector->AddAsset(col);
+    connector->AddVisualShape(box, ChFrame<>());
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
+void ChTrackShoeDoublePin::EnableTrackBendingStiffness(bool val) {
+    m_rsda_L->SetDisabled(val);
+    m_rsda_R->SetDisabled(val);
+    m_connection_rsda_L->SetDisabled(val);
+    m_connection_rsda_R->SetDisabled(val);
+}
+
 void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
                                    ChTrackAssembly* assembly,
                                    ChChassis* chassis,
@@ -313,7 +319,6 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeDoublePin::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

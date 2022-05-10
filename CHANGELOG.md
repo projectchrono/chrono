@@ -5,12 +5,15 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Redesigned run-time visualization system](#changed-redesigned-run-time-visualization-system)
+  - [Vehicle inertia properties](#changed-vehicle-inertia-properties)
   - [CMake project configuration script](#changed-cmake-project-configuration-script)
   - [Right-handed frames in Chrono::Irrlicht](#changed-right-handed-frames-in-chronoirrlicht)
   - [Modal analysis module](#added-modal-analysis-module)
   - [Callback mechanism for collision debug visualization](#added-callback-mechanism-for-collision-debug-visualization)
   - [Translational and rotational spring-damper-actuators](#changed-translational-and-rotational-spring-damper-actuators)
   - [Refactor Chrono::Vehicle suspension test rigs](#changed-refactor-chronovehicle-suspension-test-rigs)
+- [Release 7.0.3](#release-703---2022-04-17)
 - [Release 7.0.2](#release-702---2022-04-03)  
 - [Release 7.0.1](#release-701---2022-01-07)  
 - [Release 7.0.0](#release-700---2021-11-15) 
@@ -62,6 +65,103 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Redesigned run-time visualization system
+
+The entire mechanism for defining visualization models, shapes, and materials, as well as constructing and attaching a run-time visualization system to a Chrono system was redefined for more flexibility and to allow plugging in alternative rendering engines.  The new class hierarchy allows sharing of visualization models among different physics items, visualization shapes among different models, and visualization materials among different shapes.
+
+- A visualization material (`ChVisualMaterial`) defines colors (diffuse, ambient, specular, and emissive), textures, and other related properties.
+- A visualization shape (`ChVisualShape`) is a geometric shape (primitive, curve, surface, or triangular mesh) with one or more associated visualization materials. If a shape has no associated material, a default material is used.
+- A visualization model (`ChVisualModel`) is an aggregate of (pointers to) shapes and a transform which specifies the shape position relative to the model reference frame. Visualization shapes in a model are maintained in a vector of `ShapeInstance` (which is simply a typedef for a pair containing a shared pointer to a `ChVisualShape` and a `ChFrame`). Note that, currently a visualization model instance cannot be placed inside another visualization model, but that may be added in the future.
+- A visualization model instance (`ChVisualModelInstance`) is a reference to a visualization model with an associated physics item.  A physics item may have an associated visualization model instance.  
+
+`ChVisualSystem` defines a base class for possible concrete run-time visualization systems and imposes minimal common functionality. A visual system is attached to a ChSystem using `ChSystem::SetVisualSystem`. The Chrono physics system will then trigger automatic updates to the visualization system as needed, depending on the particular type of analysis being conducted.
+
+**Defining visualization models**
+
+The new nechanism for defining visualization shapes and materials for a Chrono physics item is illustrated in the following typical sequence:
+```cpp
+    // Create a visual material and set properties
+    auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
+    vis_mat->SetDiffuseColor(ChColor(0.9f, 0.4f, 0.2f));
+    // set other material properties
+    
+    // Create a visual shape and add one or more materials
+    auto vis_sphere = chrono_types::make_shared<ChSphereShape>();
+    sphere->GetSphereGeometry().rad = 0.5;
+    sphere->AddMaterial(vis_mat);
+    
+    // Create a visual model and add one or more shapes
+    auto vis_model = chrono_types::make_shared<ChVisualModel>();
+    vis_model->AddShape(vis_sphere);
+    // add more visual shapes to the model
+
+    // Attach an instance of a visual model to a physics item
+    body->AddVisualModel(vis_model);
+```
+
+Note that FEA visualization requires defining objects of type `ChVisualShapeFEA`.  An FEA visualization shape is in fact a pair of two visual shapes, one for visualizing the FEA mesh, the other for visualizing so-called glyphs (e.g., representation of the FEA nodes). 
+
+For convenience, several shortcuts are provided:
+- the diffuse color or diffuse map texture can be set directly on a visual shape, using `ChVisualShape::SetColor` and `ChVisualShape::SetTexture`.  If the shape has visual materials defined, these functions affect the 1st material in the list. Otherwise, a new material is created and associated with the given shape, and its properties set appropriately.
+- a visual shape instance can be added directly to a physics item, using `ChPhysicsItem::AddVisualShape`. If the physics item already has an associated visual model instance, the new shape is added to that model at the specified transform.  Otherwise, a new visual model instance is created and associated with the physics item, and the given shape instance created within the model.
+- an individual visual shape in the visual model of a physics item can be accessed through its index with `ChPhysicsItem::GetVisualShape`. This can then be used to change shape parameters or parameters of the associated visual material.
+
+**Defining a visualization system**
+
+While specification of visualization assets (materials, shapes, and models) must now be done as described above for any Chrono run-time visualization system, the Chrono API does not impose how a particular rendering engine should interpret, parse, and render the visual representation of a Chrono system.  
+The suggested mechanism is to define a concrete visualization system (derived from `ChVisualSystem`) and attach it to the Chrono system. Currently, only an Irrlicht-based visualization system is provided through `ChVisualSystemIrrlicht`. This object replaces the now obsolete ChIrrApp. 
+
+A typical sequence for creating and attaching an Irrlicht-based visualization system to a Chrono simulation is illustrated below:
+```cpp
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Chrono::Irrlicht visualization");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(1, 2, 3));
+    vis->AddTypicalLights();
+```
+
+Notes:
+- Various parameters (such as windows size, windows title, camera vertical direction) can be set with various `Set***` methods.  These must be called before the visual system is initialized with ChVisualSystemIrrlicht::Initialize().
+- After the call to `Initialize`, additional rendering elements (such as lights, a sky box, a camera) can be added to the visualizatioon system with various `Add***` methods.
+- Once the visual system is initialized **and** attached to the Chrono system, all currently defined visual models are processed and Irrlicht nodes created.  
+- If visual models are created at a later time, these must be converted to Irrlicht nodes through a call to `ChVisualSystemIrrlicht::BindAll()` (to process all visual models in the Chrono system) or to `ChVisualSystemIrrlicht::BindItem` (to process the visual model for the specified Chrono physics item).
+
+Additional rendering options can be enabled with calls to `Enable***` methods which must be made only after the visualization system was initialized and attached to a Chrono system.  These options include enabling various ways of rendering collision and contact information and body or link reference frames.
+
+A typical simulation loop with Irrlicht-based run-time visualization has the form:
+```cpp
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        // make additional Irrlicht-based rendering calls, for example to display a grid:
+        irrlicht::tools::drawGrid(vis->GetVideoDriver(), 0.5, 0.5, 12, 12,
+                                  ChCoordsys<>(ChVector<>(0, -0.5, 0), Q_from_AngX(CH_C_PI_2)),
+                                  irr::video::SColor(50, 80, 110, 110), true);
+        vis->EndScene();
+        sys.DoStepDynamics(step_size);
+    }
+```
+
+
+The Irrlicht visualization system also provides a GUI (displayed using the `i` key during simulation) which allows changing rendering options at run-time.
+
+See the various Chrono demos (in `src/demos/irrlicht/`) for different ways of using the new visualization system mechanism in Chrono.  Note that the Chrono::Vehicle Irrlicht-based visualization systems (`ChWheeledVehicleVisualSystemIrrlicht` and `ChTrackedVehicleVisualSystemIrrlicht`) use a correspondingly similar mechanism for their definition and usage in a vehicle  simulation loop. See demos under `src/demos/vehicle/`. 
+
+### [Changed] Vehicle inertia properties
+
+The underlying mechanism for setting and querying inertia properties (mass, COM location, and inertia matrix) for vehicle systems and subsystems was redesign for consistency.  At the user API level, this change is reflected through a uniform manner to hoe these quantities are reported.
+
+Any vehicle subsystem (of type `ChPart`), as well as any vehicle system (`ChWheeledVehicle` or `ChTrackedVehicle`) provide the following set of accessor methods:
+- `GetMass()` returns the mass of the (sub)system.  In the case of a vehicle, this includes the mass of all vehicle subsystems.  Furthermore, the mass of a wheeled vehicle includes the mass of the tires.
+- `GetCOMFrame()` returns the current COM (centroidal) frame.  This frame is relative to and expressed in the reference frame of the part or of the vehicle.
+- `GetInertia()` returns the current inertia matrix (that is the articulated inertia).  The reported inertia matrix is given with respect to the centroidal frame of the part or vehicle.
+
+In addition, a `ChPart` or `ChVehicle` also provide a method `GetTransform()` which returns the vehicle transform (translation and orientation encapsulated in a `ChFrame`) relative to the global (absolute) frame. Recall that, by convention, the vehicle reference frame is that of its main chassis.
 
 ### [Changed] CMake project configuration script
 
@@ -178,6 +278,13 @@ See `demo_VEH_SuspensionTestRig` for various examples and options, and look at t
 Note also that the format for a data file with STR actuation information (used by a ChDataDriverSTR) was modified by moving the steering input in the 2nd column.
 In other words, each line of this ASCII file should now contain:<br>
 `    time  steering_input  left_post_0  right_post_0 left_post_1 right_post_1 …`
+
+### Release 7.0.3 - 2022-04-17
+
+### [Fixed]
+
+- SIMD detection is combined into one cmake script
+- Fixed SIMD feature detection with Clang, allowing support for Apple-M1 and generic AArch64 CPUs
 
 ### Release 7.0.2 - 2022-04-03
 

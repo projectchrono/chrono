@@ -131,8 +131,8 @@ void FialaTire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void FialaTire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChFialaTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace vehicle

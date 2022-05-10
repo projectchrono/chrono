@@ -1,23 +1,15 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
-# Authors: Simone Benatti
-# =============================================================================
-#
-# Main driver function for the RCCar model.
-#
-# The vehicle reference frame has Z up, X towards the front of the vehicle, and
-# Y pointing to the left.
-#
-# =============================================================================
+
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -246,16 +238,14 @@ my_rccar.SetSteeringVisualizationType(steering_vis_type)
 my_rccar.SetWheelVisualizationType(wheel_vis_type)
 my_rccar.SetTireVisualizationType(tire_vis_type)
 
-chassis_asset = my_rccar.GetChassisBody().GetAssets()[0]
-visual_asset = chrono.CastToChVisualization(chassis_asset)
-vis_mat = chrono.ChVisualMaterial()
-vis_mat.SetAmbientColor(chrono.ChVectorF(0, 0, 0))
-vis_mat.SetDiffuseColor(chrono.ChVectorF(.5, .5, .5))
-vis_mat.SetSpecularColor(chrono.ChVectorF(1, 1, 1))
-vis_mat.SetFresnelMin(0)
-vis_mat.SetFresnelMax(1)
-if(visual_asset):
-    visual_asset.material_list.append(vis_mat)
+if my_rccar.GetChassisBody().GetVisualShape(0):
+    vis_mat = chrono.ChVisualMaterial()
+    vis_mat.SetAmbientColor(chrono.ChColor(0, 0, 0))
+    vis_mat.SetDiffuseColor(chrono.ChColor(.5, .5, .5))
+    vis_mat.SetSpecularColor(chrono.ChColor(1, 1, 1))
+    vis_mat.SetFresnelMin(0)
+    vis_mat.SetFresnelMax(1)
+    my_rccar.GetChassisBody().GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # Create the terrain
 terrain = veh.RigidTerrain(my_rccar.GetSystem())
@@ -268,6 +258,7 @@ elif (contact_method == chrono.ChContactMethod_SMC):
     patch_mat.SetFriction(0.9)
     patch_mat.SetRestitution(0.01)
     patch_mat.SetYoungModulus(2e7)
+
 patch = terrain.AddPatch(patch_mat,
                          chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1),
                          terrainLength, terrainWidth)
@@ -275,30 +266,27 @@ patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
 terrain.Initialize()
 
-
-patch_asset = patch.GetGroundBody().GetAssets()[0]
-patch_visual_asset = chrono.CastToChVisualization(patch_asset)
-
 vis_mat = chrono.ChVisualMaterial()
-# vis_mat.SetAmbientColor(chrono.ChVectorF(0, 0, 0))
-vis_mat.SetKdTexture(chrono.GetChronoDataFile(
-    "vehicle/terrain/textures/dirt.jpg"))
-vis_mat.SetSpecularColor(chrono.ChVectorF(.0, .0, .0))
+# vis_mat.SetAmbientColor(chrono.ChColor(0, 0, 0))
+vis_mat.SetKdTexture(chrono.GetChronoDataFile("vehicle/terrain/textures/dirt.jpg"))
+vis_mat.SetSpecularColor(chrono.ChColor(.0, .0, .0))
 vis_mat.SetFresnelMin(0)
 vis_mat.SetFresnelMax(.1)
-
-patch_visual_asset.material_list.append(vis_mat)
+patch.GetGroundBody().GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # Create the vehicle Irrlicht interface
-app = veh.ChWheeledVehicleIrrApp(my_rccar.GetVehicle())
-app.AddTypicalLights()
-app.AddLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
-app.SetChaseCamera(trackPoint, 1.5, 0.5)
-app.SetTimestep(step_size)
-
+vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+my_rccar.GetVehicle().SetVisualSystem(vis)
+vis.SetWindowTitle('RC car')
+vis.SetWindowSize(1280, 1024)
+vis.SetChaseCamera(trackPoint, 1.5, 0.5)
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddTypicalLights()
+vis.AddSkyBox()
 
 # Create the driver system
-# driver = veh.ChIrrGuiDriver(app)
+# driver = veh.ChIrrGuiDriver(vis)
 driver = veh.ChDriver(my_rccar.GetVehicle())
 
 # Set the time response for steering and throttle keyboard inputs.
@@ -331,27 +319,25 @@ for points in (track.left.points, track.right.points):
         q = chrono.Q_from_AngZ(ang)
         box.SetRot(q)
         box.SetBodyFixed(True)
-        box_asset = box.GetAssets()[0]
-        visual_asset = chrono.CastToChVisualization(box_asset)
 
         vis_mat = chrono.ChVisualMaterial()
-        vis_mat.SetAmbientColor(chrono.ChVectorF(0, 0, 0))
+        vis_mat.SetAmbientColor(chrono.ChColor(0, 0, 0))
 
         if i % 2 == 0:
-            vis_mat.SetDiffuseColor(chrono.ChVectorF(.8, 0, 0))
+            vis_mat.SetDiffuseColor(chrono.ChColor(.8, 0, 0))
         else:
-            vis_mat.SetDiffuseColor(chrono.ChVectorF(.8, .8, .8))
-        vis_mat.SetSpecularColor(chrono.ChVectorF(.2, .2, .2))
+            vis_mat.SetDiffuseColor(chrono.ChColor(.8, .8, .8))
+        vis_mat.SetSpecularColor(chrono.ChColor(.2, .2, .2))
         vis_mat.SetFresnelMin(0)
         vis_mat.SetFresnelMax(.7)
 
-        visual_asset.material_list.append(vis_mat)
+        bos.GetVisualShape(0).SetMaterial(0, vis_mat)
+
         my_rccar.GetSystem().Add(box)
         print("Added box to world")
 
 
-app.AssetBindAll()
-app.AssetUpdateAll()
+vis.BindAll()
 
 # Number of simulation steps between miscellaneous events
 render_steps = math.ceil(render_step_size / step_size)
@@ -365,10 +351,8 @@ render_frame = 0
 
 
 manager = sens.ChSensorManager(my_rccar.GetSystem())
-manager.scene.AddPointLight(chrono.ChVectorF(
-    100, 100, 100), chrono.ChVectorF(1, 1, 1), 500.0)
-manager.scene.AddPointLight(
-    chrono.ChVectorF(-100, 100, 100), chrono.ChVectorF(1, 1, 1), 500.0)
+manager.scene.AddPointLight(chrono.ChVectorF(100, 100, 100), chrono.ChColor(1, 1, 1), 500.0)
+manager.scene.AddPointLight(chrono.ChVectorF(-100, 100, 100), chrono.ChColor(1, 1, 1), 500.0)
 
 
 # field of view:
@@ -461,7 +445,7 @@ steering = 0
 throttle = 0
 braking = 0
 
-while (app.GetDevice().run()):
+while vis.Run():
     t = my_rccar.GetSystem().GetChTime()
 
     manager.Update()
@@ -472,9 +456,9 @@ while (app.GetDevice().run()):
 
     # Render scene and output POV-Ray data
     if (step_number % render_steps == 0):
-        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-        app.DrawAll()
-        app.EndScene()
+        vis.BeginScene()
+        vis.DrawAll()
+        vis.EndScene()
         render_frame += 1
 
     if (step_number % control_steps == 0):
@@ -540,18 +524,16 @@ while (app.GetDevice().run()):
     # driver.Synchronize(t)
     terrain.Synchronize(t)
     my_rccar.Synchronize(t, driver_inputs, terrain)
-    app.Synchronize("lidar driver", driver_inputs)
+    vis.Synchronize("lidar driver", driver_inputs)
 
     # Advance simulation for one timestep for all modules
     # driver.Advance(step_size)
     terrain.Advance(step_size)
     my_rccar.Advance(step_size)
-    app.Advance(step_size)
+    vis.Advance(step_size)
 
     # Increment frame number
     step_number += 1
 
     # Spin in place for real time to catch up
     # realtime_timer.Spin(step_size)
-
-del app

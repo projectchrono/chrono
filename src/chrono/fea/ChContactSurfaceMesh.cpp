@@ -774,9 +774,9 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     // ANCF BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
     //
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mbeam = std::dynamic_pointer_cast<ChElementCableANCF>(m_mesh->GetElement(ie))) {
-            std::shared_ptr<ChNodeFEAxyzD> nA = mbeam->GetNodeA();
-            std::shared_ptr<ChNodeFEAxyzD> nB = mbeam->GetNodeB();
+        if (auto cableANCF = std::dynamic_pointer_cast<ChElementCableANCF>(m_mesh->GetElement(ie))) {
+            std::shared_ptr<ChNodeFEAxyzD> nA = cableANCF->GetNodeA();
+            std::shared_ptr<ChNodeFEAxyzD> nB = cableANCF->GetNodeB();
 
             auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>();
             contact_triangle->SetNode1(nA);
@@ -787,7 +787,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
 
             double capsule_radius =
                 collision::ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
-            if (auto mdrawshape = mbeam->GetSection()->GetDrawShape()) {
+            if (auto mdrawshape = cableANCF->GetSection()->GetDrawShape()) {
                 double ymin, ymax, zmin, zmax;
                 mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
                 capsule_radius = 0.5 * sqrt(pow(ymax - ymin, 2) + pow(zmax - zmin, 2));
@@ -802,9 +802,9 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                                    true, false, true,             // are edges owned by this triangle?
                                    capsule_radius);
             contact_triangle->GetCollisionModel()->BuildModel();
-        } else if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(m_mesh->GetElement(ie))) {
-            std::shared_ptr<ChNodeFEAxyzD> nA = mbeam->GetNodeA();
-            std::shared_ptr<ChNodeFEAxyzD> nB = mbeam->GetNodeB();
+        } else if (auto beam3243 = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(m_mesh->GetElement(ie))) {
+            std::shared_ptr<ChNodeFEAxyzD> nA = beam3243->GetNodeA();
+            std::shared_ptr<ChNodeFEAxyzD> nB = beam3243->GetNodeB();
 
             auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>();
             contact_triangle->SetNode1(nA);
@@ -813,7 +813,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             vfaces.push_back(contact_triangle);
             contact_triangle->SetContactSurface(this);
 
-            double capsule_radius = 0.5 * sqrt(pow(mbeam->GetThicknessY(), 2) + pow(mbeam->GetThicknessZ(), 2));
+            double capsule_radius = 0.5 * sqrt(pow(beam3243->GetThicknessY(), 2) + pow(beam3243->GetThicknessZ(), 2));
 
             contact_triangle->GetCollisionModel()->ClearModel();
             ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
@@ -824,9 +824,9 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                                    true, false, true,             // are edges owned by this triangle?
                                    capsule_radius);
             contact_triangle->GetCollisionModel()->BuildModel();
-        } else if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(m_mesh->GetElement(ie))) {
-            std::shared_ptr<ChNodeFEAxyzD> nA = mbeam->GetNodeA();
-            std::shared_ptr<ChNodeFEAxyzD> nB = mbeam->GetNodeB();
+        } else if (auto beam3333 = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(m_mesh->GetElement(ie))) {
+            std::shared_ptr<ChNodeFEAxyzD> nA = beam3333->GetNodeA();
+            std::shared_ptr<ChNodeFEAxyzD> nB = beam3333->GetNodeB();
 
             auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>();
             contact_triangle->SetNode1(nA);
@@ -835,7 +835,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             vfaces.push_back(contact_triangle);
             contact_triangle->SetContactSurface(this);
 
-            double capsule_radius = 0.5 * sqrt(pow(mbeam->GetThicknessY(), 2) + pow(mbeam->GetThicknessZ(), 2));
+            double capsule_radius = 0.5 * sqrt(pow(beam3333->GetThicknessY(), 2) + pow(beam3333->GetThicknessZ(), 2));
 
             contact_triangle->GetCollisionModel()->ClearModel();
             ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())

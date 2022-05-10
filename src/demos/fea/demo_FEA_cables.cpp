@@ -20,7 +20,8 @@
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono_irrlicht/ChIrrApp.h"
+
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "FEAcables.h"
 
@@ -37,69 +38,45 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemSMC my_system;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Cables FEM", core::dimension2d<u32>(800, 600));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0.f, 0.6f, -1.f));
+    ChSystemSMC sys;
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
+    auto mesh = chrono_types::make_shared<ChMesh>();
 
     // Create one of the available models (defined in FEAcables.h)
-    ////auto model = Model1(my_system, my_mesh);
-    ////auto model = Model2(my_system, my_mesh);
-    auto model = Model3(my_system, my_mesh);
+    ////auto model = Model1(sys, mesh);
+    ////auto model = Model2(sys, mesh);
+    auto model = Model3(sys, mesh);
 
     // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
+    sys.Add(mesh);
 
-    // ==Asset== attach a visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape
-    // asset that is internally managed) by setting  proper
-    // coordinates and vertex colors as in the FEM elements.
-    // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a colored ChTriangleMeshShape).
-    // Do not forget AddAsset() at the end!
+    // Visualization of the FEM mesh.
+    // This will automatically update a triangle mesh (a ChTriangleMeshShape asset that is internally managed) by
+    // setting  proper coordinates and vertex colors as in the FEM elements. Such triangle mesh can be rendered by
+    // Irrlicht or POVray or whatever postprocessor that can handle a colored ChTriangleMeshShape).
+    auto vis_beam_A = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_beam_A->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
+    vis_beam_A->SetColorscaleMinMax(-0.4, 0.4);
+    vis_beam_A->SetSmoothFaces(true);
+    vis_beam_A->SetWireframe(false);
+    mesh->AddVisualShapeFEA(vis_beam_A);
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);
-    mvisualizebeamA->SetColorscaleMinMax(-0.4, 0.4);
-    mvisualizebeamA->SetSmoothFaces(true);
-    mvisualizebeamA->SetWireframe(false);
-    my_mesh->AddAsset(mvisualizebeamA);
-
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS); // E_GLYPH_NODE_CSYS
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizebeamC->SetSymbolsThickness(0.006);
-    mvisualizebeamC->SetSymbolsScale(0.01);
-    mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizebeamC);
-
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-    application.AssetBindAll();
-
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-    application.AssetUpdateAll();
+    auto vis_beam_B = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_beam_B->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    vis_beam_B->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    vis_beam_B->SetSymbolsThickness(0.006);
+    vis_beam_B->SetSymbolsScale(0.01);
+    vis_beam_B->SetZbufferHide(false);
+    mesh->AddVisualShapeFEA(vis_beam_B);
 
     // Set solver and solver settings
     switch (solver_type) {
         case ChSolver::Type::SPARSE_QR: {
             std::cout << "Using SparseQR solver" << std::endl;
             auto solver = chrono_types::make_shared<ChSolverSparseQR>();
-            my_system.SetSolver(solver);
+            sys.SetSolver(solver);
             solver->UseSparsityPatternLearner(true);
             solver->LockSparsityPattern(true);
             solver->SetVerbose(false);
@@ -108,7 +85,7 @@ int main(int argc, char* argv[]) {
         case ChSolver::Type::SPARSE_LU: {
             std::cout << "Using SparseLU solver" << std::endl;
             auto solver = chrono_types::make_shared<ChSolverSparseLU>();
-            my_system.SetSolver(solver);
+            sys.SetSolver(solver);
             solver->UseSparsityPatternLearner(true);
             solver->LockSparsityPattern(true);
             solver->SetVerbose(false);
@@ -117,7 +94,7 @@ int main(int argc, char* argv[]) {
         case ChSolver::Type::MINRES: {
             std::cout << "Using MINRES solver" << std::endl;
             auto solver = chrono_types::make_shared<ChSolverMINRES>();
-            my_system.SetSolver(solver);
+            sys.SetSolver(solver);
             solver->SetMaxIterations(200);
             solver->SetTolerance(1e-10);
             solver->EnableDiagonalPreconditioner(true);
@@ -131,20 +108,26 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    my_system.SetSolverForceTolerance(1e-13);
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Cables FEM");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0, 0.6, -1.0));
+    sys.SetVisualSystem(vis);
 
     // Set integrator
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    sys.SetSolverForceTolerance(1e-13);
 
-    // SIMULATION LOOP
-    application.SetTimestep(0.01);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
-        application.DoStep();
-        application.EndScene();
-        ////model.PrintBodyPositions();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
+        sys.DoStepDynamics(0.01);
     }
 
     return 0;

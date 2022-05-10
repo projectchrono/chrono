@@ -28,7 +28,7 @@
 #include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+    #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
 #endif
 
 using namespace chrono;
@@ -153,22 +153,22 @@ void M113AccTest<EnumClass, SHOE_TYPE>::ExecuteStep() {
 template <typename EnumClass, EnumClass SHOE_TYPE>
 void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    ChTrackedVehicleIrrApp app(&m_m113->GetVehicle(), L"M113 acceleration test");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 6.0, 0.5);
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("M113 acceleration test");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    m_m113->GetVehicle().SetVisualSystem(vis);
 
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         ChDriver::Inputs driver_inputs = m_driver->GetInputs();
 
-        app.BeginScene();
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
         ExecuteStep();
-        app.Synchronize("Acceleration test", driver_inputs);
-        app.Advance(m_step);
-        app.EndScene();
+        vis->Synchronize("Acceleration test", driver_inputs);
+        vis->Advance(m_step);
+        vis->EndScene();
     }
 #endif
 }

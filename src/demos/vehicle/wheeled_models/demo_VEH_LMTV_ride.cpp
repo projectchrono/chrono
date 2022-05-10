@@ -28,7 +28,7 @@
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #ifdef USE_IRRLICHT
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -223,8 +223,7 @@ int main(int argc, char* argv[]) {
     lmtv.SetWheelVisualizationType(wheel_vis_type);
     lmtv.SetTireVisualizationType(tire_vis_type);
 
-    std::cout << "Vehicle mass:               " << lmtv.GetVehicle().GetVehicleMass() << std::endl;
-    std::cout << "Vehicle mass (with tires):  " << lmtv.GetTotalMass() << std::endl;
+    std::cout << "Vehicle mass: " << lmtv.GetVehicle().GetMass() << std::endl;
 
     // ------------------
     // Create the terrain
@@ -246,18 +245,20 @@ int main(int argc, char* argv[]) {
     // -------------------------------------
 
 #ifdef USE_IRRLICHT
-    ChWheeledVehicleIrrApp app(&lmtv.GetVehicle(), L"LMTV ride & twist test");
-    app.GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
-    app.AddLight(irr::core::vector3df(-50.f, -30.f, 40.f), 50, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.AddLight(irr::core::vector3df(10.f, 30.f, 40.f), 50, irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.SetChaseCamera(trackPoint, 9.0, 0.5);
-    /*app.SetTimestep(step_size);*/
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("LMTV ride & twist test");
+    vis->SetChaseCamera(trackPoint, 9.0, 0.5);
+    vis->Initialize();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vis->GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
+    vis->AddLight(ChVector<>(-50, -30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(+10, +30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
+    lmtv.GetVehicle().SetVisualSystem(vis);
 
     // Visualization of controller points (sentinel & target)
-    irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
-    irr::scene::IMeshSceneNode* ballT = app.GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballT = vis->GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
 
@@ -354,9 +355,9 @@ int main(int argc, char* argv[]) {
     double time = 0;
 
 #ifdef USE_IRRLICHT
-    while (app.GetDevice()->run() && (time < tend) && (lmtv.GetVehicle().GetVehiclePos().x() < xmax)) {
+    while (vis->Run() && (time < tend) && (lmtv.GetVehicle().GetPos().x() < xmax)) {
 #else
-    while ((time < tend) && (lmtv.GetVehicle().GetVehiclePos().x() < xmax)) {
+    while ((time < tend) && (lmtv.GetVehicle().GetPos().x() < xmax)) {
 #endif
         time = lmtv.GetSystem()->GetChTime();
 
@@ -374,11 +375,10 @@ int main(int argc, char* argv[]) {
 
         // Render scene
         if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+            vis->BeginScene();
+            vis->DrawAll();
+            vis->EndScene();
         }
-
 #endif
 
         if (povray_output && step_number % render_steps == 0) {
@@ -397,7 +397,7 @@ int main(int argc, char* argv[]) {
         lmtv.Synchronize(time, driver_inputs, terrain);
 
 #ifdef USE_IRRLICHT
-        app.Synchronize("Follower driver", driver_inputs);
+        vis->Synchronize("Follower driver", driver_inputs);
 #endif
 
         // Advance simulation for one timestep for all modules
@@ -407,7 +407,7 @@ int main(int argc, char* argv[]) {
         lmtv.Advance(step_size);
 
 #ifdef USE_IRRLICHT
-        app.Advance(step_size);
+        vis->Advance(step_size);
 #endif
 
         if (data_output && step_number % output_steps == 0) {
@@ -424,11 +424,10 @@ int main(int argc, char* argv[]) {
                 csv << lmtv.GetVehicle().GetSpindleAngVel(axle, LEFT);
                 csv << lmtv.GetVehicle().GetSpindleAngVel(axle, RIGHT);
             }
-            csv << lmtv.GetVehicle().GetVehicleSpeed();
-            csv << lmtv.GetVehicle().GetVehiclePointAcceleration(
-                lmtv.GetVehicle().GetChassis()->GetLocalDriverCoordsys().pos);
+            csv << lmtv.GetVehicle().GetSpeed();
+            csv << lmtv.GetVehicle().GetPointAcceleration(lmtv.GetVehicle().GetChassis()->GetLocalDriverCoordsys().pos);
 
-            csv << lmtv.GetVehicle().GetVehiclePointAcceleration(vehCOM);
+            csv << lmtv.GetVehicle().GetPointAcceleration(vehCOM);
 
             for (auto& axle : lmtv.GetVehicle().GetAxles()) {
                 for (auto& wheel : axle->GetWheels()) {

@@ -37,9 +37,9 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleIrrApp& app)
-    : ChDriver(*app.m_vehicle),
-      m_app(app),
+ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleVisualSystemIrrlicht& vsys)
+    : ChDriver(*vsys.m_vehicle),
+      m_vsys(vsys),
       m_steering_target(0),
       m_throttle_target(0),
       m_braking_target(0),
@@ -51,12 +51,12 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleIrrApp& app)
       m_throttle_gain(4.0),
       m_braking_gain(4.0),
       m_mode(KEYBOARD) {
-    app.SetUserEventReceiver(this);
+    vsys.AddUserEventReceiver(this);
     m_dT = 0;
     core::array<SJoystickInfo> joystickInfo = core::array<SJoystickInfo>();
 
     /// Activates joysticks, if available
-    app.GetDevice()->activateJoysticks(joystickInfo);
+    vsys.GetDevice()->activateJoysticks(joystickInfo);
     if (joystickInfo.size() > 0) {
         GetLog() << "Joystick support is enabled and " << joystickInfo.size() << " joystick(s) are present.\n";
         m_mode = JOYSTICK;
@@ -117,17 +117,17 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
 
         if (event.JoystickEvent.Axis[clutch_axis] != SHRT_MAX && clutch_axis!=NONE) {
             SetThrottle(0);
-            if (m_app.m_vehicle->GetPowertrain()) {
+            if (m_vsys.m_vehicle->GetPowertrain()) {
                 if (event.JoystickEvent.IsButtonPressed(22)) {
                     /// Gear is set to reverse
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::REVERSE);
+                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::REVERSE);
                 } else if (event.JoystickEvent.IsButtonPressed(12) || event.JoystickEvent.IsButtonPressed(13) ||
                            event.JoystickEvent.IsButtonPressed(14) || event.JoystickEvent.IsButtonPressed(15) ||
                            event.JoystickEvent.IsButtonPressed(16) || event.JoystickEvent.IsButtonPressed(17)) {
                     // All 'forward' gears set drive mode to forward, regardless of gear
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::FORWARD);
+                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::FORWARD);
                 } else {
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::NEUTRAL);
+                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::NEUTRAL);
                 }
             }
         }
@@ -186,44 +186,44 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
             case KEY_KEY_J:
                 if (m_data_driver) {
                     m_mode = DATAFILE;
-                    m_time_shift = m_app.m_vehicle->GetSystem()->GetChTime();
+                    m_time_shift = m_vsys.m_vehicle->GetSystem()->GetChTime();
                 }
                 return true;
 
             case KEY_KEY_Z:
-                if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::FORWARD);
+                if (m_mode == KEYBOARD && m_vsys.m_vehicle->GetPowertrain())
+                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::FORWARD);
                 return true;
             case KEY_KEY_X:
-                if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::NEUTRAL);
+                if (m_mode == KEYBOARD && m_vsys.m_vehicle->GetPowertrain())
+                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::NEUTRAL);
                 return true;
             case KEY_KEY_C:
-                if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::REVERSE);
+                if (m_mode == KEYBOARD && m_vsys.m_vehicle->GetPowertrain())
+                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::REVERSE);
                 return true;
 
             case KEY_KEY_T:
-                if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain()) {
-                    switch (m_app.m_vehicle->GetPowertrain()->GetTransmissionMode()) {
+                if (m_mode == KEYBOARD && m_vsys.m_vehicle->GetPowertrain()) {
+                    switch (m_vsys.m_vehicle->GetPowertrain()->GetTransmissionMode()) {
                         case ChPowertrain::TransmissionMode::MANUAL:
-                            m_app.m_vehicle->GetPowertrain()->SetTransmissionMode(
+                            m_vsys.m_vehicle->GetPowertrain()->SetTransmissionMode(
                                 ChPowertrain::TransmissionMode::AUTOMATIC);
                             break;
                         case ChPowertrain::TransmissionMode::AUTOMATIC:
-                            m_app.m_vehicle->GetPowertrain()->SetTransmissionMode(
+                            m_vsys.m_vehicle->GetPowertrain()->SetTransmissionMode(
                                 ChPowertrain::TransmissionMode::MANUAL);
                             break;
                     }
                 }
                 return true;
             case KEY_PERIOD:
-                if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
-                    m_app.m_vehicle->GetPowertrain()->ShiftUp();
+                if (m_mode == KEYBOARD && m_vsys.m_vehicle->GetPowertrain())
+                    m_vsys.m_vehicle->GetPowertrain()->ShiftUp();
                 return true;
             case KEY_COMMA:
-                if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
-                    m_app.m_vehicle->GetPowertrain()->ShiftDown();
+                if (m_mode == KEYBOARD && m_vsys.m_vehicle->GetPowertrain())
+                    m_vsys.m_vehicle->GetPowertrain()->ShiftDown();
                 return true;
 
             default:
@@ -273,7 +273,7 @@ void ChIrrGuiDriver::SetInputMode(InputMode mode) {
         case DATAFILE:
             if (m_data_driver) {
                 m_mode = DATAFILE;
-                m_time_shift = m_app.m_vehicle->GetSystem()->GetChTime();
+                m_time_shift = m_vsys.m_vehicle->GetSystem()->GetChTime();
             }
             break;
         case JOYSTICK:

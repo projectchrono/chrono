@@ -29,13 +29,11 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChSingleIdler::ChSingleIdler(const std::string& name) : ChIdler(name) {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSingleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChSingleIdler::Initialize(std::shared_ptr<ChChassis> chassis,
                                const ChVector<>& location,
                                ChTrackAssembly* track) {
     // Invoke the base class method
@@ -65,7 +63,6 @@ void ChSingleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChSingleIdler::AddVisualizationAssets(VisualizationType vis) {
     ChIdler::AddVisualizationAssets(vis);
 
@@ -79,17 +76,12 @@ void ChSingleIdler::AddVisualizationAssets(VisualizationType vis) {
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
     cyl->GetCylinderGeometry().rad = radius;
-    m_wheel->AddAsset(cyl);
-
-    auto tex = chrono_types::make_shared<ChTexture>();
-    tex->SetTextureFilename(chrono::GetChronoDataFile("textures/bluewhite.png"));
-    m_wheel->AddAsset(tex);
+    m_wheel->AddVisualShape(cyl);
 }
 
 void ChSingleIdler::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_wheel);
     ChIdler::RemoveVisualizationAssets();
-
-    m_wheel->GetAssets().clear();
 }
 
 }  // end namespace vehicle

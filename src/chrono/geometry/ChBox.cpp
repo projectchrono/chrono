@@ -14,7 +14,6 @@
 
 #include <cstdio>
 
-#include "chrono/core/ChTransform.h"
 #include "chrono/geometry/ChBox.h"
 
 namespace chrono {
@@ -23,9 +22,10 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBox)
 
-ChBox::ChBox(const ChVector<>& mpos, const ChMatrix33<>& mrot, const ChVector<>& mlengths)
-    : Pos(mpos), Rot(mrot), Size(0.5 * mlengths) {}
+ChBox::ChBox(const ChVector<>& lengths) : Size(0.5 * lengths) {}
+ChBox::ChBox(double len_x, double len_y, double len_z) : Size(0.5 * ChVector<>(len_z, len_y, len_z)) {}
 
+/*
 ChBox::ChBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3) {
     ChVector<> D1 = Vsub(mC1, mC0);
     ChVector<> D2 = Vsub(mC2, mC0);
@@ -45,76 +45,41 @@ ChBox::ChBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2
     this->Pos = Vadd(Vadd(Vadd(C0, Vmul(D1, 0.5)), Vmul(D2, 0.5)), Vmul(D3, 0.5));
     this->Rot.Set_A_axis(Vnorm(D1), Vnorm(D2), Vnorm(D3));
 }
+*/
 
 ChBox::ChBox(const ChBox& source) {
-    Pos = source.Pos;
     Size = source.Size;
-    Rot = source.Rot;
 }
 
 void ChBox::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {
-    ChVector<> Pr;
-    Pr.x() = Size.x() * (parU - 0.5);
-    Pr.y() = Size.y() * (parV - 0.5);
-    Pr.z() = Size.z() * (parW - 0.5);
-    pos = ChTransform<>::TransformLocalToParent(Pr, Pos, Rot);
+    pos.x() = Size.x() * (parU - 0.5);
+    pos.y() = Size.y() * (parV - 0.5);
+    pos.z() = Size.z() * (parW - 0.5);
 }
 
 ChVector<> ChBox::GetP1() const {
-    ChVector<> P1r;
-    P1r.x() = +Size.x();
-    P1r.y() = +Size.y();
-    P1r.z() = +Size.z();
-    return ChTransform<>::TransformLocalToParent(P1r, Pos, Rot);
+    return ChVector<>(+Size.x(), +Size.y(), +Size.z());
 }
 ChVector<> ChBox::GetP2() const {
-    ChVector<> P2r;
-    P2r.x() = -Size.x();
-    P2r.y() = +Size.y();
-    P2r.z() = +Size.z();
-    return ChTransform<>::TransformLocalToParent(P2r, Pos, Rot);
+    return ChVector<>(-Size.x(), +Size.y(), +Size.z());
 }
 ChVector<> ChBox::GetP3() const {
-    ChVector<> P3r;
-    P3r.x() = -Size.x();
-    P3r.y() = -Size.y();
-    P3r.z() = +Size.z();
-    return ChTransform<>::TransformLocalToParent(P3r, Pos, Rot);
+    return ChVector<>(-Size.x(), -Size.y(), +Size.z());
 }
 ChVector<> ChBox::GetP4() const {
-    ChVector<> P4r;
-    P4r.x() = +Size.x();
-    P4r.y() = -Size.y();
-    P4r.z() = +Size.z();
-    return ChTransform<>::TransformLocalToParent(P4r, Pos, Rot);
+    return ChVector<>(+Size.x(), -Size.y(), +Size.z());
 }
 ChVector<> ChBox::GetP5() const {
-    ChVector<> P5r;
-    P5r.x() = +Size.x();
-    P5r.y() = +Size.y();
-    P5r.z() = -Size.z();
-    return ChTransform<>::TransformLocalToParent(P5r, Pos, Rot);
+    return ChVector<>(+Size.x(), +Size.y(), -Size.z());
 }
 ChVector<> ChBox::GetP6() const {
-    ChVector<> P6r;
-    P6r.x() = -Size.x();
-    P6r.y() = +Size.y();
-    P6r.z() = -Size.z();
-    return ChTransform<>::TransformLocalToParent(P6r, Pos, Rot);
+    return ChVector<>(-Size.x(), +Size.y(), -Size.z());
 }
 ChVector<> ChBox::GetP7() const {
-    ChVector<> P7r;
-    P7r.x() = -Size.x();
-    P7r.y() = -Size.y();
-    P7r.z() = -Size.z();
-    return ChTransform<>::TransformLocalToParent(P7r, Pos, Rot);
+    return ChVector<>(-Size.x(), -Size.y(), -Size.z());
 }
 ChVector<> ChBox::GetP8() const {
-    ChVector<> P8r;
-    P8r.x() = +Size.x();
-    P8r.y() = -Size.y();
-    P8r.z() = -Size.z();
-    return ChTransform<>::TransformLocalToParent(P8r, Pos, Rot);
+    return ChVector<>(+Size.x(), -Size.y(), -Size.z());
 }
 
 ChVector<> ChBox::GetPn(int ipoint) const {
@@ -306,20 +271,16 @@ void ChBox::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize parent class
     ChVolume::ArchiveOUT(marchive);
     // serialize all member data:
-    marchive << CHNVP(Pos);
-    marchive << CHNVP(Rot);
     ChVector<> Lengths = GetLengths();
     marchive << CHNVP(Lengths);  // avoid storing 'Size', i.e. half lengths, because less intuitive
 }
 
 void ChBox::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChBox>();
+    /*int version =*/marchive.VersionRead<ChBox>();
     // deserialize parent class
     ChVolume::ArchiveIN(marchive);
     // stream in all member data:
-    marchive >> CHNVP(Pos);
-    ////marchive >> CHNVP(Rot);
     ChVector<> Lengths;
     marchive >> CHNVP(Lengths);  // avoid storing 'Size', i.e. half lengths, because less intuitive
     SetLengths(Lengths);

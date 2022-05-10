@@ -21,7 +21,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -106,27 +106,27 @@ int main(int argc, char* argv[]) {
     driver_2.Initialize();
 
     // Create the vehicle Irrlicht interface (associated with 1st vehicle)
-    ChWheeledVehicleIrrApp app(&hmmwv_1.GetVehicle(), L"Two cars demo");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
-    app.SetChaseCameraState(utils::ChChaseCamera::Track);
-    app.SetChaseCameraPosition(ChVector<>(-15, 0, 2.0));
-    app.SetTimestep(step_size);
-
-    // Bind all Irrlicht visualization assets
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Two cars demo");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
+    vis->SetChaseCameraState(utils::ChChaseCamera::Track);
+    vis->SetChaseCameraPosition(ChVector<>(-15, 0, 2.0));
+    vis->Initialize();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vis->AddTypicalLights();
+    hmmwv_1.GetVehicle().SetVisualSystem(vis);
 
     // ---------------
     // Simulation loop
     // ---------------
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = sys.GetChTime();
 
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Driver inputs
         ChDriver::Inputs driver_inputs_1 = driver_1.GetInputs();
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
         hmmwv_1.Synchronize(time, driver_inputs_1, terrain);
         hmmwv_2.Synchronize(time, driver_inputs_2, terrain);
         terrain.Synchronize(time);
-        app.Synchronize("", driver_inputs_1);
+        vis->Synchronize("", driver_inputs_1);
 
         // Advance simulation for one timestep for all modules.
         driver_1.Advance(step_size);
@@ -146,12 +146,12 @@ int main(int argc, char* argv[]) {
         hmmwv_1.Advance(step_size);
         hmmwv_2.Advance(step_size);
         terrain.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Advance state of entire system (containing both vehicles)
         sys.DoStepDynamics(step_size);
 
-        app.EndScene();
+        vis->EndScene();
     }
 
     return 0;

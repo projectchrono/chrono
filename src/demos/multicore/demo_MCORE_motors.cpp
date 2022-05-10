@@ -19,7 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorLinearForce.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
@@ -50,15 +49,10 @@ void CreateSliderGuide(std::shared_ptr<ChBody>& mguide,
     mslider->SetPos(mpos + ChVector<>(0, 0.3, 0));
     msystem.Add(mslider);
 
-    auto mcolor = chrono_types::make_shared<ChColorAsset>(0.6f, 0.6f, 0.0f);
-    mslider->AddAsset(mcolor);
-
     auto obstacle = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.4, 0.4, 8000, material,
                                                              collision::ChCollisionSystemType::CHRONO);
     obstacle->SetPos(mpos + ChVector<>(1.5, 0.4, 0));
     msystem.Add(obstacle);
-    auto mcolorobstacle = chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.2f);
-    mslider->AddAsset(mcolorobstacle);
 }
 
 void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
@@ -76,14 +70,11 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
     mrotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material, collision::ChCollisionSystemType::CHRONO);
     mrotor->SetPos(mpos + ChVector<>(0.5, 0, -0.15));
     msystem.Add(mrotor);
-
-    auto mcolor = chrono_types::make_shared<ChColorAsset>(0.6f, 0.6f, 0.0f);
-    mrotor->AddAsset(mcolor);
 }
 
 // -----------------------------------------------------------------------------
 
-void ExampleA1(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleA1(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     // EXAMPLE A.1
     //
     // - class:   ChLinkMotorRotationSpeed
@@ -102,7 +93,7 @@ void ExampleA1(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     ChVector<> positionA1(-3, 2, -3);
     std::shared_ptr<ChBody> stator1;
     std::shared_ptr<ChBody> rotor1;
-    CreateStatorRotor(stator1, rotor1, material, mphysicalSystem, positionA1);
+    CreateStatorRotor(stator1, rotor1, material, sys, positionA1);
 
     // Create the motor
     auto rotmotor1 = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -112,7 +103,7 @@ void ExampleA1(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
                           stator1,               // body B (master)
                           ChFrame<>(positionA1)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(rotmotor1);
+    sys.Add(rotmotor1);
 
     // Create a ChFunction to be used for the ChLinkMotorRotationSpeed
     auto mwspeed =
@@ -129,7 +120,7 @@ void ExampleA1(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     // rotmotor1->SetAvoidAngleDrift(false);
 }
 
-void ExampleA2(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleA2(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     // EXAMPLE A.2
     //
     // - class:   ChLinkMotorRotationAngle
@@ -150,7 +141,7 @@ void ExampleA2(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     ChVector<> positionA2(-3, 2, -2);
     std::shared_ptr<ChBody> stator2;
     std::shared_ptr<ChBody> rotor2;
-    CreateStatorRotor(stator2, rotor2, material, mphysicalSystem, positionA2);
+    CreateStatorRotor(stator2, rotor2, material, sys, positionA2);
 
     // Create the motor
     auto rotmotor2 = chrono_types::make_shared<ChLinkMotorRotationAngle>();
@@ -160,7 +151,7 @@ void ExampleA2(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
                           stator2,               // body B (master)
                           ChFrame<>(positionA2)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(rotmotor2);
+    sys.Add(rotmotor2);
 
     // Create a ChFunction to be used for the ChLinkMotorRotationAngle
     auto msineangle = chrono_types::make_shared<ChFunction_Sine>(0,       // phase [rad]
@@ -171,7 +162,7 @@ void ExampleA2(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     rotmotor2->SetAngleFunction(msineangle);
 }
 
-void ExampleA3(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleA3(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     // EXAMPLE A.3
     //
     // - class:   ChLinkMotorRotationTorque
@@ -186,7 +177,7 @@ void ExampleA3(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     ChVector<> positionA3(-3, 2, -1);
     std::shared_ptr<ChBody> stator3;
     std::shared_ptr<ChBody> rotor3;
-    CreateStatorRotor(stator3, rotor3, material, mphysicalSystem, positionA3);
+    CreateStatorRotor(stator3, rotor3, material, sys, positionA3);
 
     // Create the motor
     auto rotmotor3 = chrono_types::make_shared<ChLinkMotorRotationTorque>();
@@ -196,7 +187,7 @@ void ExampleA3(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
                           stator3,               // body B (master)
                           ChFrame<>(positionA3)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(rotmotor3);
+    sys.Add(rotmotor3);
 
     // The torque(time) function:
     auto mtorquetime = chrono_types::make_shared<ChFunction_Sine>(0,   // phase [rad]
@@ -208,7 +199,7 @@ void ExampleA3(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     rotmotor3->SetTorqueFunction(mtorquetime);
 }
 
-void ExampleA4(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleA4(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     // EXAMPLE A.4
     //
     // As before, use a ChLinkMotorRotationTorque, but this time compute
@@ -218,7 +209,7 @@ void ExampleA4(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     ChVector<> positionA4(-3, 2, 0);
     std::shared_ptr<ChBody> stator4;
     std::shared_ptr<ChBody> rotor4;
-    CreateStatorRotor(stator4, rotor4, material, mphysicalSystem, positionA4);
+    CreateStatorRotor(stator4, rotor4, material, sys, positionA4);
 
     // Create the motor
     auto rotmotor4 = chrono_types::make_shared<ChLinkMotorRotationTorque>();
@@ -228,7 +219,7 @@ void ExampleA4(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
                           stator4,               // body B (master)
                           ChFrame<>(positionA4)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(rotmotor4);
+    sys.Add(rotmotor4);
 
     // Implement our custom  torque function.
     // We could use pre-defined ChFunction classes like sine, constant, ramp, etc.,
@@ -272,7 +263,7 @@ void ExampleA4(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
 
 // -----------------------------------------------------------------------------
 
-void ExampleB1(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleB1(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     // EXAMPLE B.1
     //
     // - class:   ChLinkMotorLinearPosition
@@ -290,7 +281,7 @@ void ExampleB1(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     ChVector<> positionB1(0, 0, -3);
     std::shared_ptr<ChBody> guide1;
     std::shared_ptr<ChBody> slider1;
-    CreateSliderGuide(guide1, slider1, material, mphysicalSystem, positionB1);
+    CreateSliderGuide(guide1, slider1, material, sys, positionB1);
 
     // Create the linear motor
     auto motor1 = chrono_types::make_shared<ChLinkMotorLinearPosition>();
@@ -300,7 +291,7 @@ void ExampleB1(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
                        guide1,                // body B (master)
                        ChFrame<>(positionB1)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(motor1);
+    sys.Add(motor1);
 
     // Create a ChFunction to be used for the ChLinkMotorLinearPosition
     auto msine = chrono_types::make_shared<ChFunction_Sine>(0,    // phase
@@ -311,7 +302,7 @@ void ExampleB1(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     motor1->SetMotionFunction(msine);
 }
 
-void ExampleB2(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleB2(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     // EXAMPLE B.2
     //
     // - class:   ChLinkMotorLinearSpeed
@@ -334,7 +325,7 @@ void ExampleB2(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     ChVector<> positionB2(0, 0, -2);
     std::shared_ptr<ChBody> guide2;
     std::shared_ptr<ChBody> slider2;
-    CreateSliderGuide(guide2, slider2, material, mphysicalSystem, positionB2);
+    CreateSliderGuide(guide2, slider2, material, sys, positionB2);
 
     // Create the linear motor
     auto motor2 = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
@@ -344,7 +335,7 @@ void ExampleB2(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
                        guide2,                // body B (master)
                        ChFrame<>(positionB2)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(motor2);
+    sys.Add(motor2);
 
     // Create a ChFunction to be used for the ChLinkMotorLinearSpeed
     auto msp = chrono_types::make_shared<ChFunction_Sine>(CH_C_PI_2,            // phase
@@ -363,7 +354,7 @@ void ExampleB2(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     // motor2->SetAvoidPositionDrift(false);
 }
 
-void ExampleB3(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleB3(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     // EXAMPLE B.3
     //
     // - class:   ChLinkMotorLinearForce
@@ -389,7 +380,7 @@ void ExampleB3(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     ChVector<> positionB3(0, 0, -1);
     std::shared_ptr<ChBody> guide3;
     std::shared_ptr<ChBody> slider3;
-    CreateSliderGuide(guide3, slider3, material, mphysicalSystem, positionB3);
+    CreateSliderGuide(guide3, slider3, material, sys, positionB3);
 
     // just for fun: modify the initial speed of slider to match other examples
     slider3->SetPos_dt(ChVector<>(1.6 * 0.5 * CH_C_2PI));
@@ -402,7 +393,7 @@ void ExampleB3(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
                        guide3,                // body B (master)
                        ChFrame<>(positionB3)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(motor3);
+    sys.Add(motor3);
 
     // Create a ChFunction to be used for F(t) in ChLinkMotorLinearForce.
     auto mF = chrono_types::make_shared<ChFunction_Const>(200);
@@ -420,7 +411,7 @@ void ExampleB3(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     // motor3->SetForceFunction(mF2); // uncomment to test this
 }
 
-void ExampleB4(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleB4(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     // EXAMPLE B.4
     //
     // As before, use a ChLinkMotorLinearForce, but this time compute
@@ -430,7 +421,7 @@ void ExampleB4(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
     ChVector<> positionB4(0, 0, 0);
     std::shared_ptr<ChBody> guide4;
     std::shared_ptr<ChBody> slider4;
-    CreateSliderGuide(guide4, slider4, material, mphysicalSystem, positionB4);
+    CreateSliderGuide(guide4, slider4, material, sys, positionB4);
 
     // Create the linear motor
     auto motor4 = chrono_types::make_shared<ChLinkMotorLinearForce>();
@@ -440,7 +431,7 @@ void ExampleB4(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
                        guide4,                // body B (master)
                        ChFrame<>(positionB4)  // motor frame, in abs. coords
     );
-    mphysicalSystem.Add(motor4);
+    sys.Add(motor4);
 
     // Create a ChFunction that computes F by a user-defined algorithm, as a callback.
     // One quick option would be to inherit from the ChFunction base class, and implement the Get_y()

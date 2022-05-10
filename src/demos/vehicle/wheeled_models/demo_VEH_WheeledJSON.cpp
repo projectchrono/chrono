@@ -30,7 +30,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -265,17 +265,20 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(system, vehicle::GetDataFile(rigidterrain_file));
+    terrain.Initialize();
 
     // Create Irrilicht visualization
-    ChWheeledVehicleIrrApp app(&vehicle, L"Vehicle demo - JSON specification");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model.CameraDistance(), 0.5);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Vehicle demo - JSON specification");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model.CameraDistance(), 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vehicle.SetVisualSystem(vis);
 
     // Create the interactive driver
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
     driver.SetSteeringDelta(0.02);
     driver.SetThrottleDelta(0.02);
     driver.SetBrakingDelta(0.06);
@@ -320,11 +323,11 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     ChRealtimeStepTimer realtime_timer;
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        app.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -336,7 +339,7 @@ int main(int argc, char* argv[]) {
         if (add_trailer)
             trailer->Synchronize(time, driver_inputs.m_braking, terrain);
         terrain.Synchronize(time);
-        app.Synchronize(vehicle_model.ModelName(), driver_inputs);
+        vis->Synchronize(vehicle_model.ModelName(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
@@ -344,7 +347,7 @@ int main(int argc, char* argv[]) {
         if (add_trailer)
             trailer->Advance(step_size);
         terrain.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);

@@ -25,11 +25,11 @@
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -41,17 +41,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemSMC my_system;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Beams (SPACE for dynamics, F10 / F11 statics)", core::dimension2d<u32>(800, 600));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(-0.1f, 0.2f, -0.2f));
+    ChSystemSMC sys;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -108,17 +98,17 @@ int main(int argc, char* argv[]) {
     // hnode1->SetFixed(true);
     auto mtruss = chrono_types::make_shared<ChBody>();
     mtruss->SetBodyFixed(true);
-    my_system.Add(mtruss);
+    sys.Add(mtruss);
 
     auto constr_bc = chrono_types::make_shared<ChLinkMateGeneric>();
     constr_bc->Initialize(hnode3, mtruss, false, hnode3->Frame(), hnode3->Frame());
-    my_system.Add(constr_bc);
+    sys.Add(constr_bc);
     constr_bc->SetConstrainedCoords(true, true, true,   // x, y, z
                                     true, true, true);  // Rx, Ry, Rz
 
     auto constr_d = chrono_types::make_shared<ChLinkMateGeneric>();
     constr_d->Initialize(hnode1, mtruss, false, hnode1->Frame(), hnode1->Frame());
-    my_system.Add(constr_d);
+    sys.Add(constr_d);
     constr_d->SetConstrainedCoords(false, true, true,     // x, y, z
                                    false, false, false);  // Rx, Ry, Rz
 
@@ -134,9 +124,9 @@ int main(int argc, char* argv[]) {
     ChBuilderBeamEuler builder;
 
     // Now, simply use BuildBeam to create a beam from a point to another:
-    builder.BuildBeam(my_mesh,                   // the mesh where to put the created nodes and elements
-                      msection,                  // the ChBeamSectionEulerAdvanced to use for the ChElementBeamEuler elements
-                      5,                         // the number of ChElementBeamEuler to create
+    builder.BuildBeam(my_mesh,   // the mesh where to put the created nodes and elements
+                      msection,  // the ChBeamSectionEulerAdvanced to use for the ChElementBeamEuler elements
+                      5,         // the number of ChElementBeamEuler to create
                       ChVector<>(0, 0, -0.1),    // the 'A' point in space (beginning of beam)
                       ChVector<>(0.2, 0, -0.1),  // the 'B' point in space (end of beam)
                       ChVector<>(0, 1, 0));      // the 'Y' up direction of the section for the beam
@@ -161,98 +151,95 @@ int main(int argc, char* argv[]) {
     my_mesh->SetAutomaticGravity(false);
 
     // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
-    // ==Asset== attach a visualization of the FEM mesh.
+    // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChTriangleMeshShape).
-    // Do not forget AddAsset() at the end!
 
     /*
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizebeamA->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizebeamA);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
     */
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
     mvisualizebeamA->SetColorscaleMinMax(-0.4, 0.4);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
-    my_mesh->AddAsset(mvisualizebeamA);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizebeamC);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-    application.AssetBindAll();
-
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Beams (SPACE for dynamics, F10 / F11 statics)");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.1, 0.2, -0.2));
+    sys.SetVisualSystem(vis);
 
     // THE SIMULATION LOOP
 
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(500);
     solver->SetTolerance(1e-14);
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(false);
 
-    my_system.SetSolverForceTolerance(1e-13);
+    sys.SetSolverForceTolerance(1e-13);
 
     // Change type of integrator:
     ////auto stepper = chrono_types::make_shared<ChTimestepperHHT>();
-    ////my_system.SetTimestepper(stepper);
+    ////sys.SetTimestepper(stepper);
     ////stepper->SetAlpha(-0.2);
     ////stepper->SetMaxiters(6);
     ////stepper->SetAbsTolerances(1e-12);
     ////stepper->SetVerbose(true);
     ////stepper->SetStepControl(false);
 
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-
-    application.SetTimestep(0.001);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     GetLog() << "\n\n\n===========STATICS======== \n\n\n";
 
+    sys.DoStaticLinear();
 
-    application.GetSystem()->DoStaticLinear();
+    //***TEST***
+    sys.Setup();
+    sys.Update();
+    ChMatrixDynamic<> myHa(12, 12);
+    ChMatrixDynamic<> myHn(12, 12);
+    auto myel = builder.GetLastBeamElements()[1];  //.back();
+    myel->SetUseGeometricStiffness(true);
+    myel->ComputeKRMmatricesGlobal(myHa, 1, 0, 0);
+    GetLog() << "K analytical = \n" << myHa;
+    //***TEST***
+    sys.SetNumThreads(1);
+    for (auto i : builder.GetLastBeamElements())
+        i->use_numerical_diff_for_KR = true;
 
-    //***TEST***    
-my_system.Setup();
-my_system.Update();
-ChMatrixDynamic<> myHa(12, 12);
-ChMatrixDynamic<> myHn(12, 12);
-auto myel = builder.GetLastBeamElements()[1]; //.back();
-myel->SetUseGeometricStiffness(true);
-myel->ComputeKRMmatricesGlobal(myHa, 1, 0, 0);
-GetLog() << "K analytical = \n" << myHa;
- //***TEST***
-my_system.SetNumThreads(1);
-for (auto i : builder.GetLastBeamElements()) i->use_numerical_diff_for_KR = true;
-
-// builder.GetLastBeamElements().back()->use_numerical_diff_for_KR = true;
-myel->ComputeKRMmatricesGlobal(myHn, 1, 0, 0);
-GetLog() << "K numerical = \n" << myHn;
-GetLog() << "K diff = \n" << ChMatrixDynamic<>(((myHn-myHa).array().abs()).array().cwiseQuotient(myHa.array().abs().array()));
-system("pause");
+    // builder.GetLastBeamElements().back()->use_numerical_diff_for_KR = true;
+    myel->ComputeKRMmatricesGlobal(myHn, 1, 0, 0);
+    GetLog() << "K numerical = \n" << myHn;
+    GetLog() << "K diff = \n"
+             << ChMatrixDynamic<>(((myHn - myHa).array().abs()).array().cwiseQuotient(myHa.array().abs().array()));
+    system("pause");
 
     GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
 
@@ -277,18 +264,11 @@ system("pause");
     GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x() << "    y=" << hnode3->Frame().GetPos().y()
              << "    z=" << hnode3->Frame().GetPos().z() << "\n\n";
 
-    GetLog() << "Press SPACE bar to start/stop dynamic simulation \n\n";
-    GetLog() << "Press F10 for nonlinear static solution \n\n";
-    GetLog() << "Press F11 for linear static solution \n\n";
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        application.DrawAll();
-
-        application.DoStep();
-
-        application.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
+        sys.DoStepDynamics(0.001);
     }
 
     return 0;

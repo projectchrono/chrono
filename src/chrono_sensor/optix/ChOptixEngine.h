@@ -124,24 +124,24 @@ class CH_SENSOR_API ChOptixEngine {
     /// Creates an optix box visualization object from a Chrono box shape
     void boxVisualization(std::shared_ptr<ChBody> body,
                           std::shared_ptr<ChBoxShape> box_shape,
-                          std::shared_ptr<ChVisualization> visual_asset);
+                          ChFrame<> asset_frame);
     /// Creates an optix sphere visualization object from a Chrono sphere shape
     void sphereVisualization(std::shared_ptr<ChBody> body,
                              std::shared_ptr<ChSphereShape> sphere_shape,
-                             std::shared_ptr<ChVisualization> visual_asset);
+                             ChFrame<> asset_frame);
     /// Creates an optix cylinder visualization object from a Chrono cylinder shape
     void cylinderVisualization(std::shared_ptr<ChBody> body,
                                std::shared_ptr<ChCylinderShape> sphere_shape,
-                               std::shared_ptr<ChVisualization> visual_asset);
+                               ChFrame<> asset_frame);
     /// Creates an optix rigid mesh visualization object from a Chrono mesh shape
     void rigidMeshVisualization(std::shared_ptr<ChBody> body,
                                 std::shared_ptr<ChTriangleMeshShape> sphere_shape,
-                                std::shared_ptr<ChVisualization> visual_asset);
+                                ChFrame<> asset_frame);
 
     /// Creates an optix deformable mesh visualization object from a Chrono mesh shape
     void deformableMeshVisualization(std::shared_ptr<ChBody> body,
                                      std::shared_ptr<ChTriangleMeshShape> sphere_shape,
-                                     std::shared_ptr<ChVisualization> visual_asset);
+                                     ChFrame<> asset_frame);
 
     std::vector<unsigned int> m_renderQueue;  ///< list of sensor indices that need to be updated
 

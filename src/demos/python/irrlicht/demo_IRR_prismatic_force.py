@@ -32,33 +32,29 @@ except ImportError:
 
 print("Copyright (c) 2017 projectchrono.org")
 
-system = chrono.ChSystemNSC()
-system.Set_G_acc(chrono.ChVectorD(0, 0, 0))
+sys = chrono.ChSystemNSC()
+sys.Set_G_acc(chrono.ChVectorD(0, 0, 0))
 
 # Create the ground body
 ground = chrono.ChBody()
-system.AddBody(ground)
+sys.AddBody(ground)
 ground.SetIdentifier(-1)
 ground.SetBodyFixed(True)
 ground.SetCollide(False)
 
 rail1 = chrono.ChBoxShape()
 rail1.GetBoxGeometry().SetLengths(chrono.ChVectorD(8, 0.1, 0.1))
-rail1.GetBoxGeometry().Pos = chrono.ChVectorD(0, 0, -1)
-ground.AddAsset(rail1)
+rail1.SetColor(chrono.ChColor(0.6, 0.6, 0.6))
+ground.AddVisualShape(rail1, chrono.ChFrameD(chrono.ChVectorD(0, 0, -1)))
 
 rail2 = chrono.ChBoxShape()
 rail2.GetBoxGeometry().SetLengths(chrono.ChVectorD(8, 0.1, 0.1))
-rail2.GetBoxGeometry().Pos = chrono.ChVectorD(0, 0, 1)
-ground.AddAsset(rail2)
-
-col = chrono.ChColorAsset()
-col.SetColor(chrono.ChColor(0.6, 0.6, 0.6))
-ground.AddAsset(col)
+rail2.SetColor(chrono.ChColor(0.6, 0.6, 0.6))
+ground.AddVisualShape(rail2, chrono.ChFrameD(chrono.ChVectorD(0, 0, 1)))
 
 # Create the slider bodies
 slider1 = chrono.ChBody()
-system.AddBody(slider1)
+sys.AddBody(slider1)
 slider1.SetIdentifier(1)
 slider1.SetBodyFixed(False)
 slider1.SetCollide(False)
@@ -70,14 +66,11 @@ cyl1 = chrono.ChCylinderShape()
 cyl1.GetCylinderGeometry().p1 = chrono.ChVectorD(-0.2, 0, 0)
 cyl1.GetCylinderGeometry().p2 = chrono.ChVectorD(0.2, 0, 0)
 cyl1.GetCylinderGeometry().rad = 0.2
-slider1.AddAsset(cyl1)
-
-col1 = chrono.ChColorAsset()
-col1.SetColor(chrono.ChColor(0.6, 0, 0))
-slider1.AddAsset(col1)
+cyl1.SetColor(chrono.ChColor(0.6, 0, 0))
+slider1.AddVisualShape(cyl1)
 
 slider2 = chrono.ChBody()
-system.AddBody(slider2)
+sys.AddBody(slider2)
 slider2.SetIdentifier(1)
 slider2.SetBodyFixed(False)
 slider2.SetCollide(False)
@@ -89,22 +82,19 @@ cyl2 = chrono.ChCylinderShape()
 cyl2.GetCylinderGeometry().p1 = chrono.ChVectorD(-0.2, 0, 0)
 cyl2.GetCylinderGeometry().p2 = chrono.ChVectorD(0.2, 0, 0)
 cyl2.GetCylinderGeometry().rad = 0.2
-slider2.AddAsset(cyl2)
-
-col2 = chrono.ChColorAsset()
-col2.SetColor(chrono.ChColor(0, 0, 0.6))
-slider2.AddAsset(col2)
+cyl2.SetColor(chrono.ChColor(0, 0, 0.6))
+slider2.AddVisualShape(cyl2)
 
 # Create prismatic joints between ground a sliders
 prismatic1 = chrono.ChLinkLockPrismatic()
 prismatic1.Initialize(slider1, ground, chrono.ChCoordsysD(
     chrono.ChVectorD(0, 0, -1), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
-system.AddLink(prismatic1)
+sys.AddLink(prismatic1)
 
 prismatic2 = chrono.ChLinkLockPrismatic()
 prismatic2.Initialize(slider2, ground, chrono.ChCoordsysD(
     chrono.ChVectorD(0, 0, 1), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
-system.AddLink(prismatic2)
+sys.AddLink(prismatic2)
 
 # Sine function parameters
 freq = 1
@@ -123,21 +113,26 @@ frc2.SetF_x(mod)
 slider2.AddForce(frc2)
 
 # Create the Irrlicht application
-application = irr.ChIrrApp(system, "Actuated prismatic joint", irr.dimension2du(800, 600))
-application.AddLogo()
-application.AddSkyBox()
-application.AddTypicalLights()
-application.AddCamera(irr.vector3df(-1, 1.5, -6))
-
-application.AssetBindAll()
-application.AssetUpdateAll()
-
-application.SetTimestep(1e-3)
+vis = irr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Actuated prismatic joint demo')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(-1, 1.5, -6))
+vis.AddTypicalLights()
 
 x0 = slider1.GetPos().x
 
-while application.GetDevice().run():
-    time = system.GetChTime()
+while vis.Run():
+    vis.BeginScene() 
+    vis.DrawAll()
+    irr.drawAllLinkframes(sys, vis.GetVideoDriver(), 1)
+    vis.EndScene()
+    sys.DoStepDynamics(1e-3)
+
+    time = sys.GetChTime()
 
     # Output slider x position/velocity and analytical solution
     # x = slider1.GetPos().x
@@ -145,9 +140,3 @@ while application.GetDevice().run():
     # xa = x0 + (ampl / omg) * (time - m.sin(omg * time) / omg)
     # xa_d = (ampl / omg) * (1 - m.cos(omg * time))
     # print('{0:f}   {1:f} {2:f}   {3:f} {4:f}'.format(time, x, x_d, xa, xa_d))
-
-    application.BeginScene()
-    application.DrawAll()
-    irr.drawAllLinkframes(system, application.GetVideoDriver(), 1)
-    application.DoStep()
-    application.EndScene()

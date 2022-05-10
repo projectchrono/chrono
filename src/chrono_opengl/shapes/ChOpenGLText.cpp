@@ -128,7 +128,9 @@ void ChOpenGLText::Draw(const mat4& projection, const mat4& view) {
     if (GLReturnedError("ChOpenGLText::Draw - on entry"))
         return;
 
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+#ifndef __EMSCRIPTEN__
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+#endif
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);

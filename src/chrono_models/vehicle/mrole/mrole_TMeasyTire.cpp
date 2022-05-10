@@ -102,8 +102,8 @@ void mrole_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void mrole_TMeasyTire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChTMeasyTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 // -----------------------------------------------------------------------------
@@ -155,8 +155,8 @@ void mrole_TMeasyTireSoil::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void mrole_TMeasyTireSoil::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChTMeasyTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 // -----------------------------------------------------------------------------
@@ -208,8 +208,8 @@ void mrole_TMeasyTireSand::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void mrole_TMeasyTireSand::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChTMeasyTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // namespace mrole

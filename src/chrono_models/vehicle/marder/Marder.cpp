@@ -120,6 +120,9 @@ void Marder::Initialize() {
             break;
         }
     }
+
+    // Recalculate vehicle mass, to properly account for all subsystems
+    m_vehicle->InitializeInertiaProperties();
 }
 
 // -----------------------------------------------------------------------------
@@ -133,11 +136,6 @@ void Marder::Synchronize(double time,
 // -----------------------------------------------------------------------------
 void Marder::Advance(double step) {
     m_vehicle->Advance(step);
-}
-
-// -----------------------------------------------------------------------------
-double Marder::GetTotalMass() const {
-    return m_vehicle->GetVehicleMass();
 }
 
 }  // namespace marder

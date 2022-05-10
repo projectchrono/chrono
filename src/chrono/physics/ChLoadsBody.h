@@ -20,10 +20,10 @@
 //
 // Example:
 //    std::shared_ptr<ChBodyEasyBox> body_test(new ChBodyEasyBox(8,4,4,1000));
-//    mphysicalSystem.Add(body_test);
+//    sys.Add(body_test);
 //
 //    std::shared_ptr<ChLoadContainer> mforcecontainer (new ChLoadContainer);
-//    mphysicalSystem.Add(mforcecontainer);
+//    sys.Add(mforcecontainer);
 //
 //    std::shared_ptr<ChLoadBodyForce> mforce (new ChLoadBodyForce(body_test, ChVector<>(0,80000,0), false,
 //    ChVector<>(8,0,0),true)); mforcecontainer->Add(mforce);

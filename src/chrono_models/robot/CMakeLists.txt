@@ -22,8 +22,8 @@ set(CRM_ROBOSIMIAN_FILES
 
 if(ENABLE_MODULE_IRRLICHT)
 set(CRM_ROBOSIMIAN_FILES ${CRM_ROBOSIMIAN_FILES}
-    robosimian/RoboSimianIrrApp.cpp
-    robosimian/RoboSimianIrrApp.h
+    robosimian/RoboSimianVisualSystemIrrlicht.cpp
+    robosimian/RoboSimianVisualSystemIrrlicht.h
 )
 endif()
 

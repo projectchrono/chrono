@@ -54,10 +54,6 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
     /// and follows the right-hand rule.
     virtual double GetCarrierAngle() const override;
 
-    /// Get the total mass of the roadwheel assembly.
-    /// This includes the mass of the roadwheel and of the suspension mechanism.
-    virtual double GetMass() const override;
-
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
@@ -90,6 +86,9 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
         ARM_CHASSIS,  ///< arm, connection point to chassis
         NUM_POINTS
     };
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the idler subsystem reference frame.

@@ -26,7 +26,7 @@
 #include <string>
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
 
 namespace chrono {
@@ -41,7 +41,7 @@ namespace vehicle {
 /// and update the current inputs.
 class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChDriverSTR, public irr::IEventReceiver {
   public:
-    ChIrrGuiDriverSTR(irrlicht::ChIrrApp& app);
+    ChIrrGuiDriverSTR(irrlicht::ChVisualSystemIrrlicht& vsys);
 
     ~ChIrrGuiDriverSTR() {}
 
@@ -62,7 +62,7 @@ class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChDriverSTR, public irr::IEventR
     /// Get string message.
     virtual std::string GetInfoMessage() const override { return m_msg; }
 
-    irrlicht::ChIrrApp& m_app;
+    irrlicht::ChVisualSystemIrrlicht& m_vsys;
 
     double m_steeringDelta;
     double m_displDelta;

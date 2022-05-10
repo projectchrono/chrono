@@ -677,12 +677,6 @@ class CH_VEHICLE_API ChVehicleGeometry {
   public:
     ChVehicleGeometry();
 
-    /// Process visualization asset levels in the associated visual model (default: true).
-    /// If set to false, all visualization asset levels are flatten into a single one. This may be required for
-    /// visualization systems which do not process ChAssetLevel objects (such as Chrono::OpenGL).
-    /// Note: To have effect, this function must be called before setting visualizatin assets for any vehicle part.
-    static void EnableVisualizationAssetLevels(bool flag);
-
     /// Box shape for visualization and/or collision.
     struct BoxShape {
         BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1)
@@ -711,6 +705,14 @@ class CH_VEHICLE_API ChVehicleGeometry {
         double m_radius;       ///< cylinder radius
         double m_length;       ///< cylinder length
         int m_matID;           ///< index in contact material list
+    };
+
+    struct LineShape {
+        LineShape(const ChVector<>& pos, const ChQuaternion<>& rot, std::shared_ptr<geometry::ChLine> line)
+            : m_pos(pos), m_rot(rot), m_line(line) {}
+        ChVector<> m_pos;                              ///< position relative to body
+        ChQuaternion<> m_rot;                          ///< orientation relative to body
+        std::shared_ptr<geometry::ChLine> m_line;  ///< line data
     };
 
     /// Convex hulls shape for collision.
@@ -742,6 +744,7 @@ class CH_VEHICLE_API ChVehicleGeometry {
     std::vector<BoxShape> m_vis_boxes;           ///< list of visualization boxes
     std::vector<SphereShape> m_vis_spheres;      ///< list of visualization spheres
     std::vector<CylinderShape> m_vis_cylinders;  ///< list of visualization cylinders
+    std::vector<LineShape> m_vis_lines;          ///< list of visualization lines
 
     bool m_has_colors;          ///< true if primitive colors were provided
     ChColor m_color_boxes;      ///< visualization color

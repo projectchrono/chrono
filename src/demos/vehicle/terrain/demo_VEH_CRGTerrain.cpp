@@ -36,7 +36,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChHumanDriver.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -331,29 +331,28 @@ int main(int argc, char* argv[]) {
 
     // Light positions (in ISO frame)
     std::vector<ChVector<>> light_locs = {
-        ChVector<>(-150, -150, 200),  //
-        ChVector<>(-150, +150, 200),  //
-        ChVector<>(+150, -150, 200),  //
-        ChVector<>(+150, +150, 200)   //
+        ChVector<>(-150, -150, 120),  //
+        ChVector<>(-150, +150, 120),  //
+        ChVector<>(+150, -150, 120),  //
+        ChVector<>(+150, +150, 120)   //
     };
 
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Steering");
-    app.SetHUDLocation(500, 20);
-    app.AddLogo();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetHUDLocation(500, 20);
+    vis->SetWindowTitle("OpenCRG Steering");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddSkyBox();
+    vis->AddLogo();
     for (auto& loc : light_locs)
-        app.AddLight(irr::core::vector3dfCH(ChWorldFrame::FromISO(loc)), 100);
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.SetTimestep(step_size);
+        vis->AddLight(ChWorldFrame::FromISO(loc), 500);
+    my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
     // Visualization of controller points (sentinel & target)
-    irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
-    irr::scene::IMeshSceneNode* ballT = app.GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballT = vis->GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
-
-    // Finalize construction of visualization assets
-    app.AssetBindAll();
-    app.AssetUpdateAll();
 
     // ----------------
     // Output directory
@@ -378,7 +377,7 @@ int main(int argc, char* argv[]) {
     int sim_frame = 0;
     int render_frame = 0;
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();
 
         // Driver inputs
@@ -389,16 +388,16 @@ int main(int argc, char* argv[]) {
         ballT->setPosition(irr::core::vector3dfCH(driver.GetTargetLocation()));
 
         // Render scene and output images
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
 
         // Draw the world reference frame at the sentinel location
-        app.RenderFrame(ChFrame<>(driver.GetSentinelLocation()));
+        vis->RenderFrame(ChFrame<>(driver.GetSentinelLocation()));
 
         if (output_images && sim_frame % render_steps == 0) {
             char filename[200];
             sprintf(filename, "%s/image_%05d.bmp", out_dir.c_str(), render_frame);
-            app.WriteImageToFile(filename);
+            vis->WriteImageToFile(filename);
             render_frame++;
         }
 
@@ -406,19 +405,19 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize(driver.GetDriverType(), driver_inputs);
+        vis->Synchronize(driver.GetDriverType(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
         sys.DoStepDynamics(step_size);
 
         // Increment simulation frame number
         sim_frame++;
 
-        app.EndScene();
+        vis->EndScene();
     }
 
     driver.PrintStats();

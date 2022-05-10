@@ -1,13 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Alessandro Tasora
+# Copyright (c) 2019 projectchrono.org
+# All rights reserved.
 #
-# Created:     1/01/2019
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
-
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
@@ -23,21 +24,21 @@ print ("Example: create a rigid body based on a .obj mesh file");
 
 # ---------------------------------------------------------------------
 #
-#  Create the simulation system and add items
+#  Create the simulation sys and add items
 #
 
-mysystem      = chrono.ChSystemNSC()
+sys      = chrono.ChSystemNSC()
 
 
 
 # Set the global collision margins. This is expecially important for very large or
-# very small objects. Set this before creating shapes. Not before creating mysystem.
+# very small objects. Set this before creating shapes. Not before creating sys.
 chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.001);
 chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001);
 
 # ---------------------------------------------------------------------
 #
-#  Create the simulation system and add items
+#  Create the simulation sys and add items
 #
 
 # Create a contact material (with default properties, shared by all collision shapes)
@@ -46,7 +47,8 @@ contact_material = chrono.ChMaterialSurfaceNSC()
 # Create a floor
 mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000,True,True, contact_material)
 mfloor.SetBodyFixed(True)
-mysystem.Add(mfloor)
+mfloor.GetVisualShape(0).SetColor(chrono.ChColor(0.2, 0.2, 0.6))
+sys.Add(mfloor)
 
 
 # Now we will create a falling object whose shape is defined by a .obj mesh.
@@ -80,7 +82,8 @@ body_A= chrono.ChBodyEasyMesh(chrono.GetChronoDataFile('models/bulldozer/shoe_vi
                               contact_material, # contact material
                               )
 body_A.SetPos(chrono.ChVectorD(0.5,0.5,0))
-mysystem.Add(body_A)
+body_A.GetVisualShape(0).SetColor(chrono.ChColor(0.2, 0.6, 0.2))
+sys.Add(body_A)
 
 
 
@@ -115,7 +118,8 @@ mesh_for_visualization.Transform(chrono.ChVectorD(0.01,0,0), chrono.ChMatrix33D(
 # and added to the body
 visualization_shape = chrono.ChTriangleMeshShape()
 visualization_shape.SetMesh(mesh_for_visualization)
-body_B.AddAsset(visualization_shape)
+visualization_shape.SetColor(chrono.ChColor(0.6, 0.2, 0.2))
+body_B.AddVisualShape(visualization_shape)
 
 
 # Add the collision shape.
@@ -139,61 +143,24 @@ body_B.GetCollisionModel().AddTriangleMesh(
 body_B.GetCollisionModel().BuildModel()
 body_B.SetCollide(True)
 
-mysystem.Add(body_B)
+sys.Add(body_B)
 
+#  Create an Irrlicht application to visualize the sys
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Trimesh collision demo')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0.5,0.5,1))
+vis.AddTypicalLights()
 
-
-
-
-
-
-
-# ---------------------------------------------------------------------
-#
-#  Create an Irrlicht application to visualize the system
-#
-
-myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example', chronoirr.dimension2du(1024,768))
-
-myapplication.AddSkyBox()
-myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddCamera(chronoirr.vector3df(0.5,0.5,1), chronoirr.vector3df(0,0,0))
-#myapplication.AddTypicalLights()
-myapplication.AddLightWithShadow(chronoirr.vector3df(3,6,2),    # point
-                                 chronoirr.vector3df(0,0,0),    # aimpoint
-                                 12,                 # radius (power)
-                                 1,11,              # near, far
-                                 55)                # angle of FOV
-
-            # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-			# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-			# If you need a finer control on which item really needs a visualization proxy in
-			# Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-myapplication.AssetBindAll();
-
-			# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-			# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-myapplication.AssetUpdateAll();
-
-            # If you want to show shadows because you used "AddLightWithShadow()'
-            # you must remember this:
-myapplication.AddShadowAll();
-
-
-# ---------------------------------------------------------------------
-#
 #  Run the simulation
-#
-
-
-myapplication.SetTimestep(0.005)
-
-while(myapplication.GetDevice().run()):
-    myapplication.BeginScene()
-    myapplication.DrawAll()
-    myapplication.DoStep()
-    myapplication.EndScene()
+while vis.Run():
+    vis.BeginScene() 
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(5e-3)
 
 

@@ -65,8 +65,8 @@ void FEDA_RigidTire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void FEDA_RigidTire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChRigidTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // namespace feda

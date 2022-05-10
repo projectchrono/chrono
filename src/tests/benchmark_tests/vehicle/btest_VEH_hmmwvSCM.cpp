@@ -27,7 +27,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
 using namespace chrono;
@@ -89,7 +89,7 @@ class HmmwvScmTest : public utils::ChBenchmarkTest {
     void SimulateVis();
 
     double GetTime() const { return m_hmmwv->GetSystem()->GetChTime(); }
-    double GetLocation() const { return m_hmmwv->GetVehicle().GetVehiclePos().x(); }
+    double GetLocation() const { return m_hmmwv->GetVehicle().GetPos().x(); }
 
   private:
     HMMWV_Full* m_hmmwv;
@@ -203,22 +203,22 @@ void HmmwvScmTest<TIRE_TYPE, OBJECTS>::ExecuteStep() {
 template <int TIRE_TYPE, bool OBJECTS>
 void HmmwvScmTest<TIRE_TYPE, OBJECTS>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    ChWheeledVehicleIrrApp app(&m_hmmwv->GetVehicle(), L"HMMWV SMC benchmark");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("HMMWV SMC benchmark");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    m_hmmwv->GetVehicle().SetVisualSystem(vis);
 
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         ChDriver::Inputs driver_inputs = m_driver->GetInputs();
 
-        app.BeginScene();
-        app.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
         ExecuteStep();
-        app.Synchronize("SMC test", driver_inputs);
-        app.Advance(m_step);
-        app.EndScene();
+        vis->Synchronize("SMC test", driver_inputs);
+        vis->Advance(m_step);
+        vis->EndScene();
     }
 #endif
 }

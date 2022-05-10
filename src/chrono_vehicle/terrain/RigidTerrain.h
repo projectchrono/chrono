@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "chrono/assets/ChColor.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/physics/ChBody.h"
@@ -60,19 +59,22 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         virtual ~Patch() {}
 
         /// Set visualization color.
-        void SetColor(const ChColor& color  ///< [in] color of the visualization material
-        );
+        void SetColor(const ChColor& color);
 
         /// Set texture properties.
-        void SetTexture(const std::string& tex_file,  ///< [in] texture filename
-                        float tex_scale_x = 1,        ///< [in] texture scale in X
-                        float tex_scale_y = 1         ///< [in] texture scale in Y
+        void SetTexture(const std::string& filename,  ///< [in] texture filename
+                        float scale_x = 1,            ///< [in] texture scale in X
+                        float scale_y = 1             ///< [in] texture scale in Y
         );
 
         /// Return a handle to the ground body.
         std::shared_ptr<ChBody> GetGroundBody() const { return m_body; }
 
       protected:
+        Patch();
+
+        virtual void Initialize() = 0;
+
         virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const = 0;
         virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) {}
         virtual void ExportMeshWavefront(const std::string& out_dir) {}
@@ -81,6 +83,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         std::shared_ptr<ChBody> m_body;  ///< associated body
         float m_friction;                ///< coefficient of friction
         double m_radius;                 ///< bounding sphere radius
+
+        bool m_visualize;
+        std::shared_ptr<ChVisualMaterial> m_vis_mat;
 
         friend class RigidTerrain;
     };
@@ -192,6 +197,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         ChVector<> m_normal;    ///< outward normal of the top surface
         double m_hlength;       ///< patch half-length
         double m_hwidth;        ///< patch half-width
+        double m_hthickness;    ///< patch half-thickness
+        virtual void Initialize() override;
         virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const override;
     };
 
@@ -200,6 +207,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< associated mesh (contact and visualization)
         std::shared_ptr<geometry::ChTriangleMeshSoup> m_trimesh_s;     ///< associated contact mesh soup
         std::string m_mesh_name;                                       ///< name of associated mesh
+        virtual void Initialize() override;
         virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const override;
         virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) override;
         virtual void ExportMeshWavefront(const std::string& out_dir) override;

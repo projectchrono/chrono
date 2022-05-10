@@ -54,10 +54,6 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
         double shock_velocity;   ///< translational (rotational) damper displacement velocity
     };
 
-    ChRoadWheelAssembly(const std::string& name,  ///< [in] name of the subsystem
-                        bool has_shock            ///< [in] specify whether or not the suspension has a damper
-    );
-
     virtual ~ChRoadWheelAssembly() {}
 
     /// Return the type of track shoe consistent with this road wheel.
@@ -82,10 +78,6 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
 
     /// Get the radius of the road wheel.
     double GetWheelRadius() const { return m_road_wheel->GetWheelRadius(); }
-
-    /// Get the total mass of the roadwheel assembly.
-    /// This includes the mass of the roadwheel and of the suspension mechanism.
-    virtual double GetMass() const = 0;
 
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified
@@ -112,10 +104,16 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
     virtual void LogConstraintViolations() = 0;
 
   protected:
+    ChRoadWheelAssembly(const std::string& name,  ///< [in] name of the subsystem
+                        bool has_shock            ///< [in] specify whether or not the suspension has a damper
+    );
+
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    GuidePinType m_type;                        ///< type of the track shoe matching this road wheel
-    bool m_has_shock;                           ///< specifies whether or not the suspension has a damper
+    GuidePinType m_type;  ///< type of the track shoe matching this road wheel
+    bool m_has_shock;     ///< specifies whether or not the suspension has a damper
+
+    ChVector<> m_rel_loc;                       ///< idler subsystem location relative to chassis
     std::shared_ptr<ChRoadWheel> m_road_wheel;  ///< road-wheel subsystem
     ChTrackAssembly* m_track;                   ///< containing track assembly
 

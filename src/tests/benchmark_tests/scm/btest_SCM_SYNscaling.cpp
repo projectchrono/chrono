@@ -44,7 +44,7 @@
 #include "chrono_synchrono/utils/SynLog.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
@@ -318,14 +318,14 @@ int main(int argc, char* argv[]) {
     // -------------
 #ifdef CHRONO_IRRLICHT
     // Create the vehicle Irrlicht interface
-    std::shared_ptr<ChWheeledVehicleIrrApp> app;
+    std::shared_ptr<ChWheeledVehicleVisualSystemIrrlicht> vis;
     if (visualize) {
-        app = chrono_types::make_shared<ChWheeledVehicleIrrApp>(&hmmwv.GetVehicle(), L"SynChrono SCM test");
-        app->AddTypicalLights();
-        app->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-        app->SetTimestep(step_size);
-        app->AssetBindAll();
-        app->AssetUpdateAll();
+        vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+        vis->SetWindowTitle("SynChrono SCM test");
+        vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+        vis->Initialize();
+        vis->AddTypicalLights();
+        hmmwv.GetVehicle().SetVisualSystem(vis);
     }
 
     // Time interval between two render frames (1/FPS)
@@ -398,14 +398,14 @@ int main(int argc, char* argv[]) {
         }
 
 #ifdef CHRONO_IRRLICHT
-        if (app && !app->GetDevice()->run())  //  Irrlicht visualization has stopped
+        if (vis && !vis->Run())  //  Irrlicht visualization has stopped
             break;
 
         // Render scene
-        if (app && step_number % render_steps == 0) {
-            app->BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app->DrawAll();
-            app->EndScene();
+        if (vis && step_number % render_steps == 0) {
+            vis->BeginScene();
+            vis->DrawAll();
+            vis->EndScene();
         }
 #endif
 
@@ -420,8 +420,8 @@ int main(int argc, char* argv[]) {
         terrain.Synchronize(time);
         hmmwv.Synchronize(time, driver_inputs, terrain);
 #ifdef CHRONO_IRRLICHT
-        if (app)
-            app->Synchronize("", driver_inputs);
+        if (vis)
+            vis->Synchronize("", driver_inputs);
 #endif
 
         driver.Advance(step_size);
@@ -429,8 +429,8 @@ int main(int argc, char* argv[]) {
         hmmwv.Advance(step_size);
         sys.DoStepDynamics(step_size);
 #ifdef CHRONO_IRRLICHT
-        if (app)
-            app->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
 #endif
 
         chrono_step += sys.GetTimerStep();

@@ -33,8 +33,6 @@ namespace vehicle {
 /// Base class for a vehicle driveline subsystem.
 class CH_VEHICLE_API ChDriveline : public ChPart {
   public:
-    ChDriveline(const std::string& name);
-
     virtual ~ChDriveline();
 
     /// Get a handle to the driveshaft.
@@ -46,6 +44,11 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
     double GetDriveshaftSpeed() const { return -m_driveshaft->GetPos_dt(); }
 
   protected:
+    ChDriveline(const std::string& name);
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
     std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to the powertrain
 };
 

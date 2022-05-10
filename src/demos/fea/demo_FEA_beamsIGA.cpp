@@ -26,29 +26,25 @@
 #include "chrono/fea/ChElementBeamIGA.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 #define USE_MKL
 
 #ifdef USE_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
-
-using namespace irr;
-
-int ID_current_example = 1;
 
 const std::string out_dir = GetChronoOutputPath() + "FEA_BEAMS_IGA";
 
@@ -56,17 +52,13 @@ const std::string out_dir = GetChronoOutputPath() + "FEA_BEAMS_IGA";
 // Example A: Low  level approach, creating single elements and nodes:
 //
 
-void MakeAndRunDemo0(ChIrrApp& myapp) {
-    // Clear previous demo, if any:
-    myapp.GetSystem()->Clear();
-    myapp.GetSystem()->SetChTime(0);
-
+void MakeAndRunDemo0(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
     my_mesh->SetAutomaticGravity(false);
-    myapp.GetSystem()->Add(my_mesh);
+    sys.Add(my_mesh);
 
     // Create a section, i.e. thickness and material properties
     // for beams. This will be shared among some beams.
@@ -118,28 +110,27 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 
     // Attach a visualization of the FEM mesh.
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizebeamA->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizebeamA);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizebeamC);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    myapp.AssetBindAll();
-    myapp.AssetUpdateAll();
+    sys.SetVisualSystem(vis);
 
-    while (ID_current_example == 1 && myapp.GetDevice()->run()) {
-        myapp.BeginScene();
-        myapp.DrawAll();
-        myapp.DoStep();
-        myapp.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        sys.DoStepDynamics(0.01);
+        vis->EndScene();
     }
 }
 
@@ -149,17 +140,13 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 // rod automatically divided in Nel elements:
 //
 
-void MakeAndRunDemo1(ChIrrApp& myapp, int nsections = 32, int order = 2) {
-    // Clear previous demo, if any:
-    myapp.GetSystem()->Clear();
-    myapp.GetSystem()->SetChTime(0);
-
+void MakeAndRunDemo1(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis, int nsections = 32, int order = 2) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
     my_mesh->SetAutomaticGravity(false);
-    myapp.GetSystem()->Add(my_mesh);
+    sys.Add(my_mesh);
 
     double beam_L = 0.4;
     double beam_tip_load = -2;
@@ -205,25 +192,24 @@ void MakeAndRunDemo1(ChIrrApp& myapp, int nsections = 32, int order = 2) {
 
     // Attach a visualization of the FEM mesh.
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizebeamA->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizebeamA);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizebeamC);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    myapp.AssetBindAll();
-    myapp.AssetUpdateAll();
+    sys.SetVisualSystem(vis);
 
     // Do a linear static analysis.
-    myapp.GetSystem()->DoStaticLinear();
+    sys.DoStaticLinear();
 
     // For comparison with analytical results.
     double poisson = melasticity->GetYoungModulus() / (2.0 * melasticity->GetGshearModulus()) - 1.0;
@@ -240,11 +226,11 @@ void MakeAndRunDemo1(ChIrrApp& myapp, int nsections = 32, int order = 2) {
              << "  rel.error=  " << fabs((numerical_displ - analytic_timoshenko_displ) / analytic_timoshenko_displ)
              << "\n";
 
-    while (ID_current_example == 1 && myapp.GetDevice()->run()) {
-        myapp.BeginScene();
-        myapp.DrawAll();
-        myapp.DoStep();
-        myapp.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        sys.DoStepDynamics(0.01);
+        vis->EndScene();
     }
 }
 
@@ -254,17 +240,13 @@ void MakeAndRunDemo1(ChIrrApp& myapp, int nsections = 32, int order = 2) {
 // Also attach a rigid body to the end of the spline.
 //
 
-void MakeAndRunDemo2(ChIrrApp& myapp) {
-    // Clear previous demo, if any:
-    myapp.GetSystem()->Clear();
-    myapp.GetSystem()->SetChTime(0);
-
+void MakeAndRunDemo2(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
-    myapp.GetSystem()->Add(my_mesh);
+    sys.Add(my_mesh);
 
     // Create a section, i.e. thickness and material properties
     // for beams. This will be shared among some beams.
@@ -310,36 +292,35 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 
     auto mbodywing = chrono_types::make_shared<ChBodyEasyBox>(0.01, 0.2, 0.05, 2000);
     mbodywing->SetCoord(builderR.GetLastBeamNodes().back()->GetCoord());
-    myapp.GetSystem()->Add(mbodywing);
+    sys.Add(mbodywing);
 
     auto myjoint = chrono_types::make_shared<ChLinkMateFix>();
     myjoint->Initialize(builderR.GetLastBeamNodes().back(), mbodywing);
-    myapp.GetSystem()->Add(myjoint);
+    sys.Add(myjoint);
 
     // Attach a visualization of the FEM mesh.
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizebeamA->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizebeamA);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizebeamC);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    myapp.AssetBindAll();
-    myapp.AssetUpdateAll();
+    sys.SetVisualSystem(vis);
 
-    while (ID_current_example == 2 && myapp.GetDevice()->run()) {
-        myapp.BeginScene();
-        myapp.DrawAll();
-        myapp.DoStep();
-        myapp.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        sys.DoStepDynamics(0.01);
+        vis->EndScene();
     }
 }
 
@@ -348,17 +329,13 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 // Plasticity in IGA beams.
 //
 
-void MakeAndRunDemo3(ChIrrApp& myapp) {
-    // Clear previous demo, if any:
-    myapp.GetSystem()->Clear();
-    myapp.GetSystem()->SetChTime(0);
-
+void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
     my_mesh->SetAutomaticGravity(false);
-    myapp.GetSystem()->Add(my_mesh);
+    sys.Add(my_mesh);
 
     // Create a section, i.e. thickness and material properties
     // for beams. This will be shared among some beams.
@@ -407,11 +384,11 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
     // Now create a linear motor that push-pulls the end of the beam
     // up to repeated plasticization.
     auto truss = chrono_types::make_shared<ChBody>();
-    myapp.GetSystem()->Add(truss);
+    sys.Add(truss);
     truss->SetBodyFixed(true);
 
     auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-    myapp.GetSystem()->Add(motor);
+    sys.Add(motor);
     motor->Initialize(
         builder.GetLastBeamNodes().back(), truss,
         ChFrame<>(builder.GetLastBeamNodes().back()->GetPos(), chrono::Q_from_AngAxis(0 * CH_C_PI_2, VECT_Z)));
@@ -431,30 +408,30 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 
     // Attach a visualization of the FEM mesh.
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizebeamA->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizebeamA);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizebeamC);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    myapp.AssetBindAll();
-    myapp.AssetUpdateAll();
+    sys.SetVisualSystem(vis);
 
     std::string filename = out_dir + "/plasticity.dat";
     ChStreamOutAsciiFile my_plasticfile(filename.c_str());
 
-    while (ID_current_example == 3 && myapp.GetDevice()->run()) {
-        myapp.BeginScene();
-        myapp.DrawAll();
-        myapp.DoStep();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        sys.DoStepDynamics(0.01);
+        vis->EndScene();
 
         // Save to file: plastic flow of the 1st element, and other data
         ChMatrixDynamic<> mK(builder.GetLastBeamElements()[0]->GetNdofs(),
@@ -463,12 +440,12 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
         auto plasticdat = builder.GetLastBeamElements()[0]->GetPlasticData()[0].get();
         auto plasticdata = dynamic_cast<ChInternalDataLumpedCosserat*>(plasticdat);
 
-        my_plasticfile << myapp.GetSystem()->GetChTime() << " " << builder.GetLastBeamElements()[0]->GetStrainE()[0].x()
-                       << " " << builder.GetLastBeamElements()[0]->GetStressN()[0].x() << " "
-                       << plasticdata->p_strain_acc << " " << plasticdata->p_strain_e.x() << " " << mK(0, 0) << " "
-                       << motor->GetMotorForce() << " " << motor->GetMotorPos() << "\n";
+        my_plasticfile << sys.GetChTime() << " " << builder.GetLastBeamElements()[0]->GetStrainE()[0].x() << " "
+                       << builder.GetLastBeamElements()[0]->GetStressN()[0].x() << " " << plasticdata->p_strain_acc
+                       << " " << plasticdata->p_strain_e.x() << " " << mK(0, 0) << " " << motor->GetMotorForce() << " "
+                       << motor->GetMotorPos() << "\n";
         /*
-        my_plasticfile << myapp.GetSystem()->GetChTime() << " "
+        my_plasticfile << sys.GetChTime() << " "
             << builder.GetLastBeamElements()[0]->GetStrainK()[0].z() << " "
             << builder.GetLastBeamElements()[0]->GetStressM()[0].z() << " "
             << plasticdata->p_strain_acc << " "
@@ -477,7 +454,6 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
             << motor->GetMotorForce() << " "
             << motor->GetMotorPos() << "\n";
             */
-        myapp.EndScene();
     }
 }
 
@@ -487,20 +463,16 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 // with a motor, up to resonance.
 //
 
-void MakeAndRunDemo4(ChIrrApp& myapp) {
-    // Clear previous demo, if any:
-    myapp.GetSystem()->Clear();
-    myapp.GetSystem()->SetChTime(0);
-
+void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
-    myapp.GetSystem()->Add(my_mesh);
+    sys.Add(my_mesh);
 
-    my_mesh->SetAutomaticGravity(
-        true, 2);  // for max precision in gravity of FE, at least 2 integration points per element when using cubic IGA
-    myapp.GetSystem()->Set_G_acc(ChVector<>(0, -9.81, 0));
+    // for max precision in gravity of FE, at least 2 integration points per element when using cubic IGA
+    my_mesh->SetAutomaticGravity(true, 2);
+    sys.Set_G_acc(ChVector<>(0, -9.81, 0));
 
     double beam_L = 6;
     double beam_ro = 0.050;
@@ -550,22 +522,22 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
         node_mid->GetPos() + ChVector<>(0, 0.05, 0),  // flywheel initial center (plus Y offset)
         Q_from_AngAxis(CH_C_PI_2, VECT_Z))  // flywheel initial alignment (rotate 90° so cylinder axis is on X)
     );
-    myapp.GetSystem()->Add(mbodyflywheel);
+    sys.Add(mbodyflywheel);
 
     auto myjoint = chrono_types::make_shared<ChLinkMateFix>();
     myjoint->Initialize(node_mid, mbodyflywheel);
-    myapp.GetSystem()->Add(myjoint);
+    sys.Add(myjoint);
 
     // Create the truss
     auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
-    myapp.GetSystem()->Add(truss);
+    sys.Add(truss);
 
     // Create the end bearing
     auto bearing = chrono_types::make_shared<ChLinkMateGeneric>(false, true, true, false, true, true);
     bearing->Initialize(builder.GetLastBeamNodes().back(), truss,
                         ChFrame<>(builder.GetLastBeamNodes().back()->GetPos()));
-    myapp.GetSystem()->Add(bearing);
+    sys.Add(bearing);
 
     // Create the motor that rotates the beam
     auto rotmotor1 = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -576,7 +548,7 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
                           ChFrame<>(builder.GetLastBeamNodes().front()->GetPos(),
                                     Q_from_AngAxis(CH_C_PI_2, VECT_Y))  // motor frame, in abs. coords
     );
-    myapp.GetSystem()->Add(rotmotor1);
+    sys.Add(rotmotor1);
 
     // use a custom function for setting the speed of the motor
     class ChFunction_myf : public ChFunction {
@@ -606,82 +578,42 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
 
     // Attach a visualization of the FEM mesh.
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizebeamA->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizebeamA);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizebeamC);
+    my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    myapp.AssetBindAll();
-    myapp.AssetUpdateAll();
+    sys.SetVisualSystem(vis);
 
     std::string filename = out_dir + "/rotor_displ.dat";
     chrono::ChStreamOutAsciiFile file_out1(filename.c_str());
 
     // Set to a more precise HHT timestepper if needed
-    // myapp.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
-    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(myapp.GetSystem()->GetTimestepper())) {
+    // sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
         mystepper->SetStepControl(false);
         mystepper->SetModifiedNewton(false);
     }
 
-    myapp.SetTimestep(0.002);
-    myapp.GetSystem()->DoStaticLinear();
+    sys.DoStaticLinear();
 
-    while (ID_current_example == 4 && myapp.GetDevice()->run()) {
-        myapp.BeginScene();
-        myapp.DrawAll();
-        myapp.DoStep();
-        file_out1 << myapp.GetSystem()->GetChTime() << " " << node_mid->GetPos().y() << " " << node_mid->GetPos().z()
-                  << "\n";
-        myapp.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        sys.DoStepDynamics(0.002);
+        vis->EndScene();
+        file_out1 << sys.GetChTime() << " " << node_mid->GetPos().y() << " " << node_mid->GetPos().z() << "\n";
     }
 }
-
-/// Following class will be used to manage events from the user interface
-
-class MyEventReceiver : public IEventReceiver {
-  public:
-    MyEventReceiver(ChIrrApp* myapp) {
-        // store pointer to physical system & other stuff so we can tweak them by user keyboard
-        app = myapp;
-    }
-
-    bool OnEvent(const SEvent& event) {
-        // check if user presses keys
-        if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) {
-            switch (event.KeyInput.Key) {
-                case irr::KEY_KEY_1:
-                    ID_current_example = 1;
-                    return true;
-                case irr::KEY_KEY_2:
-                    ID_current_example = 2;
-                    return true;
-                case irr::KEY_KEY_3:
-                    ID_current_example = 3;
-                    return true;
-                case irr::KEY_KEY_4:
-                    ID_current_example = 4;
-                    return true;
-                default:
-                    break;
-            }
-        }
-
-        return false;
-    }
-
-  private:
-    ChIrrApp* app;
-};
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -693,102 +625,59 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a Chrono::Engine physical system
-    ChSystemSMC my_system;
+    ChSystemSMC sys;
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"IGA beams DEMO (SPACE for dynamics, F10 / F11 statics)",
-                         core::dimension2d<u32>(800, 600));
+    std::string models[] = {"static analysis", "curved beam connected to body", "plasticity", "Jeffcott rotor"};
 
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddLight(irr::core::vector3df(30.f, 100.f, 30.f), 180, irr::video::SColorf(0.5f, 0.5f, 0.5f, 1.0f));
-    application.AddLight(irr::core::vector3df(30.f, 80.f, -30.f), 190, irr::video::SColorf(0.2f, 0.3f, 0.4f, 1.0f));
-    application.AddCamera(core::vector3df(-0.1f, 0.2f, -0.2f));
+    int which = 1;
+    std::cout << "Options:\n";
+    for (int i = 1; i <= 4; i++)
+        std::cout << i << "  " << models[i - 1] << std::endl;
+    std::cin >> which;
+    std::cout << std::endl;
 
-    // This is for GUI tweaking of system parameters..
-    MyEventReceiver receiver(&application);
-    // note how to add a custom event receiver to the default interface:
-    application.SetUserEventReceiver(&receiver);
+    ChClampValue(which, 1, 4);
 
-    // Some help on the screen
-    application.GetIGUIEnvironment()->addStaticText(
-        L" Press 1: static analysis \n Press 2: curved beam connected to body \n Press 3: plasticity \n Press 4: "
-        L"Jeffcott rotor",
-        irr::core::rect<irr::s32>(10, 80, 250, 150), false, true, 0);
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle(models[which - 1]);
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddLight(ChVector<>(30, 100, 30), 180, ChColor(0.5f, 0.5f, 0.5f));
+    vis->AddLight(ChVector<>(30, 80, -30), 190, ChColor(0.2f, 0.3f, 0.4f));
+    vis->AddCamera(ChVector<>(-0.1, 0.2, -0.2));
 
     // Solver default settings for all the sub demos:
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(500);
     solver->SetTolerance(1e-15);
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(false);
 
-    my_system.SetSolverForceTolerance(1e-14);
+    sys.SetSolverForceTolerance(1e-14);
 
 #ifdef USE_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-    my_system.SetSolver(mkl_solver);
+    sys.SetSolver(mkl_solver);
 #endif
 
-    application.SetTimestep(0.01);
-
-    // Run the sub-demos:
-
-    while (true) {
-        switch (ID_current_example) {
-            case 1:
-                /*
-                MakeAndRunDemo1(application, 4,1);
-                MakeAndRunDemo1(application, 8,1);
-                MakeAndRunDemo1(application,16,1);
-                MakeAndRunDemo1(application,32,1);
-                MakeAndRunDemo1(application,64,1);
-                MakeAndRunDemo1(application,512, 1);
-                MakeAndRunDemo1(application, 4, 2);
-                MakeAndRunDemo1(application, 8, 2);
-                MakeAndRunDemo1(application, 16, 2);
-                MakeAndRunDemo1(application, 32, 2);
-                MakeAndRunDemo1(application, 64, 2);
-                MakeAndRunDemo1(application, 512, 2);
-                MakeAndRunDemo1(application, 4, 3);
-                MakeAndRunDemo1(application, 8, 3);
-                MakeAndRunDemo1(application, 16, 3);
-                MakeAndRunDemo1(application, 32, 3);
-                MakeAndRunDemo1(application, 64, 3);
-                MakeAndRunDemo1(application, 512, 3);
-                MakeAndRunDemo1(application, 4, 4);
-                MakeAndRunDemo1(application, 8, 4);
-                MakeAndRunDemo1(application, 16, 4);
-                MakeAndRunDemo1(application, 32, 4);
-                MakeAndRunDemo1(application, 64, 4);
-                MakeAndRunDemo1(application, 512, 4);
-                MakeAndRunDemo1(application, 4, 5);
-                MakeAndRunDemo1(application, 8, 5);
-                MakeAndRunDemo1(application, 16, 5);
-                MakeAndRunDemo1(application, 32, 5);
-                MakeAndRunDemo1(application, 64, 5);
-                MakeAndRunDemo1(application, 512, 5);
-                system("pause");
-                */
-                MakeAndRunDemo1(application, 64, 3);
-                break;
-            case 2:
-                MakeAndRunDemo2(application);
-                break;
-            case 3:
-                MakeAndRunDemo3(application);
-                break;
-            case 4:
-                MakeAndRunDemo4(application);
-                break;
-            default:
-                break;
-        }
-        if (!application.GetDevice()->run())
+    // Create and run the selected model
+    switch (which) {
+        case 1:
+            MakeAndRunDemo1(sys, vis, 64, 3);
+            break;
+        case 2:
+            MakeAndRunDemo2(sys, vis);
+            break;
+        case 3:
+            MakeAndRunDemo3(sys, vis);
+            break;
+        case 4:
+            MakeAndRunDemo4(sys, vis);
             break;
     }
 

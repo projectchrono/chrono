@@ -31,7 +31,6 @@
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChObjShapeFile.h"
@@ -384,8 +383,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
 
         // auto sphere = chrono_types::make_shared<ChSphereShape>();
         // sphere->GetSphereGeometry().rad = 0.05;
-        // sphere->Pos = newBody->GetFrame_REF_to_abs().GetPos();
-        // newBody->AddAsset(sphere);
+        // newBody->AddVisualShape(sphere, );
     }
     // Make any markers that don't exist yet
     for (auto marker_pair : markers_map) {
@@ -549,7 +547,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         cylinder->GetCylinderGeometry().p1 = (parentBody->GetFrame_COG_to_REF() * (*cm_marker))
                                                                  .TransformPointLocalToParent(ChVector<>(0, 0, 0));
 
-                        parentBody->AddAsset(cylinder);
+                        parentBody->AddVisualShape(cylinder);
                     } else if (iter->second == std::string("RADIUS")) {
                         iter++;  // get radius
                         cylinder->GetCylinderGeometry().rad = std::stod(iter->second);
@@ -583,10 +581,10 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         // Put ellipsoid at marker, orientation might be wrong
                         // adams says the orientation is marker-specific but I'm guessing Chrono says it's global or
                         // body-specific
-                        ellipsoid->GetEllipsoidGeometry().center =
+                        auto ell_pos =
                             (parentBody->GetFrame_COG_to_REF() * (*cm_marker))
                                 .TransformPointLocalToParent(ChVector<>(0, 0, 0));
-                        parentBody->AddAsset(ellipsoid);
+                        parentBody->AddVisualShape(ellipsoid, ChFrame<>(ell_pos, QUNIT));
                     } else if (iter->second == std::string("XSCALE") || iter->second == std::string("XS")) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
@@ -623,11 +621,11 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         parentBody = dynamic_cast<ChBodyAuxRef*>(cm_marker->GetBody());
                         assert(parentBody != nullptr);
                         // Put box at marker
-                        box->GetBoxGeometry().Pos = (parentBody->GetFrame_COG_to_REF() * (*cm_marker))
+                        auto box_pos = (parentBody->GetFrame_COG_to_REF() * (*cm_marker))
                                                         .TransformPointLocalToParent(ChVector<>(0, 0, 0));
 
-                        box->GetBoxGeometry().Rot = (parentBody->GetFrame_COG_to_REF() * (*cm_marker)).Amatrix;
-                        parentBody->AddAsset(box);
+                        auto box_rot = (parentBody->GetFrame_COG_to_REF() * (*cm_marker)).Amatrix;
+                        parentBody->AddVisualShape(box, ChFrame<>(box_pos, box_rot));
                     } else if (iter->second == std::string("X")) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
@@ -649,18 +647,11 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                     }
                     iter++;  // next loop
                 }
-                ChVector<> oldPos = box->GetBoxGeometry().Pos;
-                // std::cout << "Old pos is " << oldPos.x() << "," << oldPos.y() << "," << oldPos.z() <<std::endl;
-                auto oldRot = box->GetBoxGeometry().Rot.Get_A_quaternion();
-                ChVector<> size = box->GetBoxGeometry().Size;
-                ChVector<> newPos = oldPos + oldRot.Rotate(ChVector<>(size.x(), size.y(), size.z()));
-                // std::cout << "new pos is " << newPos.x() << "," << newPos.y() << "," << newPos.z() <<std::endl;
-
-                box->GetBoxGeometry().Pos = newPos;
             }
         }
     }
 }
+
 // -----------------------------------------------------------------------------
 // Makes a new system and then parses into it
 // -----------------------------------------------------------------------------

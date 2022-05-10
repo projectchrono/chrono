@@ -26,7 +26,6 @@
 #include <vector>
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/wheeled_vehicle/steering/ChRackPinion.h"
@@ -34,7 +33,6 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {}
 
@@ -47,11 +45,11 @@ ChRackPinion::~ChRackPinion() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
-    m_position = ChCoordsys<>(location, rotation);
+    m_parent = chassis;
+    m_rel_xform = ChFrame<>(location, rotation);
 
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
@@ -96,7 +94,6 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRackPinion::Synchronize(double time, double steering) {
     // Convert the steering input into an angle of the pinion and then into a
     // displacement of the rack.
@@ -107,21 +104,17 @@ void ChRackPinion::Synchronize(double time, double steering) {
         fun->Set_yconst(displ);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the steering subsystem
-// -----------------------------------------------------------------------------
-double ChRackPinion::GetMass() const {
-    return GetSteeringLinkMass();
+void ChRackPinion::InitializeInertiaProperties() {
+    m_mass = GetSteeringLinkMass();
+    m_com = ChFrame<>(GetSteeringLinkCOM(), QUNIT);
+    m_inertia.setZero();
+    m_inertia.diagonal() = GetSteeringLinkInertia().eigen();
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the steering subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChRackPinion::GetCOMPos() const {
-    return m_link->GetPos();
+void ChRackPinion::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -133,18 +126,13 @@ void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, length / 2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -length / 2, 0);
     cyl->GetCylinderGeometry().rad = GetSteeringLinkRadius();
-    m_link->AddAsset(cyl);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.8f, 0.8f, 0.2f));
-    m_link->AddAsset(col);
+    m_link->AddVisualShape(cyl);
 }
 
 void ChRackPinion::RemoveVisualizationAssets() {
-    m_link->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_link);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRackPinion::LogConstraintViolations() {
     // Translational joint
@@ -166,7 +154,6 @@ void ChRackPinion::LogConstraintViolations() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRackPinion::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

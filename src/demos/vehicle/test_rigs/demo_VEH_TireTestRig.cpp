@@ -17,7 +17,8 @@
 #include <algorithm>
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono_irrlicht/ChIrrApp.h"
+
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV_ANCFTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
@@ -41,14 +42,14 @@ double step_size = 1e-3;
 double tire_step_size = 1e-4;
 
 int main() {
-    // Create system
+    // Create sys
     // -------------
 
-    ChSystemNSC system;
+    ChSystemNSC sys;
 
-    system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    system.SetSolverMaxIterations(150);
-    system.SetMaxPenetrationRecoverySpeed(4.0);
+    sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    sys.SetSolverMaxIterations(150);
+    sys.SetMaxPenetrationRecoverySpeed(4.0);
 
     // Create wheel and tire subsystems
     // --------------------------------
@@ -72,7 +73,7 @@ int main() {
     // Create and configure test rig
     // -----------------------------
 
-    ChTireTestRig rig(wheel, tire, &system);
+    ChTireTestRig rig(wheel, tire, &sys);
 
     ////rig.SetGravitationalAcceleration(0);
     rig.SetNormalLoad(8000);
@@ -114,22 +115,25 @@ int main() {
     // Create the Irrlicht visualization
     // ---------------------------------
 
-    ChIrrApp application(&system, L"Tire Test Rig", irr::core::dimension2d<irr::u32>(1280, 720), VerticalDir::Z);
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera();
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Tire Test Rig");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 0, 6));
+    vis->AddTypicalLights();
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
-
-    auto camera = application.GetActiveCamera();
+    auto camera = vis->GetActiveCamera();
     camera->setFOV(irr::core::PI / 4.5f);
 
     // Perform the simulation
     // ----------------------
 
-    while (application.GetDevice()->run()) {
+    while (vis->Run()) {
         auto& loc = rig.GetPos();
         auto x = (irr::f32)loc.x();
         auto y = (irr::f32)loc.y();
@@ -137,12 +141,12 @@ int main() {
         camera->setPosition(irr::core::vector3df(x + 1.0f, y + 2.5f, z + 1.5f));
         camera->setTarget(irr::core::vector3df(x, y + 0.25f, z));
 
-        application.BeginScene();
-        application.DrawAll();
+        vis->BeginScene();
+        vis->DrawAll();
         rig.Advance(step_size);
-        application.EndScene();
+        vis->EndScene();
 
-        ////std::cout << system.GetChTime() << std::endl;
+        ////std::cout << sys.GetChTime() << std::endl;
         ////auto long_slip = tire->GetLongitudinalSlip();
         ////auto slip_angle = tire->GetSlipAngle();
         ////auto camber_angle = tire->GetCamberAngle();

@@ -29,9 +29,9 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChNodeFEAxyzP.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -46,18 +46,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemSMC my_system;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"FEM electrostatics", core::dimension2d<u32>(800, 600));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddLight(core::vector3df(20, 20, 20), 90, irr::video::SColorf(0.5, 0.5, 0.5));
-    application.AddLight(core::vector3df(-20, 20, -20), 90, irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
-    application.AddCamera(core::vector3df(0.f, 0.2f, -0.3f), core::vector3df(0.0f, 0.0f, 0.0f));
+    ChSystemSMC sys;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -110,80 +99,68 @@ int main(int argc, char* argv[]) {
     }
 
     // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
-    // ==Asset== attach a visualization of the FEM mesh.
+    // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChTriangleMeshShape).
-    // Do not forget AddAsset() at the end!
 
-    // This will paint the colored mesh with temperature scale (E_PLOT_NODE_P is the scalar field of the Poisson
-    // problem)
+    // This will paint the colored mesh with temperature scale (NODE_P is the scalar field of the Poisson problem)
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_P);  // plot V, potential field
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_P);  // plot V, potential field
     mvisualizemesh->SetColorscaleMinMax(-0.1, 24);
-    my_mesh->AddAsset(mvisualizemesh);
+    my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
     // This will paint the wireframe
-    auto mvisualizemeshB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizemeshB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshB->SetColorscaleMinMax(-0.1, 24);
     mvisualizemeshB->SetWireframe(true);
-    my_mesh->AddAsset(mvisualizemeshB);
+    my_mesh->AddVisualShapeFEA(mvisualizemeshB);
 
     // This will paint the E vector field as line vectors
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_VECT_DP);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_VECT_DP);
     mvisualizemeshC->SetSymbolsScale(0.00002);
     mvisualizemeshC->SetDefaultSymbolsColor(ChColor(1.0f, 1.0f, 0.4f));
     mvisualizemeshC->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizemeshC);
+    my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-    application.AssetBindAll();
-
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("FEM electrostatics");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddLight(ChVector<>(20, 20, 20), 90, ChColor(0.5f, 0.5f, 0.5f));
+    vis->AddLight(ChVector<>(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
+    vis->AddCamera(ChVector<>(0., 0.2, -0.3));
 
     // SIMULATION LOOP
 
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(300);
     solver->SetTolerance(1e-20);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(true);
 
-    my_system.SetSolverForceTolerance(1e-20);
+    sys.SetSolverForceTolerance(1e-20);
 
+    // In electrostatics, you have only a single linear (non transient) solution
+    sys.DoStaticLinear();
 
-    // Note: in electrostatics, here you can have only a single linear (non transient) solution
-    // so at this point you must do:
-
-    my_system.DoStaticLinear();
-
-    // Also, in the following while() loop, remove  application.DoStep();
-    // so the loop is used just to keep the 3D view alive, to spin & look at the solution.
-
-    application.SetTimestep(0.01);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        application.DrawAll();
-
-        application.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
     }
 
     // Print some node potentials V..

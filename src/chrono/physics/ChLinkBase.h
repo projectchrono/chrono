@@ -60,14 +60,15 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     virtual int GetNumCoords() = 0;
 
     /// Get the link coordinate system in absolute reference.
-    /// This represents the 'main' reference of the link: reaction forces
-    /// and reaction torques are expressed in this coordinate system.
-    /// Child classes should implement this.
+    /// This represents the 'main' reference of the link: reaction forces and reaction torques are expressed in this
+    /// coordinate system. Child classes should implement this.
     virtual ChCoordsys<> GetLinkAbsoluteCoords() { return CSYSNORM; }
 
-    /// Get the master coordinate system for the assets, in absolute reference.
-    /// (should be implemented by children classes)
-    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) override { return ChFrame<>(GetLinkAbsoluteCoords()); }
+    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
+    /// For a ChLink, the default implementation returns the link coordinate frame.
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override {
+        return ChFrame<>(GetLinkAbsoluteCoords());
+    }
 
     /// To get reaction force, expressed in link coordinate system:
     virtual ChVector<> Get_react_force() { return VNULL; }

@@ -57,7 +57,7 @@ ChSpeedController::~ChSpeedController() {
 }
 
 void ChSpeedController::Reset(const ChVehicle& vehicle) {
-    m_speed = vehicle.GetVehicleSpeed();
+    m_speed = vehicle.GetSpeed();
     m_err = 0;
     m_erri = 0;
     m_errd = 0;
@@ -65,7 +65,7 @@ void ChSpeedController::Reset(const ChVehicle& vehicle) {
 
 double ChSpeedController::Advance(const ChVehicle& vehicle, double target_speed, double step) {
     // Current vehicle speed.
-    m_speed = vehicle.GetVehicleSpeed();
+    m_speed = vehicle.GetSpeed();
 
     // If data collection is enabled, append current target and sentinel locations.
     if (m_collect) {

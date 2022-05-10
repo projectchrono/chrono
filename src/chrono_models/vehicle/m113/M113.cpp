@@ -124,6 +124,9 @@ void M113::Initialize() {
             break;
         }
     }
+
+    // Recalculate vehicle mass, to properly account for all subsystems
+    m_vehicle->InitializeInertiaProperties();
 }
 
 // -----------------------------------------------------------------------------
@@ -137,11 +140,6 @@ void M113::Synchronize(double time,
 // -----------------------------------------------------------------------------
 void M113::Advance(double step) {
     m_vehicle->Advance(step);
-}
-
-// -----------------------------------------------------------------------------
-double M113::GetTotalMass() const {
-    return m_vehicle->GetVehicleMass();
 }
 
 }  // namespace m113

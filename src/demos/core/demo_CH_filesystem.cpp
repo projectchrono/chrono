@@ -84,6 +84,7 @@ int main(int argc, char** argv) {
     cout << "  out_file exists? " << path(out_file).exists() << endl;
     cout << "  out_file is file? " << path(out_file).is_file() << endl;
     cout << "  path of out_file: " << path(out_file) << endl;
+    cout << "  file location:    " << path(out_file).parent_path() << endl;
     cout << "  abs. path of out_file: " << path(out_file).make_absolute() << endl;
     cout << endl;
 

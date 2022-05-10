@@ -39,7 +39,17 @@ class CH_VEHICLE_API ChTrackAssemblySegmented : public ChTrackAssembly {
   public:
     virtual ~ChTrackAssemblySegmented() {}
 
+    /// Enable/disable modeling of track bending stiffness.
+    /// This function activates or deactivates the RSDA elements used to model bending stiffness.
+    /// As such, it has no effect if a bending torque functor is not provided.
+    void EnableTrackBendingStiffness(bool val);
+
+    /// Return the functor for calculating the torque that models track bending stiffness.
+    /// If null, bending stiffness is not considered.
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetTorqueFunctor() const { return m_torque_funct; }
+
+    /// Get parameters for modeling bushing in the track shoe connections.
+    /// This data is ignored if using kinematic joints to connect the track shoes.
     std::shared_ptr<ChVehicleBushingData> GetBushingData() const { return m_bushing_data; }
 
   protected:

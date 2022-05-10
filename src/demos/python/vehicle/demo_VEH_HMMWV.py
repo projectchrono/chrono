@@ -73,13 +73,15 @@ def main():
     terrain.Initialize()
 
     # Create the vehicle Irrlicht interface
-    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV')
-    app.AddTypicalLights()
-    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    app.SetChaseCamera(trackPoint, 6.0, 0.5)
-    app.SetTimestep(step_size)
-    app.AssetBindAll()
-    app.AssetUpdateAll()
+    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+    my_hmmwv.GetVehicle().SetVisualSystem(vis)
+    vis.SetWindowTitle('HMMWV')
+    vis.SetWindowSize(1280, 1024)
+    vis.SetChaseCamera(trackPoint, 6.0, 0.5)
+    vis.Initialize()
+    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddTypicalLights()
+    vis.AddSkyBox()
 
     # Initialize output
 
@@ -99,7 +101,7 @@ def main():
     my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
 
     # Create the interactive driver system
-    driver = veh.ChIrrGuiDriver(app)
+    driver = veh.ChIrrGuiDriver(vis)
 
     # Set the time response for steering and throttle keyboard inputs.
     steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
@@ -124,20 +126,20 @@ def main():
     render_frame = 0
 
     if (contact_vis):
-        app.SetSymbolscale(1e-4);
-        #app.SetContactsDrawMode(irr.eCh_ContactsDrawMode::CONTACT_FORCES);
+        vis.SetSymbolscale(1e-4);
+        # vis.EnableContactDrawing(irr.IrrContactsDrawMode_CONTACT_FORCES);
 
     realtime_timer = chrono.ChRealtimeStepTimer()
-    while (app.GetDevice().run()):
+    while vis.Run() :
         time = my_hmmwv.GetSystem().GetChTime()
 
         #End simulation
         if (time >= t_end):
             break
 
-        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-        app.DrawAll()
-        app.EndScene()
+        vis.BeginScene()
+        vis.DrawAll()
+        vis.EndScene()
 
         #Debug logging
         if (debug_output and step_number % debug_steps == 0) :
@@ -168,13 +170,13 @@ def main():
         driver.Synchronize(time)
         terrain.Synchronize(time)
         my_hmmwv.Synchronize(time, driver_inputs, terrain)
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+        vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)
         terrain.Advance(step_size)
         my_hmmwv.Advance(step_size)
-        app.Advance(step_size)
+        vis.Advance(step_size)
 
         # Increment frame number
         step_number += 1

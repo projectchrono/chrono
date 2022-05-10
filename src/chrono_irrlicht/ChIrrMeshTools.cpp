@@ -56,7 +56,7 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
     buffer->Vertices.set_used(n_tot_verts);
     buffer->Indices.set_used(n_tot_indeces);
 
-    irr::video::SColor clr(100, 255, 255, 255);
+    irr::video::SColor clr(255, 255, 255, 255);
 
     u32 i = 0;
     u32 i_disc = 0;

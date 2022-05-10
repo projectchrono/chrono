@@ -21,31 +21,27 @@ MARK_AS_ADVANCED(CLEAR IRRLICHT_ROOT)
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_irrlicht lib
 SET(ChronoEngine_IRRLICHT_SOURCES
-  ChIrrApp.cpp
-  ChIrrAppInterface.cpp
-  ChIrrAssetConverter.cpp
   ChIrrCamera.cpp
   ChIrrMeshTools.cpp
-  ChIrrNode.cpp
-  ChIrrNodeProxyToAsset.cpp
   ChIrrTools.cpp
-  ChIrrNodeAsset.cpp
   ChIrrSkyBoxSceneNode.cpp
+  ChIrrGUI.cpp
+  ChVisualSystemIrrlicht.cpp
+  ChIrrNodeModel.cpp
+  ChIrrNodeShape.cpp
 )
 
 SET(ChronoEngine_IRRLICHT_HEADERS
   ChApiIrr.h
   ChIrrTools.h
-  ChIrrAppInterface.h
-  ChIrrApp.h
   ChIrrCamera.h
   ChIrrMeshTools.h
-  ChIrrAssetConverter.h
-  ChIrrNode.h
-  ChIrrNodeProxyToAsset.h
-  ChIrrNodeAsset.h
   ChIrrEffects.h
   ChIrrSkyBoxSceneNode.h
+  ChIrrGUI.h
+  ChVisualSystemIrrlicht.h
+  ChIrrNodeModel.h
+  ChIrrNodeShape.h
 )
 
 SOURCE_GROUP("" FILES
@@ -98,7 +94,9 @@ endif()
 
 # Add path to IRRLICHT headers
 
-IF(EXISTS "${IRRLICHT_ROOT}/include")
+IF(EXISTS "${IRRLICHT_ROOT}/include/irrlicht")
+  SET(CH_IRRLICHTINC "${IRRLICHT_ROOT}/include/irrlicht")
+ELSEIF(EXISTS "${IRRLICHT_ROOT}/include")
   SET(CH_IRRLICHTINC "${IRRLICHT_ROOT}/include")
 ELSE()
   SET(CH_IRRLICHTINC "${IRRLICHT_ROOT}")
@@ -125,9 +123,6 @@ set(LIBRARIES
     )
 
 if (ENABLE_MODULE_POSTPROCESS)
-    #include_directories(${CH_POSTPROCESS_INCLUDES})  # nothing to append
-    #set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_POSTPROCESS_CXX_FLAGS}") # nothing to append
-    #set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_POSTPROCESS_LINK_FLAGS}") # nothing to append
     set(LIBRARIES ${LIBRARIES} ChronoEngine_postprocess)
 endif()
 if (ENABLE_MODULE_MODAL)
@@ -175,7 +170,9 @@ endif()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-  IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
+  IF(DEFINED ENV{CONDA_BUILD})
+    SET(CH_IRRLICHT_DLL "$ENV{PREFIX}/Library/bin/Irrlicht.dll")
+  ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
     SET(CH_IRRLICHT_DLL "${IRRLICHT_ROOT}/bin/Win32-VisualStudio/Irrlicht.dll")
   ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
     SET(CH_IRRLICHT_DLL "${IRRLICHT_ROOT}/bin/Win64-VisualStudio/Irrlicht.dll")

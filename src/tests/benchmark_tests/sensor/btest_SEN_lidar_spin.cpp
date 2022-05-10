@@ -18,7 +18,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Create the system
     // -----------------
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     // ---------------------------------------
     // add a mesh to be visualized by a camera
@@ -57,12 +57,12 @@ int main(int argc, char* argv[]) {
     auto floor = std::make_shared<ChBodyEasyBox>(100, 100, .01, 1000, true, false);
     floor->SetPos({0, 0, 0});
     floor->SetBodyFixed(true);
-    mphysicalSystem.Add(floor);
+    sys.Add(floor);
 
     auto cart = std::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
     cart->SetPos({0, 0, 1});
     cart->SetBodyFixed(true);
-    mphysicalSystem.Add(cart);
+    sys.Add(cart);
 
     // create alternating walls on left and right
 
@@ -73,20 +73,20 @@ int main(int argc, char* argv[]) {
         wall_body->SetPos({4 * i * wall_size, 4, wall_size / 2});
         wall_body->SetRot(Q_from_AngX(CH_C_PI / 2));
         wall_body->SetBodyFixed(true);
-        mphysicalSystem.Add(wall_body);
+        sys.Add(wall_body);
 
         auto wall_body1 = std::make_shared<ChBodyEasyCylinder>(wall_size, 1, 1000, true, true);
         wall_body1->SetPos({4 * i * wall_size, -4, wall_size / 2});
         wall_body1->SetRot(Q_from_AngX(CH_C_PI / 2));
         wall_body1->SetBodyFixed(true);
-        mphysicalSystem.Add(wall_body1);
+        sys.Add(wall_body1);
     }
 
     // -----------------------
     // Create a sensor manager
     // -----------------------
     float step_size = 0.01f;
-    auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = std::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 1000);
 
     // ------------------------------------------------
@@ -125,12 +125,12 @@ int main(int argc, char* argv[]) {
 
     float speed = 16;
 
-    while (mphysicalSystem.GetChTime() < end_time) {
+    while (sys.GetChTime() < end_time) {
         // move the cart
         cart->SetPos(cart->GetPos() + ChVector<>({speed * step_size, 0, 0}));
 
         manager->Update();
-        mphysicalSystem.DoStepDynamics(step_size);
+        sys.DoStepDynamics(step_size);
     }
 
     return 0;

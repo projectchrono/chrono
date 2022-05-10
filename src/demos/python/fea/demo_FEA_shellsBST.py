@@ -1,18 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
-#
-# =============================================================================
-# Authors: Simone Benatti
-# =============================================================================
-#
-# FEA for thin shells of Kirchhoff-Love type, with BST triangle finite elements
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 
@@ -42,19 +36,19 @@ except OSError as exc:
        print("Error creating output directory " )
 
 # Create a Chrono::Engine physical system
-my_system = chrono.ChSystemSMC()
+sys = chrono.ChSystemSMC()
 
 
 
 # Create a mesh, that is a container for groups
 # of elements and their referenced nodes.
-my_mesh = fea.ChMesh()
+mesh = fea.ChMesh()
 
 # Remember to add the mesh to the system!
-my_system.Add(my_mesh)
+sys.Add(mesh)
 
-# my_system.Set_G_acc(VNULL) or
-#my_mesh.SetAutomaticGravity(False)
+# sys.Set_G_acc(VNULL) or
+#mesh.SetAutomaticGravity(False)
 
 nodePlotA = fea.ChNodeFEAxyz()
 nodePlotB = fea.ChNodeFEAxyz()
@@ -103,25 +97,25 @@ if (False):  # set as 'true' to execute this
     mnode3 = fea.ChNodeFEAxyz(p3)
     mnode4 = fea.ChNodeFEAxyz(p4)
     mnode5 = fea.ChNodeFEAxyz(p5)
-    my_mesh.AddNode(mnode0)
-    my_mesh.AddNode(mnode1)
-    my_mesh.AddNode(mnode2)
-    my_mesh.AddNode(mnode3)
-    my_mesh.AddNode(mnode4)
-    my_mesh.AddNode(mnode5)
+    mesh.AddNode(mnode0)
+    mesh.AddNode(mnode1)
+    mesh.AddNode(mnode2)
+    mesh.AddNode(mnode3)
+    mesh.AddNode(mnode4)
+    mesh.AddNode(mnode5)
     
     # Create element
     
     melement = fea.ChElementShellBST()
-    my_mesh.AddElement(melement)
+    mesh.AddElement(melement)
     
     melement.SetNodes(mnode0, mnode1, mnode2,None,None,None)
     
     melement.AddLayer(thickness, 0 * chrono.CH_C_DEG_TO_RAD, material)
     
     # TEST
-    my_system.Setup()
-    my_system.Update()
+    sys.Setup()
+    sys.Update()
     print( "BST initial: \n"
     	+ "Area: " + str(melement.area) + "\n"
     	+ "l0: " + str(melement.l0) + "\n"
@@ -131,7 +125,7 @@ if (False):  # set as 'true' to execute this
     
     mnode1.SetPos(mnode1.GetPos() + chrono.ChVectorD(0.1, 0, 0))
     
-    my_system.Update()
+    sys.Update()
     Fi = chrono.ChVectorDynamicD(melement.GetNdofs())
     melement.ComputeInternalForces(Fi)
     print( "BST updated: \n" 
@@ -187,7 +181,7 @@ if (True):  # set as 'true' to execute this
         for ix in range(nsections_x+1):
             p = chrono.ChVectorD(ix * (L_x / nsections_x), 0, iz * (L_z / nsections_z))
             mnode = fea.ChNodeFEAxyz(p)
-            my_mesh.AddNode(mnode)
+            mesh.AddNode(mnode)
             mynodes.append(mnode)
 		
 	
@@ -195,7 +189,7 @@ if (True):  # set as 'true' to execute this
     for iz in range(nsections_z):
         for ix in range(nsections_x) :
             melementA = fea.ChElementShellBST()
-            my_mesh.AddElement(melementA)
+            mesh.AddElement(melementA)
 
             if (iz == 0 and ix == 1):
                 ementmonitor = melementA
@@ -224,7 +218,7 @@ if (True):  # set as 'true' to execute this
 
 			
             melementB = fea.ChElementShellBST()
-            my_mesh.AddElement(melementB)
+            mesh.AddElement(melementB)
 			
             boundary_1 = mynodes[(iz    ) * (nsections_x + 1) + ix    ]
             if (ix < nsections_x-1):
@@ -275,7 +269,7 @@ if (False) :
 	material = fea.ChMaterialShellKirchhoff(melasticity)
 	material.SetDensity(density)
 
-	fea.ChMeshFileLoader.BSTShellFromObjFile(my_mesh, chrono.GetChronoDataFile('models/cube.obj'), material, thickness)
+	fea.ChMeshFileLoader.BSTShellFromObjFile(mesh, chrono.GetChronoDataFile('models/cube.obj'), material, thickness)
 
 
 
@@ -286,81 +280,58 @@ if (False) :
 # coordinates and vertex colors as in the FEM elements.
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
 # postprocessor that can handle a colored ChTriangleMeshShape).
-# Do not forget AddAsset() at the end!
 
 
-mvisualizeshellA = fea.ChVisualizationFEAmesh(my_mesh)
+mvisualizeshellA = chrono.ChVisualShapeFEA(mesh)
 #mvisualizeshellA.SetSmoothFaces(True)
 #mvisualizeshellA.SetWireframe(True)
 mvisualizeshellA.SetShellResolution(2)
 #mvisualizeshellA.SetBackfaceCull(True)
-my_mesh.AddAsset(mvisualizeshellA)
+mesh.AddVisualShapeFEA(mvisualizeshellA)
 
-mvisualizeshellB = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizeshellB.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NONE)
-mvisualizeshellB.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_NODE_DOT_POS)
+mvisualizeshellB = chrono.ChVisualShapeFEA(mesh)
+mvisualizeshellB.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
+mvisualizeshellB.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS)
 mvisualizeshellB.SetSymbolsThickness(0.006)
-my_mesh.AddAsset(mvisualizeshellB)
+mesh.AddVisualShapeFEA(mvisualizeshellB)
 
-
-#
-# VISUALIZATION
-#
 
 # Create the Irrlicht visualization
-application = chronoirr.ChIrrApp(my_system, "Shells FEA test: triangle BST elements", chronoirr.dimension2du(1024, 768))
-application.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-application.AddSkyBox()
-application.AddTypicalLights()
-application.AddCamera(chronoirr.vector3df(1, .3, 1.3), chronoirr.vector3df(.5, -.3, .5))
-
-# ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-# If you need a finer control on which item really needs a visualization proxy in
-# Irrlicht, just use application.AssetBind(myitem) on a per-item basis.
-
-application.AssetBindAll()
-
-# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-application.AssetUpdateAll()
-
-#
-# THE SOFT-REAL-TIME CYCLE
-#
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024, 768)
+vis.SetWindowTitle('Shells FEA test: triangle BST elements')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(1, .3, 1.3), chrono.ChVectorD(.5, -.3, .5))
+vis.AddTypicalLights()
 
 # Change solver to PardisoMKL
 mkl_solver = mkl.ChSolverPardisoMKL()
 mkl_solver.LockSparsityPattern(True)
-my_system.SetSolver(mkl_solver)
+sys.SetSolver(mkl_solver)
 
 #gmres_solver = chrono_types::make_shared<ChSolverGMRES>()
 #gmres_solver.SetMaxIterations(100)
-#my_system.SetSolver(gmres_solver)
+#sys.SetSolver(gmres_solver)
 
 
 timestep = 0.005
-application.SetTimestep(timestep)
-my_system.Setup()
-my_system.Update()
+sys.Setup()
+sys.Update()
 
 rec_X = chrono.ChFunction_Recorder()
 rec_Y = chrono.ChFunction_Recorder()
 
 mtime = 0
 
-while (application.GetDevice().run()) :
-	application.BeginScene()
-
-	application.DrawAll()
-
-	# .. draw also a grid
-	#ChIrrTools::drawGrid(application.GetVideoDriver(), 1, 1)
-
-	application.DoStep()
-
-	application.EndScene()
+# Simulation loop
+while vis.Run():
+    vis.BeginScene()
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(timestep)
 
 
 

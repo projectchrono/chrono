@@ -26,7 +26,7 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_synchrono/SynConfig.h"
 #include "chrono_synchrono/SynChronoManager.h"
@@ -90,30 +90,30 @@ void GetVehicleModelFiles(VehicleType type,
 
 class IrrAppWrapper {
   public:
-    IrrAppWrapper(std::shared_ptr<ChTrackedVehicleIrrApp> app = nullptr) : app(app) {}
+    IrrAppWrapper(std::shared_ptr<ChTrackedVehicleVisualSystemIrrlicht> app = nullptr) : m_app(app) {}
 
     void Synchronize(const std::string& msg, const ChDriver::Inputs& driver_inputs) {
-        if (app)
-            app->Synchronize(msg, driver_inputs);
+        if (m_app)
+            m_app->Synchronize(msg, driver_inputs);
     }
 
     void Advance(double step) {
-        if (app)
-            app->Advance(step);
+        if (m_app)
+            m_app->Advance(step);
     }
 
     void Render() {
-        if (app) {
-            app->BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app->DrawAll();
-            app->EndScene();
+        if (m_app) {
+            m_app->BeginScene();
+            m_app->DrawAll();
+            m_app->EndScene();
         }
     }
 
-    void Set(std::shared_ptr<ChTrackedVehicleIrrApp> app) { this->app = app; }
-    bool IsOk() { return app ? app->GetDevice()->run() : true; }
+    void Set(std::shared_ptr<ChTrackedVehicleVisualSystemIrrlicht> app) { m_app = app; }
+    bool IsOk() { return m_app ? m_app->GetDevice()->run() : true; }
 
-    std::shared_ptr<ChTrackedVehicleIrrApp> app;
+    std::shared_ptr<ChTrackedVehicleVisualSystemIrrlicht> m_app;
 };
 
 class DriverWrapper : public ChDriver {
@@ -213,12 +213,12 @@ int main(int argc, char* argv[]) {
     IrrAppWrapper app;
     DriverWrapper driver(vehicle);
     if (cli.HasValueInVector<int>("irr", node_id)) {
-        auto temp_app = chrono_types::make_shared<ChTrackedVehicleIrrApp>(&vehicle, L"SynChrono Tracked Vehicle Demo");
-        temp_app->AddTypicalLights();
+        auto temp_app = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+        temp_app->SetWindowTitle("SynChrono Tracked Vehicle Demo");
         temp_app->SetChaseCamera(trackPoint, cam_distance, 0.5);
-        temp_app->SetTimestep(step_size);
-        temp_app->AssetBindAll();
-        temp_app->AssetUpdateAll();
+        temp_app->Initialize();
+        temp_app->AddTypicalLights();
+        vehicle.SetVisualSystem(temp_app);
 
         // Create the interactive driver system
         auto irr_driver = chrono_types::make_shared<ChIrrGuiDriver>(*temp_app);

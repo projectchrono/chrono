@@ -68,18 +68,13 @@ class Model(object):
       self.ankle_limit.SetRmin(-math.pi/9)
       
       if (self.animate) :
-             self.myapplication = chronoirr.ChIrrApp(self.ant_sys)
-             self.myapplication.AddShadowAll()
-             self.myapplication.SetTimestep(self.timestep)
-             self. myapplication.SetTryRealtime(True)  
-             self.myapplication.AddSkyBox()
-             self.myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-             self.myapplication.AddCamera(chronoirr.vector3df(0,1.5,0))
-             self.myapplication.AddLightWithShadow(chronoirr.vector3df(4,4,0),    # point
-                                            chronoirr.vector3df(0,0,0),    # aimpoint
-                                            20,                 # radius (power)
-                                            1,9,               # near, far
-                                            90)                # angle of FOV
+          self.vis = chronoirr.ChVisualSystemIrrlicht()
+          self.ant_sys.SetVisualSystem(self.vis)
+          self.vis.Initialize()
+          self.vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+          self.vis.AddSkyBox()
+          self.vis.AddCamera(chrono.ChVectorD(0,1.5,0))
+          self.vis.AddTypicalLights()
 
    def reset(self):
     
@@ -92,7 +87,7 @@ class Model(object):
     # set collision surface properties
       abdomen_ellipsoid = chrono.ChEllipsoid(chrono.ChVectorD(0, 0, 0 ), chrono.ChVectorD(self.abdomen_x, self.abdomen_y, self.abdomen_z ))
       self.abdomen_shape = chrono.ChEllipsoidShape(abdomen_ellipsoid)
-      self.body_abdomen.AddAsset(self.abdomen_shape)
+      self.body_abdomen.AddVisualShape(self.abdomen_shape)
       self.body_abdomen.SetCollide(True)
       self.body_abdomen.GetCollisionModel().ClearModel()
       self.body_abdomen.GetCollisionModel().AddEllipsoid(self.ant_material, self.abdomen_x, self.abdomen_y, self.abdomen_z, chrono.ChVectorD(0, 0, 0 ) )
@@ -135,7 +130,7 @@ class Model(object):
              self.leg_pos[i] = chrono.ChVectorD( (0.5*self.leg_length+self.abdomen_x)*math.cos(leg_ang[i]) ,self.abdomen_y0, (0.5*self.leg_length+self.abdomen_z)*math.sin(leg_ang[i]))
              self.leg_body[i].SetPos(self.leg_pos[i])
              self.leg_body[i].SetRot(Leg_quat[i])
-             self.leg_body[i].AddAsset(self.leg_shape)
+             self.leg_body[i].AddVisualShape(self.leg_shape)
              self.leg_body[i].SetMass(self.leg_mass)
              self.leg_body[i].SetInertiaXX(self.leg_inertia)
              self.ant_sys.Add(self.leg_body[i])
@@ -157,7 +152,7 @@ class Model(object):
              self.anklejoint_frame.append(chrono.ChFrameD(anklejoint_chordsys[i]))
              self.ankle_body[i].SetPos(self.anklejoint_frame[i].GetPos() + self.anklejoint_frame[i].GetRot().Rotate(chrono.ChVectorD(self.ankle_length/2, 0, 0)))
              self.ankle_body[i].SetRot(  self.anklejoint_frame[i].GetRot() )
-             self.ankle_body[i].AddAsset(self.ankle_shape)
+             self.ankle_body[i].AddVisualShape(self.ankle_shape)
              self.ankle_body[i].SetMass(self.ankle_mass)
              self.ankle_body[i].SetInertiaXX(self.ankle_inertia)
              self.ant_sys.Add(self.ankle_body[i])
@@ -170,9 +165,9 @@ class Model(object):
              self.ankle_body[i].GetCollisionModel().ClearModel()
              self.ankle_body[i].GetCollisionModel().AddSphere(self.ant_material, self.ankle_radius, chrono.ChVectorD(self.ankle_length/2, 0, 0 ) )
              self.ankle_body[i].GetCollisionModel().BuildModel()
-             self.ankle_body[i].AddAsset(self.ankle_shape)
+             self.ankle_body[i].AddVisualShape(self.ankle_shape)
              
-             self.ankle_body[i].AddAsset(self.foot_shape)
+             self.ankle_body[i].AddVisualShape(self.foot_shape)
              
              self.Leg_rev[i].GetLimit_Rz().SetActive(True)
              self.Leg_rev[i].GetLimit_Rz().SetMin(-math.pi/3)
@@ -199,16 +194,13 @@ class Model(object):
       body_floor_shape = chrono.ChBoxShape()
       body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(5, 1, 5)
       body_floor_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
-      self.body_floor.GetAssets().push_back(body_floor_shape)
-      body_floor_texture = chrono.ChTexture()
-      body_floor_texture.SetTextureFilename(chrono.GetChronoDataFile('vehicle/terrain/textures/grass.jpg'))
-      self.body_floor.GetAssets().push_back(body_floor_texture)     
+      body_floor_shape.SetTexture(chrono.GetChronoDataFile('vehicle/terrain/textures/grass.jpg'))
+      self.body_floor.AddVisualShape(body_floor_shape)   
       self.ant_sys.Add(self.body_floor)
       #self.body_abdomen.SetBodyFixed(True)
    
       if (self.animate):
-            self.myapplication.AssetBindAll()
-            self.myapplication.AssetUpdateAll()
+            self.vis.BindAll()
 
       self.numsteps= 0
       self.step(np.zeros(8))
@@ -219,9 +211,9 @@ class Model(object):
        self.numsteps += 1
        if (self.animate):
 
-              self.myapplication.GetDevice().run()
-              self.myapplication.BeginScene()
-              self.myapplication.DrawAll()
+              self.vis.Run()
+              self.vis.BeginScene()
+              self.vis.DrawAll()
        self.ac = ac.reshape((-1,))
        for i in range(len(self.leg_motor)): 
 
@@ -232,10 +224,8 @@ class Model(object):
 
 
        if (self.animate):
-              self.myapplication.DoStep()
-              self.myapplication.EndScene()
-       else:
-              self.ant_sys.DoStepDynamics(self.timestep)
+              self.vis.EndScene()
+       self.ant_sys.DoStepDynamics(self.timestep)
 
        obs= self.get_ob()
        rew = self.calc_rew(xposbefore)    
@@ -297,15 +287,8 @@ class Model(object):
           
    def __del__(self):
           if (self.animate):
-               self.myapplication.GetDevice().closeDevice()
+               self.vis.GetDevice().closeDevice()
                print('Destructor called, Device deleted.')
           else:
                print('Destructor called, No device to delete.')
-        
-   def ScreenCapture(self, interval):
-          try: 
-              self.myapplication.SetVideoframeSave(True)
-              self.myapplication.SetVideoframeSaveInterval(interval)
-          except:
-                 print('No ChIrrApp found. Cannot save video frames.')
                      

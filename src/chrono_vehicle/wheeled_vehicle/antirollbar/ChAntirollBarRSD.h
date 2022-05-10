@@ -26,8 +26,6 @@
 #ifndef CH_ANTIROLLBAR_RSD_H
 #define CH_ANTIROLLBAR_RSD_H
 
-#include "chrono/assets/ChColorAsset.h"
-
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
 
 namespace chrono {
@@ -65,16 +63,13 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
                             const ChVector<>& location                 ///< [in] location relative to the chassis frame
                             ) override;
 
-    /// Get the total mass of the anti-roll bar subsystem.
-    virtual double GetMass() const override;
-
-    /// Get the current global COM location of the anti-roll bar subsystem.
-    virtual ChVector<> GetCOMPos() const override;
-
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
   protected:
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
     /// Return the mass of the arm body.
     virtual double getArmMass() const = 0;
     /// Return the moments of inertia of the arm body.

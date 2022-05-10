@@ -1,12 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Alessandro Tasora
+# Copyright (c) 2014 projectchrono.org
+# All rights reserved.
 #
-# Created:     1/01/2019
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 import errno
 import os
@@ -26,7 +28,7 @@ import pychrono.postprocess as postprocess
 #  (Do not create parts and constraints programmatically here, we will
 #  load a mechanism from file)
 
-my_system = chrono.ChSystemNSC()
+sys = chrono.ChSystemNSC()
 
 
 # Set the collision margins. This is expecially important for very large or
@@ -52,12 +54,12 @@ exported_items = chrono.ImportSolidWorksSystem(chrono.GetChronoDataFile('solid_w
 print ("...done!");
 
 # Print exported items
-for my_item in exported_items:
-    print (my_item.GetName())
+for item in exported_items:
+    print (item.GetName())
 
 # Add items to the physical system
-for my_item in exported_items:
-    my_system.Add(my_item)
+for item in exported_items:
+    sys.Add(item)
 
 
 # ---------------------------------------------------------------------
@@ -66,7 +68,7 @@ for my_item in exported_items:
 #  to be used with POV-Ray
 #
 
-pov_exporter = postprocess.ChPovRay(my_system)
+pov_exporter = postprocess.ChPovRay(sys)
 
  # Sets some file names for in-out processes.
 pov_exporter.SetTemplateFile(chrono.GetChronoDataFile('_template_POV.pov'))
@@ -84,7 +86,7 @@ except OSError as exc:
     if exc.errno != errno.EEXIST:
         print("Error creating anim directory " )
 
-pov_exporter.SetOutputDataFilebase("output/my_state")
+pov_exporter.SetOutputDataFilebase("my_state")
 pov_exporter.SetPictureFilebase("anim/picture")
 
  # Sets the viewpoint, aimed point, lens angle
@@ -92,11 +94,11 @@ pov_exporter.SetCamera(chrono.ChVectorD(0.2,0.3,0.5), chrono.ChVectorD(0,0,0), 3
 
  # Sets the default ambient light and default light lamp
 pov_exporter.SetAmbientLight(chrono.ChColor(1,1,0.9))
-pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(0.9,0.9,1.1), True)
+pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(0.9,0.9,1.0), True)
 
  # Sets other settings
 pov_exporter.SetPictureSize(640,480)
-pov_exporter.SetAmbientLight(chrono.ChColor(2,2,2))
+pov_exporter.SetAmbientLight(chrono.ChColor(0.8,0.8,0.8))
 
  # If wanted, turn on the rendering of COGs, reference frames, contacts:
 #pov_exporter.SetShowCOGs  (1, 0.05)
@@ -127,19 +129,19 @@ pov_exporter.AddAll()
 pov_exporter.ExportScript()
 
  # Configure the solver, if needed
-my_system.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
-my_system.SetSolverMaxIterations(40)
-my_system.SetMaxPenetrationRecoverySpeed(0.002)
-my_system.Set_G_acc(chrono.ChVectorD(0,-9.8,-9.80))
+sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
+sys.SetSolverMaxIterations(40)
+sys.SetMaxPenetrationRecoverySpeed(0.002)
+sys.Set_G_acc(chrono.ChVectorD(0,-9.8,-9.80))
 
  # Perform a short simulation
 nstep =0
-while (my_system.GetChTime() < 1.2) :
+while (sys.GetChTime() < 1.2) :
 
-    my_system.DoStepDynamics(0.002)
+    sys.DoStepDynamics(0.002)
 
     #if math.fmod(nstep,10) ==0 :
-    print ('time=', my_system.GetChTime() )
+    print ('time=', sys.GetChTime() )
 
         # 2) Create the incremental nnnn.dat and nnnn.pov files that will be load
         #    by the pov .ini script in POV-Ray (do this at each simulation timestep)
