@@ -477,6 +477,10 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
     }  // end switch
 }
 
+ChVector<> ChTrackShoeBandANCF::GetTension() const {
+    return m_connections[0]->Get_react_force();
+}
+
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandANCF::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

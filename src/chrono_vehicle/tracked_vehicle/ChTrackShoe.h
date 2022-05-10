@@ -46,8 +46,12 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     /// Get the index of this track shoe within its containing track assembly.
     size_t GetIndex() const { return m_index; }
 
-    /// Get a handle to the shoe body.
+    /// Get the shoe body.
     std::shared_ptr<ChBody> GetShoeBody() const { return m_shoe; }
+
+    /// Get track tension at this track shoe.
+    /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
+    virtual ChVector<> GetTension() const = 0;
 
     /// Return the height of the track shoe.
     virtual double GetHeight() const = 0;
