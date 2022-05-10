@@ -46,6 +46,11 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     /// This quantity must agree with the pitch of the sprocket gear.
     virtual double GetPitch() const override;
 
+    /// Get track tension at this track shoe.
+    /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
+    /// For a double-pin track shoe, this function returns the force between the track shoe body and connector(s).
+    virtual ChVector<> GetTension() const override;
+
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).

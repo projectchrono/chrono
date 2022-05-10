@@ -99,22 +99,21 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
     ChVector<> p_next = ChVector<>(-sign * GetPitch() / 2, 0, 0);  // local point on next shoe
     ChVector<> loc = m_shoe->TransformPointLocalToParent(p_shoe);  // connection point (expressed in absolute frame)
 
-    if (track->GetBushingData() || m_index != 0 || m_index != 1) {
+    if (track->GetBushingData() || (m_index != 0 && m_index != 1)) {
         // Create and initialize the revolute joint (rotation axis along Z)
         auto rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
         m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_pin",
-                                                            m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot),
+                                                            next->GetShoeBody(), m_shoe, ChCoordsys<>(loc, rot),
                                                             track->GetBushingData());
         chassis->AddJoint(m_joint);
     } else if (m_index == 0) {
-        m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sph", m_shoe,
-                                                            next->GetShoeBody(), ChCoordsys<>(loc, QUNIT));
+        m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sph",
+                                                            next->GetShoeBody(), m_shoe, ChCoordsys<>(loc, QUNIT));
         chassis->AddJoint(m_joint);
     } else if (m_index == 1) {
         auto rot = m_shoe->GetRot() * Q_from_AngY(-CH_C_PI_2);
-        m_joint =
-            chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::UNIVERSAL, m_name + "_univ",
-                                                      next->GetShoeBody(), next->GetShoeBody(), ChCoordsys<>(loc, rot));
+        m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::UNIVERSAL, m_name + "_univ",
+                                                      next->GetShoeBody(), m_shoe, ChCoordsys<>(loc, rot));
         chassis->AddJoint(m_joint);
     }
 
@@ -125,11 +124,14 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
 
         m_rsda = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda->SetNameString(m_name + "_rsda");
-        m_rsda->Initialize(m_shoe, next->GetShoeBody(), true, ChCoordsys<>(p_shoe, z2y),
-                                      ChCoordsys<>(p_next, z2y));
+        m_rsda->Initialize(m_shoe, next->GetShoeBody(), true, ChCoordsys<>(p_shoe, z2y), ChCoordsys<>(p_next, z2y));
         m_rsda->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_rsda);
     }
+}
+
+ChVector<> ChTrackShoeSinglePin::GetTension() const {
+    return m_joint->GetForce();
 }
 
 // -----------------------------------------------------------------------------
