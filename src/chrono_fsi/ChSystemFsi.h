@@ -170,6 +170,13 @@ class CH_FSI_API ChSystemFsi {
                    int plane = 12,
                    bool isSolid = false);
 
+    /// Add BCE particle for a sphere.
+    void AddBceSphere(std::shared_ptr<SimParams> paramsH,
+                      std::shared_ptr<ChBody> body,
+                      const ChVector<>& relPos,
+                      const ChQuaternion<>& relRot,
+                      double radius);
+
     /// Add BCE particle for a cylinder.
     void AddBceCylinder(std::shared_ptr<SimParams> paramsH,
                         std::shared_ptr<ChBody> body,
