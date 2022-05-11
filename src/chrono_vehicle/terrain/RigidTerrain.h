@@ -70,10 +70,10 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         /// Return a handle to the ground body.
         std::shared_ptr<ChBody> GetGroundBody() const { return m_body; }
 
+        virtual void Initialize() = 0;
+
       protected:
         Patch();
-
-        virtual void Initialize() = 0;
 
         virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const = 0;
         virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) {}
