@@ -188,10 +188,12 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMat
     Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> >   solver;
     solver.analyzePattern(K_IIc);
     solver.factorize(K_IIc); 
-
     for (int i = 0; i < K_IB.cols(); ++i) { 
         ChVectorDynamic<> rhs(this->n_internal_coords_w + full_Cq.rows());
-        rhs << K_IB.col(i).toDense(), Cq_B.col(i).toDense();
+        if (Cq_B.rows())
+            rhs << K_IB.col(i).toDense(), Cq_B.col(i).toDense();
+        else
+            rhs << K_IB.col(i).toDense();
         ChVectorDynamic<> x = solver.solve(rhs);
         Psi_S.block(0,i, this->n_internal_coords_w, 1) = -x.head(this->n_internal_coords_w);
     }
