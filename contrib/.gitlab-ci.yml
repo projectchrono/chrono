@@ -32,10 +32,10 @@ stages:
   - git submodule update
   - mkdir -p build
 # Make flatbuffers
-  - cd src/chrono_thirdparty/flatbuffers
-  - cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release .
-  - ninja -j 8
-  - cd $CI_PROJECT_DIR
+#  - cd src/chrono_thirdparty/flatbuffers
+#  - cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release .
+#  - ninja -j 8
+#  - cd $CI_PROJECT_DIR
 
 linux:arch-gcc:build:
   stage: build
