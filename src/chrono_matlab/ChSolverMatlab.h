@@ -22,8 +22,10 @@
 
 namespace chrono {
 
-/// Class for using Matlab from Chrono programs.
+/// @addtogroup matlab_module
+/// @{
 
+/// Class for using a Matlab linear solver from Chrono programs.
 class ChApiMatlab ChSolverMatlab : public ChSolver {
 
   protected:
@@ -51,6 +53,8 @@ class ChApiMatlab ChSolverMatlab : public ChSolver {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} matlab_module
 
 }  // end namespace chrono
 
