@@ -71,7 +71,7 @@ float lag = .05f;
 // Exposure (in seconds) of each image
 float exposure_time = 0.02f;
 
-int alias_factor = 1;
+int alias_factor = 2;
 
 bool use_gi = true;  // whether cameras should use global illumination
 
@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
     cam->PushFilter(chrono_types::make_shared<ChFilterR8Access>());
 
     // add sensor to the manager
-    // manager->AddSensor(cam);
+    manager->AddSensor(cam);
 
     // -------------------------------------------------------
     // Create a second camera and add it to the sensor manager

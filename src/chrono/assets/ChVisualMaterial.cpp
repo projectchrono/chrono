@@ -29,7 +29,9 @@ ChVisualMaterial::ChVisualMaterial()
       metallic(0),
       use_specular_workflow(true),
       class_id(0),
-      instance_id(0) {}
+      instance_id(0),
+      tex_scale({1.f,1.f,1.f})
+      {}
 
 void ChVisualMaterial::SetAmbientColor(ChVector<float> rgb) {
     // valid rgb range [0,1]

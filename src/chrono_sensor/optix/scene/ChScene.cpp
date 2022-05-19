@@ -32,7 +32,12 @@ CH_SENSOR_API ChScene::ChScene() {
     lights_changed = true;
     background_changed = true;
 
+    m_fog_color = ChVector<float>(1.f, 1.f, 1.f);
+    m_fog_scattering = 0.f;
+
     m_scene_epsilon = 1e-3f;
+    m_dynamic_origin_threshold = 100.f;
+    m_dynamic_origin_offset = false;
 }
 
 CH_SENSOR_API ChScene::~ChScene() {}
@@ -68,6 +73,33 @@ CH_SENSOR_API void ChScene::SetBackground(Background b) {
 CH_SENSOR_API void ChScene::SetSceneEpsilon(float e) {
     m_scene_epsilon = e;
     background_changed = true;
+}
+
+/// Function to set the fog color
+CH_SENSOR_API void ChScene::SetFogColor(ChVector<float> color) {
+    m_fog_color = ChClamp(color, ChVector<float>(0.f, 0.f, 0.f), ChVector<float>(1.f, 1.f, 1.f));
+    background_changed = true;
+}
+
+/// Function to set the fog scattering coefficient
+CH_SENSOR_API void ChScene::SetFogScattering(float coefficient) {
+    m_fog_scattering = ChClamp(coefficient, 0.f, 1.f);
+    background_changed = true;
+}
+
+/// Function to set the fog scattering coefficient
+CH_SENSOR_API void ChScene::SetFogScatteringFromDistance(float distance) {
+    distance = ChClamp(distance, 1e-3f, 1e16f);
+    m_fog_scattering = log(256.0) / distance;
+    background_changed = true;
+}
+
+void ChScene::UpdateOriginOffset(ChVector<float> sensor_pos, bool force) {
+    if (force || (m_dynamic_origin_offset && (sensor_pos - m_origin_offset).Length() > m_dynamic_origin_threshold)) {
+        // set the new origin offset
+        m_origin_offset = sensor_pos;
+        m_origin_changed = true;
+    }
 }
 
 }  // namespace sensor

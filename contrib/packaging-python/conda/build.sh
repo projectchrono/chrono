@@ -1,9 +1,12 @@
 
 mkdir -p ./build
 cd ./build
+<<<<<<< HEAD
 CI_PROJECT_DIR=/root/chrono-ros-bridge-conda
 echo $CI_PROJECT_DIR
 export NP_INCL=$(python $CI_PROJECT_DIR/contrib/packaging-python/conda/setvarnumpy.py )
+=======
+>>>>>>> 1b65c3ae5414889b108968efc9e9e4a55deeebce
 # in py <= 3.7, headers are in $PREFIX/include/python3.xm/, while since python 3.8 they are in $PREFIX/include/python3.8/ go figure.
 # if [ "$PY3K" == "1" ] && [ "$PY_VER" != "3.8" ] ; then
 #     MY_PY_VER="${PY_VER}m"
@@ -33,7 +36,6 @@ cmake -DUSE_CCACHE=ON -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DENABLE_MODULE_IRRLICHT=ON \
  -DENABLE_MODULE_VEHICLE=ON \
  -DENABLE_MODULE_PYTHON=ON \
- -DENABLE_MODULE_SENSOR=ON \
  -DBUILD_DEMOS=OFF \
  -DBUILD_TESTING=OFF \
  -DBUILD_BENCHMARKING=OFF \

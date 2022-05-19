@@ -88,9 +88,25 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         bufferOut->Buffer = std::move(b);
         m_raygen_record->data.specific.camera.hFOV = cam->GetHFOV();
         m_raygen_record->data.specific.camera.gamma = cam->GetGamma();
+        m_raygen_record->data.specific.camera.super_sample_factor = cam->GetSampleFactor();
         m_raygen_record->data.specific.camera.frame_buffer = reinterpret_cast<half4*>(bufferOut->Buffer.get());
         m_raygen_record->data.specific.camera.use_gi = cam->GetUseGI();
+        m_raygen_record->data.specific.camera.use_fog = cam->GetUseFog();
+        m_raygen_record->data.specific.camera.lens_model = cam->GetLensModelType();
+        m_raygen_record->data.specific.camera.lens_parameters =
+            make_float3(cam->GetLensParameters().x(), cam->GetLensParameters().y(), cam->GetLensParameters().z());
         m_bufferOut = bufferOut;
+
+        if (cam->GetUseGI() || cam->GetCollectionWindow() > 0.f) {
+            // initialize rng buffer for ray bounces or motion blur
+            m_rng = std::shared_ptr<curandState_t>(
+                cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
+                cudaFreeHelper<curandState_t>);
+
+            init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+                          m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
+            m_raygen_record->data.specific.camera.rng_buffer = m_rng.get();
+        }
 
         if (cam->GetUseGI() && m_denoiser) {
             half4* frame_buffer = cudaMallocHelper<half4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
@@ -103,14 +119,6 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
 
             m_denoiser->Initialize(cam->GetWidth(), cam->GetHeight(), cam->GetCudaStream(), frame_buffer, albedo_buffer,
                                    normal_buffer, reinterpret_cast<half4*>(bufferOut->Buffer.get()));
-
-            // initialize rng buffer for ray bounces
-            m_rng = std::shared_ptr<curandState_t>(
-                cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
-                cudaFreeHelper<curandState_t>);
-            init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
-                          m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
-            m_raygen_record->data.specific.camera.rng_buffer = m_rng.get();
         }
 
     } else if (auto segmenter = std::dynamic_pointer_cast<ChSegmentationCamera>(pSensor)) {
@@ -120,6 +128,21 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         bufferOut->Buffer = std::move(b);
         m_raygen_record->data.specific.segmentation.hFOV = segmenter->GetHFOV();
         m_raygen_record->data.specific.segmentation.frame_buffer = reinterpret_cast<ushort2*>(bufferOut->Buffer.get());
+        m_raygen_record->data.specific.segmentation.lens_model = segmenter->GetLensModelType();
+        m_raygen_record->data.specific.segmentation.lens_parameters = make_float3(
+            segmenter->GetLensParameters().x(), segmenter->GetLensParameters().y(), segmenter->GetLensParameters().z());
+
+        if (segmenter->GetCollectionWindow() > 0.f) {
+            // initialize rng buffer for ray bounces or motion blur
+            m_rng = std::shared_ptr<curandState_t>(
+                cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
+                cudaFreeHelper<curandState_t>);
+
+            init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+                          m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
+            m_raygen_record->data.specific.segmentation.rng_buffer = m_rng.get();
+        }
+
         m_bufferOut = bufferOut;
     } else if (auto lidar = std::dynamic_pointer_cast<ChLidarSensor>(pSensor)) {
         auto bufferOut = chrono_types::make_shared<SensorDeviceDIBuffer>();

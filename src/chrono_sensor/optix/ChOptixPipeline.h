@@ -47,13 +47,13 @@ struct Record {
 
 /// The type of ray tracing used to model the sensor
 enum class PipelineType {
-    CAMERA_PINHOLE,         ///< pinhole camera model
-    CAMERA_FOV_LENS,        ///< FOV lens model
-    SEGMENTATION_PINHOLE,   ///< pinhole segmentation camera
-    SEGMENTATION_FOV_LENS,  ///< FOV lens segmentation camera
-    LIDAR_SINGLE,           ///< single sample lidar
-    LIDAR_MULTI,            ///< multi sample lidar
-    RADAR                   ///< radar model
+    CAMERA,  ///< camera rendering pipeline
+    // CAMERA_FOV_LENS,        ///< FOV lens model
+    SEGMENTATION,  ///< segmentation camera pipeline
+    // SEGMENTATION_FOV_LENS,  ///< FOV lens segmentation camera
+    LIDAR_SINGLE,  ///< single sample lidar
+    LIDAR_MULTI,   ///< multi sample lidar
+    RADAR          ///< radar model
 };
 // TODO: how do we allow custom ray gen programs? (Is that ever going to be a thing?)
 
@@ -79,17 +79,17 @@ class CH_SENSOR_API ChOptixPipeline {
     /// Creates a new box material
     /// @param mat the chrono material from which to create an optix material
     /// @returns an id pointing to the material that was created
-    unsigned int GetBoxMaterial(std::shared_ptr<ChVisualMaterial> mat = nullptr);
+    unsigned int GetBoxMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list = {});
 
     /// Creates a new sphere material
     /// @param mat the chrono material from which to create an optix material
     /// @returns an id pointing to the material that was created
-    unsigned int GetSphereMaterial(std::shared_ptr<ChVisualMaterial> mat = nullptr);
+    unsigned int GetSphereMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list = {});
 
     /// Creates a new cylinder material
     /// @param mat the chrono material from which to create an optix material
     /// @returns an id pointing to the material that was created
-    unsigned int GetCylinderMaterial(std::shared_ptr<ChVisualMaterial> mat = nullptr);
+    unsigned int GetCylinderMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list = {});
 
     /// Creates a new rigid material/mesh in optix
     /// @param[out] d_vertices a device pointer where the mesh's vertices will be stored
@@ -202,10 +202,10 @@ class CH_SENSOR_API ChOptixPipeline {
     OptixModule m_miss_module = 0;                 // miss.cu
 
     // program groups - we only make one of each - do not clear when rebuilding root
-    OptixProgramGroup m_camera_pinhole_raygen_group = 0;
-    OptixProgramGroup m_camera_fov_lens_raygen_group = 0;
-    OptixProgramGroup m_segmentation_pinhole_raygen_group = 0;
-    OptixProgramGroup m_segmentation_fov_lens_raygen_group = 0;
+    OptixProgramGroup m_camera_raygen_group = 0;
+    // OptixProgramGroup m_camera_fov_lens_raygen_group = 0;
+    OptixProgramGroup m_segmentation_raygen_group = 0;
+    // OptixProgramGroup m_segmentation_fov_lens_raygen_group = 0;
     OptixProgramGroup m_lidar_single_raygen_group = 0;
     OptixProgramGroup m_lidar_multi_raygen_group = 0;
     OptixProgramGroup m_radar_raygen_group = 0;
