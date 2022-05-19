@@ -158,11 +158,6 @@ ChJSONWriter& ChJSONWriter::operator<<(const double v) {
     return *this;
 }
 
-ChJSONWriter& ChJSONWriter::operator<<(const float v) {
-    m_writer.Double(v);
-    return *this;
-}
-
 ChJSONWriter& ChJSONWriter::operator<<(unsigned int v) {
     m_writer.Uint(v);
     return *this;

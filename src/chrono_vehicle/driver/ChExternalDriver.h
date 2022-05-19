@@ -154,7 +154,6 @@ class CH_VEHICLE_API ChJSONWriter {
     ChJSONWriter& operator<<(const int v);
     ChJSONWriter& operator<<(const long int v);
     ChJSONWriter& operator<<(const double v);
-    ChJSONWriter& operator<<(const float v);
     ChJSONWriter& operator<<(unsigned int v);
     ChJSONWriter& operator<<(const char* v);
     ChJSONWriter& operator<<(std::string& v);
