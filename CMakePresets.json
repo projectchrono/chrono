@@ -87,7 +87,7 @@
 			"inherits": "genericci-base",
 			"cacheVariables": {
 				"ENABLE_MODULE_PARDISO_MKL": "ON",
-				"BLAZE_DIR": "C:/Users/builder/Documents/blaze-3.8",
+				"BLAZE_DIR": "C:/Users/builder/Documents/blaze-3.8.1",
 				"EIGEN3_INCLUDE_DIR": "C:/Users/builder/Documents/eigen-3.3.9",
 				"GLEW_DLL": "C:/Users/builder/Documents/glew-2.2.0/bin/Release/x64/glew32.dll",
 				"GLEW_INCLUDE_DIR": "C:/Users/builder/Documents/glew-2.2.0/include",
