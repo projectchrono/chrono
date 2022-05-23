@@ -30,6 +30,8 @@ SET(CE_VSG_CORE_FILES
 )
 
 SET(CE_VSG_SHAPES_FILES
+    shapes/ShapeBuilder.cpp
+    shapes/ShapeBuilder.h
 )
 
 SET(CE_VSG_RESOURCES_FILES

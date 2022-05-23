@@ -19,6 +19,8 @@
 #include <vsgImGui/imgui.h>
 #include "chrono_vsg/tools/createSkybox.h"
 #include "chrono_vsg/tools/createQuad.h"
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChSphereShape.h"
 #include "ChVisualSystemVSG.h"
 #include "chrono_thirdparty/stb/stb_image_write.h"
 #include "chrono_thirdparty/stb/stb_image_resize.h"
@@ -101,6 +103,8 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     // add vsgXchange's support for reading and writing 3rd party file formats, mandatory for chrono_vsg!
     m_options->add(vsgXchange::all::create());
     m_options->fileCache = vsg::getEnv("VSG_FILE_CACHE");
+    m_options->sharedObjects = vsg::SharedObjects::create_if(true);
+    m_shapeBuilder = new ShapeBuilder(m_options);
 }
 
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir vert) {
@@ -193,6 +197,8 @@ void ChVisualSystemVSG::Initialize() {
 
     m_scenegraph->addChild(absoluteTransform);
 
+    BindAll();
+
     // compute the bounds of the scene graph to help position camera
     vsg::ComputeBounds computeBounds;
     m_scenegraph->accept(computeBounds);
@@ -244,8 +250,6 @@ void ChVisualSystemVSG::Initialize() {
     m_viewer->assignRecordAndSubmitTaskAndPresentation({m_commandGraph});
 
     m_viewer->compile();
-
-    BindAll();
 
     m_initialized = true;
 }
@@ -568,6 +572,36 @@ void ChVisualSystemVSG::BindAll() {
     if(m_system->Get_bodylist().size() < 1) {
         cout << "Attached system must have at least 1 rigid body, nothing to bind!" << endl;
         return;
+    }
+    for (auto& body : m_system->GetAssembly().Get_bodylist()) {
+        //CreateIrrNode(body);
+        GetLog() << "Body# " << body->GetId() << "\n";
+        if(!body->GetVisualModel()) {
+            GetLog() << "   ... has no visual representation\n";
+            continue;
+        }
+        for (const auto& shape_instance : body->GetVisualModel()->GetShapes()) {
+            auto& shape = shape_instance.first;
+            auto& shape_frame = shape_instance.second;
+            ChQuaternion<> rot = shape_frame.GetRot();
+            ChVector<> pos = shape_frame.GetPos();
+            double rotAngle;
+            ChVector<> rotAxis;
+            rot.Q_to_AngAxis(rotAngle, rotAxis);
+            if(!shape->IsVisible()) {
+                continue;
+            }
+            if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+                GetLog() << "... has a box shape\n";
+                ChVector<> scale = 2.0*box->GetBoxGeometry().Size;
+                vsg::dmat4 tf_matrix = vsg::translate(pos.x(), pos.y(), pos.z())
+                        * vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z())
+                        * vsg::scale(scale.x(), scale.y(), scale.z());
+                m_scenegraph->addChild(m_shapeBuilder->createBox(tf_matrix));
+            } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+                GetLog() << "... has a sphere shape\n";
+            }
+        }
     }
 }
 

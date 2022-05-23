@@ -23,6 +23,7 @@
 #include <vsgXchange/all.h>
 
 #include "chrono/assets/ChVisualSystem.h"
+#include "chrono_vsg/shapes/ShapeBuilder.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -96,6 +97,8 @@ private:
     int m_windowHeight = 480;
     int m_windowPosX = 0;
     int m_windowPosY = 0;
+    //
+    ShapeBuilder* m_shapeBuilder;
     //
     bool m_initialized = false;
     vsg::ref_ptr<vsg::Viewer> m_viewer;
