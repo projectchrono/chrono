@@ -22,7 +22,7 @@ ShapeBuilder::ShapeBuilder(vsg::ref_ptr<vsg::Options> options) {
 
 ShapeBuilder::~ShapeBuilder() {}
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createBox(vsg::dmat4 &tf_matrix) {
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createBox(std::shared_ptr<ChVisualMaterial> material, vsg::dmat4 &tf_matrix) {
     auto scenegraph = vsg::Group::create();
     auto shaderSet = vsg::createPhongShaderSet(m_options);
 
@@ -31,8 +31,17 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createBox(vsg::dmat4 &tf_matrix) {
     // set up graphics pipeline
     vsg::Descriptors descriptors;
 
+    // set up pass of material
+    auto phongMat = vsg::PhongMaterialValue::create();
+    float alpha = material->GetOpacity();
+    phongMat->value().diffuse.set(material->GetDiffuseColor().R, material->GetDiffuseColor().G, material->GetDiffuseColor().B, alpha);
+    phongMat->value().ambient.set(material->GetAmbientColor().R, material->GetAmbientColor().G, material->GetAmbientColor().B, alpha);
+    phongMat->value().specular.set(material->GetSpecularColor().R, material->GetSpecularColor().G, material->GetSpecularColor().B, alpha);  // red specular highlight
+    phongMat->value().alphaMask = alpha;
+    phongMat->value().alphaMaskCutoff = 0.3f;
+
     // read texture image
-    vsg::Path textureFile;
+    vsg::Path textureFile(material->GetKdTexture());
     if (textureFile) {
         auto textureData = vsg::read_cast<vsg::Data>(textureFile, m_options);
         if (!textureData) {
@@ -42,21 +51,13 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createBox(vsg::dmat4 &tf_matrix) {
         graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", textureData);
     }
 
-    // set up pass of material
-    auto mat = vsg::PhongMaterialValue::create();
-    mat->value().diffuse.set(1.0f, 1.0f, 1.0f, 1.0f);
-    mat->value().ambient.set(0.1f, 0.1f, 0.1f, 1.0f);
-    mat->value().specular.set(1.0f, 0.0f, 0.0f, 1.0f);  // red specular highlight
-    mat->value().alphaMask = 0.4f;
-    mat->value().alphaMaskCutoff = 0.1f;
-
     // set transparency, if needed
     vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
     colorBlendAttachment.blendEnable = VK_FALSE;  // default
     colorBlendAttachment.colorWriteMask =
         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    if (mat->value().alphaMask < 1.0) {
+    if (phongMat->value().alphaMask < 1.0) {
         colorBlendAttachment.blendEnable = VK_TRUE;
         colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
         colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
@@ -67,7 +68,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createBox(vsg::dmat4 &tf_matrix) {
     }
     colorBlendAttachments.push_back(colorBlendAttachment);
     graphicsPipelineConfig->colorBlendState = vsg::ColorBlendState::create(colorBlendAttachments);
-    graphicsPipelineConfig->assignUniform(descriptors, "material", mat);
+    graphicsPipelineConfig->assignUniform(descriptors, "material", phongMat);
 
     if (m_options->sharedObjects)
         m_options->sharedObjects->share(descriptors);
@@ -191,7 +192,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createBox(vsg::dmat4 &tf_matrix) {
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(stateGroup);
     }
-    if (mat->value().alphaMask < 1.0) {
+    if (phongMat->value().alphaMask < 1.0) {
         vsg::ComputeBounds computeBounds;
         scenegraph->accept(computeBounds);
         auto depthSorted = vsg::DepthSorted::create();

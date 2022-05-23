@@ -31,7 +31,7 @@ class CH_VSG_API ShapeBuilder {
     ShapeBuilder(vsg::ref_ptr<vsg::Options> options);
     ~ShapeBuilder();
 
-    vsg::ref_ptr<vsg::Group> createBox(vsg::dmat4 &tf_matrix);
+    vsg::ref_ptr<vsg::Group> createBox(std::shared_ptr<ChVisualMaterial> material, vsg::dmat4 &tf_matrix);
 
   private:
     vsg::ref_ptr<vsg::Options> m_options;

@@ -185,10 +185,12 @@ void ChVisualSystemVSG::Initialize() {
     directionalLight->name = "head light";
     directionalLight->color.set(1.0, 1.0, 1.0);
     directionalLight->intensity = m_light_intensity;
-    if(m_yup) {
-        directionalLight->direction.set(-cos(m_elevation)*cos(m_acimut), -sin(m_elevation), -cos(m_elevation)*sin(m_acimut));
+    if (m_yup) {
+        directionalLight->direction.set(-cos(m_elevation) * cos(m_acimut), -sin(m_elevation),
+                                        -cos(m_elevation) * sin(m_acimut));
     } else {
-        directionalLight->direction.set(-cos(m_elevation)*cos(m_acimut), -cos(m_elevation)*sin(m_acimut), -sin(m_elevation));
+        directionalLight->direction.set(-cos(m_elevation) * cos(m_acimut), -cos(m_elevation) * sin(m_acimut),
+                                        -sin(m_elevation));
     }
 
     auto absoluteTransform = vsg::AbsoluteTransform::create();
@@ -211,7 +213,7 @@ void ChVisualSystemVSG::Initialize() {
     // set up the camera automatically
     m_center_point = centre;
     if (m_yup) {
-        m_eye_point = centre + vsg::dvec3(-radius * 3.5, 0.0, 0.0);
+        m_eye_point = centre + vsg::dvec3(-radius * 3.5, 20.0, 0.0);
     } else {
         m_eye_point = centre + vsg::dvec3(0.0, -radius * 3.5, 0.0);
     }
@@ -229,7 +231,6 @@ void ChVisualSystemVSG::Initialize() {
 
     // create the normal 3D view of the scene
     m_renderGraph->addChild(vsg::View::create(m_camera, m_scenegraph));
-
 
     // Imgui graphical menu handler
     m_renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, GuiComponent(m_params, this)));
@@ -565,18 +566,18 @@ void ChVisualSystemVSG::export_image() {
 
 void ChVisualSystemVSG::BindAll() {
     cout << "BindAll() called!" << endl;
-    if(!m_system) {
+    if (!m_system) {
         cout << "No system attached, nothing to bind!" << endl;
         return;
     }
-    if(m_system->Get_bodylist().size() < 1) {
+    if (m_system->Get_bodylist().size() < 1) {
         cout << "Attached system must have at least 1 rigid body, nothing to bind!" << endl;
         return;
     }
     for (auto& body : m_system->GetAssembly().Get_bodylist()) {
-        //CreateIrrNode(body);
+        // CreateIrrNode(body);
         GetLog() << "Body# " << body->GetId() << "\n";
-        if(!body->GetVisualModel()) {
+        if (!body->GetVisualModel()) {
             GetLog() << "   ... has no visual representation\n";
             continue;
         }
@@ -588,16 +589,24 @@ void ChVisualSystemVSG::BindAll() {
             double rotAngle;
             ChVector<> rotAxis;
             rot.Q_to_AngAxis(rotAngle, rotAxis);
-            if(!shape->IsVisible()) {
+            std::shared_ptr<ChVisualMaterial> material;
+            if (shape->GetMaterials().empty()) {
+                material = chrono_types::make_shared<ChVisualMaterial>();
+                material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
+                material->SetAmbientColor(ChColor(0.1, 0.1, 0.1));
+            } else {
+                material = shape->GetMaterial(0);
+            }
+            if (!shape->IsVisible()) {
                 continue;
             }
             if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
                 GetLog() << "... has a box shape\n";
-                ChVector<> scale = 2.0*box->GetBoxGeometry().Size;
-                vsg::dmat4 tf_matrix = vsg::translate(pos.x(), pos.y(), pos.z())
-                        * vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z())
-                        * vsg::scale(scale.x(), scale.y(), scale.z());
-                m_scenegraph->addChild(m_shapeBuilder->createBox(tf_matrix));
+                ChVector<> scale = 2.0 * box->GetBoxGeometry().Size;
+                vsg::dmat4 tf_matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                       vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                       vsg::scale(scale.x(), scale.y(), scale.z());
+                m_scenegraph->addChild(m_shapeBuilder->createBox(material, tf_matrix));
             } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
                 GetLog() << "... has a sphere shape\n";
             }
@@ -606,17 +615,17 @@ void ChVisualSystemVSG::BindAll() {
 }
 
 void ChVisualSystemVSG::SetLightDirection(double acimut, double elevation) {
-    if(!m_initialized) {
+    if (!m_initialized) {
         m_acimut = acimut;
         m_elevation = ChClamp(elevation, 0.0, CH_C_PI_2);
-    }else {
+    } else {
         cout << "SetLightDirection() cannot be used after initializing!" << endl;
     }
 }
 
 void ChVisualSystemVSG::SetLightIntensity(double intensity) {
-    if(!m_initialized) {
-        m_light_intensity = ChClamp(intensity,0.0,1.0);
+    if (!m_initialized) {
+        m_light_intensity = ChClamp(intensity, 0.0, 1.0);
     } else {
         cout << "SetLightIntensity() cannot be used after initializing!" << endl;
     }

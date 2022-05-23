@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     sys.SetVisualSystem(vis);
-
+    vis->SetCameraVertical(vsg3d::CameraVerticalDir::Y);
     vis->SetWindowSize(ChVector2<int>(800, 600));
     vis->SetWindowPosition(ChVector2<int>(100, 300));
     vis->SetWindowTitle("Rolling and spinning friction");
