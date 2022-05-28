@@ -43,7 +43,6 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCASCADE_INCLUDE_DIR=$HOME/miniconda3/include/opencascade \
  -DCASCADE_LIBDIR=$HOME/miniconda3/lib \
  -DENABLE_MODULE_PARDISO_MKL=ON \
- -DMKL_INCLUDE_DIR=$HOME/miniconda3/include \
  -DMKL_RT_LIBRARY=$HOME/miniconda3/lib/libmkl_rt.so \
  -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 \
  -DPYCHRONO_DATA_PATH=../../../../../../share/chrono/data \
