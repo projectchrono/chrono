@@ -98,9 +98,11 @@ class CH_VEHICLE_API ChWheeledTrailer {
         ChTire::CollisionType tire_coll = ChTire::CollisionType::SINGLE_POINT);
 
     /// Update the state of this trailer at the current time.
-    /// The trailer system is provided the current braking input (between 0 and 1) and a reference to the terrain
-    /// system.
-    void Synchronize(double time, double braking, const ChTerrain& terrain);
+    /// The trailer system is provided the current driver inputs and a reference to the terrain system.
+    void Synchronize(double time,                        ///< [in] current time
+                     const DriverInputs& driver_inputs,  ///< [in] current driver inputs
+                     const ChTerrain& terrain            ///< [in] reference to the terrain system
+    );
 
     /// Advance the state of this trailer by the specified time step.
     /// This function advances the states of all associated tires.

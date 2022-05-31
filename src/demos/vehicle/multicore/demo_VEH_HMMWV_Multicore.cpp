@@ -464,7 +464,7 @@ int main(int argc, char* argv[]) {
 
         if (hmmwv) {
             // Extract current driver inputs
-            ChDriver::Inputs driver_inputs = driver->GetInputs();
+            DriverInputs driver_inputs = driver->GetInputs();
 
             // Synchronize vehicle systems
             driver->Synchronize(time);

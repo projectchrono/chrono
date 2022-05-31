@@ -449,7 +449,7 @@ int main(int argc, char* argv[]) {
         // }
 
         // Collect output data from modules (for inter-module communication)
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Driver output
         if (driver_mode == RECORD) {

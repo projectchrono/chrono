@@ -531,7 +531,7 @@ int main(int argc, char* argv[]) {
         vis->DrawAll();
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         double steer = steering_gear_ratio * steer_filter.Filter(driver_inputs.m_steering);
         steer_recorder.AddPoint(time, steer);

@@ -61,27 +61,27 @@ void ChWheeledVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powert
 // and 1, steering between -1 and +1, braking between 0 and 1), and a reference
 // to the terrain system.
 // -----------------------------------------------------------------------------
-void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
+void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) {
     double powertrain_torque = 0;
     if (m_powertrain && m_driveline) {
         // Extract the torque from the powertrain.
         powertrain_torque = m_powertrain->GetOutputTorque();
         // Synchronize the associated powertrain system (pass throttle input).
-        m_powertrain->Synchronize(time, driver_inputs.m_throttle, m_driveline->GetDriveshaft()->GetPos_dt());
+        m_powertrain->Synchronize(time, driver_inputs, m_driveline->GetDriveshaft()->GetPos_dt());
     }
 
     // Apply powertrain torque to the driveline's input shaft.
     if (m_driveline)
-        m_driveline->Synchronize(powertrain_torque);
+        m_driveline->Synchronize(time, driver_inputs, powertrain_torque);
 
     // Let the steering subsystems process the steering input.
     for (auto& steering : m_steerings) {
-        steering->Synchronize(time, driver_inputs.m_steering);
+        steering->Synchronize(time, driver_inputs);
     }
 
     // Pass the steering input to any chassis connectors (in case one of them is actuated)
     for (auto& connector : m_chassis_connectors) {
-        connector->Synchronize(time, driver_inputs.m_steering);
+        connector->Synchronize(time, driver_inputs);
     }
 
     // Synchronize the vehicle's axle subsystems
@@ -90,7 +90,7 @@ void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_i
             if (wheel->m_tire)
                 wheel->m_tire->Synchronize(time, terrain);
         }
-        axle->Synchronize(driver_inputs.m_braking);
+        axle->Synchronize(time, driver_inputs);
     }
 
     m_chassis->Synchronize(time);

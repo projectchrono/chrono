@@ -720,7 +720,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect output data from modules
-        ChDriver::Inputs driver_inputs = driver->GetInputs();
+        DriverInputs driver_inputs = driver->GetInputs();
         vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 

@@ -182,7 +182,7 @@ class MyDriver {
         }
     }
 
-    ChDriver::Inputs GetInputs() { return m_driver->GetInputs(); }
+    DriverInputs GetInputs() { return m_driver->GetInputs(); }
     void Initialize() { m_driver->Initialize(); }
     void Synchronize(double time) { m_driver->Synchronize(time); }
     void Advance(double step) { m_driver->Advance(step); }
@@ -381,7 +381,7 @@ int main(int argc, char* argv[]) {
         double time = my_hmmwv.GetSystem()->GetChTime();
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Update sentinel and target location markers for the path-follower controller.
         ballS->setPosition(irr::core::vector3dfCH(driver.GetSentinelLocation()));

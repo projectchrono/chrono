@@ -66,9 +66,11 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
                             ) override;
 
     /// Update the driveline subsystem.
-    /// The motor torque represents the input to the driveline subsystem from the
-    /// powertrain system.
-    virtual void Synchronize(double steering, double torque) override;
+    /// The motor torque represents the input to the driveline subsystem from the powertrain system.
+    virtual void Synchronize(double time,                            ///< [in] current time
+                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
+                             double torque                           ///< [in] motor torque
+                             ) override;
 
     /// Get the motor torque to be applied to the specified sprocket.
     virtual double GetSprocketTorque(VehicleSide side) const override;
@@ -86,7 +88,7 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
     virtual double GetConicalGearRatio() const = 0;
 
   private:
-    virtual void CombineDriverInputs(const ChDriver::Inputs& driver_inputs,
+    virtual void CombineDriverInputs(const DriverInputs& driver_inputs,
                                      double& braking_left,
                                      double& braking_right) override;
 

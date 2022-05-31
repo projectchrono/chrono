@@ -36,7 +36,6 @@ namespace vehicle {
 /// @{
 
 /// Base class for a Rack-Pinion steering subsystem.
-/// Derived from ChSteering, but still an abstract base class.
 ///
 /// The steering subsystem is modeled with respect to a right-handed frame with
 /// with X pointing towards the front, Y to the left, and Z up (ISO standard).
@@ -71,11 +70,10 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     virtual void RemoveVisualizationAssets() override;
 
     /// Update the state of this steering subsystem at the current time.
-    /// The steering subsystem is provided the current steering driver input (a
-    /// value between -1 and +1).  Positive steering input indicates steering
-    /// to the left. This function is called during the vehicle update.
-    virtual void Synchronize(double time,     ///< [in] current time
-                             double steering  ///< [in] current steering input [-1,+1]
+    /// The steering subsystem is provided the current steering driver input (a value between -1 and +1).  Positive
+    /// steering input indicates steering to the left. This function is called during the vehicle update.
+    virtual void Synchronize(double time,                           ///< [in] current time
+                             const DriverInputs& driver_inputs  ///< [in] current driver inputs
                              ) override;
 
     /// Log current constraint violations.

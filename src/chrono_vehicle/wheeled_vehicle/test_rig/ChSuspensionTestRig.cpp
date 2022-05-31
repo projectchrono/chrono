@@ -368,7 +368,7 @@ void ChSuspensionTestRig::Advance(double step) {
     ////std::cout << displ_left[0] << " " << displ_right[0] << std::endl;
 
     // Synchronize vehicle system
-    ChDriver::Inputs driver_inputs = {m_steering_input, 0, 0};
+    DriverInputs driver_inputs = {m_steering_input, 0, 0};
     m_vehicle->Synchronize(time, driver_inputs, *m_terrain);
 
     // Synchronize driver system

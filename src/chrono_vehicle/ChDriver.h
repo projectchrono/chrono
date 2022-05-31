@@ -39,12 +39,6 @@ namespace vehicle {
 /// variables m_throttle, m_steering, and m_braking.
 class CH_VEHICLE_API ChDriver {
   public:
-    struct Inputs {
-        double m_steering;
-        double m_throttle;
-        double m_braking;
-    };
-
     /// Construct a driver subsystem associated with the given vehicle.
     ChDriver(ChVehicle& vehicle);
 
@@ -60,7 +54,7 @@ class CH_VEHICLE_API ChDriver {
     double GetBraking() const { return m_braking; }
 
     /// Get all current inputs at once.
-    Inputs GetInputs() const;
+    DriverInputs GetInputs() const;
 
     /// Initialize this driver system.
     virtual void Initialize() {}

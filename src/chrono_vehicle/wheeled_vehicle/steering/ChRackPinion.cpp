@@ -94,10 +94,10 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-void ChRackPinion::Synchronize(double time, double steering) {
+void ChRackPinion::Synchronize(double time, const DriverInputs& driver_inputs) {
     // Convert the steering input into an angle of the pinion and then into a
     // displacement of the rack.
-    double angle = steering * GetMaxAngle();
+    double angle = driver_inputs.m_steering * GetMaxAngle();
     double displ = angle * GetPinionRadius();
 
     if (auto fun = std::dynamic_pointer_cast<ChFunction_Const>(m_actuator->Get_dist_funct()))

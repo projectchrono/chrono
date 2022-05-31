@@ -228,8 +228,8 @@ class CH_VEHICLE_API ChChassisConnector : public ChPart {
     /// value between -1 and +1).  Positive steering input indicates steering
     /// to the left. This function is called during the vehicle update.
     /// The default implementation is no-op.
-    virtual void Synchronize(double time,     ///< [in] current time
-                             double steering  ///< [in] current steering input [-1,+1]
+    virtual void Synchronize(double time,                           ///< [in] current time
+                             const DriverInputs& driver_inputs  ///< [in] current driver inputs
     ) {}
 
   private:

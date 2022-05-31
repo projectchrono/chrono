@@ -90,6 +90,13 @@ struct TerrainForce {
 /// Vector of terrain conatct force structures.
 typedef std::vector<TerrainForce> TerrainForces;
 
+/// Driver (vehicle control) inputs.
+struct DriverInputs {
+    double m_steering;  ///< steering input [-1, +1]
+    double m_throttle;  ///< throttle input [0, 1]
+    double m_braking;   ///< braking input [0, 1]
+};
+
 // -----------------------------------------------------------------------------
 // Utility functor classes for force elements
 // -----------------------------------------------------------------------------
