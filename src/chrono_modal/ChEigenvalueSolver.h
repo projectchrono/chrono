@@ -23,6 +23,37 @@ namespace chrono {
 namespace modal {
 
 
+/// Class for passing basic settings to the Solve() function of the various solvers 
+class ChApiModal ChEigenvalueSolverSettings {
+public:
+    // parameter constructor: only the first parameter is mandatory 
+    ChEigenvalueSolverSettings(
+        int m_nmodes,              ///< optional: n. of desired lower eigenvalues. If =0, return all eigenvalues.
+        int max_iters = 500,       ///< upper limit for the number of iterations. If too low might not converge.
+        double mtolerance = 1e-10, ///< tolerance for the iterative solver. 
+        bool mverbose = false,     ///< turn to true to see some diagnostic.
+        double msigma = 1e-5       ///< for shift&invert. Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
+    ) :
+        n_modes(m_nmodes),
+        max_iterations(max_iters),
+        tolerance(mtolerance),
+        verbose(mverbose),
+        sigma(msigma)
+    {};
+
+    virtual ~ChEigenvalueSolverSettings() {};
+
+    int n_modes = 10;
+    double tolerance = 1e-10;   ///< tolerance for the iterative solver. 
+    double sigma = 1e-5;        ///< for shift&invert. Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
+    int max_iterations = 500;   ///< upper limit for the number of iterations. If too low might not converge.
+    bool verbose = false;       ///< turn to true to see some diagnostic.
+};
+
+//---------------------------------------------------------------------------------------------
+
+
+
 /// Base interface class for eigensolvers for the undamped
 /// constrained generalized problem (-wsquare*M + K)*x = 0  s.t. Cq*x = 0
 /// Children classes can implement this in different ways, overridding Solve()
@@ -39,8 +70,8 @@ public:
         ChMatrixDynamic<std::complex<double>>& V,    ///< output matrix n x n_v with eigenvectors as columns, will be resized
         ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with n eigenvalues, will be resized.
         ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
-        int n_modes = 0             ///< optional: n. of desired lower eigenvalues. If =0, return all eigenvalues.
-    ) = 0;
+        ChEigenvalueSolverSettings settings = 0   ///< optional: settings for the solver, or n. of desired lower eigenvalues. If =0, return all eigenvalues.
+    ) const = 0;
 };
 
 /// Solves the undamped constrained eigenvalue problem with the Krylov-Schur iterative method.
@@ -60,14 +91,9 @@ public:
         ChMatrixDynamic<std::complex<double>>& V,    ///< output matrix n x n_v with eigenvectors as columns, will be resized
         ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with n eigenvalues, will be resized.
         ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
-        int n_modes = 0             ///< optional: n. of desired lower eigenvalues. If =0, return all eigenvalues.
-    );
+        ChEigenvalueSolverSettings settings = 0   ///< optional: settings for the solver, or n. of desired lower eigenvalues. If =0, return all eigenvalues.
+    ) const override;
 
-    // Some default settings. One can modify them before calling Solve(), if needed.
-    double tolerance = 1e-10;   ///< tolerance for the iterative solver. 
-    double sigma = 1e-5;        ///< for shift&invert. Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
-    int max_iterations = 500;   ///< upper limit for the number of iterations. If too low might not converge.
-    bool verbose = false;       ///< turn to true to see some diagnostic.
 };
 
 /// Solves the undamped constrained eigenvalue problem with the Lanczos iterative method. 
@@ -88,22 +114,102 @@ public:
         ChMatrixDynamic<std::complex<double>>& V,    ///< output matrix n x n_v with eigenvectors as columns, will be resized
         ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with n eigenvalues, will be resized.
         ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
-        int n_modes = 0             ///< optional: n. of desired lower eigenvalues. If =0, return all eigenvalues.
-    );
+        ChEigenvalueSolverSettings settings = 0   ///< optional: settings for the solver, or n. of desired lower eigenvalues. If =0, return all eigenvalues.
+    ) const  override;
 
-    // Some default settings. One can modify them before calling Solve(), if needed.
-    double tolerance = 1e-10;   ///< tolerance for the iterative solver. 
-    double sigma = 1e-5;        ///< for shift&invert. Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
-    int max_iterations = 500;   ///< upper limit for the number of iterations. If too low might not converge.
-    bool verbose = false;       ///< turn to true to see some diagnostic.
 };
-
 
 
 //---------------------------------------------------------------------------------------------
 
 
-/// Base interface class for eigensolvers for the dynamic problem 
+/// Class for computing eigenvalues/eigenvectors for the undamped constrained system.
+/// It dispatches the settings to some solver of ChGeneralizedEigenvalueSolver class.
+/// It handles multiple runs of the solver if one wants to find specific ranges of frequencies.
+/// Finally it guarantees that eigenvalues are sorted in the appropriate order of increasing frequency.
+class ChApiModal ChModalSolveUndamped {
+public:
+    struct ChFreqSpan {
+    public:
+        int nmodes = 1;
+        double freq = 1e-5;
+    };
+
+    /// Constructor for the case of N lower modes.
+    /// Ex.
+    ///  ChModalSolveUndamped(7);
+    /// finds first 7 lowest modes, using default settings (i.e. the ChGeneralizedEigenvalueSolverLanczos).
+    /// Ex. 
+    ///  ChModalSolveUndamped(5, 1e-5, 500, 1e-10, false, ChGeneralizedEigenvalueSolverKrylovSchur());
+    /// finds first 5 lowest modes using the ChGeneralizedEigenvalueSolverKrylovSchur() solver.
+    ChModalSolveUndamped(
+        int n_lower_modes,         ///< n of lower modes
+        double base_freq = 1e-5,   ///< frequency to whom the nodes are clustered. Use 1e-5 to get n lower modes. As sigma in shift&invert, as: sigma = -pow(base_freq * CH_C_2PI, 2). Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
+        int max_iters = 500,       ///< upper limit for the number of iterations. If too low might not converge.
+        double mtolerance = 1e-10, ///< tolerance for the iterative solver. 
+        bool mverbose = false,     ///< turn to true to see some diagnostic.
+        const ChGeneralizedEigenvalueSolver& asolver = ChGeneralizedEigenvalueSolverLanczos() /// solver to use (default Lanczos)
+    ) :
+        freq_spans({ {n_lower_modes, base_freq } }),
+        max_iterations(max_iters),
+        tolerance(mtolerance),
+        verbose(mverbose),
+        msolver(asolver)
+    {};
+
+    /// Constructor for the case of multiple spans of frequency analysis
+    /// ex. ChModalSolveUndamped({{10,1e-5,},{5,40}} , 500) ;
+    /// finds first 10 lower modes, then 5 modes closest to 40 Hz, etc., using
+    /// multiple runs of the solver. Closest mean that some could be higher than 40Hz,
+    /// others can be lower.
+    /// Another example: suppose you want the 5 lowest modes, then you also are
+    /// interested in 1 high frequency mode whose frequency is already know approximately, 
+    /// ex. 205 Hz, then you can do ChModalSolveUndamped({{5,1e-5,},{1,205}}, ...).
+    /// Note about overlapping ranges: if n-th run finds frequencies up to X Hz, and the (n+1)-th run finds some
+    /// frequency with Y Hz where Y < X, then such Y mode(s) is discarded. 
+    ChModalSolveUndamped(
+        std::vector< ChFreqSpan > mfreq_spans, ///< vector of {nmodes,freq}_i , will provide first nmodes_i starting at freq_i per each i vector entry
+        int max_iters = 500,       ///< upper limit for the number of iterations. If too low might not converge.
+        double mtolerance = 1e-10, ///< tolerance for the iterative solver. 
+        bool mverbose = false,     ///< turn to true to see some diagnostic.
+        const ChGeneralizedEigenvalueSolver& asolver = ChGeneralizedEigenvalueSolverLanczos() /// solver to use (default Lanczos)
+    ) :
+        freq_spans(mfreq_spans),
+        max_iterations(max_iters),
+        tolerance(mtolerance),
+        verbose(mverbose),
+        msolver(asolver)
+    {};
+
+    virtual ~ChModalSolveUndamped() {};
+
+    /// Solve the constrained eigenvalue problem (-wsquare*M + K)*x = 0 s.t. Cq*x = 0
+    /// Return the n. of found modes, where n is not necessarily n_lower_modes (or the sum of ChFreqSpan::nmodes if multiple spans) 
+    virtual int Solve(
+        const ChSparseMatrix& M,  ///< input M matrix, n_v x n_v
+        const ChSparseMatrix& K,  ///< input K matrix, n_v x n_v  
+        const ChSparseMatrix& Cq, ///< input Cq matrix of constraint jacobians, n_c x n_v
+        ChMatrixDynamic<std::complex<double>>& V,    ///< output matrix n x n_v with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with n eigenvalues, will be resized.
+        ChVectorDynamic<double>& freq   ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
+    ) const;
+
+
+    std::vector< ChFreqSpan > freq_spans;
+    double tolerance = 1e-10;   ///< tolerance for the iterative solver. 
+    int max_iterations = 500;   ///< upper limit for the number of iterations. If too low might not converge.
+    bool verbose = false;       ///< turn to true to see some diagnostic.
+    const ChGeneralizedEigenvalueSolver& msolver; 
+};
+
+
+
+//---------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
+
+
+
+/// Base interface class for eigensolvers for the damped dynamic problem 
 /// ie. the quadratic eigenvalue problem  (lambda^2*M + lambda*R + K)*x = 0
 /// also (-w^2*M + i*w*R + K)*x = 0,  with complex w (where w.length() = undamped nat.freq)
 /// Children classes can implement this in different ways, overridding Solve()
@@ -122,8 +228,8 @@ public:
         ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with eigenvalues (real part not zero if some damping), will be resized
         ChVectorDynamic<double>& freq,  ///< output vector with n undamped frequencies [Hz], as f=w/(2*PI), will be resized.
         ChVectorDynamic<double>& damping_ratio,  ///< output vector with n damping rations r=damping/critical_damping.
-        int n_modes = 0             ///< optional: n. of desired lower eigenvalues. If =0, return all eigenvalues.
-    ) = 0;
+        ChEigenvalueSolverSettings settings = 0   ///< optional: settings for the solver, or n. of desired lower eigenvalues. If =0, return all eigenvalues.
+    ) const = 0;
 };
 
 /// Solves the eigenvalue problem with a direct method: first does LU factorization of Cq jacobians
@@ -145,8 +251,8 @@ public:
         ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with complex eigenvalues (real part not zero if some damping), will be resized
         ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
         ChVectorDynamic<double>& damping_ratio,  ///< output vector with n damping rations r=damping/critical_damping.
-        int n_modes = 0             ///< optional: n. of desired lower eigenvalues. If =0, return all eigenvalues.
-    );
+        ChEigenvalueSolverSettings settings = 0   ///< optional: settings for the solver, or n. of desired lower eigenvalues. If =0, return all eigenvalues.
+    ) const override;
 };
 
 
@@ -169,15 +275,101 @@ public:
         ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with complex eigenvalues (real part not zero if some damping), will be resized
         ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
         ChVectorDynamic<double>& damping_ratio,  ///< output vector with n damping rations r=damping/critical_damping.
-        int n_modes = 0             ///< optional: n. of desired lower eigenvalues. If =0, return all eigenvalues.
-    );
+        ChEigenvalueSolverSettings settings = 0   ///< optional: settings for the solver, or n. of desired lower eigenvalues. 
+    ) const override;
 
-    // Some default settings. One can modify them before calling Solve(), if needed.
+};
+
+
+
+
+
+//---------------------------------------------------------------------------------------------
+
+
+/// Class for computing eigenvalues/eigenvectors for the DAMPED constrained system.
+/// It dispatches the settings to some solver of ChQuadraticEigenvalueSolver class.
+/// It handles multiple runs of the solver if one wants to find specific ranges of frequencies.
+/// Finally it guarantees that eigenvalues are sorted in the appropriate order of increasing eigenvalue modulus.
+class ChApiModal ChModalSolveDamped {
+public:
+    struct ChFreqSpan {
+    public:
+        int nmodes = 1;
+        double freq = 1e-5;
+    };
+
+    /// Constructor for the case of N lower modes.
+    /// Ex.
+    ///  ChModalSolveDamped(7); 
+    /// finds first 7 lowest damped modes, using default settings (i.e. the ChQuadraticEigenvalueSolverNullspaceDirect solver).
+    /// Ex. 
+    ///  ChModalSolveDamped(5, 1e-5, 500, 1e-10, false, ChQuadraticEigenvalueSolverKrylovSchur()); 
+    /// finds first 5 lowest damped modes using the ChQuadraticEigenvalueSolverKrylovSchur() solver.
+    ChModalSolveDamped(
+        int n_lower_modes,         ///< n of lower modes
+        double base_freq = 1e-5,   ///< frequency to whom the nodes are clustered. Use 1e-5 to get n lower modes. As sigma in shift&invert, as: sigma = -pow(base_freq * CH_C_2PI, 2). Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
+        int max_iters = 500,       ///< upper limit for the number of iterations. If too low might not converge.
+        double mtolerance = 1e-10, ///< tolerance for the iterative solver. 
+        bool mverbose = false,     ///< turn to true to see some diagnostic.
+        const ChQuadraticEigenvalueSolver& asolver = ChQuadraticEigenvalueSolverNullspaceDirect() /// solver to use (default: direct, null-space based)
+    ) :
+        freq_spans({ {n_lower_modes, base_freq } }),
+        max_iterations(max_iters),
+        tolerance(mtolerance),
+        verbose(mverbose),
+        msolver(asolver)
+    {};
+
+    /// Constructor for the case of multiple spans of frequency analysis
+    /// ex. ChModalSolveDamped({{10,1e-5,},{5,40}} , 500);
+    /// finds first 10 lower modes, then 5 modes closest to 40 Hz, etc., using
+    /// multiple runs of the solver. Closest mean that some could be higher than 40Hz,
+    /// others can be lower.
+    /// Another example: suppose you want the 5 lowest modes, then you also are
+    /// interested in 1 high frequency mode whose frequency is already know approximately, 
+    /// ex. 205 Hz, then you can do ChGeneralizedEigenvalueSolverGeneric({{5,1e-5,},{1,205}}, ...).
+    /// Note about overlapping ranges: if n-th run finds frequencies up to X Hz, and the (n+1)-th run finds some
+    /// frequency with Y Hz where Y < X, then such Y mode(s) is discarded. 
+    ChModalSolveDamped(
+        std::vector< ChFreqSpan > mfreq_spans, ///< vector of {nmodes,freq}_i , will provide first nmodes_i starting at freq_i per each i vector entry
+        int max_iters = 500,       ///< upper limit for the number of iterations. If too low might not converge.
+        double mtolerance = 1e-10, ///< tolerance for the iterative solver. 
+        bool mverbose = false,     ///< turn to true to see some diagnostic.
+        const ChQuadraticEigenvalueSolver& asolver = ChQuadraticEigenvalueSolverNullspaceDirect() /// solver to use (default: direct, null-space based)
+    ) :
+        freq_spans(mfreq_spans),
+        max_iterations(max_iters),
+        tolerance(mtolerance),
+        verbose(mverbose),
+        msolver(asolver)
+    {};
+
+    virtual ~ChModalSolveDamped() {};
+
+    /// Solve the constrained eigenvalue problem (-wsquare*M + K)*x = 0 s.t. Cq*x = 0
+    /// Return the n. of found modes, where n is not necessarily n_lower_modes (or the sum of ChFreqSpan::nmodes if multiple spans) 
+    virtual int Solve(
+        const ChSparseMatrix& M,  ///< input M matrix, n_v x n_v
+        const ChSparseMatrix& R,  ///< input R matrix, n_v x n_v  
+        const ChSparseMatrix& K,  ///< input K matrix, n_v x n_v  
+        const ChSparseMatrix& Cq, ///< input Cq matrix of constraint jacobians, n_c x n_v
+        ChMatrixDynamic<std::complex<double>>& V,    ///< output matrix n x n_v with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with n eigenvalues, will be resized.
+        ChVectorDynamic<double>& freq,               ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
+        ChVectorDynamic<double>& damp_ratios         ///< output vector with n damping ratios, will be resized.
+    ) const;
+
+
+    std::vector< ChFreqSpan > freq_spans;
     double tolerance = 1e-10;   ///< tolerance for the iterative solver. 
-    double sigma = 1e-5;        ///< for shift&invert. Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
     int max_iterations = 500;   ///< upper limit for the number of iterations. If too low might not converge.
     bool verbose = false;       ///< turn to true to see some diagnostic.
+    const ChQuadraticEigenvalueSolver& msolver; 
 };
+
+
+
 
 
 
