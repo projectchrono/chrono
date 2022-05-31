@@ -91,7 +91,7 @@ void differentialSplitXWD(double torque,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSimpleDrivelineXWD::Synchronize(double torque) {
+void ChSimpleDrivelineXWD::Synchronize(double time, const DriverInputs& driver_inputs, double torque) {
     if (!m_connected)
         return;
 

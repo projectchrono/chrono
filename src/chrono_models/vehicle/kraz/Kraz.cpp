@@ -157,9 +157,9 @@ void Kraz::Initialize() {
     m_tractor->InitializeInertiaProperties();
 }
 
-void Kraz::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
+void Kraz::Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) {
     m_tractor->Synchronize(time, driver_inputs, terrain);
-    m_trailer->Synchronize(time, driver_inputs.m_braking, terrain);
+    m_trailer->Synchronize(time, driver_inputs, terrain);
 }
 
 void Kraz::Advance(double step) {

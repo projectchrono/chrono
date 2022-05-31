@@ -175,9 +175,9 @@ sys.GetContactContainer().RegisterAddContactCallback(cmaterial)
 while vis.Run():
     vis.BeginScene() 
     vis.DrawAll()
-    chronoirr.drawGrid(vis.GetVideoDriver(), 0.5, 0.5, 12, 12,
+    chronoirr.drawGrid(vis, 0.5, 0.5, 12, 12,
                        chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
-    chronoirr.drawAllCOGs(sys, vis.GetVideoDriver(), 1.0)
+    chronoirr.drawAllCOGs(vis, 1.0)
     vis.EndScene()
     sys.DoStepDynamics(1e-3)
     

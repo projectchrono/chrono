@@ -129,8 +129,8 @@ int main(int argc, char* argv[]) {
         vis->DrawAll();
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs_1 = driver_1.GetInputs();
-        ChDriver::Inputs driver_inputs_2 = driver_2.GetInputs();
+        DriverInputs driver_inputs_1 = driver_1.GetInputs();
+        DriverInputs driver_inputs_2 = driver_2.GetInputs();
 
         // Update modules (process inputs from other modules)
         driver_1.Synchronize(time);

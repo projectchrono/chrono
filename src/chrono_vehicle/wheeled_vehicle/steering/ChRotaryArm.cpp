@@ -116,11 +116,10 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-void ChRotaryArm::Synchronize(double time, double steering) {
+void ChRotaryArm::Synchronize(double time, const DriverInputs& driver_inputs) {
     auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_revolute->GetAngleFunction());
-    fun->SetSetpoint(getMaxAngle() * steering, time);
+    fun->SetSetpoint(getMaxAngle() * driver_inputs.m_steering, time);
 }
-
 
 void ChRotaryArm::InitializeInertiaProperties() {
     m_mass = m_link->GetMass();

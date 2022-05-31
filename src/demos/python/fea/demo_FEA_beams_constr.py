@@ -245,8 +245,9 @@ sys.SetTimestepper(ts)
 while vis.Run():
     vis.BeginScene()
     vis.DrawAll()
-    chronoirr.drawGrid(vis.GetVideoDriver(), 0.05, 0.05, 20, 20, chrono.ChCoordsysD(chrono.VNULL, chrono.CH_C_PI_2, chrono.VECT_Z),
-                       chronoirr.SColor(50, 90, 90, 90), True)
+    chronoirr.drawGrid(vis,
+        0.05, 0.05, 20, 20, 
+        chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), chrono.Q_from_AngZ(chrono.CH_C_PI_2)))
     vis.EndScene()
 
     sys.DoStepDynamics(0.001)

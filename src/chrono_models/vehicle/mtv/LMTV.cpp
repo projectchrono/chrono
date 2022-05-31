@@ -168,7 +168,7 @@ void LMTV::Initialize() {
 }
 
 // -----------------------------------------------------------------------------
-void LMTV::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
+void LMTV::Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) {
     m_vehicle->Synchronize(time, driver_inputs, terrain);
 }
 

@@ -187,7 +187,7 @@ void HmmwvScmTest<TIRE_TYPE, OBJECTS>::ExecuteStep() {
     double time = m_hmmwv->GetSystem()->GetChTime();
 
     // Driver inputs
-    ChDriver::Inputs driver_inputs = m_driver->GetInputs();
+    DriverInputs driver_inputs = m_driver->GetInputs();
 
     // Update modules (process inputs from other modules)
     m_driver->Synchronize(time);
@@ -211,7 +211,7 @@ void HmmwvScmTest<TIRE_TYPE, OBJECTS>::SimulateVis() {
     m_hmmwv->GetVehicle().SetVisualSystem(vis);
 
     while (vis->Run()) {
-        ChDriver::Inputs driver_inputs = m_driver->GetInputs();
+        DriverInputs driver_inputs = m_driver->GetInputs();
 
         vis->BeginScene();
         vis->DrawAll();

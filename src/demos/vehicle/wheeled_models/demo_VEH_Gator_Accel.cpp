@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         // Get driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
         if (gator.GetVehicle().GetPos().x() > 4) {
             driver_inputs.m_braking = 1;
             driver_inputs.m_throttle = 0;

@@ -396,7 +396,7 @@ while vis.Run():
     vis.DrawAll()
 
     # .. draw also a grid
-    chronoirr.drawGrid(vis.GetVideoDriver(), 1, 1)
+    chronoirr.drawGrid(vis, 1, 1)
     # ...update load at end nodes, as simple lumped nodal forces
     load_scale = mtime * 0.1
     for mendnode in(nodesLoad) :

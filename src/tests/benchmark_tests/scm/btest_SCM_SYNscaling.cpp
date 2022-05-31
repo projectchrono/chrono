@@ -410,7 +410,7 @@ int main(int argc, char* argv[]) {
 #endif
 
         // Get driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Synchronize between nodes
         syn_manager.Synchronize(time);
