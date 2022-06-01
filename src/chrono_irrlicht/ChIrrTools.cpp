@@ -960,6 +960,21 @@ void drawProfiler(ChVisualSystemIrrlicht* vis) {
     utils::ChProfileManager::Release_Iterator(profileIterator);
 }
 
+/// Draw RGB coordinate system
+void tools::drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord, double scale) {
+    ChVector<> pos = coord.pos;
+    ChQuaternion<> rot = coord.rot;
+    // X axis
+    drawSegment(vis, pos, pos + rot.Rotate(VECT_X) * scale, ChColor(1, 0, 0));
+    // Y axis
+    drawSegment(vis, pos, pos + rot.Rotate(VECT_Y) * scale, ChColor(0, 1, 0));
+    // Z axis
+    drawSegment(vis, pos, pos + rot.Rotate(VECT_Z) * scale, ChColor(0, 0, 1));
+}
+
+
+
+
 }  // end namespace tools
 }  // end namespace irrlicht
 }  // end namespace chrono
