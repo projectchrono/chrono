@@ -230,12 +230,8 @@ ChApiIrr void drawPlot3D(ChVisualSystemIrrlicht* vis,
 /// Render run-time profiler info.
 ChApiIrr void drawProfiler(ChVisualSystemIrrlicht* vis);
 
-
-
-/// Draw RGB coordinate system
+/// Draw RGB coordinate system.
 ChApiIrr void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord = CSYSNORM, double scale = 1);
-
-
 
 }  // end namespace tools
 
