@@ -687,12 +687,12 @@ int ChModalSolveDamped::Solve(
 		
 		int nmodes_out_i = eig_i.size();
 
-		// Sort modes by eigenvalue -real part (or modulus(?)) if not exactly in increasing order. Some solver sometime fail at this.
+		// Sort modes by eigenvalue imag part (or modulus(?)) if not exactly in increasing order. Some solver sometime fail at this.
 		std::vector<int> order(nmodes_out_i);
 		std::iota(order.begin(), order.end(), 0);
 		std::sort(order.begin(), order.end(), [&](int a, int b) {
 			//return std::abs(eig_i[a]) < std::abs(eig_i[b]);
-			return -eig_i[a].real() < -eig_i[b].real();
+			return eig_i[a].imag() < eig_i[b].imag();
 		});
 		Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> perm; 
 		perm.indices() =  Eigen::Map<Eigen::ArrayXi>(order.data(), order.size()); 
