@@ -381,6 +381,7 @@ using namespace chrono::fea;
 %include "ChBody.i"
 %include "ChBodyAuxRef.i"
 %include "../../../chrono/physics/ChBodyEasy.h"
+%include "ChNodeXYZ.i"
 %include "ChConveyor.i"
 %include "ChIndexedParticles.i"
 %include "ChParticlesClones.i"
@@ -472,6 +473,8 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChBodyAuxRef)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChIndexedParticles)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChParticlesClones)
+
+%DefSharedPtrDynamicDowncast(chrono,ChNodeBase, ChNodeXYZ)
 
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLink)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMarkers)

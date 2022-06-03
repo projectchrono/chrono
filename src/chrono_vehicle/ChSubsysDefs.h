@@ -24,6 +24,7 @@
 
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChMaterialSurface.h"
 #include "chrono/physics/ChLinkRSDA.h"
