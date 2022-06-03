@@ -681,9 +681,8 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
-        tools::drawGrid(vis->GetVideoDriver(), 2, 2, 30, 30,
-                        ChCoordsys<>(ChVector<>(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)), video::SColor(255, 80, 130, 130),
-                        true);
+        tools::drawGrid(vis.get(), 2, 2, 30, 30, ChCoordsys<>(ChVector<>(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)),
+                        ChColor(0.31f, 0.51f, 0.51f), true);
 
         vis->GetGUIEnvironment()->drawAll();
 
@@ -691,11 +690,11 @@ int main(int argc, char* argv[]) {
         // .. draw the spring constraints as simplified spring helix
         for (auto link : sys.Get_linklist()) {
             if (auto linkdist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
-                tools::drawSegment(vis->GetVideoDriver(), linkdist->GetEndPoint1Abs(), linkdist->GetEndPoint2Abs(),
-                                   video::SColor(255, 0, 20, 0), true);
+                tools::drawSegment(vis.get(), linkdist->GetEndPoint1Abs(), linkdist->GetEndPoint2Abs(),
+                                   ChColor(0.00f, 0.08f, 0.00f), true);
             } else if (auto linkspring = std::dynamic_pointer_cast<ChLinkTSDA>(link)) {
-                tools::drawSpring(vis->GetVideoDriver(), 0.03, linkspring->GetPoint1Abs(), linkspring->GetPoint2Abs(),
-                                  video::SColor(255, 150, 20, 20), 80, 10, true);
+                tools::drawSpring(vis.get(), 0.03, linkspring->GetPoint1Abs(), linkspring->GetPoint2Abs(),
+                                  ChColor(0.59f, 0.08f, 0.08f), 80, 10, true);
             }
         }
 

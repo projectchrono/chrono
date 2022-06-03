@@ -588,9 +588,8 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
-        tools::drawGrid(vis->GetVideoDriver(), 2, 2, 30, 30,
-                        ChCoordsys<>(ChVector<>(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)), video::SColor(255, 60, 60, 60),
-                        true);
+        tools::drawGrid(vis.get(), 2, 2, 30, 30, ChCoordsys<>(ChVector<>(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)),
+                        ChColor(0.3f, 0.3f, 0.3f), true);
 
         vis->EndScene();
         sys.DoStepDynamics(timestep);

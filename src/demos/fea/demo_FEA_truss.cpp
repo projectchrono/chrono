@@ -247,10 +247,9 @@ int main(int argc, char* argv[]) {
         // draw spring elements as lines
         for (auto mspring : springs) {
             if (mspring->GetSpringK() > 0) {
-                tools::drawSegment(vis->GetVideoDriver(),
-                                   std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(0))->GetPos(),
+                tools::drawSegment(vis.get(), std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(0))->GetPos(),
                                    std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(1))->GetPos(),
-                                   irr::video::SColor(255, 255, 255, 255), true);
+                                   ChColor(1, 1, 1), true);
             }
             // cut springs if beyond a stress limit
             if (fabs(mspring->GetCurrentForce()) > 100) {

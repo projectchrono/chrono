@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
         vis->DrawAll();
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         if (done) {
             driver_inputs.m_throttle = 0.1;

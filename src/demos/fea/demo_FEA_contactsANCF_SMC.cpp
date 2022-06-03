@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(0.5, 0.5, 0.3), ChVector<>(0.0, 0.0, 0.0));
-    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_DISTANCES);
+    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
     vis->EnableShadows();
 
     // ---------------

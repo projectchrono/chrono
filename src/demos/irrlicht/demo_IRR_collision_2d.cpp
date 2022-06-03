@@ -28,14 +28,6 @@ using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
-
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -244,7 +236,7 @@ int main(int argc, char* argv[]) {
 
     // This means that contactforces will be shown in Irrlicht application
     vis->SetSymbolScale(0.2);
-    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_NORMALS);
+    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
 
     // Simulation loop
     while (vis->Run()) {

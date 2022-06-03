@@ -118,8 +118,8 @@ int main(int argc, char* argv[]) {
         ChVector<> p0(0, 0, 0);
         ChVector<> p1(std::cos(min_angle), -std::sin(min_angle), 0);
         ChVector<> p2(std::cos(max_angle), -std::sin(max_angle), 0);
-        tools::drawSegment(vis->GetVideoDriver(), p0, p0 + 4.0 * p1, video::SColor(255, 255, 150, 0), true);
-        tools::drawSegment(vis->GetVideoDriver(), p0, p0 + 4.0 * p2, video::SColor(255, 255, 150, 0), true);
+        tools::drawSegment(vis.get(), p0, p0 + 4.0 * p1, ChColor(1, 0.5f, 0), true);
+        tools::drawSegment(vis.get(), p0, p0 + 4.0 * p2, ChColor(1, 0.5f, 0), true);
         vis->EndScene();
 
         sys.DoStepDynamics(1e-3);

@@ -403,7 +403,7 @@ int main(int argc, char* argv[]) {
         vis->GetSceneManager()->getActiveCamera()->setTarget(
             core::vector3dfCH(rover.GetChassis()->GetBody()->GetPos()));
         vis->DrawAll();
-        tools::drawColorbar(0, 20000, "Pressure yield [Pa]", vis->GetDevice(), 1600);
+        tools::drawColorbar(vis.get(), 0, 20000, "Pressure yield [Pa]", 1600);
         vis->EndScene();
 
         if (output) {

@@ -360,6 +360,9 @@ void mrole::Initialize() {
     }
 
     m_vehicle->EnableBrakeLocking(m_brake_locking);
+
+    // Recalculate vehicle mass, to properly account for all subsystems
+    m_vehicle->InitializeInertiaProperties();
 }
 
 double mrole::GetMaxTireSpeed() {
@@ -375,7 +378,7 @@ double mrole::GetMaxTireSpeed() {
 }
 
 // -----------------------------------------------------------------------------
-void mrole::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
+void mrole::Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) {
     m_vehicle->Synchronize(time, driver_inputs, terrain);
 }
 

@@ -61,7 +61,7 @@ class ChApi ChVisualSystem {
     virtual void SetModalSpeed(double val) {}
 
     /// Get the associated Chrono system.
-    const ChSystem& GetSystem() const { return *m_system; }
+    ChSystem& GetSystem() const { return *m_system; }
 
   protected:
     ChVisualSystem() : m_system(nullptr) {}

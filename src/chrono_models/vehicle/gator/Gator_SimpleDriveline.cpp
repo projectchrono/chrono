@@ -49,7 +49,7 @@ void Gator_SimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-void Gator_SimpleDriveline::Synchronize(double torque) {
+void Gator_SimpleDriveline::Synchronize(double time, const DriverInputs& driver_inputs, double torque) {
     if (!m_connected)
         return;
 

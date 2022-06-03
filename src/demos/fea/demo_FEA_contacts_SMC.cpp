@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
     vis->AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512, ChColor(1, 1, 1));
-    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_DISTANCES);
+    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
     vis->EnableShadows();
 
     // SIMULATION LOOP

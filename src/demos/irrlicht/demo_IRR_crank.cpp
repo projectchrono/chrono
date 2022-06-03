@@ -34,14 +34,6 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
-
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -129,18 +121,18 @@ int main(int argc, char* argv[]) {
         // .. draw items belonging to Irrlicht scene, if any
         vis->DrawAll();
         // .. draw a grid
-        tools::drawGrid(vis->GetVideoDriver(), 0.5, 0.5);
+        tools::drawGrid(vis.get(), 0.5, 0.5);
         // .. draw GUI items belonging to Irrlicht screen, if any
         vis->GetGUIEnvironment()->drawAll();
 
         // .. draw the rod (from joint BC to joint CA)
-        tools::drawSegment(vis->GetVideoDriver(), my_link_BC->GetMarker1()->GetAbsCoord().pos,
-                           my_link_CA->GetMarker1()->GetAbsCoord().pos, video::SColor(255, 0, 255, 0));
+        tools::drawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCoord().pos,
+                           my_link_CA->GetMarker1()->GetAbsCoord().pos, ChColor(0, 1, 0));
         // .. draw the crank (from joint AB to joint BC)
-        tools::drawSegment(vis->GetVideoDriver(), my_link_AB->GetLinkAbsoluteCoords().pos,
-                           my_link_BC->GetMarker1()->GetAbsCoord().pos, video::SColor(255, 255, 0, 0));
+        tools::drawSegment(vis.get(), my_link_AB->GetLinkAbsoluteCoords().pos,
+                           my_link_BC->GetMarker1()->GetAbsCoord().pos, ChColor(1, 0, 0));
         // .. draw a small circle at crank origin
-        tools::drawCircle(vis->GetVideoDriver(), 0.1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
 
         /* test: delete a link after 10 seconds
         if (sys.GetChTime() >10 && (!removed))

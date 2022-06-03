@@ -29,6 +29,7 @@ namespace irrlicht {
 
 // Forward references
 class ChIrrEventReceiver;
+class ChVisualSystemIrrlicht;
 
 /// Irrlicht GUI attached to a ChVisualSystemIrrlicht.
 class ChApiIrr ChIrrGUI {
@@ -46,7 +47,7 @@ class ChApiIrr ChIrrGUI {
     void EndScene();
 
   private:
-    void Initialize(irr::IrrlichtDevice* device, ChSystem* sys);
+    void Initialize(ChVisualSystemIrrlicht* vis);
 
     void DrawCollisionShapes(irr::video::SColor color);
 
@@ -71,13 +72,13 @@ class ChApiIrr ChIrrGUI {
     void SetModalSpeed(double val);
 
     /// Set the label mode for contacts
-    void SetContactsLabelMode(IrrContactsLabelMode mm) { g_labelcontacts->setSelected((int)mm); }
+    void SetContactsLabelMode(ContactsLabelMode mm) { g_labelcontacts->setSelected((int)mm); }
     /// Set the draw mode for contacts
-    void SetContactsDrawMode(IrrContactsDrawMode mm) { g_drawcontacts->setSelected((int)mm); }
+    void SetContactsDrawMode(ContactsDrawMode mm) { g_drawcontacts->setSelected((int)mm); }
     /// Set the label mode for links
-    void SetLinksLabelMode(IrrLinkLabelMode mm) { g_labellinks->setSelected((int)mm); }
+    void SetLinksLabelMode(LinkLabelMode mm) { g_labellinks->setSelected((int)mm); }
     /// Set the draw mode for links
-    void SetLinksDrawMode(IrrLinkDrawMode mm) { g_drawlinks->setSelected((int)mm); }
+    void SetLinksDrawMode(LinkDrawMode mm) { g_drawlinks->setSelected((int)mm); }
     /// Set if the AABB collision shapes will be plotted
     void SetPlotAABB(bool val) { g_plot_aabb->setChecked(val); }
     /// Set if the COG frames will be plotted
@@ -111,6 +112,7 @@ class ChApiIrr ChIrrGUI {
     double modal_current_freq;
     double modal_current_dampingfactor;
 
+    ChVisualSystemIrrlicht* m_vis;
     ChSystem* m_system;
     irr::IrrlichtDevice* m_device;
 

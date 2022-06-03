@@ -51,7 +51,10 @@ class CH_MODELS_API Generic_SimpleDriveline : public ChDrivelineWV {
     /// Update the driveline subsystem: apply the specified motor torque.
     /// This represents the input to the driveline subsystem from the powertrain
     /// system.
-    virtual void Synchronize(double torque) override;
+    virtual void Synchronize(double time,                        ///< [in] current time
+                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
+                             double torque                       ///< [in] motor torque
+                             ) override;
 
     /// Get the motor torque to be applied to the specified spindle.
     virtual double GetSpindleTorque(int axle, VehicleSide side) const override;

@@ -3,6 +3,8 @@
     "Type": "TrackShoe",
     "Template": "TrackShoeDoublePin",
 
+    "Topology": "Two Connectors",
+
     "Shoe": {
         "Length": 0.0984,
         "Width": 0.2781,
@@ -143,14 +145,14 @@
                 "Location": [ 0.0492, 0, 0 ],
                 "Orientation": [ 1, 0, 0, 0 ],
                 "Radius": 0.01,
-                "Length": 0.3381
+                "Length": 0.3
             },
             {
                 "Type": "CYLINDER",
                 "Location": [ -0.0492, 0, 0 ],
                 "Orientation": [ 1, 0, 0, 0 ],
                 "Radius": 0.01,
-                "Length": 0.3381
+                "Length": 0.3
             }
         ]
     }

@@ -30,14 +30,6 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
-
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -211,28 +203,25 @@ int main(int argc, char* argv[]) {
 
         // .. draw also some circle lines representing gears - just for aesthetical reasons
 
-        tools::drawCircle(vis->GetVideoDriver(), link_gearBC->Get_r2(),
-                          (link_gearBC->Get_local_shaft2() >> *link_gearBC->GetBody2()).GetCoord(),
-                          video::SColor(255, 255, 0, 0), 50, true);
-        tools::drawCircle(vis->GetVideoDriver(), link_gearAD->Get_r1(),
-                          (link_gearAD->Get_local_shaft1() >> *link_gearAD->GetBody1()).GetCoord(),
-                          video::SColor(255, 255, 0, 0), 30, true);
-        tools::drawCircle(vis->GetVideoDriver(), link_gearAD->Get_r2(),
-                          (link_gearAD->Get_local_shaft2() >> *link_gearAD->GetBody2()).GetCoord(),
-                          video::SColor(255, 255, 0, 0), 30, true);
+        tools::drawCircle(vis.get(), link_gearBC->Get_r2(),
+                          (link_gearBC->Get_local_shaft2() >> *link_gearBC->GetBody2()).GetCoord(), ChColor(1, 0, 0),
+                          50, true);
+        tools::drawCircle(vis.get(), link_gearAD->Get_r1(),
+                          (link_gearAD->Get_local_shaft1() >> *link_gearAD->GetBody1()).GetCoord(), ChColor(1, 0, 0),
+                          30, true);
+        tools::drawCircle(vis.get(), link_gearAD->Get_r2(),
+                          (link_gearAD->Get_local_shaft2() >> *link_gearAD->GetBody2()).GetCoord(), ChColor(1, 0, 0),
+                          30, true);
 
-        tools::drawCircle(vis->GetVideoDriver(), 0.1,
-                          ChCoordsys<>(link_gearAB->GetMarker2()->GetAbsCoord().pos, QUNIT));
-        tools::drawCircle(vis->GetVideoDriver(), 0.1,
-                          ChCoordsys<>(link_gearAD->GetMarker2()->GetAbsCoord().pos, QUNIT));
-        tools::drawCircle(vis->GetVideoDriver(), 0.1,
-                          ChCoordsys<>(link_gearBC->GetMarker2()->GetAbsCoord().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAB->GetMarker2()->GetAbsCoord().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAD->GetMarker2()->GetAbsCoord().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearBC->GetMarker2()->GetAbsCoord().pos, QUNIT));
 
         // ..draw also some segments for a simplified representation of pulley
-        tools::drawSegment(vis->GetVideoDriver(), link_pulleyDE->Get_belt_up1(), link_pulleyDE->Get_belt_up2(),
-                           video::SColor(255, 0, 255, 0), true);
-        tools::drawSegment(vis->GetVideoDriver(), link_pulleyDE->Get_belt_low1(), link_pulleyDE->Get_belt_low2(),
-                           video::SColor(255, 0, 255, 0), true);
+        tools::drawSegment(vis.get(), link_pulleyDE->Get_belt_up1(), link_pulleyDE->Get_belt_up2(), ChColor(0, 1, 0),
+                           true);
+        tools::drawSegment(vis.get(), link_pulleyDE->Get_belt_low1(), link_pulleyDE->Get_belt_low2(), ChColor(0, 1, 0),
+                           true);
 
         vis->EndScene();
 

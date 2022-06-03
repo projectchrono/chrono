@@ -36,7 +36,7 @@ namespace m113 {
 /// Double-pin track shoe subsystem for the M113 vehicle.
 class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
   public:
-    M113_TrackShoeDoublePin(const std::string& name);
+    M113_TrackShoeDoublePin(const std::string& name, DoublePinTrackShoeType topology);
     ~M113_TrackShoeDoublePin() {}
 
     /// Return the type of track shoe (guiding pin).

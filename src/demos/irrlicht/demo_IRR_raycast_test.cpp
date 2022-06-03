@@ -25,8 +25,6 @@
 
 using namespace chrono;
 using namespace chrono::irrlicht;
-using namespace irr;
-using namespace irr::core;
 
 using std::cout;
 using std::endl;
@@ -294,7 +292,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
 
     auto camera = vis->GetActiveCamera();
-    camera->setFOV(core::PI / 10.0f);
+    camera->setFOV(irr::core::PI / 10.0f);
 
     if (rotate_shapes) {
         for (auto& b : sys.Get_bodylist())
@@ -310,8 +308,7 @@ int main(int argc, char* argv[]) {
 
         if (draw_rays) {
             for (auto& p : caster.GetPoints()) {
-                tools::drawSegment(vis->GetVideoDriver(), p - ChVector<>(0, 0, 100), p,
-                                   video::SColor(0, 150, 150, 150), true);
+                tools::drawSegment(vis.get(), p - ChVector<>(0, 0, 100), p, ChColor(0.5f, 0.5f, 0.5f), true);
             }
         }
 

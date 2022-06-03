@@ -197,14 +197,12 @@ while vis.Run():
     vis.BeginScene() 
     vis.DrawAll()
     # Draw some segments for a simplified representation of pulley
-    chronoirr.drawSegment(vis.GetVideoDriver(),
+    chronoirr.drawSegment(vis,
                           link_pulleyDE.Get_belt_up1(),
-                          link_pulleyDE.Get_belt_up2(),
-                          chronoirr.SColor(255, 0, 255, 0), True);
-    chronoirr.drawSegment(vis.GetVideoDriver(),
+                          link_pulleyDE.Get_belt_up2());
+    chronoirr.drawSegment(vis,
                           link_pulleyDE.Get_belt_low1(),
-                          link_pulleyDE.Get_belt_low2(),
-                          chronoirr.SColor(255, 0, 255, 0), True);
+                          link_pulleyDE.Get_belt_low2());
     vis.EndScene()
     sys.DoStepDynamics(1e-3)
 

@@ -88,12 +88,12 @@ void ChTrackTestRigVisualSystemIrrlicht::renderOtherGraphics() {
         if (normals) {
             ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
             if (v1.y() > m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 80, 0, 0), false);
+                irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
         if (forces) {
             ChVector<> v2 = v1 + c.m_force * scale_forces;
             if (v1.y() > m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 80, 0, 0), false);
+                irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
     }
 
@@ -104,31 +104,31 @@ void ChTrackTestRigVisualSystemIrrlicht::renderOtherGraphics() {
         if (normals) {
             ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
             if (v1.y() < m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 80, 0, 0), false);
+                irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
         if (forces) {
             ChVector<> v2 = v1 + c.m_force * scale_forces;
             if (v1.y() > m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 80, 0, 0), false);
+                irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
     }
 
     // Contact normals on monitored track shoes.
-    renderContacts(m_rig->m_contact_manager->m_shoe_L_contacts, video::SColor(255, 80, 80, 0), normals, forces,
+    renderContacts(m_rig->m_contact_manager->m_shoe_L_contacts, ChColor(0.31f, 0.31f, 0.00f), normals, forces,
                    scale_normals, scale_forces);
-    renderContacts(m_rig->m_contact_manager->m_shoe_R_contacts, video::SColor(255, 80, 80, 0), normals, forces,
+    renderContacts(m_rig->m_contact_manager->m_shoe_R_contacts, ChColor(0.31f, 0.31f, 0.00f), normals, forces,
                    scale_normals, scale_forces);
 
     // Contact normals on idler wheels.
-    renderContacts(m_rig->m_contact_manager->m_idler_L_contacts, video::SColor(255, 0, 0, 80), normals, forces,
+    renderContacts(m_rig->m_contact_manager->m_idler_L_contacts, ChColor(0.00f, 0.00f, 0.31f), normals, forces,
                    scale_normals, scale_forces);
-    renderContacts(m_rig->m_contact_manager->m_idler_R_contacts, video::SColor(255, 0, 0, 80), normals, forces,
+    renderContacts(m_rig->m_contact_manager->m_idler_R_contacts, ChColor(0.00f, 0.00f, 0.31f), normals, forces,
                    scale_normals, scale_forces);
 }
 
 // Render normal for all contacts in the specified list, using the given color.
 void ChTrackTestRigVisualSystemIrrlicht::renderContacts(const std::list<ChTrackContactManager::ContactInfo>& lst,
-                                                        const video::SColor& col,
+                                                        const ChColor& col,
                                                         bool normals,
                                                         bool forces,
                                                         double scale_normals,
@@ -137,11 +137,11 @@ void ChTrackTestRigVisualSystemIrrlicht::renderContacts(const std::list<ChTrackC
         ChVector<> v1 = c.m_point;
         if (normals) {
             ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
-            irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, col, false);
+            irrlicht::tools::drawSegment(this, v1, v2, col, false);
         }
         if (forces) {
             ChVector<> v2 = v1 + c.m_force * scale_forces;
-            irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+            irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.71f, 0.00f, 0.00f), false);
         }
     }
 }

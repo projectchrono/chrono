@@ -30,14 +30,6 @@ using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
-
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -248,9 +240,9 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
-        irrlicht::tools::drawGrid(vis->GetVideoDriver(), 0.5, 0.5, 12, 12,
+        irrlicht::tools::drawGrid(vis.get(), 0.5, 0.5, 12, 12,
                                   ChCoordsys<>(ChVector<>(0, -0.5, 0), Q_from_AngX(CH_C_PI_2)),
-                                  irr::video::SColor(50, 80, 110, 110), true);
+                                  ChColor(0.31f, 0.43f, 0.43f), true);
         vis->EndScene();
         sys.DoStepDynamics(0.01);
     }

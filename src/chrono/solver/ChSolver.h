@@ -30,7 +30,6 @@ namespace chrono {
 /// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
 /// solver.
 class ChApi ChSolver {
-
   public:
     /// Available types of solvers.
     enum class Type {
@@ -46,8 +45,8 @@ class ChApi ChSolver {
         SPARSE_LU,        ///< Sparse supernodal LU factorization
         SPARSE_QR,        ///< Sparse left-looking rank-revealing QR factorization
         PARDISO_MKL,      ///< Pardiso MKL (super-nodal sparse direct solver)
-        PARDISO_PROJECT,    ///< Pardiso (from PardisoProject) (super-nodal sparse direct solver)
-        MUMPS,        ///< Mumps (MUltifrontal Massively Parallel sparse direct Solver)
+        PARDISO_PROJECT,  ///< Pardiso (from PardisoProject) (super-nodal sparse direct solver)
+        MUMPS,            ///< Mumps (MUltifrontal Massively Parallel sparse direct Solver)
         // Iterative linear solvers
         GMRES,     ///< Generalized Minimal RESidual Algorithm
         MINRES,    ///< MINimum RESidual method
@@ -67,23 +66,22 @@ class ChApi ChSolver {
     virtual bool SolveRequiresMatrix() const = 0;
 
     /// Performs the solution of the problem.
-    /// This function MUST be implemented in children classes, with specialized
-    /// methods such as iterative or direct solvers.
-    /// Returns true if it successfully solves the problem and false otherwise.
-    virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                         ) = 0;
+    /// This function MUST be implemented in children classes, with specialized methods such as iterative or direct
+    /// solvers.  The system descriptor contains the constraints and variables. Returns true if it successfully solves
+    /// the problem and false otherwise.
+    virtual double Solve(ChSystemDescriptor& sysd) = 0;
 
     /// This function does the setup operations for the solver.
-    /// The purpose of this function is to prepare the solver for subsequent calls to the
-    /// solve function. This function is called only as frequently it is determined that
-    /// it is appropriate to perform the setup phase.
-    virtual bool Setup(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                       ) {
-        return true;
-    }
+    /// The purpose of this function is to prepare the solver for subsequent calls to the solve function. The system
+    /// descriptor contains the constraints and variables. This function is called only as frequently it is determined
+    /// that it is appropriate to perform the setup phase.
+    virtual bool Setup(ChSystemDescriptor& sysd) { return true; }
 
     /// Set verbose output from solver.
     void SetVerbose(bool mv) { verbose = mv; }
+
+    /// Enable/disable debug output of matrix, RHS, and solution vector.
+    void EnableWrite(bool val, const std::string& frame, const std::string& out_dir = ".");
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);
@@ -95,6 +93,9 @@ class ChApi ChSolver {
     ChSolver() : verbose(false) {}
 
     bool verbose;
+    bool write_matrix;
+    std::string output_dir;
+    std::string frame_id;
 };
 
 /// @} chrono_solver

@@ -107,8 +107,8 @@ shockRL = suspR.GetShock(veh.RIGHT)
 print( "Spring rest length rear: " + str(springRL.GetRestLength() ) + "\n" )
 print( "Shock rest length rear:  " + str(shockRL.GetRestLength() ) + "\n" )
 
-print("Vehicle mass:               " + str( uaz.GetVehicle().GetVehicleMass() ) + "\n")
-print("Vehicle mass (with tires):  " + str(uaz.GetTotalMass() ) + "\n")
+print("Vehicle mass:             " + str( uaz.GetVehicle().GetMass() ) + "\n")
+
 
 # ------------------
 # Create the terrain

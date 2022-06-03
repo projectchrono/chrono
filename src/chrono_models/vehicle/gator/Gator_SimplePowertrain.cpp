@@ -42,13 +42,13 @@ void Gator_SimplePowertrain::SetGearRatios(std::vector<double>& fwd, double& rev
     fwd.push_back(m_fwd_gear_ratio);
 }
 
-void Gator_SimplePowertrain::Synchronize(double time, double throttle, double shaft_speed) {
+void Gator_SimplePowertrain::Synchronize(double time, const DriverInputs& driver_inputs, double shaft_speed) {
     // The motor speed is the shaft speed multiplied by gear ratio inversed
     m_motorSpeed = std::abs(shaft_speed) / std::abs(m_current_gear_ratio);
 
     // DC motor model (throttle modulates output torque)
     m_motorTorque = m_max_torque - m_motorSpeed * (m_max_torque / m_max_speed);
-    m_motorTorque *= throttle;
+    m_motorTorque *= driver_inputs.m_throttle;
 
     // The torque at motor shaft
     m_shaftTorque = m_motorTorque / m_current_gear_ratio;

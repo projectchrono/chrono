@@ -42,12 +42,6 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace chrono::viper;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-
 // Use custom material for the Viper Wheel
 bool use_custom_mat = false;
 
@@ -144,7 +138,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddCamera(ChVector<>(3, 3, 1));
     vis->AddTypicalLights();
-    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_DISTANCES);
+    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
     vis->EnableShadows();
 
     // Simulation loop

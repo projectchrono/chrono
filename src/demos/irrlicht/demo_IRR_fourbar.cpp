@@ -186,26 +186,23 @@ int main(int argc, char* argv[]) {
         vis->DrawAll();
 
         // .. draw a grid
-        tools::drawGrid(vis->GetVideoDriver(), 0.5, 0.5);
+        tools::drawGrid(vis.get(), 0.5, 0.5);
         // .. draw a circle representing flywheel
-        tools::drawCircle(vis->GetVideoDriver(), 2.1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+        tools::drawCircle(vis.get(), 2.1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
         // .. draw a small circle representing joint BC
-        tools::drawCircle(vis->GetVideoDriver(), 0.06,
-                          ChCoordsys<>(my_link_BC->GetMarker1()->GetAbsCoord().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_BC->GetMarker1()->GetAbsCoord().pos, QUNIT));
         // .. draw a small circle representing joint CD
-        tools::drawCircle(vis->GetVideoDriver(), 0.06,
-                          ChCoordsys<>(my_link_CD->GetMarker1()->GetAbsCoord().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_CD->GetMarker1()->GetAbsCoord().pos, QUNIT));
         // .. draw a small circle representing joint DA
-        tools::drawCircle(vis->GetVideoDriver(), 0.06,
-                          ChCoordsys<>(my_link_DA->GetMarker1()->GetAbsCoord().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_DA->GetMarker1()->GetAbsCoord().pos, QUNIT));
         // .. draw the rod (from joint BC to joint CD)
-        tools::drawSegment(vis->GetVideoDriver(), my_link_BC->GetMarker1()->GetAbsCoord().pos,
-                           my_link_CD->GetMarker1()->GetAbsCoord().pos, video::SColor(255, 0, 255, 0));
+        tools::drawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCoord().pos,
+                           my_link_CD->GetMarker1()->GetAbsCoord().pos, ChColor(0, 1, 0));
         // .. draw the rocker (from joint CD to joint DA)
-        tools::drawSegment(vis->GetVideoDriver(), my_link_CD->GetMarker1()->GetAbsCoord().pos,
-                           my_link_DA->GetMarker1()->GetAbsCoord().pos, video::SColor(255, 255, 0, 0));
+        tools::drawSegment(vis.get(), my_link_CD->GetMarker1()->GetAbsCoord().pos,
+                           my_link_DA->GetMarker1()->GetAbsCoord().pos, ChColor(1, 0, 0));
         // .. draw the trajectory of the rod-point
-        tools::drawPolyline(vis->GetVideoDriver(), mtrajectory, video::SColor(255, 0, 150, 0));
+        tools::drawPolyline(vis.get(), mtrajectory, ChColor(0, 0.5f, 0));
 
         // We need to add another point to the array of 3d points describing the trajectory to be drawn..
         mtrajectory.push_back(my_body_C->Point_Body2World(ChVector<>(1, 1, 0)));

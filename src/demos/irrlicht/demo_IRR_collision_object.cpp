@@ -307,9 +307,9 @@ int main(int argc, char* argv[]) {
 
     // Render contact forces or normals
     vis->SetSymbolScale(5e-4);
-    vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_FORCES);
+    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     ////vis->SetSymbolScale(1);
-    ////application.EnableContactDrawing(IrrContactsDrawMode::CONTACT_NORMALS);
+    ////application.EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
 
     auto cmanager = chrono_types::make_shared<ContactManager>();
 

@@ -102,6 +102,18 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Has no effect, unless called after Initialize().
     void AddSkyBox(const std::string& texture_dir = GetChronoDataFile("skybox/"));
 
+    /// Add a directional light to the scene.
+    /// Has no effect, unles called after Initialize().
+    /// Light direction is defined by:
+    /// - elevation (deg) between 0 (at the horizon) and 90 (above)
+    /// - azimuth (deg) between 0 and 360, with 0 = South (-X), 90 = East (-Y), 180 = North (+X), 270 = West (+Y)
+    irr::scene::ILightSceneNode* AddLightDirectional(double elevation = 90,                         ///< light elevation
+                                                     double azimuth = 0,                            ///< light azimuth
+                                                     ChColor ambient = ChColor(0.3f, 0.3f, 0.3f),   ///< ambient color
+                                                     ChColor specular = ChColor(0.8f, 0.8f, 0.8f),  ///< specular color
+                                                     ChColor diffuse = ChColor(1.0f, 1.0f, 1.0f)    ///< diffuse color
+    );
+
     /// Add a point light to the scene.
     /// Has no effect, unles called after Initialize().
     irr::scene::ILightSceneNode* AddLight(const ChVector<>& pos,
@@ -140,11 +152,11 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Enable contact rendering (default: none).
     /// Has no effect, unless called after the visual system is initialized and attached.
-    void EnableContactDrawing(IrrContactsDrawMode mode);
+    void EnableContactDrawing(ContactsDrawMode mode);
 
     /// Enable rendering of link (joint) frames (default: none).
     /// Has no effect, unless called after the visual system is initialized and attached.
-    void EnableLinkDrawing(IrrLinkDrawMode mode);
+    void EnableLinkDrawing(LinkDrawMode mode);
 
     /// Enable rendering of body frames (default: false).
     /// Has no effect, unless called after the visual system is initialized and attached.

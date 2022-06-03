@@ -152,11 +152,9 @@ int main(int argc, char* argv[]) {
 
         vis->BeginScene();
         vis->DrawAll();
-        tools::drawSegment(vis->GetVideoDriver(), ChVector<>(+2, 0, 0), ChVector<>(+2, 0, -2),
-                           irr::video::SColor(255, 255, 150, 0), true);
+        tools::drawSegment(vis.get(), ChVector<>(+2, 0, 0), ChVector<>(+2, 0, -2), ChColor(1, 0.5f, 0), true);
         if (max_lim_enabled) {
-            tools::drawSegment(vis->GetVideoDriver(), ChVector<>(-1, 0, 0), ChVector<>(-1, 0, -2),
-                               irr::video::SColor(255, 255, 150, 0), true);
+            tools::drawSegment(vis.get(), ChVector<>(-1, 0, 0), ChVector<>(-1, 0, -2), ChColor(1, 0.5f, 0), true);
         }
         vis->EndScene();
 

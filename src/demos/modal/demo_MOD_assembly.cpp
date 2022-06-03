@@ -52,12 +52,25 @@ int n_elements = 8;
 
 double step_size = 0.05;
 
+// static stuff for GUI:
+bool SWITCH_EXAMPLE = false;
+bool FIX_SUBASSEMBLY = true;
+bool DO_MODAL_REDUCTION = false;
+bool ADD_INTERNAL_BODY   = false;
+bool ADD_BOUNDARY_BODY   = false;
+bool ADD_FORCE           = true;
+bool ADD_OTHER_ASSEMBLY  = false;
+
+
 void MakeAndRunDemoCantilever(ChSystem& sys,
                               bool do_modal_reduction,
                               bool add_internal_body,
                               bool add_boundary_body,
                               bool add_force,
-                              bool add_other_assemblies) {
+                              bool add_other_assemblies,
+                              bool fix_subassembly ) {
+    GetLog() << "\n\nRUN TEST\n"; 
+
     // Clear previous demo, if any:
     sys.Clear();
     sys.SetChTime(0);
@@ -73,12 +86,6 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     // Now populate the assembly to analyze.
     // In this demo, make a cantilever with fixed end
 
-    // BODY: the base:
-
-    auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
-    my_body_A->SetBodyFixed(true);
-    my_body_A->SetPos(ChVector<>(-0.5, 0, 0));
-    my_assembly->Add(my_body_A);
 
     // MESH:  Create two FEM meshes: one for nodes that will be removed in modal reduction,
     //        the other for the nodes that will remain after modal reduction.
@@ -119,13 +126,6 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     my_node_B_boundary->GetInertia().setZero();
     my_mesh_boundary->AddNode(my_node_B_boundary);
 
-    // my_node_A_boundary->SetFixed(true); // NO - issues with bookeeping in modal_Hblock ***TO FIX***, for the moment:
-    // use constraint:
-    // Constraint the boundary node to truss
-    auto my_root = chrono_types::make_shared<ChLinkMateGeneric>();
-    my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector<>(0, 0, 1), QUNIT));
-    my_assembly->Add(my_root);
-
     // The other nodes are internal nodes: let the builder.BuildBeam add them to my_mesh_internal
     builder.BuildBeam(my_mesh_internal,    // the mesh where to put the created nodes and elements
                       msection,            // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
@@ -135,7 +135,31 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
                       ChVector<>(0, 1, 0)  // the 'Y' up direction of the section for the beam
     );
 
-    my_node_B_boundary->SetForce(ChVector<>(0, 0, 90));  // to trigger some vibration at the free end
+    if (fix_subassembly) {
+        // BODY: the base:
+        auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
+        my_body_A->SetBodyFixed(true);
+        my_body_A->SetPos(ChVector<>(-0.5, 0, 0));
+        my_assembly->Add(my_body_A);
+
+        // my_node_A_boundary->SetFixed(true); // NO - issues with bookeeping in modal_Hblock ***TO FIX***, for the moment:
+        // Constraint the boundary node to truss
+        auto my_root = chrono_types::make_shared<ChLinkMateGeneric>();
+        my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector<>(0, 0, 1), QUNIT));
+        my_assembly->Add(my_root);
+    }
+    else {
+        // BODY: the base:
+        auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
+        my_body_A->SetBodyFixed(true);
+        my_body_A->SetPos(ChVector<>(-0.5, 0, 0));
+        sys.Add(my_body_A);
+
+        // Constraint the boundary node to truss
+        auto my_root = chrono_types::make_shared<ChLinkMateGeneric>();
+        my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector<>(0, 0, 1), QUNIT));
+        sys.Add(my_root);
+    }
 
     if (add_internal_body) {
         // BODY: in the middle, as internal
@@ -204,7 +228,14 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     }
 
     if (add_force) {
-        // Add a force (also to internal nodes that will be removed after modal reduction).
+        
+        // Method A (simple)
+        // The simplest way to add a force is to use mynode->SetForce(), or to add some ChBodyLoad.
+        // Note: this works only for boundary nodes!
+        my_node_B_boundary->SetForce(ChVector<>(0, -3, 0));  // to trigger some vibration at the free end
+
+        // Method B (advanced)
+        // Add a force also to internal nodes that will be removed after modal reduction.
         // This can be done using a callback that will be called all times the time integrator needs it.
         // You will provide a custom force writing into computed_custom_F_full vector (note: it is up to you to use the
         // proper indexes)
@@ -216,10 +247,11 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
                     computed_custom_F_full,  //< compute F here, size= n_boundary_coords_w + n_internal_coords_w
                 const ChModalAssembly& link  ///< associated modal assembly
             ) {
-                computed_custom_F_full
-                    .setZero();  // remember! assume F vector is already properly sized, but not zeroed!
-                computed_custom_F_full[computed_custom_F_full.size() - 16] =
-                    -60;  // just for test, assign a force to a random coordinate of F, here an internal node
+                // remember! assume F vector is already properly sized, but not zeroed!
+                computed_custom_F_full.setZero();  
+
+                // just for test, assign a force to a random coordinate of F, here an internal node
+                computed_custom_F_full[computed_custom_F_full.size() - 16] = -60;  
             }
         };
         auto my_callback = chrono_types::make_shared<MyCallback>();
@@ -236,9 +268,9 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // HERE PERFORM THE MODAL REDUCTION!
 
         my_assembly->SwitchModalReductionON(
-            6,  // The number of modes to retain from modal reduction
-            ChModalDampingRayleigh(0.01,
-                                   0.05)  // The damping model - Optional parameter: default is ChModalDampingNone().
+            6,  // The number of modes to retain from modal reduction, or a ChModalSolveUndamped with more settings
+            ChModalDampingRayleigh(0.001,
+                0.005)  // The damping model - Optional parameter: default is ChModalDampingNone().
         );
 
         // Other types of damping that you can try, in SwitchModalReductionON:
@@ -263,21 +295,48 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // Use this for high simulation performance (the internal nodes won't be updated for postprocessing)
         // my_assembly->SetInternalNodesUpdate(false);
 
-        // Finally, optional: do an eigenvalue analysis to check if we approximately have the same eigenmodes of the
-        // original not reduced assembly:
-        my_assembly->ComputeModesDamped(0);
+        // Finally, log damped eigenvalue analysis to see the effect of the modal damping (0= search ALL damped modes)
+        my_assembly->ComputeModesDamped(0); 
 
-        // Just for logging the frequencies:
         for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-            GetLog() << "Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i)
-                     << "   damping factor z: " << my_assembly->Get_modes_damping_ratios()(i) << "\n";
+            GetLog() << " Damped mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i)
+            << "   damping factor z: " << my_assembly->Get_modes_damping_ratios()(i) << "\n";
+
+        // Finally, check if we approximately have the same eigenmodes of the original not reduced assembly:
+        my_assembly->ComputeModes(12);
+       
+        // If you need to enter more detailed settings for the eigenvalue solver, do this : 
+        /*
+        my_assembly->ComputeModes(ChModalSolveUndamped(
+            12,             // n. nodes to search
+            1e-5,           // base freq.
+            500,            // max iterations
+            1e-10,          // tolerance
+            false,          // verbose
+            ChGeneralizedEigenvalueSolverKrylovSchur()) // solver type
+        );
+        */
+
+        for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
+            GetLog() << " Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) << "\n";
+
     } else {
         // Otherwise we perform a conventional modal analysis on the full ChModalAssembly.
         my_assembly->ComputeModes(12);
 
-        // Just for logging the frequencies:
+        // If you need to focus on modes in specific frequency regions, use {nmodes, about_freq} pairs as in : 
+        /*
+        my_assembly->ComputeModes(ChModalSolveUndamped(
+            { { 8, 1e-3 },{2, 2.5} },   // 8 smallest freq.modes, plus 2 modes closest to 2.5 Hz
+            500,                        // max iterations per each {modes,freq} pair
+            1e-10,                      // tolerance
+            false,                      // verbose
+            ChGeneralizedEigenvalueSolverKrylovSchur()) //  solver type
+        );
+        */
+
         for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-            GetLog() << "Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) << "\n";
+            GetLog() << " Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) << "\n";
     }
 
     // VISUALIZATION ASSETS:
@@ -310,11 +369,11 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     vis->BindAll();
 
     int current_example = ID_current_example;
-    while (ID_current_example == current_example && vis->Run()) {
+    while (ID_current_example == current_example && !SWITCH_EXAMPLE && vis->Run()) {
         vis->BeginScene();
         vis->DrawAll();
-        tools::drawGrid(vis->GetVideoDriver(), 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
-                        irr::video::SColor(100, 120, 120, 120), true);
+        tools::drawGrid(vis.get(), 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
+                        ChColor(0.5f, 0.5f, 0.5f), true);
         vis->EndScene();
 
         if (!modal_analysis)
@@ -331,23 +390,30 @@ class MyEventReceiver : public irr::IEventReceiver {
         if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) {
             switch (event.KeyInput.Key) {
                 case irr::KEY_KEY_1:
-                    ID_current_example = 1;
+                    SWITCH_EXAMPLE = true;
+                    DO_MODAL_REDUCTION = ! DO_MODAL_REDUCTION;
                     return true;
                 case irr::KEY_KEY_2:
-                    ID_current_example = 2;
+                    SWITCH_EXAMPLE = true;
+                    ADD_INTERNAL_BODY = ! ADD_INTERNAL_BODY;
                     return true;
                 case irr::KEY_KEY_3:
-                    ID_current_example = 3;
+                    SWITCH_EXAMPLE = true;
+                    ADD_BOUNDARY_BODY = ! ADD_BOUNDARY_BODY;
                     return true;
                 case irr::KEY_KEY_4:
-                    ID_current_example = 4;
+                    SWITCH_EXAMPLE = true;
+                    ADD_FORCE = ! ADD_FORCE;
                     return true;
                 case irr::KEY_KEY_5:
-                    ID_current_example = 5;
+                    SWITCH_EXAMPLE = true;
+                    ADD_OTHER_ASSEMBLY = ! ADD_OTHER_ASSEMBLY;
                     return true;
                 case irr::KEY_KEY_6:
-                    ID_current_example = 6;
+                    SWITCH_EXAMPLE = true;
+                    FIX_SUBASSEMBLY = ! FIX_SUBASSEMBLY;
                     return true;
+
                 case irr::KEY_SPACE:
                     modal_analysis = !modal_analysis;
                     m_vis->EnableModalAnalysis(modal_analysis);
@@ -402,14 +468,7 @@ int main(int argc, char* argv[]) {
     vis->AddUserEventReceiver(&receiver);
 
     // Some help on the screen
-    vis->GetGUIEnvironment()->addStaticText(
-        L" Press 1: cantilever - original\n"
-        L" Press 2: cantilever - modal reduction\n"
-        L" Press 3: cantilever and boxes - original\n"
-        L" Press 4: cantilever and boxes - modal reduction\n"
-        L" Press 5: cantilever plus other assembly - original\n"
-        L" Press 6: cantilever plus other assembly - modal reduction\n\n"
-        L"Press space: toggle between dynamic and modal analysis",
+    auto my_gui_info = vis->GetGUIEnvironment()->addStaticText(L" ",
         irr::core::rect<irr::s32>(400, 80, 850, 200), false, true, 0);
 
     // Change solver to PardisoMKL
@@ -439,58 +498,26 @@ int main(int argc, char* argv[]) {
     while (true) {
         vis->SetModalModeNumber(0);
 
-        switch (ID_current_example) {
-            case 1:
-                MakeAndRunDemoCantilever(sys,
-                                         false,   // no modal reduction
-                                         false,   // no internal body
-                                         false,   // no boundary body
-                                         true,    // add force
-                                         false);  // no ther assemblies
-                break;
-            case 2:
-                MakeAndRunDemoCantilever(sys,
-                                         true,    // modal reduction
-                                         false,   // no internal body
-                                         false,   // no boundary body
-                                         true,    // add force
-                                         false);  // no ther assemblies
-                break;
-            case 3:
-                MakeAndRunDemoCantilever(sys,
-                                         false,   // no modal reduction
-                                         true,    // internal body
-                                         true,    // boundary body
-                                         true,    // add force
-                                         false);  // no ther assemblies
-                break;
-            case 4:
-                MakeAndRunDemoCantilever(sys,
-                                         true,    // modal reduction
-                                         true,    // internal body
-                                         true,    // boundary body
-                                         true,    // add force
-                                         false);  // no ther assemblies
-                break;
-            case 5:
-                MakeAndRunDemoCantilever(sys,
-                                         false,  // no modal reduction
-                                         true,   //    internal body
-                                         true,   //    boundary body
-                                         true,   //    add force
-                                         true);  //    other assembly/items
-                break;
-            case 6:
-                MakeAndRunDemoCantilever(sys,
-                                         true,   //    modal reduction
-                                         true,   //    internal body
-                                         true,   //    boundary body
-                                         true,   //    add force
-                                         true);  //    other assembly/items
-                break;
-            default:
-                break;
-        }
+        my_gui_info->setText(
+                (std::wstring(L" Press 1: toggle modal reduction   -now: ") + (DO_MODAL_REDUCTION ? L"ON" : L"OFF") + L"\n" +
+                 std::wstring(L" Press 2: toggle internal body     -now: ") + (ADD_INTERNAL_BODY ? L"ON" : L"OFF") + L"\n" +
+                 std::wstring(L" Press 3: toggle boundary body     -now: ") + (ADD_BOUNDARY_BODY ? L"ON" : L"OFF") + L"\n" +
+                 std::wstring(L" Press 4: toggle forces            -now: ") + (ADD_FORCE ? L"ON" : L"OFF") + L"\n" +
+                 std::wstring(L" Press 5: toggle add other assembly -now: ") + (ADD_OTHER_ASSEMBLY ? L"ON" : L"OFF") + L"\n" +
+                 std::wstring(L" Press 6: toggle modal assembly: ") + (FIX_SUBASSEMBLY ? L"contains fixed node" : L"is free-free") + L"\n\n" +
+                 std::wstring(L" Press SPACE: toggle between dynamic and modal analysis")
+                ).c_str()
+        );
+
+        MakeAndRunDemoCantilever(sys,
+                                DO_MODAL_REDUCTION,  
+                                ADD_INTERNAL_BODY,   
+                                ADD_BOUNDARY_BODY,   
+                                ADD_FORCE,    
+                                ADD_OTHER_ASSEMBLY,   
+                                FIX_SUBASSEMBLY);  
+        
+        SWITCH_EXAMPLE = false;
 
         if (!vis->Run())
             break;

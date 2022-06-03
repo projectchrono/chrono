@@ -50,7 +50,7 @@ class CH_VEHICLE_API ChTrackTestRigVisualSystemIrrlicht : public ChVehicleVisual
     virtual void OnAttachToVehicle() override;
     virtual void renderOtherGraphics() override;
     void renderContacts(const std::list<ChTrackContactManager::ContactInfo>& lst,
-                        const irr::video::SColor& col,
+                        const ChColor& col,
                         bool normals,
                         bool forces,
                         double scale_normals,

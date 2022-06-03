@@ -11,6 +11,7 @@
 // =============================================================================
 
 #include "chrono/core/ChLog.h"
+#include "chrono/physics/ChParticlesClones.h"
 #include "chrono_irrlicht/ChIrrNodeModel.h"
 #include "chrono_irrlicht/ChIrrNodeShape.h"
 
@@ -28,9 +29,7 @@ ChIrrNodeModel::ChIrrNodeModel(std::weak_ptr<ChPhysicsItem> physicsitem,
     setDebugName("ChIrrNodeModel");
 #endif
 
-    // set an unique identifier
-    // static_item_identifier++;
-    // GetPhysicsItem()->SetIdentifier(static_item_identifier);
+    m_clones = (std::dynamic_pointer_cast<ChParticlesClones>(m_physicsitem.lock()) != nullptr);
 }
 
 void ChIrrNodeModel::OnRegisterSceneNode() {
@@ -65,7 +64,7 @@ scene::ESCENE_NODE_TYPE ChIrrNodeModel::getType() const {
 bool ChIrrNodeModel::SetupClones() {
     unsigned int needed_clones = m_physicsitem.lock()->GetNumVisualModelClones();
 
-    if (needed_clones) {
+    if (needed_clones > 0) {
         unsigned int actual_clones = this->getChildren().getSize();
 
         if (actual_clones == 0)
@@ -100,13 +99,12 @@ void ChIrrNodeModel::OnAnimate(u32 timeMs) {
 
     if (IsVisible) {
         // reorient/reposition the scene node
-        if (!m_physicsitem.lock()->GetNumVisualModelClones()) {
+        if (!m_clones) {
             tools::alignIrrlichtNode(this, m_physicsitem.lock()->GetVisualModelFrame().GetCoord());
-        } else {
-            // check that children clones are already as many as
-            // assets frame clones, and adjust it if not:
+        } else if (m_physicsitem.lock()->GetNumVisualModelClones() > 0) {
+            // check that children clones are already as many as assets frame clones, and adjust if not
             if (SetupClones()) {
-                // make each clone node match the corresponding asset frame :
+                // make each clone node match the corresponding asset frame
                 unsigned int iclone = 0;
                 irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
                 for (; it != Children.end(); ++it) {

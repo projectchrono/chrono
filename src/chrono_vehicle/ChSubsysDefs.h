@@ -90,6 +90,13 @@ struct TerrainForce {
 /// Vector of terrain conatct force structures.
 typedef std::vector<TerrainForce> TerrainForces;
 
+/// Driver (vehicle control) inputs.
+struct DriverInputs {
+    double m_steering;  ///< steering input [-1, +1]
+    double m_throttle;  ///< throttle input [0, 1]
+    double m_braking;   ///< braking input [0, 1]
+};
+
 // -----------------------------------------------------------------------------
 // Utility functor classes for force elements
 // -----------------------------------------------------------------------------
@@ -606,6 +613,16 @@ enum class TrackShoeType {
     DOUBLE_PIN,    ///< double-pin track shoe and sprocket
     BAND_BUSHING,  ///< rigid tooth-rigid web continuous band track shoe and sprocket
     BAND_ANCF      ///< rigid tooth-ANCF web continuous band track shoe and sprocket
+};
+
+/// Topology of the double-pin track shoe.
+/// The "full" double-pin track shoe mechanism uses separate bodies for the left and right connector bodies.  The
+/// "reduced" model uses a single connector body. The mass and inertia of the composite connector body in the reduced
+/// model are calculated based on the provided values for an individual connector body.  Furthermore, the collision
+/// geometry is the same, meaning both models of a double-pin track shoe can interact with the same type of sprocket.
+enum class DoublePinTrackShoeType {
+    TWO_CONNECTORS,  ///< two connector bodies
+    ONE_CONNECTOR    ///< one connector body
 };
 
 /// Enum for guide pin (track shoe/roadwheel/idler).

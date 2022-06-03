@@ -30,14 +30,6 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
-
 // Utility function. Create a tapered column as a faceted convex hull.
 // For convex hulls, you just need to build a vector of points, it does not matter the order,
 // because they will be considered 'wrapped' in a convex hull anyway.

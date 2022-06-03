@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time, long_acc, wheel_angle, 0.0);
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
         terrain.Synchronize(time);
         my_sedan.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize("", driver_inputs);

@@ -102,6 +102,10 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// reference frame.
     ChVector<> GetTrackShoeAngVel(size_t id) const { return GetTrackShoe(id)->m_shoe->GetWvel_par(); }
 
+    /// Get track tension at the specified track shoe.
+    /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
+    ChVector<> GetTrackShoeTension(size_t id) const { return GetTrackShoe(id)->GetTension(); }
+
     /// Get the complete state for the specified track shoe.
     /// This includes the location, orientation, linear and angular velocities,
     /// all expressed in the global reference frame.

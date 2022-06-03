@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
 
     if (contact_vis) {
         vis->SetSymbolScale(1e-4);
-        vis->EnableContactDrawing(IrrContactsDrawMode::CONTACT_FORCES);
+        vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     }
 
     ChRealtimeStepTimer realtime_timer;
@@ -303,7 +303,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Driver output
         if (driver_mode == DriverMode::RECORD) {

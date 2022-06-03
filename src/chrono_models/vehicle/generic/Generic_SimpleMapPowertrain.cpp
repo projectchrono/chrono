@@ -54,13 +54,14 @@ void Generic_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double
     fwd.push_back(1.4815);
 }
 
-void Generic_SimpleMapPowertrain::Synchronize(double time, double throttle, double shaft_speed) {
+void Generic_SimpleMapPowertrain::Synchronize(double time, const DriverInputs& driver_inputs, double shaft_speed) {
     // The motor speed is the shaft speed multiplied by gear ratio inversed: (limited to 8000rpm)
     m_motorSpeed = shaft_speed / m_current_gear_ratio;
     m_motorSpeed = m_motorSpeed > (8000. * CH_C_PI / 30.) ? (8000. * CH_C_PI / 30.) : m_motorSpeed;
     m_motorSpeed = m_motorSpeed < 0.0 ? 0.0 : m_motorSpeed;
 
     // Motor torque is linearly interpolated by throttle gas value:
+    double throttle = driver_inputs.m_throttle;
     double zeroThrottleTorque;
     double fullThrottleTorque;
     double curve_dot;   // not used

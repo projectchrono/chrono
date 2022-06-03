@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->GetActiveCamera()->setTarget(core::vector3dfCH(Body_1->GetPos()));
         vis->DrawAll();
-        tools::drawColorbar(0, 20000, "Pressure yield [Pa]", vis->GetDevice(), 1180);
+        tools::drawColorbar(vis.get(), 0, 20000, "Pressure yield [Pa]", 1180);
         vis->EndScene();
 
         if (output) {

@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
         vis->DrawAll();
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
         csv << time;
         csv << driver_inputs.m_throttle;
         csv << 3.6 * speed;

@@ -303,8 +303,8 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->DrawAll();
 
-        tools::drawGrid(vis->GetVideoDriver(), 0.05, 0.05, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_Z),
-                        video::SColor(50, 90, 90, 90), true);
+        tools::drawGrid(vis.get(), 0.05, 0.05, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_Z),
+                        ChColor(0.4f, 0.4f, 0.4f), true);
 
         sys.DoStepDynamics(0.001);
 

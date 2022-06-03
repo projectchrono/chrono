@@ -23,7 +23,6 @@
 #define CH_WHEELED_VEHICLE_H
 
 #include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSubchassis.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
@@ -189,12 +188,16 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
     void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
 
+    /// Calculate total vehicle mass.
+    /// This function is called at the end of the vehicle initialization, but can also be called explicitly.
+    virtual void InitializeInertiaProperties() override final;
+
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
     /// braking between 0 and 1), and a reference to the terrain system.
-    virtual void Synchronize(double time,                            ///< [in] current time
-                             const ChDriver::Inputs& driver_inputs,  ///< [in] current driver inputs
-                             const ChTerrain& terrain                ///< [in] reference to the terrain system
+    virtual void Synchronize(double time,                        ///< [in] current time
+                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
+                             const ChTerrain& terrain            ///< [in] reference to the terrain system
     );
 
     /// Advance the state of this vehicle by the specified time step.
@@ -251,10 +254,6 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     ChWheeledVehicle(const std::string& name,  ///< [in] vehicle name
                      ChSystem* system          ///< [in] containing mechanical system
     );
-
-    /// Calculate total vehicle mass.
-    /// This function is called at the end of the vehicle initialization.
-    virtual void InitializeInertiaProperties() override final;
 
     /// Calculate current vehicle inertia properties.
     /// This function is called at the end of each vehicle state advance.

@@ -370,7 +370,7 @@ void ChVehicleCosimTerrainNodeSCM::Render(double time) {
     }
     m_vsys->BeginScene();
     m_vsys->DrawAll();
-    irrlicht::tools::drawColorbar(0, max_sinkage, "Sinkage [m]", m_vsys->GetDevice(), 1180);
+    irrlicht::tools::drawColorbar(m_vsys.get(), 0, max_sinkage, "Sinkage [m]", 1180);
     m_vsys->EndScene();
 #endif
 }

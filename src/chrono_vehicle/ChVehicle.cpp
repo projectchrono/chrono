@@ -50,6 +50,7 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
       m_output_frame(0),
       m_mass(0),
       m_inertia(0),
+      m_realtime_force(true),
       m_initialized(false) {
     m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                         : static_cast<ChSystem*>(new ChSystemSMC);
@@ -83,6 +84,7 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
       m_output_frame(0),
       m_mass(0),
       m_inertia(0),
+      m_realtime_force(true),
       m_initialized(false) {}
 
 // -----------------------------------------------------------------------------
@@ -149,15 +151,17 @@ void ChVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel)
     // Calculate total vehicle mass and inertia properties at initial configuration
     InitializeInertiaProperties();
     UpdateInertiaProperties();
-
-    m_initialized = true;
 }
 
 // -----------------------------------------------------------------------------
 // Advance the state of the system.
 // ---------------------------------------------------------------------------- -
 void ChVehicle::Advance(double step) {
-    assert(m_initialized);
+    // Ensure the vehicle mass includes the mass of subsystems that may have been initialized after the vehicle
+    if (!m_initialized) {
+        InitializeInertiaProperties();
+        m_initialized = true;
+    }
 
     if (m_output && m_system->GetChTime() >= m_next_output_time) {
         Output(m_output_frame, *m_output_db);
@@ -168,6 +172,9 @@ void ChVehicle::Advance(double step) {
     if (m_ownsSystem) {
         m_system->DoStepDynamics(step);
     }
+
+    if (m_realtime_force)
+        m_realtime_timer.Spin(step);
 
     // Update inertia properties
     UpdateInertiaProperties();

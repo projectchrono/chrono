@@ -49,10 +49,6 @@
 using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::sensor;
-// using namespace irr;
-// using namespace irr::core;
-// using namespace irr::scene;
-// using namespace irr::video;
 
 // ------------------------------------
 // Radar Parameters
