@@ -2,6 +2,7 @@
 echo Started build.sh
 mkdir ./build
 cd ./build
+conda list
 echo $CI_PROJECT_DIR
 export NP_INCL=$(python $CI_PROJECT_DIR/contrib/packaging-python/conda/setvarnumpy.py )
 # in py <= 3.7, headers are in $PREFIX/include/python3.xm/, while since python 3.8 they are in $PREFIX/include/python3.8/ go figure.
@@ -43,6 +44,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCASCADE_INCLUDE_DIR=$HOME/miniconda3/include/opencascade \
  -DCASCADE_LIBDIR=$HOME/miniconda3/lib \
  -DENABLE_MODULE_PARDISO_MKL=ON \
+ -DMKL_INCLUDE_DIRECTORY=$HOME/miniconda3/include \
  -DMKL_RT_LIBRARY=$HOME/miniconda3/lib/libmkl_rt.so \
  -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 \
  -DPYCHRONO_DATA_PATH=../../../../../../share/chrono/data \
