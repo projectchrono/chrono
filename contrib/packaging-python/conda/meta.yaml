@@ -25,8 +25,8 @@ build:
 
 requirements:
   build:
-    - {{ compiler('c', max_pin='11.3') }}   # [not win]
-    - {{ compiler('cxx', max_pin='11.3') }} # [not win]
+    #- {{ compiler('c') }}   # [not win]
+    #- {{ compiler('cxx') }} # [not win]
     - python
     - cmake >=3.10          # [not win]
     - ninja   # [linux or osx]
