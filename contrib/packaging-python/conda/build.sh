@@ -4,8 +4,8 @@ mkdir ./build
 cd ./build
 echo Conda List:
 conda list
-echo Installing MKL
-conda install mkl
+#echo Installing MKL
+#conda install mkl
 echo $CI_PROJECT_DIR
 export NP_INCL=$(python $CI_PROJECT_DIR/contrib/packaging-python/conda/setvarnumpy.py )
 # in py <= 3.7, headers are in $PREFIX/include/python3.xm/, while since python 3.8 they are in $PREFIX/include/python3.8/ go figure.
@@ -48,7 +48,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCASCADE_LIBDIR=$HOME/miniconda3/lib \
  -DENABLE_MODULE_PARDISO_MKL=ON \
  -DMKL_INCLUDE_DIRECTORY=$HOME/miniconda3/include \
- -DMKL_RT_LIBRARY=$HOME/miniconda3/lib/libmkl_rt.so \
+ #-DMKL_RT_LIBRARY=$HOME/miniconda3/lib/libmkl_rt.so \
  -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 \
  -DPYCHRONO_DATA_PATH=../../../../../../share/chrono/data \
  -DOptiX_INSTALL_DIR=/opt/optix/7.2.0 \
