@@ -37,6 +37,8 @@ requirements:
     - swig >=4.0.0
     - mkl
     - mkl-devel
+    - freeglut # [linux]
+    - libxxf86vm-devel-cos7-x86_64 # [linux]
     - irrlicht
     - opencascade
     - numpy >=1.16
