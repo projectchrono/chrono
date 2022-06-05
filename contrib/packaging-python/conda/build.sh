@@ -2,10 +2,6 @@
 echo Started build.sh
 mkdir ./build
 cd ./build
-echo Conda List:
-conda list
-#echo Installing MKL
-#conda install mkl
 echo $CI_PROJECT_DIR
 export NP_INCL=$(python $CI_PROJECT_DIR/contrib/packaging-python/conda/setvarnumpy.py )
 # in py <= 3.7, headers are in $PREFIX/include/python3.xm/, while since python 3.8 they are in $PREFIX/include/python3.8/ go figure.
@@ -62,5 +58,4 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
 # on linux travis, limit the number of concurrent jobs otherwise
 # gcc gets out of memory
 cmake --build . --config "$CONFIGURATION"
-
 cmake --build . --config "$CONFIGURATION" --target install

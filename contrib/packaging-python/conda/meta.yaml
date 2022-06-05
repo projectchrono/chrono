@@ -39,8 +39,8 @@ requirements:
     - mkl-devel
     - irrlicht
     - opencascade
-    - numpy >=1.16
     - glew
+    - numpy >=1.16
     - glfw
     - eigen >=3.3.7
     
