@@ -211,6 +211,7 @@ linux:arch-llvm:test:
     #- conda install -c conda-forge gxx_linux-64 gcc_linux-64 llvm-openmp libglvnd-glx-cos7-x86_64
     - conda config --set show_channel_urls true
     - conda install conda-build anaconda-client conda-verify --yes
+    - conda install -c intel mkl-devel mkl --yes
     - conda update conda --yes
     - rm -rf /root/miniconda3/lib/libgomp.so.1
     - conda config --add channels https://conda.anaconda.org/conda-forge
@@ -218,7 +219,7 @@ linux:arch-llvm:test:
     - conda config --add channels https://conda.anaconda.org/dlr-sc
     #- conda install --yes conda-build anaconda-client
     #- conda install -c dlr-sc opencascade --yes
-    #- conda install -c intel mkl-devel --yes
+    
   environment:
     name: pychrono-ubuntu2004
     url: https://anaconda.org/projectchrono/pychrono

@@ -1,4 +1,3 @@
-
 echo Started build.sh
 mkdir ./build
 cd ./build
@@ -43,8 +42,8 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCASCADE_INCLUDE_DIR=$HOME/miniconda3/include/opencascade \
  -DCASCADE_LIBDIR=$HOME/miniconda3/lib \
  -DENABLE_MODULE_PARDISO_MKL=ON \
- -DMKL_INCLUDE_DIRECTORY=$HOME/miniconda3/include \
- #-DMKL_RT_LIBRARY=$HOME/miniconda3/lib/libmkl_rt.so \
+ -DMKL_INCLUDE_DIR=$HOME/miniconda3/include \
+ -DMKL_RT_LIBRARY=$HOME/miniconda3/lib/libmkl_rt.so \
  -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 \
  -DPYCHRONO_DATA_PATH=../../../../../../share/chrono/data \
  -DOptiX_INSTALL_DIR=/opt/optix/7.2.0 \
@@ -54,6 +53,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCUDA_ARCH_PTX=52 \
  -DCUDA_ARCH_BIN=5.2 \
  ./..
+
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
 # gcc gets out of memory
