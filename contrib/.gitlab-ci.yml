@@ -206,12 +206,13 @@ linux:arch-llvm:test:
     - wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
     - bash Miniconda3-latest-Linux-x86_64.sh -b
     - export PATH=$HOME/miniconda3/bin:$PATH
-    - conda update --yes conda
+    #- conda update --yes conda
     #- conda install --yes pip jinja2
     #- conda install -c conda-forge gxx_linux-64 gcc_linux-64 llvm-openmp libglvnd-glx-cos7-x86_64
     - conda config --set show_channel_urls true
     - conda install conda-build anaconda-client conda-verify --yes
     - conda update conda --yes
+    - rm -rf /root/miniconda3/lib/libgomp.so.1
     - conda config --add channels https://conda.anaconda.org/conda-forge
     - conda config --add channels https://conda.anaconda.org/intel
     - conda config --add channels https://conda.anaconda.org/dlr-sc
