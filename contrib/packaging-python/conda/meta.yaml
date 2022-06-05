@@ -35,12 +35,12 @@ requirements:
     - llvm-openmp   # [linux]
     - libglvnd-glx-cos7-x86_64 # [linux]
     - swig >=4.0.0
-    #- mkl
-    #- mkl-devel
+    - mkl
+    - mkl-devel
     - irrlicht
     - opencascade
-    - glew
     - numpy >=1.16
+    - glew
     - glfw
     - eigen >=3.3.7
     
