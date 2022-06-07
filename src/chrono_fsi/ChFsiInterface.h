@@ -42,22 +42,14 @@ namespace fsi {
 class ChFsiInterface : public ChFsiGeneral {
   public:
     /// Constructor of the FSI interface class.
-    ChFsiInterface(ChSystem& other_mphysicalSystem,
-                   std::shared_ptr<fea::ChMesh> other_fsiMesh,
-                   std::shared_ptr<SimParams> other_paramsH,
-                   std::shared_ptr<FsiBodiesDataH> other_fsiBodiesH,
-                   std::shared_ptr<FsiMeshDataH> other_fsiMeshH,
-                   std::vector<std::shared_ptr<ChBody>>& other_fsiBodies,
-                   std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& other_fsiNodes,
-                   std::vector<std::shared_ptr<fea::ChElementCableANCF>>& other_fsiCables,
-                   std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& other_fsiShells,
-                   thrust::host_vector<int2>& other_CableElementsNodesH,
-                   thrust::device_vector<int2>& other_CableElementsNodes,
-                   thrust::host_vector<int4>& other_ShellElementsNodesH,
-                   thrust::device_vector<int4>& other_ShellElementsNodes,
-                   thrust::device_vector<Real3>& other_rigid_FSI_ForcesD,
-                   thrust::device_vector<Real3>& other_rigid_FSI_TorquesD,
-                   thrust::device_vector<Real3>& other_Flex_FSI_ForcesD);
+    ChFsiInterface(ChSystem& mbs,
+                   ChSystemFsi_impl& fsi,
+                   std::shared_ptr<SimParams> params,
+                   std::shared_ptr<fea::ChMesh>& mesh,
+                   std::vector<std::shared_ptr<ChBody>>& bodies,
+                   std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& nodes,
+                   std::vector<std::shared_ptr<fea::ChElementCableANCF>>& cables,
+                   std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& shells);
 
     /// Destructor of the FSI interface class.
     ~ChFsiInterface();
@@ -88,12 +80,10 @@ class ChFsiInterface : public ChFsiGeneral {
     void ResizeChronoNodesData();
 
     /// Resize number of cable elements used in the flexible elements
-    void ResizeChronoCablesData(std::vector<std::vector<int>> CableElementsNodesSTDVector,
-                                        thrust::host_vector<int2>& CableElementsNodesH);
+    void ResizeChronoCablesData(std::vector<std::vector<int>> CableElementsNodesSTDVector);
 
     /// Resize number of shell elements used in the flexible elements
-    void ResizeChronoShellsData(std::vector<std::vector<int>> ShellElementsNodesSTDVector,
-                                        thrust::host_vector<int4>& ShellElementsNodesH);
+    void ResizeChronoShellsData(std::vector<std::vector<int>> ShellElementsNodesSTDVector);
 
     /// Resize number of nodes used in the flexible elements
     void ResizeChronoFEANodesData();
@@ -102,26 +92,19 @@ class ChFsiInterface : public ChFsiGeneral {
     void Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD);
 
   private:
-    ChSystem& mphysicalSystem;                              ///< Chrono system handled by the FSI system
-    std::shared_ptr<FsiBodiesDataH> fsiBodiesH;             ///< states of the FSI rigid bodies
+    ChSystem& sysMBS;          ///< Chrono multibody system
+    ChSystemFsi_impl& sysFSI;  ///< FSI system
+
+    std::shared_ptr<SimParams> paramsH;  ///< simulation parameters
+
     std::shared_ptr<ChronoBodiesDataH> chronoRigidBackup;   ///< backup for the Chrono system state
-    std::shared_ptr<FsiMeshDataH> fsiMeshH;                 ///< information of the FEA mesh participating in FSI
     std::shared_ptr<ChronoMeshDataH> chronoFlexMeshBackup;  ///< backup for the Chrono system state
-    std::shared_ptr<SimParams> paramsH;                     ///< simulation parameters
 
-    thrust::device_vector<Real3>& rigid_FSI_ForcesD;   ///< forces from the fluid dynamics system to rigid bodies
-    thrust::device_vector<Real3>& rigid_FSI_TorquesD;  ///< torques from the fluid dynamics system to rigid bodies
-    thrust::device_vector<Real3>& Flex_FSI_ForcesD;    ///< forces from the fluid dynamics system to flexible bodies
-
-    std::shared_ptr<fea::ChMesh> fsi_mesh;
+    std::shared_ptr<fea::ChMesh>& fsi_mesh;
     std::vector<std::shared_ptr<ChBody>>& fsiBodies;                        ///< bodies handled by the FSI system
     std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes;             ///< FEA nodes available in FSI system
     std::vector<std::shared_ptr<fea::ChElementCableANCF>>& fsiCables;       ///< FEA cable elements in FSI system
     std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells;  ///< FEA shell elements in FSI system
-    thrust::host_vector<int2>& CableElementsNodesH;                         ///< indices of nodes of each element
-    thrust::device_vector<int2>& CableElementsNodes;                        ///< indices of nodes of each element
-    thrust::host_vector<int4>& ShellElementsNodesH;                         ///< indices of nodes of each element
-    thrust::device_vector<int4>& ShellElementsNodes;                        ///< indices of nodes of each element
 };
 
 /// @} fsi_physics

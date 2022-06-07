@@ -114,14 +114,14 @@ class CH_FSI_API ChSystemFsi {
     /// Finalize the construction of cable elements in the FSI system.
     void SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes) {
         CableElementsNodes = elementsNodes;
-        size_t test = fsiSystem.fsiGeneralData->CableElementsNodes.size();
+        size_t test = sysFSI.fsiGeneralData->CableElementsNodes.size();
         std::cout << "numObjects.numFlexNodes" << test << std::endl;
     }
 
     /// Finalize the construction of cable elements in the FSI system.
     void SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes) {
         ShellElementsNodes = elementsNodes;
-        size_t test = fsiSystem.fsiGeneralData->ShellElementsNodes.size();
+        size_t test = sysFSI.fsiGeneralData->ShellElementsNodes.size();
         std::cout << "numObjects.numFlexNodes" << test << std::endl;
     }
 
@@ -348,7 +348,8 @@ class CH_FSI_API ChSystemFsi {
                                                        bool isSolid = false,
                                                        bool add_to_previous = true);
 
-    ChSystemFsi_impl fsiSystem;  ///< underlying system implementation
+    ChSystemFsi_impl sysFSI;  ///< underlying system implementation
+    ChSystem& sysMBS;         ///< reference to the multi-body system
 
     CHFSI_OUTPUT_MODE file_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
 
@@ -366,7 +367,6 @@ class CH_FSI_API ChSystemFsi {
     std::shared_ptr<ChBce> bceWorker;                  ///< pointer to the bce workers
     std::shared_ptr<SimParams> paramsH;                ///< pointer to the simulation parameters
     std::shared_ptr<NumberOfObjects> numObjectsH;      ///< number of objects, fluid, bce, and boundary markers
-    chrono::ChSystem& mphysicalSystem;                 ///< reference to the multi-body system
 
     double mTime;  ///< current real time of the simulation
 };
