@@ -581,11 +581,15 @@ void ChVisualSystemVSG::BindAll() {
             GetLog() << "   ... has no visual representation\n";
             continue;
         }
+        // Get the visual model reference frame
+        const ChFrame<>& X_AM = body->GetVisualModelFrame();
+
         for (const auto& shape_instance : body->GetVisualModel()->GetShapes()) {
             auto& shape = shape_instance.first;
-            auto& shape_frame = shape_instance.second;
-            ChQuaternion<> rot = shape_frame.GetRot();
-            ChVector<> pos = shape_frame.GetPos();
+            auto& X_SM = shape_instance.second;
+            ChFrame<> X_SA = X_AM * X_SM;
+            auto pos = X_SA.GetPos();
+            auto rot = X_SA.GetRot();
             double rotAngle;
             ChVector<> rotAxis;
             rot.Q_to_AngAxis(rotAngle, rotAxis);
@@ -602,13 +606,20 @@ void ChVisualSystemVSG::BindAll() {
             }
             if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
                 GetLog() << "... has a box shape\n";
-                ChVector<> scale = 2.0 * box->GetBoxGeometry().Size;
-                vsg::dmat4 tf_matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                       vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                       vsg::scale(scale.x(), scale.y(), scale.z());
-                m_scenegraph->addChild(m_shapeBuilder->createBox(material, tf_matrix));
+                ChVector<> scale = box->GetBoxGeometry().Size;
+                auto transform = vsg::MatrixTransform::create();
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                    vsg::scale(scale.x(), scale.y(), scale.z());
+                m_scenegraph->addChild(m_shapeBuilder->createBox(body, shape_instance, material, transform));
             } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
                 GetLog() << "... has a sphere shape\n";
+                ChVector<> scale = sphere->GetSphereGeometry().rad;
+                auto transform = vsg::MatrixTransform::create();
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                    vsg::scale(scale.x(), scale.y(), scale.z());
+                m_scenegraph->addChild(m_shapeBuilder->createSphere(body, shape_instance, material, transform));
             }
         }
     }
@@ -630,5 +641,45 @@ void ChVisualSystemVSG::SetLightIntensity(double intensity) {
         cout << "SetLightIntensity() cannot be used after initializing!" << endl;
     }
 }
+
+void ChVisualSystemVSG::OnUpdate() {
+    // GetLog() << "Update requested.\n";
+    for (auto child : m_scenegraph->children) {
+        std::shared_ptr<ChPhysicsItem> item;
+        ChVisualModel::ShapeInstance shapeInstance;
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        if (!child->getValue("ItemPtr", item))
+            continue;
+        if (!child->getValue("ShapeInstancePtr", shapeInstance))
+            continue;
+        if (!child->getValue("TransformPtr", transform))
+            continue;
+        // begin matrix update
+
+        // Get the visual model reference frame
+        const ChFrame<>& X_AM = item->GetVisualModelFrame();
+        auto shape = shapeInstance.first;
+        const auto& X_SM = shapeInstance.second;
+
+        ChFrame<> X_SA = X_AM * X_SM;
+        vsg::dvec3 pos(X_SA.GetPos().x(), X_SA.GetPos().y(), X_SA.GetPos().z());
+        auto rot = X_SA.GetRot();
+        double angle;
+        Vector axis;
+        rot.Q_to_AngAxis(angle, axis);
+        vsg::dvec3 rotax(axis.x(), axis.y(), axis.z());
+        if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+            vsg::dvec3 size(box->GetBoxGeometry().GetSize().x(), box->GetBoxGeometry().GetSize().y(),
+                            box->GetBoxGeometry().GetSize().z());
+            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+        } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+            double radius = sphere->GetSphereGeometry().rad;
+            // ChVector<> size(radius, radius, radius);
+            vsg::dvec3 size(radius, radius, radius);
+            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+        }
+    }
+}
+
 }  // namespace vsg3d
 }  // namespace chrono

@@ -23,6 +23,7 @@
 #include <vsgXchange/all.h>
 
 #include "chrono/assets/ChVisualSystem.h"
+#include "chrono/assets/ChVisualModel.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -31,7 +32,14 @@ class CH_VSG_API ShapeBuilder {
     ShapeBuilder(vsg::ref_ptr<vsg::Options> options);
     ~ShapeBuilder();
 
-    vsg::ref_ptr<vsg::Group> createBox(std::shared_ptr<ChVisualMaterial> material, vsg::dmat4 &tf_matrix);
+    vsg::ref_ptr<vsg::Group> createBox(std::shared_ptr<ChPhysicsItem> physItem,
+                                       ChVisualModel::ShapeInstance shapeInstance,
+                                       std::shared_ptr<ChVisualMaterial> material,
+                                       vsg::ref_ptr<vsg::MatrixTransform> transform);
+    vsg::ref_ptr<vsg::Group> createSphere(std::shared_ptr<ChPhysicsItem> physItem,
+                                          ChVisualModel::ShapeInstance shapeInstance,
+                                          std::shared_ptr<ChVisualMaterial> material,
+                                          vsg::ref_ptr<vsg::MatrixTransform> transform);
 
   private:
     vsg::ref_ptr<vsg::Options> m_options;

@@ -23,6 +23,7 @@
 #include <vsgXchange/all.h>
 
 #include "chrono/assets/ChVisualSystem.h"
+#include "chrono/assets/ChVisualModel.h"
 #include "chrono_vsg/shapes/ShapeBuilder.h"
 
 namespace chrono {
@@ -81,6 +82,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// This function is called by default by Initialize(), but can also be called later if further modifications to
     /// visualization assets occur.
     virtual void BindAll() override;
+
+    /// Perform necessary update operations at the end of a time step.
+    virtual void OnUpdate() override;
 
     /// Create a snapshot of the last rendered frame and save it to the provided file.
     /// The file extension determines the image format.
