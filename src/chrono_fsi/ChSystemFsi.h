@@ -39,7 +39,7 @@ class ChNodeFEAxyzD;
 class ChMesh;
 class ChElementCableANCF;
 class ChElementShellANCF_3423;
-}
+}  // namespace fea
 
 namespace fsi {
 
@@ -81,9 +81,6 @@ class CH_FSI_API ChSystemFsi {
     /// to arrays in FSI system since they are needed for internal use.
     void FinalizeData();
 
-    /// Get a pointer to the data manager.
-    std::shared_ptr<ChSystemFsi_impl> GetFsiData() { return fsiSystem; }
-
     /// Set the linear system solver for implicit methods
     void SetFluidSystemLinearSolver(ChFsiLinearSolver::SolverType other_solverType) {
         fluidDynamics->GetForceSystem()->SetLinearSolver(other_solverType);
@@ -91,9 +88,6 @@ class CH_FSI_API ChSystemFsi {
 
     /// Set the SPH method to be used for fluid dynamics.
     void SetFluidDynamics();
-
-    /// Get a pointer to the parameters used to set up the simulation.
-    std::shared_ptr<SimParams> GetSimParams() { return paramsH; }
 
     /// Get a reference to the FSI bodies.
     /// FSI bodies are the ones seen by the fluid dynamics system.
@@ -120,14 +114,14 @@ class CH_FSI_API ChSystemFsi {
     /// Finalize the construction of cable elements in the FSI system.
     void SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes) {
         CableElementsNodes = elementsNodes;
-        size_t test = fsiSystem->fsiGeneralData->CableElementsNodes.size();
+        size_t test = fsiSystem.fsiGeneralData->CableElementsNodes.size();
         std::cout << "numObjects.numFlexNodes" << test << std::endl;
     }
 
     /// Finalize the construction of cable elements in the FSI system.
     void SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes) {
         ShellElementsNodes = elementsNodes;
-        size_t test = fsiSystem->fsiGeneralData->ShellElementsNodes.size();
+        size_t test = fsiSystem.fsiGeneralData->ShellElementsNodes.size();
         std::cout << "numObjects.numFlexNodes" << test << std::endl;
     }
 
@@ -176,21 +170,43 @@ class CH_FSI_API ChSystemFsi {
                    bool isSolid = false);
 
     /// Add BCE particle for a sphere.
-    void AddBceSphere(std::shared_ptr<SimParams> paramsH,
-                      std::shared_ptr<ChBody> body,
+    void AddBceSphere(std::shared_ptr<ChBody> body,
                       const ChVector<>& relPos,
                       const ChQuaternion<>& relRot,
                       double radius);
 
+    /// Add BCE particles genetrated from the surface of a sphere.
+    void AddBceSphereSurface(std::shared_ptr<ChBody> body,
+                             const ChVector<>& relPos,
+                             const ChQuaternion<>& relRot,
+                             Real radius,
+                             Real kernel_h);
+
     /// Add BCE particle for a cylinder.
-    void AddBceCylinder(std::shared_ptr<SimParams> paramsH,
-                        std::shared_ptr<ChBody> body,
+    void AddBceCylinder(std::shared_ptr<ChBody> body,
                         const ChVector<>& relPos,
                         const ChQuaternion<>& relRot,
                         double radius,
                         double height,
                         double kernel_h,
                         bool cartesian = true);
+
+    /// Add BCE particles genetrated from the surface of a cylinder.
+    void AddBceCylinderSurface(std::shared_ptr<ChBody> body,
+                               const ChVector<>& relPos,
+                               const ChQuaternion<>& relRot,
+                               Real radius,
+                               Real height,
+                               Real kernel_h);
+
+    /// Add BCE particle for a cone.
+    void AddBceCone(std::shared_ptr<ChBody> body,
+                    const ChVector<>& relPos,
+                    const ChQuaternion<>& relRot,
+                    double radius,
+                    double height,
+                    double kernel_h,
+                    bool cartesian = true);
 
     /// Add BCE particles from a set of points.
     void AddBceFromPoints(std::shared_ptr<ChBody> body,
@@ -199,8 +215,7 @@ class CH_FSI_API ChSystemFsi {
                           const ChQuaternion<>& collisionShapeRelativeRot);
 
     /// Add BCE particle from a file.
-    void AddBceFile(std::shared_ptr<SimParams> paramsH,
-                    std::shared_ptr<ChBody> body,
+    void AddBceFile(std::shared_ptr<ChBody> body,
                     const std::string& dataPath,
                     const ChVector<>& collisionShapeRelativePos,
                     const ChQuaternion<>& collisionShapeRelativeRot,
@@ -208,8 +223,7 @@ class CH_FSI_API ChSystemFsi {
                     bool isSolid = true);
 
     /// Add BCE particle from mesh.
-    void AddBceFromMesh(std::shared_ptr<SimParams> paramsH,
-                        std::shared_ptr<fea::ChMesh> my_mesh,
+    void AddBceFromMesh(std::shared_ptr<fea::ChMesh> my_mesh,
                         const std::vector<std::vector<int>>& NodeNeighborElement,
                         const std::vector<std::vector<int>>& _1D_elementsNodes,
                         const std::vector<std::vector<int>>& _2D_elementsNodes,
@@ -219,6 +233,41 @@ class CH_FSI_API ChSystemFsi {
                         bool removeMiddleLayer,
                         int SIDE,
                         int SIZE2D);
+
+    /// Add BCE particles genetrated from ANCF shell elements.
+    void AddBCE_ShellANCF(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
+                          std::shared_ptr<fea::ChMesh> my_mesh,
+                          bool multiLayer = true,
+                          bool removeMiddleLayer = false,
+                          int SIDE = -2);
+
+    /// Add BCE particles genetrated from shell elements.
+    void AddBCE_ShellFromMesh(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
+                              std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes,
+                              std::shared_ptr<fea::ChMesh> my_mesh,
+                              const std::vector<std::vector<int>>& elementsNodes,
+                              const std::vector<std::vector<int>>& NodeNeighborElement,
+                              bool multiLayer = true,
+                              bool removeMiddleLayer = false,
+                              int SIDE = -2);
+
+    /// Create an FSI body for a sphere.
+    void CreateSphereFSI(std::shared_ptr<ChMaterialSurface> mat_prop, Real density, const ChVector<>& pos, Real radius);
+
+    /// Create an FSI body for a cylinder.
+    void CreateCylinderFSI(std::shared_ptr<ChMaterialSurface> mat_prop,
+                           Real density,
+                           const ChVector<>& pos,
+                           const ChQuaternion<>& rot,
+                           Real radius,
+                           Real length);
+
+    /// Create an FSI body for a box.
+    void CreateBoxFSI(std::shared_ptr<ChMaterialSurface> mat_prop,
+                      Real density,
+                      const ChVector<>& pos,
+                      const ChQuaternion<>& rot,
+                      const ChVector<>& hsize);
 
     /// Set FSI parameters from a JSON file.
     void SetSimParameter(const std::string& inputJson, const ChVector<>& box_size);
@@ -233,7 +282,7 @@ class CH_FSI_API ChSystemFsi {
     void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax);
 
     /// Set prescribed initial pressure for gravity field.
-    void SetInitPressure(std::shared_ptr<SimParams> paramsH, const double fzDim);
+    void SetInitPressure(const double fzDim);
 
     /// Set gravity for the FSI syatem.
     void Set_G_acc(const ChVector<>& gravity);
@@ -251,9 +300,7 @@ class CH_FSI_API ChSystemFsi {
     void SetSubDomain();
 
     /// Set output directory for FSI data.
-    void SetFsiOutputDir(std::string& demo_dir,
-                         std::string out_dir,
-                         std::string inputJson);
+    void SetFsiOutputDir(std::string& demo_dir, std::string out_dir, std::string inputJson);
 
     /// Return the SPH particle position.
     std::vector<ChVector<>> GetParticlePosOrProperties();
@@ -277,7 +324,31 @@ class CH_FSI_API ChSystemFsi {
     /// Set the type of the fluid dynamics.
     void SetFluidIntegratorType(fluid_dynamics params_type);
 
-    std::shared_ptr<ChSystemFsi_impl> fsiSystem;  ///< underlying system implementation
+    /// Create BCE particles from the local position on a body.
+    void CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vector<Real4>& posRadBCE,
+                                               std::shared_ptr<ChBody> body,
+                                               const ChVector<>& collisionShapeRelativePos = ChVector<>(0),
+                                               const ChQuaternion<>& collisionShapeRelativeRot = QUNIT,
+                                               bool isSolid = true,
+                                               bool add_to_fluid_helpers = false,
+                                               bool add_to_previous_object = false);
+
+    void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::host_vector<Real4>& posRadBCE,
+                                                         std::shared_ptr<fea::ChElementCableANCF> cable);
+
+    void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::host_vector<Real4>& posRadBCE,
+                                                         std::shared_ptr<fea::ChElementShellANCF_3423> shell,
+                                                         double kernel_h = 0);
+
+    /// Create BCE particles from the local position on a boundary.
+    void CreateBceGlobalMarkersFromBceLocalPosBoundary(const thrust::host_vector<Real4>& posRadBCE,
+                                                       std::shared_ptr<ChBody> body,
+                                                       const ChVector<>& collisionShapeRelativePos,
+                                                       const ChQuaternion<>& collisionShapeRelativeRot,
+                                                       bool isSolid = false,
+                                                       bool add_to_previous = true);
+
+    ChSystemFsi_impl fsiSystem;  ///< underlying system implementation
 
     CHFSI_OUTPUT_MODE file_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
 

@@ -135,7 +135,6 @@ set(ChronoEngine_FSI_UTILS_FILES
    	utils/ChUtilsJSON.h
     utils/ChUtilsGeneratorBce.h
     utils/ChUtilsGeneratorFluid.h
-    utils/ChUtilsGeneratorFsi.h
     utils/ChUtilsPrintStruct.h
     utils/ChUtilsPrintSph.cuh
     utils/ChUtilsDevice.cuh
@@ -144,7 +143,6 @@ set(ChronoEngine_FSI_UTILS_FILES
 	utils/ChUtilsJSON.cpp
     utils/ChUtilsGeneratorBce.cpp
     utils/ChUtilsGeneratorFluid.cpp
-    utils/ChUtilsGeneratorFsi.cpp
     utils/ChUtilsPrintSph.cu
     utils/ChUtilsDevice.cu
     utils/ChUtilsTypeConvert.cpp

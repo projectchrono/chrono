@@ -32,7 +32,6 @@
 
 /// Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
 
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
@@ -483,9 +482,6 @@ int main(int argc, char* argv[]) {
     /// Create a physics system and an FSI system
     ChSystemSMC mphysicalSystem;
     ChSystemFsi myFsiSystem(mphysicalSystem);
-
-    /// Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
-    std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
 
     /// Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_RoverSingleWheel.json");

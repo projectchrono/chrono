@@ -20,16 +20,50 @@
 #include <cmath>
 
 #include "chrono/core/ChMathematics.h"
+#include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
+
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/utils/ChUtilsGeneratorBce.h"
+#include "chrono_fsi/utils/ChUtilsTypeConvert.h"
 
 namespace chrono {
 namespace fsi {
 namespace utils {
+
+// =============================================================================
+
+// TransformToCOG
+// This utility function converts a given position and orientation, specified
+// with respect to a body's reference frame, into a frame defined with respect
+// to the body's centroidal frame.  Note that by default, a body's reference
+// frame is the centroidal frame. This is not true for a ChBodyAuxRef.
+void TransformBceFrameToCOG(std::shared_ptr<ChBody> body,
+                            const ChVector<>& pos,
+                            const ChMatrix33<>& rot,
+                            ChFrame<>& frame) {
+    frame = ChFrame<>(pos, rot);
+    if (std::shared_ptr<ChBodyAuxRef> body_ar = std::dynamic_pointer_cast<ChBodyAuxRef>(body)) {
+        frame = frame >> body_ar->GetFrame_REF_to_COG();
+    }
+}
+
+ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const ChVector<>& pos) {
+    ChFrame<> frame;
+    TransformBceFrameToCOG(body, pos, QUNIT, frame);
+    return frame.GetPos();
+}
+
+ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const Real3& pos3) {
+    ChVector<> pos = ChUtilsTypeConvert::Real3ToChVector(pos3);
+    return TransformBCEToCOG(body, pos);
+}
+
+
+
 // =============================================================================
 void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, std::shared_ptr<SimParams> paramsH) {
     Real spacing = paramsH->MULT_INITSPACE * paramsH->HSML;
