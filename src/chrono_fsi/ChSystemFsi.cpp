@@ -18,6 +18,9 @@
 
 #include "chrono/core/ChTypes.h"
 
+#include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsGenerators.h"
+
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
@@ -75,8 +78,8 @@ void ChSystemFsi::SetFluidIntegratorType(fluid_dynamics params_type) {
     }
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::SetFluidDynamics(fluid_dynamics params_type) {
-    SetFluidIntegratorType(params_type);
+void ChSystemFsi::SetFluidDynamics() {
+    SetFluidIntegratorType(paramsH->fluid_dynamic_type);
     fluidDynamics =
         chrono_types::make_shared<ChFluidDynamics>(bceWorker, fsiSystem, paramsH, numObjectsH, fluidIntegrator);
     fluidDynamics->GetForceSystem()->SetLinearSolver(paramsH->LinearSolver);
@@ -251,15 +254,33 @@ void ChSystemFsi::AddSphMarker(const ChVector<>& point,
     fsiSystem->AddSphMarker(ChUtilsTypeConvert::ChVectorToReal4(point, h), mR4(rho0, pres0, mu0, particle_type),
                             ChUtilsTypeConvert::ChVectorToReal3(velocity),
                             ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
-        ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
+                            ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::AddRefArray(const int start, const int numPart, const int compType, const int phaseType) {
     fsiSystem->fsiGeneralData->referenceArray.push_back(mI4(start, numPart, compType, phaseType));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::AddBceBox(std::shared_ptr<SimParams> paramsH,
-                            std::shared_ptr<ChBody> body,
+void ChSystemFsi::AddSphMarkerBox(double initSpace, 
+                                  double kernelLength, 
+                                  const ChVector<>& boxCenter, 
+                                  const ChVector<>& boxHalfDim) {
+    // Use a chrono sampler to create a bucket of points
+    chrono::utils::GridSampler<> sampler(initSpace);
+    std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
+
+    // Add fluid particles from the sampler points to the FSI system
+    int numPart = (int)points.size();
+    for (int i = 0; i < numPart; i++) {
+        AddSphMarker(points[i], paramsH->rho0, 0, paramsH->mu0, kernelLength, -1,
+                    ChVector<>(0),    // initial velocity
+                    ChVector<>(0),    // tauxxyyzz
+                    ChVector<>(0));   // tauxyxzyz
+    }
+    AddRefArray(0, (int)numPart, -1, -1);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::AddBceBox(std::shared_ptr<ChBody> body,
                             const ChVector<>& relPos,
                             const ChQuaternion<>& relRot,
                             const ChVector<>& size,
@@ -287,8 +308,7 @@ void ChSystemFsi::AddBceCylinder(std::shared_ptr<SimParams> paramsH,
     utils::AddCylinderBce(fsiSystem, paramsH, body, relPos, relRot, radius, height, kernel_h, cartesian);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::AddBceFromPoints(std::shared_ptr<SimParams> paramsH,
-                                   std::shared_ptr<ChBody> body,
+void ChSystemFsi::AddBceFromPoints(std::shared_ptr<ChBody> body,
                                    const std::vector<chrono::ChVector<>>& points,
                                    const ChVector<>& collisionShapeRelativePos,
                                    const ChQuaternion<>& collisionShapeRelativeRot) {
@@ -323,12 +343,23 @@ void ChSystemFsi::AddBceFromMesh(std::shared_ptr<SimParams> paramsH,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::SetSimParameter(const std::string& inputJson,
-                                  std::shared_ptr<SimParams> paramsH,
                                   const ChVector<>& box_size) {
     utils::ParseJSON(inputJson, paramsH, ChUtilsTypeConvert::ChVectorToReal3(box_size));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax, std::shared_ptr<SimParams> paramsH) {
+void ChSystemFsi::SetSimDim(const ChVector<>& fluidDim) {
+    paramsH->fluidDimX = fluidDim.x();
+    paramsH->fluidDimY = fluidDim.y();
+    paramsH->fluidDimZ = fluidDim.z();
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetContainerDim(const ChVector<>& boxDim ) {
+    paramsH->boxDimX = boxDim.x();
+    paramsH->boxDimY = boxDim.y();
+    paramsH->boxDimZ = boxDim.z();
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax) {
     paramsH->cMin = ChUtilsTypeConvert::ChVectorToReal3(cMin);
     paramsH->cMax = ChUtilsTypeConvert::ChVectorToReal3(cMax);
 }
@@ -342,16 +373,25 @@ void ChSystemFsi::SetInitPressure(std::shared_ptr<SimParams> paramsH, const doub
     }
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::Set_G_acc(const ChVector<>& gravity) {
+    paramsH->gravity.x = gravity.x();
+    paramsH->gravity.y = gravity.y();
+    paramsH->gravity.z = gravity.z();
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 float ChSystemFsi::GetKernelLength() const {
     return paramsH->HSML;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::SetSubDomain(std::shared_ptr<SimParams> paramsH) {
+float ChSystemFsi::GetInitialSpacing() const {
+    return paramsH->INITSPACE;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetSubDomain() {
     utils::FinalizeDomain(paramsH);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::SetFsiOutputDir(std::shared_ptr<SimParams> paramsH,
-                                  std::string& demo_dir,
+void ChSystemFsi::SetFsiOutputDir(std::string& demo_dir,
                                   std::string out_dir,
                                   std::string inputJson) {
     utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);

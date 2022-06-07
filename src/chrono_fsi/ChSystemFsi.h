@@ -90,7 +90,7 @@ class CH_FSI_API ChSystemFsi {
     }
 
     /// Set the SPH method to be used for fluid dynamics.
-    void SetFluidDynamics(fluid_dynamics params_type = fluid_dynamics::I2SPH);
+    void SetFluidDynamics();
 
     /// Get a pointer to the parameters used to set up the simulation.
     std::shared_ptr<SimParams> GetSimParams() { return paramsH; }
@@ -161,9 +161,14 @@ class CH_FSI_API ChSystemFsi {
     /// Add reference array for SPH particles.
     void AddRefArray(const int start, const int numPart, const int compType, const int phaseType);
 
+    /// Create SPH particle from a box domain
+    void AddSphMarkerBox(double initSpace,
+                         double kernelLength,
+                         const ChVector<>& boxCenter,
+                         const ChVector<>& boxHalfDim);
+
     /// Add BCE particle for a box.
-    void AddBceBox(std::shared_ptr<SimParams> paramsH,
-                   std::shared_ptr<ChBody> body,
+    void AddBceBox(std::shared_ptr<ChBody> body,
                    const ChVector<>& relPos,
                    const ChQuaternion<>& relRot,
                    const ChVector<>& size,
@@ -188,8 +193,7 @@ class CH_FSI_API ChSystemFsi {
                         bool cartesian = true);
 
     /// Add BCE particles from a set of points.
-    void AddBceFromPoints(std::shared_ptr<SimParams> paramsH,
-                          std::shared_ptr<ChBody> body,
+    void AddBceFromPoints(std::shared_ptr<ChBody> body,
                           const std::vector<ChVector<>>& points,
                           const ChVector<>& collisionShapeRelativePos,
                           const ChQuaternion<>& collisionShapeRelativeRot);
@@ -217,13 +221,22 @@ class CH_FSI_API ChSystemFsi {
                         int SIZE2D);
 
     /// Set FSI parameters from a JSON file.
-    void SetSimParameter(const std::string& inputJson, std::shared_ptr<SimParams> paramsH, const ChVector<>& box_size);
+    void SetSimParameter(const std::string& inputJson, const ChVector<>& box_size);
+
+    /// Set the fluid dimension
+    void SetSimDim(const ChVector<>& fluidDim);
+
+    /// Set the fluid container dimension
+    void SetContainerDim(const ChVector<>& boxDim);
 
     /// Set Periodic boundary condition for fluid.
-    void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax, std::shared_ptr<SimParams> paramsH);
+    void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax);
 
     /// Set prescribed initial pressure for gravity field.
     void SetInitPressure(std::shared_ptr<SimParams> paramsH, const double fzDim);
+
+    /// Set gravity for the FSI syatem.
+    void Set_G_acc(const ChVector<>& gravity);
 
     /// Gets the FSI mesh for flexible elements.
     std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
@@ -231,12 +244,14 @@ class CH_FSI_API ChSystemFsi {
     /// Return the SPH kernel length of kernel function.
     float GetKernelLength() const;
 
+    /// Return the initial spacing of the SPH particles.
+    float GetInitialSpacing() const;
+
     /// Set subdomains so that we find neighbor particles faster.
-    void SetSubDomain(std::shared_ptr<SimParams> paramsH);
+    void SetSubDomain();
 
     /// Set output directory for FSI data.
-    void SetFsiOutputDir(std::shared_ptr<SimParams> paramsH,
-                         std::string& demo_dir,
+    void SetFsiOutputDir(std::string& demo_dir,
                          std::string out_dir,
                          std::string inputJson);
 
