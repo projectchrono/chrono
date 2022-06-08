@@ -596,7 +596,7 @@ source_group(geometry FILES
 # Asset group
 
 set(ChronoEngine_assets_SOURCES
-    assets/ChObjShapeFile.cpp
+    assets/ChObjFileShape.cpp
     assets/ChTriangleMeshShape.cpp
     assets/ChSphereShape.cpp
     assets/ChEllipsoidShape.cpp
@@ -623,7 +623,7 @@ set(ChronoEngine_assets_SOURCES
     )
 
 set(ChronoEngine_assets_HEADERS
-    assets/ChObjShapeFile.h
+    assets/ChObjFileShape.h
     assets/ChTriangleMeshShape.h
     assets/ChSphereShape.h
     assets/ChEllipsoidShape.h

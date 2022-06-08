@@ -20,7 +20,7 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 
 #include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChObjShapeFile.h"
+#include "chrono/assets/ChObjFileShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
@@ -44,7 +44,7 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
     }
 
     if (vis == VisualizationType::MESH && m_has_obj) {
-        auto obj_shape = chrono_types::make_shared<ChObjShapeFile>();
+        auto obj_shape = chrono_types::make_shared<ChObjFileShape>();
         obj_shape->SetFilename(vehicle::GetDataFile(m_vis_mesh_file));
         body->AddVisualShape(obj_shape, ChFrame<>());
         return;

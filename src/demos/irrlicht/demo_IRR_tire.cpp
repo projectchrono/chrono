@@ -44,7 +44,7 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChSystem& sys) {
     mrigidBody->SetPos(mposition);
 
     // now attach a visualization shape, as a mesh from disk
-    auto tireMesh = chrono_types::make_shared<ChObjShapeFile>();
+    auto tireMesh = chrono_types::make_shared<ChObjFileShape>();
     tireMesh->SetFilename(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj").c_str());
     mrigidBody->AddVisualShape(tireMesh);
 

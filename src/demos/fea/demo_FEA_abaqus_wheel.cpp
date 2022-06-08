@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     mwheel_rim->SetWvel_par(ChVector<>(tire_w0, 0, 0));
     sys.Add(mwheel_rim);
 
-    auto mobjmesh = chrono_types::make_shared<ChObjShapeFile>();
+    auto mobjmesh = chrono_types::make_shared<ChObjFileShape>();
     mobjmesh->SetFilename(GetChronoDataFile("models/tractor_wheel/tractor_wheel_rim.obj"));
     mwheel_rim->AddVisualShape(mobjmesh);
 
