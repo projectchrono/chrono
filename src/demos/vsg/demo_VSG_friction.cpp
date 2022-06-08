@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
 
     sys.Add(bin);
 
-    // Create the Irrlicht visualization system
+    // Create the VSG visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     sys.SetVisualSystem(vis);
     vis->SetCameraVertical(vsg3d::CameraVerticalDir::Y);
