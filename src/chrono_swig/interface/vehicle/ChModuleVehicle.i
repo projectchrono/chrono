@@ -37,6 +37,8 @@
 
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/core/ChCoordsys.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/solver/ChSolver.h"
 
 #include "chrono/physics/ChSystem.h"
@@ -297,6 +299,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import  "chrono_swig/interface/core/ChBodyFrame.i"
 %import  "chrono_swig/interface/core/ChBody.i"
 %import  "chrono_swig/interface/core/ChBodyAuxRef.i"
+%include "chrono_swig/interface/core/ChNodeXYZ.i"
 %import  "chrono_swig/interface/core/ChLinkBase.i"
 %import  "chrono_swig/interface/core/ChLinkLock.i"
 %import  "chrono_swig/interface/core/ChLinkTSDA.i"
@@ -333,6 +336,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyAuxRef.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChNodeXYZ.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkBase.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkLock.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkTSDA.i"

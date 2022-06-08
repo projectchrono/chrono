@@ -34,7 +34,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-//#define USE_PATH_FOLLOWER
+#define USE_PATH_FOLLOWER
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -137,12 +137,6 @@ int main(int argc, char* argv[]) {
     driver.GetSteeringController().SetGains(0.8, 0, 0);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
-
-    // Visualization of controller points (sentinel & target)
-    irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
-    irr::scene::IMeshSceneNode* ballT = vis->GetSceneManager()->addSphereSceneNode(0.1f);
-    ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
-    ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
 #endif
 
     // Vehicle Irrlicht run-time visualization
@@ -156,7 +150,13 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
-#ifndef USE_PATH_FOLLOWER
+#ifdef USE_PATH_FOLLOWER
+    // Visualization of controller points (sentinel & target)
+    irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballT = vis->GetSceneManager()->addSphereSceneNode(0.1f);
+    ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
+    ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
+#elif
     // Interactive driver
     ChIrrGuiDriver driver(*vis);
     driver.SetSteeringDelta(0.06);
