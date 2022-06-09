@@ -35,11 +35,13 @@ class CH_VSG_API ShapeBuilder {
     vsg::ref_ptr<vsg::Group> createBox(std::shared_ptr<ChPhysicsItem> physItem,
                                        ChVisualModel::ShapeInstance shapeInstance,
                                        std::shared_ptr<ChVisualMaterial> material,
-                                       vsg::ref_ptr<vsg::MatrixTransform> transform);
+                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                       bool drawMode);
     vsg::ref_ptr<vsg::Group> createSphere(std::shared_ptr<ChPhysicsItem> physItem,
                                           ChVisualModel::ShapeInstance shapeInstance,
                                           std::shared_ptr<ChVisualMaterial> material,
-                                          vsg::ref_ptr<vsg::MatrixTransform> transform);
+                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                          bool drawMode);
 
   private:
     vsg::ref_ptr<vsg::Options> m_options;

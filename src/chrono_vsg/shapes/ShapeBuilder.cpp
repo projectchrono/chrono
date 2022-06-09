@@ -25,7 +25,8 @@ ShapeBuilder::~ShapeBuilder() {}
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createBox(std::shared_ptr<ChPhysicsItem> physItem,
                                                  ChVisualModel::ShapeInstance shapeInstance,
                                                  std::shared_ptr<ChVisualMaterial> material,
-                                                 vsg::ref_ptr<vsg::MatrixTransform> transform) {
+                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                 bool drawMode) {
     auto scenegraph = vsg::Group::create();
     // store some information for easier update
     scenegraph->setValue("ItemPtr", physItem);
@@ -33,6 +34,11 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createBox(std::shared_ptr<ChPhysicsItem> 
     scenegraph->setValue("TransformPtr", transform);
 
     auto shaderSet = vsg::createPhongShaderSet(m_options);
+    if(drawMode) {
+        auto rasterizationState = vsg::RasterizationState::create();
+        rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
+        shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
+    }
 
     auto graphicsPipelineConfig = vsg::GraphicsPipelineConfig::create(shaderSet);
 
@@ -197,7 +203,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createBox(std::shared_ptr<ChPhysicsItem> 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createSphere(std::shared_ptr<ChPhysicsItem> physItem,
                                                     ChVisualModel::ShapeInstance shapeInstance,
                                                     std::shared_ptr<ChVisualMaterial> material,
-                                                    vsg::ref_ptr<vsg::MatrixTransform> transform) {
+                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                    bool drawMode) {
     auto scenegraph = vsg::Group::create();
     // store some information for easier update
     scenegraph->setValue("ItemPtr", physItem);
@@ -205,6 +212,11 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createSphere(std::shared_ptr<ChPhysicsIte
     scenegraph->setValue("TransformPtr", transform);
 
     auto shaderSet = vsg::createPhongShaderSet(m_options);
+    if(drawMode) {
+        auto rasterizationState = vsg::RasterizationState::create();
+        rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
+        shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
+    }
 
     auto graphicsPipelineConfig = vsg::GraphicsPipelineConfig::create(shaderSet);
 

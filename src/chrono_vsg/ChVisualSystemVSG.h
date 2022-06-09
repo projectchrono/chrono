@@ -69,6 +69,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Must be called before Initialize().
     void SetClearColor(ChColor cc);
 
+    // Draw scene as wireframes
+    void SetWireFrameMode(bool mode=true) { m_draw_as_wireframe = mode; }
+
     // renders the whole scene
     void Render();
 
@@ -103,6 +106,8 @@ private:
     int m_windowPosY = 0;
     //
     ShapeBuilder* m_shapeBuilder;
+    //
+    bool m_draw_as_wireframe = false;
     //
     bool m_initialized = false;
     vsg::ref_ptr<vsg::Viewer> m_viewer;

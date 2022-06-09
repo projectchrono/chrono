@@ -42,10 +42,10 @@ void create_wall_bodies(ChSystemNSC& sys) {
             for (int ui = 0; ui < 15; ui++) {  // N. of hor. bricks
 
                 auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(3.96, 2, 4,  // x,y,z size
-                        100,         // density
-                        true,        // visualization?
-                        true,        // collision?
-                        mat);        // contact material
+                                                                           100,         // density
+                                                                           true,        // visualization?
+                                                                           true,        // collision?
+                                                                           mat);        // contact material
                 mrigidBody->SetPos(ChVector<>(-8 + ui * 4.0 + 2 * (bi % 2), 1.0 + bi * 2.0, ai * 9));
                 mrigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_borders.png"));
                 sys.Add(mrigidBody);
@@ -57,10 +57,10 @@ void create_wall_bodies(ChSystemNSC& sys) {
     // fixed rigid body of 'box' type:
 
     auto mrigidFloor = chrono_types::make_shared<ChBodyEasyBox>(250, 4, 250,  // x,y,z size
-            1000,         // density
-            true,         // visulization?
-            true,         // collision?
-            mat);         // contact material
+                                                                1000,         // density
+                                                                true,         // visulization?
+                                                                true,         // collision?
+                                                                mat);         // contact material
     mrigidFloor->SetPos(ChVector<>(0, -2, 0));
     mrigidFloor->SetBodyFixed(true);
     mrigidFloor->GetVisualShape(0)->SetTexture("textures/concrete.jpg");
@@ -69,10 +69,10 @@ void create_wall_bodies(ChSystemNSC& sys) {
 
     // Create a ball that will collide with wall
     auto mrigidBall = chrono_types::make_shared<ChBodyEasySphere>(4,     // radius
-            8000,  // density
-            true,  // visualization?
-            true,  // collision?
-            mat);  // contact material
+                                                                  8000,  // density
+                                                                  true,  // visualization?
+                                                                  true,  // collision?
+                                                                  mat);  // contact material
     mrigidBall->SetPos(ChVector<>(0, -2, 0));
     mrigidBall->SetPos(ChVector<>(0, 3, -8));
     mrigidBall->SetPos_dt(ChVector<>(0, 0, 16));  // set initial speed
@@ -94,34 +94,34 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
     // Create bricks
     for (int bi = 0; bi < 12; bi += 2) {
         auto mrigidBody1 = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 14,  // x,y,z size
-                100,       // density
-                true,      // visualization?
-                true,      // collision?
-                mat);      // contact material
+                                                                    100,       // density
+                                                                    true,      // visualization?
+                                                                    true,      // collision?
+                                                                    mat);      // contact material
         mrigidBody1->SetPos(ChVector<>(-5, 1.0 + bi * 2.0, 0));
         sys.Add(mrigidBody1);
 
         auto mrigidBody2 = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 14,  // x,y,z size
-                100,       // density
-                true,      // visualization?
-                true,      // collision?
-                mat);      // contact material
+                                                                    100,       // density
+                                                                    true,      // visualization?
+                                                                    true,      // collision?
+                                                                    mat);      // contact material
         mrigidBody2->SetPos(ChVector<>(5, 1.0 + bi * 2.0, 0));
         sys.Add(mrigidBody2);
 
         auto mrigidBody3 = chrono_types::make_shared<ChBodyEasyBox>(14, 2, 2,  // x,y,z size
-                100,       // density
-                true,      // visualization?
-                true,      // collision?
-                mat);      // contact material
+                                                                    100,       // density
+                                                                    true,      // visualization?
+                                                                    true,      // collision?
+                                                                    mat);      // contact material
         mrigidBody3->SetPos(ChVector<>(0, 3.0 + bi * 2.0, 5));
         sys.Add(mrigidBody3);
 
         auto mrigidBody4 = chrono_types::make_shared<ChBodyEasyBox>(14, 2, 2,  // x,y,z size
-                100,       // density
-                true,      // visualization?
-                true,      // collision?
-                mat);      // contact material
+                                                                    100,       // density
+                                                                    true,      // visualization?
+                                                                    true,      // collision?
+                                                                    mat);      // contact material
         mrigidBody4->SetPos(ChVector<>(0, 3.0 + bi * 2.0, -5));
         sys.Add(mrigidBody4);
     }
@@ -129,10 +129,10 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
     // Create the floor using
     // fixed rigid body of 'box' type:
     auto mrigidFloor = chrono_types::make_shared<ChBodyEasyBox>(250, 4, 250,  // x,y,z size
-            1000,         // density
-            true,         // visualization?
-            true,         // collision?
-            mat);         // contact material
+                                                                1000,         // density
+                                                                true,         // visualization?
+                                                                true,         // collision?
+                                                                mat);         // contact material
     mrigidFloor->SetPos(ChVector<>(0, -2, 0));
     mrigidFloor->SetBodyFixed(true);
 
@@ -140,10 +140,10 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
 
     // Create a ball that will collide with tower
     auto mrigidBall = chrono_types::make_shared<ChBodyEasySphere>(4,     // radius
-            1000,  // density
-            true,  // visualization?
-            true,  // collision?
-            mat);  // contact material
+                                                                  1000,  // density
+                                                                  true,  // visualization?
+                                                                  true,  // collision?
+                                                                  mat);  // contact material
     mrigidBall->SetPos(ChVector<>(0, 3, -8));
     mrigidBall->SetPos_dt(ChVector<>(0, 0, 2));  // set initial speed
     mrigidBall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
@@ -168,8 +168,9 @@ int main(int argc, char* argv[]) {
     vis->SetWindowPosition(ChVector2<int>(100, 300));
     vis->SetWindowTitle("Brick Wall Test");
     vis->SetUseSkyBox(true);
+    vis->SetWireFrameMode(true);
     vis->SetLightIntensity(0.9);
-    vis->SetLightDirection(1.5*CH_C_PI_2, CH_C_PI_4);
+    vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
     vis->Initialize();
 
     // Prepare the physical system for the simulation
@@ -183,7 +184,7 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     double timestep = 0.02;
-    while(vis->Run()){
+    while (vis->Run()) {
         vis->Render();
         sys.DoStepDynamics(timestep);
     }

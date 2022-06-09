@@ -176,6 +176,7 @@ void ChVisualSystemVSG::Initialize() {
             }
         }
     }
+
     auto ambientLight = vsg::AmbientLight::create();
     ambientLight->name = "ambient";
     ambientLight->color.set(1.0, 1.0, 1.0);
@@ -611,7 +612,8 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                m_scenegraph->addChild(m_shapeBuilder->createBox(body, shape_instance, material, transform));
+                m_scenegraph->addChild(
+                    m_shapeBuilder->createBox(body, shape_instance, material, transform, m_draw_as_wireframe));
             } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
                 GetLog() << "... has a sphere shape\n";
                 ChVector<> scale = sphere->GetSphereGeometry().rad;
@@ -619,7 +621,8 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                m_scenegraph->addChild(m_shapeBuilder->createSphere(body, shape_instance, material, transform));
+                m_scenegraph->addChild(
+                    m_shapeBuilder->createSphere(body, shape_instance, material, transform, m_draw_as_wireframe));
             }
         }
     }
