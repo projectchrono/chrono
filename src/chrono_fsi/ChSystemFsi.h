@@ -272,6 +272,12 @@ class CH_FSI_API ChSystemFsi {
     /// Set FSI parameters from a JSON file.
     void SetSimParameter(const std::string& inputJson, const ChVector<>& box_size);
 
+    /// Set initial spacing.
+    void SetInitialSpacing(double spacing);
+
+    /// Set SPH kernel length.
+    void SetKernelLength(double length);
+
     /// Set the fluid dimension
     void SetSimDim(const ChVector<>& fluidDim);
 
@@ -289,12 +295,6 @@ class CH_FSI_API ChSystemFsi {
 
     /// Gets the FSI mesh for flexible elements.
     std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
-
-    /// Return the SPH kernel length of kernel function.
-    float GetKernelLength() const;
-
-    /// Return the initial spacing of the SPH particles.
-    float GetInitialSpacing() const;
 
     /// Set subdomains so that we find neighbor particles faster.
     void SetSubDomain();
@@ -319,6 +319,27 @@ class CH_FSI_API ChSystemFsi {
 
     /// Set wall boundary condition
     void SetWallBC(BceVersion wallBC);
+
+    /// Return the SPH kernel length of kernel function.
+    float GetKernelLength() const;
+
+    /// Return the initial spacing of the SPH particles.
+    float GetInitialSpacing() const;
+
+    /// Get the current number of fluid SPH particles.
+    size_t GetNumFluidMarkers() const;
+
+    /// Get the current number of boundary BCE markers.
+    size_t GetNumBoundaryMarkers() const;
+
+    /// Get the current number of rigid body BCE markers.
+    size_t GetNumRigidBodyMarkers() const;
+
+    /// Get the current number of flexible body BCE markers.
+    size_t GetNumFlexBodyMarkers() const;
+
+    /// Get current simulation time.
+    double GetSimTime() const { return mTime; }
 
   private:
     /// Set the type of the fluid dynamics.
@@ -369,6 +390,8 @@ class CH_FSI_API ChSystemFsi {
     std::shared_ptr<NumberOfObjects> numObjectsH;      ///< number of objects, fluid, bce, and boundary markers
 
     double mTime;  ///< current real time of the simulation
+
+    friend class ChFsiVisualization;
 };
 
 /// @} fsi_physics

@@ -122,11 +122,11 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ground->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(ground);
 
-    myFsiSystem.AddBceBox(paramsH, ground, pos_zn, QUNIT, size_XY, 12);
-    myFsiSystem.AddBceBox(paramsH, ground, pos_xp, QUNIT, size_YZ, 23);
-    myFsiSystem.AddBceBox(paramsH, ground, pos_xn, QUNIT, size_YZ, 23);
-    myFsiSystem.AddBceBox(paramsH, ground, pos_yp, QUNIT, size_XZ, 13);
-    myFsiSystem.AddBceBox(paramsH, ground, pos_yn, QUNIT, size_XZ, 13);
+    myFsiSystem.AddBceBox(ground, pos_zn, QUNIT, size_XY, 12);
+    myFsiSystem.AddBceBox(ground, pos_xp, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(ground, pos_xn, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(ground, pos_yp, QUNIT, size_XZ, 13);
+    myFsiSystem.AddBceBox(ground, pos_yn, QUNIT, size_XZ, 13);
 }
 
 // =============================================================================
@@ -153,20 +153,20 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
-    myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
+    myFsiSystem.SetSimParameter(inputJson, ChVector<>(bxDim, byDim, bzDim));
 
-    myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
+    myFsiSystem.SetFluidDynamics();
 
     auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
     ChVector<> cMin = ChVector<>(-bxDim / 2, -byDim / 2, -bzDim / 2) - ChVector<>(initSpace0 * 20);
     ChVector<> cMax = ChVector<>(bxDim / 2, byDim / 2, bzDim) + ChVector<>(initSpace0 * 10);
-    myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
+    myFsiSystem.SetBoundaries(cMin, cMax);
 
     // Setup sub doamins for a faster neighbor particle searching
-    myFsiSystem.SetSubDomain(paramsH);
+    myFsiSystem.SetSubDomain();
 
     // Setup the output directory for FSI data
-    myFsiSystem.SetFsiOutputDir(paramsH, demo_dir, out_dir, inputJson);
+    myFsiSystem.SetFsiOutputDir(demo_dir, out_dir, inputJson);
 
     // Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
 
     // Create MBD and BCE particles for the solid domain
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
-    myFsiSystem.SetInitPressure(paramsH, fzDim);
+    myFsiSystem.SetInitPressure(fzDim);
 
     // Construction of the FSI system must be finalized
     myFsiSystem.Finalize();

@@ -1,0 +1,74 @@
+{
+  "Output Folder": "Slip_P0.6_mass_105.22",
+
+  "Physical Properties of Fluid":
+  {
+    "Density":                1700,
+    "Body Force":             [0.0,  0.0,  0.0],
+    "Gravity":                [0.0,  0.0, -9.81]
+  },
+
+  "SPH Parameters":
+  {
+    "Method":                         "WCSPH",
+    "Kernel h":                       0.005,
+    "Initial Spacing":                0.005,
+    "Epsilon":                        0.01,
+    "XSPH Coefficient":               0.5,
+    "Shifting Coefficient":           1.0,
+    "Density Reinitialization":       1000000000
+  },
+
+  "Time Stepping":
+  {
+    "Beta":                          0.0,
+    "Fluid time step":               1.25e-4,
+    "Solid time step":               1.25e-4,
+    "Maximum time step":             1.25e-4,
+    "End time":                      20.0,
+    "Write frame per second":        20
+  },
+
+  "Elastic SPH":
+  {
+    "Poisson ratio":                0.3,
+    "Young modulus":                1.0e6,
+    "Artificial stress":            0.0,
+    "Artificial viscosity alpha":   0.5,
+    "Artificial viscosity beta":    0.0,
+    "I0":     0.03,
+    "mu_s":   0.7,
+    "mu_2":   0.7,
+    "particle diameter":     0.005,
+    "kernel threshold":      0.8
+  },
+
+  "Geometry Inf":
+  {
+    "BoxDimensionX":                5.0,
+    "BoxDimensionY":                0.8,
+    "BoxDimensionZ":                0.2,
+    "FluidDimensionX":              5.0,
+    "FluidDimensionY":              0.8,
+    "FluidDimensionZ":              0.16
+  },
+
+  "Body Inf":
+  {
+    "BodyRadius":                   0.305,
+    "BodyLength":                   0.2,
+    "BodyIniPosX":                 -2.3,
+    "BodyIniPosY":                  0.0,
+    "BodyIniPosZ":                  0.305,
+    "BodyIniVelX":                  0.2,
+    "BodyIniVelY":                  0.0,
+    "BodyIniVelZ":                  0.0,
+    "BodyIniAngVel":                0.0,
+    "BodyMass":                     105.22,
+    "BodyDensity":                  1.0
+  },
+
+  "Body Active Domain": [ 0.6, 0.5, 0.5 ],
+  "Settling Time": 0.0
+
+}

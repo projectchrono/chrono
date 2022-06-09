@@ -179,9 +179,6 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         fsiInterface->Copy_fsiNodes_ChSystem_to_FluidSystem(sysFSI.fsiMeshD);
         bceWorker->UpdateFlexMarkersPositionVelocity(sysFSI.sphMarkersD2, sysFSI.fsiMeshD);
 
-        printf("Update Flexible Marker\n");
-        fsiInterface->Copy_fsiNodes_ChSystem_to_FluidSystem(sysFSI.fsiMeshD);
-        bceWorker->UpdateFlexMarkersPositionVelocity(sysFSI.sphMarkersD2, sysFSI.fsiMeshD);
         printf("=================================================================================================\n");
     }
 }
@@ -228,6 +225,7 @@ void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
                                         outfilename);
     }
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::PrintParticleToFile(const std::string& out_dir) const {
     utils::PrintToFile(sysFSI.sphMarkersD2->posRadD, sysFSI.sphMarkersD2->velMasD, sysFSI.sphMarkersD2->rhoPresMuD,
@@ -951,24 +949,24 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPosBoundary(const thrust::ho
 void ChSystemFsi::SetSimParameter(const std::string& inputJson, const ChVector<>& box_size) {
     utils::ParseJSON(inputJson, paramsH, ChUtilsTypeConvert::ChVectorToReal3(box_size));
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::SetSimDim(const ChVector<>& fluidDim) {
     paramsH->fluidDimX = fluidDim.x();
     paramsH->fluidDimY = fluidDim.y();
     paramsH->fluidDimZ = fluidDim.z();
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::SetContainerDim(const ChVector<>& boxDim) {
     paramsH->boxDimX = boxDim.x();
     paramsH->boxDimY = boxDim.y();
     paramsH->boxDimZ = boxDim.z();
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax) {
     paramsH->cMin = ChUtilsTypeConvert::ChVectorToReal3(cMin);
     paramsH->cMax = ChUtilsTypeConvert::ChVectorToReal3(cMax);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::SetInitPressure(const double fzDim) {
     size_t numParticles = sysFSI.sphMarkersH->rhoPresMuH.size();
     for (int i = 0; i < numParticles; i++) {
@@ -976,21 +974,23 @@ void ChSystemFsi::SetInitPressure(const double fzDim) {
         sysFSI.sphMarkersH->rhoPresMuH[i].y = -paramsH->rho0 * paramsH->gravity.z * paramsH->gravity.z * (z - fzDim);
     }
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::Set_G_acc(const ChVector<>& gravity) {
     paramsH->gravity.x = gravity.x();
     paramsH->gravity.y = gravity.y();
     paramsH->gravity.z = gravity.z();
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-float ChSystemFsi::GetKernelLength() const {
-    return paramsH->HSML;
+
+void ChSystemFsi::SetInitialSpacing(double spacing) {
+    paramsH->INITSPACE = (Real)spacing;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-float ChSystemFsi::GetInitialSpacing() const {
-    return paramsH->INITSPACE;
+
+void ChSystemFsi::SetKernelLength(double length) {
+    paramsH->HSML = (Real)length;
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::SetSubDomain() {
     paramsH->NUM_BOUNDARY_LAYERS = 3;
     paramsH->Apply_BC_U = false;  // You should go to custom_math.h all the way to end of file and set your function
@@ -1013,27 +1013,54 @@ void ChSystemFsi::SetSubDomain() {
     paramsH->worldOrigin = paramsH->cMin;
     paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::SetFsiOutputDir(std::string& demo_dir, std::string out_dir, std::string inputJson) {
     utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::SetDiscreType(bool useGmatrix, bool useLmatrix) {
     paramsH->USE_Consistent_G = useGmatrix;
     paramsH->USE_Consistent_L = useLmatrix;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::SetFsiInfoOutput(bool outputFsiInfo) {
     paramsH->output_fsi = outputFsiInfo;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::SetOutputLength(int OutputLength) {
     paramsH->output_length = OutputLength;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::SetWallBC(BceVersion wallBC) {
     paramsH->bceTypeWall = wallBC;
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+float ChSystemFsi::GetKernelLength() const {
+    return paramsH->HSML;
+}
+
+float ChSystemFsi::GetInitialSpacing() const {
+    return paramsH->INITSPACE;
+}
+
+size_t ChSystemFsi::GetNumFluidMarkers() const {
+    return sysFSI.numObjects->numFluidMarkers;
+}
+
+size_t ChSystemFsi::GetNumRigidBodyMarkers() const {
+    return sysFSI.numObjects->numRigid_SphMarkers;
+}
+
+size_t ChSystemFsi::GetNumFlexBodyMarkers() const {
+    return sysFSI.numObjects->numFlex_SphMarkers;
+}
+
+size_t ChSystemFsi::GetNumBoundaryMarkers() const {
+    return sysFSI.numObjects->numBoundaryMarkers;
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 std::vector<ChVector<>> ChSystemFsi::GetParticlePosOrProperties() {
     thrust::host_vector<Real4> posRadH = sysFSI.sphMarkersD2->posRadD;

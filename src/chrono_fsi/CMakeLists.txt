@@ -54,14 +54,36 @@ endif()
 # ----------------------------------------------------------------------------
 
 set(CH_FSI_INCLUDES "${CUDA_TOOLKIT_ROOT_DIR}/include")
+set(CH_FSI_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
+set(CH_FSI_LINKED_LIBRARIES ${CUDA_FRAMEWORK})
+
+list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_cudadevrt_LIBRARY})
+list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_CUDART_LIBRARY})
+list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_cusparse_LIBRARY})
+list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_cublas_LIBRARY})
+
+message(STATUS "CUDA libraries: ${CH_FSI_LINKED_LIBRARIES}")
+
+list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine)
+
+# ------------------------------------------------------------------------------
+# Add optional run-time visualization support
+# ------------------------------------------------------------------------------
+
+if(ENABLE_MODULE_OPENGL)
+  include_directories(${CH_OPENGL_INCLUDES})
+  set(CH_FSI_INCLUDES ${CH_FSI_INCLUDES} ${CH_OPENGL_INCLUDES})
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+     set(CH_FSI_LINKER_FLAGS  "${CH_FSI_LINKER_FLAGS} -framework IOKit -framework Cocoa -framework OpenGL")
+  endif()
+  list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine_opengl)
+endif()
+
+# ------------------------------------------------------------------------------
+# Make some variables visible from parent directory
+# ------------------------------------------------------------------------------
+
 set(CH_FSI_INCLUDES "${CH_FSI_INCLUDES}" PARENT_SCOPE)
-
-list(APPEND ${CUDA_cudadevrt_LIBRARY} LIBRARIES)
-list(APPEND LIBRARIES ${CUDA_CUDART_LIBRARY})
-list(APPEND LIBRARIES ${CUDA_cusparse_LIBRARY})
-list(APPEND LIBRARIES ${CUDA_cublas_LIBRARY})
-
-message(STATUS "CUDA libraries: ${LIBRARIES}")
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
@@ -150,6 +172,12 @@ set(ChronoEngine_FSI_UTILS_FILES
 
 source_group(utils FILES ${ChronoEngine_FSI_UTILS_FILES})
 
+set(ChronoEngine_FSI_VISUALIZATION
+    utils/ChFsiVisualization.h
+    utils/ChFsiVisualization.cpp
+   )
+source_group(utils FILES ${ChronoEngine_FSI_VISUALIZATION})
+
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_fsi library
 #-----------------------------------------------------------------------------
@@ -161,16 +189,17 @@ cuda_add_library(ChronoEngine_fsi SHARED
     ${ChronoEngine_FSI_PHYSICS_FILES}
     ${ChronoEngine_FSI_MATH_FILES}
     ${ChronoEngine_FSI_UTILS_FILES}
+    ${ChronoEngine_FSI_VISUALIZATION}
 )
 
 set_target_properties(ChronoEngine_fsi PROPERTIES
                       COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                      LINK_FLAGS "${CH_FSI_LINKER_FLAGS}")
 
 target_compile_definitions(ChronoEngine_fsi PRIVATE "CH_API_COMPILE_FSI")
 target_compile_definitions(ChronoEngine_fsi PRIVATE "CH_IGNORE_DEPRECATED")
 
-target_link_libraries(ChronoEngine_fsi ${LIBRARIES} ChronoEngine)
+target_link_libraries(ChronoEngine_fsi ${CH_FSI_LINKED_LIBRARIES})
 
 install(TARGETS ChronoEngine_fsi
         RUNTIME DESTINATION bin
