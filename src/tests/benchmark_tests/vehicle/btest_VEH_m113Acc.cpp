@@ -137,7 +137,7 @@ void M113AccTest<EnumClass, SHOE_TYPE>::ExecuteStep() {
     }
 
     // Driver inputs
-    ChDriver::Inputs driver_inputs = m_driver->GetInputs();
+    DriverInputs driver_inputs = m_driver->GetInputs();
 
     // Update modules (process inputs from other modules)
     m_driver->Synchronize(time);
@@ -161,7 +161,7 @@ void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
     m_m113->GetVehicle().SetVisualSystem(vis);
 
     while (vis->Run()) {
-        ChDriver::Inputs driver_inputs = m_driver->GetInputs();
+        DriverInputs driver_inputs = m_driver->GetInputs();
 
         vis->BeginScene();
         vis->DrawAll();

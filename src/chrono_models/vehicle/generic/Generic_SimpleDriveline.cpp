@@ -56,7 +56,7 @@ void Generic_SimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Generic_SimpleDriveline::Synchronize(double torque) {
+void Generic_SimpleDriveline::Synchronize(double time, const DriverInputs& driver_inputs, double torque) {
     if (!m_connected)
         return;
 

@@ -69,7 +69,7 @@ class CH_MODELS_API Kraz {
     void SetWheelVisualizationType(VisualizationType vis_tractor, VisualizationType vis_trailer);
     void SetTireVisualizationType(VisualizationType vis_tractor, VisualizationType vis_trailer);
 
-    void Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain);
+    void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain);
     void Advance(double step);
 
   private:

@@ -305,7 +305,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Driver output
         if (driver_mode == RECORD) {

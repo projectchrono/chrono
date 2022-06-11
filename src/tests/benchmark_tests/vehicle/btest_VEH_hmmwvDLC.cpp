@@ -113,7 +113,7 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::ExecuteStep() {
     double time = m_hmmwv->GetSystem()->GetChTime();
 
     // Driver inputs
-    ChDriver::Inputs driver_inputs = m_driver->GetInputs();
+    DriverInputs driver_inputs = m_driver->GetInputs();
 
     // Update modules (process inputs from other modules)
     m_driver->Synchronize(time);
@@ -148,7 +148,7 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
         ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
         ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
 
-        ChDriver::Inputs driver_inputs = m_driver->GetInputs();
+        DriverInputs driver_inputs = m_driver->GetInputs();
 
         vis->BeginScene();
         vis->DrawAll();

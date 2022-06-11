@@ -169,11 +169,10 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-void ChPitmanArm::Synchronize(double time, double steering) {
+void ChPitmanArm::Synchronize(double time, const DriverInputs& driver_inputs) {
     auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_revolute->GetAngleFunction());
-    fun->SetSetpoint(getMaxAngle() * steering, time);
+    fun->SetSetpoint(getMaxAngle() * driver_inputs.m_steering, time);
 }
-
 
 void ChPitmanArm::InitializeInertiaProperties() {
     m_mass = getSteeringLinkMass() + getPitmanArmMass();

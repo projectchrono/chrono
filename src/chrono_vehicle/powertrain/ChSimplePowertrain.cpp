@@ -27,7 +27,7 @@ namespace vehicle {
 ChSimplePowertrain::ChSimplePowertrain(const std::string& name)
     : ChPowertrain(name), m_motorSpeed(0), m_motorTorque(0), m_shaftTorque(0) {}
 
-void ChSimplePowertrain::Synchronize(double time, double throttle, double shaft_speed) {
+void ChSimplePowertrain::Synchronize(double time, const DriverInputs& driver_inputs, double shaft_speed) {
     // The motor speed is the shaft speed multiplied by gear ratio inversed:
     m_motorSpeed = shaft_speed / m_current_gear_ratio;
 
@@ -36,7 +36,7 @@ void ChSimplePowertrain::Synchronize(double time, double throttle, double shaft_
     m_motorTorque = GetMaxTorque() - m_motorSpeed * (GetMaxTorque() / GetMaxSpeed());
 
     // Motor torque is linearly modulated by throttle gas value:
-    m_motorTorque *= throttle;
+    m_motorTorque *= driver_inputs.m_throttle;
 
     // The torque at motor shaft:
     m_shaftTorque = m_motorTorque / m_current_gear_ratio;

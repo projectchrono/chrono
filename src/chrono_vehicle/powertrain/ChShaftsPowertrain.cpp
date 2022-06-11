@@ -148,12 +148,12 @@ void ChShaftsPowertrain::OnNeutralShift() {
 }
 
 // -----------------------------------------------------------------------------
-void ChShaftsPowertrain::Synchronize(double time, double throttle, double shaft_speed) {
+void ChShaftsPowertrain::Synchronize(double time, const DriverInputs& driver_inputs, double shaft_speed) {
     // Apply shaft speed 
     m_shaft->SetPos_dt(shaft_speed);
 
     // Just update the throttle level in the thermal engine
-    m_engine->SetThrottle(throttle);
+    m_engine->SetThrottle(driver_inputs.m_throttle);
 
     // To avoid bursts of gear shifts, do nothing if the last shift was too recent
     if (time - m_last_time_gearshift < m_gear_shift_latency)

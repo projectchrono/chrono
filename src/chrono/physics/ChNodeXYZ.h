@@ -23,9 +23,7 @@
 namespace chrono {
 
 /// Class for a single 'point' node, that has 3 DOF degrees of freedom and a mass.
-
 class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
-
   public:
     ChNodeXYZ();
     ChNodeXYZ(const ChVector<>& initial_pos);
@@ -34,9 +32,7 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
 
     ChNodeXYZ& operator=(const ChNodeXYZ& other);
 
-    //
     // FUNCTIONS
-    //
 
     // Access the xyz 'variables' of the node
     virtual ChVariablesNode& Variables() = 0;
@@ -64,9 +60,7 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     /// Get the number of degrees of freedom
     virtual int Get_ndof_x() const override { return 3; }
 
-    //
     // INTERFACE to ChLoadable
-    //
 
     /// Gets the number of DOFs affected by this element (position part)
     virtual int LoadableGet_ndof_x() override { return 3; }
@@ -75,19 +69,17 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     virtual int LoadableGet_ndof_w() override { return 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
-        mD.segment(block_offset, 3) = pos.eigen();
-    }
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
-        mD.segment(block_offset, 3) = pos_dt.eigen();
-    }
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override {
-        NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
-    }
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
@@ -106,7 +98,7 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     virtual bool IsSubBlockActive(int nblock) const override { return true; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override { mvars.push_back(&Variables()); };
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
 
     /// Evaluate Q=N'*F , for Q generalized lagrangian load, where N is some type of matrix
     /// evaluated at point P(U,V,W) assumed in absolute coordinates, and
@@ -127,20 +119,16 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     virtual double GetDensity() override { return 1; }
 
     // SERIALIZATION
-
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-    //
     // DATA
-    //
-
     ChVector<> pos;
     ChVector<> pos_dt;
     ChVector<> pos_dtdt;
 };
 
-CH_CLASS_VERSION(ChNodeXYZ,0)
+CH_CLASS_VERSION(ChNodeXYZ, 0)
 
 }  // end namespace chrono
 

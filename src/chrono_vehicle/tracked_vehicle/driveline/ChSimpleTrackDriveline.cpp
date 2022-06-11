@@ -84,8 +84,7 @@ static void differentialSplit(double torque,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSimpleTrackDriveline::Synchronize(double steering, double torque) {
+void ChSimpleTrackDriveline::Synchronize(double time, const DriverInputs& driver_inputs, double torque) {
     // Enforce driveshaft speed 
     double driveshaft_speed = 0.5 * (m_shaft_left->GetPos_dt() + m_shaft_right->GetPos_dt());
     m_driveshaft->SetPos_dt(driveshaft_speed);
@@ -99,6 +98,7 @@ void ChSimpleTrackDriveline::Synchronize(double steering, double torque) {
                       torque_left, torque_right);
 
     // Include steering.
+    double steering = driver_inputs.m_steering;
     double factor_left = 1;
     double factor_right = 1;
 
@@ -113,7 +113,6 @@ void ChSimpleTrackDriveline::Synchronize(double steering, double torque) {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 double ChSimpleTrackDriveline::GetSprocketTorque(VehicleSide side) const {
     switch (side) {
         case LEFT:
@@ -125,7 +124,6 @@ double ChSimpleTrackDriveline::GetSprocketTorque(VehicleSide side) const {
     return 0;
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double ChSimpleTrackDriveline::GetSprocketSpeed(VehicleSide side) const {
     switch (side) {

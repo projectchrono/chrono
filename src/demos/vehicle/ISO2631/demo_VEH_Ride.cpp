@@ -316,7 +316,7 @@ int main(int argc, char* argv[]) {
         vis->DrawAll();
 
         // Get driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();
@@ -350,7 +350,7 @@ int main(int argc, char* argv[]) {
     double xpos;
     while ((xpos = vehicle.GetSpindlePos(0, LEFT).x()) < xend) {
         // Driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();

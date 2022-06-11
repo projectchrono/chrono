@@ -39,7 +39,7 @@ ChVehicleVisualSystem::ChVehicleVisualSystem()
 
 ChVehicleVisualSystem ::~ChVehicleVisualSystem() {}
 
-void ChVehicleVisualSystem::Synchronize(const std::string& msg, const ChDriver::Inputs& driver_inputs) {
+void ChVehicleVisualSystem::Synchronize(const std::string& msg, const DriverInputs& driver_inputs) {
     m_driver_msg = msg;
     m_steering = driver_inputs.m_steering;
     m_throttle = driver_inputs.m_throttle;

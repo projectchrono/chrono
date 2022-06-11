@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     auto vehicle = CreateVehicle(&sys, is_wheeled);
 
     // (Constant) driver inputs
-    ChDriver::Inputs driver_inputs;
+    DriverInputs driver_inputs;
     driver_inputs.m_braking = 1;
     driver_inputs.m_steering = 0;
     driver_inputs.m_throttle = 0;

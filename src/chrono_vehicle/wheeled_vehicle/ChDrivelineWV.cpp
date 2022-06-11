@@ -23,7 +23,7 @@ namespace vehicle {
 
 ChDrivelineWV::ChDrivelineWV(const std::string& name) : ChDriveline(name) {}
 
-void ChDrivelineWV::Synchronize(double torque) {
+void ChDrivelineWV::Synchronize(double time, const DriverInputs& driver_inputs, double torque) {
     m_driveshaft->SetAppliedTorque(torque);
 }
 

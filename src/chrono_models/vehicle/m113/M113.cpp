@@ -139,7 +139,7 @@ void M113::Initialize() {
 
 // -----------------------------------------------------------------------------
 void M113::Synchronize(double time,
-                       const ChDriver::Inputs& driver_inputs,
+                       const DriverInputs& driver_inputs,
                        const TerrainForces& shoe_forces_left,
                        const TerrainForces& shoe_forces_right) {
     m_vehicle->Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);

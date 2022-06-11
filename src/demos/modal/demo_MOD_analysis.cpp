@@ -154,7 +154,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, bool base_fixed) {
 
     // Just for logging the frequencies:
     for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-        GetLog() << "DMode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i)
+        GetLog() << "Damped mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i)
                  << "  damping ratio:" << my_assembly->Get_modes_damping_ratios()(i)
                  << "    Re=" << my_assembly->Get_modes_eig()(i).real()
                  << "  Im=" << my_assembly->Get_modes_eig()(i).imag() << "\n";
@@ -287,12 +287,22 @@ void MakeAndRunDemoLbeam(ChSystem& sys, bool body1fixed, bool body2fixed) {
     //   mode.
     my_assembly->ComputeModes(16);
 
+    // If you need to enter more detailed settings for the eigenvalue solver, do this : 
+    /*
+    my_assembly->ComputeModes(ChModalSolveUndamped(
+        12,             // n. lowest nodes to search, or modes clusters {{freq1,nnodes2},{freq2,nnodes2},{...,...}}
+        1e-5,           // base freq.
+        500,            // max iterations
+        1e-10,          // tolerance
+        false,          // verbose
+        ChGeneralizedEigenvalueSolverKrylovSchur()) // solver type
+    );
+    */
+
+
     // Just for logging the frequencies:
     for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-        GetLog() << "Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i)
-                 << "  damping ratio:" << my_assembly->Get_modes_damping_ratios()(i)
-                 << "    Re=" << my_assembly->Get_modes_eig()(i).real()
-                 << "  Im=" << my_assembly->Get_modes_eig()(i).imag() << "\n";
+        GetLog() << "Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) << "\n";
 
     // This is needed if you want to see things in Irrlicht 3D view.
     auto vis = std::dynamic_pointer_cast<ChVisualSystemIrrlicht>(sys.GetVisualSystem());

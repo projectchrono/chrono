@@ -251,9 +251,9 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-void ChPitmanArmShafts::Synchronize(double time, double steering) {
+void ChPitmanArmShafts::Synchronize(double time, const DriverInputs& driver_inputs) {
     auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_shaft_motor->GetAngleFunction());
-    fun->SetSetpoint(getMaxAngle() * steering, time);
+    fun->SetSetpoint(getMaxAngle() * driver_inputs.m_steering, time);
 }
 
 void ChPitmanArmShafts::InitializeInertiaProperties() {

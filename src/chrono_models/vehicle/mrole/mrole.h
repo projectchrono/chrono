@@ -92,7 +92,7 @@ class CH_MODELS_API mrole {
     void SetWheelVisualizationType(VisualizationType vis) { m_vehicle->SetWheelVisualizationType(vis); }
     void SetTireVisualizationType(VisualizationType vis) { m_vehicle->SetTireVisualizationType(vis); }
 
-    void Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain);
+    void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain);
     void Advance(double step);
     void SelectRoadOperation() { m_ctis = CTIS::ROAD; }  // set by default
     void SelectOffroadSoilOperation() { m_ctis = CTIS::OFFROAD_SOIL; }

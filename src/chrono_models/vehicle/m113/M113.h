@@ -90,7 +90,7 @@ class CH_MODELS_API M113 {
     void SetTrackShoeVisualizationType(VisualizationType vis) { m_vehicle->SetTrackShoeVisualizationType(vis); }
 
     void Synchronize(double time,
-                     const ChDriver::Inputs& driver_inputs,
+                     const DriverInputs& driver_inputs,
                      const TerrainForces& shoe_forces_left,
                      const TerrainForces& shoe_forces_right);
     void Advance(double step);

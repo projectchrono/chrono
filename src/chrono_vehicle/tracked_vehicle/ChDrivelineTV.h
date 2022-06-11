@@ -24,7 +24,6 @@
 
 #include "chrono_vehicle/ChDriveline.h"
 #include "chrono_vehicle/ChChassis.h"
-#include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
@@ -58,12 +57,15 @@ class CH_VEHICLE_API ChDrivelineTV : public ChDriveline {
     /// The motor torque represents the input to the driveline subsystem from the powertrain system. The default
     /// implementation applies this torque to the driveline's driveshaft. A derived class must also process the steering
     /// input to send appropriate torques to the sprockets of the two track assemblies.
-    virtual void Synchronize(double steering, double torque);
+    virtual void Synchronize(double time,                            ///< [in] current time
+                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
+                             double torque                           ///< [in] motor torque
+    );
 
   protected:
     ChDrivelineTV(const std::string& name);
 
-    virtual void CombineDriverInputs(const ChDriver::Inputs& driver_inputs,
+    virtual void CombineDriverInputs(const DriverInputs& driver_inputs,
                                      double& braking_left,
                                      double& braking_right);
 
