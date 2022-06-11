@@ -25,8 +25,8 @@ build:
 
 requirements:
   build:
-    #- {{ compiler('c') }}   # [not win]
-    #- {{ compiler('cxx') }} # [not win]
+    - {{ compiler('c' > 10.0 )}} # [not win]
+    - {{ compiler('cxx') }} # [not win]
     - python
     - cmake >=3.10          # [not win]
     - ninja   # [linux or osx]
