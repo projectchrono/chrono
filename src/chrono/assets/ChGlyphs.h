@@ -14,7 +14,7 @@
 #define CHGLYPHS_H
 
 #include "chrono/assets/ChColor.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/core/ChMatrix.h"
 
 namespace chrono {
@@ -23,35 +23,12 @@ namespace chrono {
 /// such as arrows or points to be drawn for showing vector directions etc.
 /// Remember that depending on the type of visualization system
 /// (POVray, Irrlicht,etc.) this asset might not be supported.
-class ChApi ChGlyphs : public ChVisualization {
+class ChApi ChGlyphs : public ChVisualShape {
   public:
     enum eCh_GlyphType { GLYPH_POINT = 0, GLYPH_VECTOR, GLYPH_COORDSYS };
 
-    /// @cond
-    CH_ENUM_MAPPER_BEGIN(eCh_GlyphType);
-    CH_ENUM_VAL(GLYPH_POINT);
-    CH_ENUM_VAL(GLYPH_VECTOR);
-    CH_ENUM_VAL(GLYPH_COORDSYS);
-    CH_ENUM_MAPPER_END(eCh_GlyphType);
-    /// @endcond
-
-  public:
-    std::vector<ChVector<double> > points;
-    std::vector<ChColor> colors;
-
-    // optional attrs
-    std::vector<ChVector<double> > vectors;
-    std::vector<ChQuaternion<double> > rotations;
-
-  protected:
-    eCh_GlyphType draw_mode;
-    double size;
-    bool zbuffer_hide;
-
-  public:
     ChGlyphs();
-
-    virtual ~ChGlyphs() {}
+    ~ChGlyphs() {}
 
     /// Get the way that glyphs must be rendered
     eCh_GlyphType GetDrawMode() const { return draw_mode; }
@@ -97,6 +74,26 @@ class ChApi ChGlyphs : public ChVisualization {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    /// @cond
+    CH_ENUM_MAPPER_BEGIN(eCh_GlyphType);
+    CH_ENUM_VAL(GLYPH_POINT);
+    CH_ENUM_VAL(GLYPH_VECTOR);
+    CH_ENUM_VAL(GLYPH_COORDSYS);
+    CH_ENUM_MAPPER_END(eCh_GlyphType);
+    /// @endcond
+
+    std::vector<ChVector<double> > points;
+    std::vector<ChColor> colors;
+
+    // optional attrs
+    std::vector<ChVector<double> > vectors;
+    std::vector<ChQuaternion<double> > rotations;
+
+  private:
+    eCh_GlyphType draw_mode;
+    double size;
+    bool zbuffer_hide;
 };
 
 CH_CLASS_VERSION(ChGlyphs, 0)

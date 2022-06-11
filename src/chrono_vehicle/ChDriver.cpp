@@ -37,7 +37,7 @@ ChDriver::ChDriver(ChVehicle& vehicle)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDriver::Inputs ChDriver::GetInputs() const {
+DriverInputs ChDriver::GetInputs() const {
     return { m_steering, m_throttle, m_braking };
 }
 

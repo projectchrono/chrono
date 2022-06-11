@@ -38,18 +38,24 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
     /// Construct the M113 vehicle within an automatically created Chrono system.
     M113_Vehicle(bool fixed,
                  TrackShoeType shoe_type,
+                 DoublePinTrackShoeType shoe_topology,
                  DrivelineTypeTV driveline_type,
                  BrakeType brake_type,
-                 bool add_track_RSDA,
+                 bool use_track_bushings,
+                 bool use_suspension_bushings,
+                 bool use_track_RSDA,
                  ChContactMethod contact_method = ChContactMethod::NSC,
                  CollisionType chassis_collision_type = CollisionType::NONE);
 
     /// Construct the M113 vehicle within the specified Chrono system.
     M113_Vehicle(bool fixed,
                  TrackShoeType shoe_type,
+                 DoublePinTrackShoeType shoe_topology,
                  DrivelineTypeTV driveline_type,
                  BrakeType brake_type,
-                 bool add_track_RSDA,
+                 bool use_track_bushings,
+                 bool use_suspension_bushings,
+                 bool use_track_RSDA,
                  ChSystem* system,
                  CollisionType chassis_collision_type = CollisionType::NONE);
 
@@ -64,9 +70,12 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
   private:
     void Create(bool fixed,
                 TrackShoeType shoe_type,
+                DoublePinTrackShoeType shoe_topology,
                 DrivelineTypeTV driveline_type,
                 BrakeType brake_type,
-                bool add_track_RSDA,
+                bool use_track_bushings,
+                bool use_suspension_bushings,
+                bool use_track_RSDA,
                 CollisionType chassis_collision_type);
 
     bool m_create_track;

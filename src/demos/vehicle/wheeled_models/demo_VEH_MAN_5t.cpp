@@ -28,7 +28,7 @@
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/man/MAN_5t.h"
 
@@ -153,12 +153,14 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_truck.GetVehicle(), L"MAN 5t Truck Demo");
-    app.AddTypicalLights();
-    app.SetChaseCamera(trackPoint, 10.0, 0.5);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("MAN 5t Truck Demo");
+    vis->SetChaseCamera(trackPoint, 10.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    my_truck.GetVehicle().SetVisualSystem(vis);
 
     // -----------------
     // Initialize output
@@ -184,7 +186,7 @@ int main(int argc, char* argv[]) {
     // ------------------------
 
     // Create the interactive driver system
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
 
     // Set the time response for steering and throttle keyboard inputs.
     double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
@@ -214,7 +216,7 @@ int main(int argc, char* argv[]) {
 
     // output vehicle mass
     my_truck.GetVehicle().LogSubsystemTypes();
-    std::cout << "\nVehicle mass: " << my_truck.GetVehicle().GetVehicleMass() << std::endl;
+    std::cout << "\nVehicle mass: " << my_truck.GetVehicle().GetMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -225,12 +227,12 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     if (contact_vis) {
-        app.SetSymbolscale(1e-4);
-        app.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_FORCES);
+        vis->SetSymbolScale(1e-4);
+        vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     }
 
     ChRealtimeStepTimer realtime_timer;
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = my_truck.GetSystem()->GetChTime();
 
         // End simulation
@@ -239,9 +241,9 @@ int main(int argc, char* argv[]) {
 
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+            vis->BeginScene();
+            vis->DrawAll();
+            vis->EndScene();
 
             if (povray_output) {
                 char filename[100];
@@ -260,7 +262,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect output data from modules (for inter-module communication)
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Driver output
         if (driver_mode == RECORD) {
@@ -272,13 +274,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_truck.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_truck.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;

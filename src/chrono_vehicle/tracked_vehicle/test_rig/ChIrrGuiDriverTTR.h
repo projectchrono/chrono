@@ -21,7 +21,7 @@
 #define CH_IRRGUIDRIVER_TTR_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDriverTTR.h"
 
 namespace chrono {
@@ -36,7 +36,7 @@ namespace vehicle {
 /// and update the current driver inputs.
 class CH_VEHICLE_API ChIrrGuiDriverTTR : public ChDriverTTR, public irr::IEventReceiver {
   public:
-    ChIrrGuiDriverTTR(irrlicht::ChIrrApp& app);
+    ChIrrGuiDriverTTR(irrlicht::ChVisualSystemIrrlicht& vsys);
 
     ~ChIrrGuiDriverTTR() {}
 

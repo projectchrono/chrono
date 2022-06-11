@@ -24,13 +24,7 @@
 #ifndef CH_TRACK_ASSEMBLY_H
 #define CH_TRACK_ASSEMBLY_H
 
-#include <vector>
-
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChBodyAuxRef.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
@@ -108,6 +102,10 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// reference frame.
     ChVector<> GetTrackShoeAngVel(size_t id) const { return GetTrackShoe(id)->m_shoe->GetWvel_par(); }
 
+    /// Get track tension at the specified track shoe.
+    /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
+    ChVector<> GetTrackShoeTension(size_t id) const { return GetTrackShoe(id)->GetTension(); }
+
     /// Get the complete state for the specified track shoe.
     /// This includes the location, orientation, linear and angular velocities,
     /// all expressed in the global reference frame.
@@ -118,10 +116,6 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// all track shoes in this track assembly, all expressed in the global reference frame.
     /// It is assumed that the vector of body states was properly sized.
     void GetTrackShoeStates(BodyStates& states) const;
-
-    /// Get the total mass of the track assembly.
-    /// This includes the masses of the sprocket, idler, suspensions, and track shoes.
-    double GetMass() const;
 
     /// Get the relative location of the sprocket subsystem.
     /// The track assembly reference frame is ISO, with origin at the sprocket center.
@@ -199,6 +193,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
                     VehicleSide side          ///< [in] assembly on left/right vehicle side
     );
 
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
     /// Assemble track shoes over wheels.
     /// Return true if the track shoes were initialized in a counter clockwise
     /// direction and false otherwise.
@@ -212,6 +209,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     virtual void Output(ChVehicleOutput& database) const override;
 
     VehicleSide m_side;                     ///< assembly on left/right vehicle side
+    ChVector<> m_rel_loc;                   ///< assembly location relative to chassis
     std::shared_ptr<ChIdler> m_idler;       ///< idler (and tensioner) subsystem
     std::shared_ptr<ChTrackBrake> m_brake;  ///< sprocket brake
     ChRoadWheelAssemblyList m_suspensions;  ///< road-wheel assemblies

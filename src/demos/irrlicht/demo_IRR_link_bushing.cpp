@@ -27,7 +27,7 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -55,32 +55,28 @@ int example = 1;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create the system
-    ChSystemNSC system;
-    system.Set_G_acc(ChVector<>(0, 0, -9.81));
+    // Create the sys
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.6, 0.15, 10000, true, false);
-    system.Add(ground);
+    sys.Add(ground);
     ground->SetBodyFixed(true);
 
     // Create a moving body that will 'bounce' thanks to a flexible bushing.
     // Give it an initial angular velocity and attach also a small sphere to show the anchoring of the bushing.
     auto body = chrono_types::make_shared<ChBodyEasyBox>(0.9, 0.9, 0.15, 1000, true, false);
-    system.Add(body);
+    sys.Add(body);
     body->SetBodyFixed(false);
     body->SetPos(ChVector<>(1.0, 0.0, 0.0));
     body->SetWvel_loc(ChVector<>(1.5, 1.5, -1.5));
     body->SetPos_dt(ChVector<>(1.0, -0.4, 0.2));
+    body->GetVisualShape(0)->SetColor(ChColor(0.6f, 0, 0));
 
     auto symbol_bushing = chrono_types::make_shared<ChSphereShape>();
-    symbol_bushing->GetSphereGeometry().center = ChVector<>(-1, 0, 0);
     symbol_bushing->GetSphereGeometry().rad = 0.1;
-    body->AddAsset(symbol_bushing);
-
-    auto body_col = chrono_types::make_shared<ChColorAsset>();
-    body_col->SetColor(ChColor(0.6f, 0, 0));
-    body->AddAsset(body_col);
+    body->AddVisualShape(symbol_bushing, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
 
     // Now create the bushing connecting the "body" to the "ground".
     // A bushing is like an invisible connection between two bodies, but differently from constraints, it has some
@@ -89,7 +85,7 @@ int main(int argc, char* argv[]) {
     // Bushings are inherited from ChLoad, so they require a 'load container'
 
     auto load_container = chrono_types::make_shared<ChLoadContainer>();
-    system.Add(load_container);
+    sys.Add(load_container);
 
     // EXAMPLE 1: use  ChLoadBodyBodyBushingGeneric
     //
@@ -170,7 +166,7 @@ int main(int argc, char* argv[]) {
         K_matrix,                                                             // K stiffness in local frame
         R_matrix);                                                            // R damping in local frame
     if (example == 4) {
-        system.Add(bushing_link);
+        sys.Add(bushing_link);
     }
 
     // EXAMPLE 5: ChLoadBodyBodyBushingGeneric
@@ -190,42 +186,42 @@ int main(int argc, char* argv[]) {
     auto force = chrono_types::make_shared<ChLoadBodyForce>(body, ChVector<>(0, 0, -8e3), false, ChVector<>(1, 0, 0));
     load_container->Add(force);
 
-    // Create the Irrlicht application
-    ChIrrApp application(&system, L"ChLinkBushing", irr::core::dimension2d<irr::u32>(800, 600), VerticalDir::Z);
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(3, 3, 0), irr::core::vector3df(0, 0, 0));
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("ChLinkBushing");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(3, 3, 0));
+    vis->AddTypicalLights();
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
-
-    application.SetPlotCOGFrames(true);
+    vis->EnableBodyFrameDrawing(true);
 
     // Change some solver settings
 
     // Barzilai-Borwein does not support stiffness matrics => explicit integration for stiff bushings
-    ////system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    ////sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
 
     // MINRES (or GMRES) support stiffness matrices => implicit integration of the stiff bushings
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(200);
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(false);
 
-    system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-
-    application.SetTimestep(1e-4);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     // Simulation loop
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
-        application.DoStep();
-        application.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
+        sys.DoStepDynamics(1e-4);
     }
 
     return 0;

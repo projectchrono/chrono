@@ -24,8 +24,9 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -37,10 +38,10 @@ using namespace irr;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    ChSystemNSC system;
+    ChSystemNSC sys;
 
     // Disable gravity
-    system.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Set the half-length of the two shafts
     double hl = 2;
@@ -56,7 +57,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------
 
     auto ground = chrono_types::make_shared<ChBody>();
-    system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
@@ -68,20 +69,20 @@ int main(int argc, char* argv[]) {
         cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, 0, -hl - 0.2);
         cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, 0, -hl + 0.2);
         cyl_1->GetCylinderGeometry().rad = 0.3;
-        ground->AddAsset(cyl_1);
+        ground->AddVisualShape(cyl_1);
 
         auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
         cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -(hl - 0.2) * sina, (hl - 0.2) * cosa);
         cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, -(hl + 0.2) * sina, (hl + 0.2) * cosa);
         cyl_2->GetCylinderGeometry().rad = 0.3;
-        ground->AddAsset(cyl_2);
+        ground->AddVisualShape(cyl_2);
     }
 
     // Create the first shaft body
     // ---------------------------
 
     auto shaft_1 = chrono_types::make_shared<ChBody>();
-    system.AddBody(shaft_1);
+    sys.AddBody(shaft_1);
     shaft_1->SetIdentifier(1);
     shaft_1->SetBodyFixed(false);
     shaft_1->SetCollide(false);
@@ -95,17 +96,15 @@ int main(int argc, char* argv[]) {
     {
         auto box_1 = chrono_types::make_shared<ChBoxShape>();
         box_1->GetBoxGeometry().Size = ChVector<>(0.15, 0.15, 0.9 * hl);
-        shaft_1->AddAsset(box_1);
+        box_1->SetColor(ChColor(0.6f, 0, 0));
+        shaft_1->AddVisualShape(box_1);
 
         auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
         cyl_2->GetCylinderGeometry().p1 = ChVector<>(-0.2, 0, hl);
         cyl_2->GetCylinderGeometry().p2 = ChVector<>(0.2, 0, hl);
         cyl_2->GetCylinderGeometry().rad = 0.05;
-        shaft_1->AddAsset(cyl_2);
-
-        auto col = chrono_types::make_shared<ChColorAsset>();
-        col->SetColor(ChColor(0.6f, 0, 0));
-        shaft_1->AddAsset(col);
+        cyl_2->SetColor(ChColor(0.6f, 0, 0));
+        shaft_1->AddVisualShape(cyl_2);
     }
 
     // Create the second shaft body
@@ -115,7 +114,7 @@ int main(int argc, char* argv[]) {
     // equal to the specified bend angle.
 
     auto shaft_2 = chrono_types::make_shared<ChBody>();
-    system.AddBody(shaft_2);
+    sys.AddBody(shaft_2);
     shaft_2->SetIdentifier(1);
     shaft_2->SetBodyFixed(false);
     shaft_2->SetCollide(false);
@@ -129,17 +128,15 @@ int main(int argc, char* argv[]) {
     {
         auto box_1 = chrono_types::make_shared<ChBoxShape>();
         box_1->GetBoxGeometry().Size = ChVector<>(0.15, 0.15, 0.9 * hl);
-        shaft_2->AddAsset(box_1);
+        box_1->SetColor(ChColor(0, 0, 0.6f));
+        shaft_2->AddVisualShape(box_1);
 
         auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
         cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -0.2, -hl);
         cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, 0.2, -hl);
         cyl_2->GetCylinderGeometry().rad = 0.05;
-        shaft_2->AddAsset(cyl_2);
-
-        auto col = chrono_types::make_shared<ChColorAsset>();
-        col->SetColor(ChColor(0, 0, 0.6f));
-        shaft_2->AddAsset(col);
+        cyl_2->SetColor(ChColor(0, 0, 0.6f));
+        shaft_2->AddVisualShape(cyl_2);
     }
 
     // Connect the first shaft to ground
@@ -152,7 +149,7 @@ int main(int argc, char* argv[]) {
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->Initialize(ground, shaft_1, ChFrame<>(ChVector<>(0, 0, -hl), ChQuaternion<>(1, 0, 0, 0)));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, 1));
-    system.AddLink(motor);
+    sys.AddLink(motor);
 
     // Connect the second shaft to ground through a cylindrical joint
     // --------------------------------------------------------------
@@ -162,7 +159,7 @@ int main(int argc, char* argv[]) {
     // the joint is located at the origin of the second shaft.
 
     auto cyljoint = chrono_types::make_shared<ChLinkLockCylindrical>();
-    system.AddLink(cyljoint);
+    sys.AddLink(cyljoint);
     cyljoint->Initialize(ground, shaft_2, ChCoordsys<>(ChVector<>(0, -hl * sina, hl * cosa), rot));
 
     // Connect the two shafts through a universal joint
@@ -172,39 +169,43 @@ int main(int argc, char* argv[]) {
     // enforce orthogonality of the associated cross.
 
     auto ujoint = chrono_types::make_shared<ChLinkUniversal>();
-    system.AddLink(ujoint);
+    sys.AddLink(ujoint);
     ujoint->Initialize(shaft_1, shaft_2, ChFrame<>(ChVector<>(0, 0, 0), rot));
 
     // Create the Irrlicht application
     // -------------------------------
 
-    ChIrrApp application(&system, L"ChBodyAuxRef demo", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(3, 1, -1.5));
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Universal joint");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(3, 1, -1.5));
+    vis->AddTypicalLights();
 
     // Simulation loop
-    application.SetTimestep(0.001);
-
     int frame = 0;
+    double timestep = 0.005;
+    ChRealtimeStepTimer realtime_timer;
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
-        application.DoStep();
-        application.EndScene();
-        frame++;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         if (frame % 20 == 0) {
             // Output the shaft angular velocities at the current time
             double omega_1 = shaft_1->GetWvel_loc().z();
             double omega_2 = shaft_2->GetWvel_loc().z();
-            GetLog() << system.GetChTime() << "   " << omega_1 << "   " << omega_2 << "\n";
+            GetLog() << sys.GetChTime() << "   " << omega_1 << "   " << omega_2 << "\n";
         }
+
+        sys.DoStepDynamics(timestep);
+        realtime_timer.Spin(timestep);
+        frame++;
     }
 
     return 0;

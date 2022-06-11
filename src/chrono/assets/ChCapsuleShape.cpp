@@ -20,11 +20,18 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCapsuleShape)
 
+ChCapsuleShape::ChCapsuleShape() {
+    SetMutable(false);
+}
+ChCapsuleShape::ChCapsuleShape(const geometry::ChCapsule& cap) : gcapsule(cap) {
+    SetMutable(false);
+}
+
 void ChCapsuleShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChCapsuleShape>();
     // serialize parent class
-    ChVisualization::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(gcapsule);
 }
@@ -34,7 +41,7 @@ void ChCapsuleShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChCapsuleShape>();
     // deserialize parent class
-    ChVisualization::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(gcapsule);
 }

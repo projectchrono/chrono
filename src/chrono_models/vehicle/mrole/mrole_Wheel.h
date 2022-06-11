@@ -40,8 +40,8 @@ class CH_MODELS_API mrole_Wheel : public ChWheel {
     mrole_Wheel(const std::string& name);
     ~mrole_Wheel() {}
 
-    virtual double GetMass() const override { return m_mass; }
-    virtual ChVector<> GetInertia() const override { return m_inertia; }
+    virtual double GetWheelMass() const override { return m_mass; }
+    virtual const ChVector<>& GetWheelInertia() const override { return m_inertia; }
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
 

@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "chrono/core/ChVector.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/assets/ChColor.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
@@ -41,8 +41,9 @@
 %shared_ptr(chrono::vehicle::ChassisConnectorHitch)
 %shared_ptr(chrono::vehicle::ChassisConnectorTorsion)
 
-%import "../../../chrono/assets/ChAsset.h"
-%import "../../../chrono/assets/ChAssetLevel.h"
+%import "../../../chrono/assets/ChVisualMaterial.h"
+%import "../../../chrono/assets/ChVisualShape.h"
+%import "../../../chrono/assets/ChVisualModel.h"
 
 /* Parse the header file to generate wrappers */
 %include "../../../chrono_vehicle/ChChassis.h"

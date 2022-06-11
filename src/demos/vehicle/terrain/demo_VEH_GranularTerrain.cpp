@@ -143,12 +143,12 @@ int main(int argc, char* argv[]) {
     body->SetRot(Q_from_AngZ(CH_C_PI_2));
     system->AddBody(body);
 
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+        GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
-    body->AddAsset(trimesh_shape);
+    body->AddVisualShape(trimesh_shape);
 
     auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
@@ -158,10 +158,6 @@ int main(int argc, char* argv[]) {
     body->GetCollisionModel()->BuildModel();
 
     body->SetCollide(true);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-    body->AddAsset(col);
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);

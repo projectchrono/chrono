@@ -160,16 +160,13 @@ int main(int argc, char* argv[]) {
     std::string subtype = d["Template"].GetString();
     bool is_wheeled = (subtype.compare("WheeledVehicle") == 0);
 
-    // Ignore visualization asset levels for all vehicle parts (Chrono::OpenGL does not process them)
-    ChVehicleGeometry::EnableVisualizationAssetLevels(false);
-
     // Create containing system and vehicle
     ChSystemSMC sys;
     sys.Set_G_acc(enable_gravity ? ChVector<>(0, 0, -9.81) : VNULL);
     auto vehicle = CreateVehicle(&sys, is_wheeled);
 
     // (Constant) driver inputs
-    ChDriver::Inputs driver_inputs;
+    DriverInputs driver_inputs;
     driver_inputs.m_braking = 1;
     driver_inputs.m_steering = 0;
     driver_inputs.m_throttle = 0;

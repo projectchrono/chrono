@@ -24,7 +24,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -55,12 +55,12 @@ class MySpringTorque : public ChLinkRSDA::TorqueFunctor {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    ChSystemNSC system;
-    system.Set_G_acc(ChVector<>(0, 0, 0));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, 0));
 
-    //ChQuaternion<> rev_rot = QUNIT;
+    // ChQuaternion<> rev_rot = QUNIT;
     ChQuaternion<> rev_rot = Q_from_AngX(CH_C_PI / 6.0);
-    //ChQuaternion<> rev_rot = Q_from_AngX(CH_C_PI / 2.0);
+    // ChQuaternion<> rev_rot = Q_from_AngX(CH_C_PI / 2.0);
 
     ChVector<> rev_dir = rev_rot.GetZaxis();
 
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 
     // Create ground body
     auto ground = chrono_types::make_shared<ChBody>();
-    system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     cyl_rev->GetCylinderGeometry().p1 = rev_pos + 0.2 * rev_dir;
     cyl_rev->GetCylinderGeometry().p2 = rev_pos - 0.2 * rev_dir;
     cyl_rev->GetCylinderGeometry().rad = 0.1;
-    ground->AddAsset(cyl_rev);
+    ground->AddVisualShape(cyl_rev);
 
     // Offset from joint to body COM
     ChVector<> offset(1.5, 0, 0);
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 
     // Create pendulum body
     auto body = chrono_types::make_shared<ChBody>();
-    system.AddBody(body);
+    sys.AddBody(body);
     body->SetPos(rev_pos + offset);
     body->SetPos_dt(lin_vel);
     body->SetWvel_par(ang_vel);
@@ -103,56 +103,56 @@ int main(int argc, char* argv[]) {
     // Attach visualization assets
     auto sph = chrono_types::make_shared<ChSphereShape>();
     sph->GetSphereGeometry().rad = 0.3;
-    body->AddAsset(sph);
+    sph->SetColor(ChColor(0.7f, 0.8f, 0.8f));
+    body->AddVisualShape(sph);
+
     auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = ChVector<>(-1.5, 0, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
     cyl->GetCylinderGeometry().rad = 0.1;
-    body->AddAsset(cyl);
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.7f, 0.8f, 0.8f));
-    body->AddAsset(col);
+    cyl->SetColor(ChColor(0.7f, 0.8f, 0.8f));
+    body->AddVisualShape(cyl);
 
     // Create revolute joint between body and ground
     auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
     rev->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
-    system.AddLink(rev);
+    sys.AddLink(rev);
 
     // Create the rotational spring between body and ground
     auto torque = chrono_types::make_shared<MySpringTorque>();
     auto spring = chrono_types::make_shared<ChLinkRSDA>();
     spring->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
-    spring->AddAsset(chrono_types::make_shared<ChRotSpringShape>(0.5, 100));
+    spring->AddVisualShape(chrono_types::make_shared<ChRotSpringShape>(0.5, 100));
     spring->RegisterTorqueFunctor(torque);
-    system.AddLink(spring);
+    sys.AddLink(spring);
 
-    // Create the Irrlicht application
-    ChIrrApp application(&system, L"ChLinkRSDA demo", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(3, 1, 3));
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("ChLinkRSDA demo");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(3, 1, 3));
+    vis->AddTypicalLights();
+    vis->EnableBodyFrameDrawing(true);
+    vis->EnableLinkFrameDrawing(true);
 
     // Simulation loop
     int frame = 0;
 
-    application.SetTimestep(0.001);
-
     GetLog().SetNumFormat("%10.3f");
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
-        tools::drawAllCOGs(system, application.GetVideoDriver(), 1.0);
-        tools::drawAllLinkframes(system, application.GetVideoDriver(), 1.5);
-        application.EndScene();
-        application.DoStep();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
+
+        sys.DoStepDynamics(1e-3);
 
         if (frame % 50 == 0) {
-            GetLog() << system.GetChTime() << "\n";
+            GetLog() << sys.GetChTime() << "\n";
             GetLog() << "Body position" << body->GetPos() << "\n";
             GetLog() << "Body lin. vel." << body->GetPos_dt() << "\n";
             GetLog() << "Body absolute ang. vel." << body->GetWvel_par() << "\n";

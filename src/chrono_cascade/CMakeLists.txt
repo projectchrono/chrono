@@ -22,7 +22,8 @@ mark_as_advanced(CLEAR OpenCASCADE_DIR)
 set(ChronoEngine_CASCADE_SOURCES 
     ChCascadeMeshTools.cpp
     ChCascadeDoc.cpp
-    ChCascadeShapeAsset.cpp
+    ChCascadeVisualShape.cpp
+    ChCascadeBodyEasy.cpp
 )
 
 set(ChronoEngine_CASCADE_HEADERS
@@ -30,12 +31,12 @@ set(ChronoEngine_CASCADE_HEADERS
 	ChCascadeTriangulate.h
     ChCascadeMeshTools.h
     ChCascadeDoc.h
-    ChCascadeShapeAsset.h
-    ChBodyEasyCascade.h
+    ChCascadeVisualShape.h
+    ChCascadeBodyEasy.h
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(ChronoEngine_CASCADE_HEADERS_IRRLICHT 
-        ChIrrCascadeMeshTools.h)
+        ChCascadeIrrMeshTools.h)
 else()
     set(ChronoEngine_CASCADE_HEADERS_IRRLICHT "")
 endif()

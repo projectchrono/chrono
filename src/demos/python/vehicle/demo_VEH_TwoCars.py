@@ -86,26 +86,27 @@ def main():
     driver_2.Initialize()
 
 
-
     # Create the vehicle Irrlicht interface
-    app = veh.ChWheeledVehicleIrrApp(hmmwv_1.GetVehicle(), 'Two Car Demo')
-    app.AddTypicalLights()
-    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    app.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
-    app.SetChaseCameraState(veh.ChChaseCamera.Track)
-    app.SetChaseCameraPosition(chrono.ChVectorD(-15, 0, 2.0))
-    app.SetTimestep(step_size)
-    app.AssetBindAll()
-    app.AssetUpdateAll()
+    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+    hmmwv_1.GetVehicle().SetVisualSystem(vis)
+    vis.SetWindowTitle('Two Car Demo')
+    vis.SetWindowSize(1280, 1024)
+    vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
+    vis.SetChaseCameraState(veh.ChChaseCamera.Track)
+    vis.SetChaseCameraPosition(chrono.ChVectorD(-10, 0, 2.0))
+    vis.Initialize()
+    vis.AddTypicalLights()
+    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddSkyBox()
 
     # Simulation loop
     realtime_timer = chrono.ChRealtimeStepTimer()
-    while (app.GetDevice().run()):
+    while vis.Run() :
         time = hmmwv_1.GetSystem().GetChTime()
 
-        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-        app.DrawAll()
-        app.EndScene()
+        vis.BeginScene()
+        vis.DrawAll()
+        vis.EndScene()
 
         # Get driver inputs
         driver_inputs_1 = driver_1.GetInputs()
@@ -117,7 +118,7 @@ def main():
         hmmwv_1.Synchronize(time, driver_inputs_1, terrain)
         hmmwv_2.Synchronize(time, driver_inputs_2, terrain)
         terrain.Synchronize(time)
-        app.Synchronize("", driver_inputs_1)
+        vis.Synchronize("", driver_inputs_1)
 
         # Advance simulation for one timestep for all modules
         driver_1.Advance(step_size)
@@ -125,7 +126,7 @@ def main():
         hmmwv_1.Advance(step_size)
         hmmwv_2.Advance(step_size)
         terrain.Advance(step_size)
-        app.Advance(step_size)
+        vis.Advance(step_size)
 
         # Advance state of entire system (containing both vehicles)
         sys.DoStepDynamics(step_size)

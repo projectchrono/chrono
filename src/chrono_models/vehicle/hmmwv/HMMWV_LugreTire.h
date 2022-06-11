@@ -37,13 +37,15 @@ class CH_MODELS_API HMMWV_LugreTire : public ChLugreTire {
     ~HMMWV_LugreTire() {}
 
     virtual double GetRadius() const override { return m_radius; }
-    virtual double GetMass() const override { return m_mass; }
-    virtual ChVector<> GetInertia() const override { return m_inertia; }
+    virtual double GetTireMass() const override { return m_mass; }
+    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
     virtual int GetNumDiscs() const override { return m_numDiscs; }
     virtual const double* GetDiscLocations() const override { return m_discLocs; }
 
-    virtual double GetNormalStiffness() const override { return m_normalStiffness; }
-    virtual double GetNormalDamping() const override { return m_normalDamping; }
+    virtual double GetNormalStiffnessForce(double depth) const override { return m_normalStiffness * depth; }
+    virtual double GetNormalDampingForce(double depth, double velocity) const override {
+        return m_normalDamping * velocity;
+    }
 
     virtual void SetLugreParams() override;
 

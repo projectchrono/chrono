@@ -42,7 +42,7 @@ float GLOBAL_dampingf = 0.1f;
 // Define a MyEventReceiver class which will be used to manage input
 // from the GUI graphical user interface
 
-void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
+void create_some_falling_items(ChSystemNSC& sys) {
     // From now on, all created collision models will have a large outward envelope (needed
     // to allow some compliance with the plastic deformation of cohesive bounds
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.3);
@@ -59,7 +59,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
                                                                       true,  // collision?
                                                                       mat);  // contact material
         mrigidBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
-        mphysicalSystem.Add(mrigidBody);
+        sys.Add(mrigidBody);
     }
 
     // Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type:
@@ -73,7 +73,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
                                                               floor_mat);  // contact material
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
-    mphysicalSystem.Add(floorBody);
+    sys.Add(floorBody);
 
     auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
                                                               1000,          // density
@@ -82,7 +82,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
                                                               floor_mat);    // contact material
     wallBody1->SetPos(ChVector<>(-10, 0, 0));
     wallBody1->SetBodyFixed(true);
-    mphysicalSystem.Add(wallBody1);
+    sys.Add(wallBody1);
 
     auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
                                                               1000,          // density
@@ -91,7 +91,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
                                                               floor_mat);    // contact material
     wallBody2->SetPos(ChVector<>(10, 0, 0));
     wallBody2->SetBodyFixed(true);
-    mphysicalSystem.Add(wallBody2);
+    sys.Add(wallBody2);
 
     auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
                                                               1000,          // density
@@ -100,7 +100,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
                                                               floor_mat);    // contact material
     wallBody3->SetPos(ChVector<>(0, 0, -10));
     wallBody3->SetBodyFixed(true);
-    mphysicalSystem.Add(wallBody3);
+    sys.Add(wallBody3);
 
     auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
                                                               1000,          // density
@@ -109,7 +109,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
                                                               floor_mat);    // contact material
     wallBody4->SetPos(ChVector<>(0, 0, 10));
     wallBody4->SetBodyFixed(true);
-    mphysicalSystem.Add(wallBody4);
+    sys.Add(wallBody4);
 
     // Add the rotating mixer
     auto mixer_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -121,29 +121,29 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
                                                                  true,        // collision?
                                                                  mixer_mat);  // contact material
     rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
-    mphysicalSystem.Add(rotatingBody);
+    sys.Add(rotatingBody);
 
     // .. a motor between mixer and truss
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
     motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 2.0));
-    mphysicalSystem.AddLink(motor);
+    sys.AddLink(motor);
 }
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono physical system
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     // Create all the rigid bodies.
 
-    create_some_falling_items(mphysicalSystem);
+    create_some_falling_items(sys);
 
     // Modify some setting of the physical system for the simulation, if you want
 
-    mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
-    mphysicalSystem.SetSolverMaxIterations(20);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(20);
 
     // Cohesion in a contact depends on the cohesion in the surface property of
     // the touching bodies, but the user can override this value when each contact is created,
@@ -183,17 +183,17 @@ int main(int argc, char* argv[]) {
     };
 
     auto mycontact_callback = chrono_types::make_shared<MyContactCallback>();  // create the callback object
-    mycontact_callback->msystem = &mphysicalSystem;                            // will be used by callback
+    mycontact_callback->msystem = &sys;                            // will be used by callback
 
     // Use the above callback to process each contact as it is created.
-    mphysicalSystem.GetContactContainer()->RegisterAddContactCallback(mycontact_callback);
+    sys.GetContactContainer()->RegisterAddContactCallback(mycontact_callback);
 
     //
     // THE SOFT-REAL-TIME CYCLE
     //
 
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "Demo_Cohesion_GL", &mphysicalSystem);
+    gl_window.Initialize(1280, 720, "Demo_Cohesion_GL", &sys);
     gl_window.SetCamera(ChVector<>(0, 0, -10), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0));
     gl_window.Pause();
 

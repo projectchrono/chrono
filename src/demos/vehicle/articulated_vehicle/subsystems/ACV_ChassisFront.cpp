@@ -24,26 +24,26 @@ using namespace chrono::vehicle;
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double ACV_ChassisFront::m_mass = 2000;
-const ChVector<> ACV_ChassisFront::m_inertiaXX(100, 400, 500);
-const ChVector<> ACV_ChassisFront::m_inertiaXY(0, 0, 0);
-const ChVector<> ACV_ChassisFront::m_COM_loc(0, 0, 0.4);
+const double ACV_ChassisFront::m_body_mass = 2000;
+const ChVector<> ACV_ChassisFront::m_body_inertiaXX(100, 400, 500);
+const ChVector<> ACV_ChassisFront::m_body_inertiaXY(0, 0, 0);
+const ChVector<> ACV_ChassisFront::m_body_COM_loc(0, 0, 0.4);
 const ChVector<> ACV_ChassisFront::m_connector_loc(-1.0, 0, 0.1);
 const ChCoordsys<> ACV_ChassisFront::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ACV_ChassisFront::ACV_ChassisFront(const std::string& name, bool fixed) : ChRigidChassis(name, fixed) {
-    m_inertia(0, 0) = m_inertiaXX.x();
-    m_inertia(1, 1) = m_inertiaXX.y();
-    m_inertia(2, 2) = m_inertiaXX.z();
+    m_body_inertia(0, 0) = m_body_inertiaXX.x();
+    m_body_inertia(1, 1) = m_body_inertiaXX.y();
+    m_body_inertia(2, 2) = m_body_inertiaXX.z();
 
-    m_inertia(0, 1) = m_inertiaXY.x();
-    m_inertia(0, 2) = m_inertiaXY.y();
-    m_inertia(1, 2) = m_inertiaXY.z();
-    m_inertia(1, 0) = m_inertiaXY.x();
-    m_inertia(2, 0) = m_inertiaXY.y();
-    m_inertia(2, 1) = m_inertiaXY.z();
+    m_body_inertia(0, 1) = m_body_inertiaXY.x();
+    m_body_inertia(0, 2) = m_body_inertiaXY.y();
+    m_body_inertia(1, 2) = m_body_inertiaXY.z();
+    m_body_inertia(1, 0) = m_body_inertiaXY.x();
+    m_body_inertia(2, 0) = m_body_inertiaXY.y();
+    m_body_inertia(2, 1) = m_body_inertiaXY.z();
 
     // Visualization primitives
     ChVehicleGeometry::BoxShape box(ChVector<>(-0.25, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.5, 1.0, 0.2));

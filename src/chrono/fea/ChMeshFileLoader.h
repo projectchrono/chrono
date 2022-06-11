@@ -81,8 +81,7 @@ class ChApi ChMeshFileLoader {
         bool printElements = false                         ///< display the imported elements
     );
 
-    /// Load a .obj triangle mesh in Wavefront OBJ file format, and convert it into a mesh of shell elements
-    /// of ChElementShellBST type.
+    /// Load a triangle mesh in Wavefront OBJ file format, and convert it into a mesh of shell elements of ChElementShellBST type.
     static void BSTShellFromObjFile(
         std::shared_ptr<ChMesh> mesh,                           ///< destination mesh
         const char* filename,                                   ///< .obj mesh complete filename

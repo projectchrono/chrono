@@ -196,13 +196,11 @@ int main(int argc, char* argv[]) {
     // Attach visualization assets
     auto sphere1_g = chrono_types::make_shared<ChSphereShape>();
     sphere1_g->GetSphereGeometry().rad = 0.02;
-    sphere1_g->Pos = ChVector<>(travel_dist, 0, 0);
-    ground->AddAsset(sphere1_g);
+    ground->AddVisualShape(sphere1_g, ChFrame<>(ChVector<>(+travel_dist, 0, 0), QUNIT));
 
     auto sphere2_g = chrono_types::make_shared<ChSphereShape>();
     sphere2_g->GetSphereGeometry().rad = 0.02;
-    sphere2_g->Pos = ChVector<>(-travel_dist, 0, 0);
-    ground->AddAsset(sphere2_g);
+    ground->AddVisualShape(sphere2_g, ChFrame<>(ChVector<>(-travel_dist, 0, 0), QUNIT));
 
     // Create the cart body
     // --------------------
@@ -216,8 +214,7 @@ int main(int argc, char* argv[]) {
     // Attach visualization assets.
     auto box_c = chrono_types::make_shared<ChBoxShape>();
     box_c->GetBoxGeometry().Size = ChVector<>(0.1, 0.1, 0.1);
-    box_c->Pos = ChVector<>(0, -0.1, 0);
-    cart->AddAsset(box_c);
+    cart->AddVisualShape(box_c, ChFrame<>(ChVector<>(0, -0.1, 0), QUNIT));
 
     // Create the pendulum body
     // ------------------------
@@ -233,7 +230,7 @@ int main(int argc, char* argv[]) {
     cyl_p->GetCylinderGeometry().p1 = ChVector<>(0, -hlen_pend, 0);
     cyl_p->GetCylinderGeometry().p2 = ChVector<>(0, hlen_pend, 0);
     cyl_p->GetCylinderGeometry().rad = r_pend;
-    pend->AddAsset(cyl_p);
+    pend->AddVisualShape(cyl_p);
 
     // Translational joint ground-cart
     // -------------------------------

@@ -23,8 +23,7 @@ import pychrono.irrlicht as irr
 import os
 import math as m
 
-
-#// =============================================================================
+# =============================================================================
 
 def main():
     #print("Copyright (c) 2017 projectchrono.org\nChrono version: ", CHRONO_VERSION , "\n\n")
@@ -62,16 +61,19 @@ def main():
     terrain.Initialize()
 
     # Create the vehicle Irrlicht interface
-    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV-9 YUP world frame', irr.dimension2du(1000,800), irr.VerticalDir_Y)
-    app.AddTypicalLights()
-    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    app.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
-    app.SetTimestep(step_size)
-    app.AssetBindAll()
-    app.AssetUpdateAll()
+    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+    my_hmmwv.GetVehicle().SetVisualSystem(vis)
+    vis.SetCameraVertical(chrono.CameraVerticalDir_Y)
+    vis.SetWindowTitle('HMMWV-9 YUP world frame')
+    vis.SetWindowSize(1280, 1024)
+    vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
+    vis.Initialize()
+    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddTypicalLights()
+    vis.AddSkyBox()
 
     # Create the interactive driver system
-    driver = veh.ChIrrGuiDriver(app)
+    driver = veh.ChIrrGuiDriver(vis)
     driver.SetSteeringDelta(0.06)
     driver.SetThrottleDelta(0.02)
     driver.SetBrakingDelta(0.06)
@@ -80,13 +82,14 @@ def main():
     # Simulation loop
 
     realtime_timer = chrono.ChRealtimeStepTimer()
-    while (app.GetDevice().run()):
+    while vis.Run() :
         time = my_hmmwv.GetSystem().GetChTime()
 
-        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-        app.DrawAll()
-        app.RenderFrame(chrono.ChFrameD(chrono.ChVectorD(0, 0, 0)), 10)
-        app.EndScene()
+        vis.BeginScene()
+        vis.DrawAll()
+        vis.RenderFrame(chrono.ChFrameD(), 10)
+        vis.RenderGrid(chrono.ChVectorD(0, 0.01, 0), 20, 1.0)
+        vis.EndScene()
 
         # Get driver inputs
         driver_inputs = driver.GetInputs()
@@ -95,13 +98,13 @@ def main():
         driver.Synchronize(time)
         terrain.Synchronize(time)
         my_hmmwv.Synchronize(time, driver_inputs, terrain)
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+        vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)
         terrain.Advance(step_size)
         my_hmmwv.Advance(step_size)
-        app.Advance(step_size)
+        vis.Advance(step_size)
 
         # Spin in place for real time to catch up
         realtime_timer.Spin(step_size)

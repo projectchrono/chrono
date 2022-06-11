@@ -22,10 +22,7 @@
 #ifndef CH_TRACKED_VEHICLE_H
 #define CH_TRACKED_VEHICLE_H
 
-#include <vector>
-
 #include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
@@ -41,32 +38,11 @@ namespace vehicle {
 /// systems (terrain, driver, etc.)
 class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
   public:
-    /// Construct a vehicle system with a default ChSystem.
-    ChTrackedVehicle(const std::string& name,                               ///< [in] vehicle name
-                     ChContactMethod contact_method = ChContactMethod::NSC  ///< [in] contact method
-    );
-
-    /// Construct a vehicle system using the specified ChSystem.
-    ChTrackedVehicle(const std::string& name,  ///< [in] vehicle name
-                     ChSystem* system          ///< [in] containing mechanical system
-                     );
-
     /// Destructor.
     virtual ~ChTrackedVehicle();
 
     /// Get the name of the vehicle system template.
     virtual std::string GetTemplateName() const override { return "TrackedVehicle"; }
-
-    /// Get the vehicle total mass.
-    /// This includes the mass of the chassis and all vehicle subsystems.
-    virtual double GetVehicleMass() const override;
-
-    /// Get the current global vehicle COM location.
-    /// (Currently not implemented)
-    virtual ChVector<> GetVehicleCOMPos() const override;
-
-    /// Get the current global vehicle inertia tensor.
-    virtual ChMatrix33<> GetVehicleInertia() const override;
 
     /// Get the powertrain attached to this vehicle.
     virtual std::shared_ptr<ChPowertrain> GetPowertrain() const override { return m_powertrain; }
@@ -200,11 +176,15 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
     void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
 
+    /// Calculate total vehicle mass.
+    /// This function is called at the end of the vehicle initialization, but can also be called explicitly.
+    virtual void InitializeInertiaProperties() override final;
+
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
     /// braking between 0 and 1) and terrain forces on the track shoes (expressed in the global reference frame).
     void Synchronize(double time,                            ///< [in] current time
-                     const ChDriver::Inputs& driver_inputs,  ///< [in] current driver inputs
+                     const DriverInputs& driver_inputs,  ///< [in] current driver inputs
                      const TerrainForces& shoe_forces_left,  ///< [in] vector of track shoe forces (left side)
                      const TerrainForces& shoe_forces_right  ///< [in] vector of track shoe forces (left side)
     );
@@ -226,6 +206,20 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     virtual void ExportComponentList(const std::string& filename) const override;
 
   protected:
+    /// Construct a vehicle system with a default ChSystem.
+    ChTrackedVehicle(const std::string& name,                               ///< [in] vehicle name
+                     ChContactMethod contact_method = ChContactMethod::NSC  ///< [in] contact method
+    );
+
+    /// Construct a vehicle system using the specified ChSystem.
+    ChTrackedVehicle(const std::string& name,  ///< [in] vehicle name
+                     ChSystem* system          ///< [in] containing mechanical system
+    );
+
+    /// Calculate current vehicle inertia properties.
+    /// This function is called at the end of each vehicle state advance.
+    virtual void UpdateInertiaProperties() override final;
+
     /// Output data for all modeling components in the vehicle system.
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 
@@ -236,7 +230,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     std::shared_ptr<ChTrackCollisionManager> m_collision_manager;  ///< manager for internal collisions
     std::shared_ptr<ChTrackContactManager> m_contact_manager;      ///< manager for internal contacts
 
-    friend class ChTrackedVehicleIrrApp;
+    friend class ChTrackedVehicleVisualSystemIrrlicht;
 };
 
 /// @} vehicle_tracked

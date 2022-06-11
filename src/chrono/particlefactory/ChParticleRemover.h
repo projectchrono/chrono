@@ -30,22 +30,28 @@ class ChParticleRemoverBox : public ChParticleProcessor {
         this->SetParticleEventProcessor(std::shared_ptr<ChParticleProcessEventRemove>(new ChParticleProcessEventRemove));
     }
 
-    /// easy access to box of trigger
-    geometry::ChBox& GetBox() {
-        auto mtrigbox = std::dynamic_pointer_cast<ChParticleEventTriggerBox>(trigger);
-        if (!mtrigbox)
+    /// Set the dimensions and position of the trigger box.
+    void SetBox(const ChVector<>& lengths, const ChFrame<>& frame) {
+        auto trigbox = std::dynamic_pointer_cast<ChParticleEventTriggerBox>(trigger);
+        if (!trigbox)
             throw ChException("ChParticleRemoverBox had trigger replaced to non-box type");
-
-        return mtrigbox->mbox;
+        trigbox->m_box.SetLengths(lengths);
+        trigbox->m_frame = frame;
     }
 
-    /// easy access to in/out toggle of trigger
-    void SetRemoveOutside(bool minvert) {
-        if (auto mtrigbox = std::dynamic_pointer_cast<ChParticleEventTriggerBox>(trigger)) {
-            mtrigbox->SetTriggerOutside(minvert);
-        } else {
+    geometry::ChBox& GetBox() {
+        auto trigbox = std::dynamic_pointer_cast<ChParticleEventTriggerBox>(trigger);
+        if (!trigbox)
             throw ChException("ChParticleRemoverBox had trigger replaced to non-box type");
-        }
+        return trigbox->m_box;
+    }
+
+    /// Toggle inside/outside trigger.
+    void SetRemoveOutside(bool invert) {
+        auto trigbox = std::dynamic_pointer_cast<ChParticleEventTriggerBox>(trigger);
+        if (!trigbox)
+            throw ChException("ChParticleRemoverBox had trigger replaced to non-box type");
+        trigbox->SetTriggerOutside(invert);
     }
 };
 

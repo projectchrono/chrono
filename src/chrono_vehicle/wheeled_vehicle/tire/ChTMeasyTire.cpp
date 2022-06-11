@@ -68,7 +68,7 @@ const double N2kN = 0.001;
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChTMeasyTire::ChTMeasyTire(const std::string& name)
-    : ChTire(name),
+    : ChForceElementTire(name),
       m_vnum(0.01),
       m_gamma(0),
       m_gamma_limit(5),
@@ -125,32 +125,25 @@ void ChTMeasyTire::AddVisualizationAssets(VisualizationType vis) {
     m_cyl_shape->GetCylinderGeometry().rad = m_unloaded_radius;
     m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
     m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
-    m_wheel->GetSpindle()->AddAsset(m_cyl_shape);
-
-    m_texture = chrono_types::make_shared<ChTexture>();
-    m_texture->SetTextureFilename(GetChronoDataFile("textures/greenwhite.png"));
-    m_wheel->GetSpindle()->AddAsset(m_texture);
+    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
+    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
 }
 
 void ChTMeasyTire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChTMeasyTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    {
-        auto it = std::find(assets.begin(), assets.end(), m_cyl_shape);
-        if (it != assets.end())
-            assets.erase(it);
-    }
-    {
-        auto it = std::find(assets.begin(), assets.end(), m_texture);
-        if (it != assets.end())
-            assets.erase(it);
-    }
+    // This is important for the ChTire object because a wheel may add its own assets to the same body (the spindle/wheel).
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+double ChTMeasyTire::GetNormalStiffnessForce(double depth) const {
+    return m_TMeasyCoeff.cz * depth;
+}
+
+double ChTMeasyTire::GetNormalDampingForce(double depth, double velocity) const {
+    return m_TMeasyCoeff.dz * velocity;
+}
+
 void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
     WheelState wheel_state = m_wheel->GetState();
     CalculateKinematics(time, wheel_state, terrain);
@@ -192,7 +185,7 @@ void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
         // is moving away from the terrain so fast that no contact force is generated.
         // The sign of the velocity term in the damping function is negative since a
         // positive velocity means a decreasing depth, not an increasing depth.
-        double Fn_mag = m_TMeasyCoeff.cz * m_data.depth - m_TMeasyCoeff.dz * m_data.vel.z();
+        double Fn_mag = GetNormalStiffnessForce(m_data.depth) + GetNormalDampingForce(m_data.depth, -m_data.vel.z());
 
         // Skip Force and moment calculations when the normal force = 0
         if (Fn_mag < 0) {
@@ -843,7 +836,7 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
     m_TMeasyCoeff.pn_max = 3.5 * m_TMeasyCoeff.pn;
 
     double CZ = tireLoad / defl_max;
-    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetMass());
+    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetTireMass());
 
     SetVerticalStiffness(CZ);
 
@@ -853,9 +846,9 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
 
     m_TMeasyCoeff.dz = DZ;
     m_TMeasyCoeff.cx = 0.9 * CZ;
-    m_TMeasyCoeff.dx = damping_ratio * sqrt(m_TMeasyCoeff.cx * GetMass());
+    m_TMeasyCoeff.dx = damping_ratio * sqrt(m_TMeasyCoeff.cx * GetTireMass());
     m_TMeasyCoeff.cy = 0.8 * CZ;
-    m_TMeasyCoeff.dy = damping_ratio * sqrt(m_TMeasyCoeff.cy * GetMass());
+    m_TMeasyCoeff.dy = damping_ratio * sqrt(m_TMeasyCoeff.cy * GetTireMass());
 
     m_rim_radius = 0.5 * rimDia;
     m_roundness = 0.1;
@@ -928,7 +921,7 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
     m_TMeasyCoeff.mu_0 = 0.8;
 
     double CZ = tireLoad / defl_max;
-    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetMass());
+    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetTireMass());
 
     SetVerticalStiffness(CZ);
 
@@ -938,9 +931,9 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
 
     m_TMeasyCoeff.dz = DZ;
     m_TMeasyCoeff.cx = 0.9 * CZ;
-    m_TMeasyCoeff.dx = damping_ratio * sqrt(m_TMeasyCoeff.cx * GetMass());
+    m_TMeasyCoeff.dx = damping_ratio * sqrt(m_TMeasyCoeff.cx * GetTireMass());
     m_TMeasyCoeff.cy = 0.8 * CZ;
-    m_TMeasyCoeff.dy = damping_ratio * sqrt(m_TMeasyCoeff.cy * GetMass());
+    m_TMeasyCoeff.dy = damping_ratio * sqrt(m_TMeasyCoeff.cy * GetTireMass());
 
     m_rim_radius = 0.5 * rimDia;
     m_roundness = 0.1;

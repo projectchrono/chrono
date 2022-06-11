@@ -24,7 +24,6 @@
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/ChAntirollBarRSD.h"
 
@@ -32,7 +31,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-
 ChAntirollBarRSD::ChAntirollBarRSD(const std::string& name) : ChAntirollBar(name) {}
 
 ChAntirollBarRSD::~ChAntirollBarRSD() {
@@ -48,10 +46,12 @@ ChAntirollBarRSD::~ChAntirollBarRSD() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
                                   std::shared_ptr<ChSuspension> suspension,
                                   const ChVector<>& location) {
+    m_parent = chassis;
+    m_rel_loc = location;
+
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
@@ -131,23 +131,25 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
     sys->AddLink(m_link_right);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the anti-roll bar subsystem
-// -----------------------------------------------------------------------------
-double ChAntirollBarRSD::GetMass() const {
-    return 2 * getArmMass();
+void ChAntirollBarRSD::InitializeInertiaProperties() {
+    m_mass = 2 * getArmMass();
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the anti-roll bar subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChAntirollBarRSD::GetCOMPos() const {
-    ChVector<> com = getArmMass() * m_arm_left->GetPos() + getArmMass() * m_arm_right->GetPos();
+void ChAntirollBarRSD::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    return com / GetMass();
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_arm_left->GetFrame_COG_to_abs(), m_arm_left->GetMass(), m_arm_left->GetInertia());
+    composite.AddComponent(m_arm_right->GetFrame_COG_to_abs(), m_arm_right->GetMass(), m_arm_right->GetInertia());
+
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChAntirollBarRSD::LogConstraintViolations() {
     // Chassis revolute joint
@@ -180,7 +182,6 @@ void ChAntirollBarRSD::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
                                            const ChVector<>& pt_1,
                                            const ChVector<>& pt_2,
@@ -191,26 +192,21 @@ void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
     cyl_1->GetCylinderGeometry().p1 = pt_1;
     cyl_1->GetCylinderGeometry().p2 = pt_2;
     cyl_1->GetCylinderGeometry().rad = radius;
-    arm->AddAsset(cyl_1);
+    arm->AddVisualShape(cyl_1);
 
     auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = pt_2;
     cyl_2->GetCylinderGeometry().p2 = pt_3;
     cyl_2->GetCylinderGeometry().rad = radius;
-    arm->AddAsset(cyl_2);
+    arm->AddVisualShape(cyl_2);
 
     auto cyl_3 = chrono_types::make_shared<ChCylinderShape>();
     cyl_3->GetCylinderGeometry().p1 = pt_1 + ChVector<>(0, 0, 3 * radius);
     cyl_3->GetCylinderGeometry().p2 = pt_1 - ChVector<>(0, 0, 3 * radius);
     cyl_3->GetCylinderGeometry().rad = radius / 2;
-    arm->AddAsset(cyl_3);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(color);
-    arm->AddAsset(col);
+    arm->AddVisualShape(cyl_3);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChAntirollBarRSD::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

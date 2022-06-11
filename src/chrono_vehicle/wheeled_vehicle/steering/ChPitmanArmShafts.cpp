@@ -19,16 +19,14 @@
 
 #include <vector>
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 #include "chrono_vehicle/wheeled_vehicle/steering/ChPitmanArmShafts.h"
 
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChPitmanArmShafts::ChPitmanArmShafts(const std::string& name, bool vehicle_frame_inertia, bool rigid_column)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia), m_rigid(rigid_column) {}
@@ -54,11 +52,11 @@ ChPitmanArmShafts::~ChPitmanArmShafts() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
                                    const ChVector<>& location,
                                    const ChQuaternion<>& rotation) {
-    m_position = ChCoordsys<>(location, rotation);
+    m_parent = chassis;
+    m_rel_xform = ChFrame<>(location, rotation);
 
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
@@ -253,29 +251,30 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChPitmanArmShafts::Synchronize(double time, double steering) {
+void ChPitmanArmShafts::Synchronize(double time, const DriverInputs& driver_inputs) {
     auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_shaft_motor->GetAngleFunction());
-    fun->SetSetpoint(getMaxAngle() * steering, time);
+    fun->SetSetpoint(getMaxAngle() * driver_inputs.m_steering, time);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the steering subsystem
-// -----------------------------------------------------------------------------
-double ChPitmanArmShafts::GetMass() const {
-    return getSteeringLinkMass() + getPitmanArmMass();
+void ChPitmanArmShafts::InitializeInertiaProperties() {
+    m_mass = getSteeringLinkMass() + getPitmanArmMass();
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the steering subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChPitmanArmShafts::GetCOMPos() const {
-    ChVector<> com = getSteeringLinkMass() * m_link->GetPos() + getPitmanArmMass() * m_arm->GetPos();
+void ChPitmanArmShafts::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
 
-    return com / GetMass();
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_link->GetFrame_COG_to_abs(), m_link->GetMass(), m_link->GetInertia());
+    composite.AddComponent(m_arm->GetFrame_COG_to_abs(), m_arm->GetMass(), m_arm->GetInertia());
+
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = m_xform.coord.rot;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArmShafts::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -287,23 +286,19 @@ void ChPitmanArmShafts::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p1 = m_pP;
         cyl->GetCylinderGeometry().p2 = m_pI;
         cyl->GetCylinderGeometry().rad = getSteeringLinkRadius();
-        m_link->AddAsset(cyl);
+        m_link->AddVisualShape(cyl);
 
         auto cyl_P = chrono_types::make_shared<ChCylinderShape>();
         cyl_P->GetCylinderGeometry().p1 = m_pP;
         cyl_P->GetCylinderGeometry().p2 = m_pTP;
         cyl_P->GetCylinderGeometry().rad = getSteeringLinkRadius();
-        m_link->AddAsset(cyl_P);
+        m_link->AddVisualShape(cyl_P);
 
         auto cyl_I = chrono_types::make_shared<ChCylinderShape>();
         cyl_I->GetCylinderGeometry().p1 = m_pI;
         cyl_I->GetCylinderGeometry().p2 = m_pTI;
         cyl_I->GetCylinderGeometry().rad = getSteeringLinkRadius();
-        m_link->AddAsset(cyl_I);
-
-        auto col = chrono_types::make_shared<ChColorAsset>();
-        col->SetColor(ChColor(0.2f, 0.7f, 0.7f));
-        m_link->AddAsset(col);
+        m_link->AddVisualShape(cyl_I);
     }
 
     // Visualization for arm
@@ -312,24 +307,19 @@ void ChPitmanArmShafts::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p1 = m_pC;
         cyl->GetCylinderGeometry().p2 = m_pL;
         cyl->GetCylinderGeometry().rad = getPitmanArmRadius();
-        m_arm->AddAsset(cyl);
-
-        auto col = chrono_types::make_shared<ChColorAsset>();
-        col->SetColor(ChColor(0.7f, 0.7f, 0.2f));
-        m_arm->AddAsset(col);
+        m_arm->AddVisualShape(cyl);
     }
 
     // Visualization for rev-sph link
-    m_revsph->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_revsph->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 }
 
 void ChPitmanArmShafts::RemoveVisualizationAssets() {
-    m_link->GetAssets().clear();
-    m_arm->GetAssets().clear();
-    m_revsph->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_link);
+    ChPart::RemoveVisualizationAssets(m_arm);
+    ChPart::RemoveVisualizationAssets(m_revsph);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArmShafts::LogConstraintViolations() {
     // Revolute joint
@@ -394,7 +384,6 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
     arm_angular_vel = m_arm->GetWvel_loc();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArmShafts::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

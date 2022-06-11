@@ -82,8 +82,8 @@ void HMMWV_LugreTire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void HMMWV_LugreTire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChLugreTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace hmmwv

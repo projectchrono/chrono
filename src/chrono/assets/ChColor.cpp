@@ -17,12 +17,11 @@
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChColor)
 
 ChColor ChColor::ComputeFalseColor(double v, double vmin, double vmax, bool out_of_range_as_bw) {
-    ChColor c = {1.0, 1.0, 1.0, 0.0};  // default white
+    ChColor c = {1.0, 1.0, 1.0};  // default white
     double dv;
 
     if (out_of_range_as_bw) {
@@ -63,18 +62,16 @@ void ChColor::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(R);
     marchive << CHNVP(G);
     marchive << CHNVP(B);
-    marchive << CHNVP(A);
 }
 
 void ChColor::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChColor>();
+    /*int version =*/marchive.VersionRead<ChColor>();
 
     // stream in all member data:
     marchive >> CHNVP(R);
     marchive >> CHNVP(G);
     marchive >> CHNVP(B);
-    marchive >> CHNVP(A);
 }
 
 }  // end namespace chrono

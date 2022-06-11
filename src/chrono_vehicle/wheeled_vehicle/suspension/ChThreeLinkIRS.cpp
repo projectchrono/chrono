@@ -30,8 +30,7 @@
 #include <algorithm>
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
-#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChThreeLinkIRS.h"
 
@@ -74,7 +73,8 @@ void ChThreeLinkIRS::Initialize(std::shared_ptr<ChChassis> chassis,
                                 const ChVector<>& location,
                                 double left_ang_vel,
                                 double right_ang_vel) {
-    m_location = location;
+    m_parent = chassis;
+    m_rel_loc = location;
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
@@ -254,32 +254,34 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChThreeLinkIRS::GetMass() const {
-    return 2 * (getSpindleMass() + getArmMass() + getLowerLinkMass() + getUpperLinkMass());
+
+void ChThreeLinkIRS::InitializeInertiaProperties() {
+    m_mass = 2 * (getSpindleMass() + getArmMass() + getLowerLinkMass() + getUpperLinkMass());
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChThreeLinkIRS::GetCOMPos() const {
-    ChVector<> com(0, 0, 0);
+void ChThreeLinkIRS::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
-    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), m_spindle[LEFT]->GetMass(),
+                           m_spindle[LEFT]->GetInertia());
+    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), m_spindle[RIGHT]->GetMass(),
+                           m_spindle[RIGHT]->GetInertia());
+    composite.AddComponent(m_arm[LEFT]->GetFrame_COG_to_abs(), m_arm[LEFT]->GetMass(), m_arm[LEFT]->GetInertia());
+    composite.AddComponent(m_arm[RIGHT]->GetFrame_COG_to_abs(), m_arm[RIGHT]->GetMass(), m_arm[RIGHT]->GetInertia());
+    composite.AddComponent(m_lower[LEFT]->GetFrame_COG_to_abs(), m_lower[LEFT]->GetMass(), m_lower[LEFT]->GetInertia());
+    composite.AddComponent(m_lower[RIGHT]->GetFrame_COG_to_abs(), m_lower[RIGHT]->GetMass(),
+                           m_lower[RIGHT]->GetInertia());
+    composite.AddComponent(m_upper[LEFT]->GetFrame_COG_to_abs(), m_upper[LEFT]->GetMass(), m_upper[LEFT]->GetInertia());
+    composite.AddComponent(m_upper[RIGHT]->GetFrame_COG_to_abs(), m_upper[RIGHT]->GetMass(),
+                           m_upper[RIGHT]->GetInertia());
 
-    com += getArmMass() * m_arm[LEFT]->GetPos();
-    com += getArmMass() * m_arm[RIGHT]->GetPos();
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
 
-    com += getLowerLinkMass() * m_lower[LEFT]->GetPos();
-    com += getLowerLinkMass() * m_lower[RIGHT]->GetPos();
-
-    com += getUpperLinkMass() * m_upper[LEFT]->GetPos();
-    com += getUpperLinkMass() * m_upper[RIGHT]->GetPos();
-
-    return com / GetMass();
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 // -----------------------------------------------------------------------------
@@ -392,30 +394,29 @@ void ChThreeLinkIRS::AddVisualizationAssets(VisualizationType vis) {
     AddVisualizationLink(m_lower[RIGHT], m_pointsR[LL_C], m_pointsR[LL_A], m_pointsR[LL_CM], getLowerLinkRadius());
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
-
-    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 }
 
 void ChThreeLinkIRS::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_arm[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_arm[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_upper[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_upper[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_lower[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_lower[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_spring[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_spring[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_shock[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_shock[RIGHT]);
+
     ChSuspension::RemoveVisualizationAssets();
-
-    m_arm[LEFT]->GetAssets().clear();
-    m_arm[RIGHT]->GetAssets().clear();
-
-    m_upper[LEFT]->GetAssets().clear();
-    m_upper[RIGHT]->GetAssets().clear();
-
-    m_lower[LEFT]->GetAssets().clear();
-    m_lower[RIGHT]->GetAssets().clear();
-
-    m_spring[LEFT]->GetAssets().clear();
-    m_spring[RIGHT]->GetAssets().clear();
-
-    m_shock[LEFT]->GetAssets().clear();
-    m_shock[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
@@ -441,20 +442,20 @@ void ChThreeLinkIRS::AddVisualizationArm(std::shared_ptr<ChBody> body,
     cyl_1->GetCylinderGeometry().p1 = p_C;
     cyl_1->GetCylinderGeometry().p2 = p_CM;
     cyl_1->GetCylinderGeometry().rad = radius;
-    body->AddAsset(cyl_1);
+    body->AddVisualShape(cyl_1);
 
     auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = p_S;
     cyl_2->GetCylinderGeometry().p2 = p_CM;
     cyl_2->GetCylinderGeometry().rad = radius;
-    body->AddAsset(cyl_2);
+    body->AddVisualShape(cyl_2);
 
     if ((p_S - p_U).Length2() > threshold2) {
         auto cyl_U = chrono_types::make_shared<ChCylinderShape>();
         cyl_U->GetCylinderGeometry().p1 = p_S;
         cyl_U->GetCylinderGeometry().p2 = p_U;
         cyl_U->GetCylinderGeometry().rad = radius;
-        body->AddAsset(cyl_U);
+        body->AddVisualShape(cyl_U);
     }
 
     if ((p_S - p_L).Length2() > threshold2) {
@@ -462,12 +463,8 @@ void ChThreeLinkIRS::AddVisualizationArm(std::shared_ptr<ChBody> body,
         cyl_L->GetCylinderGeometry().p1 = p_S;
         cyl_L->GetCylinderGeometry().p2 = p_L;
         cyl_L->GetCylinderGeometry().rad = radius;
-        body->AddAsset(cyl_L);
+        body->AddVisualShape(cyl_L);
     }
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.8f, 0.2f));
-    body->AddAsset(col);
 }
 
 void ChThreeLinkIRS::AddVisualizationLink(std::shared_ptr<ChBody> body,
@@ -484,18 +481,15 @@ void ChThreeLinkIRS::AddVisualizationLink(std::shared_ptr<ChBody> body,
     cyl_1->GetCylinderGeometry().p1 = p_1;
     cyl_1->GetCylinderGeometry().p2 = p_CM;
     cyl_1->GetCylinderGeometry().rad = radius;
-    body->AddAsset(cyl_1);
+    body->AddVisualShape(cyl_1);
 
     auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = p_2;
     cyl_2->GetCylinderGeometry().p2 = p_CM;
     cyl_2->GetCylinderGeometry().rad = radius;
-    body->AddAsset(cyl_2);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.8f, 0.2f, 0.2f));
-    body->AddAsset(col);
+    body->AddVisualShape(cyl_2);
 }
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChThreeLinkIRS::ExportComponentList(rapidjson::Document& jsonDocument) const {

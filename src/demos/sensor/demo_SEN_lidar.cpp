@@ -23,7 +23,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -103,25 +103,25 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Create the system
     // -----------------
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     // ----------------------------------
     // add a mesh to be sensed by a lidar
     // ----------------------------------
-    auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
+    auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"),
+                                                                  false, true);
     mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(mmesh);
     trimesh_shape->SetName("HMMWV Chassis Mesh");
-    trimesh_shape->SetStatic(true);
+    trimesh_shape->SetMutable(false);
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
-    mesh_body->AddAsset(trimesh_shape);
+    mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
     mesh_body->SetBodyFixed(true);
-    // mphysicalSystem.Add(mesh_body);
+    // sys.Add(mesh_body);
 
     // --------------------------------------------
     // add a few box bodies to be sensed by a lidar
@@ -129,22 +129,22 @@ int main(int argc, char* argv[]) {
     auto box_body = chrono_types::make_shared<ChBodyEasyBox>(100, 100, 1, 1000, true, false);
     box_body->SetPos({0, 0, -1});
     box_body->SetBodyFixed(true);
-    mphysicalSystem.Add(box_body);
+    sys.Add(box_body);
 
     auto box_body_1 = chrono_types::make_shared<ChBodyEasyBox>(100, 1, 100, 1000, true, false);
     box_body_1->SetPos({0, -10, -3});
     box_body_1->SetBodyFixed(true);
-    mphysicalSystem.Add(box_body_1);
+    sys.Add(box_body_1);
 
     auto box_body_2 = chrono_types::make_shared<ChBodyEasyBox>(100, 1, 100, 1000, true, false);
     box_body_2->SetPos({0, 10, -3});
     box_body_2->SetBodyFixed(true);
-    mphysicalSystem.Add(box_body_2);
+    sys.Add(box_body_2);
 
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->SetVerbose(false);
 
     // -----------------------------------------------
@@ -364,10 +364,10 @@ int main(int argc, char* argv[]) {
         manager->Update();
 
         // Perform step of dynamics
-        mphysicalSystem.DoStepDynamics(step_size);
+        sys.DoStepDynamics(step_size);
 
         // Get the current time of the simulation
-        ch_time = (float)mphysicalSystem.GetChTime();
+        ch_time = (float)sys.GetChTime();
     }
 
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();

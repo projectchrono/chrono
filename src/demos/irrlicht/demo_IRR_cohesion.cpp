@@ -22,7 +22,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -50,33 +50,30 @@ float GLOBAL_dampingf = 0.1f;
 
 class MyEventReceiver : public IEventReceiver {
   public:
-    MyEventReceiver(ChIrrAppInterface* myapp) {
+    MyEventReceiver(ChVisualSystemIrrlicht* vis) {
         // store pointer application
-        application = myapp;
+        m_vis = vis;
 
         // ..add a GUI slider to control friction
-        scrollbar_friction =
-            application->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(510, 85, 650, 100), 0, 101);
+        scrollbar_friction = m_vis->GetGUIEnvironment()->addScrollBar(true, rect<s32>(510, 85, 650, 100), 0, 101);
         scrollbar_friction->setMax(100);
         scrollbar_friction->setPos(30);
-        text_friction = application->GetIGUIEnvironment()->addStaticText(L"Friction coefficient:",
-                                                                         rect<s32>(650, 85, 750, 100), false);
+        text_friction =
+            m_vis->GetGUIEnvironment()->addStaticText(L"Friction coefficient:", rect<s32>(650, 85, 750, 100), false);
 
         // ..add GUI slider to control the speed
-        scrollbar_cohesion =
-            application->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(510, 125, 650, 140), 0, 102);
+        scrollbar_cohesion = m_vis->GetGUIEnvironment()->addScrollBar(true, rect<s32>(510, 125, 650, 140), 0, 102);
         scrollbar_cohesion->setMax(100);
         scrollbar_cohesion->setPos(0);
         text_cohesion =
-            application->GetIGUIEnvironment()->addStaticText(L"Cohesion [N]:", rect<s32>(650, 125, 750, 140), false);
+            m_vis->GetGUIEnvironment()->addStaticText(L"Cohesion [N]:", rect<s32>(650, 125, 750, 140), false);
 
         // ..add GUI slider to control the compliance
-        scrollbar_compliance =
-            application->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(510, 165, 650, 180), 0, 103);
+        scrollbar_compliance = m_vis->GetGUIEnvironment()->addScrollBar(true, rect<s32>(510, 165, 650, 180), 0, 103);
         scrollbar_compliance->setMax(100);
         scrollbar_compliance->setPos(0);
-        text_compliance = application->GetIGUIEnvironment()->addStaticText(L"Compliance [mm/N]:",
-                                                                           rect<s32>(650, 165, 750, 180), false);
+        text_compliance =
+            m_vis->GetGUIEnvironment()->addStaticText(L"Compliance [mm/N]:", rect<s32>(650, 165, 750, 180), false);
     }
 
     bool OnEvent(const SEvent& event) {
@@ -111,7 +108,7 @@ class MyEventReceiver : public IEventReceiver {
     }
 
   private:
-    ChIrrAppInterface* application;
+    ChVisualSystemIrrlicht* m_vis;
 
     IGUIScrollBar* scrollbar_friction;
     IGUIStaticText* text_friction;
@@ -121,7 +118,7 @@ class MyEventReceiver : public IEventReceiver {
     IGUIStaticText* text_compliance;
 };
 
-void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
+void create_some_falling_items(ChSystemNSC& sys) {
     // From now on, all created collision models will have a large outward envelope (needed
     // to allow some compliance with the plastic deformation of cohesive bounds
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.3);
@@ -138,51 +135,45 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
                                                                       true,      // collision?
                                                                       obj_mat);  // contact material
         mrigidBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
-        mphysicalSystem.Add(mrigidBody);
-
-        // optional, attach a texture for better visualization
-        auto mtexture = chrono_types::make_shared<ChTexture>();
-        mtexture->SetTextureFilename(GetChronoDataFile("textures/rock.jpg"));
-        mrigidBody->AddAsset(mtexture);
+        mrigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/rock.jpg"));
+        sys.Add(mrigidBody);
     }
 
-    // Contact material for container
+    // Contact and visualization materials for container
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ground_mat_vis = chrono_types::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
+    ground_mat_vis->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
 
     // Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, ground_mat);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
-    mphysicalSystem.Add(floorBody);
+    floorBody->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
+    sys.Add(floorBody);
 
     auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, ground_mat);
     wallBody1->SetPos(ChVector<>(-10, 0, 0));
     wallBody1->SetBodyFixed(true);
-    mphysicalSystem.Add(wallBody1);
+    wallBody1->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
+    sys.Add(wallBody1);
 
     auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, ground_mat);
     wallBody2->SetPos(ChVector<>(10, 0, 0));
     wallBody2->SetBodyFixed(true);
-    mphysicalSystem.Add(wallBody2);
+    wallBody2->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
+    sys.Add(wallBody2);
 
     auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true, ground_mat);
     wallBody3->SetPos(ChVector<>(0, 0, -10));
     wallBody3->SetBodyFixed(true);
-    mphysicalSystem.Add(wallBody3);
+    wallBody3->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
+    sys.Add(wallBody3);
 
     auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true, ground_mat);
     wallBody4->SetPos(ChVector<>(0, 0, 10));
     wallBody4->SetBodyFixed(true);
-    mphysicalSystem.Add(wallBody4);
-
-    // optional, attach  textures for better visualization
-    auto mtexturewall = chrono_types::make_shared<ChTexture>();
-    mtexturewall->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    wallBody1->AddAsset(mtexturewall);  // note: most assets can be shared
-    wallBody2->AddAsset(mtexturewall);
-    wallBody3->AddAsset(mtexturewall);
-    wallBody4->AddAsset(mtexturewall);
-    floorBody->AddAsset(mtexturewall);
+    wallBody4->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
+    sys.Add(wallBody4);
 
     // Add the rotating mixer
     auto mixer_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -194,49 +185,46 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
                                                                  true,        // collision?
                                                                  mixer_mat);  // contact material
     rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
-    mphysicalSystem.Add(rotatingBody);
+    rotatingBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
+    sys.Add(rotatingBody);
 
     // .. a motor between mixer and truss
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
     motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 2.0));
-    mphysicalSystem.AddLink(motor);
+    sys.AddLink(motor);
 }
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Contacts with cohesion", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(0, 14, -20));
+    ChSystemNSC sys;
 
     // Create all the rigid bodies.
 
-    create_some_falling_items(mphysicalSystem);
+    create_some_falling_items(sys);
 
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
-    application.AssetBindAll();
-
-    // Use this function for 'converting' assets into Irrlicht meshes
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Contacts with cohesion");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 14, -20));
+    vis->AddTypicalLights();
 
     // This is for GUI tweaking of system parameters..
-    MyEventReceiver receiver(&application);
+    MyEventReceiver receiver(vis.get());
     // note how to add the custom event receiver to the default interface:
-    application.SetUserEventReceiver(&receiver);
+    vis->AddUserEventReceiver(&receiver);
 
     // Modify some setting of the physical system for the simulation, if you want
 
-    mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
-    mphysicalSystem.SetSolverMaxIterations(20);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(20);
 
     // Cohesion in a contact depends on the cohesion in the surface property of the
     // touching bodies, but the user can override this value when each contact is created,
@@ -276,22 +264,18 @@ int main(int argc, char* argv[]) {
     };
 
     auto mycontact_callback = chrono_types::make_shared<MyContactCallback>();  // create the callback object
-    mycontact_callback->msystem = &mphysicalSystem;                            // will be used by callback
+    mycontact_callback->msystem = &sys;                                        // will be used by callback
 
     // Use the above callback to process each contact as it is created.
-    mphysicalSystem.GetContactContainer()->RegisterAddContactCallback(mycontact_callback);
+    sys.GetContactContainer()->RegisterAddContactCallback(mycontact_callback);
 
     // Simulation loop
-    application.SetTimestep(0.01);
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-
-        application.DrawAll();
-
-        application.DoStep();
-
-        application.EndScene();
+        sys.DoStepDynamics(0.01);
     }
 
     return 0;

@@ -10,7 +10,7 @@
 # requested (case insensitive): 
 #   Cascade, Cosimulation, Fsi, Irrlicht, OpenGL, Matlab, Multicore, Gpu,
 #   PardisoMKL, PardisoProject, Postprocess, Python, Sensor, Synchrono,
-#   Vehicle, VehicleCosim.  
+#   Vehicle, VehicleCosim, Modal.
 # A component can be requested either as required or optional
 # (see the CMake documentation for find_package).
 # 
@@ -69,9 +69,9 @@ message(STATUS "Finding package Chrono...")
 #-------------------------------------------------------------------------------
 
 # Collect compiler and linker flags in CMake lists!
-string(REPLACE " " ";" CHRONO_CXX_FLAGS "@CH_CXX_FLAGS@")
-string(REPLACE " " ";" CHRONO_C_FLAGS "@CH_C_FLAGS@")
-string(REPLACE " " ";" CHRONO_LINKER_FLAGS "@CH_LINKERFLAG_EXE@")
+string(REGEX REPLACE "[ \t]+" ";" CHRONO_CXX_FLAGS "@CH_CXX_FLAGS@")
+string(REGEX REPLACE "[ \t]+" ";" CHRONO_C_FLAGS "@CH_C_FLAGS@")
+string(REGEX REPLACE "[ \t]+" ";" CHRONO_LINKER_FLAGS "@CH_LINKERFLAG_EXE@")
 
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   list(APPEND CHRONO_LINKER_FLAGS "-L@CH_BINARY_DIR@/lib")
@@ -116,6 +116,7 @@ set(Chrono_HAS_gpu @ENABLE_MODULE_GPU@)
 set(Chrono_HAS_sensor @ENABLE_MODULE_SENSOR@)
 set(Chrono_HAS_pardisoproject @ENABLE_MODULE_PARDISO_PROJECT@)
 set(Chrono_HAS_synchrono @ENABLE_MODULE_SYNCHRONO@)
+set(Chrono_HAS_modal @ENABLE_MODULE_MODAL@)
 
 #-------------------------------------------------------------------------------
 # Vehicle cosimulation module
@@ -211,12 +212,20 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     if(${COMPONENT_UPPER} MATCHES "MULTICORE")
 
-      list(APPEND CHRONO_CXX_FLAGS "@CH_MULTICORE_CXX_FLAGS@")
-      list(APPEND CHRONO_C_FLAGS "@CH_MULTICORE_C_FLAGS@")
+      separate_arguments(CH_MULTICORE_CXX_FLAGS NATIVE_COMMAND "@CH_MULTICORE_CXX_FLAGS@")
+      separate_arguments(CH_MULTICORE_C_FLAGS NATIVE_COMMAND "@CH_MULTICORE_C_FLAGS@")
+      list(APPEND CHRONO_CXX_FLAGS ${CH_MULTICORE_CXX_FLAGS})
+      list(APPEND CHRONO_C_FLAGS ${CH_MULTICORE_C_FLAGS})
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_MULTICORE_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_multicore")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_multicore.dll")
+
+    elseif(${COMPONENT_UPPER} MATCHES "MODAL")
+
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_MODAL_INCLUDES@")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_modal")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_modal.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "OPENGL")
 
@@ -235,8 +244,10 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "IRRLICHT")
 
-      list(APPEND CHRONO_CXX_FLAGS "@CH_IRRLICHT_CXX_FLAGS@")
-      list(APPEND CHRONO_C_FLAGS "@CH_IRRLICHT_C_FLAGS@")
+      separate_arguments(CH_IRRLICHT_CXX_FLAGS NATIVE_COMMAND "@CH_IRRLICHT_CXX_FLAGS@")
+      separate_arguments(CH_IRRLICHT_C_FLAGS NATIVE_COMMAND "@CH_IRRLICHT_C_FLAGS@")
+      list(APPEND CHRONO_CXX_FLAGS ${CH_IRRLICHT_CXX_FLAGS})
+      list(APPEND CHRONO_C_FLAGS ${CH_IRRLICHT_C_FLAGS})
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_IRRLICHTINC@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_irrlicht")
@@ -247,6 +258,10 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       if(Chrono_HAS_postprocess)
           list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
           list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
+      endif()
+      if(Chrono_HAS_modal)
+          list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_modal")
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_modal.dll")
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "VEHICLE")
@@ -262,8 +277,11 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       endif()
 
       if(${VehicleCosim_REQUESTED} AND ${Chrono_HAS_vehiclecosim})
-        list(APPEND CHRONO_CXX_FLAGS "@MPI_CXX_COMPILE_FLAGS@")
-        list(APPEND CHRONO_LINKER_FLAGS "@MPI_CXX_LINK_FLAGS@")
+        separate_arguments(MPI_CXX_COMPILE_FLAGS NATIVE_COMMAND "@MPI_CXX_COMPILE_FLAGS@")
+        separate_arguments(MPI_CXX_LINK_FLAGS NATIVE_COMMAND "@MPI_CXX_LINK_FLAGS@")
+        list(APPEND CHRONO_CXX_FLAGS ${MPI_CXX_COMPILE_FLAGS})
+        list(APPEND CHRONO_LINKER_FLAGS ${MPI_CXX_LINK_FLAGS})
+    
         list(APPEND CHRONO_INCLUDE_DIRS "@MPI_CXX_INCLUDE_PATH@")
         list(APPEND CHRONO_LIBRARIES "@MPI_CXX_LIBRARIES@")
 
@@ -279,8 +297,10 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "SENSOR")
 
-      list(APPEND CHRONO_CXX_FLAGS "@CH_SENSOR_CXX_FLAGS@")
-      list(APPEND CHRONO_C_FLAGS "@CH_SENSOR_C_FLAGS@")
+      separate_arguments(CH_SENSOR_CXX_FLAGS NATIVE_COMMAND "@CH_SENSOR_CXX_FLAGS@")
+      separate_arguments(CH_SENSOR_C_FLAGS NATIVE_COMMAND "@CH_SENSOR_C_FLAGS@")
+      list(APPEND CHRONO_CXX_FLAGS ${CH_SENSOR_CXX_FLAGS})
+      list(APPEND CHRONO_C_FLAGS ${CH_SENSOR_C_FLAGS})
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_SENSOR_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_sensor")
@@ -297,8 +317,11 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
          find_package(fastrtps REQUIRED)
       endif()
 
-      list(APPEND CHRONO_CXX_FLAGS "@MPI_CXX_COMPILE_FLAGS@")
-      list(APPEND CHRONO_LINKER_FLAGS "@MPI_CXX_LINK_FLAGS@")
+      separate_arguments(MPI_CXX_COMPILE_FLAGS NATIVE_COMMAND "@MPI_CXX_COMPILE_FLAGS@")
+      separate_arguments(MPI_CXX_LINK_FLAGS NATIVE_COMMAND "@MPI_CXX_LINK_FLAGS@")
+      list(APPEND CHRONO_CXX_FLAGS ${MPI_CXX_COMPILE_FLAGS})
+      list(APPEND CHRONO_LINKER_FLAGS ${MPI_CXX_LINK_FLAGS})
+
       list(APPEND CHRONO_INCLUDE_DIRS "@SYN_INCLUDES@")
       list(APPEND CHRONO_INCLUDE_DIRS "@MPI_CXX_INCLUDE_PATH@")
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_THIRDPARTY_INCLUDE_DIR@/flatbuffers/include")
@@ -310,7 +333,8 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "GPU")
 
-      list(APPEND CHRONO_CXX_FLAGS "@CH_GPU_CXX_FLAGS@")
+      separate_arguments(CH_GPU_CXX_FLAGS NATIVE_COMMAND "@CH_GPU_CXX_FLAGS@")
+      list(APPEND CHRONO_CXX_FLAGS ${CH_GPU_CXX_FLAGS})
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_GPU_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_gpu")
@@ -318,7 +342,8 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "PARDISOMKL")
 
-      list(APPEND CHRONO_LINKER_FLAGS "@CH_MKL_LINK_FLAGS@")
+      separate_arguments(CH_MKL_LINK_FLAGS NATIVE_COMMAND "@CH_MKL_LINK_FLAGS@")
+      list(APPEND CHRONO_LINKER_FLAGS ${CH_MKL_LINK_FLAGS})
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_MKL_INCLUDES@")      
       list(APPEND CHRONO_LIBRARIES "@CH_MKL_LIBRARIES@")
@@ -327,7 +352,8 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "MUMPS")
 
-      list(APPEND CHRONO_LINKER_FLAGS "@CH_MUMPS_LINK_FLAGS@")
+      separate_arguments(CH_MUMPS_LINK_FLAGS NATIVE_COMMAND "@CH_MUMPS_LINK_FLAGS@")
+      list(APPEND CHRONO_LINKER_FLAGS ${CH_MUMPS_LINK_FLAGS})
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_MUMPS_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_mumps")
@@ -342,8 +368,10 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "CASCADE")
 
-      list(APPEND CHRONO_CXX_FLAGS "@OpenCASCADE_CXX_FLAGS@")
-      list(APPEND CHRONO_LINKER_FLAGS "@OpenCASCADE_LINKER_FLAGS@")
+      separate_arguments(OpenCASCADE_CXX_FLAGS NATIVE_COMMAND "@OpenCASCADE_CXX_FLAGS@")
+      separate_arguments(OpenCASCADE_LINKER_FLAGS NATIVE_COMMAND "@OpenCASCADE_LINKER_FLAGS@")
+      list(APPEND CHRONO_CXX_FLAGS ${OpenCASCADE_CXX_FLAGS})
+      list(APPEND CHRONO_LINKER_FLAGS ${OpenCASCADE_LINKER_FLAGS})
       
       list(APPEND CHRONO_INCLUDE_DIRS "@OpenCASCADE_INCLUDE_DIR@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_cascade")

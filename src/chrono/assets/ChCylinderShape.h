@@ -15,23 +15,20 @@
 #ifndef CHCYLINDERSHAPE_H
 #define CHCYLINDERSHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChCylinder.h"
 
 namespace chrono {
 
 /// Class for referencing a cylinder shape that can be visualized in some way.
-class ChApi ChCylinderShape : public ChVisualization {
-  protected:
-    geometry::ChCylinder gcylinder;
-
+class ChApi ChCylinderShape : public ChVisualShape {
   public:
-    ChCylinderShape() {}
-    ChCylinderShape(const geometry::ChCylinder& mcyl) : gcylinder(mcyl) {}
+    ChCylinderShape();
+    ChCylinderShape(const geometry::ChCylinder& cyl);
 
-    virtual ~ChCylinderShape(){};
+    ~ChCylinderShape(){};
 
-    // Access the sphere geometry
+    // Access the cylinder geometry.
     geometry::ChCylinder& GetCylinderGeometry() { return gcylinder; }
 
     /// Method to allow serialization of transient data to archives.
@@ -39,6 +36,9 @@ class ChApi ChCylinderShape : public ChVisualization {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    geometry::ChCylinder gcylinder;
 };
 
 CH_CLASS_VERSION(ChCylinderShape, 0)

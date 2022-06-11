@@ -26,9 +26,9 @@
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChLoadsBeam.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
 
@@ -50,18 +50,11 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the physical system
-    ChSystemSMC my_system;
-
-    // Create the Irrlicht visualization
-    ChIrrApp application(&my_system, L"Loads on beams", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(0.5f, 0.0f, -3.0f), irr::core::vector3df(0.5f, 0.0f, 0.0f));
+    ChSystemSMC sys;
 
     // Create a mesh
     auto mesh = chrono_types::make_shared<ChMesh>();
-    my_system.Add(mesh);
+    sys.Add(mesh);
 
     // Create some nodes (with default mass 0)
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
@@ -90,12 +83,12 @@ int main(int argc, char* argv[]) {
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);
-    my_system.Add(ground);
+    sys.Add(ground);
 
     // Create a constraint at the end of the beam
     auto constrA = chrono_types::make_shared<ChLinkMateGeneric>();
     constrA->Initialize(nodeA, ground, false, nodeA->Frame(), nodeA->Frame());
-    my_system.Add(constrA);
+    sys.Add(constrA);
     constrA->SetConstrainedCoords(true, true, true,   // x, y, z
                                   true, true, true);  // Rx, Ry, Rz
 
@@ -104,7 +97,7 @@ int main(int argc, char* argv[]) {
 
     // Create the load container
     auto loadcontainer = chrono_types::make_shared<ChLoadContainer>();
-    my_system.Add(loadcontainer);
+    sys.Add(loadcontainer);
 
     // Select applied loads:
     //    LOAD_1  : Vertical load on end node
@@ -440,42 +433,50 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------------------------
     // Set visualization of the FEM mesh.
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
     mvisualizebeamA->SetColorscaleMinMax(-400, 200);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
-    mesh->AddAsset(mvisualizebeamA);
+    mesh->AddVisualShapeFEA(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
-    mesh->AddAsset(mvisualizebeamC);
+    mesh->AddVisualShapeFEA(mvisualizebeamC);
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Loads on beams");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0.5, 0.0, -3.0), ChVector<>(0.5, 0.0, 0.0));
+    sys.SetVisualSystem(vis);
 
     // -----------------------------------------------------------------
 
     // Setup a MINRES solver. For FEA one cannot use the default PSOR type solver.
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(200);
     solver->SetTolerance(1e-15);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
-    my_system.SetSolverForceTolerance(1e-13);
+    sys.SetSolverForceTolerance(1e-13);
 
     // Set integrator type
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     // Change integrator type
-    ////my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    ////if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
+    ////sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    ////if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
     ////    mystepper->SetAlpha(-0.2);
     ////    mystepper->SetMaxiters(6);
     ////    mystepper->SetAbsTolerances(1e-12);
@@ -486,36 +487,34 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     ChFunction_Recorder rec;
 
-    application.SetTimestep(1e-3);
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
-        application.DoStep();
-        if (!application.GetPaused()) {
-            //double time = my_system.GetChTime();
-            auto& posB = nodeB->GetPos();
-            rec.AddPoint(posB.x(), posB.y());
+        sys.DoStepDynamics(1e-3);
 
-            /*
-            std::cout << "TIME=" << time << "  " << posB.x() << "  " << posB.y() << "  ";
+        // double time = sys.GetChTime();
+        auto& posB = nodeB->GetPos();
+        rec.AddPoint(posB.x(), posB.y());
+
+        /*
+        std::cout << "TIME=" << time << "  " << posB.x() << "  " << posB.y() << "  ";
 #ifdef LOAD_5
-            auto& posC = nodeC->GetPos();
-            std::cout << posC.x() << "  " << posC.y() << "  ";
+        auto& posC = nodeC->GetPos();
+        std::cout << posC.x() << "  " << posC.y() << "  ";
 #endif
 #ifdef LOAD_6
-            auto& posD = nodeD->GetPos();
-            std::cout << posD.x() << "  " << posD.y() << "  ";
+        auto& posD = nodeD->GetPos();
+        std::cout << posD.x() << "  " << posD.y() << "  ";
 #endif
 #ifdef LOAD_7
-            auto& posE = nodeE->GetPos();
-            auto& posF = nodeF->GetPos();
-            std::cout << posE.x() << "  " << posE.y() << "  " << posF.x() << "  " << posF.y() << "  ";
+        auto& posE = nodeE->GetPos();
+        auto& posF = nodeF->GetPos();
+        std::cout << posE.x() << "  " << posE.y() << "  " << posF.x() << "  " << posF.y() << "  ";
 #endif
-            std::cout << std::endl;
-            */
-        }
-        application.EndScene();
+        std::cout << std::endl;
+        */
     }
 
     std::string gplfilename = out_dir + "/beam_loads.gpl";

@@ -71,11 +71,9 @@ using namespace chrono;
 using namespace cascade;
 using namespace geometry;
 
-
 void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(
-        geometry::ChTriangleMeshConnected& chmesh,  ///< Mesh that will be filled with triangles
-        const TopoDS_Face& F) {
-
+    geometry::ChTriangleMeshConnected& chmesh,  // Mesh that will be filled with triangles
+    const TopoDS_Face& F) {
     BRepAdaptor_Surface BS(F, Standard_False);
     Handle(BRepAdaptor_HSurface) gFace = new BRepAdaptor_HSurface(BS);
     ////GeomAbs_SurfaceType thetype = BS.GetType();
@@ -83,17 +81,15 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(
     Handle(Poly_Triangulation) T;
     TopLoc_Location theLocation;
     T = BRep_Tool::Triangulation(F, theLocation);
-    
+
     // maybe a face has been already added to this mesh, so:
     int v_offset = (int)chmesh.m_vertices.size();
 
     if (!T.IsNull()) {
-
         const TColgp_Array1OfPnt& mNodes = T->Nodes();
 
         Poly::ComputeNormals(T);
         const TShort_Array1OfShortReal& mNormals = T->Normals();
-            
 
         int ivert = 0;
         for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
@@ -102,13 +98,13 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(
             p = mNodes(j).Transformed(theLocation.Transformation());
 
             chrono::ChVector<> pos(p.X(), p.Y(), p.Z());
-            chrono::ChVector<> nor(mNormals((j-1)*3+1), mNormals((j-1)*3+2), mNormals((j-1)*3+3));
+            chrono::ChVector<> nor(mNormals((j - 1) * 3 + 1), mNormals((j - 1) * 3 + 2), mNormals((j - 1) * 3 + 3));
             if (F.Orientation() == TopAbs_REVERSED)
-                nor*= -1;
+                nor *= -1;
 
             chmesh.m_vertices.push_back(pos);
             chmesh.m_normals.push_back(nor);
-            
+
             ivert++;
         }
 
@@ -123,13 +119,12 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(
             int ib = v_offset + (n[1]) - 1;
             int ic = v_offset + (n[2]) - 1;
 
-            chmesh.m_face_v_indices.push_back(ChVector<int>(ia,ib,ic));
-            chmesh.m_face_n_indices.push_back(ChVector<int>(ia,ib,ic));
+            chmesh.m_face_v_indices.push_back(ChVector<int>(ia, ib, ic));
+            chmesh.m_face_n_indices.push_back(ChVector<int>(ia, ib, ic));
 
             itri++;
         }
     }
-        
 }
 
 /*
@@ -147,9 +142,9 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(ChTriangleMesh& chmesh,
         gp_Vec V;
 
         const TColgp_Array1OfPnt& mNodes = T->Nodes();
-        
+
         Poly::ComputeNormals(T);
-        const TShort_Array1OfShortReal& mNormals = T->Normals();     
+        const TShort_Array1OfShortReal& mNormals = T->Normals();
 
         int ivert = 0;
         for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
@@ -193,31 +188,31 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(ChTriangleMesh& chmesh,
 }
 */
 
-void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMeshConnected& chmesh,
-                                                     const TopoDS_Shape& mshape,
-                                                     const ChCascadeTriangulateTolerances& mtolerances 
-) {
-    BRepTools::Clean(mshape);
-    BRepMesh_IncrementalMesh M(mshape, mtolerances.deflection, mtolerances.deflection_is_relative, mtolerances.angular_deflection, true);
-    //GetLog() << "    ..inc.tesselation done \n";
-    
-    chmesh.Clear();
+void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMeshConnected& mesh,
+                                                     const TopoDS_Shape& shape,
+                                                     const ChCascadeTriangulate& tolerances) {
+    BRepTools::Clean(shape);
+    BRepMesh_IncrementalMesh M(shape, tolerances.deflection, tolerances.deflection_is_relative,
+                               tolerances.angular_deflection, true);
+    // GetLog() << "    ..inc.tesselation done \n";
+
+    mesh.Clear();
 
     // Loop on faces..
     TopExp_Explorer ex;
-    for (ex.Init(mshape, TopAbs_FACE); ex.More(); ex.Next()) {
+    for (ex.Init(shape, TopAbs_FACE); ex.More(); ex.Next()) {
         const TopoDS_Face& F = TopoDS::Face(ex.Current());
-        fillTriangleMeshFromCascadeFace(chmesh, F);
+        fillTriangleMeshFromCascadeFace(mesh, F);
     }
 }
 
 void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
-                                                const TopoDS_Shape& mshape,
-                                                const ChCascadeTriangulateTolerances& mtolerances 
-) {
-    BRepTools::Clean(mshape);
-    BRepMesh_IncrementalMesh M(mshape, mtolerances.deflection, mtolerances.deflection_is_relative, mtolerances.angular_deflection, true);
-    //GetLog() << "    ..increm.tesselation done \n";
+                                                const TopoDS_Shape& shape,
+                                                const ChCascadeTriangulate& tolerances) {
+    BRepTools::Clean(shape);
+    BRepMesh_IncrementalMesh M(shape, tolerances.deflection, tolerances.deflection_is_relative,
+                               tolerances.angular_deflection, true);
+    // GetLog() << "    ..increm.tesselation done \n";
 
     TopExp_Explorer ex;
     int vertface = 0;
@@ -226,7 +221,7 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
     objfile << "# Wavefront .obj file created from Chrono::Engine\n\n";
 
     // Loop on faces..
-    for (ex.Init(mshape, TopAbs_FACE); ex.More(); ex.Next()) {
+    for (ex.Init(shape, TopAbs_FACE); ex.More(); ex.Next()) {
         // fcount++;
 
         const TopoDS_Face& F = TopoDS::Face(ex.Current());
@@ -243,16 +238,16 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
             const TColgp_Array1OfPnt& mNodes = T->Nodes();
 
             Poly::ComputeNormals(T);
-            const TShort_Array1OfShortReal& mNormals = T->Normals();  
+            const TShort_Array1OfShortReal& mNormals = T->Normals();
 
             int ivert = 0;
             for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
                 gp_Dir pn;
                 gp_Pnt p = mNodes(j).Transformed(theLocation.Transformation());
                 chrono::ChVector<> pos(p.X(), p.Y(), p.Z());
-                chrono::ChVector<> nor(mNormals((j-1)*3+1), mNormals((j-1)*3+2), mNormals((j-1)*3+3));
+                chrono::ChVector<> nor(mNormals((j - 1) * 3 + 1), mNormals((j - 1) * 3 + 2), mNormals((j - 1) * 3 + 3));
                 if (F.Orientation() == TopAbs_REVERSED)
-                    nor*= -1;
+                    nor *= -1;
 
                 char buff[200];
                 sprintf(buff, "v %0.9f %0.9f %0.9f\r\n", pos.x(), pos.y(), pos.z());
@@ -288,6 +283,3 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
 }
 
 
-
-
-/////////////////////

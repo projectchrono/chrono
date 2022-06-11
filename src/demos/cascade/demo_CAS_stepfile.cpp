@@ -20,42 +20,22 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono_cascade/ChBodyEasyCascade.h"
+#include "chrono_cascade/ChCascadeBodyEasy.h"
 #include "chrono_cascade/ChCascadeDoc.h"
-#include "chrono_cascade/ChCascadeShapeAsset.h"
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_cascade/ChCascadeVisualShape.h"
+
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespace of Chrono
 using namespace chrono;
 using namespace chrono::irrlicht;
 
-// Use the main namespaces of Irlicht
-using namespace irr;
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
-
 // Use the namespace with OpenCascade stuff
 using namespace cascade;
-
-//
-// This is the program which is executed
-//
-
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system: all bodies and constraints
     // will be handled by this ChSystemNSC object.
-    ChSystemNSC my_system;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Load a STEP model from file", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0.2f, 0.2f, -0.3f));
+    ChSystemNSC sys;
 
     //
     // Load a STEP file, containing a mechanism. The demo STEP file has been
@@ -89,42 +69,41 @@ int main(int argc, char* argv[]) {
     // the GetNamedShape() function, that can use path/subpath/subsubpath/part
     // syntax and * or ? wildcards, etc.
 
-    std::shared_ptr<ChBodyEasyCascade> mrigidBody1;
-    std::shared_ptr<ChBodyEasyCascade> mrigidBody2;
+    std::shared_ptr<ChCascadeBodyEasy> body1;
+    std::shared_ptr<ChCascadeBodyEasy> body2;
 
     if (load_ok) {
         TopoDS_Shape shape1;
         if (mydoc.GetNamedShape(shape1, "Assem1/body1")) {
-			// Create the ChBody using the ChBodyEasyCascade helper:
-            auto mbody1 = chrono_types::make_shared<ChBodyEasyCascade>(shape1, 
-																		1000, // density
-																		true, // add a visualization 
-																		false // add a collision model
-																		);
-            my_system.Add(mbody1);
-            mbody1->SetBodyFixed(true);
+            // Create the ChBody using the ChCascadeBodyEasy helper:
+            body1 = chrono_types::make_shared<ChCascadeBodyEasy>(shape1,
+                                                                 1000,  // density
+                                                                 true,  // add a visualization
+                                                                 false  // add a collision model
+            );
+            sys.Add(body1);
+            body1->SetBodyFixed(true);
             // Move the body as for global displacement/rotation (also mbody1 %= root_frame; )
-            mbody1->ConcatenatePreTransformation(root_frame);
-            mrigidBody1 = mbody1;
+            body1->ConcatenatePreTransformation(root_frame);
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
         TopoDS_Shape shape2;
         if (mydoc.GetNamedShape(shape2, "Assem1/body2")) {
-			// Create the ChBody using the ChBodyEasyCascade helper (with more detailed info on visualization tesselation):
-			ChCascadeTriangulateTolerances mvisualtolerances (  0.02,  // chordal deflection for triangulation 
-																false, // chordal deflection is relative
-																0.5    // angular deflection for triangulation
-															);
-            auto mbody2 = chrono_types::make_shared<ChBodyEasyCascade>(shape2, 
-																		1000, // density
-																		mvisualtolerances, // add a visualization  
-																		false // add a collision model
-																		);
-            my_system.Add(mbody2);
+            // Create the ChBody using the ChCascadeBodyEasy helper (with more detailed visualization tesselation):
+            auto vis_params = chrono_types::make_shared<ChCascadeTriangulate>(  //
+                0.02,                                                           // chordal deflection for triangulation
+                false,                                                          // chordal deflection is relative
+                0.5                                                             // angular deflection for triangulation
+            );
+            body2 = chrono_types::make_shared<ChCascadeBodyEasy>(shape2,
+                                                                 1000,        // density
+                                                                 vis_params,  // add a visualization
+                                                                 false        // no collision model
+            );
+            sys.Add(body2);
             // Move the body as for global displacement/rotation  (also mbody2 %= root_frame; )
-            mbody2->ConcatenatePreTransformation(root_frame);
-            mrigidBody2 = mbody2;
+            body2->ConcatenatePreTransformation(root_frame);
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
@@ -139,46 +118,41 @@ int main(int argc, char* argv[]) {
     ChVector<> joint_pos =
         ((ChFrame<>)root_frame) * (measured_joint_pos_mm * scale);  // transform because we rotated everything
 
-    if (mrigidBody1 && mrigidBody2) {
+    if (body1 && body2) {
         std::shared_ptr<ChLinkLockRevolute> my_link(new ChLinkLockRevolute);
-        my_link->Initialize(mrigidBody1, mrigidBody2, ChCoordsys<>(joint_pos));
-        my_system.AddLink(my_link);
+        my_link->Initialize(body1, body2, ChCoordsys<>(joint_pos));
+        sys.AddLink(my_link);
     }
 
     // Create a large cube as a floor.
+    std::shared_ptr<ChBodyEasyBox> floor(new ChBodyEasyBox(1, 0.2, 1, 1000));
+    floor->SetPos(ChVector<>(0, -0.3, 0));
+    floor->SetBodyFixed(true);
+    floor->GetVisualShape(0)->SetColor(ChColor(0.3f, 0.3f, 0.8f));
+    sys.Add(floor);
 
-    std::shared_ptr<ChBodyEasyBox> mfloor(new ChBodyEasyBox(1, 0.2, 1, 1000));
-    mfloor->SetPos(ChVector<>(0, -0.3, 0));
-    mfloor->SetBodyFixed(true);
-    application.GetSystem()->Add(mfloor);
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Load a STEP model from file");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0.2, 0.2, -0.3));
+    vis->AddTypicalLights();
 
-    std::shared_ptr<ChColorAsset> mcolor(new ChColorAsset(0.3f, 0.3f, 0.8f));
-    mfloor->AddAsset(mcolor);
+    // Simulation loop
+    ChRealtimeStepTimer realtime_timer;
+    double time_step = 0.01;
 
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
-    application.AssetBindAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
-    // Use this function for 'converting' assets into Irrlicht meshes
-    application.AssetUpdateAll();
-
-    //
-    // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
-    //
-
-    application.SetTimestep(0.01);
-    application.SetTryRealtime(true);
-
-    while (application.GetDevice()->run()) {
-        // Irrlicht must prepare frame to draw
-        application.BeginScene(true, true, video::SColor(255, 140, 161, 192));
-
-        // .. draw solid 3D items (boxes, cylinders, shapes) belonging to Irrlicht scene, if any
-        application.DrawAll();
-
-        application.DoStep();
-
-        application.EndScene();
+        sys.DoStepDynamics(time_step);
+        realtime_timer.Spin(time_step);
     }
 
     return 0;

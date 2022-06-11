@@ -148,6 +148,9 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
     // Initialize the driveline subsystem (RWD)
     std::vector<int> driven_susp = {1};
     m_driveline->Initialize(m_chassis, m_axles, driven_susp);
+
+    // Invoke base class method
+    ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
 }
 
 // -----------------------------------------------------------------------------

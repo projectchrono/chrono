@@ -52,19 +52,13 @@ class Model(object):
 
       if self.render:
              
-             self.myapplication = chronoirr.ChIrrApp(self.rev_pend_sys)
-             self.myapplication.AddShadowAll();
-             self.myapplication.SetTimestep(0.01)
-             self. myapplication.SetTryRealtime(True)
-             
-             self.myapplication.AddSkyBox()
-             self.myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-             self.myapplication.AddCamera(chronoirr.vector3df(0.5,0.5,1.0))
-             self.myapplication.AddLightWithShadow(chronoirr.vector3df(2,4,2),    # point
-                                            chronoirr.vector3df(0,0,0),    # aimpoint
-                                            9,                 # radius (power)
-                                            1,9,               # near, far
-                                            30)                # angle of FOV
+             self.vis = chronoirr.ChVisualSystemIrrlicht()
+             self.rev_pend_sys.SetVisualSystem(self.vis)
+             self.vis.Initialize()
+             self.vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+             self.vis.AddSkyBox()
+             self.vis.AddCamera(chrono.ChVectorD(0.5,0.5,1.0))
+             self.vis.AddTypicalLights()
 
    def reset(self):
       #print("reset")
@@ -92,7 +86,7 @@ class Model(object):
       self.body_rod_shape.GetCylinderGeometry().p2= self.cyl_base2
       self.body_rod_shape.GetCylinderGeometry().rad= self.radius_rod
 
-      self.body_rod.AddAsset(self.body_rod_shape)
+      self.body_rod.AddVisualShape(self.body_rod_shape)
       self.rev_pend_sys.Add(self.body_rod)
 
 
@@ -105,10 +99,8 @@ class Model(object):
       if self.render:
              self.body_floor_shape = chrono.ChBoxShape()
              self.body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(3, 1, 3)
-             self.body_floor.GetAssets().push_back(self.body_floor_shape)
-             self.body_floor_texture = chrono.ChTexture()
-             self.body_floor_texture.SetTextureFilename(chrono.GetChronoDataFile('textures/concrete.jpg'))
-             self.body_floor.GetAssets().push_back(self.body_floor_texture)
+             self.body_floor_shape.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
+             self.body_floor.AddVisualShape(self.body_floor_shape)
 
       self.rev_pend_sys.Add(self.body_floor)
 
@@ -122,11 +114,8 @@ class Model(object):
              self.body_table_shape = chrono.ChBoxShape()
              self.body_table_shape.GetBoxGeometry().Size = chrono.ChVectorD(self.size_table_x/2, self.size_table_y/2, self.size_table_z/2)
              self.body_table_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
-             self.body_table.GetAssets().push_back(self.body_table_shape)
-       
-             self.body_table_texture = chrono.ChTexture()
-             self.body_table_texture.SetTextureFilename(chrono.GetChronoDataFile('textures/concrete.jpg'))
-             self.body_table.GetAssets().push_back(self.body_table_texture)
+             self.body_table_shape.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
+             self.body_table.AddVisualShape(self.body_table_shape)
       self.body_table.SetMass(0.1)
       self.rev_pend_sys.Add(self.body_table)
 
@@ -157,23 +146,8 @@ class Model(object):
       self.pin_joint.Initialize(self.rod_pin, self.table_pin)
       self.rev_pend_sys.Add(self.pin_joint)
       
-      if self.render:
-
-           # ---------------------------------------------------------------------
-           #
-           #  Create an Irrlicht application to visualize the system
-           #
-           # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-           # in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-           # If you need a finer control on which item really needs a visualization proxy
-           # Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-       
-             self.myapplication.AssetBindAll();
-       
-                       # ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-                       # that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-       
-             self.myapplication.AssetUpdateAll();
+      if self.render:       
+             self.vis.BindAll();
 
 	
       self.isdone= False
@@ -190,17 +164,15 @@ class Model(object):
        self.omega = self.pin_joint.GetRelWvel().Length()  
        
        if self.render:
-              self.myapplication.GetDevice().run()
-              self.myapplication.BeginScene()
-              self.myapplication.DrawAll()
-              self.myapplication.DoStep()
-       else:
-              self.rev_pend_sys.DoStepDynamics(self.timestep)
+              self.vis.Run()
+              self.vis.BeginScene()
+              self.vis.DrawAll()
+       self.rev_pend_sys.DoStepDynamics(self.timestep)
        self.rew = 1.0
                   
        self.obs= self.get_ob()
        if self.render:
-              self.myapplication.EndScene()
+              self.vis.EndScene()
        self.is_done()
        return self.obs, self.rew, self.isdone, self.info
        
@@ -217,19 +189,11 @@ class Model(object):
    def is_done(self):
           if abs(self.link_slider.GetDist()) > 2 or self.steps> 100000 or abs(self.pin_joint.GetRelAngle()) >  0.2  :
                  self.isdone = True
-   
-   def ScreenCapture(self, interval):
-          try: 
-              self.myapplication.SetVideoframeSave(True)
-              self.myapplication.SetVideoframeSaveInterval(interval)
-              
-          except:
-                 print('No ChIrrApp found. Cannot save video frames.')
-                     
+                        
        
    def __del__(self):
         if self.render:
-            self.myapplication.GetDevice().closeDevice()
+            self.vis.GetDevice().closeDevice()
             print('Destructor called, Device deleted.')
         else:
             print('Destructor called, No device to delete.')

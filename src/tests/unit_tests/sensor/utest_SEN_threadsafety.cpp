@@ -42,13 +42,13 @@ TEST(ChSensorManager, object_adding) {}
 TEST(ChSensor, modifying) {}
 
 TEST(ChFilterAccess, data_access_safety) {
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, true);
     box->SetBodyFixed(true);
-    mphysicalSystem.Add(box);
+    sys.Add(box);
 
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 500);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
@@ -69,7 +69,7 @@ TEST(ChFilterAccess, data_access_safety) {
     unsigned int frames = 0;
     while (frames < 5) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
 
         UserRGBA8BufferPtr tmp_camera_data = cam->GetMostRecentBuffer<UserRGBA8BufferPtr>();
         if (tmp_camera_data && tmp_camera_data->Buffer && tmp_camera_data->LaunchedCount != frames) {

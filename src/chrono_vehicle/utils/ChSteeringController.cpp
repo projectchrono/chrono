@@ -105,9 +105,9 @@ double ChSteeringController::Advance(const ChVehicle& vehicle, double step) {
 
     // Calculate the sign of the angle between the projections of the sentinel
     // vector and the target vector (with origin at vehicle location).
-    ChVector<> sentinel_vec = m_sentinel - vehicle.GetVehiclePos();
+    ChVector<> sentinel_vec = m_sentinel - vehicle.GetPos();
     ChWorldFrame::Project(sentinel_vec);
-    ChVector<> target_vec = m_target - vehicle.GetVehiclePos();
+    ChVector<> target_vec = m_target - vehicle.GetPos();
     ChWorldFrame::Project(target_vec);
 
     double temp = Vdot(Vcross(sentinel_vec, target_vec), ChWorldFrame::Vertical());
@@ -355,7 +355,7 @@ double ChPathSteeringControllerXT::Advance(const ChVehicle& vehicle, double step
     // Calculate current "sentinel" location.  This is a point at the look-ahead
     // distance in front of the vehicle.
     m_sentinel = chassis_frame.TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
-    m_vel = vehicle.GetVehiclePointVelocity(ChVector<>(0, 0, 0));
+    m_vel = vehicle.GetPointVelocity(ChVector<>(0, 0, 0));
     if (!m_filters_initialized) {
         // first time we know about step size
         m_HeadErrDelay.Config(step, m_T1_delay);
@@ -378,9 +378,9 @@ double ChPathSteeringControllerXT::Advance(const ChVehicle& vehicle, double step
 
     // Calculate the sign of the angle between the projections of the sentinel
     // vector and the target vector (with origin at vehicle location).
-    ChVector<> sentinel_vec = m_sentinel - vehicle.GetVehiclePos();
+    ChVector<> sentinel_vec = m_sentinel - vehicle.GetPos();
     ChWorldFrame::Project(sentinel_vec);
-    ChVector<> target_vec = m_target - vehicle.GetVehiclePos();
+    ChVector<> target_vec = m_target - vehicle.GetPos();
     ChWorldFrame::Project(target_vec);
 
     double temp = Vdot(Vcross(sentinel_vec, target_vec), ChWorldFrame::Vertical());
@@ -546,9 +546,9 @@ void ChPathSteeringControllerSR::SetPreviewTime(double Tp) {
 double ChPathSteeringControllerSR::Advance(const ChVehicle& vehicle, double step) {
     const double g = 9.81;
 
-    auto& chassis_frame = vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame (ISO frame)
-    auto& chassis_rot = chassis_frame.GetRot();                             // chassis ref-to-world rotation (ISO frame)
-    double u = vehicle.GetVehicleSpeed();                                   // vehicle speed
+    auto& chassis_frame = vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame
+    auto& chassis_rot = chassis_frame.GetRot();                             // chassis ref-to-world rotation
+    double u = vehicle.GetSpeed();                                          // vehicle speed
 
     // Calculate unit vector pointing to the yaw center
     ChVector<> n_g = chassis_rot.GetYaxis();  // vehicle left direction (ISO frame)
@@ -705,9 +705,9 @@ double ChPathSteeringControllerStanley::Advance(const ChVehicle& vehicle, double
     if (m_delayFilter == nullptr) {
         m_delayFilter = std::shared_ptr<utils::ChFilterPT1>(new utils::ChFilterPT1(step, m_Tdelay));
     }
-    auto& chassis_frame = vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame (ISO frame)
-    auto& chassis_rot = chassis_frame.GetRot();                             // chassis ref-to-world rotation (ISO frame)
-    double u = vehicle.GetVehicleSpeed();                                   // vehicle speed
+    auto& chassis_frame = vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame
+    auto& chassis_rot = chassis_frame.GetRot();                             // chassis ref-to-world rotation
+    double u = vehicle.GetSpeed();                                          // vehicle speed
 
     // Calculate current "sentinel" location.  This is a point at the look-ahead
     // distance in front of the vehicle.
@@ -728,10 +728,9 @@ double ChPathSteeringControllerStanley::Advance(const ChVehicle& vehicle, double
 
     // Calculate the sign of the angle between the projections of the sentinel
     // vector and the target vector (with origin at vehicle location).
-    // ChVector<> sentinel_vec = m_sentinel - vehicle.GetVehiclePos();
-    ChVector<> sentinel_vec = m_sentinel - vehicle.GetVehiclePos();
+    ChVector<> sentinel_vec = m_sentinel - vehicle.GetPos();
     ChWorldFrame::Project(sentinel_vec);
-    ChVector<> target_vec = m_target - vehicle.GetVehiclePos();
+    ChVector<> target_vec = m_target - vehicle.GetPos();
     ChWorldFrame::Project(target_vec);
 
     double temp = Vdot(Vcross(sentinel_vec, target_vec), ChWorldFrame::Vertical());

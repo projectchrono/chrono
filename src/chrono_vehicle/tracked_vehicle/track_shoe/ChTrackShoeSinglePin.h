@@ -45,8 +45,9 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TrackShoeSinglePin"; }
 
-    /// Get the mass of the track shoe.
-    virtual double GetMass() const override;
+    /// Get track tension at this track shoe.
+    /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
+    virtual ChVector<> GetTension() const override;
 
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
@@ -59,6 +60,9 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
                             ) override;
 
   protected:
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const = 0;
 
@@ -89,8 +93,10 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
                          bool ccw                            ///< [in] track assembled in counter clockwise direction
                          ) override final;
 
-    std::shared_ptr<ChVehicleJoint> m_connection_joint;  ///< connection to neighboring track shoe
-    std::shared_ptr<ChLinkRSDA> m_connection_rsda;       ///< optional RSDA on connection
+    virtual void EnableTrackBendingStiffness(bool val) override;
+
+    std::shared_ptr<ChVehicleJoint> m_joint;  ///< connection to neighboring track shoe
+    std::shared_ptr<ChLinkRSDA> m_rsda;       ///< optional RSDA on connection
 
     friend class ChSprocketSinglePin;
     friend class SprocketSinglePinContactCB;

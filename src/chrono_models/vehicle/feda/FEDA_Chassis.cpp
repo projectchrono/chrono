@@ -31,16 +31,16 @@ namespace feda {
 // Static variables
 // -----------------------------------------------------------------------------
 /* VIPER config
-const double FEDA_Chassis::m_mass = 4450;
-const ChVector<> FEDA_Chassis::m_inertiaXX(2420.0, 8200.0, 7100.0);
-const ChVector<> FEDA_Chassis::m_inertiaXY(0, 0, 0);
-const ChVector<> FEDA_Chassis::m_COM_loc(-1.591564, 0.0889, 0.57);
+const double FEDA_Chassis::m_body_mass = 4450;
+const ChVector<> FEDA_Chassis::m_body_inertiaXX(2420.0, 8200.0, 7100.0);
+const ChVector<> FEDA_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector<> FEDA_Chassis::m_body_COM_loc(-1.591564, 0.0889, 0.57);
 */
 // configuration as tested on proving ground
-const double FEDA_Chassis::m_mass = 5672.87;
-const ChVector<> FEDA_Chassis::m_inertiaXX(5.74E+03, 7.66E+03, 9.87E+03);
-const ChVector<> FEDA_Chassis::m_inertiaXY(0, 0, 0);
-const ChVector<> FEDA_Chassis::m_COM_loc(-(1.0 - 0.4162) * 3.302, 0.00889, 0.61);
+const double FEDA_Chassis::m_body_mass = 5672.87;
+const ChVector<> FEDA_Chassis::m_body_inertiaXX(5.74E+03, 7.66E+03, 9.87E+03);
+const ChVector<> FEDA_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector<> FEDA_Chassis::m_body_COM_loc(-(1.0 - 0.4162) * 3.302, 0.00889, 0.61);
 
 const ChCoordsys<> FEDA_Chassis::m_driverCsys(ChVector<>(-1.35, 0.52, 1.01), ChQuaternion<>(1, 0, 0, 0));
 
@@ -48,16 +48,16 @@ const ChCoordsys<> FEDA_Chassis::m_driverCsys(ChVector<>(-1.35, 0.52, 1.01), ChQ
 // -----------------------------------------------------------------------------
 FEDA_Chassis::FEDA_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
-    m_inertia(0, 0) = m_inertiaXX.x();
-    m_inertia(1, 1) = m_inertiaXX.y();
-    m_inertia(2, 2) = m_inertiaXX.z();
+    m_body_inertia(0, 0) = m_body_inertiaXX.x();
+    m_body_inertia(1, 1) = m_body_inertiaXX.y();
+    m_body_inertia(2, 2) = m_body_inertiaXX.z();
 
-    m_inertia(0, 1) = m_inertiaXY.x();
-    m_inertia(0, 2) = m_inertiaXY.y();
-    m_inertia(1, 2) = m_inertiaXY.z();
-    m_inertia(1, 0) = m_inertiaXY.x();
-    m_inertia(2, 0) = m_inertiaXY.y();
-    m_inertia(2, 1) = m_inertiaXY.z();
+    m_body_inertia(0, 1) = m_body_inertiaXY.x();
+    m_body_inertia(0, 2) = m_body_inertiaXY.y();
+    m_body_inertia(1, 2) = m_body_inertiaXY.z();
+    m_body_inertia(1, 0) = m_body_inertiaXY.x();
+    m_body_inertia(2, 0) = m_body_inertiaXY.y();
+    m_body_inertia(2, 1) = m_body_inertiaXY.z();
 
     //// TODO:
     //// A more appropriate contact shape from primitives

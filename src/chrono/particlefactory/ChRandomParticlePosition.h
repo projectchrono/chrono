@@ -80,36 +80,35 @@ class ChRandomParticlePositionRectangleOutlet : public ChRandomParticlePosition 
 class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
   public:
     ChRandomParticlePositionOnGeometry() {
-        // defaults
-        geometry = chrono_types::make_shared<geometry::ChBox>(VNULL, ChMatrix33<>(QUNIT), ChVector<>(0.1, 0.1, 0.1));
+        m_geometry = chrono_types::make_shared<geometry::ChBox>(ChVector<>(0.1, 0.1, 0.1));
     }
 
     /// Function that creates a random position each
     /// time it is called.
     virtual ChVector<> RandomPosition() override {
-        ChVector<> mpos = VNULL;
-        if (auto mline = std::dynamic_pointer_cast<geometry::ChLine>(geometry)) {
-            mline->Evaluate(mpos, ChRandom());
-            return mpos;
+        if (auto mline = std::dynamic_pointer_cast<geometry::ChLine>(m_geometry)) {
+            mline->Evaluate(m_frame.GetPos(), ChRandom());
         }
-        if (auto msurface = std::dynamic_pointer_cast<geometry::ChSurface>(geometry)) {
-            msurface->Evaluate(mpos, ChRandom(), ChRandom());
-            return mpos;
+        else if (auto msurface = std::dynamic_pointer_cast<geometry::ChSurface>(m_geometry)) {
+            msurface->Evaluate(m_frame.GetPos(), ChRandom(), ChRandom());
         }
-        if (auto mvolume = std::dynamic_pointer_cast<geometry::ChVolume>(geometry)) {
-            mvolume->Evaluate(mpos, ChRandom(), ChRandom(), ChRandom());
-            return mpos;
+        else if (auto mvolume = std::dynamic_pointer_cast<geometry::ChVolume>(m_geometry)) {
+            mvolume->Evaluate(m_frame.GetPos(), ChRandom(), ChRandom(), ChRandom());
         }
-        return mpos;
+        return m_frame.GetPos();
     }
 
     /// Set the parametric surface used for this outlet.
-    /// The surface will be sampled uniformly over its U,V parametric
-    /// coordinaters. In cas of lines, oly U is used, in case of parametric volumes, U,V,W.
-    void SetGeometry(std::shared_ptr<geometry::ChGeometry> mgeometry) { this->geometry = mgeometry; }
+    /// The surface will be sampled uniformly over its U,V parametric coordinates. In cas of lines, oly U is used, in
+    /// case of parametric volumes, U,V,W.
+    void SetGeometry(std::shared_ptr<geometry::ChGeometry> geometry, const ChFrame<>& frame) {
+        m_geometry = geometry;
+        m_frame = frame;
+    }
 
   private:
-    std::shared_ptr<geometry::ChGeometry> geometry;
+    std::shared_ptr<geometry::ChGeometry> m_geometry;
+    ChFrame<> m_frame;
 };
 
 }  // end of namespace particlefactory

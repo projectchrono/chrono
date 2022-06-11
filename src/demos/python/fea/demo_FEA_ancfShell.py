@@ -1,12 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 # Authors: Simone Benatti
@@ -39,18 +39,8 @@ def CastNode(nb):
 
 time_step = 1e-3
 
-my_system = chrono.ChSystemSMC()
-my_system.Set_G_acc(chrono.ChVectorD(0, 0, -9.8))
-
-# Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-application = chronoirr.ChIrrApp(my_system, "ANCF Shells", chronoirr.dimension2du(800, 600))
-
-# Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-application.AddLogo()
-application.AddSkyBox()
-application.AddTypicalLights()
-application.AddCamera(chronoirr.vector3df(-0.4, -0.3, 0.0),  # camera location
-                             chronoirr.vector3df(0.0, 0.5, -0.1))  # "look at" location
+sys = chrono.ChSystemSMC()
+sys.Set_G_acc(chrono.ChVectorD(0, 0, -9.8))
 
 print( "-----------------------------------------------------------\n")
 print("------------------------------------------------------------\n")
@@ -58,7 +48,7 @@ print("     ANCF Shell Elements demo with implicit integration     \n")
 print( "-----------------------------------------------------------\n")
 
 # Create a mesh, that is a container for groups of elements and their referenced nodes.
-my_mesh = fea.ChMesh()
+mesh = fea.ChMesh()
 numFlexBody = 1
 # Geometry of the plate
 plate_lenght_x = 1
@@ -99,11 +89,11 @@ for i in range(TotalNumNodes) :
         node.SetFixed(True)
 
     # Add node to mesh
-    my_mesh.AddNode(node)
+    mesh.AddNode(node)
 
 
 # Get a handle to the tip node.
-tempnode = my_mesh.GetNode(TotalNumNodes - 1)
+tempnode = mesh.GetNode(TotalNumNodes - 1)
 tempfeanode = fea.CastToChNodeFEAbase(tempnode)
 nodetip = fea.CastToChNodeFEAxyzD(tempfeanode)
 
@@ -124,10 +114,10 @@ for i in range(TotalNumElements):
 
     # Create the element and set its nodes.
     element = fea.ChElementShellANCF_3423()
-    element.SetNodes(CastNode(my_mesh.GetNode(node0)),
-                      CastNode(my_mesh.GetNode(node1)),
-                      CastNode(my_mesh.GetNode(node2)),
-                      CastNode(my_mesh.GetNode(node3)))
+    element.SetNodes(CastNode(mesh.GetNode(node0)),
+                      CastNode(mesh.GetNode(node1)),
+                      CastNode(mesh.GetNode(node2)),
+                      CastNode(mesh.GetNode(node3)))
 
     # Set element dimensions
     element.SetDimensions(dx, dy)
@@ -139,45 +129,53 @@ for i in range(TotalNumElements):
     element.SetAlphaDamp(0.0)    # Structural damping for this element
     
     # Add element to mesh
-    my_mesh.AddElement(element)
+    mesh.AddElement(element)
 
 
 # Add the mesh to the system
-my_system.Add(my_mesh)
+sys.Add(mesh)
 
 # -------------------------------------
 # Options for visualization in irrlicht
 # -------------------------------------
 
-visualizemeshA = fea.ChVisualizationFEAmesh(my_mesh)
-visualizemeshA.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NODE_SPEED_NORM)
+visualizemeshA = chrono.ChVisualShapeFEA(mesh)
+visualizemeshA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
 visualizemeshA.SetColorscaleMinMax(0.0, 5.50)
 visualizemeshA.SetShrinkElements(True, 0.85)
 visualizemeshA.SetSmoothFaces(True)
-my_mesh.AddAsset(visualizemeshA)
+mesh.AddVisualShapeFEA(visualizemeshA)
 
-visualizemeshB = fea.ChVisualizationFEAmesh(my_mesh)
-visualizemeshB.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_SURFACE)
+visualizemeshB = chrono.ChVisualShapeFEA(mesh)
+visualizemeshB.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 visualizemeshB.SetWireframe(True)
 visualizemeshB.SetDrawInUndeformedReference(True)
-my_mesh.AddAsset(visualizemeshB)
+mesh.AddVisualShapeFEA(visualizemeshB)
 
-visualizemeshC = fea.ChVisualizationFEAmesh(my_mesh)
-visualizemeshC.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_NODE_DOT_POS)
-visualizemeshC.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NONE)
+visualizemeshC = chrono.ChVisualShapeFEA(mesh)
+visualizemeshC.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS)
+visualizemeshC.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 visualizemeshC.SetSymbolsThickness(0.004)
-my_mesh.AddAsset(visualizemeshC)
+mesh.AddVisualShapeFEA(visualizemeshC)
 
-visualizemeshD = fea.ChVisualizationFEAmesh(my_mesh)
-visualizemeshD.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_ELEM_TENS_STRAIN)
-visualizemeshD.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NONE)
+visualizemeshD = chrono.ChVisualShapeFEA(mesh)
+visualizemeshD.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_ELEM_TENS_STRAIN)
+visualizemeshD.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 visualizemeshD.SetSymbolsScale(1)
 visualizemeshD.SetColorscaleMinMax(-0.5, 5)
 visualizemeshD.SetZbufferHide(False)
-my_mesh.AddAsset(visualizemeshD)
+mesh.AddVisualShapeFEA(visualizemeshD)
 
-application.AssetBindAll()
-application.AssetUpdateAll()
+# Create the Irrlicht visualization
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('ANCF shells')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(-0.4, -1.3, 0.0), chrono.ChVectorD(0.0, 0.5, -0.1))
+vis.AddTypicalLights()
 
 # ----------------------------------
 # Perform a dynamic time integration
@@ -186,18 +184,18 @@ application.AssetUpdateAll()
 # Set up solver
 
 solver = chrono.ChSolverMINRES()
-my_system.SetSolver(solver)
+sys.SetSolver(solver)
 
 solver.EnableDiagonalPreconditioner(True)
 #solver.SetVerbose(True)
 
-my_system.SetSolverMaxIterations(100)
-my_system.SetSolverForceTolerance(1e-10)
+sys.SetSolverMaxIterations(100)
+sys.SetSolverForceTolerance(1e-10)
 
 # Set up integrator
 
-stepper = chrono.ChTimestepperHHT(my_system)
-my_system.SetTimestepper(stepper)
+stepper = chrono.ChTimestepperHHT(sys)
+sys.SetTimestepper(stepper)
 
 stepper.SetAlpha(-0.2)
 stepper.SetMaxiters(5)
@@ -209,12 +207,9 @@ stepper.SetMinStepSize(1e-4)
 #stepper.SetVerbose(True)
 
 # Simulation loop
-
-application.SetTimestep(0.01)
-
-while application.GetDevice().run() :
-    application.BeginScene()
-    application.DrawAll()
-    application.DoStep()
-    application.EndScene()
+while vis.Run():
+    vis.BeginScene()
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(0.01)
 

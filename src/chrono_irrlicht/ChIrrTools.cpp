@@ -17,6 +17,52 @@
 #include "chrono/utils/ChProfiler.h"
 
 #include "chrono_irrlicht/ChIrrTools.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+
+namespace irr {
+namespace core {
+
+vector3dfCH::vector3dfCH(const chrono::ChVector<>& mch) {
+    X = ((f32)mch.x());
+    Y = ((f32)mch.y());
+    Z = ((f32)mch.z());
+}
+
+matrix4CH::matrix4CH(const chrono::ChCoordsys<>& csys) : matrix4CH(chrono::ChFrame<>(csys)) {}
+
+matrix4CH::matrix4CH(const chrono::ChFrame<>& frame) {
+    const auto& v = frame.GetPos();
+    const auto& A = frame.GetA();
+
+    //// RADU
+    //// Is this actually correct?   ChMatrix33 is also stored row-major (even pre-Eigen)!
+    //// Or is Irrlicht actually using column-major?
+
+    // Fill the upper 3x3 submatrix with the [A] matrix transposed, since Irrlicht uses the row-major style as in D3D
+    (*this)[0] = (irr::f32)A(0);
+    (*this)[1] = (irr::f32)A(3);
+    (*this)[2] = (irr::f32)A(6);
+
+    (*this)[4] = (irr::f32)A(1);
+    (*this)[5] = (irr::f32)A(4);
+    (*this)[6] = (irr::f32)A(7);
+
+    (*this)[8] = (irr::f32)A(2);
+    (*this)[9] = (irr::f32)A(5);
+    (*this)[10] = (irr::f32)A(8);
+
+    (*this)[12] = (irr::f32)v.x();
+    (*this)[13] = (irr::f32)v.y();
+    (*this)[14] = (irr::f32)v.z();
+
+    // Clear the last column to 0 and set low-right corner to 1
+    // as in Denavitt-Hartemberg matrices, transposed.
+    (*this)[3] = (*this)[7] = (*this)[11] = 0.0f;
+    (*this)[15] = 1.0f;
+}
+
+}  // namespace core
+}  // namespace irr
 
 namespace chrono {
 namespace irrlicht {
@@ -25,43 +71,70 @@ namespace tools {
 using namespace irr;
 
 // -----------------------------------------------------------------------------
-// Function to align an Irrlicht object to a Chrono::Engine coordsys.
+
+video::SColorf ToIrrlichtSColorf(const ChColor& col) {
+    return video::SColorf(col.R, col.G, col.B, 1.0);
+}
+
+video::SColor ToIrrlichtSColor(const ChColor& col, float alpha) {
+    return video::SColor((u32)(alpha * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
+}
+
 // -----------------------------------------------------------------------------
-void alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const ChCoordsys<>& mcoords) {
-    // Output: will be an Irrlicht 4x4 matrix
-    irr::core::matrix4 irrMat;
 
-    // Get the rigid body actual rotation, as a 3x3 matrix [A]
-    ChMatrix33<> chMat(mcoords.rot);
+video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video::IVideoDriver* driver) {
+    video::SMaterial irr_mat;
 
-    //// RADU
-    //// Is this correct?   ChMatrix33 is also stored row-major (even pre-Eigen)!
-    //// Or is Irrlicht actually using column-major?
+    irr_mat.AmbientColor = ToIrrlichtSColor(mat->GetAmbientColor());
+    irr_mat.DiffuseColor = ToIrrlichtSColor(mat->GetDiffuseColor());
+    irr_mat.SpecularColor = ToIrrlichtSColor(mat->GetSpecularColor());
+    irr_mat.EmissiveColor = ToIrrlichtSColor(mat->GetEmissiveColor());
 
-    // Fill the upper 3x3 submatrix with the [A] matrix
-    // transposed, since Irrlicht uses the row-major style as in D3D
-    irrMat[0] = (irr::f32)chMat(0);
-    irrMat[1] = (irr::f32)chMat(3);
-    irrMat[2] = (irr::f32)chMat(6);
+    float dval = mat->GetOpacity();  // in [0,1]
+    irr_mat.DiffuseColor.setAlpha((s32)(dval * 255));
+    if (dval < 1.0f)
+        irr_mat.MaterialType = video::EMT_TRANSPARENT_VERTEX_ALPHA;
 
-    irrMat[4] = (irr::f32)chMat(1);
-    irrMat[5] = (irr::f32)chMat(4);
-    irrMat[6] = (irr::f32)chMat(7);
+    float ns_val = mat->GetSpecularExponent();  // in [0, 1000]
+    irr_mat.Shininess = ns_val * 0.128f;
 
-    irrMat[8] = (irr::f32)chMat(2);
-    irrMat[9] = (irr::f32)chMat(5);
-    irrMat[10] = (irr::f32)chMat(8);
+    auto kd_texture_name = mat->GetKdTexture();
+    if (!kd_texture_name.empty()) {
+        auto scale = mat->GetKdTextureScale();
+        auto kd_texture = driver->getTexture(kd_texture_name.c_str());
+        irr_mat.setTexture(0, kd_texture);
+        irr_mat.getTextureMatrix(0).setTextureScale(scale.x(), scale.y());
 
-    irrMat[12] = (irr::f32)mcoords.pos.x();
-    irrMat[13] = (irr::f32)mcoords.pos.y();
-    irrMat[14] = (irr::f32)mcoords.pos.z();
+        // Same as when Irrlicht loads the OBJ+MTL.  Is this really needed?
+        irr_mat.DiffuseColor.setRed(255);
+        irr_mat.DiffuseColor.setGreen(255);
+        irr_mat.DiffuseColor.setBlue(255);
+    }
 
-    // Clear the last column to 0 and set low-right corner to 1
-    // as in Denavitt-Hartemberg matrices, transposed.
-    irrMat[3] = irrMat[7] = irrMat[11] = 0.0f;
-    irrMat[15] = 1.0f;
+    auto normal_texture_name = mat->GetNormalMapTexture();
+    if (!normal_texture_name.empty()) {
+        auto scale = mat->GetNormalMapTextureScale();
+        auto normal_texture = driver->getTexture(normal_texture_name.c_str());
+        irr_mat.setTexture(1, normal_texture);
+        irr_mat.getTextureMatrix(1).setTextureScale(scale.x(), scale.y());
 
-    // Set position and rotation of node using the 4x4 Irrlicht matrix.
+        // Same as when Irrlicht loads the OBJ+MTL.  Is this really needed?
+        irr_mat.DiffuseColor.setRed(255);
+        irr_mat.DiffuseColor.setGreen(255);
+        irr_mat.DiffuseColor.setBlue(255);
+    }
+
+    return irr_mat;
+}
+
+// -----------------------------------------------------------------------------
+// Align an Irrlicht object to a the specified coordinate system.
+// -----------------------------------------------------------------------------
+void alignIrrlichtNode(scene::ISceneNode* mnode, const ChCoordsys<>& mcoords) {
+    // Construct the equivalent 4x4 Irrlicht matrix
+    irr::core::matrix4CH irrMat(mcoords);
+
+    // Set position and rotation of node using the Irrlicht matrix
     mnode->setPosition(irrMat.getTranslation());
     mnode->setRotation(irrMat.getRotationDegrees());
 }
@@ -89,21 +162,21 @@ class _draw_reporter_class : public ChContactContainer::ReportContactCallback {
         irr::video::SColor mcol = irr::video::SColor(200, 255, 0, 0);
 
         switch (drawtype) {
-            case IrrContactsDrawMode::CONTACT_DISTANCES:
+            case ContactsDrawMode::CONTACT_DISTANCES:
                 v2 = pB;
                 if (distance > 0.0)
                     mcol = irr::video::SColor(200, 20, 255, 0);  // green: non penetration
                 else
                     mcol = irr::video::SColor(200, 255, 60, 60);  // red: penetration
                 break;
-            case IrrContactsDrawMode::CONTACT_NORMALS:
+            case ContactsDrawMode::CONTACT_NORMALS:
                 v2 = pA + vn * clen;
                 mcol = irr::video::SColor(200, 0, 100, 255);
                 break;
-            case IrrContactsDrawMode::CONTACT_FORCES_N:
+            case ContactsDrawMode::CONTACT_FORCES_N:
                 v2 = pA + vn * clen * react_forces.x();
                 break;
-            case IrrContactsDrawMode::CONTACT_FORCES:
+            case ContactsDrawMode::CONTACT_FORCES:
                 v2 = pA + (mplanecoord * (react_forces * clen));
                 break;
             default:
@@ -115,34 +188,31 @@ class _draw_reporter_class : public ChContactContainer::ReportContactCallback {
     }
 
     irr::video::IVideoDriver* cdriver;
-    IrrContactsDrawMode drawtype;
+    ContactsDrawMode drawtype;
     double clen;
 };
 
-int drawAllContactPoints(std::shared_ptr<ChContactContainer> mcontainer,
-                         irr::video::IVideoDriver* driver,
-                         double mlen,
-                         IrrContactsDrawMode drawtype) {
-    if (drawtype == IrrContactsDrawMode::CONTACT_NONE)
+int drawAllContactPoints(ChVisualSystemIrrlicht* vis, double mlen, ContactsDrawMode drawtype) {
+    if (drawtype == ContactsDrawMode::CONTACT_NONE)
         return 0;
 
-    // if (mphysicalSystem.GetNcontacts() == 0)
+    // if (sys.GetNcontacts() == 0)
     //    return 0;
 
-    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = false;
     mattransp.Lighting = false;
-    driver->setMaterial(mattransp);
+    vis->GetVideoDriver()->setMaterial(mattransp);
 
     auto my_drawer = chrono_types::make_shared<_draw_reporter_class>();
 
-    my_drawer->cdriver = driver;
+    my_drawer->cdriver = vis->GetVideoDriver();
     my_drawer->clen = mlen;
     my_drawer->drawtype = drawtype;
 
     // scan all contacts
-    mcontainer->ReportAllContacts(my_drawer);
+    vis->GetSystem().GetContactContainer()->ReportAllContacts(my_drawer);
 
     return 0;
 }
@@ -169,25 +239,25 @@ class _label_reporter_class : public ChContactContainer::ReportContactCallback {
         gui::IGUIFont* font = this->cdevice->getGUIEnvironment()->getBuiltInFont();
 
         switch (labeltype) {
-            case IrrContactsLabelMode::CONTACT_DISTANCES_VAL:
+            case ContactsLabelMode::CONTACT_DISTANCES_VAL:
                 sprintf(buffer, "% 6.3g", distance);
                 break;
-            case IrrContactsLabelMode::CONTACT_FORCES_N_VAL:
+            case ContactsLabelMode::CONTACT_FORCES_N_VAL:
                 sprintf(buffer, "% 6.3g", react_forces.x());
                 break;
-            case IrrContactsLabelMode::CONTACT_FORCES_T_VAL:
+            case ContactsLabelMode::CONTACT_FORCES_T_VAL:
                 sprintf(buffer, "% 6.3g", ChVector<>(0, react_forces.y(), react_forces.z()).Length());
                 break;
-            case IrrContactsLabelMode::CONTACT_FORCES_VAL:
+            case ContactsLabelMode::CONTACT_FORCES_VAL:
                 sprintf(buffer, "% 6.3g", ChVector<>(react_forces).Length());
                 break;
-            case IrrContactsLabelMode::CONTACT_TORQUES_VAL:
+            case ContactsLabelMode::CONTACT_TORQUES_VAL:
                 sprintf(buffer, "% 6.3g", ChVector<>(react_torques).Length());
                 break;
-            case IrrContactsLabelMode::CONTACT_TORQUES_S_VAL:
+            case ContactsLabelMode::CONTACT_TORQUES_S_VAL:
                 sprintf(buffer, "% 6.3g", react_torques.x());
                 break;
-            case IrrContactsLabelMode::CONTACT_TORQUES_R_VAL:
+            case ContactsLabelMode::CONTACT_TORQUES_R_VAL:
                 sprintf(buffer, "% 6.3g", ChVector<>(0, react_torques.y(), react_torques.z()).Length());
                 break;
             default:
@@ -201,28 +271,25 @@ class _label_reporter_class : public ChContactContainer::ReportContactCallback {
     }
 
     irr::IrrlichtDevice* cdevice;
-    IrrContactsLabelMode labeltype;
+    ContactsLabelMode labeltype;
     irr::video::SColor ccol;
 };
 
-int drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontainer,
-                         irr::IrrlichtDevice* device,
-                         IrrContactsLabelMode labeltype,
-                         irr::video::SColor mcol) {
-    if (labeltype == IrrContactsLabelMode::CONTACT_NONE_VAL)
+int drawAllContactLabels(ChVisualSystemIrrlicht* vis, ContactsLabelMode labeltype, ChColor col) {
+    if (labeltype == ContactsLabelMode::CONTACT_NONE_VAL)
         return 0;
 
-    // if (mphysicalSystem.GetNcontacts() == 0)
+    // if (sys.GetNcontacts() == 0)
     //   return 0;
 
     auto my_label_rep = chrono_types::make_shared<_label_reporter_class>();
 
-    my_label_rep->cdevice = device;
-    my_label_rep->ccol = mcol;
+    my_label_rep->cdevice = vis->GetDevice();
+    my_label_rep->ccol = tools::ToIrrlichtSColor(col);
     my_label_rep->labeltype = labeltype;
 
     // scan all contacts
-    mcontainer->ReportAllContacts(my_label_rep);
+    vis->GetSystem().GetContactContainer()->ReportAllContacts(my_label_rep);
 
     return 0;
 }
@@ -230,25 +297,25 @@ int drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontainer,
 // -----------------------------------------------------------------------------
 // Draw links as glyps.
 // ---------------------------------------------------------------------------
-int drawAllLinks(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double mlen, IrrLinkDrawMode drawtype) {
-    if (drawtype == IrrLinkDrawMode::LINK_NONE)
+int drawAllLinks(ChVisualSystemIrrlicht* vis, double mlen, LinkDrawMode drawtype) {
+    if (drawtype == LinkDrawMode::LINK_NONE)
         return 0;
 
-    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = false;
     mattransp.Lighting = false;
-    driver->setMaterial(mattransp);
+    vis->GetVideoDriver()->setMaterial(mattransp);
 
-    for (auto link : mphysicalSystem.Get_linklist()) {
+    for (auto link : vis->GetSystem().Get_linklist()) {
         ChCoordsys<> mlinkframe = link->GetLinkAbsoluteCoords();
         ChVector<> v1abs = mlinkframe.pos;
         ChVector<> v2;
         switch (drawtype) {
-            case IrrLinkDrawMode::LINK_REACT_FORCE:
+            case LinkDrawMode::LINK_REACT_FORCE:
                 v2 = link->Get_react_force();
                 break;
-            case IrrLinkDrawMode::LINK_REACT_TORQUE:
+            case LinkDrawMode::LINK_REACT_TORQUE:
                 v2 = link->Get_react_torque();
                 break;
             default:
@@ -259,7 +326,7 @@ int drawAllLinks(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, do
 
         irr::video::SColor mcol(200, 250, 250, 0);  // yellow vectors
 
-        driver->draw3DLine(irr::core::vector3dfCH(v1abs), irr::core::vector3dfCH(v2abs), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(v1abs), irr::core::vector3dfCH(v2abs), mcol);
     }
 
     return 0;
@@ -268,46 +335,43 @@ int drawAllLinks(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, do
 // -----------------------------------------------------------------------------
 // Draw links as labels
 // ---------------------------------------------------------------------------
-int drawAllLinkLabels(ChSystem& mphysicalSystem,
-                      irr::IrrlichtDevice* device,
-                      IrrLinkLabelMode labeltype,
-                      irr::video::SColor mcol) {
-    if (labeltype == IrrLinkLabelMode::LINK_NONE_VAL)
+int drawAllLinkLabels(ChVisualSystemIrrlicht* vis, LinkLabelMode labeltype, ChColor col) {
+    if (labeltype == LinkLabelMode::LINK_NONE_VAL)
         return 0;
 
-    for (auto link : mphysicalSystem.Get_linklist()) {
+    for (auto link : vis->GetSystem().Get_linklist()) {
         ChCoordsys<> mlinkframe = link->GetLinkAbsoluteCoords();
 
         char buffer[25];
         irr::core::vector3df mpos((irr::f32)mlinkframe.pos.x(), (irr::f32)mlinkframe.pos.y(),
                                   (irr::f32)mlinkframe.pos.z());
         irr::core::position2d<s32> spos =
-            device->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
-        gui::IGUIFont* font = device->getGUIEnvironment()->getBuiltInFont();
+            vis->GetDevice()->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
+        gui::IGUIFont* font = vis->GetDevice()->getGUIEnvironment()->getBuiltInFont();
 
         switch (labeltype) {
-            case IrrLinkLabelMode::LINK_REACT_FORCE_VAL:
+            case LinkLabelMode::LINK_REACT_FORCE_VAL:
                 sprintf(buffer, "% 6.3g", link->Get_react_force().Length());
                 break;
-            case IrrLinkLabelMode::LINK_REACT_FORCE_X:
+            case LinkLabelMode::LINK_REACT_FORCE_X:
                 sprintf(buffer, "% 6.3g", link->Get_react_force().x());
                 break;
-            case IrrLinkLabelMode::LINK_REACT_FORCE_Y:
+            case LinkLabelMode::LINK_REACT_FORCE_Y:
                 sprintf(buffer, "% 6.3g", link->Get_react_force().y());
                 break;
-            case IrrLinkLabelMode::LINK_REACT_FORCE_Z:
+            case LinkLabelMode::LINK_REACT_FORCE_Z:
                 sprintf(buffer, "% 6.3g", link->Get_react_force().z());
                 break;
-            case IrrLinkLabelMode::LINK_REACT_TORQUE_VAL:
+            case LinkLabelMode::LINK_REACT_TORQUE_VAL:
                 sprintf(buffer, "% 6.3g", link->Get_react_torque().Length());
                 break;
-            case IrrLinkLabelMode::LINK_REACT_TORQUE_X:
+            case LinkLabelMode::LINK_REACT_TORQUE_X:
                 sprintf(buffer, "% 6.3g", link->Get_react_torque().x());
                 break;
-            case IrrLinkLabelMode::LINK_REACT_TORQUE_Y:
+            case LinkLabelMode::LINK_REACT_TORQUE_Y:
                 sprintf(buffer, "% 6.3g", link->Get_react_torque().y());
                 break;
-            case IrrLinkLabelMode::LINK_REACT_TORQUE_Z:
+            case LinkLabelMode::LINK_REACT_TORQUE_Z:
                 sprintf(buffer, "% 6.3g", link->Get_react_torque().z());
                 break;
             default:
@@ -315,7 +379,7 @@ int drawAllLinkLabels(ChSystem& mphysicalSystem,
         }
 
         font->draw(irr::core::stringw(buffer).c_str(),
-                   irr::core::rect<s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10), mcol);
+                   irr::core::rect<s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10), tools::ToIrrlichtSColor(col));
     }
 
     return 0;
@@ -324,14 +388,14 @@ int drawAllLinkLabels(ChSystem& mphysicalSystem,
 // -----------------------------------------------------------------------------
 // Draw collision objects bounding boxes for rigid bodies.
 // -----------------------------------------------------------------------------
-int drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver) {
-    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+int drawAllBoundingBoxes(ChVisualSystemIrrlicht* vis) {
+    vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
-    driver->setMaterial(mattransp);
+    vis->GetVideoDriver()->setMaterial(mattransp);
 
-    for (auto body : mphysicalSystem.Get_bodylist()) {
+    for (auto body : vis->GetSystem().Get_bodylist()) {
         irr::video::SColor mcol;
 
         if (body->GetSleeping())
@@ -360,18 +424,18 @@ int drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* dr
         ChVector<> p17(hi.x(), hi.y(), lo.z());
         ChVector<> p18(hi.x(), lo.y(), hi.z());
         ChVector<> p19(hi.x(), hi.y(), lo.z());
-        driver->draw3DLine(irr::core::vector3dfCH(lo), irr::core::vector3dfCH(p1), mcol);
-        driver->draw3DLine(irr::core::vector3dfCH(lo), irr::core::vector3dfCH(p2), mcol);
-        driver->draw3DLine(irr::core::vector3dfCH(lo), irr::core::vector3dfCH(p3), mcol);
-        driver->draw3DLine(irr::core::vector3dfCH(hi), irr::core::vector3dfCH(p4), mcol);
-        driver->draw3DLine(irr::core::vector3dfCH(hi), irr::core::vector3dfCH(p5), mcol);
-        driver->draw3DLine(irr::core::vector3dfCH(hi), irr::core::vector3dfCH(p6), mcol);
-        driver->draw3DLine(irr::core::vector3dfCH(p7), irr::core::vector3dfCH(p14), mcol);
-        driver->draw3DLine(irr::core::vector3dfCH(p8), irr::core::vector3dfCH(p15), mcol);
-        driver->draw3DLine(irr::core::vector3dfCH(p9), irr::core::vector3dfCH(p16), mcol);
-        driver->draw3DLine(irr::core::vector3dfCH(p10), irr::core::vector3dfCH(p17), mcol);
-        driver->draw3DLine(irr::core::vector3dfCH(p11), irr::core::vector3dfCH(p18), mcol);
-        driver->draw3DLine(irr::core::vector3dfCH(p12), irr::core::vector3dfCH(p19), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(lo), irr::core::vector3dfCH(p1), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(lo), irr::core::vector3dfCH(p2), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(lo), irr::core::vector3dfCH(p3), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(hi), irr::core::vector3dfCH(p4), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(hi), irr::core::vector3dfCH(p5), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(hi), irr::core::vector3dfCH(p6), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p7), irr::core::vector3dfCH(p14), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p8), irr::core::vector3dfCH(p15), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p9), irr::core::vector3dfCH(p16), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p10), irr::core::vector3dfCH(p17), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p11), irr::core::vector3dfCH(p18), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p12), irr::core::vector3dfCH(p19), mcol);
     }
 
     return 0;
@@ -380,14 +444,14 @@ int drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* dr
 // -----------------------------------------------------------------------------
 // Draw coordinate systems of ChBody objects bodies.
 // -----------------------------------------------------------------------------
-int drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale) {
-    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+int drawAllCOGs(ChVisualSystemIrrlicht* vis, double scale) {
+    vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
-    driver->setMaterial(mattransp);
+    vis->GetVideoDriver()->setMaterial(mattransp);
 
-    for (auto body : mphysicalSystem.Get_bodylist()) {
+    for (auto body : vis->GetSystem().Get_bodylist()) {
         irr::video::SColor mcol;
         const ChFrame<>& mframe_cog = body->GetFrame_COG_to_abs();
         const ChFrame<>& mframe_ref = body->GetFrame_REF_to_abs();
@@ -398,11 +462,11 @@ int drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, dou
         ChVector<> pz = p0 + mframe_cog.GetA().Get_A_Zaxis() * 0.5 * scale;
 
         mcol = irr::video::SColor(70, 125, 0, 0);  // X red
-        driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
         mcol = irr::video::SColor(70, 0, 125, 0);  // Y green
-        driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
         mcol = irr::video::SColor(70, 0, 0, 125);  // Z blue
-        driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
 
         p0 = mframe_ref.GetPos();
         px = p0 + mframe_ref.GetA().Get_A_Xaxis() * scale;
@@ -410,11 +474,11 @@ int drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, dou
         pz = p0 + mframe_ref.GetA().Get_A_Zaxis() * scale;
 
         mcol = irr::video::SColor(70, 255, 0, 0);  // X red
-        driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
         mcol = irr::video::SColor(70, 0, 255, 0);  // Y green
-        driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
         mcol = irr::video::SColor(70, 0, 0, 255);  // Z blue
-        driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
     }
 
     return 0;
@@ -423,20 +487,20 @@ int drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, dou
 // -----------------------------------------------------------------------------
 // Draw coordinate systems of frames used by links.
 // -----------------------------------------------------------------------------
-int drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale) {
-    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale) {
+    vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
-    driver->setMaterial(mattransp);
+    vis->GetVideoDriver()->setMaterial(mattransp);
 
-    for (auto link : mphysicalSystem.Get_linklist()) {
+    for (auto link : vis->GetSystem().Get_linklist()) {
         ChFrame<> frAabs;
         ChFrame<> frBabs;
 
         // default frame alignment:
 
-        frAabs = link->GetAssetsFrame();
+        frAabs = link->GetVisualModelFrame();
         frBabs = frAabs;
 
         // special cases:
@@ -459,11 +523,11 @@ int drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* drive
         ChVector<> pz = p0 + frAabs.GetA().Get_A_Zaxis() * 0.7 * scale;
 
         mcol = irr::video::SColor(70, 125, 0, 0);  // X red
-        driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
         mcol = irr::video::SColor(70, 0, 125, 0);  // Y green
-        driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
         mcol = irr::video::SColor(70, 0, 0, 125);  // Z blue
-        driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
 
         p0 = frBabs.GetPos();
         px = p0 + frBabs.GetA().Get_A_Xaxis() * scale;
@@ -471,11 +535,11 @@ int drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* drive
         pz = p0 + frBabs.GetA().Get_A_Zaxis() * scale;
 
         mcol = irr::video::SColor(70, 255, 0, 0);  // X red
-        driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
         mcol = irr::video::SColor(70, 0, 255, 0);  // Y green
-        driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
         mcol = irr::video::SColor(70, 0, 0, 255);  // Z blue
-        driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
     }
 
     return 0;
@@ -483,39 +547,32 @@ int drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* drive
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void drawHUDviolation(irr::video::IVideoDriver* driver,
-                      IrrlichtDevice* mdevice,
-                      ChSystem& asystem,
-                      int mx,
-                      int my,
-                      int sx,
-                      int sy,
-                      double spfact) {
-    auto msolver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(asystem.GetSolver());
+void drawHUDviolation(ChVisualSystemIrrlicht* vis, int mx, int my, int sx, int sy, double spfact) {
+    auto msolver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(vis->GetSystem().GetSolver());
     if (!msolver_speed)
         return;
 
     msolver_speed->SetRecordViolation(true);
 
     irr::core::rect<s32> mrect(mx, my, mx + sx, my + sy);
-    driver->draw2DRectangle(irr::video::SColor(100, 200, 200, 230), mrect);
+    vis->GetVideoDriver()->draw2DRectangle(irr::video::SColor(100, 200, 200, 230), mrect);
     for (unsigned int i = 0; i < msolver_speed->GetViolationHistory().size(); i++) {
-        driver->draw2DRectangle(
+        vis->GetVideoDriver()->draw2DRectangle(
             irr::video::SColor(90, 255, 0, 0),
             irr::core::rect<s32>(mx + i * 4, sy + my - (int)(spfact * msolver_speed->GetViolationHistory()[i]),
                                  mx + (i + 1) * 4 - 1, sy + my),
             &mrect);
     }
     for (unsigned int i = 0; i < msolver_speed->GetDeltalambdaHistory().size(); i++) {
-        driver->draw2DRectangle(
+        vis->GetVideoDriver()->draw2DRectangle(
             irr::video::SColor(100, 255, 255, 0),
             irr::core::rect<s32>(mx + i * 4, sy + my - (int)(spfact * msolver_speed->GetDeltalambdaHistory()[i]),
                                  mx + (i + 1) * 4 - 2, sy + my),
             &mrect);
     }
 
-    if (mdevice->getGUIEnvironment()) {
-        gui::IGUIFont* font = mdevice->getGUIEnvironment()->getBuiltInFont();
+    if (vis->GetDevice()->getGUIEnvironment()) {
+        gui::IGUIFont* font = vis->GetDevice()->getGUIEnvironment()->getBuiltInFont();
         if (font) {
             char buffer[100];
             font->draw(L"Solver speed violation", irr::core::rect<s32>(mx + sx / 2 - 100, my, mx + sx, my + 10),
@@ -529,7 +586,7 @@ void drawHUDviolation(irr::video::IVideoDriver* driver,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void drawChFunction(IrrlichtDevice* mdevice,
+void drawChFunction(ChVisualSystemIrrlicht* vis,
                     ChFunction* fx,
                     double xmin,
                     double xmax,
@@ -539,7 +596,7 @@ void drawChFunction(IrrlichtDevice* mdevice,
                     int my,
                     int sx,
                     int sy) {
-    irr::video::IVideoDriver* driver = mdevice->getVideoDriver();
+    irr::video::IVideoDriver* driver = vis->GetDevice()->getVideoDriver();
 
     if (!fx)
         return;
@@ -547,8 +604,8 @@ void drawChFunction(IrrlichtDevice* mdevice,
     irr::core::rect<s32> mrect(mx, my, mx + sx, my + sy);
     driver->draw2DRectangle(irr::video::SColor(100, 200, 200, 230), mrect);
 
-    if (mdevice->getGUIEnvironment()) {
-        gui::IGUIFont* font = mdevice->getGUIEnvironment()->getBuiltInFont();
+    if (vis->GetDevice()->getGUIEnvironment()) {
+        gui::IGUIFont* font = vis->GetDevice()->getGUIEnvironment()->getBuiltInFont();
         if (font) {
             char buffer[100];
             sprintf(buffer, "%g", ymax);
@@ -588,57 +645,51 @@ void drawChFunction(IrrlichtDevice* mdevice,
 // -----------------------------------------------------------------------------
 // Draw segment lines in 3D space, with given color.
 // -----------------------------------------------------------------------------
-void drawSegment(irr::video::IVideoDriver* driver,
-                 ChVector<> mstart,
-                 ChVector<> mend,
-                 irr::video::SColor mcol,
-                 bool use_Zbuffer) {
-    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+void drawSegment(ChVisualSystemIrrlicht* vis, ChVector<> start, ChVector<> end, ChColor col, bool use_Zbuffer) {
+    vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = use_Zbuffer;
     mattransp.Lighting = false;
-    driver->setMaterial(mattransp);
-    driver->draw3DLine(irr::core::vector3dfCH(mstart), irr::core::vector3dfCH(mend), mcol);
+    vis->GetVideoDriver()->setMaterial(mattransp);
+    vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(start), irr::core::vector3dfCH(end),
+                                      tools::ToIrrlichtSColor(col));
 }
 
 // -----------------------------------------------------------------------------
 // Draw a polyline in 3D space, given the array of points as a std::vector.
 // -----------------------------------------------------------------------------
-void drawPolyline(irr::video::IVideoDriver* driver,
-                  std::vector<ChVector<> >& mpoints,
-                  irr::video::SColor mcol,
-                  bool use_Zbuffer) {
+void drawPolyline(ChVisualSystemIrrlicht* vis, std::vector<ChVector<> >& points, ChColor col, bool use_Zbuffer) {
     // not very efficient, but enough as an example..
-    if (mpoints.size() < 2)
+    if (points.size() < 2)
         return;
 
-    for (unsigned int i = 0; i < mpoints.size() - 1; i++)
-        drawSegment(driver, mpoints[i], mpoints[i + 1], mcol, use_Zbuffer);
+    for (unsigned int i = 0; i < points.size() - 1; i++)
+        drawSegment(vis, points[i], points[i + 1], col, use_Zbuffer);
 }
 
 // -----------------------------------------------------------------------------
 // Draw a circle line in 3D space, with given color.
 // -----------------------------------------------------------------------------
-void drawCircle(irr::video::IVideoDriver* driver,
+void drawCircle(ChVisualSystemIrrlicht* vis,
                 double radius,
-                ChCoordsys<> mpos,
-                irr::video::SColor mcol,
-                int mresolution,
+                ChCoordsys<> pos,
+                ChColor col,
+                int resolution,
                 bool use_Zbuffer) {
-    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = false;
     mattransp.Lighting = false;
-    driver->setMaterial(mattransp);
+    vis->GetVideoDriver()->setMaterial(mattransp);
 
     double phaseA = 0;
     double phaseB = 0;
 
-    for (int iu = 1; iu <= mresolution; iu++) {
-        phaseB = CH_C_2PI * (double)iu / (double)mresolution;
+    for (int iu = 1; iu <= resolution; iu++) {
+        phaseB = CH_C_2PI * (double)iu / (double)resolution;
         ChVector<> V1(radius * cos(phaseA), radius * sin(phaseA), 0);
         ChVector<> V2(radius * cos(phaseB), radius * sin(phaseB), 0);
-        drawSegment(driver, mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2), mcol, use_Zbuffer);
+        drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
         phaseA = phaseB;
     }
 }
@@ -646,12 +697,12 @@ void drawCircle(irr::video::IVideoDriver* driver,
 // -----------------------------------------------------------------------------
 // Draw a spring in 3D space, with given color.
 // -----------------------------------------------------------------------------
-void drawSpring(irr::video::IVideoDriver* driver,
+void drawSpring(ChVisualSystemIrrlicht* vis,
                 double radius,
                 ChVector<> start,
                 ChVector<> end,
-                irr::video::SColor mcol,
-                int mresolution,
+                ChColor col,
+                int resolution,
                 double turns,
                 bool use_Zbuffer) {
     ChMatrix33<> rel_matrix;
@@ -662,25 +713,25 @@ void drawSpring(irr::video::IVideoDriver* driver,
     XdirToDxDyDz(dir, VECT_Y, Vx, Vy, Vz);
     rel_matrix.Set_A_axis(Vx, Vy, Vz);
     ChQuaternion<> Q12 = rel_matrix.Get_A_quaternion();
-    ChCoordsys<> mpos(start, Q12);
+    ChCoordsys<> pos(start, Q12);
 
-    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = false;
     mattransp.Lighting = false;
-    driver->setMaterial(mattransp);
+    vis->GetVideoDriver()->setMaterial(mattransp);
 
     double phaseA = 0;
     double phaseB = 0;
     double heightA = 0;
     double heightB = 0;
 
-    for (int iu = 1; iu <= mresolution; iu++) {
-        phaseB = turns * CH_C_2PI * (double)iu / (double)mresolution;
-        heightB = length * ((double)iu / (double)mresolution);
+    for (int iu = 1; iu <= resolution; iu++) {
+        phaseB = turns * CH_C_2PI * (double)iu / (double)resolution;
+        heightB = length * ((double)iu / (double)resolution);
         ChVector<> V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
         ChVector<> V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
-        drawSegment(driver, mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2), mcol, use_Zbuffer);
+        drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
         phaseA = phaseB;
         heightA = heightB;
     }
@@ -689,19 +740,19 @@ void drawSpring(irr::video::IVideoDriver* driver,
 // -----------------------------------------------------------------------------
 // Draw a rotational spring in 3D space, with given color.
 // -----------------------------------------------------------------------------
-ChApiIrr void drawRotSpring(irr::video::IVideoDriver* driver,
+ChApiIrr void drawRotSpring(ChVisualSystemIrrlicht* vis,
                             ChCoordsys<> pos,
                             double radius,
                             double start_angle,
                             double end_angle,
-                            irr::video::SColor col,
+                            ChColor col,
                             int resolution,
                             bool use_Zbuffer) {
-    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = false;
     mattransp.Lighting = false;
-    driver->setMaterial(mattransp);
+    vis->GetVideoDriver()->setMaterial(mattransp);
 
     double del_angle = (end_angle - start_angle) / resolution;
     ChVector<> V1(radius * std::cos(start_angle), radius * std::sin(start_angle), 0);
@@ -710,7 +761,7 @@ ChApiIrr void drawRotSpring(irr::video::IVideoDriver* driver,
         double crt_angle = start_angle + iu * del_angle;
         double crt_radius = radius - (iu * del_angle / CH_C_2PI) * (radius / 10);
         ChVector<> V2(crt_radius * std::cos(crt_angle), crt_radius * std::sin(crt_angle), 0);
-        drawSegment(driver, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
         V1 = V2;
     }
 }
@@ -718,47 +769,47 @@ ChApiIrr void drawRotSpring(irr::video::IVideoDriver* driver,
 // -----------------------------------------------------------------------------
 // Draw grids in 3D space, with given orientation, colour and spacing.
 // -----------------------------------------------------------------------------
-void drawGrid(irr::video::IVideoDriver* driver,
+void drawGrid(ChVisualSystemIrrlicht* vis,
               double ustep,
               double vstep,
               int nu,
               int nv,
-              ChCoordsys<> mpos,
-              irr::video::SColor mcol,
+              ChCoordsys<> pos,
+              ChColor col,
               bool use_Zbuffer) {
-    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
-    driver->setMaterial(mattransp);
+    vis->GetVideoDriver()->setMaterial(mattransp);
 
     for (int iu = -nu / 2; iu <= nu / 2; iu++) {
         ChVector<> V1(iu * ustep, vstep * (nv / 2), 0);
         ChVector<> V2(iu * ustep, -vstep * (nv / 2), 0);
-        drawSegment(driver, mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2), mcol, use_Zbuffer);
+        drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
     }
 
     for (int iv = -nv / 2; iv <= nv / 2; iv++) {
         ChVector<> V1(ustep * (nu / 2), iv * vstep, 0);
         ChVector<> V2(-ustep * (nu / 2), iv * vstep, 0);
-        drawSegment(driver, mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2), mcol, use_Zbuffer);
+        drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
     }
 }
 
 /// Easy-to-use function to draw color map 2D legend
-void drawColorbar(double vmin,
+void drawColorbar(ChVisualSystemIrrlicht* vis,
+                  double vmin,
                   double vmax,
                   const std::string& label,
-                  IrrlichtDevice* mdevice,
                   int mx,
                   int my,
                   int sx,
                   int sy) {
-    irr::video::IVideoDriver* driver = mdevice->getVideoDriver();
+    irr::video::IVideoDriver* driver = vis->GetVideoDriver();
 
     gui::IGUIFont* font = 0;
-    if (mdevice->getGUIEnvironment())
-        font = mdevice->getGUIEnvironment()->getSkin()->getFont();
+    if (vis->GetGUIEnvironment())
+        font = vis->GetGUIEnvironment()->getSkin()->getFont();
 
     int steps = 10;
     double ystep = ((double)sy / (double)steps);
@@ -790,18 +841,18 @@ void drawColorbar(double vmin,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void drawPlot3D(irr::video::IVideoDriver* driver,
+void drawPlot3D(ChVisualSystemIrrlicht* vis,
                 ChMatrixConstRef X,
                 ChMatrixConstRef Y,
                 ChMatrixConstRef Z,
-                ChCoordsys<> mpos,
-                irr::video::SColor mcol,
+                ChCoordsys<> pos,
+                ChColor col,
                 bool use_Zbuffer) {
-    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
-    driver->setMaterial(mattransp);
+    vis->GetVideoDriver()->setMaterial(mattransp);
 
     if ((X.cols() != Y.cols()) || (X.cols() != Z.cols()) || (X.rows() != Y.rows()) || (X.rows() != Z.rows())) {
         GetLog() << "drawPlot3D: X Y Z matrices must have the same size, as n.rows and n.columns \n";
@@ -813,15 +864,13 @@ void drawPlot3D(irr::video::IVideoDriver* driver,
             if (ix > 0) {
                 ChVector<> Vx1(X(ix - 1, iy), Y(ix - 1, iy), Z(ix - 1, iy));
                 ChVector<> Vx2(X(ix, iy), Y(ix, iy), Z(ix, iy));
-                drawSegment(driver, mpos.TransformLocalToParent(Vx1), mpos.TransformLocalToParent(Vx2), mcol,
-                            use_Zbuffer);
+                drawSegment(vis, pos.TransformLocalToParent(Vx1), pos.TransformLocalToParent(Vx2), col, use_Zbuffer);
             }
 
             if (iy > 0) {
                 ChVector<> Vy1(X(ix, iy - 1), Y(ix, iy - 1), Z(ix, iy - 1));
                 ChVector<> Vy2(X(ix, iy), Y(ix, iy), Z(ix, iy));
-                drawSegment(driver, mpos.TransformLocalToParent(Vy1), mpos.TransformLocalToParent(Vy2), mcol,
-                            use_Zbuffer);
+                drawSegment(vis, pos.TransformLocalToParent(Vy1), pos.TransformLocalToParent(Vy2), col, use_Zbuffer);
             }
         }
     }
@@ -895,8 +944,8 @@ void drawProfilerRecursive(utils::ChProfileIterator* profileIterator,
     ypos += 20;
 }
 
-/// Draw run-time profiler infos
-void drawProfiler(irr::IrrlichtDevice* device) {
+// Draw run-time profiler infos
+void drawProfiler(ChVisualSystemIrrlicht* vis) {
     int mx = 230;
     int my = 30;
     int sx = 500;
@@ -906,9 +955,21 @@ void drawProfiler(irr::IrrlichtDevice* device) {
     utils::ChProfileIterator* profileIterator = 0;
     profileIterator = chrono::utils::ChProfileManager::Get_Iterator();
 
-    drawProfilerRecursive(profileIterator, device, mx, my, sx, sy, 0, ypos);
+    drawProfilerRecursive(profileIterator, vis->GetDevice(), mx, my, sx, sy, 0, ypos);
 
     utils::ChProfileManager::Release_Iterator(profileIterator);
+}
+
+// Draw RGB coordinate system
+void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord, double scale) {
+    ChVector<> pos = coord.pos;
+    ChQuaternion<> rot = coord.rot;
+    // X axis
+    drawSegment(vis, pos, pos + rot.Rotate(VECT_X) * scale, ChColor(1, 0, 0));
+    // Y axis
+    drawSegment(vis, pos, pos + rot.Rotate(VECT_Y) * scale, ChColor(0, 1, 0));
+    // Z axis
+    drawSegment(vis, pos, pos + rot.Rotate(VECT_Z) * scale, ChColor(0, 0, 1));
 }
 
 }  // end namespace tools

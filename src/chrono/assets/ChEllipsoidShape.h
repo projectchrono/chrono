@@ -13,23 +13,20 @@
 #ifndef CHOBJELLIPSOIDSHAPE_H
 #define CHOBJELLIPSOIDSHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChEllipsoid.h"
 
 namespace chrono {
 
 /// Class for referencing an ellipsoid shape that can be visualized in some way.
-class ChApi ChEllipsoidShape : public ChVisualization {
-  protected:
-    geometry::ChEllipsoid gellipsoid;
-
+class ChApi ChEllipsoidShape : public ChVisualShape {
   public:
-    ChEllipsoidShape() {}
-    ChEllipsoidShape(const geometry::ChEllipsoid& mellipsoid) : gellipsoid(mellipsoid) {}
+    ChEllipsoidShape();
+    ChEllipsoidShape(const geometry::ChEllipsoid& ellipsoid);
 
-    virtual ~ChEllipsoidShape(){};
+    ~ChEllipsoidShape(){};
 
-    // Access the sphere geometry
+    // Access the ellipsoid geometry.
     geometry::ChEllipsoid& GetEllipsoidGeometry() { return gellipsoid; }
 
     /// Method to allow serialization of transient data to archives.
@@ -37,6 +34,9 @@ class ChApi ChEllipsoidShape : public ChVisualization {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    geometry::ChEllipsoid gellipsoid;
 };
 
 CH_CLASS_VERSION(ChEllipsoidShape, 0)

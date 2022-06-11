@@ -1,18 +1,20 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Alessandro Tasora
+# Copyright (c) 2019 projectchrono.org
+# All rights reserved.
 #
-# Created:     1/01/2019
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 
 import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
 
-print ("Example: create a system and visualize it in realtime 3D");
+print ("Example: create a sys and visualize it in realtime 3D");
 
 # The path to the Chrono data directory containing various assets (meshes, textures, data files)
 # is automatically set, relative to the default location of this demo.
@@ -21,14 +23,14 @@ print ("Example: create a system and visualize it in realtime 3D");
 
 # ---------------------------------------------------------------------
 #
-#  Create the simulation system and add items
+#  Create the simulation sys and add items
 #
 
-mysystem      = chrono.ChSystemNSC()
+sys      = chrono.ChSystemNSC()
 
 mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000)
 mfloor.SetBodyFixed(True)
-mysystem.Add(mfloor)
+sys.Add(mfloor)
 
 #
 # EXAMPLE1
@@ -50,13 +52,13 @@ mpath.Set_closed(True)
 # The ChLinePath is a special type of ChLine and it can be visualized.
 mpathasset = chrono.ChLineShape()
 mpathasset.SetLineGeometry(mpath)
-mfloor.AddAsset(mpathasset)
+mfloor.AddVisualShape(mpathasset)
 
 # Create a body that will follow the trajectory
 
 mpendulum = chrono.ChBodyEasyBox(0.1, 1, 0.1, 1000)
 mpendulum.SetPos(chrono.ChVectorD(1, 1.5, 0))
-mysystem.Add(mpendulum)
+sys.Add(mpendulum)
 
 # The trajectory constraint:
 
@@ -75,7 +77,7 @@ mtrajectory.Initialize(mpendulum, # body1 that follows the trajectory
 mspacefx = chrono.ChFunction_Ramp(0, 0.5)
 mtrajectory.Set_space_fx(mspacefx)
 
-mysystem.Add(mtrajectory)
+sys.Add(mtrajectory)
 
 #
 # EXAMPLE 2:
@@ -85,14 +87,14 @@ mysystem.Add(mtrajectory)
 
 mwheel = chrono.ChBody()
 mwheel.SetPos(chrono.ChVectorD(-3, 2, 0))
-mysystem.Add(mwheel)
+sys.Add(mwheel)
 
 # Create a motor that spins the wheel
 my_motor = chrono.ChLinkMotorRotationSpeed()
 my_motor.Initialize(mwheel, mfloor, chrono.ChFrameD(chrono.ChVectorD(-3, 2, 0)))
 my_angularspeed = chrono.ChFunction_Const(chrono.CH_C_PI / 4.0)
 my_motor.SetMotorFunction(my_angularspeed)
-mysystem.Add(my_motor)
+sys.Add(my_motor)
 
 # Create a ChLinePath geometry, and insert sub-paths:
 mglyph = chrono.ChLinePath()
@@ -111,13 +113,13 @@ mglyph.Set_closed(True)
 # The ChLinePath is a special type of ChLine and it can be visualized.
 mglyphasset = chrono.ChLineShape()
 mglyphasset.SetLineGeometry(mglyph)
-mwheel.AddAsset(mglyphasset)
+mwheel.AddVisualShape(mglyphasset)
 
 # Create a body that will slide on the glyph
 
 mpendulum2 = chrono.ChBodyEasyBox(0.1, 1, 0.1, 1000)
 mpendulum2.SetPos(chrono.ChVectorD(-3, 1, 0))
-mysystem.Add(mpendulum2)
+sys.Add(mpendulum2)
 
 # The glyph constraint:
 
@@ -132,32 +134,23 @@ mglyphconstraint.Initialize(mpendulum2,  # body1 that follows the trajectory
 
 mglyphconstraint.Set_trajectory_line(mglyph)
 
-mysystem.Add(mglyphconstraint)
+sys.Add(mglyphconstraint)
 
 
 # ---------------------------------------------------------------------
 #
-#  Create an Irrlicht application to visualize the system
+#  Create an Irrlicht application to visualize the sys
 #
 
-myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example', chronoirr.dimension2du(1024,768))
-
-myapplication.AddSkyBox()
-myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddCamera(chronoirr.vector3df(1,4,5), chronoirr.vector3df(0,2,0))
-myapplication.AddTypicalLights()
-
-            # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-			# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-			# If you need a finer control on which item really needs a visualization proxy in
-			# Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-myapplication.AssetBindAll();
-
-			# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-			# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-myapplication.AssetUpdateAll();
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Paths demo')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(1,4,5), chrono.ChVectorD(0,2,0))
+vis.AddTypicalLights()
 
 
 # ---------------------------------------------------------------------
@@ -165,15 +158,11 @@ myapplication.AssetUpdateAll();
 #  Run the simulation
 #
 
-
-myapplication.SetTimestep(0.005)
-myapplication.SetTryRealtime(True)
-
-while(myapplication.GetDevice().run()):
-    myapplication.BeginScene()
-    myapplication.DrawAll()
-    myapplication.DoStep()
-    myapplication.EndScene()
+while vis.Run():
+    vis.BeginScene() 
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(5e-3)
 
 
 

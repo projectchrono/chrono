@@ -34,7 +34,12 @@ namespace m113 {
 /// M113 track assembly using double-pin track shoes.
 class CH_MODELS_API M113_TrackAssemblyDoublePin : public ChTrackAssemblyDoublePin {
   public:
-    M113_TrackAssemblyDoublePin(VehicleSide side, BrakeType brake_type, bool add_RSDA);
+    M113_TrackAssemblyDoublePin(VehicleSide side,
+                                DoublePinTrackShoeType topology,
+                                BrakeType brake_type,
+                                bool use_track_bushings,
+                                bool use_suspension_bushings,
+                                bool use_track_RSDA);
 
     virtual const ChVector<> GetSprocketLocation() const override;
     virtual const ChVector<> GetIdlerLocation() const override;

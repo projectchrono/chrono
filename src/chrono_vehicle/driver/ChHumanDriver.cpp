@@ -202,13 +202,15 @@ void ChHumanDriver::Create() {
     auto road = std::shared_ptr<ChBody>(m_vehicle.GetSystem()->NewBody());
     road->SetBodyFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
+
     auto num_points = static_cast<unsigned int>(m_path->getNumPoints());
     auto path_asset = chrono_types::make_shared<ChLineShape>();
     path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(m_path));
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
-    road->AddAsset(path_asset);
+
+    road->AddVisualShape(path_asset);
 }
 
 void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
@@ -220,9 +222,9 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_run_once = false;
     }
 
-    auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame (ISO frame)
-    auto& chassis_rot = chassis_frame.GetRot();                               // chassis ref-to-world rotation (ISO frame)
-    double u = m_vehicle.GetVehicleSpeed();                                   // vehicle speed
+    auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame
+    auto& chassis_rot = chassis_frame.GetRot();                               // chassis ref-to-world rotation
+    double u = m_vehicle.GetSpeed();                                          // vehicle speed
 
     m_distance = m_UIntegrator.Filter(u);
     m_travel_time += step;
@@ -233,7 +235,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_speed_min = u;
     }
 
-    double acc = m_acc_filter.Filter(m_vehicle.GetVehiclePointAcceleration(ChVector<>(0, 0, 0)).y());
+    double acc = m_acc_filter.Filter(m_vehicle.GetPointAcceleration(ChVector<>(0, 0, 0)).y());
     if (acc > m_left_acc) {
         m_left_acc = acc;
     }

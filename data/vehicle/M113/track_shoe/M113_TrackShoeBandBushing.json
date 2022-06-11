@@ -31,13 +31,17 @@
         "Offset": 0
     },
 
-    "Bushing Parameters": {
+    "Bushing Data": {
         "Stiffness Linear": 7e7,
-        "Stiffness Rotational DOF": 500,
-        "Stiffness Rotational non-DOF": 1e5,
         "Damping Linear": 0.35e7,
-        "Damping Rotational DOF": 25,
-        "Damping Rotational non-DOF": 0.05e5
+        "Stiffness Rotational": 1e5,
+        "Damping Rotational": 0.05e5,
+        "DOF": {
+            "Stiffness Linear": 0,
+            "Damping Linear": 0,
+            "Stiffness Rotational": 500,
+            "Damping Rotational": 25
+        }
     },
 
     "Contact Materials": {

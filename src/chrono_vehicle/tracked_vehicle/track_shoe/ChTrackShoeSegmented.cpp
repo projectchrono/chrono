@@ -49,7 +49,7 @@ void ChTrackShoeSegmented::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChTrackShoeSegmented::RemoveVisualizationAssets() {
-    m_shoe->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_shoe);
 }
 
 }  // end namespace vehicle

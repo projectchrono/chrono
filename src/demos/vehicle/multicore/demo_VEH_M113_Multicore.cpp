@@ -373,8 +373,6 @@ int main(int argc, char* argv[]) {
     m113.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     m113.Initialize();
 
-    ChVehicleGeometry::EnableVisualizationAssetLevels(false);
-
     m113.SetChassisVisualizationType(VisualizationType::NONE);
     m113.SetSprocketVisualizationType(VisualizationType::MESH);
     m113.SetIdlerVisualizationType(VisualizationType::MESH);
@@ -421,7 +419,7 @@ int main(int argc, char* argv[]) {
 
     while (time < time_end) {
         // Collect output data from modules
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
         m113.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
         m113.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
 

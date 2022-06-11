@@ -24,10 +24,9 @@ namespace chrono {
 namespace geometry {
 
 /// Base class for all geometric objects representing tri-parametric surfaces in 3D space.
-/// This is the base for all U,V,W-parametric object, implementing Evaluate()
-/// that returns a point as a function of three U,V,W parameters.
+/// This is the base for all U,V,W-parametric object, implementing Evaluate() that returns a point as a function of
+/// three U,V,W parameters.
 class ChApi ChVolume : public ChGeometry {
-  protected:
   public:
     ChVolume() {}
     ChVolume(const ChVolume& source){};

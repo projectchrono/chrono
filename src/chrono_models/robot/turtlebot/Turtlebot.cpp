@@ -20,7 +20,6 @@
 
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTexture.h"
@@ -169,15 +168,14 @@ Turtlebot_Part::Turtlebot_Part(const std::string& name,
 
 // Create Visulization assets
 void Turtlebot_Part::AddVisualizationAssets() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(m_mesh_name);
-    trimesh_shape->SetStatic(true);
-    m_body->AddAsset(trimesh_shape);
+    trimesh_shape->SetMutable(false);
+    m_body->AddVisualShape(trimesh_shape);
     return;
 }
 
@@ -187,14 +185,9 @@ void Turtlebot_Part::SetCollide(bool state) {
 
 // Add collision assets
 void Turtlebot_Part::AddCollisionShapes() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName(m_mesh_name);
-    trimesh_shape->SetStatic(true);
 
     m_body->GetCollisionModel()->ClearModel();
     m_body->GetCollisionModel()->AddTriangleMesh(m_mat, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
@@ -219,9 +212,8 @@ Turtlebot_Chassis::Turtlebot_Chassis(const std::string& name,
 }
 
 void Turtlebot_Chassis::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -277,9 +269,8 @@ Turtlebot_ActiveWheel::Turtlebot_ActiveWheel(const std::string& name,
 }
 
 void Turtlebot_ActiveWheel::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -340,9 +331,8 @@ Turtlebot_PassiveWheel::Turtlebot_PassiveWheel(const std::string& name,
 }
 
 void Turtlebot_PassiveWheel::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -403,9 +393,8 @@ Turtlebot_Rod_Short::Turtlebot_Rod_Short(const std::string& name,
 }
 
 void Turtlebot_Rod_Short::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -468,9 +457,8 @@ Turtlebot_BottomPlate::Turtlebot_BottomPlate(const std::string& name,
 }
 
 void Turtlebot_BottomPlate::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -532,9 +520,8 @@ Turtlebot_MiddlePlate::Turtlebot_MiddlePlate(const std::string& name,
 }
 
 void Turtlebot_MiddlePlate::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -596,9 +583,8 @@ Turtlebot_TopPlate::Turtlebot_TopPlate(const std::string& name,
 }
 
 void Turtlebot_TopPlate::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -662,9 +648,8 @@ Turtlebot_Rod_Long::Turtlebot_Rod_Long(const std::string& name,
 }
 
 void Turtlebot_Rod_Long::Initialize() {
-    std::string vis_mesh_file = "robot/turtlebot/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -745,38 +730,24 @@ void TurtleBot::Create() {
     double dwx = 0;
     double dwy = 0.11505;
     double dwz = 0.03735;
-    for (int i = 0; i < 2; i++) {
-        if (i == 0) {
-            m_drive_wheels.push_back(chrono_types::make_shared<Turtlebot_ActiveWheel>(
-                "LDWheel", false, m_wheel_material, m_system, ChVector<>(dwx, +dwy, dwz), ChQuaternion<>(1, 0, 0, 0),
-                m_chassis->GetBody(), true));
-        }
-
-        if (i == 1) {
-            m_drive_wheels.push_back(chrono_types::make_shared<Turtlebot_ActiveWheel>(
-                "RDWheel", false, m_wheel_material, m_system, ChVector<>(dwx, -dwy, dwz), ChQuaternion<>(1, 0, 0, 0),
-                m_chassis->GetBody(), true));
-        }
-    }
+    m_drive_wheels.push_back(chrono_types::make_shared<Turtlebot_ActiveWheel>(
+        "LDWheel", false, m_wheel_material, m_system, ChVector<>(dwx, +dwy, dwz), ChQuaternion<>(1, 0, 0, 0),
+        m_chassis->GetBody(), true));
+    m_drive_wheels.push_back(chrono_types::make_shared<Turtlebot_ActiveWheel>(
+        "RDWheel", false, m_wheel_material, m_system, ChVector<>(dwx, -dwy, dwz), ChQuaternion<>(1, 0, 0, 0),
+        m_chassis->GetBody(), true));
 
     // passive driven wheels' positions relative to the chassis
     double pwx = 0.11505;
     double pwy = 0;
     double pwz = 0.02015;
 
-    for (int i = 0; i < 2; i++) {
-        if (i == 0) {
-            m_passive_wheels.push_back(chrono_types::make_shared<Turtlebot_PassiveWheel>(
-                "FPWheel", false, m_wheel_material, m_system, ChVector<>(pwx, pwy, pwz), ChQuaternion<>(1, 0, 0, 0),
-                m_chassis->GetBody(), true));
-        }
-
-        if (i == 1) {
-            m_passive_wheels.push_back(chrono_types::make_shared<Turtlebot_PassiveWheel>(
-                "RPWheel", false, m_wheel_material, m_system, ChVector<>(-pwx, pwy, pwz), ChQuaternion<>(1, 0, 0, 0),
-                m_chassis->GetBody(), true));
-        }
-    }
+    m_passive_wheels.push_back(chrono_types::make_shared<Turtlebot_PassiveWheel>(
+        "FPWheel", false, m_wheel_material, m_system, ChVector<>(pwx, pwy, pwz), ChQuaternion<>(1, 0, 0, 0),
+        m_chassis->GetBody(), true));
+    m_passive_wheels.push_back(chrono_types::make_shared<Turtlebot_PassiveWheel>(
+        "RPWheel", false, m_wheel_material, m_system, ChVector<>(-pwx, pwy, pwz), ChQuaternion<>(1, 0, 0, 0),
+        m_chassis->GetBody(), true));
 
     // create the first level supporting rod
     double rod_s_0_x = -0.0565;
@@ -803,43 +774,24 @@ void TurtleBot::Create() {
     double rod_s_5_y = -0.11992;
     double rod_s_5_z = 0.09615;
 
-    for (int i = 0; i < 6; i++) {
-        if (i == 0) {
-            m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-                "0-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_0_x, rod_s_0_y, rod_s_0_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 1) {
-            m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-                "1-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_1_x, rod_s_1_y, rod_s_1_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 2) {
-            m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-                "2-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_2_x, rod_s_2_y, rod_s_2_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 3) {
-            m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-                "3-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_3_x, rod_s_3_y, rod_s_3_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 4) {
-            m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-                "4-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_4_x, rod_s_4_y, rod_s_4_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 5) {
-            m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-                "5-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_5_x, rod_s_5_y, rod_s_5_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-    }
+    m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
+        "0-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_0_x, rod_s_0_y, rod_s_0_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
+        "1-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_1_x, rod_s_1_y, rod_s_1_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
+        "2-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_2_x, rod_s_2_y, rod_s_2_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
+        "3-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_3_x, rod_s_3_y, rod_s_3_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
+        "4-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_4_x, rod_s_4_y, rod_s_4_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
+        "5-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_5_x, rod_s_5_y, rod_s_5_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
 
     // add the bottom plate
     double bt_plate_x = 0;
@@ -875,43 +827,24 @@ void TurtleBot::Create() {
     double rod_m_5_y = -0.09792;
     double rod_m_5_z = 0.15015;
 
-    for (int i = 0; i < 6; i++) {
-        if (i == 0) {
-            m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-                "0-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_0_x, rod_m_0_y, rod_m_0_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 1) {
-            m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-                "1-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_1_x, rod_m_1_y, rod_m_1_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 2) {
-            m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-                "2-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_2_x, rod_m_2_y, rod_m_2_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 3) {
-            m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-                "3-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_3_x, rod_m_3_y, rod_m_3_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 4) {
-            m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-                "4-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_4_x, rod_m_4_y, rod_m_4_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 5) {
-            m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-                "5-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_5_x, rod_m_5_y, rod_m_5_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-    }
+    m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
+        "0-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_0_x, rod_m_0_y, rod_m_0_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
+        "1-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_1_x, rod_m_1_y, rod_m_1_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
+        "2-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_2_x, rod_m_2_y, rod_m_2_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
+        "3-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_3_x, rod_m_3_y, rod_m_3_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
+        "4-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_4_x, rod_m_4_y, rod_m_4_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
+        "5-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_5_x, rod_m_5_y, rod_m_5_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
 
     // add the middle plate
     double mi_plate_x = 0;
@@ -946,43 +879,24 @@ void TurtleBot::Create() {
     double rod_u_5_y = -0.09792;
     double rod_u_5_z = 0.20615;
 
-    for (int i = 0; i < 6; i++) {
-        if (i == 0) {
-            m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
-                "0-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_0_x, rod_u_0_y, rod_u_0_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 1) {
-            m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
-                "1-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_1_x, rod_u_1_y, rod_u_1_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 2) {
-            m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
-                "2-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_2_x, rod_u_2_y, rod_u_2_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 3) {
-            m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
-                "3-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_3_x, rod_u_3_y, rod_u_3_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 4) {
-            m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
-                "4-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_4_x, rod_u_4_y, rod_u_4_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-
-        if (i == 5) {
-            m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
-                "5-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_5_x, rod_u_5_y, rod_u_5_z),
-                ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
-        }
-    }
+    m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
+        "0-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_0_x, rod_u_0_y, rod_u_0_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
+        "1-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_1_x, rod_u_1_y, rod_u_1_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
+        "2-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_2_x, rod_u_2_y, rod_u_2_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
+        "3-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_3_x, rod_u_3_y, rod_u_3_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
+        "4-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_4_x, rod_u_4_y, rod_u_4_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
+    m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
+        "5-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_5_x, rod_u_5_y, rod_u_5_z),
+        ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
 
     // add the top plate
     double top_plate_x = 0;
@@ -1097,33 +1011,18 @@ void TurtleBot::Initialize() {
     m_motors_func.push_back(const_speed_function_l);
     m_motors_func.push_back(const_speed_function_r);
 
-    ChQuaternion<> z2y;
-    z2y.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(1, 0, 0));
+    ChQuaternion<> z2y = Q_from_AngX(CH_C_PI_2);
+    ChQuaternion<> z2x = Q_from_AngY(-CH_C_PI_2);
 
-    ChQuaternion<> z2x;
-    z2x.Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(0, 1, 0));
+    m_motors.push_back(AddMotor(m_drive_wheels[0]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
+                                ChVector<>(dwx, dwy, dwz), z2y, const_speed_function_l));
+    AddRevoluteJoint(m_passive_wheels[0]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
+                     ChVector<>(pwx, pwy, pwz), z2x);
 
-    for (int i = 0; i < 2; i++) {
-        ChVector<> active_rel_pos;
-        ChVector<> passive_rel_pos;
-        if (i == 0) {
-            active_rel_pos = ChVector<>(dwx, dwy, dwz);
-            passive_rel_pos = ChVector<>(pwx, pwy, pwz);
-        } else {
-            active_rel_pos = ChVector<>(dwx, -dwy, dwz);
-            passive_rel_pos = ChVector<>(-pwx, pwy, pwz);
-        }
-        if (i == 0) {
-            m_motors.push_back(AddMotor(m_drive_wheels[i]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(),
-                                        m_system, active_rel_pos, z2y, const_speed_function_l));
-        } else {
-            m_motors.push_back(AddMotor(m_drive_wheels[i]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(),
-                                        m_system, active_rel_pos, z2y, const_speed_function_r));
-        }
-
-        AddRevoluteJoint(m_passive_wheels[i]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
-                         passive_rel_pos, z2x);
-    }
+    m_motors.push_back(AddMotor(m_drive_wheels[1]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
+                                ChVector<>(dwx, -dwy, dwz), z2y, const_speed_function_r));
+    AddRevoluteJoint(m_passive_wheels[1]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
+                     ChVector<>(-pwx, pwy, pwz), z2x);
 
     // add fixity on all rods and plates
     // There are six constraints needed:
@@ -1133,67 +1032,41 @@ void TurtleBot::Initialize() {
     // middle rods -> middle plate
     // middle plate -> top rods
     // top rods -> top plate
+
+    ChVector<> bottom_rod_rel_pos[] = {ChVector<>(rod_s_0_x, rod_s_0_y, rod_s_0_z),  //
+                                       ChVector<>(rod_s_1_x, rod_s_1_y, rod_s_1_z),  //
+                                       ChVector<>(rod_s_2_x, rod_s_2_y, rod_s_2_z),  //
+                                       ChVector<>(rod_s_3_x, rod_s_3_y, rod_s_3_z),  //
+                                       ChVector<>(rod_s_4_x, rod_s_4_y, rod_s_4_z),  //
+                                       ChVector<>(rod_s_5_x, rod_s_5_y, rod_s_5_z)};
+    ChVector<> middle_rod_rel_pos[] = {ChVector<>(rod_m_0_x, rod_m_0_y, rod_m_0_z),  //
+                                       ChVector<>(rod_m_1_x, rod_m_1_y, rod_m_1_z),  //
+                                       ChVector<>(rod_m_2_x, rod_m_2_y, rod_m_2_z),  //
+                                       ChVector<>(rod_m_3_x, rod_m_3_y, rod_m_3_z),  //
+                                       ChVector<>(rod_m_4_x, rod_m_4_y, rod_m_4_z),  //
+                                       ChVector<>(rod_m_5_x, rod_m_5_y, rod_m_5_z)};
+    ChVector<> top_rod_rel_pos[] = {ChVector<>(rod_u_0_x, rod_u_0_y, rod_u_0_z),  //
+                                    ChVector<>(rod_u_1_x, rod_u_1_y, rod_u_1_z),  //
+                                    ChVector<>(rod_u_2_x, rod_u_2_y, rod_u_2_z),  //
+                                    ChVector<>(rod_u_3_x, rod_u_3_y, rod_u_3_z),  //
+                                    ChVector<>(rod_u_4_x, rod_u_4_y, rod_u_4_z),  //
+                                    ChVector<>(rod_u_5_x, rod_u_5_y, rod_u_5_z)};
+
     for (int i = 0; i < 6; i++) {
-        ChVector<> bottom_rod_rel_pos;
-        ChVector<> bottom_plate_rel_pos;
-        ChVector<> middle_rod_rel_pos;
-        ChVector<> middle_plate_rel_pos;
-        ChVector<> top_rod_rel_pos;
-        ChVector<> top_plate_rel_pos;
-        if (i == 0) {
-            bottom_rod_rel_pos = ChVector<>(rod_s_0_x, rod_s_0_y, rod_s_0_z);
-            middle_rod_rel_pos = ChVector<>(rod_m_0_x, rod_m_0_y, rod_m_0_z);
-            top_rod_rel_pos = ChVector<>(rod_u_0_x, rod_u_0_y, rod_u_0_z);
-            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0, 0, 0.05);
-            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0, 0, 0.05);
-            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0, 0, 0.2);
-        } else if (i == 1) {
-            bottom_rod_rel_pos = ChVector<>(rod_s_1_x, rod_s_1_y, rod_s_1_z);
-            middle_rod_rel_pos = ChVector<>(rod_m_1_x, rod_m_1_y, rod_m_1_z);
-            top_rod_rel_pos = ChVector<>(rod_u_1_x, rod_u_1_y, rod_u_1_z);
-            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0, 0, 0.05);
-            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0, 0, 0.05);
-            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0, 0, 0.2);
-        } else if (i == 2) {
-            bottom_rod_rel_pos = ChVector<>(rod_s_2_x, rod_s_2_y, rod_s_2_z);
-            middle_rod_rel_pos = ChVector<>(rod_m_2_x, rod_m_2_y, rod_m_2_z);
-            top_rod_rel_pos = ChVector<>(rod_u_2_x, rod_u_2_y, rod_u_2_z);
-            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0, 0, 0.05);
-            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0, 0, 0.05);
-            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0, 0, 0.2);
-        } else if (i == 3) {
-            bottom_rod_rel_pos = ChVector<>(rod_s_3_x, rod_s_3_y, rod_s_3_z);
-            middle_rod_rel_pos = ChVector<>(rod_m_3_x, rod_m_3_y, rod_m_3_z);
-            top_rod_rel_pos = ChVector<>(rod_u_3_x, rod_u_3_y, rod_u_3_z);
-            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0, 0, 0.05);
-            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0, 0, 0.05);
-            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0, 0, 0.2);
-        } else if (i == 4) {
-            bottom_rod_rel_pos = ChVector<>(rod_s_4_x, rod_s_4_y, rod_s_4_z);
-            middle_rod_rel_pos = ChVector<>(rod_m_4_x, rod_m_4_y, rod_m_4_z);
-            top_rod_rel_pos = ChVector<>(rod_u_4_x, rod_u_4_y, rod_u_4_z);
-            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0, 0, 0.05);
-            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0, 0, 0.05);
-            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0, 0, 0.2);
-        } else if (i == 5) {
-            bottom_rod_rel_pos = ChVector<>(rod_s_5_x, rod_s_5_y, rod_s_5_z);
-            middle_rod_rel_pos = ChVector<>(rod_m_5_x, rod_m_5_y, rod_m_5_z);
-            top_rod_rel_pos = ChVector<>(rod_u_5_x, rod_u_5_y, rod_u_5_z);
-            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0, 0, 0.05);
-            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0, 0, 0.05);
-            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0, 0, 0.2);
-        }
+        ChVector<> bottom_plate_rel_pos = bottom_rod_rel_pos[i] + ChVector<>(0, 0, 0.05);
+        ChVector<> middle_plate_rel_pos = middle_rod_rel_pos[i] + ChVector<>(0, 0, 0.05);
+        ChVector<> top_plate_rel_pos = top_rod_rel_pos[i] + ChVector<>(0, 0, 0.2);
 
         AddLockJoint(m_1st_level_rods[i]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
-                     bottom_rod_rel_pos, ChQuaternion<>(1, 0, 0, 0));
+                     bottom_rod_rel_pos[i], ChQuaternion<>(1, 0, 0, 0));
         AddLockJoint(m_1st_level_rods[i]->GetBody(), m_bottom_plate->GetBody(), m_chassis->GetBody(), m_system,
                      bottom_plate_rel_pos, ChQuaternion<>(1, 0, 0, 0));
         AddLockJoint(m_2nd_level_rods[i]->GetBody(), m_bottom_plate->GetBody(), m_chassis->GetBody(), m_system,
-                     bottom_rod_rel_pos, ChQuaternion<>(1, 0, 0, 0));
+                     bottom_rod_rel_pos[i], ChQuaternion<>(1, 0, 0, 0));
         AddLockJoint(m_2nd_level_rods[i]->GetBody(), m_middle_plate->GetBody(), m_chassis->GetBody(), m_system,
                      middle_plate_rel_pos, ChQuaternion<>(1, 0, 0, 0));
         AddLockJoint(m_3rd_level_rods[i]->GetBody(), m_middle_plate->GetBody(), m_chassis->GetBody(), m_system,
-                     top_rod_rel_pos, ChQuaternion<>(1, 0, 0, 0));
+                     top_rod_rel_pos[i], ChQuaternion<>(1, 0, 0, 0));
         AddLockJoint(m_3rd_level_rods[i]->GetBody(), m_top_plate->GetBody(), m_chassis->GetBody(), m_system,
                      top_plate_rel_pos, ChQuaternion<>(1, 0, 0, 0));
     }

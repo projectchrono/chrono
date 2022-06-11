@@ -16,7 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChCompositeInertia.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/chassis/ChassisConnectorHitch.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"

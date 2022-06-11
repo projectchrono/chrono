@@ -16,9 +16,9 @@
 //
 // =============================================================================
 
-//// RADU
-//// Todo: extend this and derived classes to allow use in a double-wheel setup.
-////       in particular, check how the tire FEA mesh is attached to the rim.
+//// RADU TODO
+//// extend this and derived classes to allow use in a double-wheel setup.
+//// in particular, check how the tire FEA mesh is attached to the rim.
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 
@@ -27,7 +27,6 @@ namespace vehicle {
 
 using namespace chrono::fea;
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChDeformableTire::ChDeformableTire(const std::string& name)
     : ChTire(name),
@@ -56,7 +55,6 @@ ChDeformableTire::~ChDeformableTire() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDeformableTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
@@ -104,18 +102,17 @@ void ChDeformableTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_visualization = chrono_types::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
-    m_visualization->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    m_visualization = chrono_types::make_shared<ChVisualShapeFEA>(m_mesh);
+    m_visualization->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     m_visualization->SetColorscaleMinMax(0.0, 1);
     m_visualization->SetSmoothFaces(true);
-    m_mesh->AddAsset(m_visualization);
+    m_mesh->AddVisualShapeFEA(m_visualization);
 }
 
 void ChDeformableTire::RemoveVisualizationAssets() {
-    m_mesh->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_mesh);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChContactSurface> ChDeformableTire::GetContactSurface() const {
     if (m_contact_enabled) {
@@ -127,17 +124,19 @@ std::shared_ptr<ChContactSurface> ChDeformableTire::GetContactSurface() const {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChDeformableTire::GetTireMass() const {
-    double mass;
+void ChDeformableTire::InitializeInertiaProperties() {
     ChVector<> com;
-    ChMatrix33<> inertia;
-
-    m_mesh->ComputeMassProperties(mass, com, inertia);
-    return mass;
+    m_mesh->ComputeMassProperties(m_mass, com, m_inertia);
+    m_com = ChFrame<>(com, QUNIT);
 }
 
-// -----------------------------------------------------------------------------
+void ChDeformableTire::UpdateInertiaProperties() {
+    InitializeInertiaProperties();
+
+    auto spindle = m_wheel->GetSpindle();
+    m_xform = ChFrame<>(spindle->TransformPointLocalToParent(ChVector<>(0, GetOffset(), 0)), spindle->GetRot());
+}
+
 // -----------------------------------------------------------------------------
 TerrainForce ChDeformableTire::GetTireForce() const {
     TerrainForce tire_force;

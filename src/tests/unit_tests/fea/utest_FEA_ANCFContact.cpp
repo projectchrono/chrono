@@ -29,7 +29,7 @@
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -194,10 +194,10 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      ChVector<> trans_elem2,
                      ChMatrix33<> rot_elem2,
                      bool AlsoPrint) {
-    ChSystemSMC my_system(false);
+    ChSystemSMC sys(false);
 
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
-    my_system.SetContactForceModel(ChSystemSMC::Hooke);
+    sys.SetContactForceModel(ChSystemSMC::Hooke);
 
     double L_x = 1.0;
     double L_y = elementThickness;
@@ -269,12 +269,12 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_meshes_2->SetAutomaticGravity(addGravity);
 
     if (addGravity) {
-        my_system.Set_G_acc(ChVector<>(0, -1, 0));
+        sys.Set_G_acc(ChVector<>(0, -1, 0));
     } else {
-        my_system.Set_G_acc(ChVector<>(0, 0, 0));
+        sys.Set_G_acc(ChVector<>(0, 0, 0));
     }
-    my_system.Add(my_meshes_1);
-    my_system.Add(my_meshes_2);
+    sys.Add(my_meshes_1);
+    sys.Add(my_meshes_2);
 
     // ---------------
 
@@ -283,14 +283,14 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     // would result in a non-PD diagonal preconditioner which is not allowed with MINRES. For this reason, we use GMRES.
     // Alternatively, we could use MINRES with *no* preconditioning.
     auto solver = chrono_types::make_shared<ChSolverGMRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(200);
     solver->SetTolerance(1e-10);
     // solver->EnableDiagonalPreconditioner(false);
     solver->SetVerbose(false);
 
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(40);
     mystepper->SetAbsTolerances(1e-05, 1e-1);        // For Pos
@@ -300,10 +300,10 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     auto container = chrono_types::make_shared<MyContactContainer>();
     //    auto contacts = chrono_types::make_shared<MyContacts>();
 
-    my_system.SetContactContainer(container);
+    sys.SetContactContainer(container);
     bool thereIsContact;
     auto myANCF = std::dynamic_pointer_cast<ChElementBase>(my_meshes_2->GetElement(0));
-    my_system.DoStepDynamics(time_step);
+    sys.DoStepDynamics(time_step);
     thereIsContact = container->isThereContacts(myANCF, AlsoPrint);
     return thereIsContact;
 };

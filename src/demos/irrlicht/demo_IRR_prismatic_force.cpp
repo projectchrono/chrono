@@ -24,9 +24,10 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -34,33 +35,27 @@ using namespace chrono::irrlicht;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    ChSystemNSC system;
-    system.Set_G_acc(ChVector<>(0, 0, 0));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBody>();
-    system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
 
     auto rail1 = chrono_types::make_shared<ChBoxShape>();
     rail1->GetBoxGeometry().SetLengths(ChVector<>(8, 0.1, 0.1));
-    rail1->GetBoxGeometry().Pos = ChVector<>(0, 0, -1);
-    ground->AddAsset(rail1);
+    ground->AddVisualShape(rail1, ChFrame<>(ChVector<>(0, 0, -1), QUNIT));
 
     auto rail2 = chrono_types::make_shared<ChBoxShape>();
     rail2->GetBoxGeometry().SetLengths(ChVector<>(8, 0.1, 0.1));
-    rail2->GetBoxGeometry().Pos = ChVector<>(0, 0, +1);
-    ground->AddAsset(rail2);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.6f, 0.6f, 0.6f));
-    ground->AddAsset(col);
+    ground->AddVisualShape(rail2, ChFrame<>(ChVector<>(0, 0, +1), QUNIT));
 
     // Create the slider bodies
     auto slider1 = chrono_types::make_shared<ChBody>();
-    system.AddBody(slider1);
+    sys.AddBody(slider1);
     slider1->SetIdentifier(1);
     slider1->SetBodyFixed(false);
     slider1->SetCollide(false);
@@ -72,14 +67,11 @@ int main(int argc, char* argv[]) {
     cyl1->GetCylinderGeometry().p1 = ChVector<>(-0.2, 0, 0);
     cyl1->GetCylinderGeometry().p2 = ChVector<>(+0.2, 0, 0);
     cyl1->GetCylinderGeometry().rad = 0.2;
-    slider1->AddAsset(cyl1);
-
-    auto col1 = chrono_types::make_shared<ChColorAsset>();
-    col1->SetColor(ChColor(0.6f, 0, 0));
-    slider1->AddAsset(col1);
+    cyl1->SetColor(ChColor(0.6f, 0, 0));
+    slider1->AddVisualShape(cyl1);
 
     auto slider2 = chrono_types::make_shared<ChBody>();
-    system.AddBody(slider2);
+    sys.AddBody(slider2);
     slider2->SetIdentifier(1);
     slider2->SetBodyFixed(false);
     slider2->SetCollide(false);
@@ -91,20 +83,17 @@ int main(int argc, char* argv[]) {
     cyl2->GetCylinderGeometry().p1 = ChVector<>(-0.2, 0, 0);
     cyl2->GetCylinderGeometry().p2 = ChVector<>(+0.2, 0, 0);
     cyl2->GetCylinderGeometry().rad = 0.2;
-    slider2->AddAsset(cyl2);
-
-    auto col2 = chrono_types::make_shared<ChColorAsset>();
-    col2->SetColor(ChColor(0, 0, 0.6f));
-    slider2->AddAsset(col2);
+    cyl2->SetColor(ChColor(0, 0, 0.6f));
+    slider2->AddVisualShape(cyl2);
 
     // Create prismatic joints between ground and sliders
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic1->Initialize(slider1, ground, ChCoordsys<>(ChVector<>(0, 0, -1), Q_from_AngY(CH_C_PI_2)));
-    system.AddLink(prismatic1);
+    sys.AddLink(prismatic1);
 
     auto prismatic2 = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic2->Initialize(slider2, ground, ChCoordsys<>(ChVector<>(0, 0, +1), Q_from_AngY(CH_C_PI_2)));
-    system.AddLink(prismatic2);
+    sys.AddLink(prismatic2);
 
     // Sine function
     double freq = 1;
@@ -122,22 +111,25 @@ int main(int argc, char* argv[]) {
     frc2->SetF_x(mod);
     slider2->AddForce(frc2);
 
-    // Create the Irrlicht application
-    ChIrrApp application(&system, L"Actuated prismatic joint", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(-1, 1.5, -6));
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
-
-    application.SetTimestep(1e-3);
+    // Create the Irrlicht visualization sys
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Actuated prismatic joint");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(-1, 1.5, -6));
+    vis->AddTypicalLights();
+    vis->EnableLinkFrameDrawing(true);
 
     // Simulation loop
+    double timestep = 1e-3;
+    ChRealtimeStepTimer realtime_timer;
     ////double x0 = slider1->GetPos().x();
-    while (application.GetDevice()->run()) {
-        ////double time = system.GetChTime();
+
+    while (vis->Run()) {
+        ////double time = sys.GetChTime();
 
         // Output slider x position/velocity and analytical solution
         ////double x = slider1->GetPos().x();
@@ -146,11 +138,11 @@ int main(int argc, char* argv[]) {
         ////double xa_d = (ampl / omg) * (1 - std::cos(omg * time));
         ////std::cout << time << "   " << x << " " << x_d << "   " << xa << " " << xa_d << std::endl;
 
-        application.BeginScene();
-        application.DrawAll();
-        tools::drawAllLinkframes(system, application.GetVideoDriver(), 1.0);
-        application.DoStep();
-        application.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
+        sys.DoStepDynamics(timestep);
+        realtime_timer.Spin(timestep);
     }
 
     return 0;

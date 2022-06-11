@@ -622,12 +622,12 @@ CUdeviceptr ChOptixPipeline::GetMaterialPool() {
 unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat) {
     if (mat) {
         MaterialParameters material;
-        material.Kd = {mat->GetDiffuseColor().x(), mat->GetDiffuseColor().y(), mat->GetDiffuseColor().z()};
-        material.Ks = {mat->GetSpecularColor().x(), mat->GetSpecularColor().y(), mat->GetSpecularColor().z()};
+        material.Kd = {mat->GetDiffuseColor().R, mat->GetDiffuseColor().G, mat->GetDiffuseColor().B};
+        material.Ks = {mat->GetSpecularColor().R, mat->GetSpecularColor().G, mat->GetSpecularColor().B};
         material.fresnel_exp = mat->GetFresnelExp();
         material.fresnel_min = mat->GetFresnelMin();
         material.fresnel_max = mat->GetFresnelMax();
-        material.transparency = mat->GetTransparency();
+        material.transparency = mat->GetOpacity();
         material.roughness = mat->GetRoughness();
         material.metallic = mat->GetMetallic();
         material.use_specular_workflow = mat->GetUseSpecularWorkflow();
@@ -777,15 +777,15 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
 
     if (!mesh_found) {
         // make sure chrono mesh is setup as expected
-        if (mesh->m_face_col_indices.size() == 0) {
-            mesh->m_face_col_indices = std::vector<ChVector<int>>(mesh->getIndicesVertexes().size());
+        if (mesh->getIndicesMaterials().size() == 0) {
+            mesh->getIndicesMaterials() = std::vector<int>(mesh->getIndicesVertexes().size(), 0);
         }
 
         // move the chrono data to contiguous data structures to be copied to gpu
         std::vector<uint4> vertex_index_buffer = std::vector<uint4>(mesh->getIndicesVertexes().size());
         std::vector<uint4> normal_index_buffer = std::vector<uint4>(mesh->getIndicesNormals().size());
         std::vector<uint4> uv_index_buffer = std::vector<uint4>(mesh->getIndicesUV().size());
-        std::vector<unsigned int> mat_index_buffer = std::vector<unsigned int>(mesh->getIndicesColors().size());
+        std::vector<unsigned int> mat_index_buffer;
         std::vector<float4> vertex_buffer = std::vector<float4>(mesh->getCoordsVertices().size());
         std::vector<float4> normal_buffer = std::vector<float4>(mesh->getCoordsNormals().size());
         std::vector<float2> uv_buffer = std::vector<float2>(mesh->getCoordsUV().size());
@@ -833,10 +833,9 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
         }
 
         unsigned int* d_mat_index_buffer = {};
-        if (mat_index_buffer.size() > 0) {  // optional whether there are material indices
-            for (int i = 0; i < mesh->getIndicesColors().size(); i++) {
-                mat_index_buffer[i] = (unsigned int)mesh->getIndicesColors()[i].x();
-            }
+        if (mesh->getIndicesMaterials().size() > 0) {  // optional whether there are material indices
+            std::copy(mesh->getIndicesMaterials().begin(), mesh->getIndicesMaterials().end(),
+                      std::back_inserter(mat_index_buffer));
 
             CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_mat_index_buffer),
                                         sizeof(unsigned int) * mat_index_buffer.size()));

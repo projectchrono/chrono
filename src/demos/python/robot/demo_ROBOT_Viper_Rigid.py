@@ -37,11 +37,8 @@ ground_mat = chrono.ChMaterialSurfaceNSC()
 ground = chrono.ChBodyEasyBox(20, 20, 1, 1000, True, True, ground_mat)
 ground.SetPos(chrono.ChVectorD(0, 0, -1))
 ground.SetBodyFixed(True)
+ground.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
 system.Add(ground)
-
-texture = chrono.ChTexture()
-texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
-ground.AddAsset(texture)
 
 # Create Viper rover
 driver = viper.ViperDCMotorControl()
@@ -50,23 +47,25 @@ rover.SetDriver(driver)
 rover.Initialize(chrono.ChFrameD(chrono.ChVectorD(0, -0.2, 0), chrono.ChQuaternionD(1, 0, 0, 0)))
 
 # Create run-time visualization
-application = chronoirr.ChIrrApp(system, "Viper rover - Rigid terrain", chronoirr.dimension2du(1280, 720), chronoirr.VerticalDir_Z)
-application.AddLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
-application.AddSkyBox()
-application.AddCamera(chronoirr.vector3df(0, 2, 2), chronoirr.vector3df(0, 0, 0))
-application.AddTypicalLights()
-application.AddLightWithShadow(chronoirr.vector3df(1.5, -2.5, 5.5), chronoirr.vector3df(0, 0, 0), 3, 4, 10, 40, 512)
+vis = chronoirr.ChVisualSystemIrrlicht()
+system.SetVisualSystem(vis)
+vis.SetCameraVertical(chrono.CameraVerticalDir_Z)
+vis.SetWindowSize(1280, 720)
+vis.SetWindowTitle('Viper rover - Rigid terrain')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0, 2.5, 1.5), chrono.ChVectorD(0, 0, 1))
+vis.AddTypicalLights()
+vis.AddLightWithShadow(chrono.ChVectorD(1.5, -2.5, 5.5), chrono.ChVectorD(0, 0, 0.5), 3, 4, 10, 40, 512)
 
-application.AssetBindAll()
-application.AssetUpdateAll()
-application.AddShadowAll()
+####vis.EnableShadows()
 
 time_step = 1e-3
-application.SetTimestep(time_step)
 
 # Simulation loop
 time = 0
-while (application.GetDevice().run()) :
+while (vis.Run()) :
     time = time + time_step
     steering = 0
     if time > 7:
@@ -80,7 +79,7 @@ while (application.GetDevice().run()) :
 
     rover.Update()
 
-    application.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
-    application.DrawAll()
-    application.DoStep()
-    application.EndScene()
+    vis.BeginScene()
+    vis.DrawAll()
+    vis.EndScene()
+    system.DoStepDynamics(time_step)

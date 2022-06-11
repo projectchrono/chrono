@@ -1,18 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Alessandro Tasora
+# Copyright (c) 2014 projectchrono.org
+# All rights reserved.
 #
-# Created:     1/01/2019
-# Copyright:   (c) ProjectChrono 2019
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
 #
-#
-# This file shows how to create and populate the ChParticleClones object.
-# Also, shows how to use POV ray for postprocessing, thanks to the
-# utility functions in the unit_POSTPROCESS of Chrono::Engine.
-#
-#------------------------------------------------------------------------------
+# =============================================================================
 
 
 import pychrono as chrono
@@ -69,7 +65,7 @@ for ix in range(0,5):
 # Visualization shape (shared by all particle clones)
 body_particles_shape = chrono.ChSphereShape()
 body_particles_shape.GetSphereGeometry().rad = 0.005
-body_particles.GetAssets().push_back(body_particles_shape)
+body_particles.AddVisualShape(body_particles_shape)
 
 my_system.Add(body_particles)
 
@@ -94,7 +90,7 @@ body_floor.SetCollide(True)
 body_floor_shape = chrono.ChBoxShape()
 body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(0.1, 0.02, 0.1)
 body_floor_shape.SetColor(chrono.ChColor(0.5,0.5,0.5))
-body_floor.GetAssets().push_back(body_floor_shape)
+body_floor.AddVisualShape(body_floor_shape)
 
 my_system.Add(body_floor)
 
@@ -120,7 +116,7 @@ for ix in range(0,2):
         # Visualization shape
         body_brick_shape = chrono.ChBoxShape()
         body_brick_shape.GetBoxGeometry().Size = chrono.ChVectorD(0.01, 0.01, 0.01)
-        body_brick.GetAssets().push_back(body_brick_shape)
+        body_brick.AddVisualShape(body_brick_shape)
 
         my_system.Add(body_brick)
 
@@ -145,9 +141,9 @@ pov_exporter.SetBasePath("povray_pychrono_generated")
 
 # Some  settings for the POV rendering:
 pov_exporter.SetCamera(chrono.ChVectorD(0.2,0.3,0.5), chrono.ChVectorD(0,0,0), 35)
-pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(1.1,1.2,1.2), True)
+pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(1,1,1), True)
 pov_exporter.SetPictureSize(640,480)
-pov_exporter.SetAmbientLight(chrono.ChColor(2,2,2))
+pov_exporter.SetAmbientLight(chrono.ChColor(0.8,0.8,0.8))
 
  # Add additional POV objects/lights/materials in the following way
 pov_exporter.SetCustomPOVcommandsScript(
@@ -161,7 +157,7 @@ pov_exporter.AddAll()
 
  # Tell that you want to render the contacts
 pov_exporter.SetShowContacts(True,
-                            postprocess.ChPovRay.SYMBOL_VECTOR_SCALELENGTH,
+                            postprocess.ChPovRay.ContactSymbol_VECTOR_SCALELENGTH,
                             0.2,    # scale
                             0.0007, # width
                             0.1,    # max size

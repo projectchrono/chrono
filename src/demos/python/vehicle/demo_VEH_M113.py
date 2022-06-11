@@ -54,7 +54,7 @@ def main():
     # Create the powertrain system
     # ----------------------------
 
-    powertrain = veh.M113_SimpleCVTPowertrain("Powertrain")
+    powertrain = veh.M113_ShaftsPowertrain("Powertrain")
     vehicle.InitializePowertrain(powertrain)
 
     # Create the terrain
@@ -80,18 +80,20 @@ def main():
     # Create the vehicle Irrlicht interface
     # -------------------------------------
 
-    app = veh.ChTrackedVehicleIrrApp(vehicle, 'M113')
-    app.AddTypicalLights()
-    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    app.SetChaseCamera(trackPoint, 6.0, 0.5)
-    app.SetTimestep(step_size)
-    app.AssetBindAll()
-    app.AssetUpdateAll()
+    vis = veh.ChTrackedVehicleVisualSystemIrrlicht()
+    vehicle.SetVisualSystem(vis)
+    vis.SetWindowTitle('M113')
+    vis.SetWindowSize(1280, 1024)
+    vis.SetChaseCamera(trackPoint, 6.0, 0.5)
+    vis.Initialize()
+    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddTypicalLights()
+    vis.AddSkyBox()
 
     # Create the interactive driver system
     # ------------------------------------
 
-    driver = veh.ChIrrGuiDriver(app)
+    driver = veh.ChIrrGuiDriver(vis)
 
     # Set the time response for steering and throttle keyboard inputs.
     steering_time = 0.5  # time to go from 0 to +1 (or from 0 to -1)
@@ -117,12 +119,12 @@ def main():
     step_number = 0
 
     realtime_timer = chrono.ChRealtimeStepTimer()
-    while (app.GetDevice().run()):
+    while vis.Run() :
         time = vehicle.GetSystem().GetChTime()
 
-        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-        app.DrawAll()
-        app.EndScene()
+        vis.BeginScene()
+        vis.DrawAll()
+        vis.EndScene()
 
         # Get driver inputs
         driver_inputs = driver.GetInputs()
@@ -131,13 +133,15 @@ def main():
         driver.Synchronize(time)
         terrain.Synchronize(time)
         vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right)
-        app.Synchronize("", driver_inputs)
+        vis.Synchronize("", driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)
         terrain.Advance(step_size)
         vehicle.Advance(step_size)
-        app.Advance(step_size)
+        vis.Advance(step_size)
+
+
 
         # Increment frame number
         step_number += 1

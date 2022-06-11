@@ -129,23 +129,23 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
     // Create a ChronoENGINE physical system: all bodies and constraints will be
     // handled by this ChSystem object.
 
-    ChSystemNSC my_system;
-    my_system.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
 
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    my_system.SetSolverType(ChSolver::Type::PSOR);
-    my_system.SetSolverMaxIterations(100);
-    my_system.SetSolverForceTolerance(1e-4);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(100);
+    sys.SetSolverForceTolerance(1e-4);
 
     // Create the ground body
 
     auto ground = chrono_types::make_shared<ChBody>();
-    my_system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetBodyFixed(true);
 
     // Create the pinion body in an initial configuration at rest
     auto pinion = chrono_types::make_shared<ChBody>();
-    my_system.AddBody(pinion);
+    sys.AddBody(pinion);
     pinion->SetPos(jointLoc);
     pinion->SetRot(Q_from_AngY(CH_C_PI_2));
     pinion->SetMass(massPinion);
@@ -153,7 +153,7 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
 
     // Create the rack body in an initial configuration at rest
     auto rack = chrono_types::make_shared<ChBody>();
-    my_system.AddBody(rack);
+    sys.AddBody(rack);
     rack->SetPos(jointLoc + ChVector<>(0, radiusPinion, 0));
     rack->SetRot(QUNIT);
     rack->SetMass(massRack);
@@ -164,14 +164,14 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
     // global x axis.
     auto revoluteJoint = chrono_types::make_shared<ChLinkLockRevolute>();
     revoluteJoint->Initialize(pinion, ground, ChCoordsys<>(jointLoc, Q_from_AngY(CH_C_PI_2)));
-    my_system.AddLink(revoluteJoint);
+    sys.AddLink(revoluteJoint);
 
     // Create prismatic joint between rack and ground at "loc" - Pinion Radius in the global
     // reference frame. The prismatic joint's axis of translation will be the Z axis
     // of the specified rotation matrix.
     auto prismaticJoint = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismaticJoint->Initialize(rack, ground, ChCoordsys<>(jointLoc + ChVector<>(0, -radiusPinion, 0), QUNIT));
-    my_system.AddLink(prismaticJoint);
+    sys.AddLink(prismaticJoint);
 
     // Create the Rack and Pinion joint
     auto rackpinionJoint = chrono_types::make_shared<ChLinkRackpinion>();
@@ -181,7 +181,7 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
     rackpinionJoint->SetAlpha(CH_C_PI_4);
     rackpinionJoint->SetBeta(0);
     rackpinionJoint->SetCheckphase(1);
-    my_system.AddLink(rackpinionJoint);
+    sys.AddLink(rackpinionJoint);
 
     // Perform the simulation (record results option)
     // ------------------------------------------------
@@ -268,7 +268,7 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
 
     // Perform a system assembly to ensure we have the correct accelerations at
     // the initial time.
-    my_system.DoFullAssembly();
+    sys.DoFullAssembly();
 
     // Total energy at initial time.
     ChMatrix33<> inertiaPinion = pinion->GetInertia();
@@ -331,7 +331,7 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
         }
 
         // Advance simulation by one step
-        my_system.DoStepDynamics(simTimeStep);
+        sys.DoStepDynamics(simTimeStep);
 
         // Increment simulation time
         simTime += simTimeStep;

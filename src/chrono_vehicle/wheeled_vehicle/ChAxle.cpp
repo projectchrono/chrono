@@ -72,7 +72,7 @@ void ChAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     }
 }
 
-void ChAxle::Synchronize(double braking) {
+void ChAxle::Synchronize(double time, const DriverInputs& driver_inputs) {
     // Synchronize suspension subsystem (prepare to accept tire forces)
     m_suspension->Synchronize();
 
@@ -83,8 +83,8 @@ void ChAxle::Synchronize(double braking) {
 
     // Apply braking input.
     if (m_brake_left && m_brake_right) {
-        m_brake_left->Synchronize(braking);
-        m_brake_right->Synchronize(braking);
+        m_brake_left->Synchronize(driver_inputs.m_braking);
+        m_brake_right->Synchronize(driver_inputs.m_braking);
     }
 }
 

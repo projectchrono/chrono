@@ -74,8 +74,8 @@ void PacejkaTire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void PacejkaTire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChPacejkaTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace vehicle

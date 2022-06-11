@@ -23,7 +23,6 @@ namespace geometry {
 CH_FACTORY_REGISTER(ChCapsule)
 
 ChCapsule::ChCapsule(const ChCapsule& source) {
-    center = source.center;
     rad = source.rad;
     hlen = source.hlen;
 }
@@ -35,21 +34,16 @@ void ChCapsule::GetBoundingBox(double& xmin,
                                double& zmin,
                                double& zmax,
                                ChMatrix33<>* Rot) const {
-    ChVector<> trsfCenter = Rot ? Rot->transpose() * center : center;
-
-    xmin = trsfCenter.x() - rad;
-    xmax = trsfCenter.x() + rad;
-    ymin = trsfCenter.y() - (rad + hlen);
-    ymax = trsfCenter.y() + (rad + hlen);
-    zmin = trsfCenter.z() - rad;
-    zmax = trsfCenter.z() + rad;
+    xmin = -rad;
+    xmax = +rad;
+    ymin = -(rad + hlen);
+    ymax = +(rad + hlen);
+    zmin = -rad;
+    zmax = +rad;
 }
 
 void ChCapsule::CovarianceMatrix(ChMatrix33<>& C) const {
     C.setZero();
-    C(0, 0) = center.x() * center.x();
-    C(1, 1) = center.y() * center.y();
-    C(2, 2) = center.z() * center.z();
 }
 
 void ChCapsule::ArchiveOUT(ChArchiveOut& marchive) {
@@ -58,18 +52,16 @@ void ChCapsule::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize parent class
     ChGeometry::ArchiveOUT(marchive);
     // serialize all member data:
-    marchive << CHNVP(center);
     marchive << CHNVP(rad);
     marchive << CHNVP(hlen);
 }
 
 void ChCapsule::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChCapsule>();
+    /*int version =*/marchive.VersionRead<ChCapsule>();
     // deserialize parent class
     ChGeometry::ArchiveIN(marchive);
     // stream in all member data:
-    marchive >> CHNVP(center);
     marchive >> CHNVP(rad);
     marchive >> CHNVP(hlen);
 }
