@@ -21,13 +21,12 @@
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/utils/ChBenchmark.h"
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_irrlicht/ChIrrApp.h"
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
 
 using namespace chrono;
@@ -120,7 +119,6 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
 
         auto pend = chrono_types::make_shared<ChBodyEasyBox>(m_length, width, width, density, true, false);
         pend->SetPos(ChVector<>((ib + 0.5) * m_length, 0, 0));
-        pend->AddAsset(chrono_types::make_shared<ChColorAsset>(0.5f * (ib % 2), 0.0f, 0.5f * (ib % 2 - 1)));
         m_system->AddBody(pend);
 
         auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
@@ -132,22 +130,24 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
 template <int N>
 void ChainTest<N>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    float offset = static_cast<float>(N * m_length);
+    double offset = N * m_length;
 
-    irrlicht::ChIrrApp application(m_system, L"Pendulum chain", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(0, -offset / 2, offset), irr::core::vector3df(0, -offset / 2, 0));
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+    m_system->SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Pendulum chain");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0, -offset / 2, offset), ChVector<>(0, -offset / 2, 0));
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
         m_system->DoStepDynamics(m_step);
-        application.EndScene();
+        vis->EndScene();
     }
 #endif
 }

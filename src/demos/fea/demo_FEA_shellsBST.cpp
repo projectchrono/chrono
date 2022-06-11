@@ -27,10 +27,10 @@
 #include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
@@ -60,17 +60,17 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a Chrono::Engine physical system
-    ChSystemSMC my_system;
+    ChSystemSMC sys;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
+    auto mesh = chrono_types::make_shared<ChMesh>();
 
     // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
+    sys.Add(mesh);
 
-    // my_system.Set_G_acc(VNULL); // to remove gravity effect, or:
-    // my_mesh->SetAutomaticGravity(false);
+    // sys.Set_G_acc(VNULL); // to remove gravity effect, or:
+    // mesh->SetAutomaticGravity(false);
 
     std::shared_ptr<ChNodeFEAxyz> nodePlotA;
     std::shared_ptr<ChNodeFEAxyz> nodePlotB;
@@ -96,8 +96,8 @@ int main(int argc, char* argv[]) {
         double nu = 0.3;
         double thickness = 0.001;
 
-        auto melasticity = chrono_types::make_shared<ChElasticityKirchhoffIsothropic>(E, nu);
-        auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(melasticity);
+        auto elasticity = chrono_types::make_shared<ChElasticityKirchhoffIsothropic>(E, nu);
+        auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(elasticity);
         material->SetDensity(density);
 
         // Create nodes
@@ -110,49 +110,49 @@ int main(int argc, char* argv[]) {
         ChVector<> p4(-L, L, 0);
         ChVector<> p5(L, -L, 0);
 
-        auto mnode0 = chrono_types::make_shared<ChNodeFEAxyz>(p0);
-        auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(p1);
-        auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(p2);
-        auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(p3);
-        auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(p4);
-        auto mnode5 = chrono_types::make_shared<ChNodeFEAxyz>(p5);
-        my_mesh->AddNode(mnode0);
-        my_mesh->AddNode(mnode1);
-        my_mesh->AddNode(mnode2);
-        my_mesh->AddNode(mnode3);
-        my_mesh->AddNode(mnode4);
-        my_mesh->AddNode(mnode5);
+        auto node0 = chrono_types::make_shared<ChNodeFEAxyz>(p0);
+        auto node1 = chrono_types::make_shared<ChNodeFEAxyz>(p1);
+        auto node2 = chrono_types::make_shared<ChNodeFEAxyz>(p2);
+        auto node3 = chrono_types::make_shared<ChNodeFEAxyz>(p3);
+        auto node4 = chrono_types::make_shared<ChNodeFEAxyz>(p4);
+        auto node5 = chrono_types::make_shared<ChNodeFEAxyz>(p5);
+        mesh->AddNode(node0);
+        mesh->AddNode(node1);
+        mesh->AddNode(node2);
+        mesh->AddNode(node3);
+        mesh->AddNode(node4);
+        mesh->AddNode(node5);
 
         // Create element
 
-        auto melement = chrono_types::make_shared<ChElementShellBST>();
-        my_mesh->AddElement(melement);
+        auto element = chrono_types::make_shared<ChElementShellBST>();
+        mesh->AddElement(element);
 
-        melement->SetNodes(mnode0, mnode1, mnode2, nullptr, nullptr, nullptr);  // mnode3, mnode4, mnode5);
+        element->SetNodes(node0, node1, node2, nullptr, nullptr, nullptr);  // node3, node4, node5);
 
-        melement->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
 
         // TEST
-        my_system.Setup();
-        my_system.Update();
+        sys.Setup();
+        sys.Update();
         GetLog() << "BST initial: \n"
-                 << "Area: " << melement->area << "\n"
-                 << "l0: " << melement->l0 << "\n"
-                 << "phi0: " << melement->phi0 << "\n"
-                 << "k0: " << melement->k0 << "\n"
-                 << "e0: " << melement->e0 << "\n";
+                 << "Area: " << element->area << "\n"
+                 << "l0: " << element->l0 << "\n"
+                 << "phi0: " << element->phi0 << "\n"
+                 << "k0: " << element->k0 << "\n"
+                 << "e0: " << element->e0 << "\n";
 
-        mnode1->SetPos(mnode1->GetPos() + ChVector<>(0.1, 0, 0));
+        node1->SetPos(node1->GetPos() + ChVector<>(0.1, 0, 0));
 
-        my_system.Update();
-        ChVectorDynamic<double> Fi(melement->GetNdofs());
-        melement->ComputeInternalForces(Fi);
+        sys.Update();
+        ChVectorDynamic<double> Fi(element->GetNdofs());
+        element->ComputeInternalForces(Fi);
         GetLog() << "BST updated: \n"
-                 << "phi: " << melement->phi << "\n"
-                 << "k: " << melement->k << "\n"
-                 << "e: " << melement->e << "\n"
-                 << "m: " << melement->m << "\n"
-                 << "n: " << melement->n << "\n";
+                 << "phi: " << element->phi << "\n"
+                 << "k: " << element->k << "\n"
+                 << "e: " << element->e << "\n"
+                 << "m: " << element->m << "\n"
+                 << "n: " << element->n << "\n";
         ChVector<> resultant = VNULL;
         GetLog() << "Fi= \n";
         for (int i = 0; i < Fi.size(); ++i) {
@@ -173,8 +173,8 @@ int main(int argc, char* argv[]) {
     // Add a rectangular mesh of BST elements:
     //
 
-    std::shared_ptr<ChNodeFEAxyz> mnodemonitor;
-    std::shared_ptr<ChElementShellBST> melementmonitor;
+    std::shared_ptr<ChNodeFEAxyz> nodemonitor;
+    std::shared_ptr<ChElementShellBST> elementmonitor;
 
     if (true)  // set as 'true' to execute this
     {
@@ -185,8 +185,8 @@ int main(int argc, char* argv[]) {
         double nu = 0.0;
         double thickness = 0.01;
 
-        auto melasticity = chrono_types::make_shared<ChElasticityKirchhoffIsothropic>(E, nu);
-        auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(melasticity);
+        auto elasticity = chrono_types::make_shared<ChElasticityKirchhoffIsothropic>(E, nu);
+        auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(elasticity);
         material->SetDensity(density);
 
         double L_x = 1;
@@ -195,62 +195,62 @@ int main(int argc, char* argv[]) {
         size_t nsections_z = 40;
 
         // Create nodes
-        std::vector<std::shared_ptr<ChNodeFEAxyz>> mynodes;  // for future loop when adding elements
+        std::vector<std::shared_ptr<ChNodeFEAxyz>> nodes;  // for future loop when adding elements
         for (size_t iz = 0; iz <= nsections_z; ++iz) {
             for (size_t ix = 0; ix <= nsections_x; ++ix) {
                 ChVector<> p(ix * (L_x / nsections_x), 0, iz * (L_z / nsections_z));
 
-                auto mnode = chrono_types::make_shared<ChNodeFEAxyz>(p);
+                auto node = chrono_types::make_shared<ChNodeFEAxyz>(p);
 
-                my_mesh->AddNode(mnode);
+                mesh->AddNode(node);
 
-                mynodes.push_back(mnode);
+                nodes.push_back(node);
             }
         }
         // Create elements
         for (size_t iz = 0; iz < nsections_z; ++iz) {
             for (size_t ix = 0; ix < nsections_x; ++ix) {
-                auto melementA = chrono_types::make_shared<ChElementShellBST>();
-                my_mesh->AddElement(melementA);
+                auto elementA = chrono_types::make_shared<ChElementShellBST>();
+                mesh->AddElement(elementA);
 
                 if (iz == 0 && ix == 1)
-                    melementmonitor = melementA;
+                    elementmonitor = elementA;
 
                 std::shared_ptr<ChNodeFEAxyz> boundary_1;
                 std::shared_ptr<ChNodeFEAxyz> boundary_2;
                 std::shared_ptr<ChNodeFEAxyz> boundary_3;
 
-                boundary_1 = mynodes[(iz + 1) * (nsections_x + 1) + ix + 1];
+                boundary_1 = nodes[(iz + 1) * (nsections_x + 1) + ix + 1];
                 if (ix > 0)
-                    boundary_2 = mynodes[(iz + 1) * (nsections_x + 1) + ix - 1];
+                    boundary_2 = nodes[(iz + 1) * (nsections_x + 1) + ix - 1];
                 else
                     boundary_2 = nullptr;
                 if (iz > 0)
-                    boundary_3 = mynodes[(iz - 1) * (nsections_x + 1) + ix + 1];
+                    boundary_3 = nodes[(iz - 1) * (nsections_x + 1) + ix + 1];
                 else
                     boundary_3 = nullptr;
 
-                melementA->SetNodes(mynodes[(iz) * (nsections_x + 1) + ix], mynodes[(iz) * (nsections_x + 1) + ix + 1],
-                                    mynodes[(iz + 1) * (nsections_x + 1) + ix], boundary_1, boundary_2, boundary_3);
+                elementA->SetNodes(nodes[(iz) * (nsections_x + 1) + ix], nodes[(iz) * (nsections_x + 1) + ix + 1],
+                                   nodes[(iz + 1) * (nsections_x + 1) + ix], boundary_1, boundary_2, boundary_3);
 
-                melementA->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
+                elementA->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
 
                 auto melementB = chrono_types::make_shared<ChElementShellBST>();
-                my_mesh->AddElement(melementB);
+                mesh->AddElement(melementB);
 
-                boundary_1 = mynodes[(iz) * (nsections_x + 1) + ix];
+                boundary_1 = nodes[(iz) * (nsections_x + 1) + ix];
                 if (ix < nsections_x - 1)
-                    boundary_2 = mynodes[(iz) * (nsections_x + 1) + ix + 2];
+                    boundary_2 = nodes[(iz) * (nsections_x + 1) + ix + 2];
                 else
                     boundary_2 = nullptr;
                 if (iz < nsections_z - 1)
-                    boundary_3 = mynodes[(iz + 2) * (nsections_x + 1) + ix];
+                    boundary_3 = nodes[(iz + 2) * (nsections_x + 1) + ix];
                 else
                     boundary_3 = nullptr;
 
-                melementB->SetNodes(mynodes[(iz + 1) * (nsections_x + 1) + ix + 1],
-                                    mynodes[(iz + 1) * (nsections_x + 1) + ix],
-                                    mynodes[(iz) * (nsections_x + 1) + ix + 1], boundary_1, boundary_2, boundary_3);
+                melementB->SetNodes(nodes[(iz + 1) * (nsections_x + 1) + ix + 1],
+                                    nodes[(iz + 1) * (nsections_x + 1) + ix], nodes[(iz) * (nsections_x + 1) + ix + 1],
+                                    boundary_1, boundary_2, boundary_3);
 
                 melementB->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
             }
@@ -259,18 +259,18 @@ int main(int argc, char* argv[]) {
         // fix some nodes
         for (int j = 0; j < 30; ++j) {
             for (int k = 0; k < 30; ++k) {
-                mynodes[j * (nsections_x + 1) + k]->SetFixed(true);
+                nodes[j * (nsections_x + 1) + k]->SetFixed(true);
             }
         }
         /*
-        mynodes[0*(nsections_x+1)+1]->SetFixed(true);
-        mynodes[1*(nsections_x+1)+1]->SetFixed(true);
+        nodes[0*(nsections_x+1)+1]->SetFixed(true);
+        nodes[1*(nsections_x+1)+1]->SetFixed(true);
 
-        mynodes[0*(nsections_x+1)+nsections_x-1]->SetFixed(true);
-        mynodes[1*(nsections_x+1)+nsections_x-1]->SetFixed(true);
+        nodes[0*(nsections_x+1)+nsections_x-1]->SetFixed(true);
+        nodes[1*(nsections_x+1)+nsections_x-1]->SetFixed(true);
 
-        mynodes[0*(nsections_x+1)+nsections_x]->SetFixed(true);
-        mynodes[1*(nsections_x+1)+nsections_x]->SetFixed(true);
+        nodes[0*(nsections_x+1)+nsections_x]->SetFixed(true);
+        nodes[1*(nsections_x+1)+nsections_x]->SetFixed(true);
         */
     }
 
@@ -286,93 +286,67 @@ int main(int argc, char* argv[]) {
         double nu = 0.0;
         double thickness = 0.01;
 
-        auto melasticity = chrono_types::make_shared<ChElasticityKirchhoffIsothropic>(E, nu);
-        auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(melasticity);
+        auto elasticity = chrono_types::make_shared<ChElasticityKirchhoffIsothropic>(E, nu);
+        auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(elasticity);
         material->SetDensity(density);
 
-        ChMeshFileLoader::BSTShellFromObjFile(my_mesh, GetChronoDataFile("models/cube.obj").c_str(), material, thickness);
+        ChMeshFileLoader::BSTShellFromObjFile(mesh, GetChronoDataFile("models/cube.obj").c_str(), material, thickness);
     }
 
-    // ==Asset== attach a visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape
-    // asset that is internally managed) by setting  proper
-    // coordinates and vertex colors as in the FEM elements.
-    // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a colored ChTriangleMeshShape).
-    // Do not forget AddAsset() at the end!
+    // Visualization of the FEM mesh.
+    // This will automatically update a triangle mesh (a ChTriangleMeshShape asset that is internally managed) by
+    // setting  proper coordinates and vertex colors as in the FEM elements. Such triangle mesh can be rendered by
+    // Irrlicht or POVray or whatever postprocessor that can handle a colored ChTriangleMeshShape).
 
-    auto mvisualizeshellA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    // mvisualizeshellA->SetSmoothFaces(true);
-    // mvisualizeshellA->SetWireframe(true);
-    mvisualizeshellA->SetShellResolution(2);
-    // mvisualizeshellA->SetBackfaceCull(true);
-    my_mesh->AddAsset(mvisualizeshellA);
+    auto vis_shell_A = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    // vis_shell_A->SetSmoothFaces(true);
+    // vis_shell_A->SetWireframe(true);
+    vis_shell_A->SetShellResolution(2);
+    // vis_shell_A->SetBackfaceCull(true);
+    mesh->AddVisualShapeFEA(vis_shell_A);
 
-    auto mvisualizeshellB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizeshellB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizeshellB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizeshellB->SetSymbolsThickness(0.006);
-    my_mesh->AddAsset(mvisualizeshellB);
+    auto vis_shell_B = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_shell_B->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    vis_shell_B->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    vis_shell_B->SetSymbolsThickness(0.006);
+    mesh->AddVisualShapeFEA(vis_shell_B);
 
-    //
-    // VISUALIZATION
-    //
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Shells FEA test: triangle BST elements", core::dimension2d<u32>(1024, 768));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddLightWithShadow(irr::core::vector3df(2, 2, 2), irr::core::vector3df(0, 0, 0), 6, 0.2, 6, 50);
-    application.AddLight(irr::core::vector3df(-2, -2, 0), 6, irr::video::SColorf(0.6f, 1.0f, 1.0f, 1.0f));
-    application.AddLight(irr::core::vector3df(0, -2, -2), 6, irr::video::SColorf(0.6f, 1.0f, 1.0f, 1.0f));
-    // application.AddTypicalLights();
-    application.AddCamera(core::vector3df(1.f, 0.3f, 1.3f), core::vector3df(0.5f, -0.3f, 0.5f));
-
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-    application.AssetBindAll();
-
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-    application.AssetUpdateAll();
-
-    application.AddShadowAll();
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(1024, 768);
+    vis->SetWindowTitle("Shells FEA test: triangle BST elements");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(1, 0.3, 1.3), ChVector<>(0.5, -0.3, 0.5));
+    vis->AddLightWithShadow(ChVector<>(2, 2, 2), ChVector<>(0, 0, 0), 6, 0.2, 6, 50);
+    vis->AddLight(ChVector<>(-2, -2, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis->AddLight(ChVector<>(0, -2, -2), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis->EnableShadows();
 
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
-    my_system.SetSolver(mkl_solver);
+    sys.SetSolver(mkl_solver);
 
     // auto gmres_solver = chrono_types::make_shared<ChSolverGMRES>();
     // gmres_solver->SetMaxIterations(50);
-    // my_system.SetSolver(gmres_solver);
+    // sys.SetSolver(gmres_solver);
 
+    // Simulation loop
     double timestep = 0.005;
-    application.SetTimestep(timestep);
-    my_system.Setup();
-    my_system.Update();
+    sys.Setup();
+    sys.Update();
 
     ChFunction_Recorder rec_X;
     ChFunction_Recorder rec_Y;
 
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        application.DrawAll();
-
-        application.DoStep();
-
-        application.EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
+        sys.DoStepDynamics(timestep);
     }
 
     return 0;

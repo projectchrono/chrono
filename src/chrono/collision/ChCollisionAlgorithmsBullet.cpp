@@ -859,7 +859,10 @@ void cbtArcArcCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapp
     double arc2_angle2 = arc2->get_angle2();
 
     cbtVector3 local_C1C2 = local_arc1_center - local_arc2_center;
-    cbtVector3 local_D12 = local_C1C2.normalized();
+    auto len = local_C1C2.length();
+    if (len < 1e-8)
+        return;
+    cbtVector3 local_D12 = local_C1C2 / len;
 
     cbtVector3 local_P1;
     cbtVector3 local_P2;

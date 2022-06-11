@@ -9,18 +9,19 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
+
 #include "chrono/assets/ChCamera.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCamera)
 
 ChCamera::ChCamera()
-    : position(ChVector<>(0, 1, 1)),
+    : m_owner(nullptr),
+      position(ChVector<>(0, 1, 1)),
       aimpoint(VNULL),
       upvector(VECT_Y),
       angle(50),
@@ -28,34 +29,30 @@ ChCamera::ChCamera()
       hvratio(4.0 / 3),
       isometric(false){};
 
-void ChCamera::ArchiveOUT(ChArchiveOut& marchive) {
+void ChCamera::ArchiveOUT(ChArchiveOut& archive) {
     // version number
-    marchive.VersionWrite<ChCamera>();
-    // serialize parent class
-    ChAsset::ArchiveOUT(marchive);
+    archive.VersionWrite<ChCamera>();
     // serialize all member data:
-    marchive << CHNVP(position);
-    marchive << CHNVP(aimpoint);
-    marchive << CHNVP(upvector);
-    marchive << CHNVP(angle);
-    marchive << CHNVP(fov);
-    marchive << CHNVP(hvratio);
-    marchive << CHNVP(isometric);
+    archive << CHNVP(position);
+    archive << CHNVP(aimpoint);
+    archive << CHNVP(upvector);
+    archive << CHNVP(angle);
+    archive << CHNVP(fov);
+    archive << CHNVP(hvratio);
+    archive << CHNVP(isometric);
 }
 
-void ChCamera::ArchiveIN(ChArchiveIn& marchive) {
+void ChCamera::ArchiveIN(ChArchiveIn& archive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChCamera>();
-    // deserialize parent class
-    ChAsset::ArchiveIN(marchive);
+    /*int version =*/ archive.VersionRead<ChCamera>();
     // stream in all member data:
-    marchive >> CHNVP(position);
-    marchive >> CHNVP(aimpoint);
-    marchive >> CHNVP(upvector);
-    marchive >> CHNVP(angle);
-    marchive >> CHNVP(fov);
-    marchive >> CHNVP(hvratio);
-    marchive >> CHNVP(isometric);
+    archive >> CHNVP(position);
+    archive >> CHNVP(aimpoint);
+    archive >> CHNVP(upvector);
+    archive >> CHNVP(angle);
+    archive >> CHNVP(fov);
+    archive >> CHNVP(hvratio);
+    archive >> CHNVP(isometric);
 }
 
 }  // end namespace chrono

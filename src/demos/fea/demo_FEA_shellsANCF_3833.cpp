@@ -26,9 +26,9 @@
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -41,17 +41,8 @@ int main(int argc, char* argv[]) {
 
     double time_step = 1e-3;
 
-    ChSystemSMC my_system;
-    my_system.Set_G_acc(ChVector<>(0, 0, 0.0));
-    // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-    ChIrrApp application(&my_system, L"ANCF Shells", core::dimension2d<u32>(800, 600));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
-                                 core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
+    ChSystemSMC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, 0.0));
 
     GetLog() << "-----------------------------------------------------------------\n";
     GetLog() << "-----------------------------------------------------------------\n";
@@ -91,8 +82,8 @@ int main(int argc, char* argv[]) {
         double curvz_y = 0.0;
         double curvz_z = 0.0;
         // Create the node
-        auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z),
-                                                     ChVector<>(curvz_x, curvz_y, curvz_z));
+        auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(
+            ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z), ChVector<>(curvz_x, curvz_y, curvz_z));
         node->SetMass(0);
 
         // Fix all nodes along the axis X=0
@@ -117,8 +108,8 @@ int main(int argc, char* argv[]) {
         double curvz_y = 0.0;
         double curvz_z = 0.0;
         // Create the node
-        auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z),
-                                                     ChVector<>(curvz_x, curvz_y, curvz_z));
+        auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(
+            ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z), ChVector<>(curvz_x, curvz_y, curvz_z));
         node->SetMass(0);
         // Fix all nodes along the axis X=0
         if (i % (numDiv_x + 1) == 0)
@@ -132,8 +123,9 @@ int main(int argc, char* argv[]) {
     auto nodetip1 =
         std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode((2 * numDiv_x + 1) * (numDiv_y + 1) - 1));
     auto nodetip2 = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode((2 * numDiv_x + 1) * (numDiv_y)-1));
-    auto nodetip3 = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode((2 * numDiv_x + 1) * (numDiv_y + 1) + ((TotalNumElements - 1) / numDiv_x) * (numDiv_x + 1) + ((TotalNumElements-1) % numDiv_x) + 1));
-
+    auto nodetip3 = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(
+        my_mesh->GetNode((2 * numDiv_x + 1) * (numDiv_y + 1) + ((TotalNumElements - 1) / numDiv_x) * (numDiv_x + 1) +
+                         ((TotalNumElements - 1) % numDiv_x) + 1));
 
     // Create an orthotropic material.
     // All layers for all elements share the same material.
@@ -166,10 +158,16 @@ int main(int argc, char* argv[]) {
         GetLog() << "Node 7: " << node7 << "\n";
         GetLog() << "Node 1 End: " << (2 * numDiv_x + 1) * (numDiv_y + 1) - 1 << "\n";
         GetLog() << "Node 2 End: " << (2 * numDiv_x + 1) * (numDiv_y)-1 << "\n";
-        GetLog() << "Node 3 End: " << (2 * numDiv_x + 1) * (numDiv_y + 1) + ((TotalNumElements - 1) / numDiv_x) * (numDiv_x + 1) + ((TotalNumElements - 1) % numDiv_x) + 1 << "\n";
-        GetLog() << "Node 1 Location: " << nodetip1->GetPos().x() << " " << nodetip1->GetPos().y() << "  " << nodetip1->GetPos().z() << "\n";
-        GetLog() << "Node 2 Location: " << nodetip2->GetPos().x() << " " << nodetip2->GetPos().y() << "  " << nodetip2->GetPos().z() << "\n";
-        GetLog() << "Node 3 Location: " << nodetip3->GetPos().x() << " " << nodetip3->GetPos().y() << "  " << nodetip3->GetPos().z() << "\n";
+        GetLog() << "Node 3 End: "
+                 << (2 * numDiv_x + 1) * (numDiv_y + 1) + ((TotalNumElements - 1) / numDiv_x) * (numDiv_x + 1) +
+                        ((TotalNumElements - 1) % numDiv_x) + 1
+                 << "\n";
+        GetLog() << "Node 1 Location: " << nodetip1->GetPos().x() << " " << nodetip1->GetPos().y() << "  "
+                 << nodetip1->GetPos().z() << "\n";
+        GetLog() << "Node 2 Location: " << nodetip2->GetPos().x() << " " << nodetip2->GetPos().y() << "  "
+                 << nodetip2->GetPos().z() << "\n";
+        GetLog() << "Node 3 Location: " << nodetip3->GetPos().x() << " " << nodetip3->GetPos().y() << "  "
+                 << nodetip3->GetPos().z() << "\n";
 
         // Create the element and set its nodes.
         auto element = chrono_types::make_shared<ChElementShellANCF_3833>();
@@ -196,42 +194,50 @@ int main(int argc, char* argv[]) {
     }
 
     // Add the mesh to the system
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
     // -------------------------------------
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizemesh);
+    my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
-    my_mesh->AddAsset(mvisualizemeshref);
+    my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
-    my_mesh->AddAsset(mvisualizemeshC);
+    my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
+    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
+    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
     mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizemeshD);
+    my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("ANCF Shells");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    sys.SetVisualSystem(vis);
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -239,40 +245,39 @@ int main(int argc, char* argv[]) {
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(300);
     solver->SetTolerance(1e-14);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(true);
 
     // Set up integrator
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(10000);
     mystepper->SetAbsTolerances(1e-05);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
-    application.SetTimestep(time_step);
 
-    while (application.GetDevice()->run()) {
-        std::cout << "Time: " << my_system.GetChTime() << "s. \n";
-        if (my_system.GetChTime() < 0.1) {
-            nodetip1->SetForce(ChVector<>(0, 0, -20.0/3 * my_system.GetChTime()));
-            nodetip2->SetForce(ChVector<>(0, 0, -20.0/3 * my_system.GetChTime()));
-            nodetip3->SetForce(ChVector<>(0, 0, -20.0/3 * my_system.GetChTime()));
-		} else {
-			nodetip1->SetForce(ChVector<>(0, 0, -2 / 3.0));
-			nodetip2->SetForce(ChVector<>(0, 0, -2 / 3.0));
-			nodetip3->SetForce(ChVector<>(0, 0, -2 / 3.0));
-		}
+    while (vis->Run()) {
+        std::cout << "Time: " << sys.GetChTime() << "s. \n";
+        if (sys.GetChTime() < 0.1) {
+            nodetip1->SetForce(ChVector<>(0, 0, -20.0 / 3 * sys.GetChTime()));
+            nodetip2->SetForce(ChVector<>(0, 0, -20.0 / 3 * sys.GetChTime()));
+            nodetip3->SetForce(ChVector<>(0, 0, -20.0 / 3 * sys.GetChTime()));
+        } else {
+            nodetip1->SetForce(ChVector<>(0, 0, -2 / 3.0));
+            nodetip2->SetForce(ChVector<>(0, 0, -2 / 3.0));
+            nodetip3->SetForce(ChVector<>(0, 0, -2 / 3.0));
+        }
 
         GetLog() << "Node tip vertical position: " << nodetip1->GetPos().z() << "\n";
 
-        application.BeginScene();
-        application.DrawAll();
-        application.DoStep();
-        application.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
+        sys.DoStepDynamics(time_step);
     }
 
     return 0;

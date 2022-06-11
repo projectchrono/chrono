@@ -23,12 +23,8 @@ namespace geometry {
 /// A spherical geometric object for collisions and visualization.
 class ChApi ChSphere : public ChGeometry {
   public:
-    ChVector<> center;  ///< sphere center
-    double rad;         ///< sphere radius
-
-  public:
-    ChSphere() : center(VNULL), rad(0) {}
-    ChSphere(const ChVector<>& mc, double mrad) : center(mc), rad(mrad) {}
+    ChSphere() : rad(0) {}
+    ChSphere(const ChVector<>& mc, double mrad) : rad(mrad) {}
     ChSphere(const ChSphere& source);
     ~ChSphere() {}
 
@@ -45,7 +41,7 @@ class ChApi ChSphere : public ChGeometry {
                                 double& zmax,
                                 ChMatrix33<>* Rot = NULL) const override;
 
-    virtual ChVector<> Baricenter() const override { return center; }
+    virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 
     virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
 
@@ -57,6 +53,8 @@ class ChApi ChSphere : public ChGeometry {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    double rad;  ///< sphere radius
 };
 
 }  // end namespace geometry

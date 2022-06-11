@@ -26,7 +26,7 @@
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChRoadDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRigIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRigVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
@@ -58,7 +58,11 @@ std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json"
 ////std::string filename("M113/track_assembly/M113_TrackAssemblyDoublePin_Left.json");
 
 TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
-bool add_track_RSDA = true;
+DoublePinTrackShoeType shoe_topology = DoublePinTrackShoeType::ONE_CONNECTOR;
+
+bool use_track_bushings = false;
+bool use_suspension_bushings = false;
+bool use_track_RSDA = true;
 
 // Specification of test rig inputs
 enum class DriverMode {
@@ -66,9 +70,10 @@ enum class DriverMode {
     DATAFILE,    // inputs from data file
     ROADPROFILE  // inputs to follow road profile
 };
-std::string driver_file("M113/test_rig/TTR_inputs.dat");  // used for mode=DATAFILE
-std::string road_file("M113/test_rig/TTR_road.dat");      // used for mode=ROADPROFILE
-double road_speed = 10;                                   // used for mode=ROADPROFILE
+std::string driver_file("M113/test_rig/TTR_inputs.dat");   // used for mode=DATAFILE
+////std::string driver_file("M113/test_rig/TTR_inputs2.dat");  // used for mode=DATAFILE
+std::string road_file("M113/test_rig/TTR_road.dat");       // used for mode=ROADPROFILE
+double road_speed = 10;                                    // used for mode=ROADPROFILE
 DriverMode driver_mode = DriverMode::ROADPROFILE;
 
 // Contact method
@@ -101,6 +106,10 @@ bool verbose_integrator = false;
 bool output = true;
 const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
 double out_step_size = 1e-2;
+
+// Test detracking
+bool detracking_control = true;
+bool apply_detracking_force = false;
 
 // =============================================================================
 
@@ -221,7 +230,7 @@ int main(int argc, char* argv[]) {
 
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, contact_method);
+        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, contact_method), detracking_control;
         std::cout << "Rig uses track assembly from JSON file: " << vehicle::GetDataFile(filename) << std::endl;
     } else {
         VehicleSide side = LEFT;
@@ -229,13 +238,13 @@ int main(int argc, char* argv[]) {
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (shoe_type) {
             case TrackShoeType::SINGLE_PIN: {
-                track_assembly =
-                    chrono_types::make_shared<M113_TrackAssemblySinglePin>(side, brake_type, add_track_RSDA);
+                track_assembly = chrono_types::make_shared<M113_TrackAssemblySinglePin>(
+                    side, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA);
                 break;
             }
             case TrackShoeType::DOUBLE_PIN: {
-                track_assembly =
-                    chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side, brake_type, add_track_RSDA);
+                track_assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(
+                    side, shoe_topology, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA);
                 break;
             }
             default:
@@ -243,7 +252,7 @@ int main(int argc, char* argv[]) {
                 return 1;
         }
 
-        rig = new ChTrackTestRig(track_assembly, create_track, contact_method);
+        rig = new ChTrackTestRig(track_assembly, create_track, contact_method, detracking_control);
         std::cout << "Rig uses M113 track assembly:  type " << (int)shoe_type << " side " << side << std::endl;
     }
 
@@ -251,20 +260,11 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ////ChVector<> target_point = rig->GetPostPosition();
-    ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-    ////ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
-    ChVector<> target_point = 0.5 * (rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos() +
-                                     rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos());
-
-    ChTrackTestRigIrrApp app(rig, L"Track Test Rig");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(0, 5, 0));
-    app.SetChaseCameraState(utils::ChChaseCamera::Free);
-    app.SetChaseCameraAngle(-CH_C_PI_2);
-    app.SetChaseCameraMultipliers(1e-4, 10);
-    ////app.RenderTrackShoeFrames(true, 0.4);
+    auto vis = chrono_types::make_shared<ChTrackTestRigVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Track Test Rig");
+    vis->SetChaseCamera(ChVector<>(0), 3.0, 0.0);
+    vis->SetChaseCameraMultipliers(1e-4, 10);
+    ////vis->RenderTrackShoeFrames(true, 0.4);
 
     // -----------------------------------
     // Create and attach the driver system
@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChDriverTTR> driver;
     switch (driver_mode) {
         case DriverMode::KEYBOARD: {
-            auto irr_driver = chrono_types::make_shared<ChIrrGuiDriverTTR>(app);
+            auto irr_driver = chrono_types::make_shared<ChIrrGuiDriverTTR>(*vis);
             irr_driver->SetThrottleDelta(1.0 / 50);
             irr_driver->SetDisplacementDelta(1.0 / 250);
             driver = irr_driver;
@@ -317,8 +317,21 @@ int main(int argc, char* argv[]) {
 
     rig->Initialize();
 
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    rig->SetVisualSystem(vis);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+
+    ////ChVector<> target_point = rig->GetPostPosition();
+    ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
+    ////ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+    ChVector<> target_point = 0.5 * (rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos() +
+                                     rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos());
+
+    vis->SetChaseCameraPosition(target_point + ChVector<>(0, -5, 0));
+    vis->SetChaseCameraState(utils::ChChaseCamera::Free);
+    vis->SetChaseCameraAngle(CH_C_PI_2);
 
     // -----------------
     // Set up rig output
@@ -365,14 +378,22 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    // Grab pointer to first track shoe
+    auto shoe_body = rig->GetTrackAssembly()->GetTrackShoe(0)->GetShoeBody();
+
     // Initialize simulation frame counter
     int step_number = 0;
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
+        if (apply_detracking_force) {
+            shoe_body->Empty_forces_accumulators();
+            shoe_body->Accumulate_force(ChVector<>(0, 20000, 0), ChVector<>(0, 0, 0), true);
+        }
+
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        app.EndScene();
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
 
         // Debugging output
         ////rig->LogDriverInputs();
@@ -381,8 +402,8 @@ int main(int argc, char* argv[]) {
         rig->Advance(step_size);
 
         // Update visualization app
-        app.Synchronize(rig->GetDriverMessage(), {0, rig->GetThrottleInput(), 0});
-        app.Advance(step_size);
+        vis->Synchronize(rig->GetDriverMessage(), {0, rig->GetThrottleInput(), 0});
+        vis->Advance(step_size);
 
         ////if (driver->Ended())
         ////    break;

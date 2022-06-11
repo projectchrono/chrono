@@ -150,25 +150,25 @@ bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of join
     // Create a ChronoENGINE physical system: all bodies and constraints will be
     // handled by this ChSystem object.
 
-    ChSystemNSC my_system;
-    my_system.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
 
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    my_system.SetSolverType(ChSolver::Type::PSOR);
-    my_system.SetSolverMaxIterations(100);
-    my_system.SetSolverForceTolerance(1e-4);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(100);
+    sys.SetSolverForceTolerance(1e-4);
 
     // Create the ground body
 
     auto ground = chrono_types::make_shared<ChBody>();
-    my_system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetBodyFixed(true);
 
     // Create the pendulum body in an initial configuration at rest.
     // The pendulum CG is assumed to be at half its length.
 
     auto pendulum = chrono_types::make_shared<ChBody>();
-    my_system.AddBody(pendulum);
+    sys.AddBody(pendulum);
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(0, 0, -0.5 * length)));
     pendulum->SetRot(jointRot);
     pendulum->SetMass(mass);
@@ -179,7 +179,7 @@ bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of join
 
     auto universalJoint = chrono_types::make_shared<ChLinkUniversal>();
     universalJoint->Initialize(ground, pendulum, ChFrame<>(jointLoc, jointRot));
-    my_system.AddLink(universalJoint);
+    sys.AddLink(universalJoint);
 
     // Perform the simulation (record results option)
     // ------------------------------------------------
@@ -251,7 +251,7 @@ bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of join
 
     // Perform a system assembly to ensure we have the correct accelerations at
     // the initial time.
-    my_system.DoFullAssembly();
+    sys.DoFullAssembly();
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();
@@ -327,7 +327,7 @@ bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of join
         }
 
         // Advance simulation by one step
-        my_system.DoStepDynamics(simTimeStep);
+        sys.DoStepDynamics(simTimeStep);
 
         // Increment simulation time
         simTime += simTimeStep;

@@ -24,6 +24,7 @@
 
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChMaterialSurface.h"
 #include "chrono/physics/ChLinkRSDA.h"
@@ -89,6 +90,13 @@ struct TerrainForce {
 
 /// Vector of terrain conatct force structures.
 typedef std::vector<TerrainForce> TerrainForces;
+
+/// Driver (vehicle control) inputs.
+struct DriverInputs {
+    double m_steering;  ///< steering input [-1, +1]
+    double m_throttle;  ///< throttle input [0, 1]
+    double m_braking;   ///< braking input [0, 1]
+};
 
 // -----------------------------------------------------------------------------
 // Utility functor classes for force elements
@@ -608,6 +616,16 @@ enum class TrackShoeType {
     BAND_ANCF      ///< rigid tooth-ANCF web continuous band track shoe and sprocket
 };
 
+/// Topology of the double-pin track shoe.
+/// The "full" double-pin track shoe mechanism uses separate bodies for the left and right connector bodies.  The
+/// "reduced" model uses a single connector body. The mass and inertia of the composite connector body in the reduced
+/// model are calculated based on the provided values for an individual connector body.  Furthermore, the collision
+/// geometry is the same, meaning both models of a double-pin track shoe can interact with the same type of sprocket.
+enum class DoublePinTrackShoeType {
+    TWO_CONNECTORS,  ///< two connector bodies
+    ONE_CONNECTOR    ///< one connector body
+};
+
 /// Enum for guide pin (track shoe/roadwheel/idler).
 enum class GuidePinType {
     CENTRAL_PIN,  ///< track shoes with central guiding pin and double wheels
@@ -677,12 +695,6 @@ class CH_VEHICLE_API ChVehicleGeometry {
   public:
     ChVehicleGeometry();
 
-    /// Process visualization asset levels in the associated visual model (default: true).
-    /// If set to false, all visualization asset levels are flatten into a single one. This may be required for
-    /// visualization systems which do not process ChAssetLevel objects (such as Chrono::OpenGL).
-    /// Note: To have effect, this function must be called before setting visualizatin assets for any vehicle part.
-    static void EnableVisualizationAssetLevels(bool flag);
-
     /// Box shape for visualization and/or collision.
     struct BoxShape {
         BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1)
@@ -711,6 +723,15 @@ class CH_VEHICLE_API ChVehicleGeometry {
         double m_radius;       ///< cylinder radius
         double m_length;       ///< cylinder length
         int m_matID;           ///< index in contact material list
+    };
+
+    /// Line shape for visualization.
+    struct LineShape {
+        LineShape(const ChVector<>& pos, const ChQuaternion<>& rot, std::shared_ptr<geometry::ChLine> line)
+            : m_pos(pos), m_rot(rot), m_line(line) {}
+        ChVector<> m_pos;                          ///< position relative to body
+        ChQuaternion<> m_rot;                      ///< orientation relative to body
+        std::shared_ptr<geometry::ChLine> m_line;  ///< line data
     };
 
     /// Convex hulls shape for collision.
@@ -742,12 +763,14 @@ class CH_VEHICLE_API ChVehicleGeometry {
     std::vector<BoxShape> m_vis_boxes;           ///< list of visualization boxes
     std::vector<SphereShape> m_vis_spheres;      ///< list of visualization spheres
     std::vector<CylinderShape> m_vis_cylinders;  ///< list of visualization cylinders
+    std::vector<LineShape> m_vis_lines;          ///< list of visualization lines
 
     bool m_has_colors;          ///< true if primitive colors were provided
     ChColor m_color_boxes;      ///< visualization color
     ChColor m_color_spheres;    ///< visualization color
     ChColor m_color_cylinders;  ///< visualization color
 
+    bool m_has_obj;               ///< true if the body uses visualization from an OBJ
     bool m_has_mesh;              ///< true if the body uses a visualization mesh
     std::string m_vis_mesh_file;  ///< name of Wavefront OBJ file with visualizaiton mesh
 

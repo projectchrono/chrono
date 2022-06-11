@@ -19,10 +19,11 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChParserOpenSim.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/rapidxml/rapidxml.hpp"
@@ -58,7 +59,7 @@ int main(int argc, char* argv[]) {
     ChParserOpenSim::VisType vis_type = mesh ? ChParserOpenSim::VisType::MESH : ChParserOpenSim::VisType::PRIMITIVES;
 
     // Make a system
-    ChSystemSMC my_system;
+    ChSystemSMC sys;
 
     // Create parser instance and set options.
     // - Use MESH visualization and no collision for the Rajagopal model.
@@ -68,7 +69,7 @@ int main(int argc, char* argv[]) {
     parser.SetVerbose(true);
     parser.SetCollide(collide);
     ////parser.ActivateActuators(true);
-    parser.Parse(my_system, filename);
+    parser.Parse(sys, filename);
 
     // Print information about parsed elements
     ////parser.PrintReport();
@@ -79,7 +80,7 @@ int main(int argc, char* argv[]) {
     rep.Print();
     std::cout << "---------" << std::endl;
 
-    ////my_system.GetSolver()->SetTolerance(1e-4);
+    ////sys.GetSolver()->SetTolerance(1e-4);
 
     // Find the actuator named "grav" and directly set its excitation function
     ////if (auto force = rep.GetForce("grav")) {
@@ -93,37 +94,26 @@ int main(int argc, char* argv[]) {
     ////auto excitation = chrono_types::make_shared<ChFunction_Ramp>(0, 1);
     ////parser.SetExcitationFunction("grav", excitation);
 
-    // Create a gound body
-    ////auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(  //
-    ////    40, 2, 40,                                              // dimensions
-    ////    1000,                                                   // density
-    ////    true, true,                                             // visualize? collide?
-    ////    chrono_types::make_shared<ChMaterialSurfaceSMC>()       // contact material
-    ////);
-    ////my_system.AddBody(my_ground);
-    ////my_ground->SetBodyFixed(true);
-    ////my_ground->SetPos(ChVector<>(0, -2.9, 0));
-    ////my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg")));
-
-    // Set up Irrlicht
-    ChIrrApp application(&my_system, L"Model loaded from OpenSim file", core::dimension2d<u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(core::vector3df(0, 0, 2));
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    sys.SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Model loaded from OpenSim file");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector<>(0, 0, 2));
+    vis->AddTypicalLights();
 
     // Simulation loop
-    application.SetTimestep(0.001);
-    application.SetTryRealtime(true);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
-        application.DoStep();
-        application.EndScene();
+    double timestep = 0.001;
+    ChRealtimeStepTimer realtime_timer;
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
+        vis->EndScene();
+        sys.DoStepDynamics(timestep);
+        realtime_timer.Spin(timestep);
     }
     return 0;
 }

@@ -195,7 +195,7 @@ real Vec3PointTriDist2(const real3& P, const real3& x0, const real3& B, const re
     real3 d2 = C - x0;
     real3 a = x0 - P;
 
-    real u = Dot(a, a);
+    ////real u = Dot(a, a);
     real v = Dot(d1, d1);
     real w = Dot(d2, d2);
     real p = Dot(a, d1);

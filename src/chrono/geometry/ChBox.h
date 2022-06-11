@@ -23,17 +23,12 @@ namespace chrono {
 namespace geometry {
 
 /// A box geometric object for collisions and visualization.
-
 class ChApi ChBox : public ChVolume {
   public:
-    ChMatrix33<> Rot;  ///< box rotation
-    ChVector<> Pos;    ///< position of box center
-    ChVector<> Size;   ///< box halflengths
-
-  public:
-    ChBox() : Rot(1), Pos(VNULL), Size(VNULL) {}
-    ChBox(const ChVector<>& mpos, const ChMatrix33<>& mrot, const ChVector<>& mlengths);
-    ChBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3);
+    ChBox() : Size(VNULL) {}
+    ChBox(const ChVector<>& lengths);
+    ChBox(double len_x, double len_y, double len_z);
+    ////ChBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3);
     ChBox(const ChBox& source);
 
     /// "Virtual" copy constructor (covariant return type).
@@ -50,7 +45,7 @@ class ChApi ChBox : public ChVolume {
                                 ChMatrix33<>* bbRot = NULL) const override;
 
     /// Computes the baricenter of the box
-    virtual ChVector<> Baricenter() const override { return Pos; }
+    virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 
     /// Computes the covariance matrix for the box
     virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
@@ -60,12 +55,6 @@ class ChApi ChBox : public ChVolume {
 
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
-
-    /// Access the rotation of the box
-    ChMatrix33<>* GetRotm() { return &Rot; }
-
-    /// Access the position of the barycenter of the box
-    ChVector<>& GetPos() { return Pos; }
 
     /// Get the box half-lengths
     ChVector<>& GetSize() { return Size; }
@@ -77,7 +66,7 @@ class ChApi ChBox : public ChVolume {
     /// the Size values)
     void SetLengths(const ChVector<>& mlen) { Size = 0.5 * mlen; }
 
-    // Get the 8 corner points, translated and rotated
+    // Get the 8 corner points.
     ChVector<> GetP1() const;
     ChVector<> GetP2() const;
     ChVector<> GetP3() const;
@@ -98,6 +87,8 @@ class ChApi ChBox : public ChVolume {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    ChVector<> Size;  ///< box halflengths
 };
 
 }  // end namespace geometry

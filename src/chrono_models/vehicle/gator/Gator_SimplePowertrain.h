@@ -50,7 +50,7 @@ class CH_MODELS_API Gator_SimplePowertrain : public ChPowertrain {
     virtual double GetOutputTorque() const override { return m_shaftTorque; }
 
   private:
-    virtual void Synchronize(double time, double throttle, double shaft_speed) override;
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, double shaft_speed) override;
     virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
 
     double m_motorSpeed;

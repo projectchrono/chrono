@@ -36,7 +36,7 @@
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -79,8 +79,8 @@ int main(int argc, char* argv[]) {
     }
     // Create the physical system
 
-    ChSystemNSC my_system;
-    my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
 #ifndef CHRONO_PARDISO_MKL
     use_mkl = false;
@@ -237,11 +237,11 @@ int main(int argc, char* argv[]) {
         auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         mkl_solver->SetVerbose(true);
-        my_system.SetSolver(mkl_solver);
+        sys.SetSolver(mkl_solver);
 #endif
     } else {
         auto solver = chrono_types::make_shared<ChSolverMINRES>();
-        my_system.SetSolver(solver);
+        sys.SetSolver(solver);
         solver->SetMaxIterations(200);
         solver->SetTolerance(1e-10);
         solver->EnableDiagonalPreconditioner(true);
@@ -249,8 +249,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup integrator
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.01);
     mystepper->SetMaxiters(10000);
     mystepper->SetAbsTolerances(1e-09);
@@ -270,11 +270,11 @@ int main(int argc, char* argv[]) {
         out.stream().precision(7);
         int Iterations = 0;
         // Simulate to final time, while saving position of tip node.
-        while (my_system.GetChTime() < sim_time) {
-            my_system.DoStepDynamics(step_size);
+        while (sys.GetChTime() < sim_time) {
+            sys.DoStepDynamics(step_size);
             Iterations += mystepper->GetNumIterations();
-            out << my_system.GetChTime() << nodetip->GetPos().z() << std::endl;
-            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
+            out << sys.GetChTime() << nodetip->GetPos().z() << std::endl;
+            GetLog() << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
                      << nodetip->GetForce().z() << "\t" << Iterations << "\n";
         }
         // Write results to output file.
@@ -282,8 +282,8 @@ int main(int argc, char* argv[]) {
     } else {
         double max_err = 0;
         for (unsigned int it = 0; it < num_steps_UT; it++) {
-            my_system.DoStepDynamics(step_size);
-            std::cout << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << std::endl;
+            sys.DoStepDynamics(step_size);
+            std::cout << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << std::endl;
             double err = std::abs(nodetip->GetPos().z() - FileInputMat(it, 1));
             max_err = std::max(max_err, err);
             if (err > precision) {

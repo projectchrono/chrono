@@ -29,10 +29,10 @@ namespace fmtv {
 
 // Static variables
 
-const double FMTV_ChassisFront::m_mass = 3946;
-const ChVector<> FMTV_ChassisFront::m_inertiaXX(3.2282e3, 5.2323e3, 4.4980e3);
-const ChVector<> FMTV_ChassisFront::m_inertiaXY(0, -0.4027e3, 0);
-const ChVector<> FMTV_ChassisFront::m_COM_loc(-0.6972, 0, 0.6672);
+const double FMTV_ChassisFront::m_body_mass = 3946;
+const ChVector<> FMTV_ChassisFront::m_body_inertiaXX(3.2282e3, 5.2323e3, 4.4980e3);
+const ChVector<> FMTV_ChassisFront::m_body_inertiaXY(0, -0.4027e3, 0);
+const ChVector<> FMTV_ChassisFront::m_body_COM_loc(-0.6972, 0, 0.6672);
 const ChVector<> FMTV_ChassisFront::m_connector_loc(-1.85, 0, 0.45);
 const ChCoordsys<> FMTV_ChassisFront::m_driverCsys(ChVector<>(0.4, 0.7, 1.18), ChQuaternion<>(1, 0, 0, 0));
 
@@ -40,16 +40,16 @@ const ChCoordsys<> FMTV_ChassisFront::m_driverCsys(ChVector<>(0.4, 0.7, 1.18), C
 
 FMTV_ChassisFront::FMTV_ChassisFront(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
-    m_inertia(0, 0) = m_inertiaXX.x();
-    m_inertia(1, 1) = m_inertiaXX.y();
-    m_inertia(2, 2) = m_inertiaXX.z();
+    m_body_inertia(0, 0) = m_body_inertiaXX.x();
+    m_body_inertia(1, 1) = m_body_inertiaXX.y();
+    m_body_inertia(2, 2) = m_body_inertiaXX.z();
 
-    m_inertia(0, 1) = m_inertiaXY.x();
-    m_inertia(0, 2) = m_inertiaXY.y();
-    m_inertia(1, 2) = m_inertiaXY.z();
-    m_inertia(1, 0) = m_inertiaXY.x();
-    m_inertia(2, 0) = m_inertiaXY.y();
-    m_inertia(2, 1) = m_inertiaXY.z();
+    m_body_inertia(0, 1) = m_body_inertiaXY.x();
+    m_body_inertia(0, 2) = m_body_inertiaXY.y();
+    m_body_inertia(1, 2) = m_body_inertiaXY.z();
+    m_body_inertia(1, 0) = m_body_inertiaXY.x();
+    m_body_inertia(2, 0) = m_body_inertiaXY.y();
+    m_body_inertia(2, 1) = m_body_inertiaXY.z();
 
     //// TODO:
     //// A more appropriate contact shape from primitives

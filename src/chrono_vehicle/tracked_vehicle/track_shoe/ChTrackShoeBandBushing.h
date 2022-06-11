@@ -42,6 +42,10 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TrackShoeBandBushing"; }
 
+    /// Get track tension at this track shoe.
+    /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
+    virtual ChVector<> GetTension() const override;
+
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
@@ -60,6 +64,9 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
     /// Return the number of segments that the web section is broken up into.
     virtual int GetNumWebSegments() const = 0;
 
@@ -69,15 +76,8 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
     /// Return a pointer to the web segment body with the provided index.
     std::shared_ptr<ChBody> GetWebSegment(size_t index) { return m_web_segments[index]; }
 
-    /// Set bushing stiffness and damping information.
-    void SetBushingParameters(
-        double Klin,        ///< linear stiffness in all directions  (default: 7e7 N/m)
-        double Krot_dof,    ///< rotational stifness in the DOF direction (default: 500 N.m/rad)
-        double Krot_other,  ///< rotatioal stiffness in other two directions (default: 1e5 N.m/rad)
-        double Dlin,        ///< linear damping in all directions (defaalt: 0.05 * 7e7 N/m.s)
-        double Drot_dof,    ///< rotational damping in the DOF direction (default: 0.05 * 500 N.m/rad.s)
-        double Drot_other   ///< rotational damping in other two direction (default: 0.05 * 1e5 N.m/rad.s)
-    );
+    /// Return bushing stiffness and damping data.
+    virtual std::shared_ptr<ChVehicleBushingData> GetBushingData() const = 0;
 
     /// Add contact geometry for a web segment body.
     virtual void AddWebContact(std::shared_ptr<ChBody> segment);
@@ -105,22 +105,11 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
 
     virtual void Output(ChVehicleOutput& database) const override;
 
-    //// TODO: consider using a single ChLoadContainer (managed by the track assembly)
-    ////       like we do for the FEA mesh for the bandANCF track
-
     std::vector<std::shared_ptr<ChBody>> m_web_segments;          ///< web segment bodies
     std::vector<std::shared_ptr<ChLoadBodyBody>> m_web_bushings;  ///< bushings
-    std::shared_ptr<ChLoadContainer> m_loadcontainer;             ///< container for all bushing elements
     double m_seg_length;                                          ///< length of a web segment
     double m_seg_mass;                                            ///< mass of a web segment
     ChVector<> m_seg_inertia;                                     ///< moments of inertia of a web segment
-
-    double m_Klin;
-    double m_Krot_dof;
-    double m_Krot_other;
-    double m_Dlin;
-    double m_Drot_dof;
-    double m_Drot_other;
 
     friend class ChTrackAssemblyBandBushing;
 };

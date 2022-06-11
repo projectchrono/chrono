@@ -18,7 +18,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Create the system
     // -----------------
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     auto reflective_color = std::make_shared<ChVisualMaterial>();
     reflective_color->SetDiffuseColor({.5f, .5f, .5f});
@@ -62,29 +62,30 @@ int main(int argc, char* argv[]) {
     auto mirror_left = chrono_types::make_shared<ChBodyEasyBox>(50, .1, 5, 1000, true, false);
     mirror_left->SetPos({0, -1, 0});
     mirror_left->SetBodyFixed(true);
-    mphysicalSystem.Add(mirror_left);
-    std::dynamic_pointer_cast<ChVisualization>(mirror_left->GetAssets()[0])->material_list.push_back(reflective_color);
+    sys.Add(mirror_left);
+    mirror_left->GetVisualModel()->GetShapes()[0].first->AddMaterial(reflective_color);
 
     auto mirror_right = chrono_types::make_shared<ChBodyEasyBox>(50, .1, 5, 1000, true, false);
     mirror_right->SetPos({0, 1, 0});
     mirror_right->SetBodyFixed(true);
-    mphysicalSystem.Add(mirror_right);
-    std::dynamic_pointer_cast<ChVisualization>(mirror_right->GetAssets()[0])->material_list.push_back(reflective_color);
+    sys.Add(mirror_right);
+    mirror_right->GetVisualModel()->GetShapes()[0].first->AddMaterial(reflective_color);
 
     auto ball = chrono_types::make_shared<ChBodyEasySphere>(.25, 1000, true, false);
     ball->SetPos({4, 0, 0});
     ball->SetBodyFixed(true);
-    mphysicalSystem.Add(ball);
-    std::dynamic_pointer_cast<ChVisualization>(ball->GetAssets()[0])->material_list.push_back(red_color);
+    sys.Add(ball);
+    ball->GetVisualModel()->GetShapes()[0].first->AddMaterial(red_color);
+
 
     auto cam_body = chrono_types::make_shared<ChBodyEasyBox>(.01, .01, .01, 1000, false, false);
     cam_body->SetBodyFixed(true);
-    mphysicalSystem.Add(cam_body);
+    sys.Add(cam_body);
 
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = std::make_shared<ChSensorManager>(&sys);
     manager->SetVerbose(false);
     manager->SetRayRecursions(21);
     float intensity = 1.f;
@@ -124,9 +125,9 @@ int main(int argc, char* argv[]) {
         //     Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
 
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.001);
+        sys.DoStepDynamics(0.001);
 
-        ch_time = (float)mphysicalSystem.GetChTime();
+        ch_time = (float)sys.GetChTime();
     }
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

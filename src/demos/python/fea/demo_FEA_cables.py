@@ -1,18 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
-#
-# =============================================================================
-# Authors: Simone Benatti
-# =============================================================================
-#
-# FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 
@@ -29,29 +23,20 @@ solver = chrono.ChSolverSparseQR()
 print("Copyright (c) 2017 projectchrono.org\nChrono version: ")
 
 # Create a Chrono::Engine physical system
-my_system = chrono.ChSystemSMC()
+sys = chrono.ChSystemSMC()
 
-# Create the Irrlicht visualization (open the Irrlicht device,
-# bind a simple user interface, etc. etc.)
-application = chronoirr.ChIrrApp(my_system, "Cables FEM", chronoirr.dimension2du(800, 600))
-
-# Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-application.AddLogo()
-application.AddSkyBox()
-application.AddTypicalLights()
-application.AddCamera(chronoirr.vector3df(0., 0.6, -1))
 
 # Create a mesh, that is a container for groups of elements and
 # their referenced nodes.
-my_mesh = fea.ChMesh()
+mesh = fea.ChMesh()
 
 # Create one of the available models (defined in FEAcables.h)
-##model = Model1(my_system, my_mesh)
-##model = Model2(my_system, my_mesh)
-model = Model3(my_system, my_mesh)
+##model = Model1(sys, mesh)
+##model = Model2(sys, mesh)
+model = Model3(sys, mesh)
 
 # Remember to add the mesh to the system!
-my_system.Add(my_mesh)
+sys.Add(mesh)
 
 # ==Asset== attach a visualization of the FEM mesh.
 # This will automatically update a triangle mesh (a ChTriangleMeshShape
@@ -59,45 +44,45 @@ my_system.Add(my_mesh)
 # coordinates and vertex colors as in the FEM elements.
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
 # postprocessor that can handle a colored ChTriangleMeshShape).
-# Do not forget AddAsset() at the end!
 
-mvisualizebeamA = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizebeamA.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_ELEM_BEAM_MZ)
-mvisualizebeamA.SetColorscaleMinMax(-0.4, 0.4)
-mvisualizebeamA.SetSmoothFaces(True)
-mvisualizebeamA.SetWireframe(False)
-my_mesh.AddAsset(mvisualizebeamA)
+visualizebeamA = chrono.ChVisualShapeFEA(mesh)
+visualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)
+visualizebeamA.SetColorscaleMinMax(-0.4, 0.4)
+visualizebeamA.SetSmoothFaces(True)
+visualizebeamA.SetWireframe(False)
+mesh.AddVisualShapeFEA(visualizebeamA)
 
-mvisualizebeamC = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizebeamC.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_NODE_DOT_POS) # E_GLYPH_NODE_CSYS
-mvisualizebeamC.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NONE)
-mvisualizebeamC.SetSymbolsThickness(0.006)
-mvisualizebeamC.SetSymbolsScale(0.01)
-mvisualizebeamC.SetZbufferHide(False)
-my_mesh.AddAsset(mvisualizebeamC)
+visualizebeamB = chrono.ChVisualShapeFEA(mesh)
+visualizebeamB.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS) # NODE_CSYS
+visualizebeamB.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
+visualizebeamB.SetSymbolsThickness(0.006)
+visualizebeamB.SetSymbolsScale(0.01)
+visualizebeamB.SetZbufferHide(False)
+mesh.AddVisualShapeFEA(visualizebeamB)
 
-# ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-# If you need a finer control on which item really needs a visualization proxy in
-# Irrlicht, just use application.AssetBind(myitem) on a per-item basis.
-application.AssetBindAll()
-
-# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-application.AssetUpdateAll()
+# Create the Irrlicht visualization
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('FEA cables')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0, 0.6, -1))
+vis.AddTypicalLights()
 
 # Set solver and solver settings
 
 if solver.GetType()==chrono.ChSolver.Type_SPARSE_QR:
 	print("Using SparseQR solver")
-	my_system.SetSolver(solver)
+	sys.SetSolver(solver)
 	solver.UseSparsityPatternLearner(True)
 	solver.LockSparsityPattern(True)
 	solver.SetVerbose(False)
 
 elif solver.GetType()== chrono.ChSolver.Type_MINRES :
 	print( "Using MINRES solver" )
-	my_system.SetSolver(solver)
+	sys.SetSolver(solver)
 	solver.SetMaxIterations(200)
 	solver.SetTolerance(1e-10)
 	solver.EnableDiagonalPreconditioner(True)
@@ -107,19 +92,17 @@ elif solver.GetType()== chrono.ChSolver.Type_MINRES :
 else:
 	print("Solver type not supported." )
     
-my_system.SetSolverForceTolerance(1e-13)
+sys.SetSolverForceTolerance(1e-13)
 
 # Set integrator
-ts = chrono.ChTimestepperEulerImplicitLinearized(my_system)
-my_system.SetTimestepper(ts)
+ts = chrono.ChTimestepperEulerImplicitLinearized(sys)
+sys.SetTimestepper(ts)
 
-# SIMULATION LOOP
-application.SetTimestep(0.01)
-
-while (application.GetDevice().run()) :
-	application.BeginScene()
-	application.DrawAll()
-	application.DoStep()
-	application.EndScene()
+# Simulation loop
+while vis.Run():
+    vis.BeginScene()
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(0.01)
 	##model.PrintBodyPositions()
 

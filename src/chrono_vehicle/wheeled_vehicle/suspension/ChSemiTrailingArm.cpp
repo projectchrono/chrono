@@ -28,8 +28,7 @@
 #include <algorithm>
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
-#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChSemiTrailingArm.h"
 
@@ -66,7 +65,8 @@ void ChSemiTrailingArm::Initialize(std::shared_ptr<ChChassis> chassis,
                                    const ChVector<>& location,
                                    double left_ang_vel,
                                    double right_ang_vel) {
-    m_location = location;
+    m_parent = chassis;
+    m_rel_loc = location;
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
@@ -182,26 +182,27 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-// -----------------------------------------------------------------------------
-// Get the total mass of the suspension subsystem.
-// -----------------------------------------------------------------------------
-double ChSemiTrailingArm::GetMass() const {
-    return 2 * (getSpindleMass() + getArmMass());
+void ChSemiTrailingArm::InitializeInertiaProperties() {
+    m_mass = 2 * (getSpindleMass() + getArmMass());
 }
 
-// -----------------------------------------------------------------------------
-// Get the current COM location of the suspension subsystem.
-// -----------------------------------------------------------------------------
-ChVector<> ChSemiTrailingArm::GetCOMPos() const {
-    ChVector<> com(0, 0, 0);
+void ChSemiTrailingArm::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
-    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), m_spindle[LEFT]->GetMass(),
+                           m_spindle[LEFT]->GetInertia());
+    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), m_spindle[RIGHT]->GetMass(),
+                           m_spindle[RIGHT]->GetInertia());
+    composite.AddComponent(m_arm[LEFT]->GetFrame_COG_to_abs(), m_arm[LEFT]->GetMass(), m_arm[LEFT]->GetInertia());
+    composite.AddComponent(m_arm[RIGHT]->GetFrame_COG_to_abs(), m_arm[RIGHT]->GetMass(), m_arm[RIGHT]->GetInertia());
 
-    com += getArmMass() * m_arm[LEFT]->GetPos();
-    com += getArmMass() * m_arm[RIGHT]->GetPos();
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
 
-    return com / GetMass();
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 // -----------------------------------------------------------------------------
@@ -278,24 +279,23 @@ void ChSemiTrailingArm::AddVisualizationAssets(VisualizationType vis) {
                         getArmRadius());
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
-
-    m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 }
 
 void ChSemiTrailingArm::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_arm[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_arm[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_spring[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_spring[RIGHT]);
+
+    ChPart::RemoveVisualizationAssets(m_shock[LEFT]);
+    ChPart::RemoveVisualizationAssets(m_shock[RIGHT]);
+
     ChSuspension::RemoveVisualizationAssets();
-
-    m_arm[LEFT]->GetAssets().clear();
-    m_arm[RIGHT]->GetAssets().clear();
-
-    m_spring[LEFT]->GetAssets().clear();
-    m_spring[RIGHT]->GetAssets().clear();
-
-    m_shock[LEFT]->GetAssets().clear();
-    m_shock[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
@@ -318,25 +318,21 @@ void ChSemiTrailingArm::AddVisualizationArm(std::shared_ptr<ChBody> arm,
     cyl_O->GetCylinderGeometry().p1 = p_AC_O;
     cyl_O->GetCylinderGeometry().p2 = p_AS;
     cyl_O->GetCylinderGeometry().rad = radius;
-    arm->AddAsset(cyl_O);
+    arm->AddVisualShape(cyl_O);
 
     auto cyl_I = chrono_types::make_shared<ChCylinderShape>();
     cyl_I->GetCylinderGeometry().p1 = p_AC_I;
     cyl_I->GetCylinderGeometry().p2 = p_AS;
     cyl_I->GetCylinderGeometry().rad = radius;
-    arm->AddAsset(cyl_I);
+    arm->AddVisualShape(cyl_I);
 
     if ((p_AS - p_S).Length2() > threshold2) {
         auto cyl_S = chrono_types::make_shared<ChCylinderShape>();
         cyl_S->GetCylinderGeometry().p1 = p_AS;
         cyl_S->GetCylinderGeometry().p2 = p_S;
         cyl_S->GetCylinderGeometry().rad = radius;
-        arm->AddAsset(cyl_S);
+        arm->AddVisualShape(cyl_S);
     }
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
-    arm->AddAsset(col);
 }
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

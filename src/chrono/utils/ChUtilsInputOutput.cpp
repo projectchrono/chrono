@@ -16,12 +16,11 @@
 
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChConeShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 #include "chrono/assets/ChRoundedBoxShape.h"
 #include "chrono/assets/ChRoundedCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -391,69 +390,56 @@ void WriteVisualizationAssets(ChSystem* system,
         if (!selector(*body))
             continue;
 
-        const ChVector<>& body_pos = body->GetFrame_REF_to_abs().GetPos();
-        const ChQuaternion<>& body_rot = body->GetFrame_REF_to_abs().GetRot();
+        if (!body->GetVisualModel())
+            continue;
 
-        ChColor color(0.8f, 0.8f, 0.8f);
-
-        // First loop over assets -- search for a color asset
-        for (auto asset : body->GetAssets()) {
-            if (auto color_asset = std::dynamic_pointer_cast<ChColorAsset>(asset))
-                color = color_asset->GetColor();
-        }
-
-        // Loop over assets once again -- write information for supported types.
-        for (auto asset : body->GetAssets()) {
-            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset);
-            if (!visual_asset)
-                continue;
-
-            const Vector& asset_pos = visual_asset->Pos;
-            Quaternion asset_rot = visual_asset->Rot.Get_A_quaternion();
-
-            Vector pos = body_pos + body_rot.Rotate(asset_pos);
-            Quaternion rot = body_rot % asset_rot;
+        // Loop over visual shapes -- write information for supported types.
+        for (auto& shape_instance : body->GetVisualModel()->GetShapes()) {
+            auto& shape = shape_instance.first;
+            auto X_GS = body->GetFrame_REF_to_abs() * shape_instance.second;
+            auto& pos = X_GS.GetPos();
+            auto& rot = X_GS.GetRot();
 
             bool supported = true;
             std::stringstream gss;
 
-            if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(visual_asset)) {
+            if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
                 gss << SPHERE << delim << sphere->GetSphereGeometry().rad;
                 a_count++;
-            } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(visual_asset)) {
+            } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
                 const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
                 gss << ELLIPSOID << delim << size.x() << delim << size.y() << delim << size.z();
                 a_count++;
-            } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(visual_asset)) {
+            } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
                 const Vector& size = box->GetBoxGeometry().Size;
                 gss << BOX << delim << size.x() << delim << size.y() << delim << size.z();
                 a_count++;
-            } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(visual_asset)) {
+            } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
                 const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
                 gss << CAPSULE << delim << geom.rad << delim << geom.hlen;
                 a_count++;
-            } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(visual_asset)) {
+            } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
                 const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
                 gss << CYLINDER << delim << geom.rad << delim << geom.p1.x() << delim << geom.p1.y() << delim
                     << geom.p1.z() << delim << geom.p2.x() << delim << geom.p2.y() << delim << geom.p2.z();
                 a_count++;
-            } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(visual_asset)) {
+            } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
                 const geometry::ChCone& geom = cone->GetConeGeometry();
                 gss << CONE << delim << geom.rad.x() << delim << geom.rad.y();
                 a_count++;
-            } else if (auto rbox = std::dynamic_pointer_cast<ChRoundedBoxShape>(visual_asset)) {
+            } else if (auto rbox = std::dynamic_pointer_cast<ChRoundedBoxShape>(shape)) {
                 const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
                 gss << ROUNDEDBOX << delim << geom.Size.x() << delim << geom.Size.y() << delim << geom.Size.z() << delim
                     << geom.radsphere;
                 a_count++;
-            } else if (auto rcyl = std::dynamic_pointer_cast<ChRoundedCylinderShape>(visual_asset)) {
+            } else if (auto rcyl = std::dynamic_pointer_cast<ChRoundedCylinderShape>(shape)) {
                 const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();
                 gss << ROUNDEDCYL << delim << geom.rad << delim << geom.hlen << delim << geom.radsphere;
                 a_count++;
-            } else if (auto mesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(visual_asset)) {
+            } else if (auto mesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
                 gss << TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";
                 a_count++;
-            } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(visual_asset)) {
+            } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
                 std::shared_ptr<geometry::ChLine> geom = line->GetLineGeometry();
                 if (auto bezier = std::dynamic_pointer_cast<geometry::ChLineBezier>(geom)) {
                     gss << BEZIER << delim << "\"" << line->GetName() << "\"";
@@ -466,7 +452,10 @@ void WriteVisualizationAssets(ChSystem* system,
             }
 
             if (supported) {
-                csv << body->GetIdentifier() << body->IsActive() << pos << rot << color << gss.str() << std::endl;
+                ChColor col = ChVisualMaterial::Default()->GetDiffuseColor();
+                if (shape->GetNumMaterials() > 0)
+                    col = shape->GetMaterial(0)->GetDiffuseColor();
+                csv << body->GetIdentifier() << body->IsActive() << pos << rot << col << gss.str() << std::endl;
             }
         }
     }
@@ -523,14 +512,14 @@ void WriteVisualizationAssets(ChSystem* system,
         auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink);
         if (!link)
             continue;
-        for (auto asset : link->GetAssets()) {
-            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset);
-            if (!visual_asset)
-                continue;
-            if (std::dynamic_pointer_cast<ChPointPointSegment>(visual_asset)) {
+        if (!link->GetVisualModel())
+            continue;
+        for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
+            auto& shape = shape_instance.first;
+            if (std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
                 csv << SEGMENT << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
                 la_count++;
-            } else if (std::dynamic_pointer_cast<ChPointPointSpring>(visual_asset)) {
+            } else if (std::dynamic_pointer_cast<ChSpringShape>(shape)) {
                 csv << COIL << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
                 la_count++;
             }
@@ -626,12 +615,12 @@ bool WriteMeshPovray(const std::string& obj_filename,
                      const ChVector<>& pos,
                      const ChQuaternion<>& rot) {
     // Read trimesh from OBJ file
-    geometry::ChTriangleMeshConnected trimesh;
-    if (!trimesh.LoadWavefrontMesh(obj_filename, false, false))
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, false, false);
+    if (!trimesh)
         return false;
 
     // Generate output
-    WriteMeshPovray(trimesh, mesh_name, out_dir, col, pos, rot);
+    WriteMeshPovray(*trimesh, mesh_name, out_dir, col, pos, rot);
 
     return true;
 }

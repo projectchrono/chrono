@@ -1,18 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
-#
-# =============================================================================
-# Authors: Simone Benatti
-# =============================================================================
-#
-# FEA demo on applying loads to beams
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 
@@ -23,11 +17,11 @@ import copy
 print("Copyright (c) 2017 projectchrono.org ")
 
 # Create the physical system
-my_system = chrono.ChSystemSMC()
+sys = chrono.ChSystemSMC()
 
 # Create a mesh:
-my_mesh = fea.ChMesh()
-my_system.Add(my_mesh)
+mesh = fea.ChMesh()
+sys.Add(mesh)
 
 # Create some nodes.
 mnodeA = fea.ChNodeFEAxyzrot(chrono.ChFrameD(chrono.ChVectorD(0, 0, 0)))
@@ -37,8 +31,8 @@ mnodeB = fea.ChNodeFEAxyzrot(chrono.ChFrameD(chrono.ChVectorD(2, 0, 0)))
 mnodeA.SetMass(0.0)
 mnodeB.SetMass(0.0)
 
-my_mesh.AddNode(mnodeA)
-my_mesh.AddNode(mnodeB)
+mesh.AddNode(mnodeA)
+mesh.AddNode(mnodeB)
 
 # Create beam section & material
 msection = fea.ChBeamSectionEulerAdvanced()
@@ -54,17 +48,17 @@ msection.SetDensity(1500)
 melementA = fea.ChElementBeamEuler()
 melementA.SetNodes(mnodeA, mnodeB)
 melementA.SetSection(msection)
-my_mesh.AddElement(melementA)
+mesh.AddElement(melementA)
 
 # Create also a truss
 truss = chrono.ChBody()
 truss.SetBodyFixed(True)
-my_system.Add(truss)
+sys.Add(truss)
 
 # Create a constraat the end of the beam
 constr_a = chrono.ChLinkMateGeneric()
 constr_a.Initialize(mnodeA, truss, False, mnodeA.Frame(), mnodeA.Frame())
-my_system.Add(constr_a)
+sys.Add(constr_a)
 constr_a.SetConstrainedCoords(True, True, True,   # x, y, z
 							   True, True, True)  # Rx, Ry, Rz
 
@@ -73,7 +67,7 @@ constr_a.SetConstrainedCoords(True, True, True,   # x, y, z
 # First: loads must be added to "load containers",
 # and load containers must be added to your system
 mloadcontainer = chrono.ChLoadContainer()
-my_system.Add(mloadcontainer)
+sys.Add(mloadcontainer)
 
 # Example 1:
 
@@ -98,7 +92,7 @@ mloadcontainer.Add(mgravity)
 
 # note that by default all solid elements in the mesh will already
 # get gravitational force, if you want to bypass this automatic gravity, do:
-my_mesh.SetAutomaticGravity(False)
+mesh.SetAutomaticGravity(False)
 
 """
 CANNOT INSTANTIATE TEMPLATE 
@@ -115,7 +109,7 @@ Example 4 and 5 in C++ equivalent demo require respectively ChLoad<MyLoaderTrian
 # that will be used in statics, implicit integrators, etc.
 
 mnodeD = fea.ChNodeFEAxyz(chrono.ChVectorD(2, 10, 3))
-my_mesh.AddNode(mnodeD)
+mesh.AddNode(mnodeD)
 
 class MyLoadCustom(chrono.ChLoadCustom):
     def __init__(self, mloadable):
@@ -168,16 +162,16 @@ mloadcontainer.Add(mloadcustom)
 
 # As before, create a custom load with stiff force, acting on MULTIPLE nodes at once.
 # This time we will need the ChLoadCustomMultiple as base class.
-# Those nodes (ie.e ChLoadable objects) can be added in my_mesh in whatever order,
+# Those nodes (ie.e ChLoadable objects) can be added in mesh in whatever order,
 # not necessarily contiguous, because the bookkeeping is automated.
 # Being a stiff load, a jacobian will be automatically generated
 # by default using numerical differentiation but if you want you
 # can override ComputeJacobian() and compute mK, mR analytically - see prev.example.
 
 mnodeE = fea.ChNodeFEAxyz(chrono.ChVectorD(2, 10, 3))
-my_mesh.AddNode(mnodeE)
+mesh.AddNode(mnodeE)
 mnodeF = fea.ChNodeFEAxyz(chrono.ChVectorD(2, 11, 3))
-my_mesh.AddNode(mnodeF)
+mesh.AddNode(mnodeF)
 
 class MyLoadCustomMultiple(chrono.ChLoadCustomMultiple):
     def __init__(self, mloadables):
@@ -258,14 +252,14 @@ mloadcontainer.Add(mloadcustommultiple)
 # Setup a MINRES solver. For FEA one cannot use the default PSOR type solver.
 
 solver = chrono.ChSolverMINRES()
-my_system.SetSolver(solver)
+sys.SetSolver(solver)
 solver.SetMaxIterations(100)
 solver.SetTolerance(1e-10)
 solver.EnableDiagonalPreconditioner(True)
 solver.SetVerbose(True)
 
 # Perform a static analysis:
-my_system.DoStaticLinear()
+sys.DoStaticLinear()
 
 print(" constr_a reaction force  F= " + str(constr_a.Get_react_force()) )
 print( " constr_a reaction torque T= " + str(constr_a.Get_react_torque()))

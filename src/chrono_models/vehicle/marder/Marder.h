@@ -71,7 +71,6 @@ class CH_MODELS_API Marder {
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
     std::shared_ptr<ChDrivelineTV> GetDriveline() const { return m_vehicle->GetDriveline(); }
     std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_vehicle->GetPowertrain(); }
-    double GetTotalMass() const;
 
     void Initialize();
 
@@ -88,7 +87,7 @@ class CH_MODELS_API Marder {
     void SetTrackShoeVisualizationType(VisualizationType vis) { m_vehicle->SetTrackShoeVisualizationType(vis); }
 
     void Synchronize(double time,
-                     const ChDriver::Inputs& driver_inputs,
+                     const DriverInputs& driver_inputs,
                      const TerrainForces& shoe_forces_left,
                      const TerrainForces& shoe_forces_right);
     void Advance(double step);

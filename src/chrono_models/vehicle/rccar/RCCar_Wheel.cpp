@@ -61,27 +61,20 @@ RCCar_WheelRight::RCCar_WheelRight(const std::string& name) : RCCar_Wheel(name) 
 // -----------------------------------------------------------------------------
 void RCCar_Wheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
         m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(GetMeshName());
-        m_trimesh_shape->SetStatic(true);
-        m_spindle->AddAsset(m_trimesh_shape);
+        m_trimesh_shape->SetMutable(false);
+        m_spindle->AddVisualShape(m_trimesh_shape);
     } else {
         ChWheel::AddVisualizationAssets(vis);
     }
 }
 
 void RCCar_Wheel::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_spindle, m_trimesh_shape);
     ChWheel::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by RCCar_Wheel::AddVisualizationAssets.
-    // This is important for the ChWheel object because a tire may add its own assets
-    // to the same body (the spindle).
-    auto it = std::find(m_spindle->GetAssets().begin(), m_spindle->GetAssets().end(), m_trimesh_shape);
-    if (it != m_spindle->GetAssets().end())
-        m_spindle->GetAssets().erase(it);
 }
 
 }  // end namespace rccar

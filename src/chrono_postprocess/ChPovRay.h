@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #ifndef CHPOVRAY_H
@@ -18,55 +18,49 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 #include <unordered_map>
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_postprocess/ChPostProcessBase.h"
 
 namespace chrono {
 namespace postprocess {
 
-/// Class for post processing implementation that generates
-/// scripts for POVray. The script can be used in POVray to
-/// render photo-realistic animations.
-/// It will convert only objects that contain supported
-/// visualization assets AND that are flagged by attaching
-/// a ChPovRayAsset to them (the ChPovRay::Add() function is
-/// a shortcut for adding such ChPovRayAsset).
-
+/// Class for post processing implementation that generates scripts for POVray.
+/// The script can be used in POVray to render photo-realistic animations.
 class ChApiPostProcess ChPovRay : public ChPostProcessBase {
   public:
     ChPovRay(ChSystem* system);
-    virtual ~ChPovRay() {}
+    ~ChPovRay() {}
 
-    enum eChContactSymbol {  // used for displaying contacts
-        SYMBOL_VECTOR_SCALELENGTH = 0,
-        SYMBOL_VECTOR_SCALERADIUS,
-        SYMBOL_VECTOR_NOSCALE,
-        SYMBOL_SPHERE_SCALERADIUS,
-        SYMBOL_SPHERE_NOSCALE
+    /// Modes for displaying contacts.
+    enum class ContactSymbol {
+        VECTOR_SCALELENGTH = 0,
+        VECTOR_SCALERADIUS,
+        VECTOR_NOSCALE,
+        SPHERE_SCALERADIUS,
+        SPHERE_NOSCALE
     };
 
-    /// Add a ChPhysicsItem object to the list of objects
-    /// to render (if it has some associated ChAsset object).
-    /// Note that this simply 'flags' the object as renderable
-    /// but attaching a ChPovRayAsset to it.
-    virtual void Add(std::shared_ptr<ChPhysicsItem> mitem);
+    /// Add a ChPhysicsItem object to the list of objects to render.
+    /// An item is added to the list only if it has a visual model.
+    void Add(std::shared_ptr<ChPhysicsItem> item);
 
-    /// Remove a ChPhysicsItem object from the list of objects to render
-    virtual void Remove(std::shared_ptr<ChPhysicsItem> mitem);
+    /// Remove a ChPhysicsItem object from the list of objects to render.
+    void Remove(std::shared_ptr<ChPhysicsItem> item);
 
-    /// Add all ChPhysicsItem objects in the system to
-    /// the list of objects to render. Call this at the
-    /// beginning of the simulation, for instance.
-    virtual void AddAll();
+    /// Add all ChPhysicsItem objects in the system to the list of objects to render.
+    void AddAll();
 
     /// Remove all ChPhysicsItem objects that were previously added.
-    virtual void RemoveAll();
+    void RemoveAll();
 
-    /// Tell if a ChPhysicsItem has been already added.
-    virtual bool IsAdded(std::shared_ptr<ChPhysicsItem> mitem);
+    /// Attach custom POV-Ray commands to the given physics item.
+    /// The provided string will be inserted as-is in the POV-Ray union{} corresponding to the physics item. Only one
+    /// commands string can be attached to any physics item; a call to this function replaces any existing commands.
+    void SetCustomCommands(std::shared_ptr<ChPhysicsItem> item, const std::string& commands);
 
     /// Set the path where all files (.ini, .pov, .assets etc) will be saved.
     /// The path can be absolute, or relative to the .exe current path.
@@ -83,22 +77,20 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     ///          state0000.pov
     ///          state0000.dat
     ///          ....
-    virtual void SetBasePath(const std::string& mpath) { base_path = mpath; }
+    void SetBasePath(const std::string& mpath) { base_path = mpath; }
 
-    /// Set the filename of the template for the script generation. If not set,
-    /// it defaults to "_template_POV.pov" in the default Chrono data directory.
-    virtual void SetTemplateFile(const std::string& filename) { template_filename = filename; }
+    /// Set the filename of the template for the script generation.
+    /// If not set, it defaults to "_template_POV.pov" in the default Chrono data directory.
+    void SetTemplateFile(const std::string& filename) { template_filename = filename; }
 
-    /// Set the filename of the output script (to be used in POV) generated
-    /// by the function ExportScript(), es: "my_render.pov"
+    /// Set the filename of the output POV-Ray script.
     /// If not set, it defaults to "render_frames.pov".
-    virtual void SetOutputScriptFile(const std::string& filename) { out_script_filename = filename; }
+    void SetOutputScriptFile(const std::string& filename) { out_script_filename = filename; }
 
     /// Set the filename of the .bmp files generated by POV.
-    /// It should NOT contain the .bmp suffix because POV will append
-    /// the frame number (es. pic0001.bmp, pic0002.bmp, ...).
-    /// If not set, it defaults to "pic".
-    virtual void SetPictureFilebase(const std::string& filename) { pic_filename = filename; }
+    /// It should NOT contain the .bmp suffix because POV will append the frame number (es. pic0001.bmp, pic0002.bmp,
+    /// ...). If not set, it defaults to "pic".
+    void SetPictureFilebase(const std::string& filename) { pic_filename = filename; }
 
     /// Set the filename of the output data generated
     /// by the function ExportData(), es: "state"; when the user will
@@ -107,44 +99,44 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     /// It should NOT contain the .dat suffix because ExportData()
     /// will append the frame number (es. state0001.dat, state0002.dat, ...).
     /// If not set, it defaults to "state".
-    virtual void SetOutputDataFilebase(const std::string& filename) { out_data_filename = filename; }
+    void SetOutputDataFilebase(const std::string& filename) { out_data_filename = filename; }
 
     /// Set the picture width and height - will write this in the output .ini file.
-    virtual void SetPictureSize(unsigned int width, unsigned int height) {
+    void SetPictureSize(unsigned int width, unsigned int height) {
         picture_width = width;
         picture_height = height;
     };
 
     /// Set antialiasing - will write this in the output .ini file.
-    virtual void SetAntialiasing(bool active, unsigned int depth, double treshold) {
+    void SetAntialiasing(bool active, unsigned int depth, double treshold) {
         antialias = active;
         antialias_depth = depth;
         antialias_treshold = treshold;
     };
 
     /// Set the default camera position and aim point - will write this in the output .pov file.
-    virtual void SetCamera(ChVector<> location, ChVector<> aim, double angle, bool ortho = false);
+    void SetCamera(ChVector<> location, ChVector<> aim, double angle, bool ortho = false);
 
     /// Set the default light position and color - will write this in the output .pov file.
-    virtual void SetLight(ChVector<> location, ChColor color, bool cast_shadow);
+    void SetLight(ChVector<> location, ChColor color, bool cast_shadow);
 
     /// Set the background color - will write this in the output .pov file.
-    virtual void SetBackground(ChColor color) { background = color; }
+    void SetBackground(ChColor color) { background = color; }
 
     /// Set the ambient light - will write this in the output .pov file.
-    virtual void SetAmbientLight(ChColor color) { ambient_light = color; }
+    void SetAmbientLight(ChColor color) { ambient_light = color; }
 
     /// Turn on/off the display of the COG (center of mass) of rigid bodies.
     /// If setting true, you can also set the size of the symbol, in meters.
-    virtual void SetShowCOGs(bool show, double msize = 0.04);
+    void SetShowCOGs(bool show, double msize = 0.04);
 
     /// Turn on/off the display of the reference coordsystems of rigid bodies.
     /// If setting true, you can also set the size of the symbol, in meters.
-    virtual void SetShowFrames(bool show, double msize = 0.05);
+    void SetShowFrames(bool show, double msize = 0.05);
 
     /// Turn on/off the display of the reference coordsystems for ChLinkMate constraints.
     /// If setting true, you can also set the size of the symbol, in meters.
-    virtual void SetShowLinks(bool show, double msize = 0.04);
+    void SetShowLinks(bool show, double msize = 0.04);
 
     /// Turn on/off the display of contacts, using spheres or arrows (see eChContactSymbol modes).
     /// The size of the arrow or of the sphere depends on force strength multiplied by 'scale'.
@@ -152,83 +144,82 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     /// color)
     /// Use 'width' for the radius of the arrow. If in 'SYMBOL_VECTOR_SCALERADIUS' mode, the length of the vector is
     /// always max_size.
-    virtual void SetShowContacts(bool show,
-                                 eChContactSymbol mode,
-                                 double scale,
-                                 double width,
-                                 double max_size,
-                                 bool do_colormap,
-                                 double colormap_start,
-                                 double colormap_end);
-    
-    /// Set thickness for wireframe mode of meshes. If a ChTriangleMeshShape asset was set as SetWireframe(true),
-    /// it will be rendered in POVray as a cage of thin cylinders. This setting sets how thick the tubes.
-    virtual void SetWireframeThickness(const double mt) {  this->wireframe_thickness = mt; }
-    double GetWireframeThickness() {  return this->wireframe_thickness; }
+    void SetShowContacts(bool show,
+                         ContactSymbol mode,
+                         double scale,
+                         double width,
+                         double max_size,
+                         bool do_colormap,
+                         double colormap_start,
+                         double colormap_end);
+
+    /// Set thickness for wireframe mode of meshes.
+    /// If a ChTriangleMeshShape asset was set as SetWireframe(true), it will be rendered in POVray as a cage of thin
+    /// cylinders. This setting sets how thick the tubes.
+    void SetWireframeThickness(const double wft) { wireframe_thickness = wft; }
+    double GetWireframeThickness() const { return wireframe_thickness; }
 
     /// Set a string (a text block) of custom POV commands that you can optionally
     /// append to the POV script file, for example adding other POV lights, materials, etc.
     /// What you put in this string will be put at the end of the generated POV script, just
     /// before loading the data.
-    virtual void SetCustomPOVcommandsScript(const std::string& mtext) { this->custom_script = mtext; }
-    virtual const std::string& GetCustomPOVcommandsScript() { return this->custom_script; }
+    void SetCustomPOVcommandsScript(const std::string& text) { custom_script = text; }
+    const std::string& GetCustomPOVcommandsScript() const { return custom_script; }
 
-    /// Set a string (a text block) of custom POV commands that you can optionally
-    /// append to the POV script files that are load at each timestep,
-    /// es. state0001.pov, state0002.pov, for example adding other POV lights, materials, etc.
-    virtual void SetCustomPOVcommandsData(const std::string& mtext) { this->custom_data = mtext; }
-    virtual const std::string& GetCustomPOVcommandsData() { return this->custom_data; }
+    /// Set a string (a text block) of custom POV commands that you can optionally append to the POV script files that
+    /// are load at each timestep, e.g.,
+    ///    state0001.pov, state0002.pov,
+    /// for example adding other POV lights, materials, etc.
+    void SetCustomPOVcommandsData(const std::string& text) { custom_data = text; }
+    const std::string& GetCustomPOVcommandsData() const { return custom_data; }
 
-    /// When ExportData() is called, it saves .dat files in incremental
-    /// way, starting from zero: data0000.dat, data0001.dat etc., but you can
-    /// override the formatted number by calling SetFramenumber(), before.
-    virtual void SetFramenumber(unsigned int mn) { this->framenumber = mn; }
+    /// When ExportData() is called, it saves .dat files in incremental way, starting from zero: 
+    ///    data0000.dat, data0001.dat etc.,
+    /// but you can override the formatted number by first calling SetFramenumber().
+    void SetFramenumber(unsigned int fn) { framenumber = fn; }
 
-    /// This function is used to export the script that will
-    /// be used by POV to process all the exported data and
-    /// to render the complete animation.
-    /// It contains the definition of geometric shapes, lights
-    /// and so on, and a POV function that moves meshes in the
+    /// Export the script that will be used by POV to process all the exported data and render the complete animation.
+    /// It contains the definition of geometric shapes, lights, etc. and a POV-Ray function that moves meshes in the
     /// position specified by data files saved at each step.
-    virtual void ExportScript() { this->ExportScript(this->out_script_filename); }
+    void ExportScript() { ExportScript(out_script_filename); }
 
     /// As ExportScript(), but overrides the filename.
-    virtual void ExportScript(const std::string& filename);
+    virtual void ExportScript(const std::string& filename) override;
 
-    /// This function is used at each timestep to export data
-    /// formatted in a way that it can be load with the POV
-    /// scripts generated by ExportScript().
-    /// The generated filename must be set at the beginning of
-    /// the animation via SetOutputDataFilebase(), and then a
-    /// number is automatically appended and incremented at each
-    /// ExportData(), ex.
-    ///  state0001.dat, state0002.dat,
-    /// The user should call this function in the while() loop
-    /// of the simulation, once per frame.
-    virtual void ExportData();
+    /// This function is used at each timestep to export data formatted in a way that it can be load with the POV
+    /// scripts generated by ExportScript(). The generated filename must be set at the beginning of the animation via
+    /// SetOutputDataFilebase(), and then a number is automatically appended and incremented at each ExportData(), e.g.
+    ///    state0001.dat, state0002.dat,
+    /// The user should call this function in the while() loop of the simulation, once per frame.
+    void ExportData();
 
-    /// As ExportScript(), but overrides the automatically computed filename.
-    virtual void ExportData(const std::string& filename);
+    /// As ExportData(), but overrides the automatically generated filename.
+    virtual void ExportData(const std::string& filename) override;
 
     /// Set if the assets for the entre scenes at all timesteps must be appended into one
-    /// single large file "rendering_frames.pov.assets". If not, assets will be written inside 
+    /// single large file "rendering_frames.pov.assets". If not, assets will be written inside
     /// each state0001.dat, state0002.dat, etc files; this would waste more disk space but would be
     /// a bit faster in POV parsing and would allow assets whose settings change during time (ex time-changing colors)
-    void SetUseSingleAssetFile(bool muse) {
-        this->single_asset_file = muse;
-    }
+    void SetUseSingleAssetFile(bool use) { single_asset_file = use; }
 
-  protected:
-    virtual void SetupLists();
-    virtual void ExportAssets(ChStreamOutAsciiFile& assets_file);
-    void _recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& assetlist, ChStreamOutAsciiFile& assets_file);
+  private:
+    void UpdateRenderList();
+    void ExportAssets(ChStreamOutAsciiFile& assets_file);
+    void ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<ChPhysicsItem> item);
+    void ExportMaterials(ChStreamOutAsciiFile& assets_file,
+                         const std::vector<std::shared_ptr<ChVisualMaterial>>& materials);
+    void ExportObjData(ChStreamOutAsciiFile& pov_file,
+                       std::shared_ptr<ChPhysicsItem> item,
+                       const ChFrame<>& parentframe);
 
-    void _recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& assetlist,
-                               ChFrame<> parentframe,
-                               ChStreamOutAsciiFile& mfilepov);
+    /// List of physics items in the rendering list.
+    std::unordered_set<std::shared_ptr<ChPhysicsItem>> m_items;
 
-    std::vector<std::shared_ptr<ChPhysicsItem> > mdata;
-    std::unordered_map<size_t, std::shared_ptr<ChAsset> > pov_assets;
+    /// Association between a physics item and a string of custom POV-Ray commands.
+    std::unordered_map<size_t, std::string> m_custom_commands;
+
+    std::unordered_map<size_t, std::shared_ptr<ChVisualShape>> m_pov_shapes;        ///< cache of visual shapes
+    std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>> m_pov_materials;  ///< cache of visual materials
 
     std::string base_path;
     std::string pic_path;
@@ -261,7 +252,7 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     bool contacts_show;
     double contacts_maxsize;
     double contacts_scale;
-    eChContactSymbol contacts_scale_mode;
+    ContactSymbol contacts_scale_mode;
     double contacts_width;
     double contacts_colormap_startscale;
     double contacts_colormap_endscale;

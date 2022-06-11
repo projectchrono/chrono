@@ -88,8 +88,8 @@ void RigidTire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void RigidTire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChRigidTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace vehicle

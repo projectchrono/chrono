@@ -20,7 +20,6 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
 
@@ -61,7 +60,7 @@ void ChRigidChassis::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChRigidChassis::RemoveVisualizationAssets() {
-    m_body->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_body);
 }
 
 void ChRigidChassis::ExportComponentList(rapidjson::Document& jsonDocument) const {
@@ -112,7 +111,7 @@ void ChRigidChassisRear::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChRigidChassisRear::RemoveVisualizationAssets() {
-    m_body->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_body);
 }
 
 void ChRigidChassisRear::ExportComponentList(rapidjson::Document& jsonDocument) const {

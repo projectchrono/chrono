@@ -101,9 +101,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 
         auto box_sled = chrono_types::make_shared<ChBoxShape>();
         box_sled->GetBoxGeometry().Size = ChVector<>(1, 0.25, 0.25);
-        box_sled->Pos = ChVector<>(0, 0, 0);
-        box_sled->Rot = ChQuaternion<>(1, 0, 0, 0);
-        sled->AddAsset(box_sled);
+        sled->AddVisualShape(box_sled, ChFrame<>());
 
         system->AddBody(sled);
 

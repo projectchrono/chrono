@@ -23,9 +23,8 @@
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
 
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/ChTerrain.h"
 
 // The following undef is required in order to compile in conda-forge
@@ -41,7 +40,7 @@ namespace vehicle {
 /// @{
 
 /// Pacjeka 89 tire model.
-class CH_VEHICLE_API ChPac89Tire : public ChTire {
+class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
   public:
     ChPac89Tire(const std::string& name);
 
@@ -88,12 +87,6 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
     double GetCamberAngle_internal() { return m_gamma * CH_C_DEG_TO_RAD; }
 
   protected:
-    /// Return the vertical tire stiffness contribution to the normal force.
-    virtual double GetNormalStiffnessForce(double depth) const = 0;
-
-    /// Return the vertical tire damping contribution to the normal force.
-    virtual double GetNormalDampingForce(double depth, double velocity) const = 0;
-
     /// Set the parameters in the Pac89 model.
     virtual void SetPac89Params() = 0;
 
@@ -211,7 +204,6 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
     TerrainForce m_tireforce;
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
-    std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset
 };
 
 /// @} vehicle_wheeled_tire

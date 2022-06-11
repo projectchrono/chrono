@@ -102,22 +102,22 @@ int main(int argc, char* argv[]) {
     //
 
 	GetLog() << "\n\n PyChrono Test 6.\n";
-	ChSystemNSC my_system;
+	ChSystemNSC sys;
 
     try {
         // This is the instruction that loads the .py (as saved from SolidWorks) and
         // fills the system:
 
         my_python.ImportSolidWorksSystem(GetChronoDataFile("solid_works/swiss_escapement").c_str(), 
-                                         my_system);  // note, don't type the .py suffic in filename..
+                                         sys);  // note, don't type the .py suffic in filename..
 
-        my_system.ShowHierarchy(GetLog());
+        sys.ShowHierarchy(GetLog());
 
         // In case you want to fetch an item, remember that they got the
         // names that you see in the CAD interface, for example suppose you know that
         // a ChBodyAuxRef has the name "escape_wheel^escapement-1":
         std::shared_ptr<ChBodyAuxRef> mbody;
-        for (auto body : my_system.Get_bodylist()) {
+        for (auto body : sys.Get_bodylist()) {
             GetLog() << body->GetNameString().c_str() << "\n";
             if (body->GetNameString() == "escape_wheel-1")
                 mbody = std::dynamic_pointer_cast<ChBodyAuxRef>(body);

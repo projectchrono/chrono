@@ -32,10 +32,10 @@
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_irrlicht/ChIrrApp.h"
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
 
 #ifdef CHRONO_PARDISO_MKL
@@ -156,11 +156,8 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
 void FEAcontactTest::CreateFloor(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
     auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true, true, cmat);
     mfloor->SetBodyFixed(true);
+    mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     m_system->Add(mfloor);
-
-    auto masset_texture = chrono_types::make_shared<ChTexture>();
-    masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    mfloor->AddAsset(masset_texture);
 }
 
 void FEAcontactTest::CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
@@ -189,11 +186,11 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
     mesh->AddContactSurface(surf);
     surf->AddFacesFromBoundary(0.002);
 
-    auto vis_speed = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    vis_speed->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    auto vis_speed = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_speed->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     vis_speed->SetColorscaleMinMax(0.0, 5.50);
     vis_speed->SetSmoothFaces(true);
-    mesh->AddAsset(vis_speed);
+    mesh->AddVisualShapeFEA(vis_speed);
 }
 
 void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
@@ -213,40 +210,38 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
     mesh->AddContactSurface(cloud);
     cloud->AddAllNodes(0.025);
 
-    auto vis_speed = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    vis_speed->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    auto vis_speed = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_speed->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     vis_speed->SetColorscaleMinMax(0.0, 5.50);
     vis_speed->SetSmoothFaces(true);
     vis_speed->SetWireframe(true);
-    mesh->AddAsset(vis_speed);
+    mesh->AddVisualShapeFEA(vis_speed);
 
-    auto vis_nodes = chrono_types::make_shared<ChVisualizationFEAmesh>(*(mesh.get()));
-    vis_nodes->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    vis_nodes->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto vis_nodes = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_nodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    vis_nodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     vis_nodes->SetSymbolsThickness(0.008);
-    mesh->AddAsset(vis_nodes);
+    mesh->AddVisualShapeFEA(vis_nodes);
 }
 
 void FEAcontactTest::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp application(m_system, L"FEA contacts", irr::core::dimension2d<irr::u32>(800, 600),
-                                   irrlicht::VerticalDir::Y, false, true);
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(0, (irr::f32)0.6, -1));
-    application.AddLightWithShadow(irr::core::vector3df(1.5, 5.5, -2.5), irr::core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40,
-                                   512, irr::video::SColorf(1, 1, 1));
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+    m_system->SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("FEA contacts");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0, 0.6, -1.0), ChVector<>(0, 0, 0));
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
-    application.AddShadowAll();
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
         ExecuteStep();
-        application.EndScene();
+        vis->EndScene();
     }
 #endif
 }

@@ -1,12 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2014 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 # Authors: Simone Benatti
@@ -31,6 +31,8 @@ step_size = 2e-3
 throttle_value = 0.3
 
 # =============================================================================
+
+veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Create the HMMWV vehicle
 my_hmmwv = veh.HMMWV_Full()
@@ -70,7 +72,7 @@ path_asset = chrono.ChLineShape()
 path_asset.SetLineGeometry(chrono.ChLineBezier(path))
 path_asset.SetName("test path")
 path_asset.SetNumRenderPoints(max(2 * npoints, 400))
-patch.GetGroundBody().AddAsset(path_asset)
+patch.GetGroundBody().AddVisualShape(path_asset)
 
 # Create the PID lateral controller
 steeringPID = veh.ChPathSteeringController(path, False)
@@ -79,21 +81,22 @@ steeringPID.SetGains(0.8, 0, 0)
 steeringPID.Reset(my_hmmwv.GetVehicle())
 
 # Create the vehicle Irrlicht application
-app = veh.ChVehicleIrrApp(my_hmmwv.GetVehicle(), "Constant radius test")
-app.SetHUDLocation(500, 20)
-app.AddLogo()
-app.AddTypicalLights()
-app.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
+vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+my_hmmwv.GetVehicle().SetVisualSystem(vis)
+vis.SetWindowTitle('Constant radius test')
+vis.SetWindowSize(1280, 1024)
+vis.SetHUDLocation(500, 20)
+vis.Initialize()
+vis.AddLogo()
+vis.AddTypicalLights()
+vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
+vis.AddSkyBox()
 
 # Visualization of controller points (sentinel & target)
-ballS = app.GetSceneManager().addSphereSceneNode(0.1)
-ballT = app.GetSceneManager().addSphereSceneNode(0.1)
+ballS = vis.GetSceneManager().addSphereSceneNode(0.1)
+ballT = vis.GetSceneManager().addSphereSceneNode(0.1)
 ballS.getMaterial(0).EmissiveColor = chronoirr.SColor(0, 255, 0, 0)
 ballT.getMaterial(0).EmissiveColor = chronoirr.SColor(0, 0, 255, 0)
-
-# Finalize construction of visualization assets
-app.AssetBindAll()
-app.AssetUpdateAll()
 
 # ---------------
 # Simulation loop
@@ -101,7 +104,7 @@ app.AssetUpdateAll()
 
 steeringPID_output = 0
 
-while (app.GetDevice().run()) :
+while vis.Run() :
     time = my_hmmwv.GetSystem().GetChTime()
     
     # Driver inputs
@@ -116,20 +119,20 @@ while (app.GetDevice().run()) :
     ballS.setPosition(chronoirr.vector3df(pS.x, pS.y, pS.z))
     ballT.setPosition(chronoirr.vector3df(pT.x, pT.y, pT.z))
     
-    app.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
-    app.DrawAll()
-    app.EndScene()
+    vis.BeginScene()
+    vis.DrawAll()
+    vis.EndScene()
     
     # Update modules (process inputs from other modules)
     terrain.Synchronize(time)
     my_hmmwv.Synchronize(time, driver_inputs, terrain)
-    app.Synchronize("", driver_inputs)
+    vis.Synchronize("", driver_inputs)
     
     # Advance simulation for one timestep for all modules
     steeringPID_output = steeringPID.Advance(my_hmmwv.GetVehicle(), step_size)
     terrain.Advance(step_size)
     my_hmmwv.Advance(step_size)
-    app.Advance(step_size)
+    vis.Advance(step_size)
 
 
 

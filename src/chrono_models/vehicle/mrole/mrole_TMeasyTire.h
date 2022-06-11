@@ -40,8 +40,8 @@ class CH_MODELS_API mrole_TMeasyTire : public ChTMeasyTire {
     virtual double GetVisualizationWidth() const override { return m_width; }
 
     virtual void SetTMeasyParams() override;
-    virtual double GetMass() const override { return m_mass; }
-    virtual ChVector<> GetInertia() const override { return m_inertia; }
+    virtual double GetTireMass() const override { return m_mass; }
+    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -67,8 +67,8 @@ class CH_MODELS_API mrole_TMeasyTireSoil : public ChTMeasyTire {
     virtual double GetVisualizationWidth() const override { return m_width; }
 
     virtual void SetTMeasyParams() override;
-    virtual double GetMass() const override { return m_mass; }
-    virtual ChVector<> GetInertia() const override { return m_inertia; }
+    virtual double GetTireMass() const override { return m_mass; }
+    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -94,8 +94,8 @@ class CH_MODELS_API mrole_TMeasyTireSand : public ChTMeasyTire {
     virtual double GetVisualizationWidth() const override { return m_width; }
 
     virtual void SetTMeasyParams() override;
-    virtual double GetMass() const override { return m_mass; }
-    virtual ChVector<> GetInertia() const override { return m_inertia; }
+    virtual double GetTireMass() const override { return m_mass; }
+    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;

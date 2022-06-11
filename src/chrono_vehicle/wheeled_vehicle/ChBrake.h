@@ -19,10 +19,8 @@
 #ifndef CH_BRAKE_H
 #define CH_BRAKE_H
 
-#include <vector>
-
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
 namespace chrono {
@@ -34,8 +32,6 @@ namespace vehicle {
 /// Base class for a brake subsystem.
 class CH_VEHICLE_API ChBrake : public ChPart {
   public:
-    ChBrake(const std::string& name);
-
     virtual ~ChBrake() {}
 
     /// Initialize the brake by associating it to an existing suspension subsystem.
@@ -60,6 +56,11 @@ class CH_VEHICLE_API ChBrake : public ChPart {
     virtual double GetBrakeTorque() = 0;
 
   protected:
+    ChBrake(const std::string& name);
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+
     bool m_can_lock;  ///< can the brake lock?
 };
 

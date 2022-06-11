@@ -1,12 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Alessandro Tasora
+# Copyright (c) 2014 projectchrono.org
+# All rights reserved.
 #
-# Created:     1/01/2019
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 
 import math as m
@@ -30,13 +32,13 @@ print ("Example: FEA of the Jeffcott rotor passing through resonance.");
 
 
 # Create a Chrono::Engine physical system
-my_system = chrono.ChSystemSMC()
+sys = chrono.ChSystemSMC()
 
-my_mesh = fea.ChMesh()
-my_system.Add(my_mesh)
+mesh = fea.ChMesh()
+sys.Add(mesh)
 
-my_mesh.SetAutomaticGravity(True,2) # for max precision in gravity of FE, at least 2 integration points per element when using cubic IGA
-my_system.Set_G_acc(chrono.ChVectorD(0,-9.81, 0));
+mesh.SetAutomaticGravity(True,2) # for max precision in gravity of FE, at least 2 integration points per element when using cubic IGA
+sys.Set_G_acc(chrono.ChVectorD(0,-9.81, 0));
 
 beam_L = 6
 beam_ro = 0.050
@@ -69,7 +71,7 @@ msection.SetDrawCircularRadius(beam_ro) # SetAsCircularSection(..) would overwri
 # divided in Nel elements:
 
 builder = fea.ChBuilderBeamIGA()
-builder.BuildBeam(my_mesh,      # the mesh to put the elements in
+builder.BuildBeam(mesh,      # the mesh to put the elements in
 	msection,					# section of the beam
 	20,							# number of sections (spans)
 	chrono.ChVectorD(0, 0, 0),		# start point
@@ -86,16 +88,16 @@ mbodyflywheel.SetCoord(
 		chrono.ChCoordsysD(node_mid.GetPos() + chrono.ChVectorD(0,0.05,0), # flywheel initial center (plus Y offset)
 		chrono.Q_from_AngAxis(CH_C_PI/2.0, chrono.VECT_Z)) # flywheel initial alignment (rotate 90° so cylinder axis is on X)
 )
-my_system.Add(mbodyflywheel)
+sys.Add(mbodyflywheel)
 
 myjoint = chrono.ChLinkMateFix()
 myjoint.Initialize(node_mid, mbodyflywheel)
-my_system.Add(myjoint)
+sys.Add(myjoint)
 
 # Create the truss
 truss = chrono.ChBody()
 truss.SetBodyFixed(True)
-my_system.Add(truss)
+sys.Add(truss)
 
 # Create the end bearing 
 bearing = chrono.ChLinkMateGeneric(False, True, True, False, True, True)
@@ -103,7 +105,7 @@ bearing.Initialize(builder.GetLastBeamNodes().back(),
 	truss,
 	chrono.ChFrameD(builder.GetLastBeamNodes().back().GetPos())
 )
-my_system.Add(bearing)
+sys.Add(bearing)
 
 # Create the motor that rotates the beam
 rotmotor1 = chrono.ChLinkMotorRotationSpeed()
@@ -114,7 +116,7 @@ rotmotor1.Initialize(builder.GetLastBeamNodes().front(),                # body A
 	chrono.ChFrameD(builder.GetLastBeamNodes().front().GetPos(), 
                     chrono.Q_from_AngAxis(CH_C_PI/2.0, chrono.VECT_Y)) # motor frame, in abs. coords
 )
-my_system.Add(rotmotor1)
+sys.Add(rotmotor1)
 	
 # use a custom function for setting the speed of the motor
 class ChFunction_myf (chrono.ChFunction):
@@ -142,38 +144,30 @@ rotmotor1.SetMotorFunction(f_ramp)
 
 # Attach a visualization of the FEM mesh.
 
-mvisualizebeamA = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizebeamA.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_SURFACE)
+mvisualizebeamA = chrono.ChVisualShapeFEA(mesh)
+mvisualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 mvisualizebeamA.SetSmoothFaces(True)
-my_mesh.AddAsset(mvisualizebeamA)
+mesh.AddVisualShapeFEA(mvisualizebeamA)
 
-mvisualizebeamC = fea.ChVisualizationFEAmesh(my_mesh)
-mvisualizebeamC.SetFEMglyphType(fea.ChVisualizationFEAmesh.E_GLYPH_NODE_CSYS)
-mvisualizebeamC.SetFEMdataType(fea.ChVisualizationFEAmesh.E_PLOT_NONE)
+mvisualizebeamC = chrono.ChVisualShapeFEA(mesh)
+mvisualizebeamC.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_CSYS)
+mvisualizebeamC.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 mvisualizebeamC.SetSymbolsThickness(0.006)
 mvisualizebeamC.SetSymbolsScale(0.01)
 mvisualizebeamC.SetZbufferHide(False)
-my_mesh.AddAsset(mvisualizebeamC)
+mesh.AddVisualShapeFEA(mvisualizebeamC)
 
 
-# ---------------------------------------------------------------------
-#
-#  Create an Irrlicht application to visualize the system
-#
-
-
-# Create the Irrlicht visualization (open the Irrlicht device,
-# bind a simple user interface, etc. etc.)
-myapplication = chronoirr.ChIrrApp(my_system, 'Test FEA: the Jeffcott rotor with IGA beams', chronoirr.dimension2du(1024,768))
-
-myapplication.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddSkyBox()
-myapplication.AddCamera(chronoirr.vector3df(0,1,4), chronoirr.vector3df(beam_L/2, 0, 0))
-myapplication.AddTypicalLights()
-
-# This is needed if you want to see things in Irrlicht 3D view.
-myapplication.AssetBindAll()
-myapplication.AssetUpdateAll()
+# Create the Irrlicht visualization
+vis = chronoirr.ChVisualSystemIrrlicht()
+sys.SetVisualSystem(vis)
+vis.SetWindowSize(1024,768)
+vis.SetWindowTitle('Test FEA: the Jeffcott rotor with IGA beams')
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddSkyBox()
+vis.AddCamera(chrono.ChVectorD(0, 1, 4), chrono.ChVectorD(beam_L/2, 0, 0))
+vis.AddTypicalLights()
 
 
 # ---------------------------------------------------------------------
@@ -183,19 +177,17 @@ myapplication.AssetUpdateAll()
 
 
 # Set to a more precise HHT timestepper if needed
-# my_system.SetTimestepperType(chrono.ChTimestepper.Type_HHT)
+# sys.SetTimestepperType(chrono.ChTimestepper.Type_HHT)
 
 # Change the solver form the default SOR to the MKL Pardiso, more precise for fea.
 msolver = mkl.ChSolverPardisoMKL()
-my_system.SetSolver(msolver)
+sys.SetSolver(msolver)
 
-myapplication.SetTimestep(0.002)
+sys.DoStaticLinear()
 
-my_system.DoStaticLinear()
-
-while(myapplication.GetDevice().run()):
-    myapplication.BeginScene()
-    myapplication.DrawAll()
-    myapplication.DoStep()
-    myapplication.EndScene()
+while vis.Run():
+    vis.BeginScene()
+    vis.DrawAll()
+    vis.EndScene()
+    sys.DoStepDynamics(0.002)
 

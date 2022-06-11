@@ -86,12 +86,6 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     /// Remove visualization assets for the suspension subsystem.
     virtual void RemoveVisualizationAssets() override;
 
-    /// Get the total mass of the suspension subsystem.
-    virtual double GetMass() const override;
-
-    /// Get the current global COM location of the suspension subsystem.
-    virtual ChVector<> GetCOMPos() const override;
-
     /// Get the wheel track for the suspension subsystem.
     virtual double GetTrack() override;
 
@@ -174,6 +168,9 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     /// centroidal frame (flag=false).  Note that this function must be called
     /// before Initialize().
     void SetVehicleFrameInertiaFlag(bool val) { m_vehicle_frame_inertia = val; }
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Indicate whether or not tirod bodies are modelled (default: false).
     /// If false, tierods are modelled using distance constraints.

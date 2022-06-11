@@ -386,9 +386,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
-        trimesh_shape->Pos = ChVector<>(0, 0, 0);
-        trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-        body->GetAssets().push_back(trimesh_shape);
+        body->AddVisualShape(trimesh_shape, ChFrame<>());
 
         m_system->AddBody(body);
 
@@ -405,8 +403,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     // Add visualization asset for the container
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(m_hdimX, m_hdimY, m_depth / 2);
-    box->Pos = ChVector<>(0, 0, m_depth / 2);
-    container->GetAssets().push_back(box);
+    container->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, m_depth / 2)));
 
     // Create the visualization window
     if (m_render) {
@@ -449,9 +446,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("wheel_" + std::to_string(i));
-    trimesh_shape->Pos = ChVector<>(0, 0, 0);
-    trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-    body->GetAssets().push_back(trimesh_shape);
+    body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     // Add collision shape only if obstacles are present (for wheel-obstacle interactions)
     if (num_obstacles > 0) {

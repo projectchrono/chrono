@@ -24,10 +24,11 @@
 #include "chrono_synchrono/SynConfig.h"
 #include "chrono_synchrono/SynChronoManager.h"
 #include "chrono_synchrono/agent/SynCopterAgent.h"
-#include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_synchrono/communication/mpi/SynMPICommunicator.h"
 #include "chrono_synchrono/utils/SynLog.h"
 #include "chrono_synchrono/utils/SynDataLoader.h"
+
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
@@ -43,36 +44,30 @@ using namespace irr::gui;
 
 class IrrAppWrapper {
   public:
-    IrrAppWrapper(std::shared_ptr<ChIrrApp> app = nullptr) : app(app) {}
-
-    /*void Advance() {
-        if (app)
-            app->DoStep();
-    }*/
+    IrrAppWrapper(std::shared_ptr<ChVisualSystemIrrlicht> vis = nullptr) : m_vis(vis) {}
 
     void Render() {
-        if (app) {
-            app->BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app->DrawAll();
-            app->EndScene();
+        if (m_vis) {
+            m_vis->BeginScene();
+            m_vis->DrawAll();
+            m_vis->EndScene();
         }
     }
 
-    void Set(std::shared_ptr<ChIrrApp> app) { this->app = app; }
-    bool IsOk() { return app ? app->GetDevice()->run() : true; }
+    void Set(std::shared_ptr<ChVisualSystemIrrlicht> vis) { m_vis = vis; }
+    bool IsOk() { return m_vis ? m_vis->Run() : true; }
 
-    std::shared_ptr<ChIrrApp> app;
+    std::shared_ptr<ChVisualSystemIrrlicht> m_vis;
 };
 
 //
 class MyEventReceiver : public IEventReceiver {
   public:
-    //MyEventReceiver();
+    // MyEventReceiver();
 
-	void Initialize(ChIrrAppInterface* myapp, Little_Hexy* mycopter) {
+    void Initialize(Little_Hexy* hexy) {
         // store pointer to physical system & other stuff so we can tweak them by user keyboard
-        app = myapp;
-        copter = mycopter;
+        copter = hexy;
     }
 
     bool OnEvent(const SEvent& event) {
@@ -128,7 +123,6 @@ class MyEventReceiver : public IEventReceiver {
     }
 
   private:
-    ChIrrAppInterface* app;
     Little_Hexy* copter;
 };
 
@@ -197,9 +191,9 @@ int main(int argc, char* argv[]) {
     // --------------
     double distance = node_id * 2.5;
     // Create the vehicle, set parameters, and initialize
-    ChSystemNSC mphysicalSystem;
-    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
-    Little_Hexy myhexy(mphysicalSystem, ChVector<>(0, distance, 0));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    Little_Hexy myhexy(sys, ChVector<>(0, distance, 0));
     myhexy.AddVisualizationAssets();
     auto mymat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     myhexy.AddCollisionShapes(mymat);
@@ -207,36 +201,36 @@ int main(int argc, char* argv[]) {
     // Add vehicle as an agent and initialize SynChronoManager
     auto agent = chrono_types::make_shared<SynCopterAgent>(&myhexy);
     syn_manager.AddAgent(agent);
-    syn_manager.Initialize(&mphysicalSystem);
+    syn_manager.Initialize(&sys);
 
     IrrAppWrapper appwrap;
     MyEventReceiver receiver;
+
     // Create the vehicle Irrlicht interface
     if (cli.HasValueInVector<int>("irr", node_id)) {
-        auto application = chrono_types::make_shared<ChIrrApp>(&mphysicalSystem, L"HexaCopter Test",
-                                                               core::dimension2d<u32>(800, 600));
-        appwrap.Set(application);
+        auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+        sys.SetVisualSystem(vis);
+        vis->SetCameraVertical(CameraVerticalDir::Z);
+        vis->SetWindowSize(800, 600);
+        vis->SetWindowTitle("HexaCopter Test");
+        vis->Initialize();
+        vis->AddLogo();
+        vis->AddSkyBox();
+        vis->AddTypicalLights();
+        vis->AddCamera(ChVector<>(-15, 14, -30), ChVector<>(0, 5, 0));
 
         // create text with info
-        application->GetIGUIEnvironment()->addStaticText(
+        vis->GetGUIEnvironment()->addStaticText(
             L"Keys: NUMPAD 8 up; NUMPAD 2 down; A Roll Left; D Roll Right; A Roll Left; W Pitch Down; S Pitch Up; "
             L"NUMPAD 4 "
             L"Yaw_Left; NUMPAD 6 Yaw_Right",
             rect<s32>(150, 10, 430, 55), true);
 
-        RTSCamera* camera =
-            new RTSCamera(application->GetDevice(), application->GetDevice()->getSceneManager()->getRootSceneNode(),
-                          application->GetDevice()->getSceneManager(), -1, -160.0f, 1.0f, 0.003f);
+        // This is for GUI tweaking of system parameters
+        receiver.Initialize(&myhexy);
+        vis->AddUserEventReceiver(&receiver);
 
-        camera->setPosition(core::vector3df(5, 5, 2));
-        camera->setTarget(core::vector3df(0, 0, 0));
-
-        // This is for GUI tweaking of system parameters..
-        receiver.Initialize(application.get(), &myhexy);
-        // note how to add a custom event receiver to the default interface:
-        application->SetUserEventReceiver(&receiver);
-        application->AssetBindAll();
-        application->AssetUpdateAll();
+        appwrap.Set(vis);
     }
 
     // ---------------
@@ -254,7 +248,7 @@ int main(int argc, char* argv[]) {
     myhexy.ControlAbsolute(control);
 
     while (appwrap.IsOk() && syn_manager.IsOk()) {
-        double time = mphysicalSystem.GetChTime();
+        double time = sys.GetChTime();
 
         // End simulation
         if (time >= end_time)
@@ -263,9 +257,9 @@ int main(int argc, char* argv[]) {
         // Render scene
         if (step_number % render_steps == 0)
             appwrap.Render();
-        syn_manager.Synchronize(mphysicalSystem.GetChTime());
+        syn_manager.Synchronize(sys.GetChTime());
         myhexy.Update(step_size);
-        mphysicalSystem.DoStepDynamics(step_size);
+        sys.DoStepDynamics(step_size);
 
         // appwrap.Advance();
 

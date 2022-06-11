@@ -30,7 +30,7 @@
 #include "chrono_vehicle/ChDriver.h"
 
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
 
 namespace chrono {
 namespace vehicle {
@@ -67,7 +67,7 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     };
 
     /// Construct an Irrlicht GUI driver.
-    ChIrrGuiDriver(ChVehicleIrrApp& app);
+    ChIrrGuiDriver(ChVehicleVisualSystemIrrlicht& vsys);
 
     virtual ~ChIrrGuiDriver() {}
 
@@ -124,7 +124,7 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     void SetButtonCallback(int button, void(*cbfun)()) {cb_fun = cbfun; callbackButton=button; }
 
   protected:
-    ChVehicleIrrApp& m_app;
+    ChVehicleVisualSystemIrrlicht& m_vsys;
 
     InputMode m_mode; ///< current mode of the driver
 

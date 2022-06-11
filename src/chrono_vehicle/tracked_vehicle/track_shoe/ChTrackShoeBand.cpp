@@ -19,10 +19,8 @@
 // =============================================================================
 
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChAssetLevel.h"
 #include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -33,8 +31,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
 // Utility function to calculate the center of a circle of given radius which passes through two given points.
 static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
     // midpoint
@@ -64,6 +60,7 @@ static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, 
     return O;
 }
 
+// -----------------------------------------------------------------------------
 ChTrackShoeBand::ChTrackShoeBand(const std::string& name) : ChTrackShoe(name) {}
 
 void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
@@ -117,12 +114,6 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     AddShoeContact();
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChTrackShoeBand::GetMass() const {
-    return GetTreadMass() + GetWebMass();
-}
-
 double ChTrackShoeBand::GetPitch() const {
     return GetToothBaseLength() + GetWebLength();
 }
@@ -131,7 +122,6 @@ ChVector<> ChTrackShoeBand::GetLateralContactPoint() const {
     return ChVector<>(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + GetGuideBoxDimensions().z() / 2);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeBand::AddShoeContact() {
     m_shoe->GetCollisionModel()->ClearModel();
@@ -158,7 +148,6 @@ void ChTrackShoeBand::AddShoeContact() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChColor ChTrackShoeBand::GetColor(size_t index) {
     if (index == 0)
         return ChColor(0.7f, 0.4f, 0.4f);
@@ -169,37 +158,26 @@ ChColor ChTrackShoeBand::GetColor(size_t index) {
 }
 
 void ChTrackShoeBand::AddShoeVisualization() {
-    ChColor col1 = GetColor(m_index);
-    ChColor col2(col1.R - 0.2f, col1.G - 0.2f, col1.B - 0.2f);
-
-    m_shoe->AddAsset(chrono_types::make_shared<ChColorAsset>(col1));
-
     // Guide pin
     ChVector<> g_hdims = GetGuideBoxDimensions() / 2;
     ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + g_hdims.z());
     auto box_pin = chrono_types::make_shared<ChBoxShape>();
     box_pin->GetBoxGeometry().Size = g_hdims;
-    box_pin->Pos = g_loc;
-    m_shoe->AddAsset(box_pin);
+    m_shoe->AddVisualShape(box_pin, ChFrame<>(g_loc));
 
     // Main box
     ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
     ChVector<> b_loc(0, 0, 0);
     auto box_main = chrono_types::make_shared<ChBoxShape>();
     box_main->GetBoxGeometry().Size = b_hdims;
-    box_main->Pos = b_loc;
-    m_shoe->AddAsset(box_main);
+    m_shoe->AddVisualShape(box_main, ChFrame<>(b_loc));
 
     // Pad box
     ChVector<> t_hdims(GetTreadLength() / 2, GetBeltWidth() / 2, GetTreadThickness() / 2);
     ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
     auto box_tread = chrono_types::make_shared<ChBoxShape>();
     box_tread->GetBoxGeometry().Size = t_hdims;
-    box_tread->Pos = t_loc;
-    auto pad_level = chrono_types::make_shared<ChAssetLevel>();
-    pad_level->AddAsset(box_tread);
-    pad_level->AddAsset(chrono_types::make_shared<ChColorAsset>(col2));
-    m_shoe->AddAsset(pad_level);
+    m_shoe->AddVisualShape(box_tread, ChFrame<>(t_loc));
 
     // Connection to first web segment
     double radius = GetWebThickness() / 4;
@@ -207,11 +185,11 @@ void ChTrackShoeBand::AddShoeVisualization() {
     cyl->GetCylinderGeometry().rad = radius;
     cyl->GetCylinderGeometry().p1 = ChVector<>(GetToothBaseLength() / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(GetToothBaseLength() / 2, +GetBeltWidth() / 2 + 2 * radius, 0);
-    m_shoe->AddAsset(cyl);
+    m_shoe->AddVisualShape(cyl);
 
     // Create tooth meshes
-    m_shoe->AddAsset(ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2));
-    m_shoe->AddAsset(ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2));
+    m_shoe->AddVisualShape(ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2));
+    m_shoe->AddVisualShape(ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2));
 }
 
 // -----------------------------------------------------------------------------

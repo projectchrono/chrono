@@ -23,10 +23,8 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
-#include "chrono/assets/ChColorAsset.h"
-
 #ifdef CHRONO_IRRLICHT
-#include "chrono_irrlicht/ChIrrApp.h"
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
 
 using namespace chrono;
@@ -56,17 +54,14 @@ MixerTestNSC<N>::MixerTestNSC() : m_system(new ChSystemNSC()), m_step(0.02) {
     for (int bi = 0; bi < N; bi++) {
         auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(1.0, 1000, true, true, mat);
         sphereBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
-        sphereBody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.4f, 0.0f, 0.0f));
         m_system->Add(sphereBody);
 
         auto boxBody = chrono_types::make_shared<ChBodyEasyBox>(1.25, 1.25, 1.25, 1000, true, true, mat);
         boxBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
-        boxBody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.0f, 0.4f, 0.0f));
         m_system->Add(boxBody);
 
         auto cylBody = chrono_types::make_shared<ChBodyEasyCylinder>(0.8, 1.0, 1000, true, true, mat);
         cylBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
-        cylBody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.0f, 0.0f, 0.4f));
         m_system->Add(cylBody);
     }
 
@@ -109,20 +104,22 @@ MixerTestNSC<N>::MixerTestNSC() : m_system(new ChSystemNSC()), m_step(0.02) {
 template <int N>
 void MixerTestNSC<N>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp application(m_system, L"Rigid contacts", irr::core::dimension2d<irr::u32>(800, 600));
-    application.AddLogo();
-    application.AddSkyBox();
-    application.AddTypicalLights();
-    application.AddCamera(irr::core::vector3df(0, 14, -20));
+    // Create the Irrlicht visualization system
+    auto vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+    m_system->SetVisualSystem(vis);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("Rigid contacts");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddTypicalLights();
+    vis->AddCamera(ChVector<>(0, 14, -20), ChVector<>(0, 0, 0));
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-        application.DrawAll();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->DrawAll();
         ExecuteStep();
-        application.EndScene();
+        vis->EndScene();
     }
 #endif
 }

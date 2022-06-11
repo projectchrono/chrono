@@ -1,3 +1,15 @@
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2014 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
+
 import pychrono.core as chrono
 import pychrono.sensor as sens
 
@@ -13,12 +25,12 @@ def main():
     mphysicalSystem.Set_G_acc(chrono.ChVectorD(0,0,0))
 
     red = chrono.ChVisualMaterial()
-    red.SetDiffuseColor(chrono.ChVectorF(1,0,0))
-    red.SetSpecularColor(chrono.ChVectorF(1,1,1))
+    red.SetDiffuseColor(chrono.ChColor(1,0,0))
+    red.SetSpecularColor(chrono.ChColor(1,1,1))
 
     green = chrono.ChVisualMaterial()
-    green.SetDiffuseColor(chrono.ChVectorF(0,1,0))
-    green.SetSpecularColor(chrono.ChVectorF(1,1,1))
+    green.SetDiffuseColor(chrono.ChColor(0,1,0))
+    green.SetSpecularColor(chrono.ChColor(1,1,1))
 
     #------------------------------
     # add body for sensor to attach
@@ -36,10 +48,8 @@ def main():
         box = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 1000, True, False)
         box.SetPos(chrono.ChVectorD(5+x, y, z))
         box.SetPos_dt(chrono.ChVectorD(-0.5, 0, 0))
+        box.GetVisualShape(0).SetMaterial(0, red)
         mphysicalSystem.Add(box)
-        asset = floor.GetAssets()[0]
-        visual_asset = chrono.CastToChVisualization(asset)
-        visual_asset.material_list.append(red)
     
     for i in range(10):
         x = random.uniform(0,30)
@@ -48,10 +58,8 @@ def main():
         box = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 1000, True, False)
         box.SetPos(chrono.ChVectorD(10-x, y, z))
         box.SetPos_dt(chrono.ChVectorD(0.5, 0, 0))
+        box.GetVisualShape(0).SetMaterial(0, red)
         mphysicalSystem.Add(box)
-        asset = floor.GetAssets()[0]
-        visual_asset = chrono.CastToChVisualization(asset)
-        visual_asset.material_list.append(red)
 
     # -----------------------
     # Create a sensor manager

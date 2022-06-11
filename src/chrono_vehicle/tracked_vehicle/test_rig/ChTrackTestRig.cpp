@@ -28,7 +28,6 @@
 #include <cstdio>
 
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -56,29 +55,12 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 class ChTrackTestRigChassis : public ChRigidChassis {
   public:
-    ChTrackTestRigChassis();
-    virtual double GetMass() const override { return m_mass; }
-    virtual const ChMatrix33<>& GetInertia() const override { return m_inertia; }
-    virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
-    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
-
-  private:
-    ChMatrix33<> m_inertia;
-
-    static const double m_mass;
-    static const ChVector<> m_inertiaXX;
-    static const ChVector<> m_COM_loc;
-    static const ChCoordsys<> m_driverCsys;
+    ChTrackTestRigChassis() : ChRigidChassis("Ground") {}
+    virtual double GetBodyMass() const override { return 1; }
+    virtual ChFrame<> GetBodyCOMFrame() const override { return ChFrame<>(); }
+    virtual ChMatrix33<> GetBodyInertia() const override { return ChMatrix33<>(1); }
+    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
 };
-
-const double ChTrackTestRigChassis::m_mass = 1;
-const ChVector<> ChTrackTestRigChassis::m_inertiaXX(1, 1, 1);
-const ChVector<> ChTrackTestRigChassis::m_COM_loc(0, 0, 0);
-const ChCoordsys<> ChTrackTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
-
-ChTrackTestRigChassis::ChTrackTestRigChassis() : ChRigidChassis("Ground") {
-    m_inertia = ChMatrix33<>(m_inertiaXX);
-}
 
 // -----------------------------------------------------------------------------
 
@@ -90,6 +72,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
       m_ride_height(-1),
       m_max_torque(0),
       m_displ_limit(0),
+      m_displ_delay(0),
       m_driver_logfile(""),
       m_collide_flags(0xFFFF),
       m_vis_sprocket(VisualizationType::NONE),
@@ -135,6 +118,7 @@ ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
       m_ride_height(-1),
       m_max_torque(0),
       m_displ_limit(0),
+      m_displ_delay(0),
       m_driver_logfile(""),
       m_collide_flags(0xFFFF),
       m_vis_sprocket(VisualizationType::NONE),
@@ -261,6 +245,9 @@ void ChTrackTestRig::Initialize() {
     m_driver->SetTimeDelay(m_displ_delay);
     m_driver->Initialize(m_post.size(), locations);
     m_driver->LogInit(m_driver_logfile);
+
+    // Invoke base class method
+    ChVehicle::Initialize(ChCoordsys<>(), 0.0);
 }
 
 // -----------------------------------------------------------------------------
@@ -381,30 +368,32 @@ void ChTrackTestRig::LogConstraintViolations() {
 void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
                                           std::shared_ptr<ChBody> chassis,
                                           const ChColor& color) {
+    auto mat = chrono_types::make_shared<ChVisualMaterial>();
+    mat->SetDiffuseColor({color.R, color.G, color.B});
+
     // Platform (on post body)
     auto base_cyl = chrono_types::make_shared<ChCylinderShape>();
     base_cyl->GetCylinderGeometry().rad = m_post_radius;
     base_cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
     base_cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -2 * m_post_hheight);
-    post->AddAsset(base_cyl);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(color);
-    post->AddAsset(col);
+    base_cyl->AddMaterial(mat);
+    post->AddVisualShape(base_cyl);
 
     // Piston (on post body)
     auto piston = chrono_types::make_shared<ChCylinderShape>();
     piston->GetCylinderGeometry().rad = m_post_radius / 6.0;
     piston->GetCylinderGeometry().p1 = ChVector<>(0, 0, -2 * m_post_hheight);
     piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -30 * m_post_hheight);
-    post->AddAsset(piston);
+    piston->AddMaterial(mat);
+    post->AddVisualShape(piston);
 
     // Post sleeve (on chassis/ground body)
     auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().rad = m_post_radius / 4.0;
     cyl->GetCylinderGeometry().p1 = post->GetPos() - ChVector<>(0, 0, 16 * m_post_hheight);
     cyl->GetCylinderGeometry().p2 = post->GetPos() - ChVector<>(0, 0, 32 * m_post_hheight);
-    chassis->AddAsset(cyl);
+    cyl->AddMaterial(mat);
+    chassis->AddVisualShape(cyl);
 }
 
 // -----------------------------------------------------------------------------

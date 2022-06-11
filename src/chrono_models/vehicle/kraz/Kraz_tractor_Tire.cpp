@@ -78,8 +78,8 @@ void Kraz_tractor_Tire::AddVisualizationAssets(chrono::vehicle::VisualizationTyp
 }
 
 void Kraz_tractor_Tire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChTMeasyTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace kraz

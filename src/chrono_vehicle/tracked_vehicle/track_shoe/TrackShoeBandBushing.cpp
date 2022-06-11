@@ -83,14 +83,8 @@ void TrackShoeBandBushing::Create(const rapidjson::Document& d) {
     m_guide_box_offset_x = d["Guide Pin"]["Offset"].GetDouble();
 
     // Read bushing parameters
-    assert(d.HasMember("Bushing Parameters"));
-    double Klin = d["Bushing Parameters"]["Stiffness Linear"].GetDouble();
-    double Krot_dof = d["Bushing Parameters"]["Stiffness Rotational DOF"].GetDouble();
-    double Krot_other = d["Bushing Parameters"]["Stiffness Rotational non-DOF"].GetDouble();
-    double Dlin = d["Bushing Parameters"]["Damping Linear"].GetDouble();
-    double Drot_dof = d["Bushing Parameters"]["Damping Rotational DOF"].GetDouble();
-    double Drot_other = d["Bushing Parameters"]["Damping Rotational non-DOF"].GetDouble();
-    SetBushingParameters(Klin, Krot_dof, Krot_other, Dlin, Drot_dof, Drot_other);
+    assert(d.HasMember("Bushing Data"));
+    m_bushingData = ReadBushingDataJSON(d["Bushing Data"]);
 
     // Read contact material information (defer creating the materials until CreateContactMaterials.
     assert(d.HasMember("Contact Materials"));
@@ -126,13 +120,13 @@ void TrackShoeBandBushing::CreateContactMaterials(ChContactMethod contact_method
 // -----------------------------------------------------------------------------
 void TrackShoeBandBushing::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        auto trimesh =
+            geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
-        trimesh_shape->SetStatic(true);
-        m_shoe->AddAsset(trimesh_shape);
+        trimesh_shape->SetMutable(false);
+        m_shoe->AddVisualShape(trimesh_shape);
     } else {
         ChTrackShoeBandBushing::AddVisualizationAssets(vis);
     }

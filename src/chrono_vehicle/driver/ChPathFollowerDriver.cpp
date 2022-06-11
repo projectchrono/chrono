@@ -77,7 +77,8 @@ void ChPathFollowerDriver::Create() {
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
-    road->AddAsset(path_asset);
+
+    road->AddVisualShape(path_asset);
 }
 
 void ChPathFollowerDriver::Reset() {
@@ -164,7 +165,8 @@ void ChPathFollowerDriverXT::Create() {
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
-    road->AddAsset(path_asset);
+
+    road->AddVisualShape(path_asset);
 }
 
 void ChPathFollowerDriverXT::Reset() {
@@ -253,7 +255,8 @@ void ChPathFollowerDriverSR::Create() {
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
-    road->AddAsset(path_asset);
+
+    road->AddVisualShape(path_asset);
 }
 
 void ChPathFollowerDriverSR::Reset() {
@@ -340,7 +343,8 @@ void ChPathFollowerDriverStanley::Create() {
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
-    road->AddAsset(path_asset);
+
+    road->AddVisualShape(path_asset);
 }
 
 void ChPathFollowerDriverStanley::Reset() {

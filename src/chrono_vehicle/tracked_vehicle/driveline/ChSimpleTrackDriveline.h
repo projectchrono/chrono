@@ -50,9 +50,11 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChDrivelineTV {
                             ) override;
 
     /// Update the driveline subsystem.
-    /// The motor torque represents the input to the driveline subsystem from the
-    /// powertrain system.
-    virtual void Synchronize(double steering, double torque) override;
+    /// The motor torque represents the input to the driveline subsystem from the powertrain system.
+    virtual void Synchronize(double time,                            ///< [in] current time
+                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
+                             double torque                           ///< [in] motor torque
+                             ) override;
 
     /// Get the motor torque to be applied to the specified sprocket.
     virtual double GetSprocketTorque(VehicleSide side) const override;

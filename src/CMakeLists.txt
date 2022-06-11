@@ -174,89 +174,70 @@ endif()
 option(USE_SIMD "Enable use of SIMD if supported (SSE, AVX, NEON)" ON)
 
 if(USE_SIMD)
-
-   # Figure out SIMD level support
-   message(STATUS "Searching for SSE...")
-   find_package(SSE)
+	
+   # Figure out SIMD support
+   message(STATUS "Testing SIMD capabilities...")
+   find_package(SIMD)
    
    # Set substitution variables for configuration file
-   if(SSE_FOUND)
+   if(SIMD_SSE)
      set(CHRONO_HAS_SSE "#define CHRONO_HAS_SSE")
-     set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SSE_VERSION}\"")
-     if(DETECTED_SSE_10)
-       set(CHRONO_SSE_1_0 "#define CHRONO_SSE_1_0")
-     endif()
-     if(DETECTED_SSE_20)
-       set(CHRONO_SSE_2_0 "#define CHRONO_SSE_2_0")
-     endif()
-     if(DETECTED_SSE_30)
+	 set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SIMD_SSE}\"")
+     
+	 # SSE up to and including 2.0 is supported on all 64-bit x86 systems
+	 set(CHRONO_SSE_1_0 "#define CHRONO_SSE_1_0")
+     set(CHRONO_SSE_2_0 "#define CHRONO_SSE_2_0")
+	 
+	 if(${SIMD_SSE} VERSION_GREATER_EQUAL 3.0)
        set(CHRONO_SSE_3_0 "#define CHRONO_SSE_3_0")
      endif()
-     if(DETECTED_SSE_41)
+	 if(${SIMD_SSE} VERSION_GREATER_EQUAL 4.1)
        set(CHRONO_SSE_4_1 "#define CHRONO_SSE_4_1")
      endif()
-     if(DETECTED_SSE_42)
+	 if(${SIMD_SSE} VERSION_GREATER_EQUAL 4.2)
        set(CHRONO_SSE_4_2 "#define CHRONO_SSE_4_2")
      endif()
    endif()
    
-   # Figure out AVX level support
-   message(STATUS "Searching for AVX...")
-   find_package(AVX)
+   # Figure out AVX support
    
    # Set substitution variables for configuration file
-   if(AVX_FOUND)
+   if(SIMD_AVX)
      set(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
-     set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${AVX_VERSION}\"")
-     if(DETECTED_AVX_10)
+	 set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${SIMD_AVX}\"")
+	 if(${SIMD_AVX} VERSION_GREATER_EQUAL 1.0)
        set(CHRONO_AVX_1_0 "#define CHRONO_AVX_1_0")
      endif()
-     if(DETECTED_AVX_20)
+	 if(${SIMD_AVX} VERSION_GREATER_EQUAL 2.0)
        set(CHRONO_AVX_2_0 "#define CHRONO_AVX_2_0")
      endif()
    endif()
 
-   # Figure out FMA level support
-   set(CHECK_FMA TRUE)
+   # Figure out FMA support
+   set(ALLOW_FMA TRUE)
    if(MSVC)
      if(NOT CH_WHOLE_PROG_OPT)
         message(STATUS "FMA requires enabling whole program optimization. FMA check disabled.")
-        set(CHECK_FMA FALSE)
-     endif()
-     if(NOT DETECTED_AVX_20)
-        message(STATU "FMA requires AVX2 support. FMA check disabled.")
-        set(CHECK_FMA FALSE)
+        set(ALLOW_FMA FALSE)
      endif()
    endif()
      
-   if(CHECK_FMA)    
-     message(STATUS "Searching for FMA...")
-     find_package(FMA)
-   
+   if(SIMD_FMA AND ALLOW_FMA)    
      # Set substitution variables for configuration file
-     if(FMA_FOUND)
-       set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
-     endif()
+     set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
    endif()
    
-   # Add SSE, AVX, and FMA flags to Chrono compiler flags
-   # Note that these flags are already added to CMake compiler flags
-   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
-   set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
-   
-   # Check if the system has NEON support
-   message(STATUS "Searching for NEON...")
-   find_package(NEON)
-   
+   # Figure out NEON support
+
    # Set substitution variables for configuration file.
-   if (NEON_FOUND)
+   if(SIMD_NEON)
      set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
    endif()
 
-   # Add NEON flags to Chrono compiler flags
+   # Add SIMD flags to Chrono compiler flags
    # Note that these flags are already added to CMake compiler flags
-   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${NEON_FLAGS}")
-   set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
+   set(CH_C_FLAGS "${CH_C_FLAGS} ${SIMD_C_FLAGS}")
+   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SIMD_CXX_FLAGS}")
 
 else()
 
@@ -477,11 +458,17 @@ elseif(MSVC)
     add_compile_options(/wd4127)   # conditional expression is constant
     add_compile_options(/wd4201)   # nameless struct/union
     add_compile_options(/wd4244)   # conversion; possible loss of data
+    add_compile_options(/wd4250)   # inheritance via dominance
     add_compile_options(/wd4251)   # class needs to have dll-interface
+    add_compile_options(/wd4275)   # non dll-interface class used as base class
     add_compile_options(/wd4324)   # structure padded due to alignment specifier
     add_compile_options(/wd4505)   # unreferenced local function
     add_compile_options(/wd4458)   # declaration hides class member
     add_compile_options(/wd4515)   # namespace uses itself
+    add_compile_options(/wd5038)   # order of initialization
+    add_compile_options(/wd26451)  # arithmetic overflow
+    add_compile_options(/wd26495)  # uninitialized member variable
+    add_compile_options(/wd26812)  # use of unscoped enums
 else()
     message(STATUS "Warning level set to -Wall")
     add_compile_options(-Wall)
