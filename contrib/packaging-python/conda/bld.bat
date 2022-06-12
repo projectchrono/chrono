@@ -16,7 +16,7 @@ REM Configure step
 REM THIS STATIC LIBRARY DOESN'T APPEAR ANYMORE, USE THE VERSION FROM THE INTEL oneAPI COMPILER SUITE -DIOMP5_LIBRARY="%PREFIX%"\Library\lib\libiomp5md.lib ^
 
 mkdir cmake_began
-cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -G "Visual Studio 17 2022" -T "v142" ^
+cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%" ^
  -DCMAKE_PREFIX_PATH="%LIBRARY_PREFIX%" ^
  -DCMAKE_SYSTEM_PREFIX_PATH="%LIBRARY_PREFIX%" ^
@@ -50,13 +50,13 @@ mkdir cmake_ended
  
 REM Build step 
 mkdir build_began
-cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON --build . -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON --config "%CONFIGURATION%" >> "%LOG_DIR%"\cmakebuildlog.txt 2>&1
+cmake --build . --config Release >> "%LOG_DIR%"\cmakebuildlog.txt 2>&1
 if errorlevel 1 exit 1
 mkdir build_ended
 
 REM Install step 
 mkdir install_began
-cmake --build . --config "%CONFIGURATION%" --target install
+cmake --build . --config Release --target install
 if errorlevel 1 exit 1
 mkdir install_ended
 
