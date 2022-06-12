@@ -25,14 +25,20 @@ build:
 
 requirements:
   build:
-    - {{ compiler('c') }}   # [not win]
-    - {{ compiler('cxx') }} # [not win]
+    #- {{ compiler('c')}} # [not win]
+    #- {{ compiler('cxx') }} # [not win]
     - python
     - cmake >=3.10          # [not win]
-    - ninja # [linux or osx]
+    - ninja   # [linux or osx]
+    - pip     # [linux]
+    - jinja2  # [linux]
+    - llvm-openmp   # [linux]
+    - libglvnd-glx-cos7-x86_64 # [linux]
     - swig >=4.0.0
     - mkl
     - mkl-devel
+    - freeglut # [linux]
+    - libxxf86vm-devel-cos7-x86_64 # [linux]
     - irrlicht
     - opencascade
     - numpy >=1.16

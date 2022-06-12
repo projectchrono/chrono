@@ -159,7 +159,7 @@ linux:arch-llvm:test:
   tags:
     - linux
   image:
-    name: nvidia/cuda:11.4.0-devel-ubuntu20.04
+    name: nvidia/cuda:11.6.0-devel-ubuntu20.04
   before_script:
     - uname -a
     - export DEBIAN_FRONTEND=noninteractive
@@ -192,7 +192,7 @@ linux:arch-llvm:test:
     - apt-get update; apt-get -y install wget python git 
         cmake ninja-build build-essential libboost-dev swig libeigen3-dev 
         libglfw3-dev libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
-        libxxf86vm-dev libopenmpi-dev python3 python3-dev libhdf5-dev
+        libxxf86vm-dev python3 python3-dev libhdf5-dev
     - ldconfig
     - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz
     - tar -xf blaze-3.8.tar.gz
@@ -206,16 +206,19 @@ linux:arch-llvm:test:
     - wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
     - bash Miniconda3-latest-Linux-x86_64.sh -b
     - export PATH=$HOME/miniconda3/bin:$PATH
-    - conda update --yes conda
-    - conda install --yes pip jinja2
+    #- conda update --yes conda
+    #- conda install --yes pip jinja2
+    #- conda install -c conda-forge gxx_linux-64 gcc_linux-64 llvm-openmp libglvnd-glx-cos7-x86_64
     - conda config --set show_channel_urls true
     - conda install conda-build anaconda-client conda-verify --yes
     - conda update conda --yes
+    - rm -rf /root/miniconda3/lib/libgomp.so.1
     - conda config --add channels https://conda.anaconda.org/conda-forge
     - conda config --add channels https://conda.anaconda.org/intel
-    - conda install --yes conda-build anaconda-client
-    - conda install -c dlr-sc opencascade --yes
-    - conda install -c intel mkl-devel --yes
+    - conda config --add channels https://conda.anaconda.org/dlr-sc
+    #- conda install --yes conda-build anaconda-client
+    #- conda install -c dlr-sc opencascade --yes
+    #- conda install -c intel mkl-devel --yes
   environment:
     name: pychrono-ubuntu2004
     url: https://anaconda.org/projectchrono/pychrono
@@ -266,14 +269,14 @@ linux:ubuntu2004:test:
     - ninja test
   dependencies: ["linux:ubuntu2004:build"]
 
-
 linux:ubuntu2004:deploy-python3.6:
   stage: deploy
   needs: []
   extends: .ubuntu-deploy-base
   script:
+    - pwd
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
+    - conda build ./contrib/packaging-python/conda -c intel -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.6
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   when: manual
 
@@ -283,7 +286,7 @@ linux:ubuntu2004:deploy-python3.7:
   extends: .ubuntu-deploy-base
   script:
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
+    - conda build ./contrib/packaging-python/conda  -c intel -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.7
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   when: manual
 
@@ -293,7 +296,7 @@ linux:ubuntu2004:deploy-python3.8:
   extends: .ubuntu-deploy-base
   script:
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
+    - conda build ./contrib/packaging-python/conda  -c intel -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.8
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   when: manual
 
