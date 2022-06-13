@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowPosition(ChVector2<int>(100, 300));
     vis->SetWindowTitle("Brick Wall Test");
     vis->SetUseSkyBox(true);
-    vis->SetWireFrameMode(true);
+    vis->SetWireFrameMode(false);
     vis->SetLightIntensity(0.9);
     vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
     vis->Initialize();

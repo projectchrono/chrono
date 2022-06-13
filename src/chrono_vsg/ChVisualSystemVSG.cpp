@@ -489,7 +489,7 @@ void ChVisualSystemVSG::export_image() {
     auto commandPool = vsg::CommandPool::create(device, queueFamilyIndex);
     auto queue = device->getQueue(queueFamilyIndex);
 
-    vsg::submitCommandsToQueue(device, commandPool, fence, 100000000000, queue,
+    vsg::submitCommandsToQueue(commandPool, fence, 100000000000, queue,
                                [&](vsg::CommandBuffer& commandBuffer) { commands->record(commandBuffer); });
 
     //
@@ -503,6 +503,7 @@ void ChVisualSystemVSG::export_image() {
     auto imageData = vsg::MappedData<vsg::ubvec4Array2D>::create(deviceMemory, subResourceLayout.offset, 0,
                                                                  vsg::Data::Layout{targetImageFormat}, width,
                                                                  height);  // deviceMemory, offset, flags and dimensions
+
     size_t dotPos = m_imageFilename.find_last_of(".");
     string format;
     if (dotPos != string::npos)
