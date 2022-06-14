@@ -98,54 +98,34 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     std::cout << "Parsing the JSON file" << std::endl;
     if (doc.HasMember("Output Folder"))
         strcpy(paramsH->out_name, doc["Output Folder"].GetString());
-    else
-        strcpy(paramsH->out_name, "Undefined");
 
     if (doc.HasMember("Data Output Length"))
         paramsH->output_length = doc["Data Output Length"].GetInt();
-    else
-        paramsH->output_length = 1;
 
     if (doc.HasMember("Output FSI"))
         paramsH->output_fsi = doc["Output FSI"].GetBool();
-    else
-        paramsH->output_fsi = true;
 
     if (doc.HasMember("Physical Properties of Fluid")) {
         if (doc["Physical Properties of Fluid"].HasMember("Density"))
             paramsH->rho0 = doc["Physical Properties of Fluid"]["Density"].GetDouble();
-        else
-            paramsH->rho0 = 1.0;
 
         if (doc["Physical Properties of Fluid"].HasMember("Solid Density"))
             paramsH->rho_solid = doc["Physical Properties of Fluid"]["Solid Density"].GetDouble();
-        else
-            paramsH->rho_solid = paramsH->rho0;
 
         if (doc["Physical Properties of Fluid"].HasMember("Viscosity"))
             paramsH->mu0 = doc["Physical Properties of Fluid"]["Viscosity"].GetDouble();
-        else
-            paramsH->mu0 = 0.001;
 
         if (doc["Physical Properties of Fluid"].HasMember("Body Force"))
             paramsH->bodyForce3 = LoadVectorJSON(doc["Physical Properties of Fluid"]["Body Force"]);
-        else
-            paramsH->bodyForce3 = mR3(0.0, 0, 0);
 
         if (doc["Physical Properties of Fluid"].HasMember("Gravity"))
             paramsH->gravity = LoadVectorJSON(doc["Physical Properties of Fluid"]["Gravity"]);
-        else
-            paramsH->gravity = mR3(0.0, 0, 0);
 
         if (doc["Physical Properties of Fluid"].HasMember("Surface Tension Kappa"))
             paramsH->kappa = doc["Physical Properties of Fluid"]["Surface Tension Kappa"].GetDouble();
-        else
-            paramsH->kappa = 0.0;
 
         if (doc["Physical Properties of Fluid"].HasMember("Characteristic Length"))
             paramsH->L_Characteristic = doc["Physical Properties of Fluid"]["Characteristic Length"].GetDouble();
-        else
-            paramsH->L_Characteristic = 1.0;
     }
 
     if (doc.HasMember("SPH Parameters")) {
@@ -163,129 +143,77 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
                 std::cerr << "Falling back to I2SPH " << std::endl;
                 paramsH->fluid_dynamic_type = fluid_dynamics::I2SPH;
             }
-        } else
-            paramsH->fluid_dynamic_type = fluid_dynamics::I2SPH;
+        }
 
-        if (doc["SPH Parameters"].HasMember("Kernel h")){
+        if (doc["SPH Parameters"].HasMember("Kernel h"))
             paramsH->HSML = doc["SPH Parameters"]["Kernel h"].GetDouble();
-            paramsH->INVHSML = 1.0 / paramsH->HSML;}
-        else{
-            paramsH->HSML = 0.02;
-            paramsH->INVHSML = 1.0 / paramsH->HSML;
-        }
 
-        if (doc["SPH Parameters"].HasMember("Initial Spacing")){
+        if (doc["SPH Parameters"].HasMember("Initial Spacing"))
             paramsH->INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble();
-            paramsH->INV_INIT = 1.0 / paramsH->INITSPACE;
-            paramsH->MULT_INITSPACE = paramsH->INITSPACE / paramsH->HSML;}
-        else{
-            paramsH->INITSPACE = paramsH->HSML;
-            paramsH->INV_INIT = 1.0 / paramsH->INITSPACE;
-            paramsH->MULT_INITSPACE = 1.0;
-        }
 
         if (doc["SPH Parameters"].HasMember("Initial Spacing Solid"))
             paramsH->MULT_INITSPACE_Shells = doc["SPH Parameters"]["Initial Spacing Solid"].GetDouble() / paramsH->HSML;
-        else
-            paramsH->MULT_INITSPACE_Shells = 1.0;
 
         if (doc["SPH Parameters"].HasMember("Epsilon"))
             paramsH->epsMinMarkersDis = doc["SPH Parameters"]["Epsilon"].GetDouble();
         else
             paramsH->epsMinMarkersDis = 0.01;
 
-        if (doc["SPH Parameters"].HasMember("Maximum Velocity")){
+        if (doc["SPH Parameters"].HasMember("Maximum Velocity"))
             paramsH->v_Max = doc["SPH Parameters"]["Maximum Velocity"].GetDouble();
-            paramsH->Cs = 10.0*paramsH->v_Max;}
-        else{
-            paramsH->v_Max = 1.0;
-            paramsH->Cs = 10.0*paramsH->v_Max;}
 
         if (doc["SPH Parameters"].HasMember("XSPH Coefficient"))
             paramsH->EPS_XSPH = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
-        else
-            paramsH->EPS_XSPH = 0.11;
 
         if (doc["SPH Parameters"].HasMember("Viscous damping"))
             paramsH->Vis_Dam = doc["SPH Parameters"]["Viscous damping"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Shifting Coefficient"))
             paramsH->beta_shifting = doc["SPH Parameters"]["Shifting Coefficient"].GetDouble();
-        else
-            paramsH->beta_shifting = 0.0;
 
         if (doc["SPH Parameters"].HasMember("Density Reinitialization"))
             paramsH->densityReinit = doc["SPH Parameters"]["Density Reinitialization"].GetInt();
-        else
-            paramsH->densityReinit = 2147483647;
 
         if (doc["SPH Parameters"].HasMember("Conservative Discretization"))
             paramsH->Conservative_Form = doc["SPH Parameters"]["Conservative Discretization"].GetBool();
-        else
-            paramsH->Conservative_Form = true;
 
         if (doc["SPH Parameters"].HasMember("Gradient Discretization Type"))
             paramsH->gradient_type = doc["SPH Parameters"]["Gradient Discretization Type"].GetInt();
-        else
-            paramsH->gradient_type = 0;
 
         if (doc["SPH Parameters"].HasMember("Laplacian Discretization Type"))
             paramsH->laplacian_type = doc["SPH Parameters"]["Laplacian Discretization Type"].GetInt();
-        else
-            paramsH->laplacian_type = 0;
 
         if (doc["SPH Parameters"].HasMember("Consistent Discretization for Laplacian"))
             paramsH->USE_Consistent_L = doc["SPH Parameters"]["Consistent Discretization for Laplacian"].GetInt();
-        else
-            paramsH->USE_Consistent_L = true;
 
         if (doc["SPH Parameters"].HasMember("Consistent Discretization for Gradient"))
             paramsH->USE_Consistent_G = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetInt();
-        else
-            paramsH->USE_Consistent_G = true;
     }
 
     if (doc.HasMember("Time Stepping")) {
         if (doc["Time Stepping"].HasMember("Adaptive Time stepping"))
             paramsH->Adaptive_time_stepping = doc["Time Stepping"]["Adaptive Time stepping"].GetBool();
-        else
-            paramsH->Adaptive_time_stepping = false;
 
         if (doc["Time Stepping"].HasMember("CFL number"))
             paramsH->Co_number = doc["Time Stepping"]["CFL number"].GetDouble();
-        else
-            paramsH->Co_number = 0.1;
 
         if (doc["Time Stepping"].HasMember("Beta"))
             paramsH->Beta = doc["Time Stepping"]["Beta"].GetDouble();
-        else
-            paramsH->Beta = 0.5;
 
         if (doc["Time Stepping"].HasMember("Fluid time step"))
             paramsH->dT = doc["Time Stepping"]["Fluid time step"].GetDouble();
-        else
-            paramsH->dT = 0.01;
-        paramsH->INV_dT = 1.0 / paramsH->dT;
 
         if (doc["Time Stepping"].HasMember("Solid time step"))
             paramsH->dT_Flex = doc["Time Stepping"]["Solid time step"].GetDouble();
-        else
-            paramsH->dT_Flex = paramsH->dT;
 
         if (doc["Time Stepping"].HasMember("Maximum time step"))
             paramsH->dT_Max = doc["Time Stepping"]["Maximum time step"].GetDouble();
-        else
-            paramsH->dT_Max = 1.0;
 
         if (doc["Time Stepping"].HasMember("Write frame per second"))
             paramsH->out_fps = doc["Time Stepping"]["Write frame per second"].GetDouble();
-        else
-            paramsH->out_fps = 20;
 
         if (doc["Time Stepping"].HasMember("End time"))
             paramsH->tFinal = doc["Time Stepping"]["End time"].GetDouble();
-        else
-            paramsH->tFinal = 2000;
     }
 
     if (doc.HasMember("Pressure Equation")) {
@@ -301,8 +229,6 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
                 if (solver == "GMRES")
                     paramsH->LinearSolver = ChFsiLinearSolver::SolverType::GMRES;
             }
-        } else {
-            paramsH->PPE_Solution_type = PPE_SolutionType::MATRIX_FREE;
         }
 
         if (doc["Pressure Equation"].HasMember("Poisson source term")) {
@@ -323,47 +249,31 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
 
         if (doc["Pressure Equation"].HasMember("Alpha Source Term"))
             paramsH->Alpha = doc["Pressure Equation"]["Alpha Source Term"].GetDouble();
-        else
-            paramsH->Alpha = paramsH->HSML;
 
         if (doc["Pressure Equation"].HasMember("Under-relaxation"))
             paramsH->PPE_relaxation = doc["Pressure Equation"]["Under-relaxation"].GetDouble();
-        else
-            paramsH->PPE_relaxation = 1.0;
 
         if (doc["Pressure Equation"].HasMember("Absolute residual"))
             paramsH->LinearSolver_Abs_Tol = doc["Pressure Equation"]["Absolute residual"].GetDouble();
-        else
-            paramsH->LinearSolver_Abs_Tol = 0.0;
 
         if (doc["Pressure Equation"].HasMember("Relative residual"))
             paramsH->LinearSolver_Rel_Tol = doc["Pressure Equation"]["Relative residual"].GetDouble();
-        else
-            paramsH->LinearSolver_Rel_Tol = 0.0;
 
         if (doc["Pressure Equation"].HasMember("Maximum Iterations"))
             paramsH->LinearSolver_Max_Iter = doc["Pressure Equation"]["Maximum Iterations"].GetInt();
-        else
-            paramsH->LinearSolver_Max_Iter = 1000;
 
         if (doc["Pressure Equation"].HasMember("Verbose monitoring"))
             paramsH->Verbose_monitoring = doc["Pressure Equation"]["Verbose monitoring"].GetBool();
-        else
-            paramsH->Verbose_monitoring = false;
 
         if (doc["Pressure Equation"].HasMember("Constraint Pressure")) {
             paramsH->Pressure_Constraint = doc["Pressure Equation"]["Constraint Pressure"].GetBool();
             if (doc["Pressure Equation"].HasMember("Average Pressure"))
                 paramsH->BASEPRES = doc["Pressure Equation"]["Average Pressure"].GetDouble();
-            else
-                paramsH->BASEPRES = false;
-        } else
-            paramsH->Pressure_Constraint = false;
+        }
 
         if (doc["Pressure Equation"].HasMember("Clamp Pressure")) {
             paramsH->ClampPressure = doc["Pressure Equation"]["Clamp Pressure"].GetBool();
-        } else
-            paramsH->ClampPressure = false;
+        }
 
         if (doc["Pressure Equation"].HasMember("Boundary Conditions")) {
             std::string BC = doc["Pressure Equation"]["Boundary Conditions"].GetString();
@@ -371,12 +281,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
                 paramsH->bceType = BceVersion::ADAMI;
             else
                 paramsH->bceType = BceVersion::ORIGINAL;
-        } else
-            paramsH->bceType = BceVersion::ADAMI;
-        paramsH->bceTypeWall = BceVersion::ADAMI;
-    } else{
-        paramsH->bceType = BceVersion::ADAMI;
-        paramsH->bceTypeWall = BceVersion::ADAMI;
+        }
     }
 
     // this part is for modeling granular material dynamics using elastic SPH
@@ -425,11 +330,8 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
             paramsH->Q_DA = 6 * sin(paramsH->Dil_angle) / (sqrt(3) * (3 + sin(paramsH->Dil_angle)));  // material constants calculate from dilate angle
             paramsH->K_FA = 6 * paramsH->Coh_coeff * cos(paramsH->Fri_angle) / (sqrt(3) * (3 + sin(paramsH->Fri_angle)));  // material constants calculate from frictional angle and cohesion coefficient
         }
-        if (doc["Elastic SPH"].HasMember("kernel threshold")) {
+        if (doc["Elastic SPH"].HasMember("kernel threshold"))
             paramsH->C_Wi = doc["Elastic SPH"]["kernel threshold"].GetDouble(); 
-        } else{
-            paramsH->C_Wi = 0.8;
-        }
     } else {
         paramsH->elastic_SPH = false;
     }
@@ -502,17 +404,11 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         }
     }
 
-    if (doc.HasMember("Body Active Domain")) {
+    if (doc.HasMember("Body Active Domain"))
         paramsH->bodyActiveDomain = LoadVectorJSON(doc["Body Active Domain"]);
-    }else{
-        paramsH->bodyActiveDomain = mR3(1.0e10, 1.0e10, 1.0e10);
-    }
 
-    if (doc.HasMember("Settling Time")) {
+    if (doc.HasMember("Settling Time"))
         paramsH->settlingTime = doc["Settling Time"].GetDouble();
-    }else{
-        paramsH->settlingTime = 1.0e10;
-    }
 
     //===============================================================
     // Material Models
@@ -611,18 +507,6 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         paramsH->non_newtonian = false;
     }
     
-    int NN = 0;
-    // paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);
-    paramsH->volume0 = cube(paramsH->INITSPACE);
-    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
-    paramsH->invrho0 = 1.0 / paramsH->rho0;
-    paramsH->num_neighbors = NN;
-    
-
-    paramsH->Max_Pressure = 1e20;
-    paramsH->cMin = mR3(-Domain.x * 2, -Domain.y * 2, -2 * Domain.z) - 10 * mR3(paramsH->HSML);
-    paramsH->cMax = mR3(Domain.x * 2, Domain.y * 2, 2 * Domain.z) + 10 * mR3(paramsH->HSML);
-
     std::cout << "parameters of the simulation" << std::endl;
 
     std::cout << "paramsH->num_neighbors: " << paramsH->num_neighbors << std::endl;

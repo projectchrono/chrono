@@ -40,6 +40,7 @@ ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem, CHFSI_TIME_INTEGRATOR o
       fluidIntegrator(other_integrator),
       file_write_mode(CHFSI_OUTPUT_MODE::NONE) {
     paramsH = chrono_types::make_shared<SimParams>();
+    InitParams();
     numObjectsH = sysFSI.numObjects;
     bceWorker = chrono_types::make_shared<ChBce>(sysFSI.sortedSphMarkersD, sysFSI.markersProximityD,
                                                  sysFSI.fsiGeneralData, paramsH, numObjectsH);
@@ -85,7 +86,39 @@ void ChSystemFsi::SetFluidDynamics() {
 void ChSystemFsi::Finalize() {
     printf("===============================================================================\n");
     printf("ChSystemFsi::Finalize 1-FinalizeData\n");
-    FinalizeData();
+
+    // Calculate dependent quantities in the params structure
+    paramsH->Cs = 10 * paramsH->v_Max;
+
+    int NN = 0;
+    ////paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);
+    paramsH->num_neighbors = NN;
+
+    if (paramsH->defaultBoundaryLimits) {
+        paramsH->cMin =
+            mR3(-2 * paramsH->Domain.x, -2 * paramsH->Domain.y, -2 * paramsH->Domain.z) - 10 * mR3(paramsH->HSML);
+        paramsH->cMax =
+            mR3(+2 * paramsH->Domain.x, +2 * paramsH->Domain.y, +2 * paramsH->Domain.z) + 10 * mR3(paramsH->HSML);
+    }
+
+    printf("fsiInterface->ResizeChronoBodiesData()\n");
+    fsiInterface->ResizeChronoBodiesData();
+    int fea_node = 0;
+    fsiInterface->ResizeChronoCablesData(CableElementsNodes);
+    fsiInterface->ResizeChronoShellsData(ShellElementsNodes);
+    fsiInterface->ResizeChronoFEANodesData();
+    printf("sysFSI.ResizeDataManager()\n");
+    fea_node = fsi_mesh->GetNnodes();
+
+    sysFSI.ResizeDataManager(fea_node);
+
+    printf("fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem()\n");
+    fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(sysFSI.fsiBodiesD1);
+    fsiInterface->Copy_fsiNodes_ChSystem_to_FluidSystem(sysFSI.fsiMeshD);
+    fsiInterface->Copy_fsiNodes_ChSystem_to_FluidSystem(sysFSI.fsiMeshD);
+
+    std::cout << "referenceArraySize in FinalizeData is " << sysFSI.fsiGeneralData->referenceArray.size() << std::endl;
+    sysFSI.fsiBodiesD2 = sysFSI.fsiBodiesD1;  //(2) construct midpoint rigid data
 
     printf("===============================================================================\n");
     printf("ChSystemFsi::Finalize 2-bceWorker->Finalize\n");
@@ -193,27 +226,90 @@ void ChSystemFsi::DoStepDynamics_ChronoRK2() {
     mTime += paramsH->dT;
     sysMBS.DoStepDynamics(1.0 * paramsH->dT);
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::FinalizeData() {
-    printf("fsiInterface->ResizeChronoBodiesData()\n");
-    fsiInterface->ResizeChronoBodiesData();
-    int fea_node = 0;
-    fsiInterface->ResizeChronoCablesData(CableElementsNodes);
-    fsiInterface->ResizeChronoShellsData(ShellElementsNodes);
-    fsiInterface->ResizeChronoFEANodesData();
-    printf("sysFSI.ResizeDataManager()\n");
-    fea_node = fsi_mesh->GetNnodes();
 
-    sysFSI.ResizeDataManager(fea_node);
+void ChSystemFsi::InitParams() {
+    //// RADU TODO
+    //// Provide default values for *all* parameters!
 
-    printf("fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem()\n");
-    fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(sysFSI.fsiBodiesD1);
-    fsiInterface->Copy_fsiNodes_ChSystem_to_FluidSystem(sysFSI.fsiMeshD);
-    fsiInterface->Copy_fsiNodes_ChSystem_to_FluidSystem(sysFSI.fsiMeshD);
+    strcpy(paramsH->out_name, "Undefined");
+    paramsH->output_length = 1;
+    paramsH->output_fsi = true;
 
-    std::cout << "referenceArraySize in FinalizeData is " << sysFSI.fsiGeneralData->referenceArray.size() << std::endl;
-    sysFSI.fsiBodiesD2 = sysFSI.fsiBodiesD1;  //(2) construct midpoint rigid data
+    // Fluid properties
+    paramsH->rho0 = Real(1.0);
+    paramsH->invrho0 = 1 / paramsH->rho0;
+    paramsH->rho_solid = paramsH->rho0;
+    paramsH->mu0 = Real(0.001);
+    paramsH->bodyForce3 = mR3(0, 0, 0);
+    paramsH->gravity = mR3(0, 0, 0);
+    paramsH->kappa = Real(0.0);
+    paramsH->L_Characteristic = Real(1.0);
+
+    // SPH parameters
+    paramsH->fluid_dynamic_type = fluid_dynamics::I2SPH;
+    paramsH->HSML = Real(0.02);
+    paramsH->INVHSML = 1 / paramsH->HSML;
+    paramsH->INITSPACE = paramsH->HSML;
+    paramsH->volume0 = cube(paramsH->INITSPACE);
+    paramsH->INV_INIT = 1 / paramsH->INITSPACE;
+    paramsH->MULT_INITSPACE_Shells = Real(1.0);
+    paramsH->v_Max = Real(1.0);
+    paramsH->EPS_XSPH = Real(0.11);
+    paramsH->beta_shifting = Real(0.0);
+    paramsH->densityReinit = 2147483647;
+    paramsH->Conservative_Form = true;
+    paramsH->gradient_type = 0;
+    paramsH->laplacian_type = 0;
+    paramsH->USE_Consistent_L = true;
+    paramsH->USE_Consistent_G = true;
+
+    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
+
+    // Time stepping
+    paramsH->Adaptive_time_stepping = false;
+    paramsH->Co_number = Real(0.1);
+    paramsH->Beta = Real(0.5);
+    paramsH->dT = Real(0.01);
+    paramsH->INV_dT = 1 / paramsH->dT;
+    paramsH->dT_Flex = paramsH->dT;
+    paramsH->dT_Max = Real(1.0);
+    paramsH->out_fps = Real(20);
+    paramsH->tFinal = Real(2000);
+
+    // Pressure equation
+    paramsH->PPE_Solution_type = PPE_SolutionType::MATRIX_FREE;
+    paramsH->Alpha = paramsH->HSML;
+    paramsH->PPE_relaxation = Real(1.0);
+    paramsH->LinearSolver_Abs_Tol = Real(0.0);
+    paramsH->LinearSolver_Rel_Tol = Real(0.0);
+    paramsH->LinearSolver_Max_Iter = 1000;
+    paramsH->Verbose_monitoring = false;
+    paramsH->Pressure_Constraint = false;
+    paramsH->BASEPRES = false;
+    paramsH->ClampPressure = false;
+
+    paramsH->bceType = BceVersion::ADAMI;
+    paramsH->bceTypeWall = BceVersion::ADAMI;
+
+    // Elastic SPH
+    paramsH->C_Wi = Real(0.8);
+
+    //
+    paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
+    paramsH->settlingTime = Real(1e10);
+
+    //
+    paramsH->Max_Pressure = Real(1e20);
+    paramsH->Domain = mR3(1, 1, 1);
+
+    paramsH->defaultBoundaryLimits = true;
+
+    //// RADU TODO
+    //// material model
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
     if (file_write_mode == CHFSI_OUTPUT_MODE::CSV) {
@@ -965,6 +1061,7 @@ void ChSystemFsi::SetContainerDim(const ChVector<>& boxDim) {
 void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax) {
     paramsH->cMin = ChUtilsTypeConvert::ChVectorToReal3(cMin);
     paramsH->cMax = ChUtilsTypeConvert::ChVectorToReal3(cMax);
+    paramsH->defaultBoundaryLimits = false;
 }
 
 void ChSystemFsi::SetInitPressure(const double fzDim) {
@@ -983,10 +1080,28 @@ void ChSystemFsi::Set_G_acc(const ChVector<>& gravity) {
 
 void ChSystemFsi::SetInitialSpacing(double spacing) {
     paramsH->INITSPACE = (Real)spacing;
+    paramsH->INV_INIT = 1 / paramsH->INITSPACE;
+    paramsH->volume0 = cube(paramsH->INITSPACE);
+    paramsH->MULT_INITSPACE = paramsH->INITSPACE / paramsH->HSML;
+    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
 }
 
 void ChSystemFsi::SetKernelLength(double length) {
     paramsH->HSML = (Real)length;
+    paramsH->MULT_INITSPACE = paramsH->INITSPACE / paramsH->HSML;
+    paramsH->INVHSML = 1 / paramsH->HSML;
+}
+
+void ChSystemFsi::SetStepSize(double dT, double dT_Flex) {
+    paramsH->dT = dT;
+    paramsH->INV_dT = 1 / paramsH->dT;
+    paramsH->dT_Flex = (dT_Flex == 0) ? paramsH->dT : dT_Flex;
+}
+
+void ChSystemFsi::SetDensity(double rho0) {
+    paramsH->rho0 = rho0;
+    paramsH->invrho0 = 1 / paramsH->rho0;
+    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

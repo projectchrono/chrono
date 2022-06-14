@@ -32,6 +32,7 @@
 #include <ctime>
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
 #include "chrono_fsi/math/custom_math.h"
+#include "chrono_fsi/utils/ChUtilsDevice.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -136,6 +137,7 @@ struct SimParams {
                    ///< tolerance zone.
     Real3 cMax;    ///< Upper right most part of the space shown in a simulation frame. This point is usually outside
                    ///< thetolerance zone.
+    bool defaultBoundaryLimits;
 
     Real3 cMinInit;                    ///< Minimum point of the fluid domain.
     Real3 cMaxInit;                    ///< Maximum point of the fluid domain.
@@ -263,6 +265,8 @@ struct SimParams {
 
     Real3 bodyActiveDomain; ///< Size of the active domain that influenced by an FSI body
     Real settlingTime; ///< Time for the granular to settle down
+
+    Real3 Domain;
 };
 
 /// @} fsi_physics

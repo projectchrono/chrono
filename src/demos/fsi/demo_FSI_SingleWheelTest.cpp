@@ -478,6 +478,7 @@ int main(int argc, char* argv[]) {
 
     sysFSI.SetInitialSpacing(iniSpacing);
     sysFSI.SetKernelLength(kernelLength);
+    sysFSI.SetStepSize(dT);
 
     // Set the terrain size
     sysFSI.SetSimDim(ChVector<>(fxDim, fyDim, fzDim));
@@ -499,7 +500,14 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax(bxDim / 2 * 10, byDim / 2 + 0.5 * iniSpacing, bzDim * 10 + 10 * iniSpacing);
     sysFSI.SetBoundaries(cMin, cMax);
 
-    // Setup sub doamins for a faster neighbor particle searching
+    // Setup sub domains for a faster neighbor particle searching
+    //// RADU TODO
+    //// Is this call optional?
+    //// If no, invoke it automatically from:
+    ////   - params initialization function
+    ////   - SetKernelLength
+    ////   - SetBoundaries
+    //// and make it a *private* function!
     sysFSI.SetSubDomain();
 
     /// Setup the output directory for FSI data

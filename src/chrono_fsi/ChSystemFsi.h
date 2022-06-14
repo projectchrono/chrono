@@ -76,11 +76,6 @@ class CH_FSI_API ChSystemFsi {
     /// copying from the full step
     void CopyDeviceDataToHalfStep();
 
-    /// Fill out the dependent data based on the independent one. For instance,
-    /// it copies the position of the rigid bodies from the multibody dynamics system
-    /// to arrays in FSI system since they are needed for internal use.
-    void FinalizeData();
-
     /// Set the linear system solver for implicit methods
     void SetFluidSystemLinearSolver(ChFsiLinearSolver::SolverType other_solverType) {
         fluidDynamics->GetForceSystem()->SetLinearSolver(other_solverType);
@@ -287,11 +282,17 @@ class CH_FSI_API ChSystemFsi {
     /// Set Periodic boundary condition for fluid.
     void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax);
 
+    /// Set (initial) density,
+    void SetDensity(double rho0);
+
     /// Set prescribed initial pressure for gravity field.
     void SetInitPressure(const double fzDim);
 
     /// Set gravity for the FSI syatem.
     void Set_G_acc(const ChVector<>& gravity);
+
+    /// Set FSI integration step size.
+    void SetStepSize(double dT, double dT_Flex = 0);
 
     /// Gets the FSI mesh for flexible elements.
     std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
@@ -342,6 +343,9 @@ class CH_FSI_API ChSystemFsi {
     double GetSimTime() const { return mTime; }
 
   private:
+    /// Initialize simulation parameters with default values
+    void InitParams();
+
     /// Set the type of the fluid dynamics.
     void SetFluidIntegratorType(fluid_dynamics params_type);
 
