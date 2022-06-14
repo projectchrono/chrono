@@ -500,6 +500,8 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Setup sub domains for faster neighbor particle search
+    //// RADU TODO
+    //// Remove as a user option - ALWAYS use subdomains
     sysFSI.SetSubdomains(true);
 
     /// Setup the output directory for FSI data

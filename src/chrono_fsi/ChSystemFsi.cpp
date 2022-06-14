@@ -148,6 +148,7 @@ void ChSystemFsi::SetFluidDynamics(fluid_dynamics SPH_method, ChFsiLinearSolver:
 }
 
 void ChSystemFsi::SetSimParameter(const std::string& inputJson, const ChVector<>& box_size) {
+    paramsH->Domain = ChUtilsTypeConvert::ChVectorToReal3(box_size);
     utils::ParseJSON(inputJson, paramsH, ChUtilsTypeConvert::ChVectorToReal3(box_size));
 }
 
