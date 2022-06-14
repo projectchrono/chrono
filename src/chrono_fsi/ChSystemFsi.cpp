@@ -64,7 +64,7 @@ void ChSystemFsi::InitParams() {
     paramsH->output_fsi = true;
 
     // Fluid properties
-    paramsH->rho0 = Real(1.0);
+    paramsH->rho0 = Real(1000.0);
     paramsH->invrho0 = 1 / paramsH->rho0;
     paramsH->rho_solid = paramsH->rho0;
     paramsH->mu0 = Real(0.001);
@@ -74,16 +74,16 @@ void ChSystemFsi::InitParams() {
     paramsH->L_Characteristic = Real(1.0);
 
     // SPH parameters
-    paramsH->fluid_dynamic_type = fluid_dynamics::I2SPH;
-    paramsH->HSML = Real(0.02);
+    paramsH->fluid_dynamic_type = fluid_dynamics::WCSPH;
+    paramsH->HSML = Real(0.01);
     paramsH->INVHSML = 1 / paramsH->HSML;
     paramsH->INITSPACE = paramsH->HSML;
     paramsH->volume0 = cube(paramsH->INITSPACE);
     paramsH->INV_INIT = 1 / paramsH->INITSPACE;
     paramsH->MULT_INITSPACE_Shells = Real(1.0);
     paramsH->v_Max = Real(1.0);
-    paramsH->EPS_XSPH = Real(0.11);
-    paramsH->beta_shifting = Real(0.0);
+    paramsH->EPS_XSPH = Real(0.5);
+    paramsH->beta_shifting = Real(1.0);
     paramsH->densityReinit = 2147483647;
     paramsH->Conservative_Form = true;
     paramsH->gradient_type = 0;
@@ -98,8 +98,8 @@ void ChSystemFsi::InitParams() {
     // Time stepping
     paramsH->Adaptive_time_stepping = false;
     paramsH->Co_number = Real(0.1);
-    paramsH->Beta = Real(0.5);
-    paramsH->dT = Real(0.01);
+    paramsH->Beta = Real(0.0);
+    paramsH->dT = Real(0.0001);
     paramsH->INV_dT = 1 / paramsH->dT;
     paramsH->dT_Flex = paramsH->dT;
     paramsH->dT_Max = Real(1.0);
@@ -244,7 +244,12 @@ void ChSystemFsi::Finalize() {
 
     // Calculate dependent quantities in the params structure
 
-    paramsH->Cs = 10 * paramsH->v_Max;
+    if (paramsH->elastic_SPH){
+        paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
+    }
+    else{
+        paramsH->Cs = 10 * paramsH->v_Max;
+    }
 
     int NN = 0;
     ////paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);

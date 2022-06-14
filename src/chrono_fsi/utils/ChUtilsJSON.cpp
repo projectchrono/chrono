@@ -106,8 +106,10 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         paramsH->output_fsi = doc["Output FSI"].GetBool();
 
     if (doc.HasMember("Physical Properties of Fluid")) {
-        if (doc["Physical Properties of Fluid"].HasMember("Density"))
+        if (doc["Physical Properties of Fluid"].HasMember("Density")){
             paramsH->rho0 = doc["Physical Properties of Fluid"]["Density"].GetDouble();
+            paramsH->invrho0 = 1.0 / paramsH->rho0;
+        }
 
         if (doc["Physical Properties of Fluid"].HasMember("Solid Density"))
             paramsH->rho_solid = doc["Physical Properties of Fluid"]["Solid Density"].GetDouble();
@@ -145,11 +147,15 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
             }
         }
 
-        if (doc["SPH Parameters"].HasMember("Kernel h"))
+        if (doc["SPH Parameters"].HasMember("Kernel h")){
             paramsH->HSML = doc["SPH Parameters"]["Kernel h"].GetDouble();
+            paramsH->INVHSML = 1.0 / paramsH->HSML;
+        }
 
-        if (doc["SPH Parameters"].HasMember("Initial Spacing"))
+        if (doc["SPH Parameters"].HasMember("Initial Spacing")){
             paramsH->INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble();
+            paramsH->INV_INIT = 1.0 / paramsH->INITSPACE;
+        }
 
         if (doc["SPH Parameters"].HasMember("Initial Spacing Solid"))
             paramsH->MULT_INITSPACE_Shells = doc["SPH Parameters"]["Initial Spacing Solid"].GetDouble() / paramsH->HSML;
@@ -200,8 +206,10 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         if (doc["Time Stepping"].HasMember("Beta"))
             paramsH->Beta = doc["Time Stepping"]["Beta"].GetDouble();
 
-        if (doc["Time Stepping"].HasMember("Fluid time step"))
+        if (doc["Time Stepping"].HasMember("Fluid time step")){
             paramsH->dT = doc["Time Stepping"]["Fluid time step"].GetDouble();
+            paramsH->INV_dT = 1.0 / paramsH->dT;
+        }
 
         if (doc["Time Stepping"].HasMember("Solid time step"))
             paramsH->dT_Flex = doc["Time Stepping"]["Solid time step"].GetDouble();
