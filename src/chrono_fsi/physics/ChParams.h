@@ -137,7 +137,10 @@ struct SimParams {
                    ///< tolerance zone.
     Real3 cMax;    ///< Upper right most part of the space shown in a simulation frame. This point is usually outside
                    ///< thetolerance zone.
-    bool defaultBoundaryLimits;
+
+    bool use_default_limits;  ///< true if cMin and cMax are not user-provided (default: true)
+    bool use_init_pressure;   ///< true if pressure set based on height (default: false)
+    bool use_subdomains;      ///< true if useing subdomains for acceleration (default: false)
 
     Real3 cMinInit;                    ///< Minimum point of the fluid domain.
     Real3 cMaxInit;                    ///< Maximum point of the fluid domain.
@@ -155,6 +158,8 @@ struct SimParams {
                     ///< little from 2 hsml.This may change slightly due to the location of the periodic BC.
 
     Real3 rigidRadius;  ///< Radius of rigid bodies.
+
+    double pressure_height;  ///< height for pressure initialization
 
     int densityReinit;  ///< Reinitialize density after densityReinit steps. Note that doing this more frequently helps
                         /// in getting more accurate incompressible fluid, but more stable solution is obtained for

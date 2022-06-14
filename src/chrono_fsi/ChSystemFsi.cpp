@@ -33,19 +33,13 @@
 namespace chrono {
 namespace fsi {
 
-//--------------------------------------------------------------------------------------------------------------------------------
-ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem, CHFSI_TIME_INTEGRATOR other_integrator)
+ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
     : sysMBS(other_physicalSystem),
       mTime(0),
-      fluidIntegrator(other_integrator),
       file_write_mode(CHFSI_OUTPUT_MODE::NONE) {
     paramsH = chrono_types::make_shared<SimParams>();
     InitParams();
     numObjectsH = sysFSI.numObjects;
-    bceWorker = chrono_types::make_shared<ChBce>(sysFSI.sortedSphMarkersD, sysFSI.markersProximityD,
-                                                 sysFSI.fsiGeneralData, paramsH, numObjectsH);
-    fluidDynamics =
-        chrono_types::make_shared<ChFluidDynamics>(bceWorker, sysFSI, paramsH, numObjectsH, other_integrator);
 
     fsi_mesh = chrono_types::make_shared<fea::ChMesh>();
     fsiBodies.resize(0);
@@ -56,49 +50,243 @@ ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem, CHFSI_TIME_INTEGRATOR o
                                                              paramsH, fsi_mesh,  //
                                                              fsiBodies, fsiNodes, fsiCables, fsiShells);
 }
+
+ChSystemFsi::~ChSystemFsi() {}
+
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::SetFluidIntegratorType(fluid_dynamics params_type) {
-    if (params_type == fluid_dynamics::IISPH) {
-        fluidIntegrator = CHFSI_TIME_INTEGRATOR::IISPH;
-        std::cout << "=====================   Fluid dynamics is reset to IISPH   ====================" << std::endl;
-        std::cout << "===============================================================================" << std::endl;
-        std::cout << "===============================================================================" << std::endl;
-    } else if (params_type == fluid_dynamics::WCSPH) {
-        fluidIntegrator = CHFSI_TIME_INTEGRATOR::ExplicitSPH;
-        std::cout << "===============================================================================" << std::endl;
-        std::cout << "=====================   Fluid dynamics is reset to WCSPH   ====================" << std::endl;
-        std::cout << "===============================================================================" << std::endl;
-    } else {
-        fluidIntegrator = CHFSI_TIME_INTEGRATOR::I2SPH;
-        std::cout << "===============================================================================" << std::endl;
-        std::cout << "=====================   Fluid dynamics is reset to I2SPH   ====================" << std::endl;
-        std::cout << "===============================================================================" << std::endl;
-    }
+
+void ChSystemFsi::InitParams() {
+    //// RADU TODO
+    //// Provide default values for *all* parameters!
+
+    strcpy(paramsH->out_name, "Undefined");
+    paramsH->output_length = 1;
+    paramsH->output_fsi = true;
+
+    // Fluid properties
+    paramsH->rho0 = Real(1.0);
+    paramsH->invrho0 = 1 / paramsH->rho0;
+    paramsH->rho_solid = paramsH->rho0;
+    paramsH->mu0 = Real(0.001);
+    paramsH->bodyForce3 = mR3(0, 0, 0);
+    paramsH->gravity = mR3(0, 0, 0);
+    paramsH->kappa = Real(0.0);
+    paramsH->L_Characteristic = Real(1.0);
+
+    // SPH parameters
+    paramsH->fluid_dynamic_type = fluid_dynamics::I2SPH;
+    paramsH->HSML = Real(0.02);
+    paramsH->INVHSML = 1 / paramsH->HSML;
+    paramsH->INITSPACE = paramsH->HSML;
+    paramsH->volume0 = cube(paramsH->INITSPACE);
+    paramsH->INV_INIT = 1 / paramsH->INITSPACE;
+    paramsH->MULT_INITSPACE_Shells = Real(1.0);
+    paramsH->v_Max = Real(1.0);
+    paramsH->EPS_XSPH = Real(0.11);
+    paramsH->beta_shifting = Real(0.0);
+    paramsH->densityReinit = 2147483647;
+    paramsH->Conservative_Form = true;
+    paramsH->gradient_type = 0;
+    paramsH->laplacian_type = 0;
+    paramsH->USE_Consistent_L = true;
+    paramsH->USE_Consistent_G = true;
+
+    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
+
+    paramsH->NUM_BOUNDARY_LAYERS = 3;
+
+    // Time stepping
+    paramsH->Adaptive_time_stepping = false;
+    paramsH->Co_number = Real(0.1);
+    paramsH->Beta = Real(0.5);
+    paramsH->dT = Real(0.01);
+    paramsH->INV_dT = 1 / paramsH->dT;
+    paramsH->dT_Flex = paramsH->dT;
+    paramsH->dT_Max = Real(1.0);
+    paramsH->out_fps = Real(20);
+    paramsH->tFinal = Real(2000);
+
+    // Pressure equation
+    paramsH->PPE_Solution_type = PPE_SolutionType::MATRIX_FREE;
+    paramsH->Alpha = paramsH->HSML;
+    paramsH->PPE_relaxation = Real(1.0);
+    paramsH->LinearSolver_Abs_Tol = Real(0.0);
+    paramsH->LinearSolver_Rel_Tol = Real(0.0);
+    paramsH->LinearSolver_Max_Iter = 1000;
+    paramsH->Verbose_monitoring = false;
+    paramsH->Pressure_Constraint = false;
+    paramsH->BASEPRES = Real(0.0);
+    paramsH->ClampPressure = false;
+
+    paramsH->bceType = BceVersion::ADAMI;
+    paramsH->bceTypeWall = BceVersion::ADAMI;
+
+    // Elastic SPH
+    paramsH->C_Wi = Real(0.8);
+
+    //
+    paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
+    paramsH->settlingTime = Real(1e10);
+
+    //
+    paramsH->Max_Pressure = Real(1e20);
+    paramsH->Domain = mR3(1, 1, 1);
+
+    //// RADU TODO
+    //// material model
+
+    paramsH->use_default_limits = true;
+    paramsH->use_init_pressure = false;
+    paramsH->use_subdomains = false;
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::SetFluidDynamics() {
-    SetFluidIntegratorType(paramsH->fluid_dynamic_type);
-    fluidDynamics =
-        chrono_types::make_shared<ChFluidDynamics>(bceWorker, sysFSI, paramsH, numObjectsH, fluidIntegrator);
-    fluidDynamics->GetForceSystem()->SetLinearSolver(paramsH->LinearSolver);
+
+void ChSystemFsi::SetFluidDynamics(fluid_dynamics SPH_method, ChFsiLinearSolver::SolverType lin_solver) {
+    paramsH->fluid_dynamic_type = SPH_method;
+    paramsH->LinearSolver = lin_solver;
 }
+
+void ChSystemFsi::SetSimParameter(const std::string& inputJson, const ChVector<>& box_size) {
+    utils::ParseJSON(inputJson, paramsH, ChUtilsTypeConvert::ChVectorToReal3(box_size));
+}
+
+void ChSystemFsi::SetSimDim(const ChVector<>& fluidDim) {
+    paramsH->fluidDimX = fluidDim.x();
+    paramsH->fluidDimY = fluidDim.y();
+    paramsH->fluidDimZ = fluidDim.z();
+}
+
+void ChSystemFsi::SetContainerDim(const ChVector<>& boxDim) {
+    paramsH->boxDimX = boxDim.x();
+    paramsH->boxDimY = boxDim.y();
+    paramsH->boxDimZ = boxDim.z();
+}
+
+void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax) {
+    paramsH->cMin = ChUtilsTypeConvert::ChVectorToReal3(cMin);
+    paramsH->cMax = ChUtilsTypeConvert::ChVectorToReal3(cMax);
+    paramsH->use_default_limits = false;
+}
+
+void ChSystemFsi::SetNumBoundaryLayers(int num_layers) {
+    paramsH->NUM_BOUNDARY_LAYERS = num_layers;
+}
+
+void ChSystemFsi::SetInitPressure(const double height) {
+    paramsH->pressure_height = height;
+    paramsH->use_init_pressure = true;
+}
+
+void ChSystemFsi::Set_G_acc(const ChVector<>& gravity) {
+    paramsH->gravity.x = gravity.x();
+    paramsH->gravity.y = gravity.y();
+    paramsH->gravity.z = gravity.z();
+}
+
+void ChSystemFsi::SetInitialSpacing(double spacing) {
+    paramsH->INITSPACE = (Real)spacing;
+    paramsH->INV_INIT = 1 / paramsH->INITSPACE;
+    paramsH->volume0 = cube(paramsH->INITSPACE);
+    paramsH->MULT_INITSPACE = paramsH->INITSPACE / paramsH->HSML;
+    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
+}
+
+void ChSystemFsi::SetKernelLength(double length) {
+    paramsH->HSML = (Real)length;
+    paramsH->MULT_INITSPACE = paramsH->INITSPACE / paramsH->HSML;
+    paramsH->INVHSML = 1 / paramsH->HSML;
+}
+
+void ChSystemFsi::SetStepSize(double dT, double dT_Flex) {
+    paramsH->dT = dT;
+    paramsH->INV_dT = 1 / paramsH->dT;
+    paramsH->dT_Flex = (dT_Flex == 0) ? paramsH->dT : dT_Flex;
+}
+
+void ChSystemFsi::SetDensity(double rho0) {
+    paramsH->rho0 = rho0;
+    paramsH->invrho0 = 1 / paramsH->rho0;
+    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
+}
+
+void ChSystemFsi::SetSubdomains(bool val) {
+    paramsH->use_subdomains = val;
+}
+
+void ChSystemFsi::SetFsiOutputDir(std::string& demo_dir, std::string out_dir, std::string inputJson) {
+    utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
+}
+
+void ChSystemFsi::SetDiscreType(bool useGmatrix, bool useLmatrix) {
+    paramsH->USE_Consistent_G = useGmatrix;
+    paramsH->USE_Consistent_L = useLmatrix;
+}
+
+void ChSystemFsi::SetFsiInfoOutput(bool outputFsiInfo) {
+    paramsH->output_fsi = outputFsiInfo;
+}
+
+void ChSystemFsi::SetOutputLength(int OutputLength) {
+    paramsH->output_length = OutputLength;
+}
+
+void ChSystemFsi::SetWallBC(BceVersion wallBC) {
+    paramsH->bceTypeWall = wallBC;
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::Finalize() {
     printf("===============================================================================\n");
     printf("ChSystemFsi::Finalize 1-FinalizeData\n");
 
     // Calculate dependent quantities in the params structure
+
     paramsH->Cs = 10 * paramsH->v_Max;
 
     int NN = 0;
     ////paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);
     paramsH->num_neighbors = NN;
 
-    if (paramsH->defaultBoundaryLimits) {
+    if (paramsH->use_default_limits) {
         paramsH->cMin =
             mR3(-2 * paramsH->Domain.x, -2 * paramsH->Domain.y, -2 * paramsH->Domain.z) - 10 * mR3(paramsH->HSML);
         paramsH->cMax =
             mR3(+2 * paramsH->Domain.x, +2 * paramsH->Domain.y, +2 * paramsH->Domain.z) + 10 * mR3(paramsH->HSML);
+    }
+
+    if (paramsH->use_init_pressure) {
+        size_t numParticles = sysFSI.sphMarkersH->rhoPresMuH.size();
+        for (int i = 0; i < numParticles; i++) {
+            double z = sysFSI.sphMarkersH->posRadH[i].z;
+            sysFSI.sphMarkersH->rhoPresMuH[i].y =
+                -paramsH->rho0 * paramsH->gravity.z * paramsH->gravity.z * (z - paramsH->pressure_height);
+        }
+    }
+
+    if (paramsH->use_subdomains) {
+        paramsH->NUM_BOUNDARY_LAYERS = 3;
+        paramsH->Apply_BC_U = false;  // You should go to custom_math.h all the way to end of file and set your function
+        int3 side0 = mI3((int)floor((paramsH->cMax.x - paramsH->cMin.x) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)),
+                         (int)floor((paramsH->cMax.y - paramsH->cMin.y) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)),
+                         (int)floor((paramsH->cMax.z - paramsH->cMin.z) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)));
+        Real3 binSize3 =
+            mR3((paramsH->cMax.x - paramsH->cMin.x) / side0.x, (paramsH->cMax.y - paramsH->cMin.y) / side0.y,
+                (paramsH->cMax.z - paramsH->cMin.z) / side0.z);
+        paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
+        paramsH->binSize0 = binSize3.x;
+        paramsH->boxDims = paramsH->cMax - paramsH->cMin;
+        paramsH->straightChannelBoundaryMin = paramsH->cMin;  // mR3(0, 0, 0);  // 3D channel
+        paramsH->straightChannelBoundaryMax = paramsH->cMax;  // SmR3(3, 2, 3) * paramsH->sizeScale;
+        paramsH->deltaPress = mR3(0);
+        int3 SIDE = mI3(int((paramsH->cMax.x - paramsH->cMin.x) / paramsH->binSize0 + .1),
+                        int((paramsH->cMax.y - paramsH->cMin.y) / paramsH->binSize0 + .1),
+                        int((paramsH->cMax.z - paramsH->cMin.z) / paramsH->binSize0 + .1));
+        Real mBinSize = paramsH->binSize0;
+        paramsH->gridSize = SIDE;
+        paramsH->worldOrigin = paramsH->cMin;
+        paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);    
     }
 
     printf("fsiInterface->ResizeChronoBodiesData()\n");
@@ -120,6 +308,28 @@ void ChSystemFsi::Finalize() {
     std::cout << "referenceArraySize in FinalizeData is " << sysFSI.fsiGeneralData->referenceArray.size() << std::endl;
     sysFSI.fsiBodiesD2 = sysFSI.fsiBodiesD1;  //(2) construct midpoint rigid data
 
+    // Create BCE and SPH worker objects
+
+    bceWorker = chrono_types::make_shared<ChBce>(sysFSI.sortedSphMarkersD, sysFSI.markersProximityD,
+                                                 sysFSI.fsiGeneralData, paramsH, numObjectsH);
+
+    switch (paramsH->fluid_dynamic_type) {
+        case fluid_dynamics::IISPH:
+            fluidIntegrator = CHFSI_TIME_INTEGRATOR::IISPH;
+            break;
+        case fluid_dynamics::WCSPH:
+            fluidIntegrator = CHFSI_TIME_INTEGRATOR::ExplicitSPH;
+            break;
+        default:
+            fluidIntegrator = CHFSI_TIME_INTEGRATOR::I2SPH;
+            break;
+    }
+    fluidDynamics =
+        chrono_types::make_shared<ChFluidDynamics>(bceWorker, sysFSI, paramsH, numObjectsH, fluidIntegrator);
+    fluidDynamics->GetForceSystem()->SetLinearSolver(paramsH->LinearSolver);
+
+    // Initialize worker objects
+
     printf("===============================================================================\n");
     printf("ChSystemFsi::Finalize 2-bceWorker->Finalize\n");
     bceWorker->Finalize(sysFSI.sphMarkersD1, sysFSI.fsiBodiesD1, sysFSI.fsiMeshD);
@@ -131,9 +341,9 @@ void ChSystemFsi::Finalize() {
               << std::endl;
     printf("===============================================================================\n");
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
-ChSystemFsi::~ChSystemFsi() {}
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::CopyDeviceDataToHalfStep() {
     thrust::copy(sysFSI.sphMarkersD2->posRadD.begin(), sysFSI.sphMarkersD2->posRadD.end(),
                  sysFSI.sphMarkersD1->posRadD.begin());
@@ -146,7 +356,7 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
     thrust::copy(sysFSI.sphMarkersD2->tauXyXzYzD.begin(), sysFSI.sphMarkersD2->tauXyXzYzD.end(),
                  sysFSI.sphMarkersD1->tauXyXzYzD.begin());
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::DoStepDynamics_FSI() {
     if (fluidDynamics->GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH) {
         // The following is used to execute the Explicit WCSPH
@@ -215,7 +425,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         printf("=================================================================================================\n");
     }
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::DoStepDynamics_ChronoRK2() {
     fsiInterface->Copy_ChSystem_to_External();
     mTime += 0.5 * paramsH->dT;
@@ -229,88 +439,6 @@ void ChSystemFsi::DoStepDynamics_ChronoRK2() {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::InitParams() {
-    //// RADU TODO
-    //// Provide default values for *all* parameters!
-
-    strcpy(paramsH->out_name, "Undefined");
-    paramsH->output_length = 1;
-    paramsH->output_fsi = true;
-
-    // Fluid properties
-    paramsH->rho0 = Real(1.0);
-    paramsH->invrho0 = 1 / paramsH->rho0;
-    paramsH->rho_solid = paramsH->rho0;
-    paramsH->mu0 = Real(0.001);
-    paramsH->bodyForce3 = mR3(0, 0, 0);
-    paramsH->gravity = mR3(0, 0, 0);
-    paramsH->kappa = Real(0.0);
-    paramsH->L_Characteristic = Real(1.0);
-
-    // SPH parameters
-    paramsH->fluid_dynamic_type = fluid_dynamics::I2SPH;
-    paramsH->HSML = Real(0.02);
-    paramsH->INVHSML = 1 / paramsH->HSML;
-    paramsH->INITSPACE = paramsH->HSML;
-    paramsH->volume0 = cube(paramsH->INITSPACE);
-    paramsH->INV_INIT = 1 / paramsH->INITSPACE;
-    paramsH->MULT_INITSPACE_Shells = Real(1.0);
-    paramsH->v_Max = Real(1.0);
-    paramsH->EPS_XSPH = Real(0.11);
-    paramsH->beta_shifting = Real(0.0);
-    paramsH->densityReinit = 2147483647;
-    paramsH->Conservative_Form = true;
-    paramsH->gradient_type = 0;
-    paramsH->laplacian_type = 0;
-    paramsH->USE_Consistent_L = true;
-    paramsH->USE_Consistent_G = true;
-
-    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
-
-    // Time stepping
-    paramsH->Adaptive_time_stepping = false;
-    paramsH->Co_number = Real(0.1);
-    paramsH->Beta = Real(0.5);
-    paramsH->dT = Real(0.01);
-    paramsH->INV_dT = 1 / paramsH->dT;
-    paramsH->dT_Flex = paramsH->dT;
-    paramsH->dT_Max = Real(1.0);
-    paramsH->out_fps = Real(20);
-    paramsH->tFinal = Real(2000);
-
-    // Pressure equation
-    paramsH->PPE_Solution_type = PPE_SolutionType::MATRIX_FREE;
-    paramsH->Alpha = paramsH->HSML;
-    paramsH->PPE_relaxation = Real(1.0);
-    paramsH->LinearSolver_Abs_Tol = Real(0.0);
-    paramsH->LinearSolver_Rel_Tol = Real(0.0);
-    paramsH->LinearSolver_Max_Iter = 1000;
-    paramsH->Verbose_monitoring = false;
-    paramsH->Pressure_Constraint = false;
-    paramsH->BASEPRES = false;
-    paramsH->ClampPressure = false;
-
-    paramsH->bceType = BceVersion::ADAMI;
-    paramsH->bceTypeWall = BceVersion::ADAMI;
-
-    // Elastic SPH
-    paramsH->C_Wi = Real(0.8);
-
-    //
-    paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
-    paramsH->settlingTime = Real(1e10);
-
-    //
-    paramsH->Max_Pressure = Real(1e20);
-    paramsH->Domain = mR3(1, 1, 1);
-
-    paramsH->defaultBoundaryLimits = true;
-
-    //// RADU TODO
-    //// material model
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
     if (file_write_mode == CHFSI_OUTPUT_MODE::CSV) {
         utils::WriteCsvParticlesToFile(sysFSI.sphMarkersD2->posRadD, sysFSI.sphMarkersD2->velMasD,
@@ -322,13 +450,14 @@ void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
     }
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::PrintParticleToFile(const std::string& out_dir) const {
     utils::PrintToFile(sysFSI.sphMarkersD2->posRadD, sysFSI.sphMarkersD2->velMasD, sysFSI.sphMarkersD2->rhoPresMuD,
                        sysFSI.fsiGeneralData->sr_tau_I_mu_i, sysFSI.fsiGeneralData->referenceArray,
                        thrust::host_vector<int4>(), out_dir, paramsH, true);
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::AddSphMarker(const ChVector<>& point,
                                double rho0,
                                double pres0,
@@ -342,11 +471,11 @@ void ChSystemFsi::AddSphMarker(const ChVector<>& point,
                         ChUtilsTypeConvert::ChVectorToReal3(velocity), ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
                         ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::AddRefArray(const int start, const int numPart, const int compType, const int phaseType) {
     sysFSI.fsiGeneralData->referenceArray.push_back(mI4(start, numPart, compType, phaseType));
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::AddSphMarkerBox(double initSpace,
                                   double kernelLength,
                                   const ChVector<>& boxCenter,
@@ -1042,116 +1171,6 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPosBoundary(const thrust::ho
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::SetSimParameter(const std::string& inputJson, const ChVector<>& box_size) {
-    utils::ParseJSON(inputJson, paramsH, ChUtilsTypeConvert::ChVectorToReal3(box_size));
-}
-
-void ChSystemFsi::SetSimDim(const ChVector<>& fluidDim) {
-    paramsH->fluidDimX = fluidDim.x();
-    paramsH->fluidDimY = fluidDim.y();
-    paramsH->fluidDimZ = fluidDim.z();
-}
-
-void ChSystemFsi::SetContainerDim(const ChVector<>& boxDim) {
-    paramsH->boxDimX = boxDim.x();
-    paramsH->boxDimY = boxDim.y();
-    paramsH->boxDimZ = boxDim.z();
-}
-
-void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax) {
-    paramsH->cMin = ChUtilsTypeConvert::ChVectorToReal3(cMin);
-    paramsH->cMax = ChUtilsTypeConvert::ChVectorToReal3(cMax);
-    paramsH->defaultBoundaryLimits = false;
-}
-
-void ChSystemFsi::SetInitPressure(const double fzDim) {
-    size_t numParticles = sysFSI.sphMarkersH->rhoPresMuH.size();
-    for (int i = 0; i < numParticles; i++) {
-        double z = sysFSI.sphMarkersH->posRadH[i].z;
-        sysFSI.sphMarkersH->rhoPresMuH[i].y = -paramsH->rho0 * paramsH->gravity.z * paramsH->gravity.z * (z - fzDim);
-    }
-}
-
-void ChSystemFsi::Set_G_acc(const ChVector<>& gravity) {
-    paramsH->gravity.x = gravity.x();
-    paramsH->gravity.y = gravity.y();
-    paramsH->gravity.z = gravity.z();
-}
-
-void ChSystemFsi::SetInitialSpacing(double spacing) {
-    paramsH->INITSPACE = (Real)spacing;
-    paramsH->INV_INIT = 1 / paramsH->INITSPACE;
-    paramsH->volume0 = cube(paramsH->INITSPACE);
-    paramsH->MULT_INITSPACE = paramsH->INITSPACE / paramsH->HSML;
-    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
-}
-
-void ChSystemFsi::SetKernelLength(double length) {
-    paramsH->HSML = (Real)length;
-    paramsH->MULT_INITSPACE = paramsH->INITSPACE / paramsH->HSML;
-    paramsH->INVHSML = 1 / paramsH->HSML;
-}
-
-void ChSystemFsi::SetStepSize(double dT, double dT_Flex) {
-    paramsH->dT = dT;
-    paramsH->INV_dT = 1 / paramsH->dT;
-    paramsH->dT_Flex = (dT_Flex == 0) ? paramsH->dT : dT_Flex;
-}
-
-void ChSystemFsi::SetDensity(double rho0) {
-    paramsH->rho0 = rho0;
-    paramsH->invrho0 = 1 / paramsH->rho0;
-    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-
-void ChSystemFsi::SetSubDomain() {
-    paramsH->NUM_BOUNDARY_LAYERS = 3;
-    paramsH->Apply_BC_U = false;  // You should go to custom_math.h all the way to end of file and set your function
-    int3 side0 = mI3((int)floor((paramsH->cMax.x - paramsH->cMin.x) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)),
-                     (int)floor((paramsH->cMax.y - paramsH->cMin.y) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)),
-                     (int)floor((paramsH->cMax.z - paramsH->cMin.z) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)));
-    Real3 binSize3 = mR3((paramsH->cMax.x - paramsH->cMin.x) / side0.x, (paramsH->cMax.y - paramsH->cMin.y) / side0.y,
-                         (paramsH->cMax.z - paramsH->cMin.z) / side0.z);
-    paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
-    paramsH->binSize0 = binSize3.x;
-    paramsH->boxDims = paramsH->cMax - paramsH->cMin;
-    paramsH->straightChannelBoundaryMin = paramsH->cMin;  // mR3(0, 0, 0);  // 3D channel
-    paramsH->straightChannelBoundaryMax = paramsH->cMax;  // SmR3(3, 2, 3) * paramsH->sizeScale;
-    paramsH->deltaPress = mR3(0);
-    int3 SIDE = mI3(int((paramsH->cMax.x - paramsH->cMin.x) / paramsH->binSize0 + .1),
-                    int((paramsH->cMax.y - paramsH->cMin.y) / paramsH->binSize0 + .1),
-                    int((paramsH->cMax.z - paramsH->cMin.z) / paramsH->binSize0 + .1));
-    Real mBinSize = paramsH->binSize0;
-    paramsH->gridSize = SIDE;
-    paramsH->worldOrigin = paramsH->cMin;
-    paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
-}
-
-void ChSystemFsi::SetFsiOutputDir(std::string& demo_dir, std::string out_dir, std::string inputJson) {
-    utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
-}
-
-void ChSystemFsi::SetDiscreType(bool useGmatrix, bool useLmatrix) {
-    paramsH->USE_Consistent_G = useGmatrix;
-    paramsH->USE_Consistent_L = useLmatrix;
-}
-
-void ChSystemFsi::SetFsiInfoOutput(bool outputFsiInfo) {
-    paramsH->output_fsi = outputFsiInfo;
-}
-
-void ChSystemFsi::SetOutputLength(int OutputLength) {
-    paramsH->output_length = OutputLength;
-}
-
-void ChSystemFsi::SetWallBC(BceVersion wallBC) {
-    paramsH->bceTypeWall = wallBC;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-
 float ChSystemFsi::GetKernelLength() const {
     return paramsH->HSML;
 }
@@ -1176,7 +1195,6 @@ size_t ChSystemFsi::GetNumBoundaryMarkers() const {
     return sysFSI.numObjects->numBoundaryMarkers;
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
 std::vector<ChVector<>> ChSystemFsi::GetParticlePosOrProperties() {
     thrust::host_vector<Real4> posRadH = sysFSI.sphMarkersD2->posRadD;
     std::vector<ChVector<>> pos;
@@ -1185,7 +1203,7 @@ std::vector<ChVector<>> ChSystemFsi::GetParticlePosOrProperties() {
     }
     return pos;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 std::vector<ChVector<>> ChSystemFsi::GetParticleVel() {
     thrust::host_vector<Real3> velH = sysFSI.sphMarkersD2->velMasD;
     std::vector<ChVector<>> vel;
@@ -1194,7 +1212,6 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleVel() {
     }
     return vel;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
 
 }  // end namespace fsi
 }  // end namespace chrono

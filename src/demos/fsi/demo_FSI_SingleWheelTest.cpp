@@ -287,11 +287,6 @@ void CreateMeshMarkers(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    /// Set gravity to the rigid body system in chrono
-    ChVector<> gravity = ChVector<>(0, 0, -9.81);
-    sysMBS.Set_G_acc(gravity);
-    sysFSI.Set_G_acc(gravity);
-
     /// Set common material Properties
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(1e8);
@@ -458,9 +453,13 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    // Create a physics system and an FSI system
+    // Create the MBS and FSI systems
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(sysMBS);
+
+    ChVector<> gravity = ChVector<>(0, 0, -9.81);
+    sysMBS.Set_G_acc(gravity);
+    sysFSI.Set_G_acc(gravity);
 
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_SingleWheelTest.json");
@@ -493,22 +492,15 @@ int main(int argc, char* argv[]) {
     sysFSI.SetWallBC(BceVersion::ORIGINAL);
 
     // Setup the solver based on the input value of the prameters
-    sysFSI.SetFluidDynamics();
+    sysFSI.SetFluidDynamics(fluid_dynamics::WCSPH);
 
     // Set up the periodic boundary condition (if not, set relative larger values)
     ChVector<> cMin(-bxDim / 2 * 10, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10 - 10 * iniSpacing);
     ChVector<> cMax(bxDim / 2 * 10, byDim / 2 + 0.5 * iniSpacing, bzDim * 10 + 10 * iniSpacing);
     sysFSI.SetBoundaries(cMin, cMax);
 
-    // Setup sub domains for a faster neighbor particle searching
-    //// RADU TODO
-    //// Is this call optional?
-    //// If no, invoke it automatically from:
-    ////   - params initialization function
-    ////   - SetKernelLength
-    ////   - SetBoundaries
-    //// and make it a *private* function!
-    sysFSI.SetSubDomain();
+    // Setup sub domains for faster neighbor particle search
+    sysFSI.SetSubdomains(true);
 
     /// Setup the output directory for FSI data
     sysFSI.SetFsiOutputDir(demo_dir, out_dir, inputJson);

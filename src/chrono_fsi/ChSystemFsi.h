@@ -57,8 +57,7 @@ class ChSystemFsi_impl;
 class CH_FSI_API ChSystemFsi {
   public:
     /// Constructor for FSI system.
-    ChSystemFsi(ChSystem& other_physicalSystem,
-                CHFSI_TIME_INTEGRATOR time_integrator = CHFSI_TIME_INTEGRATOR::ExplicitSPH);
+    ChSystemFsi(ChSystem& other_physicalSystem);
 
     /// Destructor for the FSI system.
     ~ChSystemFsi();
@@ -72,17 +71,14 @@ class CH_FSI_API ChSystemFsi {
     /// 2nd-order integration scheme.
     void DoStepDynamics_ChronoRK2();
 
-    /// Function to initialize the midpoint device data of the fluid system by
-    /// copying from the full step
-    void CopyDeviceDataToHalfStep();
-
     /// Set the linear system solver for implicit methods
     void SetFluidSystemLinearSolver(ChFsiLinearSolver::SolverType other_solverType) {
         fluidDynamics->GetForceSystem()->SetLinearSolver(other_solverType);
     }
 
     /// Set the SPH method to be used for fluid dynamics.
-    void SetFluidDynamics();
+    void SetFluidDynamics(fluid_dynamics SPH_method,
+                          ChFsiLinearSolver::SolverType lin_solver = ChFsiLinearSolver::SolverType::BICGSTAB);
 
     /// Get a reference to the FSI bodies.
     /// FSI bodies are the ones seen by the fluid dynamics system.
@@ -282,7 +278,10 @@ class CH_FSI_API ChSystemFsi {
     /// Set Periodic boundary condition for fluid.
     void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax);
 
-    /// Set (initial) density,
+    /// Set number of boundary layers (default: 3).
+    void SetNumBoundaryLayers(int num_layers);
+
+    /// Set (initial) density.
     void SetDensity(double rho0);
 
     /// Set prescribed initial pressure for gravity field.
@@ -297,8 +296,8 @@ class CH_FSI_API ChSystemFsi {
     /// Gets the FSI mesh for flexible elements.
     std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
 
-    /// Set subdomains so that we find neighbor particles faster.
-    void SetSubDomain();
+    /// Enable/disable use of subdomains for faster neighbor particle search.
+    void SetSubdomains(bool val);
 
     /// Set output directory for FSI data.
     void SetFsiOutputDir(std::string& demo_dir, std::string out_dir, std::string inputJson);
@@ -346,9 +345,6 @@ class CH_FSI_API ChSystemFsi {
     /// Initialize simulation parameters with default values
     void InitParams();
 
-    /// Set the type of the fluid dynamics.
-    void SetFluidIntegratorType(fluid_dynamics params_type);
-
     /// Create BCE particles from the local position on a body.
     void CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vector<Real4>& posRadBCE,
                                                std::shared_ptr<ChBody> body,
@@ -372,6 +368,9 @@ class CH_FSI_API ChSystemFsi {
                                                        const ChQuaternion<>& collisionShapeRelativeRot,
                                                        bool isSolid = false,
                                                        bool add_to_previous = true);
+
+    /// Function to initialize the midpoint device data of the fluid system by copying from the full step
+    void CopyDeviceDataToHalfStep();
 
     ChSystemFsi_impl sysFSI;  ///< underlying system implementation
     ChSystem& sysMBS;         ///< reference to the multi-body system
