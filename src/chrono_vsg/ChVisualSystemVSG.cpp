@@ -104,7 +104,9 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_options->add(vsgXchange::all::create());
     m_options->fileCache = vsg::getEnv("VSG_FILE_CACHE");
     m_options->sharedObjects = vsg::SharedObjects::create_if(true);
-    m_shapeBuilder = new ShapeBuilder(m_options);
+    m_shapeBuilder = ShapeBuilder::create();
+    m_shapeBuilder->m_options = m_options;
+    m_shapeBuilder->m_sharedObjects = m_options->sharedObjects;
 }
 
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir vert) {
@@ -250,6 +252,10 @@ void ChVisualSystemVSG::Initialize() {
     m_viewer->addEventHandler(vsg::Trackball::create(m_camera));
 
     m_viewer->assignRecordAndSubmitTaskAndPresentation({m_commandGraph});
+
+    // assign a CompileTraversal to the Builder that will compile for all the views assigned to the viewer,
+    // must be done after Viewer.assignRecordAndSubmitTasksAndPresentations();
+    m_shapeBuilder->assignCompileTraversal(vsg::CompileTraversal::create(*m_viewer));
 
     m_viewer->compile();
 
@@ -614,7 +620,7 @@ void ChVisualSystemVSG::BindAll() {
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
                 m_scenegraph->addChild(
-                    m_shapeBuilder->createBox(body, shape_instance, material, transform, m_draw_as_wireframe));
+                    m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, body, shape_instance, material, transform, m_draw_as_wireframe));
             } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
                 GetLog() << "... has a sphere shape\n";
                 ChVector<> scale = sphere->GetSphereGeometry().rad;
@@ -623,7 +629,7 @@ void ChVisualSystemVSG::BindAll() {
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
                 m_scenegraph->addChild(
-                    m_shapeBuilder->createSphere(body, shape_instance, material, transform, m_draw_as_wireframe));
+                    m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, body, shape_instance, material, transform, m_draw_as_wireframe));
             }
         }
     }

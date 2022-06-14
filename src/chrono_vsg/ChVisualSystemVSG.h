@@ -105,7 +105,7 @@ private:
     int m_windowPosX = 0;
     int m_windowPosY = 0;
     //
-    ShapeBuilder* m_shapeBuilder;
+    vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
     //
     bool m_draw_as_wireframe = false;
     //

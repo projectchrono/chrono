@@ -27,26 +27,24 @@
 
 namespace chrono {
 namespace vsg3d {
-class CH_VSG_API ShapeBuilder {
+class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
   public:
-    ShapeBuilder(vsg::ref_ptr<vsg::Options> options);
-    ~ShapeBuilder();
-
-    vsg::ref_ptr<vsg::Group> createBox(std::shared_ptr<ChPhysicsItem> physItem,
-                                       ChVisualModel::ShapeInstance shapeInstance,
-                                       std::shared_ptr<ChVisualMaterial> material,
-                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                       bool drawMode);
-    vsg::ref_ptr<vsg::Group> createSphere(std::shared_ptr<ChPhysicsItem> physItem,
-                                          ChVisualModel::ShapeInstance shapeInstance,
-                                          std::shared_ptr<ChVisualMaterial> material,
-                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                          bool drawMode);
-
-  private:
+    typedef enum { BOX_SHAPE, SPHERE_SHAPE } BasicShape;
     vsg::ref_ptr<vsg::Options> m_options;
+    vsg::ref_ptr<vsg::SharedObjects> m_sharedObjects;
+
+    vsg::ref_ptr<vsg::Group> createShape(BasicShape theShape,
+                                         std::shared_ptr<ChPhysicsItem> physItem,
+                                         ChVisualModel::ShapeInstance shapeInstance,
+                                         std::shared_ptr<ChVisualMaterial> material,
+                                         vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                         bool drawMode);
+
+    /// assign compile traversal to enable compilation.
+    void assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct);
+
+    vsg::ref_ptr<vsg::CompileTraversal> compileTraversal;
 };
 }  // namespace vsg3d
 }  // namespace chrono
-
 #endif
