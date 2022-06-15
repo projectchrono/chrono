@@ -1546,12 +1546,12 @@ ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(
     density_initialization = 0;
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
 ChFsiForceExplicitSPH::~ChFsiForceExplicitSPH() {}
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceExplicitSPH::Finalize() {
-    ChFsiForce::Finalize();
+
+void ChFsiForceExplicitSPH::Initialize() {
+    ChFsiForce::Initialize();
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
     cudaMemcpyFromSymbol(paramsH.get(), paramsD, sizeof(SimParams));
@@ -1559,6 +1559,7 @@ void ChFsiForceExplicitSPH::Finalize() {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+
 void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                      std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD,
                                      std::shared_ptr<FsiMeshDataD> fsiMeshD) {

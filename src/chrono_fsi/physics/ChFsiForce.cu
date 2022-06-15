@@ -43,7 +43,7 @@ ChFsiForce::ChFsiForce(std::shared_ptr<ChBce> otherBceWorker,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiForce::Finalize() {
+void ChFsiForce::Initialize() {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
 
@@ -53,7 +53,7 @@ void ChFsiForce::Finalize() {
     vel_XSPH_Sorted_D.resize(numObjectsH->numAllMarkers);
     vel_vis_Sorted_D.resize(numObjectsH->numAllMarkers);
     derivVelRhoD_Sorted_D.resize(numObjectsH->numAllMarkers);
-    fsiCollisionSystem->Finalize();
+    fsiCollisionSystem->Initialize();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 

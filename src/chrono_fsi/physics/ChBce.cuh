@@ -91,10 +91,10 @@ class ChBce : public ChFsiGeneral {
     void Populate_FlexSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                       std::shared_ptr<FsiMeshDataD> fsiMeshD);
 
-    /// Finalizes the construction of the BCE at the intial configuration of the system.
-    void Finalize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                  std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
-                  std::shared_ptr<FsiMeshDataD> fsiMeshD);
+    /// Complete construction of the BCE at the intial configuration of the system.
+    void Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+                    std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                    std::shared_ptr<FsiMeshDataD> fsiMeshD);
 
   private:
     std::shared_ptr<FsiGeneralData> fsiGeneralData;  ///< General information of the simulation, e.g, ordering of the phases.

@@ -561,12 +561,14 @@ ChBce::ChBce(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
     torqueMarkersD.resize(0);
     dummyIdentify.resize(0);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 ChBce::~ChBce() {}
+
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::Finalize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                     std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
-                     std::shared_ptr<FsiMeshDataD> fsiMeshD) {
+
+void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+                       std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                       std::shared_ptr<FsiMeshDataD> fsiMeshD) {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
     CopyParams_NumberOfObjects(paramsH, numObjectsH);

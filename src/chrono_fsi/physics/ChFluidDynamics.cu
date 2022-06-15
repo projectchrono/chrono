@@ -609,8 +609,8 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
 ChFluidDynamics::~ChFluidDynamics() {}
 
 // -----------------------------------------------------------------------------
-void ChFluidDynamics::Finalize() {
-    forceSystem->Finalize();
+void ChFluidDynamics::Initialize() {
+    forceSystem->Initialize();
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
     cudaMemcpyFromSymbol(paramsH.get(), paramsD, sizeof(SimParams));

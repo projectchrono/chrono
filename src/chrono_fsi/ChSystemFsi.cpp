@@ -9,11 +9,12 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu, Radu Serban
 // =============================================================================
 //
 // Implementation of FSI system that includes all subclasses for proximity and
 // force calculation, and time integration
+//
 // =============================================================================
 
 #include "chrono/core/ChTypes.h"
@@ -38,9 +39,7 @@ namespace chrono {
 namespace fsi {
 
 ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
-    : sysMBS(other_physicalSystem),
-      mTime(0),
-      file_write_mode(CHFSI_OUTPUT_MODE::NONE) {
+    : sysMBS(other_physicalSystem), is_initialized(false), mTime(0), file_write_mode(CHFSI_OUTPUT_MODE::NONE) {
     paramsH = chrono_types::make_shared<SimParams>();
     InitParams();
     numObjectsH = sysFSI.numObjects;
@@ -154,6 +153,10 @@ void ChSystemFsi::SetVerbose(bool verbose) {
     paramsH->verbose = verbose;
 }
 
+void ChSystemFsi::SetFluidSystemLinearSolver(ChFsiLinearSolver::SolverType lin_solver) {
+    paramsH->LinearSolver = lin_solver;
+}
+
 void ChSystemFsi::SetFluidDynamics(fluid_dynamics SPH_method, ChFsiLinearSolver::SolverType lin_solver) {
     paramsH->fluid_dynamic_type = SPH_method;
     paramsH->LinearSolver = lin_solver;
@@ -246,13 +249,31 @@ void ChSystemFsi::SetWallBC(BceVersion wallBC) {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::Finalize() {
+void ChSystemFsi::SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes) {
+    CableElementsNodes = elementsNodes;
+    size_t test = sysFSI.fsiGeneralData->CableElementsNodes.size();
+    std::cout << "numObjects.numFlexNodes" << test << std::endl;
+}
+
+void ChSystemFsi::SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes) {
+    ShellElementsNodes = elementsNodes;
+    size_t test = sysFSI.fsiGeneralData->ShellElementsNodes.size();
+    std::cout << "numObjects.numFlexNodes" << test << std::endl;
+}
+
+void ChSystemFsi::SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) {
+    fsi_mesh = other_fsi_mesh;
+    fsiInterface->SetFsiMesh(other_fsi_mesh);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+void ChSystemFsi::Initialize() {
     // Calculate dependent quantities in the params structure
 
-    if (paramsH->elastic_SPH){
+    if (paramsH->elastic_SPH) {
         paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
-    }
-    else{
+    } else {
         paramsH->Cs = 10 * paramsH->v_Max;
     }
 
@@ -341,11 +362,14 @@ void ChSystemFsi::Finalize() {
 
     // Initialize worker objects
 
-    bceWorker->Finalize(sysFSI.sphMarkersD1, sysFSI.fsiBodiesD1, sysFSI.fsiMeshD);
+    bceWorker->Initialize(sysFSI.sphMarkersD1, sysFSI.fsiBodiesD1, sysFSI.fsiMeshD);
 
-    fluidDynamics->Finalize();
+    fluidDynamics->Initialize();
     if (paramsH->verbose)
         cout << "referenceArraySize in fluid dynamics is " << sysFSI.fsiGeneralData->referenceArray.size() << endl;
+
+    // Mark system as initialized
+    is_initialized = true;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -364,6 +388,11 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
 }
 
 void ChSystemFsi::DoStepDynamics_FSI() {
+    if (!is_initialized) {
+        cout << "ERROR: FSI system not initialized!\n" << endl;
+        throw std::runtime_error("FSI system not initialized!\n");
+    }
+
     if (fluidDynamics->GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH) {
         // The following is used to execute the Explicit WCSPH
         CopyDeviceDataToHalfStep();

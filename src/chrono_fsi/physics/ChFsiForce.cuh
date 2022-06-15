@@ -88,7 +88,7 @@ __device__ inline void clearRow3(uint i_idx, uint csrStartIdx, uint csrEndIdx, R
 /// should implement. The class owns a collision system fsi which takes care of GPU based
 /// proximity computation of the particles. It also holds a pointer to external
 /// data of SPH particles, proximity data, parameters, and numbers.
-/// Child class must implement Finalize and ForceSPH methods.
+/// Child class must implement Initialize and ForceSPH methods.
 
 class ChFsiForce : public ChFsiGeneral {
   public:
@@ -117,7 +117,7 @@ class ChFsiForce : public ChFsiGeneral {
     /// Synchronize the copy of the data (parameters and number of objects)
     /// between device (GPU) and host (CPU).
     /// This function needs to be called once the host data are modified.
-    virtual void Finalize();
+    virtual void Initialize();
 
     /// Copy sorted data into original data (real3).
     /// This function copies the data that are sorted in the collision system, into the

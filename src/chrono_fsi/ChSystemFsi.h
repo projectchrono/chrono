@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu, Radu Serban
 // =============================================================================
 //
 // Implementation of FSI system that includes all subclasses for proximity and
@@ -25,7 +25,6 @@
 
 #include "chrono_fsi/physics/ChBce.cuh"
 #include "chrono_fsi/physics/ChFluidDynamics.cuh"
-#include "chrono_fsi/physics/ChFsiGeneral.h"
 #include "chrono_fsi/ChFsiInterface.h"
 #include "chrono_fsi/ChFsiDefines.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
@@ -39,7 +38,7 @@ class ChNodeFEAxyzD;
 class ChMesh;
 class ChElementCableANCF;
 class ChElementShellANCF_3423;
-}  // namespace fea
+}
 
 namespace fsi {
 
@@ -63,21 +62,96 @@ class CH_FSI_API ChSystemFsi {
     ~ChSystemFsi();
 
     /// Function to integrate the FSI system in time.
-    /// It uses a Runge-Kutta 2nd order algorithm to update both the fluid and multibody
-    /// system dynamics. The midpoint data of MBS is needed for fluid dynamics update.
+    /// It uses a Runge-Kutta 2nd order algorithm to update both the fluid and multibody system dynamics. The midpoint
+    /// data of MBS is needed for fluid dynamics update.
     void DoStepDynamics_FSI();
 
-    /// Function to integrate the multibody system dynamics based on Runge-Kutta
-    /// 2nd-order integration scheme.
+    /// Function to integrate the multibody system dynamics based on Runge-Kutta 2nd-order integration scheme.
     void DoStepDynamics_ChronoRK2();
 
     /// Enable/disable verbose terminal output.
     void SetVerbose(bool verbose);
 
-    /// Set the linear system solver for implicit methods
-    void SetFluidSystemLinearSolver(ChFsiLinearSolver::SolverType other_solverType) {
-        fluidDynamics->GetForceSystem()->SetLinearSolver(other_solverType);
-    }
+    /// Set FSI parameters from a JSON file.
+    void SetSimParameter(const std::string& inputJson, const ChVector<>& box_size);
+
+    /// Set initial spacing.
+    void SetInitialSpacing(double spacing);
+
+    /// Set SPH kernel length.
+    void SetKernelLength(double length);
+
+    /// Set the fluid dimension
+    void SetSimDim(const ChVector<>& fluidDim);
+
+    /// Set the fluid container dimension
+    void SetContainerDim(const ChVector<>& boxDim);
+
+    /// Set Periodic boundary condition for fluid.
+    void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax);
+
+    /// Set number of boundary layers (default: 3).
+    void SetNumBoundaryLayers(int num_layers);
+
+    /// Set (initial) density.
+    void SetDensity(double rho0);
+
+    /// Set prescribed initial pressure for gravity field.
+    void SetInitPressure(const double fzDim);
+
+    /// Set gravity for the FSI syatem.
+    void Set_G_acc(const ChVector<>& gravity);
+
+    /// Set FSI integration step size.
+    void SetStepSize(double dT, double dT_Flex = 0);
+
+    /// Gets the FSI mesh for flexible elements.
+    std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
+
+    /// Set output directory for FSI data.
+    void SetFsiOutputDir(std::string& demo_dir, std::string out_dir, std::string inputJson);
+
+    /// Return the SPH particle position.
+    std::vector<ChVector<>> GetParticlePosOrProperties();
+
+    /// Return the SPH particle velocity.
+    std::vector<ChVector<>> GetParticleVel();
+
+    /// Set SPH discretization type, consistent or inconsistent
+    void SetDiscreType(bool useGmatrix, bool useLmatrix);
+
+    /// Set FSI information output
+    void SetFsiInfoOutput(bool outputFsiInfo);
+
+    /// Set simulation data output length
+    void SetOutputLength(int OutputLength);
+
+    /// Set wall boundary condition
+    void SetWallBC(BceVersion wallBC);
+
+    /// Return the SPH kernel length of kernel function.
+    float GetKernelLength() const;
+
+    /// Return the initial spacing of the SPH particles.
+    float GetInitialSpacing() const;
+
+    /// Get the current number of fluid SPH particles.
+    size_t GetNumFluidMarkers() const;
+
+    /// Get the current number of boundary BCE markers.
+    size_t GetNumBoundaryMarkers() const;
+
+    /// Get the current number of rigid body BCE markers.
+    size_t GetNumRigidBodyMarkers() const;
+
+    /// Get the current number of flexible body BCE markers.
+    size_t GetNumFlexBodyMarkers() const;
+
+    /// Get current simulation time.
+    double GetSimTime() const { return mTime; }
+
+    /// Set the linear system solver for implicit methods.
+    void SetFluidSystemLinearSolver(ChFsiLinearSolver::SolverType lin_solver);
 
     /// Set the SPH method to be used for fluid dynamics.
     void SetFluidDynamics(fluid_dynamics SPH_method,
@@ -102,31 +176,30 @@ class CH_FSI_API ChSystemFsi {
     /// Add FSI body to the FsiSystem.
     void AddFsiBody(std::shared_ptr<ChBody> mbody) { fsiBodies.push_back(mbody); }
 
-    /// Complete construction of the FSI system (fluid and BDE objects).
-    void Finalize();
+    /// Set number of nodes in FEA cable elements in the FSI system.
+    void SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes);
 
-    /// Finalize the construction of cable elements in the FSI system.
-    void SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes) {
-        CableElementsNodes = elementsNodes;
-        size_t test = sysFSI.fsiGeneralData->CableElementsNodes.size();
-        std::cout << "numObjects.numFlexNodes" << test << std::endl;
-    }
-
-    /// Finalize the construction of cable elements in the FSI system.
-    void SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes) {
-        ShellElementsNodes = elementsNodes;
-        size_t test = sysFSI.fsiGeneralData->ShellElementsNodes.size();
-        std::cout << "numObjects.numFlexNodes" << test << std::endl;
-    }
+    /// Set number of nodes in FEA shell elements in the FSI system.
+    void SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes);
 
     /// Set the FSI mesh for flexible elements.
-    void SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) {
-        fsi_mesh = other_fsi_mesh;
-        fsiInterface->SetFsiMesh(other_fsi_mesh);
-    }
+    void SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh);
 
     /// Set the FSI system output mode (default: NONE).
     void SetParticleOutputMode(CHFSI_OUTPUT_MODE mode) { file_write_mode = mode; }
+
+
+
+
+
+
+
+
+
+
+    /// Complete construction of the FSI system (fluid and BDE objects).
+    /// Use parameters read from JSON file and/or specified through various Set functions.
+    void Initialize();
 
     /// Write FSI system particle output.
     void WriteParticleFile(const std::string& outfilename) const;
@@ -263,83 +336,6 @@ class CH_FSI_API ChSystemFsi {
                       const ChQuaternion<>& rot,
                       const ChVector<>& hsize);
 
-    /// Set FSI parameters from a JSON file.
-    void SetSimParameter(const std::string& inputJson, const ChVector<>& box_size);
-
-    /// Set initial spacing.
-    void SetInitialSpacing(double spacing);
-
-    /// Set SPH kernel length.
-    void SetKernelLength(double length);
-
-    /// Set the fluid dimension
-    void SetSimDim(const ChVector<>& fluidDim);
-
-    /// Set the fluid container dimension
-    void SetContainerDim(const ChVector<>& boxDim);
-
-    /// Set Periodic boundary condition for fluid.
-    void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax);
-
-    /// Set number of boundary layers (default: 3).
-    void SetNumBoundaryLayers(int num_layers);
-
-    /// Set (initial) density.
-    void SetDensity(double rho0);
-
-    /// Set prescribed initial pressure for gravity field.
-    void SetInitPressure(const double fzDim);
-
-    /// Set gravity for the FSI syatem.
-    void Set_G_acc(const ChVector<>& gravity);
-
-    /// Set FSI integration step size.
-    void SetStepSize(double dT, double dT_Flex = 0);
-
-    /// Gets the FSI mesh for flexible elements.
-    std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
-
-    /// Set output directory for FSI data.
-    void SetFsiOutputDir(std::string& demo_dir, std::string out_dir, std::string inputJson);
-
-    /// Return the SPH particle position.
-    std::vector<ChVector<>> GetParticlePosOrProperties();
-
-    /// Return the SPH particle velocity.
-    std::vector<ChVector<>> GetParticleVel();
-
-    /// Set SPH discretization type, consistent or inconsistent
-    void SetDiscreType(bool useGmatrix, bool useLmatrix);
-
-    /// Set FSI information output
-    void SetFsiInfoOutput(bool outputFsiInfo);
-
-    /// Set simulation data output length
-    void SetOutputLength(int OutputLength);
-
-    /// Set wall boundary condition
-    void SetWallBC(BceVersion wallBC);
-
-    /// Return the SPH kernel length of kernel function.
-    float GetKernelLength() const;
-
-    /// Return the initial spacing of the SPH particles.
-    float GetInitialSpacing() const;
-
-    /// Get the current number of fluid SPH particles.
-    size_t GetNumFluidMarkers() const;
-
-    /// Get the current number of boundary BCE markers.
-    size_t GetNumBoundaryMarkers() const;
-
-    /// Get the current number of rigid body BCE markers.
-    size_t GetNumRigidBodyMarkers() const;
-
-    /// Get the current number of flexible body BCE markers.
-    size_t GetNumFlexBodyMarkers() const;
-
-    /// Get current simulation time.
-    double GetSimTime() const { return mTime; }
 
   private:
     /// Initialize simulation parameters with default values
@@ -393,6 +389,8 @@ class CH_FSI_API ChSystemFsi {
     std::shared_ptr<NumberOfObjects> numObjectsH;      ///< number of objects, fluid, bce, and boundary markers
 
     double mTime;  ///< current real time of the simulation
+
+    bool is_initialized;  ///< set to true once the Initialize function is called
 
     friend class ChFsiVisualization;
 };

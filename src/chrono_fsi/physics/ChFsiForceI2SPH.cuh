@@ -38,7 +38,7 @@ class ChFsiForceI2SPH : public ChFsiForce {
     );
 
     ~ChFsiForceI2SPH();
-    void Finalize() override;
+    void Initialize() override;
 
   private:
     thrust::device_vector<Real> _sumWij_inv;

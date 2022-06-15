@@ -875,8 +875,8 @@ ChFsiForceI2SPH::ChFsiForceI2SPH(std::shared_ptr<ChBce> otherBceWorker,
 
 ChFsiForceI2SPH::~ChFsiForceI2SPH() {}
 
-void ChFsiForceI2SPH::Finalize() {
-    ChFsiForce::Finalize();
+void ChFsiForceI2SPH::Initialize() {
+    ChFsiForce::Initialize();
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
     cudaMemcpyFromSymbol(paramsH.get(), paramsD, sizeof(SimParams));

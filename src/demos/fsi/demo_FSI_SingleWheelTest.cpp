@@ -518,7 +518,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetOutputLength(0);
 
     // Construction of the FSI system must be finalized before running
-    sysFSI.Finalize();
+    sysFSI.Initialize();
 
     // Set up integrator for the multi-body dynamics system
     sysMBS.SetTimestepperType(ChTimestepper::Type::HHT);

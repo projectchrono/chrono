@@ -83,7 +83,7 @@ class ChFluidDynamics : public ChFsiGeneral {
     /// Synchronize the copy of the data between device (GPU) and host (CPU).
     /// Including the parameters and number of objects.
     /// This function needs to be called once the host data are modified.
-    void Finalize();
+    void Initialize();
 
     /// Return the integrator type used in the simulation.
     CHFSI_TIME_INTEGRATOR GetIntegratorType() { return integrator_type; }

@@ -46,8 +46,8 @@ class ChCollisionSystemFsi : public ChFsiGeneral {
     /// Encapsulate calcHash and reaorderDataAndFindCellStart
     void ArrangeData(std::shared_ptr<SphMarkerDataD> otherSphMarkersD);
 
-    /// Finalize the data in ChCollisionSystemFsi.
-    void Finalize();
+    /// Complete construction.
+    void Initialize();
 
   private:
     std::shared_ptr<SphMarkerDataD> sphMarkersD;        ///< Information of the particles in the original array

@@ -42,7 +42,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
     /// Destructor of the ChFsiForceExplicitSPH class
     ~ChFsiForceExplicitSPH();
 
-    void Finalize() override;
+    void Initialize() override;
 
   private:
     int density_initialization;

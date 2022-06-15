@@ -38,7 +38,7 @@ class ChFsiForceIISPH : public ChFsiForce {
     );
 
     ~ChFsiForceIISPH();
-    void Finalize() override;
+    void Initialize() override;
 
   private:
     void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,

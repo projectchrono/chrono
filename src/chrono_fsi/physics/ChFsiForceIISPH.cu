@@ -46,16 +46,19 @@ ChFsiForceIISPH::ChFsiForceIISPH(std::shared_ptr<ChBce> otherBceWorker,
                  otherFsiGeneralData,
                  otherParamsH,
                  otherNumObjects) {}
-//--------------------------------------------------------------------------------------------------------------------------------
+
 ChFsiForceIISPH::~ChFsiForceIISPH() {}
+
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceIISPH::Finalize() {
-    ChFsiForce::Finalize();
+
+void ChFsiForceIISPH::Initialize() {
+    ChFsiForce::Initialize();
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
     cudaMemcpyFromSymbol(paramsH.get(), paramsD, sizeof(SimParams));
     cudaDeviceSynchronize();
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void V_i_np__AND__d_ii_kernel(Real4* sortedPosRad,  // input: sorted positions
                                          Real3* sortedVelMas,
