@@ -271,6 +271,8 @@ struct SimParams {
     Real settlingTime; ///< Time for the granular to settle down
 
     Real3 Domain;
+
+    bool verbose;  ///< enable/disable verbose terminal output (default: true)
 };
 
 /// @} fsi_physics

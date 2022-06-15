@@ -94,7 +94,8 @@ const std::string out_dir = GetChronoOutputPath() + "FSI_Single_Wheel_Test/";
 bool render = true;
 float render_fps = 100;
 
-// Verbose temrinal output
+// Verbose terminal output
+bool verbose_fsi = true;
 bool verbose = true;
 
 //------------------------------------------------------------------
@@ -461,6 +462,8 @@ int main(int argc, char* argv[]) {
     sysMBS.Set_G_acc(gravity);
     sysFSI.Set_G_acc(gravity);
 
+    sysFSI.SetVerbose(verbose_fsi);
+
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_SingleWheelTest.json");
     if (argc == 3) {
@@ -472,7 +475,7 @@ int main(int argc, char* argv[]) {
         std::cout << "or to use default input parameters ./demo_FSI_SingleWheelTest " << std::endl;
         return 1;
     }
-    std::cout << "Using JSON file: " << inputJson << std::endl;
+
     sysFSI.SetSimParameter(inputJson, ChVector<>(bxDim, byDim, bzDim));
 
     sysFSI.SetInitialSpacing(iniSpacing);
@@ -499,6 +502,12 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax(bxDim / 2 * 10, byDim / 2 + 0.5 * iniSpacing, bzDim * 10 + 10 * iniSpacing);
     sysFSI.SetBoundaries(cMin, cMax);
 
+    // Initialize the SPH particles
+    sysFSI.AddSphMarkerBox(iniSpacing, kernelLength, boxCenter, boxHalfDim);
+
+    // Create Solid region and attach BCE SPH particles
+    CreateSolidPhase(sysMBS, sysFSI);
+
     /// Setup the output directory for FSI data
     sysFSI.SetFsiOutputDir(demo_dir, out_dir, inputJson);
 
@@ -507,11 +516,6 @@ int main(int argc, char* argv[]) {
 
     // Set simulation data output length
     sysFSI.SetOutputLength(0);
-
-    sysFSI.AddSphMarkerBox(iniSpacing, kernelLength, boxCenter, boxHalfDim);
-
-    // Create Solid region and attach BCE SPH particles
-    CreateSolidPhase(sysMBS, sysFSI);
 
     // Construction of the FSI system must be finalized before running
     sysFSI.Finalize();

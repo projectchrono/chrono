@@ -46,7 +46,9 @@ ChFsiForce::ChFsiForce(std::shared_ptr<ChBce> otherBceWorker,
 void ChFsiForce::Finalize() {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
-    printf("ChFsiForce::Finalize() number of all particles = %zd\n", numObjectsH->numAllMarkers);
+
+    if (paramsH->verbose)
+        printf("ChFsiForce number of all particles = %zd\n", numObjectsH->numAllMarkers);
 
     vel_XSPH_Sorted_D.resize(numObjectsH->numAllMarkers);
     vel_vis_Sorted_D.resize(numObjectsH->numAllMarkers);

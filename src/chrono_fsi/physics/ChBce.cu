@@ -583,18 +583,21 @@ void ChBce::Finalize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
         fsiGeneralData->referenceArray[2 + haveHelper + haveGhost + numObjectsH->numRigidBodies 
             + numObjectsH->numFlexBodies1D + numObjectsH->numFlexBodies2D - 1].y
             - fsiGeneralData->referenceArray[haveHelper + haveGhost].y;
-    printf("Total number of BCE particles = %d\n", numFlexAndRigidAndBoundaryMarkers);
-    if (paramsH->bceType == BceVersion::ADAMI) {
-        printf("Boundary condition for rigid body is: ADAMI\n");
-    }
-    if (paramsH->bceType == BceVersion::ORIGINAL) {
-        printf("Boundary condition for rigid body is: ORIGINAL\n");
-    }
-    if (paramsH->bceTypeWall == BceVersion::ADAMI) {
-        printf("Boundary condition for fixed wall is: ADAMI\n");
-    }
-    if (paramsH->bceTypeWall == BceVersion::ORIGINAL) {
-        printf("Boundary condition for fixed wall is: ORIGINAL\n");
+
+    if (paramsH->verbose) {
+        printf("Total number of BCE particles = %d\n", numFlexAndRigidAndBoundaryMarkers);
+        if (paramsH->bceType == BceVersion::ADAMI) {
+            printf("Boundary condition for rigid body is: ADAMI\n");
+        }
+        if (paramsH->bceType == BceVersion::ORIGINAL) {
+            printf("Boundary condition for rigid body is: ORIGINAL\n");
+        }
+        if (paramsH->bceTypeWall == BceVersion::ADAMI) {
+            printf("Boundary condition for fixed wall is: ADAMI\n");
+        }
+        if (paramsH->bceTypeWall == BceVersion::ORIGINAL) {
+            printf("Boundary condition for fixed wall is: ORIGINAL\n");
+        }
     }
 
     if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigid_SphMarkers + numObjectsH->numFlex_SphMarkers) !=

@@ -304,7 +304,7 @@ class ChSystemFsi_impl : public ChFsiGeneral {
     void AddSphMarker(Real4 pos, Real4 rhoPresMu, Real3 vel = mR3(0.0), Real3 tauXxYyZz = mR3(0.0), Real3 tauXyXzYz = mR3(0.0));
 
     /// Resize the simulation data based on the FSI system constructed.
-    void ResizeDataManager(int numNode = 0);
+    void ResizeDataManager(int numNodes, bool verbose);
 
     std::shared_ptr<NumberOfObjects> numObjects;        ///< Number of objects (SPH particles, BCE particles, rigid bodies and such).
 
@@ -325,9 +325,9 @@ class ChSystemFsi_impl : public ChFsiGeneral {
 
   private:
     void ArrangeDataManager();
-    void ConstructReferenceArray();
+    void ConstructReferenceArray(bool verbose);
     void InitNumObjects();
-    void CalcNumObjects();  ///< Calculates the number of rigid bodies, flexible bodies, etc. based on the type of particles
+    void CalcNumObjects(bool verbose);
 
   public:
     /// Base class of FSI system.

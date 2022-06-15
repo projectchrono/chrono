@@ -235,43 +235,34 @@ void ChFsiInterface::Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMe
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoNodesData() {
-    int numNodes = 0;
-    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
-    if (sysMBS.Get_otherphysicslist().size()) {
-        printf("fsi_mesh.size in ResizeChronNodesData  %d\n", numNodes);
-    }
-    numNodes = fsi_mesh->GetNnodes();
-    printf("numNodes in ResizeChronNodesData  %d\n", numNodes);
+    int numNodes = fsi_mesh->GetNnodes();
+    if (paramsH->verbose)
+        printf("numNodes in ResizeChronNodesData  %d\n", numNodes);
     chronoFlexMeshBackup->resize(numNodes);
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoFEANodesData() {
-    int numNodes = 0;
-    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
-    if (sysMBS.Get_otherphysicslist().size()) {
-        my_mesh = std::dynamic_pointer_cast<fea::ChMesh>(sysMBS.Get_otherphysicslist().at(0));
+    int numNodes = fsi_mesh->GetNnodes();
+    if (paramsH->verbose) {
+        printf("fsi_mesh.size in ResizeChronoFEANodesData  %d\n", numNodes);
+        printf("numNodes in ResizeChronoFEANodeData  %d\n", numNodes);
     }
-    numNodes = fsi_mesh->GetNnodes();
-    printf("fsi_mesh.size in ResizeChronoFEANodesData  %d\n", numNodes);
-    printf("numNodes in ResizeChronoFEANodeData  %d\n", numNodes);
 
     chronoFlexMeshBackup->resize(numNodes);
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoCablesData(std::vector<std::vector<int>> CableElementsNodesSTDVector) {
-    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
-    if (sysMBS.Get_otherphysicslist().size()) {
-        my_mesh = std::dynamic_pointer_cast<fea::ChMesh>(sysMBS.Get_otherphysicslist().at(0));
-    }
-
     size_t numCables = 0;
     for (size_t i = 0; i < fsi_mesh->GetNelements(); i++) {
         if (std::dynamic_pointer_cast<fea::ChElementCableANCF>(fsi_mesh->GetElement((unsigned int)i)))
             numCables++;
     }
-    printf("fsi_mesh.size.shell in ResizeChronoCablesData  %zd\n", numCables);
-    printf("numCables in ResizeChronoCablesData  %zd\n", numCables);
-    printf("CableElementsNodesSTDVector.size() in ResizeChronoCablesData  %zd\n", CableElementsNodesSTDVector.size());
+    if (paramsH->verbose) {
+        printf("fsi_mesh.size.shell in ResizeChronoCablesData  %zd\n", numCables);
+        printf("numCables in ResizeChronoCablesData  %zd\n", numCables);
+        printf("CableElementsNodesSTDVector.size() in ResizeChronoCablesData  %zd\n",
+               CableElementsNodesSTDVector.size());
+    }
 
     if (CableElementsNodesSTDVector.size() != numCables) {
         throw std::runtime_error(
@@ -291,19 +282,17 @@ void ChFsiInterface::ResizeChronoCablesData(std::vector<std::vector<int>> CableE
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoShellsData(std::vector<std::vector<int>> ShellElementsNodesSTDVector) {
-    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
-    if (sysMBS.Get_otherphysicslist().size()) {
-        my_mesh = std::dynamic_pointer_cast<fea::ChMesh>(sysMBS.Get_otherphysicslist().at(0));
-    }
-
     int numShells = 0;
     for (unsigned int i = 0; i < fsi_mesh->GetNelements(); i++) {
         if (std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(fsi_mesh->GetElement(i)))
             numShells++;
     }
 
-    printf("numShells in ResizeChronoShellsData  %d\n", numShells);
-    printf("ShellElementsNodesSTDVector.size() in ResizeChronoShellsData  %zd\n", ShellElementsNodesSTDVector.size());
+    if (paramsH->verbose) {
+        printf("numShells in ResizeChronoShellsData  %d\n", numShells);
+        printf("ShellElementsNodesSTDVector.size() in ResizeChronoShellsData  %zd\n",
+               ShellElementsNodesSTDVector.size());
+    }
 
     if (ShellElementsNodesSTDVector.size() != numShells) {
         throw std::runtime_error(

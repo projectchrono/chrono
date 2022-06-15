@@ -71,6 +71,9 @@ class CH_FSI_API ChSystemFsi {
     /// 2nd-order integration scheme.
     void DoStepDynamics_ChronoRK2();
 
+    /// Enable/disable verbose terminal output.
+    void SetVerbose(bool verbose);
+
     /// Set the linear system solver for implicit methods
     void SetFluidSystemLinearSolver(ChFsiLinearSolver::SolverType other_solverType) {
         fluidDynamics->GetForceSystem()->SetLinearSolver(other_solverType);
