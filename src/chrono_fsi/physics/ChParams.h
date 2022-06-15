@@ -140,7 +140,6 @@ struct SimParams {
 
     bool use_default_limits;  ///< true if cMin and cMax are not user-provided (default: true)
     bool use_init_pressure;   ///< true if pressure set based on height (default: false)
-    bool use_subdomains;      ///< true if useing subdomains for acceleration (default: false)
 
     Real3 cMinInit;                    ///< Minimum point of the fluid domain.
     Real3 cMaxInit;                    ///< Maximum point of the fluid domain.
@@ -228,7 +227,7 @@ struct SimParams {
     Real HB_tau0;  ///< Herschel–Bulkley yeild stress
 
     
-    bool elastic_SPH;   ///< Handles the WCSPH solver for fluid (0) or granular (1)
+    bool elastic_SPH;   ///< Handles the WCSPH solver for fluid (false) or granular (true)
     Real E_young;       ///< Young's modulus
     Real G_shear;       ///< Shear modulus
     Real INV_G_shear;   ///< 1.0 / G_shear

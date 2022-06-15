@@ -499,11 +499,6 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax(bxDim / 2 * 10, byDim / 2 + 0.5 * iniSpacing, bzDim * 10 + 10 * iniSpacing);
     sysFSI.SetBoundaries(cMin, cMax);
 
-    // Setup sub domains for faster neighbor particle search
-    //// RADU TODO
-    //// Remove as a user option - ALWAYS use subdomains
-    sysFSI.SetSubdomains(true);
-
     /// Setup the output directory for FSI data
     sysFSI.SetFsiOutputDir(demo_dir, out_dir, inputJson);
 

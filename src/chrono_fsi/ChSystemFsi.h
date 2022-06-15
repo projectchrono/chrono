@@ -296,9 +296,6 @@ class CH_FSI_API ChSystemFsi {
     /// Gets the FSI mesh for flexible elements.
     std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
 
-    /// Enable/disable use of subdomains for faster neighbor particle search.
-    void SetSubdomains(bool val);
-
     /// Set output directory for FSI data.
     void SetFsiOutputDir(std::string& demo_dir, std::string out_dir, std::string inputJson);
 

@@ -135,9 +135,11 @@ void ChSystemFsi::InitParams() {
     //// RADU TODO
     //// material model
 
+    // Default: fluid dynamics
+    paramsH->elastic_SPH = false;
+
     paramsH->use_default_limits = true;
     paramsH->use_init_pressure = false;
-    paramsH->use_subdomains = false;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -211,10 +213,6 @@ void ChSystemFsi::SetDensity(double rho0) {
     paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
 }
 
-void ChSystemFsi::SetSubdomains(bool val) {
-    paramsH->use_subdomains = val;
-}
-
 void ChSystemFsi::SetFsiOutputDir(std::string& demo_dir, std::string out_dir, std::string inputJson) {
     utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 }
@@ -271,29 +269,30 @@ void ChSystemFsi::Finalize() {
         }
     }
 
-    if (paramsH->use_subdomains) {
-        paramsH->NUM_BOUNDARY_LAYERS = 3;
-        paramsH->Apply_BC_U = false;  // You should go to custom_math.h all the way to end of file and set your function
-        int3 side0 = mI3((int)floor((paramsH->cMax.x - paramsH->cMin.x) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)),
-                         (int)floor((paramsH->cMax.y - paramsH->cMin.y) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)),
-                         (int)floor((paramsH->cMax.z - paramsH->cMin.z) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)));
-        Real3 binSize3 =
-            mR3((paramsH->cMax.x - paramsH->cMin.x) / side0.x, (paramsH->cMax.y - paramsH->cMin.y) / side0.y,
-                (paramsH->cMax.z - paramsH->cMin.z) / side0.z);
-        paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
-        paramsH->binSize0 = binSize3.x;
-        paramsH->boxDims = paramsH->cMax - paramsH->cMin;
-        paramsH->straightChannelBoundaryMin = paramsH->cMin;  // mR3(0, 0, 0);  // 3D channel
-        paramsH->straightChannelBoundaryMax = paramsH->cMax;  // SmR3(3, 2, 3) * paramsH->sizeScale;
-        paramsH->deltaPress = mR3(0);
-        int3 SIDE = mI3(int((paramsH->cMax.x - paramsH->cMin.x) / paramsH->binSize0 + .1),
-                        int((paramsH->cMax.y - paramsH->cMin.y) / paramsH->binSize0 + .1),
-                        int((paramsH->cMax.z - paramsH->cMin.z) / paramsH->binSize0 + .1));
-        Real mBinSize = paramsH->binSize0;
-        paramsH->gridSize = SIDE;
-        paramsH->worldOrigin = paramsH->cMin;
-        paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);    
-    }
+    // Set up subdomains for faster neighbor particle search
+
+    paramsH->NUM_BOUNDARY_LAYERS = 3;
+    paramsH->Apply_BC_U = false;  // You should go to custom_math.h all the way to end of file and set your function
+    int3 side0 = mI3((int)floor((paramsH->cMax.x - paramsH->cMin.x) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)),
+                     (int)floor((paramsH->cMax.y - paramsH->cMin.y) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)),
+                     (int)floor((paramsH->cMax.z - paramsH->cMin.z) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)));
+    Real3 binSize3 = mR3((paramsH->cMax.x - paramsH->cMin.x) / side0.x, (paramsH->cMax.y - paramsH->cMin.y) / side0.y,
+                         (paramsH->cMax.z - paramsH->cMin.z) / side0.z);
+    paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
+    paramsH->binSize0 = binSize3.x;
+    paramsH->boxDims = paramsH->cMax - paramsH->cMin;
+    paramsH->straightChannelBoundaryMin = paramsH->cMin;  // mR3(0, 0, 0);  // 3D channel
+    paramsH->straightChannelBoundaryMax = paramsH->cMax;  // SmR3(3, 2, 3) * paramsH->sizeScale;
+    paramsH->deltaPress = mR3(0);
+    int3 SIDE = mI3(int((paramsH->cMax.x - paramsH->cMin.x) / paramsH->binSize0 + .1),
+                    int((paramsH->cMax.y - paramsH->cMin.y) / paramsH->binSize0 + .1),
+                    int((paramsH->cMax.z - paramsH->cMin.z) / paramsH->binSize0 + .1));
+    Real mBinSize = paramsH->binSize0;
+    paramsH->gridSize = SIDE;
+    paramsH->worldOrigin = paramsH->cMin;
+    paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);    
+
+    // Resize worker data
 
     printf("fsiInterface->ResizeChronoBodiesData()\n");
     fsiInterface->ResizeChronoBodiesData();
