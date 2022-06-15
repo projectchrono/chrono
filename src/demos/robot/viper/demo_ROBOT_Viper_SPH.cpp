@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
-    myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
+    myFsiSystem.ReadParametersFromFile(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
 
     /// Set SPH discretization type, consistent or inconsistent
     myFsiSystem.SetDiscreType(false, false);

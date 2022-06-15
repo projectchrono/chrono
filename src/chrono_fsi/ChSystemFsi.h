@@ -92,8 +92,8 @@ class CH_FSI_API ChSystemFsi {
     /// Enable/disable verbose terminal output.
     void SetVerbose(bool verbose);
 
-    /// Set FSI parameters from a JSON file.
-    void SetSimParameter(const std::string& inputJson, const ChVector<>& box_size);
+    /// Read Chrono::FSI parameters from the specified JSON file.
+    void ReadParametersFromFile(const std::string& inputJson, const ChVector<>& box_size);
 
     /// Set initial spacing.
     void SetInitialSpacing(double spacing);

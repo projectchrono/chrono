@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
-    myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
+    myFsiSystem.ReadParametersFromFile(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
 
     // Dimension of the space domain
     bxDim = paramsH->boxDimX;

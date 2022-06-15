@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
-    myFsiSystem.SetSimParameter(inputJson, ChVector<>(bxDim, byDim, bzDim));
+    myFsiSystem.ReadParametersFromFile(inputJson, ChVector<>(bxDim, byDim, bzDim));
 
     myFsiSystem.SetSPHMethod();
 

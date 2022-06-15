@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize the parameters using an input JSON file
     std::string myJson = GetChronoDataFile("fsi/input_json/demo_FSI_Poiseuille_flow_Explicit.json");
-    myFsiSystem.SetSimParameter(myJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
+    myFsiSystem.ReadParametersFromFile(myJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
 
     // Reset the domain size to handle periodic boundary condition
     auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;

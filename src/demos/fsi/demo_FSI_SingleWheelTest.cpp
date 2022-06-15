@@ -476,7 +476,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    sysFSI.SetSimParameter(inputJson, ChVector<>(bxDim, byDim, bzDim));
+    sysFSI.ReadParametersFromFile(inputJson, ChVector<>(bxDim, byDim, bzDim));
 
     sysFSI.SetInitialSpacing(iniSpacing);
     sysFSI.SetKernelLength(kernelLength);
