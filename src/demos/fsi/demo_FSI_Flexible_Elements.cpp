@@ -52,6 +52,9 @@ std::string MESH_CONNECTIVITY;
 // Save data as csv files, turn it on to be able to see the results off-line using paraview
 bool pv_output = true;
 
+// Output frequency
+double out_fps = 20;
+
 std::vector<std::vector<int>> NodeNeighborElement_mesh;
 
 // Dimension of the domain
@@ -65,26 +68,27 @@ double fyDim = byDim;
 double fzDim = 1;
 bool flexible_elem_1D = false;
 
-void SaveParaViewFiles(ChSystemFsi& myFsiSystem,
-                       ChSystemSMC& mphysicalSystem,
+// Final simulation time
+double t_end = 10.0;
+
+void SaveParaViewFiles(ChSystemFsi& sysFSI,
+                       ChSystemSMC& sysMBS,
                        std::shared_ptr<fea::ChMesh> my_mesh,
                        std::vector<std::vector<int>> NodeNeighborElementMesh,
-                       std::shared_ptr<fsi::SimParams> paramsH,
                        int next_frame,
                        double mTime);
-void Create_MB_FE(ChSystemSMC& mphysicalSystem, ChSystemFsi& myFsiSystem, std::shared_ptr<fsi::SimParams> paramsH);
+void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
+
 //****************************************************************************************
+
 void ShowUsage() {
     std::cout << "usage: ./demo_FSI_Flexible_Shell <json_file>" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
     // Create a physics system and an FSI system
-    ChSystemSMC mphysicalSystem;
-    ChSystemFsi myFsiSystem(mphysicalSystem);
-
-    // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
-    std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
+    ChSystemSMC sysMBS;
+    ChSystemFsi sysFSI(sysMBS);
 
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Elements_I2SPH.json");
@@ -98,97 +102,93 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
-    myFsiSystem.ReadParametersFromFile(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
+    sysFSI.ReadParametersFromFile(inputJson, ChVector<>(bxDim, byDim, bzDim));
 
-    myFsiSystem.SetSPHMethod(paramsH->fluid_dynamic_type);
-
-    ChVector<> cMin = ChVector<>(-bxDim, -byDim, -bzDim) - ChVector<>(paramsH->HSML * 5);
-    ChVector<> cMax = ChVector<>(bxDim, byDim, 1.2 * bzDim) + ChVector<>(paramsH->HSML * 5);
-    myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
-
-    // Setup sub doamins for a faster neighbor particle searching
-    myFsiSystem.SetSubDomain(paramsH);
+    ChVector<> cMin = ChVector<>(-bxDim, -byDim, -bzDim) - ChVector<>(sysFSI.GetKernelLength() * 5);
+    ChVector<> cMax = ChVector<>(bxDim, byDim, 1.2 * bzDim) + ChVector<>(sysFSI.GetKernelLength() * 5);
+    sysFSI.SetBoundaries(cMin, cMax);
 
     // Setup the output directory for FSI data
-    myFsiSystem.SetFsiOutputDir(paramsH, demo_dir, out_dir, inputJson);
+    sysFSI.SetFsiOutputDir(demo_dir, out_dir, inputJson);
 
     MESH_CONNECTIVITY = demo_dir + "Flex_MESH.vtk";
 
     // ******************************* Create Fluid region ****************************************
-    paramsH->MULT_INITSPACE_Shells = 1;
-    auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+    ////paramsH->MULT_INITSPACE_Shells = 1;
+    auto initSpace0 = sysFSI.GetInitialSpacing();
     chrono::utils::GridSampler<> sampler(initSpace0);
     ChVector<> boxCenter(-bxDim / 2 + fxDim / 2, 0 * initSpace0, fzDim / 2 + 1 * initSpace0);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
     chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        myFsiSystem.AddSphMarker(points[i], paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, paramsH->HSML, -1);
+        sysFSI.AddSphMarker(points[i], -1);
     }
-    myFsiSystem.AddRefArray(0, (int)numPart, -1, -1);
+    sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 
     // ******************************* Create Solid region ****************************************
-    Create_MB_FE(mphysicalSystem, myFsiSystem, paramsH);
-    myFsiSystem.Initialize();
-    auto my_mesh = myFsiSystem.GetFsiMesh();
+    Create_MB_FE(sysMBS, sysFSI);
+    sysFSI.Initialize();
+    auto my_mesh = sysFSI.GetFsiMesh();
 
     double mTime = 0;
 #undef CHRONO_PARDISO_MKL
 #ifdef CHRONO_PARDISO_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
-    mphysicalSystem.SetSolver(mkl_solver);
+    sysMBS.SetSolver(mkl_solver);
 #else
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    mphysicalSystem.SetSolver(solver);
+    sysMBS.SetSolver(solver);
     solver->SetMaxIterations(2000);
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
-    mphysicalSystem.SetSolverForceTolerance(1e-10);
+    sysMBS.SetSolverForceTolerance(1e-10);
 #endif
 
-    //    mphysicalSystem.SetTimestepperType(ChTimestepper::Type::HHT);
-    //    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(mphysicalSystem.GetTimestepper());
+    //    sysMBS.SetTimestepperType(ChTimestepper::Type::HHT);
+    //    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sysMBS.GetTimestepper());
     //    mystepper->SetAlpha(-0.2);
     //    mystepper->SetMaxiters(1000);
     //    mystepper->SetAbsTolerances(1e-5);
     //    mystepper->SetMode(ChTimestepperHHT::POSITION);
     //    mystepper->SetScaling(true);
 
-    //    mphysicalSystem.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
+    //    sysMBS.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 
-    int stepEnd = int(paramsH->tFinal / paramsH->dT);
+    double dT = sysFSI.GetStepSize();
+    int stepEnd = int(t_end / dT);
     stepEnd = 1000000;
-    SaveParaViewFiles(myFsiSystem, mphysicalSystem, my_mesh, NodeNeighborElement_mesh, paramsH, 0, mTime);
+    SaveParaViewFiles(sysFSI, sysMBS, my_mesh, NodeNeighborElement_mesh, 0, mTime);
 
     double time = 0;
     bool isAdaptive = false;
-    double Global_max_dT = paramsH->dT_Max;
+    double Global_max_dT = sysFSI.GetMaxStepSize();
     double TIMING_sta = clock();
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
         printf("\nstep : %d, time= : %f (s) \n", tStep, time);
-        double frame_time = 1.0 / paramsH->out_fps;
+        double frame_time = 1.0 / out_fps;
         int next_frame = (int)floor((time + 1e-6) / frame_time) + 1;
         double next_frame_time = next_frame * frame_time;
         double max_allowable_dt = next_frame_time - time;
         if (max_allowable_dt > 1e-6)
-            paramsH->dT_Max = std::min(Global_max_dT, max_allowable_dt);
+            sysFSI.SetMaxStepSize(std::min(Global_max_dT, max_allowable_dt));
         else
-            paramsH->dT_Max = Global_max_dT;
+            sysFSI.SetMaxStepSize(Global_max_dT);
 
-        printf("next_frame is:%d,  max dt is set to %f\n", next_frame, paramsH->dT_Max);
-        if (tStep < 5 && paramsH->Adaptive_time_stepping) {
-            paramsH->Adaptive_time_stepping = false;
+        printf("next_frame is:%d,  max dt is set to %f\n", next_frame, sysFSI.GetMaxStepSize());
+        if (tStep < 5 && sysFSI.GetAdaptiveTimeStepping()) {
+            sysFSI.SetAdaptiveTimeStepping(false);
             isAdaptive = true;
         }
-        myFsiSystem.DoStepDynamics_FSI();
-        paramsH->Adaptive_time_stepping = isAdaptive;
-        time += paramsH->dT;
-        SaveParaViewFiles(myFsiSystem, mphysicalSystem, my_mesh, NodeNeighborElement_mesh, paramsH, next_frame, time);
+        sysFSI.DoStepDynamics_FSI();
+        sysFSI.SetAdaptiveTimeStepping(isAdaptive);
+        time += dT;
+        SaveParaViewFiles(sysFSI, sysMBS, my_mesh, NodeNeighborElement_mesh, next_frame, time);
 
-        if (time > paramsH->tFinal)
+        if (time > t_end)
             break;
     }
 
@@ -203,10 +203,9 @@ int main(int argc, char* argv[]) {
 // Create the objects of the MBD system. Rigid/flexible bodies, and if fsi, their
 // bce representation are created and added to the systems
 //------------------------------------------------------------------
-void Create_MB_FE(ChSystemSMC& mphysicalSystem,
-                  ChSystemFsi& myFsiSystem,
-                  std::shared_ptr<fsi::SimParams> paramsH) {
-    mphysicalSystem.Set_G_acc(ChVector<>(0.0, 0, 0));
+void Create_MB_FE(ChSystemSMC& sysMBS,
+                  ChSystemFsi& sysFSI) {
+    sysMBS.Set_G_acc(ChVector<>(0.0, 0, 0));
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
     // Set common material Properties
@@ -221,7 +220,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
     ground->SetCollide(true);
 
     ground->GetCollisionModel()->ClearModel();
-    auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+    auto initSpace0 = sysFSI.GetInitialSpacing();
 
     // Bottom and top wall
     ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
@@ -244,15 +243,15 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
     chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xn, QUNIT, true);
     chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yp, QUNIT, true);
     chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yn, QUNIT, true);
-    mphysicalSystem.AddBody(ground);
+    sysMBS.AddBody(ground);
 
     // Fluid representation of walls
-    myFsiSystem.AddBceBox(paramsH, ground, pos_zn, QUNIT, size_XY, 12);
-    myFsiSystem.AddBceBox(paramsH, ground, pos_zp, QUNIT, size_XY, 12);
-    myFsiSystem.AddBceBox(paramsH, ground, pos_xp, QUNIT, size_YZ, 23);
-    myFsiSystem.AddBceBox(paramsH, ground, pos_xn, QUNIT, size_YZ, 23);
-    myFsiSystem.AddBceBox(paramsH, ground, pos_yp, QUNIT, size_XZ, 13);
-    myFsiSystem.AddBceBox(paramsH, ground, pos_yn, QUNIT, size_XZ, 13);
+    sysFSI.AddBceBox(ground, pos_zn, QUNIT, size_XY, 12);
+    sysFSI.AddBceBox(ground, pos_zp, QUNIT, size_XY, 12);
+    sysFSI.AddBceBox(ground, pos_xp, QUNIT, size_YZ, 23);
+    sysFSI.AddBceBox(ground, pos_xn, QUNIT, size_YZ, 23);
+    sysFSI.AddBceBox(ground, pos_yp, QUNIT, size_XZ, 13);
+    sysFSI.AddBceBox(ground, pos_yn, QUNIT, size_XZ, 13);
 
     // ******************************* Flexible bodies ***********************************
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
@@ -282,12 +281,12 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(builder.GetLastBeamNodes().back());
         auto pos_const = chrono_types::make_shared<ChLinkPointFrame>();
         pos_const->Initialize(node, ground);
-        mphysicalSystem.Add(pos_const);
+        sysMBS.Add(pos_const);
 
         auto dir_const = chrono_types::make_shared<ChLinkDirFrame>();
         dir_const->Initialize(node, ground);
         dir_const->SetDirectionInAbsoluteCoords(node->D);
-        mphysicalSystem.Add(dir_const);
+        sysMBS.Add(dir_const);
 
     } else {
         // Geometry of the plate
@@ -392,43 +391,41 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
         }
     }
     // Add the mesh to the system
-    mphysicalSystem.Add(my_mesh);
+    sysMBS.Add(my_mesh);
 
     // fluid representation of flexible bodies
     bool multilayer = true;
     bool removeMiddleLayer = true;
     bool add1DElem = flexible_elem_1D;
     bool add2DElem = !flexible_elem_1D;
-    myFsiSystem.AddBceFromMesh(paramsH, my_mesh, NodeNeighborElement_mesh,
-                                _1D_elementsNodes_mesh, _2D_elementsNodes_mesh, add1DElem, add2DElem, multilayer,
-                                removeMiddleLayer, 0, 0);
+    sysFSI.AddBceFromMesh(my_mesh, NodeNeighborElement_mesh, _1D_elementsNodes_mesh, _2D_elementsNodes_mesh,
+                               add1DElem, add2DElem, multilayer, removeMiddleLayer, 0, 0);
 
     if (flexible_elem_1D)
-        myFsiSystem.SetCableElementsNodes(_1D_elementsNodes_mesh);
+        sysFSI.SetCableElementsNodes(_1D_elementsNodes_mesh);
     else
-        myFsiSystem.SetShellElementsNodes(_2D_elementsNodes_mesh);
+        sysFSI.SetShellElementsNodes(_2D_elementsNodes_mesh);
 
-    myFsiSystem.SetFsiMesh(my_mesh);
+    sysFSI.SetFsiMesh(my_mesh);
     fea::ChMeshExporter::writeMesh(my_mesh, MESH_CONNECTIVITY);
 }
 
 //------------------------------------------------------------------
 // Function to save the paraview files
 //------------------------------------------------------------------
-void SaveParaViewFiles(ChSystemFsi& myFsiSystem,
-                       ChSystemSMC& mphysicalSystem,
+void SaveParaViewFiles(ChSystemFsi& sysFSI,
+                       ChSystemSMC& sysMBS,
                        std::shared_ptr<fea::ChMesh> my_mesh,
                        std::vector<std::vector<int>> NodeNeighborElementMesh,
-                       std::shared_ptr<fsi::SimParams> paramsH,
                        int next_frame,
                        double mTime) {
     static double exec_time;
-    exec_time += mphysicalSystem.GetTimerStep();
-    double frame_time = 1.0 / paramsH->out_fps;
+    exec_time += sysMBS.GetTimerStep();
+    double frame_time = 1.0 / out_fps;
     static int out_frame = 0;
 
     if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-6) {
-        myFsiSystem.PrintParticleToFile(demo_dir);
+        sysFSI.PrintParticleToFile(demo_dir);
 
         std::cout << "-------------------------------------\n" << std::endl;
         std::cout << "             Output frame:   " << next_frame << std::endl;

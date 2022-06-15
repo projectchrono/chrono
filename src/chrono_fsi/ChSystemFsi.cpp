@@ -108,8 +108,6 @@ void ChSystemFsi::InitParams() {
     paramsH->INV_dT = 1 / paramsH->dT;
     paramsH->dT_Flex = paramsH->dT;
     paramsH->dT_Max = Real(1.0);
-    paramsH->out_fps = Real(20);
-    paramsH->tFinal = Real(2000);
 
     // Pressure equation
     paramsH->PPE_Solution_type = PPE_SolutionType::MATRIX_FREE;
@@ -144,6 +142,8 @@ void ChSystemFsi::InitParams() {
     ElasticMaterialProperties mat_props;
     SetElasticSPH(mat_props);
     paramsH->elastic_SPH = false; // default: fluid dynamics
+
+    paramsH->Cs = 10 * paramsH->v_Max;
 
     paramsH->use_default_limits = true;
     paramsH->use_init_pressure = false;
@@ -202,6 +202,12 @@ void ChSystemFsi::Set_G_acc(const ChVector<>& gravity) {
     paramsH->gravity.z = gravity.z();
 }
 
+void ChSystemFsi::SetBodyForce(const ChVector<>& force) {
+    paramsH->bodyForce3.x = force.x();
+    paramsH->bodyForce3.y = force.y();
+    paramsH->bodyForce3.z = force.z();
+}
+
 void ChSystemFsi::SetInitialSpacing(double spacing) {
     paramsH->INITSPACE = (Real)spacing;
     paramsH->INV_INIT = 1 / paramsH->INITSPACE;
@@ -220,6 +226,14 @@ void ChSystemFsi::SetStepSize(double dT, double dT_Flex) {
     paramsH->dT = dT;
     paramsH->INV_dT = 1 / paramsH->dT;
     paramsH->dT_Flex = (dT_Flex == 0) ? paramsH->dT : dT_Flex;
+}
+
+void ChSystemFsi::SetMaxStepSize(double dT_max) {
+    paramsH->dT_Max = Real(dT_max);
+}
+
+void ChSystemFsi::SetAdaptiveTimeStepping(bool adaptive) {
+    paramsH->Adaptive_time_stepping = adaptive;
 }
 
 void ChSystemFsi::SetDensity(double rho0) {
@@ -280,6 +294,18 @@ void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
     paramsH->Dil_angle = Real(mat_props.dilation_angle);
     paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
     paramsH->C_Wi = Real(mat_props.kernel_threshold);
+
+    paramsH->G_shear = paramsH->E_young / (2.0 * (1.0 + paramsH->Nu_poisson));
+    paramsH->INV_G_shear = 1.0 / paramsH->G_shear;
+    paramsH->K_bulk = paramsH->E_young / (3.0 * (1.0 - 2.0 * paramsH->Nu_poisson));
+    paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
+
+    Real sfri = std::sin(paramsH->Fri_angle);
+    Real cfri = std::cos(paramsH->Fri_angle);
+    Real sdil = std::sin(paramsH->Dil_angle);
+    paramsH->Q_FA = 6 * sfri / (sqrt(3) * (3 + sfri));
+    paramsH->Q_DA = 6 * sdil / (sqrt(3) * (3 + sdil));
+    paramsH->K_FA = 6 * paramsH->Coh_coeff * cfri / (sqrt(3) * (3 + sfri));
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -305,22 +331,6 @@ void ChSystemFsi::SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) {
 
 void ChSystemFsi::Initialize() {
     // Calculate dependent quantities in the params structure
-    if (paramsH->elastic_SPH) {
-        paramsH->G_shear = paramsH->E_young / (2.0 * (1.0 + paramsH->Nu_poisson));
-        paramsH->INV_G_shear = 1.0 / paramsH->G_shear;
-        paramsH->K_bulk = paramsH->E_young / (3.0 * (1.0 - 2.0 * paramsH->Nu_poisson));
-        paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
-
-        Real sfri = std::sin(paramsH->Fri_angle);
-        Real cfri = std::cos(paramsH->Fri_angle);
-        Real sdil = std::sin(paramsH->Dil_angle);
-        paramsH->Q_FA = 6 * sfri / (sqrt(3) * (3 + sfri));
-        paramsH->Q_DA = 6 * sdil / (sqrt(3) * (3 + sdil));
-        paramsH->K_FA = 6 * paramsH->Coh_coeff * cfri / (sqrt(3) * (3 + sfri));
-    } else {
-        paramsH->Cs = 10 * paramsH->v_Max;
-    }
-
     int NN = 0;
     ////paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);
     paramsH->num_neighbors = NN;
@@ -538,6 +548,15 @@ void ChSystemFsi::AddSphMarker(const ChVector<>& point,
     sysFSI.AddSphMarker(ChUtilsTypeConvert::ChVectorToReal4(point, h), mR4(rho0, pres0, mu0, particle_type),
                         ChUtilsTypeConvert::ChVectorToReal3(velocity), ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
                         ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
+}
+
+void ChSystemFsi::AddSphMarker(const ChVector<>& point,
+                               double particle_type,
+                               const ChVector<>& velocity,
+                               const ChVector<>& tauXxYyZz,
+                               const ChVector<>& tauXyXzYz) {
+    AddSphMarker(point, paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, paramsH->HSML, particle_type, velocity,
+                 tauXxYyZz, tauXyXzYz);
 }
 
 void ChSystemFsi::AddRefArray(const int start, const int numPart, const int compType, const int phaseType) {
@@ -1260,12 +1279,60 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPosBoundary(const thrust::ho
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-float ChSystemFsi::GetKernelLength() const {
+double ChSystemFsi::GetKernelLength() const {
     return paramsH->HSML;
 }
 
-float ChSystemFsi::GetInitialSpacing() const {
+double ChSystemFsi::GetInitialSpacing() const {
     return paramsH->INITSPACE;
+}
+
+ChVector<> ChSystemFsi::GetSimDim() const {
+    return ChVector<>(paramsH->fluidDimX, paramsH->fluidDimY, paramsH->fluidDimZ);
+}
+
+ChVector<> ChSystemFsi::GetContainerDim() const {
+    return ChVector<>(paramsH->boxDimX, paramsH->boxDimY, paramsH->boxDimZ);
+}
+
+double ChSystemFsi::GetDensity() const {
+    return paramsH->rho0;
+}
+
+double ChSystemFsi::GetViscosity() const {
+    return paramsH->mu0;
+}
+
+double ChSystemFsi::GetBasePressure() const {
+    return paramsH->BASEPRES;
+}
+
+double ChSystemFsi::GetParticleMass() const {
+    return paramsH->markerMass;
+}
+
+ChVector<> ChSystemFsi::Get_G_acc() const {
+    return ChVector<>(paramsH->gravity.x, paramsH->gravity.y, paramsH->gravity.z);
+}
+
+double ChSystemFsi::GetSoundSpeed() const {
+    return paramsH->Cs;
+}
+
+ChVector<> ChSystemFsi::GetBodyForce() const {
+    return ChVector<>(paramsH->bodyForce3.x, paramsH->bodyForce3.y, paramsH->bodyForce3.z);
+}
+
+double ChSystemFsi::GetStepSize() const {
+    return paramsH->dT;
+}
+
+double ChSystemFsi::GetMaxStepSize() const {
+    return paramsH->dT_Max;
+}
+
+bool ChSystemFsi::GetAdaptiveTimeStepping() const {
+    return paramsH->Adaptive_time_stepping;
 }
 
 size_t ChSystemFsi::GetNumFluidMarkers() const {

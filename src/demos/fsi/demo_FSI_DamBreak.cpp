@@ -38,6 +38,9 @@ std::string demo_dir;
 // Save data as csv files to see the results off-line using Paraview
 bool save_output = true;
 
+// Output frequency
+double out_fps = 20;
+
 // Dimension of the space domain
 double bxDim = 6.0;
 double byDim = 1.0;
@@ -47,6 +50,9 @@ double fxDim = 2.0;
 double fyDim = 1.0;
 double fzDim = 2.0;
 
+// Final simulation time
+double t_end = 10.0;
+
 void ShowUsage() {
     std::cout << "usage: ./demo_FSI_DamBreak <json_file>" << std::endl;
 }
@@ -54,17 +60,16 @@ void ShowUsage() {
 //------------------------------------------------------------------
 // Function to save the paraview files
 //------------------------------------------------------------------
-void SaveParaViewFilesMBD(ChSystemFsi& myFsiSystem,
-                          ChSystemSMC& mphysicalSystem,
-                          std::shared_ptr<fsi::SimParams> paramsH,
+void SaveParaViewFilesMBD(ChSystemFsi& sysFSI,
+                          ChSystemSMC& sysMBS,
                           int this_frame,
                           double mTime) {
     // Simulation time between two output frames
-    double frame_time = 1.0 / paramsH->out_fps;
+    double frame_time = 1.0 / out_fps;
 
     // Output data to files
     if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-5) {
-        myFsiSystem.PrintParticleToFile(demo_dir);
+        sysFSI.PrintParticleToFile(demo_dir);
         std::cout << "\n--------------------------------\n" << std::endl;
         std::cout << "------------ Output Frame:   " << this_frame << std::endl;
         std::cout << "------------ Sim Time:       " << mTime << " (s)\n" << std::endl;
@@ -76,9 +81,8 @@ void SaveParaViewFilesMBD(ChSystemFsi& myFsiSystem,
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
-                      ChSystemFsi& myFsiSystem,
-                      std::shared_ptr<fsi::SimParams> paramsH) {
+void CreateSolidPhase(ChSystemSMC& sysMBS,
+                      ChSystemFsi& sysFSI) {
     // Set common material Properties
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(6e4);
@@ -94,7 +98,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ground->GetCollisionModel()->ClearModel();
 
     // Create the geometry of the boundaries
-    auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+    auto initSpace0 = sysFSI.GetInitialSpacing();
 
     // Bottom and top wall - size and position
     ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 0 * initSpace0, 2 * initSpace0);
@@ -118,31 +122,28 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xn, QUNIT, true);
     // You may uncomment the following lines to have side walls as well.
     // To show the use of Periodic boundary condition, these walls are not added
-    // To this end, paramsH->cMin and paramsH->cMax were set up appropriately
+    // To this end, cMin and cMax were set up appropriately
     // chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yp, QUNIT, true);
     // chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yn, QUNIT, true);
     ground->GetCollisionModel()->BuildModel();
-    mphysicalSystem.AddBody(ground);
+    sysMBS.AddBody(ground);
 
     // Add BCE particles attached on the walls into FSI system
-    myFsiSystem.AddBceBox(paramsH, ground, pos_zn, QUNIT, size_XY, 12);
-    myFsiSystem.AddBceBox(paramsH, ground, pos_zp, QUNIT, size_XY, 12);
-    myFsiSystem.AddBceBox(paramsH, ground, pos_xp, QUNIT, size_YZ, 23);
-    myFsiSystem.AddBceBox(paramsH, ground, pos_xn, QUNIT, size_YZ, 23);
+    sysFSI.AddBceBox(ground, pos_zn, QUNIT, size_XY, 12);
+    sysFSI.AddBceBox(ground, pos_zp, QUNIT, size_XY, 12);
+    sysFSI.AddBceBox(ground, pos_xp, QUNIT, size_YZ, 23);
+    sysFSI.AddBceBox(ground, pos_xn, QUNIT, size_YZ, 23);
     // If you uncommented the above lines that add the side walls, you should uncomment the following two lines as
     // well. This is necessary in order to populate the walls with BCE markers for the fluid simulation
-    // myFsiSystem.AddBoxBce(paramsH, ground, pos_yp, QUNIT, size_XZ, 13);
-    // myFsiSystem.AddBoxBce(paramsH, ground, pos_yn, QUNIT, size_XZ, 13);
+    // sysFSI.AddBoxBce(ground, pos_yp, QUNIT, size_XZ, 13);
+    // sysFSI.AddBoxBce(ground, pos_yn, QUNIT, size_XZ, 13);
 }
 
 // =============================================================================
 int main(int argc, char* argv[]) {
     // Create a physics system and an FSI system
-    ChSystemSMC mphysicalSystem;
-    ChSystemFsi myFsiSystem(mphysicalSystem);
-
-    // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
-    std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
+    ChSystemSMC sysMBS;
+    ChSystemFsi sysFSI(sysMBS);
 
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_DamBreak_Explicit.json");
@@ -156,31 +157,28 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
-    myFsiSystem.ReadParametersFromFile(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
-
-    // Set the time integration type
-    myFsiSystem.SetSPHMethod(paramsH->fluid_dynamic_type);
+    sysFSI.ReadParametersFromFile(inputJson, ChVector<>(bxDim, byDim, bzDim));
 
     // Dimension of the space domain
-    bxDim = paramsH->boxDimX;
-    byDim = paramsH->boxDimY;
-    bzDim = paramsH->boxDimZ;
+    ChVector<> bDim = sysFSI.GetContainerDim();
+    bxDim = bDim.x();
+    byDim = bDim.y();
+    bzDim = bDim.z();
+
     // Dimension of the fluid domain
-    fxDim = paramsH->fluidDimX;
-    fyDim = paramsH->fluidDimY;
-    fzDim = paramsH->fluidDimZ;
+    ChVector<> fDim = sysFSI.GetSimDim();
+    fxDim = fDim.x();
+    fyDim = fDim.y();
+    fzDim = fDim.z();
 
     // Set up the periodic boundary condition (only in Y direction)
-    auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+    auto initSpace0 = sysFSI.GetInitialSpacing();
     ChVector<> cMin = ChVector<>(-bxDim / 2 - 10.0 * initSpace0, -byDim / 2 - 1.0 * initSpace0 / 2.0, -2.0 * bzDim);
     ChVector<> cMax = ChVector<>(bxDim / 2 + 10.0 * initSpace0, byDim / 2 + 1.0 * initSpace0 / 2.0, 2.0 * bzDim);
-    myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
-
-    // Setup sub doamins for a faster neighbor particle searching
-    myFsiSystem.SetSubDomain(paramsH);
+    sysFSI.SetBoundaries(cMin, cMax);
 
     // Setup the output directory for FSI data
-    myFsiSystem.SetFsiOutputDir(paramsH, demo_dir, out_dir, inputJson);
+    sysFSI.SetFsiOutputDir(demo_dir, out_dir, inputJson);
 
     // Create Fluid region and discretize with SPH particles
     ChVector<> boxCenter(-bxDim / 2 + fxDim / 2, 0.0, fzDim / 2);
@@ -192,36 +190,37 @@ int main(int argc, char* argv[]) {
 
     // Add fluid particles from the sampler points to the FSI system
     size_t numPart = points.size();
+    double gz = std::abs(sysFSI.Get_G_acc().z());
     for (int i = 0; i < numPart; i++) {
         // Calculate the pressure of a steady state (p = rho*g*h)
-        auto pre_ini = paramsH->rho0 * abs(paramsH->gravity.z) * (-points[i].z() + fzDim);
-        auto rho_ini = paramsH->rho0 + pre_ini / (paramsH->Cs * paramsH->Cs);
-        myFsiSystem.AddSphMarker(points[i], rho_ini, pre_ini, paramsH->mu0,
-                                 paramsH->HSML, -1);
+        auto pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + fzDim);
+        auto rho_ini = sysFSI.GetDensity() + pre_ini / (sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed());
+        sysFSI.AddSphMarker(points[i], rho_ini, pre_ini, sysFSI.GetViscosity(), sysFSI.GetKernelLength(), -1);
     }
-    myFsiSystem.AddRefArray(0, (int)numPart, -1, -1);
+    sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 
     // Create Solid region and attach BCE SPH particles
-    CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
+    CreateSolidPhase(sysMBS, sysFSI);
 
     // Complete construction of the FSI system
-    myFsiSystem.Initialize();
+    sysFSI.Initialize();
 
     // Start the simulation
+    double dT = sysFSI.GetStepSize();
     double time = 0;
-    int stepEnd = int(paramsH->tFinal / paramsH->dT);
+    int stepEnd = int(t_end / dT);
     double TIMING_sta = clock();
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
         printf("\nstep : %d, time= : %f (s) \n", tStep, time);
-        double frame_time = 1.0 / paramsH->out_fps;
+        double frame_time = 1.0 / out_fps;
         int this_frame = (int)floor((time + 1e-6) / frame_time);
 
         // Save data of the simulation
-        SaveParaViewFilesMBD(myFsiSystem, mphysicalSystem, paramsH, this_frame, time);
+        SaveParaViewFilesMBD(sysFSI, sysMBS, this_frame, time);
 
         // Call the FSI solver
-        myFsiSystem.DoStepDynamics_FSI();
-        time += paramsH->dT;
+        sysFSI.DoStepDynamics_FSI();
+        time += dT;
     }
 
     // Total computational cost

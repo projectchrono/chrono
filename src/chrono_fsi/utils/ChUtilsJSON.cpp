@@ -217,12 +217,6 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
 
         if (doc["Time Stepping"].HasMember("Maximum time step"))
             paramsH->dT_Max = doc["Time Stepping"]["Maximum time step"].GetDouble();
-
-        if (doc["Time Stepping"].HasMember("Write frame per second"))
-            paramsH->out_fps = doc["Time Stepping"]["Write frame per second"].GetDouble();
-
-        if (doc["Time Stepping"].HasMember("End time"))
-            paramsH->tFinal = doc["Time Stepping"]["End time"].GetDouble();
     }
 
     if (doc.HasMember("Pressure Equation")) {
@@ -520,6 +514,22 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
 
     paramsH->invrho0 = 1 / paramsH->rho0;
     paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
+
+    if (paramsH->elastic_SPH) {
+        paramsH->G_shear = paramsH->E_young / (2.0 * (1.0 + paramsH->Nu_poisson));
+        paramsH->INV_G_shear = 1.0 / paramsH->G_shear;
+        paramsH->K_bulk = paramsH->E_young / (3.0 * (1.0 - 2.0 * paramsH->Nu_poisson));
+        paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
+
+        Real sfri = std::sin(paramsH->Fri_angle);
+        Real cfri = std::cos(paramsH->Fri_angle);
+        Real sdil = std::sin(paramsH->Dil_angle);
+        paramsH->Q_FA = 6 * sfri / (sqrt(3) * (3 + sfri));
+        paramsH->Q_DA = 6 * sdil / (sqrt(3) * (3 + sdil));
+        paramsH->K_FA = 6 * paramsH->Coh_coeff * cfri / (sqrt(3) * (3 + sfri));
+    } else {
+        paramsH->Cs = 10 * paramsH->v_Max;
+    }
 
     // Print information
     if (paramsH->verbose) {

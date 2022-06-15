@@ -107,7 +107,7 @@ class CH_FSI_API ChSystemFsi {
     /// Set the fluid container dimension
     void SetContainerDim(const ChVector<>& boxDim);
 
-    /// Set Periodic boundary condition for fluid.
+    /// Set periodic boundary condition for fluid.
     void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax);
 
     /// Set number of boundary layers (default: 3).
@@ -122,8 +122,18 @@ class CH_FSI_API ChSystemFsi {
     /// Set gravity for the FSI syatem.
     void Set_G_acc(const ChVector<>& gravity);
 
+    /// Set a constant force applied to the fluid.
+    /// Solid bodies are not explicitly affected by this force, but they are affected indirectly through the fluid.
+    void SetBodyForce(const ChVector<>& force);
+
     /// Set FSI integration step size.
     void SetStepSize(double dT, double dT_Flex = 0);
+
+    /// Set the maximum allowable integration step size.
+    void SetMaxStepSize(double dT_max);
+
+    /// Enable/disable adaptive time stepping.
+    void SetAdaptiveTimeStepping(bool adaptive);
 
     /// Set SPH discretization type, consistent or inconsistent
     void SetDiscreType(bool useGmatrix, bool useLmatrix);
@@ -155,10 +165,46 @@ class CH_FSI_API ChSystemFsi {
     void SetParticleOutputMode(CHFSI_OUTPUT_MODE mode) { file_write_mode = mode; }
 
     /// Return the SPH kernel length of kernel function.
-    float GetKernelLength() const;
+    double GetKernelLength() const;
 
     /// Return the initial spacing of the SPH particles.
-    float GetInitialSpacing() const;
+    double GetInitialSpacing() const;
+
+    /// Get the fluid dimension
+    ChVector<> GetSimDim() const;
+
+    /// Set the fluid container dimension
+    ChVector<> GetContainerDim() const;
+
+    /// Return density.
+    double GetDensity() const;
+
+    /// Return viscosity.
+    double GetViscosity() const;
+
+    /// Return SPH particle mass.
+    double GetParticleMass() const;
+
+    /// Return base pressure.
+    double GetBasePressure() const;
+
+    /// Return gravitational acceleration.
+    ChVector<> Get_G_acc() const;
+
+    /// Return the speed of sound in the fluid phase.
+    double GetSoundSpeed() const;
+
+    /// Return the constant force applied to the fluid (if any).
+    ChVector<> GetBodyForce() const;
+
+    /// Return the FSI integration step size.
+    double GetStepSize() const;
+
+    /// Return the current value of the maximum allowable integration step size.
+    double GetMaxStepSize() const;
+
+    /// Return a flag inicating whether adaptive time stepping is enabled.
+    bool GetAdaptiveTimeStepping() const;
 
     /// Get the current number of fluid SPH particles.
     size_t GetNumFluidMarkers() const;
@@ -223,12 +269,19 @@ class CH_FSI_API ChSystemFsi {
     /// This function creates three files to write fluid, boundary, and BCE markers data to separate files.
     void PrintParticleToFile(const std::string& out_dir) const;
 
-    /// Add SPH particle's information into the FSI system.
+    /// Add an SPH particle with given properties to the FSI system.
     void AddSphMarker(const ChVector<>& point,
                       double rho0,
                       double pres0,
                       double mu0,
                       double h,
+                      double particle_type,
+                      const ChVector<>& velocity = ChVector<>(0),
+                      const ChVector<>& tauXxYyZz = ChVector<>(0),
+                      const ChVector<>& tauXyXzYz = ChVector<>(0));
+
+    /// Add an SPH particle with current properties to the SPH system.
+    void AddSphMarker(const ChVector<>& point,
                       double particle_type,
                       const ChVector<>& velocity = ChVector<>(0),
                       const ChVector<>& tauXxYyZz = ChVector<>(0),

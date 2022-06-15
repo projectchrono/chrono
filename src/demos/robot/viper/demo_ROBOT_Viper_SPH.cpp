@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
-    myFsiSystem.ReadParametersFromFile(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
+    myFsiSystem.ReadParametersFromFile(inputJson, ChVector<>(bxDim, byDim, bzDim));
 
     /// Set SPH discretization type, consistent or inconsistent
     myFsiSystem.SetDiscreType(false, false);
@@ -166,9 +166,6 @@ int main(int argc, char* argv[]) {
     ChVector<> cMin(-bxDim / 2 * 2, -byDim / 2 * 2, -bzDim * 10);
     ChVector<> cMax(bxDim / 2 * 2, byDim / 2 * 2, bzDim * 10);
     myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
-
-    /// Setup sub doamins for a faster neighbor particle searching
-    myFsiSystem.SetSubDomain(paramsH);
 
     /// Setup the output directory for FSI data
     myFsiSystem.SetFsiOutputDir(paramsH, demo_dir, out_dir, inputJson.c_str());
@@ -308,11 +305,11 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem, ChSystemFsi& myFsiSystem, st
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
 
     /// Fluid-Solid Coupling at the walls via BCE particles
-    myFsiSystem.AddBceBox(paramsH, box, pos_zn, QUNIT, size_XY, 12);
-    myFsiSystem.AddBceBox(paramsH, box, pos_xp, QUNIT, size_YZ, 23);
-    myFsiSystem.AddBceBox(paramsH, box, pos_xn, QUNIT, size_YZ, 23);
-    myFsiSystem.AddBceBox(paramsH, box, pos_yp, QUNIT, size_XZ, 13);
-    myFsiSystem.AddBceBox(paramsH, box, pos_yn, QUNIT, size_XZ, 13);
+    myFsiSystem.AddBceBox(box, pos_zn, QUNIT, size_XY, 12);
+    myFsiSystem.AddBceBox(box, pos_xp, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(box, pos_xn, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(box, pos_yp, QUNIT, size_XZ, 13);
+    myFsiSystem.AddBceBox(box, pos_yn, QUNIT, size_XZ, 13);
 
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     rover = chrono_types::make_shared<Viper>(&mphysicalSystem);

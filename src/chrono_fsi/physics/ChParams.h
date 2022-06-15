@@ -58,10 +58,10 @@ enum class fluid_dynamics { IISPH, I2SPH, WCSPH };
 /// Structure with FSI simulation parameters.
 struct SimParams {
     fluid_dynamics fluid_dynamic_type;  ///< Type of SPH mehtod (WCSPH, IISPH, or I2SPH)
-    char out_name[256];   ///< Name of the output directory.
-    char demo_dir[2048];  ///< Demo output directory.
-    int output_length;    ///< Output length (0:short, 1:middle, 2:long) information of SPH particles into data files
-    bool output_fsi;      ///< Output fsi information for each body/node
+    char out_name[256];                 ///< Name of the output directory.
+    char demo_dir[2048];                ///< Demo output directory.
+    int output_length;  ///< Output length (0:short, 1:middle, 2:long) information of SPH particles into data files
+    bool output_fsi;    ///< Output fsi information for each body/node
 
     int3 gridSize;        ///< dx, dy, dz distances between particle centers.
     Real3 worldOrigin;    ///< Origin point.
@@ -75,17 +75,18 @@ struct SimParams {
     Real MULT_INITSPACE;  ///< Multiplier to hsml to determine the initial separation of the fluid particles and the
                           ///< fixed separation for the boundary particles. This means that the separation will always
                           ///< be a multiple of hsml. Default value = 1.0.
-    Real MULT_INITSPACE_Cables; ///< Multiplier to hsml in cable elements.
-    Real MULT_INITSPACE_Shells; ///< Multiplier to hsml in shell elements.
-    int num_neighbors; ///< Number of neighbor particles.
-    Real epsMinMarkersDis;    ///< epsilon mult for minimum distance between markers (d_min = eps * HSML)
-    int NUM_BOUNDARY_LAYERS;  ///< Number of particles layers that will be used in the boundary. Default value = 3.
-    Real toleranceZone;  ///< Helps determine the particles that are in the domain but are outside the boundaries, so
-                         ///< they are not considered fluid particles and are dropped at the beginning of the simulation.
-    int NUM_BCE_LAYERS; ///< Number of fixed particle layers to rigid/flexible bodies which act as the boundaries.
-                        ///< Default value = 2.
+    Real MULT_INITSPACE_Cables;  ///< Multiplier to hsml in cable elements.
+    Real MULT_INITSPACE_Shells;  ///< Multiplier to hsml in shell elements.
+    int num_neighbors;           ///< Number of neighbor particles.
+    Real epsMinMarkersDis;       ///< epsilon mult for minimum distance between markers (d_min = eps * HSML)
+    int NUM_BOUNDARY_LAYERS;     ///< Number of particles layers that will be used in the boundary. Default value = 3.
+    Real
+        toleranceZone;  ///< Helps determine the particles that are in the domain but are outside the boundaries, so
+                        ///< they are not considered fluid particles and are dropped at the beginning of the simulation.
+    int NUM_BCE_LAYERS;  ///< Number of fixed particle layers to rigid/flexible bodies which act as the boundaries.
+                         ///< Default value = 2.
 
-    Real BASEPRES;            ///< Relative value of pressure applied to the whole domain.
+    Real BASEPRES;    ///< Relative value of pressure applied to the whole domain.
     Real LARGE_PRES;  ///< Artificial pressure for boundary particles. Make sure fluid particles do not go through the
                       ///< boundaries.Note that if time step is not small enough particles near the boundaries might
                       ///< build up huge pressures and will make the simulation unstable.
@@ -93,8 +94,8 @@ struct SimParams {
     Real3 deltaPress;  ///< Change in Pressure. This is needed for periodic BC. The change in pressure of a particle
                        ///< when it moves from end boundary to beginning.
 
-    Real3 V_in; ///< Inlet velocity. This is needed for inlet BC.
-    Real x_in; ///< Inlet position. This is needed for inlet BC.
+    Real3 V_in;  ///< Inlet velocity. This is needed for inlet BC.
+    Real x_in;   ///< Inlet position. This is needed for inlet BC.
 
     Real3 gravity;     ///< Gravity. Applied to fluid, rigid and flexible.
     Real3 bodyForce3;  ///< Constant force applied to the fluid. Flexible and rigid bodies are not affected by this
@@ -108,7 +109,7 @@ struct SimParams {
     Real markerMass;  ///< marker mass
     Real mu0;         ///< Viscosity
     Real kappa;       ///< surface tension parameter
-    Real v_Max;       ///< Max velocity of fluid used in equation of state. Run simulation once to be able to determine it.
+    Real v_Max;  ///< Max velocity of fluid used in equation of state. Run simulation once to be able to determine it.
     Real EPS_XSPH;       ///< Method to modify particle velocity.
     Real beta_shifting;  ///< this is the beta coefficient in the shifting vector formula. See
     Real Vis_Dam;        ///< Viscous damping force
@@ -116,20 +117,13 @@ struct SimParams {
     Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to use
               ///< is to run simulations multiple time and find which one is the largest dT that produces a stable
               ///< simulation.
-    Real INV_dT; ///< 1.0 / dT
+    Real INV_dT;  ///< 1.0 / dT
 
     enum fluidity_model { frictional_plasticity, Inertia_rheology, nonlocal_fluidity };
 
-    Real dT_Flex; ///< Setpsize for the flexible bodies dynamics.
-    Real Co_number; ///< Constant in CFL condition.
-    Real dT_Max; ///< Maximum setpsize.
-    Real out_fps; ///< Output frames per second.
-    Real tFinal;     ///< Total simulation time.
-    Real timePause;  ///< Time that we let pass before applying body forces. This is done to allow the particles to
-                     ///< stabilize first.Run the fluid only during this time, with dTm = 0.1 * dT
-
-    Real timePauseRigidFlex;  ///< Time before letting rigid/flex move. Keep the rigid and flex stationary during this
-                              ///< time  (timePause + timePauseRigidFlex) until the fluid is fully developed
+    Real dT_Flex;    ///< Setpsize for the flexible bodies dynamics.
+    Real Co_number;  ///< Constant in CFL condition.
+    Real dT_Max;     ///< Maximum setpsize.
 
     Real kdT;      ///< Implicit integration parameter. Not very important
     Real gammaBB;  ///< Equation of state parameter.
@@ -166,26 +160,27 @@ struct SimParams {
 
     int contactBoundary;  ///< 0: straight channel, 1: serpentine
 
-    BceVersion bceType;  ///< Type of boundary conditions, ADAMI or ORIGINAL
+    BceVersion bceType;      ///< Type of boundary conditions, ADAMI or ORIGINAL
     BceVersion bceTypeWall;  ///< Type of boundary conditions for fixed wall, ADAMI or ORIGINAL
 
     bool Conservative_Form;  ///< Whether conservative or consistent discretization should be used
-    int gradient_type; ///< Type of the gradient operator.
-    int laplacian_type; ///< Type of the laplacian operator.
+    int gradient_type;       ///< Type of the gradient operator.
+    int laplacian_type;      ///< Type of the laplacian operator.
 
-    bool USE_Consistent_G; ///< Use consistent discretization for gradient operator
-    bool USE_Consistent_L; ///< Use consistent discretization for laplacian operator
+    bool USE_Consistent_G;  ///< Use consistent discretization for gradient operator
+    bool USE_Consistent_L;  ///< Use consistent discretization for laplacian operator
 
     bool USE_NonIncrementalProjection;  ///< Used in the I2SPH implementation
-    bool DensityBaseProjetion; ///< Set true to use density based projetion scheme in ISPH solver
+    bool DensityBaseProjetion;          ///< Set true to use density based projetion scheme in ISPH solver
 
     bool USE_LinearSolver;     ///< If a linear solver should be used to solve Ax=b, otherwise basics methods such as
                                ///< Jacobi-SOR are used
     bool Pressure_Constraint;  ///< Whether the singularity of the pressure equation should be fixed
     ChFsiLinearSolver::SolverType LinearSolver;  ///< Type of the linear solver
 
-    Real Alpha;  ///< Poisson Pressure Equation source term constant. This is used for controlling the noise in the FS
-                 ///< forces, F_new=beta*F_old+(1-beta)*F_t beta=1 highly damped force, beta=0 : no modificaiton to force
+    Real
+        Alpha;  ///< Poisson Pressure Equation source term constant. This is used for controlling the noise in the FS
+                ///< forces, F_new=beta*F_old+(1-beta)*F_t beta=1 highly damped force, beta=0 : no modificaiton to force
     Real Beta;  ///< moving exponential weighted average coefficient
 
     Real LinearSolver_Abs_Tol;  ///< Poisson Pressure Equation residual
@@ -197,10 +192,10 @@ struct SimParams {
     PPE_SolutionType PPE_Solution_type;  ///< MATRIX_FREE, FORM_SPARSE_MATRIX see Rakhsha et al. 2018 paper for details
                                          ///< omega relaxation in the pressure equation, something less than 0.5 is
                                          ///< necessary for Jacobi solver
-    Real PPE_relaxation; ///< PPE_relaxation
+    Real PPE_relaxation;                 ///< PPE_relaxation
     bool ClampPressure;  ///< Clamp pressure to 0 if negative, based on the IISPH paper by Ihmsen et al. (2013)
-    Real IncompressibilityFactor; ///< Incompressibility factor, default = 1
-    Real Cs; ///< Speed of sound.
+    Real IncompressibilityFactor;  ///< Incompressibility factor, default = 1
+    Real Cs;                       ///< Speed of sound.
 
     bool Adaptive_time_stepping;  ///< Works only with IISPH for now, use Co_number can be used as the criteria for
                                   ///< adaptivity. dT_Max is set either from the Co_number, or the time step the is
@@ -208,25 +203,24 @@ struct SimParams {
     bool Apply_BC_U;              ///< This option lets you apply a velocity BC on the BCE markers
     Real L_Characteristic;        ///< Some length characteristic for Re number computation
 
-    bool non_newtonian; ///< Set true to model non-newtonian fluid.
-    bool granular_material; ///< Set true to model granular material dynamcis using I2SPH
-    rheology rheology_model; ///< Model of the rheology (Inertia_rheology or nonlocal_fluidity)
-    Real ave_diam;  ///< average particle diameter
-    Real cohesion;  ///< c in the stress model sigma=(mu*p+c)/|D|
-    friction_law mu_of_I; ///< Constant I in granular material dyanmcis
-    Real mu_max;     ///< maximum viscosity
-    Real mu_fric_s;  ///< friction mu_s
-    Real mu_fric_2;  ///< mu_2 constant in mu=mu(I)
-    Real mu_I0;      ///< Reference Inertia number
-    Real mu_I_b;     ///< b constant in mu=mu(I)=mu_s+b*I
-    Real Shear_Mod;  ///< G
+    bool non_newtonian;       ///< Set true to model non-newtonian fluid.
+    bool granular_material;   ///< Set true to model granular material dynamcis using I2SPH
+    rheology rheology_model;  ///< Model of the rheology (Inertia_rheology or nonlocal_fluidity)
+    Real ave_diam;            ///< average particle diameter
+    Real cohesion;            ///< c in the stress model sigma=(mu*p+c)/|D|
+    friction_law mu_of_I;     ///< Constant I in granular material dyanmcis
+    Real mu_max;              ///< maximum viscosity
+    Real mu_fric_s;           ///< friction mu_s
+    Real mu_fric_2;           ///< mu_2 constant in mu=mu(I)
+    Real mu_I0;               ///< Reference Inertia number
+    Real mu_I_b;              ///< b constant in mu=mu(I)=mu_s+b*I
+    Real Shear_Mod;           ///< G
 
     Real HB_sr0;   ///< Herschel–Bulkley consistency index
     Real HB_k;     ///< Herschel–Bulkley consistency index
     Real HB_n;     ///< Herschel–Bulkley  power
     Real HB_tau0;  ///< Herschel–Bulkley yeild stress
 
-    
     bool elastic_SPH;   ///< Handles the WCSPH solver for fluid (false) or granular (true)
     Real E_young;       ///< Young's modulus
     Real G_shear;       ///< Shear modulus
@@ -244,31 +238,34 @@ struct SimParams {
     Real K_FA;          ///< Material constants calculate from frictional angle and cohesion coefficient
     Real C_Wi;          ///< Threshold of the integration of the kernel function
 
-    Real boxDimX; ///< Dimension of the space domain - X
-    Real boxDimY; ///< Dimension of the space domain - Y
-    Real boxDimZ; ///< Dimension of the space domain - Z
+    Real boxDimX;  ///< Dimension of the space domain - X
+    Real boxDimY;  ///< Dimension of the space domain - Y
+    Real boxDimZ;  ///< Dimension of the space domain - Z
 
     Real fluidDimX;  ///< Dimension of the fluid domain - X
     Real fluidDimY;  ///< Dimension of the fluid domain - Y
     Real fluidDimZ;  ///< Dimension of the fluid domain - Z
 
-    Real bodyDimX; ///< Size of the FSI body - X
-    Real bodyDimY; ///< Size of the FSI body - Y
-    Real bodyDimZ; ///< Size of the FSI body - Z
-    Real bodyRad;  ///< Radisu of the FSI body
-    Real bodyLength; ///< Length of the FSI body
-    Real bodyIniPosX; ///< Initial position of the FSI body - X
-    Real bodyIniPosY; ///< Initial position of the FSI body - Y
-    Real bodyIniPosZ; ///< Initial position of the FSI body - Z
-    Real bodyIniVelX; ///< Initial velocity of the FSI body - X
-    Real bodyIniVelY; ///< Initial velocity of the FSI body - Y
-    Real bodyIniVelZ; ///< Initial velocity of the FSI body - Z
-    Real bodyIniAngVel; ///< Initial angular velocity of the FSI body
-    Real bodyMass; ///< Mass of the FSI body
-    Real bodyDensity; ///< Density of the FSI body
+    //// RADU TODO
+    //// What are these doing here?!?!?
+    //// REMOVE!
+    Real bodyDimX;       ///< Size of the FSI body - X
+    Real bodyDimY;       ///< Size of the FSI body - Y
+    Real bodyDimZ;       ///< Size of the FSI body - Z
+    Real bodyRad;        ///< Radisu of the FSI body
+    Real bodyLength;     ///< Length of the FSI body
+    Real bodyIniPosX;    ///< Initial position of the FSI body - X
+    Real bodyIniPosY;    ///< Initial position of the FSI body - Y
+    Real bodyIniPosZ;    ///< Initial position of the FSI body - Z
+    Real bodyIniVelX;    ///< Initial velocity of the FSI body - X
+    Real bodyIniVelY;    ///< Initial velocity of the FSI body - Y
+    Real bodyIniVelZ;    ///< Initial velocity of the FSI body - Z
+    Real bodyIniAngVel;  ///< Initial angular velocity of the FSI body
+    Real bodyMass;       ///< Mass of the FSI body
+    Real bodyDensity;    ///< Density of the FSI body
 
-    Real3 bodyActiveDomain; ///< Size of the active domain that influenced by an FSI body
-    Real settlingTime; ///< Time for the granular to settle down
+    Real3 bodyActiveDomain;  ///< Size of the active domain that influenced by an FSI body
+    Real settlingTime;       ///< Time for the granular to settle down
 
     Real3 Domain;
 
