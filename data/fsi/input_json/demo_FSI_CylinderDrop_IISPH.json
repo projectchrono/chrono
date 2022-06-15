@@ -30,7 +30,6 @@
   {
     "Fluid time step":               5e-4,
     "Solid time step":               5e-4,
-    "End time":                      20,
     "Write frame per second":        50
   },
 

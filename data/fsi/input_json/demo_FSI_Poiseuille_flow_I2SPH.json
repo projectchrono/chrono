@@ -24,7 +24,6 @@
     "Shifting Coefficient":           0.0,
     "Density Reinitialization":       0,
     "Conservative Discretization":    false
-
   },
 
   "Time Stepping":
@@ -34,7 +33,6 @@
     "Fluid time step":               0.002,
     "Solid time step":               0.002,
     "Maximum time step":             0.002,
-    "End time":                      100,
     "Write frame per second":        10
   },
 

@@ -33,7 +33,6 @@
     "Fluid time step":               0.0001,
     "Solid time step":               0.0001,
     "Maximum time step":             0.0001,
-    "End time":                      10.0,
     "Write frame per second":        20
   },
 

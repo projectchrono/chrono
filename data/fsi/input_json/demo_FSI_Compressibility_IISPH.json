@@ -28,7 +28,6 @@
   {
     "Fluid time step":               0.005,
     "Solid time step":               0.001,
-    "End time":                      20,
     "Write frame per second":        20
   },
 
