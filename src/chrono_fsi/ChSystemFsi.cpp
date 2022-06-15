@@ -140,8 +140,10 @@ void ChSystemFsi::InitParams() {
     //// RADU TODO
     //// material model
 
-    // Default: fluid dynamics
-    paramsH->elastic_SPH = false;
+    // Elastic SPH
+    ElasticMaterialProperties mat_props;
+    SetElasticSPH(mat_props);
+    paramsH->elastic_SPH = false; // default: fluid dynamics
 
     paramsH->use_default_limits = true;
     paramsH->use_init_pressure = false;
@@ -153,11 +155,11 @@ void ChSystemFsi::SetVerbose(bool verbose) {
     paramsH->verbose = verbose;
 }
 
-void ChSystemFsi::SetFluidSystemLinearSolver(ChFsiLinearSolver::SolverType lin_solver) {
+void ChSystemFsi::SetSPHLinearSolver(ChFsiLinearSolver::SolverType lin_solver) {
     paramsH->LinearSolver = lin_solver;
 }
 
-void ChSystemFsi::SetFluidDynamics(fluid_dynamics SPH_method, ChFsiLinearSolver::SolverType lin_solver) {
+void ChSystemFsi::SetSPHMethod(fluid_dynamics SPH_method, ChFsiLinearSolver::SolverType lin_solver) {
     paramsH->fluid_dynamic_type = SPH_method;
     paramsH->LinearSolver = lin_solver;
 }
@@ -247,6 +249,39 @@ void ChSystemFsi::SetWallBC(BceVersion wallBC) {
     paramsH->bceTypeWall = wallBC;
 }
 
+ChSystemFsi::ElasticMaterialProperties::ElasticMaterialProperties()
+    : Young_modulus(1e6),
+      Poisson_ratio(0.3),
+      stress(0),
+      viscosity_alpha(0.5),
+      viscosity_beta(0),
+      mu_I0(0.03),
+      mu_fric_s(0.7),
+      mu_fric_2(0.7),
+      average_diam(0.005),
+      friction_angle(CH_C_PI / 10),
+      dilation_angle(CH_C_PI / 10),
+      cohesion_coeff(0),
+      kernel_threshold(0.8) {}
+
+void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
+    paramsH->elastic_SPH = true;
+
+    paramsH->E_young = Real(mat_props.Young_modulus);
+    paramsH->Nu_poisson = Real(mat_props.Poisson_ratio);
+    paramsH->Ar_stress = Real(mat_props.stress);
+    paramsH->Ar_vis_alpha = Real(mat_props.viscosity_alpha);
+    paramsH->Ar_vis_beta = Real(mat_props.viscosity_beta);
+    paramsH->mu_I0 = Real(mat_props.mu_I0);
+    paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
+    paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);
+    paramsH->ave_diam = Real(mat_props.average_diam);
+    paramsH->Fri_angle = Real(mat_props.friction_angle);
+    paramsH->Dil_angle = Real(mat_props.dilation_angle);
+    paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
+    paramsH->C_Wi = Real(mat_props.kernel_threshold);
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes) {
@@ -270,9 +305,18 @@ void ChSystemFsi::SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) {
 
 void ChSystemFsi::Initialize() {
     // Calculate dependent quantities in the params structure
-
     if (paramsH->elastic_SPH) {
+        paramsH->G_shear = paramsH->E_young / (2.0 * (1.0 + paramsH->Nu_poisson));
+        paramsH->INV_G_shear = 1.0 / paramsH->G_shear;
+        paramsH->K_bulk = paramsH->E_young / (3.0 * (1.0 - 2.0 * paramsH->Nu_poisson));
         paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
+
+        Real sfri = std::sin(paramsH->Fri_angle);
+        Real cfri = std::cos(paramsH->Fri_angle);
+        Real sdil = std::sin(paramsH->Dil_angle);
+        paramsH->Q_FA = 6 * sfri / (sqrt(3) * (3 + sfri));
+        paramsH->Q_DA = 6 * sdil / (sqrt(3) * (3 + sdil));
+        paramsH->K_FA = 6 * paramsH->Coh_coeff * cfri / (sqrt(3) * (3 + sfri));
     } else {
         paramsH->Cs = 10 * paramsH->v_Max;
     }
@@ -298,7 +342,6 @@ void ChSystemFsi::Initialize() {
     }
 
     // Set up subdomains for faster neighbor particle search
-
     paramsH->NUM_BOUNDARY_LAYERS = 3;
     paramsH->Apply_BC_U = false;  // You should go to custom_math.h all the way to end of file and set your function
     int3 side0 = mI3((int)floor((paramsH->cMax.x - paramsH->cMin.x) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)),
@@ -321,7 +364,6 @@ void ChSystemFsi::Initialize() {
     paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);    
 
     // Resize worker data
-
     fsiInterface->ResizeChronoBodiesData();
     int fea_node = 0;
     fsiInterface->ResizeChronoCablesData(CableElementsNodes);
@@ -341,7 +383,6 @@ void ChSystemFsi::Initialize() {
     sysFSI.fsiBodiesD2 = sysFSI.fsiBodiesD1;  //(2) construct midpoint rigid data
 
     // Create BCE and SPH worker objects
-
     bceWorker = chrono_types::make_shared<ChBce>(sysFSI.sortedSphMarkersD, sysFSI.markersProximityD,
                                                  sysFSI.fsiGeneralData, paramsH, numObjectsH);
 
@@ -361,9 +402,7 @@ void ChSystemFsi::Initialize() {
     fluidDynamics->GetForceSystem()->SetLinearSolver(paramsH->LinearSolver);
 
     // Initialize worker objects
-
     bceWorker->Initialize(sysFSI.sphMarkersD1, sysFSI.fsiBodiesD1, sysFSI.fsiMeshD);
-
     fluidDynamics->Initialize();
     if (paramsH->verbose)
         cout << "referenceArraySize in fluid dynamics is " << sysFSI.fsiGeneralData->referenceArray.size() << endl;

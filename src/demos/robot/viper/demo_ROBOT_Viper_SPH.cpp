@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     fzDim = paramsH->fluidDimZ + smalldis;
 
     /// Setup the solver based on the input value of the prameters
-    myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
+    myFsiSystem.SetSPHMethod(paramsH->fluid_dynamic_type);
 
     /// Set the periodic boundary condition
     double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
@@ -200,8 +200,8 @@ int main(int argc, char* argv[]) {
     /// Create MBD and BCE particles for the solid domain
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
 
-    /// Construction of the FSI system must be finalized
-    myFsiSystem.Finalize();
+    // Complete construction of the FSI system
+    myFsiSystem.Initialize();
 
     /// Get the body from the FSI system for visualization
     std::vector<std::shared_ptr<ChBody>>& FSI_Bodies = myFsiSystem.GetFsiBodies();

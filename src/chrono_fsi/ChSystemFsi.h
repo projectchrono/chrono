@@ -55,6 +55,26 @@ class ChSystemFsi_impl;
 /// and data.
 class CH_FSI_API ChSystemFsi {
   public:
+    /// Structure with elastic material properties.
+    /// Used if solving an SPH continuum representation of granular dynamics.
+    struct ElasticMaterialProperties {
+        double Young_modulus;     ///< Young's modulus
+        double Poisson_ratio;     ///< Poisson’s ratio
+        double stress;            ///< Artifical stress
+        double viscosity_alpha;   ///< Artifical viscosity coefficient
+        double viscosity_beta;    ///< Artifical viscosity coefficient
+        double mu_I0;             ///< Reference Inertia number
+        double mu_fric_s;         ///< friction mu_s
+        double mu_fric_2;         ///< mu_2 constant in mu=mu(I)
+        double average_diam;      ///< average particle diameter
+        double friction_angle;    ///< Frictional angle of granular material
+        double dilation_angle;    ///< Dilate angle of granular material
+        double cohesion_coeff;    ///< Cohesion coefficient
+        double kernel_threshold;  ///< Threshold of the integration of the kernel function
+
+        ElasticMaterialProperties();
+    };
+
     /// Constructor for FSI system.
     ChSystemFsi(ChSystem& other_physicalSystem);
 
@@ -105,20 +125,25 @@ class CH_FSI_API ChSystemFsi {
     /// Set FSI integration step size.
     void SetStepSize(double dT, double dT_Flex = 0);
 
-    /// Gets the FSI mesh for flexible elements.
-    std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
+    /// Set SPH discretization type, consistent or inconsistent
+    void SetDiscreType(bool useGmatrix, bool useLmatrix);
+
+    /// Set wall boundary condition
+    void SetWallBC(BceVersion wallBC);
+
+    /// Set the linear system solver for implicit methods.
+    void SetSPHLinearSolver(ChFsiLinearSolver::SolverType lin_solver);
+
+    /// Set the SPH method and, optionally, the linear solver type.
+    void SetSPHMethod(fluid_dynamics SPH_method,
+                      ChFsiLinearSolver::SolverType lin_solver = ChFsiLinearSolver::SolverType::BICGSTAB);
+
+    /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
+    /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
+    void SetElasticSPH(const ElasticMaterialProperties mat_props);
 
     /// Set output directory for FSI data.
     void SetFsiOutputDir(std::string& demo_dir, std::string out_dir, std::string inputJson);
-
-    /// Return the SPH particle position.
-    std::vector<ChVector<>> GetParticlePosOrProperties();
-
-    /// Return the SPH particle velocity.
-    std::vector<ChVector<>> GetParticleVel();
-
-    /// Set SPH discretization type, consistent or inconsistent
-    void SetDiscreType(bool useGmatrix, bool useLmatrix);
 
     /// Set FSI information output
     void SetFsiInfoOutput(bool outputFsiInfo);
@@ -126,8 +151,8 @@ class CH_FSI_API ChSystemFsi {
     /// Set simulation data output length
     void SetOutputLength(int OutputLength);
 
-    /// Set wall boundary condition
-    void SetWallBC(BceVersion wallBC);
+    /// Set the FSI system output mode (default: NONE).
+    void SetParticleOutputMode(CHFSI_OUTPUT_MODE mode) { file_write_mode = mode; }
 
     /// Return the SPH kernel length of kernel function.
     float GetKernelLength() const;
@@ -150,16 +175,18 @@ class CH_FSI_API ChSystemFsi {
     /// Get current simulation time.
     double GetSimTime() const { return mTime; }
 
-    /// Set the linear system solver for implicit methods.
-    void SetFluidSystemLinearSolver(ChFsiLinearSolver::SolverType lin_solver);
+    /// Return the SPH particle position.
+    std::vector<ChVector<>> GetParticlePosOrProperties();
 
-    /// Set the SPH method to be used for fluid dynamics.
-    void SetFluidDynamics(fluid_dynamics SPH_method,
-                          ChFsiLinearSolver::SolverType lin_solver = ChFsiLinearSolver::SolverType::BICGSTAB);
+    /// Return the SPH particle velocity.
+    std::vector<ChVector<>> GetParticleVel();
 
     /// Get a reference to the FSI bodies.
     /// FSI bodies are the ones seen by the fluid dynamics system.
     std::vector<std::shared_ptr<ChBody>>& GetFsiBodies() { return fsiBodies; }
+
+    /// Return the FSI mesh for flexible elements.
+    std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
 
     /// Get a reference to the FSI ChElementCableANCF.
     /// FSI ChElementCableANCF are the ones seen by the fluid dynamics system.
@@ -184,18 +211,6 @@ class CH_FSI_API ChSystemFsi {
 
     /// Set the FSI mesh for flexible elements.
     void SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh);
-
-    /// Set the FSI system output mode (default: NONE).
-    void SetParticleOutputMode(CHFSI_OUTPUT_MODE mode) { file_write_mode = mode; }
-
-
-
-
-
-
-
-
-
 
     /// Complete construction of the FSI system (fluid and BDE objects).
     /// Use parameters read from JSON file and/or specified through various Set functions.

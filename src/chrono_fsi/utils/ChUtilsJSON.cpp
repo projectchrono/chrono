@@ -296,15 +296,12 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     // this part is for modeling granular material dynamics using elastic SPH
     if (doc.HasMember("Elastic SPH")) {
         paramsH->elastic_SPH = true;
+
         if (doc["Elastic SPH"].HasMember("Poisson ratio")) {
             paramsH->Nu_poisson = doc["Elastic SPH"]["Poisson ratio"].GetDouble();
         }
         if (doc["Elastic SPH"].HasMember("Young modulus")) {
-            paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();         // Young's modulus
-            paramsH->G_shear = paramsH->E_young / (2.0 * (1.0 + paramsH->Nu_poisson));  // shear modulus
-            paramsH->INV_G_shear = 1.0 / paramsH->G_shear;
-            paramsH->K_bulk = paramsH->E_young / (3.0 * (1.0 - 2.0 * paramsH->Nu_poisson));  // bulk modulus
-            paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
+            paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();
         }
         if (doc["Elastic SPH"].HasMember("Artificial stress")) {
             paramsH->Ar_stress = doc["Elastic SPH"]["Artificial stress"].GetDouble();
@@ -325,31 +322,19 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
             paramsH->mu_fric_2 = doc["Elastic SPH"]["mu_2"].GetDouble();
         }
         if (doc["Elastic SPH"].HasMember("particle diameter")) {
-            paramsH->ave_diam = doc["Elastic SPH"]["particle diameter"].GetDouble();  // average particle diameter
+            paramsH->ave_diam = doc["Elastic SPH"]["particle diameter"].GetDouble();
         }
         if (doc["Elastic SPH"].HasMember("frictional angle")) {
-            paramsH->Fri_angle =
-                doc["Elastic SPH"]["frictional angle"].GetDouble();  // frictional angle of granular material
+            paramsH->Fri_angle = doc["Elastic SPH"]["frictional angle"].GetDouble();
         }
         if (doc["Elastic SPH"].HasMember("dilate angle")) {
-            paramsH->Dil_angle = doc["Elastic SPH"]["dilate angle"].GetDouble();  // dilate angle of granular material
+            paramsH->Dil_angle = doc["Elastic SPH"]["dilate angle"].GetDouble();
         }
         if (doc["Elastic SPH"].HasMember("cohesion coefficient")) {
-            paramsH->Coh_coeff = doc["Elastic SPH"]["cohesion coefficient"].GetDouble();  // cohesion coefficient
-            paramsH->Q_FA =
-                6 * sin(paramsH->Fri_angle) /
-                (sqrt(3) * (3 + sin(paramsH->Fri_angle)));  // material constants calculate from frictional angle
-            paramsH->Q_DA =
-                6 * sin(paramsH->Dil_angle) /
-                (sqrt(3) * (3 + sin(paramsH->Dil_angle)));  // material constants calculate from dilate angle
-            paramsH->K_FA = 6 * paramsH->Coh_coeff * cos(paramsH->Fri_angle) /
-                            (sqrt(3) * (3 + sin(paramsH->Fri_angle)));  // material constants calculate from frictional
-                                                                        // angle and cohesion coefficient
+            paramsH->Coh_coeff = doc["Elastic SPH"]["cohesion coefficient"].GetDouble();
         }
         if (doc["Elastic SPH"].HasMember("kernel threshold"))
             paramsH->C_Wi = doc["Elastic SPH"]["kernel threshold"].GetDouble();
-    } else {
-        paramsH->elastic_SPH = false;
     }
 
     // Geometry Information

@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
     fzDim = paramsH->fluidDimZ;
 
     // Set the time integration type
-    myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
+    myFsiSystem.SetSPHMethod(paramsH->fluid_dynamic_type);
 
     // Set the periodic boundary condition (in X and Y direction)
     auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
@@ -181,8 +181,8 @@ int main(int argc, char* argv[]) {
     // Create Solid region and attach BCE SPH particles
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
 
-    // Construction of the FSI system must be finalized before running
-    myFsiSystem.Finalize();
+    // Complete construction of the FSI system
+    myFsiSystem.Initialize();
 
     // Start the simulation
     double time = 0;

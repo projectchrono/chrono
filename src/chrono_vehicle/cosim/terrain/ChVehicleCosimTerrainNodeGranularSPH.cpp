@@ -292,8 +292,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     m_params->cMax = chrono::fsi::mR3(bxDim / 2, byDim / 2, bzDim + 10 * initSpace0) * 10;
 
     // Set the time integration type and the linear solver type (only for ISPH)
-    m_systemFSI->SetFluidDynamics(m_params->fluid_dynamic_type);
-    m_systemFSI->SetFluidSystemLinearSolver(m_params->LinearSolver);
+    m_systemFSI->SetSPHMethod(m_params->fluid_dynamic_type);
+    m_systemFSI->SetSPHLinearSolver(m_params->LinearSolver);
 
     // Set boundary condition for the fixed wall
     m_systemFSI->SetWallBC(BceVersion::ORIGINAL);
@@ -476,7 +476,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
 // Once all proxy bodies are created, complete construction of the underlying FSI system.
 void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_tires) {
     ChVehicleCosimTerrainNodeChrono::OnInitialize(num_tires);
-    m_systemFSI->Finalize();
+    m_systemFSI->Initialize();
 }
 
 // Set state of wheel proxy body.

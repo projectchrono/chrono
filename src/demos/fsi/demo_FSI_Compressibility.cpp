@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     }
     myFsiSystem.SetSimParameter(inputJson, ChVector<>(bxDim, byDim, bzDim));
 
-    myFsiSystem.SetFluidDynamics();
+    myFsiSystem.SetSPHMethod();
 
     auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
     ChVector<> cMin = ChVector<>(-bxDim / 2, -byDim / 2, -bzDim / 2) - ChVector<>(initSpace0 * 20);
@@ -187,8 +187,8 @@ int main(int argc, char* argv[]) {
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
     myFsiSystem.SetInitPressure(fzDim);
 
-    // Construction of the FSI system must be finalized
-    myFsiSystem.Finalize();
+    // Complete construction of the FSI system
+    myFsiSystem.Initialize();
 
     SaveParaViewFilesMBD(myFsiSystem, mphysicalSystem, paramsH, 0, 0);
 

@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     }
     myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
 
-    myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
+    myFsiSystem.SetSPHMethod(paramsH->fluid_dynamic_type);
 
     ChVector<> cMin = ChVector<>(-bxDim, -byDim, -bzDim) - ChVector<>(paramsH->HSML * 5);
     ChVector<> cMax = ChVector<>(bxDim, byDim, 1.2 * bzDim) + ChVector<>(paramsH->HSML * 5);
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
 
     // ******************************* Create Solid region ****************************************
     Create_MB_FE(mphysicalSystem, myFsiSystem, paramsH);
-    myFsiSystem.Finalize();
+    myFsiSystem.Initialize();
     auto my_mesh = myFsiSystem.GetFsiMesh();
 
     double mTime = 0;

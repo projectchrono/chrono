@@ -312,7 +312,7 @@ int main(int argc, char* argv[]) {
     myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
 
     /// Set the time integration type
-    myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
+    myFsiSystem.SetSPHMethod(paramsH->fluid_dynamic_type);
 
     /// Setup sub doamins for a faster neighbor particle searching
     myFsiSystem.SetSubDomain(paramsH);
@@ -340,8 +340,8 @@ int main(int argc, char* argv[]) {
     /// Create MBD and BCE particles for the solid domain
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
 
-    /// Construction of the FSI system must be finalized before running
-    myFsiSystem.Finalize();
+    // Complete construction of the FSI system
+    myFsiSystem.Initialize();
 
     /// Set up integrator for the multi-body dynamics system
     mphysicalSystem.SetTimestepperType(ChTimestepper::Type::HHT);

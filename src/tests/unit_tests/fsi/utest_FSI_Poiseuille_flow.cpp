@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
 
     // Set up the solver based on the input value of the prameters
-    myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
+    myFsiSystem.SetSPHMethod(paramsH->fluid_dynamic_type);
 
     // Setup sub doamins for a faster neighbor particle searching
     myFsiSystem.SetSubDomain(paramsH);
@@ -154,8 +154,8 @@ int main(int argc, char* argv[]) {
     // Create SPH particles for the solid domain
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
 
-    // Finalize the setup before the simulation
-    myFsiSystem.Finalize();
+    // Complete construction of the FSI system
+    myFsiSystem.Initialize();
 
     double time = 0;
     int stepEnd = 200;
