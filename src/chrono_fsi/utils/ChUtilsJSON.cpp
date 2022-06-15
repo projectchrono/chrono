@@ -108,7 +108,6 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     if (doc.HasMember("Physical Properties of Fluid")) {
         if (doc["Physical Properties of Fluid"].HasMember("Density")){
             paramsH->rho0 = doc["Physical Properties of Fluid"]["Density"].GetDouble();
-            paramsH->invrho0 = 1.0 / paramsH->rho0;
         }
 
         if (doc["Physical Properties of Fluid"].HasMember("Solid Density"))
@@ -149,12 +148,10 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
 
         if (doc["SPH Parameters"].HasMember("Kernel h")){
             paramsH->HSML = doc["SPH Parameters"]["Kernel h"].GetDouble();
-            paramsH->INVHSML = 1.0 / paramsH->HSML;
         }
 
         if (doc["SPH Parameters"].HasMember("Initial Spacing")){
             paramsH->INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble();
-            paramsH->INV_INIT = 1.0 / paramsH->INITSPACE;
         }
 
         if (doc["SPH Parameters"].HasMember("Initial Spacing Solid"))
@@ -208,11 +205,12 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
 
         if (doc["Time Stepping"].HasMember("Fluid time step")){
             paramsH->dT = doc["Time Stepping"]["Fluid time step"].GetDouble();
-            paramsH->INV_dT = 1.0 / paramsH->dT;
         }
 
         if (doc["Time Stepping"].HasMember("Solid time step"))
             paramsH->dT_Flex = doc["Time Stepping"]["Solid time step"].GetDouble();
+        else
+            paramsH->dT_Flex = paramsH->dT;
 
         if (doc["Time Stepping"].HasMember("Maximum time step"))
             paramsH->dT_Max = doc["Time Stepping"]["Maximum time step"].GetDouble();
@@ -515,6 +513,19 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         paramsH->non_newtonian = false;
     }
     
+    // Calculate dependent parameters
+    paramsH->INVHSML = 1 / paramsH->HSML;
+    paramsH->INV_INIT = 1 / paramsH->INITSPACE;
+    paramsH->volume0 = cube(paramsH->INITSPACE);
+    paramsH->MULT_INITSPACE = paramsH->INITSPACE / paramsH->HSML;
+    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
+
+    paramsH->INV_dT = 1 / paramsH->dT;
+
+    paramsH->invrho0 = 1 / paramsH->rho0;
+    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
+
+    // Print information
     std::cout << "parameters of the simulation" << std::endl;
 
     std::cout << "paramsH->num_neighbors: " << paramsH->num_neighbors << std::endl;
