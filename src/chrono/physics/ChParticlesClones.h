@@ -46,9 +46,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     // Set the container
     void SetContainer(ChParticlesClones* mc) { container = mc; }
 
-    //
     // INTERFACE TO ChContactable
-    //
 
 	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
 
@@ -138,14 +136,10 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual ChPhysicsItem* GetPhysicsItem() override;
 
     // SERIALIZATION
-
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-    //
     // DATA
-    //
-
     ChParticlesClones* container;
     ChVariablesBodySharedMass variables;
     collision::ChCollisionModel* collision_model;
@@ -153,43 +147,13 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     ChVector<> UserTorque;
 };
 
-/// Class for clusters of 'clone' particles, that is many
-/// rigid objects with the same shape and mass.
-/// This can be used to make granular flows, where
-/// you have thousands of objects with the same shape.
-/// In fact, a single ChParticlesClones object can
-/// be more memory-efficient than many ChBody objects,
-/// because they share many features, such as mass and
-/// collision shape.
-/// If you have N different families of shapes in your
-/// granular simulations (ex. 50% of particles are large
-/// spheres, 25% are small spheres and 25% are polyhedrons)
-/// you can simply add three ChParticlesClones objects to the
-/// ChSystem. This would be more efficient anyway than
-/// creating all shapes as ChBody.
+/// Class for clusters of 'clone' particles, that is many rigid objects with the same shape and mass.
+/// This can be used to make granular flows, where you have thousands of objects with the same shape. In fact, a single
+/// ChParticlesClones object can be more memory-efficient than many ChBody objects, because they share many features,
+/// such as mass and collision shape. If you have N different families of shapes in your granular simulations (ex. 50%
+/// of particles are large spheres, 25% are small spheres and 25% are polyhedrons) you can simply add three
+/// ChParticlesClones objects to the ChSystem. This would be more efficient anyway than creating all shapes as ChBody.
 class ChApi ChParticlesClones : public ChIndexedParticles {
-
-  private:
-    std::vector<ChAparticle*> particles;  ///< the parricles
-
-    ChSharedMassBody particle_mass;  ///< shared mass of particles
-
-    collision::ChCollisionModel* particle_collision_model;  ///< sample collision model
-
-    std::shared_ptr<ChMaterialSurface> matsurface;  ///< data for surface contact and impact
-
-    bool do_collide;
-    bool do_limit_speed;
-    bool do_sleep;
-
-    float max_speed;  ///< limit on linear speed (useful for increased simulation speed)
-    float max_wvel;   ///< limit on angular vel. (useful for increased simulation speed)
-
-    float sleep_time;
-    float sleep_minspeed;
-    float sleep_minwvel;
-    float sleep_starttime;
-
   public:
     ChParticlesClones();
     ChParticlesClones(const ChParticlesClones& other);
@@ -204,17 +168,27 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     void SetCollide(bool mcoll);
     virtual bool GetCollide() const override { return do_collide; }
 
-    /// Trick. Set the maximum linear speed (beyond this limit it will
-    /// be clamped). This is useful in virtual reality and real-time
-    /// simulations, because it reduces the risk of bad collision detection.
-    /// The realism is limited, but the simulation is more stable.
+    /// Set the state of all particles in the cluster to 'fixed' (default: false).
+    /// If true, the particles do not move.
+    void SetFixed(bool state) { fixed = state; }
+
+    /// Return true if the particle cluster is currently active and thereofre included into the system solver.
+    /// A cluster is inactive if it is fixed to ground.
+    virtual bool IsActive() const override { return !fixed; }
+
+    /// Set the maximum linear speed (beyond this limit it will be clamped).
+    /// This is useful in virtual reality and real-time simulations, because it reduces the risk of bad collision
+    /// detection. The realism is limited, but the simulation is more stable.
     void SetLimitSpeed(bool mlimit) { do_limit_speed = mlimit; };
     bool GetLimitSpeed() const { return do_limit_speed; };
 
-    /// Get the number of particles
+    /// Get the number of particles.
     size_t GetNparticles() const override { return particles.size(); }
 
-    /// Access the N-th particle
+    /// Get all particles in the cluster.
+    std::vector<ChAparticle*> GetParticles() const { return particles; }
+
+    /// Access the N-th particle.
     ChParticleBase& GetParticle(unsigned int n) override {
         assert(n < particles.size());
         return *particles[n];
@@ -238,9 +212,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// Set the material surface for contacts
     std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
 
-    //
     // STATE FUNCTIONS
-    //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,
@@ -282,9 +254,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    //
     // SOLVER FUNCTIONS
-    //
 
     // Override/implement system functions of ChPhysicsItem
     // (to assemble/manage data for system solver)
@@ -369,21 +339,37 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     void SetSleepMinWvel(float m_t) { sleep_minwvel = m_t; }
     float GetSleepMinWvel() const { return sleep_minwvel; }
 
-    //
     // UPDATE FUNCTIONS
-    //
 
     /// Update all auxiliary data of the particles
     virtual void Update(double mytime, bool update_assets = true) override;
     /// Update all auxiliary data of the particles
     virtual void Update(bool update_assets = true) override;
 
-    //
     // SERIALIZATION
-    //
-
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    std::vector<ChAparticle*> particles;  ///< the parricles
+
+    ChSharedMassBody particle_mass;  ///< shared mass of particles
+
+    collision::ChCollisionModel* particle_collision_model;  ///< sample collision model
+
+    std::shared_ptr<ChMaterialSurface> matsurface;  ///< data for surface contact and impact
+
+    bool fixed;
+    bool do_collide;
+    bool do_limit_speed;
+
+    float max_speed;  ///< limit on linear speed (useful for increased simulation speed)
+    float max_wvel;   ///< limit on angular vel. (useful for increased simulation speed)
+
+    float sleep_time;
+    float sleep_minspeed;
+    float sleep_minwvel;
+    float sleep_starttime;
 };
 
 CH_CLASS_VERSION(ChParticlesClones,0)

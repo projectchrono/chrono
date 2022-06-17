@@ -222,7 +222,7 @@ CH_FACTORY_REGISTER(ChParticlesClones)
 ChParticlesClones::ChParticlesClones()
     : do_collide(false),
       do_limit_speed(false),
-      do_sleep(false),
+      fixed(false),
       max_speed(0.5f),
       max_wvel((float)CH_C_2PI),
       sleep_time(0.6f),
@@ -245,7 +245,6 @@ ChParticlesClones::ChParticlesClones()
 
 ChParticlesClones::ChParticlesClones(const ChParticlesClones& other) : ChIndexedParticles(other) {
     do_collide = other.do_collide;
-    do_sleep = other.do_sleep;
     do_limit_speed = other.do_limit_speed;
 
     SetMass(other.GetMass());
@@ -466,8 +465,8 @@ void ChParticlesClones::IntFromDescriptor(const unsigned int off_v,  // offset i
 }
 
 void ChParticlesClones::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    // variables.SetDisabled(!IsActive());
     for (unsigned int j = 0; j < particles.size(); j++) {
+        particles[j]->variables.SetDisabled(!IsActive());
         mdescriptor.InsertVariables(&(particles[j]->variables));
     }
 }
@@ -528,8 +527,8 @@ void ChParticlesClones::VariablesQbSetSpeed(double step) {
 }
 
 void ChParticlesClones::VariablesQbIncrementPosition(double dt_step) {
-    // if (!IsActive())
-    //	return;
+     if (!IsActive())
+    	return;
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         // Updates position with incremental action of speed contained in the
@@ -694,7 +693,6 @@ void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(matsurface);
     marchive << CHNVP(do_collide);
     marchive << CHNVP(do_limit_speed);
-    marchive << CHNVP(do_sleep);
     marchive << CHNVP(max_speed);
     marchive << CHNVP(max_wvel);
     marchive << CHNVP(sleep_time);
@@ -720,7 +718,6 @@ void ChParticlesClones::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(matsurface);
     marchive >> CHNVP(do_collide);
     marchive >> CHNVP(do_limit_speed);
-    marchive >> CHNVP(do_sleep);
     marchive >> CHNVP(max_speed);
     marchive >> CHNVP(max_wvel);
     marchive >> CHNVP(sleep_time);
