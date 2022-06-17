@@ -30,7 +30,7 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
-#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChParticleCloud.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"

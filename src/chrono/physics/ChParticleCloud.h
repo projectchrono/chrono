@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHPARTICLESCLONES_H
-#define CHPARTICLESCLONES_H
+#ifndef CH_PARTICLE_CLOUD_H
+#define CH_PARTICLE_CLOUD_H
 
 #include <cmath>
 
@@ -26,9 +26,9 @@ namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
 class ChSystem;
-class ChParticlesClones;
+class ChParticleCloud;
 
-/// Class for a single particle clone in the ChParticlesClones cluster.
+/// Class for a single particle clone in the ChParticleCloud cluster.
 /// It does not define mass, inertia and shape because those are _shared_ among them.
 class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
   public:
@@ -42,9 +42,9 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual ChVariables& Variables() override { return variables; }
 
     // Get the container
-    ChParticlesClones* GetContainer() const { return container; }
+    ChParticleCloud* GetContainer() const { return container; }
     // Set the container
-    void SetContainer(ChParticlesClones* mc) { container = mc; }
+    void SetContainer(ChParticleCloud* mc) { container = mc; }
 
     // INTERFACE TO ChContactable
 
@@ -140,7 +140,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
     // DATA
-    ChParticlesClones* container;
+    ChParticleCloud* container;
     ChVariablesBodySharedMass variables;
     collision::ChCollisionModel* collision_model;
     ChVector<> UserForce;
@@ -149,18 +149,18 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 
 /// Class for clusters of 'clone' particles, that is many rigid objects with the same shape and mass.
 /// This can be used to make granular flows, where you have thousands of objects with the same shape. In fact, a single
-/// ChParticlesClones object can be more memory-efficient than many ChBody objects, because they share many features,
+/// ChParticleCloud object can be more memory-efficient than many ChBody objects, because they share many features,
 /// such as mass and collision shape. If you have N different families of shapes in your granular simulations (ex. 50%
 /// of particles are large spheres, 25% are small spheres and 25% are polyhedrons) you can simply add three
-/// ChParticlesClones objects to the ChSystem. This would be more efficient anyway than creating all shapes as ChBody.
-class ChApi ChParticlesClones : public ChIndexedParticles {
+/// ChParticleCloud objects to the ChSystem. This would be more efficient anyway than creating all shapes as ChBody.
+class ChApi ChParticleCloud : public ChIndexedParticles {
   public:
-    ChParticlesClones();
-    ChParticlesClones(const ChParticlesClones& other);
-    ~ChParticlesClones();
+    ChParticleCloud();
+    ChParticleCloud(const ChParticleCloud& other);
+    ~ChParticleCloud();
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChParticlesClones* Clone() const override { return new ChParticlesClones(*this); }
+    virtual ChParticleCloud* Clone() const override { return new ChParticleCloud(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
     /// before anim starts (it is not automatically
@@ -372,7 +372,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     float sleep_starttime;
 };
 
-CH_CLASS_VERSION(ChParticlesClones,0)
+CH_CLASS_VERSION(ChParticleCloud,0)
 
 }  // end namespace chrono
 
