@@ -247,10 +247,11 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
                     computed_custom_F_full,  //< compute F here, size= n_boundary_coords_w + n_internal_coords_w
                 const ChModalAssembly& link  ///< associated modal assembly
             ) {
-                computed_custom_F_full
-                    .setZero();  // remember! assume F vector is already properly sized, but not zeroed!
-                computed_custom_F_full[computed_custom_F_full.size() - 16] =
-                    -60;  // just for test, assign a force to a random coordinate of F, here an internal node
+                // remember! assume F vector is already properly sized, but not zeroed!
+                computed_custom_F_full.setZero();  
+
+                // just for test, assign a force to a random coordinate of F, here an internal node
+                computed_custom_F_full[computed_custom_F_full.size() - 16] = -60;  
             }
         };
         auto my_callback = chrono_types::make_shared<MyCallback>();
@@ -267,9 +268,9 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // HERE PERFORM THE MODAL REDUCTION!
 
         my_assembly->SwitchModalReductionON(
-            6,  // The number of modes to retain from modal reduction
-            ChModalDampingRayleigh(0.01,
-                                   0.05)  // The damping model - Optional parameter: default is ChModalDampingNone().
+            6,  // The number of modes to retain from modal reduction, or a ChModalSolveUndamped with more settings
+            ChModalDampingRayleigh(0.001,
+                0.005)  // The damping model - Optional parameter: default is ChModalDampingNone().
         );
 
         // Other types of damping that you can try, in SwitchModalReductionON:
@@ -294,15 +295,27 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // Use this for high simulation performance (the internal nodes won't be updated for postprocessing)
         // my_assembly->SetInternalNodesUpdate(false);
 
-        // Finally, log damped eigenvalue analysis to see the effect of the modal damping
-        my_assembly->ComputeModesDamped(0);
+        // Finally, log damped eigenvalue analysis to see the effect of the modal damping (0= search ALL damped modes)
+        my_assembly->ComputeModesDamped(0); 
 
         for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
             GetLog() << " Damped mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i)
-                     << "   damping factor z: " << my_assembly->Get_modes_damping_ratios()(i) << "\n";
+            << "   damping factor z: " << my_assembly->Get_modes_damping_ratios()(i) << "\n";
 
         // Finally, check if we approximately have the same eigenmodes of the original not reduced assembly:
         my_assembly->ComputeModes(12);
+       
+        // If you need to enter more detailed settings for the eigenvalue solver, do this : 
+        /*
+        my_assembly->ComputeModes(ChModalSolveUndamped(
+            12,             // n. nodes to search
+            1e-5,           // base freq.
+            500,            // max iterations
+            1e-10,          // tolerance
+            false,          // verbose
+            ChGeneralizedEigenvalueSolverKrylovSchur()) // solver type
+        );
+        */
 
         for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
             GetLog() << " Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) << "\n";
@@ -311,7 +324,17 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // Otherwise we perform a conventional modal analysis on the full ChModalAssembly.
         my_assembly->ComputeModes(12);
 
-        // Just for logging the frequencies:
+        // If you need to focus on modes in specific frequency regions, use {nmodes, about_freq} pairs as in : 
+        /*
+        my_assembly->ComputeModes(ChModalSolveUndamped(
+            { { 8, 1e-3 },{2, 2.5} },   // 8 smallest freq.modes, plus 2 modes closest to 2.5 Hz
+            500,                        // max iterations per each {modes,freq} pair
+            1e-10,                      // tolerance
+            false,                      // verbose
+            ChGeneralizedEigenvalueSolverKrylovSchur()) //  solver type
+        );
+        */
+
         for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
             GetLog() << " Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) << "\n";
     }

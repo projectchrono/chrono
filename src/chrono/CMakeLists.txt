@@ -126,7 +126,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChSystemSMC.cpp
     physics/ChController.cpp
     physics/ChPhysicsItem.cpp
-    physics/ChParticlesClones.cpp
+    physics/ChParticleCloud.cpp
     physics/ChIndexedParticles.cpp
     physics/ChIndexedNodes.cpp
     physics/ChNodeBase.cpp
@@ -153,7 +153,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChNodeBase.h
     physics/ChNodeXYZ.h
     physics/ChObject.h
-    physics/ChParticlesClones.h
+    physics/ChParticleCloud.h
     physics/ChPhysicsItem.h
     physics/ChProximityContainer.h
     physics/ChProximityContainerSPH.h
@@ -596,7 +596,7 @@ source_group(geometry FILES
 # Asset group
 
 set(ChronoEngine_assets_SOURCES
-    assets/ChObjShapeFile.cpp
+    assets/ChObjFileShape.cpp
     assets/ChTriangleMeshShape.cpp
     assets/ChSphereShape.cpp
     assets/ChEllipsoidShape.cpp
@@ -623,7 +623,7 @@ set(ChronoEngine_assets_SOURCES
     )
 
 set(ChronoEngine_assets_HEADERS
-    assets/ChObjShapeFile.h
+    assets/ChObjFileShape.h
     assets/ChTriangleMeshShape.h
     assets/ChSphereShape.h
     assets/ChEllipsoidShape.h

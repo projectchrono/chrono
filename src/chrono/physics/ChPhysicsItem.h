@@ -96,6 +96,9 @@ class ChApi ChPhysicsItem : public ChObj {
     // INTERFACES
     // inherited classes might/should implement some of the following functions
 
+    /// Return true if the object is active and included in dynamics.
+    virtual bool IsActive() const { return true; }
+
     // Collisions - override these in child classes if needed
 
     /// Tell if the object is subject to collision.

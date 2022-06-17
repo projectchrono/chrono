@@ -944,7 +944,7 @@ void drawProfilerRecursive(utils::ChProfileIterator* profileIterator,
     ypos += 20;
 }
 
-/// Draw run-time profiler infos
+// Draw run-time profiler infos
 void drawProfiler(ChVisualSystemIrrlicht* vis) {
     int mx = 230;
     int my = 30;
@@ -958,6 +958,18 @@ void drawProfiler(ChVisualSystemIrrlicht* vis) {
     drawProfilerRecursive(profileIterator, vis->GetDevice(), mx, my, sx, sy, 0, ypos);
 
     utils::ChProfileManager::Release_Iterator(profileIterator);
+}
+
+// Draw RGB coordinate system
+void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord, double scale) {
+    ChVector<> pos = coord.pos;
+    ChQuaternion<> rot = coord.rot;
+    // X axis
+    drawSegment(vis, pos, pos + rot.Rotate(VECT_X) * scale, ChColor(1, 0, 0));
+    // Y axis
+    drawSegment(vis, pos, pos + rot.Rotate(VECT_Y) * scale, ChColor(0, 1, 0));
+    // Z axis
+    drawSegment(vis, pos, pos + rot.Rotate(VECT_Z) * scale, ChColor(0, 0, 1));
 }
 
 }  // end namespace tools

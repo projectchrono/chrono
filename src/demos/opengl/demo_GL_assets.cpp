@@ -23,17 +23,21 @@
 #include "chrono/geometry/ChSurfaceNurbs.h"
 #include "chrono/assets/ChSurfaceShape.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChPathShape.h"
+#include "chrono/assets/ChObjFileShape.h"
+
+#include "chrono_opengl/ChOpenGLWindow.h"
 
 // Use the namespace of Chrono
 using namespace chrono;
 using namespace chrono::geometry;
-using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a Chrono system
     ChSystemNSC sys;
 
     //
@@ -41,7 +45,6 @@ int main(int argc, char* argv[]) {
     //
 
     // Create a ChBody, and attach assets that define 3D shapes for visualization purposes.
-    // Note: these assets are independent from collision shapes!
 
     // Create a rigid body and add it to the physical system:
     auto floor = chrono_types::make_shared<ChBody>();
@@ -56,7 +59,6 @@ int main(int argc, char* argv[]) {
     floor->GetCollisionModel()->BuildModel();
     floor->SetCollide(true);
 
-    // Add body to system
     sys.Add(floor);
 
     // ==Asset== attach a 'box' shape.
@@ -174,14 +176,12 @@ int main(int argc, char* argv[]) {
     // EXAMPLE 3:
     //
 
-    // Create a ChParticleClones cluster, and attach 'assets'
-    // that define a single "sample" 3D shape. This will be shown
-    // N times in Irrlicht.
-    //***NOTE*** This crashes with Irrlicht 1.8 , it is ok with 1.7.x and 1.8.1 + ,
+    // Create a ChParticleClones cluster, and attach 'assets' that define a single "sample" 3D shape
 
-    // Create the ChParticleClones, populate it with some random particles,
-    // and add it to physical system:
+    // Create the ChParticleClones, populate it with some random particles
     auto particles = chrono_types::make_shared<ChParticleCloud>();
+
+    ////particles->SetFixed(true);
 
     // Note: the collision shape, if needed, must be specified before creating particles.
     // This will be shared among all particles in the ChParticleCloud.
@@ -194,20 +194,19 @@ int main(int argc, char* argv[]) {
 
     // Create the random particles
     for (int np = 0; np < 100; ++np)
-        particles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1.5, ChRandom() + 2)));
+        particles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 0.5, ChRandom() + 2)));
 
     // Mass and inertia properties.
     // This will be shared among all particles in the ChParticleCloud.
     particles->SetMass(0.1);
     particles->SetInertiaXX(ChVector<>(0.001, 0.001, 0.001));
 
-    // Do not forget to add the particle cluster to the system:
     sys.Add(particles);
 
     //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
     // shape to display all particles when rendering in 3D!
     auto sphereparticle = chrono_types::make_shared<ChSphereShape>();
-    sphereparticle->GetSphereGeometry().rad = 0.05;
+    sphereparticle->GetSphereGeometry().rad = 0.1;
     particles->AddVisualShape(sphereparticle);
 
     ChVector<> displ(1, 0.0, 0);
@@ -220,31 +219,24 @@ int main(int argc, char* argv[]) {
     points.push_back(ChVector<>(0.8, 0.0, 0.3) + displ);
     auto hull = chrono_types::make_shared<ChBodyEasyConvexHullAuxRef>(
         points, 1000, true, true, chrono_types::make_shared<ChMaterialSurfaceNSC>());
-    ////hull->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(2,0.3,0)));
-    ////hull->SetPos(ChVector<>(2,0.3,0));
     hull->Move(ChVector<>(2, 0.3, 0));
     sys.Add(hull);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    sys.SetVisualSystem(vis);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Chrono::Irrlicht visualization");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(-2, 3, -4));
-    vis->AddTypicalLights();
+    // Create the OpenGL visualization system
+    auto& gl_window = opengl::ChOpenGLWindow::getInstance();
+    gl_window.Initialize(1600, 900, "OpenGL meshes", &sys);
+    gl_window.SetCamera(ChVector<>(-2.0, 3.0, -4.0), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0));
 
-    // Rendering loop
-    while (vis->Run()) {
-        vis->BeginScene();
-        vis->DrawAll();
-        irrlicht::tools::drawGrid(vis.get(), 0.5, 0.5, 12, 12,
-                                  ChCoordsys<>(ChVector<>(0, -0.5, 0), Q_from_AngX(CH_C_PI_2)),
-                                  ChColor(0.31f, 0.43f, 0.43f), true);
-        vis->EndScene();
-        sys.DoStepDynamics(0.01);
+    gl_window.SetRenderMode(opengl::SOLID);
+    gl_window.SetParticleRenderMode(0.05f, opengl::POINTS);
+    ////gl_window.SetParticleRenderMode(0.1f, opengl::SOLID);
+
+    double step = 0.01;
+    while (gl_window.Active()) {
+        if (gl_window.Running()) {
+            sys.DoStepDynamics(step);
+        }
+        gl_window.Render();
     }
 
     return 0;

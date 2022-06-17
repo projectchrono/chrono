@@ -750,7 +750,7 @@ bool ChBody::GetSleeping() const {
     return BFlagGet(BodyFlag::SLEEPING);
 }
 
-bool ChBody::IsActive() {
+bool ChBody::IsActive() const {
     return !BFlagGet(BodyFlag::SLEEPING) && !BFlagGet(BodyFlag::FIXED);
 }
 

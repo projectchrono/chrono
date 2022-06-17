@@ -11,7 +11,7 @@
 // =============================================================================
 
 #include "chrono/core/ChLog.h"
-#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChParticleCloud.h"
 #include "chrono_irrlicht/ChIrrNodeModel.h"
 #include "chrono_irrlicht/ChIrrNodeShape.h"
 
@@ -29,7 +29,7 @@ ChIrrNodeModel::ChIrrNodeModel(std::weak_ptr<ChPhysicsItem> physicsitem,
     setDebugName("ChIrrNodeModel");
 #endif
 
-    m_clones = (std::dynamic_pointer_cast<ChParticlesClones>(m_physicsitem.lock()) != nullptr);
+    m_clones = (std::dynamic_pointer_cast<ChParticleCloud>(m_physicsitem.lock()) != nullptr);
 }
 
 void ChIrrNodeModel::OnRegisterSceneNode() {

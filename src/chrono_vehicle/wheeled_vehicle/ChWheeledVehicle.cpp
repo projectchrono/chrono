@@ -425,7 +425,10 @@ void ChWheeledVehicle::LogSubsystemTypes() {
             GetLog() << "  Antiroll bar: " << m_axles[i]->m_brake_left->GetTemplateName().c_str() << "\n";
         if (m_axles[i]->m_brake_left)
             GetLog() << "  Brake:        " << m_axles[i]->m_brake_left->GetTemplateName().c_str() << "\n";
-        GetLog() << "  Tire:         " << GetTire(i, LEFT)->GetTemplateName().c_str() << "\n";
+        if (m_axles[i]->m_wheels.size() == 2)
+            GetLog() << "  Tire:         " << GetTire(i, LEFT, SINGLE)->GetTemplateName().c_str() << "\n";
+        else
+            GetLog() << "  Tire:         " << GetTire(i, LEFT, INNER)->GetTemplateName().c_str() << "\n";
     }
 }
 

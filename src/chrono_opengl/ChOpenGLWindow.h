@@ -107,6 +107,11 @@ class CH_OPENGL_API ChOpenGLWindow {
 
     void SetRenderMode(RenderMode mode) { viewer->render_mode = mode; }
 
+    void SetParticleRenderMode(float radius, RenderMode mode) {
+        viewer->particle_radius = radius;
+        viewer->particle_render_mode = mode;
+    }
+
     /// Provides the version of the OpenGL context along with driver information.
     static void GLFWGetVersion(GLFWwindow* main_window  ///< A pointer to the window/context
     );

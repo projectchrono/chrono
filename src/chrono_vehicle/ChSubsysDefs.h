@@ -24,6 +24,7 @@
 
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChMaterialSurface.h"
 #include "chrono/physics/ChLinkRSDA.h"
@@ -724,11 +725,12 @@ class CH_VEHICLE_API ChVehicleGeometry {
         int m_matID;           ///< index in contact material list
     };
 
+    /// Line shape for visualization.
     struct LineShape {
         LineShape(const ChVector<>& pos, const ChQuaternion<>& rot, std::shared_ptr<geometry::ChLine> line)
             : m_pos(pos), m_rot(rot), m_line(line) {}
-        ChVector<> m_pos;                              ///< position relative to body
-        ChQuaternion<> m_rot;                          ///< orientation relative to body
+        ChVector<> m_pos;                          ///< position relative to body
+        ChQuaternion<> m_rot;                      ///< orientation relative to body
         std::shared_ptr<geometry::ChLine> m_line;  ///< line data
     };
 
@@ -768,6 +770,7 @@ class CH_VEHICLE_API ChVehicleGeometry {
     ChColor m_color_spheres;    ///< visualization color
     ChColor m_color_cylinders;  ///< visualization color
 
+    bool m_has_obj;               ///< true if the body uses visualization from an OBJ
     bool m_has_mesh;              ///< true if the body uses a visualization mesh
     std::string m_vis_mesh_file;  ///< name of Wavefront OBJ file with visualizaiton mesh
 

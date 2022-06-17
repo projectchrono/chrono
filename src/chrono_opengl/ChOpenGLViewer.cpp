@@ -36,6 +36,8 @@
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
 
+#include "chrono/physics/ChParticleCloud.h"
+
 // Includes are generated at compile time!
 #include "resources/phong_frag.h"
 #include "resources/phong_vert.h"
@@ -82,7 +84,9 @@ ChOpenGLViewer::ChOpenGLViewer(ChSystem* system) {
     view_grid = 0;
     view_info = 0;
     use_vsync = 0;
-    render_mode = POINTS;
+    render_mode = SOLID;
+    particle_render_mode = POINTS;
+    particle_radius = 0.1f;
     time_total = old_time = current_time = 0;
     time_text = time_geometry = 0;
     fps = 0;
@@ -151,6 +155,8 @@ bool ChOpenGLViewer::Initialize() {
     mpm_grid.Initialize(grid_data, white, &cloud_shader);
     mpm_node.Initialize(cloud_data, white, &cloud_shader);
     line_path.Initialize(line_path_data, red, &cloud_shader);
+
+    particles.Initialize(cloud_data, cadet_blue, &sphere_shader);
 
     fea_nodes.Initialize(fea_node_data, fea_color, &dot_shader);
     fea_elements.Initialize(fea_element_data, fea_color, &cloud_shader);
@@ -265,6 +271,8 @@ void ChOpenGLViewer::Render(bool render_hud) {
 
         RenderFluid();
         RenderFEA();
+
+        RenderParticles();
 
         RenderGrid();
         RenderAABB();
@@ -542,6 +550,7 @@ void ChOpenGLViewer::RenderAABB() {
 
 #endif
 }
+
 void ChOpenGLViewer::RenderFluid() {
 #ifdef CHRONO_MULTICORE
     ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system);
@@ -574,6 +583,35 @@ void ChOpenGLViewer::RenderFluid() {
     glm::mat4 model(1);
     fluid.Draw(projection, view * model);
 #endif
+}
+
+void ChOpenGLViewer::RenderParticles() {
+    // Render the first ChParticleClones object that has a visual model attached
+    for (auto& item : physics_system->Get_otherphysicslist()) {
+        if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
+            if (!pcloud->GetVisualModel())
+                continue;
+
+            if (render_mode != SOLID || particle_render_mode == POINTS)
+                particles.AttachShader(&dot_shader);
+            else
+                particles.AttachShader(&sphere_shader);
+
+            particle_data.resize(pcloud->GetNparticles());
+            for (int i = 0; i < pcloud->GetNparticles(); i++) {
+                const auto& pos = pcloud->GetVisualModelFrame(i).GetPos();
+                particle_data[i] = glm::vec3(pos.x(), pos.y(), pos.z());
+            }
+
+            particles.SetPointSize(particle_radius);
+
+            particles.Update(particle_data);
+            glm::mat4 model(1);
+            particles.Draw(projection, view * model);
+
+            break;
+        }
+    }
 }
 
 void ChOpenGLViewer::RenderFEA() {
