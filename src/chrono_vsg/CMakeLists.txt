@@ -32,6 +32,8 @@ SET(CE_VSG_CORE_FILES
 SET(CE_VSG_SHAPES_FILES
     shapes/GetBoxShapeData.cpp
     shapes/GetBoxShapeData.h
+    shapes/GetCylinderShapeData.cpp
+    shapes/GetCylinderShapeData.h
     shapes/GetSphereShapeData.cpp
     shapes/GetSphereShapeData.h
     shapes/ShapeBuilder.cpp

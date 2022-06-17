@@ -29,7 +29,7 @@ namespace chrono {
 namespace vsg3d {
 class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
   public:
-    typedef enum { BOX_SHAPE, SPHERE_SHAPE } BasicShape;
+    typedef enum { BOX_SHAPE, SPHERE_SHAPE, CYLINDER_SHAPE } BasicShape;
     vsg::ref_ptr<vsg::Options> m_options;
     vsg::ref_ptr<vsg::SharedObjects> m_sharedObjects;
 

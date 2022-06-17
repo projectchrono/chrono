@@ -15,6 +15,7 @@
 #include "ShapeBuilder.h"
 #include "GetBoxShapeData.h"
 #include "GetSphereShapeData.h"
+#include "GetCylinderShapeData.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -102,6 +103,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
             break;
         case SPHERE_SHAPE:
             GetSphereShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case CYLINDER_SHAPE:
+            GetCylinderShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
             break;
     }
     auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});

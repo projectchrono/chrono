@@ -21,6 +21,8 @@
 #include "chrono_vsg/tools/createQuad.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChCylinderShape.h"
 #include "ChVisualSystemVSG.h"
 #include "chrono_thirdparty/stb/stb_image_write.h"
 #include "chrono_thirdparty/stb/stb_image_resize.h"
@@ -619,8 +621,8 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                m_scenegraph->addChild(
-                    m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, body, shape_instance, material, transform, m_draw_as_wireframe));
+                m_scenegraph->addChild(m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, body, shape_instance,
+                                                                   material, transform, m_draw_as_wireframe));
             } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
                 GetLog() << "... has a sphere shape\n";
                 ChVector<> scale = sphere->GetSphereGeometry().rad;
@@ -628,8 +630,45 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                m_scenegraph->addChild(
-                    m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, body, shape_instance, material, transform, m_draw_as_wireframe));
+                m_scenegraph->addChild(m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, body, shape_instance,
+                                                                   material, transform, m_draw_as_wireframe));
+            } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
+                GetLog() << "... has a ellipsoid shape\n";
+                ChVector<> scale = ellipsoid->GetEllipsoidGeometry().rad;
+                auto transform = vsg::MatrixTransform::create();
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                        vsg::scale(scale.x(), scale.y(), scale.z());
+                m_scenegraph->addChild(m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, body, shape_instance,
+                        material, transform, m_draw_as_wireframe));
+            } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+                GetLog() << "... has a cylinder shape\n";
+                double rad = cylinder->GetCylinderGeometry().rad;
+                const auto& P1 = cylinder->GetCylinderGeometry().p1;
+                const auto& P2 = cylinder->GetCylinderGeometry().p2;
+
+                ChVector<> dir = P2 - P1;
+                double height = dir.Length();
+                dir.Normalize();
+                ChVector<> mx, my, mz;
+                dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
+                ChMatrix33<> R_CS;
+                R_CS.Set_A_axis(mx, my, mz);
+
+                auto t_CS = 0.5 * (P2 + P1);
+                ChFrame<> X_CS(t_CS, R_CS);
+                ChFrame<> X_CA = X_SA * X_CS;
+
+                pos = X_CA.GetPos();
+                rot = X_CA.GetRot();
+                rot.Q_to_AngAxis(rotAngle, rotAxis);
+
+                auto transform = vsg::MatrixTransform::create();
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                    vsg::scale(rad, height, rad);
+                m_scenegraph->addChild(m_shapeBuilder->createShape(ShapeBuilder::CYLINDER_SHAPE, body, shape_instance,
+                                                                   material, transform, m_draw_as_wireframe));
             }
         }
     }
@@ -687,6 +726,39 @@ void ChVisualSystemVSG::OnUpdate() {
             // ChVector<> size(radius, radius, radius);
             vsg::dvec3 size(radius, radius, radius);
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+        } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
+            ChVector<> radius = ellipsoid->GetEllipsoidGeometry().rad;
+            // ChVector<> size(radius, radius, radius);
+            vsg::dvec3 size(radius.x(), radius.y(), radius.z());
+            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+        } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+            double radius = cylinder->GetCylinderGeometry().rad;
+            double rad = cylinder->GetCylinderGeometry().rad;
+            const auto& P1 = cylinder->GetCylinderGeometry().p1;
+            const auto& P2 = cylinder->GetCylinderGeometry().p2;
+
+            ChVector<> dir = P2 - P1;
+            double height = dir.Length();
+            dir.Normalize();
+            ChVector<> mx, my, mz;
+            dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
+            ChMatrix33<> R_CS;
+            R_CS.Set_A_axis(mx, my, mz);
+
+            auto t_CS = 0.5 * (P2 + P1);
+            ChFrame<> X_CS(t_CS, R_CS);
+            ChFrame<> X_CA = X_SA * X_CS;
+
+            auto pos = X_CA.GetPos();
+            rot = X_CA.GetRot();
+            double rotAngle;
+            ChVector<> rotAxis;
+            rot.Q_to_AngAxis(rotAngle, rotAxis);
+
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                vsg::scale(rad, height, rad);
         }
     }
 }
