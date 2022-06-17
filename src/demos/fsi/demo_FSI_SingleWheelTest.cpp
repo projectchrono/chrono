@@ -548,7 +548,7 @@ int main(int argc, char* argv[]) {
         fsi_vis.SetTitle("Chrono::FSI single wheel demo");
         fsi_vis.SetCameraPosition(ChVector<>(0, -5 * byDim, 5 * bzDim), ChVector<>(0, 0, 0));
         fsi_vis.SetCameraMoveScale(1.0f);
-        fsi_vis.EnableBoundaryMarkers(true);
+        fsi_vis.EnableBoundaryMarkers(false);
         fsi_vis.Initialize();
     }
 

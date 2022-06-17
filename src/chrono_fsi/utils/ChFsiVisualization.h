@@ -17,6 +17,7 @@
 #include <string>
 
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChParticleCloud.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChSystemFsi.h"
@@ -95,7 +96,8 @@ class CH_FSI_API ChFsiVisualization {
     bool m_rigid_bce_markers;  ///< render rigid-body BCE markers?
     bool m_bndry_bce_markers;  ///< render boundary BCE markers?
 
-    unsigned int m_part_start_index;  ///< start index of particles in m_system's body list
+    std::shared_ptr<ChParticleCloud> m_particles;  ///< particle cloud proxy for SPH markers
+    unsigned int m_bce_start_index;                ///< start index of BCE proxy bodies in m_system's body list
 
     std::string m_title;      ///< visualization window title
     ChVector<> m_cam_pos;     ///< current camera position
