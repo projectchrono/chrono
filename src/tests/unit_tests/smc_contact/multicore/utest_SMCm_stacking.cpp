@@ -18,7 +18,9 @@
 // =============================================================================
 
 #include "gtest/gtest.h"
-#include "./utest_SMCm.h"
+
+#define SMC_MULTICORE
+#include "../utest_SMC.h"
 
 // Test system parameterized by SMC contact force model
 class StackingTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceModel> {
