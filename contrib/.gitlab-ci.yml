@@ -363,7 +363,7 @@ linux:almalinux:test:
   - windows11
   before_script:
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1"'
-  - $env:CONDA_INSTALL_LOCN= "C:\Users\builder\miniconda3"
+  - $env:CONDA_INSTALL_LOCN="C:\Users\builder\miniconda3"
   - echo $CI_PROJECT_DIR
   - git submodule init
   - git submodule update
@@ -456,14 +456,14 @@ windows:vs2019:deploy:
     #- conda install --yes -c conda-forge glew glfw irrlicht swig=4.0.2  
     #- conda install -c dlr-sc opencascade --yes
     - conda build purge-all timeout /t 240
-    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc --python=3.10 --no-remove-work-dir
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
+    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.10 --no-remove-work-dir
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\envs\build-env\conda-bld\win-64\pychrono*.bz2 --force --label develop >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
     - conda build purge-all  timeout /t 240
-    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc --python=3.8 --no-remove-work-dir
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
+    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.8 --no-remove-work-dir
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\envs\build-env\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
     - conda build purge  timeout /t 240
-    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc --python=3.6 --no-remove-work-dir
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
+    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.6 --no-remove-work-dir
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\envs\build-env\conda-bld\win-64\pychrono*.bz2 --force --label develop  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
     - get-content outputfile.txt
     - Copy-Item "./outputfile.txt" -Destination "./logs/"
     #- Remove-Item $Env:CONDA_INSTALL_LOCN\conda-bld\*pychrono* -Recurse -Force

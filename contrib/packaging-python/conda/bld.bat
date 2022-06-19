@@ -50,13 +50,13 @@ mkdir cmake_ended
  
 REM Build step 
 mkdir build_began
-cmake --build . --config "%CONFIGURATION%" >> "%LOG_DIR%"\cmakebuildlog.txt 2>&1
+cmake --build . --config Release >> "%LOG_DIR%"\cmakebuildlog.txt 2>&1
 if errorlevel 1 exit 1
 mkdir build_ended
 
 REM Install step 
 mkdir install_began
-cmake --build . --config "%CONFIGURATION%" --target install
+cmake --build . --config Release --target install
 if errorlevel 1 exit 1
 mkdir install_ended
 
