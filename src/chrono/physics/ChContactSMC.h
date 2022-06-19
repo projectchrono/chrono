@@ -36,6 +36,191 @@
 
 namespace chrono {
 
+/// Default implementation of the SMC normal and tangential force calculation.
+class ChDefaultContactForceSMC : public ChSystemSMC::ChContactForceSMC {
+  public:
+    /// Default SMC force calculation algorithm.
+    /// This implementation depends on various settings specified at the ChSystemSMC level (such as normal force model,
+    /// tangential force model, use of material physical properties, etc).
+    virtual ChVector<> CalculateForce(
+        const ChSystemSMC& sys,             ///< containing system
+        const ChVector<>& normal_dir,       ///< normal contact direction (expressed in global frame)
+        const ChVector<>& p1,               ///< most penetrated point on obj1 (expressed in global frame)
+        const ChVector<>& p2,               ///< most penetrated point on obj2 (expressed in global frame)
+        const ChVector<>& vel1,             ///< velocity of contact point on obj1 (expressed in global frame)
+        const ChVector<>& vel2,             ///< velocity of contact point on obj2 (expressed in global frame)
+        const ChMaterialCompositeSMC& mat,  ///< composite material for contact pair
+        double delta,                       ///< overlap in normal direction
+        double eff_radius,                  ///< effective radius of curvature at contact
+        double mass1,                       ///< mass of obj1
+        double mass2                        ///< mass of obj2
+        ) const override {
+        // Set contact force to zero if no penetration.
+        if (delta <= 0) {
+            return ChVector<>(0, 0, 0);
+        }
+
+        // Extract parameters from containing system
+        double dT = sys.GetStep();
+        bool use_mat_props = sys.UsingMaterialProperties();
+        ChSystemSMC::ContactForceModel contact_model = sys.GetContactForceModel();
+        ChSystemSMC::AdhesionForceModel adhesion_model = sys.GetAdhesionForceModel();
+        ChSystemSMC::TangentialDisplacementModel tdispl_model = sys.GetTangentialDisplacementModel();
+
+        // Relative velocity at contact
+        ChVector<> relvel = vel2 - vel1;
+        double relvel_n_mag = relvel.Dot(normal_dir);
+        ChVector<> relvel_n = relvel_n_mag * normal_dir;
+        ChVector<> relvel_t = relvel - relvel_n;
+        double relvel_t_mag = relvel_t.Length();
+
+        // Calculate effective mass
+        double eff_mass = mass1 * mass2 / (mass1 + mass2);
+
+        // Calculate stiffness and viscous damping coefficients.
+        // All models use the following formulas for normal and tangential forces:
+        //     Fn = kn * delta_n - gn * v_n
+        //     Ft = kt * delta_t - gt * v_t
+        double kn = 0;
+        double kt = 0;
+        double gn = 0;
+        double gt = 0;
+
+        double eps = std::numeric_limits<double>::epsilon();
+
+        switch (contact_model) {
+            case ChSystemSMC::Flores:
+                // Currently not implemented.  Fall through to Hooke.
+            case ChSystemSMC::Hooke:
+                if (use_mat_props) {
+                    double tmp_k = (16.0 / 15) * std::sqrt(eff_radius) * mat.E_eff;
+                    double v2 = sys.GetCharacteristicImpactVelocity() * sys.GetCharacteristicImpactVelocity();
+                    double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
+                    loge = (mat.cr_eff > 1 - eps) ? std::log(1 - eps) : loge;
+                    double tmp_g = 1 + std::pow(CH_C_PI / loge, 2);
+                    kn = tmp_k * std::pow(eff_mass * v2 / tmp_k, 1.0 / 5);
+                    kt = kn;
+                    gn = std::sqrt(4 * eff_mass * kn / tmp_g);
+                    gt = gn;
+                } else {
+                    kn = mat.kn;
+                    kt = mat.kt;
+                    gn = eff_mass * mat.gn;
+                    gt = eff_mass * mat.gt;
+                }
+
+                break;
+
+            case ChSystemSMC::Hertz:
+                if (use_mat_props) {
+                    double sqrt_Rd = std::sqrt(eff_radius * delta);
+                    double Sn = 2 * mat.E_eff * sqrt_Rd;
+                    double St = 8 * mat.G_eff * sqrt_Rd;
+                    double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
+                    double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
+                    kn = (2.0 / 3) * Sn;
+                    kt = St;
+                    gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
+                    gt = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(St * eff_mass);
+                } else {
+                    double tmp = eff_radius * std::sqrt(delta);
+                    kn = tmp * mat.kn;
+                    kt = tmp * mat.kt;
+                    gn = tmp * eff_mass * mat.gn;
+                    gt = tmp * eff_mass * mat.gt;
+                }
+
+                break;
+
+            case ChSystemSMC::PlainCoulomb:
+                if (use_mat_props) {
+                    double sqrt_Rd = std::sqrt(delta);
+                    double Sn = 2 * mat.E_eff * sqrt_Rd;
+                    double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
+                    double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
+                    kn = (2.0 / 3) * Sn;
+                    gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
+                } else {
+                    double tmp = std::sqrt(delta);
+                    kn = tmp * mat.kn;
+                    gn = tmp * mat.gn;
+                }
+
+                kt = 0;
+                gt = 0;
+
+                {
+                    double forceN = kn * delta - gn * relvel_n_mag;
+                    if (forceN < 0)
+                        forceN = 0;
+                    double forceT = mat.mu_eff * std::tanh(5.0 * relvel_t_mag) * forceN;
+                    switch (adhesion_model) {
+                        case ChSystemSMC::AdhesionForceModel::Perko:
+                            // Currently not implemented.  Fall through to Constant.
+                        case ChSystemSMC::AdhesionForceModel::Constant:
+                            forceN -= mat.adhesion_eff;
+                            break;
+                        case ChSystemSMC::AdhesionForceModel::DMT:
+                            forceN -= mat.adhesionMultDMT_eff * sqrt(eff_radius);
+                            break;
+                    }
+                    ChVector<> force = forceN * normal_dir;
+                    if (relvel_t_mag >= sys.GetSlipVelocityThreshold())
+                        force -= (forceT / relvel_t_mag) * relvel_t;
+
+                    return force;
+                }
+        }
+
+        // Tangential displacement (magnitude)
+        double delta_t = 0;
+        switch (tdispl_model) {
+            case ChSystemSMC::OneStep:
+                delta_t = relvel_t_mag * dT;
+                break;
+            case ChSystemSMC::MultiStep:
+                //// TODO: implement proper MultiStep mode
+                delta_t = relvel_t_mag * dT;
+                break;
+            default:
+                break;
+        }
+
+        // Calculate the magnitudes of the normal and tangential contact forces
+        double forceN = kn * delta - gn * relvel_n_mag;
+        double forceT = kt * delta_t + gt * relvel_t_mag;
+
+        // If the resulting normal contact force is negative, the two shapes are moving
+        // away from each other so fast that no contact force is generated.
+        if (forceN < 0) {
+            forceN = 0;
+            forceT = 0;
+        }
+
+        // Include adhesion force
+        switch (adhesion_model) {
+            case ChSystemSMC::AdhesionForceModel::Perko:
+                // Currently not implemented.  Fall through to Constant.
+            case ChSystemSMC::AdhesionForceModel::Constant:
+                forceN -= mat.adhesion_eff;
+                break;
+            case ChSystemSMC::AdhesionForceModel::DMT:
+                forceN -= mat.adhesionMultDMT_eff * sqrt(eff_radius);
+                break;
+        }
+
+        // Coulomb law
+        forceT = std::min<double>(forceT, mat.mu_eff * std::abs(forceN));
+
+        // Accumulate normal and tangential forces
+        ChVector<> force = forceN * normal_dir;
+        if (relvel_t_mag >= sys.GetSlipVelocityThreshold())
+            force -= (forceT / relvel_t_mag) * relvel_t;
+
+        return force;
+    }
+};
+
 /// Class for smooth (penalty-based) contact between two generic contactable objects.
 /// Ta and Tb are of ChContactable sub classes.
 template <class Ta, class Tb>
@@ -123,6 +308,17 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
             return ChVector<>(0, 0, 0);
         }
 
+        // Use current SMC algorithm to calculate the force
+        ChSystemSMC* sys = static_cast<ChSystemSMC*>(this->container->GetSystem());
+        return sys->GetContactForceAlgorithm().CalculateForce(*sys,                                        //
+                                                              normal_dir, this->p1, this->p2, vel1, vel2,  //
+                                                              mat,                                         //
+                                                              delta, this->eff_radius,                     //
+                                                              this->objA->GetContactableMass(),            //
+                                                              this->objB->GetContactableMass()             //
+        );
+
+        /*
         // Extract parameters from containing system
         ChSystemSMC* sys = static_cast<ChSystemSMC*>(this->container->GetSystem());
         double dT = sys->GetStep();
@@ -283,6 +479,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
             force -= (forceT / relvel_t_mag) * relvel_t;
 
         return force;
+        */
     }
 
     /// Compute all forces in a contiguous array.
@@ -293,7 +490,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                     const ChStateDelta& stateB_w,       ///< state velocities for objB
                     const ChMaterialCompositeSMC& mat,  ///< composite material for contact pair
                     ChVectorDynamic<>& Q                ///< output generalized forces
-                    ) {
+    ) {
         // Express contact points in local frames.
         // We assume that these points remain fixed to their respective contactable objects.
         ChVector<> p1_loc = this->objA->GetCsysForCollisionModel().TransformPointParentToLocal(this->p1);

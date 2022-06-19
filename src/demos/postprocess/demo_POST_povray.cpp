@@ -23,7 +23,7 @@
 #include "chrono/assets/ChObjFileShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_postprocess/ChPovRay.h"
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ChParticleClones, populate it with some random particles,
     // and add it to physical system:
-    auto particles = chrono_types::make_shared<ChParticlesClones>();
+    auto particles = chrono_types::make_shared<ChParticleCloud>();
 
     // Note: coll. shape, if needed, must be specified before creating particles
     auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();

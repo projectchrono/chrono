@@ -599,19 +599,21 @@ void ChAssembly::Setup() {
     }
 
     for (auto& item : otherphysicslist) {
-        nphysicsitems++;
+        if (item->IsActive()) {
+            nphysicsitems++;
 
-        item->SetOffset_x(this->offset_x + ncoords);
-        item->SetOffset_w(this->offset_w + ncoords_w);
-        item->SetOffset_L(this->offset_L + ndoc_w);
+            item->SetOffset_x(this->offset_x + ncoords);
+            item->SetOffset_w(this->offset_w + ncoords_w);
+            item->SetOffset_L(this->offset_L + ndoc_w);
 
-        item->Setup();
+            item->Setup();
 
-        ncoords += item->GetDOF();
-        ncoords_w += item->GetDOF_w();
-        ndoc_w += item->GetDOC();
-        ndoc_w_C += item->GetDOC_c();
-        ndoc_w_D += item->GetDOC_d();
+            ncoords += item->GetDOF();
+            ncoords_w += item->GetDOF_w();
+            ndoc_w += item->GetDOC();
+            ndoc_w_C += item->GetDOC_c();
+            ndoc_w_D += item->GetDOC_d();
+        }
     }
 
     ndoc = ndoc_w + nbodies;          // number of constraints including quaternion constraints.
@@ -693,7 +695,8 @@ void ChAssembly::IntStateGather(const unsigned int off_x,
         mesh->IntStateGather(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T);
     }
     for (auto& item : otherphysicslist) {
-        item->IntStateGather(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T);
+        if (item->IsActive())
+            item->IntStateGather(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T);
     }
     T = GetChTime();
 }
@@ -737,7 +740,8 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
             link->Update(T, full_update);
     }
     for (auto& item : otherphysicslist) {
-        item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T, full_update);
+        if (item->IsActive())
+            item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T, full_update);
     }
     SetChTime(T);
 }
@@ -761,7 +765,8 @@ void ChAssembly::IntStateGatherAcceleration(const unsigned int off_a, ChStateDel
         mesh->IntStateGatherAcceleration(displ_a + mesh->GetOffset_w(), a);
     }
     for (auto& item : otherphysicslist) {
-        item->IntStateGatherAcceleration(displ_a + item->GetOffset_w(), a);
+        if (item->IsActive())
+            item->IntStateGatherAcceleration(displ_a + item->GetOffset_w(), a);
     }
 }
 
@@ -785,7 +790,8 @@ void ChAssembly::IntStateScatterAcceleration(const unsigned int off_a, const ChS
         mesh->IntStateScatterAcceleration(displ_a + mesh->GetOffset_w(), a);
     }
     for (auto& item : otherphysicslist) {
-        item->IntStateScatterAcceleration(displ_a + item->GetOffset_w(), a);
+        if (item->IsActive())
+            item->IntStateScatterAcceleration(displ_a + item->GetOffset_w(), a);
     }
 }
 
@@ -809,7 +815,8 @@ void ChAssembly::IntStateGatherReactions(const unsigned int off_L, ChVectorDynam
         mesh->IntStateGatherReactions(displ_L + mesh->GetOffset_L(), L);
     }
     for (auto& item : otherphysicslist) {
-        item->IntStateGatherReactions(displ_L + item->GetOffset_L(), L);
+        if (item->IsActive())
+            item->IntStateGatherReactions(displ_L + item->GetOffset_L(), L);
     }
 }
 
@@ -833,7 +840,8 @@ void ChAssembly::IntStateScatterReactions(const unsigned int off_L, const ChVect
         mesh->IntStateScatterReactions(displ_L + mesh->GetOffset_L(), L);
     }
     for (auto& item : otherphysicslist) {
-        item->IntStateScatterReactions(displ_L + item->GetOffset_L(), L);
+        if (item->IsActive())
+            item->IntStateScatterReactions(displ_L + item->GetOffset_L(), L);
     }
 }
 
@@ -865,7 +873,8 @@ void ChAssembly::IntStateIncrement(const unsigned int off_x,
     }
 
     for (auto& item : otherphysicslist) {
-        item->IntStateIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
+        if (item->IsActive())
+            item->IntStateIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
     }
 }
 
@@ -897,7 +906,8 @@ void ChAssembly::IntStateGetIncrement(const unsigned int off_x,
     }
 
     for (auto& item : otherphysicslist) {
-        item->IntStateGetIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
+        if (item->IsActive())
+            item->IntStateGetIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
     }
 }
 
@@ -923,7 +933,8 @@ void ChAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in R res
         mesh->IntLoadResidual_F(displ_v + mesh->GetOffset_w(), R, c);
     }
     for (auto& item : otherphysicslist) {
-        item->IntLoadResidual_F(displ_v + item->GetOffset_w(), R, c);
+        if (item->IsActive())
+            item->IntLoadResidual_F(displ_v + item->GetOffset_w(), R, c);
     }
 }
 
@@ -950,7 +961,8 @@ void ChAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offset in 
         mesh->IntLoadResidual_Mv(displ_v + mesh->GetOffset_w(), R, w, c);
     }
     for (auto& item : otherphysicslist) {
-        item->IntLoadResidual_Mv(displ_v + item->GetOffset_w(), R, w, c);
+        if (item->IsActive())
+            item->IntLoadResidual_Mv(displ_v + item->GetOffset_w(), R, w, c);
     }
 }
 
@@ -977,7 +989,8 @@ void ChAssembly::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in
         mesh->IntLoadResidual_CqL(displ_L + mesh->GetOffset_L(), R, L, c);
     }
     for (auto& item : otherphysicslist) {
-        item->IntLoadResidual_CqL(displ_L + item->GetOffset_L(), R, L, c);
+        if (item->IsActive())
+            item->IntLoadResidual_CqL(displ_L + item->GetOffset_L(), R, L, c);
     }
 }
 
@@ -1005,7 +1018,8 @@ void ChAssembly::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Q
         mesh->IntLoadConstraint_C(displ_L + mesh->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
     }
     for (auto& item : otherphysicslist) {
-        item->IntLoadConstraint_C(displ_L + item->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
+        if (item->IsActive())
+            item->IntLoadConstraint_C(displ_L + item->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
     }
 }
 
@@ -1031,7 +1045,8 @@ void ChAssembly::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset in 
         mesh->IntLoadConstraint_Ct(displ_L + mesh->GetOffset_L(), Qc, c);
     }
     for (auto& item : otherphysicslist) {
-        item->IntLoadConstraint_Ct(displ_L + item->GetOffset_L(), Qc, c);
+        if (item->IsActive())
+            item->IntLoadConstraint_Ct(displ_L + item->GetOffset_L(), Qc, c);
     }
 }
 
@@ -1064,7 +1079,8 @@ void ChAssembly::IntToDescriptor(const unsigned int off_v,
     }
 
     for (auto& item : otherphysicslist) {
-        item->IntToDescriptor(displ_v + item->GetOffset_w(), v, R, displ_L + item->GetOffset_L(), L, Qc);
+        if (item->IsActive())
+            item->IntToDescriptor(displ_v + item->GetOffset_w(), v, R, displ_L + item->GetOffset_L(), L, Qc);
     }
 }
 
@@ -1095,7 +1111,8 @@ void ChAssembly::IntFromDescriptor(const unsigned int off_v,
     }
 
     for (auto& item : otherphysicslist) {
-        item->IntFromDescriptor(displ_v + item->GetOffset_w(), v, displ_L + item->GetOffset_L(), L);
+        if (item->IsActive())
+            item->IntFromDescriptor(displ_v + item->GetOffset_w(), v, displ_L + item->GetOffset_L(), L);
     }
 }
 
