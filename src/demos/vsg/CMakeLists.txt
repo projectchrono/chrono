@@ -6,6 +6,7 @@ SET(DEMOS
   demo_VSG_bricks
   demo_VSG_friction
   demo_VSG_lab
+  demo_VSG_shapes
 )
 
 set(CMAKE_CXX_STANDARD 17)

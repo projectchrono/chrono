@@ -23,6 +23,14 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
+#include "chrono/assets/ChBarrelShape.h"
+#include "chrono/assets/ChConeShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChSurfaceShape.h"
+#include "chrono/assets/ChObjFileShape.h"
+#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChPathShape.h"
 #include "ChVisualSystemVSG.h"
 #include "chrono_thirdparty/stb/stb_image_write.h"
 #include "chrono_thirdparty/stb/stb_image_resize.h"
@@ -637,10 +645,35 @@ void ChVisualSystemVSG::BindAll() {
                 ChVector<> scale = ellipsoid->GetEllipsoidGeometry().rad;
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                        vsg::scale(scale.x(), scale.y(), scale.z());
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                    vsg::scale(scale.x(), scale.y(), scale.z());
                 m_scenegraph->addChild(m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, body, shape_instance,
-                        material, transform, m_draw_as_wireframe));
+                                                                   material, transform, m_draw_as_wireframe));
+            } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
+                GetLog() << "... has a capsule shape\n";
+                double rad = capsule->GetCapsuleGeometry().rad;
+                double height = capsule->GetCapsuleGeometry().hlen;
+                auto transform = vsg::MatrixTransform::create();
+                ChVector<> scale(rad, height, rad);
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                    vsg::scale(scale.x(), scale.y(), scale.z());
+                m_scenegraph->addChild(m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, body, shape_instance,
+                                                                   material, transform, m_draw_as_wireframe));
+            } else if (auto barrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
+                GetLog() << "... has a barrel shape (to do)\n";
+            } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+                GetLog() << "... has a cone shape (to do)\n";
+            } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
+                GetLog() << "... has a triangle mesh shape (to do)\n";
+            } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
+                GetLog() << "... has a surface mesh shape (to do)\n";
+            } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
+                GetLog() << "... has a obj file shape (to do)\n";
+            } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
+                GetLog() << "... has a line shape (to do)\n";
+            } else if (auto path = std::dynamic_pointer_cast<ChPathShape>(shape)) {
+                GetLog() << "... has a path shape (to do)\n";
             } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
                 GetLog() << "... has a cylinder shape\n";
                 double rad = cylinder->GetCylinderGeometry().rad;
@@ -731,6 +764,12 @@ void ChVisualSystemVSG::OnUpdate() {
             // ChVector<> size(radius, radius, radius);
             vsg::dvec3 size(radius.x(), radius.y(), radius.z());
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+        } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
+            double rad = capsule->GetCapsuleGeometry().rad;
+            double height = capsule->GetCapsuleGeometry().hlen;
+            ChVector<> scale(rad, height, rad);
+            transform->matrix =
+                vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(scale.x(), scale.y(), scale.z());
         } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
             double radius = cylinder->GetCylinderGeometry().rad;
             double rad = cylinder->GetCylinderGeometry().rad;
