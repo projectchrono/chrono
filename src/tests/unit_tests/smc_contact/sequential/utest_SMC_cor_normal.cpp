@@ -19,7 +19,9 @@
 // =============================================================================
 
 #include "gtest/gtest.h"
-#include "./utest_SMCm.h"
+
+#define SMC_SEQUENTIAL
+#include "../utest_SMC.h"
 
 // Test system parameterized by SMC contact force model and input COR
 class CorNormalTest : public ::testing::TestWithParam<std::tuple<ChSystemSMC::ContactForceModel, float>> {
@@ -52,7 +54,7 @@ class CorNormalTest : public ::testing::TestWithParam<std::tuple<ChSystemSMC::Co
         mat->SetAdhesionSPerko(adSPerko);
 
         // Create a multicore SMC system and set the system parameters
-        sys = new ChSystemMulticoreSMC();
+        sys = new ChSystemSMC();
         time_step = 3.0E-5;
         SetSimParameters(sys, ChVector<>(0, 0, 0), fmodel);
 
@@ -73,7 +75,7 @@ class CorNormalTest : public ::testing::TestWithParam<std::tuple<ChSystemSMC::Co
 
     ~CorNormalTest() { delete sys; }
 
-    ChSystemMulticoreSMC* sys;
+    ChSystemSMC* sys;
     std::shared_ptr<ChBody> body1;
     std::shared_ptr<ChBody> body2;
     double time_step;
@@ -96,7 +98,6 @@ TEST_P(CorNormalTest, impact) {
     ASSERT_NEAR(cor_out, cor_in, 1e-3);
 }
 
-// Note: we do not check the Flores model here because it is known to be only valid for high values of COR.
 INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
                          CorNormalTest,
                          ::testing::Combine(::testing::Values(ChSystemSMC::ContactForceModel::Hooke,

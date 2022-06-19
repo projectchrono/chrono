@@ -21,7 +21,7 @@ stages:
     entrypoint: ["/usr/bin/bash", "-c"]
   before_script:
   - uname -a
-  - pacman -Syyu --noconfirm cuda git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi swig hdf5
+  - pacman -Syyu --noconfirm cuda git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi openssh swig hdf5
 # Clean up the package cache to make more space for the build
   - pacman -Scc --noconfirm
   - ldconfig

@@ -20,7 +20,9 @@
 // =============================================================================
 
 #include "gtest/gtest.h"
-#include "./utest_SMCm.h"
+
+#define SMC_SEQUENTIAL
+#include "../utest_SMC.h"
 
 // Test system parameterized by SMC contact force model
 class CohesionTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceModel> {
@@ -56,8 +58,8 @@ class CohesionTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
         mat->SetAdhesionMultDMT(adDMT);
         mat->SetAdhesionSPerko(adSPerko);
 
-        // Create a multicore SMC system and set the system parameters
-        sys = new ChSystemMulticoreSMC();
+        // Create an SMC system and set the system parameters
+        sys = new ChSystemSMC();
         time_step = 3.0E-5;
         SetSimParameters(sys, ChVector<>(0, 0, 0), fmodel);
 
@@ -86,7 +88,7 @@ class CohesionTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
 
     ~CohesionTest() { delete sys; }
 
-    ChSystemMulticoreSMC* sys;
+    ChSystemSMC* sys;
     std::shared_ptr<ChBody> body1;
     std::shared_ptr<ChBody> body2;
     double srad;
@@ -134,5 +136,4 @@ INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
                          CohesionTest,
                          ::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
                                            ChSystemSMC::ContactForceModel::Hertz,
-                                           ChSystemSMC::ContactForceModel::PlainCoulomb,
-                                           ChSystemSMC::ContactForceModel::Flores));
+                                           ChSystemSMC::ContactForceModel::PlainCoulomb));

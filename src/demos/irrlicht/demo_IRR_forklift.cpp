@@ -113,7 +113,6 @@ class MySimpleForklift {
         // visualization properties:
         auto chassis_mesh = chrono_types::make_shared<ChObjFileShape>();
         chassis_mesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
-        chassis_mesh->SetTexture(GetChronoDataFile("textures/tire_truck.png"));
         chassis->AddVisualShape(chassis_mesh, ChFrame<>(-COG_truss, QUNIT));
 
         // contact material shared among all wheels
@@ -122,7 +121,6 @@ class MySimpleForklift {
         // visualization shape, shared among all wheels
         auto wheel_mesh = chrono_types::make_shared<ChObjFileShape>();
         wheel_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
-        wheel_mesh->SetTexture(GetChronoDataFile("textures/tire_truck.png"));
 
 
         // ..the right-front wheel

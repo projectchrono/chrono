@@ -216,7 +216,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChAparticle)
 %shared_ptr(chrono::ChParticleBase)
 %shared_ptr(chrono::ChIndexedParticles)
-%shared_ptr(chrono::ChParticlesClones)
+%shared_ptr(chrono::ChParticleCloud)
 %shared_ptr(chrono::ChSystemNSC)
 %shared_ptr(chrono::ChSystemSMC)
 %shared_ptr(chrono::ChContactContainer)
@@ -384,7 +384,7 @@ using namespace chrono::fea;
 %include "ChNodeXYZ.i"
 %include "ChConveyor.i"
 %include "ChIndexedParticles.i"
-%include "ChParticlesClones.i"
+%include "ChParticleCloud.i"
 %include "ChLinkBase.i"
 %include "ChLink.i"
 %include "ChLinkMarkers.i"
@@ -472,7 +472,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChConveyor)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChBodyAuxRef)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChIndexedParticles)
-%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChParticlesClones)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChParticleCloud)
 
 %DefSharedPtrDynamicDowncast(chrono,ChNodeBase, ChNodeXYZ)
 

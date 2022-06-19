@@ -57,6 +57,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     void RenderAABB();
     void RenderGrid();
     void RenderFluid();
+    void RenderParticles();
     void RenderFEA();
     void RenderPlots();
     void HandleInput(unsigned char key, int x, int y);
@@ -85,6 +86,8 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     ChOpenGLCloud fluid;
     ChOpenGLWires grid;
 
+    ChOpenGLCloud particles;
+
     ChOpenGLWires mpm_grid;
     ChOpenGLCloud mpm_node;
 
@@ -105,6 +108,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     std::vector<glm::vec3> mpm_grid_data;
     std::vector<glm::vec3> mpm_node_data;
     std::vector<glm::vec3> line_path_data;
+    std::vector<glm::vec3> particle_data;
 
     int simulation_frame;    // The current frame number
     double simulation_h;     // The simulation step size
@@ -115,6 +119,9 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     bool view_contacts, view_help, view_aabb, view_grid, view_info;
     bool use_vsync;
     RenderMode render_mode;
+
+    RenderMode particle_render_mode;
+    float particle_radius;
 
     ChTimer<> timer_render;
     ChTimer<> timer_text;

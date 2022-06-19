@@ -22,7 +22,7 @@
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChLinkMate.h"
-#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChParticleCloud.h"
 
 #include "chrono_postprocess/ChPovRay.h"
 
@@ -819,7 +819,7 @@ void ChPovRay::ExportData(const std::string& filename) {
             }
 
             // saving a cluster of particles?
-            if (const auto& clones = std::dynamic_pointer_cast<ChParticlesClones>(item)) {
+            if (const auto& clones = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
                 pov_file << " \n";
                 // pov_file << "union{\n";
                 pov_file << "#declare Index = 0; \n";
