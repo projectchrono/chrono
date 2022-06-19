@@ -735,6 +735,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             mproxynode->Update();  // force syncing of triangle positions & face indexes
             mproxynode->drop();
 
+            SetVisualMaterial(mchildnode, shape);
             mchildnode->setMaterialFlag(video::EMF_WIREFRAME, trimesh->IsWireframe());
             mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trimesh->IsBackfaceCull());
         } else if (auto surf = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
@@ -753,6 +754,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             mproxynode->Update();  // force syncing of triangle positions & face indexes
             mproxynode->drop();
 
+            SetVisualMaterial(mchildnode, shape);
             mchildnode->setMaterialFlag(video::EMF_WIREFRAME, surf->IsWireframe());
         } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
             if (sphereMesh) {
