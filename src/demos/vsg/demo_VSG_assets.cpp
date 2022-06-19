@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/geometry/ChLineNurbs.h"
 #include "chrono/geometry/ChSurfaceNurbs.h"
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ChParticleClones, populate it with some random particles,
     // and add it to physical system:
-    auto particles = chrono_types::make_shared<ChParticlesClones>();
+    auto particles = chrono_types::make_shared<ChParticleCloud>();
 
     // Note: the collision shape, if needed, must be specified before creating particles.
     // This will be shared among all particles in the ChParticlesClones.
