@@ -1367,6 +1367,9 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
     char filename[300];
     const char* numformat = "%.12g";
 
+    // Prepare lists of variables and constraints, if not already prepared.
+    DescriptorPrepareInject(*descriptor);
+
     if (save_M) {
         ChSparseMatrix mM;
         this->GetMassMatrix(&mM);

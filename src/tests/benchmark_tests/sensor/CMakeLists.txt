@@ -20,6 +20,7 @@ set(TESTS
     btest_SEN_lidar_spin
     btest_SEN_cornell_box
     btest_SEN_vis_materials
+    btest_SEN_camera_lens
     )
 
 # ------------------------------------------------------------------------------
@@ -37,7 +38,7 @@ FOREACH(PROGRAM ${TESTS})
         COMPILE_FLAGS "${CH_CXX_FLAGS}"
         LINK_FLAGS "${CH_LINKERFLAG_EXE}"
     )
-    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} gtest_main)
+    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 ENDFOREACH(PROGRAM)

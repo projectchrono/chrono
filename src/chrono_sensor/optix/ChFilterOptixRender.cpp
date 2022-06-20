@@ -93,8 +93,8 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         m_raygen_record->data.specific.camera.use_gi = cam->GetUseGI();
         m_raygen_record->data.specific.camera.use_fog = cam->GetUseFog();
         m_raygen_record->data.specific.camera.lens_model = cam->GetLensModelType();
-        m_raygen_record->data.specific.camera.lens_parameters =
-            make_float3(cam->GetLensParameters().x(), cam->GetLensParameters().y(), cam->GetLensParameters().z());
+        m_raygen_record->data.specific.camera.lens_parameters = cam->GetLensParameters();
+            // make_float3(cam->GetLensParameters().x(), cam->GetLensParameters().y()], cam->GetLensParameters().z());
         m_bufferOut = bufferOut;
 
         if (cam->GetUseGI() || cam->GetCollectionWindow() > 0.f) {
@@ -129,8 +129,8 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         m_raygen_record->data.specific.segmentation.hFOV = segmenter->GetHFOV();
         m_raygen_record->data.specific.segmentation.frame_buffer = reinterpret_cast<ushort2*>(bufferOut->Buffer.get());
         m_raygen_record->data.specific.segmentation.lens_model = segmenter->GetLensModelType();
-        m_raygen_record->data.specific.segmentation.lens_parameters = make_float3(
-            segmenter->GetLensParameters().x(), segmenter->GetLensParameters().y(), segmenter->GetLensParameters().z());
+        m_raygen_record->data.specific.camera.lens_parameters = segmenter->GetLensParameters();
+            // make_float3(cam->GetLensParameters().x(), cam->GetLensParameters().y()], cam->GetLensParameters().z());
 
         if (segmenter->GetCollectionWindow() > 0.f) {
             // initialize rng buffer for ray bounces or motion blur

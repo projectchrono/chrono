@@ -43,8 +43,10 @@ ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(othe
     modal_q = other.modal_q;
     modal_q_dt = other.modal_q_dt;
     modal_q_dtdt = other.modal_q_dtdt;
-    modal_F = other.modal_F;
+    custom_F_modal = other.custom_F_modal;
     internal_nodes_update = other.internal_nodes_update;
+    m_custom_F_modal_callback = other.m_custom_F_modal_callback;
+    m_custom_F_full_callback = other.m_custom_F_full_callback;
 
     //// TODO:  deep copy of the object lists (internal_bodylist, internal_linklist, internal_meshlist,  internal_otherphysicslist)
 }
@@ -84,23 +86,77 @@ void ChModalAssembly::Clear() {
         delete modal_variables;
 }
 
+
+// Assembly a sparse matrix by bordering square H with rectangular Cq.
+//    HCQ = [ H  Cq' ]
+//          [ Cq  0  ]
+void util_sparse_assembly_2x2symm(Eigen::SparseMatrix<double, Eigen::ColMajor, int>& HCQ,       ///< resulting square sparse matrix (column major)
+	const ChSparseMatrix& H,   ///< square sparse H matrix, n_v x n_v
+	const ChSparseMatrix& Cq)  ///< rectangular  sparse Cq  n_c x n_v
+{
+	int n_v   = H.rows();
+	int n_c   = Cq.rows();
+	HCQ.resize(n_v + n_c, n_v + n_c);
+	HCQ.reserve(H.nonZeros() + 2 * Cq.nonZeros());
+    HCQ.setZero();
+
+	for (int k=0; k<H.outerSize(); ++k)
+		for (ChSparseMatrix::InnerIterator it(H,k); it; ++it) {
+			HCQ.insert(it.row(),it.col()) = it.value();
+        }
+
+	for (int k=0; k<Cq.outerSize(); ++k)
+        for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
+            HCQ.insert(it.row() + n_v, it.col()) = it.value(); // insert Cq
+            HCQ.insert(it.col(), it.row() + n_v) = it.value(); // insert Cq'
+        }
+
+    // This seems necessary in Release mode
+    HCQ.makeCompressed();
+
+    //***NOTE*** 
+    // for some reason the HCQ matrix created via .insert() or .elementRef() or triplet insert, is 
+    // corrupt in Release mode, not in Debug mode. However, when doing a loop like the one below,
+    // it repairs it. 
+    // ***TODO*** avoid this bad hack and find the cause of the release/debug difference.
+    for (int k = 0; k < HCQ.rows(); ++k) {
+        for (int j = 0; j < HCQ.cols(); ++j) {
+            auto foo = HCQ.coeffRef(k, j);
+            //GetLog() << HCQ.coeffRef(k,j) << " ";
+        }
+    }
+}
+
+
+
 //---------------------------------------------------------------------------------------
 
-void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, int n_modes) {
+void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, int n_modes, const ChModalDamping& damping_model) {
     if (is_modal)
         return;
-
 
 
     // 1) compute eigenvalue and eigenvectors
     this->ComputeModesExternalData(full_M, full_K, full_Cq, n_modes);
 
 
+    // 2) fetch initial x0 state of assembly, full not reduced
+    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
+    int bou_int_coords_w = this->n_boundary_coords_w   + this->n_internal_coords_w;
+    double fooT;
+    ChStateDelta assembly_v0;
+    assembly_x0.setZero(bou_int_coords, nullptr);
+    assembly_v0.setZero(bou_int_coords_w, nullptr);
+    this->IntStateGather(0, assembly_x0, 0, assembly_v0, fooT);
+
+
     // 3) bound ChVariables etc. to the modal coordinates, resize matrices, set as modal mode
     this->SetModalMode(true);
     this->SetupModalData(n_modes);
 
-    // do the Herting reduction as in Sonneville, 2021
+
+
+    // 4) do the Herting reduction as in Sonneville, 2021
 
     ChSparseMatrix K_II = full_K.block(this->n_boundary_coords_w, this->n_boundary_coords_w, this->n_internal_coords_w, this->n_internal_coords_w);
     ChSparseMatrix K_IB = full_K.block(this->n_boundary_coords_w, 0,                         this->n_internal_coords_w, this->n_boundary_coords_w);
@@ -108,33 +164,53 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMat
     ChSparseMatrix M_II = full_M.block(this->n_boundary_coords_w, this->n_boundary_coords_w, this->n_internal_coords_w, this->n_internal_coords_w);
     ChSparseMatrix M_IB = full_M.block(this->n_boundary_coords_w, 0,                         this->n_internal_coords_w, this->n_boundary_coords_w);
 
+    ChSparseMatrix Cq_B = full_Cq.block(0,                         0,                full_Cq.rows(), this->n_boundary_coords_w);
+    ChSparseMatrix Cq_I = full_Cq.block(0, this->n_boundary_coords_w,                full_Cq.rows(), this->n_internal_coords_w);
+
     ChMatrixDynamic<> V_B = this->modes_V.block(0                        , 0,                this->n_boundary_coords_w, this->n_modes_coords_w).real();
     ChMatrixDynamic<> V_I = this->modes_V.block(this->n_boundary_coords_w, 0,                this->n_internal_coords_w, this->n_modes_coords_w).real();
 
+    // K_IIc = [ K_II   Cq_I' ]
+    //         [ Cq_I     0   ]
 
-    // Psi_S = - K_II^{-1} * K_IB
+    Eigen::SparseMatrix<double> K_IIc;
+    util_sparse_assembly_2x2symm(K_IIc, K_II, Cq_I);
+    K_IIc.makeCompressed();
+
+    // Matrix of static modes (constrained, so use K_IIc instead of K_II,
+    // the original unconstrained Herting reduction is Psi_S = - K_II^{-1} * K_IB )
+    //
+    // {Psi_S; foo} = - K_IIc^{-1} * {K_IB ; Cq_B}
     
     ChMatrixDynamic<> Psi_S(this->n_internal_coords_w, this->n_boundary_coords_w);
 
-    // avoid computing K_II^{-1}, effectively do n times a LU solve:
-    Eigen::SparseMatrix<double> A = K_II; // to column-major
+    // avoid computing K_IIc^{-1}, effectively do n times a linear solve:
     Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> >   solver;
-    solver.analyzePattern(A);
-    solver.factorize(A); 
+    solver.analyzePattern(K_IIc);
+    solver.factorize(K_IIc); 
 
     for (int i = 0; i < K_IB.cols(); ++i) { 
-        ChVectorDynamic<> x = solver.solve(K_IB.col(i));
-        Psi_S.block(0,i, this->n_internal_coords_w, 1) = -x;
+        ChVectorDynamic<> rhs(this->n_internal_coords_w + full_Cq.rows());
+        rhs << K_IB.col(i).toDense(), Cq_B.col(i).toDense();
+        ChVectorDynamic<> x = solver.solve(rhs);
+        Psi_S.block(0,i, this->n_internal_coords_w, 1) = -x.head(this->n_internal_coords_w);
     }
 
-    // Psi_D = - K_II^{-1} * (M_IB * V_B + M_II * V_I)
+    // Matrix of dynamic modes (V_B and V_I already computed as constrained eigenmodes, 
+    // but use K_IIc instead of K_II anyway, to reuse K_IIc already factored before)
+    //
+    // {Psi_D; foo} = - K_IIc^{-1} * {(M_IB * V_B + M_II * V_I) ; 0}
 
     ChMatrixDynamic<> Psi_D(this->n_internal_coords_w, this->n_modes_coords_w);
 
     for (int i = 0; i < this->n_modes_coords_w; ++i) { 
-        ChVectorDynamic<> x = solver.solve( (M_IB * V_B + M_II * V_I).col(i) );
-        Psi_D.block(0,i, this->n_internal_coords_w, 1) = -x;
+        ChVectorDynamic<> rhs(this->n_internal_coords_w + full_Cq.rows());
+        rhs << (M_IB * V_B + M_II * V_I).col(i) , Eigen::VectorXd::Zero(full_Cq.rows()) ;
+        ChVectorDynamic<> x = solver.solve(rhs);
+        Psi_D.block(0,i, this->n_internal_coords_w, 1) = -x.head(this->n_internal_coords_w);
     }
+
+
 
     // Psi = [ I     0    ]
     //       [Psi_S  Psi_D]
@@ -147,7 +223,12 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMat
     // Modal reduction of the M K matrices
     this->modal_M = Psi.transpose() * full_M * Psi;
     this->modal_K = Psi.transpose() * full_K * Psi;
-    this->modal_R.setZero(this->modal_M.rows(), this->modal_M.cols()); //***TODO*** proper damping, ex. Rayleigh?
+
+    this->modal_R.setZero(modal_M.rows(), modal_M.cols()); // default R=0 , zero damping
+    
+    // Modal reduction of R damping matrix: compute using user-provided damping model 
+    damping_model.ComputeR(*this, this->modal_M, this->modal_K, Psi, this->modal_R);
+
 
     // Reset to zero all the atomic masses of the boundary nodes because now their mass is represented by  this->modal_M
     // NOTE! this should be made more generic and future-proof by implementing a virtual method ex. RemoveMass() in all ChPhysicsItem 
@@ -168,8 +249,16 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMat
         }
     }
     
+    // Invalidate results of the initial eigenvalue analysis because now the DOFs are different after reduction,
+    // to avoid that one could be tempted to plot those eigenmodes, which now are not exactly the ones of the reduced assembly.
+    this->modes_assembly_x0.resize(0);
+    this->modes_damping_ratio.resize(0);
+    this->modes_eig.resize(0);
+    this->modes_freq.resize(0);
+    this->modes_V.resize(0, 0);
+
     // Debug dump data. ***TODO*** remove
-    if (false) {
+    if (true) {
         ChStreamOutAsciiFile fileP("dump_modal_Psi.dat");
         fileP.SetNumFormat("%.12g");
         StreamOUTdenseMatlabFormat(Psi, fileP);
@@ -179,10 +268,13 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMat
         ChStreamOutAsciiFile fileK("dump_modal_K.dat");
         fileK.SetNumFormat("%.12g");
         StreamOUTdenseMatlabFormat(this->modal_K, fileK);
+        ChStreamOutAsciiFile fileR("dump_modal_R.dat");
+        fileR.SetNumFormat("%.12g");
+        StreamOUTdenseMatlabFormat(this->modal_R, fileR);
     }
 }
 
-void ChModalAssembly::SwitchModalReductionON(int n_modes) {
+void ChModalAssembly::SwitchModalReductionON(int n_modes, const ChModalDamping& damping_model) {
     if (is_modal)
         return;
 
@@ -196,7 +288,7 @@ void ChModalAssembly::SwitchModalReductionON(int n_modes) {
     this->GetSubassemblyConstraintJacobianMatrix(&full_Cq);
 
     // 2) compute modal reduction from full_M, full_K
-    this->SwitchModalReductionON(full_M, full_K, full_Cq, n_modes);
+    this->SwitchModalReductionON(full_M, full_K, full_Cq, n_modes, damping_model);
 }
 
 
@@ -244,33 +336,13 @@ void ChModalAssembly::SetupModalData(int nmodes_reduction) {
         this->modal_q.setZero(this->n_modes_coords_w);
         this->modal_q_dt.setZero(this->n_modes_coords_w);
         this->modal_q_dtdt.setZero(this->n_modes_coords_w);
-        this->modal_F.setZero(this->n_modes_coords_w);
+        this->custom_F_modal.setZero(this->n_modes_coords_w);
+        this->custom_F_full.setZero(this->n_boundary_coords_w + this->n_internal_coords_w );
     }
 }
 
 bool ChModalAssembly::ComputeModes(int nmodes) {
-    
-    if (is_modal)
-        return false;
-    /*
-    this->SetupInitial();
-    this->Setup();
-    this->Update();
 
-    // fetch the state_snapshot
-    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
-    int bou_int_coords_w = this->n_boundary_coords_w   + this->n_internal_coords_w;
-    double fooT;
-    ChStateDelta assembly_v0;
-    assembly_x0.setZero(bou_int_coords, nullptr);
-    assembly_v0.setZero(bou_int_coords_w, nullptr);
-    this->IntStateGather(0, assembly_x0, 0, assembly_v0, fooT);
-
-    // cannot use more modes than n. of tot coords, if so, clamp
-    int nmodes_clamped = ChMin(nmodes, this->ncoords_w);
-
-    this->Setup();
-    */
     ChSparseMatrix full_M;
     ChSparseMatrix full_K;
     ChSparseMatrix full_Cq;
@@ -282,56 +354,38 @@ bool ChModalAssembly::ComputeModes(int nmodes) {
     // SOLVE EIGENVALUE
     this->ComputeModesExternalData(full_M, full_K, full_Cq, nmodes);
 
-    /*
-    // SOLVE EIGENVALUE 
-    // for undamped system (use generalized constrained eigen solver)
-    // - Must work with large dimension and sparse matrices only
-    // - Must work also in free-free cases, with 6 rigid body modes at 0 frequency.
-
-    //ChGeneralizedEigenvalueSolverLanczos     eigsolver;   // OK! 
-    ChGeneralizedEigenvalueSolverKrylovSchur eigsolver;   // OK! 
-    eigsolver.Solve(full_M, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, nmodes_clamped);
-    this->modes_damping_ratio.setZero(this->modes_freq.rows());
-
-    this->Setup();
-    */
     return true;
 }
 
 bool ChModalAssembly::ComputeModesExternalData(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, int nmodes) {
-    
-    if (is_modal)
-        return false;
 
     this->SetupInitial();
     this->Setup();
     this->Update();
 
-    // fetch the state_snapshot
-    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
-    int bou_int_coords_w = this->n_boundary_coords_w   + this->n_internal_coords_w;
+    // fetch the state snapshot for this analysis
     double fooT;
-    ChStateDelta assembly_v0;
-    assembly_x0.setZero(bou_int_coords, nullptr);
-    assembly_v0.setZero(bou_int_coords_w, nullptr);
-    this->IntStateGather(0, assembly_x0, 0, assembly_v0, fooT);
+    ChStateDelta modes_assembly_v0;
+    modes_assembly_x0.setZero(this->ncoords, nullptr);
+    modes_assembly_v0.setZero(this->ncoords_w, nullptr);
+    this->IntStateGather(0, modes_assembly_x0, 0, modes_assembly_v0, fooT);
 
     // cannot use more modes than n. of tot coords, if so, clamp
     int nmodes_clamped = ChMin(nmodes, this->ncoords_w);
 
     this->Setup();
 
-    assert(full_M.rows()  == bou_int_coords_w); 
-    assert(full_K.rows()  == bou_int_coords_w); 
-    assert(full_Cq.cols() == bou_int_coords_w); 
+    assert(full_M.rows()  == this->ncoords_w); 
+    assert(full_K.rows()  == this->ncoords_w); 
+    assert(full_Cq.cols() == this->ncoords_w); 
 
     // SOLVE EIGENVALUE 
     // for undamped system (use generalized constrained eigen solver)
     // - Must work with large dimension and sparse matrices only
     // - Must work also in free-free cases, with 6 rigid body modes at 0 frequency.
 
-    //ChGeneralizedEigenvalueSolverLanczos     eigsolver;   // OK! 
-    ChGeneralizedEigenvalueSolverKrylovSchur eigsolver;   // OK! 
+    ChGeneralizedEigenvalueSolverLanczos     eigsolver;   // OK! 
+    //ChGeneralizedEigenvalueSolverKrylovSchur eigsolver;   // OK! 
     eigsolver.Solve(full_M, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, nmodes_clamped);
     this->modes_damping_ratio.setZero(this->modes_freq.rows());
 
@@ -342,24 +396,22 @@ bool ChModalAssembly::ComputeModesExternalData(ChSparseMatrix& full_M, ChSparseM
 
 bool ChModalAssembly::ComputeModesDamped(int nmodes) {
 
-    if (is_modal)
-        return false;
-
     this->SetupInitial();
     this->Setup();
     this->Update();
 
-    // fetch the state_snapshot
-    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
-    int bou_int_coords_w = this->n_boundary_coords_w   + this->n_internal_coords_w;
+    // fetch the state snapshot of this analysis
     double fooT;
-    ChStateDelta assembly_v0;
-    assembly_x0.setZero(bou_int_coords, nullptr);
-    assembly_v0.setZero(bou_int_coords_w, nullptr);
-    this->IntStateGather(0, assembly_x0, 0, assembly_v0, fooT);
+    ChStateDelta modes_assembly_v0;
+    modes_assembly_x0.setZero(this->ncoords, nullptr);
+    modes_assembly_v0.setZero(this->ncoords_w, nullptr);
+    this->IntStateGather(0, modes_assembly_x0, 0, modes_assembly_v0, fooT);
 
-    // cannot use more modes than n. of tot coords, if so, clamp
-    int nmodes_clamped = ChMin(nmodes, this->ncoords_w);
+    if (nmodes == 0)
+        nmodes = this->ncoords_w - this->ndoc_w;
+
+    // cannot use more modes than n. of dofs, if so, clamp
+    int nmodes_clamped = ChMin(nmodes, this->ncoords_w-this->ndoc_w);
 
     this->Setup();
 
@@ -381,7 +433,6 @@ bool ChModalAssembly::ComputeModesDamped(int nmodes) {
     ChQuadraticEigenvalueSolverNullspaceDirect eigsolver;  // OK! But not for large dimensions... use this nullspace method just for golden reference
     //ChQuadraticEigenvalueSolverKrylovSchur eigsolver;     // ***WARNING*** Krylov-Schur in SPECTRA not yet working for complex eigenvalues!!!!
     eigsolver.Solve(full_M, full_R, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, this->modes_damping_ratio, nmodes_clamped);
-    
     this->Setup();
 
     return true;
@@ -390,40 +441,34 @@ bool ChModalAssembly::ComputeModesDamped(int nmodes) {
 
 
 void ChModalAssembly::SetFullStateWithModeOverlay(int n_mode, double phase, double amplitude) {
-   
-    bool needs_temporary_bou_int = this->is_modal;
-    if (needs_temporary_bou_int) 
-        this->is_modal = false; // to have IntStateIncrement IntStateScatter referencing both boundary AND INTERNAL items
 
-    if (n_mode >= this->modes_V.cols())
+    if (n_mode >= this->modes_V.cols()) {
+        this->Update();
         throw ChException("Error: mode " + std::to_string(n_mode) + " is beyond the " + std::to_string(this->modes_V.cols()) + " computed eigenvectors.");
-    
-    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
-    int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
-    
-    if (this->modes_V.rows() != bou_int_coords_w)
+    }
+
+    if (this->modes_V.rows() != this->ncoords_w) {
+        this->Update();
         return;
+    }
 
     double fooT=0;
     ChState assembly_x_new;
     ChStateDelta assembly_v;
     ChStateDelta assembly_Dx;
     
-    assembly_x_new.setZero(bou_int_coords, nullptr);
-    assembly_v.setZero(bou_int_coords_w, nullptr);
-    assembly_Dx.setZero(bou_int_coords_w, nullptr);
+    assembly_x_new.setZero(this->ncoords, nullptr);
+    assembly_v.setZero(this->ncoords_w, nullptr);
+    assembly_Dx.setZero(this->ncoords_w, nullptr);
     
     // pick the nth eigenvector
-    assembly_Dx = sin(phase) * amplitude * this->modes_V.col(n_mode).real();   //***TODO***: .. + cos(phase) * amplitude * this->modes_V.col(n_mode).imag()
+    assembly_Dx = sin(phase) * amplitude * this->modes_V.col(n_mode).real() +cos(phase) * amplitude * this->modes_V.col(n_mode).imag();
     
-    this->IntStateIncrement(0, assembly_x_new, assembly_x0, 0, assembly_Dx); // x += amplitude * eigenvector
+    this->IntStateIncrement(0, assembly_x_new, this->modes_assembly_x0, 0, assembly_Dx); // x += amplitude * eigenvector
 
     this->IntStateScatter(0, assembly_x_new, 0, assembly_v, fooT, true);
 
     this->Update();
-
-    if (needs_temporary_bou_int) 
-        this->is_modal = true;
 }
 
 
@@ -432,21 +477,27 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
     if (!this->is_modal)
         return;
 
+    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
+    int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
+    int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
+    
+    if (this->Psi.rows() != bou_int_coords_w || 
+        this->Psi.cols() != bou_mod_coords_w)
+        return;
+
     // Fetch current dx state (e reduced)
     ChStateDelta assembly_Dx_reduced;
-    assembly_Dx_reduced.setZero(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
-    this->GetStateIncrement(assembly_Dx_reduced,0);
+    ChStateDelta assembly_v_reduced;
+    assembly_Dx_reduced.setZero(bou_mod_coords_w, nullptr);
+    assembly_v_reduced.setZero (bou_mod_coords_w, nullptr);
+    this->GetStateLocal(assembly_Dx_reduced,assembly_v_reduced);
 
 
     bool needs_temporary_bou_int = this->is_modal;
     if (needs_temporary_bou_int) 
         this->is_modal = false; // to have IntStateIncrement IntStateScatter referencing both boundary AND INTERNAL items
     
-    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
-    int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
-    
-    if (this->modes_V.rows() != bou_int_coords_w)
-        return;
+
 
     ChState assembly_x_new;
     ChStateDelta assembly_v;
@@ -492,27 +543,19 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
 
 void ChModalAssembly::SetFullStateReset() {
    
-    bool needs_temporary_bou_int = this->is_modal;
-    if (needs_temporary_bou_int) 
-        this->is_modal = false; // to have IntStateScatter referencing both boundary AND INTERNAL items
-
-    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
-    int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
     
-    if (this->assembly_x0.rows() != bou_int_coords)
+    if (this->modes_assembly_x0.rows() != this->ncoords)
         return;
 
     double fooT=0;
     ChStateDelta assembly_v;
  
-    assembly_v.setZero(bou_int_coords_w, nullptr);
+    assembly_v.setZero(this->ncoords_w, nullptr);
 
-    this->IntStateScatter(0, this->assembly_x0, 0, assembly_v, fooT, true);
+    this->IntStateScatter(0, this->modes_assembly_x0, 0, assembly_v, fooT, true);
 
     this->Update();
 
-    if (needs_temporary_bou_int) 
-        this->is_modal = true;
 }
 
 
@@ -989,6 +1032,7 @@ void ChModalAssembly::Setup() {
     n_internal_sysvars_w = n_internal_coords_w + n_internal_doc_w;  // total number of variables (with 6 dof per body)
     n_internal_dof = n_internal_coords_w - n_internal_doc_w;
 
+    this->custom_F_full.resize(this->n_boundary_coords_w + this->n_internal_coords_w);
 
     // For the modal part:
     //
@@ -1050,12 +1094,21 @@ void ChModalAssembly::Update(bool update_assets) {
         for (int ip = 0; ip < (int)internal_meshlist.size(); ++ip) {
             internal_meshlist[ip]->Update(ChTime, update_assets);
         }
+
+        if (m_custom_F_full_callback)
+            m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
     }
     else {
         // If in modal reduction mode, the internal parts would not be updated (actually, these could even be removed)
         // However one still might want to see the internal nodes "moving" during animations, 
         if (this->internal_nodes_update)
             this->SetInternalStateWithModes(update_assets);
+
+        if (m_custom_F_modal_callback)
+            m_custom_F_modal_callback->evaluate(this->custom_F_modal, *this);
+
+        if (m_custom_F_full_callback)
+            m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
     }
 
 }
@@ -1085,72 +1138,40 @@ void ChModalAssembly::SetNoSpeedNoAcceleration() {
 }
 
 
-void ChModalAssembly::GetStateIncrement(ChStateDelta& Dx, int off_v) {
+void ChModalAssembly::GetStateLocal(ChStateDelta& Dx, ChStateDelta& v_local) {
 
     if (is_modal == false) {
         // to do? not useful for the moment.
         return;
     }
     else {
-        //Dx.setZero(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
+        Dx.setZero(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
 
-        int off_x = 0; // test
-        unsigned int displ_x = off_x - this->offset_x;
-        unsigned int displ_v = off_v - this->offset_w;
+        // fetch the state snapshot (modal reduced)
+        int bou_mod_coords   = this->n_boundary_coords     + this->n_modes_coords_w;
+        int bou_mod_coords_w = this->n_boundary_coords_w   + this->n_modes_coords_w;
+        double fooT;
+        ChState       x_mod;
+        ChStateDelta  v_mod;
+        x_mod.setZero(bou_mod_coords, nullptr);
+        v_mod.setZero(bou_mod_coords_w, nullptr);
+        this->IntStateGather(0, x_mod, 0, v_mod, fooT);
 
-        for (auto& body : bodylist) {
-            if (body->IsActive()) {
-                Dx(displ_v + body->GetOffset_w())   = body->GetPos().x() - this->assembly_x0(displ_x + body->GetOffset_x());
-                Dx(displ_v + body->GetOffset_w()+1) = body->GetPos().y() - this->assembly_x0(displ_x + body->GetOffset_x()+1);
-                Dx(displ_v + body->GetOffset_w()+2) = body->GetPos().z() - this->assembly_x0(displ_x + body->GetOffset_x()+2);
-                ChQuaternion<> qb = body->GetRot();
-                ChQuaternion<> q0(this->assembly_x0.segment(displ_x + body->GetOffset_x()+3,4));
-                ChQuaternion<> rel_q = q0.GetConjugate() % qb;
-                Dx.segment(displ_v + body->GetOffset_w()+3, 3) = rel_q.Q_to_Rotv().eigen();
-            }
-        }
-
-        for (auto& shaft : shaftlist) {
-            if (shaft->IsActive()) {
-                //***TODO***
-            }
-        }
-
-        for (auto& link : linklist) {
-            if (link->IsActive()) {
-                //***TODO***
-            }
-        }
-
-        for (auto& item : meshlist) {
-            if (auto mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
-                for (auto& node : mesh->GetNodes()) {
-                    if (auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
-                        Dx(displ_v + nodexyz->NodeGetOffset_w())   = nodexyz->GetPos().x() - this->assembly_x0(displ_x + nodexyz->NodeGetOffset_x());
-                        Dx(displ_v + nodexyz->NodeGetOffset_w()+1) = nodexyz->GetPos().y() - this->assembly_x0(displ_x + nodexyz->NodeGetOffset_x()+1);
-                        Dx(displ_v + nodexyz->NodeGetOffset_w()+2) = nodexyz->GetPos().z() - this->assembly_x0(displ_x + nodexyz->NodeGetOffset_x()+2);
-                    }
-                    if (auto nodexyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
-                        Dx(displ_v + nodexyzrot->NodeGetOffset_w())   = nodexyzrot->GetPos().x() - this->assembly_x0(displ_x + nodexyzrot->NodeGetOffset_x());
-                        Dx(displ_v + nodexyzrot->NodeGetOffset_w()+1) = nodexyzrot->GetPos().y() - this->assembly_x0(displ_x + nodexyzrot->NodeGetOffset_x()+1);
-                        Dx(displ_v + nodexyzrot->NodeGetOffset_w()+2) = nodexyzrot->GetPos().z() - this->assembly_x0(displ_x + nodexyzrot->NodeGetOffset_x()+2);
-                        ChQuaternion<> qb = nodexyzrot->GetRot();
-                        ChQuaternion<> q0(this->assembly_x0.segment(displ_x + nodexyzrot->NodeGetOffset_x()+3,4));
-                        ChQuaternion<> rel_q = q0.GetConjugate() % qb;
-                        Dx.segment(displ_v + nodexyzrot->NodeGetOffset_w()+3, 3) = rel_q.Q_to_Rotv().eigen();
-                    }
-                }
-            }
-        }
-           
-        for (auto& item : otherphysicslist) {
-            //***TODO***
-        }
+        // the old state snapshot (modal reduced)
+        ChState x0_mod;
+        x0_mod.setZero(bou_mod_coords, nullptr);
+        x0_mod.segment(0, this->n_boundary_coords) = this->assembly_x0.segment(0, this->n_boundary_coords);
         
-        // Finally compute the increment for the modal variables, that is quite simple: the last part of Dx is exactly =modal_q
-        Dx.segment(off_v + this->n_boundary_coords_w, this->n_modes_coords_w) = this->modal_q;
+        this->IntStateGetIncrement(0, x_mod, x0_mod, 0, Dx);
+
+        v_local = v_mod;
+
+        //***TODO***
+        // transform all Dx and all v_local into the local corotated reference. Now works only if no large rotations in modal assembly.
     }
 }
+
+
 
 
 
@@ -1217,6 +1238,9 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
         for (auto& item : internal_otherphysicslist) {
             item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T, full_update);
         }
+
+        if (m_custom_F_full_callback)
+            m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
     }
     else {
         this->modal_q    = x.segment(off_x + this->n_boundary_coords,   this->n_modes_coords_w);
@@ -1227,6 +1251,12 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
         // However one still might want to see the internal nodes "moving" during animations, 
         if (this->internal_nodes_update)
             this->SetInternalStateWithModes(full_update);
+
+        if (m_custom_F_modal_callback)
+            m_custom_F_modal_callback->evaluate(this->custom_F_modal, *this);
+
+        if (m_custom_F_full_callback)
+            m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
     }
 }
 
@@ -1372,6 +1402,43 @@ void ChModalAssembly::IntStateIncrement(const unsigned int off_x,
     }
 }
 
+void ChModalAssembly::IntStateGetIncrement(const unsigned int off_x,
+                                   const ChState& x_new,
+                                   const ChState& x,
+                                   const unsigned int off_v,
+                                   ChStateDelta& Dv) {
+
+    ChAssembly::IntStateGetIncrement(off_x, x_new, x, off_v, Dv);  // parent
+
+    unsigned int displ_x = off_x - this->offset_x;
+    unsigned int displ_v = off_v - this->offset_w;
+
+    if (is_modal == false) {
+        for (auto& body : internal_bodylist) {
+            if (body->IsActive())
+                body->IntStateGetIncrement(displ_x + body->GetOffset_x(), x_new, x, displ_v + body->GetOffset_w(), Dv);
+        }
+
+        for (auto& link : internal_linklist) {
+            if (link->IsActive())
+                link->IntStateGetIncrement(displ_x + link->GetOffset_x(), x_new, x, displ_v + link->GetOffset_w(), Dv);
+        }
+
+        for (auto& mesh : internal_meshlist) {
+            mesh->IntStateGetIncrement(displ_x + mesh->GetOffset_x(), x_new, x, displ_v + mesh->GetOffset_w(), Dv);
+        }
+
+        for (auto& item : internal_otherphysicslist) {
+            item->IntStateGetIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
+        }
+    }
+    else {
+        Dv.segment(off_v + this->n_boundary_coords_w,  this->n_modes_coords_w) = 
+        x_new.segment(off_x + this->n_boundary_coords, this->n_modes_coords_w) - 
+            x.segment(off_x + this->n_boundary_coords, this->n_modes_coords_w);
+    }
+}
+
 
 void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
@@ -1396,20 +1463,30 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         for (auto& item : internal_otherphysicslist) {
             item->IntLoadResidual_F(displ_v + item->GetOffset_w(), R, c);
         }
+
+        // Add custom forces (applied to the original non reduced system) 
+        if (!this->custom_F_full.isZero()) {
+            R.segment(displ_v, this->n_boundary_coords_w + this->n_internal_coords_w) += c * this->custom_F_full;
+        }
     }
     else {
         // 1-
         // Add elastic forces from current modal deformations
         ChStateDelta Dx_local(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
-        this->GetStateIncrement(Dx_local, 0);
-        //ChStateDelta v_local;
-        // ...
+        ChStateDelta v_local(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
+        this->GetStateLocal(Dx_local, v_local);
 
-        R.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w) -= c * (this->modal_K * Dx_local); // +this->modal_R * v_local); // ***TODO*** add damping in local sys. Also note -= sign
+        R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -= c * (this->modal_K * Dx_local + this->modal_R * v_local); //  note -= sign
 
         // 2-
-        // Add custom modal forces
-        R.segment(displ_v + this->n_boundary_coords_w, this->n_modes_coords_w) += c * this->modal_F;
+        // Add custom forces (in modal coordinates)
+        if (!this->custom_F_modal.isZero())
+            R.segment(off + this->n_boundary_coords_w, this->n_modes_coords_w) += c * this->custom_F_modal;
+
+        // 3-
+        // Add custom forces (applied to the original non reduced system, and transformed into reduced) 
+        if (!this->custom_F_full.isZero())
+            R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) += c * this->Psi.transpose() * this->custom_F_full;
 
     }
 }
@@ -1440,8 +1517,8 @@ void ChModalAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offse
         }
     } 
     else {
-        ChVectorDynamic<> w_modal = w.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w);
-        R.segment(displ_v, this->n_boundary_coords_w + this->n_modes_coords_w) += c * (this->modal_M * w_modal);
+        ChVectorDynamic<> w_modal = w.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w);
+        R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) += c * (this->modal_M * w_modal);
     }
 }
 
@@ -1558,8 +1635,8 @@ void ChModalAssembly::IntToDescriptor(const unsigned int off_v,
         }
     } 
     else {
-        this->modal_variables->Get_qb() = v.segment(displ_v + this->n_boundary_coords_w,  this->n_modes_coords_w);
-        this->modal_variables->Get_fb() = R.segment(displ_v + this->n_boundary_coords_w,  this->n_modes_coords_w);
+        this->modal_variables->Get_qb() = v.segment(off_v + this->n_boundary_coords_w,  this->n_modes_coords_w);
+        this->modal_variables->Get_fb() = R.segment(off_v + this->n_boundary_coords_w,  this->n_modes_coords_w);
     }
 }
 
@@ -1593,7 +1670,7 @@ void ChModalAssembly::IntFromDescriptor(const unsigned int off_v,
         }
     }
     else {
-        v.segment(displ_v + this->n_boundary_coords_w,  this->n_modes_coords_w) = this->modal_variables->Get_qb();
+        v.segment(off_v + this->n_boundary_coords_w,  this->n_modes_coords_w) = this->modal_variables->Get_qb();
     }
 }
 
@@ -1739,7 +1816,8 @@ void ChModalAssembly::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(modal_q, "modal_q");
     marchive << CHNVP(modal_q_dt, "modal_q_dt");
     marchive << CHNVP(modal_q_dtdt, "modal_q_dtdt");
-    marchive << CHNVP(modal_F, "modal_F");
+    marchive << CHNVP(custom_F_modal, "custom_F_modal");
+    marchive << CHNVP(custom_F_full, "custom_F_full");
     marchive << CHNVP(internal_nodes_update, "internal_nodes_update");
 }
 
@@ -1778,7 +1856,8 @@ void ChModalAssembly::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(modal_q, "modal_q");
     marchive >> CHNVP(modal_q_dt, "modal_q_dt");
     marchive >> CHNVP(modal_q_dtdt, "modal_q_dtdt");
-    marchive >> CHNVP(modal_F, "modal_F");
+    marchive >> CHNVP(custom_F_modal, "custom_F_modal");
+    marchive >> CHNVP(custom_F_full, "custom_F_full");
     marchive >> CHNVP(internal_nodes_update, "internal_nodes_update");
 
     // Recompute statistics, offsets, etc.

@@ -59,8 +59,8 @@ class CH_SENSOR_API ChSegmentationCamera : public ChOptixSensor {
     CameraLensModelType GetLensModelType() const { return m_lens_model_type; }
 
     /// returns the lens model parameters
-    /// @return ChVector of lens parameters. Will default to zeros for any terms not used
-    ChVector<float> GetLensParameters() const { return m_lens_parameters; }
+    /// @return LensParams of lens parameters. Will default to zeros for any terms not used. These are coverted for the inverse model
+    LensParams GetLensParameters() const { return m_lens_parameters; }
 
     /// Sets the parameters for a radial lens distortion model
     /// Parameters should be given for the forward model
@@ -71,7 +71,7 @@ class CH_SENSOR_API ChSegmentationCamera : public ChOptixSensor {
   private:
     float m_hFOV;                           ///< the horizontal field of view of the sensor
     CameraLensModelType m_lens_model_type;  ///< lens model used by the camera
-    ChVector<float> m_lens_parameters;      ///< lens parameters when applicable
+    LensParams m_lens_parameters;      ///< lens parameters when applicable
 };
 
 /// @} sensor_sensors

@@ -1086,7 +1086,7 @@ template <class Real>
 inline void ChQuaternion<Real>::Q_from_Rotv(const ChVector<Real>& angle_axis) {
     Real theta_squared = angle_axis.Length2();
     // For non-zero rotation:
-    if (theta_squared > 0) {
+    if (theta_squared > 1e-30) {
         Real theta = sqrt(theta_squared);
         Real half_theta = theta / 2;
         Real k = sin(half_theta) / theta;
@@ -1109,7 +1109,7 @@ inline ChVector<Real> ChQuaternion<Real>::Q_to_Rotv() {
     ChVector<Real> angle_axis;
     Real sin_squared = m_data[1] * m_data[1] + m_data[2] * m_data[2] + m_data[3] * m_data[3];
     // For non-zero rotation
-    if (sin_squared > 0) {
+    if (sin_squared > 1e-30) {
         Real sin_theta = sqrt(sin_squared);
         Real k = 2 * atan2(sin_theta, m_data[0]) / sin_theta;
         angle_axis.x() = m_data[1] * k;

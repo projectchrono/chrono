@@ -18,6 +18,32 @@
 
 #include "chrono_sensor/optix/shaders/device_utils.h"
 
+
+__device__ __inline__ float radial_function(const float& rd2, const LensParams& params){
+    // Drap, P., & Lefèvre, J. (2016). 
+    // An Exact Formula for Calculating Inverse Radial Lens Distortions. 
+    // Sensors (Basel, Switzerland), 16(6), 807. https://doi.org/10.3390/s16060807
+    double rd4 = rd2 * rd2;
+    double rd6 = rd4 * rd2;
+    double rd8 = rd4 * rd4;
+    double rd10 = rd6 * rd4;
+    double rd12 = rd6 * rd6;
+    double rd14 = rd8 * rd6;
+    double rd16 = rd8 * rd8;
+    double rd18 = rd10 * rd8;
+
+    float ru = (float)(1 + params.a0 * rd2 + 
+        params.a1 * rd4 +
+        params.a2 * rd6 + 
+        params.a3 * rd8 +
+        params.a4 * rd10 +
+        params.a5 * rd12 +
+        params.a6 * rd14 +
+        params.a7 * rd16 +
+        params.a8 * rd18);
+    return ru;
+}
+
 /// Camera ray generation program using an FOV lens model
 extern "C" __global__ void __raygen__camera() {
     const RaygenParameters* raygen = (RaygenParameters*)optixGetSbtDataPointer();
@@ -32,7 +58,9 @@ extern "C" __global__ void __raygen__camera() {
     d.y *= (float)(screen.y) / (float)(screen.x);  // correct for the aspect ratio
 
     if (camera.lens_model == FOV_LENS && ((d.x) > 1e-5 || abs(d.y) > 1e-5)) {
-        float rd = sqrtf(d.x * d.x + d.y * d.y);
+        float focal = 1.f / tanf(camera.hFOV / 2.0);
+        float2 d_normalized = d / focal;
+        float rd = sqrtf(d_normalized.x * d_normalized.x + d_normalized.y * d_normalized.y);
         float ru = tanf(rd * camera.hFOV) / (2 * tanf(camera.hFOV / 2.0));
         float ru_max = tanf(camera.hFOV) / (2 * tanf(camera.hFOV / 2.0));
         // d.x = d.x * (ru / ru_max) / rd;
@@ -40,14 +68,14 @@ extern "C" __global__ void __raygen__camera() {
         d.x = d.x * (ru / rd);
         d.y = d.y * (ru / rd);
     } else if (camera.lens_model == RADIAL) {
-        float rd = sqrtf(d.x * d.x + d.y * d.y);
-        float rd2 = rd * rd;
-        float rd4 = rd2 * rd2;
-        float ru = rd * (1 + camera.lens_parameters.x * rd2 + camera.lens_parameters.y * rd4 +
-                         camera.lens_parameters.z * rd4 * rd2);
-        // float ru_max = (1 + camera.lens_parameters.x + camera.lens_parameters.y + camera.lens_parameters.z);
-        d.x = d.x * (ru / rd);
-        d.y = d.y * (ru / rd);
+        float focal = 1.f / tanf(camera.hFOV / 2.0);
+        float recip_focal = tanf(camera.hFOV / 2.0);
+        float2 d_normalized = d * recip_focal;
+        float rd2 = d_normalized.x * d_normalized.x + d_normalized.y * d_normalized.y;
+        float distortion_ratio = radial_function(rd2,camera.lens_parameters);
+        d_normalized.x = d_normalized.x * distortion_ratio;
+        d_normalized.y = d_normalized.y * distortion_ratio;
+        d = d_normalized * focal;
     }
 
     if (camera.super_sample_factor > 1) {
@@ -131,14 +159,14 @@ extern "C" __global__ void __raygen__segmentation() {
         d.x = d.x * (ru / ru_max) / rd;  //(r2 / r1) / scaled_extent;
         d.y = d.y * (ru / ru_max) / rd;  //* (r2 / r1) / scaled_extent;
     } else if (camera.lens_model == RADIAL) {
-        float rd = sqrtf(d.x * d.x + d.y * d.y);
-        float rd2 = rd * rd;
-        float rd4 = rd2 * rd2;
-        float ru = rd * (1 + camera.lens_parameters.x * rd2 + camera.lens_parameters.y * rd4 +
-                         camera.lens_parameters.z * rd4 * rd2);
-        // float ru_max = (1 + camera.lens_parameters.x + camera.lens_parameters.y + camera.lens_parameters.z);
-        d.x = d.x * (ru / rd);
-        d.y = d.y * (ru / rd);
+        float focal = 1.f / tanf(camera.hFOV / 2.0);
+        float recip_focal = tanf(camera.hFOV / 2.0);
+        float2 d_normalized = d * recip_focal;
+        float rd2 = d_normalized.x * d_normalized.x + d_normalized.y * d_normalized.y;
+        float distortion_ratio = radial_function(rd2,camera.lens_parameters);
+        d_normalized.x = d_normalized.x * distortion_ratio;
+        d_normalized.y = d_normalized.y * distortion_ratio;
+        d = d_normalized * focal;
     }
 
     // const float t_frac = 0;  // 0-1 between start and end time of the camera (chosen here)

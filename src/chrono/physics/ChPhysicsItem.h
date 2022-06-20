@@ -239,6 +239,20 @@ class ChApi ChPhysicsItem : public ChObj {
         }
     }
 
+    /// Computes Dt = x_new - x, using vectors at specified offsets.
+    /// By default, when DOF = DOF_w, it does just the difference of two state vectors, but in some cases (ex when using quaternions
+    /// for rotations) it could do more complex stuff, and children classes might overload it.
+    virtual void IntStateGetIncrement(const unsigned int off_x,  ///< offset in x state vector
+                                   const ChState& x_new,      ///< state vector, final position part
+                                   const ChState& x,          ///< state vector, initial position part
+                                   const unsigned int off_v,  ///< offset in v state vector
+                                   ChStateDelta& Dv           ///< state vector, increment. Here gets the result
+    ) {
+        for (int i = 0; i < GetDOF(); ++i) {
+             Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
+        }
+    }
+
     /// Takes the F force term, scale and adds to R at given offset:
     ///    R += c*F
     virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual

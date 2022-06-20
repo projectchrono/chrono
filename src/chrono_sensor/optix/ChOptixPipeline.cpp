@@ -419,7 +419,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.camera.use_fog = true;        // default value
             raygen_record->data.specific.camera.gamma = 2.2f;          // default value
             raygen_record->data.specific.camera.lens_model = PINHOLE;  // default value
-            raygen_record->data.specific.camera.lens_parameters = make_float3(0.f,0.f,0.f);
+            raygen_record->data.specific.camera.lens_parameters = {};
             break;
         }
 
@@ -440,7 +440,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.segmentation.hFOV = 3.14f / 4;   // default value
             raygen_record->data.specific.segmentation.frame_buffer = {};  // default value
             raygen_record->data.specific.segmentation.lens_model = PINHOLE;     // default value
-            raygen_record->data.specific.segmentation.lens_parameters = make_float3(0.f,0.f,0.f);
+            raygen_record->data.specific.segmentation.lens_parameters = {};
             break;
         }
 

@@ -53,8 +53,7 @@ int main(int argc, char* argv[]) {
 
     // Insert the funnel
     float funnel_bottom = 0.f;
-    gpu_sys.AddMesh(GetChronoDataFile("models/funnel.obj"), 
-                    ChVector<float>(0, 0, funnel_bottom),  
+    gpu_sys.AddMesh(GetChronoDataFile("models/funnel.obj"), ChVector<float>(0, 0, funnel_bottom),
                     ChMatrix33<float>(0.15f), 1e10);
     gpu_sys.EnableMeshCollision(true);
 
@@ -81,7 +80,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetRollingMode(CHGPU_ROLLING_MODE::SCHWARTZ);
 
     // In this test, the rolling friction affects the final repose angle
-    // by a lot. Test different values, such as 1, to see how it affects. 
+    // by a lot. Test different values, such as 1, to see how it affects.
     gpu_sys.SetRollingCoeff_SPH2SPH(params.rolling_friction_coeffS2S);
     gpu_sys.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
     gpu_sys.SetRollingCoeff_SPH2MESH(params.rolling_friction_coeffS2M);
@@ -185,9 +184,11 @@ int main(int argc, char* argv[]) {
         gpu_sys.WriteParticleFile(std::string(filename));
         sprintf(mesh_filename, "%s/step%06d_mesh", out_dir.c_str(), currframe);
         gpu_sys.WriteMeshes(std::string(mesh_filename));
-        
+
         float KE = gpu_sys.GetParticlesKineticEnergy();
         std::cout << "Total kinetic energy: " << KE << std::endl;
+        unsigned int NumStillIn = gpu_sys.GetNumParticleAboveZ(funnel_bottom);
+        std::cout << "Numer of particles still in funnel: " << NumStillIn << std::endl;
 
         curr_time += frame_step;
         currframe++;

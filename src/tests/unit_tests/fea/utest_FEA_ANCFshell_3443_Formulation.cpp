@@ -1478,6 +1478,12 @@ bool ANCFShellTest::CantileverTipLoadCheck(int msglvl) {
         element->SetDimensions(dx, width);
         element->AddLayer(height, 0 * CH_C_DEG_TO_RAD, material);
         element->SetAlphaDamp(0.0);
+
+        // By default the "continuous" integration style of calculation method is used since it is typically faster.
+        // Switch to the alternative "pre-integration" style of internal force calculation if selected by the user.
+        if (!m_useContInt)
+            element->SetIntFrcCalcMethod(ChElementShellANCF_3443::IntFrcMethod::PreInt);
+
         mesh->AddElement(element);
 
         nodeA = nodeB;
