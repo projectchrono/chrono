@@ -321,52 +321,6 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
 
     }
 
-    // Body Information
-    if (doc.HasMember("Body Inf")) {
-        if (doc["Body Inf"].HasMember("BodyDimensionX")) 
-            paramsH->bodyDimX = doc["Body Inf"]["BodyDimensionX"].GetDouble();
-
-        if (doc["Body Inf"].HasMember("BodyDimensionY"))
-            paramsH->bodyDimY = doc["Body Inf"]["BodyDimensionY"].GetDouble();
-
-        if (doc["Body Inf"].HasMember("BodyDimensionZ"))
-            paramsH->bodyDimZ = doc["Body Inf"]["BodyDimensionZ"].GetDouble();
-
-        if (doc["Body Inf"].HasMember("BodyRadius"))
-            paramsH->bodyRad = doc["Body Inf"]["BodyRadius"].GetDouble();
-
-        if (doc["Body Inf"].HasMember("BodyLength"))
-            paramsH->bodyLength = doc["Body Inf"]["BodyLength"].GetDouble();
-
-        if (doc["Body Inf"].HasMember("BodyIniPosX"))
-            paramsH->bodyIniPosX = doc["Body Inf"]["BodyIniPosX"].GetDouble();
-
-        if (doc["Body Inf"].HasMember("BodyIniPosY"))
-            paramsH->bodyIniPosY = doc["Body Inf"]["BodyIniPosY"].GetDouble();
-
-        if (doc["Body Inf"].HasMember("BodyIniPosZ"))
-            paramsH->bodyIniPosZ = doc["Body Inf"]["BodyIniPosZ"].GetDouble();
-
-        if (doc["Body Inf"].HasMember("BodyIniVelX"))
-            paramsH->bodyIniVelX = doc["Body Inf"]["BodyIniVelX"].GetDouble();
-
-        if (doc["Body Inf"].HasMember("BodyIniVelY"))
-            paramsH->bodyIniVelY = doc["Body Inf"]["BodyIniVelY"].GetDouble();
-
-        if (doc["Body Inf"].HasMember("BodyIniVelZ"))
-            paramsH->bodyIniVelZ = doc["Body Inf"]["BodyIniVelZ"].GetDouble();
-
-        if (doc["Body Inf"].HasMember("BodyIniAngVel"))
-            paramsH->bodyIniAngVel = doc["Body Inf"]["BodyIniAngVel"].GetDouble();
-
-        if (doc["Body Inf"].HasMember("BodyMass"))
-            paramsH->bodyMass = doc["Body Inf"]["BodyMass"].GetDouble();
-
-        if (doc["Body Inf"].HasMember("BodyDensity"))
-            paramsH->bodyDensity = doc["Body Inf"]["BodyDensity"].GetDouble();
-
-    }
-
     if (doc.HasMember("Body Active Domain"))
         paramsH->bodyActiveDomain = LoadVectorJSON(doc["Body Active Domain"]);
 

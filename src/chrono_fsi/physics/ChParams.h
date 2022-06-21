@@ -246,24 +246,6 @@ struct SimParams {
     Real fluidDimY;  ///< Dimension of the fluid domain - Y
     Real fluidDimZ;  ///< Dimension of the fluid domain - Z
 
-    //// RADU TODO
-    //// What are these doing here?!?!?
-    //// REMOVE!
-    Real bodyDimX;       ///< Size of the FSI body - X
-    Real bodyDimY;       ///< Size of the FSI body - Y
-    Real bodyDimZ;       ///< Size of the FSI body - Z
-    Real bodyRad;        ///< Radisu of the FSI body
-    Real bodyLength;     ///< Length of the FSI body
-    Real bodyIniPosX;    ///< Initial position of the FSI body - X
-    Real bodyIniPosY;    ///< Initial position of the FSI body - Y
-    Real bodyIniPosZ;    ///< Initial position of the FSI body - Z
-    Real bodyIniVelX;    ///< Initial velocity of the FSI body - X
-    Real bodyIniVelY;    ///< Initial velocity of the FSI body - Y
-    Real bodyIniVelZ;    ///< Initial velocity of the FSI body - Z
-    Real bodyIniAngVel;  ///< Initial angular velocity of the FSI body
-    Real bodyMass;       ///< Mass of the FSI body
-    Real bodyDensity;    ///< Density of the FSI body
-
     Real3 bodyActiveDomain;  ///< Size of the active domain that influenced by an FSI body
     Real settlingTime;       ///< Time for the granular to settle down
 
