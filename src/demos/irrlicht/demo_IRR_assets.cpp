@@ -157,7 +157,6 @@ int main(int argc, char* argv[]) {
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
     auto objmesh = chrono_types::make_shared<ChObjFileShape>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
-    objmesh->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), QUNIT));
 
     // ==Asset== Attach an array of boxes, each rotated to make a spiral
