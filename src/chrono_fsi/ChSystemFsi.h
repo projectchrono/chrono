@@ -101,9 +101,6 @@ class CH_FSI_API ChSystemFsi {
     /// Set SPH kernel length.
     void SetKernelLength(double length);
 
-    /// Set the fluid dimension
-    void SetSimDim(const ChVector<>& fluidDim);
-
     /// Set the fluid container dimension
     void SetContainerDim(const ChVector<>& boxDim);
 
@@ -169,9 +166,6 @@ class CH_FSI_API ChSystemFsi {
 
     /// Return the initial spacing of the SPH particles.
     double GetInitialSpacing() const;
-
-    /// Get the fluid dimension
-    ChVector<> GetSimDim() const;
 
     /// Set the fluid container dimension
     ChVector<> GetContainerDim() const;

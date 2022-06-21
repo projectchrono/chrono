@@ -309,16 +309,6 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
 
         if (doc["Geometry Inf"].HasMember("BoxDimensionZ"))
             paramsH->boxDimZ = doc["Geometry Inf"]["BoxDimensionZ"].GetDouble();
-
-        if (doc["Geometry Inf"].HasMember("FluidDimensionX"))
-            paramsH->fluidDimX = doc["Geometry Inf"]["FluidDimensionX"].GetDouble();
-
-        if (doc["Geometry Inf"].HasMember("FluidDimensionY"))
-            paramsH->fluidDimY = doc["Geometry Inf"]["FluidDimensionY"].GetDouble();
-
-        if (doc["Geometry Inf"].HasMember("FluidDimensionZ"))
-            paramsH->fluidDimZ = doc["Geometry Inf"]["FluidDimensionZ"].GetDouble();
-
     }
 
     if (doc.HasMember("Body Active Domain"))

@@ -170,12 +170,6 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& inputJson, const ChV
     utils::ParseJSON(inputJson, paramsH, ChUtilsTypeConvert::ChVectorToReal3(box_size));
 }
 
-void ChSystemFsi::SetSimDim(const ChVector<>& fluidDim) {
-    paramsH->fluidDimX = fluidDim.x();
-    paramsH->fluidDimY = fluidDim.y();
-    paramsH->fluidDimZ = fluidDim.z();
-}
-
 void ChSystemFsi::SetContainerDim(const ChVector<>& boxDim) {
     paramsH->boxDimX = boxDim.x();
     paramsH->boxDimY = boxDim.y();
@@ -1352,10 +1346,6 @@ double ChSystemFsi::GetKernelLength() const {
 
 double ChSystemFsi::GetInitialSpacing() const {
     return paramsH->INITSPACE;
-}
-
-ChVector<> ChSystemFsi::GetSimDim() const {
-    return ChVector<>(paramsH->fluidDimX, paramsH->fluidDimY, paramsH->fluidDimZ);
 }
 
 ChVector<> ChSystemFsi::GetContainerDim() const {

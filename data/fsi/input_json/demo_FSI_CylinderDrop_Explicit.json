@@ -42,9 +42,6 @@
   {
     "BoxDimensionX":                1.0,
     "BoxDimensionY":                0.6,
-    "BoxDimensionZ":                1.2,
-    "FluidDimensionX":              1.0,
-    "FluidDimensionY":              0.600000001,
-    "FluidDimensionZ":              0.5
+    "BoxDimensionZ":                1.2
   }
 }

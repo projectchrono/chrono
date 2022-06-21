@@ -50,11 +50,6 @@ double bxDim = 1.0 + smalldis;
 double byDim = 1.0 + smalldis;
 double bzDim = 0.8 + smalldis;
 
-// Dimension of the fluid domain
-double fxDim = 1.0 + smalldis;
-double fyDim = 1.0 + smalldis;
-double fzDim = 0.6 + smalldis;
-
 // Size of the cylinder
 double cyl_length = 0.2001;
 double cyl_radius = 0.12;
@@ -245,7 +240,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS,
     double volume = chrono::utils::CalcCylinderVolume(cyl_radius, cyl_length / 2);
     double density = sysFSI.GetDensity() * 2.0;
     double mass = density * volume;
-    ChVector<> cyl_pos = ChVector<>(0, 0, fzDim + cyl_radius + 2 * initSpace0);
+    ChVector<> cyl_pos = ChVector<>(0, 0, bzDim + cyl_radius + 2 * initSpace0);
     ChVector<> cyl_vel = ChVector<>(0.0, 0.0, 0.0);
     ChQuaternion<> cyl_rot = QUNIT;
     ChVector<> gyration = chrono::utils::CalcCylinderGyration(cyl_radius, cyl_length / 2).diagonal();
@@ -299,11 +294,6 @@ int main(int argc, char* argv[]) {
     byDim = bDim.y();
     bzDim = bDim.z();
 
-    ChVector<> fDim = sysFSI.GetSimDim();
-    fxDim = fDim.x();
-    fyDim = fDim.y();
-    fzDim = fDim.z();
-
     // Set the periodic boundary condition (if not, set relative larger values)
     auto initSpace0 = sysFSI.GetInitialSpacing();
     ChVector<> cMin(-bxDim / 2 * 10, -byDim / 2 * 10, -bzDim * 10);
@@ -317,15 +307,15 @@ int main(int argc, char* argv[]) {
     chrono::utils::GridSampler<> sampler(initSpace0);
     
     // Use a chrono sampler to create a bucket of granular material
-    ChVector<> boxCenter(0, 0, fzDim / 2);
-    ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
+    ChVector<> boxCenter(0, 0, bzDim / 2);
+    ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
     std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add SPH particles from the sampler points to the FSI system
     size_t numPart = (int)points.size();
     double gz = std::abs(sysFSI.Get_G_acc().z());
     for (int i = 0; i < numPart; i++) {
-        double pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + fzDim);
+        double pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + bzDim);
         double rho_ini = sysFSI.GetDensity() + pre_ini / (sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed());
         sysFSI.AddSphMarker(points[i], rho_ini, pre_ini, sysFSI.GetViscosity(), sysFSI.GetKernelLength(), -1, ChVector<>(0));
     }

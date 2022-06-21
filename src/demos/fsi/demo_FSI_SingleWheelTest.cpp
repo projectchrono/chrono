@@ -54,15 +54,6 @@ double bxDim = 5.0 + smalldis;
 double byDim = 0.8 + smalldis;
 double bzDim = 0.12 + smalldis;
 
-// Dimension of the terrain domain
-double fxDim = 5.0 + smalldis;
-double fyDim = 0.8 + smalldis;
-double fzDim = 0.1 + smalldis;
-
-// Terrain region center and its half size
-ChVector<> boxCenter(0.0, 0.0, fzDim / 2);
-ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
-
 // Size of the wheel
 double wheel_radius = 0.47;
 double wheel_slip = 0.0;
@@ -352,7 +343,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     /// set the abs orientation, position and velocity
     auto wheel = chrono_types::make_shared<ChBodyAuxRef>();
     ChQuaternion<> Body_rot = Q_from_Euler123(ChVector<double>(0, 0, 0));
-    ChVector<> Body_pos = wheel_IniPos + ChVector<>(0, 0, wheel_radius + fzDim);
+    ChVector<> Body_pos = wheel_IniPos + ChVector<>(0, 0, wheel_radius + bzDim);
     ChVector<> Body_vel = wheel_IniVel;
 
     /// Set the COG coordinates to barycenter, without displacing the REF reference.
@@ -482,9 +473,6 @@ int main(int argc, char* argv[]) {
     sysFSI.SetKernelLength(kernelLength);
     sysFSI.SetStepSize(dT);
 
-    // Set the terrain size
-    sysFSI.SetSimDim(ChVector<>(fxDim, fyDim, fzDim));
-
     // Set the terrain container size
     sysFSI.SetContainerDim(ChVector<>(bxDim, byDim, bzDim));
 
@@ -503,6 +491,8 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Initialize the SPH particles
+    ChVector<> boxCenter(0.0, 0.0, bzDim / 2);
+    ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
     sysFSI.AddSphMarkerBox(iniSpacing, kernelLength, boxCenter, boxHalfDim);
 
     // Create Solid region and attach BCE SPH particles

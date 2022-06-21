@@ -45,6 +45,7 @@ double out_fps = 20;
 double bxDim = 6.0;
 double byDim = 1.0;
 double bzDim = 4.0;
+
 // Dimension of the fluid domain
 double fxDim = 2.0;
 double fyDim = 1.0;
@@ -164,12 +165,6 @@ int main(int argc, char* argv[]) {
     bxDim = bDim.x();
     byDim = bDim.y();
     bzDim = bDim.z();
-
-    // Dimension of the fluid domain
-    ChVector<> fDim = sysFSI.GetSimDim();
-    fxDim = fDim.x();
-    fyDim = fDim.y();
-    fzDim = fDim.z();
 
     // Set up the periodic boundary condition (only in Y direction)
     auto initSpace0 = sysFSI.GetInitialSpacing();

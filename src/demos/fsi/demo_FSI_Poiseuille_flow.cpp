@@ -45,10 +45,6 @@ double out_fps = 20;
 double bxDim = 0.2;
 double byDim = 0.1;
 double bzDim = 0.2;
-// Dimension of the fluid domain
-double fxDim = 0.2;
-double fyDim = 0.1;
-double fzDim = 0.2;
 
 // Final simulation time
 double t_end = 10.0;
@@ -146,12 +142,6 @@ int main(int argc, char* argv[]) {
     byDim = bDim.y();
     bzDim = bDim.z();
 
-    // Dimension of the fluid domain
-    ChVector<> fDim = sysFSI.GetSimDim();
-    fxDim = fDim.x();
-    fyDim = fDim.y();
-    fzDim = fDim.z();
-
     // Set the periodic boundary condition (in X and Y direction)
     auto initSpace0 = sysFSI.GetInitialSpacing();
     ChVector<> cMin = ChVector<>(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -5.0 * initSpace0);
@@ -162,8 +152,8 @@ int main(int argc, char* argv[]) {
     sysFSI.SetFsiOutputDir(demo_dir, out_dir, inputJson);
 
     // Create Fluid region and discretize with SPH particles
-    ChVector<> boxCenter(0.0, 0.0, fzDim / 2);
-    ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
+    ChVector<> boxCenter(0.0, 0.0, bzDim / 2);
+    ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
 
     // Use a chrono sampler to create a bucket of points
     chrono::utils::GridSampler<> sampler(initSpace0);

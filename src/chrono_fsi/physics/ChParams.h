@@ -242,10 +242,6 @@ struct SimParams {
     Real boxDimY;  ///< Dimension of the space domain - Y
     Real boxDimZ;  ///< Dimension of the space domain - Z
 
-    Real fluidDimX;  ///< Dimension of the fluid domain - X
-    Real fluidDimY;  ///< Dimension of the fluid domain - Y
-    Real fluidDimZ;  ///< Dimension of the fluid domain - Z
-
     Real3 bodyActiveDomain;  ///< Size of the active domain that influenced by an FSI body
     Real settlingTime;       ///< Time for the granular to settle down
 
