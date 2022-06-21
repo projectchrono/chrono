@@ -25,9 +25,8 @@
 #include "chrono_fsi/physics/ChFsiForceI2SPH.cuh"
 #include "chrono_fsi/physics/ChFsiForceIISPH.cuh"
 #include "chrono_fsi/ChSystemFsi_impl.cuh"
-#include "chrono_fsi/ChFsiDefines.h"
 
-using chrono::fsi::CHFSI_TIME_INTEGRATOR;
+using chrono::fsi::TimeIntegrator;
 
 namespace chrono {
 namespace fsi {
@@ -53,7 +52,7 @@ class ChFluidDynamics : public ChFsiGeneral {
                     ChSystemFsi_impl& otherFsiSystem,                  ///< Pointer to the FSI system
                     std::shared_ptr<SimParams> otherParamsH,           ///< Pointer to the simulation parameters
                     std::shared_ptr<NumberOfObjects> otherNumObjects,  ///< Pointer to the number of objects
-                    CHFSI_TIME_INTEGRATOR otherIntegrator,             ///< Integration type (only for ISPH)
+                    TimeIntegrator otherIntegrator,                    ///< Integration type (only for ISPH)
                     bool verb                                          ///< verbose terminal output
     );
 
@@ -87,7 +86,7 @@ class ChFluidDynamics : public ChFsiGeneral {
     void Initialize();
 
     /// Return the integrator type used in the simulation.
-    CHFSI_TIME_INTEGRATOR GetIntegratorType() { return integrator_type; }
+    TimeIntegrator GetIntegratorType() { return integrator_type; }
 
     /// Return the ChFsiForce type used in the simulation.
     std::shared_ptr<ChFsiForce> GetForceSystem() { return forceSystem; }
@@ -98,7 +97,7 @@ class ChFluidDynamics : public ChFsiGeneral {
     std::shared_ptr<NumberOfObjects> numObjectsH;  ///< counters (fluid particles, number of rigids, boundaries)
 
     std::shared_ptr<ChFsiForce> forceSystem;  ///< Force system object; calculates the force between particles
-    CHFSI_TIME_INTEGRATOR integrator_type;    ///< Integrator type
+    TimeIntegrator integrator_type;           ///< Integrator type
 
     bool verbose;
 

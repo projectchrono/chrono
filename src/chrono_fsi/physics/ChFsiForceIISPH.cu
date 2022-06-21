@@ -1356,7 +1356,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
                                         thrust::device_vector<Real>& Color) {
     //    Real RES = paramsH->PPE_res;
 
-    PPE_SolutionType mySolutionType = paramsH->PPE_Solution_type;
+    PPESolutionType mySolutionType = paramsH->PPE_Solution_type;
     std::cout << "time step in calcPressureIISPH " << paramsH->dT << std::endl;
 
     double total_step_timeClock = clock();
@@ -1437,7 +1437,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
             fsiGeneralData->referenceArray[haveGhost + haveHelper + 1 + numObjectsH->numRigidBodies + numFlexbodies].y);
 
     uint NNZ;
-    if (mySolutionType == PPE_SolutionType::FORM_SPARSE_MATRIX) {
+    if (mySolutionType == PPESolutionType::FORM_SPARSE_MATRIX) {
         thrust::fill(a_ij.begin(), a_ij.end(), 0.0);
         thrust::fill(B_i.begin(), B_i.end(), 0.0);
         //        thrust::fill(summGradW.begin(), summGradW.end(), mR3(0.0));
@@ -1535,7 +1535,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
     myLinearSolver->SetIterationLimit(paramsH->LinearSolver_Max_Iter);
 
     if (paramsH->USE_LinearSolver) {
-        if (paramsH->PPE_Solution_type != PPE_SolutionType::FORM_SPARSE_MATRIX) {
+        if (paramsH->PPE_Solution_type != PPESolutionType::FORM_SPARSE_MATRIX) {
             printf(
                 "You should paramsH->PPE_Solution_type == FORM_SPARSE_MATRIX in order to use the "
                 "chrono_fsi linear "
@@ -1561,7 +1561,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
                 throw std::runtime_error("Error! program crashed after Initialize_Variables!\n");
             }
 
-            if (mySolutionType == PPE_SolutionType::MATRIX_FREE) {
+            if (mySolutionType == PPESolutionType::MATRIX_FREE) {
                 *isErrorH = false;
                 cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
                 Calc_dij_pj<<<numBlocks, numThreads>>>(
@@ -1603,7 +1603,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
                 }
             }
 
-            if (mySolutionType == PPE_SolutionType::FORM_SPARSE_MATRIX) {
+            if (mySolutionType == PPESolutionType::FORM_SPARSE_MATRIX) {
                 *isErrorH = false;
                 cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
                 Calc_Pressure_AXB_USING_CSR<<<numBlocks, numThreads>>>(

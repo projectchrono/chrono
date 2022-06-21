@@ -48,11 +48,7 @@ namespace chrono {
 namespace fsi {
 
 ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
-    : sysMBS(other_physicalSystem),
-      verbose(true),
-      is_initialized(false),
-      mTime(0),
-      file_write_mode(CHFSI_OUTPUT_MODE::NONE) {
+    : sysMBS(other_physicalSystem), verbose(true), is_initialized(false), mTime(0), file_write_mode(OutpuMode::NONE) {
     paramsH = chrono_types::make_shared<SimParams>();
     InitParams();
     numObjectsH = sysFSI.numObjects;
@@ -88,7 +84,7 @@ void ChSystemFsi::InitParams() {
     paramsH->L_Characteristic = Real(1.0);
 
     // SPH parameters
-    paramsH->fluid_dynamic_type = fluid_dynamics::WCSPH;
+    paramsH->fluid_dynamic_type = FluidDynamics::WCSPH;
     paramsH->HSML = Real(0.01);
     paramsH->INVHSML = 1 / paramsH->HSML;
     paramsH->INITSPACE = paramsH->HSML;
@@ -119,7 +115,7 @@ void ChSystemFsi::InitParams() {
     paramsH->dT_Max = Real(1.0);
 
     // Pressure equation
-    paramsH->PPE_Solution_type = PPE_SolutionType::MATRIX_FREE;
+    paramsH->PPE_Solution_type = PPESolutionType::MATRIX_FREE;
     paramsH->Alpha = paramsH->HSML;
     paramsH->PPE_relaxation = Real(1.0);
     paramsH->LinearSolver_Abs_Tol = Real(0.0);
@@ -219,15 +215,15 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
             if (verbose)
                 cout << "Modeling method is: " << SPH << endl;
             if (SPH == "I2SPH")
-                paramsH->fluid_dynamic_type = fluid_dynamics::I2SPH;
+                paramsH->fluid_dynamic_type = FluidDynamics::I2SPH;
             else if (SPH == "IISPH")
-                paramsH->fluid_dynamic_type = fluid_dynamics::IISPH;
+                paramsH->fluid_dynamic_type = FluidDynamics::IISPH;
             else if (SPH == "WCSPH")
-                paramsH->fluid_dynamic_type = fluid_dynamics::WCSPH;
+                paramsH->fluid_dynamic_type = FluidDynamics::WCSPH;
             else {
                 cerr << "Incorrect SPH method in the JSON file: " << SPH << endl;
                 cerr << "Falling back to WCSPH " << endl;
-                paramsH->fluid_dynamic_type = fluid_dynamics::WCSPH;
+                paramsH->fluid_dynamic_type = FluidDynamics::WCSPH;
             }
         }
 
@@ -300,7 +296,7 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
 
     if (doc.HasMember("Pressure Equation")) {
         if (doc["Pressure Equation"].HasMember("Linear solver")) {
-            paramsH->PPE_Solution_type = PPE_SolutionType::FORM_SPARSE_MATRIX;
+            paramsH->PPE_Solution_type = PPESolutionType::FORM_SPARSE_MATRIX;
             std::string solver = doc["Pressure Equation"]["Linear solver"].GetString();
             if (solver == "Jacobi") {
                 paramsH->USE_LinearSolver = false;
@@ -498,7 +494,7 @@ void ChSystemFsi::SetSPHLinearSolver(ChFsiLinearSolver::SolverType lin_solver) {
     paramsH->LinearSolver = lin_solver;
 }
 
-void ChSystemFsi::SetSPHMethod(fluid_dynamics SPH_method, ChFsiLinearSolver::SolverType lin_solver) {
+void ChSystemFsi::SetSPHMethod(FluidDynamics SPH_method, ChFsiLinearSolver::SolverType lin_solver) {
     paramsH->fluid_dynamic_type = SPH_method;
     paramsH->LinearSolver = lin_solver;
 }
@@ -650,6 +646,10 @@ void ChSystemFsi::SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::SetOutputDirectory(const std::string& output_dir) {
+    if (!filesystem::create_directory(filesystem::path(output_dir))) {
+        cerr << "Error creating directory " << out_dir << endl;
+        return;
+    }
     out_dir = output_dir + "/fsi";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
@@ -798,14 +798,14 @@ void ChSystemFsi::Initialize() {
                                                  sysFSI.fsiGeneralData, paramsH, numObjectsH, verbose);
 
     switch (paramsH->fluid_dynamic_type) {
-        case fluid_dynamics::IISPH:
-            fluidIntegrator = CHFSI_TIME_INTEGRATOR::IISPH;
+        case FluidDynamics::IISPH:
+            fluidIntegrator = TimeIntegrator::IISPH;
             break;
-        case fluid_dynamics::WCSPH:
-            fluidIntegrator = CHFSI_TIME_INTEGRATOR::ExplicitSPH;
+        case FluidDynamics::WCSPH:
+            fluidIntegrator = TimeIntegrator::EXPLICITSPH;
             break;
         default:
-            fluidIntegrator = CHFSI_TIME_INTEGRATOR::I2SPH;
+            fluidIntegrator = TimeIntegrator::I2SPH;
             break;
     }
     fluidDynamics =
@@ -843,7 +843,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         throw std::runtime_error("FSI system not initialized!\n");
     }
 
-    if (fluidDynamics->GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH) {
+    if (fluidDynamics->GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
         // The following is used to execute the Explicit WCSPH
         CopyDeviceDataToHalfStep();
         ChUtilsDevice::FillMyThrust4(sysFSI.fsiGeneralData->derivVelRhoD, mR4(0));
@@ -919,11 +919,11 @@ void ChSystemFsi::DoStepDynamics_ChronoRK2() {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
-    if (file_write_mode == CHFSI_OUTPUT_MODE::CSV) {
+    if (file_write_mode == OutpuMode::CSV) {
         utils::WriteCsvParticlesToFile(sysFSI.sphMarkersD2->posRadD, sysFSI.sphMarkersD2->velMasD,
                                        sysFSI.sphMarkersD2->rhoPresMuD, sysFSI.fsiGeneralData->referenceArray,
                                        outfilename);
-    } else if (file_write_mode == CHFSI_OUTPUT_MODE::CHPF) {
+    } else if (file_write_mode == OutpuMode::CHPF) {
         utils::WriteChPFParticlesToFile(sysFSI.sphMarkersD2->posRadD, sysFSI.fsiGeneralData->referenceArray,
                                         outfilename);
     }

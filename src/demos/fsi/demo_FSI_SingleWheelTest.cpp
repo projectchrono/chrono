@@ -482,7 +482,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetWallBC(BceVersion::ORIGINAL);
 
     // Setup the solver based on the input value of the prameters
-    sysFSI.SetSPHMethod(fluid_dynamics::WCSPH);
+    sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
 
     // Set up the periodic boundary condition (if not, set relative larger values)
     ChVector<> cMin(-bxDim / 2 * 10, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10 - 10 * iniSpacing);

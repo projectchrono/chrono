@@ -1126,7 +1126,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     //    }
 
     if (paramsH->USE_LinearSolver) {
-        if (paramsH->PPE_Solution_type != PPE_SolutionType::FORM_SPARSE_MATRIX) {
+        if (paramsH->PPE_Solution_type != PPESolutionType::FORM_SPARSE_MATRIX) {
             printf(
                 "You should paramsH->PPE_Solution_type == FORM_SPARSE_MATRIX in order to use the "
                 "chrono_fsi linear "
@@ -1138,7 +1138,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         myLinearSolver->SetRelRes(paramsH->LinearSolver_Rel_Tol);
         myLinearSolver->SetIterationLimit(paramsH->LinearSolver_Max_Iter);
 
-        if (paramsH->PPE_Solution_type != PPE_SolutionType::FORM_SPARSE_MATRIX) {
+        if (paramsH->PPE_Solution_type != PPESolutionType::FORM_SPARSE_MATRIX) {
             printf(
                 "You should paramsH->PPE_Solution_type == FORM_SPARSE_MATRIX in order to use the "
                 "chrono_fsi linear "

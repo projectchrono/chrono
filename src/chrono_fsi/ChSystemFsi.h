@@ -26,7 +26,6 @@
 #include "chrono_fsi/physics/ChBce.cuh"
 #include "chrono_fsi/physics/ChFluidDynamics.cuh"
 #include "chrono_fsi/ChFsiInterface.h"
-#include "chrono_fsi/ChFsiDefines.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 namespace chrono {
@@ -54,6 +53,13 @@ class ChSystemFsi_impl;
 /// and data.
 class CH_FSI_API ChSystemFsi {
   public:
+    /// Output mode.
+    enum class OutpuMode {
+        CSV,   ///< comma-separated value
+        CHPF,  ///< binary
+        NONE   ///< none
+    };
+
     /// Structure with elastic material properties.
     /// Used if solving an SPH continuum representation of granular dynamics.
     struct ElasticMaterialProperties {
@@ -141,7 +147,7 @@ class CH_FSI_API ChSystemFsi {
     void SetSPHLinearSolver(ChFsiLinearSolver::SolverType lin_solver);
 
     /// Set the SPH method and, optionally, the linear solver type.
-    void SetSPHMethod(fluid_dynamics SPH_method,
+    void SetSPHMethod(FluidDynamics SPH_method,
                       ChFsiLinearSolver::SolverType lin_solver = ChFsiLinearSolver::SolverType::BICGSTAB);
 
     /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
@@ -157,7 +163,7 @@ class CH_FSI_API ChSystemFsi {
     void SetOutputLength(int OutputLength);
 
     /// Set the FSI system output mode (default: NONE).
-    void SetParticleOutputMode(CHFSI_OUTPUT_MODE mode) { file_write_mode = mode; }
+    void SetParticleOutputMode(OutpuMode mode) { file_write_mode = mode; }
 
     /// Return the SPH kernel length of kernel function.
     double GetKernelLength() const;
@@ -431,9 +437,9 @@ class CH_FSI_API ChSystemFsi {
     ChSystemFsi_impl sysFSI;  ///< underlying system implementation
     ChSystem& sysMBS;         ///< reference to the multi-body system
 
-    bool verbose;                       ///< enable/disable verbose terminal output (default: true)
-    std::string out_dir;                ///< output directory
-    CHFSI_OUTPUT_MODE file_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
+    bool verbose;               ///< enable/disable verbose terminal output (default: true)
+    std::string out_dir;        ///< output directory
+    OutpuMode file_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
 
     std::vector<std::shared_ptr<ChBody>> fsiBodies;                        ///< vector of a pointers to FSI bodies
     std::vector<std::shared_ptr<fea::ChElementCableANCF>> fsiCables;       ///< vector of cable ANCF elements
@@ -444,7 +450,7 @@ class CH_FSI_API ChSystemFsi {
     std::vector<std::vector<int>> ShellElementsNodes;  ///< indices of nodes of each shell element
     std::vector<std::vector<int>> CableElementsNodes;  ///< indices of nodes of each cable element
     std::shared_ptr<ChFluidDynamics> fluidDynamics;    ///< pointer to the fluid system
-    CHFSI_TIME_INTEGRATOR fluidIntegrator;             ///< IISPH by default
+    TimeIntegrator fluidIntegrator;                    ///< IISPH by default
     std::shared_ptr<ChFsiInterface> fsiInterface;      ///< pointer to the FSI interface system
     std::shared_ptr<ChBce> bceWorker;                  ///< pointer to the bce workers
     std::shared_ptr<SimParams> paramsH;                ///< pointer to the simulation parameters

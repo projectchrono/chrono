@@ -268,9 +268,9 @@ inline __device__ Real Inertia_num(Real Strain_rate, Real rho, Real p, Real diam
 ////--------------------------------------------------------------------------------------------------------------------------------
 inline __device__ Real mu_I(Real Strain_rate, Real I) {
     Real mu = 0;
-    if (paramsD.mu_of_I == friction_law::constant)
+    if (paramsD.mu_of_I == FrictionLaw::CONSTANT)
         mu = paramsD.mu_fric_s;
-    else if (paramsD.mu_of_I == friction_law::linear)
+    else if (paramsD.mu_of_I == FrictionLaw::NONLINEAR)
         mu = paramsD.mu_fric_s + paramsD.mu_I_b * I;
     else
         mu = paramsD.mu_fric_s + (paramsD.mu_fric_2 - paramsD.mu_fric_s) * (I / (paramsD.mu_I0 + I));

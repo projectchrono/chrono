@@ -103,7 +103,6 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 
 set(ChronoEngine_FSI_FILES
     ChApiFsi.h
-    ChFsiDefines.h
     ChSystemFsi.h
     ChSystemFsi_impl.cuh
     ChFsiInterface.h

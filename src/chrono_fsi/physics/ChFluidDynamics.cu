@@ -546,15 +546,18 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
                                  ChSystemFsi_impl& otherFsiSystem,
                                  std::shared_ptr<SimParams> otherParamsH,
                                  std::shared_ptr<NumberOfObjects> otherNumObjects,
-                                 CHFSI_TIME_INTEGRATOR type,
+                                 TimeIntegrator type,
                                  bool verb)
-    : fsiSystem(otherFsiSystem), paramsH(otherParamsH), numObjectsH(otherNumObjects), verbose(verb) {
-    integrator_type = type;
+    : fsiSystem(otherFsiSystem),
+      paramsH(otherParamsH),
+      numObjectsH(otherNumObjects),
+      integrator_type(type),
+      verbose(verb) {
     switch (integrator_type) {
-        case CHFSI_TIME_INTEGRATOR::I2SPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(otherBceWorker, fsiSystem.sortedSphMarkersD,
-                                                                     fsiSystem.markersProximityD,
-                                                                     fsiSystem.fsiGeneralData, paramsH, numObjectsH, verb);
+        case TimeIntegrator::I2SPH:
+            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(
+                otherBceWorker, fsiSystem.sortedSphMarkersD, fsiSystem.markersProximityD, fsiSystem.fsiGeneralData,
+                paramsH, numObjectsH, verb);
             if (verbose) {
                 cout << "===============================================================================" << endl;
                 cout << "========================   Created an I2SPH framework   =======================" << endl;
@@ -562,7 +565,7 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
             }
             break;
 
-        case CHFSI_TIME_INTEGRATOR::IISPH:
+        case TimeIntegrator::IISPH:
             forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(otherBceWorker, fsiSystem.sortedSphMarkersD,
                                                                      fsiSystem.markersProximityD,
                                                                      fsiSystem.fsiGeneralData, paramsH, numObjectsH, verb);
@@ -573,7 +576,7 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
             }
             break;
 
-        case CHFSI_TIME_INTEGRATOR::ExplicitSPH:
+        case TimeIntegrator::EXPLICITSPH:
             forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
                 otherBceWorker, fsiSystem.sortedSphMarkersD, fsiSystem.markersProximityD, fsiSystem.fsiGeneralData,
                 paramsH, numObjectsH, verb);
@@ -589,7 +592,7 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
             forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
                 otherBceWorker, fsiSystem.sortedSphMarkersD, fsiSystem.markersProximityD, fsiSystem.fsiGeneralData,
                 paramsH, numObjectsH, verb);
-            cout << "Selected ChFsiForce not implemented, reverting back to ExplicitSPH" << endl;
+            cout << "Selected integrator type not implemented, reverting back to EXPLICITSPH" << endl;
     }
 }
 
@@ -611,15 +614,15 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                    std::shared_ptr<FsiMeshDataD> fsiMeshD,
                                    Real dT,
                                    Real Time) {
-    if (GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH) {
+    if (GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
         this->UpdateActivity(sphMarkersD1, sphMarkersD2, fsiBodiesD, Time);
         forceSystem->ForceSPH(sphMarkersD2, fsiBodiesD, fsiMeshD);
     } else
         forceSystem->ForceSPH(sphMarkersD1, fsiBodiesD, fsiMeshD);
 
-    if (integrator_type == CHFSI_TIME_INTEGRATOR::IISPH)
+    if (integrator_type == TimeIntegrator::IISPH)
         this->UpdateFluid_Implicit(sphMarkersD2);
-    else if (GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH)
+    else if (GetIntegratorType() == TimeIntegrator::EXPLICITSPH)
         this->UpdateFluid(sphMarkersD1, dT);
 
     this->ApplyBoundarySPH_Markers(sphMarkersD2);

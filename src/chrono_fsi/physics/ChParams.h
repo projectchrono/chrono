@@ -43,21 +43,29 @@ namespace fsi {
 /// Approach to handle BCE particles
 enum class BceVersion { ADAMI = 0, ORIGINAL = 1 };
 
-/// PPE_SolutionType
-enum class PPE_SolutionType { MATRIX_FREE, FORM_SPARSE_MATRIX };
+/// PPE solution type
+enum class PPESolutionType { MATRIX_FREE, FORM_SPARSE_MATRIX };
 
 /// Rheology type
-enum class rheology { Inertia_rheology, nonlocal_fluidity };
+enum class Rheology { INERTIA_RHEOLOGY, NONLOCAL_FLUIDITY };
+
+////enum fluidity_model { frictional_plasticity, Inertia_rheology, nonlocal_fluidity };
 
 /// Friction law in ISPH
-enum class friction_law { constant, linear, nonlinear };
+enum class FrictionLaw { CONSTANT, LINEAR, NONLINEAR };
 
 /// Dynamics solver type for fluid/granular
-enum class fluid_dynamics { IISPH, I2SPH, WCSPH };
+enum class FluidDynamics { IISPH, I2SPH, WCSPH };
+
+/// Time integration method
+enum class TimeIntegrator { EXPLICITSPH, IISPH, I2SPH };
+
+/// Linear solver type
+enum class SolverType { JACOBI, BICGSSTAB, GMRES, CR, CG, SAP };
 
 /// Structure with FSI simulation parameters.
 struct SimParams {
-    fluid_dynamics fluid_dynamic_type;  ///< Type of SPH mehtod (WCSPH, IISPH, or I2SPH)
+    FluidDynamics fluid_dynamic_type;  ///< Type of SPH mehtod (WCSPH, IISPH, or I2SPH)
     int output_length;  ///< Output length (0:short, 1:middle, 2:long) information of SPH particles into data files
 
     int3 gridSize;        ///< dx, dy, dz distances between particle centers.
@@ -115,8 +123,6 @@ struct SimParams {
               ///< is to run simulations multiple time and find which one is the largest dT that produces a stable
               ///< simulation.
     Real INV_dT;  ///< 1.0 / dT
-
-    enum fluidity_model { frictional_plasticity, Inertia_rheology, nonlocal_fluidity };
 
     Real dT_Flex;    ///< Setpsize for the flexible bodies dynamics.
     Real Co_number;  ///< Constant in CFL condition.
@@ -181,11 +187,11 @@ struct SimParams {
     int LinearSolver_Max_Iter;  ///< Linear Solver maximum number of iteration
     bool Verbose_monitoring;    ///< Poisson Pressure Equation Absolute residual
 
-    Real Max_Pressure;                   ///< Max Pressure in the pressure solver
-    PPE_SolutionType PPE_Solution_type;  ///< MATRIX_FREE, FORM_SPARSE_MATRIX see Rakhsha et al. 2018 paper for details
-                                         ///< omega relaxation in the pressure equation, something less than 0.5 is
-                                         ///< necessary for Jacobi solver
-    Real PPE_relaxation;                 ///< PPE_relaxation
+    Real Max_Pressure;                  ///< Max Pressure in the pressure solver
+    PPESolutionType PPE_Solution_type;  ///< MATRIX_FREE, FORM_SPARSE_MATRIX see Rakhsha et al. 2018 paper for details
+                                        ///< omega relaxation in the pressure equation, something less than 0.5 is
+                                        ///< necessary for Jacobi solver
+    Real PPE_relaxation;                ///< PPE_relaxation
     bool ClampPressure;  ///< Clamp pressure to 0 if negative, based on the IISPH paper by Ihmsen et al. (2013)
     Real IncompressibilityFactor;  ///< Incompressibility factor, default = 1
     Real Cs;                       ///< Speed of sound.
@@ -197,10 +203,10 @@ struct SimParams {
     Real L_Characteristic;        ///< Some length characteristic for Re number computation
 
     bool non_newtonian;       ///< Set true to model non-newtonian fluid.
-    rheology rheology_model;  ///< Model of the rheology (Inertia_rheology or nonlocal_fluidity)
+    Rheology rheology_model;  ///< Model of the rheology
     Real ave_diam;            ///< average particle diameter
     Real cohesion;            ///< c in the stress model sigma=(mu*p+c)/|D|
-    friction_law mu_of_I;     ///< Constant I in granular material dyanmcis
+    FrictionLaw mu_of_I;      ///< Constant I in granular material dyanmcis
     Real mu_max;              ///< maximum viscosity
     Real mu_fric_s;           ///< friction mu_s
     Real mu_fric_2;           ///< mu_2 constant in mu=mu(I)
@@ -233,8 +239,8 @@ struct SimParams {
     Real boxDimY;  ///< Dimension of the space domain - Y
     Real boxDimZ;  ///< Dimension of the space domain - Z
 
-    Real3 cMin;    ///< Lower limit point
-    Real3 cMax;    ///< Upper limit point
+    Real3 cMin;  ///< Lower limit point
+    Real3 cMax;  ///< Upper limit point
 
     Real3 bodyActiveDomain;  ///< Size of the active domain that influenced by an FSI body
     Real settlingTime;       ///< Time for the granular to settle down
