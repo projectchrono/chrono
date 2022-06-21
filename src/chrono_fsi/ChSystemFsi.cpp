@@ -40,7 +40,11 @@ namespace chrono {
 namespace fsi {
 
 ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
-    : sysMBS(other_physicalSystem), is_initialized(false), mTime(0), file_write_mode(CHFSI_OUTPUT_MODE::NONE) {
+    : sysMBS(other_physicalSystem),
+      verbose(true),
+      is_initialized(false),
+      mTime(0),
+      file_write_mode(CHFSI_OUTPUT_MODE::NONE) {
     paramsH = chrono_types::make_shared<SimParams>();
     InitParams();
     numObjectsH = sysFSI.numObjects;
@@ -62,8 +66,6 @@ ChSystemFsi::~ChSystemFsi() {}
 void ChSystemFsi::InitParams() {
     //// RADU TODO
     //// Provide default values for *all* parameters!
-
-    paramsH->verbose = true;
 
     strcpy(paramsH->out_name, "Undefined");
     paramsH->output_length = 1;
@@ -151,8 +153,9 @@ void ChSystemFsi::InitParams() {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::SetVerbose(bool verbose) {
-    paramsH->verbose = verbose;
+void ChSystemFsi::SetVerbose(bool verb) {
+    verbose = verb;
+    fsiInterface->verbose = verb;
 }
 
 void ChSystemFsi::SetSPHLinearSolver(ChFsiLinearSolver::SolverType lin_solver) {
@@ -165,7 +168,7 @@ void ChSystemFsi::SetSPHMethod(fluid_dynamics SPH_method, ChFsiLinearSolver::Sol
 }
 
 void ChSystemFsi::ReadParametersFromFile(const std::string& inputJson) {
-    utils::ParseJSON(inputJson, paramsH);
+    utils::ParseJSON(inputJson, paramsH, verbose);
 }
 
 void ChSystemFsi::SetContainerDim(const ChVector<>& boxDim) {
@@ -236,7 +239,7 @@ void ChSystemFsi::SetDensity(double rho0) {
 }
 
 void ChSystemFsi::SetFsiOutputDir(std::string& demo_dir, std::string out_dir, std::string inputJson) {
-    utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
+    utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson, verbose);
 }
 
 void ChSystemFsi::SetDiscreType(bool useGmatrix, bool useLmatrix) {
@@ -366,7 +369,7 @@ void ChSystemFsi::Initialize() {
     paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);  
 
     // Print information
-    if (paramsH->verbose) {
+    if (verbose) {
         cout << "Simulation parameters" << endl;
 
         cout << "paramsH->num_neighbors: " << paramsH->num_neighbors << endl;
@@ -440,20 +443,20 @@ void ChSystemFsi::Initialize() {
     fsiInterface->ResizeChronoFEANodesData();
     fea_node = fsi_mesh->GetNnodes();
 
-    sysFSI.ResizeDataManager(fea_node, paramsH->verbose);
+    sysFSI.ResizeDataManager(fea_node, verbose);
 
     fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(sysFSI.fsiBodiesD1);
     fsiInterface->Copy_fsiNodes_ChSystem_to_FluidSystem(sysFSI.fsiMeshD);
     fsiInterface->Copy_fsiNodes_ChSystem_to_FluidSystem(sysFSI.fsiMeshD);
 
-    if (paramsH->verbose)
+    if (verbose)
         cout << "referenceArraySize in FinalizeData is " << sysFSI.fsiGeneralData->referenceArray.size() << endl;
 
     sysFSI.fsiBodiesD2 = sysFSI.fsiBodiesD1;  //(2) construct midpoint rigid data
 
     // Create BCE and SPH worker objects
     bceWorker = chrono_types::make_shared<ChBce>(sysFSI.sortedSphMarkersD, sysFSI.markersProximityD,
-                                                 sysFSI.fsiGeneralData, paramsH, numObjectsH);
+                                                 sysFSI.fsiGeneralData, paramsH, numObjectsH, verbose);
 
     switch (paramsH->fluid_dynamic_type) {
         case fluid_dynamics::IISPH:
@@ -467,13 +470,13 @@ void ChSystemFsi::Initialize() {
             break;
     }
     fluidDynamics =
-        chrono_types::make_shared<ChFluidDynamics>(bceWorker, sysFSI, paramsH, numObjectsH, fluidIntegrator);
+        chrono_types::make_shared<ChFluidDynamics>(bceWorker, sysFSI, paramsH, numObjectsH, fluidIntegrator, verbose);
     fluidDynamics->GetForceSystem()->SetLinearSolver(paramsH->LinearSolver);
 
     // Initialize worker objects
     bceWorker->Initialize(sysFSI.sphMarkersD1, sysFSI.fsiBodiesD1, sysFSI.fsiMeshD);
     fluidDynamics->Initialize();
-    if (paramsH->verbose)
+    if (verbose)
         cout << "referenceArraySize in fluid dynamics is " << sysFSI.fsiGeneralData->referenceArray.size() << endl;
 
     // Mark system as initialized
@@ -549,7 +552,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         int sync = int(paramsH->dT / paramsH->dT_Flex);
         if (sync < 1)
             sync = 1;
-        if (paramsH->verbose)
+        if (verbose)
             cout << sync << " * Chrono StepDynamics with dt = " << paramsH->dT / sync << endl;
         for (int t = 0; t < sync; t++) {
             sysMBS.DoStepDynamics(paramsH->dT / sync);
@@ -853,7 +856,7 @@ void ChSystemFsi::AddBCE_ShellANCF(std::vector<std::shared_ptr<fea::ChElementShe
                                    int SIDE) {
     thrust::host_vector<Real4> posRadBCE;
     int numShells = my_mesh->GetNelements();
-    if (paramsH->verbose)
+    if (verbose)
         cout << "number of shells to be meshed is " << numShells << endl;
     for (size_t i = 0; i < numShells; i++) {
         auto thisShell = std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(my_mesh->GetElement((unsigned int)i));
@@ -1024,7 +1027,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
     if (isSolid) {
         object = refSize4.w + !add_to_previous_object;
         type = 1;
-        if (paramsH->verbose) {
+        if (verbose) {
             printf("Adding BCE to solid object %d, type is %d, ref size = %zd\n", object, type,
                    sysFSI.fsiGeneralData->referenceArray.size() + 1);
         }
@@ -1060,7 +1063,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
     // Modify number of objects
     // ------------------------
     size_t numBce = posRadBCE.size();
-    if (paramsH->verbose)
+    if (verbose)
         cout << "Particle Type = " << type << endl;
 
     sysFSI.numObjects->numAllMarkers += numBce;
@@ -1090,7 +1093,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
         sysFSI.numObjects->numRigidBodies += 1;
         sysFSI.numObjects->startRigidMarkers = sysFSI.fsiGeneralData->referenceArray[1].y;
         sysFSI.fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)numBce, 1, object));
-        if (paramsH->verbose) {
+        if (verbose) {
             printf("refSize4.y = %d, refSize4.y + numBce = %d, particle type = %d, object number = %d\n", refSize4.y,
                    refSize4.y + (int)numBce, 1, object);
         }
@@ -1105,7 +1108,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
     double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
 
     ChVector<> Element_Axis = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).GetNormalized();
-    if (paramsH->verbose)
+    if (verbose)
         printf(" Element_Axis= %f, %f, %f\n", Element_Axis.x(), Element_Axis.y(), Element_Axis.z());
 
     ChVector<> Old_axis = ChVector<>(1, 0, 0);
@@ -1123,7 +1126,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
     ChVector<> nBv = cable->GetNodeB()->GetPos_dt();
 
     int posRadSizeModified = 0;
-    if (paramsH->verbose)
+    if (verbose)
         printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
 
     for (size_t i = 0; i < posRadBCE.size(); i++) {
@@ -1141,7 +1144,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
         ChVector<> Correct_Pos = NFSI_Chvector.x() * nAp + NFSI_Chvector.y() * nBp + new_y_axis * pos_physical.y() +
                                  new_z_axis * pos_physical.z();
 
-        if (paramsH->verbose) {
+        if (verbose) {
             printf(" physic_to_natural is = (%f,%f,%f)\n", physic_to_natural.x(), physic_to_natural.y(),
                    physic_to_natural.z());
             printf(" pos_physical is = (%f,%f,%f)\n", pos_physical.x(), pos_physical.y(), pos_physical.z());
@@ -1160,7 +1163,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
             if (length(mR3(sysFSI.sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos)) < 1e-5 &&
                 sysFSI.sphMarkersH->rhoPresMuH[p].w != -1) {
                 addthis = false;
-                if (paramsH->verbose) {
+                if (verbose) {
                     printf("remove this particle %f,%f,%f because of its overlap with a particle at %f,%f,%f\n",
                            sysFSI.sphMarkersH->posRadH[p].x, sysFSI.sphMarkersH->posRadH[p].y,
                            sysFSI.sphMarkersH->posRadH[p].z, Correct_Pos.x(), Correct_Pos.y(), Correct_Pos.z());
@@ -1201,7 +1204,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
         mI4(last.y, last.y + (int)numBce, type, (int)sysFSI.numObjects->numFlexBodies1D));  // 2: for cable
 
     int4 test = sysFSI.fsiGeneralData->referenceArray[sysFSI.fsiGeneralData->referenceArray.size() - 1];
-    if (paramsH->verbose) {
+    if (verbose) {
         printf(" push_back Index %zd. ", sysFSI.fsiGeneralData->referenceArray.size() - 1);
         printf(" x=%d, y=%d, z=%d, w=%d\n", test.x, test.y, test.z, test.w);
     }
@@ -1213,7 +1216,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
         return;
     }
     numObjects = sysFSI.fsiGeneralData->referenceArray.size();
-    if (paramsH->verbose) {
+    if (verbose) {
         printf("numObjects : %zd\n ", numObjects);
         printf("numObjects->startFlexMarkers  : %zd\n ", sysFSI.numObjects->startFlexMarkers);
     }
@@ -1242,7 +1245,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::
     ChVector<> nCv = shell->GetNodeC()->GetPos_dt();
     ChVector<> nDv = shell->GetNodeD()->GetPos_dt();
 
-    if (paramsH->verbose)
+    if (verbose)
         printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
 
     for (size_t i = 0; i < posRadBCE.size(); i++) {
@@ -1309,7 +1312,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::
         mI4(last.y, last.y + (int)numBce, type, (int)sysFSI.numObjects->numFlexBodies2D));  // 3: for Shell
 
     int4 test = sysFSI.fsiGeneralData->referenceArray[sysFSI.fsiGeneralData->referenceArray.size() - 1];
-    if (paramsH->verbose) {
+    if (verbose) {
         printf(" referenceArray size %zd. ", sysFSI.fsiGeneralData->referenceArray.size());
         printf(" x=%d, y=%d, z=%d, w=%d\n", test.x, test.y, test.z, test.w);
     }
@@ -1322,7 +1325,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::
         return;
     }
     numObjects = sysFSI.fsiGeneralData->referenceArray.size();
-    if (paramsH->verbose)
+    if (verbose)
         printf("numObjects : %zd\n ", numObjects);
 }
 

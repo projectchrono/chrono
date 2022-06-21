@@ -95,6 +95,8 @@ class ChFsiInterface : public ChFsiGeneral {
     ChSystem& sysMBS;          ///< Chrono multibody system
     ChSystemFsi_impl& sysFSI;  ///< FSI system
 
+    bool verbose;  ///< enable/disable verbose terminal output (default: true)
+
     std::shared_ptr<SimParams> paramsH;  ///< simulation parameters
 
     std::shared_ptr<ChronoBodiesDataH> chronoRigidBackup;   ///< backup for the Chrono system state
@@ -105,6 +107,8 @@ class ChFsiInterface : public ChFsiGeneral {
     std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes;             ///< FEA nodes available in FSI system
     std::vector<std::shared_ptr<fea::ChElementCableANCF>>& fsiCables;       ///< FEA cable elements in FSI system
     std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells;  ///< FEA shell elements in FSI system
+
+    friend class ChSystemFsi;
 };
 
 /// @} fsi_physics

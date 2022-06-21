@@ -38,13 +38,14 @@ namespace utils {
 /// @{
 
 /// Parse FSI parameters from the specified JSON file.
-CH_FSI_API bool ParseJSON(const std::string& json_file, std::shared_ptr<fsi::SimParams> paramsH);
+CH_FSI_API bool ParseJSON(const std::string& json_file, std::shared_ptr<fsi::SimParams> paramsH, bool verbose);
 
 /// Create outut directories.
 CH_FSI_API void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
                                  std::string& demo_dir,
                                  std::string out_dir,
-                                 std::string jsonFile);
+                                 std::string jsonFile,
+                                 bool verbose);
 
 /// Load a Real3 vector from the given JSON value.
 Real3 LoadVectorJSON(const Value& a);

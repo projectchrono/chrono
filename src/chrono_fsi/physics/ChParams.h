@@ -243,8 +243,6 @@ struct SimParams {
 
     Real3 bodyActiveDomain;  ///< Size of the active domain that influenced by an FSI body
     Real settlingTime;       ///< Time for the granular to settle down
-
-    bool verbose;  ///< enable/disable verbose terminal output (default: true)
 };
 
 /// @} fsi_physics

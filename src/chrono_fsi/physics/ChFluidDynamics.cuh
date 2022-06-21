@@ -53,7 +53,8 @@ class ChFluidDynamics : public ChFsiGeneral {
                     ChSystemFsi_impl& otherFsiSystem,                  ///< Pointer to the FSI system
                     std::shared_ptr<SimParams> otherParamsH,           ///< Pointer to the simulation parameters
                     std::shared_ptr<NumberOfObjects> otherNumObjects,  ///< Pointer to the number of objects
-                    CHFSI_TIME_INTEGRATOR otherIntegrator  ///< Pointer to the integration type (only for ISPH)
+                    CHFSI_TIME_INTEGRATOR otherIntegrator,             ///< Integration type (only for ISPH)
+                    bool verb                                          ///< verbose terminal output
     );
 
     /// Destructor of the fluid/granular dynamics class.
@@ -92,13 +93,14 @@ class ChFluidDynamics : public ChFsiGeneral {
     std::shared_ptr<ChFsiForce> GetForceSystem() { return forceSystem; }
 
   protected:
-    ChSystemFsi_impl& fsiSystem;         ///< FSI data; values are maintained externally
-    std::shared_ptr<SimParams> paramsH;  ///< FSI parameters; values are mainained externally
-    std::shared_ptr<NumberOfObjects>
-        numObjectsH;  ///< Number of objects (fluid particles, number of rigids, boundaries)
+    ChSystemFsi_impl& fsiSystem;                   ///< FSI data; values are maintained externally
+    std::shared_ptr<SimParams> paramsH;            ///< FSI parameters; values are mainained externally
+    std::shared_ptr<NumberOfObjects> numObjectsH;  ///< counters (fluid particles, number of rigids, boundaries)
 
     std::shared_ptr<ChFsiForce> forceSystem;  ///< Force system object; calculates the force between particles
     CHFSI_TIME_INTEGRATOR integrator_type;    ///< Integrator type
+
+    bool verbose;
 
     /// Update activity of SPH particles.
     /// SPH particles which are in an active domain are set as active particles.

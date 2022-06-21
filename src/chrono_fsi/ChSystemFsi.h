@@ -433,6 +433,8 @@ class CH_FSI_API ChSystemFsi {
     ChSystemFsi_impl sysFSI;  ///< underlying system implementation
     ChSystem& sysMBS;         ///< reference to the multi-body system
 
+    bool verbose;  ///< enable/disable verbose terminal output (default: true)
+
     CHFSI_OUTPUT_MODE file_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
 
     std::vector<std::shared_ptr<ChBody>> fsiBodies;                        ///< vector of a pointers to FSI bodies

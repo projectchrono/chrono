@@ -49,8 +49,8 @@ void InvalidArg(std::string arg) {
     cout << "Invalid arg: " << arg << endl;
 }
 
-bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH) {
-    if (paramsH->verbose)
+bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH, bool verbose) {
+    if (verbose)
         cout << "Reading parameters from: " << json_file << endl;
 
     FILE* fp = fopen(json_file.c_str(), "r");
@@ -106,7 +106,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH)
     if (doc.HasMember("SPH Parameters")) {
         if (doc["SPH Parameters"].HasMember("Method")) {
             std::string SPH = doc["SPH Parameters"]["Method"].GetString();
-            if (paramsH->verbose)
+            if (verbose)
                 cout << "Modeling method is: " << SPH << endl;
             if (SPH == "I2SPH")
                 paramsH->fluid_dynamic_type = fluid_dynamics::I2SPH;
@@ -338,7 +338,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH)
                     else
                         paramsH->HB_sr0 = 0.0;
                 } else {
-                    if (paramsH->verbose)
+                    if (verbose)
                         cout << "Constants of Herschel–Bulkley not found. Using default Newtonian values." << endl;
                     paramsH->HB_k = paramsH->mu0;
                     paramsH->HB_n = 1;
@@ -383,7 +383,8 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH)
 void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
                       std::string& demo_dir,
                       std::string out_dir,
-                      std::string jsonFile) {
+                      std::string jsonFile,
+                      bool verbose) {
     out_dir = filesystem::path(out_dir).str();
 
     if (strcmp(paramsH->out_name, "Undefined") == 0) {
@@ -435,7 +436,7 @@ void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
     std::ofstream dest(js);
     dest << srce.rdbuf();
 
-    if (paramsH->verbose) {
+    if (verbose) {
         cout << "Output Directory: " << out_dir << endl;
         cout << "Demo Directory: " << paramsH->demo_dir << endl;
         cout << "Input JSON File: " << jsonFile << endl;

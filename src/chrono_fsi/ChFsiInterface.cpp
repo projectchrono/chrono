@@ -41,7 +41,8 @@ ChFsiInterface::ChFsiInterface(ChSystem& mbs,
       fsiBodies(bodies),
       fsiNodes(nodes),
       fsiCables(cables),
-      fsiShells(shells) {
+      fsiShells(shells),
+      verbose(true) {
     size_t numBodies = sysMBS.Get_bodylist().size();
     chronoRigidBackup = chrono_types::make_shared<ChronoBodiesDataH>(numBodies);
     chronoFlexMeshBackup = chrono_types::make_shared<ChronoMeshDataH>(0);
@@ -236,14 +237,14 @@ void ChFsiInterface::Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMe
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoNodesData() {
     int numNodes = fsi_mesh->GetNnodes();
-    if (paramsH->verbose)
+    if (verbose)
         printf("numNodes in ResizeChronNodesData  %d\n", numNodes);
     chronoFlexMeshBackup->resize(numNodes);
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoFEANodesData() {
     int numNodes = fsi_mesh->GetNnodes();
-    if (paramsH->verbose) {
+    if (verbose) {
         printf("fsi_mesh.size in ResizeChronoFEANodesData  %d\n", numNodes);
         printf("numNodes in ResizeChronoFEANodeData  %d\n", numNodes);
     }
@@ -257,7 +258,7 @@ void ChFsiInterface::ResizeChronoCablesData(std::vector<std::vector<int>> CableE
         if (std::dynamic_pointer_cast<fea::ChElementCableANCF>(fsi_mesh->GetElement((unsigned int)i)))
             numCables++;
     }
-    if (paramsH->verbose) {
+    if (verbose) {
         printf("fsi_mesh.size.shell in ResizeChronoCablesData  %zd\n", numCables);
         printf("numCables in ResizeChronoCablesData  %zd\n", numCables);
         printf("CableElementsNodesSTDVector.size() in ResizeChronoCablesData  %zd\n",
@@ -288,7 +289,7 @@ void ChFsiInterface::ResizeChronoShellsData(std::vector<std::vector<int>> ShellE
             numShells++;
     }
 
-    if (paramsH->verbose) {
+    if (verbose) {
         printf("numShells in ResizeChronoShellsData  %d\n", numShells);
         printf("ShellElementsNodesSTDVector.size() in ResizeChronoShellsData  %zd\n",
                ShellElementsNodesSTDVector.size());

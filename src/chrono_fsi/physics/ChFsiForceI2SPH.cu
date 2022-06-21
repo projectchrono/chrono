@@ -863,13 +863,15 @@ ChFsiForceI2SPH::ChFsiForceI2SPH(std::shared_ptr<ChBce> otherBceWorker,
                                  std::shared_ptr<ProximityDataD> otherMarkersProximityD,
                                  std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
                                  std::shared_ptr<SimParams> otherParamsH,
-                                 std::shared_ptr<NumberOfObjects> otherNumObjects)
+                                 std::shared_ptr<NumberOfObjects> otherNumObjects,
+                                 bool verb)
     : ChFsiForce(otherBceWorker,
                  otherSortedSphMarkersD,
                  otherMarkersProximityD,
                  otherFsiGeneralData,
                  otherParamsH,
-                 otherNumObjects) {
+                 otherNumObjects,
+                 verb) {
     CopyParams_NumberOfObjects(paramsH, numObjectsH);
 }
 
