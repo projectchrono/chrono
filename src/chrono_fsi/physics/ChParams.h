@@ -127,10 +127,6 @@ struct SimParams {
 
     Real kdT;      ///< Implicit integration parameter. Not very important
     Real gammaBB;  ///< Equation of state parameter.
-    Real3 cMin;    ///< Lower leftmost part of the space shown in a simulation frame. This point is usually outside the
-                   ///< tolerance zone.
-    Real3 cMax;    ///< Upper right most part of the space shown in a simulation frame. This point is usually outside
-                   ///< thetolerance zone.
 
     bool use_default_limits;  ///< true if cMin and cMax are not user-provided (default: true)
     bool use_init_pressure;   ///< true if pressure set based on height (default: false)
@@ -242,10 +238,11 @@ struct SimParams {
     Real boxDimY;  ///< Dimension of the space domain - Y
     Real boxDimZ;  ///< Dimension of the space domain - Z
 
+    Real3 cMin;    ///< Lower limit point
+    Real3 cMax;    ///< Upper limit point
+
     Real3 bodyActiveDomain;  ///< Size of the active domain that influenced by an FSI body
     Real settlingTime;       ///< Time for the granular to settle down
-
-    Real3 Domain;
 
     bool verbose;  ///< enable/disable verbose terminal output (default: true)
 };

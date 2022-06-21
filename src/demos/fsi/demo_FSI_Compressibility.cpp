@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
-    sysFSI.ReadParametersFromFile(inputJson, ChVector<>(bxDim, byDim, bzDim));
+    sysFSI.ReadParametersFromFile(inputJson);
 
     auto initSpace0 = sysFSI.GetInitialSpacing();
     ChVector<> cMin = ChVector<>(-bxDim / 2, -byDim / 2, -bzDim / 2) - ChVector<>(initSpace0 * 20);

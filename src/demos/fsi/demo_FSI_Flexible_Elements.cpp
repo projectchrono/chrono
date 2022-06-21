@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
-    sysFSI.ReadParametersFromFile(inputJson, ChVector<>(bxDim, byDim, bzDim));
+    sysFSI.ReadParametersFromFile(inputJson);
 
     ChVector<> cMin = ChVector<>(-bxDim, -byDim, -bzDim) - ChVector<>(sysFSI.GetKernelLength() * 5);
     ChVector<> cMax = ChVector<>(bxDim, byDim, 1.2 * bzDim) + ChVector<>(sysFSI.GetKernelLength() * 5);

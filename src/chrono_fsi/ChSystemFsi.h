@@ -93,7 +93,7 @@ class CH_FSI_API ChSystemFsi {
     void SetVerbose(bool verbose);
 
     /// Read Chrono::FSI parameters from the specified JSON file.
-    void ReadParametersFromFile(const std::string& inputJson, const ChVector<>& box_size);
+    void ReadParametersFromFile(const std::string& inputJson);
 
     /// Set initial spacing.
     void SetInitialSpacing(double spacing);

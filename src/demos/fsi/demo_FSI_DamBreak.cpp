@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
-    sysFSI.ReadParametersFromFile(inputJson, ChVector<>(bxDim, byDim, bzDim));
+    sysFSI.ReadParametersFromFile(inputJson);
 
     // Dimension of the space domain
     ChVector<> bDim = sysFSI.GetContainerDim();

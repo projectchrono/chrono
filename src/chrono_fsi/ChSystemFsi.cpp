@@ -134,7 +134,6 @@ void ChSystemFsi::InitParams() {
 
     //
     paramsH->Max_Pressure = Real(1e20);
-    paramsH->Domain = mR3(1, 1, 1);
 
     //// RADU TODO
     //// material model
@@ -165,9 +164,8 @@ void ChSystemFsi::SetSPHMethod(fluid_dynamics SPH_method, ChFsiLinearSolver::Sol
     paramsH->LinearSolver = lin_solver;
 }
 
-void ChSystemFsi::ReadParametersFromFile(const std::string& inputJson, const ChVector<>& box_size) {
-    paramsH->Domain = ChUtilsTypeConvert::ChVectorToReal3(box_size);
-    utils::ParseJSON(inputJson, paramsH, ChUtilsTypeConvert::ChVectorToReal3(box_size));
+void ChSystemFsi::ReadParametersFromFile(const std::string& inputJson) {
+    utils::ParseJSON(inputJson, paramsH);
 }
 
 void ChSystemFsi::SetContainerDim(const ChVector<>& boxDim) {
@@ -331,9 +329,9 @@ void ChSystemFsi::Initialize() {
 
     if (paramsH->use_default_limits) {
         paramsH->cMin =
-            mR3(-2 * paramsH->Domain.x, -2 * paramsH->Domain.y, -2 * paramsH->Domain.z) - 10 * mR3(paramsH->HSML);
+            mR3(-2 * paramsH->boxDimX, -2 * paramsH->boxDimY, -2 * paramsH->boxDimZ) - 10 * mR3(paramsH->HSML);
         paramsH->cMax =
-            mR3(+2 * paramsH->Domain.x, +2 * paramsH->Domain.y, +2 * paramsH->Domain.z) + 10 * mR3(paramsH->HSML);
+            mR3(+2 * paramsH->boxDimX, +2 * paramsH->boxDimY, +2 * paramsH->boxDimZ) + 10 * mR3(paramsH->HSML);
     }
 
     if (paramsH->use_init_pressure) {

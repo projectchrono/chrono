@@ -286,7 +286,7 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
-    sysFSI.ReadParametersFromFile(inputJson, ChVector<>(bxDim, byDim, bzDim));
+    sysFSI.ReadParametersFromFile(inputJson);
 
     // Reset the domain size 
     ChVector<> bDim = sysFSI.GetContainerDim();

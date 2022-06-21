@@ -38,7 +38,7 @@ namespace utils {
 /// @{
 
 /// Parse FSI parameters from the specified JSON file.
-CH_FSI_API bool ParseJSON(const std::string& json_file, std::shared_ptr<fsi::SimParams> paramsH, Real3 Domain);
+CH_FSI_API bool ParseJSON(const std::string& json_file, std::shared_ptr<fsi::SimParams> paramsH);
 
 /// Create outut directories.
 CH_FSI_API void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,

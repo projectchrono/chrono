@@ -39,15 +39,11 @@ const double rel_Tol = 1.0e-2;
 double error_rel;
 
 //------------------------------------------------------------------
-// dimension of the fluid domain
+// dimension of the computational domain
 //------------------------------------------------------------------
 double bxDim = 0.2;
 double byDim = 0.1;
 double bzDim = 0.2;
-
-double fxDim = bxDim;
-double fyDim = byDim;
-double fzDim = bzDim;
 
 //------------------------------------------------------------------
 // Analytical solution of the poiseuille flow
@@ -115,7 +111,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize the parameters using an input JSON file
     std::string myJson = GetChronoDataFile("fsi/input_json/demo_FSI_Poiseuille_flow_Explicit.json");
-    sysFSI.ReadParametersFromFile(myJson, ChVector<>(bxDim, byDim, bzDim));
+    sysFSI.ReadParametersFromFile(myJson);
 
     // Reset the domain size to handle periodic boundary condition
     auto initSpace0 = sysFSI.GetInitialSpacing();
@@ -125,8 +121,8 @@ int main(int argc, char* argv[]) {
 
     // Create SPH particles for the fluid domain
     chrono::utils::GridSampler<> sampler(initSpace0);
-    ChVector<> boxCenter(-bxDim / 2 + fxDim / 2 , 0, fzDim * 0.5);
-    ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
+    ChVector<> boxCenter(0 , 0, bzDim * 0.5);
+    ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
     std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {

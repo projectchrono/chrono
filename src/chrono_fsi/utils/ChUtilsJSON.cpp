@@ -49,7 +49,7 @@ void InvalidArg(std::string arg) {
     cout << "Invalid arg: " << arg << endl;
 }
 
-bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH, Real3 Domain) {
+bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH) {
     if (paramsH->verbose)
         cout << "Reading parameters from: " << json_file << endl;
 
