@@ -42,7 +42,8 @@ ChFsiInterface::ChFsiInterface(ChSystem& mbs,
       fsiNodes(nodes),
       fsiCables(cables),
       fsiShells(shells),
-      verbose(true) {
+      verbose(true),
+      output_fsi(false) {
     size_t numBodies = sysMBS.Get_bodylist().size();
     chronoRigidBackup = chrono_types::make_shared<ChronoBodiesDataH>(numBodies);
     chronoFlexMeshBackup = chrono_types::make_shared<ChronoMeshDataH>(0);
@@ -81,10 +82,9 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
         body->Accumulate_force(mforce, body->GetPos(), false);
         body->Accumulate_torque(mtorque, false);
 
-        // output FSI information into csv files for each body
-        // this can be disabled by setting paramsH->output_fsi
-        // to false for better IO performance
-        if (paramsH->output_fsi){
+        // Output FSI information into csv files for each body.
+        // Enabled when an output directory is specified.
+        if (output_fsi){
             ChVector<> pos = body->GetPos();
             ChVector<> vel = body->GetPos_dt();
             ChQuaternion<> rot = body->GetRot();
@@ -197,10 +197,9 @@ void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
         auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(fsi_mesh->GetNode((unsigned int)i));
         node->SetForce(mforce);
 
-        // output FSI information into csv files for each node
-        // this can be disabled by setting paramsH->output_fsi
-        // to false for better IO performance
-        if (paramsH->output_fsi){
+        // Output FSI information into csv files for each node.
+        // Enabled when an output directory is specified.
+        if (output_fsi) {
             ChVector<> pos = node->GetPos();
             ChVector<> vel = node->GetPos_dt();
             std::string filename = out_dir + "/FSI_node" + std::to_string(i) + ".csv";

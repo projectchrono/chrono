@@ -59,7 +59,6 @@ enum class fluid_dynamics { IISPH, I2SPH, WCSPH };
 struct SimParams {
     fluid_dynamics fluid_dynamic_type;  ///< Type of SPH mehtod (WCSPH, IISPH, or I2SPH)
     int output_length;  ///< Output length (0:short, 1:middle, 2:long) information of SPH particles into data files
-    bool output_fsi;    ///< Output fsi information for each body/node
 
     int3 gridSize;        ///< dx, dy, dz distances between particle centers.
     Real3 worldOrigin;    ///< Origin point.
@@ -207,7 +206,6 @@ struct SimParams {
     Real mu_fric_2;           ///< mu_2 constant in mu=mu(I)
     Real mu_I0;               ///< Reference Inertia number
     Real mu_I_b;              ///< b constant in mu=mu(I)=mu_s+b*I
-    Real Shear_Mod;           ///< G
 
     Real HB_sr0;   ///< Herschel–Bulkley consistency index
     Real HB_k;     ///< Herschel–Bulkley consistency index

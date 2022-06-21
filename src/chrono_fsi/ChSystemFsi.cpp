@@ -76,7 +76,6 @@ void ChSystemFsi::InitParams() {
     //// Provide default values for *all* parameters!
 
     paramsH->output_length = 1;
-    paramsH->output_fsi = true;
 
     // Fluid properties
     paramsH->rho0 = Real(1000.0);
@@ -190,9 +189,6 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
 
     if (doc.HasMember("Data Output Length"))
         paramsH->output_length = doc["Data Output Length"].GetInt();
-
-    if (doc.HasMember("Output FSI"))
-        paramsH->output_fsi = doc["Output FSI"].GetBool();
 
     if (doc.HasMember("Physical Properties of Fluid")) {
         if (doc["Physical Properties of Fluid"].HasMember("Density"))
@@ -579,10 +575,6 @@ void ChSystemFsi::SetDiscreType(bool useGmatrix, bool useLmatrix) {
     paramsH->USE_Consistent_L = useLmatrix;
 }
 
-void ChSystemFsi::SetFsiInfoOutput(bool outputFsiInfo) {
-    paramsH->output_fsi = outputFsiInfo;
-}
-
 void ChSystemFsi::SetOutputLength(int OutputLength) {
     paramsH->output_length = OutputLength;
 }
@@ -664,6 +656,7 @@ void ChSystemFsi::SetOutputDirectory(const std::string& output_dir) {
         return;
     }
     fsiInterface->out_dir = out_dir;
+    fsiInterface->output_fsi = true;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -936,10 +929,10 @@ void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
     }
 }
 
-void ChSystemFsi::PrintParticleToFile(const std::string& out_dir) const {
+void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
     utils::PrintToFile(sysFSI.sphMarkersD2->posRadD, sysFSI.sphMarkersD2->velMasD, sysFSI.sphMarkersD2->rhoPresMuD,
                        sysFSI.fsiGeneralData->sr_tau_I_mu_i, sysFSI.fsiGeneralData->referenceArray,
-                       thrust::host_vector<int4>(), out_dir, paramsH, true);
+                       thrust::host_vector<int4>(), dir, paramsH, true);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

@@ -32,7 +32,7 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
                  const thrust::device_vector<Real4>& sr_tau_I_mu_i,
                  const thrust::host_vector<int4>& referenceArray,
                  const thrust::host_vector<int4>& referenceArrayFEA,
-                 const std::string& out_dir,
+                 const std::string& dir,
                  const std::shared_ptr<SimParams>& paramsH,
                  bool printToParaview) {
     thrust::host_vector<Real4> posRadH = posRadD;
@@ -53,7 +53,7 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
 
     // Save helper and ghost particles to files 
     if (haveHelper || haveGhost) {
-        std::string nameOthers = out_dir + "/others" + std::to_string(frame_num) + ".csv";
+        std::string nameOthers = dir + "/others" + std::to_string(frame_num) + ".csv";
 
         std::ofstream fileNameOtherParticles;
         fileNameOtherParticles.open(nameOthers);
@@ -95,7 +95,7 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
     }
     
     // Save fluid/granular SPH particles to files
-    std::string nameFluid = out_dir + "/fluid" + std::to_string(frame_num) + ".csv";
+    std::string nameFluid = dir + "/fluid" + std::to_string(frame_num) + ".csv";
 
     std::ofstream fileNameFluidParticles;
     fileNameFluidParticles.open(nameFluid);
@@ -137,7 +137,7 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
 
     // Save boundary BCE particles to files
     if (frame_num == 0) {
-        std::string nameFluidBoundaries = out_dir + "/boundary" + std::to_string(frame_num) + ".csv";
+        std::string nameFluidBoundaries = dir + "/boundary" + std::to_string(frame_num) + ".csv";
 
         std::ofstream fileNameFluidBoundaries;
         fileNameFluidBoundaries.open(nameFluidBoundaries);
@@ -183,7 +183,7 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
     // Save rigid BCE particles to files
     int refSize = (int)referenceArray.size();
     if (refSize > haveHelper + haveGhost + 2) {
-        std::string nameBCE = out_dir + "/BCE_Rigid" + std::to_string(frame_num) + ".csv";
+        std::string nameBCE = dir + "/BCE_Rigid" + std::to_string(frame_num) + ".csv";
 
         std::ofstream fileNameBCE;
         fileNameBCE.open(nameBCE);
@@ -227,7 +227,7 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
     // Save flexible BCE particles to files
     int refSize_Flex = (int)referenceArrayFEA.size();
     if (refSize_Flex > 0) {
-        std::string nameBCE_Flex = out_dir + "/BCE_Flex" + std::to_string(frame_num) + ".csv";
+        std::string nameBCE_Flex = dir + "/BCE_Flex" + std::to_string(frame_num) + ".csv";
 
         std::ofstream fileNameBCE_Flex;
         fileNameBCE_Flex.open(nameBCE_Flex);

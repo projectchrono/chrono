@@ -498,10 +498,7 @@ int main(int argc, char* argv[]) {
     CreateSolidPhase(sysMBS, sysFSI);
 
     /// Setup the output directory for FSI data
-    sysFSI.SetOutputDirectory(out_dir);
-
-    // Set FSI information output
-    sysFSI.SetFsiInfoOutput(false);
+    ////sysFSI.SetOutputDirectory(out_dir);
 
     // Set simulation data output length
     sysFSI.SetOutputLength(0);
