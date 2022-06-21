@@ -34,6 +34,8 @@ CH_SENSOR_API ChFilterVisualize::~ChFilterVisualize() {
 }
 
 CH_SENSOR_API void ChFilterVisualize::Apply() {
+
+#ifdef USE_SENSOR_GLFW
     if (!m_window && !m_window_disabled) {
         CreateGlfwWindow(Name());
     }
@@ -131,10 +133,12 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
 
         glfwSwapBuffers(m_window.get());
         glfwPollEvents();
+
         // std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
         // std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
         // std::cout << "Render to window time: " << wall_time.count() << std::endl;
     }
+#endif
 }
 CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSensor,
                                                  std::shared_ptr<SensorBuffer>& bufferInOut) {
@@ -193,16 +197,22 @@ CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSens
     } else {
         InvalidFilterGraphBufferTypeMismatch(pSensor);
     }
+
+#ifndef USE_SENSOR_GLFW
+    std::cerr << "WARNING: Chrono::SENSOR not built with GLFW support. Will proceed with no window.\n";
+#endif
 }
 
 CH_SENSOR_API void ChFilterVisualize::CreateGlfwWindow(std::string window_name) {
     // if we've already made the window, there's nothing to do.
+#ifdef USE_SENSOR_GLFW
     if (m_window)
         return;
 
     OnNewWindow();  // OnNewWindow will need to lock inside itself
 
     std::lock_guard<std::mutex> lck(s_glfwMutex);
+
     if (m_fullscreen)
         m_window.reset(glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), window_name.c_str(),
                                         glfwGetPrimaryMonitor(), NULL));
@@ -224,19 +234,24 @@ CH_SENSOR_API void ChFilterVisualize::CreateGlfwWindow(std::string window_name) 
         std::cerr << "WARNING: requested window could not be created by GLFW. Will proceed with no window.\n";
         m_window_disabled = true;
     }
+#endif
 }
 
 CH_SENSOR_API void ChFilterVisualize::OnNewWindow() {
+#ifdef USE_SENSOR_GLFW
     std::lock_guard<std::mutex> l(s_glfwMutex);
     if (s_windowCount++ == 0) {
         glfwInit();
     }
+#endif
 }
 CH_SENSOR_API void ChFilterVisualize::OnCloseWindow() {
+#ifdef USE_SENSOR_GLFW
     std::lock_guard<std::mutex> l(s_glfwMutex);
     if (--s_windowCount == 0) {
         glfwTerminate();
     }
+#endif
 }
 
 }  // namespace sensor

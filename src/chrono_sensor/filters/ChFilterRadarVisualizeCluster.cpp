@@ -42,9 +42,13 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Initialize(std::shared_ptr<ChS
     m_buffer_in = std::dynamic_pointer_cast<SensorDeviceRadarXYZBuffer>(bufferInOut);
     if (!m_buffer_in)
         InvalidFilterGraphBufferTypeMismatch(pSensor);
+#ifndef USE_SENSOR_GLFW
+    std::cerr << "WARNING: Chrono::SENSOR not built with GLFW support. Will proceed with no window.\n";
+#endif
 }
 
 CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
+#ifdef USE_SENSOR_GLFW
     if (!m_window && !m_window_disabled) {
         CreateGlfwWindow(Name());
         float hfov = m_radar->GetHFOV();
@@ -59,6 +63,7 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
 
         // lock the glfw mutex because from here on out, we do not want to be interrupted
         std::lock_guard<std::mutex> lck(s_glfwMutex);
+
         // visualize data
         glfwMakeContextCurrent(m_window.get());
 
@@ -125,6 +130,7 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
         glfwSwapBuffers(m_window.get());
         glfwPollEvents();
     }
+#endif
 }
 
 }  // namespace sensor
