@@ -90,6 +90,68 @@ class ContactMaterial : public ChContactContainer::AddContactCallback {
     }
 };
 
+// -----------------------------------------------------------------------------
+// Class for overriding composite material laws
+// -----------------------------------------------------------------------------
+class CompsiteMaterial : public ChMaterialCompositionStrategy {
+  public:
+    virtual float CombineFriction(float a1, float a2) const { return 0.5 * (a1 + a2); }
+};
+
+// -----------------------------------------------------------------------------
+// Class for overriding the default SMC contact force calculation
+// -----------------------------------------------------------------------------
+class ContactForce : public ChSystemSMC::ChContactForceSMC {
+  public:
+    // Demonstration only.
+    virtual ChVector<> CalculateForce(
+        const ChSystemSMC& sys,             ///< containing system
+        const ChVector<>& normal_dir,       ///< normal contact direction (expressed in global frame)
+        const ChVector<>& p1,               ///< most penetrated point on obj1 (expressed in global frame)
+        const ChVector<>& p2,               ///< most penetrated point on obj2 (expressed in global frame)
+        const ChVector<>& vel1,             ///< velocity of contact point on obj1 (expressed in global frame)
+        const ChVector<>& vel2,             ///< velocity of contact point on obj2 (expressed in global frame)
+        const ChMaterialCompositeSMC& mat,  ///< composite material for contact pair
+        double delta,                       ///< overlap in normal direction
+        double eff_radius,                  ///< effective radius of curvature at contact
+        double mass1,                       ///< mass of obj1
+        double mass2                        ///< mass of obj2
+    ) const override {
+        // Relative velocity at contact
+        ChVector<> relvel = vel2 - vel1;
+        double relvel_n_mag = relvel.Dot(normal_dir);
+        ChVector<> relvel_n = relvel_n_mag * normal_dir;
+        ChVector<> relvel_t = relvel - relvel_n;
+        double relvel_t_mag = relvel_t.Length();
+
+        // Calculate effective mass
+        double eff_mass = mass1 * mass2 / (mass1 + mass2);
+        
+        // Calculate the magnitudes of the normal and tangential contact forces
+        double kn = mat.kn;
+        double kt = mat.kt;
+        double gn = eff_mass * mat.gn;
+        double gt = eff_mass * mat.gt;
+
+        // Tangential displacement (magnitude)
+        double dT = sys.GetStep();
+        double delta_t = relvel_t_mag * dT;
+
+        double forceN = kn * delta - gn * relvel_n_mag;
+        double forceT = kt * delta_t + gt * relvel_t_mag;
+
+        // Coulomb law
+        forceT = std::min<double>(forceT, mat.mu_eff * std::abs(forceN));
+
+        // Accumulate normal and tangential forces
+        ChVector<> force = forceN * normal_dir;
+        if (relvel_t_mag >= sys.GetSlipVelocityThreshold())
+            force -= (forceT / relvel_t_mag) * relvel_t;
+
+        return force;
+    }
+};
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -178,14 +240,28 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector<>(4, 4, -6));
     vis->AddTypicalLights();
 
+    // ------------------------------------------------------------------------------
+    // Use various user supplied callbacks to override default Chrono implementations
+    // ------------------------------------------------------------------------------
+
+    // User-defined SMC contact force calculation
+    auto cforce = chrono_types::make_unique<ContactForce>();
+    system.SetContactForceAlgorithm(std::move(cforce));
+
+    // User-defined composite coefficent of friction
+    auto cmat = chrono_types::make_unique<ChMaterialCompositionStrategy>();
+    system.SetMaterialCompositionStrategy(std::move(cmat));
+
+    // OVerride material properties at each new contact
+    auto cmaterial = chrono_types::make_shared<ContactMaterial>();
+    system.GetContactContainer()->RegisterAddContactCallback(cmaterial);
+
+    // User-defined callback for contact reporting
+    auto creporter = chrono_types::make_shared<ContactReporter>(box1, box2);
+
     // ---------------
     // Simulate system
     // ---------------
-
-    auto creporter = chrono_types::make_shared<ContactReporter>(box1, box2);
-
-    auto cmaterial = chrono_types::make_shared<ContactMaterial>();
-    system.GetContactContainer()->RegisterAddContactCallback(cmaterial);
 
     while (vis->Run()) {
         vis->BeginScene();
