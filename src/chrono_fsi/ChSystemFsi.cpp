@@ -30,6 +30,7 @@
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorBce.h"
+#include "chrono_fsi/utils/ChUtilsGeneratorFluid.h"
 
 using std::cout;
 using std::cerr;
@@ -330,10 +331,9 @@ void ChSystemFsi::SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::Initialize() {
-    // Calculate dependent quantities in the params structure
-    int NN = 0;
-    ////paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);
-    paramsH->num_neighbors = NN;
+    // Calculate the initial neighour particle number
+    paramsH->markerMass = utils::massCalculator(paramsH->HSML, paramsH->INITSPACE, paramsH->rho0);
+    paramsH->num_neighbors = utils::IniNeiNum(paramsH->HSML, paramsH->INITSPACE);
 
     if (paramsH->use_default_limits) {
         paramsH->cMin =
@@ -371,7 +371,74 @@ void ChSystemFsi::Initialize() {
     Real mBinSize = paramsH->binSize0;
     paramsH->gridSize = SIDE;
     paramsH->worldOrigin = paramsH->cMin;
-    paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);    
+    paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);  
+
+    // Print information
+    if (paramsH->verbose) {
+        cout << "Simulation parameters" << endl;
+
+        cout << "paramsH->num_neighbors: " << paramsH->num_neighbors << endl;
+        cout << "paramsH->rho0: " << paramsH->rho0 << endl;
+        cout << "paramsH->invrho0: " << paramsH->invrho0 << endl;
+        cout << "paramsH->mu0: " << paramsH->mu0 << endl;
+        cout << "paramsH->bodyForce3: " << paramsH->bodyForce3.x << " " << paramsH->bodyForce3.y << " " << paramsH->bodyForce3.z << endl;
+        cout << "paramsH->gravity: " << paramsH->gravity.x << " " << paramsH->gravity.y << " " << paramsH->gravity.z << endl;
+
+        cout << "paramsH->HSML: " << paramsH->HSML << endl;
+        cout << "paramsH->INITSPACE: " << paramsH->INITSPACE << endl;
+        cout << "paramsH->INV_INIT: " << paramsH->INV_INIT << endl;
+        cout << "paramsH->MULT_INITSPACE: " << paramsH->MULT_INITSPACE << endl;
+        cout << "paramsH->NUM_BOUNDARY_LAYERS: " << paramsH->NUM_BOUNDARY_LAYERS << endl;
+        cout << "paramsH->epsMinMarkersDis: " << paramsH->epsMinMarkersDis << endl;
+        cout << "paramsH->markerMass: " << paramsH->markerMass << endl;
+        cout << "paramsH->volume0: " << paramsH->volume0 << endl;
+        cout << "paramsH->gradient_type: " << paramsH->gradient_type << endl;
+
+        cout << "paramsH->v_Max: " << paramsH->v_Max << endl;
+        cout << "paramsH->Cs: " << paramsH->Cs << endl;
+        cout << "paramsH->EPS_XSPH: " << paramsH->EPS_XSPH << endl;
+        cout << "paramsH->beta_shifting: " << paramsH->beta_shifting << endl;
+        cout << "paramsH->densityReinit: " << paramsH->densityReinit << endl;
+
+        cout << "paramsH->Adaptive_time_stepping: " << paramsH->Adaptive_time_stepping << endl;
+        cout << "paramsH->Co_number: " << paramsH->Co_number << endl;
+        cout << "paramsH->dT: " << paramsH->dT << endl;
+        cout << "paramsH->INV_dT: " << paramsH->INV_dT <<  endl;
+        cout << "paramsH->dT_Max: " << paramsH->dT_Max << endl;
+        cout << "paramsH->dT_Flex: " << paramsH->dT_Flex << endl;
+
+        cout << "paramsH->non_newtonian: " << paramsH->non_newtonian << endl;
+        cout << "paramsH->granular_material: " << paramsH->granular_material << endl;
+        cout << "paramsH->mu_of_I : " << (int)paramsH->mu_of_I << endl;
+        cout << "paramsH->rheology_model: " << (int)paramsH->rheology_model << endl;
+        cout << "paramsH->ave_diam: " << paramsH->ave_diam << endl;
+        cout << "paramsH->mu_max: " << paramsH->mu_max << endl;
+        cout << "paramsH->mu_fric_s: " << paramsH->mu_fric_s << endl;
+        cout << "paramsH->mu_fric_2: " << paramsH->mu_fric_2 << endl;
+        cout << "paramsH->mu_I0: " << paramsH->mu_I0 << endl;
+        cout << "paramsH->mu_I_b: " << paramsH->mu_I_b << endl;
+        cout << "paramsH->HB_k: " << paramsH->HB_k << endl;
+        cout << "paramsH->HB_n: " << paramsH->HB_n << endl;
+        cout << "paramsH->HB_tau0: " << paramsH->HB_tau0 << endl;
+
+        cout << "paramsH->E_young: " << paramsH->E_young << endl;
+        cout << "paramsH->G_shear: " << paramsH->G_shear << endl;
+        cout << "paramsH->INV_G_shear: " << paramsH->INV_G_shear << endl;
+        cout << "paramsH->K_bulk: " << paramsH->K_bulk << endl;
+        cout << "paramsH->C_Wi: " << paramsH->C_Wi << endl;
+
+        cout << "paramsH->bceType: " << (int)paramsH->bceType << endl;
+        cout << "paramsH->USE_NonIncrementalProjection : " << paramsH->USE_NonIncrementalProjection << endl;
+        cout << "paramsH->PPE_relaxation: " << paramsH->PPE_relaxation << endl;
+        cout << "paramsH->Conservative_Form: " << paramsH->Conservative_Form << endl;
+        cout << "paramsH->Pressure_Constraint: " << paramsH->Pressure_Constraint << endl;
+
+        cout << "paramsH->binSize0: " << paramsH->binSize0 << endl;
+        cout << "paramsH->boxDims: " << paramsH->boxDims.x << " " << paramsH->boxDims.y << " " << paramsH->boxDims.z << endl;
+        cout << "paramsH->gridSize: " << paramsH->gridSize.x << " " << paramsH->gridSize.y << " " << paramsH->gridSize.z << endl;
+        cout << "paramsH->cMin: " << paramsH->cMin.x << " " << paramsH->cMin.y << " " << paramsH->cMin.z << endl;
+        cout << "paramsH->cMax: " << paramsH->cMax.x << " " << paramsH->cMax.y << " " << paramsH->cMax.z << endl;
+    }
 
     // Resize worker data
     fsiInterface->ResizeChronoBodiesData();
