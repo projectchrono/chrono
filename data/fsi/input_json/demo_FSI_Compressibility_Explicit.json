@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "Compressibility_WCSPH",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,

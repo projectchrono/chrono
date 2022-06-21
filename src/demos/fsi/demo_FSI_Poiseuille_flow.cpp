@@ -33,7 +33,6 @@ using namespace chrono::fsi;
 
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_POISEUILLE_FLOW/";
-std::string demo_dir;
 
 // Save data as csv files to see the results off-line using Paraview
 bool save_output = true;
@@ -65,7 +64,7 @@ void SaveParaViewFilesMBD(ChSystemFsi& sysFSI,
     
     // Output data to files
     if (save_output && std::abs(mTime - (next_frame)*frame_time) < 1e-5) {
-        sysFSI.PrintParticleToFile(demo_dir);
+        sysFSI.PrintParticleToFile(out_dir);
 
         std::cout << "\n--------------------------------\n" << std::endl;
         std::cout << "------------ Output Frame:   " << next_frame << std::endl;
@@ -149,7 +148,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Setup the output directory for FSI data
-    sysFSI.SetFsiOutputDir(demo_dir, out_dir, inputJson);
+    sysFSI.SetOutputDirectory(out_dir);
 
     // Create Fluid region and discretize with SPH particles
     ChVector<> boxCenter(0.0, 0.0, bzDim / 2);

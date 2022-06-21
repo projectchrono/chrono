@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "Rover",
-
-
   "Physical Properties of Fluid": {
     "Density": 1700,
     "Viscosity": 0.0,

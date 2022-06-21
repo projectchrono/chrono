@@ -62,7 +62,6 @@ ChFsiInterface::~ChFsiInterface() {}
 void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
     size_t numRigids = fsiBodies.size();
     std::string delim = ",";
-    char filename[4096];
     ChVector<> totalForce(0);
     ChVector<> totalTorque(0);
 
@@ -90,7 +89,7 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
             ChVector<> vel = body->GetPos_dt();
             ChQuaternion<> rot = body->GetRot();
 
-            sprintf(filename, "%s/FSI_body%zd.csv", paramsH->demo_dir, i);
+            std::string filename = out_dir + "/FSI_body" + std::to_string(i) + ".csv";
             std::ofstream file;
             if (sysMBS.GetChTime() > 0)
                 file.open(filename, std::fstream::app);
@@ -204,8 +203,7 @@ void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
         if (paramsH->output_fsi){
             ChVector<> pos = node->GetPos();
             ChVector<> vel = node->GetPos_dt();
-            char filename[4096];
-            sprintf(filename, "%s/FSI_node%zd.csv", paramsH->demo_dir, i);
+            std::string filename = out_dir + "/FSI_node" + std::to_string(i) + ".csv";
             std::ofstream file;
             if (sysMBS.GetChTime() > 0)
                 file.open(filename, std::fstream::app);

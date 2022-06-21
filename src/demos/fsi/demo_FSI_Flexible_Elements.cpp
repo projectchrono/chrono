@@ -47,7 +47,7 @@ using namespace chrono::fsi;
 
 //****************************************************************************************
 const std::string out_dir = GetChronoOutputPath() + "FSI_FLEXIBLE_Elements/";
-std::string demo_dir;
+
 std::string MESH_CONNECTIVITY;
 // Save data as csv files, turn it on to be able to see the results off-line using paraview
 bool pv_output = true;
@@ -109,9 +109,9 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Setup the output directory for FSI data
-    sysFSI.SetFsiOutputDir(demo_dir, out_dir, inputJson);
+    sysFSI.SetOutputDirectory(out_dir);
 
-    MESH_CONNECTIVITY = demo_dir + "Flex_MESH.vtk";
+    MESH_CONNECTIVITY = out_dir + "Flex_MESH.vtk";
 
     // ******************************* Create Fluid region ****************************************
     ////paramsH->MULT_INITSPACE_Shells = 1;
@@ -425,7 +425,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI,
     static int out_frame = 0;
 
     if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-6) {
-        sysFSI.PrintParticleToFile(demo_dir);
+        sysFSI.PrintParticleToFile(out_dir);
 
         std::cout << "-------------------------------------\n" << std::endl;
         std::cout << "             Output frame:   " << next_frame << std::endl;
@@ -433,7 +433,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI,
         std::cout << "-------------------------------------\n" << std::endl;
 
         char SaveAsBuffer[256];  // The filename buffer.
-        snprintf(SaveAsBuffer, sizeof(char) * 256, (demo_dir + "/flex_body.%d.vtk").c_str(), next_frame);
+        snprintf(SaveAsBuffer, sizeof(char) * 256, (out_dir + "/flex_body.%d.vtk").c_str(), next_frame);
         char MeshFileBuffer[256];  // The filename buffer.
         snprintf(MeshFileBuffer, sizeof(char) * 256, ("%s"), MESH_CONNECTIVITY.c_str());
         fea::ChMeshExporter::writeFrame(my_mesh, SaveAsBuffer, MESH_CONNECTIVITY);

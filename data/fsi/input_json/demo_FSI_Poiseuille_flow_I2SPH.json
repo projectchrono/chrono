@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "Poiseuille_flow_I2SPH",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,

@@ -36,7 +36,6 @@ using namespace chrono::fsi;
 
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_CYLINDER_DROP/";
-std::string demo_dir;
 
 // Save data as csv files to see the results off-line using Paraview
 bool save_output = true;
@@ -156,12 +155,12 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI,
     /// Output data to files
     if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-5) {
         /// save particles to cvs files
-        sysFSI.PrintParticleToFile(demo_dir);
+        sysFSI.PrintParticleToFile(out_dir);
 
         /// save rigid bodies to vtk files
         char SaveAsRigidObjVTK[256];
         static int RigidCounter = 0;
-        snprintf(SaveAsRigidObjVTK, sizeof(char) * 256, (demo_dir + "/Cylinder.%d.vtk").c_str(), RigidCounter);
+        snprintf(SaveAsRigidObjVTK, sizeof(char) * 256, (out_dir + "/Cylinder.%d.vtk").c_str(), RigidCounter);
         WriteCylinderVTK(Cylinder, cyl_radius, cyl_length, 100, SaveAsRigidObjVTK);
         RigidCounter++;
         std::cout << "\n--------------------------------\n" << std::endl;
@@ -301,7 +300,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Setup the output directory for FSI data
-    sysFSI.SetFsiOutputDir(demo_dir, out_dir, inputJson);
+    sysFSI.SetOutputDirectory(out_dir);
 
     // Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);

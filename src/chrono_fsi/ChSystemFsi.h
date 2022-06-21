@@ -150,7 +150,7 @@ class CH_FSI_API ChSystemFsi {
     void SetElasticSPH(const ElasticMaterialProperties mat_props);
 
     /// Set output directory for FSI data.
-    void SetFsiOutputDir(std::string& demo_dir, std::string out_dir, std::string inputJson);
+    void SetOutputDirectory(const std::string& output_dir);
 
     /// Set FSI information output
     void SetFsiInfoOutput(bool outputFsiInfo);
@@ -434,7 +434,7 @@ class CH_FSI_API ChSystemFsi {
     ChSystem& sysMBS;         ///< reference to the multi-body system
 
     bool verbose;  ///< enable/disable verbose terminal output (default: true)
-
+    std::string out_dir;  ///< output directory
     CHFSI_OUTPUT_MODE file_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
 
     std::vector<std::shared_ptr<ChBody>> fsiBodies;                        ///< vector of a pointers to FSI bodies
@@ -452,9 +452,8 @@ class CH_FSI_API ChSystemFsi {
     std::shared_ptr<SimParams> paramsH;                ///< pointer to the simulation parameters
     std::shared_ptr<NumberOfObjects> numObjectsH;      ///< number of objects, fluid, bce, and boundary markers
 
-    double mTime;  ///< current real time of the simulation
-
     bool is_initialized;  ///< set to true once the Initialize function is called
+    double mTime;         ///< current real time of the simulation
 
     friend class ChFsiVisualization;
 };

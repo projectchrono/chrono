@@ -27,7 +27,6 @@ using namespace chrono::fsi;
 
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_COMPRESSIBILITY/";
-std::string demo_dir;
 
 // Save data as csv files, turn it on to be able to see the results off-line using paraview
 bool save_output = true;
@@ -66,7 +65,7 @@ void SaveParaViewFilesMBD(ChSystemFsi& sysFSI,
     static int out_frame = 0;
 
     if (save_output && std::abs(mTime - (next_frame)*frame_time) < 1e-5) {
-        sysFSI.PrintParticleToFile(demo_dir);
+        sysFSI.PrintParticleToFile(out_dir);
 
         std::cout << "-------------------------------------\n" << std::endl;
         std::cout << "             Output frame:   " << next_frame << std::endl;
@@ -158,7 +157,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Setup the output directory for FSI data
-    sysFSI.SetFsiOutputDir(demo_dir, out_dir, inputJson);
+    sysFSI.SetOutputDirectory(out_dir);
 
     // Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
@@ -207,7 +206,7 @@ int main(int argc, char* argv[]) {
 
         std::ofstream output;
         std::string delim = ",";
-        output.open((demo_dir + "/Analysis.txt"), std::ios::app);
+        output.open((out_dir + "/Analysis.txt"), std::ios::app);
         if (tStep == 0)
             output << "Time" << delim << "Rho_fluid" << delim << "k_fluid" << std::endl;
 

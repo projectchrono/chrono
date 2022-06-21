@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "Poiseuille_flow",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,

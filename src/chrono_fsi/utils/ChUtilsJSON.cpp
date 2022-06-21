@@ -71,9 +71,6 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         return false;
     }
 
-    if (doc.HasMember("Output Folder"))
-        strcpy(paramsH->out_name, doc["Output Folder"].GetString());
-
     if (doc.HasMember("Data Output Length"))
         paramsH->output_length = doc["Data Output Length"].GetInt();
 
@@ -378,70 +375,6 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     }
 
     return true;
-}
-
-void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
-                      std::string& demo_dir,
-                      std::string out_dir,
-                      std::string jsonFile,
-                      bool verbose) {
-    out_dir = filesystem::path(out_dir).str();
-
-    if (strcmp(paramsH->out_name, "Undefined") == 0) {
-        time_t rawtime;
-        struct tm* timeinfo;
-        time(&rawtime);
-        timeinfo = localtime(&rawtime);
-        cout << asctime(timeinfo);
-        char buffer[80];
-        strftime(buffer, 80, "%F_%T", timeinfo);
-        demo_dir = filesystem::path(filesystem::path(out_dir) / filesystem::path(buffer)).str();
-    } else {
-        demo_dir = filesystem::path(filesystem::path(out_dir) / filesystem::path(paramsH->out_name)).str();
-    }
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        cerr << "Error creating directory " << out_dir << endl;
-        return;
-    }
-    if (!filesystem::create_directory(filesystem::path(demo_dir))) {
-        cerr << "Error creating directory " << out_dir << endl;
-        return;
-    }
-
-    strcpy(paramsH->demo_dir, filesystem::path(demo_dir).str().c_str());
-
-#if defined(_WIN32)
-    HANDLE hFind;
-    WIN32_FIND_DATA data;
-
-    hFind = FindFirstFile((demo_dir + "\\*").c_str(), &data);
-    if (hFind != INVALID_HANDLE_VALUE) {
-        do {
-            filesystem::path newfile(filesystem::path(demo_dir) / filesystem::path(data.cFileName));
-            newfile.remove_file();
-        } while (FindNextFile(hFind, &data));
-        FindClose(hFind);
-    }
-#else
-    struct dirent* entry;
-    DIR* dir = opendir(demo_dir.c_str());
-    while ((entry = readdir(dir)) != NULL) {
-        filesystem::path(demo_dir + entry->d_name).remove_file();
-    }
-#endif
-
-    std::string js = (filesystem::path(demo_dir) / filesystem::path("Backup.json")).str();
-    std::ifstream srce(jsonFile);
-    std::ofstream dest(js);
-    dest << srce.rdbuf();
-
-    if (verbose) {
-        cout << "Output Directory: " << out_dir << endl;
-        cout << "Demo Directory: " << paramsH->demo_dir << endl;
-        cout << "Input JSON File: " << jsonFile << endl;
-        cout << "Backup JSON File: " << js << endl;
-    }
 }
 
 }  // namespace utils

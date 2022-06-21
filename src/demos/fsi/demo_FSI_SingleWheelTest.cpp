@@ -78,7 +78,6 @@ bool output = true;
 int out_fps = 20;
 
 // Output directories and settings
-std::string demo_dir;
 const std::string out_dir = GetChronoOutputPath() + "FSI_Single_Wheel_Test/";
 
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
@@ -112,12 +111,12 @@ void WritewheelVTK(ChSystemSMC& sysMBS, int this_frame) {
 
     // char filename[4096];
     /*if(1==0){// save to obj file
-        sprintf(filename, "%s/hmmwv_tire_%d.obj", paramsH->demo_dir, this_frame);
+        sprintf(filename, "%s/hmmwv_tire_%d.obj", out_dir, this_frame);
         std::vector<geometry::ChTriangleMeshConnected> meshes = { *mmesh };
         geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
     }
     if(1==1){// save to vtk file
-        sprintf(filename, "%s/hmmwv_tire_%d.vtk", paramsH->demo_dir, this_frame);
+        sprintf(filename, "%s/hmmwv_tire_%d.vtk", out_dir, this_frame);
         std::ofstream file;
         file.open(filename);
         file << "# vtk DataFile Version 2.0" << std::endl;
@@ -151,12 +150,12 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI,
                        double mTime,
                        std::shared_ptr<ChBody> wheel) {
     // save particles to cvs files
-    sysFSI.PrintParticleToFile(demo_dir);
+    sysFSI.PrintParticleToFile(out_dir);
 
     // save rigid bodies to vtk files
     char SaveAsRigidObjVTK[256];
     static int RigidCounter = 0;
-    snprintf(SaveAsRigidObjVTK, sizeof(char) * 256, (demo_dir + "/wheel.%d.vtk").c_str(), RigidCounter);
+    snprintf(SaveAsRigidObjVTK, sizeof(char) * 256, (out_dir + "/wheel.%d.vtk").c_str(), RigidCounter);
     WritewheelVTK(sysMBS, this_frame);
     RigidCounter++;
     if (verbose) {
@@ -499,7 +498,7 @@ int main(int argc, char* argv[]) {
     CreateSolidPhase(sysMBS, sysFSI);
 
     /// Setup the output directory for FSI data
-    sysFSI.SetFsiOutputDir(demo_dir, out_dir, inputJson);
+    sysFSI.SetOutputDirectory(out_dir);
 
     // Set FSI information output
     sysFSI.SetFsiInfoOutput(false);
@@ -529,7 +528,7 @@ int main(int argc, char* argv[]) {
     // Write the information into a txt file
     std::ofstream myFile;
     if (output) {
-        myFile.open(demo_dir + "/results.txt", std::ios::trunc);
+        myFile.open(out_dir + "/results.txt", std::ios::trunc);
     }
 
     // Create a run-tme visualizer

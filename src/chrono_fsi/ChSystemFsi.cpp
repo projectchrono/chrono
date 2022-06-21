@@ -32,6 +32,9 @@
 #include "chrono_fsi/utils/ChUtilsGeneratorBce.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFluid.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_thirdparty/filesystem/resolver.h"
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -67,7 +70,6 @@ void ChSystemFsi::InitParams() {
     //// RADU TODO
     //// Provide default values for *all* parameters!
 
-    strcpy(paramsH->out_name, "Undefined");
     paramsH->output_length = 1;
     paramsH->output_fsi = true;
 
@@ -238,10 +240,6 @@ void ChSystemFsi::SetDensity(double rho0) {
     paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
 }
 
-void ChSystemFsi::SetFsiOutputDir(std::string& demo_dir, std::string out_dir, std::string inputJson) {
-    utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson, verbose);
-}
-
 void ChSystemFsi::SetDiscreType(bool useGmatrix, bool useLmatrix) {
     paramsH->USE_Consistent_G = useGmatrix;
     paramsH->USE_Consistent_L = useLmatrix;
@@ -321,6 +319,17 @@ void ChSystemFsi::SetShellElementsNodes(std::vector<std::vector<int>> elementsNo
 void ChSystemFsi::SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) {
     fsi_mesh = other_fsi_mesh;
     fsiInterface->SetFsiMesh(other_fsi_mesh);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+void ChSystemFsi::SetOutputDirectory(const std::string& output_dir) {
+    out_dir = output_dir + "/fsi";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cerr << "Error creating directory " << out_dir << endl;
+        return;
+    }
+    fsiInterface->out_dir = out_dir;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

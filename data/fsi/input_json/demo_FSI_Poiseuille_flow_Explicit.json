@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "Poiseuille_flow_WCSPH",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,
