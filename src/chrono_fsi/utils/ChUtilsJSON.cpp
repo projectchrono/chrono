@@ -325,7 +325,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         if (paramsH->non_newtonian) {
             paramsH->mu_max = doc["Material Model"]["max Viscosity"].GetDouble();
 
-            if (paramsH->non_newtonian && !paramsH->granular_material) {
+            if (paramsH->non_newtonian) {
                 if (doc["Material Model"].HasMember("Herschel–Bulkley")) {
                     paramsH->HB_k = doc["Material Model"]["Herschel–Bulkley"]["k"].GetDouble();
                     paramsH->HB_n = doc["Material Model"]["Herschel–Bulkley"]["n"].GetInt();
@@ -346,7 +346,6 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         }
     } else {
         paramsH->non_newtonian = false;
-        paramsH->granular_material = false;
     }
 
     // Calculate dependent parameters

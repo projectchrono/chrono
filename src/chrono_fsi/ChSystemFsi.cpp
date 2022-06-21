@@ -412,7 +412,6 @@ void ChSystemFsi::Initialize() {
         cout << "paramsH->dT_Flex: " << paramsH->dT_Flex << endl;
 
         cout << "paramsH->non_newtonian: " << paramsH->non_newtonian << endl;
-        cout << "paramsH->granular_material: " << paramsH->granular_material << endl;
         cout << "paramsH->mu_of_I : " << (int)paramsH->mu_of_I << endl;
         cout << "paramsH->rheology_model: " << (int)paramsH->rheology_model << endl;
         cout << "paramsH->ave_diam: " << paramsH->ave_diam << endl;

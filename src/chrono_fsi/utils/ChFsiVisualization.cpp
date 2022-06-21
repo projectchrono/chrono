@@ -138,7 +138,7 @@ bool ChFsiVisualization::Render() {
         size_t b = 0;
         size_t p = 0;
         if (m_sph_markers) {
-            for (size_t i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
+            for (unsigned int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
                 m_particles->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }

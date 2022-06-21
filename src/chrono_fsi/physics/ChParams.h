@@ -198,7 +198,6 @@ struct SimParams {
     Real L_Characteristic;        ///< Some length characteristic for Re number computation
 
     bool non_newtonian;       ///< Set true to model non-newtonian fluid.
-    bool granular_material;   ///< Set true to model granular material dynamcis using I2SPH
     rheology rheology_model;  ///< Model of the rheology (Inertia_rheology or nonlocal_fluidity)
     Real ave_diam;            ///< average particle diameter
     Real cohesion;            ///< c in the stress model sigma=(mu*p+c)/|D|

@@ -104,13 +104,6 @@ __global__ void Viscosity_correction(Real4* sortedPosRad,  // input: sorted posi
     Real mu_0 = Herschel_Bulkley_mu_eff(paramsD.HB_sr0, paramsD.HB_k, paramsD.HB_n, paramsD.HB_tau0);
     mu_0 = paramsD.mu_max;
     Real tau_yeild = paramsD.HB_tau0;
-    if (paramsD.granular_material) {
-        Real I = Inertia_num(sr, sortedRhoPreMu_old[i_idx].x, p_ave, paramsD.ave_diam);
-        Real mu_i = mu_I(sr, I);
-        sr_tau_I_mu_i[i_idx].z = I;
-        sr_tau_I_mu_i[i_idx].w = mu_i;
-        tau_yeild = mu_i * rmaxr(sortedRhoPreMu_old[i_idx].y, 0.0) + paramsD.cohesion;
-    }
 
     if (paramsD.non_newtonian) {
         if (sr < tau_yeild / paramsD.mu_max)
@@ -240,11 +233,6 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
         gradP += A_G[count] * sortedRhoPreMu[j].y;
         if (sortedRhoPreMu[j].w == -1)
             num_fluid++;
-        if (paramsD.granular_material) {
-            granular_source.x += dot(mR3(sortedTauXxYyZz[j].x, sortedTauXyXzYz[j].x, sortedTauXyXzYz[j].y), A_G[count]);
-            granular_source.y += dot(mR3(sortedTauXyXzYz[j].x, sortedTauXxYyZz[j].y, sortedTauXyXzYz[j].z), A_G[count]);
-            granular_source.z += dot(mR3(sortedTauXyXzYz[j].y, sortedTauXyXzYz[j].z, sortedTauXxYyZz[j].z), A_G[count]);
-        }
     }
     bool full_support = true;  //(rhoi >= 0.2 * paramsD.rho0) && num_fluid > uint(0.1 * paramsD.num_neighbors);
 
@@ -274,8 +262,7 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
                          + (1 - CN) * mu_i * Laplacian_u                            // viscous term;
                          + (1 - CN2) * paramsD.non_newtonian * grad_mu_dot_gradu_u  // Non-Newtonian term
                          + paramsD.non_newtonian * grad_mu_dot_gradu_uT             // Non - Newtonian term
-                         + !paramsD.non_newtonian * paramsD.granular_material * granular_source  // granular term
-                         + rhoi * (paramsD.gravity + paramsD.bodyForce3);                        // body force
+                         + rhoi * (paramsD.gravity + paramsD.bodyForce3);           // body force
 
         } else {
             A_Matrix[csrStartIdx] = 1.0;
@@ -650,63 +637,15 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
     else
         sortedRhoPreMu[i_idx].y += q_i[i_idx] + dot(grad_p_nPlus1, mR3(x_new - sortedPosRad_old[i_idx]));
 
-    Real3 d_sortedTauXxYyZz, d_sortedTauXyXzYz;
-    if (paramsD.granular_material) {
-        Real3 ep_XxYyZz = mR3(0.0);
-        Real3 ep_XyXzYz = mR3(0.0);
-        ep_XxYyZz.x = grad_ux.x;
-        ep_XxYyZz.y = grad_uy.y;
-        ep_XxYyZz.z = grad_uz.z;
-        ep_XyXzYz.x = (grad_ux.y + grad_uy.x) * 0.5;
-        ep_XyXzYz.y = (grad_ux.z + grad_uz.x) * 0.5;
-        ep_XyXzYz.z = (grad_uy.z + grad_uz.y) * 0.5;
-
-        Real3 w_XyXzYz = mR3(0.0);
-        w_XyXzYz.x = (grad_ux.y - grad_uy.x) * 0.5;
-        w_XyXzYz.y = (grad_ux.z - grad_uz.x) * 0.5;
-        w_XyXzYz.z = (grad_uy.z - grad_uz.y) * 0.5;
-
-        Real ep_ii = ep_XxYyZz.x + ep_XxYyZz.y + ep_XxYyZz.z;
-
-        d_sortedTauXxYyZz = 2 * paramsD.Shear_Mod * (ep_XxYyZz - 1.0 / 3.0 * mR3(ep_ii));
-        d_sortedTauXxYyZz.x -= 2 * (+sortedTauXyXzYz[i_idx].x * -w_XyXzYz.x + sortedTauXyXzYz[i_idx].y * -w_XyXzYz.y);
-        d_sortedTauXxYyZz.y -= 2 * (+sortedTauXyXzYz[i_idx].x * +w_XyXzYz.x + sortedTauXyXzYz[i_idx].z * -w_XyXzYz.z);
-        d_sortedTauXxYyZz.z -= 2 * (+sortedTauXyXzYz[i_idx].y * +w_XyXzYz.y + sortedTauXyXzYz[i_idx].z * +w_XyXzYz.z);
-        //    d_sortedTauXxYyZz.x += +sortedTauXyXzYz[i_idx].x * +w_XyXzYz.x + sortedTauXyXzYz[i_idx].y * -w_XyXzYz.y;
-        //    d_sortedTauXxYyZz.y += +sortedTauXyXzYz[i_idx].x * +w_XyXzYz.x + sortedTauXyXzYz[i_idx].z * -w_XyXzYz.z;
-        //    d_sortedTauXxYyZz.z += +sortedTauXyXzYz[i_idx].y * +w_XyXzYz.y + sortedTauXyXzYz[i_idx].z * +w_XyXzYz.z;
-
-        d_sortedTauXyXzYz = 2 * paramsD.Shear_Mod * (ep_XyXzYz - 0.0 / 3.0 * mR3(ep_ii));
-        d_sortedTauXyXzYz.x -= sortedTauXxYyZz[i_idx].x * +w_XyXzYz.x + sortedTauXyXzYz[i_idx].y * -w_XyXzYz.z;
-        d_sortedTauXyXzYz.y -= sortedTauXxYyZz[i_idx].x * +w_XyXzYz.y + sortedTauXyXzYz[i_idx].x * +w_XyXzYz.z;
-        d_sortedTauXyXzYz.z -= sortedTauXyXzYz[i_idx].x * +w_XyXzYz.y + sortedTauXxYyZz[i_idx].y * +w_XyXzYz.z;
-
-        d_sortedTauXyXzYz.x += +1 * w_XyXzYz.x * sortedTauXxYyZz[i_idx].y + w_XyXzYz.y * sortedTauXyXzYz[i_idx].z;
-        d_sortedTauXyXzYz.y += +1 * w_XyXzYz.x * sortedTauXyXzYz[i_idx].z + w_XyXzYz.y * sortedTauXxYyZz[i_idx].z;
-        d_sortedTauXyXzYz.z += -1 * w_XyXzYz.x * sortedTauXyXzYz[i_idx].y + w_XyXzYz.z * sortedTauXxYyZz[i_idx].z;
-        sr_tau_I_mu_i[i_idx].x = Sym_Tensor_Norm(ep_XxYyZz, ep_XyXzYz);
-    }
-    Real3 updatedTauXxYyZz = sortedTauXxYyZz[i_idx] + d_sortedTauXxYyZz * delta_t;
-    Real3 updatedTauXyXzYz = sortedTauXyXzYz[i_idx] + d_sortedTauXyXzYz * delta_t;
+    Real3 updatedTauXxYyZz = sortedTauXxYyZz[i_idx];
+    Real3 updatedTauXyXzYz = sortedTauXyXzYz[i_idx];
 
     Real tau_norm = Sym_Tensor_Norm(updatedTauXxYyZz, updatedTauXyXzYz);
-    Real yeild_tau = sr_tau_I_mu_i[i_idx].w * rmaxr(sortedRhoPreMu_old[i_idx].y, 0);
+    ////Real yeild_tau = sr_tau_I_mu_i[i_idx].w * rmaxr(sortedRhoPreMu_old[i_idx].y, 0);
     sr_tau_I_mu_i[i_idx].y = Sym_Tensor_Norm(sortedTauXxYyZz[i_idx], sortedTauXyXzYz[i_idx]);
 
-    bool yeilded = tau_norm > yeild_tau;
-
     if (sortedRhoPreMu_old[i_idx].w == -1.0) {
-        if (paramsD.granular_material && !paramsD.non_newtonian) {
-            if (yeilded) {
-                sortedPosRad[i_idx] = x_new;
-                sortedTauXxYyZz[i_idx] = updatedTauXxYyZz * yeild_tau / (tau_norm);
-                sortedTauXyXzYz[i_idx] = updatedTauXyXzYz * yeild_tau / (tau_norm);
-            } else {
-                sortedTauXxYyZz[i_idx] = updatedTauXxYyZz;
-                sortedTauXyXzYz[i_idx] = updatedTauXyXzYz;
-            }
-        } else
-            sortedPosRad[i_idx] = x_new;
+        sortedPosRad[i_idx] = x_new;
     }
 
     //    if (!(isfinite(sortedPosRad[i_idx].x) && isfinite(sortedPosRad[i_idx].y) && isfinite(sortedPosRad[i_idx].z)))
@@ -1055,7 +994,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     thrust::fill(Residuals.begin(), Residuals.end(), 0.0);
     Real yeild_strain = MaxVel / paramsH->HSML * 0.05;
 
-    if (paramsH->non_newtonian || paramsH->granular_material) {
+    if (paramsH->non_newtonian) {
         Viscosity_correction<<<numBlocks, numThreads>>>(
             mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
