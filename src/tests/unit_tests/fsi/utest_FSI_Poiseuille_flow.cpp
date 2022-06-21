@@ -27,7 +27,6 @@
 
 // Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
 
 // Chrono namespaces
 using namespace chrono;

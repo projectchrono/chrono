@@ -28,7 +28,6 @@
 #include "chrono_fsi/ChFsiInterface.h"
 #include "chrono_fsi/ChFsiDefines.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
 
 namespace chrono {
 
@@ -93,7 +92,7 @@ class CH_FSI_API ChSystemFsi {
     void SetVerbose(bool verbose);
 
     /// Read Chrono::FSI parameters from the specified JSON file.
-    void ReadParametersFromFile(const std::string& inputJson);
+    void ReadParametersFromFile(const std::string& json_file);
 
     /// Set initial spacing.
     void SetInitialSpacing(double spacing);
