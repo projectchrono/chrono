@@ -43,11 +43,8 @@ bool save_output = true;
 // Output frequency
 double out_fps = 20;
 
-double smalldis = 1.0e-9;
 // Dimension of the space domain
-double bxDim = 1.0 + smalldis;
-double byDim = 1.0 + smalldis;
-double bzDim = 0.8 + smalldis;
+double bxDim, byDim, bzDim;
 
 // Size of the cylinder
 double cyl_length = 0.2001;
@@ -191,18 +188,18 @@ void CreateSolidPhase(ChSystemSMC& sysMBS,
 
     // Bottom and top wall - size and position
     ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
-    ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
+    ChVector<> pos_zp(0, 0, 2 * bzDim + 1 * initSpace0);
     ChVector<> pos_zn(0, 0, -3 * initSpace0);
 
     // Left and right wall - size and position
-    ChVector<> size_YZ(2 * initSpace0, byDim / 2 + 3 * initSpace0, bzDim / 2);
-    ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
-    ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
+    ChVector<> size_YZ(2 * initSpace0, byDim / 2 + 3 * initSpace0, bzDim);
+    ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim + 0 * initSpace0);
+    ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim + 0 * initSpace0);
 
     // Front and back wall - size and position
-    ChVector<> size_XZ(bxDim / 2, 2 * initSpace0, bzDim / 2);
-    ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 0 * initSpace0);
-    ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
+    ChVector<> size_XZ(bxDim / 2, 2 * initSpace0, bzDim);
+    ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim + 0 * initSpace0);
+    ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim + 0 * initSpace0);
 
     // Create a container
     auto box = chrono_types::make_shared<ChBody>();

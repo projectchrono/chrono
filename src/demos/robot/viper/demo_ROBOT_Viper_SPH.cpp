@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Setup the output directory for FSI data
-    ////sysFSI.SetOutputDirectory(out_dir);
+    sysFSI.SetOutputDirectory(out_dir);
 
     // Set simulation data output length
     sysFSI.SetOutputLength(0);
