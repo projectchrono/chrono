@@ -34,10 +34,14 @@ SET(CE_VSG_SHAPES_FILES
     shapes/GetBoxShapeData.h
     shapes/GetCapsuleShapeData.cpp
     shapes/GetCapsuleShapeData.h
+    shapes/GetConeShapeData.cpp
+    shapes/GetConeShapeData.h
     shapes/GetCylinderShapeData.cpp
     shapes/GetCylinderShapeData.h
     shapes/GetSphereShapeData.cpp
     shapes/GetSphereShapeData.h
+    shapes/GetTriangleMeshShapeData.cpp
+    shapes/GetTriangleMeshShapeData.h
     shapes/ShapeBuilder.cpp
     shapes/ShapeBuilder.h
 )

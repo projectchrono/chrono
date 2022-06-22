@@ -663,9 +663,24 @@ void ChVisualSystemVSG::BindAll() {
             } else if (auto barrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
                 GetLog() << "... has a barrel shape (to do)\n";
             } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
-                GetLog() << "... has a cone shape (to do)\n";
+                GetLog() << "... has a cone shape\n";
+                Vector rad = cone->GetConeGeometry().rad;
+                auto transform = vsg::MatrixTransform::create();
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                    vsg::scale(rad.x(), rad.y(), rad.z());
+                m_scenegraph->addChild(m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, body, shape_instance,
+                                                                   material, transform, m_draw_as_wireframe));
             } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
-                GetLog() << "... has a triangle mesh shape (to do)\n";
+                GetLog() << "... has a triangle mesh shape (wip)\n";
+                ChVector<> scale = trimesh->GetScale();
+                auto transform = vsg::MatrixTransform::create();
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                    vsg::scale(scale.x(), scale.y(), scale.z());
+                m_scenegraph->addChild(m_shapeBuilder->createShape(ShapeBuilder::TRIANGLE_MESH_SHAPE, body,
+                                                                   shape_instance, material, transform,
+                                                                   m_draw_as_wireframe, trimesh));
             } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
                 GetLog() << "... has a surface mesh shape (to do)\n";
             } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
@@ -761,6 +776,11 @@ void ChVisualSystemVSG::OnUpdate() {
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
         } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
             ChVector<> radius = ellipsoid->GetEllipsoidGeometry().rad;
+            // ChVector<> size(radius, radius, radius);
+            vsg::dvec3 size(radius.x(), radius.y(), radius.z());
+            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+        } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+            ChVector<> radius = cone->GetConeGeometry().rad;
             // ChVector<> size(radius, radius, radius);
             vsg::dvec3 size(radius.x(), radius.y(), radius.z());
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);

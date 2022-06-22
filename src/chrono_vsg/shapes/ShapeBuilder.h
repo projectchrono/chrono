@@ -29,7 +29,7 @@ namespace chrono {
 namespace vsg3d {
 class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
   public:
-    typedef enum { BOX_SHAPE, SPHERE_SHAPE, CYLINDER_SHAPE, CAPSULE_SHAPE } BasicShape;
+    typedef enum { BOX_SHAPE, SPHERE_SHAPE, CYLINDER_SHAPE, CAPSULE_SHAPE, CONE_SHAPE, TRIANGLE_MESH_SHAPE } BasicShape;
     vsg::ref_ptr<vsg::Options> m_options;
     vsg::ref_ptr<vsg::SharedObjects> m_sharedObjects;
 
@@ -38,7 +38,8 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                          ChVisualModel::ShapeInstance shapeInstance,
                                          std::shared_ptr<ChVisualMaterial> material,
                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                         bool drawMode);
+                                         bool drawMode,
+                                         std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
 
     /// assign compile traversal to enable compilation.
     void assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct);

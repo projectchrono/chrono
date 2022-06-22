@@ -17,6 +17,8 @@
 #include "GetSphereShapeData.h"
 #include "GetCylinderShapeData.h"
 #include "GetCapsuleShapeData.h"
+#include "GetConeShapeData.h"
+#include "GetTriangleMeshShapeData.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -29,7 +31,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
                                                    ChVisualModel::ShapeInstance shapeInstance,
                                                    std::shared_ptr<ChVisualMaterial> material,
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                   bool drawMode) {
+                                                   bool drawMode,
+                                                   std::shared_ptr<ChTriangleMeshShape> tms) {
     auto scenegraph = vsg::Group::create();
     // store some information for easier update
     scenegraph->setValue("ItemPtr", physItem);
@@ -37,13 +40,17 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
     scenegraph->setValue("TransformPtr", transform);
 
     auto shaderSet = vsg::createPhongShaderSet(m_options);
+    auto rasterizationState = vsg::RasterizationState::create();
     if (drawMode) {
-        auto rasterizationState = vsg::RasterizationState::create();
         rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
-        shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
     }
-
+    shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
     auto graphicsPipelineConfig = vsg::GraphicsPipelineConfig::create(shaderSet);
+    auto& defines = graphicsPipelineConfig->shaderHints->defines;
+    if(theShape == TRIANGLE_MESH_SHAPE) {
+        graphicsPipelineConfig->rasterizationState->cullMode = VK_CULL_MODE_NONE;
+        defines.push_back("VSG_TWO_SIDED_LIGHTING");
+    }
 
     // set up graphics pipeline
     vsg::Descriptors descriptors;
@@ -56,7 +63,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
     phongMat->value().ambient.set(material->GetAmbientColor().R, material->GetAmbientColor().G,
                                   material->GetAmbientColor().B, alpha);
     phongMat->value().specular.set(material->GetSpecularColor().R, material->GetSpecularColor().G,
-                                   material->GetSpecularColor().B, alpha);  // red specular highlight
+                                   material->GetSpecularColor().B, alpha);
+    phongMat->value().emissive.set(material->GetEmissiveColor().R, material->GetEmissiveColor().G,
+                                   material->GetEmissiveColor().B, alpha);
     phongMat->value().alphaMask = alpha;
     phongMat->value().alphaMaskCutoff = 0.3f;
 
@@ -98,7 +107,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
     vsg::ref_ptr<vsg::vec2Array> texcoords;
     vsg::ref_ptr<vsg::ushortArray> indices;
     float boundingSphereRadius;
-    switch(theShape) {
+    switch (theShape) {
         case BOX_SHAPE:
             GetBoxShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
             break;
@@ -110,6 +119,12 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
             break;
         case CAPSULE_SHAPE:
             GetCapsuleShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case CONE_SHAPE:
+            GetConeShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case TRIANGLE_MESH_SHAPE:
+            GetTriangleMeshShapeData(tms, vertices, normals, texcoords, indices, boundingSphereRadius);
             break;
     }
     auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
