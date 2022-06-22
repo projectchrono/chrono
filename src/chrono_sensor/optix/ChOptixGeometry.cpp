@@ -601,9 +601,9 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
 
 // rebuilding the structure without creating anything new
 void ChOptixGeometry::RebuildRootStructure() {
-    m_end_time = m_end_time > m_start_time
+    m_end_time = m_end_time > (m_start_time+1e-2)
                      ? m_end_time
-                     : m_end_time + 1e-6;  // need to ensure start time is at least slightly after end time
+                     : m_end_time + 1e-2;  // need to ensure start time is at least slightly after end time
 
     for (int i = 0; i < m_motion_transforms.size(); i++) {
         // update the motion transforms
