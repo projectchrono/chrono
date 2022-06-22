@@ -65,7 +65,7 @@ std::string wheel_obj = "vehicle/hmmwv/hmmwv_tire_coarse_closed.obj";
 ChVector<> wheel_IniPos(-bxDim / 2 + wheel_radius, 0.0, 0.0);
 ChVector<> wheel_IniVel(0.0, 0.0, 0.0);
 
-// simulation time and stepsize
+// Simulation time and stepsize
 double total_time = 5.0;
 double dT = 2.5e-4;
 
@@ -457,8 +457,7 @@ int main(int argc, char* argv[]) {
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_SingleWheelTest.json");
     if (argc == 3) {
-        std::string my_inputJson = std::string(argv[1]);
-        inputJson = my_inputJson;
+        inputJson = std::string(argv[1]);
         wheel_slip = std::stod(argv[2]);
     } else if (argc != 1) {
         std::cout << "usage: ./demo_FSI_SingleWheelTest <json_file> <wheel_slip>" << std::endl;
@@ -481,7 +480,7 @@ int main(int argc, char* argv[]) {
     // Set wall boundary condition
     sysFSI.SetWallBC(BceVersion::ORIGINAL);
 
-    // Setup the solver based on the input value of the prameters
+    // Setup the SPH method
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
 
     // Set up the periodic boundary condition (if not, set relative larger values)
