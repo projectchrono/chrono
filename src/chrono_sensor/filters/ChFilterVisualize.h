@@ -17,9 +17,10 @@
 #ifndef CHFILTERVISUALIZE_H
 #define CHFILTERVISUALIZE_H
 
-// #include "glad.h"
+#ifdef USE_SENSOR_GLFW
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#endif
 
 #include "chrono_sensor/filters/ChFilter.h"
 
@@ -65,10 +66,12 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
     /// Creates a GLFW window for this filter
     void CreateGlfwWindow(std::string m_name);
 
+#ifdef USE_SENSOR_GLFW
     /// Helper to allow GLFWwindow to be in a unique_ptr
     struct DestroyglfwWin {
         void operator()(GLFWwindow* ptr) { glfwDestroyWindow(ptr); }
     };
+#endif
 
     std::shared_ptr<SensorDeviceR8Buffer> m_bufferR8;
     std::shared_ptr<SensorDeviceRGBA8Buffer> m_bufferRGBA8;
@@ -84,7 +87,9 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
 
     CUstream m_cuda_stream;  ///< reference to the cuda stream
 
+#ifdef USE_SENSOR_GLFW
     std::unique_ptr<GLFWwindow, DestroyglfwWin> m_window;  ///< pointer to the window
+#endif
     unsigned int m_gl_tex_id = 0;                          ///< reference data for the GL context and texture
 
     /// Helper function for when new window is created
