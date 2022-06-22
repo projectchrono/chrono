@@ -30,8 +30,6 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 
-#include "chrono_fsi/utils/ChUtilsJSON.h"
-#include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
@@ -109,8 +107,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& sp
     m_init_height = m_depth;
 
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
-    m_params = m_systemFSI->GetSimParams();
-    fsi::utils::ParseJSON(specfile, m_params, fsi::mR3(0, 0, 0));
+    m_systemFSI->ReadParametersFromFile(specfile);
 }
 
 ChVehicleCosimTerrainNodeGranularSPH::~ChVehicleCosimTerrainNodeGranularSPH() {
@@ -128,8 +125,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetPropertiesSPH(const std::string& f
     m_init_height = m_depth;
 
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
-    m_params = m_systemFSI->GetSimParams();
-    fsi::utils::ParseJSON(filename, m_params, fsi::mR3(0, 0, 0));
+    m_systemFSI->ReadParametersFromFile(filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -253,62 +249,27 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         cout << "[Terrain node] GRANULAR_SPH " << endl;
 
     // Reload simulation parameters to FSI system
-    m_params->dT = GetStepSize();
-    m_params->INV_dT = 1.0 / m_params->dT;
-    m_params->dT_Flex = m_params->dT;
-    m_params->dT_Max = m_params->dT;
-    m_params->tFinal = 0;  // not used
-    
-    // Reload physical parameters to FSI system
-    m_params->gravity.z = m_gacc;
-    m_params->rho0 = m_rho_g;
-    m_params->invrho0 = 1.0 / m_rho_g;
-    m_params->Cs = sqrt(m_params->K_bulk / m_params->rho0);
-    m_params->INITSPACE = 2 * m_radius_g;
-    m_params->INV_INIT = 1.0 / (2 * m_radius_g);
-    m_params->HSML = 2 * m_radius_g / m_params->MULT_INITSPACE;
-    m_params->INVHSML = 1.0 / m_params->HSML;
-    m_params->volume0 = pow(m_params->INITSPACE,3);
-    m_params->markerMass = m_params->volume0 * m_params->rho0;
-
-    // Reload the size of the fluid container to FSI system
-    m_params->boxDimX = (fsi::Real)(2 * m_hdimX);
-    m_params->boxDimY = (fsi::Real)(2 * m_hdimY);
-    m_params->boxDimZ = (fsi::Real)(1.25 * m_depth);
-
-    // Reload size of the fluid domain to FSI system
-    m_params->fluidDimX = (fsi::Real)(2 * m_hdimX);
-    m_params->fluidDimY = (fsi::Real)(2 * m_hdimY);
-    m_params->fluidDimZ = (fsi::Real)(1 * m_depth);
-
-    // Dimension of the fluid container (bxDim x byDim x bzDim)
-    fsi::Real bxDim = m_params->boxDimX;
-    fsi::Real byDim = m_params->boxDimY;
-    fsi::Real bzDim = m_params->boxDimZ;
+    double initSpace0 = 2 * m_radius_g;
+    m_systemFSI->SetStepSize(m_step_size, m_step_size);
+    m_systemFSI->Set_G_acc(ChVector<>(0, 0, m_gacc));
+    m_systemFSI->SetDensity(m_rho_g);
+    m_systemFSI->SetInitialSpacing(initSpace0);
+    m_systemFSI->SetKernelLength(initSpace0);
 
     // Set up the periodic boundary condition (if not, set relative larger values)
-    fsi::Real initSpace0 = m_params->MULT_INITSPACE * m_params->HSML;
-    m_params->cMin = chrono::fsi::mR3(-bxDim / 2, -byDim / 2, -bzDim - 10 * initSpace0) * 10;
-    m_params->cMax = chrono::fsi::mR3(bxDim / 2, byDim / 2, bzDim + 10 * initSpace0) * 10;
+    ChVector<> cMin(-m_hdimX, -m_hdimY, -1.25 * m_depth - 10 * initSpace0);
+    ChVector<> cMax(+m_hdimX, +m_hdimY, +1.25 * m_depth + 10 * initSpace0);
+    m_systemFSI->SetBoundaries(cMin * 10, cMax * 10);
 
     // Set the time integration type and the linear solver type (only for ISPH)
-    m_systemFSI->SetSPHMethod(m_params->fluid_dynamic_type);
-    m_systemFSI->SetSPHLinearSolver(m_params->LinearSolver);
+    m_systemFSI->SetSPHMethod(FluidDynamics::WCSPH);
 
     // Set boundary condition for the fixed wall
     m_systemFSI->SetWallBC(BceVersion::ORIGINAL);
 
-    // Call FinalizeDomain to setup the binning for neighbor search
-    fsi::utils::FinalizeDomain(m_params);
-
-    // Dimension of the fluid region (fxDim x fyDim x fzDim)
-    fsi::Real fxDim = m_params->fluidDimX;
-    fsi::Real fyDim = m_params->fluidDimY;
-    fsi::Real fzDim = m_params->fluidDimZ;
-
     // Create fluid region and discretize with SPH particles
-    ChVector<> boxCenter(0.0, 0.0, fzDim / 2);
-    ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
+    ChVector<> boxCenter(0.0, 0.0, m_depth / 2);
+    ChVector<> boxHalfDim(m_hdimX, m_hdimY, m_depth / 2);
 
     // Use a chrono sampler to create a bucket of points
     utils::GridSampler<> sampler(initSpace0);
@@ -318,10 +279,11 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
         // Calculate the pressure of a steady state (p = rho*g*h)
-        fsi::Real pre_ini = m_params->rho0 * abs(m_params->gravity.z) * (-points[i].z() + fzDim);
-        fsi::Real rho_ini = m_params->rho0 + pre_ini / (m_params->Cs * m_params->Cs);
-        m_systemFSI->AddSphMarker(points[i], rho_ini, 0.0, m_params->mu0, m_params->HSML, -1, 
-            ChVector<>(1e-10), ChVector<>(-pre_ini), ChVector<>(1e-10));
+        fsi::Real pre_ini = m_systemFSI->GetDensity() * abs(m_gacc) * (-points[i].z() + m_depth);
+        fsi::Real rho_ini =
+            m_systemFSI->GetDensity() + pre_ini / (m_systemFSI->GetSoundSpeed() * m_systemFSI->GetSoundSpeed());
+        m_systemFSI->AddSphMarker(points[i], rho_ini, 0.0, m_systemFSI->GetViscosity(), m_systemFSI->GetKernelLength(),
+                                  -1, ChVector<>(1e-10), ChVector<>(-pre_ini), ChVector<>(1e-10));
     }
 
     m_systemFSI->AddRefArray(0, numPart, -1, -1);
@@ -336,25 +298,25 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
     // Create the geometry of the boundaries
     // Bottom wall - size and position
-    ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
+    ChVector<> size_XY(m_hdimX + 3 * initSpace0, m_hdimY + 3 * initSpace0, 2 * initSpace0);
     ChVector<> pos_zn(0, 0, -3 * initSpace0);
 
     // Left and right walls - size and position
-    ChVector<> size_YZ(2 * initSpace0, byDim / 2 + 3 * initSpace0, bzDim / 2);
-    ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
-    ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
+    ChVector<> size_YZ(2 * initSpace0, m_hdimY + 3 * initSpace0, 1.25 * m_depth / 2);
+    ChVector<> pos_xp(m_hdimX + initSpace0, 0.0, 1.25 * m_depth / 2 + 0 * initSpace0);
+    ChVector<> pos_xn(-m_hdimX - 3 * initSpace0, 0.0, 1.25 * m_depth / 2 + 0 * initSpace0);
 
     // Front and back walls - size and position
-    ChVector<> size_XZ(bxDim / 2, 2 * initSpace0, bzDim / 2);
-    ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 0 * initSpace0);
-    ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
+    ChVector<> size_XZ(m_hdimX, 2 * initSpace0, 1.25 * m_depth / 2);
+    ChVector<> pos_yp(0, m_hdimY + initSpace0, 1.25 * m_depth / 2 + 0 * initSpace0);
+    ChVector<> pos_yn(0, -m_hdimY - 3 * initSpace0, 1.25 * m_depth / 2 + 0 * initSpace0);
 
     // Add BCE particles attached on the walls into FSI system
-    m_systemFSI->AddBceBox(m_params, container, pos_zn, chrono::QUNIT, size_XY, 12);
-    m_systemFSI->AddBceBox(m_params, container, pos_xp, chrono::QUNIT, size_YZ, 23);
-    m_systemFSI->AddBceBox(m_params, container, pos_xn, chrono::QUNIT, size_YZ, 23);
-    m_systemFSI->AddBceBox(m_params, container, pos_yp, chrono::QUNIT, size_XZ, 13);
-    m_systemFSI->AddBceBox(m_params, container, pos_yn, chrono::QUNIT, size_XZ, 13);
+    m_systemFSI->AddBceBox(container, pos_zn, chrono::QUNIT, size_XY, 12);
+    m_systemFSI->AddBceBox(container, pos_xp, chrono::QUNIT, size_YZ, 23);
+    m_systemFSI->AddBceBox(container, pos_xn, chrono::QUNIT, size_YZ, 23);
+    m_systemFSI->AddBceBox(container, pos_yp, chrono::QUNIT, size_XZ, 13);
+    m_systemFSI->AddBceBox(container, pos_yn, chrono::QUNIT, size_XZ, 13);
 
     // Add all rigid obstacles
     int id = body_id_obstacles;
@@ -396,7 +358,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         // Create BCE markers associated with trimesh
         std::vector<ChVector<>> point_cloud;
         CreateMeshMarkers(trimesh, (double)initSpace0, point_cloud);
-        m_systemFSI->AddBceFromPoints(m_params, body, point_cloud, VNULL, QUNIT);
+        m_systemFSI->AddBceFromPoints(body, point_cloud, VNULL, QUNIT);
     }
 
 #ifdef CHRONO_OPENGL
@@ -467,10 +429,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
     m_systemFSI->AddFsiBody(body);
 
     // Create BCE markers associated with trimesh
-    auto initSpace0 = m_params->MULT_INITSPACE * m_params->HSML;
     std::vector<ChVector<>> point_cloud;
-    CreateMeshMarkers(trimesh, (double)initSpace0, point_cloud);
-    m_systemFSI->AddBceFromPoints(m_params, body, point_cloud, VNULL, QUNIT);
+    CreateMeshMarkers(trimesh, (double)m_systemFSI->GetInitialSpacing(), point_cloud);
+    m_systemFSI->AddBceFromPoints(body, point_cloud, VNULL, QUNIT);
 }
 
 // Once all proxy bodies are created, complete construction of the underlying FSI system.
@@ -534,7 +495,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnOutputData(int frame) {
 
 void ChVehicleCosimTerrainNodeGranularSPH::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "chpf", frame, 5);
-    m_systemFSI->SetParticleOutputMode(CHFSI_OUTPUT_MODE::CHPF);
+    m_systemFSI->SetParticleOutputMode(ChSystemFsi::OutpuMode::CHPF);
     m_systemFSI->WriteParticleFile(filename);
     if (m_obstacles.size() > 0) {
         filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
