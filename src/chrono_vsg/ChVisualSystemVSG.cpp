@@ -672,7 +672,7 @@ void ChVisualSystemVSG::BindAll() {
                 m_scenegraph->addChild(m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, body, shape_instance,
                                                                    material, transform, m_draw_as_wireframe));
             } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
-                GetLog() << "... has a triangle mesh shape (wip)\n";
+                GetLog() << "... has a triangle mesh shape\n";
                 ChVector<> scale = trimesh->GetScale();
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *

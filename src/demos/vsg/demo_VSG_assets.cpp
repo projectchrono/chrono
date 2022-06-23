@@ -226,6 +226,13 @@ int main(int argc, char* argv[]) {
     ////hull->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(2,0.3,0)));
     ////hull->SetPos(ChVector<>(2,0.3,0));
     hull->Move(ChVector<>(2, 0.3, 0));
+
+    // Create a visualization material
+    auto cadet_blue = chrono_types::make_shared<ChVisualMaterial>();
+    cadet_blue->SetDiffuseColor(ChColor(0.37f, 0.62f, 0.62f));
+    cadet_blue->SetOpacity(0.5f);
+    hull->GetVisualShape(0)->SetMaterial(0, cadet_blue);
+
     sys.Add(hull);
 
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();

@@ -47,11 +47,12 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
     shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
     auto graphicsPipelineConfig = vsg::GraphicsPipelineConfig::create(shaderSet);
     auto& defines = graphicsPipelineConfig->shaderHints->defines;
+    /* not good with transparency!!!
     if(theShape == TRIANGLE_MESH_SHAPE) {
         graphicsPipelineConfig->rasterizationState->cullMode = VK_CULL_MODE_NONE;
         defines.push_back("VSG_TWO_SIDED_LIGHTING");
     }
-
+    */
     // set up graphics pipeline
     vsg::Descriptors descriptors;
 
