@@ -42,12 +42,7 @@ void GetTriangleMeshShapeData(std::shared_ptr<ChTriangleMeshShape> tms,
     for (int iIdx = 0; iIdx < nVert; iIdx ++) {
         indices->set(iIdx, iIdx);
     }
-    double xmin, xmax, ymin, ymax, zmin, zmax;
-    ChMatrix33<> rot;
-    mesh->GetBoundingBox(xmin, xmax, ymin, ymax, zmin, zmax, &rot);
-    // bounding sphere radius > sqrt(a^2+a^2+a^2)
-    boundingSphereRadius = 1.1f * sqrt(pow(xmax - xmin, 2) + pow(ymax - ymin, 2) + pow(zmax - zmin, 2));
-    GetLog() << "Bounding Sphere = " << boundingSphereRadius << "\n";
+    boundingSphereRadius = 1.1f * mesh->GetBoundingSphereRadius();
 }
 }  // namespace vsg3d
 }  // namespace chrono
