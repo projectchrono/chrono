@@ -28,10 +28,6 @@ ChRoundedCylinder::ChRoundedCylinder(const ChRoundedCylinder& source) {
     radsphere = source.radsphere;
 }
 
-void ChRoundedCylinder::CovarianceMatrix(ChMatrix33<>& C) const {
-    C.setZero();
-}
-
 void ChRoundedCylinder::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChRoundedCylinder>();

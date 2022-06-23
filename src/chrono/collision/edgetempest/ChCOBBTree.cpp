@@ -165,7 +165,7 @@ void get_covariance_geometries(PQP_REAL M[3][3], std::vector<geometry::ChGeometr
 
         S1 = Vadd(S1, S1_geo);
 
-        nit->CovarianceMatrix(S2_geo);
+        ////nit->CovarianceMatrix(S2_geo);
 
         S2 += S2_geo;
     }

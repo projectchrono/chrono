@@ -28,31 +28,12 @@ ChCylinder::ChCylinder(const ChCylinder& source) {
     rad = source.rad;
 }
 
-void ChCylinder::GetBoundingBox(double& xmin,
-                                double& xmax,
-                                double& ymin,
-                                double& ymax,
-                                double& zmin,
-                                double& zmax,
-                                ChMatrix33<>* Rot) const {
+void ChCylinder::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
+    //// TODO: re-check this
     ChVector<> dims = ChVector<>(rad, p2.y() - p1.y(), rad);
-    ChVector<> trsfCenter = Baricenter();
-    if (Rot) {
-        trsfCenter = Rot->transpose() * Baricenter();
-    }
-    xmin = trsfCenter.x() - dims.x();
-    xmax = trsfCenter.x() + dims.x();
-    ymin = trsfCenter.y() - dims.y();
-    ymax = trsfCenter.y() + dims.y();
-    zmin = trsfCenter.z() - dims.z();
-    zmax = trsfCenter.z() + dims.z();
-}
-
-void ChCylinder::CovarianceMatrix(ChMatrix33<>& C) const {
-    C.setZero();
-    C(0, 0) = p1.x() * p1.x();
-    C(1, 1) = p1.y() * p1.y();
-    C(2, 2) = p1.z() * p1.z();
+    ChVector<> trsfCenter = rot.transpose() * Baricenter();
+    cmin = trsfCenter - dims;
+    cmax = trsfCenter + dims;
 }
 
 void ChCylinder::ArchiveOUT(ChArchiveOut& marchive) {
