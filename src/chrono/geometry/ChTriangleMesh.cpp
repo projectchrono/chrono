@@ -12,43 +12,40 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <cstdio>
+#include <cmath>
 
-#include "chrono/geometry/ChCone.h"
+#include "chrono/geometry/ChTriangleMesh.h"
 
 namespace chrono {
 namespace geometry {
 
-// Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChCone)
-
-ChCone::ChCone(const ChCone& source) {
-    center = source.center;
-    rad = source.rad;
-}
-void ChCone::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
-    cmin = ChVector<>(-rad.x(), center.y() - rad.y() / 3.0, -rad.z());
-    cmin = ChVector<>(+rad.x(), center.y() + 2 * rad.y() / 3.0, +rad.z());
+void ChTriangleMesh::Transform(const ChVector<> displ, const ChQuaternion<> mquat) {
+    this->Transform(displ, ChMatrix33<>(mquat));
 }
 
-void ChCone::ArchiveOUT(ChArchiveOut& marchive) {
+void ChTriangleMesh::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
+    cmin = ChVector<>(+std::numeric_limits<double>::max());
+    cmax = ChVector<>(-std::numeric_limits<double>::max());
+
+    for (int i = 0; i < getNumTriangles(); i++) {
+        getTriangle(i).InflateBoundingBox(cmin, cmax, rot);
+    }
+}
+
+void ChTriangleMesh::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChCone>();
+    marchive.VersionWrite<ChTriangleMesh>();
     // serialize parent class
     ChGeometry::ArchiveOUT(marchive);
     // serialize all member data:
-    marchive << CHNVP(center);
-    marchive << CHNVP(rad);
 }
 
-void ChCone::ArchiveIN(ChArchiveIn& marchive) {
+void ChTriangleMesh::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChCone>();
+    /*int version =*/marchive.VersionRead<ChTriangleMesh>();
     // deserialize parent class
     ChGeometry::ArchiveIN(marchive);
     // stream in all member data:
-    marchive >> CHNVP(center);
-    marchive >> CHNVP(rad);
 }
 
 }  // end namespace geometry
