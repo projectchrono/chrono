@@ -64,7 +64,7 @@ class CH_FSI_API ChSystemFsi {
     /// Used if solving an SPH continuum representation of granular dynamics.
     struct ElasticMaterialProperties {
         double Young_modulus;     ///< Young's modulus
-        double Poisson_ratio;     ///< Poisson’s ratio
+        double Poisson_ratio;     ///< Poissonï¿½s ratio
         double stress;            ///< Artifical stress
         double viscosity_alpha;   ///< Artifical viscosity coefficient
         double viscosity_beta;    ///< Artifical viscosity coefficient
@@ -384,6 +384,10 @@ class CH_FSI_API ChSystemFsi {
                               bool multiLayer = true,
                               bool removeMiddleLayer = false,
                               int SIDE = -2);
+
+    /// Create particles from closed mesh
+    void CreateMeshMarkers(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,double delta,
+                           std::vector<ChVector<>>& point_cloud);
 
     /// Create an FSI body for a sphere.
     void CreateSphereFSI(std::shared_ptr<ChMaterialSurface> mat_prop, Real density, const ChVector<>& pos, Real radius);

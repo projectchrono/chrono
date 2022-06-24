@@ -91,9 +91,8 @@ bool verbose = true;
 //------------------------------------------------------------------
 // Function to save wheel to Paraview VTK files
 //------------------------------------------------------------------
-void WritewheelVTK(ChSystemSMC& sysMBS, int this_frame) {
-    auto body = sysMBS.Get_bodylist()[1];
-    ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
+void WritewheelVTK(std::shared_ptr<ChBody> wheel, const char* filename) {
+    ChFrame<> body_ref_frame = wheel->GetFrame_REF_to_abs();
     ChVector<> body_pos = body_ref_frame.GetPos();
     ChQuaternion<> body_rot = body_ref_frame.GetRot();
 
@@ -109,36 +108,28 @@ void WritewheelVTK(ChSystemSMC& sysMBS, int this_frame) {
     mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
     mmesh->Transform(body_pos, ChMatrix33<>(body_rot));  // rotate the mesh based on the orientation of body
 
-    // char filename[4096];
-    /*if(1==0){// save to obj file
-        sprintf(filename, "%s/hmmwv_tire_%d.obj", out_dir, this_frame);
-        std::vector<geometry::ChTriangleMeshConnected> meshes = { *mmesh };
-        geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
+    std::ofstream file;
+    file.open(filename);
+    file << "# vtk DataFile Version 2.0" << std::endl;
+    file << "VTK from simulation" << std::endl;
+    file << "ASCII" << std::endl;
+    file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+    int nv = mmesh->getCoordsVertices().size();
+    file << "POINTS " << nv << " " << "float" << std::endl;
+    for (auto& v : mmesh->getCoordsVertices()) {
+        file << v.x() << " " << v.y() << " " << v.z() << std::endl;
     }
-    if(1==1){// save to vtk file
-        sprintf(filename, "%s/hmmwv_tire_%d.vtk", out_dir, this_frame);
-        std::ofstream file;
-        file.open(filename);
-        file << "# vtk DataFile Version 2.0" << std::endl;
-        file << "VTK from simulation" << std::endl;
-        file << "ASCII" << std::endl;
-        file << "DATASET UNSTRUCTURED_GRID" << std::endl;
-        int nv = mmesh->getCoordsVertices().size();
-        file << "POINTS " << nv << " " << "float" << std::endl;
-        for (auto& v : mmesh->getCoordsVertices()) {
-            file << v.x() << " " << v.y() << " " << v.z() << std::endl;
-        }
-        int nf = mmesh->getIndicesVertexes().size();
-        file << "CELLS " << nf << " " << 4*nf << std::endl;
-        for (auto& f : mmesh->getIndicesVertexes()) {
-            file <<  "3 " << f.x()  << " " << f.y() << " " << f.z()  << std::endl;
-        }
-        file << "CELL_TYPES " << nf << std::endl;
-        for (auto& f : mmesh->getIndicesVertexes()) {
-            file <<  "5 " << std::endl;
-        }
-        file.close();
-    }*/
+    int nf = mmesh->getIndicesVertexes().size();
+    file << "CELLS " << nf << " " << 4*nf << std::endl;
+    for (auto& f : mmesh->getIndicesVertexes()) {
+        file <<  "3 " << f.x()  << " " << f.y() << " " << f.z()  << std::endl;
+    }
+    file << "CELL_TYPES " << nf << std::endl;
+    for (auto& f : mmesh->getIndicesVertexes()) {
+        file <<  "5 " << std::endl;
+    }
+    file.close();
+
 }
 
 //------------------------------------------------------------------
@@ -153,7 +144,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI,
     char SaveAsRigidObjVTK[256];
     static int RigidCounter = 0;
     snprintf(SaveAsRigidObjVTK, sizeof(char) * 256, (out_dir + "/vtk/wheel.%d.vtk").c_str(), RigidCounter);
-    WritewheelVTK(sysMBS, this_frame);
+    WritewheelVTK(wheel, SaveAsRigidObjVTK);
     RigidCounter++;
     if (verbose) {
         std::cout << "\n--------------------------------\n" << std::endl;
@@ -163,112 +154,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI,
     }
 }
 
-//------------------------------------------------------------------
-// Function to creat BCE particles from a mesh
-//------------------------------------------------------------------
-void CreateMeshMarkers(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
-                       double delta,
-                       std::vector<ChVector<>>& point_cloud) {
-    mesh->RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
 
-    ChVector<> minV = mesh->m_vertices[0];
-    ChVector<> maxV = mesh->m_vertices[0];
-    ChVector<> currV = mesh->m_vertices[0];
-    for (unsigned int i = 1; i < mesh->m_vertices.size(); ++i) {
-        currV = mesh->m_vertices[i];
-        if (minV.x() > currV.x())
-            minV.x() = currV.x();
-        if (minV.y() > currV.y())
-            minV.y() = currV.y();
-        if (minV.z() > currV.z())
-            minV.z() = currV.z();
-        if (maxV.x() < currV.x())
-            maxV.x() = currV.x();
-        if (maxV.y() < currV.y())
-            maxV.y() = currV.y();
-        if (maxV.z() < currV.z())
-            maxV.z() = currV.z();
-    }
-
-    const double EPSI = 1e-6;
-
-    ChVector<> ray_origin;
-    for (double x = minV.x(); x < maxV.x(); x += delta) {
-        ray_origin.x() = x + 1e-9;
-        for (double y = minV.y(); y < maxV.y(); y += delta) {
-            ray_origin.y() = y + 1e-9;
-            for (double z = minV.z(); z < maxV.z(); z += delta) {
-                ray_origin.z() = z + 1e-9;
-
-                ChVector<> ray_dir[2] = {ChVector<>(5, 0.5, 0.25), ChVector<>(-3, 0.7, 10)};
-                int intersectCounter[2] = {0, 0};
-
-                for (unsigned int i = 0; i < mesh->m_face_v_indices.size(); ++i) {
-                    auto& t_face = mesh->m_face_v_indices[i];
-                    auto& v1 = mesh->m_vertices[t_face.x()];
-                    auto& v2 = mesh->m_vertices[t_face.y()];
-                    auto& v3 = mesh->m_vertices[t_face.z()];
-
-                    /// Find vectors for two edges sharing V1
-                    auto edge1 = v2 - v1;
-                    auto edge2 = v3 - v1;
-
-                    bool t_inter[2] = {false, false};
-
-                    for (unsigned int j = 0; j < 2; j++) {
-                        /// Begin calculating determinant - also used to calculate uu parameter
-                        auto pvec = Vcross(ray_dir[j], edge2);
-                        /// if determinant is near zero, ray is parallel to plane of triangle
-                        double det = Vdot(edge1, pvec);
-                        /// NOT CULLING
-                        if (det > -EPSI && det < EPSI) {
-                            t_inter[j] = false;
-                            continue;
-                        }
-                        double inv_det = 1.0 / det;
-
-                        /// calculate distance from V1 to ray origin
-                        auto tvec = ray_origin - v1;
-
-                        /// Calculate uu parameter and test bound
-                        double uu = Vdot(tvec, pvec) * inv_det;
-                        /// The intersection lies outside of the triangle
-                        if (uu < 0.0 || uu > 1.0) {
-                            t_inter[j] = false;
-                            continue;
-                        }
-
-                        /// Prepare to test vv parameter
-                        auto qvec = Vcross(tvec, edge1);
-
-                        /// Calculate vv parameter and test bound
-                        double vv = Vdot(ray_dir[j], qvec) * inv_det;
-                        /// The intersection lies outside of the triangle
-                        if (vv < 0.0 || ((uu + vv) > 1.0)) {
-                            t_inter[j] = false;
-                            continue;
-                        }
-
-                        double tt = Vdot(edge2, qvec) * inv_det;
-                        if (tt > EPSI) {  /// ray intersection
-                            t_inter[j] = true;
-                            continue;
-                        }
-
-                        /// No hit, no win
-                        t_inter[j] = false;
-                    }
-
-                    intersectCounter[0] += t_inter[0] ? 1 : 0;
-                    intersectCounter[1] += t_inter[1] ? 1 : 0;
-                }
-
-                if (((intersectCounter[0] % 2) == 1) && ((intersectCounter[1] % 2) == 1))  // inside mesh
-                    point_cloud.push_back(ChVector<>(x, y, z));
-            }
-        }
-    }
-}
 
 //------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
@@ -364,7 +250,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     /// Add this body to the FSI system
     std::vector<ChVector<>> BCE_par_rock;
-    CreateMeshMarkers(mmesh, iniSpacing, BCE_par_rock);
+    sysFSI.CreateMeshMarkers(mmesh, iniSpacing, BCE_par_rock);
     sysFSI.AddBceFromPoints(wheel, BCE_par_rock, ChVector<>(0.0), QUNIT);
     sysFSI.AddFsiBody(wheel);
 

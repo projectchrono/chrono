@@ -31,6 +31,7 @@
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorBce.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFluid.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/filesystem/resolver.h"
@@ -435,17 +436,17 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
             paramsH->mu_max = doc["Material Model"]["max Viscosity"].GetDouble();
 
             if (paramsH->non_newtonian) {
-                if (doc["Material Model"].HasMember("Herschel–Bulkley")) {
-                    paramsH->HB_k = doc["Material Model"]["Herschel–Bulkley"]["k"].GetDouble();
-                    paramsH->HB_n = doc["Material Model"]["Herschel–Bulkley"]["n"].GetInt();
-                    paramsH->HB_tau0 = doc["Material Model"]["Herschel–Bulkley"]["tau_0"].GetDouble();
-                    if (doc["Material Model"]["Herschel–Bulkley"].HasMember("sr0"))
-                        paramsH->HB_sr0 = doc["Material Model"]["Herschel–Bulkley"]["sr0"].GetDouble();
+                if (doc["Material Model"].HasMember("Herschelï¿½Bulkley")) {
+                    paramsH->HB_k = doc["Material Model"]["Herschelï¿½Bulkley"]["k"].GetDouble();
+                    paramsH->HB_n = doc["Material Model"]["Herschelï¿½Bulkley"]["n"].GetInt();
+                    paramsH->HB_tau0 = doc["Material Model"]["Herschelï¿½Bulkley"]["tau_0"].GetDouble();
+                    if (doc["Material Model"]["Herschelï¿½Bulkley"].HasMember("sr0"))
+                        paramsH->HB_sr0 = doc["Material Model"]["Herschelï¿½Bulkley"]["sr0"].GetDouble();
                     else
                         paramsH->HB_sr0 = 0.0;
                 } else {
                     if (verbose)
-                        cout << "Constants of Herschel–Bulkley not found. Using default Newtonian values." << endl;
+                        cout << "Constants of Herschelï¿½Bulkley not found. Using default Newtonian values." << endl;
                     paramsH->HB_k = paramsH->mu0;
                     paramsH->HB_n = 1;
                     paramsH->HB_tau0 = 0;
@@ -1261,6 +1262,110 @@ void ChSystemFsi::AddBCE_ShellFromMesh(std::vector<std::shared_ptr<fea::ChElemen
                                                SIDE);
         CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell);
         posRadBCE.clear();
+    }
+}
+
+void ChSystemFsi::CreateMeshMarkers(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
+                                    double delta,
+                                    std::vector<ChVector<>>& point_cloud) {
+    mesh->RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
+
+    ChVector<> minV = mesh->m_vertices[0];
+    ChVector<> maxV = mesh->m_vertices[0];
+    ChVector<> currV = mesh->m_vertices[0];
+    for (unsigned int i = 1; i < mesh->m_vertices.size(); ++i) {
+        currV = mesh->m_vertices[i];
+        if (minV.x() > currV.x())
+            minV.x() = currV.x();
+        if (minV.y() > currV.y())
+            minV.y() = currV.y();
+        if (minV.z() > currV.z())
+            minV.z() = currV.z();
+        if (maxV.x() < currV.x())
+            maxV.x() = currV.x();
+        if (maxV.y() < currV.y())
+            maxV.y() = currV.y();
+        if (maxV.z() < currV.z())
+            maxV.z() = currV.z();
+    }
+
+    const double EPSI = 1e-6;
+
+    ChVector<> ray_origin;
+    for (double x = minV.x(); x < maxV.x(); x += delta) {
+        ray_origin.x() = x + 1e-9;
+        for (double y = minV.y(); y < maxV.y(); y += delta) {
+            ray_origin.y() = y + 1e-9;
+            for (double z = minV.z(); z < maxV.z(); z += delta) {
+                ray_origin.z() = z + 1e-9;
+
+                ChVector<> ray_dir[2] = {ChVector<>(5, 0.5, 0.25), ChVector<>(-3, 0.7, 10)};
+                int intersectCounter[2] = {0, 0};
+
+                for (unsigned int i = 0; i < mesh->m_face_v_indices.size(); ++i) {
+                    auto& t_face = mesh->m_face_v_indices[i];
+                    auto& v1 = mesh->m_vertices[t_face.x()];
+                    auto& v2 = mesh->m_vertices[t_face.y()];
+                    auto& v3 = mesh->m_vertices[t_face.z()];
+
+                    /// Find vectors for two edges sharing V1
+                    auto edge1 = v2 - v1;
+                    auto edge2 = v3 - v1;
+
+                    bool t_inter[2] = {false, false};
+
+                    for (unsigned int j = 0; j < 2; j++) {
+                        /// Begin calculating determinant - also used to calculate uu parameter
+                        auto pvec = Vcross(ray_dir[j], edge2);
+                        /// if determinant is near zero, ray is parallel to plane of triangle
+                        double det = Vdot(edge1, pvec);
+                        /// NOT CULLING
+                        if (det > -EPSI && det < EPSI) {
+                            t_inter[j] = false;
+                            continue;
+                        }
+                        double inv_det = 1.0 / det;
+
+                        /// calculate distance from V1 to ray origin
+                        auto tvec = ray_origin - v1;
+
+                        /// Calculate uu parameter and test bound
+                        double uu = Vdot(tvec, pvec) * inv_det;
+                        /// The intersection lies outside of the triangle
+                        if (uu < 0.0 || uu > 1.0) {
+                            t_inter[j] = false;
+                            continue;
+                        }
+
+                        /// Prepare to test vv parameter
+                        auto qvec = Vcross(tvec, edge1);
+
+                        /// Calculate vv parameter and test bound
+                        double vv = Vdot(ray_dir[j], qvec) * inv_det;
+                        /// The intersection lies outside of the triangle
+                        if (vv < 0.0 || ((uu + vv) > 1.0)) {
+                            t_inter[j] = false;
+                            continue;
+                        }
+
+                        double tt = Vdot(edge2, qvec) * inv_det;
+                        if (tt > EPSI) {  /// ray intersection
+                            t_inter[j] = true;
+                            continue;
+                        }
+
+                        /// No hit, no win
+                        t_inter[j] = false;
+                    }
+
+                    intersectCounter[0] += t_inter[0] ? 1 : 0;
+                    intersectCounter[1] += t_inter[1] ? 1 : 0;
+                }
+
+                if (((intersectCounter[0] % 2) == 1) && ((intersectCounter[1] % 2) == 1))  // inside mesh
+                    point_cloud.push_back(ChVector<>(x, y, z));
+            }
+        }
     }
 }
 
