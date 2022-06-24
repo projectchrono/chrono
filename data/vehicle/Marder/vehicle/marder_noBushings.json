@@ -1,0 +1,28 @@
+{
+  "Name":     "Marder vehicle",
+  "Type":     "Vehicle",
+  "Template": "TrackedVehicle",
+
+  "Chassis":
+  {
+    "Input File":           "Marder/chassis/chassis.json"
+  },
+
+  "Track Assemblies":
+  [
+    {
+      "Input File":         "Marder/track_assembly/singlePin0_noBushings.json",
+      "Offset":             1.36
+    },
+
+    {
+      "Input File":         "Marder/track_assembly/singlePin1_noBushings.json",
+      "Offset":             -1.36
+    }
+  ],
+
+  "Driveline":
+  {
+    "Input File":           "Marder/driveline/simpleDriveline.json"
+  }
+}
