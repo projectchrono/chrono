@@ -27,7 +27,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     if (sysd.GetKblocksList().size() > 0) {
-        throw ChException("ChSolverBB: Do NOT use Barzilai-Borwein solver if you have stiffness matrices.");
+        std::cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness matrices.\n" << std::endl;
+        throw ChException("ChSolverBB: Do NOT use Barzilai-Borwein solver if there are stiffness matrices.");
     }
 
     // Tuning of the spectral gradient search
