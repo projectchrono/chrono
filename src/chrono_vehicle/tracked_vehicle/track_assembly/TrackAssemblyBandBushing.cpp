@@ -41,7 +41,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblyBandBushing::ReadSprocket(const std::string& filename, int output) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -69,7 +70,8 @@ void TrackAssemblyBandBushing::ReadSprocket(const std::string& filename, int out
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblyBandBushing::ReadTrackShoes(const std::string& filename, int num_shoes, int output) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -99,7 +101,8 @@ void TrackAssemblyBandBushing::ReadTrackShoes(const std::string& filename, int n
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackAssemblyBandBushing::TrackAssemblyBandBushing(const std::string& filename) : ChTrackAssemblyBandBushing("", LEFT) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -159,7 +162,11 @@ void TrackAssemblyBandBushing::Create(const rapidjson::Document& d) {
     for (int i = 0; i < m_num_susp; i++) {
         std::string file_name = d["Suspension Subsystems"][i]["Input File"].GetString();
         bool has_shock = d["Suspension Subsystems"][i]["Has Shock"].GetBool();
-        m_suspensions[i] = ReadRoadWheelAssemblyJSON(vehicle::GetDataFile(file_name), has_shock);
+        bool lock_arm = false;
+        if (d["Suspension Subsystems"][i].HasMember("Lock Arm")) {
+            lock_arm = d["Suspension Subsystems"][i]["Lock Arm"].GetBool();
+        }
+        m_suspensions[i] = ReadRoadWheelAssemblyJSON(vehicle::GetDataFile(file_name), has_shock, lock_arm);
         if (d["Suspension Subsystems"][i].HasMember("Output")) {
             m_suspensions[i]->SetOutput(d["Suspension Subsystems"][i]["Output"].GetBool());
         }

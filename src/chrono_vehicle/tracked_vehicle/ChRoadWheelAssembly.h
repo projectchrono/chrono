@@ -105,13 +105,15 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
 
   protected:
     ChRoadWheelAssembly(const std::string& name,  ///< [in] name of the subsystem
-                        bool has_shock            ///< [in] specify whether or not the suspension has a damper
+                        bool has_shock,           ///< [in] specify whether or not the suspension has a damper
+                        bool lock_arm             ///< [in] if true, the suspension arm is locked
     );
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     GuidePinType m_type;  ///< type of the track shoe matching this road wheel
     bool m_has_shock;     ///< specifies whether or not the suspension has a damper
+    bool m_lock_arm;      ///< specified whether the suspension arm is locked
 
     ChVector<> m_rel_loc;                       ///< idler subsystem location relative to chassis
     std::shared_ptr<ChRoadWheel> m_road_wheel;  ///< road-wheel subsystem

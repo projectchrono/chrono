@@ -28,8 +28,8 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-ChRoadWheelAssembly::ChRoadWheelAssembly(const std::string& name, bool has_shock)
-    : ChPart(name), m_has_shock(has_shock), m_track(nullptr) {}
+ChRoadWheelAssembly::ChRoadWheelAssembly(const std::string& name, bool has_shock, bool lock_arm)
+    : ChPart(name), m_has_shock(has_shock), m_lock_arm(lock_arm), m_track(nullptr) {}
 
 // -----------------------------------------------------------------------------
 void ChRoadWheelAssembly::Initialize(std::shared_ptr<ChChassis> chassis,

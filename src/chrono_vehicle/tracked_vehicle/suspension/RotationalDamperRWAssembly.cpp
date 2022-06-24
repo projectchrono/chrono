@@ -29,9 +29,10 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-RotationalDamperRWAssembly::RotationalDamperRWAssembly(const std::string& filename, bool has_shock)
-    : ChRotationalDamperRWAssembly("", has_shock), m_spring_torqueCB(nullptr), m_shock_torqueCB(nullptr) {
-    Document d; ReadFileJSON(filename, d);
+RotationalDamperRWAssembly::RotationalDamperRWAssembly(const std::string& filename, bool has_shock, bool lock_arm)
+    : ChRotationalDamperRWAssembly("", has_shock, lock_arm), m_spring_torqueCB(nullptr), m_shock_torqueCB(nullptr) {
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -40,8 +41,8 @@ RotationalDamperRWAssembly::RotationalDamperRWAssembly(const std::string& filena
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-RotationalDamperRWAssembly::RotationalDamperRWAssembly(const rapidjson::Document& d, bool has_shock)
-    : ChRotationalDamperRWAssembly("", has_shock), m_spring_torqueCB(nullptr), m_shock_torqueCB(nullptr) {
+RotationalDamperRWAssembly::RotationalDamperRWAssembly(const rapidjson::Document& d, bool has_shock, bool lock_arm)
+    : ChRotationalDamperRWAssembly("", has_shock, lock_arm), m_spring_torqueCB(nullptr), m_shock_torqueCB(nullptr) {
     Create(d);
 }
 
@@ -70,7 +71,8 @@ void RotationalDamperRWAssembly::Create(const rapidjson::Document& d) {
     double torsion_k = d["Torsional Spring"]["Spring Constant"].GetDouble();
     double torsion_c = d["Torsional Spring"]["Damping Coefficient"].GetDouble();
     double torsion_t = d["Torsional Spring"]["Preload"].GetDouble();
-    m_spring_torqueCB = chrono_types::make_shared<LinearSpringDamperActuatorTorque>(torsion_k, torsion_c, torsion_t, torsion_a0);
+    m_spring_torqueCB =
+        chrono_types::make_shared<LinearSpringDamperActuatorTorque>(torsion_k, torsion_c, torsion_t, torsion_a0);
 
     // Read linear shock data
     assert(d.HasMember("Damper"));

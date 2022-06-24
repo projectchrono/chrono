@@ -39,8 +39,9 @@ namespace vehicle {
 class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
   public:
     ChLinearDamperRWAssembly(const std::string& name,  ///< [in] name of the subsystem
-                             bool has_shock = true     ///< [in] specify whether or not the suspension has a damper
-                             );
+                             bool has_shock = true,    ///< [in] specify whether or not the suspension has a damper
+                             bool lock_arm = false     ///< [in] if true, the suspension arm is locked
+    );
 
     virtual ~ChLinearDamperRWAssembly();
 
@@ -118,10 +119,10 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
 
     virtual void Output(ChVehicleOutput& database) const override;
 
-    std::shared_ptr<ChBody> m_arm;                ///< handle to the trailing arm body
-    std::shared_ptr<ChVehicleJoint> m_revolute;   ///< handle to the revolute joint arm-chassis
-    std::shared_ptr<ChLinkRSDA> m_spring;         ///< handle to the rotational spring link
-    std::shared_ptr<ChLinkTSDA> m_shock;          ///< handle to the translational shock link
+    std::shared_ptr<ChBody> m_arm;            ///< trailing arm body
+    std::shared_ptr<ChVehicleJoint> m_joint;  ///< joint arm-chassis
+    std::shared_ptr<ChLinkRSDA> m_spring;     ///< rotational spring link
+    std::shared_ptr<ChLinkTSDA> m_shock;      ///< translational shock link
 
   private:
     // Points for arm visualization

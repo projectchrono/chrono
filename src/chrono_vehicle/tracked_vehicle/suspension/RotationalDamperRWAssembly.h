@@ -35,8 +35,8 @@ namespace vehicle {
 /// file (JSON format)
 class CH_VEHICLE_API RotationalDamperRWAssembly : public ChRotationalDamperRWAssembly {
   public:
-    RotationalDamperRWAssembly(const std::string& filename, bool has_shock);
-    RotationalDamperRWAssembly(const rapidjson::Document& d, bool has_shock);
+    RotationalDamperRWAssembly(const std::string& filename, bool has_shock, bool lock_arm);
+    RotationalDamperRWAssembly(const rapidjson::Document& d, bool has_shock, bool lock_arm);
     ~RotationalDamperRWAssembly();
 
     /// Return the mass of the arm body.

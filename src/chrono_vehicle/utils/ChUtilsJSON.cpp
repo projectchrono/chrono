@@ -674,10 +674,13 @@ std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
     return idler;
 }
 
-std::shared_ptr<ChRoadWheelAssembly> ReadRoadWheelAssemblyJSON(const std::string& filename, bool has_shock) {
+std::shared_ptr<ChRoadWheelAssembly> ReadRoadWheelAssemblyJSON(const std::string& filename,
+                                                               bool has_shock,
+                                                               bool lock_arm) {
     std::shared_ptr<ChRoadWheelAssembly> suspension;
 
-    Document d;ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -692,9 +695,9 @@ std::shared_ptr<ChRoadWheelAssembly> ReadRoadWheelAssemblyJSON(const std::string
 
     // Create the road-wheel assembly using the appropriate template.
     if (subtype.compare("LinearDamperRWAssembly") == 0) {
-        suspension = chrono_types::make_shared<LinearDamperRWAssembly>(d, has_shock);
+        suspension = chrono_types::make_shared<LinearDamperRWAssembly>(d, has_shock, lock_arm);
     } else if (subtype.compare("RotationalDamperRWAssembly") == 0) {
-        suspension = chrono_types::make_shared<RotationalDamperRWAssembly>(d, has_shock);
+        suspension = chrono_types::make_shared<RotationalDamperRWAssembly>(d, has_shock, lock_arm);
     } else {
         throw ChException("Suspension type not supported in ReadRoadWheelAssemblyJSON.");
     }
