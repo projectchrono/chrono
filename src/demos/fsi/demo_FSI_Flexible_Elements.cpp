@@ -12,7 +12,6 @@
 // Author: Milad Rakhsha
 // =============================================================================
 
-// General Includes
 #include <assert.h>
 #include <stdlib.h>
 #include <ctime>
@@ -28,16 +27,16 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
-// Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
 
-// Chrono fea includes
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 // Chrono namespaces
 using namespace chrono;
@@ -47,8 +46,8 @@ using namespace chrono::fsi;
 
 //****************************************************************************************
 const std::string out_dir = GetChronoOutputPath() + "FSI_FLEXIBLE_Elements/";
+std::string MESH_CONNECTIVITY = out_dir + "Flex_MESH.vtk";
 
-std::string MESH_CONNECTIVITY;
 // Save data as csv files, turn it on to be able to see the results off-line using paraview
 bool pv_output = true;
 
@@ -81,11 +80,21 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
 
 //****************************************************************************************
 
-void ShowUsage() {
-    std::cout << "usage: ./demo_FSI_Flexible_Shell <json_file>" << std::endl;
-}
-
 int main(int argc, char* argv[]) {
+    // Create oputput directories
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+        std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
+        return 1;
+    }
+
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(sysMBS);
@@ -99,7 +108,7 @@ int main(int argc, char* argv[]) {
         std::string my_inputJson = std::string(argv[1]);
         inputJson = my_inputJson;
     } else {
-        ShowUsage();
+        std::cout << "usage: ./demo_FSI_Flexible_Shell <json_file>" << std::endl;
         return 1;
     }
     sysFSI.ReadParametersFromFile(inputJson);
@@ -110,8 +119,6 @@ int main(int argc, char* argv[]) {
 
     // Setup the output directory for FSI data
     sysFSI.SetOutputDirectory(out_dir);
-
-    MESH_CONNECTIVITY = out_dir + "Flex_MESH.vtk";
 
     // ******************************* Create Fluid region ****************************************
     ////paramsH->MULT_INITSPACE_Shells = 1;
@@ -425,7 +432,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI,
     static int out_frame = 0;
 
     if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-6) {
-        sysFSI.PrintParticleToFile(out_dir);
+        sysFSI.PrintParticleToFile(out_dir + "/particles");
 
         std::cout << "-------------------------------------\n" << std::endl;
         std::cout << "             Output frame:   " << next_frame << std::endl;
@@ -433,7 +440,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI,
         std::cout << "-------------------------------------\n" << std::endl;
 
         char SaveAsBuffer[256];  // The filename buffer.
-        snprintf(SaveAsBuffer, sizeof(char) * 256, (out_dir + "/flex_body.%d.vtk").c_str(), next_frame);
+        snprintf(SaveAsBuffer, sizeof(char) * 256, (out_dir + "vtk/flex_body.%d.vtk").c_str(), next_frame);
         char MeshFileBuffer[256];  // The filename buffer.
         snprintf(MeshFileBuffer, sizeof(char) * 256, ("%s"), MESH_CONNECTIVITY.c_str());
         fea::ChMeshExporter::writeFrame(my_mesh, SaveAsBuffer, MESH_CONNECTIVITY);

@@ -12,32 +12,31 @@
 // Author: Milad Rakhsha, Wei Hu
 // =============================================================================
 
-// General Includes
 #include <assert.h>
 #include <stdlib.h>
 #include <ctime>
 
-// Chrono includes
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
-// Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 // Chrono namespaces
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::fsi;
 
+//------------------------------------------------------------------
+
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_DAM_BREAK/";
 
-// Save data as csv files to see the results off-line using Paraview
-bool save_output = true;
-
 // Output frequency
+bool output = true;
 double out_fps = 20;
 
 // Dimension of the space domain
@@ -52,30 +51,6 @@ double fzDim = 2.0;
 
 // Final simulation time
 double t_end = 10.0;
-
-void ShowUsage() {
-    std::cout << "usage: ./demo_FSI_DamBreak <json_file>" << std::endl;
-}
-
-//------------------------------------------------------------------
-// Function to save the paraview files
-//------------------------------------------------------------------
-void SaveParaViewFilesMBD(ChSystemFsi& sysFSI,
-                          ChSystemSMC& sysMBS,
-                          int this_frame,
-                          double mTime) {
-    // Simulation time between two output frames
-    double frame_time = 1.0 / out_fps;
-
-    // Output data to files
-    if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-5) {
-        sysFSI.PrintParticleToFile(out_dir);
-        std::cout << "\n--------------------------------\n" << std::endl;
-        std::cout << "------------ Output Frame:   " << this_frame << std::endl;
-        std::cout << "------------ Sim Time:       " << mTime << " (s)\n" << std::endl;
-        std::cout << "--------------------------------\n" << std::endl;
-    }
-}
 
 //------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
@@ -141,6 +116,16 @@ void CreateSolidPhase(ChSystemSMC& sysMBS,
 
 // =============================================================================
 int main(int argc, char* argv[]) {
+    // Create oputput directories
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+        return 1;
+    }
+
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(sysMBS);
@@ -154,7 +139,7 @@ int main(int argc, char* argv[]) {
         std::string my_inputJson = std::string(argv[1]);
         inputJson = my_inputJson;
     } else {
-        ShowUsage();
+        std::cout << "usage: ./demo_FSI_DamBreak <json_file>" << std::endl;
         return 1;
     }
     sysFSI.ReadParametersFromFile(inputJson);
@@ -201,25 +186,30 @@ int main(int argc, char* argv[]) {
 
     // Start the simulation
     double dT = sysFSI.GetStepSize();
+    unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
+
     double time = 0;
-    int stepEnd = int(t_end / dT);
-    double TIMING_sta = clock();
-    for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
-        printf("\nstep : %d, time= : %f (s) \n", tStep, time);
-        double frame_time = 1.0 / out_fps;
-        int this_frame = (int)floor((time + 1e-6) / frame_time);
+    int current_step = 0;
+
+    ChTimer<> timer;
+    timer.start();
+    while (time < t_end) {
+        printf("\nstep : %d, time= : %f (s) \n", current_step, time);
 
         // Save data of the simulation
-        SaveParaViewFilesMBD(sysFSI, sysMBS, this_frame, time);
+        if (output && current_step % output_steps == 0) {
+            std::cout << "------- OUTPUT" << std::endl;
+            sysFSI.PrintParticleToFile(out_dir + "/particles");
+        }
 
         // Call the FSI solver
         sysFSI.DoStepDynamics_FSI();
-        time += dT;
-    }
 
-    // Total computational cost
-    double TIMING_end = (clock() - TIMING_sta) / (double)CLOCKS_PER_SEC;
-    printf("\nSimulation Finished in %f (s)\n", TIMING_end);
+        time += dT;
+        current_step++;
+    }
+    timer.stop();
+    std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
 
     return 0;
 }

@@ -646,8 +646,8 @@ void ChSystemFsi::SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::SetOutputDirectory(const std::string& output_dir) {
-    if (!filesystem::create_directory(filesystem::path(output_dir))) {
-        cerr << "Error creating directory " << out_dir << endl;
+    if (!filesystem::path(output_dir).exists() || !filesystem::path(output_dir).is_directory()) {
+        cerr << "The directory " << output_dir << " does not exist!  FSI output disabled" << endl;
         return;
     }
     out_dir = output_dir + "/fsi";

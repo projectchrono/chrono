@@ -12,12 +12,10 @@
 // Author: Milad Rakhsha, Wei Hu
 // =============================================================================
 
-// General Includes
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
 
-// Chrono includes
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
@@ -25,22 +23,21 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/core/ChTransform.h"
 
-// Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
 
-// Chrono namespaces
+#include "chrono_thirdparty/filesystem/path.h"
+
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::fsi;
 
+// -----------------------------------------------------------------
 
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_CYLINDER_DROP/";
 
-// Save data as csv files to see the results off-line using Paraview
-bool save_output = true;
-
 // Output frequency
+bool output = true;
 double out_fps = 20;
 
 // Dimension of the space domain
@@ -52,11 +49,6 @@ double cyl_radius = 0.12;
 
 // Final simulation time
 double t_end = 2.0;
-
-// -----------------------------------------------------------------
-void ShowUsage() {
-    std::cout << "usage: ./demo_FSI_CylinderDrop <json_file>" << std::endl;
-}
 
 //------------------------------------------------------------------
 // Function to add walls into Chrono system
@@ -150,14 +142,14 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI,
     double frame_time = 1.0 / out_fps;
 
     /// Output data to files
-    if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-5) {
+    if (output && std::abs(mTime - (this_frame)*frame_time) < 1e-5) {
         /// save particles to cvs files
-        sysFSI.PrintParticleToFile(out_dir);
+        sysFSI.PrintParticleToFile(out_dir + "/particles");
 
         /// save rigid bodies to vtk files
         char SaveAsRigidObjVTK[256];
         static int RigidCounter = 0;
-        snprintf(SaveAsRigidObjVTK, sizeof(char) * 256, (out_dir + "/Cylinder.%d.vtk").c_str(), RigidCounter);
+        snprintf(SaveAsRigidObjVTK, sizeof(char) * 256, (out_dir + "vtk/Cylinder.%d.vtk").c_str(), RigidCounter);
         WriteCylinderVTK(Cylinder, cyl_radius, cyl_length, 100, SaveAsRigidObjVTK);
         RigidCounter++;
         std::cout << "\n--------------------------------\n" << std::endl;
@@ -267,6 +259,20 @@ void CreateSolidPhase(ChSystemSMC& sysMBS,
 
 // =============================================================================
 int main(int argc, char* argv[]) {
+    // Create oputput directories
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+        std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
+        return 1;
+    }
+
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(sysMBS);
@@ -279,7 +285,7 @@ int main(int argc, char* argv[]) {
         std::string my_inputJson = std::string(argv[1]);
         inputJson = my_inputJson;
     } else {
-        ShowUsage();
+        std::cout << "usage: ./demo_FSI_CylinderDrop <json_file>" << std::endl;
         return 1;
     }
     sysFSI.ReadParametersFromFile(inputJson);

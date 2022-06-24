@@ -149,13 +149,10 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI,
                        int this_frame,
                        double mTime,
                        std::shared_ptr<ChBody> wheel) {
-    // save particles to cvs files
-    sysFSI.PrintParticleToFile(out_dir);
-
     // save rigid bodies to vtk files
     char SaveAsRigidObjVTK[256];
     static int RigidCounter = 0;
-    snprintf(SaveAsRigidObjVTK, sizeof(char) * 256, (out_dir + "/wheel.%d.vtk").c_str(), RigidCounter);
+    snprintf(SaveAsRigidObjVTK, sizeof(char) * 256, (out_dir + "/vtk/wheel.%d.vtk").c_str(), RigidCounter);
     WritewheelVTK(sysMBS, this_frame);
     RigidCounter++;
     if (verbose) {
@@ -444,6 +441,20 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    // Create oputput directories
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+        std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
+        return 1;
+    }
+    
     // Create the MBS and FSI systems
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(sysMBS);
@@ -497,7 +508,7 @@ int main(int argc, char* argv[]) {
     CreateSolidPhase(sysMBS, sysFSI);
 
     /// Setup the output directory for FSI data
-    ////sysFSI.SetOutputDirectory(out_dir);
+    sysFSI.SetOutputDirectory(out_dir);
 
     // Set simulation data output length
     sysFSI.SetOutputLength(0);
@@ -548,8 +559,10 @@ int main(int argc, char* argv[]) {
     timer.start();
     while (time < total_time) {
         // Save data into files
-        if (output && current_step % output_steps == 0)
+        if (output && current_step % output_steps == 0) {
+            sysFSI.PrintParticleToFile(out_dir + "/particles");
             SaveParaViewFiles(sysFSI, sysMBS, current_step, time, wheel);
+        }
 
         // Render SPH particles
         if (render && current_step % render_steps == 0) {

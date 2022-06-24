@@ -21,17 +21,19 @@
 
 #include "chrono_fsi/ChSystemFsi.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::fsi;
 
+// -----------------------------------------------------------------
+
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_COMPRESSIBILITY/";
 
-// Save data as csv files, turn it on to be able to see the results off-line using paraview
-bool save_output = true;
-
 // Output frequency
+bool output = true;
 double out_fps = 20;
 
 // Size of the box
@@ -46,35 +48,6 @@ double fzDim = 1.0;
 
 // Final simulation time
 double t_end = 2.0;
-
-// -----------------------------------------------------------------
-// Show command line usage
-// -----------------------------------------------------------------
-void ShowUsage() {
-    std::cout << "usage: ./demo_FSI_Compressibility <json_file>" << std::endl;
-}
-
-//------------------------------------------------------------------
-// Function to save the paraview files
-//------------------------------------------------------------------
-void SaveParaViewFilesMBD(ChSystemFsi& sysFSI,
-                          ChSystemSMC& sysMBS,
-                          int next_frame,
-                          double mTime) {
-    double frame_time = 1.0 / out_fps;
-    static int out_frame = 0;
-
-    if (save_output && std::abs(mTime - (next_frame)*frame_time) < 1e-5) {
-        sysFSI.PrintParticleToFile(out_dir);
-
-        std::cout << "-------------------------------------\n" << std::endl;
-        std::cout << "             Output frame:   " << next_frame << std::endl;
-        std::cout << "             Time:           " << mTime << std::endl;
-        std::cout << "-------------------------------------\n" << std::endl;
-
-        out_frame++;
-    }
-}
 
 //------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid bodies, and if fsi, their
@@ -131,6 +104,16 @@ void CreateSolidPhase(ChSystemSMC& sysMBS,
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    // Create oputput directories
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+        return 1;
+    }
+
     // Create a physic system to handle multibody dynamics
     ChSystemSMC sysMBS;
 
@@ -146,7 +129,7 @@ int main(int argc, char* argv[]) {
         std::string my_inputJson = std::string(argv[1]);
         inputJson = my_inputJson;
     } else {
-        ShowUsage();
+        std::cout << "usage: ./demo_FSI_Compressibility <json_file>" << std::endl;
         return 1;
     }
     sysFSI.ReadParametersFromFile(inputJson);
@@ -181,23 +164,23 @@ int main(int argc, char* argv[]) {
     // Complete construction of the FSI system
     sysFSI.Initialize();
 
-    SaveParaViewFilesMBD(sysFSI, sysMBS, 0, 0);
-
+    // Start the simulation
     double dT = sysFSI.GetStepSize();
+    unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
+
     double time = 0;
-    int stepEnd = int(t_end / dT);
-    double Global_max_dT = sysFSI.GetMaxStepSize();
-    double TIMING_sta = clock();
-    for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
-        printf("\nstep : %d, time= : %f (s) \n", tStep, time);
-        double frame_time = 1.0 / out_fps;
-        int next_frame = (int)floor((time + 1e-6) / frame_time) + 1;
-        double next_frame_time = next_frame * frame_time;
-        double max_allowable_dt = next_frame_time - time;
-        if (max_allowable_dt > 1e-6)
-            sysFSI.SetMaxStepSize(std::min(Global_max_dT, max_allowable_dt));
-        else
-            sysFSI.SetMaxStepSize(Global_max_dT);
+    int current_step = 0;
+
+    ChTimer<> timer;
+    timer.start();
+    while (time < t_end) {
+        printf("\nstep : %d, time= : %f (s) \n", current_step, time);
+
+        // Save data of the simulation
+        if (output && current_step % output_steps == 0) {
+            std::cout << "------- OUTPUT" << std::endl;
+            sysFSI.PrintParticleToFile(out_dir + "/particles");
+        }
 
         sysFSI.DoStepDynamics_FSI();
 
@@ -207,7 +190,7 @@ int main(int argc, char* argv[]) {
         std::ofstream output;
         std::string delim = ",";
         output.open((out_dir + "/Analysis.txt"), std::ios::app);
-        if (tStep == 0)
+        if (current_step == 0)
             output << "Time" << delim << "Rho_fluid" << delim << "k_fluid" << std::endl;
 
         double KE = 0;
@@ -219,15 +202,12 @@ int main(int argc, char* argv[]) {
 
         output << time << delim << Rho / numPart << delim << sysFSI.GetParticleMass() * KE / numPart << std::endl;
         output.close();
-        time += dT;
-        SaveParaViewFilesMBD(sysFSI, sysMBS, next_frame, time);
-        if (time > t_end)
-            break;
-    }
 
-    // Total computational cost
-    double TIMING_end = (clock() - TIMING_sta) / (double)CLOCKS_PER_SEC;
-    printf("\nSimulation Finished in %f (s)\n", TIMING_end);
+        time += dT;
+        current_step++;
+    }
+    timer.stop();
+    std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
     
     return 0;
 }
