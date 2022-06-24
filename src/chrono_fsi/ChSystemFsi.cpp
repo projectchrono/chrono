@@ -436,17 +436,17 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
             paramsH->mu_max = doc["Material Model"]["max Viscosity"].GetDouble();
 
             if (paramsH->non_newtonian) {
-                if (doc["Material Model"].HasMember("Herschel�Bulkley")) {
-                    paramsH->HB_k = doc["Material Model"]["Herschel�Bulkley"]["k"].GetDouble();
-                    paramsH->HB_n = doc["Material Model"]["Herschel�Bulkley"]["n"].GetInt();
-                    paramsH->HB_tau0 = doc["Material Model"]["Herschel�Bulkley"]["tau_0"].GetDouble();
-                    if (doc["Material Model"]["Herschel�Bulkley"].HasMember("sr0"))
-                        paramsH->HB_sr0 = doc["Material Model"]["Herschel�Bulkley"]["sr0"].GetDouble();
+                if (doc["Material Model"].HasMember("HerschelBulkley")) {
+                    paramsH->HB_k = doc["Material Model"]["HerschelBulkley"]["k"].GetDouble();
+                    paramsH->HB_n = doc["Material Model"]["HerschelBulkley"]["n"].GetInt();
+                    paramsH->HB_tau0 = doc["Material Model"]["HerschelBulkley"]["tau_0"].GetDouble();
+                    if (doc["Material Model"]["HerschelBulkley"].HasMember("sr0"))
+                        paramsH->HB_sr0 = doc["Material Model"]["HerschelBulkley"]["sr0"].GetDouble();
                     else
                         paramsH->HB_sr0 = 0.0;
                 } else {
                     if (verbose)
-                        cout << "Constants of Herschel�Bulkley not found. Using default Newtonian values." << endl;
+                        cout << "Constants of HerschelBulkley not found. Using default Newtonian values." << endl;
                     paramsH->HB_k = paramsH->mu0;
                     paramsH->HB_n = 1;
                     paramsH->HB_tau0 = 0;
