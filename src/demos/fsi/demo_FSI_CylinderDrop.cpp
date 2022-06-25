@@ -70,39 +70,29 @@ void AddWall(std::shared_ptr<ChBody> body,
 //------------------------------------------------------------------
 // Function to save cylinder to Paraview VTK files
 //------------------------------------------------------------------
-void WriteCylinderVTK(std::shared_ptr<ChBody> Body,
+void WriteCylinderVTK(const std::string& filename,
                       double radius,
                       double length,
-                      int res,
-                      const std::string& filename) {
+                      const ChFrame<>& frame,
+                      unsigned int res) {
     std::ofstream outf;
     outf.open(filename, std::ios::app);
     outf << "# vtk DataFile Version 1.0\nUnstructured Grid Example\nASCII\n\n" << std::endl;
     outf << "DATASET UNSTRUCTURED_GRID\nPOINTS " << 2 * res << " float\n";
 
-    ChVector<> center = Body->GetPos();
-
-    ChMatrix33<> Rotation = Body->GetRot();
-    ChVector<double> vertex;
     for (int i = 0; i < res; i++) {
-        ChVector<double> thisNode;
-        thisNode.x() = radius * cos(2 * i * 3.1415 / res);
-        thisNode.y() = -1 * length / 2;
-        thisNode.z() = radius * sin(2 * i * 3.1415 / res);
-        vertex = Rotation * thisNode + center;  // rotate/scale, if needed
-        outf << vertex.x() << " " << vertex.y() << " " << vertex.z() << "\n";
+        auto w = frame.TransformPointLocalToParent(
+            ChVector<>(radius * cos(2 * i * 3.1415 / res), -1 * length / 2, radius * sin(2 * i * 3.1415 / res)));
+        outf << w.x() << " " << w.y() << " " << w.z() << "\n";
     }
 
     for (int i = 0; i < res; i++) {
-        ChVector<double> thisNode;
-        thisNode.x() = radius * cos(2 * i * 3.1415 / res);
-        thisNode.y() = +1 * length / 2;
-        thisNode.z() = radius * sin(2 * i * 3.1415 / res);
-        vertex = Rotation * thisNode + center;  // rotate/scale, if needed
-        outf << vertex.x() << " " << vertex.y() << " " << vertex.z() << "\n";
+        auto w = frame.TransformPointLocalToParent(
+            ChVector<>(radius * cos(2 * i * 3.1415 / res), +1 * length / 2, radius * sin(2 * i * 3.1415 / res)));
+        outf << w.x() << " " << w.y() << " " << w.z() << "\n";
     }
 
-    outf << "\n\nCELLS " << (unsigned int)res + res << "\t" << (unsigned int)5 * (res + res) << "\n";
+    outf << "\n\nCELLS " << res + res << "\t" << 5 * (res + res) << "\n";
 
     for (int i = 0; i < res - 1; i++) {
         outf << "4 " << i << " " << i + 1 << " " << i + res + 1 << " " << i + res << "\n";
@@ -348,7 +338,7 @@ int main(int argc, char* argv[]) {
             sysFSI.PrintParticleToFile(out_dir + "/particles");
             static int counter = 0;
             std::string filename = out_dir + "/vtk/cylinder." + std::to_string(counter++) + ".vtk";
-            WriteCylinderVTK(sysFSI.GetFsiBodies()[0], cyl_radius, cyl_length, 100, filename);
+            WriteCylinderVTK(filename, cyl_radius, cyl_length, sysFSI.GetFsiBodies()[0]->GetFrame_REF_to_abs(), 100);
         }
 
         // Render SPH particles

@@ -88,44 +88,31 @@ bool verbose = true;
 //------------------------------------------------------------------
 // Function to save wheel to Paraview VTK files
 //------------------------------------------------------------------
-void WriteWheelVTK(std::shared_ptr<ChBody> wheel, const std::string& filename) {
-    ChFrame<> body_ref_frame = wheel->GetFrame_REF_to_abs();
-    ChVector<> body_pos = body_ref_frame.GetPos();
-    ChQuaternion<> body_rot = body_ref_frame.GetRot();
-
-    auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    double scale_ratio = 1.0;
-    mmesh->LoadWavefrontMesh(GetChronoDataFile(wheel_obj), false, true);
-    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
-    mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
-
-    double mmass;
-    ChVector<> mcog;
-    ChMatrix33<> minertia;
-    mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
-    mmesh->Transform(body_pos, ChMatrix33<>(body_rot));  // rotate the mesh based on the orientation of body
-
-    std::ofstream file;
-    file.open(filename);
-    file << "# vtk DataFile Version 2.0" << std::endl;
-    file << "VTK from simulation" << std::endl;
-    file << "ASCII" << std::endl;
-    file << "DATASET UNSTRUCTURED_GRID" << std::endl;
-    file << "POINTS " << mmesh->getCoordsVertices().size() << " "
+void WriteWheelVTK(const std::string& filename,
+                   ChTriangleMeshConnected& mesh,
+                   const ChFrame<>& frame) {
+    std::ofstream outf;
+    outf.open(filename);
+    outf << "# vtk DataFile Version 2.0" << std::endl;
+    outf << "VTK from simulation" << std::endl;
+    outf << "ASCII" << std::endl;
+    outf << "DATASET UNSTRUCTURED_GRID" << std::endl;
+    outf << "POINTS " << mesh.getCoordsVertices().size() << " "
          << "float" << std::endl;
-    for (auto& v : mmesh->getCoordsVertices()) {
-        file << v.x() << " " << v.y() << " " << v.z() << std::endl;
+    for (auto& v : mesh.getCoordsVertices()) {
+        auto w = frame.TransformPointLocalToParent(v);
+        outf << w.x() << " " << w.y() << " " << w.z() << std::endl;
     }
-    auto nf = mmesh->getIndicesVertexes().size();
-    file << "CELLS " << nf << " " << 4 * nf << std::endl;
-    for (auto& f : mmesh->getIndicesVertexes()) {
-        file << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
+    auto nf = mesh.getIndicesVertexes().size();
+    outf << "CELLS " << nf << " " << 4 * nf << std::endl;
+    for (auto& f : mesh.getIndicesVertexes()) {
+        outf << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
     }
-    file << "CELL_TYPES " << nf << std::endl;
-    for (auto& f : mmesh->getIndicesVertexes()) {
-        file << "5 " << std::endl;
+    outf << "CELL_TYPES " << nf << std::endl;
+    for (auto& f : mesh.getIndicesVertexes()) {
+        outf << "5 " << std::endl;
     }
-    file.close();
+    outf.close();
 }
 
 //------------------------------------------------------------------
@@ -374,6 +361,11 @@ int main(int argc, char* argv[]) {
     ChVector<> w_vel = wheel->GetPos_dt();
     ChVector<> angvel = wheel->GetWvel_loc();
 
+    // Save wheel mesh
+    ChTriangleMeshConnected wheel_mesh;
+    wheel_mesh.LoadWavefrontMesh(GetChronoDataFile(wheel_obj), false, true);
+    wheel_mesh.RepairDuplicateVertexes(1e-9);
+
     // Write the information into a txt file
     std::ofstream myFile;
     if (output) {
@@ -428,7 +420,7 @@ int main(int argc, char* argv[]) {
             sysFSI.PrintParticleToFile(out_dir + "/particles");
             static int counter = 0;
             std::string filename = out_dir + "/vtk/wheel." + std::to_string(counter++) + ".vtk";
-            WriteWheelVTK(wheel, filename);
+            WriteWheelVTK(filename, wheel_mesh, wheel->GetFrame_REF_to_abs());
         }
 
         // Render SPH particles
