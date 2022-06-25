@@ -130,7 +130,7 @@ bool ChFsiVisualization::Render() {
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     if (gl_window.Active()) {
         // Copy SPH particle positions from device to host
-        thrust::host_vector<Real4> posH = m_systemFSI->sysFSI.sphMarkersD2->posRadD;
+        thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI.sphMarkersD2->posRadD;
 
         // List of proxy bodies
         const auto& blist = m_system->Get_bodylist();

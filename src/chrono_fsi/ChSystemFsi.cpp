@@ -50,19 +50,23 @@ namespace chrono {
 namespace fsi {
 
 ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
-    : sysMBS(other_physicalSystem), verbose(true), is_initialized(false), mTime(0), file_write_mode(OutpuMode::NONE) {
-    paramsH = chrono_types::make_shared<SimParams>();
+    : m_sysMBS(other_physicalSystem),
+      m_verbose(true),
+      m_is_initialized(false),
+      m_time(0),
+      m_write_mode(OutpuMode::NONE) {
+    m_paramsH = chrono_types::make_shared<SimParams>();
     InitParams();
-    numObjectsH = sysFSI.numObjects;
+    m_num_objectsH = m_sysFSI.numObjects;
 
-    fsi_mesh = chrono_types::make_shared<fea::ChMesh>();
-    fsiBodies.resize(0);
-    fsiShells.resize(0);
-    fsiCables.resize(0);
-    fsiNodes.resize(0);
-    fsiInterface = chrono_types::make_shared<ChFsiInterface>(sysMBS, sysFSI,     //
-                                                             paramsH, fsi_mesh,  //
-                                                             fsiBodies, fsiNodes, fsiCables, fsiShells);
+    m_fsi_mesh = chrono_types::make_shared<fea::ChMesh>();
+    m_fsi_bodies.resize(0);
+    m_fsi_shells.resize(0);
+    m_fsi_cables.resize(0);
+    m_fsi_nodes.resize(0);
+    m_fsi_interface = chrono_types::make_shared<ChFsiInterface>(m_sysMBS, m_sysFSI,     //
+                                                                m_paramsH, m_fsi_mesh,  //
+                                                                m_fsi_bodies, m_fsi_nodes, m_fsi_cables, m_fsi_shells);
 }
 
 ChSystemFsi::~ChSystemFsi() {}
@@ -73,73 +77,73 @@ void ChSystemFsi::InitParams() {
     //// RADU TODO
     //// Provide default values for *all* parameters!
 
-    paramsH->output_length = 1;
+    m_paramsH->output_length = 1;
 
     // Fluid properties
-    paramsH->rho0 = Real(1000.0);
-    paramsH->invrho0 = 1 / paramsH->rho0;
-    paramsH->rho_solid = paramsH->rho0;
-    paramsH->mu0 = Real(0.001);
-    paramsH->bodyForce3 = mR3(0, 0, 0);
-    paramsH->gravity = mR3(0, 0, 0);
-    paramsH->kappa = Real(0.0);
-    paramsH->L_Characteristic = Real(1.0);
+    m_paramsH->rho0 = Real(1000.0);
+    m_paramsH->invrho0 = 1 / m_paramsH->rho0;
+    m_paramsH->rho_solid = m_paramsH->rho0;
+    m_paramsH->mu0 = Real(0.001);
+    m_paramsH->bodyForce3 = mR3(0, 0, 0);
+    m_paramsH->gravity = mR3(0, 0, 0);
+    m_paramsH->kappa = Real(0.0);
+    m_paramsH->L_Characteristic = Real(1.0);
 
     // SPH parameters
-    paramsH->fluid_dynamic_type = FluidDynamics::WCSPH;
-    paramsH->HSML = Real(0.01);
-    paramsH->INVHSML = 1 / paramsH->HSML;
-    paramsH->INITSPACE = paramsH->HSML;
-    paramsH->volume0 = cube(paramsH->INITSPACE);
-    paramsH->INV_INIT = 1 / paramsH->INITSPACE;
-    paramsH->MULT_INITSPACE_Shells = Real(1.0);
-    paramsH->v_Max = Real(1.0);
-    paramsH->EPS_XSPH = Real(0.5);
-    paramsH->beta_shifting = Real(1.0);
-    paramsH->densityReinit = 2147483647;
-    paramsH->Conservative_Form = true;
-    paramsH->gradient_type = 0;
-    paramsH->laplacian_type = 0;
-    paramsH->USE_Consistent_L = true;
-    paramsH->USE_Consistent_G = true;
+    m_paramsH->fluid_dynamic_type = FluidDynamics::WCSPH;
+    m_paramsH->HSML = Real(0.01);
+    m_paramsH->INVHSML = 1 / m_paramsH->HSML;
+    m_paramsH->INITSPACE = m_paramsH->HSML;
+    m_paramsH->volume0 = cube(m_paramsH->INITSPACE);
+    m_paramsH->INV_INIT = 1 / m_paramsH->INITSPACE;
+    m_paramsH->MULT_INITSPACE_Shells = Real(1.0);
+    m_paramsH->v_Max = Real(1.0);
+    m_paramsH->EPS_XSPH = Real(0.5);
+    m_paramsH->beta_shifting = Real(1.0);
+    m_paramsH->densityReinit = 2147483647;
+    m_paramsH->Conservative_Form = true;
+    m_paramsH->gradient_type = 0;
+    m_paramsH->laplacian_type = 0;
+    m_paramsH->USE_Consistent_L = true;
+    m_paramsH->USE_Consistent_G = true;
 
-    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
+    m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 
-    paramsH->NUM_BOUNDARY_LAYERS = 3;
+    m_paramsH->NUM_BOUNDARY_LAYERS = 3;
 
     // Time stepping
-    paramsH->Adaptive_time_stepping = false;
-    paramsH->Co_number = Real(0.1);
-    paramsH->Beta = Real(0.0);
-    paramsH->dT = Real(0.0001);
-    paramsH->INV_dT = 1 / paramsH->dT;
-    paramsH->dT_Flex = paramsH->dT;
-    paramsH->dT_Max = Real(1.0);
+    m_paramsH->Adaptive_time_stepping = false;
+    m_paramsH->Co_number = Real(0.1);
+    m_paramsH->Beta = Real(0.0);
+    m_paramsH->dT = Real(0.0001);
+    m_paramsH->INV_dT = 1 / m_paramsH->dT;
+    m_paramsH->dT_Flex = m_paramsH->dT;
+    m_paramsH->dT_Max = Real(1.0);
 
     // Pressure equation
-    paramsH->PPE_Solution_type = PPESolutionType::MATRIX_FREE;
-    paramsH->Alpha = paramsH->HSML;
-    paramsH->PPE_relaxation = Real(1.0);
-    paramsH->LinearSolver_Abs_Tol = Real(0.0);
-    paramsH->LinearSolver_Rel_Tol = Real(0.0);
-    paramsH->LinearSolver_Max_Iter = 1000;
-    paramsH->Verbose_monitoring = false;
-    paramsH->Pressure_Constraint = false;
-    paramsH->BASEPRES = Real(0.0);
-    paramsH->ClampPressure = false;
+    m_paramsH->PPE_Solution_type = PPESolutionType::MATRIX_FREE;
+    m_paramsH->Alpha = m_paramsH->HSML;
+    m_paramsH->PPE_relaxation = Real(1.0);
+    m_paramsH->LinearSolver_Abs_Tol = Real(0.0);
+    m_paramsH->LinearSolver_Rel_Tol = Real(0.0);
+    m_paramsH->LinearSolver_Max_Iter = 1000;
+    m_paramsH->Verbose_monitoring = false;
+    m_paramsH->Pressure_Constraint = false;
+    m_paramsH->BASEPRES = Real(0.0);
+    m_paramsH->ClampPressure = false;
 
-    paramsH->bceType = BceVersion::ADAMI;
-    paramsH->bceTypeWall = BceVersion::ADAMI;
+    m_paramsH->bceType = BceVersion::ADAMI;
+    m_paramsH->bceTypeWall = BceVersion::ADAMI;
 
     // Elastic SPH
-    paramsH->C_Wi = Real(0.8);
+    m_paramsH->C_Wi = Real(0.8);
 
     //
-    paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
-    paramsH->settlingTime = Real(1e10);
+    m_paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
+    m_paramsH->settlingTime = Real(1e10);
 
     //
-    paramsH->Max_Pressure = Real(1e20);
+    m_paramsH->Max_Pressure = Real(1e20);
 
     //// RADU TODO
     //// material model
@@ -147,12 +151,12 @@ void ChSystemFsi::InitParams() {
     // Elastic SPH
     ElasticMaterialProperties mat_props;
     SetElasticSPH(mat_props);
-    paramsH->elastic_SPH = false;  // default: fluid dynamics
+    m_paramsH->elastic_SPH = false;  // default: fluid dynamics
 
-    paramsH->Cs = 10 * paramsH->v_Max;
+    m_paramsH->Cs = 10 * m_paramsH->v_Max;
 
-    paramsH->use_default_limits = true;
-    paramsH->use_init_pressure = false;
+    m_paramsH->use_default_limits = true;
+    m_paramsH->use_init_pressure = false;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -164,7 +168,7 @@ Real3 LoadVectorJSON(const Value& a) {
 }
 
 void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
-    if (verbose)
+    if (m_verbose)
         cout << "Reading parameters from: " << json_file << endl;
 
     FILE* fp = fopen(json_file.c_str(), "r");
@@ -186,399 +190,400 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
     }
 
     if (doc.HasMember("Data Output Length"))
-        paramsH->output_length = doc["Data Output Length"].GetInt();
+        m_paramsH->output_length = doc["Data Output Length"].GetInt();
 
     if (doc.HasMember("Physical Properties of Fluid")) {
         if (doc["Physical Properties of Fluid"].HasMember("Density"))
-            paramsH->rho0 = doc["Physical Properties of Fluid"]["Density"].GetDouble();
+            m_paramsH->rho0 = doc["Physical Properties of Fluid"]["Density"].GetDouble();
 
         if (doc["Physical Properties of Fluid"].HasMember("Solid Density"))
-            paramsH->rho_solid = doc["Physical Properties of Fluid"]["Solid Density"].GetDouble();
+            m_paramsH->rho_solid = doc["Physical Properties of Fluid"]["Solid Density"].GetDouble();
 
         if (doc["Physical Properties of Fluid"].HasMember("Viscosity"))
-            paramsH->mu0 = doc["Physical Properties of Fluid"]["Viscosity"].GetDouble();
+            m_paramsH->mu0 = doc["Physical Properties of Fluid"]["Viscosity"].GetDouble();
 
         if (doc["Physical Properties of Fluid"].HasMember("Body Force"))
-            paramsH->bodyForce3 = LoadVectorJSON(doc["Physical Properties of Fluid"]["Body Force"]);
+            m_paramsH->bodyForce3 = LoadVectorJSON(doc["Physical Properties of Fluid"]["Body Force"]);
 
         if (doc["Physical Properties of Fluid"].HasMember("Gravity"))
-            paramsH->gravity = LoadVectorJSON(doc["Physical Properties of Fluid"]["Gravity"]);
+            m_paramsH->gravity = LoadVectorJSON(doc["Physical Properties of Fluid"]["Gravity"]);
 
         if (doc["Physical Properties of Fluid"].HasMember("Surface Tension Kappa"))
-            paramsH->kappa = doc["Physical Properties of Fluid"]["Surface Tension Kappa"].GetDouble();
+            m_paramsH->kappa = doc["Physical Properties of Fluid"]["Surface Tension Kappa"].GetDouble();
 
         if (doc["Physical Properties of Fluid"].HasMember("Characteristic Length"))
-            paramsH->L_Characteristic = doc["Physical Properties of Fluid"]["Characteristic Length"].GetDouble();
+            m_paramsH->L_Characteristic = doc["Physical Properties of Fluid"]["Characteristic Length"].GetDouble();
     }
 
     if (doc.HasMember("SPH Parameters")) {
         if (doc["SPH Parameters"].HasMember("Method")) {
             std::string SPH = doc["SPH Parameters"]["Method"].GetString();
-            if (verbose)
+            if (m_verbose)
                 cout << "Modeling method is: " << SPH << endl;
             if (SPH == "I2SPH")
-                paramsH->fluid_dynamic_type = FluidDynamics::I2SPH;
+                m_paramsH->fluid_dynamic_type = FluidDynamics::I2SPH;
             else if (SPH == "IISPH")
-                paramsH->fluid_dynamic_type = FluidDynamics::IISPH;
+                m_paramsH->fluid_dynamic_type = FluidDynamics::IISPH;
             else if (SPH == "WCSPH")
-                paramsH->fluid_dynamic_type = FluidDynamics::WCSPH;
+                m_paramsH->fluid_dynamic_type = FluidDynamics::WCSPH;
             else {
                 cerr << "Incorrect SPH method in the JSON file: " << SPH << endl;
                 cerr << "Falling back to WCSPH " << endl;
-                paramsH->fluid_dynamic_type = FluidDynamics::WCSPH;
+                m_paramsH->fluid_dynamic_type = FluidDynamics::WCSPH;
             }
         }
 
         if (doc["SPH Parameters"].HasMember("Kernel h"))
-            paramsH->HSML = doc["SPH Parameters"]["Kernel h"].GetDouble();
+            m_paramsH->HSML = doc["SPH Parameters"]["Kernel h"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Initial Spacing"))
-            paramsH->INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble();
+            m_paramsH->INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Initial Spacing Solid"))
-            paramsH->MULT_INITSPACE_Shells = doc["SPH Parameters"]["Initial Spacing Solid"].GetDouble() / paramsH->HSML;
+            m_paramsH->MULT_INITSPACE_Shells =
+                doc["SPH Parameters"]["Initial Spacing Solid"].GetDouble() / m_paramsH->HSML;
 
         if (doc["SPH Parameters"].HasMember("Epsilon"))
-            paramsH->epsMinMarkersDis = doc["SPH Parameters"]["Epsilon"].GetDouble();
+            m_paramsH->epsMinMarkersDis = doc["SPH Parameters"]["Epsilon"].GetDouble();
         else
-            paramsH->epsMinMarkersDis = 0.01;
+            m_paramsH->epsMinMarkersDis = 0.01;
 
         if (doc["SPH Parameters"].HasMember("Maximum Velocity"))
-            paramsH->v_Max = doc["SPH Parameters"]["Maximum Velocity"].GetDouble();
+            m_paramsH->v_Max = doc["SPH Parameters"]["Maximum Velocity"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("XSPH Coefficient"))
-            paramsH->EPS_XSPH = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
+            m_paramsH->EPS_XSPH = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Viscous damping"))
-            paramsH->Vis_Dam = doc["SPH Parameters"]["Viscous damping"].GetDouble();
+            m_paramsH->Vis_Dam = doc["SPH Parameters"]["Viscous damping"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Shifting Coefficient"))
-            paramsH->beta_shifting = doc["SPH Parameters"]["Shifting Coefficient"].GetDouble();
+            m_paramsH->beta_shifting = doc["SPH Parameters"]["Shifting Coefficient"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Density Reinitialization"))
-            paramsH->densityReinit = doc["SPH Parameters"]["Density Reinitialization"].GetInt();
+            m_paramsH->densityReinit = doc["SPH Parameters"]["Density Reinitialization"].GetInt();
 
         if (doc["SPH Parameters"].HasMember("Conservative Discretization"))
-            paramsH->Conservative_Form = doc["SPH Parameters"]["Conservative Discretization"].GetBool();
+            m_paramsH->Conservative_Form = doc["SPH Parameters"]["Conservative Discretization"].GetBool();
 
         if (doc["SPH Parameters"].HasMember("Gradient Discretization Type"))
-            paramsH->gradient_type = doc["SPH Parameters"]["Gradient Discretization Type"].GetInt();
+            m_paramsH->gradient_type = doc["SPH Parameters"]["Gradient Discretization Type"].GetInt();
 
         if (doc["SPH Parameters"].HasMember("Laplacian Discretization Type"))
-            paramsH->laplacian_type = doc["SPH Parameters"]["Laplacian Discretization Type"].GetInt();
+            m_paramsH->laplacian_type = doc["SPH Parameters"]["Laplacian Discretization Type"].GetInt();
 
         if (doc["SPH Parameters"].HasMember("Consistent Discretization for Laplacian"))
-            paramsH->USE_Consistent_L = doc["SPH Parameters"]["Consistent Discretization for Laplacian"].GetInt();
+            m_paramsH->USE_Consistent_L = doc["SPH Parameters"]["Consistent Discretization for Laplacian"].GetInt();
 
         if (doc["SPH Parameters"].HasMember("Consistent Discretization for Gradient"))
-            paramsH->USE_Consistent_G = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetInt();
+            m_paramsH->USE_Consistent_G = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetInt();
     }
 
     if (doc.HasMember("Time Stepping")) {
         if (doc["Time Stepping"].HasMember("Adaptive Time stepping"))
-            paramsH->Adaptive_time_stepping = doc["Time Stepping"]["Adaptive Time stepping"].GetBool();
+            m_paramsH->Adaptive_time_stepping = doc["Time Stepping"]["Adaptive Time stepping"].GetBool();
 
         if (doc["Time Stepping"].HasMember("CFL number"))
-            paramsH->Co_number = doc["Time Stepping"]["CFL number"].GetDouble();
+            m_paramsH->Co_number = doc["Time Stepping"]["CFL number"].GetDouble();
 
         if (doc["Time Stepping"].HasMember("Beta"))
-            paramsH->Beta = doc["Time Stepping"]["Beta"].GetDouble();
+            m_paramsH->Beta = doc["Time Stepping"]["Beta"].GetDouble();
 
         if (doc["Time Stepping"].HasMember("Fluid time step"))
-            paramsH->dT = doc["Time Stepping"]["Fluid time step"].GetDouble();
+            m_paramsH->dT = doc["Time Stepping"]["Fluid time step"].GetDouble();
 
         if (doc["Time Stepping"].HasMember("Solid time step"))
-            paramsH->dT_Flex = doc["Time Stepping"]["Solid time step"].GetDouble();
+            m_paramsH->dT_Flex = doc["Time Stepping"]["Solid time step"].GetDouble();
         else
-            paramsH->dT_Flex = paramsH->dT;
+            m_paramsH->dT_Flex = m_paramsH->dT;
 
         if (doc["Time Stepping"].HasMember("Maximum time step"))
-            paramsH->dT_Max = doc["Time Stepping"]["Maximum time step"].GetDouble();
+            m_paramsH->dT_Max = doc["Time Stepping"]["Maximum time step"].GetDouble();
     }
 
     if (doc.HasMember("Pressure Equation")) {
         if (doc["Pressure Equation"].HasMember("Linear solver")) {
-            paramsH->PPE_Solution_type = PPESolutionType::FORM_SPARSE_MATRIX;
+            m_paramsH->PPE_Solution_type = PPESolutionType::FORM_SPARSE_MATRIX;
             std::string solver = doc["Pressure Equation"]["Linear solver"].GetString();
             if (solver == "Jacobi") {
-                paramsH->USE_LinearSolver = false;
+                m_paramsH->USE_LinearSolver = false;
             } else {
-                paramsH->USE_LinearSolver = true;
+                m_paramsH->USE_LinearSolver = true;
                 if (solver == "BICGSTAB")
-                    paramsH->LinearSolver = ChFsiLinearSolver::SolverType::BICGSTAB;
+                    m_paramsH->LinearSolver = ChFsiLinearSolver::SolverType::BICGSTAB;
                 if (solver == "GMRES")
-                    paramsH->LinearSolver = ChFsiLinearSolver::SolverType::GMRES;
+                    m_paramsH->LinearSolver = ChFsiLinearSolver::SolverType::GMRES;
             }
         }
 
         if (doc["Pressure Equation"].HasMember("Poisson source term")) {
             std::string source = doc["Pressure Equation"]["Poisson source term"].GetString();
             if (source == "Density-Based")
-                paramsH->DensityBaseProjetion = true;
+                m_paramsH->DensityBaseProjetion = true;
             else
-                paramsH->DensityBaseProjetion = false;
+                m_paramsH->DensityBaseProjetion = false;
         }
 
         if (doc["Pressure Equation"].HasMember("Projection method")) {
             std::string source = doc["Pressure Equation"]["Projection method"].GetString();
             if (source == "Incremental")
-                paramsH->USE_NonIncrementalProjection = false;
+                m_paramsH->USE_NonIncrementalProjection = false;
             else
-                paramsH->USE_NonIncrementalProjection = true;
+                m_paramsH->USE_NonIncrementalProjection = true;
         }
 
         if (doc["Pressure Equation"].HasMember("Alpha Source Term"))
-            paramsH->Alpha = doc["Pressure Equation"]["Alpha Source Term"].GetDouble();
+            m_paramsH->Alpha = doc["Pressure Equation"]["Alpha Source Term"].GetDouble();
 
         if (doc["Pressure Equation"].HasMember("Under-relaxation"))
-            paramsH->PPE_relaxation = doc["Pressure Equation"]["Under-relaxation"].GetDouble();
+            m_paramsH->PPE_relaxation = doc["Pressure Equation"]["Under-relaxation"].GetDouble();
 
         if (doc["Pressure Equation"].HasMember("Absolute residual"))
-            paramsH->LinearSolver_Abs_Tol = doc["Pressure Equation"]["Absolute residual"].GetDouble();
+            m_paramsH->LinearSolver_Abs_Tol = doc["Pressure Equation"]["Absolute residual"].GetDouble();
 
         if (doc["Pressure Equation"].HasMember("Relative residual"))
-            paramsH->LinearSolver_Rel_Tol = doc["Pressure Equation"]["Relative residual"].GetDouble();
+            m_paramsH->LinearSolver_Rel_Tol = doc["Pressure Equation"]["Relative residual"].GetDouble();
 
         if (doc["Pressure Equation"].HasMember("Maximum Iterations"))
-            paramsH->LinearSolver_Max_Iter = doc["Pressure Equation"]["Maximum Iterations"].GetInt();
+            m_paramsH->LinearSolver_Max_Iter = doc["Pressure Equation"]["Maximum Iterations"].GetInt();
 
         if (doc["Pressure Equation"].HasMember("Verbose monitoring"))
-            paramsH->Verbose_monitoring = doc["Pressure Equation"]["Verbose monitoring"].GetBool();
+            m_paramsH->Verbose_monitoring = doc["Pressure Equation"]["Verbose monitoring"].GetBool();
 
         if (doc["Pressure Equation"].HasMember("Constraint Pressure")) {
-            paramsH->Pressure_Constraint = doc["Pressure Equation"]["Constraint Pressure"].GetBool();
+            m_paramsH->Pressure_Constraint = doc["Pressure Equation"]["Constraint Pressure"].GetBool();
             if (doc["Pressure Equation"].HasMember("Average Pressure"))
-                paramsH->BASEPRES = doc["Pressure Equation"]["Average Pressure"].GetDouble();
+                m_paramsH->BASEPRES = doc["Pressure Equation"]["Average Pressure"].GetDouble();
         }
 
         if (doc["Pressure Equation"].HasMember("Clamp Pressure"))
-            paramsH->ClampPressure = doc["Pressure Equation"]["Clamp Pressure"].GetBool();
+            m_paramsH->ClampPressure = doc["Pressure Equation"]["Clamp Pressure"].GetBool();
 
         if (doc["Pressure Equation"].HasMember("Boundary Conditions")) {
             std::string BC = doc["Pressure Equation"]["Boundary Conditions"].GetString();
             if (BC == "Generalized Wall BC")
-                paramsH->bceType = BceVersion::ADAMI;
+                m_paramsH->bceType = BceVersion::ADAMI;
             else
-                paramsH->bceType = BceVersion::ORIGINAL;
+                m_paramsH->bceType = BceVersion::ORIGINAL;
         }
     }
 
     // this part is for modeling granular material dynamics using elastic SPH
     if (doc.HasMember("Elastic SPH")) {
-        paramsH->elastic_SPH = true;
+        m_paramsH->elastic_SPH = true;
 
         if (doc["Elastic SPH"].HasMember("Poisson ratio"))
-            paramsH->Nu_poisson = doc["Elastic SPH"]["Poisson ratio"].GetDouble();
+            m_paramsH->Nu_poisson = doc["Elastic SPH"]["Poisson ratio"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("Young modulus"))
-            paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();
+            m_paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("Artificial stress"))
-            paramsH->Ar_stress = doc["Elastic SPH"]["Artificial stress"].GetDouble();
+            m_paramsH->Ar_stress = doc["Elastic SPH"]["Artificial stress"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("Artificial viscosity alpha"))
-            paramsH->Ar_vis_alpha = doc["Elastic SPH"]["Artificial viscosity alpha"].GetDouble();
+            m_paramsH->Ar_vis_alpha = doc["Elastic SPH"]["Artificial viscosity alpha"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("Artificial viscosity beta"))
-            paramsH->Ar_vis_beta = doc["Elastic SPH"]["Artificial viscosity beta"].GetDouble();
+            m_paramsH->Ar_vis_beta = doc["Elastic SPH"]["Artificial viscosity beta"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("I0"))
-            paramsH->mu_I0 = doc["Elastic SPH"]["I0"].GetDouble();
+            m_paramsH->mu_I0 = doc["Elastic SPH"]["I0"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("mu_s"))
-            paramsH->mu_fric_s = doc["Elastic SPH"]["mu_s"].GetDouble();
+            m_paramsH->mu_fric_s = doc["Elastic SPH"]["mu_s"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("mu_2"))
-            paramsH->mu_fric_2 = doc["Elastic SPH"]["mu_2"].GetDouble();
+            m_paramsH->mu_fric_2 = doc["Elastic SPH"]["mu_2"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("particle diameter"))
-            paramsH->ave_diam = doc["Elastic SPH"]["particle diameter"].GetDouble();
+            m_paramsH->ave_diam = doc["Elastic SPH"]["particle diameter"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("frictional angle"))
-            paramsH->Fri_angle = doc["Elastic SPH"]["frictional angle"].GetDouble();
+            m_paramsH->Fri_angle = doc["Elastic SPH"]["frictional angle"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("dilate angle"))
-            paramsH->Dil_angle = doc["Elastic SPH"]["dilate angle"].GetDouble();
+            m_paramsH->Dil_angle = doc["Elastic SPH"]["dilate angle"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("cohesion coefficient"))
-            paramsH->Coh_coeff = doc["Elastic SPH"]["cohesion coefficient"].GetDouble();
+            m_paramsH->Coh_coeff = doc["Elastic SPH"]["cohesion coefficient"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("kernel threshold"))
-            paramsH->C_Wi = doc["Elastic SPH"]["kernel threshold"].GetDouble();
+            m_paramsH->C_Wi = doc["Elastic SPH"]["kernel threshold"].GetDouble();
     }
 
     // Geometry Information
     if (doc.HasMember("Geometry Inf")) {
         if (doc["Geometry Inf"].HasMember("BoxDimensionX"))
-            paramsH->boxDimX = doc["Geometry Inf"]["BoxDimensionX"].GetDouble();
+            m_paramsH->boxDimX = doc["Geometry Inf"]["BoxDimensionX"].GetDouble();
 
         if (doc["Geometry Inf"].HasMember("BoxDimensionY"))
-            paramsH->boxDimY = doc["Geometry Inf"]["BoxDimensionY"].GetDouble();
+            m_paramsH->boxDimY = doc["Geometry Inf"]["BoxDimensionY"].GetDouble();
 
         if (doc["Geometry Inf"].HasMember("BoxDimensionZ"))
-            paramsH->boxDimZ = doc["Geometry Inf"]["BoxDimensionZ"].GetDouble();
+            m_paramsH->boxDimZ = doc["Geometry Inf"]["BoxDimensionZ"].GetDouble();
     }
 
     if (doc.HasMember("Body Active Domain"))
-        paramsH->bodyActiveDomain = LoadVectorJSON(doc["Body Active Domain"]);
+        m_paramsH->bodyActiveDomain = LoadVectorJSON(doc["Body Active Domain"]);
 
     if (doc.HasMember("Settling Time"))
-        paramsH->settlingTime = doc["Settling Time"].GetDouble();
+        m_paramsH->settlingTime = doc["Settling Time"].GetDouble();
 
     //===============================================================
     // Material Models
     //===============================================================
     if (doc.HasMember("Material Model")) {
-        paramsH->non_newtonian = doc["Material Model"]["Non-Newtonian"].GetBool();
+        m_paramsH->non_newtonian = doc["Material Model"]["Non-Newtonian"].GetBool();
         //===============================================================
         // For a simple non-newtonian flow
         //==============================================================
-        if (paramsH->non_newtonian) {
-            paramsH->mu_max = doc["Material Model"]["max Viscosity"].GetDouble();
+        if (m_paramsH->non_newtonian) {
+            m_paramsH->mu_max = doc["Material Model"]["max Viscosity"].GetDouble();
 
-            if (paramsH->non_newtonian) {
+            if (m_paramsH->non_newtonian) {
                 if (doc["Material Model"].HasMember("HerschelBulkley")) {
-                    paramsH->HB_k = doc["Material Model"]["HerschelBulkley"]["k"].GetDouble();
-                    paramsH->HB_n = doc["Material Model"]["HerschelBulkley"]["n"].GetInt();
-                    paramsH->HB_tau0 = doc["Material Model"]["HerschelBulkley"]["tau_0"].GetDouble();
+                    m_paramsH->HB_k = doc["Material Model"]["HerschelBulkley"]["k"].GetDouble();
+                    m_paramsH->HB_n = doc["Material Model"]["HerschelBulkley"]["n"].GetInt();
+                    m_paramsH->HB_tau0 = doc["Material Model"]["HerschelBulkley"]["tau_0"].GetDouble();
                     if (doc["Material Model"]["HerschelBulkley"].HasMember("sr0"))
-                        paramsH->HB_sr0 = doc["Material Model"]["HerschelBulkley"]["sr0"].GetDouble();
+                        m_paramsH->HB_sr0 = doc["Material Model"]["HerschelBulkley"]["sr0"].GetDouble();
                     else
-                        paramsH->HB_sr0 = 0.0;
+                        m_paramsH->HB_sr0 = 0.0;
                 } else {
-                    if (verbose)
+                    if (m_verbose)
                         cout << "Constants of HerschelBulkley not found. Using default Newtonian values." << endl;
-                    paramsH->HB_k = paramsH->mu0;
-                    paramsH->HB_n = 1;
-                    paramsH->HB_tau0 = 0;
-                    paramsH->HB_sr0 = 0.0;
+                    m_paramsH->HB_k = m_paramsH->mu0;
+                    m_paramsH->HB_n = 1;
+                    m_paramsH->HB_tau0 = 0;
+                    m_paramsH->HB_sr0 = 0.0;
                 }
             }
         }
     } else {
-        paramsH->non_newtonian = false;
+        m_paramsH->non_newtonian = false;
     }
 
     // Calculate dependent parameters
-    paramsH->INVHSML = 1 / paramsH->HSML;
-    paramsH->INV_INIT = 1 / paramsH->INITSPACE;
-    paramsH->volume0 = cube(paramsH->INITSPACE);
-    paramsH->MULT_INITSPACE = paramsH->INITSPACE / paramsH->HSML;
-    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
-    paramsH->INV_dT = 1 / paramsH->dT;
-    paramsH->invrho0 = 1 / paramsH->rho0;
+    m_paramsH->INVHSML = 1 / m_paramsH->HSML;
+    m_paramsH->INV_INIT = 1 / m_paramsH->INITSPACE;
+    m_paramsH->volume0 = cube(m_paramsH->INITSPACE);
+    m_paramsH->MULT_INITSPACE = m_paramsH->INITSPACE / m_paramsH->HSML;
+    m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
+    m_paramsH->INV_dT = 1 / m_paramsH->dT;
+    m_paramsH->invrho0 = 1 / m_paramsH->rho0;
 
-    if (paramsH->elastic_SPH) {
-        paramsH->G_shear = paramsH->E_young / (2.0 * (1.0 + paramsH->Nu_poisson));
-        paramsH->INV_G_shear = 1.0 / paramsH->G_shear;
-        paramsH->K_bulk = paramsH->E_young / (3.0 * (1.0 - 2.0 * paramsH->Nu_poisson));
-        paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
+    if (m_paramsH->elastic_SPH) {
+        m_paramsH->G_shear = m_paramsH->E_young / (2.0 * (1.0 + m_paramsH->Nu_poisson));
+        m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
+        m_paramsH->K_bulk = m_paramsH->E_young / (3.0 * (1.0 - 2.0 * m_paramsH->Nu_poisson));
+        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
 
-        Real sfri = std::sin(paramsH->Fri_angle);
-        Real cfri = std::cos(paramsH->Fri_angle);
-        Real sdil = std::sin(paramsH->Dil_angle);
-        paramsH->Q_FA = 6 * sfri / (sqrt(3) * (3 + sfri));
-        paramsH->Q_DA = 6 * sdil / (sqrt(3) * (3 + sdil));
-        paramsH->K_FA = 6 * paramsH->Coh_coeff * cfri / (sqrt(3) * (3 + sfri));
+        Real sfri = std::sin(m_paramsH->Fri_angle);
+        Real cfri = std::cos(m_paramsH->Fri_angle);
+        Real sdil = std::sin(m_paramsH->Dil_angle);
+        m_paramsH->Q_FA = 6 * sfri / (sqrt(3) * (3 + sfri));
+        m_paramsH->Q_DA = 6 * sdil / (sqrt(3) * (3 + sdil));
+        m_paramsH->K_FA = 6 * m_paramsH->Coh_coeff * cfri / (sqrt(3) * (3 + sfri));
     } else {
-        paramsH->Cs = 10 * paramsH->v_Max;
+        m_paramsH->Cs = 10 * m_paramsH->v_Max;
     }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::SetVerbose(bool verb) {
-    verbose = verb;
-    fsiInterface->verbose = verb;
+    m_verbose = verb;
+    m_fsi_interface->m_verbose = verb;
 }
 
 void ChSystemFsi::SetSPHLinearSolver(ChFsiLinearSolver::SolverType lin_solver) {
-    paramsH->LinearSolver = lin_solver;
+    m_paramsH->LinearSolver = lin_solver;
 }
 
 void ChSystemFsi::SetSPHMethod(FluidDynamics SPH_method, ChFsiLinearSolver::SolverType lin_solver) {
-    paramsH->fluid_dynamic_type = SPH_method;
-    paramsH->LinearSolver = lin_solver;
+    m_paramsH->fluid_dynamic_type = SPH_method;
+    m_paramsH->LinearSolver = lin_solver;
 }
 
 void ChSystemFsi::SetContainerDim(const ChVector<>& boxDim) {
-    paramsH->boxDimX = boxDim.x();
-    paramsH->boxDimY = boxDim.y();
-    paramsH->boxDimZ = boxDim.z();
+    m_paramsH->boxDimX = boxDim.x();
+    m_paramsH->boxDimY = boxDim.y();
+    m_paramsH->boxDimZ = boxDim.z();
 }
 
 void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax) {
-    paramsH->cMin = ChUtilsTypeConvert::ChVectorToReal3(cMin);
-    paramsH->cMax = ChUtilsTypeConvert::ChVectorToReal3(cMax);
-    paramsH->use_default_limits = false;
+    m_paramsH->cMin = ChUtilsTypeConvert::ChVectorToReal3(cMin);
+    m_paramsH->cMax = ChUtilsTypeConvert::ChVectorToReal3(cMax);
+    m_paramsH->use_default_limits = false;
 }
 
 void ChSystemFsi::SetNumBoundaryLayers(int num_layers) {
-    paramsH->NUM_BOUNDARY_LAYERS = num_layers;
+    m_paramsH->NUM_BOUNDARY_LAYERS = num_layers;
 }
 
 void ChSystemFsi::SetInitPressure(const double height) {
-    paramsH->pressure_height = height;
-    paramsH->use_init_pressure = true;
+    m_paramsH->pressure_height = height;
+    m_paramsH->use_init_pressure = true;
 }
 
 void ChSystemFsi::Set_G_acc(const ChVector<>& gravity) {
-    paramsH->gravity.x = gravity.x();
-    paramsH->gravity.y = gravity.y();
-    paramsH->gravity.z = gravity.z();
+    m_paramsH->gravity.x = gravity.x();
+    m_paramsH->gravity.y = gravity.y();
+    m_paramsH->gravity.z = gravity.z();
 }
 
 void ChSystemFsi::SetBodyForce(const ChVector<>& force) {
-    paramsH->bodyForce3.x = force.x();
-    paramsH->bodyForce3.y = force.y();
-    paramsH->bodyForce3.z = force.z();
+    m_paramsH->bodyForce3.x = force.x();
+    m_paramsH->bodyForce3.y = force.y();
+    m_paramsH->bodyForce3.z = force.z();
 }
 
 void ChSystemFsi::SetInitialSpacing(double spacing) {
-    paramsH->INITSPACE = (Real)spacing;
-    paramsH->INV_INIT = 1 / paramsH->INITSPACE;
-    paramsH->volume0 = cube(paramsH->INITSPACE);
-    paramsH->MULT_INITSPACE = paramsH->INITSPACE / paramsH->HSML;
-    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
+    m_paramsH->INITSPACE = (Real)spacing;
+    m_paramsH->INV_INIT = 1 / m_paramsH->INITSPACE;
+    m_paramsH->volume0 = cube(m_paramsH->INITSPACE);
+    m_paramsH->MULT_INITSPACE = m_paramsH->INITSPACE / m_paramsH->HSML;
+    m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 }
 
 void ChSystemFsi::SetKernelLength(double length) {
-    paramsH->HSML = (Real)length;
-    paramsH->MULT_INITSPACE = paramsH->INITSPACE / paramsH->HSML;
-    paramsH->INVHSML = 1 / paramsH->HSML;
+    m_paramsH->HSML = (Real)length;
+    m_paramsH->MULT_INITSPACE = m_paramsH->INITSPACE / m_paramsH->HSML;
+    m_paramsH->INVHSML = 1 / m_paramsH->HSML;
 }
 
 void ChSystemFsi::SetStepSize(double dT, double dT_Flex) {
-    paramsH->dT = dT;
-    paramsH->INV_dT = 1 / paramsH->dT;
-    paramsH->dT_Flex = (dT_Flex == 0) ? paramsH->dT : dT_Flex;
+    m_paramsH->dT = dT;
+    m_paramsH->INV_dT = 1 / m_paramsH->dT;
+    m_paramsH->dT_Flex = (dT_Flex == 0) ? m_paramsH->dT : dT_Flex;
 }
 
 void ChSystemFsi::SetMaxStepSize(double dT_max) {
-    paramsH->dT_Max = Real(dT_max);
+    m_paramsH->dT_Max = Real(dT_max);
 }
 
 void ChSystemFsi::SetAdaptiveTimeStepping(bool adaptive) {
-    paramsH->Adaptive_time_stepping = adaptive;
+    m_paramsH->Adaptive_time_stepping = adaptive;
 }
 
 void ChSystemFsi::SetDensity(double rho0) {
-    paramsH->rho0 = rho0;
-    paramsH->invrho0 = 1 / paramsH->rho0;
-    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
+    m_paramsH->rho0 = rho0;
+    m_paramsH->invrho0 = 1 / m_paramsH->rho0;
+    m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 }
 
 void ChSystemFsi::SetDiscreType(bool useGmatrix, bool useLmatrix) {
-    paramsH->USE_Consistent_G = useGmatrix;
-    paramsH->USE_Consistent_L = useLmatrix;
+    m_paramsH->USE_Consistent_G = useGmatrix;
+    m_paramsH->USE_Consistent_L = useLmatrix;
 }
 
 void ChSystemFsi::SetOutputLength(int OutputLength) {
-    paramsH->output_length = OutputLength;
+    m_paramsH->output_length = OutputLength;
 }
 
 void ChSystemFsi::SetWallBC(BceVersion wallBC) {
-    paramsH->bceTypeWall = wallBC;
+    m_paramsH->bceTypeWall = wallBC;
 }
 
 ChSystemFsi::ElasticMaterialProperties::ElasticMaterialProperties()
@@ -597,52 +602,52 @@ ChSystemFsi::ElasticMaterialProperties::ElasticMaterialProperties()
       kernel_threshold(0.8) {}
 
 void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
-    paramsH->elastic_SPH = true;
+    m_paramsH->elastic_SPH = true;
 
-    paramsH->E_young = Real(mat_props.Young_modulus);
-    paramsH->Nu_poisson = Real(mat_props.Poisson_ratio);
-    paramsH->Ar_stress = Real(mat_props.stress);
-    paramsH->Ar_vis_alpha = Real(mat_props.viscosity_alpha);
-    paramsH->Ar_vis_beta = Real(mat_props.viscosity_beta);
-    paramsH->mu_I0 = Real(mat_props.mu_I0);
-    paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
-    paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);
-    paramsH->ave_diam = Real(mat_props.average_diam);
-    paramsH->Fri_angle = Real(mat_props.friction_angle);
-    paramsH->Dil_angle = Real(mat_props.dilation_angle);
-    paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
-    paramsH->C_Wi = Real(mat_props.kernel_threshold);
+    m_paramsH->E_young = Real(mat_props.Young_modulus);
+    m_paramsH->Nu_poisson = Real(mat_props.Poisson_ratio);
+    m_paramsH->Ar_stress = Real(mat_props.stress);
+    m_paramsH->Ar_vis_alpha = Real(mat_props.viscosity_alpha);
+    m_paramsH->Ar_vis_beta = Real(mat_props.viscosity_beta);
+    m_paramsH->mu_I0 = Real(mat_props.mu_I0);
+    m_paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
+    m_paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);
+    m_paramsH->ave_diam = Real(mat_props.average_diam);
+    m_paramsH->Fri_angle = Real(mat_props.friction_angle);
+    m_paramsH->Dil_angle = Real(mat_props.dilation_angle);
+    m_paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
+    m_paramsH->C_Wi = Real(mat_props.kernel_threshold);
 
-    paramsH->G_shear = paramsH->E_young / (2.0 * (1.0 + paramsH->Nu_poisson));
-    paramsH->INV_G_shear = 1.0 / paramsH->G_shear;
-    paramsH->K_bulk = paramsH->E_young / (3.0 * (1.0 - 2.0 * paramsH->Nu_poisson));
-    paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
+    m_paramsH->G_shear = m_paramsH->E_young / (2.0 * (1.0 + m_paramsH->Nu_poisson));
+    m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
+    m_paramsH->K_bulk = m_paramsH->E_young / (3.0 * (1.0 - 2.0 * m_paramsH->Nu_poisson));
+    m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
 
-    Real sfri = std::sin(paramsH->Fri_angle);
-    Real cfri = std::cos(paramsH->Fri_angle);
-    Real sdil = std::sin(paramsH->Dil_angle);
-    paramsH->Q_FA = 6 * sfri / (sqrt(3) * (3 + sfri));
-    paramsH->Q_DA = 6 * sdil / (sqrt(3) * (3 + sdil));
-    paramsH->K_FA = 6 * paramsH->Coh_coeff * cfri / (sqrt(3) * (3 + sfri));
+    Real sfri = std::sin(m_paramsH->Fri_angle);
+    Real cfri = std::cos(m_paramsH->Fri_angle);
+    Real sdil = std::sin(m_paramsH->Dil_angle);
+    m_paramsH->Q_FA = 6 * sfri / (sqrt(3) * (3 + sfri));
+    m_paramsH->Q_DA = 6 * sdil / (sqrt(3) * (3 + sdil));
+    m_paramsH->K_FA = 6 * m_paramsH->Coh_coeff * cfri / (sqrt(3) * (3 + sfri));
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes) {
-    CableElementsNodes = elementsNodes;
-    size_t test = sysFSI.fsiGeneralData->CableElementsNodes.size();
+    m_fea_cable_nodes = elementsNodes;
+    size_t test = m_sysFSI.fsiGeneralData->CableElementsNodes.size();
     std::cout << "numObjects.numFlexNodes" << test << std::endl;
 }
 
 void ChSystemFsi::SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes) {
-    ShellElementsNodes = elementsNodes;
-    size_t test = sysFSI.fsiGeneralData->ShellElementsNodes.size();
+    m_fea_shell_nodes = elementsNodes;
+    size_t test = m_sysFSI.fsiGeneralData->ShellElementsNodes.size();
     std::cout << "numObjects.numFlexNodes" << test << std::endl;
 }
 
 void ChSystemFsi::SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) {
-    fsi_mesh = other_fsi_mesh;
-    fsiInterface->SetFsiMesh(other_fsi_mesh);
+    m_fsi_mesh = other_fsi_mesh;
+    m_fsi_interface->SetFsiMesh(other_fsi_mesh);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -652,154 +657,157 @@ void ChSystemFsi::SetOutputDirectory(const std::string& output_dir) {
         cerr << "The directory " << output_dir << " does not exist!  FSI output disabled" << endl;
         return;
     }
-    out_dir = output_dir + "/fsi";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        cerr << "Error creating directory " << out_dir << endl;
+    m_outdir = output_dir + "/fsi";
+    if (!filesystem::create_directory(filesystem::path(m_outdir))) {
+        cerr << "Error creating directory " << m_outdir << endl;
         return;
     }
-    fsiInterface->out_dir = out_dir;
-    fsiInterface->output_fsi = true;
+    m_fsi_interface->m_outdir = m_outdir;
+    m_fsi_interface->m_output_fsi = true;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::Initialize() {
     // Calculate the initial neighour particle number
-    paramsH->markerMass = utils::massCalculator(paramsH->HSML, paramsH->INITSPACE, paramsH->rho0);
-    paramsH->num_neighbors = utils::IniNeiNum(paramsH->HSML, paramsH->INITSPACE);
+    m_paramsH->markerMass = utils::massCalculator(m_paramsH->HSML, m_paramsH->INITSPACE, m_paramsH->rho0);
+    m_paramsH->num_neighbors = utils::IniNeiNum(m_paramsH->HSML, m_paramsH->INITSPACE);
 
-    if (paramsH->use_default_limits) {
-        paramsH->cMin =
-            mR3(-2 * paramsH->boxDimX, -2 * paramsH->boxDimY, -2 * paramsH->boxDimZ) - 10 * mR3(paramsH->HSML);
-        paramsH->cMax =
-            mR3(+2 * paramsH->boxDimX, +2 * paramsH->boxDimY, +2 * paramsH->boxDimZ) + 10 * mR3(paramsH->HSML);
+    if (m_paramsH->use_default_limits) {
+        m_paramsH->cMin =
+            mR3(-2 * m_paramsH->boxDimX, -2 * m_paramsH->boxDimY, -2 * m_paramsH->boxDimZ) - 10 * mR3(m_paramsH->HSML);
+        m_paramsH->cMax =
+            mR3(+2 * m_paramsH->boxDimX, +2 * m_paramsH->boxDimY, +2 * m_paramsH->boxDimZ) + 10 * mR3(m_paramsH->HSML);
     }
 
-    if (paramsH->use_init_pressure) {
-        size_t numParticles = sysFSI.sphMarkersH->rhoPresMuH.size();
+    if (m_paramsH->use_init_pressure) {
+        size_t numParticles = m_sysFSI.sphMarkersH->rhoPresMuH.size();
         for (int i = 0; i < numParticles; i++) {
-            double z = sysFSI.sphMarkersH->posRadH[i].z;
-            sysFSI.sphMarkersH->rhoPresMuH[i].y =
-                -paramsH->rho0 * paramsH->gravity.z * paramsH->gravity.z * (z - paramsH->pressure_height);
+            double z = m_sysFSI.sphMarkersH->posRadH[i].z;
+            m_sysFSI.sphMarkersH->rhoPresMuH[i].y =
+                -m_paramsH->rho0 * m_paramsH->gravity.z * m_paramsH->gravity.z * (z - m_paramsH->pressure_height);
         }
     }
 
     // Set up subdomains for faster neighbor particle search
-    paramsH->NUM_BOUNDARY_LAYERS = 3;
-    paramsH->Apply_BC_U = false;  // You should go to custom_math.h all the way to end of file and set your function
-    int3 side0 = mI3((int)floor((paramsH->cMax.x - paramsH->cMin.x) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)),
-                     (int)floor((paramsH->cMax.y - paramsH->cMin.y) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)),
-                     (int)floor((paramsH->cMax.z - paramsH->cMin.z) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)));
-    Real3 binSize3 = mR3((paramsH->cMax.x - paramsH->cMin.x) / side0.x, (paramsH->cMax.y - paramsH->cMin.y) / side0.y,
-                         (paramsH->cMax.z - paramsH->cMin.z) / side0.z);
-    paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
-    paramsH->binSize0 = binSize3.x;
-    paramsH->boxDims = paramsH->cMax - paramsH->cMin;
-    paramsH->straightChannelBoundaryMin = paramsH->cMin;  // mR3(0, 0, 0);  // 3D channel
-    paramsH->straightChannelBoundaryMax = paramsH->cMax;  // SmR3(3, 2, 3) * paramsH->sizeScale;
-    paramsH->deltaPress = mR3(0);
-    int3 SIDE = mI3(int((paramsH->cMax.x - paramsH->cMin.x) / paramsH->binSize0 + .1),
-                    int((paramsH->cMax.y - paramsH->cMin.y) / paramsH->binSize0 + .1),
-                    int((paramsH->cMax.z - paramsH->cMin.z) / paramsH->binSize0 + .1));
-    Real mBinSize = paramsH->binSize0;
-    paramsH->gridSize = SIDE;
-    paramsH->worldOrigin = paramsH->cMin;
-    paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
+    m_paramsH->NUM_BOUNDARY_LAYERS = 3;
+    m_paramsH->Apply_BC_U = false;  // You should go to custom_math.h all the way to end of file and set your function
+    int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (RESOLUTION_LENGTH_MULT * m_paramsH->HSML)),
+                     (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (RESOLUTION_LENGTH_MULT * m_paramsH->HSML)),
+                     (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (RESOLUTION_LENGTH_MULT * m_paramsH->HSML)));
+    Real3 binSize3 =
+        mR3((m_paramsH->cMax.x - m_paramsH->cMin.x) / side0.x, (m_paramsH->cMax.y - m_paramsH->cMin.y) / side0.y,
+            (m_paramsH->cMax.z - m_paramsH->cMin.z) / side0.z);
+    m_paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
+    m_paramsH->binSize0 = binSize3.x;
+    m_paramsH->boxDims = m_paramsH->cMax - m_paramsH->cMin;
+    m_paramsH->straightChannelBoundaryMin = m_paramsH->cMin;  // mR3(0, 0, 0);  // 3D channel
+    m_paramsH->straightChannelBoundaryMax = m_paramsH->cMax;  // SmR3(3, 2, 3) * m_paramsH->sizeScale;
+    m_paramsH->deltaPress = mR3(0);
+    int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1),
+                    int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
+                    int((m_paramsH->cMax.z - m_paramsH->cMin.z) / m_paramsH->binSize0 + .1));
+    Real mBinSize = m_paramsH->binSize0;
+    m_paramsH->gridSize = SIDE;
+    m_paramsH->worldOrigin = m_paramsH->cMin;
+    m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
 
     // Print information
-    if (verbose) {
+    if (m_verbose) {
         cout << "Simulation parameters" << endl;
 
-        cout << "paramsH->num_neighbors: " << paramsH->num_neighbors << endl;
-        cout << "paramsH->rho0: " << paramsH->rho0 << endl;
-        cout << "paramsH->invrho0: " << paramsH->invrho0 << endl;
-        cout << "paramsH->mu0: " << paramsH->mu0 << endl;
-        cout << "paramsH->bodyForce3: " << paramsH->bodyForce3.x << " " << paramsH->bodyForce3.y << " "
-             << paramsH->bodyForce3.z << endl;
-        cout << "paramsH->gravity: " << paramsH->gravity.x << " " << paramsH->gravity.y << " " << paramsH->gravity.z
+        cout << "m_paramsH->num_neighbors: " << m_paramsH->num_neighbors << endl;
+        cout << "m_paramsH->rho0: " << m_paramsH->rho0 << endl;
+        cout << "m_paramsH->invrho0: " << m_paramsH->invrho0 << endl;
+        cout << "m_paramsH->mu0: " << m_paramsH->mu0 << endl;
+        cout << "m_paramsH->bodyForce3: " << m_paramsH->bodyForce3.x << " " << m_paramsH->bodyForce3.y << " "
+             << m_paramsH->bodyForce3.z << endl;
+        cout << "m_paramsH->gravity: " << m_paramsH->gravity.x << " " << m_paramsH->gravity.y << " "
+             << m_paramsH->gravity.z << endl;
+
+        cout << "m_paramsH->HSML: " << m_paramsH->HSML << endl;
+        cout << "m_paramsH->INITSPACE: " << m_paramsH->INITSPACE << endl;
+        cout << "m_paramsH->INV_INIT: " << m_paramsH->INV_INIT << endl;
+        cout << "m_paramsH->MULT_INITSPACE: " << m_paramsH->MULT_INITSPACE << endl;
+        cout << "m_paramsH->NUM_BOUNDARY_LAYERS: " << m_paramsH->NUM_BOUNDARY_LAYERS << endl;
+        cout << "m_paramsH->epsMinMarkersDis: " << m_paramsH->epsMinMarkersDis << endl;
+        cout << "m_paramsH->markerMass: " << m_paramsH->markerMass << endl;
+        cout << "m_paramsH->volume0: " << m_paramsH->volume0 << endl;
+        cout << "m_paramsH->gradient_type: " << m_paramsH->gradient_type << endl;
+
+        cout << "m_paramsH->v_Max: " << m_paramsH->v_Max << endl;
+        cout << "m_paramsH->Cs: " << m_paramsH->Cs << endl;
+        cout << "m_paramsH->EPS_XSPH: " << m_paramsH->EPS_XSPH << endl;
+        cout << "m_paramsH->beta_shifting: " << m_paramsH->beta_shifting << endl;
+        cout << "m_paramsH->densityReinit: " << m_paramsH->densityReinit << endl;
+
+        cout << "m_paramsH->Adaptive_time_stepping: " << m_paramsH->Adaptive_time_stepping << endl;
+        cout << "m_paramsH->Co_number: " << m_paramsH->Co_number << endl;
+        cout << "m_paramsH->dT: " << m_paramsH->dT << endl;
+        cout << "m_paramsH->INV_dT: " << m_paramsH->INV_dT << endl;
+        cout << "m_paramsH->dT_Max: " << m_paramsH->dT_Max << endl;
+        cout << "m_paramsH->dT_Flex: " << m_paramsH->dT_Flex << endl;
+
+        cout << "m_paramsH->non_newtonian: " << m_paramsH->non_newtonian << endl;
+        cout << "m_paramsH->mu_of_I : " << (int)m_paramsH->mu_of_I << endl;
+        cout << "m_paramsH->rheology_model: " << (int)m_paramsH->rheology_model << endl;
+        cout << "m_paramsH->ave_diam: " << m_paramsH->ave_diam << endl;
+        cout << "m_paramsH->mu_max: " << m_paramsH->mu_max << endl;
+        cout << "m_paramsH->mu_fric_s: " << m_paramsH->mu_fric_s << endl;
+        cout << "m_paramsH->mu_fric_2: " << m_paramsH->mu_fric_2 << endl;
+        cout << "m_paramsH->mu_I0: " << m_paramsH->mu_I0 << endl;
+        cout << "m_paramsH->mu_I_b: " << m_paramsH->mu_I_b << endl;
+        cout << "m_paramsH->HB_k: " << m_paramsH->HB_k << endl;
+        cout << "m_paramsH->HB_n: " << m_paramsH->HB_n << endl;
+        cout << "m_paramsH->HB_tau0: " << m_paramsH->HB_tau0 << endl;
+
+        cout << "m_paramsH->E_young: " << m_paramsH->E_young << endl;
+        cout << "m_paramsH->G_shear: " << m_paramsH->G_shear << endl;
+        cout << "m_paramsH->INV_G_shear: " << m_paramsH->INV_G_shear << endl;
+        cout << "m_paramsH->K_bulk: " << m_paramsH->K_bulk << endl;
+        cout << "m_paramsH->C_Wi: " << m_paramsH->C_Wi << endl;
+
+        cout << "m_paramsH->bceType: " << (int)m_paramsH->bceType << endl;
+        cout << "m_paramsH->USE_NonIncrementalProjection : " << m_paramsH->USE_NonIncrementalProjection << endl;
+        cout << "m_paramsH->PPE_relaxation: " << m_paramsH->PPE_relaxation << endl;
+        cout << "m_paramsH->Conservative_Form: " << m_paramsH->Conservative_Form << endl;
+        cout << "m_paramsH->Pressure_Constraint: " << m_paramsH->Pressure_Constraint << endl;
+
+        cout << "m_paramsH->binSize0: " << m_paramsH->binSize0 << endl;
+        cout << "m_paramsH->boxDims: " << m_paramsH->boxDims.x << " " << m_paramsH->boxDims.y << " "
+             << m_paramsH->boxDims.z << endl;
+        cout << "m_paramsH->gridSize: " << m_paramsH->gridSize.x << " " << m_paramsH->gridSize.y << " "
+             << m_paramsH->gridSize.z << endl;
+        cout << "m_paramsH->cMin: " << m_paramsH->cMin.x << " " << m_paramsH->cMin.y << " " << m_paramsH->cMin.z
              << endl;
-
-        cout << "paramsH->HSML: " << paramsH->HSML << endl;
-        cout << "paramsH->INITSPACE: " << paramsH->INITSPACE << endl;
-        cout << "paramsH->INV_INIT: " << paramsH->INV_INIT << endl;
-        cout << "paramsH->MULT_INITSPACE: " << paramsH->MULT_INITSPACE << endl;
-        cout << "paramsH->NUM_BOUNDARY_LAYERS: " << paramsH->NUM_BOUNDARY_LAYERS << endl;
-        cout << "paramsH->epsMinMarkersDis: " << paramsH->epsMinMarkersDis << endl;
-        cout << "paramsH->markerMass: " << paramsH->markerMass << endl;
-        cout << "paramsH->volume0: " << paramsH->volume0 << endl;
-        cout << "paramsH->gradient_type: " << paramsH->gradient_type << endl;
-
-        cout << "paramsH->v_Max: " << paramsH->v_Max << endl;
-        cout << "paramsH->Cs: " << paramsH->Cs << endl;
-        cout << "paramsH->EPS_XSPH: " << paramsH->EPS_XSPH << endl;
-        cout << "paramsH->beta_shifting: " << paramsH->beta_shifting << endl;
-        cout << "paramsH->densityReinit: " << paramsH->densityReinit << endl;
-
-        cout << "paramsH->Adaptive_time_stepping: " << paramsH->Adaptive_time_stepping << endl;
-        cout << "paramsH->Co_number: " << paramsH->Co_number << endl;
-        cout << "paramsH->dT: " << paramsH->dT << endl;
-        cout << "paramsH->INV_dT: " << paramsH->INV_dT << endl;
-        cout << "paramsH->dT_Max: " << paramsH->dT_Max << endl;
-        cout << "paramsH->dT_Flex: " << paramsH->dT_Flex << endl;
-
-        cout << "paramsH->non_newtonian: " << paramsH->non_newtonian << endl;
-        cout << "paramsH->mu_of_I : " << (int)paramsH->mu_of_I << endl;
-        cout << "paramsH->rheology_model: " << (int)paramsH->rheology_model << endl;
-        cout << "paramsH->ave_diam: " << paramsH->ave_diam << endl;
-        cout << "paramsH->mu_max: " << paramsH->mu_max << endl;
-        cout << "paramsH->mu_fric_s: " << paramsH->mu_fric_s << endl;
-        cout << "paramsH->mu_fric_2: " << paramsH->mu_fric_2 << endl;
-        cout << "paramsH->mu_I0: " << paramsH->mu_I0 << endl;
-        cout << "paramsH->mu_I_b: " << paramsH->mu_I_b << endl;
-        cout << "paramsH->HB_k: " << paramsH->HB_k << endl;
-        cout << "paramsH->HB_n: " << paramsH->HB_n << endl;
-        cout << "paramsH->HB_tau0: " << paramsH->HB_tau0 << endl;
-
-        cout << "paramsH->E_young: " << paramsH->E_young << endl;
-        cout << "paramsH->G_shear: " << paramsH->G_shear << endl;
-        cout << "paramsH->INV_G_shear: " << paramsH->INV_G_shear << endl;
-        cout << "paramsH->K_bulk: " << paramsH->K_bulk << endl;
-        cout << "paramsH->C_Wi: " << paramsH->C_Wi << endl;
-
-        cout << "paramsH->bceType: " << (int)paramsH->bceType << endl;
-        cout << "paramsH->USE_NonIncrementalProjection : " << paramsH->USE_NonIncrementalProjection << endl;
-        cout << "paramsH->PPE_relaxation: " << paramsH->PPE_relaxation << endl;
-        cout << "paramsH->Conservative_Form: " << paramsH->Conservative_Form << endl;
-        cout << "paramsH->Pressure_Constraint: " << paramsH->Pressure_Constraint << endl;
-
-        cout << "paramsH->binSize0: " << paramsH->binSize0 << endl;
-        cout << "paramsH->boxDims: " << paramsH->boxDims.x << " " << paramsH->boxDims.y << " " << paramsH->boxDims.z
+        cout << "m_paramsH->cMax: " << m_paramsH->cMax.x << " " << m_paramsH->cMax.y << " " << m_paramsH->cMax.z
              << endl;
-        cout << "paramsH->gridSize: " << paramsH->gridSize.x << " " << paramsH->gridSize.y << " " << paramsH->gridSize.z
-             << endl;
-        cout << "paramsH->cMin: " << paramsH->cMin.x << " " << paramsH->cMin.y << " " << paramsH->cMin.z << endl;
-        cout << "paramsH->cMax: " << paramsH->cMax.x << " " << paramsH->cMax.y << " " << paramsH->cMax.z << endl;
     }
 
     // Resize worker data
-    fsiInterface->ResizeChronoBodiesData();
+    m_fsi_interface->ResizeChronoBodiesData();
     int fea_node = 0;
-    fsiInterface->ResizeChronoCablesData(CableElementsNodes);
-    fsiInterface->ResizeChronoShellsData(ShellElementsNodes);
-    fsiInterface->ResizeChronoFEANodesData();
-    fea_node = fsi_mesh->GetNnodes();
+    m_fsi_interface->ResizeChronoCablesData(m_fea_cable_nodes);
+    m_fsi_interface->ResizeChronoShellsData(m_fea_shell_nodes);
+    m_fsi_interface->ResizeChronoFEANodesData();
+    fea_node = m_fsi_mesh->GetNnodes();
 
-    sysFSI.ResizeDataManager(fea_node, verbose);
+    m_sysFSI.ResizeDataManager(fea_node, m_verbose);
 
-    fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(sysFSI.fsiBodiesD1);
-    fsiInterface->Copy_fsiNodes_ChSystem_to_FluidSystem(sysFSI.fsiMeshD);
-    fsiInterface->Copy_fsiNodes_ChSystem_to_FluidSystem(sysFSI.fsiMeshD);
+    m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI.fsiBodiesD1);
+    m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI.fsiMeshD);
+    m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI.fsiMeshD);
 
-    if (verbose)
-        cout << "referenceArraySize in FinalizeData is " << sysFSI.fsiGeneralData->referenceArray.size() << endl;
+    if (m_verbose)
+        cout << "referenceArraySize in FinalizeData is " << m_sysFSI.fsiGeneralData->referenceArray.size() << endl;
 
-    sysFSI.fsiBodiesD2 = sysFSI.fsiBodiesD1;  //(2) construct midpoint rigid data
+    m_sysFSI.fsiBodiesD2 = m_sysFSI.fsiBodiesD1;  //(2) construct midpoint rigid data
 
     // Create BCE and SPH worker objects
-    bceWorker = chrono_types::make_shared<ChBce>(sysFSI.sortedSphMarkersD, sysFSI.markersProximityD,
-                                                 sysFSI.fsiGeneralData, paramsH, numObjectsH, verbose);
+    m_bce_manager = chrono_types::make_shared<ChBce>(m_sysFSI.sortedSphMarkersD, m_sysFSI.markersProximityD,
+                                                     m_sysFSI.fsiGeneralData, m_paramsH, m_num_objectsH, m_verbose);
 
-    switch (paramsH->fluid_dynamic_type) {
+    switch (m_paramsH->fluid_dynamic_type) {
         case FluidDynamics::IISPH:
             fluidIntegrator = TimeIntegrator::IISPH;
             break;
@@ -810,131 +818,131 @@ void ChSystemFsi::Initialize() {
             fluidIntegrator = TimeIntegrator::I2SPH;
             break;
     }
-    fluidDynamics =
-        chrono_types::make_shared<ChFluidDynamics>(bceWorker, sysFSI, paramsH, numObjectsH, fluidIntegrator, verbose);
-    fluidDynamics->GetForceSystem()->SetLinearSolver(paramsH->LinearSolver);
+    m_fluid_dynamics = chrono_types::make_shared<ChFluidDynamics>(m_bce_manager, m_sysFSI, m_paramsH, m_num_objectsH,
+                                                                  fluidIntegrator, m_verbose);
+    m_fluid_dynamics->GetForceSystem()->SetLinearSolver(m_paramsH->LinearSolver);
 
     // Initialize worker objects
-    bceWorker->Initialize(sysFSI.sphMarkersD1, sysFSI.fsiBodiesD1, sysFSI.fsiMeshD);
-    fluidDynamics->Initialize();
-    if (verbose)
-        cout << "referenceArraySize in fluid dynamics is " << sysFSI.fsiGeneralData->referenceArray.size() << endl;
+    m_bce_manager->Initialize(m_sysFSI.sphMarkersD1, m_sysFSI.fsiBodiesD1, m_sysFSI.fsiMeshD);
+    m_fluid_dynamics->Initialize();
+    if (m_verbose)
+        cout << "referenceArraySize in fluid dynamics is " << m_sysFSI.fsiGeneralData->referenceArray.size() << endl;
 
     // Mark system as initialized
-    is_initialized = true;
+    m_is_initialized = true;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::CopyDeviceDataToHalfStep() {
-    thrust::copy(sysFSI.sphMarkersD2->posRadD.begin(), sysFSI.sphMarkersD2->posRadD.end(),
-                 sysFSI.sphMarkersD1->posRadD.begin());
-    thrust::copy(sysFSI.sphMarkersD2->velMasD.begin(), sysFSI.sphMarkersD2->velMasD.end(),
-                 sysFSI.sphMarkersD1->velMasD.begin());
-    thrust::copy(sysFSI.sphMarkersD2->rhoPresMuD.begin(), sysFSI.sphMarkersD2->rhoPresMuD.end(),
-                 sysFSI.sphMarkersD1->rhoPresMuD.begin());
-    thrust::copy(sysFSI.sphMarkersD2->tauXxYyZzD.begin(), sysFSI.sphMarkersD2->tauXxYyZzD.end(),
-                 sysFSI.sphMarkersD1->tauXxYyZzD.begin());
-    thrust::copy(sysFSI.sphMarkersD2->tauXyXzYzD.begin(), sysFSI.sphMarkersD2->tauXyXzYzD.end(),
-                 sysFSI.sphMarkersD1->tauXyXzYzD.begin());
+    thrust::copy(m_sysFSI.sphMarkersD2->posRadD.begin(), m_sysFSI.sphMarkersD2->posRadD.end(),
+                 m_sysFSI.sphMarkersD1->posRadD.begin());
+    thrust::copy(m_sysFSI.sphMarkersD2->velMasD.begin(), m_sysFSI.sphMarkersD2->velMasD.end(),
+                 m_sysFSI.sphMarkersD1->velMasD.begin());
+    thrust::copy(m_sysFSI.sphMarkersD2->rhoPresMuD.begin(), m_sysFSI.sphMarkersD2->rhoPresMuD.end(),
+                 m_sysFSI.sphMarkersD1->rhoPresMuD.begin());
+    thrust::copy(m_sysFSI.sphMarkersD2->tauXxYyZzD.begin(), m_sysFSI.sphMarkersD2->tauXxYyZzD.end(),
+                 m_sysFSI.sphMarkersD1->tauXxYyZzD.begin());
+    thrust::copy(m_sysFSI.sphMarkersD2->tauXyXzYzD.begin(), m_sysFSI.sphMarkersD2->tauXyXzYzD.end(),
+                 m_sysFSI.sphMarkersD1->tauXyXzYzD.begin());
 }
 
 void ChSystemFsi::DoStepDynamics_FSI() {
-    if (!is_initialized) {
+    if (!m_is_initialized) {
         cout << "ERROR: FSI system not initialized!\n" << endl;
         throw std::runtime_error("FSI system not initialized!\n");
     }
 
-    if (fluidDynamics->GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
+    if (m_fluid_dynamics->GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
         // The following is used to execute the Explicit WCSPH
         CopyDeviceDataToHalfStep();
-        ChUtilsDevice::FillMyThrust4(sysFSI.fsiGeneralData->derivVelRhoD, mR4(0));
-        fluidDynamics->IntegrateSPH(sysFSI.sphMarkersD2, sysFSI.sphMarkersD1, sysFSI.fsiBodiesD2, sysFSI.fsiMeshD,
-                                    0.5 * paramsH->dT, mTime);
-        fluidDynamics->IntegrateSPH(sysFSI.sphMarkersD1, sysFSI.sphMarkersD2, sysFSI.fsiBodiesD2, sysFSI.fsiMeshD,
-                                    1.0 * paramsH->dT, mTime);
-        bceWorker->Rigid_Forces_Torques(sysFSI.sphMarkersD2, sysFSI.fsiBodiesD2);
-        fsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
+        ChUtilsDevice::FillMyThrust4(m_sysFSI.fsiGeneralData->derivVelRhoD, mR4(0));
+        m_fluid_dynamics->IntegrateSPH(m_sysFSI.sphMarkersD2, m_sysFSI.sphMarkersD1, m_sysFSI.fsiBodiesD2,
+                                       m_sysFSI.fsiMeshD, 0.5 * m_paramsH->dT, m_time);
+        m_fluid_dynamics->IntegrateSPH(m_sysFSI.sphMarkersD1, m_sysFSI.sphMarkersD2, m_sysFSI.fsiBodiesD2,
+                                       m_sysFSI.fsiMeshD, 1.0 * m_paramsH->dT, m_time);
+        m_bce_manager->Rigid_Forces_Torques(m_sysFSI.sphMarkersD2, m_sysFSI.fsiBodiesD2);
+        m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
 
-        bceWorker->Flex_Forces(sysFSI.sphMarkersD2, sysFSI.fsiMeshD);
+        m_bce_manager->Flex_Forces(m_sysFSI.sphMarkersD2, m_sysFSI.fsiMeshD);
         // Note that because of applying forces to the nodal coordinates using SetForce() no other external forces can
         // be applied, or if any thing has been applied will be rewritten by Add_Flex_Forces_To_ChSystem();
-        fsiInterface->Add_Flex_Forces_To_ChSystem();
+        m_fsi_interface->Add_Flex_Forces_To_ChSystem();
 
         // dT_Flex is the time step of solid body system
-        mTime += 1 * paramsH->dT;
-        if (paramsH->dT_Flex == 0)
-            paramsH->dT_Flex = paramsH->dT;
-        int sync = int(paramsH->dT / paramsH->dT_Flex);
+        m_time += 1 * m_paramsH->dT;
+        if (m_paramsH->dT_Flex == 0)
+            m_paramsH->dT_Flex = m_paramsH->dT;
+        int sync = int(m_paramsH->dT / m_paramsH->dT_Flex);
         if (sync < 1)
             sync = 1;
         for (int t = 0; t < sync; t++) {
-            sysMBS.DoStepDynamics(paramsH->dT / sync);
+            m_sysMBS.DoStepDynamics(m_paramsH->dT / sync);
         }
 
-        fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(sysFSI.fsiBodiesD2);
-        bceWorker->UpdateRigidMarkersPositionVelocity(sysFSI.sphMarkersD2, sysFSI.fsiBodiesD2);
+        m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI.fsiBodiesD2);
+        m_bce_manager->UpdateRigidMarkersPositionVelocity(m_sysFSI.sphMarkersD2, m_sysFSI.fsiBodiesD2);
     } else {
         // A different coupling scheme is used for implicit SPH formulations
-        fsiInterface->Copy_ChSystem_to_External();
-        fluidDynamics->IntegrateSPH(sysFSI.sphMarkersD2, sysFSI.sphMarkersD2, sysFSI.fsiBodiesD2, sysFSI.fsiMeshD, 0.0,
-                                    mTime);
-        bceWorker->Rigid_Forces_Torques(sysFSI.sphMarkersD2, sysFSI.fsiBodiesD2);
-        fsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
+        m_fsi_interface->Copy_ChSystem_to_External();
+        m_fluid_dynamics->IntegrateSPH(m_sysFSI.sphMarkersD2, m_sysFSI.sphMarkersD2, m_sysFSI.fsiBodiesD2,
+                                       m_sysFSI.fsiMeshD, 0.0, m_time);
+        m_bce_manager->Rigid_Forces_Torques(m_sysFSI.sphMarkersD2, m_sysFSI.fsiBodiesD2);
+        m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
 
-        bceWorker->Flex_Forces(sysFSI.sphMarkersD2, sysFSI.fsiMeshD);
+        m_bce_manager->Flex_Forces(m_sysFSI.sphMarkersD2, m_sysFSI.fsiMeshD);
         // Note that because of applying forces to the nodal coordinates using SetForce() no other external forces can
         // be applied, or if any thing has been applied will be rewritten by Add_Flex_Forces_To_ChSystem();
-        fsiInterface->Add_Flex_Forces_To_ChSystem();
+        m_fsi_interface->Add_Flex_Forces_To_ChSystem();
 
-        mTime += 1 * paramsH->dT;
-        if (paramsH->dT_Flex == 0)
-            paramsH->dT_Flex = paramsH->dT;
-        int sync = int(paramsH->dT / paramsH->dT_Flex);
+        m_time += 1 * m_paramsH->dT;
+        if (m_paramsH->dT_Flex == 0)
+            m_paramsH->dT_Flex = m_paramsH->dT;
+        int sync = int(m_paramsH->dT / m_paramsH->dT_Flex);
         if (sync < 1)
             sync = 1;
-        if (verbose)
-            cout << sync << " * Chrono StepDynamics with dt = " << paramsH->dT / sync << endl;
+        if (m_verbose)
+            cout << sync << " * Chrono StepDynamics with dt = " << m_paramsH->dT / sync << endl;
         for (int t = 0; t < sync; t++) {
-            sysMBS.DoStepDynamics(paramsH->dT / sync);
+            m_sysMBS.DoStepDynamics(m_paramsH->dT / sync);
         }
 
-        fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(sysFSI.fsiBodiesD2);
-        bceWorker->UpdateRigidMarkersPositionVelocity(sysFSI.sphMarkersD2, sysFSI.fsiBodiesD2);
+        m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI.fsiBodiesD2);
+        m_bce_manager->UpdateRigidMarkersPositionVelocity(m_sysFSI.sphMarkersD2, m_sysFSI.fsiBodiesD2);
 
-        fsiInterface->Copy_fsiNodes_ChSystem_to_FluidSystem(sysFSI.fsiMeshD);
-        bceWorker->UpdateFlexMarkersPositionVelocity(sysFSI.sphMarkersD2, sysFSI.fsiMeshD);
+        m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI.fsiMeshD);
+        m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI.sphMarkersD2, m_sysFSI.fsiMeshD);
     }
 }
 
 void ChSystemFsi::DoStepDynamics_ChronoRK2() {
-    fsiInterface->Copy_ChSystem_to_External();
-    mTime += 0.5 * paramsH->dT;
+    m_fsi_interface->Copy_ChSystem_to_External();
+    m_time += 0.5 * m_paramsH->dT;
 
-    sysMBS.DoStepDynamics(0.5 * paramsH->dT);
-    mTime -= 0.5 * paramsH->dT;
-    fsiInterface->Copy_External_To_ChSystem();
-    mTime += paramsH->dT;
-    sysMBS.DoStepDynamics(1.0 * paramsH->dT);
+    m_sysMBS.DoStepDynamics(0.5 * m_paramsH->dT);
+    m_time -= 0.5 * m_paramsH->dT;
+    m_fsi_interface->Copy_External_To_ChSystem();
+    m_time += m_paramsH->dT;
+    m_sysMBS.DoStepDynamics(1.0 * m_paramsH->dT);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
-    if (file_write_mode == OutpuMode::CSV) {
-        utils::WriteCsvParticlesToFile(sysFSI.sphMarkersD2->posRadD, sysFSI.sphMarkersD2->velMasD,
-                                       sysFSI.sphMarkersD2->rhoPresMuD, sysFSI.fsiGeneralData->referenceArray,
+    if (m_write_mode == OutpuMode::CSV) {
+        utils::WriteCsvParticlesToFile(m_sysFSI.sphMarkersD2->posRadD, m_sysFSI.sphMarkersD2->velMasD,
+                                       m_sysFSI.sphMarkersD2->rhoPresMuD, m_sysFSI.fsiGeneralData->referenceArray,
                                        outfilename);
-    } else if (file_write_mode == OutpuMode::CHPF) {
-        utils::WriteChPFParticlesToFile(sysFSI.sphMarkersD2->posRadD, sysFSI.fsiGeneralData->referenceArray,
+    } else if (m_write_mode == OutpuMode::CHPF) {
+        utils::WriteChPFParticlesToFile(m_sysFSI.sphMarkersD2->posRadD, m_sysFSI.fsiGeneralData->referenceArray,
                                         outfilename);
     }
 }
 
 void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
-    utils::PrintToFile(sysFSI.sphMarkersD2->posRadD, sysFSI.sphMarkersD2->velMasD, sysFSI.sphMarkersD2->rhoPresMuD,
-                       sysFSI.fsiGeneralData->sr_tau_I_mu_i, sysFSI.fsiGeneralData->referenceArray,
-                       thrust::host_vector<int4>(), dir, paramsH, true);
+    utils::PrintToFile(m_sysFSI.sphMarkersD2->posRadD, m_sysFSI.sphMarkersD2->velMasD,
+                       m_sysFSI.sphMarkersD2->rhoPresMuD, m_sysFSI.fsiGeneralData->sr_tau_I_mu_i,
+                       m_sysFSI.fsiGeneralData->referenceArray, thrust::host_vector<int4>(), dir, m_paramsH, true);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -948,9 +956,10 @@ void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
                                  const ChVector<>& velocity,
                                  const ChVector<>& tauXxYyZz,
                                  const ChVector<>& tauXyXzYz) {
-    sysFSI.AddSPHParticle(ChUtilsTypeConvert::ChVectorToReal4(point, h), mR4(rho0, pres0, mu0, particle_type),
-                          ChUtilsTypeConvert::ChVectorToReal3(velocity), ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
-                          ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
+    m_sysFSI.AddSPHParticle(ChUtilsTypeConvert::ChVectorToReal4(point, h), mR4(rho0, pres0, mu0, particle_type),
+                            ChUtilsTypeConvert::ChVectorToReal3(velocity),
+                            ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
+                            ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
 }
 
 void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
@@ -958,12 +967,12 @@ void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
                                  const ChVector<>& velocity,
                                  const ChVector<>& tauXxYyZz,
                                  const ChVector<>& tauXyXzYz) {
-    AddSPHParticle(point, paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, paramsH->HSML, particle_type, velocity,
-                   tauXxYyZz, tauXyXzYz);
+    AddSPHParticle(point, m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, m_paramsH->HSML, particle_type,
+                   velocity, tauXxYyZz, tauXyXzYz);
 }
 
 void ChSystemFsi::AddRefArray(const int start, const int numPart, const int compType, const int phaseType) {
-    sysFSI.fsiGeneralData->referenceArray.push_back(mI4(start, numPart, compType, phaseType));
+    m_sysFSI.fsiGeneralData->referenceArray.push_back(mI4(start, numPart, compType, phaseType));
 }
 
 void ChSystemFsi::AddBoxSPH(double initSpace,
@@ -977,7 +986,7 @@ void ChSystemFsi::AddBoxSPH(double initSpace,
     // Add fluid particles from the sampler points to the FSI system
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
-        AddSPHParticle(points[i], paramsH->rho0, 0, paramsH->mu0, kernelLength, -1,
+        AddSPHParticle(points[i], m_paramsH->rho0, 0, m_paramsH->mu0, kernelLength, -1,
                        ChVector<>(0),   // initial velocity
                        ChVector<>(0),   // tauxxyyzz
                        ChVector<>(0));  // tauxyxzyz
@@ -992,7 +1001,7 @@ void ChSystemFsi::AddBoxBCE(std::shared_ptr<ChBody> body,
                             int plane,
                             bool isSolid) {
     thrust::host_vector<Real4> posRadBCE;
-    utils::CreateBCE_On_Box(posRadBCE, ChUtilsTypeConvert::ChVectorToReal3(size), plane, paramsH);
+    utils::CreateBCE_On_Box(posRadBCE, ChUtilsTypeConvert::ChVectorToReal3(size), plane, m_paramsH);
     CreateBceGlobalMarkersFromBceLocalPosBoundary(posRadBCE, body, relPos, relRot, isSolid, false);
     posRadBCE.clear();
 }
@@ -1002,7 +1011,7 @@ void ChSystemFsi::AddSphereBCE(std::shared_ptr<ChBody> body,
                                const ChQuaternion<>& relRot,
                                double radius) {
     thrust::host_vector<Real4> posRadBCE;
-    utils::CreateBCE_On_Sphere(posRadBCE, radius, paramsH);
+    utils::CreateBCE_On_Sphere(posRadBCE, radius, m_paramsH);
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body);
     posRadBCE.clear();
 }
@@ -1028,7 +1037,7 @@ void ChSystemFsi::AddCylinderBCE(std::shared_ptr<ChBody> body,
                                  double kernel_h,
                                  bool cartesian) {
     thrust::host_vector<Real4> posRadBCE;
-    utils::CreateBCE_On_Cylinder(posRadBCE, radius, height, paramsH, kernel_h, cartesian);
+    utils::CreateBCE_On_Cylinder(posRadBCE, radius, height, m_paramsH, kernel_h, cartesian);
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot);
     posRadBCE.clear();
 }
@@ -1055,7 +1064,7 @@ void ChSystemFsi::AddConeBCE(std::shared_ptr<ChBody> body,
                              double kernel_h,
                              bool cartesian) {
     thrust::host_vector<Real4> posRadBCE;
-    utils::CreateBCE_On_Cone(posRadBCE, radius, height, paramsH, kernel_h, cartesian);
+    utils::CreateBCE_On_Cone(posRadBCE, radius, height, m_paramsH, kernel_h, cartesian);
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot);
     posRadBCE.clear();
 }
@@ -1066,7 +1075,7 @@ void ChSystemFsi::AddPointsBCE(std::shared_ptr<ChBody> body,
                                const ChQuaternion<>& collisionShapeRelativeRot) {
     thrust::host_vector<Real4> posRadBCE;
     for (auto& p : points)
-        posRadBCE.push_back(mR4(p.x(), p.y(), p.z(), paramsH->HSML));
+        posRadBCE.push_back(mR4(p.x(), p.y(), p.z(), m_paramsH->HSML));
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, collisionShapeRelativePos, collisionShapeRelativeRot);
 }
 
@@ -1078,7 +1087,7 @@ void ChSystemFsi::AddFileBCE(std::shared_ptr<ChBody> body,
                              bool isSolid)  // true means moving body, false means fixed boundary
 {
     thrust::host_vector<Real4> posRadBCE;
-    utils::LoadBCE_fromFile(posRadBCE, dataPath, scale, paramsH->HSML);
+    utils::LoadBCE_fromFile(posRadBCE, dataPath, scale, m_paramsH->HSML);
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, collisionShapeRelativePos, collisionShapeRelativeRot,
                                           isSolid);
     posRadBCE.clear();
@@ -1105,7 +1114,7 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
 
     for (size_t i = 0; i < my_mesh->GetNnodes(); i++) {
         auto thisNode = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(my_mesh->GetNode((unsigned int)i));
-        fsiNodes.push_back(thisNode);
+        m_fsi_nodes.push_back(thisNode);
     }
 
     for (size_t i = 0; i < numElems; i++) {
@@ -1115,7 +1124,7 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                     std::dynamic_pointer_cast<fea::ChElementCableANCF>(my_mesh->GetElement((unsigned int)i))) {
                 remove1D.resize(2);
                 std::fill(remove1D.begin(), remove1D.end(), 0);
-                fsiCables.push_back(thisCable);
+                m_fsi_cables.push_back(thisCable);
 
                 size_t myNumNodes = (_1D_elementsNodes[i].size() > 2) ? 2 : _1D_elementsNodes[i].size();
                 for (size_t j = 0; j < myNumNodes; j++) {
@@ -1131,7 +1140,7 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                 }
 
                 if (add1DElem) {
-                    utils::CreateBCE_On_ChElementCableANCF(posRadBCE, paramsH, thisCable, remove1D, multiLayer,
+                    utils::CreateBCE_On_ChElementCableANCF(posRadBCE, m_paramsH, thisCable, remove1D, multiLayer,
                                                            removeMiddleLayer, SIDE);
                     CreateBceGlobalMarkersFromBceLocalPos_CableANCF(posRadBCE, thisCable);
                 }
@@ -1147,7 +1156,7 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                 remove2D.resize(4);
                 std::fill(remove2D.begin(), remove2D.begin() + 4, 0);
 
-                fsiShells.push_back(thisShell);
+                m_fsi_shells.push_back(thisShell);
                 // Look into the nodes of this element
                 size_t myNumNodes =
                     (_2D_elementsNodes[i - Curr_size].size() > 4) ? 4 : _2D_elementsNodes[i - Curr_size].size();
@@ -1180,7 +1189,7 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                     }
                 }
                 if (add2DElem) {
-                    utils::CreateBCE_On_ChElementShellANCF(posRadBCE, paramsH, thisShell, remove2D, multiLayer,
+                    utils::CreateBCE_On_ChElementShellANCF(posRadBCE, m_paramsH, thisShell, remove2D, multiLayer,
                                                            removeMiddleLayer, SIDE2D, kernel_h);
                     CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell, kernel_h);
                 }
@@ -1190,27 +1199,27 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
     }
 }
 
-void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
+void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& m_fsi_shells,
                                   std::shared_ptr<fea::ChMesh> mesh,
                                   bool multiLayer,
                                   bool removeMiddleLayer,
                                   int SIDE) {
     thrust::host_vector<Real4> posRadBCE;
     int numShells = mesh->GetNelements();
-    if (verbose)
+    if (m_verbose)
         cout << "number of shells to be meshed is " << numShells << endl;
     for (size_t i = 0; i < numShells; i++) {
         auto thisShell = std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(mesh->GetElement((unsigned int)i));
-        fsiShells.push_back(thisShell);
-        utils::CreateBCE_On_shell(posRadBCE, paramsH, thisShell, multiLayer, removeMiddleLayer, SIDE);
+        m_fsi_shells.push_back(thisShell);
+        utils::CreateBCE_On_shell(posRadBCE, m_paramsH, thisShell, multiLayer, removeMiddleLayer, SIDE);
         CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell);
 
         posRadBCE.clear();
     }
 }
 
-void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
-                                  std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes,
+void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& m_fsi_shells,
+                                  std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& m_fsi_nodes,
                                   std::shared_ptr<fea::ChMesh> mesh,
                                   const std::vector<std::vector<int>>& elementsNodes,
                                   const std::vector<std::vector<int>>& NodeNeighborElement,
@@ -1223,14 +1232,14 @@ void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShel
 
     for (size_t i = 0; i < NodeNeighborElement.size(); i++) {
         auto thisNode = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(mesh->GetNode((unsigned int)i));
-        fsiNodes.push_back(thisNode);
+        m_fsi_nodes.push_back(thisNode);
     }
 
     for (size_t i = 0; i < numShells; i++) {
         remove.resize(4);
         std::fill(remove.begin(), remove.begin() + 4, 0);
         auto thisShell = std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(mesh->GetElement((unsigned int)i));
-        fsiShells.push_back(thisShell);
+        m_fsi_shells.push_back(thisShell);
         // Look into the nodes of this element
         size_t myNumNodes = (elementsNodes[i].size() > 4) ? 4 : elementsNodes[i].size();
 
@@ -1259,7 +1268,7 @@ void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShel
                 }
             }
         }
-        utils::CreateBCE_On_ChElementShellANCF(posRadBCE, paramsH, thisShell, remove, multiLayer, removeMiddleLayer,
+        utils::CreateBCE_On_ChElementShellANCF(posRadBCE, m_paramsH, thisShell, remove, multiLayer, removeMiddleLayer,
                                                SIDE);
         CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell);
         posRadBCE.clear();
@@ -1373,8 +1382,8 @@ void ChSystemFsi::AddSphereBody(std::shared_ptr<ChMaterialSurface> mat_prop,
     body->GetCollisionModel()->ClearModel();
     chrono::utils::AddSphereGeometry(body.get(), mat_prop, radius);
     body->GetCollisionModel()->BuildModel();
-    sysMBS.AddBody(body);
-    fsiBodies.push_back(body);
+    m_sysMBS.AddBody(body);
+    m_fsi_bodies.push_back(body);
 
     AddSphereBCE(body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), radius);
 }
@@ -1399,11 +1408,11 @@ void ChSystemFsi::AddCylinderBody(std::shared_ptr<ChMaterialSurface> mat_prop,
     body->GetCollisionModel()->ClearModel();
     chrono::utils::AddCylinderGeometry(body.get(), mat_prop, radius, 0.5 * length);
     body->GetCollisionModel()->BuildModel();
-    sysMBS.AddBody(body);
+    m_sysMBS.AddBody(body);
 
-    fsiBodies.push_back(body);
+    m_fsi_bodies.push_back(body);
     AddCylinderBCE(body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), radius, length,
-                   paramsH->HSML * paramsH->MULT_INITSPACE);
+                   m_paramsH->HSML * m_paramsH->MULT_INITSPACE);
 }
 
 void ChSystemFsi::AddBoxBody(std::shared_ptr<ChMaterialSurface> mat_prop,
@@ -1425,9 +1434,9 @@ void ChSystemFsi::AddBoxBody(std::shared_ptr<ChMaterialSurface> mat_prop,
     body->GetCollisionModel()->ClearModel();
     chrono::utils::AddBoxGeometry(body.get(), mat_prop, hsize);
     body->GetCollisionModel()->BuildModel();
-    sysMBS.AddBody(body);
+    m_sysMBS.AddBody(body);
 
-    fsiBodies.push_back(body);
+    m_fsi_bodies.push_back(body);
     AddBoxBCE(body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), hsize);
 }
 
@@ -1440,25 +1449,25 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
                                                         bool isSolid,
                                                         bool add_to_fluid_helpers,
                                                         bool add_to_previous_object) {
-    if (sysFSI.fsiGeneralData->referenceArray.size() < 1 && !add_to_fluid_helpers) {
+    if (m_sysFSI.fsiGeneralData->referenceArray.size() < 1 && !add_to_fluid_helpers) {
         cerr << "\n\n\n\n Error! fluid need to be initialized before boundary." << endl;
         cerr << "Reference array should have two components. \n\n\n\n" << endl;
         std::cin.get();
         return;
     }
 
-    if (sysFSI.fsiGeneralData->referenceArray.size() == 0)
-        sysFSI.fsiGeneralData->referenceArray.push_back(mI4(0, (int)posRadBCE.size(), -3, -1));
+    if (m_sysFSI.fsiGeneralData->referenceArray.size() == 0)
+        m_sysFSI.fsiGeneralData->referenceArray.push_back(mI4(0, (int)posRadBCE.size(), -3, -1));
 
-    int4 refSize4 = sysFSI.fsiGeneralData->referenceArray.back();
+    int4 refSize4 = m_sysFSI.fsiGeneralData->referenceArray.back();
     int type = 0;
     int object = 0;
     if (isSolid) {
         object = refSize4.w + !add_to_previous_object;
         type = 1;
-        if (verbose) {
+        if (m_verbose) {
             printf("Adding BCE to solid object %d, type is %d, ref size = %zd\n", object, type,
-                   sysFSI.fsiGeneralData->referenceArray.size() + 1);
+                   m_sysFSI.fsiGeneralData->referenceArray.size() + 1);
         }
     }
 
@@ -1478,51 +1487,52 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
                                                                        collisionShapeRelativeRot);
         ChVector<> posLoc_COG = utils::TransformBCEToCOG(body, posLoc_body);
         ChVector<> posGlob = ChTransform<>::TransformLocalToParent(posLoc_COG, body->GetPos(), body->GetRot());
-        sysFSI.sphMarkersH->posRadH.push_back(mR4(ChUtilsTypeConvert::ChVectorToReal3(posGlob), posRadBCE[i].w));
+        m_sysFSI.sphMarkersH->posRadH.push_back(mR4(ChUtilsTypeConvert::ChVectorToReal3(posGlob), posRadBCE[i].w));
 
         ChVector<> vAbs = body->PointSpeedLocalToParent(posLoc_COG);
         Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(vAbs);
-        sysFSI.sphMarkersH->velMasH.push_back(v3);
-        sysFSI.sphMarkersH->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, (double)type));
-        sysFSI.sphMarkersH->tauXxYyZzH.push_back(mR3(0.0));
-        sysFSI.sphMarkersH->tauXyXzYzH.push_back(mR3(0.0));
+        m_sysFSI.sphMarkersH->velMasH.push_back(v3);
+        m_sysFSI.sphMarkersH->rhoPresMuH.push_back(
+            mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, (double)type));
+        m_sysFSI.sphMarkersH->tauXxYyZzH.push_back(mR3(0.0));
+        m_sysFSI.sphMarkersH->tauXyXzYzH.push_back(mR3(0.0));
     }
 
     // ------------------------
     // Modify number of objects
     // ------------------------
     size_t numBce = posRadBCE.size();
-    if (verbose)
+    if (m_verbose)
         cout << "Particle Type = " << type << endl;
 
-    sysFSI.numObjects->numAllMarkers += numBce;
+    m_sysFSI.numObjects->numAllMarkers += numBce;
     // For helper particles, type = -3
-    if (type == -3 && sysFSI.fsiGeneralData->referenceArray.size() != 1) {
-        sysFSI.fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)posRadBCE.size(), -3, -1));
+    if (type == -3 && m_sysFSI.fsiGeneralData->referenceArray.size() != 1) {
+        m_sysFSI.fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)posRadBCE.size(), -3, -1));
     }
     // For boundary particles, type = 0
     else if ((type == 0 || (add_to_previous_object && type == 1)) && !add_to_fluid_helpers) {
-        sysFSI.numObjects->numBoundaryMarkers += numBce;
+        m_sysFSI.numObjects->numBoundaryMarkers += numBce;
         if (refSize4.w == -1) {
-            sysFSI.fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)numBce, 0, 0));
+            m_sysFSI.fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)numBce, 0, 0));
         } else if (refSize4.w == 0 || (refSize4.w && add_to_previous_object)) {
             refSize4.y = refSize4.y + (int)numBce;
-            sysFSI.fsiGeneralData->referenceArray.back() = refSize4;
+            m_sysFSI.fsiGeneralData->referenceArray.back() = refSize4;
         }
     }
     // For rigid body particles, type = 1
     else if (!add_to_fluid_helpers) {
-        if (sysFSI.fsiGeneralData->referenceArray.size() < 2) {
+        if (m_sysFSI.fsiGeneralData->referenceArray.size() < 2) {
             cerr << "Error! Boundary particles are not initialized while trying to " << endl;
             cerr << "initialize rigid particle!\n\n" << endl;
             std::cin.get();
             return;
         }
-        sysFSI.numObjects->numRigid_SphMarkers += numBce;
-        sysFSI.numObjects->numRigidBodies += 1;
-        sysFSI.numObjects->startRigidMarkers = sysFSI.fsiGeneralData->referenceArray[1].y;
-        sysFSI.fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)numBce, 1, object));
-        if (verbose) {
+        m_sysFSI.numObjects->numRigid_SphMarkers += numBce;
+        m_sysFSI.numObjects->numRigidBodies += 1;
+        m_sysFSI.numObjects->startRigidMarkers = m_sysFSI.fsiGeneralData->referenceArray[1].y;
+        m_sysFSI.fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)numBce, 1, object));
+        if (m_verbose) {
             printf("refSize4.y = %d, refSize4.y + numBce = %d, particle type = %d, object number = %d\n", refSize4.y,
                    refSize4.y + (int)numBce, 1, object);
         }
@@ -1537,7 +1547,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
     double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
 
     ChVector<> Element_Axis = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).GetNormalized();
-    if (verbose)
+    if (m_verbose)
         printf(" Element_Axis= %f, %f, %f\n", Element_Axis.x(), Element_Axis.y(), Element_Axis.z());
 
     ChVector<> Old_axis = ChVector<>(1, 0, 0);
@@ -1555,7 +1565,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
     ChVector<> nBv = cable->GetNodeB()->GetPos_dt();
 
     int posRadSizeModified = 0;
-    if (verbose)
+    if (m_verbose)
         printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
 
     for (size_t i = 0; i < posRadBCE.size(); i++) {
@@ -1573,7 +1583,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
         ChVector<> Correct_Pos = NFSI_Chvector.x() * nAp + NFSI_Chvector.y() * nBp + new_y_axis * pos_physical.y() +
                                  new_z_axis * pos_physical.z();
 
-        if (verbose) {
+        if (m_verbose) {
             printf(" physic_to_natural is = (%f,%f,%f)\n", physic_to_natural.x(), physic_to_natural.y(),
                    physic_to_natural.z());
             printf(" pos_physical is = (%f,%f,%f)\n", pos_physical.x(), pos_physical.y(), pos_physical.z());
@@ -1581,34 +1591,35 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
             printf(" Correct_Pos is = (%f,%f,%f)\n\n\n ", Correct_Pos.x(), Correct_Pos.y(), Correct_Pos.z());
         }
 
-        if ((Correct_Pos.x() < paramsH->cMin.x || Correct_Pos.x() > paramsH->cMax.x) ||
-            (Correct_Pos.y() < paramsH->cMin.y || Correct_Pos.y() > paramsH->cMax.y) ||
-            (Correct_Pos.z() < paramsH->cMin.z || Correct_Pos.z() > paramsH->cMax.z)) {
+        if ((Correct_Pos.x() < m_paramsH->cMin.x || Correct_Pos.x() > m_paramsH->cMax.x) ||
+            (Correct_Pos.y() < m_paramsH->cMin.y || Correct_Pos.y() > m_paramsH->cMax.y) ||
+            (Correct_Pos.z() < m_paramsH->cMin.z || Correct_Pos.z() > m_paramsH->cMax.z)) {
             continue;
         }
 
         bool addthis = true;
-        for (int p = 0; p < sysFSI.sphMarkersH->posRadH.size() - 1; p++) {
-            if (length(mR3(sysFSI.sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos)) < 1e-5 &&
-                sysFSI.sphMarkersH->rhoPresMuH[p].w != -1) {
+        for (int p = 0; p < m_sysFSI.sphMarkersH->posRadH.size() - 1; p++) {
+            if (length(mR3(m_sysFSI.sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos)) <
+                    1e-5 &&
+                m_sysFSI.sphMarkersH->rhoPresMuH[p].w != -1) {
                 addthis = false;
-                if (verbose) {
+                if (m_verbose) {
                     printf("remove this particle %f,%f,%f because of its overlap with a particle at %f,%f,%f\n",
-                           sysFSI.sphMarkersH->posRadH[p].x, sysFSI.sphMarkersH->posRadH[p].y,
-                           sysFSI.sphMarkersH->posRadH[p].z, Correct_Pos.x(), Correct_Pos.y(), Correct_Pos.z());
+                           m_sysFSI.sphMarkersH->posRadH[p].x, m_sysFSI.sphMarkersH->posRadH[p].y,
+                           m_sysFSI.sphMarkersH->posRadH[p].z, Correct_Pos.x(), Correct_Pos.y(), Correct_Pos.z());
                 }
                 break;
             }
         }
 
         if (addthis) {
-            sysFSI.sphMarkersH->posRadH.push_back(
+            m_sysFSI.sphMarkersH->posRadH.push_back(
                 mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
-            sysFSI.fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_physical));
+            m_sysFSI.fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_physical));
             ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + ChVector<double>(1e-20);
             Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
-            sysFSI.sphMarkersH->velMasH.push_back(v3);
-            sysFSI.sphMarkersH->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, type));
+            m_sysFSI.sphMarkersH->velMasH.push_back(v3);
+            m_sysFSI.sphMarkersH->rhoPresMuH.push_back(mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
             posRadSizeModified++;
         }
     }
@@ -1616,38 +1627,38 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
     // ------------------------
     // Modify number of objects
     // ------------------------
-    size_t numObjects = sysFSI.fsiGeneralData->referenceArray.size();
+    size_t numObjects = m_sysFSI.fsiGeneralData->referenceArray.size();
     size_t numBce = posRadSizeModified;
-    sysFSI.numObjects->numAllMarkers += numBce;
+    m_sysFSI.numObjects->numAllMarkers += numBce;
 
-    int numRigid = (int)sysFSI.numObjects->numRigidBodies;
-    sysFSI.numObjects->numFlex_SphMarkers += numBce;
-    sysFSI.numObjects->numFlexBodies1D += 1;
-    sysFSI.numObjects->startFlexMarkers = sysFSI.fsiGeneralData->referenceArray[numRigid + 1].y;
+    int numRigid = (int)m_sysFSI.numObjects->numRigidBodies;
+    m_sysFSI.numObjects->numFlex_SphMarkers += numBce;
+    m_sysFSI.numObjects->numFlexBodies1D += 1;
+    m_sysFSI.numObjects->startFlexMarkers = m_sysFSI.fsiGeneralData->referenceArray[numRigid + 1].y;
 
-    int4 last = sysFSI.fsiGeneralData->referenceArray[sysFSI.fsiGeneralData->referenceArray.size() - 1];
-    sysFSI.fsiGeneralData->referenceArray.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)sysFSI.numObjects->numFlexBodies1D));  // 2: for cable
+    int4 last = m_sysFSI.fsiGeneralData->referenceArray[m_sysFSI.fsiGeneralData->referenceArray.size() - 1];
+    m_sysFSI.fsiGeneralData->referenceArray.push_back(
+        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI.numObjects->numFlexBodies1D));  // 2: for cable
 
-    sysFSI.fsiGeneralData->referenceArray_FEA.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)sysFSI.numObjects->numFlexBodies1D));  // 2: for cable
+    m_sysFSI.fsiGeneralData->referenceArray_FEA.push_back(
+        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI.numObjects->numFlexBodies1D));  // 2: for cable
 
-    int4 test = sysFSI.fsiGeneralData->referenceArray[sysFSI.fsiGeneralData->referenceArray.size() - 1];
-    if (verbose) {
-        printf(" push_back Index %zd. ", sysFSI.fsiGeneralData->referenceArray.size() - 1);
+    int4 test = m_sysFSI.fsiGeneralData->referenceArray[m_sysFSI.fsiGeneralData->referenceArray.size() - 1];
+    if (m_verbose) {
+        printf(" push_back Index %zd. ", m_sysFSI.fsiGeneralData->referenceArray.size() - 1);
         printf(" x=%d, y=%d, z=%d, w=%d\n", test.x, test.y, test.z, test.w);
     }
 
-    if (sysFSI.numObjects->numFlexBodies1D !=
-        sysFSI.fsiGeneralData->referenceArray.size() - 2 - sysFSI.numObjects->numRigidBodies) {
+    if (m_sysFSI.numObjects->numFlexBodies1D !=
+        m_sysFSI.fsiGeneralData->referenceArray.size() - 2 - m_sysFSI.numObjects->numRigidBodies) {
         cerr << "Error! num rigid Flexible does not match reference array size!\n\n" << endl;
         std::cin.get();
         return;
     }
-    numObjects = sysFSI.fsiGeneralData->referenceArray.size();
-    if (verbose) {
+    numObjects = m_sysFSI.fsiGeneralData->referenceArray.size();
+    if (m_verbose) {
         printf("numObjects : %zd\n ", numObjects);
-        printf("numObjects->startFlexMarkers  : %zd\n ", sysFSI.numObjects->startFlexMarkers);
+        printf("numObjects->startFlexMarkers  : %zd\n ", m_sysFSI.numObjects->startFlexMarkers);
     }
 }
 
@@ -1659,7 +1670,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::
     fea::ChElementShellANCF_3423::ShapeVector N;
     size_t posRadSizeModified = 0;
 
-    double my_h = (kernel_h == 0) ? paramsH->HSML : kernel_h;
+    double my_h = (kernel_h == 0) ? m_paramsH->HSML : kernel_h;
 
     Real dx = shell->GetLengthX();
     Real dy = shell->GetLengthY();
@@ -1674,7 +1685,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::
     ChVector<> nCv = shell->GetNodeC()->GetPos_dt();
     ChVector<> nDv = shell->GetNodeD()->GetPos_dt();
 
-    if (verbose)
+    if (m_verbose)
         printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
 
     for (size_t i = 0; i < posRadBCE.size(); i++) {
@@ -1689,72 +1700,73 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::
         Normal.Normalize();
 
         ChVector<> Correct_Pos = N(0) * nAp + N(2) * nBp + N(4) * nCp + N(6) * nDp +
-                                 Normal * pos_physical.z() * my_h * paramsH->MULT_INITSPACE_Shells;
+                                 Normal * pos_physical.z() * my_h * m_paramsH->MULT_INITSPACE_Shells;
 
-        if ((Correct_Pos.x() < paramsH->cMin.x || Correct_Pos.x() > paramsH->cMax.x) ||
-            (Correct_Pos.y() < paramsH->cMin.y || Correct_Pos.y() > paramsH->cMax.y) ||
-            (Correct_Pos.z() < paramsH->cMin.z || Correct_Pos.z() > paramsH->cMax.z)) {
+        if ((Correct_Pos.x() < m_paramsH->cMin.x || Correct_Pos.x() > m_paramsH->cMax.x) ||
+            (Correct_Pos.y() < m_paramsH->cMin.y || Correct_Pos.y() > m_paramsH->cMax.y) ||
+            (Correct_Pos.z() < m_paramsH->cMin.z || Correct_Pos.z() > m_paramsH->cMax.z)) {
             continue;
         }
 
         // Note that the fluid particles are removed differently
         bool addthis = true;
-        for (size_t p = 0; p < sysFSI.sphMarkersH->posRadH.size() - 1; p++) {
-            if (length(mR3(sysFSI.sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos)) < 1e-8 &&
-                sysFSI.sphMarkersH->rhoPresMuH[p].w != -1) {
+        for (size_t p = 0; p < m_sysFSI.sphMarkersH->posRadH.size() - 1; p++) {
+            if (length(mR3(m_sysFSI.sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos)) <
+                    1e-8 &&
+                m_sysFSI.sphMarkersH->rhoPresMuH[p].w != -1) {
                 addthis = false;
                 break;
             }
         }
 
         if (addthis) {
-            sysFSI.sphMarkersH->posRadH.push_back(
+            m_sysFSI.sphMarkersH->posRadH.push_back(
                 mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
-            sysFSI.fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
+            m_sysFSI.fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
 
             ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + N(4) * nCv + N(6) * nDv;
             Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
-            sysFSI.sphMarkersH->velMasH.push_back(v3);
-            sysFSI.sphMarkersH->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, type));
+            m_sysFSI.sphMarkersH->velMasH.push_back(v3);
+            m_sysFSI.sphMarkersH->rhoPresMuH.push_back(mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
             posRadSizeModified++;
         }
     }
-    sysFSI.sphMarkersH->rhoPresMuH.size();
+    m_sysFSI.sphMarkersH->rhoPresMuH.size();
 
     // ------------------------
     // Modify number of objects
     // ------------------------
-    size_t numObjects = sysFSI.fsiGeneralData->referenceArray.size();
+    size_t numObjects = m_sysFSI.fsiGeneralData->referenceArray.size();
     size_t numBce = posRadSizeModified;
-    sysFSI.numObjects->numAllMarkers += numBce;
+    m_sysFSI.numObjects->numAllMarkers += numBce;
 
-    int numRigid = (int)sysFSI.numObjects->numRigidBodies;
-    sysFSI.numObjects->numFlex_SphMarkers += numBce;
-    sysFSI.numObjects->numFlexBodies2D += 1;
-    sysFSI.numObjects->startFlexMarkers = sysFSI.fsiGeneralData->referenceArray[numRigid + 1].y;
+    int numRigid = (int)m_sysFSI.numObjects->numRigidBodies;
+    m_sysFSI.numObjects->numFlex_SphMarkers += numBce;
+    m_sysFSI.numObjects->numFlexBodies2D += 1;
+    m_sysFSI.numObjects->startFlexMarkers = m_sysFSI.fsiGeneralData->referenceArray[numRigid + 1].y;
 
-    int4 last = sysFSI.fsiGeneralData->referenceArray[sysFSI.fsiGeneralData->referenceArray.size() - 1];
-    sysFSI.fsiGeneralData->referenceArray.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)sysFSI.numObjects->numFlexBodies2D));  // 3: for Shell
+    int4 last = m_sysFSI.fsiGeneralData->referenceArray[m_sysFSI.fsiGeneralData->referenceArray.size() - 1];
+    m_sysFSI.fsiGeneralData->referenceArray.push_back(
+        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI.numObjects->numFlexBodies2D));  // 3: for Shell
 
-    sysFSI.fsiGeneralData->referenceArray_FEA.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)sysFSI.numObjects->numFlexBodies2D));  // 3: for Shell
+    m_sysFSI.fsiGeneralData->referenceArray_FEA.push_back(
+        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI.numObjects->numFlexBodies2D));  // 3: for Shell
 
-    int4 test = sysFSI.fsiGeneralData->referenceArray[sysFSI.fsiGeneralData->referenceArray.size() - 1];
-    if (verbose) {
-        printf(" referenceArray size %zd. ", sysFSI.fsiGeneralData->referenceArray.size());
+    int4 test = m_sysFSI.fsiGeneralData->referenceArray[m_sysFSI.fsiGeneralData->referenceArray.size() - 1];
+    if (m_verbose) {
+        printf(" referenceArray size %zd. ", m_sysFSI.fsiGeneralData->referenceArray.size());
         printf(" x=%d, y=%d, z=%d, w=%d\n", test.x, test.y, test.z, test.w);
     }
 
-    if (sysFSI.numObjects->numFlexBodies2D != sysFSI.fsiGeneralData->referenceArray.size() - 2 -
-                                                  sysFSI.numObjects->numRigidBodies -
-                                                  sysFSI.numObjects->numFlexBodies1D) {
+    if (m_sysFSI.numObjects->numFlexBodies2D != m_sysFSI.fsiGeneralData->referenceArray.size() - 2 -
+                                                    m_sysFSI.numObjects->numRigidBodies -
+                                                    m_sysFSI.numObjects->numFlexBodies1D) {
         cerr << "Error! num rigid Flexible does not match reference array size!\n\n" << endl;
         std::cin.get();
         return;
     }
-    numObjects = sysFSI.fsiGeneralData->referenceArray.size();
-    if (verbose)
+    numObjects = m_sysFSI.fsiGeneralData->referenceArray.size();
+    if (m_verbose)
         printf("numObjects : %zd\n ", numObjects);
 }
 
@@ -1771,75 +1783,75 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPosBoundary(const thrust::ho
 //--------------------------------------------------------------------------------------------------------------------------------
 
 double ChSystemFsi::GetKernelLength() const {
-    return paramsH->HSML;
+    return m_paramsH->HSML;
 }
 
 double ChSystemFsi::GetInitialSpacing() const {
-    return paramsH->INITSPACE;
+    return m_paramsH->INITSPACE;
 }
 
 ChVector<> ChSystemFsi::GetContainerDim() const {
-    return ChVector<>(paramsH->boxDimX, paramsH->boxDimY, paramsH->boxDimZ);
+    return ChVector<>(m_paramsH->boxDimX, m_paramsH->boxDimY, m_paramsH->boxDimZ);
 }
 
 double ChSystemFsi::GetDensity() const {
-    return paramsH->rho0;
+    return m_paramsH->rho0;
 }
 
 double ChSystemFsi::GetViscosity() const {
-    return paramsH->mu0;
+    return m_paramsH->mu0;
 }
 
 double ChSystemFsi::GetBasePressure() const {
-    return paramsH->BASEPRES;
+    return m_paramsH->BASEPRES;
 }
 
 double ChSystemFsi::GetParticleMass() const {
-    return paramsH->markerMass;
+    return m_paramsH->markerMass;
 }
 
 ChVector<> ChSystemFsi::Get_G_acc() const {
-    return ChVector<>(paramsH->gravity.x, paramsH->gravity.y, paramsH->gravity.z);
+    return ChVector<>(m_paramsH->gravity.x, m_paramsH->gravity.y, m_paramsH->gravity.z);
 }
 
 double ChSystemFsi::GetSoundSpeed() const {
-    return paramsH->Cs;
+    return m_paramsH->Cs;
 }
 
 ChVector<> ChSystemFsi::GetBodyForce() const {
-    return ChVector<>(paramsH->bodyForce3.x, paramsH->bodyForce3.y, paramsH->bodyForce3.z);
+    return ChVector<>(m_paramsH->bodyForce3.x, m_paramsH->bodyForce3.y, m_paramsH->bodyForce3.z);
 }
 
 double ChSystemFsi::GetStepSize() const {
-    return paramsH->dT;
+    return m_paramsH->dT;
 }
 
 double ChSystemFsi::GetMaxStepSize() const {
-    return paramsH->dT_Max;
+    return m_paramsH->dT_Max;
 }
 
 bool ChSystemFsi::GetAdaptiveTimeStepping() const {
-    return paramsH->Adaptive_time_stepping;
+    return m_paramsH->Adaptive_time_stepping;
 }
 
 size_t ChSystemFsi::GetNumFluidMarkers() const {
-    return sysFSI.numObjects->numFluidMarkers;
+    return m_sysFSI.numObjects->numFluidMarkers;
 }
 
 size_t ChSystemFsi::GetNumRigidBodyMarkers() const {
-    return sysFSI.numObjects->numRigid_SphMarkers;
+    return m_sysFSI.numObjects->numRigid_SphMarkers;
 }
 
 size_t ChSystemFsi::GetNumFlexBodyMarkers() const {
-    return sysFSI.numObjects->numFlex_SphMarkers;
+    return m_sysFSI.numObjects->numFlex_SphMarkers;
 }
 
 size_t ChSystemFsi::GetNumBoundaryMarkers() const {
-    return sysFSI.numObjects->numBoundaryMarkers;
+    return m_sysFSI.numObjects->numBoundaryMarkers;
 }
 
 std::vector<ChVector<>> ChSystemFsi::GetParticlePosOrProperties() {
-    thrust::host_vector<Real4> posRadH = sysFSI.sphMarkersD2->posRadD;
+    thrust::host_vector<Real4> posRadH = m_sysFSI.sphMarkersD2->posRadD;
     std::vector<ChVector<>> pos;
     for (size_t i = 0; i < posRadH.size(); i++) {
         pos.push_back(ChUtilsTypeConvert::Real4ToChVector(posRadH[i]));
@@ -1848,7 +1860,7 @@ std::vector<ChVector<>> ChSystemFsi::GetParticlePosOrProperties() {
 }
 
 std::vector<ChVector<>> ChSystemFsi::GetParticleVel() {
-    thrust::host_vector<Real3> velH = sysFSI.sphMarkersD2->velMasD;
+    thrust::host_vector<Real3> velH = m_sysFSI.sphMarkersD2->velMasD;
     std::vector<ChVector<>> vel;
     for (size_t i = 0; i < velH.size(); i++) {
         vel.push_back(ChUtilsTypeConvert::Real3ToChVector(velH[i]));

@@ -31,7 +31,7 @@ class ChNodeFEAxyzD;
 class ChMesh;
 class ChElementCableANCF;
 class ChElementShellANCF_3423;
-}
+}  // namespace fea
 
 namespace fsi {
 
@@ -54,7 +54,7 @@ class ChFsiInterface : public ChFsiGeneral {
     /// Destructor of the FSI interface class.
     ~ChFsiInterface();
 
-    /// Read the surface-integrated pressure and viscous forces form the fluid/granular dynamics system, 
+    /// Read the surface-integrated pressure and viscous forces form the fluid/granular dynamics system,
     /// and add these forces and torques as external forces to the ChSystem rigid bodies.
     void Add_Rigid_ForceTorques_To_ChSystem();
 
@@ -71,7 +71,7 @@ class ChFsiInterface : public ChFsiGeneral {
     void ResizeChronoBodiesData();
 
     /// Set the FSI mesh for flexible elements.
-    void SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) { fsi_mesh = other_fsi_mesh; };
+    void SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) { m_fsi_mesh = other_fsi_mesh; };
 
     /// Add forces and torques as external forces to the ChSystem flexible bodies.
     void Add_Flex_Forces_To_ChSystem();
@@ -92,23 +92,23 @@ class ChFsiInterface : public ChFsiGeneral {
     void Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD);
 
   private:
-    ChSystem& sysMBS;          ///< Chrono multibody system
-    ChSystemFsi_impl& sysFSI;  ///< FSI system
+    ChSystem& m_sysMBS;          ///< Chrono multibody system
+    ChSystemFsi_impl& m_sysFSI;  ///< FSI system
 
-    bool verbose;         ///< enable/disable verbose terminal output (default: true)
-    bool output_fsi;      ///< enable/disable output for each FSI body and node
-    std::string out_dir;  ///< output directory
+    bool m_verbose;        ///< enable/disable m_verbose terminal output (default: true)
+    bool m_output_fsi;     ///< enable/disable output for each FSI body and node
+    std::string m_outdir;  ///< output directory
 
-    std::shared_ptr<SimParams> paramsH;  ///< simulation parameters
+    std::shared_ptr<SimParams> m_paramsH;  ///< simulation parameters
 
-    std::shared_ptr<ChronoBodiesDataH> chronoRigidBackup;   ///< backup for the Chrono system state
-    std::shared_ptr<ChronoMeshDataH> chronoFlexMeshBackup;  ///< backup for the Chrono system state
+    std::shared_ptr<ChronoBodiesDataH> m_rigid_backup;  ///< backup for the Chrono system state
+    std::shared_ptr<ChronoMeshDataH> m_flex_backup;     ///< backup for the Chrono system state
 
-    std::shared_ptr<fea::ChMesh>& fsi_mesh;
-    std::vector<std::shared_ptr<ChBody>>& fsiBodies;                        ///< bodies handled by the FSI system
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes;             ///< FEA nodes available in FSI system
-    std::vector<std::shared_ptr<fea::ChElementCableANCF>>& fsiCables;       ///< FEA cable elements in FSI system
-    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells;  ///< FEA shell elements in FSI system
+    std::shared_ptr<fea::ChMesh>& m_fsi_mesh;
+    std::vector<std::shared_ptr<ChBody>>& m_fsi_bodies;                        ///< bodies handled by the FSI system
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& m_fsi_nodes;             ///< FEA nodes available in FSI system
+    std::vector<std::shared_ptr<fea::ChElementCableANCF>>& m_fsi_cables;       ///< FEA cable elements in FSI system
+    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& m_fsi_shells;  ///< FEA shell elements in FSI system
 
     friend class ChSystemFsi;
 };
