@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [User-defined SMC contact force calculation](#added-user-defined-smc-contact-force-calculation)
   - [Redesigned run-time visualization system](#changed-redesigned-run-time-visualization-system)
   - [Vehicle inertia properties](#changed-vehicle-inertia-properties)
   - [CMake project configuration script](#changed-cmake-project-configuration-script)
@@ -65,6 +66,32 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] User-defined SMC contact force calculation
+
+A mechanism was added for overriding the default contact force calculation for a collision pait in an SMC system. The user must supply a class derived from `ChSystemSMC::ChContactForceSMC` and register it through a call to `ChSystemSMC::SetContactForceAlgorithm`.
+
+The user is responsible to implement the virtual function 
+```cpp
+        virtual ChVector<> CalculateForce(
+            const ChSystemSMC& sys,             ///< containing system
+            const ChVector<>& normal_dir,       ///< normal contact direction (expressed in global frame)
+            const ChVector<>& p1,               ///< most penetrated point on obj1 (expressed in global frame)
+            const ChVector<>& p2,               ///< most penetrated point on obj2 (expressed in global frame)
+            const ChVector<>& vel1,             ///< velocity of contact point on obj1 (expressed in global frame)
+            const ChVector<>& vel2,             ///< velocity of contact point on obj2 (expressed in global frame)
+            const ChMaterialCompositeSMC& mat,  ///< composite material for contact pair
+            double delta,                       ///< overlap in normal direction
+            double eff_radius,                  ///< effective radius of curvature at contact
+            double mass1,                       ///< mass of obj1
+            double mass2                        ///< mass of obj2
+            ) const = 0;
+```
+which should return the contact force (resultant of the normal and tangential components) for an interaction between two penetrated shapes, given the geometric quantities for the collision.
+
+The default implementation of the SMC contact force calculation is implemented in `ChContactSMC.h` and depends on various settings specified at the ChSystemSMC level (such as normal force model, tangential force model, use of material physical properties, etc).
+
+For an example of overriding the default Chrono behavior, see `demo_IRR_callbackSMC.cpp`.
 
 ### [Changed] Redesigned run-time visualization system
 

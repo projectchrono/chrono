@@ -15,8 +15,6 @@
 #ifndef CHC_TRIANGLEMESH_H
 #define CHC_TRIANGLEMESH_H
 
-#include <cmath>
-
 #include "chrono/geometry/ChTriangle.h"
 
 namespace chrono {
@@ -47,49 +45,24 @@ class ChApi ChTriangleMesh : public ChGeometry {
     virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale) = 0;
 
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
-    virtual void Transform(const ChVector<> displ, const ChQuaternion<> mquat = ChQuaternion<>(1, 0, 0, 0)) {
-        this->Transform(displ, ChMatrix33<>(mquat));
-    }
+    virtual void Transform(const ChVector<> displ, const ChQuaternion<> mquat = ChQuaternion<>(1, 0, 0, 0));
 
     virtual GeometryType GetClassType() const override { return TRIANGLEMESH; }
 
-    virtual void GetBoundingBox(double& xmin,
-                                double& xmax,
-                                double& ymin,
-                                double& ymax,
-                                double& zmin,
-                                double& zmax,
-                                ChMatrix33<>* Rot = NULL) const override {
-        //// TODO
-    }
+    /// Compute bounding box along the directions defined by the given rotation matrix.
+    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
 
     //// TODO
     //// virtual ChVector<> Baricenter() const override;
-
-    virtual void CovarianceMatrix(ChMatrix33<>& C) const override {
-        //// TODO
-    }
 
     /// This is a surface
     virtual int GetManifoldDimension() const override { return 2; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChTriangleMesh>();
-        // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
-        // serialize all member data:
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        /*int version =*/ marchive.VersionRead<ChTriangleMesh>();
-        // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
-        // stream in all member data:
-    }
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry

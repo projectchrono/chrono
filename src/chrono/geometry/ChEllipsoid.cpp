@@ -26,23 +26,13 @@ ChEllipsoid::ChEllipsoid(const ChEllipsoid& source) {
     rad = source.rad;
 }
 
-void ChEllipsoid::GetBoundingBox(double& xmin,
-                                 double& xmax,
-                                 double& ymin,
-                                 double& ymax,
-                                 double& zmin,
-                                 double& zmax,
-                                 ChMatrix33<>* Rot) const {
-    xmin = -rad.x();
-    xmax = +rad.x();
-    ymin = -rad.y();
-    ymax = +rad.y();
-    zmin = -rad.z();
-    zmax = +rad.z();
+void ChEllipsoid::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
+    cmin = -rad;
+    cmax = +rad;
 }
 
-void ChEllipsoid::CovarianceMatrix(ChMatrix33<>& C) const {
-    C.setZero();
+double ChEllipsoid::GetBoundingSphereRadius() const {
+    return ChMax(rad.x(), ChMax(rad.y(), rad.z()));
 }
 
 void ChEllipsoid::ArchiveOUT(ChArchiveOut& marchive) {

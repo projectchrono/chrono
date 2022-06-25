@@ -39,30 +39,23 @@ void CHOBB::FitToGeometries(ChMatrix33<>& O,
                             double envelope) {
     // store orientation
 
-    this->Rot = O;
+    this->Rot = ChMatrix33<>(1);
 
-    double minx, maxx, miny, maxy, minz, maxz;
-    minx = miny = minz = +10e20;
-    maxx = maxy = maxz = -10e20;
-
-    Vector c;
+    ChVector<> cmin(+std::numeric_limits<double>::max());
+    ChVector<> cmax(-std::numeric_limits<double>::max());
 
     geometry::ChGeometry* nit;
     for (int count = 0; count < ngeos; ++count) {
         nit = mgeos[firstgeo + count];
         if (nit) {
-            nit->InflateBoundingBox(minx, maxx, miny, maxy, minz, maxz, &Rot);
+            nit->InflateBoundingBox(cmin, cmax, Rot);
         }
     }
 
-    c.x() = 0.5 * (maxx + minx);
-    c.y() = 0.5 * (maxy + miny);
-    c.z() = 0.5 * (maxz + minz);
+    ChVector<> c = (cmin + cmax) / 2;
     To = Rot * c;
 
-    d.x() = 0.5 * (maxx - minx) + envelope;
-    d.y() = 0.5 * (maxy - miny) + envelope;
-    d.z() = 0.5 * (maxz - minz) + envelope;
+    d = (cmax - cmin) / 2 + ChVector<>(envelope);
 }
 
 bool CHOBB::OBB_Overlap(ChMatrix33<>& B, Vector T, CHOBB* b1, CHOBB* b2) {

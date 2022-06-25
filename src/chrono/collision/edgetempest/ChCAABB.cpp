@@ -31,25 +31,19 @@ CHAABB::~CHAABB() {
 }
 
 void CHAABB::FitToGeometries(std::vector<geometry::ChGeometry*> mgeos, int firstgeo, int ngeos, double envelope) {
-    double minx, maxx, miny, maxy, minz, maxz;
-    minx = miny = minz = +10e20;
-    maxx = maxy = maxz = -10e20;
+    ChVector<> cmin(+std::numeric_limits<double>::max());
+    ChVector<> cmax(-std::numeric_limits<double>::max());
 
     geometry::ChGeometry* nit = mgeos[firstgeo];
     for (int count = 0; count < ngeos; ++count) {
         nit = mgeos[firstgeo + count];
         if (nit) {
-            nit->InflateBoundingBox(minx, maxx, miny, maxy, minz, maxz, NULL);
+            nit->InflateBoundingBox(cmin, cmax, ChMatrix33<>(1));
         }
     }
 
-    To.x() = 0.5 * (maxx + minx);
-    To.y() = 0.5 * (maxy + miny);
-    To.z() = 0.5 * (maxz + minz);
-
-    d.x() = 0.5 * (maxx - minx) + envelope;
-    d.y() = 0.5 * (maxy - miny) + envelope;
-    d.z() = 0.5 * (maxz - minz) + envelope;
+    To = (cmin + cmax) / 2;
+    d = (cmax - cmin) / 2 + ChVector<>(envelope);
 }
 
 bool CHAABB::AABB_Overlap(ChMatrix33<>& B, Vector T, CHAABB* b1, CHAABB* b2) {

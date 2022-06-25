@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
         for (auto& axle : hmmwv.GetVehicle().GetAxles()) {
             terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
             terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
-        }    
+        }
     } else {
         // Optionally, enable moving patch feature (single patch around vehicle chassis)
         terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
@@ -243,6 +243,9 @@ int main(int argc, char* argv[]) {
     // ---------------
     bool stats_done = false;
 
+    // Disable automatic vehicle realtime
+    hmmwv.GetVehicle().EnableRealtime(false);
+
     // Solver settings
     sys.SetSolverMaxIterations(50);
 
@@ -268,7 +271,7 @@ int main(int argc, char* argv[]) {
 
                 std::string fname = "stats_" + std::to_string(nthreads) + ".out";
                 std::ofstream ofile(fname.c_str(), std::ios_base::app);
-                ofile << raytest / nsteps << " " << raycast / nsteps << " " << rtf << endl; 
+                ofile << raytest / nsteps << " " << raycast / nsteps << " " << rtf << endl;
                 ofile.close();
                 cout << "\nOUTPUT FILE: " << fname << endl;
 
@@ -288,7 +291,7 @@ int main(int argc, char* argv[]) {
             }
 
             if (!visualize)
-                break;            
+                break;
         }
 
 #ifdef CHRONO_IRRLICHT
@@ -341,7 +344,8 @@ void AddCommandLineOptions(ChCLI& cli) {
     cli.AddOption<double>("Test", "s,step_size", "Step size", std::to_string(step_size));
     cli.AddOption<double>("Test", "e,end_time", "End time", std::to_string(end_time));
     cli.AddOption<int>("Test", "n,nthreads", "Number threads", std::to_string(nthreads));
-    cli.AddOption<bool>("Test", "c,csys", "Use Chrono multicore collision (false: Bullet)", std ::to_string(chrono_collsys));
+    cli.AddOption<bool>("Test", "c,csys", "Use Chrono multicore collision (false: Bullet)",
+                        std ::to_string(chrono_collsys));
     cli.AddOption<bool>("Test", "w,wheel_patches", "Use patches under each wheel", std::to_string(wheel_patches));
     cli.AddOption<bool>("Test", "v,vis", "Enable run-time visualization", std::to_string(visualize));
 }

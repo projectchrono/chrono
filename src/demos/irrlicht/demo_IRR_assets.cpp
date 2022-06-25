@@ -173,10 +173,8 @@ int main(int argc, char* argv[]) {
     // EXAMPLE 3:
     //
 
-    // Create a ChParticleClones cluster, and attach 'assets'
-    // that define a single "sample" 3D shape. This will be shown
-    // N times in Irrlicht.
-    //***NOTE*** This crashes with Irrlicht 1.8 , it is ok with 1.7.x and 1.8.1 + ,
+    // Create a ChParticleClones cluster, and attach 'assets' that define a single "sample" 3D shape. 
+    // This will be shown N times in Irrlicht.
 
     // Create the ChParticleClones, populate it with some random particles,
     // and add it to physical system:
@@ -209,6 +207,12 @@ int main(int argc, char* argv[]) {
     sphereparticle->GetSphereGeometry().rad = 0.05;
     particles->AddVisualShape(sphereparticle);
 
+    //
+    // EXAMPLE 4:
+    //
+
+    // Create a convex hull shape
+
     ChVector<> displ(1, 0.0, 0);
     std::vector<ChVector<>> points;
     points.push_back(ChVector<>(0.8, 0.0, 0.0) + displ);
@@ -222,6 +226,12 @@ int main(int argc, char* argv[]) {
     ////hull->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(2,0.3,0)));
     ////hull->SetPos(ChVector<>(2,0.3,0));
     hull->Move(ChVector<>(2, 0.3, 0));
+    
+     // Create a visualization material
+    auto cadet_blue = chrono_types::make_shared<ChVisualMaterial>();
+    cadet_blue->SetDiffuseColor(ChColor(0.37f, 0.62f, 0.62f));
+    hull->GetVisualShape(0)->SetMaterial(0, cadet_blue);
+
     sys.Add(hull);
 
     // Create the Irrlicht visualization system

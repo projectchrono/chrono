@@ -82,6 +82,24 @@ void ChTriangleMeshConnected::Clear() {
     m_face_mat_indices.clear();
 }
 
+void ChTriangleMeshConnected::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
+    cmin = ChVector<>(+std::numeric_limits<double>::max());
+    cmax = ChVector<>(-std::numeric_limits<double>::max());
+
+    for (const auto& v : m_vertices) {
+        auto p = rot.transpose() * v;
+
+        cmin.x() = ChMin(cmin.x(), p.x());
+        cmin.y() = ChMin(cmin.y(), p.y());
+        cmin.z() = ChMin(cmin.z(), p.z());
+
+        cmax.x() = ChMax(cmax.x(), p.x());
+        cmax.y() = ChMax(cmax.y(), p.y());
+        cmax.z() = ChMax(cmax.z(), p.z());
+    }
+}
+
+
 // Following function is a modified version of:
 //
 // Geometric Tools, LLC
