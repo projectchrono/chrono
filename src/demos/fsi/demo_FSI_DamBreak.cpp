@@ -22,6 +22,7 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/utils/ChFsiVisualization.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -33,7 +34,7 @@ using namespace chrono::fsi;
 //------------------------------------------------------------------
 
 // Output directories and settings
-const std::string out_dir = GetChronoOutputPath() + "FSI_DAM_BREAK/";
+const std::string out_dir = GetChronoOutputPath() + "FSI_Dam_Break/";
 
 // Output frequency
 bool output = true;
@@ -51,6 +52,10 @@ double fzDim = 2.0;
 
 // Final simulation time
 double t_end = 10.0;
+
+// Enable/disable run-time visualization (if Chrono::OpenGL is available)
+bool render = true;
+float render_fps = 100;
 
 //------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
@@ -97,8 +102,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // You may uncomment the following lines to have side walls as well.
     // To show the use of Periodic boundary condition, these walls are not added
     // To this end, cMin and cMax were set up appropriately
-    // chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yp, QUNIT, true);
-    // chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yn, QUNIT, true);
+    ////chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yp, QUNIT, true);
+    ////chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yn, QUNIT, true);
     ground->GetCollisionModel()->BuildModel();
     sysMBS.AddBody(ground);
 
@@ -109,11 +114,12 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysFSI.AddBoxBCE(ground, pos_xn, QUNIT, size_YZ, 23);
     // If you uncommented the above lines that add the side walls, you should uncomment the following two lines as
     // well. This is necessary in order to populate the walls with BCE markers for the fluid simulation
-    // sysFSI.AddBoxBce(ground, pos_yp, QUNIT, size_XZ, 13);
-    // sysFSI.AddBoxBce(ground, pos_yn, QUNIT, size_XZ, 13);
+    ////sysFSI.AddBoxBce(ground, pos_yp, QUNIT, size_XZ, 13);
+    ////sysFSI.AddBoxBce(ground, pos_yn, QUNIT, size_XZ, 13);
 }
 
 // =============================================================================
+
 int main(int argc, char* argv[]) {
     // Create oputput directories
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -183,9 +189,20 @@ int main(int argc, char* argv[]) {
     // Complete construction of the FSI system
     sysFSI.Initialize();
 
+    // Create a run-tme visualizer
+    ChFsiVisualization fsi_vis(&sysFSI);
+    if (render) {
+        fsi_vis.SetTitle("Chrono::FSI dam break");
+        fsi_vis.SetCameraPosition(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
+        fsi_vis.SetCameraMoveScale(1.0f);
+        fsi_vis.EnableBoundaryMarkers(false);
+        fsi_vis.Initialize();
+    }
+
     // Start the simulation
     double dT = sysFSI.GetStepSize();
     unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
+    unsigned int render_steps = (unsigned int)(1 / (render_fps * dT));
 
     double time = 0;
     int current_step = 0;
@@ -193,12 +210,18 @@ int main(int argc, char* argv[]) {
     ChTimer<> timer;
     timer.start();
     while (time < t_end) {
-        printf("\nstep : %d, time= : %f (s) \n", current_step, time);
+        std::cout << "step: " << current_step << "  time: " << time << std::endl;
 
         // Save data of the simulation
         if (output && current_step % output_steps == 0) {
             std::cout << "------- OUTPUT" << std::endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
+        }
+
+        // Render SPH particles
+        if (render && current_step % render_steps == 0) {
+            if (fsi_vis.Render())
+                break;
         }
 
         // Call the FSI solver

@@ -24,6 +24,7 @@
 #include "chrono/core/ChTransform.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/utils/ChFsiVisualization.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -34,7 +35,7 @@ using namespace chrono::fsi;
 // -----------------------------------------------------------------
 
 // Output directories and settings
-const std::string out_dir = GetChronoOutputPath() + "FSI_CYLINDER_DROP/";
+const std::string out_dir = GetChronoOutputPath() + "FSI_Cylinder_Drop/";
 
 // Output frequency
 bool output = true;
@@ -49,6 +50,10 @@ double cyl_radius = 0.12;
 
 // Final simulation time
 double t_end = 2.0;
+
+// Enable/disable run-time visualization (if Chrono::OpenGL is available)
+bool render = true;
+float render_fps = 1000;
 
 //------------------------------------------------------------------
 // Function to add walls into Chrono system
@@ -65,11 +70,15 @@ void AddWall(std::shared_ptr<ChBody> body,
 //------------------------------------------------------------------
 // Function to save cylinder to Paraview VTK files
 //------------------------------------------------------------------
-void WriteCylinderVTK(std::shared_ptr<ChBody> Body, double radius, double length, int res, char SaveAsBuffer[256]) {
-    std::ofstream output;
-    output.open(SaveAsBuffer, std::ios::app);
-    output << "# vtk DataFile Version 1.0\nUnstructured Grid Example\nASCII\n\n" << std::endl;
-    output << "DATASET UNSTRUCTURED_GRID\nPOINTS " << 2 * res << " float\n";
+void WriteCylinderVTK(std::shared_ptr<ChBody> Body,
+                      double radius,
+                      double length,
+                      int res,
+                      const std::string& filename) {
+    std::ofstream outf;
+    outf.open(filename, std::ios::app);
+    outf << "# vtk DataFile Version 1.0\nUnstructured Grid Example\nASCII\n\n" << std::endl;
+    outf << "DATASET UNSTRUCTURED_GRID\nPOINTS " << 2 * res << " float\n";
 
     ChVector<> center = Body->GetPos();
 
@@ -81,7 +90,7 @@ void WriteCylinderVTK(std::shared_ptr<ChBody> Body, double radius, double length
         thisNode.y() = -1 * length / 2;
         thisNode.z() = radius * sin(2 * i * 3.1415 / res);
         vertex = Rotation * thisNode + center;  // rotate/scale, if needed
-        output << vertex.x() << " " << vertex.y() << " " << vertex.z() << "\n";
+        outf << vertex.x() << " " << vertex.y() << " " << vertex.z() << "\n";
     }
 
     for (int i = 0; i < res; i++) {
@@ -90,72 +99,43 @@ void WriteCylinderVTK(std::shared_ptr<ChBody> Body, double radius, double length
         thisNode.y() = +1 * length / 2;
         thisNode.z() = radius * sin(2 * i * 3.1415 / res);
         vertex = Rotation * thisNode + center;  // rotate/scale, if needed
-        output << vertex.x() << " " << vertex.y() << " " << vertex.z() << "\n";
+        outf << vertex.x() << " " << vertex.y() << " " << vertex.z() << "\n";
     }
 
-    output << "\n\nCELLS " << (unsigned int)res + res << "\t" << (unsigned int)5 * (res + res) << "\n";
+    outf << "\n\nCELLS " << (unsigned int)res + res << "\t" << (unsigned int)5 * (res + res) << "\n";
 
     for (int i = 0; i < res - 1; i++) {
-        output << "4 " << i << " " << i + 1 << " " << i + res + 1 << " " << i + res << "\n";
+        outf << "4 " << i << " " << i + 1 << " " << i + res + 1 << " " << i + res << "\n";
     }
-    output << "4 " << res - 1 << " " << 0 << " " << res << " " << 2 * res - 1 << "\n";
+    outf << "4 " << res - 1 << " " << 0 << " " << res << " " << 2 * res - 1 << "\n";
 
     for (int i = 0; i < res / 4; i++) {
-        output << "4 " << i << " " << i + 1 << " " << +res / 2 - i - 1 << " " << +res / 2 - i << "\n";
+        outf << "4 " << i << " " << i + 1 << " " << +res / 2 - i - 1 << " " << +res / 2 - i << "\n";
     }
 
     for (int i = 0; i < res / 4; i++) {
-        output << "4 " << i + res << " " << i + 1 + res << " " << +res / 2 - i - 1 + res << " " << +res / 2 - i + res
-               << "\n";
+        outf << "4 " << i + res << " " << i + 1 + res << " " << +res / 2 - i - 1 + res << " " << +res / 2 - i + res
+             << "\n";
     }
 
-    output << "4 " << +res / 2 << " " << 1 + res / 2 << " " << +res - 1 << " " << 0 << "\n";
+    outf << "4 " << +res / 2 << " " << 1 + res / 2 << " " << +res - 1 << " " << 0 << "\n";
 
     for (int i = 1; i < res / 4; i++) {
-        output << "4 " << i + res / 2 << " " << i + 1 + res / 2 << " " << +res / 2 - i - 1 + res / 2 << " "
-               << +res / 2 - i + res / 2 << "\n";
+        outf << "4 " << i + res / 2 << " " << i + 1 + res / 2 << " " << +res / 2 - i - 1 + res / 2 << " "
+             << +res / 2 - i + res / 2 << "\n";
     }
 
-    output << "4 " << 3 * res / 2 << " " << 1 + 3 * res / 2 << " " << +2 * res - 1 << " " << +res << "\n";
+    outf << "4 " << 3 * res / 2 << " " << 1 + 3 * res / 2 << " " << +2 * res - 1 << " " << +res << "\n";
 
     for (int i = 1; i < res / 4; i++) {
-        output << "4 " << i + 3 * res / 2 << " " << i + 1 + 3 * res / 2 << " " << +2 * res - i - 1 << " "
-               << +2 * res - i << "\n";
+        outf << "4 " << i + 3 * res / 2 << " " << i + 1 + 3 * res / 2 << " " << +2 * res - i - 1 << " " << +2 * res - i
+             << "\n";
     }
 
-    output << "\nCELL_TYPES " << res + res << "\n";
+    outf << "\nCELL_TYPES " << res + res << "\n";
 
     for (int iele = 0; iele < (res + res); iele++) {
-        output << "9\n";
-    }
-}
-
-//------------------------------------------------------------------
-// Function to save the paraview files
-//------------------------------------------------------------------
-void SaveParaViewFiles(ChSystemFsi& sysFSI,
-                       ChSystemSMC& sysMBS,
-                       int this_frame,
-                       double mTime,
-                       std::shared_ptr<ChBody> Cylinder) {
-    /// Simulation time between two output frames
-    double frame_time = 1.0 / out_fps;
-
-    /// Output data to files
-    if (output && std::abs(mTime - (this_frame)*frame_time) < 1e-5) {
-        /// save particles to cvs files
-        sysFSI.PrintParticleToFile(out_dir + "/particles");
-
-        /// save rigid bodies to vtk files
-        char SaveAsRigidObjVTK[256];
-        static int RigidCounter = 0;
-        snprintf(SaveAsRigidObjVTK, sizeof(char) * 256, (out_dir + "vtk/Cylinder.%d.vtk").c_str(), RigidCounter);
-        WriteCylinderVTK(Cylinder, cyl_radius, cyl_length, 100, SaveAsRigidObjVTK);
-        RigidCounter++;
-        std::cout << "\n--------------------------------\n" << std::endl;
-        std::cout << "------------ Output Frame:   " << this_frame << std::endl;
-        std::cout << "------------ Sim Time:       " << mTime << " (s)\n" << std::endl;
-        std::cout << "--------------------------------\n" << std::endl;
+        outf << "9\n";
     }
 }
 
@@ -338,36 +318,52 @@ int main(int argc, char* argv[]) {
     mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
     mystepper->SetScaling(true);
 
-    // Start the simulation
-    double dT = sysFSI.GetStepSize();
-    double time = 0;
-    int stepEnd = int(t_end / dT);
-    double TIMING_sta = clock();
-    for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
-        printf("\nstep : %d, time= : %f (s) \n", tStep, time);
-        double frame_time = 1.0 / out_fps;
-        int this_frame = (int)floor((time + 1e-6) / frame_time);
-
-        /// Get the position of the container and cylinder
-        auto box = sysMBS.Get_bodylist()[0];
-        auto cyl = sysMBS.Get_bodylist()[1];
-
-        printf("box=%f,%f,%f\n", box->GetPos().x(), box->GetPos().y(), box->GetPos().z());
-        printf("cyl=%f,%f,%f\n", cyl->GetPos().x(), cyl->GetPos().y(), cyl->GetPos().z());
-
-        /// Get the cylinder from the FSI system and Save data of the simulation
-        std::vector<std::shared_ptr<ChBody>>& FSI_Bodies = sysFSI.GetFsiBodies();
-        auto Cylinder = FSI_Bodies[0];
-        SaveParaViewFiles(sysFSI, sysMBS, this_frame, time, Cylinder);
-
-        /// Call the FSI solver
-        sysFSI.DoStepDynamics_FSI();
-        time += dT;
+    // Create a run-tme visualizer
+    ChFsiVisualization fsi_vis(&sysFSI);
+    if (render) {
+        fsi_vis.SetTitle("Chrono::FSI cylinder drop");
+        fsi_vis.SetCameraPosition(ChVector<>(0, -3 * byDim, 2 * bzDim), ChVector<>(0, 0, 0));
+        fsi_vis.SetCameraMoveScale(1.0f);
+        fsi_vis.EnableBoundaryMarkers(false);
+        fsi_vis.Initialize();
     }
 
-    // Total computational cost
-    double TIMING_end = (clock() - TIMING_sta) / (double)CLOCKS_PER_SEC;
-    printf("\nSimulation Finished in %f (s)\n", TIMING_end);
+    // Start the simulation
+    double dT = sysFSI.GetStepSize();
+    unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
+    unsigned int render_steps = (unsigned int)(1 / (render_fps * dT));
+
+    double time = 0.0;
+    int current_step = 0;
+
+    ChTimer<> timer;
+    timer.start();
+    while (time < t_end) {
+        std::cout << "step: " << current_step << "  time: " << time << std::endl;
+        std::cout << "   box: " << sysMBS.Get_bodylist()[0]->GetPos() << std::endl;
+        std::cout << "   cyl: " << sysMBS.Get_bodylist()[1]->GetPos() << std::endl;
+
+        if (output && current_step % output_steps == 0) {
+            std::cout << "-------- Output" << std::endl;
+            sysFSI.PrintParticleToFile(out_dir + "/particles");
+            static int counter = 0;
+            std::string filename = out_dir + "/vtk/cylinder." + std::to_string(counter++) + ".vtk";
+            WriteCylinderVTK(sysFSI.GetFsiBodies()[0], cyl_radius, cyl_length, 100, filename);
+        }
+
+        // Render SPH particles
+        if (render && current_step % render_steps == 0) {
+            if (fsi_vis.Render())
+                break;
+        }
+
+        // Call the FSI solver
+        sysFSI.DoStepDynamics_FSI();
+        time += dT;
+        current_step++;
+    }
+    timer.stop();
+    std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
 
     return 0;
 }

@@ -30,7 +30,7 @@ using namespace chrono::fsi;
 // -----------------------------------------------------------------
 
 // Output directories and settings
-const std::string out_dir = GetChronoOutputPath() + "FSI_COMPRESSIBILITY/";
+const std::string out_dir = GetChronoOutputPath() + "FSI_Compressibility/";
 
 // Output frequency
 bool output = true;
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
     ChTimer<> timer;
     timer.start();
     while (time < t_end) {
-        printf("\nstep : %d, time= : %f (s) \n", current_step, time);
+        std::cout << "step: " << current_step << "  time: " << time << std::endl;
 
         // Save data of the simulation
         if (output && current_step % output_steps == 0) {
@@ -186,11 +186,11 @@ int main(int argc, char* argv[]) {
         auto rhoPresMu = sysFSI.GetParticlePosOrProperties();
         auto vel = sysFSI.GetParticleVel();
 
-        std::ofstream output;
+        std::ofstream outf;
         std::string delim = ",";
-        output.open((out_dir + "/Analysis.txt"), std::ios::app);
+        outf.open((out_dir + "/Analysis.txt"), std::ios::app);
         if (current_step == 0)
-            output << "Time" << delim << "Rho_fluid" << delim << "k_fluid" << std::endl;
+            outf << "Time" << delim << "Rho_fluid" << delim << "k_fluid" << std::endl;
 
         double KE = 0;
         double Rho = 0;
@@ -199,8 +199,8 @@ int main(int argc, char* argv[]) {
             Rho += rhoPresMu[i].x();
         }
 
-        output << time << delim << Rho / numPart << delim << sysFSI.GetParticleMass() * KE / numPart << std::endl;
-        output.close();
+        outf << time << delim << Rho / numPart << delim << sysFSI.GetParticleMass() * KE / numPart << std::endl;
+        outf.close();
 
         time += dT;
         current_step++;

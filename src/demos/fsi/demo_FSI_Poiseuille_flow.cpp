@@ -31,7 +31,7 @@ using namespace chrono::collision;
 using namespace chrono::fsi;
 
 // Output directories and settings
-const std::string out_dir = GetChronoOutputPath() + "FSI_POISEUILLE_FLOW/";
+const std::string out_dir = GetChronoOutputPath() + "FSI_Poiseuille_Flow/";
 
 // Output frequency
 bool output = true;
@@ -86,6 +86,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 }
 
 // =============================================================================
+
 int main(int argc, char* argv[]) {
     // Create oputput directories
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -161,7 +162,7 @@ int main(int argc, char* argv[]) {
     ChTimer<> timer;
     timer.start();
     while (time < t_end) {
-        printf("\nstep : %d, time= : %f (s) \n", current_step, time);
+        std::cout << "step: " << current_step << "  time: " << time << std::endl;
 
         // Save data of the simulation
         if (output && current_step % output_steps == 0) {
