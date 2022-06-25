@@ -56,8 +56,7 @@ double t_end = 10.0;
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& sysMBS,
-                      ChSystemFsi& sysFSI) {
+void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set common material Properties
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(6e4);
@@ -104,10 +103,10 @@ void CreateSolidPhase(ChSystemSMC& sysMBS,
     sysMBS.AddBody(ground);
 
     // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddBceBox(ground, pos_zn, QUNIT, size_XY, 12);
-    sysFSI.AddBceBox(ground, pos_zp, QUNIT, size_XY, 12);
-    sysFSI.AddBceBox(ground, pos_xp, QUNIT, size_YZ, 23);
-    sysFSI.AddBceBox(ground, pos_xn, QUNIT, size_YZ, 23);
+    sysFSI.AddBoxBCE(ground, pos_zn, QUNIT, size_XY, 12);
+    sysFSI.AddBoxBCE(ground, pos_zp, QUNIT, size_XY, 12);
+    sysFSI.AddBoxBCE(ground, pos_xp, QUNIT, size_YZ, 23);
+    sysFSI.AddBoxBCE(ground, pos_xn, QUNIT, size_YZ, 23);
     // If you uncommented the above lines that add the side walls, you should uncomment the following two lines as
     // well. This is necessary in order to populate the walls with BCE markers for the fluid simulation
     // sysFSI.AddBoxBce(ground, pos_yp, QUNIT, size_XZ, 13);
@@ -174,7 +173,7 @@ int main(int argc, char* argv[]) {
         // Calculate the pressure of a steady state (p = rho*g*h)
         auto pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + fzDim);
         auto rho_ini = sysFSI.GetDensity() + pre_ini / (sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed());
-        sysFSI.AddSphMarker(points[i], rho_ini, pre_ini, sysFSI.GetViscosity(), sysFSI.GetKernelLength(), -1);
+        sysFSI.AddSPHParticle(points[i], rho_ini, pre_ini, sysFSI.GetViscosity(), sysFSI.GetKernelLength(), -1);
     }
     sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 

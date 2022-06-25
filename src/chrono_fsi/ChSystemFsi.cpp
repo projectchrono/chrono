@@ -21,6 +21,7 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
@@ -31,7 +32,7 @@
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorBce.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFluid.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/filesystem/resolver.h"
@@ -938,37 +939,37 @@ void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::AddSphMarker(const ChVector<>& point,
-                               double rho0,
-                               double pres0,
-                               double mu0,
-                               double h,
-                               double particle_type,
-                               const ChVector<>& velocity,
-                               const ChVector<>& tauXxYyZz,
-                               const ChVector<>& tauXyXzYz) {
-    sysFSI.AddSphMarker(ChUtilsTypeConvert::ChVectorToReal4(point, h), mR4(rho0, pres0, mu0, particle_type),
-                        ChUtilsTypeConvert::ChVectorToReal3(velocity), ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
-                        ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
+void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
+                                 double rho0,
+                                 double pres0,
+                                 double mu0,
+                                 double h,
+                                 double particle_type,
+                                 const ChVector<>& velocity,
+                                 const ChVector<>& tauXxYyZz,
+                                 const ChVector<>& tauXyXzYz) {
+    sysFSI.AddSPHParticle(ChUtilsTypeConvert::ChVectorToReal4(point, h), mR4(rho0, pres0, mu0, particle_type),
+                          ChUtilsTypeConvert::ChVectorToReal3(velocity), ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
+                          ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
 }
 
-void ChSystemFsi::AddSphMarker(const ChVector<>& point,
-                               double particle_type,
-                               const ChVector<>& velocity,
-                               const ChVector<>& tauXxYyZz,
-                               const ChVector<>& tauXyXzYz) {
-    AddSphMarker(point, paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, paramsH->HSML, particle_type, velocity,
-                 tauXxYyZz, tauXyXzYz);
+void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
+                                 double particle_type,
+                                 const ChVector<>& velocity,
+                                 const ChVector<>& tauXxYyZz,
+                                 const ChVector<>& tauXyXzYz) {
+    AddSPHParticle(point, paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, paramsH->HSML, particle_type, velocity,
+                   tauXxYyZz, tauXyXzYz);
 }
 
 void ChSystemFsi::AddRefArray(const int start, const int numPart, const int compType, const int phaseType) {
     sysFSI.fsiGeneralData->referenceArray.push_back(mI4(start, numPart, compType, phaseType));
 }
 
-void ChSystemFsi::AddSphMarkerBox(double initSpace,
-                                  double kernelLength,
-                                  const ChVector<>& boxCenter,
-                                  const ChVector<>& boxHalfDim) {
+void ChSystemFsi::AddBoxSPH(double initSpace,
+                            double kernelLength,
+                            const ChVector<>& boxCenter,
+                            const ChVector<>& boxHalfDim) {
     // Use a chrono sampler to create a bucket of points
     chrono::utils::GridSampler<> sampler(initSpace);
     std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
@@ -976,15 +977,15 @@ void ChSystemFsi::AddSphMarkerBox(double initSpace,
     // Add fluid particles from the sampler points to the FSI system
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
-        AddSphMarker(points[i], paramsH->rho0, 0, paramsH->mu0, kernelLength, -1,
-                     ChVector<>(0),   // initial velocity
-                     ChVector<>(0),   // tauxxyyzz
-                     ChVector<>(0));  // tauxyxzyz
+        AddSPHParticle(points[i], paramsH->rho0, 0, paramsH->mu0, kernelLength, -1,
+                       ChVector<>(0),   // initial velocity
+                       ChVector<>(0),   // tauxxyyzz
+                       ChVector<>(0));  // tauxyxzyz
     }
     AddRefArray(0, (int)numPart, -1, -1);
 }
 
-void ChSystemFsi::AddBceBox(std::shared_ptr<ChBody> body,
+void ChSystemFsi::AddBoxBCE(std::shared_ptr<ChBody> body,
                             const ChVector<>& relPos,
                             const ChQuaternion<>& relRot,
                             const ChVector<>& size,
@@ -996,7 +997,7 @@ void ChSystemFsi::AddBceBox(std::shared_ptr<ChBody> body,
     posRadBCE.clear();
 }
 
-void ChSystemFsi::AddBceSphere(std::shared_ptr<ChBody> body,
+void ChSystemFsi::AddSphereBCE(std::shared_ptr<ChBody> body,
                                const ChVector<>& relPos,
                                const ChQuaternion<>& relRot,
                                double radius) {
@@ -1006,7 +1007,7 @@ void ChSystemFsi::AddBceSphere(std::shared_ptr<ChBody> body,
     posRadBCE.clear();
 }
 
-void ChSystemFsi::AddBceSphereSurface(std::shared_ptr<ChBody> body,
+void ChSystemFsi::AddSphereSurfaceBCE(std::shared_ptr<ChBody> body,
                                       const ChVector<>& relPos,
                                       const ChQuaternion<>& relRot,
                                       Real radius,
@@ -1019,7 +1020,7 @@ void ChSystemFsi::AddBceSphereSurface(std::shared_ptr<ChBody> body,
     normals.clear();
 }
 
-void ChSystemFsi::AddBceCylinder(std::shared_ptr<ChBody> body,
+void ChSystemFsi::AddCylinderBCE(std::shared_ptr<ChBody> body,
                                  const ChVector<>& relPos,
                                  const ChQuaternion<>& relRot,
                                  double radius,
@@ -1032,7 +1033,7 @@ void ChSystemFsi::AddBceCylinder(std::shared_ptr<ChBody> body,
     posRadBCE.clear();
 }
 
-void ChSystemFsi::AddBceCylinderSurface(std::shared_ptr<ChBody> body,
+void ChSystemFsi::AddCylinderSurfaceBCE(std::shared_ptr<ChBody> body,
                                         const ChVector<>& relPos,
                                         const ChQuaternion<>& relRot,
                                         Real radius,
@@ -1046,7 +1047,7 @@ void ChSystemFsi::AddBceCylinderSurface(std::shared_ptr<ChBody> body,
     normals.clear();
 }
 
-void ChSystemFsi::AddBceCone(std::shared_ptr<ChBody> body,
+void ChSystemFsi::AddConeBCE(std::shared_ptr<ChBody> body,
                              const ChVector<>& relPos,
                              const ChQuaternion<>& relRot,
                              double radius,
@@ -1059,17 +1060,17 @@ void ChSystemFsi::AddBceCone(std::shared_ptr<ChBody> body,
     posRadBCE.clear();
 }
 
-void ChSystemFsi::AddBceFromPoints(std::shared_ptr<ChBody> body,
-                                   const std::vector<chrono::ChVector<>>& points,
-                                   const ChVector<>& collisionShapeRelativePos,
-                                   const ChQuaternion<>& collisionShapeRelativeRot) {
+void ChSystemFsi::AddPointsBCE(std::shared_ptr<ChBody> body,
+                               const std::vector<chrono::ChVector<>>& points,
+                               const ChVector<>& collisionShapeRelativePos,
+                               const ChQuaternion<>& collisionShapeRelativeRot) {
     thrust::host_vector<Real4> posRadBCE;
     for (auto& p : points)
         posRadBCE.push_back(mR4(p.x(), p.y(), p.z(), paramsH->HSML));
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, collisionShapeRelativePos, collisionShapeRelativeRot);
 }
 
-void ChSystemFsi::AddBceFile(std::shared_ptr<ChBody> body,
+void ChSystemFsi::AddFileBCE(std::shared_ptr<ChBody> body,
                              const std::string& dataPath,
                              const ChVector<>& collisionShapeRelativePos,
                              const ChQuaternion<>& collisionShapeRelativeRot,
@@ -1085,16 +1086,16 @@ void ChSystemFsi::AddBceFile(std::shared_ptr<ChBody> body,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::AddBceFromMesh(std::shared_ptr<fea::ChMesh> my_mesh,
-                                 const std::vector<std::vector<int>>& NodeNeighborElement,
-                                 const std::vector<std::vector<int>>& _1D_elementsNodes,
-                                 const std::vector<std::vector<int>>& _2D_elementsNodes,
-                                 bool add1DElem,
-                                 bool add2DElem,
-                                 bool multiLayer,
-                                 bool removeMiddleLayer,
-                                 int SIDE,
-                                 int SIDE2D) {
+void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
+                                const std::vector<std::vector<int>>& NodeNeighborElement,
+                                const std::vector<std::vector<int>>& _1D_elementsNodes,
+                                const std::vector<std::vector<int>>& _2D_elementsNodes,
+                                bool add1DElem,
+                                bool add2DElem,
+                                bool multiLayer,
+                                bool removeMiddleLayer,
+                                int SIDE,
+                                int SIDE2D) {
     double kernel_h = 0;
 
     thrust::host_vector<Real4> posRadBCE;
@@ -1189,17 +1190,17 @@ void ChSystemFsi::AddBceFromMesh(std::shared_ptr<fea::ChMesh> my_mesh,
     }
 }
 
-void ChSystemFsi::AddBCE_ShellANCF(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
-                                   std::shared_ptr<fea::ChMesh> my_mesh,
-                                   bool multiLayer,
-                                   bool removeMiddleLayer,
-                                   int SIDE) {
+void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
+                                  std::shared_ptr<fea::ChMesh> mesh,
+                                  bool multiLayer,
+                                  bool removeMiddleLayer,
+                                  int SIDE) {
     thrust::host_vector<Real4> posRadBCE;
-    int numShells = my_mesh->GetNelements();
+    int numShells = mesh->GetNelements();
     if (verbose)
         cout << "number of shells to be meshed is " << numShells << endl;
     for (size_t i = 0; i < numShells; i++) {
-        auto thisShell = std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(my_mesh->GetElement((unsigned int)i));
+        auto thisShell = std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(mesh->GetElement((unsigned int)i));
         fsiShells.push_back(thisShell);
         utils::CreateBCE_On_shell(posRadBCE, paramsH, thisShell, multiLayer, removeMiddleLayer, SIDE);
         CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell);
@@ -1208,27 +1209,27 @@ void ChSystemFsi::AddBCE_ShellANCF(std::vector<std::shared_ptr<fea::ChElementShe
     }
 }
 
-void ChSystemFsi::AddBCE_ShellFromMesh(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
-                                       std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes,
-                                       std::shared_ptr<fea::ChMesh> my_mesh,
-                                       const std::vector<std::vector<int>>& elementsNodes,
-                                       const std::vector<std::vector<int>>& NodeNeighborElement,
-                                       bool multiLayer,
-                                       bool removeMiddleLayer,
-                                       int SIDE) {
+void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
+                                  std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes,
+                                  std::shared_ptr<fea::ChMesh> mesh,
+                                  const std::vector<std::vector<int>>& elementsNodes,
+                                  const std::vector<std::vector<int>>& NodeNeighborElement,
+                                  bool multiLayer,
+                                  bool removeMiddleLayer,
+                                  int SIDE) {
     thrust::host_vector<Real4> posRadBCE;
-    int numShells = my_mesh->GetNelements();
+    int numShells = mesh->GetNelements();
     std::vector<int> remove;
 
     for (size_t i = 0; i < NodeNeighborElement.size(); i++) {
-        auto thisNode = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(my_mesh->GetNode((unsigned int)i));
+        auto thisNode = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(mesh->GetNode((unsigned int)i));
         fsiNodes.push_back(thisNode);
     }
 
     for (size_t i = 0; i < numShells; i++) {
         remove.resize(4);
         std::fill(remove.begin(), remove.begin() + 4, 0);
-        auto thisShell = std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(my_mesh->GetElement((unsigned int)i));
+        auto thisShell = std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(mesh->GetElement((unsigned int)i));
         fsiShells.push_back(thisShell);
         // Look into the nodes of this element
         size_t myNumNodes = (elementsNodes[i].size() > 4) ? 4 : elementsNodes[i].size();
@@ -1265,29 +1266,13 @@ void ChSystemFsi::AddBCE_ShellFromMesh(std::vector<std::shared_ptr<fea::ChElemen
     }
 }
 
-void ChSystemFsi::CreateMeshMarkers(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
-                                    double delta,
-                                    std::vector<ChVector<>>& point_cloud) {
+void ChSystemFsi::CreateMeshPoints(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
+                                   double delta,
+                                   std::vector<ChVector<>>& point_cloud) {
     mesh->RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
-
-    ChVector<> minV = mesh->m_vertices[0];
-    ChVector<> maxV = mesh->m_vertices[0];
-    ChVector<> currV = mesh->m_vertices[0];
-    for (unsigned int i = 1; i < mesh->m_vertices.size(); ++i) {
-        currV = mesh->m_vertices[i];
-        if (minV.x() > currV.x())
-            minV.x() = currV.x();
-        if (minV.y() > currV.y())
-            minV.y() = currV.y();
-        if (minV.z() > currV.z())
-            minV.z() = currV.z();
-        if (maxV.x() < currV.x())
-            maxV.x() = currV.x();
-        if (maxV.y() < currV.y())
-            maxV.y() = currV.y();
-        if (maxV.z() < currV.z())
-            maxV.z() = currV.z();
-    }
+    ChVector<> minV;
+    ChVector<> maxV;
+    mesh->GetBoundingBox(minV, maxV, ChMatrix33<>(1));
 
     const double EPSI = 1e-6;
 
@@ -1308,58 +1293,58 @@ void ChSystemFsi::CreateMeshMarkers(std::shared_ptr<geometry::ChTriangleMeshConn
                     auto& v2 = mesh->m_vertices[t_face.y()];
                     auto& v3 = mesh->m_vertices[t_face.z()];
 
-                    /// Find vectors for two edges sharing V1
+                    // Find vectors for two edges sharing V1
                     auto edge1 = v2 - v1;
                     auto edge2 = v3 - v1;
 
-                    bool t_inter[2] = {false, false};
+                    int t_inter[2] = {0, 0};
 
                     for (unsigned int j = 0; j < 2; j++) {
-                        /// Begin calculating determinant - also used to calculate uu parameter
+                        // Begin calculating determinant - also used to calculate uu parameter
                         auto pvec = Vcross(ray_dir[j], edge2);
-                        /// if determinant is near zero, ray is parallel to plane of triangle
+                        // if determinant is near zero, ray is parallel to plane of triangle
                         double det = Vdot(edge1, pvec);
-                        /// NOT CULLING
+                        // NOT CULLING
                         if (det > -EPSI && det < EPSI) {
-                            t_inter[j] = false;
+                            t_inter[j] = 0;
                             continue;
                         }
                         double inv_det = 1.0 / det;
 
-                        /// calculate distance from V1 to ray origin
+                        // calculate distance from V1 to ray origin
                         auto tvec = ray_origin - v1;
 
                         /// Calculate uu parameter and test bound
                         double uu = Vdot(tvec, pvec) * inv_det;
-                        /// The intersection lies outside of the triangle
+                        // The intersection lies outside of the triangle
                         if (uu < 0.0 || uu > 1.0) {
-                            t_inter[j] = false;
+                            t_inter[j] = 0;
                             continue;
                         }
 
-                        /// Prepare to test vv parameter
+                        // Prepare to test vv parameter
                         auto qvec = Vcross(tvec, edge1);
 
-                        /// Calculate vv parameter and test bound
+                        // Calculate vv parameter and test bound
                         double vv = Vdot(ray_dir[j], qvec) * inv_det;
-                        /// The intersection lies outside of the triangle
+                        // The intersection lies outside of the triangle
                         if (vv < 0.0 || ((uu + vv) > 1.0)) {
-                            t_inter[j] = false;
+                            t_inter[j] = 0;
                             continue;
                         }
 
                         double tt = Vdot(edge2, qvec) * inv_det;
                         if (tt > EPSI) {  /// ray intersection
-                            t_inter[j] = true;
+                            t_inter[j] = 1;
                             continue;
                         }
 
-                        /// No hit, no win
-                        t_inter[j] = false;
+                        // No hit, no win
+                        t_inter[j] = 0;
                     }
 
-                    intersectCounter[0] += t_inter[0] ? 1 : 0;
-                    intersectCounter[1] += t_inter[1] ? 1 : 0;
+                    intersectCounter[0] += t_inter[0];
+                    intersectCounter[1] += t_inter[1];
                 }
 
                 if (((intersectCounter[0] % 2) == 1) && ((intersectCounter[1] % 2) == 1))  // inside mesh
@@ -1371,10 +1356,10 @@ void ChSystemFsi::CreateMeshMarkers(std::shared_ptr<geometry::ChTriangleMeshConn
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::CreateSphereFSI(std::shared_ptr<ChMaterialSurface> mat_prop,
-                                  Real density,
-                                  const ChVector<>& pos,
-                                  Real radius) {
+void ChSystemFsi::AddSphereBody(std::shared_ptr<ChMaterialSurface> mat_prop,
+                                Real density,
+                                const ChVector<>& pos,
+                                Real radius) {
     auto body = chrono_types::make_shared<ChBody>();
     body->SetBodyFixed(false);
     body->SetCollide(true);
@@ -1391,15 +1376,15 @@ void ChSystemFsi::CreateSphereFSI(std::shared_ptr<ChMaterialSurface> mat_prop,
     sysMBS.AddBody(body);
     fsiBodies.push_back(body);
 
-    AddBceSphere(body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), radius);
+    AddSphereBCE(body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), radius);
 }
 
-void ChSystemFsi::CreateCylinderFSI(std::shared_ptr<ChMaterialSurface> mat_prop,
-                                    Real density,
-                                    const ChVector<>& pos,
-                                    const ChQuaternion<>& rot,
-                                    Real radius,
-                                    Real length) {
+void ChSystemFsi::AddCylinderBody(std::shared_ptr<ChMaterialSurface> mat_prop,
+                                  Real density,
+                                  const ChVector<>& pos,
+                                  const ChQuaternion<>& rot,
+                                  Real radius,
+                                  Real length) {
     auto body = chrono_types::make_shared<ChBody>();
     body->SetBodyFixed(false);
     body->SetCollide(true);
@@ -1417,15 +1402,15 @@ void ChSystemFsi::CreateCylinderFSI(std::shared_ptr<ChMaterialSurface> mat_prop,
     sysMBS.AddBody(body);
 
     fsiBodies.push_back(body);
-    AddBceCylinder(body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), radius, length,
+    AddCylinderBCE(body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), radius, length,
                    paramsH->HSML * paramsH->MULT_INITSPACE);
 }
 
-void ChSystemFsi::CreateBoxFSI(std::shared_ptr<ChMaterialSurface> mat_prop,
-                               Real density,
-                               const ChVector<>& pos,
-                               const ChQuaternion<>& rot,
-                               const ChVector<>& hsize) {
+void ChSystemFsi::AddBoxBody(std::shared_ptr<ChMaterialSurface> mat_prop,
+                             Real density,
+                             const ChVector<>& pos,
+                             const ChQuaternion<>& rot,
+                             const ChVector<>& hsize) {
     auto body = chrono_types::make_shared<ChBody>();
     body->SetBodyFixed(false);
     body->SetCollide(true);
@@ -1443,7 +1428,7 @@ void ChSystemFsi::CreateBoxFSI(std::shared_ptr<ChMaterialSurface> mat_prop,
     sysMBS.AddBody(body);
 
     fsiBodies.push_back(body);
-    AddBceBox(body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), hsize);
+    AddBoxBCE(body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), hsize);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

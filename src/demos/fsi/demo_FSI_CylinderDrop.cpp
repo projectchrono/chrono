@@ -163,8 +163,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI,
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& sysMBS,
-                      ChSystemFsi& sysFSI) {
+void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set gravity to the rigid body system in chrono
     sysMBS.Set_G_acc(sysFSI.Get_G_acc());
 
@@ -214,12 +213,12 @@ void CreateSolidPhase(ChSystemSMC& sysMBS,
     sysMBS.AddBody(box);
 
     // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddBceBox(box, pos_zp, QUNIT, size_XY, 12);
-    sysFSI.AddBceBox(box, pos_zn, QUNIT, size_XY, 12);
-    sysFSI.AddBceBox(box, pos_xp, QUNIT, size_YZ, 23);
-    sysFSI.AddBceBox(box, pos_xn, QUNIT, size_YZ, 23);
-    sysFSI.AddBceBox(box, pos_yp, QUNIT, size_XZ, 13);
-    sysFSI.AddBceBox(box, pos_yn, QUNIT, size_XZ, 13);
+    sysFSI.AddBoxBCE(box, pos_zp, QUNIT, size_XY, 12);
+    sysFSI.AddBoxBCE(box, pos_zn, QUNIT, size_XY, 12);
+    sysFSI.AddBoxBCE(box, pos_xp, QUNIT, size_YZ, 23);
+    sysFSI.AddBoxBCE(box, pos_xn, QUNIT, size_YZ, 23);
+    sysFSI.AddBoxBCE(box, pos_yp, QUNIT, size_XZ, 13);
+    sysFSI.AddBoxBCE(box, pos_yn, QUNIT, size_XZ, 13);
 
     // Create a falling cylinder
     auto cylinder = chrono_types::make_shared<ChBody>();
@@ -242,8 +241,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS,
     cylinder->SetBodyFixed(false);
     cylinder->GetCollisionModel()->ClearModel();
     cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
-    chrono::utils::AddCylinderGeometry(cylinder.get(), mysurfmaterial, cyl_radius, cyl_length, ChVector<>(0.0, 0.0, 0.0),
-                               cyl_rot);
+    chrono::utils::AddCylinderGeometry(cylinder.get(), mysurfmaterial, cyl_radius, cyl_length,
+                                       ChVector<>(0.0, 0.0, 0.0), cyl_rot);
     cylinder->GetCollisionModel()->BuildModel();
 
     // Add this body to chrono system
@@ -253,8 +252,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS,
     sysFSI.AddFsiBody(cylinder);
 
     // Add BCE particles attached on the cylinder into FSI system
-    sysFSI.AddBceCylinder(cylinder, ChVector<>(0), ChQuaternion<>(1, 0, 0, 0), 
-        cyl_radius, cyl_length + initSpace0, sysFSI.GetKernelLength(), false);
+    sysFSI.AddCylinderBCE(cylinder, ChVector<>(0), ChQuaternion<>(1, 0, 0, 0), cyl_radius, cyl_length + initSpace0,
+                          sysFSI.GetKernelLength(), false);
 }
 
 // =============================================================================
@@ -290,7 +289,7 @@ int main(int argc, char* argv[]) {
     }
     sysFSI.ReadParametersFromFile(inputJson);
 
-    // Reset the domain size 
+    // Reset the domain size
     ChVector<> bDim = sysFSI.GetContainerDim();
     bxDim = bDim.x();
     byDim = bDim.y();
@@ -299,7 +298,7 @@ int main(int argc, char* argv[]) {
     // Set the periodic boundary condition (if not, set relative larger values)
     auto initSpace0 = sysFSI.GetInitialSpacing();
     ChVector<> cMin(-bxDim / 2 * 10, -byDim / 2 * 10, -bzDim * 10);
-    ChVector<> cMax( bxDim / 2 * 10,  byDim / 2 * 10,  bzDim * 10);
+    ChVector<> cMax(bxDim / 2 * 10, byDim / 2 * 10, bzDim * 10);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Setup the output directory for FSI data
@@ -307,7 +306,7 @@ int main(int argc, char* argv[]) {
 
     // Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
-    
+
     // Use a chrono sampler to create a bucket of granular material
     ChVector<> boxCenter(0, 0, bzDim / 2);
     ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
@@ -319,7 +318,8 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < numPart; i++) {
         double pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + bzDim);
         double rho_ini = sysFSI.GetDensity() + pre_ini / (sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed());
-        sysFSI.AddSphMarker(points[i], rho_ini, pre_ini, sysFSI.GetViscosity(), sysFSI.GetKernelLength(), -1, ChVector<>(0));
+        sysFSI.AddSPHParticle(points[i], rho_ini, pre_ini, sysFSI.GetViscosity(), sysFSI.GetKernelLength(), -1,
+                              ChVector<>(0));
     }
     sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 

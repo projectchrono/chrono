@@ -155,10 +155,10 @@ int main(int argc, char* argv[]) {
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
         double pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + bzDim);
-        sysFSI.AddSphMarker(points[i], sysFSI.GetDensity(), 0, sysFSI.GetViscosity(), sysFSI.GetKernelLength(), -1,
-                            ChVector<>(0),         // initial velocity
-                            ChVector<>(-pre_ini),  // tauxxyyzz
-                            ChVector<>(0)          // tauxyxzyz
+        sysFSI.AddSPHParticle(points[i], sysFSI.GetDensity(), 0, sysFSI.GetViscosity(), sysFSI.GetKernelLength(), -1,
+                              ChVector<>(0),         // initial velocity
+                              ChVector<>(-pre_ini),  // tauxxyyzz
+                              ChVector<>(0)          // tauxyxzyz
         );
     }
     sysFSI.AddRefArray(0, (int)numPart, -1, -1);
@@ -251,11 +251,11 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
 
     // Fluid-Solid Coupling at the walls via BCE particles
-    sysFSI.AddBceBox(box, pos_zn, QUNIT, size_XY, 12);
-    sysFSI.AddBceBox(box, pos_xp, QUNIT, size_YZ, 23);
-    sysFSI.AddBceBox(box, pos_xn, QUNIT, size_YZ, 23);
-    sysFSI.AddBceBox(box, pos_yp, QUNIT, size_XZ, 13);
-    sysFSI.AddBceBox(box, pos_yn, QUNIT, size_XZ, 13);
+    sysFSI.AddBoxBCE(box, pos_zn, QUNIT, size_XY, 12);
+    sysFSI.AddBoxBCE(box, pos_xp, QUNIT, size_YZ, 23);
+    sysFSI.AddBoxBCE(box, pos_xn, QUNIT, size_YZ, 23);
+    sysFSI.AddBoxBCE(box, pos_yp, QUNIT, size_XZ, 13);
+    sysFSI.AddBoxBCE(box, pos_yn, QUNIT, size_XZ, 13);
 
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     rover = chrono_types::make_shared<Viper>(&sysMBS);
@@ -282,9 +282,9 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
         sysFSI.AddFsiBody(wheel_body);
         std::string BCE_path = GetChronoDataFile("fsi/demo_BCE/BCE_viperWheel.txt");
         if (i == 0 || i == 2) {
-            sysFSI.AddBceFile(wheel_body, BCE_path, ChVector<>(0), Q_from_AngZ(CH_C_PI), 1.0, true);
+            sysFSI.AddFileBCE(wheel_body, BCE_path, ChVector<>(0), Q_from_AngZ(CH_C_PI), 1.0, true);
         } else {
-            sysFSI.AddBceFile(wheel_body, BCE_path, ChVector<>(0), QUNIT, 1.0, true);
+            sysFSI.AddFileBCE(wheel_body, BCE_path, ChVector<>(0), QUNIT, 1.0, true);
         }
     }
 }

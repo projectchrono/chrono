@@ -46,11 +46,10 @@ double bzDim = 0.2;
 double t_end = 10.0;
 
 //------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid bodies, and if FSI, 
+// Create the objects of the MBD system. Rigid bodies, and if FSI,
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& sysMBS,
-                      ChSystemFsi& sysFSI) {
+void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set common material Properties
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(6e4);
@@ -82,9 +81,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS,
     sysMBS.AddBody(ground);
 
     // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddBceBox(ground, posBottom, QUNIT, sizeBottom);
-    sysFSI.AddBceBox(ground, posTop, QUNIT, sizeBottom);
-
+    sysFSI.AddBoxBCE(ground, posBottom, QUNIT, sizeBottom);
+    sysFSI.AddBoxBCE(ground, posTop, QUNIT, sizeBottom);
 }
 
 // =============================================================================
@@ -126,7 +124,7 @@ int main(int argc, char* argv[]) {
     // Set the periodic boundary condition (in X and Y direction)
     auto initSpace0 = sysFSI.GetInitialSpacing();
     ChVector<> cMin = ChVector<>(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -5.0 * initSpace0);
-    ChVector<> cMax = ChVector<>( bxDim / 2 + initSpace0 / 2,  byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
+    ChVector<> cMax = ChVector<>(bxDim / 2 + initSpace0 / 2, byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Setup the output directory for FSI data
@@ -143,7 +141,7 @@ int main(int argc, char* argv[]) {
     // Add fluid particles from the sampler points to the FSI system
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        sysFSI.AddSphMarker(points[i], -1);
+        sysFSI.AddSPHParticle(points[i], -1);
     }
     sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 

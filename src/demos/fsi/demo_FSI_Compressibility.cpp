@@ -53,8 +53,7 @@ double t_end = 2.0;
 // Create the objects of the MBD system. Rigid bodies, and if fsi, their
 // bce representation are created and added to the systems
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& sysMBS,
-                      ChSystemFsi& sysFSI) {
+void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
     // Set common material Properties
@@ -94,11 +93,11 @@ void CreateSolidPhase(ChSystemSMC& sysMBS,
     ground->GetCollisionModel()->BuildModel();
     sysMBS.AddBody(ground);
 
-    sysFSI.AddBceBox(ground, pos_zn, QUNIT, size_XY, 12);
-    sysFSI.AddBceBox(ground, pos_xp, QUNIT, size_YZ, 23);
-    sysFSI.AddBceBox(ground, pos_xn, QUNIT, size_YZ, 23);
-    sysFSI.AddBceBox(ground, pos_yp, QUNIT, size_XZ, 13);
-    sysFSI.AddBceBox(ground, pos_yn, QUNIT, size_XZ, 13);
+    sysFSI.AddBoxBCE(ground, pos_zn, QUNIT, size_XY, 12);
+    sysFSI.AddBoxBCE(ground, pos_xp, QUNIT, size_YZ, 23);
+    sysFSI.AddBoxBCE(ground, pos_xn, QUNIT, size_YZ, 23);
+    sysFSI.AddBoxBCE(ground, pos_yp, QUNIT, size_XZ, 13);
+    sysFSI.AddBoxBCE(ground, pos_yn, QUNIT, size_XZ, 13);
 }
 
 // =============================================================================
@@ -153,7 +152,7 @@ int main(int argc, char* argv[]) {
     // Add SPH particles from the sampler points to the FSI system
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        sysFSI.AddSphMarker(points[i], -1);
+        sysFSI.AddSPHParticle(points[i], -1);
     }
     sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 
@@ -208,6 +207,6 @@ int main(int argc, char* argv[]) {
     }
     timer.stop();
     std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
-    
+
     return 0;
 }

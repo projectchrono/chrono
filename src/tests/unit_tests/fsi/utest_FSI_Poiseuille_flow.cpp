@@ -12,20 +12,17 @@
 // Authors: Wei Hu
 // =============================================================================
 //
-// Unit test for poiseuille flow. This unit test uses analytical solution to 
+// Unit test for poiseuille flow. This unit test uses analytical solution to
 // verify the implementation
 // =============================================================================
 
-// General Includes
 #include <assert.h>
 #include <stdlib.h>
 #include <ctime>
 
-// Chrono includes
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
-// Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
 
 // Chrono namespaces
@@ -56,11 +53,12 @@ double PoiseuilleAnalytical(double Z, double L, double time, ChSystemFsi& sysFSI
     double L_modify = L + initSpace0;
     double Z_modify = Z + 0.5 * initSpace0;
 
-    double theory = 1.0/(2.0*nu)*F*Z_modify*(L_modify-Z_modify);
+    double theory = 1.0 / (2.0 * nu) * F * Z_modify * (L_modify - Z_modify);
 
-    for (int n=0; n<50; n++){
-        theory = theory - 
-        4.0*F*pow(L_modify,2)/(nu*pow(pi,3)*pow(2*n+1,3))*sin(pi*Z_modify*(2*n+1)/L_modify)*exp(-pow(2*n+1,2)*pow(pi,2)*nu*time/pow(L_modify,2));
+    for (int n = 0; n < 50; n++) {
+        theory = theory - 4.0 * F * pow(L_modify, 2) / (nu * pow(pi, 3) * pow(2 * n + 1, 3)) *
+                              sin(pi * Z_modify * (2 * n + 1) / L_modify) *
+                              exp(-pow(2 * n + 1, 2) * pow(pi, 2) * nu * time / pow(L_modify, 2));
     }
 
     return theory;
@@ -69,8 +67,7 @@ double PoiseuilleAnalytical(double Z, double L, double time, ChSystemFsi& sysFSI
 //------------------------------------------------------------------
 // Create the wall boundary and the BCE particles
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& sysMBS,
-                      ChSystemFsi& sysFSI) {
+void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
     // Set common material Properties
@@ -92,14 +89,14 @@ void CreateSolidPhase(ChSystemSMC& sysMBS,
     ChVector<> posBottom(0, 0, -3 * initSpace0);
     ChVector<> posTop(0, 0, bzDim + 1 * initSpace0);
 
-    // Add a geometry to the body and set the collision model 
+    // Add a geometry to the body and set the collision model
     chrono::utils::AddBoxGeometry(body.get(), mysurfmaterial, sizeWall, posBottom, QUNIT, true);
     body->GetCollisionModel()->BuildModel();
     sysMBS.AddBody(body);
 
     // Add BCE particles to the bottom and top wall boundary
-    sysFSI.AddBceBox(body, posTop, QUNIT, sizeWall, 12);
-    sysFSI.AddBceBox(body, posBottom, QUNIT, sizeWall, 12);
+    sysFSI.AddBoxBCE(body, posTop, QUNIT, sizeWall, 12);
+    sysFSI.AddBoxBCE(body, posBottom, QUNIT, sizeWall, 12);
 }
 
 // ===============================
@@ -114,19 +111,19 @@ int main(int argc, char* argv[]) {
 
     // Reset the domain size to handle periodic boundary condition
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> cMin(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, - 10.0 * initSpace0);
-    ChVector<> cMax( bxDim / 2 + initSpace0 / 2,  byDim / 2 + initSpace0 / 2, bzDim + 10.0 * initSpace0);
+    ChVector<> cMin(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -10.0 * initSpace0);
+    ChVector<> cMax(bxDim / 2 + initSpace0 / 2, byDim / 2 + initSpace0 / 2, bzDim + 10.0 * initSpace0);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Create SPH particles for the fluid domain
     chrono::utils::GridSampler<> sampler(initSpace0);
-    ChVector<> boxCenter(0 , 0, bzDim * 0.5);
+    ChVector<> boxCenter(0, 0, bzDim * 0.5);
     ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
     std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
         double v_x = PoiseuilleAnalytical(points[i].z(), bzDim, 0.5, sysFSI);
-        sysFSI.AddSphMarker(points[i], -1, ChVector<>(v_x, 0.0, 0.0));
+        sysFSI.AddSPHParticle(points[i], -1, ChVector<>(v_x, 0.0, 0.0));
     }
     sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 
@@ -142,11 +139,11 @@ int main(int argc, char* argv[]) {
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
         sysFSI.DoStepDynamics_FSI();
         time += dT;
-    
+
         // Copy data from device to host
         auto posRad = sysFSI.GetParticlePosOrProperties();
         auto vel = sysFSI.GetParticleVel();
-       
+
         // Calculate the relative error of the solution
         double error = 0.0;
         double abs_val = 0.0;
@@ -157,9 +154,9 @@ int main(int argc, char* argv[]) {
             error = error + pow(vel_X - vel_X_ana, 2);
             abs_val = abs_val + pow(vel_X_ana, 2);
         }
-        error_rel = sqrt(error/abs_val);
-        if ((tStep>1) && (error_rel > rel_Tol)){
-            printf("\n step = %d, error_rel =  %0.8f \n",  tStep, error_rel);
+        error_rel = sqrt(error / abs_val);
+        if ((tStep > 1) && (error_rel > rel_Tol)) {
+            printf("\n step = %d, error_rel =  %0.8f \n", tStep, error_rel);
             return 1;
         }
     }

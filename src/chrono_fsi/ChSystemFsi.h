@@ -23,10 +23,10 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
 
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
 #include "chrono_fsi/physics/ChBce.cuh"
 #include "chrono_fsi/physics/ChFluidDynamics.cuh"
 #include "chrono_fsi/ChFsiInterface.h"
-#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 namespace chrono {
 
@@ -36,11 +36,9 @@ class ChNodeFEAxyzD;
 class ChMesh;
 class ChElementCableANCF;
 class ChElementShellANCF_3423;
-}
+}  // namespace fea
 
 namespace fsi {
-
-class ChSystemFsi_impl;
 
 /// @addtogroup fsi_physics
 /// @{
@@ -48,9 +46,8 @@ class ChSystemFsi_impl;
 /// @brief Physical system for fluid-solid interaction problems.
 ///
 /// This class is used to represent fluid-solid interaction problems consisting of fluid dynamics and multibody system.
-/// Each of the two underlying physics is an independent object owned and instantiated by this class. Additionally, the
-/// FSI system owns other objects to handle the interface between the two systems, boundary condition enforcing markers,
-/// and data.
+/// Each of the two underlying physics is an independent object owned and instantiated by this class. The FSI system
+/// owns other objects to handle the interface between the two systems, boundary condition enforcing markers, and data.
 class CH_FSI_API ChSystemFsi {
   public:
     /// Output mode.
@@ -265,59 +262,54 @@ class CH_FSI_API ChSystemFsi {
     void WriteParticleFile(const std::string& outfilename) const;
 
     /// Save the SPH particle information into files.
-    /// This function creates three files to write fluid, boundary, and BCE markers data to separate files.
+    /// This function creates three CSV files for SPH particles, boundary BCE markers, and solid BCE markers data.
     void PrintParticleToFile(const std::string& dir) const;
 
     /// Add an SPH particle with given properties to the FSI system.
-    void AddSphMarker(const ChVector<>& point,
-                      double rho0,
-                      double pres0,
-                      double mu0,
-                      double h,
-                      double particle_type,
-                      const ChVector<>& velocity = ChVector<>(0),
-                      const ChVector<>& tauXxYyZz = ChVector<>(0),
-                      const ChVector<>& tauXyXzYz = ChVector<>(0));
+    void AddSPHParticle(const ChVector<>& point,
+                        double rho0,
+                        double pres0,
+                        double mu0,
+                        double h,
+                        double particle_type,
+                        const ChVector<>& velocity = ChVector<>(0),
+                        const ChVector<>& tauXxYyZz = ChVector<>(0),
+                        const ChVector<>& tauXyXzYz = ChVector<>(0));
 
     /// Add an SPH particle with current properties to the SPH system.
-    void AddSphMarker(const ChVector<>& point,
-                      double particle_type,
-                      const ChVector<>& velocity = ChVector<>(0),
-                      const ChVector<>& tauXxYyZz = ChVector<>(0),
-                      const ChVector<>& tauXyXzYz = ChVector<>(0));
+    void AddSPHParticle(const ChVector<>& point,
+                        double particle_type,
+                        const ChVector<>& velocity = ChVector<>(0),
+                        const ChVector<>& tauXxYyZz = ChVector<>(0),
+                        const ChVector<>& tauXyXzYz = ChVector<>(0));
 
-    /// Add reference array for SPH particles.
-    void AddRefArray(const int start, const int numPart, const int compType, const int phaseType);
+    /// Create SPH particles in the specified box volume.
+    /// The SPH particles are created on a uniform grid with given spacing.
+    void AddBoxSPH(double initSpace, double kernelLength, const ChVector<>& boxCenter, const ChVector<>& boxHalfDim);
 
-    /// Create SPH particle from a box domain
-    void AddSphMarkerBox(double initSpace,
-                         double kernelLength,
-                         const ChVector<>& boxCenter,
-                         const ChVector<>& boxHalfDim);
-
-    /// Add BCE particle for a box.
-    void AddBceBox(std::shared_ptr<ChBody> body,
+    /// Add BCE markers in a box of given dimensions and at given position associated with the specified body.
+    void AddBoxBCE(std::shared_ptr<ChBody> body,
                    const ChVector<>& relPos,
                    const ChQuaternion<>& relRot,
                    const ChVector<>& size,
                    int plane = 12,
                    bool isSolid = false);
 
-    /// Add BCE particle for a sphere.
-    void AddBceSphere(std::shared_ptr<ChBody> body,
+    /// Add BCE markers in a sphere of given radius associated with the specified body.
+    void AddSphereBCE(std::shared_ptr<ChBody> body,
                       const ChVector<>& relPos,
                       const ChQuaternion<>& relRot,
                       double radius);
 
-    /// Add BCE particles genetrated from the surface of a sphere.
-    void AddBceSphereSurface(std::shared_ptr<ChBody> body,
+    /// Add BCE markers on a spherical surface of given radius associated with the specified body.
+    void AddSphereSurfaceBCE(std::shared_ptr<ChBody> body,
                              const ChVector<>& relPos,
                              const ChQuaternion<>& relRot,
                              Real radius,
                              Real kernel_h);
 
-    /// Add BCE particle for a cylinder.
-    void AddBceCylinder(std::shared_ptr<ChBody> body,
+    /// Add BCE markers in a cylinder of given dimensions and at given position associated with the specified body.
+    void AddCylinderBCE(std::shared_ptr<ChBody> body,
                         const ChVector<>& relPos,
                         const ChQuaternion<>& relRot,
                         double radius,
@@ -325,16 +317,17 @@ class CH_FSI_API ChSystemFsi {
                         double kernel_h,
                         bool cartesian = true);
 
-    /// Add BCE particles genetrated from the surface of a cylinder.
-    void AddBceCylinderSurface(std::shared_ptr<ChBody> body,
+    /// Add BCE markers on a cylindrical surface of given dimensions and at given position associated with the specified
+    /// body.
+    void AddCylinderSurfaceBCE(std::shared_ptr<ChBody> body,
                                const ChVector<>& relPos,
                                const ChQuaternion<>& relRot,
                                Real radius,
                                Real height,
                                Real kernel_h);
 
-    /// Add BCE particle for a cone.
-    void AddBceCone(std::shared_ptr<ChBody> body,
+    /// Add BCE markers in a cone of given dimensions and at given position associated with the specified body.
+    void AddConeBCE(std::shared_ptr<ChBody> body,
                     const ChVector<>& relPos,
                     const ChQuaternion<>& relRot,
                     double radius,
@@ -342,74 +335,80 @@ class CH_FSI_API ChSystemFsi {
                     double kernel_h,
                     bool cartesian = true);
 
-    /// Add BCE particles from a set of points.
-    void AddBceFromPoints(std::shared_ptr<ChBody> body,
-                          const std::vector<ChVector<>>& points,
-                          const ChVector<>& collisionShapeRelativePos,
-                          const ChQuaternion<>& collisionShapeRelativeRot);
+    /// Add BCE markers from a set of points and associate them with the given body.
+    void AddPointsBCE(std::shared_ptr<ChBody> body,
+                      const std::vector<ChVector<>>& points,
+                      const ChVector<>& collisionShapeRelativePos,
+                      const ChQuaternion<>& collisionShapeRelativeRot);
 
-    /// Add BCE particle from a file.
-    void AddBceFile(std::shared_ptr<ChBody> body,
+    /// Add BCE markers read from the specified file andd associate them with the given body.
+    void AddFileBCE(std::shared_ptr<ChBody> body,
                     const std::string& dataPath,
                     const ChVector<>& collisionShapeRelativePos,
                     const ChQuaternion<>& collisionShapeRelativeRot,
                     double scale,
                     bool isSolid = true);
 
-    /// Add BCE particle from mesh.
-    void AddBceFromMesh(std::shared_ptr<fea::ChMesh> my_mesh,
-                        const std::vector<std::vector<int>>& NodeNeighborElement,
-                        const std::vector<std::vector<int>>& _1D_elementsNodes,
-                        const std::vector<std::vector<int>>& _2D_elementsNodes,
-                        bool add1DElem,
-                        bool add2DElem,
-                        bool multiLayer,
-                        bool removeMiddleLayer,
-                        int SIDE,
-                        int SIZE2D);
+    /// Add BCE markers from mesh.
+    void AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
+                       const std::vector<std::vector<int>>& NodeNeighborElement,
+                       const std::vector<std::vector<int>>& _1D_elementsNodes,
+                       const std::vector<std::vector<int>>& _2D_elementsNodes,
+                       bool add1DElem,
+                       bool add2DElem,
+                       bool multiLayer,
+                       bool removeMiddleLayer,
+                       int SIDE,
+                       int SIZE2D);
 
-    /// Add BCE particles genetrated from ANCF shell elements.
-    void AddBCE_ShellANCF(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
-                          std::shared_ptr<fea::ChMesh> my_mesh,
-                          bool multiLayer = true,
-                          bool removeMiddleLayer = false,
-                          int SIDE = -2);
+    /// Add BCE markers genetrated from ANCF shell elements.
+    void AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
+                         std::shared_ptr<fea::ChMesh> mesh,
+                         bool multiLayer = true,
+                         bool removeMiddleLayer = false,
+                         int SIDE = -2);
 
-    /// Add BCE particles genetrated from shell elements.
-    void AddBCE_ShellFromMesh(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
-                              std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes,
-                              std::shared_ptr<fea::ChMesh> my_mesh,
-                              const std::vector<std::vector<int>>& elementsNodes,
-                              const std::vector<std::vector<int>>& NodeNeighborElement,
-                              bool multiLayer = true,
-                              bool removeMiddleLayer = false,
-                              int SIDE = -2);
+    /// Add BCE markers genetrated from shell elements.
+    void AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
+                         std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes,
+                         std::shared_ptr<fea::ChMesh> mesh,
+                         const std::vector<std::vector<int>>& elementsNodes,
+                         const std::vector<std::vector<int>>& NodeNeighborElement,
+                         bool multiLayer = true,
+                         bool removeMiddleLayer = false,
+                         int SIDE = -2);
 
-    /// Create particles from closed mesh
-    void CreateMeshMarkers(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,double delta,
-                           std::vector<ChVector<>>& point_cloud);
+    /// Create and add to the FSI system a rigid body with spherical shape.
+    /// BCE markers are created in the entire spherical volume using the current spacing value.
+    void AddSphereBody(std::shared_ptr<ChMaterialSurface> mat_prop, Real density, const ChVector<>& pos, Real radius);
 
-    /// Create an FSI body for a sphere.
-    void CreateSphereFSI(std::shared_ptr<ChMaterialSurface> mat_prop, Real density, const ChVector<>& pos, Real radius);
+    /// Create and add to the FSI system a rigid body with cylindrical shape.
+    /// BCE markers are created in the entire cylindrical volume using the current spacing value.
+    void AddCylinderBody(std::shared_ptr<ChMaterialSurface> mat_prop,
+                         Real density,
+                         const ChVector<>& pos,
+                         const ChQuaternion<>& rot,
+                         Real radius,
+                         Real length);
 
-    /// Create an FSI body for a cylinder.
-    void CreateCylinderFSI(std::shared_ptr<ChMaterialSurface> mat_prop,
-                           Real density,
-                           const ChVector<>& pos,
-                           const ChQuaternion<>& rot,
-                           Real radius,
-                           Real length);
+    /// Create and add to the FSI system a rigid body with box shape.
+    /// BCE markers are created in the entire box volume using the current spacing value.
+    void AddBoxBody(std::shared_ptr<ChMaterialSurface> mat_prop,
+                    Real density,
+                    const ChVector<>& pos,
+                    const ChQuaternion<>& rot,
+                    const ChVector<>& hsize);
 
-    /// Create an FSI body for a box.
-    void CreateBoxFSI(std::shared_ptr<ChMaterialSurface> mat_prop,
-                      Real density,
-                      const ChVector<>& pos,
-                      const ChQuaternion<>& rot,
-                      const ChVector<>& hsize);
+    /// Add reference array for SPH particles.
+    void AddRefArray(const int start, const int numPart, const int compType, const int phaseType);
 
+    /// Utility function for creating points filling a closed mesh.
+    static void CreateMeshPoints(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
+                                 double delta,
+                                 std::vector<ChVector<>>& point_cloud);
 
   private:
-    /// Initialize simulation parameters with default values
+    /// Initialize simulation parameters with default values.
     void InitParams();
 
     /// Create BCE particles from the local position on a body.
@@ -436,7 +435,7 @@ class CH_FSI_API ChSystemFsi {
                                                        bool isSolid = false,
                                                        bool add_to_previous = true);
 
-    /// Function to initialize the midpoint device data of the fluid system by copying from the full step
+    /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
     void CopyDeviceDataToHalfStep();
 
     ChSystemFsi_impl sysFSI;  ///< underlying system implementation

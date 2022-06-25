@@ -56,8 +56,7 @@ static const int body_id_obstacles = 100000;
 // - create the Chrono FSI system
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(double length, double width)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, length, width, ChContactMethod::SMC),
-      m_depth(0) {
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, length, width, ChContactMethod::SMC), m_depth(0) {
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
@@ -149,8 +148,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     m_systemFSI->SetKernelLength(initSpace0);
 
     // Set up the periodic boundary condition (if not, set relative larger values)
-    ChVector<> cMin(- 2 * m_hdimX, - 2 * m_hdimY, -10 * m_depth - 10 * initSpace0);
-    ChVector<> cMax(+ 2 * m_hdimX, + 2 * m_hdimY, +20 * m_depth + 10 * initSpace0);
+    ChVector<> cMin(-2 * m_hdimX, -2 * m_hdimY, -10 * m_depth - 10 * initSpace0);
+    ChVector<> cMax(+2 * m_hdimX, +2 * m_hdimY, +20 * m_depth + 10 * initSpace0);
     m_systemFSI->SetBoundaries(cMin, cMax);
 
     // Set the time integration type and the linear solver type (only for ISPH)
@@ -174,8 +173,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         fsi::Real pre_ini = m_systemFSI->GetDensity() * abs(m_gacc) * (-points[i].z() + m_depth);
         fsi::Real rho_ini =
             m_systemFSI->GetDensity() + pre_ini / (m_systemFSI->GetSoundSpeed() * m_systemFSI->GetSoundSpeed());
-        m_systemFSI->AddSphMarker(points[i], rho_ini, 0.0, m_systemFSI->GetViscosity(), m_systemFSI->GetKernelLength(),
-                                  -1, ChVector<>(1e-10), ChVector<>(-pre_ini), ChVector<>(1e-10));
+        m_systemFSI->AddSPHParticle(points[i], rho_ini, 0.0, m_systemFSI->GetViscosity(),
+                                    m_systemFSI->GetKernelLength(), -1, ChVector<>(1e-10), ChVector<>(-pre_ini),
+                                    ChVector<>(1e-10));
     }
 
     m_systemFSI->AddRefArray(0, numPart, -1, -1);
@@ -204,11 +204,11 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     ChVector<> pos_yn(0, -m_hdimY - 3 * initSpace0, 1.25 * m_depth / 2 + 0 * initSpace0);
 
     // Add BCE particles attached on the walls into FSI system
-    m_systemFSI->AddBceBox(container, pos_zn, chrono::QUNIT, size_XY, 12);
-    m_systemFSI->AddBceBox(container, pos_xp, chrono::QUNIT, size_YZ, 23);
-    m_systemFSI->AddBceBox(container, pos_xn, chrono::QUNIT, size_YZ, 23);
-    m_systemFSI->AddBceBox(container, pos_yp, chrono::QUNIT, size_XZ, 13);
-    m_systemFSI->AddBceBox(container, pos_yn, chrono::QUNIT, size_XZ, 13);
+    m_systemFSI->AddBoxBCE(container, pos_zn, chrono::QUNIT, size_XY, 12);
+    m_systemFSI->AddBoxBCE(container, pos_xp, chrono::QUNIT, size_YZ, 23);
+    m_systemFSI->AddBoxBCE(container, pos_xn, chrono::QUNIT, size_YZ, 23);
+    m_systemFSI->AddBoxBCE(container, pos_yp, chrono::QUNIT, size_XZ, 13);
+    m_systemFSI->AddBoxBCE(container, pos_yn, chrono::QUNIT, size_XZ, 13);
 
     // Add all rigid obstacles
     int id = body_id_obstacles;
@@ -249,8 +249,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
         // Create BCE markers associated with trimesh
         std::vector<ChVector<>> point_cloud;
-        m_systemFSI->CreateMeshMarkers(trimesh, (double)initSpace0, point_cloud);
-        m_systemFSI->AddBceFromPoints(body, point_cloud, VNULL, QUNIT);
+        m_systemFSI->CreateMeshPoints(trimesh, (double)initSpace0, point_cloud);
+        m_systemFSI->AddPointsBCE(body, point_cloud, VNULL, QUNIT);
     }
 
 #ifdef CHRONO_OPENGL
@@ -322,8 +322,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
 
     // Create BCE markers associated with trimesh
     std::vector<ChVector<>> point_cloud;
-    m_systemFSI->CreateMeshMarkers(trimesh, (double)m_systemFSI->GetInitialSpacing(), point_cloud);
-    m_systemFSI->AddBceFromPoints(body, point_cloud, VNULL, QUNIT);
+    m_systemFSI->CreateMeshPoints(trimesh, (double)m_systemFSI->GetInitialSpacing(), point_cloud);
+    m_systemFSI->AddPointsBCE(body, point_cloud, VNULL, QUNIT);
 }
 
 // Once all proxy bodies are created, complete construction of the underlying FSI system.

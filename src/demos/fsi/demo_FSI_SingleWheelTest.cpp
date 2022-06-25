@@ -115,21 +115,21 @@ void WritewheelVTK(std::shared_ptr<ChBody> wheel, const char* filename) {
     file << "ASCII" << std::endl;
     file << "DATASET UNSTRUCTURED_GRID" << std::endl;
     int nv = mmesh->getCoordsVertices().size();
-    file << "POINTS " << nv << " " << "float" << std::endl;
+    file << "POINTS " << nv << " "
+         << "float" << std::endl;
     for (auto& v : mmesh->getCoordsVertices()) {
         file << v.x() << " " << v.y() << " " << v.z() << std::endl;
     }
     int nf = mmesh->getIndicesVertexes().size();
-    file << "CELLS " << nf << " " << 4*nf << std::endl;
+    file << "CELLS " << nf << " " << 4 * nf << std::endl;
     for (auto& f : mmesh->getIndicesVertexes()) {
-        file <<  "3 " << f.x()  << " " << f.y() << " " << f.z()  << std::endl;
+        file << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
     }
     file << "CELL_TYPES " << nf << std::endl;
     for (auto& f : mmesh->getIndicesVertexes()) {
-        file <<  "5 " << std::endl;
+        file << "5 " << std::endl;
     }
     file.close();
-
 }
 
 //------------------------------------------------------------------
@@ -153,8 +153,6 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI,
         std::cout << "--------------------------------\n" << std::endl;
     }
 }
-
-
 
 //------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
@@ -193,12 +191,12 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     ChVector<> pos_yn(0, -byDim / 2 - 3 * iniSpacing, bzDim / 2 + 0 * iniSpacing);
 
     /// Add BCE particles attached on the walls into FSI system
-    /// sysFSI.AddBceBox(ground, pos_zp, QUNIT, size_XY, 12);
-    sysFSI.AddBceBox(ground, pos_zn, QUNIT, size_XY, 12);
-    sysFSI.AddBceBox(ground, pos_xp, QUNIT, size_YZ, 23);
-    sysFSI.AddBceBox(ground, pos_xn, QUNIT, size_YZ, 23);
-    /// sysFSI.AddBceBox(ground, pos_yp, QUNIT, size_XZ, 13);
-    /// sysFSI.AddBceBox(ground, pos_yn, QUNIT, size_XZ, 13);
+    /// sysFSI.AddBoxBCE(ground, pos_zp, QUNIT, size_XY, 12);
+    sysFSI.AddBoxBCE(ground, pos_zn, QUNIT, size_XY, 12);
+    sysFSI.AddBoxBCE(ground, pos_xp, QUNIT, size_YZ, 23);
+    sysFSI.AddBoxBCE(ground, pos_xn, QUNIT, size_YZ, 23);
+    /// sysFSI.AddBoxBCE(ground, pos_yp, QUNIT, size_XZ, 13);
+    /// sysFSI.AddBoxBCE(ground, pos_yn, QUNIT, size_XZ, 13);
 
     // -----------------------------------------------------
     // Create the wheel -- always SECOND body in the system
@@ -250,8 +248,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     /// Add this body to the FSI system
     std::vector<ChVector<>> BCE_par_rock;
-    sysFSI.CreateMeshMarkers(mmesh, iniSpacing, BCE_par_rock);
-    sysFSI.AddBceFromPoints(wheel, BCE_par_rock, ChVector<>(0.0), QUNIT);
+    sysFSI.CreateMeshPoints(mmesh, iniSpacing, BCE_par_rock);
+    sysFSI.AddPointsBCE(wheel, BCE_par_rock, ChVector<>(0.0), QUNIT);
     sysFSI.AddFsiBody(wheel);
 
     // -----------------------------------------------------
@@ -340,7 +338,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
         return 1;
     }
-    
+
     // Create the MBS and FSI systems
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(sysMBS);
@@ -388,7 +386,7 @@ int main(int argc, char* argv[]) {
     // Initialize the SPH particles
     ChVector<> boxCenter(0.0, 0.0, bzDim / 2);
     ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
-    sysFSI.AddSphMarkerBox(iniSpacing, kernelLength, boxCenter, boxHalfDim);
+    sysFSI.AddBoxSPH(iniSpacing, kernelLength, boxCenter, boxHalfDim);
 
     // Create Solid region and attach BCE SPH particles
     CreateSolidPhase(sysMBS, sysFSI);

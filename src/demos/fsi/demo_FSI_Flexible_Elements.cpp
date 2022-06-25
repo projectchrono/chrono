@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        sysFSI.AddSphMarker(points[i], -1);
+        sysFSI.AddSPHParticle(points[i], -1);
     }
     sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 
@@ -210,8 +210,7 @@ int main(int argc, char* argv[]) {
 // Create the objects of the MBD system. Rigid/flexible bodies, and if fsi, their
 // bce representation are created and added to the systems
 //------------------------------------------------------------------
-void Create_MB_FE(ChSystemSMC& sysMBS,
-                  ChSystemFsi& sysFSI) {
+void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.Set_G_acc(ChVector<>(0.0, 0, 0));
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
@@ -253,12 +252,12 @@ void Create_MB_FE(ChSystemSMC& sysMBS,
     sysMBS.AddBody(ground);
 
     // Fluid representation of walls
-    sysFSI.AddBceBox(ground, pos_zn, QUNIT, size_XY, 12);
-    sysFSI.AddBceBox(ground, pos_zp, QUNIT, size_XY, 12);
-    sysFSI.AddBceBox(ground, pos_xp, QUNIT, size_YZ, 23);
-    sysFSI.AddBceBox(ground, pos_xn, QUNIT, size_YZ, 23);
-    sysFSI.AddBceBox(ground, pos_yp, QUNIT, size_XZ, 13);
-    sysFSI.AddBceBox(ground, pos_yn, QUNIT, size_XZ, 13);
+    sysFSI.AddBoxBCE(ground, pos_zn, QUNIT, size_XY, 12);
+    sysFSI.AddBoxBCE(ground, pos_zp, QUNIT, size_XY, 12);
+    sysFSI.AddBoxBCE(ground, pos_xp, QUNIT, size_YZ, 23);
+    sysFSI.AddBoxBCE(ground, pos_xn, QUNIT, size_YZ, 23);
+    sysFSI.AddBoxBCE(ground, pos_yp, QUNIT, size_XZ, 13);
+    sysFSI.AddBoxBCE(ground, pos_yn, QUNIT, size_XZ, 13);
 
     // ******************************* Flexible bodies ***********************************
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
@@ -391,8 +390,8 @@ void Create_MB_FE(ChSystemSMC& sysMBS,
                 my_mesh->AddElement(element);
                 ChVector<> center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() +
                                             element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
-                std::cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y() << " "
-                     << center.z() << std::endl;
+                std::cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y()
+                          << " " << center.z() << std::endl;
                 num_elem++;
             }
         }
@@ -405,8 +404,8 @@ void Create_MB_FE(ChSystemSMC& sysMBS,
     bool removeMiddleLayer = true;
     bool add1DElem = flexible_elem_1D;
     bool add2DElem = !flexible_elem_1D;
-    sysFSI.AddBceFromMesh(my_mesh, NodeNeighborElement_mesh, _1D_elementsNodes_mesh, _2D_elementsNodes_mesh,
-                               add1DElem, add2DElem, multilayer, removeMiddleLayer, 0, 0);
+    sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, _1D_elementsNodes_mesh, _2D_elementsNodes_mesh, add1DElem,
+                         add2DElem, multilayer, removeMiddleLayer, 0, 0);
 
     if (flexible_elem_1D)
         sysFSI.SetCableElementsNodes(_1D_elementsNodes_mesh);
