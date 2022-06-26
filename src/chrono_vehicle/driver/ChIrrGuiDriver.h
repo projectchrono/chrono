@@ -114,12 +114,18 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
         int id;
         int button;
         std::string name;
-        bool buttonIsPressed;
-        bool isPressed(const irr::SEvent::SJoystickEvent& joystickEvent) {
+        int buttonPressedCount;
+        bool buttonPressed;
+        bool isPressed(const irr::SEvent::SJoystickEvent& joystickEvent, bool continuous = false) {
             if (joystickEvent.Joystick == id) {
-                buttonIsPressed = joystickEvent.IsButtonPressed(button);
+                buttonPressed = joystickEvent.IsButtonPressed(button);
             }
-            return buttonIsPressed;
+            if (buttonPressed) {
+                buttonPressedCount++;
+            } else {
+                buttonPressedCount = 0;
+            }
+            return continuous ? buttonPressedCount > 0 : buttonPressedCount == 1;
         }
         void read(rapidjson::Document& d, char* elementName) {
             if (d.HasMember(elementName) && d[elementName].IsObject()) {
@@ -132,7 +138,8 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
                 name = "Unknown";
                 button = -1;
             }
-            buttonIsPressed = false;
+            buttonPressed = false;
+            buttonPressedCount = 0;
         }
     };
 
@@ -200,7 +207,6 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
 
     // Variables for mode=JOYSTICK
     int m_dT;
-    int m_shiftDelay;
     bool m_debugJoystickData = true;
     int m_debugPrintDelay;
 
@@ -221,6 +227,7 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     SpecificJoystickButton gear7Button;
     SpecificJoystickButton gear8Button;
     SpecificJoystickButton gear9Button;
+    SpecificJoystickButton toggleManualGearboxButton;
 
     // Joystick button associated to the custom callback
     int callbackButton = -1;

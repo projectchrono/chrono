@@ -55,7 +55,6 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleVisualSystemIrrlicht& vsys)
       m_mode(KEYBOARD) {
     vsys.AddUserEventReceiver(this);
     m_dT = 0;
-    m_shiftDelay = 0;
     m_debugPrintDelay = 0;
     core::array<SJoystickInfo> joystickInfo = core::array<SJoystickInfo>();
 
@@ -80,6 +79,7 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleVisualSystemIrrlicht& vsys)
         gear7Button.read(d, "gear7");
         gear8Button.read(d, "gear8");
         gear9Button.read(d, "gear9");
+        toggleManualGearboxButton.read(d, "toggleManualGearbox");
     } else {
         GetLog() << "Could not load joystick settings from " << joystickFile << "\n.";
     }
@@ -161,6 +161,9 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleVisualSystemIrrlicht& vsys)
             if (strcmp(gearReverseButton.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
                 gearReverseButton.id = joystick;
             }
+            if (strcmp(toggleManualGearboxButton.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                toggleManualGearboxButton.id = joystick;
+            }
         }
     }
 }
@@ -192,46 +195,38 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
             // button presses for a while. Also we make sure that after pressing the shifter, you need
             // to release it again before you can shift again.
             if (shiftUpButton.isPressed(event.JoystickEvent)) {
-                if (m_shiftDelay > JOYSTICK_SHIFT_DELAY) {
-                    m_vehicle.GetPowertrain()->ShiftUp();
-                    m_shiftDelay = 0;
-                }
+                m_vehicle.GetPowertrain()->ShiftUp();
             } else if (shiftDownButton.isPressed(event.JoystickEvent)) {
-                if (m_shiftDelay > JOYSTICK_SHIFT_DELAY) {
-                    m_vehicle.GetPowertrain()->ShiftDown();
-                    m_shiftDelay = 0;
-                }
-            } else {
-                m_shiftDelay++;
+                m_vehicle.GetPowertrain()->ShiftDown();
             }
         }
 
         // H-shifter code...
         if (clutchAxis.axis != NONE) {
-            double rawClutchPosition = (double)event.JoystickEvent.Axis[clutchAxis.axis];
+            //double rawClutchPosition = (double)event.JoystickEvent.Axis[clutchAxis.axis];
             double clutchPosition = clutchAxis.getValue(event.JoystickEvent);
             // Check if that clutch is pressed...
             if ((clutchAxis.scaled_max - clutchPosition) < 0.1) {
                 SetThrottle(0);
                 bool reverseGearEngaged = gearReverseButton.isPressed(event.JoystickEvent);
                 int forwardGearEngaged = 0;
-                if (gear1Button.isPressed(event.JoystickEvent)) {
+                if (gear1Button.isPressed(event.JoystickEvent, true)) {
                     forwardGearEngaged = 1;
-                } else if (gear2Button.isPressed(event.JoystickEvent)) {
+                } else if (gear2Button.isPressed(event.JoystickEvent, true)) {
                     forwardGearEngaged = 2;
-                } else if (gear3Button.isPressed(event.JoystickEvent)) {
+                } else if (gear3Button.isPressed(event.JoystickEvent, true)) {
                     forwardGearEngaged = 3;
-                } else if (gear4Button.isPressed(event.JoystickEvent)) {
+                } else if (gear4Button.isPressed(event.JoystickEvent, true)) {
                     forwardGearEngaged = 4;
-                } else if (gear5Button.isPressed(event.JoystickEvent)) {
+                } else if (gear5Button.isPressed(event.JoystickEvent, true)) {
                     forwardGearEngaged = 5;
-                } else if (gear6Button.isPressed(event.JoystickEvent)) {
+                } else if (gear6Button.isPressed(event.JoystickEvent, true)) {
                     forwardGearEngaged = 6;
-                } else if (gear7Button.isPressed(event.JoystickEvent)) {
+                } else if (gear7Button.isPressed(event.JoystickEvent, true)) {
                     forwardGearEngaged = 7;
-                } else if (gear8Button.isPressed(event.JoystickEvent)) {
+                } else if (gear8Button.isPressed(event.JoystickEvent, true)) {
                     forwardGearEngaged = 8;
-                } else if (gear9Button.isPressed(event.JoystickEvent)) {
+                } else if (gear9Button.isPressed(event.JoystickEvent, true)) {
                     forwardGearEngaged = 9;
                 }
 
@@ -254,6 +249,14 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
         // joystick callback, outside of condition because it might be used to switch to joystick
         if (callbackButton > -1 && cb_fun != nullptr && event.JoystickEvent.IsButtonPressed(callbackButton) ) {
             cb_fun();
+        }
+        // Toggle between a manual and automatic gearbox
+        if (toggleManualGearboxButton.isPressed(event.JoystickEvent)) {
+            if (m_vsys.m_vehicle->GetPowertrain()->GetTransmissionMode() == ChPowertrain::TransmissionMode::AUTOMATIC) {
+                m_vsys.m_vehicle->GetPowertrain()->SetTransmissionMode(ChPowertrain::TransmissionMode::MANUAL);
+            } else {
+                m_vsys.m_vehicle->GetPowertrain()->SetTransmissionMode(ChPowertrain::TransmissionMode::AUTOMATIC);
+            }
         }
 
         // Output some debug information (can be very useful when setting up or calibrating joysticks)
