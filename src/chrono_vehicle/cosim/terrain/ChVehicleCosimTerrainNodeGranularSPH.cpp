@@ -174,7 +174,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         fsi::Real rho_ini =
             m_systemFSI->GetDensity() + pre_ini / (m_systemFSI->GetSoundSpeed() * m_systemFSI->GetSoundSpeed());
         m_systemFSI->AddSPHParticle(points[i], rho_ini, 0.0, m_systemFSI->GetViscosity(),
-                                    m_systemFSI->GetKernelLength(), -1, ChVector<>(1e-10), ChVector<>(-pre_ini),
+                                    m_systemFSI->GetKernelLength(), ChVector<>(1e-10), ChVector<>(-pre_ini),
                                     ChVector<>(1e-10));
     }
 

@@ -278,14 +278,12 @@ class CH_FSI_API ChSystemFsi {
                         double pres0,
                         double mu0,
                         double h,
-                        double particle_type,
                         const ChVector<>& velocity = ChVector<>(0),
                         const ChVector<>& tauXxYyZz = ChVector<>(0),
                         const ChVector<>& tauXyXzYz = ChVector<>(0));
 
     /// Add an SPH particle with current properties to the SPH system.
     void AddSPHParticle(const ChVector<>& point,
-                        double particle_type,
                         const ChVector<>& velocity = ChVector<>(0),
                         const ChVector<>& tauXxYyZz = ChVector<>(0),
                         const ChVector<>& tauXyXzYz = ChVector<>(0));

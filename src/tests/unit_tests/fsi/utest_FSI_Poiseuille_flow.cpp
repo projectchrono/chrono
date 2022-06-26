@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
         double v_x = PoiseuilleAnalytical(points[i].z(), bzDim, 0.5, sysFSI);
-        sysFSI.AddSPHParticle(points[i], -1, ChVector<>(v_x, 0.0, 0.0));
+        sysFSI.AddSPHParticle(points[i], ChVector<>(v_x, 0.0, 0.0));
     }
     sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 

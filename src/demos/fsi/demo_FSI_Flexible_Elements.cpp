@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        sysFSI.AddSPHParticle(points[i], -1);
+        sysFSI.AddSPHParticle(points[i]);
     }
     sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 

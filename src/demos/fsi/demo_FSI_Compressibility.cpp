@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     // Add SPH particles from the sampler points to the FSI system
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        sysFSI.AddSPHParticle(points[i], -1);
+        sysFSI.AddSPHParticle(points[i]);
     }
     sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 
