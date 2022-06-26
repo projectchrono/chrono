@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
 
         // Render SPH particles
         if (render && current_step % render_steps == 0) {
-            if (fsi_vis.Render())
+            if (!fsi_vis.Render())
                 break;
         }
 

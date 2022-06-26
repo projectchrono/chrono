@@ -84,6 +84,7 @@ class CH_FSI_API ChVisualizationFsi {
     /// simulation loop, can only be called after construction of the FSI system was completed (i.e., the system was
     /// initialized). This function querries the positions of all particles in the FSI system in order to update the
     /// positions of the proxy bodies.
+    /// Returns false if the visualization window was closed.
     /// If the Chrono::OpenGL module is not available, this function is no-op.
     bool Render();
 

@@ -159,9 +159,9 @@ bool ChVisualizationFsi::Render() {
         }
 
         gl_window.Render();
-        return false;
+        return true;
     }
-    return true;  // rendering stopped
+    return false;  // rendering stopped
 #else
     return false;
 #endif
