@@ -796,14 +796,20 @@ void ChSystemFsi::Initialize() {
     m_fsi_interface->ResizeChronoFEANodesData();
     fea_node = m_fsi_mesh->GetNnodes();
 
+    // This also sets the referenceArray
     m_sysFSI->ResizeDataManager(fea_node, m_verbose);
 
     m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI->fsiBodiesD1);
     m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
     m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
 
-    if (m_verbose)
-        cout << "referenceArray size: " << m_sysFSI->fsiGeneralData->referenceArray.size() << endl;
+    if (m_verbose) {
+        cout << "Reference array (size: " << m_sysFSI->fsiGeneralData->referenceArray.size() << ")" << endl;
+        for (size_t i = 0; i < m_sysFSI->fsiGeneralData->referenceArray.size(); i++) {
+            const int4& num = m_sysFSI->fsiGeneralData->referenceArray[i];
+            cout << "  " << i << ":  " << num.x << " " << num.y << " " << num.z << " " << num.w << endl;
+        }
+    }
 
     m_sysFSI->fsiBodiesD2 = m_sysFSI->fsiBodiesD1;  //(2) construct midpoint rigid data
 
@@ -829,8 +835,6 @@ void ChSystemFsi::Initialize() {
     // Initialize worker objects
     m_bce_manager->Initialize(m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD1, m_sysFSI->fsiMeshD);
     m_fluid_dynamics->Initialize();
-    if (m_verbose)
-        cout << "referenceArraySize in fluid dynamics is " << m_sysFSI->fsiGeneralData->referenceArray.size() << endl;
 
     // Mark system as initialized
     m_is_initialized = true;
@@ -1504,8 +1508,6 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
     // Modify number of objects
     // ------------------------
     size_t numBce = posRadBCE.size();
-    if (m_verbose)
-        cout << "Particle Type = " << type << endl;
 
     m_sysFSI->numObjects->numAllMarkers += numBce;
     // For helper particles, type = -3

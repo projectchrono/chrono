@@ -445,8 +445,6 @@ void ChSystemFsi_impl::ConstructReferenceArray(bool verbose) {
                                dummyRhoPresMuH.begin(), numComponentMarkers.begin(), sphTypeCompEqual()))
             .first -
         dummyRhoPresMuH.begin();
-    if (verbose)
-        printf("Number of particle types = %zd\n", numberOfComponents);
 
     fsiGeneralData->referenceArray.resize(numberOfComponents);
     dummyRhoPresMuH.resize(numberOfComponents);
@@ -477,14 +475,6 @@ void ChSystemFsi_impl::ConstructReferenceArray(bool verbose) {
     }
     dummyRhoPresMuH.clear();
     numComponentMarkers.clear();
-
-    if (verbose) {
-        printf("Reference array \n");
-        for (size_t i = 0; i < fsiGeneralData->referenceArray.size(); i++) {
-            int4 num = fsiGeneralData->referenceArray[i];
-            printf("%d %d %d %d \n", num.x, num.y, num.z, num.w);
-        }
-    }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -495,9 +485,6 @@ void ChSystemFsi_impl::ResizeDataManager(int numNodes, bool verbose) {
     }
 
     numObjects->numFlexNodes = numNodes;
-
-    if (verbose)
-        printf("Resize arrays...\n");
 
     sphMarkersD1->resize(numObjects->numAllMarkers);
     sphMarkersD2->resize(numObjects->numAllMarkers);
@@ -540,9 +527,6 @@ void ChSystemFsi_impl::ResizeDataManager(int numNodes, bool verbose) {
     fsiGeneralData->FlexSPH_MeshPos_LRF_D.resize(numObjects->numFlex_SphMarkers);
     fsiGeneralData->FlexSPH_MeshPos_LRF_H.resize(numObjects->numFlex_SphMarkers);
 
-    if (verbose)
-        printf("  numObjects->numRigidBodies = %zd\n", numObjects->numRigidBodies);
-
     fsiGeneralData->FlexIdentifierD.resize(numObjects->numFlex_SphMarkers);
     if (fsiGeneralData->CableElementsNodesH.size() != numObjects->numFlexBodies1D) {
         printf("******************************************************************************\n");
@@ -558,13 +542,18 @@ void ChSystemFsi_impl::ResizeDataManager(int numNodes, bool verbose) {
         fsiGeneralData->CableElementsNodes.resize(fsiGeneralData->CableElementsNodesH.size());
     } else
         fsiGeneralData->CableElementsNodes.resize(numObjects->numFlexBodies1D);
+    
     fsiGeneralData->ShellElementsNodes.resize(numObjects->numFlexBodies2D);
+
     if (verbose) {
+        printf("Resize arrays\n");
+        printf("  numObjects->numRigidBodies = %zd\n", numObjects->numRigidBodies);
         printf("  numObjects->numFlexBodies1D = %zd\n", numObjects->numFlexBodies1D);
         printf("  numObjects->numFlexBodies2D = %zd\n", numObjects->numFlexBodies2D);
         printf("  fsiGeneralData->CableElementsNodesH.size() = %zd\n", fsiGeneralData->CableElementsNodesH.size());
         printf("  fsiGeneralData->ShellElementsNodesH.size() = %zd\n", fsiGeneralData->ShellElementsNodesH.size());
     }
+
     thrust::copy(fsiGeneralData->CableElementsNodesH.begin(), fsiGeneralData->CableElementsNodesH.end(),
                  fsiGeneralData->CableElementsNodes.begin());
     thrust::copy(fsiGeneralData->ShellElementsNodesH.begin(), fsiGeneralData->ShellElementsNodesH.end(),
