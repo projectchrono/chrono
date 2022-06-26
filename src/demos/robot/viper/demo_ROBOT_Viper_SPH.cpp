@@ -27,6 +27,9 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChVisualizationFsi.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 /// Chrono namespaces
 using namespace chrono;
@@ -35,7 +38,7 @@ using namespace chrono::geometry;
 using namespace chrono::viper;
 
 /// output directories and settings
-const std::string out_dir = GetChronoOutputPath() + "FSI_VIPER/";
+const std::string out_dir = GetChronoOutputPath() + "FSI_Viper/";
 bool save_obj = false;  // if true, save as Wavefront OBJ; if false, save as VTK
 
 /// Dimension of the space domain
@@ -100,6 +103,12 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime);
 void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI);
 
 int main(int argc, char* argv[]) {
+    // Create oputput directories
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     // Create a physical system and a corresponding FSI system
     ChSystemNSC sysMBS;
     ChSystemFsi sysFSI(sysMBS);
@@ -112,7 +121,7 @@ int main(int argc, char* argv[]) {
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Viper_granular_NSC.json");
     if (argc == 2) {
         inputJson = std::string(argv[1]);
-    } else {
+    } else if (argc != 1) {
         std::cout << "usage: ./demo_ROBOT_Viper_SPH <json_file>" << std::endl;
         return 1;
     }
@@ -182,6 +191,16 @@ int main(int argc, char* argv[]) {
            << Rover->GetPos_dt().x() << "\t" << Rover->GetPos_dt().y() << "\t" << Rover->GetPos_dt().z() << "\n";
     myFile.close();
 
+    // Create a run-tme visualizer
+    ChVisualizationFsi fsi_vis(&sysFSI);
+    if (render) {
+        fsi_vis.SetTitle("Viper on SPH terrain");
+        fsi_vis.SetCameraPosition(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
+        fsi_vis.SetCameraMoveScale(1.0f);
+        fsi_vis.EnableBoundaryMarkers(false);
+        fsi_vis.Initialize();
+    }
+
     // Start the simulation
     unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
     unsigned int render_steps = (unsigned int)(1 / (render_fps * dT));
@@ -209,6 +228,12 @@ int main(int argc, char* argv[]) {
                << "\t" << rbody->GetPos_dt().x() << "\t" << rbody->GetPos_dt().y() << "\t" << rbody->GetPos_dt().z()
                << "\n";
         myFile.close();
+
+        // Render system
+        if (render && current_step % render_steps == 0) {
+            if (fsi_vis.Render())
+                break;
+        }
 
         timer.start();
         sysFSI.DoStepDynamics_FSI();
