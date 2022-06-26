@@ -152,6 +152,7 @@ int main(int argc, char* argv[]) {
     mesh->GetMesh()->getCoordsVertices().push_back(ChVector<>(1, 0, 0));
     mesh->GetMesh()->getIndicesVertexes().push_back(ChVector<int>(0, 1, 2));
     mesh->AddMaterial(orange_mat);
+    mesh->SetBackfaceCull(false); // flat triangle, we want to see both sides
 
     body->AddVisualShape(mesh, ChFrame<>(ChVector<>(2, 0, 2), QUNIT));
     body->AddVisualShape(mesh, ChFrame<>(ChVector<>(3, 0, 2), QUNIT));
@@ -230,9 +231,8 @@ int main(int argc, char* argv[]) {
     // Create a visualization material
     auto cadet_blue = chrono_types::make_shared<ChVisualMaterial>();
     cadet_blue->SetDiffuseColor(ChColor(0.37f, 0.62f, 0.62f));
-    cadet_blue->SetOpacity(0.5f);
+    cadet_blue->SetOpacity(0.5f); // test transparency
     hull->GetVisualShape(0)->SetMaterial(0, cadet_blue);
-
     sys.Add(hull);
 
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();

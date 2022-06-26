@@ -686,9 +686,21 @@ void ChVisualSystemVSG::BindAll() {
             } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
                 GetLog() << "... has a obj file shape (to do)\n";
             } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
-                GetLog() << "... has a line shape (to do)\n";
+                GetLog() << "... has a line shape\n";
+                auto transform = vsg::MatrixTransform::create();
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                    vsg::scale(1.0, 1.0, 1.0);
+                m_scenegraph->addChild(
+                    m_shapeBuilder->createLineShape(body, shape_instance, material, transform, line));
             } else if (auto path = std::dynamic_pointer_cast<ChPathShape>(shape)) {
-                GetLog() << "... has a path shape (to do)\n";
+                GetLog() << "... has a path shape (wip)\n";
+                auto transform = vsg::MatrixTransform::create();
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                    vsg::scale(1.0, 1.0, 1.0);
+                m_scenegraph->addChild(
+                    m_shapeBuilder->createPathShape(body, shape_instance, material, transform, path));
             } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
                 GetLog() << "... has a cylinder shape\n";
                 double rad = cylinder->GetCylinderGeometry().rad;
@@ -773,6 +785,14 @@ void ChVisualSystemVSG::OnUpdate() {
             double radius = sphere->GetSphereGeometry().rad;
             // ChVector<> size(radius, radius, radius);
             vsg::dvec3 size(radius, radius, radius);
+            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+        } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
+            // ChVector<> size(radius, radius, radius);
+            vsg::dvec3 size(1.0, 1.0, 1.0);
+            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+        } else if (auto path = std::dynamic_pointer_cast<ChPathShape>(shape)) {
+            // ChVector<> size(radius, radius, radius);
+            vsg::dvec3 size(1.0, 1.0, 1.0);
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
         } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
             ChVector<> radius = ellipsoid->GetEllipsoidGeometry().rad;

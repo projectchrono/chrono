@@ -9,12 +9,6 @@ void GetTriangleMeshShapeData(std::shared_ptr<ChTriangleMeshShape> tms,
                               vsg::ref_ptr<vsg::vec2Array>& texcoords,
                               vsg::ref_ptr<vsg::ushortArray>& indices,
                               float& boundingSphereRadius) {
-    double sxmin = 1.0e99;
-    double symin = 1.0e99;
-    double szmin = 1.0e99;
-    double sxmax = -1.0e99;
-    double symax = -1.0e99;
-    double szmax = -1.0e99;
     auto mesh = tms->GetMesh();
     int numTriangles = mesh->getNumTriangles();
     int iVert = 0;

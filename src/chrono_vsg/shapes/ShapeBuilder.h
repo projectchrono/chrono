@@ -24,6 +24,8 @@
 
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualModel.h"
+#include "chrono/assets/ChPathShape.h"
+#include "chrono/assets/ChLineShape.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -40,6 +42,18 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
                                          bool drawMode,
                                          std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
+
+    vsg::ref_ptr<vsg::Group> createLineShape(std::shared_ptr<ChPhysicsItem> physItem,
+                                             ChVisualModel::ShapeInstance shapeInstance,
+                                             std::shared_ptr<ChVisualMaterial> material,
+                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                             std::shared_ptr<ChLineShape> ls);
+
+    vsg::ref_ptr<vsg::Group> createPathShape(std::shared_ptr<ChPhysicsItem> physItem,
+                                             ChVisualModel::ShapeInstance shapeInstance,
+                                             std::shared_ptr<ChVisualMaterial> material,
+                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                             std::shared_ptr<ChPathShape> ps);
 
     /// assign compile traversal to enable compilation.
     void assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct);

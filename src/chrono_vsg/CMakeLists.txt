@@ -27,6 +27,8 @@ SET(CE_VSG_BASE_FILES
 
 SET(CE_VSG_CORE_FILES
     core/ChApiVSG.h
+    core/lineShader_frag.h
+    core/lineShader_vert.h
 )
 
 SET(CE_VSG_SHAPES_FILES

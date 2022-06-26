@@ -12,6 +12,7 @@
 // Rainer Gericke, code taken from https://github.com/vsg-dev/vsgExamples.git
 // =============================================================================
 
+#include <iostream>
 #include "chrono_vsg/tools/createSkybox.h"
 #include "chrono_vsg/resources/cubemapShaders.h"
 
