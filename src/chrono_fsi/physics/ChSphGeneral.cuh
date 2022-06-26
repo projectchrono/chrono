@@ -16,16 +16,15 @@
 
 #ifndef CH_SPH_GENERAL_CUH
 #define CH_SPH_GENERAL_CUH
-// ----------------------------------------------------------------------------
-// CUDA headers
-// ----------------------------------------------------------------------------
+
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 #include <device_launch_parameters.h>
+
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
-#include "chrono_fsi/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
 #include "chrono_fsi/physics/ChParams.h"
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
 #include "chrono_fsi/math/ExactLinearSolvers.cuh"

@@ -31,7 +31,7 @@
 #include "chrono/core/ChTimer.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/utils/ChFsiVisualization.h"
+#include "chrono_fsi/ChVisualizationFsi.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -373,7 +373,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a run-tme visualizer
-    ChFsiVisualization fsi_vis(&sysFSI);
+    ChVisualizationFsi fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI single wheel demo");
         fsi_vis.SetCameraPosition(ChVector<>(0, -5 * byDim, 5 * bzDim), ChVector<>(0, 0, 0));

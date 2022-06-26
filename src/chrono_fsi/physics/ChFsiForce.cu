@@ -61,12 +61,12 @@ void ChFsiForce::Initialize() {
 
 ChFsiForce::~ChFsiForce() {}
 
-void ChFsiForce::SetLinearSolver(ChFsiLinearSolver::SolverType other_solverType) {
+void ChFsiForce::SetLinearSolver(SolverType other_solverType) {
     switch (other_solverType) {
-        case ChFsiLinearSolver::SolverType::BICGSTAB:
+        case SolverType::BICGSTAB:
             myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverBiCGStab>();
             break;
-        case ChFsiLinearSolver::SolverType::GMRES:
+        case SolverType::GMRES:
             myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverGMRES>();
             break;
         default:

@@ -104,17 +104,19 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 set(ChronoEngine_FSI_FILES
     ChApiFsi.h
     ChSystemFsi.h
-    ChSystemFsi_impl.cuh
-    ChFsiInterface.h
-
+    ChDefinitionsFsi.h
+    ChVisualizationFsi.h
     ChSystemFsi.cpp
-    ChFsiInterface.cpp
-    ChSystemFsi_impl.cu
+    ChVisualizationFsi.cpp
 )
 
 source_group("" FILES ${ChronoEngine_FSI_FILES})
 
 set(ChronoEngine_FSI_PHYSICS_FILES
+    physics/ChParams.h
+    physics/ChFsiInterface.h
+    physics/ChFsiGeneral.h
+    physics/ChSystemFsi_impl.cuh
     physics/ChBce.cuh
     physics/ChFluidDynamics.cuh
     physics/ChCollisionSystemFsi.cuh
@@ -122,10 +124,10 @@ set(ChronoEngine_FSI_PHYSICS_FILES
     physics/ChFsiForceExplicitSPH.cuh
     physics/ChFsiForceI2SPH.cuh
     physics/ChFsiForceIISPH.cuh
-    physics/ChFsiGeneral.h
     physics/ChSphGeneral.cuh
-    physics/ChParams.h
 
+    physics/ChFsiInterface.cpp
+    physics/ChSystemFsi_impl.cu
  	physics/ChBce.cu
     physics/ChFluidDynamics.cu
     physics/ChCollisionSystemFsi.cu
@@ -169,12 +171,6 @@ set(ChronoEngine_FSI_UTILS_FILES
 
 source_group(utils FILES ${ChronoEngine_FSI_UTILS_FILES})
 
-set(ChronoEngine_FSI_VISUALIZATION
-    utils/ChFsiVisualization.h
-    utils/ChFsiVisualization.cpp
-   )
-source_group(utils FILES ${ChronoEngine_FSI_VISUALIZATION})
-
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_fsi library
 #-----------------------------------------------------------------------------
@@ -186,7 +182,6 @@ cuda_add_library(ChronoEngine_fsi SHARED
     ${ChronoEngine_FSI_PHYSICS_FILES}
     ${ChronoEngine_FSI_MATH_FILES}
     ${ChronoEngine_FSI_UTILS_FILES}
-    ${ChronoEngine_FSI_VISUALIZATION}
 )
 
 set_target_properties(ChronoEngine_fsi PROPERTIES

@@ -15,7 +15,7 @@
 // Base class for processing the interface between Chrono and fsi modules
 // =============================================================================
 
-#include "chrono_fsi/ChFsiInterface.h"
+#include "chrono_fsi/physics/ChFsiInterface.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
 #include "chrono/fea/ChElementCableANCF.h"

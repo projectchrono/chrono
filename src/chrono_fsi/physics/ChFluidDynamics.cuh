@@ -24,7 +24,7 @@
 #include "chrono_fsi/physics/ChFsiForceExplicitSPH.cuh"
 #include "chrono_fsi/physics/ChFsiForceI2SPH.cuh"
 #include "chrono_fsi/physics/ChFsiForceIISPH.cuh"
-#include "chrono_fsi/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
 
 using chrono::fsi::TimeIntegrator;
 

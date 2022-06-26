@@ -30,6 +30,7 @@
 #define CH_FSI_PARAMS_H
 
 #include <ctime>
+#include "chrono_fsi/ChDefinitionsFsi.h"
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
 #include "chrono_fsi/math/custom_math.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
@@ -39,29 +40,6 @@ namespace fsi {
 
 /// @addtogroup fsi_physics
 /// @{
-
-/// Approach to handle BCE particles
-enum class BceVersion { ADAMI = 0, ORIGINAL = 1 };
-
-/// PPE solution type
-enum class PPESolutionType { MATRIX_FREE, FORM_SPARSE_MATRIX };
-
-/// Rheology type
-enum class Rheology { INERTIA_RHEOLOGY, NONLOCAL_FLUIDITY };
-
-////enum fluidity_model { frictional_plasticity, Inertia_rheology, nonlocal_fluidity };
-
-/// Friction law in ISPH
-enum class FrictionLaw { CONSTANT, LINEAR, NONLINEAR };
-
-/// Dynamics solver type for fluid/granular
-enum class FluidDynamics { IISPH, I2SPH, WCSPH };
-
-/// Time integration method
-enum class TimeIntegrator { EXPLICITSPH, IISPH, I2SPH };
-
-/// Linear solver type
-enum class SolverType { JACOBI, BICGSSTAB, GMRES, CR, CG, SAP };
 
 /// Structure with FSI simulation parameters.
 struct SimParams {
@@ -175,7 +153,7 @@ struct SimParams {
     bool USE_LinearSolver;     ///< If a linear solver should be used to solve Ax=b, otherwise basics methods such as
                                ///< Jacobi-SOR are used
     bool Pressure_Constraint;  ///< Whether the singularity of the pressure equation should be fixed
-    ChFsiLinearSolver::SolverType LinearSolver;  ///< Type of the linear solver
+    SolverType LinearSolver;   ///< Type of the linear solver
 
     Real
         Alpha;  ///< Poisson Pressure Equation source term constant. This is used for controlling the noise in the FS

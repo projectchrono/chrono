@@ -17,16 +17,17 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChBoxShape.h"
 
-#include "chrono_fsi/utils/ChFsiVisualization.h"
+#include "chrono_fsi/ChVisualizationFsi.h"
+#include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
 namespace chrono {
 namespace fsi {
 
-ChFsiVisualization::ChFsiVisualization(ChSystemFsi* sysFSI)
+ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
     : m_systemFSI(sysFSI),
       m_title(""),
       m_cam_pos(0, -3, 0),
@@ -45,35 +46,35 @@ ChFsiVisualization::ChFsiVisualization(ChSystemFsi* sysFSI)
 #endif
 }
 
-ChFsiVisualization::~ChFsiVisualization() {
+ChVisualizationFsi::~ChVisualizationFsi() {
     delete m_system;
 }
 
-void ChFsiVisualization::SetCameraPosition(const ChVector<>& pos, const ChVector<>& target) {
+void ChVisualizationFsi::SetCameraPosition(const ChVector<>& pos, const ChVector<>& target) {
     m_cam_pos = pos;
     m_cam_target = target;
 }
 
-void ChFsiVisualization::SetCameraUpVector(const ChVector<>& up) {
+void ChVisualizationFsi::SetCameraUpVector(const ChVector<>& up) {
     m_cam_up = up;
 }
 
-void ChFsiVisualization::SetCameraMoveScale(float scale) {
+void ChVisualizationFsi::SetCameraMoveScale(float scale) {
     m_cam_scale = scale;
 }
 
-void ChFsiVisualization::SetVisualizationRadius(double radius) {
+void ChVisualizationFsi::SetVisualizationRadius(double radius) {
     m_radius = radius;
 }
 
-void ChFsiVisualization::AddProxyBody(std::shared_ptr<ChBody> body) {
+void ChVisualizationFsi::AddProxyBody(std::shared_ptr<ChBody> body) {
     body->SetBodyFixed(true);
 #ifdef CHRONO_OPENGL
     m_system->AddBody(body);
 #endif
 }
 
-void ChFsiVisualization::Initialize() {
+void ChVisualizationFsi::Initialize() {
 #ifdef CHRONO_OPENGL
     // Cache current number of bodies (if any) in m_system
     m_bce_start_index = static_cast<unsigned int>(m_system->Get_bodylist().size());
@@ -99,7 +100,7 @@ void ChFsiVisualization::Initialize() {
             sph->GetBoxGeometry().Size = ChVector<>(m_radius);
             body->AddVisualShape(sph);
             m_system->AddBody(body);
-        }    
+        }
     }
 
     if (m_bndry_bce_markers) {
@@ -122,7 +123,7 @@ void ChFsiVisualization::Initialize() {
 #endif
 }
 
-bool ChFsiVisualization::Render() {
+bool ChVisualizationFsi::Render() {
 #ifdef CHRONO_OPENGL
     // Only for display in OpenGL window
     m_system->SetChTime(m_systemFSI->GetSimTime());
@@ -130,7 +131,7 @@ bool ChFsiVisualization::Render() {
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     if (gl_window.Active()) {
         // Copy SPH particle positions from device to host
-        thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI.sphMarkersD2->posRadD;
+        thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkersD2->posRadD;
 
         // List of proxy bodies
         const auto& blist = m_system->Get_bodylist();
@@ -154,7 +155,7 @@ bool ChFsiVisualization::Render() {
         if (m_rigid_bce_markers) {
             for (size_t i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
                 blist[m_bce_start_index + b++]->SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
-            }        
+            }
         }
 
         gl_window.Render();

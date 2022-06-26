@@ -20,13 +20,13 @@
 #ifndef CH_SYSTEM_FSI_H
 #define CH_SYSTEM_FSI_H
 
+#include <thrust/host_vector.h>
+
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono_fsi/ChSystemFsi_impl.cuh"
-#include "chrono_fsi/physics/ChBce.cuh"
-#include "chrono_fsi/physics/ChFluidDynamics.cuh"
-#include "chrono_fsi/ChFsiInterface.h"
+#include "chrono_fsi/ChApiFsi.h"
+#include "chrono_fsi/ChDefinitionsFsi.h"
 
 namespace chrono {
 
@@ -39,6 +39,14 @@ class ChElementShellANCF_3423;
 }  // namespace fea
 
 namespace fsi {
+
+class ChSystemFsi_impl;
+class ChFsiInterface;
+class ChFluidDynamics;
+class ChBce;
+struct SimParams;
+struct NumberOfObjects;
+struct Real4;
 
 /// @addtogroup fsi_physics
 /// @{
@@ -141,11 +149,10 @@ class CH_FSI_API ChSystemFsi {
     void SetWallBC(BceVersion wallBC);
 
     /// Set the linear system solver for implicit methods.
-    void SetSPHLinearSolver(ChFsiLinearSolver::SolverType lin_solver);
+    void SetSPHLinearSolver(SolverType lin_solver);
 
     /// Set the SPH method and, optionally, the linear solver type.
-    void SetSPHMethod(FluidDynamics SPH_method,
-                      ChFsiLinearSolver::SolverType lin_solver = ChFsiLinearSolver::SolverType::BICGSTAB);
+    void SetSPHMethod(FluidDynamics SPH_method, SolverType lin_solver = SolverType::BICGSTAB);
 
     /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
     /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
@@ -305,8 +312,8 @@ class CH_FSI_API ChSystemFsi {
     void AddSphereSurfaceBCE(std::shared_ptr<ChBody> body,
                              const ChVector<>& relPos,
                              const ChQuaternion<>& relRot,
-                             Real radius,
-                             Real kernel_h);
+                             double radius,
+                             double kernel_h);
 
     /// Add BCE markers in a cylinder of given dimensions and at given position associated with the specified body.
     void AddCylinderBCE(std::shared_ptr<ChBody> body,
@@ -322,9 +329,9 @@ class CH_FSI_API ChSystemFsi {
     void AddCylinderSurfaceBCE(std::shared_ptr<ChBody> body,
                                const ChVector<>& relPos,
                                const ChQuaternion<>& relRot,
-                               Real radius,
-                               Real height,
-                               Real kernel_h);
+                               double radius,
+                               double height,
+                               double kernel_h);
 
     /// Add BCE markers in a cone of given dimensions and at given position associated with the specified body.
     void AddConeBCE(std::shared_ptr<ChBody> body,
@@ -380,21 +387,24 @@ class CH_FSI_API ChSystemFsi {
 
     /// Create and add to the FSI system a rigid body with spherical shape.
     /// BCE markers are created in the entire spherical volume using the current spacing value.
-    void AddSphereBody(std::shared_ptr<ChMaterialSurface> mat_prop, Real density, const ChVector<>& pos, Real radius);
+    void AddSphereBody(std::shared_ptr<ChMaterialSurface> mat_prop,
+                       double density,
+                       const ChVector<>& pos,
+                       double radius);
 
     /// Create and add to the FSI system a rigid body with cylindrical shape.
     /// BCE markers are created in the entire cylindrical volume using the current spacing value.
     void AddCylinderBody(std::shared_ptr<ChMaterialSurface> mat_prop,
-                         Real density,
+                         double density,
                          const ChVector<>& pos,
                          const ChQuaternion<>& rot,
-                         Real radius,
-                         Real length);
+                         double radius,
+                         double length);
 
     /// Create and add to the FSI system a rigid body with box shape.
     /// BCE markers are created in the entire box volume using the current spacing value.
     void AddBoxBody(std::shared_ptr<ChMaterialSurface> mat_prop,
-                    Real density,
+                    double density,
                     const ChVector<>& pos,
                     const ChQuaternion<>& rot,
                     const ChVector<>& hsize);
@@ -438,7 +448,6 @@ class CH_FSI_API ChSystemFsi {
     /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
     void CopyDeviceDataToHalfStep();
 
-    ChSystemFsi_impl m_sysFSI;  ///< underlying system implementation
     ChSystem& m_sysMBS;         ///< reference to the multi-body system
 
     std::shared_ptr<SimParams> m_paramsH;  ///< pointer to the simulation parameters
@@ -454,8 +463,9 @@ class CH_FSI_API ChSystemFsi {
     std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> m_fsi_nodes;             ///< vector of FEA nodes
     std::shared_ptr<fea::ChMesh> m_fsi_mesh;                                  ///< FEA mesh
 
-    std::shared_ptr<ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
-    std::shared_ptr<ChFsiInterface> m_fsi_interface;    ///< FSI interface system
+    std::unique_ptr<ChSystemFsi_impl> m_sysFSI;         ///< underlying system implementation
+    std::unique_ptr<ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
+    std::unique_ptr<ChFsiInterface> m_fsi_interface;    ///< FSI interface system
     std::shared_ptr<ChBce> m_bce_manager;               ///< BCE manager
 
     std::shared_ptr<NumberOfObjects> m_num_objectsH;  ///< number of objects, fluid, bce, and boundary markers
@@ -465,7 +475,7 @@ class CH_FSI_API ChSystemFsi {
     bool m_is_initialized;  ///< set to true once the Initialize function is called
     double m_time;          ///< current real time of the simulation
 
-    friend class ChFsiVisualization;
+    friend class ChVisualizationFsi;
 };
 
 /// @} fsi_physics

@@ -29,6 +29,11 @@
 #include "chrono/fea/ChNodeFEAxyzD.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/physics/ChParams.h"
+#include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/ChFsiInterface.h"
+#include "chrono_fsi/physics/ChFluidDynamics.cuh"
+#include "chrono_fsi/physics/ChBce.cuh"
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorBce.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFluid.h"
@@ -55,16 +60,17 @@ ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
       m_is_initialized(false),
       m_time(0),
       m_write_mode(OutpuMode::NONE) {
+    m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>();
     m_paramsH = chrono_types::make_shared<SimParams>();
     InitParams();
-    m_num_objectsH = m_sysFSI.numObjects;
+    m_num_objectsH = m_sysFSI->numObjects;
 
     m_fsi_mesh = chrono_types::make_shared<fea::ChMesh>();
     m_fsi_bodies.resize(0);
     m_fsi_shells.resize(0);
     m_fsi_cables.resize(0);
     m_fsi_nodes.resize(0);
-    m_fsi_interface = chrono_types::make_shared<ChFsiInterface>(m_sysMBS, m_sysFSI,     //
+    m_fsi_interface = chrono_types::make_unique<ChFsiInterface>(m_sysMBS, *m_sysFSI,     //
                                                                 m_paramsH, m_fsi_mesh,  //
                                                                 m_fsi_bodies, m_fsi_nodes, m_fsi_cables, m_fsi_shells);
 }
@@ -310,9 +316,9 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
             } else {
                 m_paramsH->USE_LinearSolver = true;
                 if (solver == "BICGSTAB")
-                    m_paramsH->LinearSolver = ChFsiLinearSolver::SolverType::BICGSTAB;
+                    m_paramsH->LinearSolver = SolverType::BICGSTAB;
                 if (solver == "GMRES")
-                    m_paramsH->LinearSolver = ChFsiLinearSolver::SolverType::GMRES;
+                    m_paramsH->LinearSolver = SolverType::GMRES;
             }
         }
 
@@ -497,11 +503,11 @@ void ChSystemFsi::SetVerbose(bool verb) {
     m_fsi_interface->m_verbose = verb;
 }
 
-void ChSystemFsi::SetSPHLinearSolver(ChFsiLinearSolver::SolverType lin_solver) {
+void ChSystemFsi::SetSPHLinearSolver(SolverType lin_solver) {
     m_paramsH->LinearSolver = lin_solver;
 }
 
-void ChSystemFsi::SetSPHMethod(FluidDynamics SPH_method, ChFsiLinearSolver::SolverType lin_solver) {
+void ChSystemFsi::SetSPHMethod(FluidDynamics SPH_method, SolverType lin_solver) {
     m_paramsH->fluid_dynamic_type = SPH_method;
     m_paramsH->LinearSolver = lin_solver;
 }
@@ -635,13 +641,13 @@ void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
 
 void ChSystemFsi::SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes) {
     m_fea_cable_nodes = elementsNodes;
-    size_t test = m_sysFSI.fsiGeneralData->CableElementsNodes.size();
+    size_t test = m_sysFSI->fsiGeneralData->CableElementsNodes.size();
     std::cout << "numObjects.numFlexNodes" << test << std::endl;
 }
 
 void ChSystemFsi::SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes) {
     m_fea_shell_nodes = elementsNodes;
-    size_t test = m_sysFSI.fsiGeneralData->ShellElementsNodes.size();
+    size_t test = m_sysFSI->fsiGeneralData->ShellElementsNodes.size();
     std::cout << "numObjects.numFlexNodes" << test << std::endl;
 }
 
@@ -681,10 +687,10 @@ void ChSystemFsi::Initialize() {
     }
 
     if (m_paramsH->use_init_pressure) {
-        size_t numParticles = m_sysFSI.sphMarkersH->rhoPresMuH.size();
+        size_t numParticles = m_sysFSI->sphMarkersH->rhoPresMuH.size();
         for (int i = 0; i < numParticles; i++) {
-            double z = m_sysFSI.sphMarkersH->posRadH[i].z;
-            m_sysFSI.sphMarkersH->rhoPresMuH[i].y =
+            double z = m_sysFSI->sphMarkersH->posRadH[i].z;
+            m_sysFSI->sphMarkersH->rhoPresMuH[i].y =
                 -m_paramsH->rho0 * m_paramsH->gravity.z * m_paramsH->gravity.z * (z - m_paramsH->pressure_height);
         }
     }
@@ -792,20 +798,20 @@ void ChSystemFsi::Initialize() {
     m_fsi_interface->ResizeChronoFEANodesData();
     fea_node = m_fsi_mesh->GetNnodes();
 
-    m_sysFSI.ResizeDataManager(fea_node, m_verbose);
+    m_sysFSI->ResizeDataManager(fea_node, m_verbose);
 
-    m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI.fsiBodiesD1);
-    m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI.fsiMeshD);
-    m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI.fsiMeshD);
+    m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI->fsiBodiesD1);
+    m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
+    m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
 
     if (m_verbose)
-        cout << "referenceArraySize in FinalizeData is " << m_sysFSI.fsiGeneralData->referenceArray.size() << endl;
+        cout << "referenceArraySize in FinalizeData is " << m_sysFSI->fsiGeneralData->referenceArray.size() << endl;
 
-    m_sysFSI.fsiBodiesD2 = m_sysFSI.fsiBodiesD1;  //(2) construct midpoint rigid data
+    m_sysFSI->fsiBodiesD2 = m_sysFSI->fsiBodiesD1;  //(2) construct midpoint rigid data
 
     // Create BCE and SPH worker objects
-    m_bce_manager = chrono_types::make_shared<ChBce>(m_sysFSI.sortedSphMarkersD, m_sysFSI.markersProximityD,
-                                                     m_sysFSI.fsiGeneralData, m_paramsH, m_num_objectsH, m_verbose);
+    m_bce_manager = chrono_types::make_shared<ChBce>(m_sysFSI->sortedSphMarkersD, m_sysFSI->markersProximityD,
+                                                     m_sysFSI->fsiGeneralData, m_paramsH, m_num_objectsH, m_verbose);
 
     switch (m_paramsH->fluid_dynamic_type) {
         case FluidDynamics::IISPH:
@@ -818,15 +824,15 @@ void ChSystemFsi::Initialize() {
             fluidIntegrator = TimeIntegrator::I2SPH;
             break;
     }
-    m_fluid_dynamics = chrono_types::make_shared<ChFluidDynamics>(m_bce_manager, m_sysFSI, m_paramsH, m_num_objectsH,
+    m_fluid_dynamics = chrono_types::make_unique<ChFluidDynamics>(m_bce_manager, *m_sysFSI, m_paramsH, m_num_objectsH,
                                                                   fluidIntegrator, m_verbose);
     m_fluid_dynamics->GetForceSystem()->SetLinearSolver(m_paramsH->LinearSolver);
 
     // Initialize worker objects
-    m_bce_manager->Initialize(m_sysFSI.sphMarkersD1, m_sysFSI.fsiBodiesD1, m_sysFSI.fsiMeshD);
+    m_bce_manager->Initialize(m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD1, m_sysFSI->fsiMeshD);
     m_fluid_dynamics->Initialize();
     if (m_verbose)
-        cout << "referenceArraySize in fluid dynamics is " << m_sysFSI.fsiGeneralData->referenceArray.size() << endl;
+        cout << "referenceArraySize in fluid dynamics is " << m_sysFSI->fsiGeneralData->referenceArray.size() << endl;
 
     // Mark system as initialized
     m_is_initialized = true;
@@ -835,16 +841,16 @@ void ChSystemFsi::Initialize() {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::CopyDeviceDataToHalfStep() {
-    thrust::copy(m_sysFSI.sphMarkersD2->posRadD.begin(), m_sysFSI.sphMarkersD2->posRadD.end(),
-                 m_sysFSI.sphMarkersD1->posRadD.begin());
-    thrust::copy(m_sysFSI.sphMarkersD2->velMasD.begin(), m_sysFSI.sphMarkersD2->velMasD.end(),
-                 m_sysFSI.sphMarkersD1->velMasD.begin());
-    thrust::copy(m_sysFSI.sphMarkersD2->rhoPresMuD.begin(), m_sysFSI.sphMarkersD2->rhoPresMuD.end(),
-                 m_sysFSI.sphMarkersD1->rhoPresMuD.begin());
-    thrust::copy(m_sysFSI.sphMarkersD2->tauXxYyZzD.begin(), m_sysFSI.sphMarkersD2->tauXxYyZzD.end(),
-                 m_sysFSI.sphMarkersD1->tauXxYyZzD.begin());
-    thrust::copy(m_sysFSI.sphMarkersD2->tauXyXzYzD.begin(), m_sysFSI.sphMarkersD2->tauXyXzYzD.end(),
-                 m_sysFSI.sphMarkersD1->tauXyXzYzD.begin());
+    thrust::copy(m_sysFSI->sphMarkersD2->posRadD.begin(), m_sysFSI->sphMarkersD2->posRadD.end(),
+                 m_sysFSI->sphMarkersD1->posRadD.begin());
+    thrust::copy(m_sysFSI->sphMarkersD2->velMasD.begin(), m_sysFSI->sphMarkersD2->velMasD.end(),
+                 m_sysFSI->sphMarkersD1->velMasD.begin());
+    thrust::copy(m_sysFSI->sphMarkersD2->rhoPresMuD.begin(), m_sysFSI->sphMarkersD2->rhoPresMuD.end(),
+                 m_sysFSI->sphMarkersD1->rhoPresMuD.begin());
+    thrust::copy(m_sysFSI->sphMarkersD2->tauXxYyZzD.begin(), m_sysFSI->sphMarkersD2->tauXxYyZzD.end(),
+                 m_sysFSI->sphMarkersD1->tauXxYyZzD.begin());
+    thrust::copy(m_sysFSI->sphMarkersD2->tauXyXzYzD.begin(), m_sysFSI->sphMarkersD2->tauXyXzYzD.end(),
+                 m_sysFSI->sphMarkersD1->tauXyXzYzD.begin());
 }
 
 void ChSystemFsi::DoStepDynamics_FSI() {
@@ -856,15 +862,15 @@ void ChSystemFsi::DoStepDynamics_FSI() {
     if (m_fluid_dynamics->GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
         // The following is used to execute the Explicit WCSPH
         CopyDeviceDataToHalfStep();
-        ChUtilsDevice::FillMyThrust4(m_sysFSI.fsiGeneralData->derivVelRhoD, mR4(0));
-        m_fluid_dynamics->IntegrateSPH(m_sysFSI.sphMarkersD2, m_sysFSI.sphMarkersD1, m_sysFSI.fsiBodiesD2,
-                                       m_sysFSI.fsiMeshD, 0.5 * m_paramsH->dT, m_time);
-        m_fluid_dynamics->IntegrateSPH(m_sysFSI.sphMarkersD1, m_sysFSI.sphMarkersD2, m_sysFSI.fsiBodiesD2,
-                                       m_sysFSI.fsiMeshD, 1.0 * m_paramsH->dT, m_time);
-        m_bce_manager->Rigid_Forces_Torques(m_sysFSI.sphMarkersD2, m_sysFSI.fsiBodiesD2);
+        ChUtilsDevice::FillMyThrust4(m_sysFSI->fsiGeneralData->derivVelRhoD, mR4(0));
+        m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD2,
+                                       m_sysFSI->fsiMeshD, 0.5 * m_paramsH->dT, m_time);
+        m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD1, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
+                                       m_sysFSI->fsiMeshD, 1.0 * m_paramsH->dT, m_time);
+        m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
         m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
 
-        m_bce_manager->Flex_Forces(m_sysFSI.sphMarkersD2, m_sysFSI.fsiMeshD);
+        m_bce_manager->Flex_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
         // Note that because of applying forces to the nodal coordinates using SetForce() no other external forces can
         // be applied, or if any thing has been applied will be rewritten by Add_Flex_Forces_To_ChSystem();
         m_fsi_interface->Add_Flex_Forces_To_ChSystem();
@@ -880,17 +886,17 @@ void ChSystemFsi::DoStepDynamics_FSI() {
             m_sysMBS.DoStepDynamics(m_paramsH->dT / sync);
         }
 
-        m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI.fsiBodiesD2);
-        m_bce_manager->UpdateRigidMarkersPositionVelocity(m_sysFSI.sphMarkersD2, m_sysFSI.fsiBodiesD2);
+        m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI->fsiBodiesD2);
+        m_bce_manager->UpdateRigidMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
     } else {
         // A different coupling scheme is used for implicit SPH formulations
         m_fsi_interface->Copy_ChSystem_to_External();
-        m_fluid_dynamics->IntegrateSPH(m_sysFSI.sphMarkersD2, m_sysFSI.sphMarkersD2, m_sysFSI.fsiBodiesD2,
-                                       m_sysFSI.fsiMeshD, 0.0, m_time);
-        m_bce_manager->Rigid_Forces_Torques(m_sysFSI.sphMarkersD2, m_sysFSI.fsiBodiesD2);
+        m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
+                                       m_sysFSI->fsiMeshD, 0.0, m_time);
+        m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
         m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
 
-        m_bce_manager->Flex_Forces(m_sysFSI.sphMarkersD2, m_sysFSI.fsiMeshD);
+        m_bce_manager->Flex_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
         // Note that because of applying forces to the nodal coordinates using SetForce() no other external forces can
         // be applied, or if any thing has been applied will be rewritten by Add_Flex_Forces_To_ChSystem();
         m_fsi_interface->Add_Flex_Forces_To_ChSystem();
@@ -907,11 +913,11 @@ void ChSystemFsi::DoStepDynamics_FSI() {
             m_sysMBS.DoStepDynamics(m_paramsH->dT / sync);
         }
 
-        m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI.fsiBodiesD2);
-        m_bce_manager->UpdateRigidMarkersPositionVelocity(m_sysFSI.sphMarkersD2, m_sysFSI.fsiBodiesD2);
+        m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI->fsiBodiesD2);
+        m_bce_manager->UpdateRigidMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
 
-        m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI.fsiMeshD);
-        m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI.sphMarkersD2, m_sysFSI.fsiMeshD);
+        m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
+        m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
     }
 }
 
@@ -930,19 +936,19 @@ void ChSystemFsi::DoStepDynamics_ChronoRK2() {
 
 void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
     if (m_write_mode == OutpuMode::CSV) {
-        utils::WriteCsvParticlesToFile(m_sysFSI.sphMarkersD2->posRadD, m_sysFSI.sphMarkersD2->velMasD,
-                                       m_sysFSI.sphMarkersD2->rhoPresMuD, m_sysFSI.fsiGeneralData->referenceArray,
+        utils::WriteCsvParticlesToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->sphMarkersD2->velMasD,
+                                       m_sysFSI->sphMarkersD2->rhoPresMuD, m_sysFSI->fsiGeneralData->referenceArray,
                                        outfilename);
     } else if (m_write_mode == OutpuMode::CHPF) {
-        utils::WriteChPFParticlesToFile(m_sysFSI.sphMarkersD2->posRadD, m_sysFSI.fsiGeneralData->referenceArray,
+        utils::WriteChPFParticlesToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->fsiGeneralData->referenceArray,
                                         outfilename);
     }
 }
 
 void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
-    utils::PrintToFile(m_sysFSI.sphMarkersD2->posRadD, m_sysFSI.sphMarkersD2->velMasD,
-                       m_sysFSI.sphMarkersD2->rhoPresMuD, m_sysFSI.fsiGeneralData->sr_tau_I_mu_i,
-                       m_sysFSI.fsiGeneralData->referenceArray, thrust::host_vector<int4>(), dir, m_paramsH, true);
+    utils::PrintToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->sphMarkersD2->velMasD,
+                       m_sysFSI->sphMarkersD2->rhoPresMuD, m_sysFSI->fsiGeneralData->sr_tau_I_mu_i,
+                       m_sysFSI->fsiGeneralData->referenceArray, thrust::host_vector<int4>(), dir, m_paramsH, true);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -956,7 +962,7 @@ void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
                                  const ChVector<>& velocity,
                                  const ChVector<>& tauXxYyZz,
                                  const ChVector<>& tauXyXzYz) {
-    m_sysFSI.AddSPHParticle(ChUtilsTypeConvert::ChVectorToReal4(point, h), mR4(rho0, pres0, mu0, particle_type),
+    m_sysFSI->AddSPHParticle(ChUtilsTypeConvert::ChVectorToReal4(point, h), mR4(rho0, pres0, mu0, particle_type),
                             ChUtilsTypeConvert::ChVectorToReal3(velocity),
                             ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
                             ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
@@ -972,7 +978,7 @@ void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
 }
 
 void ChSystemFsi::AddRefArray(const int start, const int numPart, const int compType, const int phaseType) {
-    m_sysFSI.fsiGeneralData->referenceArray.push_back(mI4(start, numPart, compType, phaseType));
+    m_sysFSI->fsiGeneralData->referenceArray.push_back(mI4(start, numPart, compType, phaseType));
 }
 
 void ChSystemFsi::AddBoxSPH(double initSpace,
@@ -1019,11 +1025,11 @@ void ChSystemFsi::AddSphereBCE(std::shared_ptr<ChBody> body,
 void ChSystemFsi::AddSphereSurfaceBCE(std::shared_ptr<ChBody> body,
                                       const ChVector<>& relPos,
                                       const ChQuaternion<>& relRot,
-                                      Real radius,
-                                      Real kernel_h) {
+                                      double radius,
+                                      double kernel_h) {
     thrust::host_vector<Real4> posRadBCE;
     thrust::host_vector<Real3> normals;
-    utils::CreateBCE_On_surface_of_Sphere(posRadBCE, radius, kernel_h);
+    utils::CreateBCE_On_surface_of_Sphere(posRadBCE, (Real)radius, (Real)kernel_h);
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot, false, true);
     posRadBCE.clear();
     normals.clear();
@@ -1045,12 +1051,12 @@ void ChSystemFsi::AddCylinderBCE(std::shared_ptr<ChBody> body,
 void ChSystemFsi::AddCylinderSurfaceBCE(std::shared_ptr<ChBody> body,
                                         const ChVector<>& relPos,
                                         const ChQuaternion<>& relRot,
-                                        Real radius,
-                                        Real height,
-                                        Real kernel_h) {
+                                        double radius,
+                                        double height,
+                                        double kernel_h) {
     thrust::host_vector<Real4> posRadBCE;
     thrust::host_vector<Real3> normals;
-    utils::CreateBCE_On_surface_of_Cylinder(posRadBCE, normals, radius, height, kernel_h);
+    utils::CreateBCE_On_surface_of_Cylinder(posRadBCE, normals, (Real)radius, (Real)height, (Real)kernel_h);
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot, false, true);
     posRadBCE.clear();
     normals.clear();
@@ -1366,9 +1372,9 @@ void ChSystemFsi::CreateMeshPoints(std::shared_ptr<geometry::ChTriangleMeshConne
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::AddSphereBody(std::shared_ptr<ChMaterialSurface> mat_prop,
-                                Real density,
+                                double density,
                                 const ChVector<>& pos,
-                                Real radius) {
+                                double radius) {
     auto body = chrono_types::make_shared<ChBody>();
     body->SetBodyFixed(false);
     body->SetCollide(true);
@@ -1389,11 +1395,11 @@ void ChSystemFsi::AddSphereBody(std::shared_ptr<ChMaterialSurface> mat_prop,
 }
 
 void ChSystemFsi::AddCylinderBody(std::shared_ptr<ChMaterialSurface> mat_prop,
-                                  Real density,
+                                  double density,
                                   const ChVector<>& pos,
                                   const ChQuaternion<>& rot,
-                                  Real radius,
-                                  Real length) {
+                                  double radius,
+                                  double length) {
     auto body = chrono_types::make_shared<ChBody>();
     body->SetBodyFixed(false);
     body->SetCollide(true);
@@ -1416,7 +1422,7 @@ void ChSystemFsi::AddCylinderBody(std::shared_ptr<ChMaterialSurface> mat_prop,
 }
 
 void ChSystemFsi::AddBoxBody(std::shared_ptr<ChMaterialSurface> mat_prop,
-                             Real density,
+                             double density,
                              const ChVector<>& pos,
                              const ChQuaternion<>& rot,
                              const ChVector<>& hsize) {
@@ -1449,17 +1455,17 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
                                                         bool isSolid,
                                                         bool add_to_fluid_helpers,
                                                         bool add_to_previous_object) {
-    if (m_sysFSI.fsiGeneralData->referenceArray.size() < 1 && !add_to_fluid_helpers) {
+    if (m_sysFSI->fsiGeneralData->referenceArray.size() < 1 && !add_to_fluid_helpers) {
         cerr << "\n\n\n\n Error! fluid need to be initialized before boundary." << endl;
         cerr << "Reference array should have two components. \n\n\n\n" << endl;
         std::cin.get();
         return;
     }
 
-    if (m_sysFSI.fsiGeneralData->referenceArray.size() == 0)
-        m_sysFSI.fsiGeneralData->referenceArray.push_back(mI4(0, (int)posRadBCE.size(), -3, -1));
+    if (m_sysFSI->fsiGeneralData->referenceArray.size() == 0)
+        m_sysFSI->fsiGeneralData->referenceArray.push_back(mI4(0, (int)posRadBCE.size(), -3, -1));
 
-    int4 refSize4 = m_sysFSI.fsiGeneralData->referenceArray.back();
+    int4 refSize4 = m_sysFSI->fsiGeneralData->referenceArray.back();
     int type = 0;
     int object = 0;
     if (isSolid) {
@@ -1467,7 +1473,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
         type = 1;
         if (m_verbose) {
             printf("Adding BCE to solid object %d, type is %d, ref size = %zd\n", object, type,
-                   m_sysFSI.fsiGeneralData->referenceArray.size() + 1);
+                   m_sysFSI->fsiGeneralData->referenceArray.size() + 1);
         }
     }
 
@@ -1487,15 +1493,15 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
                                                                        collisionShapeRelativeRot);
         ChVector<> posLoc_COG = utils::TransformBCEToCOG(body, posLoc_body);
         ChVector<> posGlob = ChTransform<>::TransformLocalToParent(posLoc_COG, body->GetPos(), body->GetRot());
-        m_sysFSI.sphMarkersH->posRadH.push_back(mR4(ChUtilsTypeConvert::ChVectorToReal3(posGlob), posRadBCE[i].w));
+        m_sysFSI->sphMarkersH->posRadH.push_back(mR4(ChUtilsTypeConvert::ChVectorToReal3(posGlob), posRadBCE[i].w));
 
         ChVector<> vAbs = body->PointSpeedLocalToParent(posLoc_COG);
         Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(vAbs);
-        m_sysFSI.sphMarkersH->velMasH.push_back(v3);
-        m_sysFSI.sphMarkersH->rhoPresMuH.push_back(
+        m_sysFSI->sphMarkersH->velMasH.push_back(v3);
+        m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
             mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, (double)type));
-        m_sysFSI.sphMarkersH->tauXxYyZzH.push_back(mR3(0.0));
-        m_sysFSI.sphMarkersH->tauXyXzYzH.push_back(mR3(0.0));
+        m_sysFSI->sphMarkersH->tauXxYyZzH.push_back(mR3(0.0));
+        m_sysFSI->sphMarkersH->tauXyXzYzH.push_back(mR3(0.0));
     }
 
     // ------------------------
@@ -1505,33 +1511,33 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
     if (m_verbose)
         cout << "Particle Type = " << type << endl;
 
-    m_sysFSI.numObjects->numAllMarkers += numBce;
+    m_sysFSI->numObjects->numAllMarkers += numBce;
     // For helper particles, type = -3
-    if (type == -3 && m_sysFSI.fsiGeneralData->referenceArray.size() != 1) {
-        m_sysFSI.fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)posRadBCE.size(), -3, -1));
+    if (type == -3 && m_sysFSI->fsiGeneralData->referenceArray.size() != 1) {
+        m_sysFSI->fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)posRadBCE.size(), -3, -1));
     }
     // For boundary particles, type = 0
     else if ((type == 0 || (add_to_previous_object && type == 1)) && !add_to_fluid_helpers) {
-        m_sysFSI.numObjects->numBoundaryMarkers += numBce;
+        m_sysFSI->numObjects->numBoundaryMarkers += numBce;
         if (refSize4.w == -1) {
-            m_sysFSI.fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)numBce, 0, 0));
+            m_sysFSI->fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)numBce, 0, 0));
         } else if (refSize4.w == 0 || (refSize4.w && add_to_previous_object)) {
             refSize4.y = refSize4.y + (int)numBce;
-            m_sysFSI.fsiGeneralData->referenceArray.back() = refSize4;
+            m_sysFSI->fsiGeneralData->referenceArray.back() = refSize4;
         }
     }
     // For rigid body particles, type = 1
     else if (!add_to_fluid_helpers) {
-        if (m_sysFSI.fsiGeneralData->referenceArray.size() < 2) {
+        if (m_sysFSI->fsiGeneralData->referenceArray.size() < 2) {
             cerr << "Error! Boundary particles are not initialized while trying to " << endl;
             cerr << "initialize rigid particle!\n\n" << endl;
             std::cin.get();
             return;
         }
-        m_sysFSI.numObjects->numRigid_SphMarkers += numBce;
-        m_sysFSI.numObjects->numRigidBodies += 1;
-        m_sysFSI.numObjects->startRigidMarkers = m_sysFSI.fsiGeneralData->referenceArray[1].y;
-        m_sysFSI.fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)numBce, 1, object));
+        m_sysFSI->numObjects->numRigid_SphMarkers += numBce;
+        m_sysFSI->numObjects->numRigidBodies += 1;
+        m_sysFSI->numObjects->startRigidMarkers = m_sysFSI->fsiGeneralData->referenceArray[1].y;
+        m_sysFSI->fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)numBce, 1, object));
         if (m_verbose) {
             printf("refSize4.y = %d, refSize4.y + numBce = %d, particle type = %d, object number = %d\n", refSize4.y,
                    refSize4.y + (int)numBce, 1, object);
@@ -1598,28 +1604,28 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
         }
 
         bool addthis = true;
-        for (int p = 0; p < m_sysFSI.sphMarkersH->posRadH.size() - 1; p++) {
-            if (length(mR3(m_sysFSI.sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos)) <
+        for (int p = 0; p < m_sysFSI->sphMarkersH->posRadH.size() - 1; p++) {
+            if (length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos)) <
                     1e-5 &&
-                m_sysFSI.sphMarkersH->rhoPresMuH[p].w != -1) {
+                m_sysFSI->sphMarkersH->rhoPresMuH[p].w != -1) {
                 addthis = false;
                 if (m_verbose) {
                     printf("remove this particle %f,%f,%f because of its overlap with a particle at %f,%f,%f\n",
-                           m_sysFSI.sphMarkersH->posRadH[p].x, m_sysFSI.sphMarkersH->posRadH[p].y,
-                           m_sysFSI.sphMarkersH->posRadH[p].z, Correct_Pos.x(), Correct_Pos.y(), Correct_Pos.z());
+                           m_sysFSI->sphMarkersH->posRadH[p].x, m_sysFSI->sphMarkersH->posRadH[p].y,
+                           m_sysFSI->sphMarkersH->posRadH[p].z, Correct_Pos.x(), Correct_Pos.y(), Correct_Pos.z());
                 }
                 break;
             }
         }
 
         if (addthis) {
-            m_sysFSI.sphMarkersH->posRadH.push_back(
+            m_sysFSI->sphMarkersH->posRadH.push_back(
                 mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
-            m_sysFSI.fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_physical));
+            m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_physical));
             ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + ChVector<double>(1e-20);
             Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
-            m_sysFSI.sphMarkersH->velMasH.push_back(v3);
-            m_sysFSI.sphMarkersH->rhoPresMuH.push_back(mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
+            m_sysFSI->sphMarkersH->velMasH.push_back(v3);
+            m_sysFSI->sphMarkersH->rhoPresMuH.push_back(mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
             posRadSizeModified++;
         }
     }
@@ -1627,38 +1633,38 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
     // ------------------------
     // Modify number of objects
     // ------------------------
-    size_t numObjects = m_sysFSI.fsiGeneralData->referenceArray.size();
+    size_t numObjects = m_sysFSI->fsiGeneralData->referenceArray.size();
     size_t numBce = posRadSizeModified;
-    m_sysFSI.numObjects->numAllMarkers += numBce;
+    m_sysFSI->numObjects->numAllMarkers += numBce;
 
-    int numRigid = (int)m_sysFSI.numObjects->numRigidBodies;
-    m_sysFSI.numObjects->numFlex_SphMarkers += numBce;
-    m_sysFSI.numObjects->numFlexBodies1D += 1;
-    m_sysFSI.numObjects->startFlexMarkers = m_sysFSI.fsiGeneralData->referenceArray[numRigid + 1].y;
+    int numRigid = (int)m_sysFSI->numObjects->numRigidBodies;
+    m_sysFSI->numObjects->numFlex_SphMarkers += numBce;
+    m_sysFSI->numObjects->numFlexBodies1D += 1;
+    m_sysFSI->numObjects->startFlexMarkers = m_sysFSI->fsiGeneralData->referenceArray[numRigid + 1].y;
 
-    int4 last = m_sysFSI.fsiGeneralData->referenceArray[m_sysFSI.fsiGeneralData->referenceArray.size() - 1];
-    m_sysFSI.fsiGeneralData->referenceArray.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI.numObjects->numFlexBodies1D));  // 2: for cable
+    int4 last = m_sysFSI->fsiGeneralData->referenceArray[m_sysFSI->fsiGeneralData->referenceArray.size() - 1];
+    m_sysFSI->fsiGeneralData->referenceArray.push_back(
+        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI->numObjects->numFlexBodies1D));  // 2: for cable
 
-    m_sysFSI.fsiGeneralData->referenceArray_FEA.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI.numObjects->numFlexBodies1D));  // 2: for cable
+    m_sysFSI->fsiGeneralData->referenceArray_FEA.push_back(
+        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI->numObjects->numFlexBodies1D));  // 2: for cable
 
-    int4 test = m_sysFSI.fsiGeneralData->referenceArray[m_sysFSI.fsiGeneralData->referenceArray.size() - 1];
+    int4 test = m_sysFSI->fsiGeneralData->referenceArray[m_sysFSI->fsiGeneralData->referenceArray.size() - 1];
     if (m_verbose) {
-        printf(" push_back Index %zd. ", m_sysFSI.fsiGeneralData->referenceArray.size() - 1);
+        printf(" push_back Index %zd. ", m_sysFSI->fsiGeneralData->referenceArray.size() - 1);
         printf(" x=%d, y=%d, z=%d, w=%d\n", test.x, test.y, test.z, test.w);
     }
 
-    if (m_sysFSI.numObjects->numFlexBodies1D !=
-        m_sysFSI.fsiGeneralData->referenceArray.size() - 2 - m_sysFSI.numObjects->numRigidBodies) {
+    if (m_sysFSI->numObjects->numFlexBodies1D !=
+        m_sysFSI->fsiGeneralData->referenceArray.size() - 2 - m_sysFSI->numObjects->numRigidBodies) {
         cerr << "Error! num rigid Flexible does not match reference array size!\n\n" << endl;
         std::cin.get();
         return;
     }
-    numObjects = m_sysFSI.fsiGeneralData->referenceArray.size();
+    numObjects = m_sysFSI->fsiGeneralData->referenceArray.size();
     if (m_verbose) {
         printf("numObjects : %zd\n ", numObjects);
-        printf("numObjects->startFlexMarkers  : %zd\n ", m_sysFSI.numObjects->startFlexMarkers);
+        printf("numObjects->startFlexMarkers  : %zd\n ", m_sysFSI->numObjects->startFlexMarkers);
     }
 }
 
@@ -1710,62 +1716,62 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::
 
         // Note that the fluid particles are removed differently
         bool addthis = true;
-        for (size_t p = 0; p < m_sysFSI.sphMarkersH->posRadH.size() - 1; p++) {
-            if (length(mR3(m_sysFSI.sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos)) <
+        for (size_t p = 0; p < m_sysFSI->sphMarkersH->posRadH.size() - 1; p++) {
+            if (length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos)) <
                     1e-8 &&
-                m_sysFSI.sphMarkersH->rhoPresMuH[p].w != -1) {
+                m_sysFSI->sphMarkersH->rhoPresMuH[p].w != -1) {
                 addthis = false;
                 break;
             }
         }
 
         if (addthis) {
-            m_sysFSI.sphMarkersH->posRadH.push_back(
+            m_sysFSI->sphMarkersH->posRadH.push_back(
                 mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
-            m_sysFSI.fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
+            m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
 
             ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + N(4) * nCv + N(6) * nDv;
             Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
-            m_sysFSI.sphMarkersH->velMasH.push_back(v3);
-            m_sysFSI.sphMarkersH->rhoPresMuH.push_back(mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
+            m_sysFSI->sphMarkersH->velMasH.push_back(v3);
+            m_sysFSI->sphMarkersH->rhoPresMuH.push_back(mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
             posRadSizeModified++;
         }
     }
-    m_sysFSI.sphMarkersH->rhoPresMuH.size();
+    m_sysFSI->sphMarkersH->rhoPresMuH.size();
 
     // ------------------------
     // Modify number of objects
     // ------------------------
-    size_t numObjects = m_sysFSI.fsiGeneralData->referenceArray.size();
+    size_t numObjects = m_sysFSI->fsiGeneralData->referenceArray.size();
     size_t numBce = posRadSizeModified;
-    m_sysFSI.numObjects->numAllMarkers += numBce;
+    m_sysFSI->numObjects->numAllMarkers += numBce;
 
-    int numRigid = (int)m_sysFSI.numObjects->numRigidBodies;
-    m_sysFSI.numObjects->numFlex_SphMarkers += numBce;
-    m_sysFSI.numObjects->numFlexBodies2D += 1;
-    m_sysFSI.numObjects->startFlexMarkers = m_sysFSI.fsiGeneralData->referenceArray[numRigid + 1].y;
+    int numRigid = (int)m_sysFSI->numObjects->numRigidBodies;
+    m_sysFSI->numObjects->numFlex_SphMarkers += numBce;
+    m_sysFSI->numObjects->numFlexBodies2D += 1;
+    m_sysFSI->numObjects->startFlexMarkers = m_sysFSI->fsiGeneralData->referenceArray[numRigid + 1].y;
 
-    int4 last = m_sysFSI.fsiGeneralData->referenceArray[m_sysFSI.fsiGeneralData->referenceArray.size() - 1];
-    m_sysFSI.fsiGeneralData->referenceArray.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI.numObjects->numFlexBodies2D));  // 3: for Shell
+    int4 last = m_sysFSI->fsiGeneralData->referenceArray[m_sysFSI->fsiGeneralData->referenceArray.size() - 1];
+    m_sysFSI->fsiGeneralData->referenceArray.push_back(
+        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI->numObjects->numFlexBodies2D));  // 3: for Shell
 
-    m_sysFSI.fsiGeneralData->referenceArray_FEA.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI.numObjects->numFlexBodies2D));  // 3: for Shell
+    m_sysFSI->fsiGeneralData->referenceArray_FEA.push_back(
+        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI->numObjects->numFlexBodies2D));  // 3: for Shell
 
-    int4 test = m_sysFSI.fsiGeneralData->referenceArray[m_sysFSI.fsiGeneralData->referenceArray.size() - 1];
+    int4 test = m_sysFSI->fsiGeneralData->referenceArray[m_sysFSI->fsiGeneralData->referenceArray.size() - 1];
     if (m_verbose) {
-        printf(" referenceArray size %zd. ", m_sysFSI.fsiGeneralData->referenceArray.size());
+        printf(" referenceArray size %zd. ", m_sysFSI->fsiGeneralData->referenceArray.size());
         printf(" x=%d, y=%d, z=%d, w=%d\n", test.x, test.y, test.z, test.w);
     }
 
-    if (m_sysFSI.numObjects->numFlexBodies2D != m_sysFSI.fsiGeneralData->referenceArray.size() - 2 -
-                                                    m_sysFSI.numObjects->numRigidBodies -
-                                                    m_sysFSI.numObjects->numFlexBodies1D) {
+    if (m_sysFSI->numObjects->numFlexBodies2D != m_sysFSI->fsiGeneralData->referenceArray.size() - 2 -
+                                                    m_sysFSI->numObjects->numRigidBodies -
+                                                    m_sysFSI->numObjects->numFlexBodies1D) {
         cerr << "Error! num rigid Flexible does not match reference array size!\n\n" << endl;
         std::cin.get();
         return;
     }
-    numObjects = m_sysFSI.fsiGeneralData->referenceArray.size();
+    numObjects = m_sysFSI->fsiGeneralData->referenceArray.size();
     if (m_verbose)
         printf("numObjects : %zd\n ", numObjects);
 }
@@ -1835,23 +1841,23 @@ bool ChSystemFsi::GetAdaptiveTimeStepping() const {
 }
 
 size_t ChSystemFsi::GetNumFluidMarkers() const {
-    return m_sysFSI.numObjects->numFluidMarkers;
+    return m_sysFSI->numObjects->numFluidMarkers;
 }
 
 size_t ChSystemFsi::GetNumRigidBodyMarkers() const {
-    return m_sysFSI.numObjects->numRigid_SphMarkers;
+    return m_sysFSI->numObjects->numRigid_SphMarkers;
 }
 
 size_t ChSystemFsi::GetNumFlexBodyMarkers() const {
-    return m_sysFSI.numObjects->numFlex_SphMarkers;
+    return m_sysFSI->numObjects->numFlex_SphMarkers;
 }
 
 size_t ChSystemFsi::GetNumBoundaryMarkers() const {
-    return m_sysFSI.numObjects->numBoundaryMarkers;
+    return m_sysFSI->numObjects->numBoundaryMarkers;
 }
 
 std::vector<ChVector<>> ChSystemFsi::GetParticlePosOrProperties() {
-    thrust::host_vector<Real4> posRadH = m_sysFSI.sphMarkersD2->posRadD;
+    thrust::host_vector<Real4> posRadH = m_sysFSI->sphMarkersD2->posRadD;
     std::vector<ChVector<>> pos;
     for (size_t i = 0; i < posRadH.size(); i++) {
         pos.push_back(ChUtilsTypeConvert::Real4ToChVector(posRadH[i]));
@@ -1860,7 +1866,7 @@ std::vector<ChVector<>> ChSystemFsi::GetParticlePosOrProperties() {
 }
 
 std::vector<ChVector<>> ChSystemFsi::GetParticleVel() {
-    thrust::host_vector<Real3> velH = m_sysFSI.sphMarkersD2->velMasD;
+    thrust::host_vector<Real3> velH = m_sysFSI->sphMarkersD2->velMasD;
     std::vector<ChVector<>> vel;
     for (size_t i = 0; i < velH.size(); i++) {
         vel.push_back(ChUtilsTypeConvert::Real3ToChVector(velH[i]));

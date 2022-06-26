@@ -232,9 +232,9 @@ void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
                       int face,
                       std::shared_ptr<SimParams> paramsH) {
     Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-    int nFX = (int)round(hsize.x / (initSpace0));  // changed fron ceil to round
-    int nFY = (int)round(hsize.y / (initSpace0));  // changed fron ceil to round
-    int nFZ = (int)round(hsize.z / (initSpace0));  // changed fron ceil to round
+    int nFX = (int)round(hsize.x / initSpace0);
+    int nFY = (int)round(hsize.y / initSpace0);
+    int nFZ = (int)round(hsize.z / initSpace0);
 
     Real initSpaceX = hsize.x / nFX;
     Real initSpaceY = hsize.y / nFY;

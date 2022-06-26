@@ -29,19 +29,19 @@ namespace fsi {
 /// @{
 
 /// Run-time visualization support for Chrono::FSI systems.
-/// Requires the Chrono::OpenGL module; if not available, most ChFsiVisualization functions are no-op.
+/// Requires the Chrono::OpenGL module; if not available, most ChVisualizationFsi functions are no-op.
 ///
 /// Note that using run-time visualization for a Chrono::FSI system incurs the penalty of collecting positions of all
 /// particles every time the Render() function is invoked.
 ///
 /// To implement a moving camera (i.e., prescribe the camera position), get the current instance of the active
 /// Chrono::OpenGL window and use the function ChOpenGLWindow::SetCamera().
-class CH_FSI_API ChFsiVisualization {
+class CH_FSI_API ChVisualizationFsi {
   public:
     /// <summary>
     /// Create a run-time visualization object associated with a given Chrono::Fsi system.
-    ChFsiVisualization(ChSystemFsi* sysFSI);
-    ~ChFsiVisualization();
+    ChVisualizationFsi(ChSystemFsi* sysFSI);
+    ~ChVisualizationFsi();
 
     /// Set title of the visualization window (default: "").
     void SetTitle(const std::string& title) { m_title = title; }
