@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen, Conlain Kelly
+// Authors: Radu Serban, Justin Madsen, Conlain Kelly, Marcel Offermans
 // =============================================================================
 //
 // Irrlicht-based GUI driver for the a vehicle. This class implements the
@@ -61,7 +61,8 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleVisualSystemIrrlicht& vsys)
 
     // Load joystick configuration...
     rapidjson::Document d;
-    ReadFileJSON("../data/joystick.json", d);
+    std::string joystickFile = chrono::vehicle::GetDataFile("joystick.json");
+    ReadFileJSON(joystickFile, d);
     if (!d.IsNull()) {
         steerAxis.read(d, "steering");
         throttleAxis.read(d, "throttle");
@@ -80,7 +81,7 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleVisualSystemIrrlicht& vsys)
         gear8Button.read(d, "gear8");
         gear9Button.read(d, "gear9");
     } else {
-        GetLog() << "Could not load joystick settings from ../data/joystick.json\n.";
+        GetLog() << "Could not load joystick settings from " << joystickFile << "\n.";
     }
 
     /// Activates joysticks, if available
@@ -180,37 +181,35 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
 
         m_dT = 0;
 
-        // ...
-        if (event.JoystickEvent.Joystick == steerAxis.id) {
-            SetSteering(steerAxis.value((double)event.JoystickEvent.Axis[steerAxis.axis]));
-        }
-        if (event.JoystickEvent.Joystick == throttleAxis.id) {
-            SetThrottle(throttleAxis.value((double)event.JoystickEvent.Axis[throttleAxis.axis]));
-        }
-        if (event.JoystickEvent.Joystick == brakeAxis.id) {
-            SetBraking(brakeAxis.value((double) event.JoystickEvent.Axis[brakeAxis.axis]));
-        }
+        // Update steering, throttle and brake axes...
+        SetSteering(steerAxis.getValue(event.JoystickEvent));
+        SetThrottle(throttleAxis.getValue(event.JoystickEvent));
+        SetBraking(brakeAxis.getValue(event.JoystickEvent));
 
         // Sequential shifter code...
         if (m_vehicle.GetPowertrain()) {
             // To prevent people from "double shifting" we add a shift delay here and ignore any further
-            // button presses for a while.
-            if (m_shiftDelay > 10) {
-                if (shiftUpButton.isPressed(event.JoystickEvent)) {
+            // button presses for a while. Also we make sure that after pressing the shifter, you need
+            // to release it again before you can shift again.
+            if (shiftUpButton.isPressed(event.JoystickEvent)) {
+                if (m_shiftDelay > JOYSTICK_SHIFT_DELAY) {
                     m_vehicle.GetPowertrain()->ShiftUp();
                     m_shiftDelay = 0;
-                } else if (shiftDownButton.isPressed(event.JoystickEvent)) {
+                }
+            } else if (shiftDownButton.isPressed(event.JoystickEvent)) {
+                if (m_shiftDelay > JOYSTICK_SHIFT_DELAY) {
                     m_vehicle.GetPowertrain()->ShiftDown();
                     m_shiftDelay = 0;
                 }
+            } else {
+                m_shiftDelay++;
             }
-            m_shiftDelay++;
         }
 
         // H-shifter code...
-        if (clutchAxis.axis != NONE && event.JoystickEvent.Joystick == clutchAxis.id) {
+        if (clutchAxis.axis != NONE) {
             double rawClutchPosition = (double)event.JoystickEvent.Axis[clutchAxis.axis];
-            double clutchPosition = clutchAxis.value(rawClutchPosition);
+            double clutchPosition = clutchAxis.getValue(event.JoystickEvent);
             // Check if that clutch is pressed...
             if ((clutchAxis.scaled_max - clutchPosition) < 0.1) {
                 SetThrottle(0);
@@ -257,7 +256,7 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
             cb_fun();
         }
 
-        // Output some debug information
+        // Output some debug information (can be very useful when setting up or calibrating joysticks)
         if (m_debugJoystickData) {
             if (m_debugPrintDelay < 30) {
                 m_debugPrintDelay++;
@@ -417,14 +416,6 @@ void ChIrrGuiDriver::SetInputMode(InputMode mode) {
             break;
     }
 }
-
-//void ChIrrGuiDriver::SetJoystickAxes(JoystickAxes tr_ax, JoystickAxes br_ax, JoystickAxes st_ax, JoystickAxes cl_ax){
-//
-//    throttle_axis = tr_ax;
-//    brake_axis = br_ax; 
-//    steer_axis = st_ax;
-//    clutch_axis = cl_ax;
-//}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

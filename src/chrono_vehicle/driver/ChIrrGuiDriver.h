@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen, Conlain Kelly
+// Authors: Radu Serban, Justin Madsen, Conlain Kelly, Marcel Offermans
 // =============================================================================
 //
 // Irrlicht-based GUI driver for the a vehicle. This class implements the
@@ -28,9 +28,12 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
+
+#define JOYSTICK_SHIFT_DELAY (2)
 
 namespace chrono {
 namespace vehicle {
@@ -72,10 +75,17 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
         JoystickAxes axis;
         std::string name;
         double min, max, scaled_min, scaled_max;
-        double value(double raw_value) {
-            // Scales raw_value which can range from scaled_min to scaled_max so it ends up in a range from min to max.
-            return (raw_value - max) * (scaled_max - scaled_min) / (max - min) + scaled_max;
+        double value;
+
+        double getValue(const irr::SEvent::SJoystickEvent& joystickEvent) {
+            if (joystickEvent.Joystick == id) {
+                // Scales raw_value which can range from scaled_min to scaled_max so it ends up in a range from min to
+                // max.
+                value = (joystickEvent.Axis[axis] - max) * (scaled_max - scaled_min) / (max - min) + scaled_max;
+            }
+            return value;
         }
+
         void read(rapidjson::Document& d, char* elementName) {
             if (d.HasMember(elementName) && d[elementName].IsObject()) {
                 id = -1;
@@ -95,6 +105,7 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
                 scaled_min = 0;
                 scaled_max = 1;
             }
+            value = min;
         }
     };
 
@@ -103,8 +114,12 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
         int id;
         int button;
         std::string name;
-        bool isPressed(irr::SEvent::SJoystickEvent joystickEvent) {
-            return joystickEvent.Joystick == id && joystickEvent.IsButtonPressed(button);
+        bool buttonIsPressed;
+        bool isPressed(const irr::SEvent::SJoystickEvent& joystickEvent) {
+            if (joystickEvent.Joystick == id) {
+                buttonIsPressed = joystickEvent.IsButtonPressed(button);
+            }
+            return buttonIsPressed;
         }
         void read(rapidjson::Document& d, char* elementName) {
             if (d.HasMember(elementName) && d[elementName].IsObject()) {
@@ -117,6 +132,7 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
                 name = "Unknown";
                 button = -1;
             }
+            buttonIsPressed = false;
         }
     };
 
@@ -159,21 +175,6 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     /// Return the current functioning mode as a string.
     std::string GetInputModeAsString() const;
 
-    /// Set joystick axes: throttle, brake, steering, clutch. 
-    //void SetJoystickAxes(JoystickAxes tr_ax, JoystickAxes br_ax, JoystickAxes st_ax, JoystickAxes cl_ax);
-
-    ///// Get joystick axes for the throttle.
-    //JoystickAxes GetThrottleAxis(JoystickAxes tr_ax) const { return throttle_axis; }
-
-    ///// Get joystick axes for the brake.
-    //JoystickAxes GetBrakeAxis(JoystickAxes br_ax) const { return brake_axis; }
-
-    ///// Get joystick axes for the steer.
-    //JoystickAxes GetSteerAxis(JoystickAxes st_ax) const { return steer_axis; }
-
-    ///// Get joystick axes for the clutch.
-    //JoystickAxes GetClutchAxis(JoystickAxes cl_ax) const { return cl_ax; }
-
     /// Feed button number and callback function to implement a custom callback.
     void SetButtonCallback(int button, void(*cbfun)()) {cb_fun = cbfun; callbackButton=button; }
 
@@ -203,11 +204,7 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     bool m_debugJoystickData = true;
     int m_debugPrintDelay;
 
-    // Axes for joystick usage
-    //JoystickAxes throttle_axis = AXIS_Z;
-    //JoystickAxes brake_axis = AXIS_R;
-    //JoystickAxes steer_axis = AXIS_X;
-    //JoystickAxes clutch_axis = AXIS_Y;
+    // Axes and buttons for joystick usage
     SpecificJoystickAxis steerAxis;
     SpecificJoystickAxis throttleAxis;
     SpecificJoystickAxis brakeAxis;
