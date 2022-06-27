@@ -584,12 +584,12 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
 
     int haveGhost = (numObjectsH->numGhostMarkers > 0) ? 1 : 0;
     int haveHelper = (numObjectsH->numHelperMarkers > 0) ? 1 : 0;
+    int haveRigid = (numObjectsH->numRigidBodies > 0) ? 1 : 0;
+    int haveFlex1D = (numObjectsH->numFlexBodies1D > 0) ? 1 : 0;
+    int haveFlex2D = (numObjectsH->numFlexBodies2D > 0) ? 1 : 0;
 
     int numFlexAndRigidAndBoundaryMarkers =
-        fsiGeneralData
-            ->referenceArray[2 + haveHelper + haveGhost + numObjectsH->numRigidBodies + numObjectsH->numFlexBodies1D +
-                             numObjectsH->numFlexBodies2D - 1]
-            .y -
+        fsiGeneralData->referenceArray[2 + haveHelper + haveGhost + haveRigid + haveFlex1D + haveFlex2D - 1].y -
         fsiGeneralData->referenceArray[haveHelper + haveGhost].y;
 
     if (verbose) {

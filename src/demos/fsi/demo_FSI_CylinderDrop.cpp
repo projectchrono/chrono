@@ -291,7 +291,6 @@ int main(int argc, char* argv[]) {
         sysFSI.AddSPHParticle(points[i], rho_ini, pre_ini, sysFSI.GetViscosity(), sysFSI.GetKernelLength(),
                               ChVector<>(0));
     }
-    sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 
     // Create MBD and BCE particles for the solid domain
     CreateSolidPhase(sysMBS, sysFSI);
@@ -312,7 +311,8 @@ int main(int argc, char* argv[]) {
     ChVisualizationFsi fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI cylinder drop");
-        fsi_vis.SetCameraPosition(ChVector<>(0, -3 * byDim, 2 * bzDim), ChVector<>(0, 0, 0));
+        auto origin = sysMBS.Get_bodylist()[1]->GetPos();
+        fsi_vis.SetCameraPosition(origin - ChVector<>(0, 3 * byDim, 0), origin);
         fsi_vis.SetCameraMoveScale(1.0f);
         fsi_vis.EnableBoundaryMarkers(false);
         fsi_vis.Initialize();

@@ -170,7 +170,6 @@ int main(int argc, char* argv[]) {
                               ChVector<>(0)          // tauxyxzyz
         );
     }
-    sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 
     // Create MBD and BCE particles for the solid domain
     CreateSolidPhase(sysMBS, sysFSI);

@@ -279,10 +279,10 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
             m_paramsH->laplacian_type = doc["SPH Parameters"]["Laplacian Discretization Type"].GetInt();
 
         if (doc["SPH Parameters"].HasMember("Consistent Discretization for Laplacian"))
-            m_paramsH->USE_Consistent_L = doc["SPH Parameters"]["Consistent Discretization for Laplacian"].GetInt();
+            m_paramsH->USE_Consistent_L = doc["SPH Parameters"]["Consistent Discretization for Laplacian"].GetBool();
 
         if (doc["SPH Parameters"].HasMember("Consistent Discretization for Gradient"))
-            m_paramsH->USE_Consistent_G = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetInt();
+            m_paramsH->USE_Consistent_G = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetBool();
     }
 
     if (doc.HasMember("Time Stepping")) {
@@ -790,26 +790,39 @@ void ChSystemFsi::Initialize() {
 
     // Resize worker data
     m_fsi_interface->ResizeChronoBodiesData();
-    int fea_node = 0;
     m_fsi_interface->ResizeChronoCablesData(m_fea_cable_nodes);
     m_fsi_interface->ResizeChronoShellsData(m_fea_shell_nodes);
     m_fsi_interface->ResizeChronoFEANodesData();
-    fea_node = m_fsi_mesh->GetNnodes();
 
-    // This also sets the referenceArray
-    m_sysFSI->ResizeDataManager(fea_node, m_verbose);
-
-    m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI->fsiBodiesD1);
-    m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
-    m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
+    // This also sets the referenceArray and counts numbers of various objects
+    m_sysFSI->ResizeData(m_fsi_bodies.size(), m_fsi_cables.size(), m_fsi_shells.size(), m_fsi_mesh->GetNnodes());
 
     if (m_verbose) {
+        cout << "Counters" << endl;
+        cout << "  numRigidBodies: " << m_sysFSI->numObjects->numRigidBodies << endl;
+        cout << "  numFlexNodes: " << m_sysFSI->numObjects->numFlexNodes << endl;
+        cout << "  numFlexBodies1D: " << m_sysFSI->numObjects->numFlexBodies1D << endl;
+        cout << "  numFlexBodies2D: " << m_sysFSI->numObjects->numFlexBodies2D << endl;
+        cout << "  numGhostMarkers: " << m_sysFSI->numObjects->numGhostMarkers << endl;
+        cout << "  numHelperMarkers: " << m_sysFSI->numObjects->numHelperMarkers << endl;
+        cout << "  numFluidMarkers: " << m_sysFSI->numObjects->numFluidMarkers << endl;
+        cout << "  numBoundaryMarkers: " << m_sysFSI->numObjects->numBoundaryMarkers << endl;
+        cout << "  numRigid_SphMarkers: " << m_sysFSI->numObjects->numRigid_SphMarkers << endl;
+        cout << "  numFlex_SphMarkers: " << m_sysFSI->numObjects->numFlex_SphMarkers << endl;
+        cout << "  numAllMarkers: " << m_sysFSI->numObjects->numAllMarkers << endl;
+        cout << "  startRigidMarkers: " << m_sysFSI->numObjects->startRigidMarkers << endl;
+        cout << "  startFlexMarkers: " << m_sysFSI->numObjects->startFlexMarkers << endl;
+
         cout << "Reference array (size: " << m_sysFSI->fsiGeneralData->referenceArray.size() << ")" << endl;
         for (size_t i = 0; i < m_sysFSI->fsiGeneralData->referenceArray.size(); i++) {
             const int4& num = m_sysFSI->fsiGeneralData->referenceArray[i];
             cout << "  " << i << ":  " << num.x << " " << num.y << " " << num.z << " " << num.w << endl;
         }
     }
+
+    m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI->fsiBodiesD1);
+    m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
+    m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
 
     m_sysFSI->fsiBodiesD2 = m_sysFSI->fsiBodiesD1;  //(2) construct midpoint rigid data
 
@@ -977,10 +990,6 @@ void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
                    tauXyXzYz);
 }
 
-void ChSystemFsi::AddRefArray(const int start, const int numPart, const int compType, const int phaseType) {
-    m_sysFSI->fsiGeneralData->referenceArray.push_back(mI4(start, numPart, compType, phaseType));
-}
-
 void ChSystemFsi::AddBoxSPH(double initSpace,
                             double kernelLength,
                             const ChVector<>& boxCenter,
@@ -997,7 +1006,6 @@ void ChSystemFsi::AddBoxSPH(double initSpace,
                        ChVector<>(0),   // tauxxyyzz
                        ChVector<>(0));  // tauxyxzyz
     }
-    AddRefArray(0, (int)numPart, -1, -1);
 }
 
 void ChSystemFsi::AddBoxBCE(std::shared_ptr<ChBody> body,
@@ -1455,35 +1463,9 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
                                                         bool isSolid,
                                                         bool add_to_fluid_helpers,
                                                         bool add_to_previous_object) {
-    if (m_sysFSI->fsiGeneralData->referenceArray.size() < 1 && !add_to_fluid_helpers) {
-        cerr << "\n\n\n\n Error! fluid need to be initialized before boundary." << endl;
-        cerr << "Reference array should have two components. \n\n\n\n" << endl;
-        std::cin.get();
-        return;
-    }
-
-    if (m_sysFSI->fsiGeneralData->referenceArray.size() == 0)
-        m_sysFSI->fsiGeneralData->referenceArray.push_back(mI4(0, (int)posRadBCE.size(), -3, -1));
-
-    int4 refSize4 = m_sysFSI->fsiGeneralData->referenceArray.back();
     int type = 0;
-    int object = 0;
-    if (isSolid) {
-        object = refSize4.w + !add_to_previous_object;
+    if (isSolid)
         type = 1;
-        if (m_verbose) {
-            printf("Adding BCE to solid object %d, type is %d, ref size = %zd\n", object, type,
-                   m_sysFSI->fsiGeneralData->referenceArray.size() + 1);
-        }
-    }
-
-    if (type < 0) {
-        cerr << "\n\n\n\n Error! reference array type is not correct." << endl;
-        cerr << "It does not denote boundary or rigid. \n\n\n\n" << endl;
-        std::cin.get();
-        return;
-    }
-
     if (add_to_fluid_helpers)
         type = -3;
 
@@ -1502,44 +1484,6 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
             mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, (double)type));
         m_sysFSI->sphMarkersH->tauXxYyZzH.push_back(mR3(0.0));
         m_sysFSI->sphMarkersH->tauXyXzYzH.push_back(mR3(0.0));
-    }
-
-    // ------------------------
-    // Modify number of objects
-    // ------------------------
-    size_t numBce = posRadBCE.size();
-
-    m_sysFSI->numObjects->numAllMarkers += numBce;
-    // For helper particles, type = -3
-    if (type == -3 && m_sysFSI->fsiGeneralData->referenceArray.size() != 1) {
-        m_sysFSI->fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)posRadBCE.size(), -3, -1));
-    }
-    // For boundary particles, type = 0
-    else if ((type == 0 || (add_to_previous_object && type == 1)) && !add_to_fluid_helpers) {
-        m_sysFSI->numObjects->numBoundaryMarkers += numBce;
-        if (refSize4.w == -1) {
-            m_sysFSI->fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)numBce, 0, 0));
-        } else if (refSize4.w == 0 || (refSize4.w && add_to_previous_object)) {
-            refSize4.y = refSize4.y + (int)numBce;
-            m_sysFSI->fsiGeneralData->referenceArray.back() = refSize4;
-        }
-    }
-    // For rigid body particles, type = 1
-    else if (!add_to_fluid_helpers) {
-        if (m_sysFSI->fsiGeneralData->referenceArray.size() < 2) {
-            cerr << "Error! Boundary particles are not initialized while trying to " << endl;
-            cerr << "initialize rigid particle!\n\n" << endl;
-            std::cin.get();
-            return;
-        }
-        m_sysFSI->numObjects->numRigid_SphMarkers += numBce;
-        m_sysFSI->numObjects->numRigidBodies += 1;
-        m_sysFSI->numObjects->startRigidMarkers = m_sysFSI->fsiGeneralData->referenceArray[1].y;
-        m_sysFSI->fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)numBce, 1, object));
-        if (m_verbose) {
-            printf("refSize4.y = %d, refSize4.y + numBce = %d, particle type = %d, object number = %d\n", refSize4.y,
-                   refSize4.y + (int)numBce, 1, object);
-        }
     }
 }
 
@@ -1629,43 +1573,6 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
             posRadSizeModified++;
         }
     }
-
-    // ------------------------
-    // Modify number of objects
-    // ------------------------
-    size_t numObjects = m_sysFSI->fsiGeneralData->referenceArray.size();
-    size_t numBce = posRadSizeModified;
-    m_sysFSI->numObjects->numAllMarkers += numBce;
-
-    int numRigid = (int)m_sysFSI->numObjects->numRigidBodies;
-    m_sysFSI->numObjects->numFlex_SphMarkers += numBce;
-    m_sysFSI->numObjects->numFlexBodies1D += 1;
-    m_sysFSI->numObjects->startFlexMarkers = m_sysFSI->fsiGeneralData->referenceArray[numRigid + 1].y;
-
-    int4 last = m_sysFSI->fsiGeneralData->referenceArray[m_sysFSI->fsiGeneralData->referenceArray.size() - 1];
-    m_sysFSI->fsiGeneralData->referenceArray.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI->numObjects->numFlexBodies1D));  // 2: for cable
-
-    m_sysFSI->fsiGeneralData->referenceArray_FEA.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI->numObjects->numFlexBodies1D));  // 2: for cable
-
-    int4 test = m_sysFSI->fsiGeneralData->referenceArray[m_sysFSI->fsiGeneralData->referenceArray.size() - 1];
-    if (m_verbose) {
-        printf(" push_back Index %zd. ", m_sysFSI->fsiGeneralData->referenceArray.size() - 1);
-        printf(" x=%d, y=%d, z=%d, w=%d\n", test.x, test.y, test.z, test.w);
-    }
-
-    if (m_sysFSI->numObjects->numFlexBodies1D !=
-        m_sysFSI->fsiGeneralData->referenceArray.size() - 2 - m_sysFSI->numObjects->numRigidBodies) {
-        cerr << "Error! num rigid Flexible does not match reference array size!\n\n" << endl;
-        std::cin.get();
-        return;
-    }
-    numObjects = m_sysFSI->fsiGeneralData->referenceArray.size();
-    if (m_verbose) {
-        printf("numObjects : %zd\n ", numObjects);
-        printf("numObjects->startFlexMarkers  : %zd\n ", m_sysFSI->numObjects->startFlexMarkers);
-    }
 }
 
 void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::host_vector<Real4>& posRadBCE,
@@ -1739,42 +1646,6 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::
         }
     }
     m_sysFSI->sphMarkersH->rhoPresMuH.size();
-
-    // ------------------------
-    // Modify number of objects
-    // ------------------------
-    size_t numObjects = m_sysFSI->fsiGeneralData->referenceArray.size();
-    size_t numBce = posRadSizeModified;
-    m_sysFSI->numObjects->numAllMarkers += numBce;
-
-    int numRigid = (int)m_sysFSI->numObjects->numRigidBodies;
-    m_sysFSI->numObjects->numFlex_SphMarkers += numBce;
-    m_sysFSI->numObjects->numFlexBodies2D += 1;
-    m_sysFSI->numObjects->startFlexMarkers = m_sysFSI->fsiGeneralData->referenceArray[numRigid + 1].y;
-
-    int4 last = m_sysFSI->fsiGeneralData->referenceArray[m_sysFSI->fsiGeneralData->referenceArray.size() - 1];
-    m_sysFSI->fsiGeneralData->referenceArray.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI->numObjects->numFlexBodies2D));  // 3: for Shell
-
-    m_sysFSI->fsiGeneralData->referenceArray_FEA.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)m_sysFSI->numObjects->numFlexBodies2D));  // 3: for Shell
-
-    int4 test = m_sysFSI->fsiGeneralData->referenceArray[m_sysFSI->fsiGeneralData->referenceArray.size() - 1];
-    if (m_verbose) {
-        printf(" referenceArray size %zd. ", m_sysFSI->fsiGeneralData->referenceArray.size());
-        printf(" x=%d, y=%d, z=%d, w=%d\n", test.x, test.y, test.z, test.w);
-    }
-
-    if (m_sysFSI->numObjects->numFlexBodies2D != m_sysFSI->fsiGeneralData->referenceArray.size() - 2 -
-                                                     m_sysFSI->numObjects->numRigidBodies -
-                                                     m_sysFSI->numObjects->numFlexBodies1D) {
-        cerr << "Error! num rigid Flexible does not match reference array size!\n\n" << endl;
-        std::cin.get();
-        return;
-    }
-    numObjects = m_sysFSI->fsiGeneralData->referenceArray.size();
-    if (m_verbose)
-        printf("numObjects : %zd\n ", numObjects);
 }
 
 void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPosBoundary(const thrust::host_vector<Real4>& posRadBCE,

@@ -178,8 +178,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
                                     ChVector<>(1e-10));
     }
 
-    m_systemFSI->AddRefArray(0, numPart, -1, -1);
-
     // Create a body for the fluid container body
     auto container = std::shared_ptr<ChBody>(m_system->NewBody());
     m_system->AddBody(container);

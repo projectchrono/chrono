@@ -125,7 +125,6 @@ int main(int argc, char* argv[]) {
         double v_x = PoiseuilleAnalytical(points[i].z(), bzDim, 0.5, sysFSI);
         sysFSI.AddSPHParticle(points[i], ChVector<>(v_x, 0.0, 0.0));
     }
-    sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 
     // Create SPH particles for the solid domain
     CreateSolidPhase(sysMBS, sysFSI);

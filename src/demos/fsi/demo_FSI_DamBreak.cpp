@@ -181,7 +181,6 @@ int main(int argc, char* argv[]) {
         auto rho_ini = sysFSI.GetDensity() + pre_ini / (sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed());
         sysFSI.AddSPHParticle(points[i], rho_ini, pre_ini, sysFSI.GetViscosity(), sysFSI.GetKernelLength());
     }
-    sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 
     // Create Solid region and attach BCE SPH particles
     CreateSolidPhase(sysMBS, sysFSI);

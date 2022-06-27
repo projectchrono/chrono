@@ -131,7 +131,6 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < numPart; i++) {
         sysFSI.AddSPHParticle(points[i]);
     }
-    sysFSI.AddRefArray(0, (int)numPart, -1, -1);
 
     // ******************************* Create Solid region ****************************************
     Create_MB_FE(sysMBS, sysFSI);

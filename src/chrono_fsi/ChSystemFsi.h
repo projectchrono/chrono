@@ -407,9 +407,6 @@ class CH_FSI_API ChSystemFsi {
                     const ChQuaternion<>& rot,
                     const ChVector<>& hsize);
 
-    /// Add reference array for SPH particles.
-    void AddRefArray(const int start, const int numPart, const int compType, const int phaseType);
-
     /// Utility function for creating points filling a closed mesh.
     static void CreateMeshPoints(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
                                  double delta,
