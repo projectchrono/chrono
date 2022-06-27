@@ -40,31 +40,18 @@ ChTriangle& ChTriangle::operator=(const ChTriangle& source) {
     p3 = source.p3;
     return *this;
 }
-void ChTriangle::GetBoundingBox(double& xmin,
-                                double& xmax,
-                                double& ymin,
-                                double& ymax,
-                                double& zmin,
-                                double& zmax,
-                                ChMatrix33<>* Rot) const {
-    if (Rot == NULL) {
-        xmin = ChMin(ChMin(p1.x(), p2.x()), p3.x());
-        ymin = ChMin(ChMin(p1.y(), p2.y()), p3.y());
-        zmin = ChMin(ChMin(p1.z(), p2.z()), p3.z());
-        xmax = ChMax(ChMax(p1.x(), p2.x()), p3.x());
-        ymax = ChMax(ChMax(p1.y(), p2.y()), p3.y());
-        zmax = ChMax(ChMax(p1.z(), p2.z()), p3.z());
-    } else {
-        ChVector<> trp1 = Rot->transpose() * p1;
-        ChVector<> trp2 = Rot->transpose() * p2;
-        ChVector<> trp3 = Rot->transpose() * p3;
-        xmin = ChMin(ChMin(trp1.x(), trp2.x()), trp3.x());
-        ymin = ChMin(ChMin(trp1.y(), trp2.y()), trp3.y());
-        zmin = ChMin(ChMin(trp1.z(), trp2.z()), trp3.z());
-        xmax = ChMax(ChMax(trp1.x(), trp2.x()), trp3.x());
-        ymax = ChMax(ChMax(trp1.y(), trp2.y()), trp3.y());
-        zmax = ChMax(ChMax(trp1.z(), trp2.z()), trp3.z());
-    }
+
+void ChTriangle::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
+    ChVector<> trp1 = rot.transpose() * p1;
+    ChVector<> trp2 = rot.transpose() * p2;
+    ChVector<> trp3 = rot.transpose() * p3;
+
+    cmin.x() = ChMin(ChMin(trp1.x(), trp2.x()), trp3.x());
+    cmin.y() = ChMin(ChMin(trp1.y(), trp2.y()), trp3.y());
+    cmin.z() = ChMin(ChMin(trp1.z(), trp2.z()), trp3.z());
+    cmax.x() = ChMax(ChMax(trp1.x(), trp2.x()), trp3.x());
+    cmax.y() = ChMax(ChMax(trp1.y(), trp2.y()), trp3.y());
+    cmax.z() = ChMax(ChMax(trp1.z(), trp2.z()), trp3.z());
 }
 
 ChVector<> ChTriangle::Baricenter() const {
@@ -73,15 +60,6 @@ ChVector<> ChTriangle::Baricenter() const {
     mb.y() = (p1.y() + p2.y() + p3.y()) / 3.;
     mb.z() = (p1.z() + p2.z() + p3.z()) / 3.;
     return mb;
-}
-
-void ChTriangle::CovarianceMatrix(ChMatrix33<>& C) const {
-    C(0, 0) = p1.x() * p1.x() + p2.x() * p2.x() + p3.x() * p3.x();
-    C(1, 1) = p1.y() * p1.y() + p2.y() * p2.y() + p3.y() * p3.y();
-    C(2, 2) = p1.z() * p1.z() + p2.z() * p2.z() + p3.z() * p3.z();
-    C(0, 1) = p1.x() * p1.y() + p2.x() * p2.y() + p3.x() * p3.y();
-    C(0, 2) = p1.x() * p1.z() + p2.x() * p2.z() + p3.x() * p3.z();
-    C(1, 2) = p1.y() * p1.z() + p2.y() * p2.z() + p3.y() * p3.z();
 }
 
 bool ChTriangle::Normal(ChVector<>& N) const {

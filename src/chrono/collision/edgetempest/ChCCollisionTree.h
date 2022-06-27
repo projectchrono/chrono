@@ -70,15 +70,9 @@ class ChCollisionTree {
     };
 
     /// Compute bounding box (in model reference frame).
-    /// If a matrix Rot is not null, it should compute bounding box along
-    /// the rotated directions represented by that transformation matrix Rot.
-    virtual void GetBoundingBox(double& xmin,
-                                double& xmax,
-                                double& ymin,
-                                double& ymax,
-                                double& zmin,
-                                double& zmax,
-                                ChMatrix33<>* Rot = NULL);
+    virtual void GetBoundingBox(ChVector<>& cmin,
+                                ChVector<>& cmax,
+                                const ChMatrix33<>& rot);
 
     /// Gets the pointer to the owner rigid body
     ChBody* GetBody() { return m_body; }

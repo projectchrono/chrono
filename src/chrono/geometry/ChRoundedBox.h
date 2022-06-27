@@ -37,19 +37,11 @@ class ChApi ChRoundedBox : public ChVolume {
 
     virtual GeometryType GetClassType() const override { return ROUNDED_BOX; }
 
-    virtual void GetBoundingBox(double& xmin,
-                                double& xmax,
-                                double& ymin,
-                                double& ymax,
-                                double& zmin,
-                                double& zmax,
-                                ChMatrix33<>* bbRot = NULL) const override;
+    /// Compute bounding box along the directions defined by the given rotation matrix.
+    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
 
     /// Computes the baricenter of the box
     virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
-
-    /// Computes the covariance matrix for the box
-    virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
 
     /// Evaluate position in cube volume
     virtual void Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const override;

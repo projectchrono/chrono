@@ -548,6 +548,7 @@ set(ChronoEngine_geometry_SOURCES
     geometry/ChLineCam.cpp
     geometry/ChLinePoly.cpp
     geometry/ChTriangle.cpp
+    geometry/ChTriangleMesh.cpp
     geometry/ChTriangleMeshSoup.cpp
     geometry/ChTriangleMeshConnected.cpp
     geometry/ChRoundedBox.cpp

@@ -26,23 +26,13 @@ ChSphere::ChSphere(const ChSphere& source) {
     rad = source.rad;
 }
 
-void ChSphere::GetBoundingBox(double& xmin,
-                              double& xmax,
-                              double& ymin,
-                              double& ymax,
-                              double& zmin,
-                              double& zmax,
-                              ChMatrix33<>* Rot) const {
-    xmin = -rad;
-    xmax = +rad;
-    ymin = -rad;
-    ymax = +rad;
-    zmin = -rad;
-    zmax = +rad;
+void ChSphere::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
+    cmin = ChVector<>(-rad);
+    cmax = ChVector<>(+rad);
 }
 
-void ChSphere::CovarianceMatrix(ChMatrix33<>& C) const {
-    C.setZero();
+double ChSphere::GetBoundingSphereRadius() const {
+    return rad;
 }
 
 void ChSphere::ArchiveOUT(ChArchiveOut& marchive) {
