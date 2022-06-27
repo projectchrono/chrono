@@ -628,9 +628,8 @@ void ChBce::MakeRigidIdentifier() {
         for (size_t rigidNum = 0; rigidNum < numObjectsH->numRigidBodies; rigidNum++) {
             int4 referencePart = fsiGeneralData->referenceArray[haveHelper + haveGhost + 2 + rigidNum];
             if (referencePart.z != 1) {
-                printf(
-                    " Error! in accessing rigid bodies. Reference array indexing is "
-                    "wrong\n");
+                std::cout << "ERROR (MakeRigidIdentifier): incorrect array index " << referencePart.z << " != 1"
+                          << std::endl;
                 return;
             }
             int2 updatePortion = mI2(referencePart);  // first two component of the
@@ -649,9 +648,8 @@ void ChBce::MakeFlexIdentifier() {
             int4 referencePart = fsiGeneralData->referenceArray_FEA[CableNum];
 
             if (referencePart.z != 2) {
-                printf(
-                    " Error! in accessing flex bodies. Reference array indexing is "
-                    "wrong\n");
+                std::cout << "ERROR (MakeFlexIdentifier): incorrect array index " << referencePart.z << " != 2"
+                          << std::endl;
                 return;
             }
             int2 updatePortion = mI2(referencePart);
@@ -666,9 +664,8 @@ void ChBce::MakeFlexIdentifier() {
             int4 referencePart = fsiGeneralData->referenceArray_FEA[numObjectsH->numFlexBodies1D + shellNum];
 
             if (referencePart.z != 3) {
-                printf(
-                    " Error! in accessing flex bodies. Reference array indexing is "
-                    "wrong\n");
+                std::cout << "ERROR (MakeFlexIdentifier): incorrect array index " << referencePart.z << " != 3"
+                                 << std::endl;
                 return;
             }
             int2 updatePortion = mI2(referencePart);

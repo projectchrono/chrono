@@ -350,38 +350,39 @@ void ChSystemFsi_impl::CalcNumObjects() {
 
     for (size_t i = 0; i < rSize; i++) {
         int4 rComp4 = fsiGeneralData->referenceArray[i];
-        int numMerkers = rComp4.y - rComp4.x;
+        int numMarkers = rComp4.y - rComp4.x;
 
         switch (rComp4.z) {
             case -3:
-                numObjects->numHelperMarkers += numMerkers;
+                numObjects->numHelperMarkers += numMarkers;
                 break;
             case -2:
-                numObjects->numGhostMarkers += numMerkers;
+                numObjects->numGhostMarkers += numMarkers;
                 break;
             case -1:
-                numObjects->numFluidMarkers += numMerkers;
+                numObjects->numFluidMarkers += numMarkers;
                 break;
             case 0:
-                numObjects->numBoundaryMarkers += numMerkers;
+                numObjects->numBoundaryMarkers += numMarkers;
                 break;
             case 1:
-                numObjects->numRigid_SphMarkers += numMerkers;
+                numObjects->numRigid_SphMarkers += numMarkers;
                 numObjects->numRigidBodies++;
                 flagRigid = true;
                 break;
             case 2:
-                numObjects->numFlex_SphMarkers += numMerkers;
+                numObjects->numFlex_SphMarkers += numMarkers;
                 numObjects->numFlexBodies1D++;
                 flagFlex = true;
                 break;
             case 3:
-                numObjects->numFlex_SphMarkers += numMerkers;
+                numObjects->numFlex_SphMarkers += numMarkers;
                 numObjects->numFlexBodies2D++;
                 flagFlex = true;
                 break;
             default:
-                std::cerr << "Error! particle type not defined! Thrown from CalcNumObjects" << std::endl;
+                std::cerr << "ERROR (CalcNumObjects): particle type not defined." << std::endl;
+                throw std::runtime_error("Particle type not defined.");
                 break;
         }
     }
@@ -456,7 +457,7 @@ void ChSystemFsi_impl::ResizeData(int numRigidBodies, int numFlexBodies1D, int n
     CalcNumObjects();
 
     if (numObjects->numAllMarkers != sphMarkersH->rhoPresMuH.size()) {
-        std::cerr << "ERROR! Mismatch in total number of markers." << std::endl;
+        std::cerr << "ERROR (ResizeData): mismatch in total number of markers." << std::endl;
         throw std::runtime_error("Mismatch in total number of markers.");
     }
 

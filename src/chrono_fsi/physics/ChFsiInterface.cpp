@@ -233,20 +233,8 @@ void ChFsiInterface::Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMe
     FsiMeshD->CopyFromH(*m_sysFSI.fsiMeshH);
 }
 //------------------------------------------------------------------------------------
-void ChFsiInterface::ResizeChronoNodesData() {
-    int numNodes = m_fsi_mesh->GetNnodes();
-    if (m_verbose)
-        printf("numNodes in ResizeChronNodesData  %d\n", numNodes);
-    m_flex_backup->resize(numNodes);
-}
-//------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoFEANodesData() {
     int numNodes = m_fsi_mesh->GetNnodes();
-    if (m_verbose) {
-        printf("m_fsi_mesh.size in ResizeChronoFEANodesData  %d\n", numNodes);
-        printf("numNodes in ResizeChronoFEANodeData  %d\n", numNodes);
-    }
-
     m_flex_backup->resize(numNodes);
 }
 //------------------------------------------------------------------------------------

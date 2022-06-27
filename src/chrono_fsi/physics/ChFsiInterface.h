@@ -76,9 +76,6 @@ class ChFsiInterface : public ChFsiGeneral {
     /// Add forces and torques as external forces to the ChSystem flexible bodies.
     void Add_Flex_Forces_To_ChSystem();
 
-    /// Resize number of nodes used in the flexible elements
-    void ResizeChronoNodesData();
-
     /// Resize number of cable elements used in the flexible elements
     void ResizeChronoCablesData(std::vector<std::vector<int>> CableElementsNodesSTDVector);
 
