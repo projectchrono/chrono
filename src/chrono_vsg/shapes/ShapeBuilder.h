@@ -26,12 +26,21 @@
 #include "chrono/assets/ChVisualModel.h"
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChSurfaceShape.h"
 
 namespace chrono {
 namespace vsg3d {
 class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
   public:
-    typedef enum { BOX_SHAPE, SPHERE_SHAPE, CYLINDER_SHAPE, CAPSULE_SHAPE, CONE_SHAPE, TRIANGLE_MESH_SHAPE } BasicShape;
+    typedef enum {
+        BOX_SHAPE,
+        SPHERE_SHAPE,
+        CYLINDER_SHAPE,
+        CAPSULE_SHAPE,
+        CONE_SHAPE,
+        TRIANGLE_MESH_SHAPE,
+        SURFACE_SHAPE
+    } BasicShape;
     vsg::ref_ptr<vsg::Options> m_options;
     vsg::ref_ptr<vsg::SharedObjects> m_sharedObjects;
 
@@ -41,7 +50,8 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                          std::shared_ptr<ChVisualMaterial> material,
                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
                                          bool drawMode,
-                                         std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
+                                         std::shared_ptr<ChTriangleMeshShape> tms = nullptr,
+                                         std::shared_ptr<ChSurfaceShape> surface = nullptr);
 
     vsg::ref_ptr<vsg::Group> createLineShape(std::shared_ptr<ChPhysicsItem> physItem,
                                              ChVisualModel::ShapeInstance shapeInstance,

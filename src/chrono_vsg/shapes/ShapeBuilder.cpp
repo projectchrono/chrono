@@ -19,6 +19,7 @@
 #include "GetCapsuleShapeData.h"
 #include "GetConeShapeData.h"
 #include "GetTriangleMeshShapeData.h"
+#include "GetSurfaceShapeData.h"
 
 #include "chrono_vsg/core/lineShader_frag.h"
 #include "chrono_vsg/core/lineShader_vert.h"
@@ -35,7 +36,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
                                                    std::shared_ptr<ChVisualMaterial> material,
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool drawMode,
-                                                   std::shared_ptr<ChTriangleMeshShape> tms) {
+                                                   std::shared_ptr<ChTriangleMeshShape> tms,
+                                                   std::shared_ptr<ChSurfaceShape> surface) {
     auto scenegraph = vsg::Group::create();
     // store some information for easier update
     scenegraph->setValue("ItemPtr", physItem);
@@ -132,6 +134,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
             break;
         case TRIANGLE_MESH_SHAPE:
             GetTriangleMeshShapeData(tms, vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case SURFACE_SHAPE:
+            GetSurfaceShapeData(surface, vertices, normals, texcoords, indices, boundingSphereRadius);
             break;
     }
     auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});

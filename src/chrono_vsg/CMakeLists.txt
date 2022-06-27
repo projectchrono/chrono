@@ -44,6 +44,8 @@ SET(CE_VSG_SHAPES_FILES
     shapes/GetSphereShapeData.h
     shapes/GetTriangleMeshShapeData.cpp
     shapes/GetTriangleMeshShapeData.h
+    shapes/GetSurfaceShapeData.cpp
+    shapes/GetSurfaceShapeData.h
     shapes/ShapeBuilder.cpp
     shapes/ShapeBuilder.h
 )
