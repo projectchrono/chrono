@@ -158,15 +158,14 @@ class ChFsiForce : public ChFsiGeneral {
 
     /// Function to set the linear solver type for the solver implemented
     /// using the ISPH method (ChFsiForceI2SPH and ChFsiForceIISPH)
-    void SetLinearSolver(SolverType other_solverType);
+    void SetLinearSolver(SolverType type);
 
-  public:
+  protected:
     std::shared_ptr<ChFsiLinearSolver> myLinearSolver;  ///< pointer to the linear solver type
 
     std::shared_ptr<ChBce> bceWorker;  ///< pointer to Boundary Condition Enforcing particles class
 
-    std::shared_ptr<ChCollisionSystemFsi>
-        fsiCollisionSystem;  ///< collision system; takes care of constructing neighbors list
+    std::shared_ptr<ChCollisionSystemFsi> fsiCollisionSystem;  ///< collision system for building neighbors list
 
     std::shared_ptr<SphMarkerDataD> sphMarkersD;        ///< device copy of the SPH particles data
     std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;  ///< device copy of the sorted sph particles data

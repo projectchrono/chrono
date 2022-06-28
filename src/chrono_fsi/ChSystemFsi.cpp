@@ -133,6 +133,7 @@ void ChSystemFsi::InitParams() {
     m_paramsH->PPE_Solution_type = PPESolutionType::MATRIX_FREE;
     m_paramsH->Alpha = m_paramsH->HSML;
     m_paramsH->PPE_relaxation = Real(1.0);
+    m_paramsH->LinearSolver = SolverType::BICGSTAB;
     m_paramsH->LinearSolver_Abs_Tol = Real(0.0);
     m_paramsH->LinearSolver_Rel_Tol = Real(0.0);
     m_paramsH->LinearSolver_Max_Iter = 1000;

@@ -137,14 +137,6 @@ class ChBce : public ChFsiGeneral {
                                           const thrust::device_vector<uint>& mapOriginalToSorted,
                                           const thrust::device_vector<Real3>& bceAcc,
                                           int3 updatePortion);
-
-    /// At the initial configuration of the system, identifies the index of the
-    /// rigid body to which a BCE particle is attached.
-    void MakeRigidIdentifier(std::vector<int> fsiBodyBceNum);
-
-    /// At the initial configuration of the system, identifies the index of the
-    /// flexible body to which a BCE particle is attached.
-    void MakeFlexIdentifier(std::vector<int> fsiShellBceNum, std::vector<int> fsiCableBceNum);
 };
 
 /// @} fsi_physics

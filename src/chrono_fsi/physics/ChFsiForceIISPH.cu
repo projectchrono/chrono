@@ -1425,16 +1425,11 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
 
     double durationFormAXB;
 
-    int numFlexbodies = (int)numObjectsH->numFlexBodies1D + (int)numObjectsH->numFlexBodies2D;
-
-    int haveGhost = (numObjectsH->numGhostMarkers > 0) ? 1 : 0;
-    int haveHelper = (numObjectsH->numHelperMarkers > 0) ? 1 : 0;
-
-    int4 updatePortion =
-        mI4(fsiGeneralData->referenceArray[haveGhost + haveHelper + 0].y,  // end of fluid
-            fsiGeneralData->referenceArray[haveGhost + haveHelper + 1].y,  // end of boundary
-            fsiGeneralData->referenceArray[haveGhost + haveHelper + 1 + numObjectsH->numRigidBodies].y,
-            fsiGeneralData->referenceArray[haveGhost + haveHelper + 1 + numObjectsH->numRigidBodies + numFlexbodies].y);
+    int end_fluid = numObjectsH->numGhostMarkers + numObjectsH->numHelperMarkers + numObjectsH->numFluidMarkers;
+    int end_bndry = end_fluid + numObjectsH->numBoundaryMarkers;
+    int end_rigid = end_bndry + numObjectsH->numRigid_SphMarkers;
+    int end_flex = end_rigid + numObjectsH->numFlex_SphMarkers;
+    int4 updatePortion = mI4(end_fluid, end_bndry, end_rigid, end_flex);
 
     uint NNZ;
     if (mySolutionType == PPESolutionType::FORM_SPARSE_MATRIX) {

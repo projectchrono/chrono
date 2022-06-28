@@ -846,7 +846,6 @@ void ChFsiForceI2SPH::Initialize() {
 }
 
 void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
-                                   bool print,
                                    bool calcLaplacianOperator) {
     numAllMarkers = numObjectsH->numAllMarkers;
     Contact_i.resize(numAllMarkers);
@@ -900,16 +899,12 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
                                                  mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv),
                                                  U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calc_A_tensor");
-        if (print)
-            printf("calc_L_tensor+");
         calc_L_tensor<<<numBlocks, numThreads>>>(R1CAST(A_i), R1CAST(L_i), R1CAST(G_i),
                                                  mR4CAST(sortedSphMarkersD->posRadD),
                                                  mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv),
                                                  U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calc_L_tensor");
     }
-    if (print)
-        printf("Gradient_Laplacian_Operator: ");
 
     Function_Gradient_Laplacian_Operator<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
@@ -917,8 +912,6 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
         mR3CAST(csrValGradient), R1CAST(csrValFunciton), U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Gradient_Laplacian_Operator");
     double Gradient_Laplacian_Operator = (clock() - A_L_Tensor_GradLaplacian) / (double)CLOCKS_PER_SEC;
-    if (print)
-        printf("%f (s)\n", Gradient_Laplacian_Operator);
 }
 
 //==========================================================================================================================================
@@ -952,33 +945,34 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     Real dt = std::min(dt_body, std::min(dt_CFL, dt_nu));
 
     if (!paramsH->Adaptive_time_stepping) {
-        printf("| time step=%.3e, dt_Max=%.3e, dt_CFL=%.3e (CFL=%.2g), dt_nu=%.3e, dt_body=%.3e\n", paramsH->dT,
-               paramsH->dT_Max, dt_CFL, paramsH->Co_number, dt_nu, dt_body);
+        if (verbose)
+            printf("| time step=%.3e, dt_Max=%.3e, dt_CFL=%.3e (CFL=%.2g), dt_nu=%.3e, dt_body=%.3e\n", paramsH->dT,
+                   paramsH->dT_Max, dt_CFL, paramsH->Co_number, dt_nu, dt_body);
     } else {
         if (dt / paramsH->dT_Max > 0.51 && dt < paramsH->dT_Max)
             paramsH->dT = paramsH->dT_Max * 0.5;
         else
             paramsH->dT = std::min(dt, paramsH->dT_Max);
 
-        printf("| time step=%.3e, dt_Max=%.3e, dt_CFL=%.3e (CFL=%.2g), dt_nu=%.3e, dt_body=%.3e\n", paramsH->dT,
-               paramsH->dT_Max, dt_CFL, paramsH->Co_number, dt_nu, dt_body);
+        if (verbose)
+            printf("| time step=%.3e, dt_Max=%.3e, dt_CFL=%.3e (CFL=%.2g), dt_nu=%.3e, dt_body=%.3e\n", paramsH->dT,
+                   paramsH->dT_Max, dt_CFL, paramsH->Co_number, dt_nu, dt_body);
+
         CopyParams_NumberOfObjects(paramsH, numObjectsH);
     }
-    //    int numHelperMarkers = numObjectsH->numHelperMarkers;
-    int numFlexbodies = (int)+numObjectsH->numFlexBodies1D + (int)numObjectsH->numFlexBodies2D;
-    int haveGhost = int(numObjectsH->numGhostMarkers > 0) ? 1 : 0;
-    int haveHelper = int(numObjectsH->numHelperMarkers > 0) ? 1 : 0;
-    int4 updatePortion =
-        mI4(fsiGeneralData->referenceArray[haveGhost + haveHelper + 0].y,  // end of fluid
-            fsiGeneralData->referenceArray[haveGhost + haveHelper + 1].y,  // end of fixed boundary
-            fsiGeneralData->referenceArray[haveGhost + haveHelper + 1 + numObjectsH->numRigidBodies].y,  // end of rigid
-            fsiGeneralData->referenceArray[haveGhost + haveHelper + 1 + numObjectsH->numRigidBodies + numFlexbodies].y);
-    // printf("ForceI2SPH numAllMarkers:%d,numHelperMarkers=%d\n", numAllMarkers, numHelperMarkers);
 
-    printf("update portion = %d, %d, %d, %d\n", updatePortion.x, updatePortion.y, updatePortion.z, updatePortion.w);
+    int end_fluid = numObjectsH->numGhostMarkers + numObjectsH->numHelperMarkers + numObjectsH->numFluidMarkers;
+    int end_bndry = end_fluid + numObjectsH->numBoundaryMarkers;
+    int end_rigid = end_bndry + numObjectsH->numRigid_SphMarkers;
+    int end_flex = end_rigid + numObjectsH->numFlex_SphMarkers;
+    int4 updatePortion = mI4(end_fluid, end_bndry, end_rigid, end_flex);
+
+    if (verbose)
+        std::cout << "update portion: " << updatePortion.x << " " << updatePortion.y << " " << updatePortion.z << " "
+                  << updatePortion.w << std::endl;
+
     //=====calcRho_kernel=== calc_A_tensor==calc_L_tensor==Function_Gradient_Laplacian_Operator=================
     ChFsiForceI2SPH::PreProcessor(sortedSphMarkersD);
-    //    return;
 
     //==========================================================================================================
     uint numThreads, numBlocks;
@@ -1246,7 +1240,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXyXzYzD, sortedSphMarkersD->tauXyXzYzD,
                                         markersProximityD->gridMarkerIndexD);
     fsiCollisionSystem->ArrangeData(sphMarkersD);
-    ChFsiForceI2SPH::PreProcessor(sortedSphMarkersD, false, false);
+    ChFsiForceI2SPH::PreProcessor(sortedSphMarkersD, false);
 
     rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
     posRadD_old = sortedSphMarkersD->posRadD;

@@ -549,6 +549,7 @@ __global__ void UpdateFlexMarkersPositionVelocityAccD(Real4* posRadD,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+
 ChBce::ChBce(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
              std::shared_ptr<ProximityDataD> otherMarkersProximityD,
              std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
@@ -619,53 +620,26 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     rhoPreMu_ModifiedBCE.resize(numFlexAndRigidAndBoundaryMarkers);
 
     // Populate local position of BCE markers
-    Populate_RigidSPH_MeshPos_LRF(sphMarkersD, fsiBodiesD, fsiBodyBceNum);
-    Populate_FlexSPH_MeshPos_LRF(sphMarkersD, fsiMeshD, fsiShellBceNum, fsiCableBceNum);
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::MakeRigidIdentifier(std::vector<int> fsiBodyBceNum) {
-    int num_start = 0;
-    int num_end = fsiBodyBceNum[0];
-    for (int rigidNum = 0; rigidNum < fsiBodyBceNum.size(); rigidNum++) {
-        thrust::fill(fsiGeneralData->rigidIdentifierD.begin() + num_start,
-                     fsiGeneralData->rigidIdentifierD.begin() + num_end, rigidNum);
-        num_start = num_start + fsiBodyBceNum[rigidNum];
-        num_end = num_end + fsiBodyBceNum[rigidNum + 1];
-    }
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::MakeFlexIdentifier(std::vector<int> fsiShellBceNum, std::vector<int> fsiCableBceNum) {
-    if ((numObjectsH->numFlexBodies1D + numObjectsH->numFlexBodies2D) > 0) {
-        fsiGeneralData->FlexIdentifierD.resize(numObjectsH->numFlex_SphMarkers);
+    if (haveRigid)
+        Populate_RigidSPH_MeshPos_LRF(sphMarkersD, fsiBodiesD, fsiBodyBceNum);
 
-        int num_start_cable = 0;
-        int num_end_cable = fsiCableBceNum[0];
-        for (int CableNum = 0; CableNum < fsiCableBceNum.size(); CableNum++) {
-            thrust::fill(fsiGeneralData->FlexIdentifierD.begin() + num_start_cable,
-                         fsiGeneralData->FlexIdentifierD.begin() + num_end_cable, CableNum);
-            num_start_cable = num_start_cable + fsiCableBceNum[CableNum];
-            num_end_cable = num_end_cable + fsiCableBceNum[CableNum + 1];
-        }
-
-        int num_start_shell = num_start_cable;
-        int num_end_shell = num_start_cable + fsiShellBceNum[0];
-        for (int shellNum = 0; shellNum < fsiShellBceNum.size(); shellNum++) {
-
-            thrust::fill(fsiGeneralData->FlexIdentifierD.begin() + num_start_shell,
-                         fsiGeneralData->FlexIdentifierD.begin() + num_end_shell, shellNum + fsiCableBceNum.size());
-            num_start_shell = num_start_shell + fsiShellBceNum[shellNum];
-            num_end_shell = num_end_shell + fsiShellBceNum[shellNum + 1];
-        }
-    }
+    if (haveFlex1D || haveFlex2D)
+        Populate_FlexSPH_MeshPos_LRF(sphMarkersD, fsiMeshD, fsiShellBceNum, fsiCableBceNum);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                           std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
                                           std::vector<int> fsiBodyBceNum) {
-    if (numObjectsH->numRigidBodies == 0)
-        return;
-
-    MakeRigidIdentifier(fsiBodyBceNum);
+    // Create map between a BCE on a rigid body and the associated body ID
+    {
+        uint start_bce = 0;
+        for (int irigid = 0; irigid < fsiBodyBceNum.size(); irigid++) {
+            uint end_bce = start_bce + fsiBodyBceNum[irigid];
+            thrust::fill(fsiGeneralData->rigidIdentifierD.begin() + start_bce,
+                         fsiGeneralData->rigidIdentifierD.begin() + end_bce, irigid);
+            start_bce = end_bce;
+        }
+    }
 
     uint nBlocks_numRigid_SphMarkers;
     uint nThreads_SphMarkers;
@@ -680,16 +654,33 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMar
 
     UpdateRigidMarkersPositionVelocity(sphMarkersD, fsiBodiesD);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChBce::Populate_FlexSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                          std::shared_ptr<FsiMeshDataD> fsiMeshD,
                                          std::vector<int> fsiShellBceNum,
                                          std::vector<int> fsiCableBceNum) {
+    // Create map between a BCE on a flex body and the associated flex body ID
+    {
+        uint start_bce = 0;
+        for (uint icable = 0; icable < fsiCableBceNum.size(); icable++) {
+            uint end_bce = start_bce + fsiCableBceNum[icable];
+            thrust::fill(fsiGeneralData->FlexIdentifierD.begin() + start_bce,
+                         fsiGeneralData->FlexIdentifierD.begin() + end_bce, icable);
+            start_bce = end_bce;
+        }
 
-    if ((numObjectsH->numFlexBodies1D + numObjectsH->numFlexBodies2D) == 0)
-        return;
+        for (uint ishell = 0; ishell < fsiShellBceNum.size(); ishell++) {
+            uint end_bce = start_bce + fsiShellBceNum[ishell];
+            thrust::fill(fsiGeneralData->FlexIdentifierD.begin() + start_bce,
+                         fsiGeneralData->FlexIdentifierD.begin() + end_bce, ishell + fsiCableBceNum.size());
+            start_bce = end_bce;
+        }
+    }
 
-    MakeFlexIdentifier(fsiShellBceNum, fsiCableBceNum);
+#if 0
+    for (uint i = 0; i < fsiGeneralData->FlexIdentifierD.size(); i++)
+        std::cout << i << "  " << fsiGeneralData->FlexIdentifierD[i] << std::endl;
+#endif
 
     uint nBlocks_numFlex_SphMarkers;
     uint nThreads_SphMarkers;
@@ -707,7 +698,9 @@ void ChBce::Populate_FlexSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMark
 
     UpdateFlexMarkersPositionVelocity(sphMarkersD, fsiMeshD);
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
+
 void ChBce::RecalcSortedVelocityPressure_BCE(std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
                                              thrust::device_vector<Real3>& velMas_ModifiedBCE,
                                              thrust::device_vector<Real4>& rhoPreMu_ModifiedBCE,
@@ -724,7 +717,6 @@ void ChBce::RecalcSortedVelocityPressure_BCE(std::shared_ptr<FsiBodiesDataD> fsi
     cudaMalloc((void**)&isErrorD, sizeof(bool));
     *isErrorH = false;
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
-    //------------------------------------------------------------------------
 
     // thread per particle
     uint numThreads, numBlocks;

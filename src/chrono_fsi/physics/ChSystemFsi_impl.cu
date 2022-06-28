@@ -501,14 +501,16 @@ void ChSystemFsi_impl::ResizeData(int numRigidBodies, int numFlexBodies1D, int n
     fsiBodiesD1->resize(numObjects->numRigidBodies);
     fsiBodiesD2->resize(numObjects->numRigidBodies);
     fsiBodiesH->resize(numObjects->numRigidBodies);
+
     fsiGeneralData->rigid_FSI_ForcesD.resize(numObjects->numRigidBodies);
     fsiGeneralData->rigid_FSI_TorquesD.resize(numObjects->numRigidBodies);
+
     fsiGeneralData->rigidIdentifierD.resize(numObjects->numRigid_SphMarkers);
     fsiGeneralData->rigidSPH_MeshPos_LRF_D.resize(numObjects->numRigid_SphMarkers);
-    fsiGeneralData->FlexSPH_MeshPos_LRF_D.resize(numObjects->numFlex_SphMarkers);
-    fsiGeneralData->FlexSPH_MeshPos_LRF_H.resize(numObjects->numFlex_SphMarkers);
 
     fsiGeneralData->FlexIdentifierD.resize(numObjects->numFlex_SphMarkers);
+    fsiGeneralData->FlexSPH_MeshPos_LRF_D.resize(numObjects->numFlex_SphMarkers);
+    fsiGeneralData->FlexSPH_MeshPos_LRF_H.resize(numObjects->numFlex_SphMarkers);
 
     fsiGeneralData->CableElementsNodes.resize(fsiGeneralData->CableElementsNodesH.size());
     fsiGeneralData->ShellElementsNodes.resize(fsiGeneralData->ShellElementsNodesH.size());

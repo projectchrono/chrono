@@ -67,7 +67,6 @@ class ChFsiForceI2SPH : public ChFsiForce {
                   std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD,
                   std::shared_ptr<FsiMeshDataD> otherFsiMeshD) override;
     void PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
-                      bool print = true,
                       bool calcLaplacianOperator = true);
 };
 
