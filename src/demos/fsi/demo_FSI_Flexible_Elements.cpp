@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     ChVisualizationFsi fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI single wheel demo");
-        fsi_vis.SetCameraPosition(ChVector<>(0, -5 * byDim, 5 * bzDim), ChVector<>(0, 0, 0));
+        fsi_vis.SetCameraPosition(ChVector<>(bxDim / 8, -3, 0.25), ChVector<>(bxDim / 8, 0.0, 0.25));
         fsi_vis.SetCameraMoveScale(1.0f);
         fsi_vis.EnableBoundaryMarkers(false);
         fsi_vis.Initialize();

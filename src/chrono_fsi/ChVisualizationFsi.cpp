@@ -36,6 +36,7 @@ ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
       m_cam_scale(0.1f),
       m_sph_markers(true),
       m_rigid_bce_markers(true),
+      m_flex_bce_markers(true),
       m_bndry_bce_markers(false),
       m_bce_start_index(0) {
     m_radius = sysFSI->GetInitialSpacing() / 2;
@@ -103,6 +104,18 @@ void ChVisualizationFsi::Initialize() {
         }
     }
 
+    if (m_flex_bce_markers) {
+        for (int i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
+            auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+            body->SetPos(ChVector<>(0, 0, 0));
+            body->SetBodyFixed(true);
+            auto sph = chrono_types::make_shared<ChBoxShape>();
+            sph->GetBoxGeometry().Size = ChVector<>(m_radius);
+            body->AddVisualShape(sph);
+            m_system->AddBody(body);
+        }   
+    }
+
     if (m_bndry_bce_markers) {
         for (int i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
             auto body = std::shared_ptr<ChBody>(m_system->NewBody());
@@ -136,26 +149,34 @@ bool ChVisualizationFsi::Render() {
         // List of proxy bodies
         const auto& blist = m_system->Get_bodylist();
 
-        size_t b = 0;
         size_t p = 0;
+        size_t b = 0;
+
         if (m_sph_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
                 m_particles->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
-
         p += m_systemFSI->GetNumFluidMarkers();
+        
         if (m_bndry_bce_markers) {
             for (size_t i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
                 blist[m_bce_start_index + b++]->SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
-
         p += m_systemFSI->GetNumBoundaryMarkers();
+        
         if (m_rigid_bce_markers) {
             for (size_t i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
                 blist[m_bce_start_index + b++]->SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
+        }
+        p += m_systemFSI->GetNumRigidBodyMarkers();
+        
+        if (m_flex_bce_markers) {
+            for (size_t i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
+                blist[m_bce_start_index + b++]->SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+            }            
         }
 
         gl_window.Render();

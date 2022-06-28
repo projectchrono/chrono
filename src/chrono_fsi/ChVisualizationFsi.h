@@ -67,6 +67,9 @@ class CH_FSI_API ChVisualizationFsi {
     /// Enable/disable rendering of rigid-body BCE markers (default: true).
     void EnableRigidBodyMarkers(bool val) { m_rigid_bce_markers = val; }
 
+    /// Enable/disable rendering of flex-body BCE markers (default: true).
+    void EnableFlexBodyMarkers(bool val) { m_flex_bce_markers = val; }
+
     /// Enable/disable rendering of boundary BCE markers (default: false).
     void EnableBoundaryMarkers(bool val) { m_bndry_bce_markers = val; }
 
@@ -95,6 +98,7 @@ class CH_FSI_API ChVisualizationFsi {
     double m_radius;           ///< particle visualization radius
     bool m_sph_markers;        ///< render fluid SPH particles?
     bool m_rigid_bce_markers;  ///< render rigid-body BCE markers?
+    bool m_flex_bce_markers;   ///< render flex-body markers?
     bool m_bndry_bce_markers;  ///< render boundary BCE markers?
 
     std::shared_ptr<ChParticleCloud> m_particles;  ///< particle cloud proxy for SPH markers
