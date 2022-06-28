@@ -50,7 +50,7 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
       m_output_frame(0),
       m_mass(0),
       m_inertia(0),
-      m_realtime_force(true),
+      m_realtime_force(false),
       m_initialized(false) {
     m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                         : static_cast<ChSystem*>(new ChSystemSMC);
@@ -84,7 +84,7 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
       m_output_frame(0),
       m_mass(0),
       m_inertia(0),
-      m_realtime_force(true),
+      m_realtime_force(false),
       m_initialized(false) {}
 
 // -----------------------------------------------------------------------------
