@@ -70,6 +70,9 @@ ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
     m_fsi_shells.resize(0);
     m_fsi_cables.resize(0);
     m_fsi_nodes.resize(0);
+    m_fsi_bodies_bce_num.resize(0);
+    m_fsi_shells_bce_num.resize(0);
+    m_fsi_cables_bce_num.resize(0);
     m_fsi_interface = chrono_types::make_unique<ChFsiInterface>(m_sysMBS, *m_sysFSI,    //
                                                                 m_paramsH, m_fsi_mesh,  //
                                                                 m_fsi_bodies, m_fsi_nodes, m_fsi_cables, m_fsi_shells);
@@ -846,7 +849,8 @@ void ChSystemFsi::Initialize() {
     m_fluid_dynamics->GetForceSystem()->SetLinearSolver(m_paramsH->LinearSolver);
 
     // Initialize worker objects
-    m_bce_manager->Initialize(m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD1, m_sysFSI->fsiMeshD);
+    m_bce_manager->Initialize(m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD1, m_sysFSI->fsiMeshD, 
+        m_fsi_bodies_bce_num, m_fsi_shells_bce_num, m_fsi_cables_bce_num);
     m_fluid_dynamics->Initialize();
 
     // Mark system as initialized
@@ -1485,6 +1489,8 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
         m_sysFSI->sphMarkersH->tauXxYyZzH.push_back(mR3(0.0));
         m_sysFSI->sphMarkersH->tauXyXzYzH.push_back(mR3(0.0));
     }
+    if (isSolid)
+        m_fsi_bodies_bce_num.push_back(posRadBCE.size());
 }
 
 void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::host_vector<Real4>& posRadBCE,
@@ -1573,6 +1579,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::
             posRadSizeModified++;
         }
     }
+    m_fsi_cables_bce_num.push_back(posRadSizeModified);
 }
 
 void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::host_vector<Real4>& posRadBCE,
@@ -1645,6 +1652,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::
             posRadSizeModified++;
         }
     }
+    m_fsi_shells_bce_num.push_back(posRadSizeModified);
     m_sysFSI->sphMarkersH->rhoPresMuH.size();
 }
 

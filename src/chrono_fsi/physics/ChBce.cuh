@@ -76,19 +76,25 @@ class ChBce : public ChFsiGeneral {
     /// during the update stage. In such a condition the position and orientation of the body is
     /// enough to update the position of all the particles attached to it.
     void Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                       std::shared_ptr<FsiBodiesDataD> fsiBodiesD);
+                                       std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                                       std::vector<int> fsiBodyBceNum);
 
     /// Populates the BCE particles on the flexible bodies at the initial configuration of the system.
     /// The local coordinates w.r.t to the coordinate system of the flexible bodies is saved and is used
     /// during the update stage. In such a condition the position and orientation of the body is enough
     /// to update the position of all the particles attached to it.
     void Populate_FlexSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                      std::shared_ptr<FsiMeshDataD> fsiMeshD);
+                                      std::shared_ptr<FsiMeshDataD> fsiMeshD,
+                                      std::vector<int> fsiShellBceNum,
+                                      std::vector<int> fsiCableBceNum);
 
     /// Complete construction of the BCE at the intial configuration of the system.
     void Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                     std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
-                    std::shared_ptr<FsiMeshDataD> fsiMeshD);
+                    std::shared_ptr<FsiMeshDataD> fsiMeshD,
+                    std::vector<int> fsiBodyBceNum,
+                    std::vector<int> fsiShellBceNum,
+                    std::vector<int> fsiCableBceNum);
 
   private:
     std::shared_ptr<FsiGeneralData>
@@ -134,11 +140,11 @@ class ChBce : public ChFsiGeneral {
 
     /// At the initial configuration of the system, identifies the index of the
     /// rigid body to which a BCE particle is attached.
-    void MakeRigidIdentifier();
+    void MakeRigidIdentifier(std::vector<int> fsiBodyBceNum);
 
     /// At the initial configuration of the system, identifies the index of the
     /// flexible body to which a BCE particle is attached.
-    void MakeFlexIdentifier();
+    void MakeFlexIdentifier(std::vector<int> fsiShellBceNum, std::vector<int> fsiCableBceNum);
 };
 
 /// @} fsi_physics

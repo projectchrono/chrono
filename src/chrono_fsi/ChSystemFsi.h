@@ -467,6 +467,10 @@ class CH_FSI_API ChSystemFsi {
     std::vector<std::vector<int>> m_fea_shell_nodes;  ///< indices of nodes of each shell element
     std::vector<std::vector<int>> m_fea_cable_nodes;  ///< indices of nodes of each cable element
 
+    std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles of each fsi body
+    std::vector<int> m_fsi_cables_bce_num;  ///< number of BCE particles of each fsi cable
+    std::vector<int> m_fsi_shells_bce_num;  ///< number of BCE particles of each fsi shell
+
     bool m_is_initialized;  ///< set to true once the Initialize function is called
     double m_time;          ///< current real time of the simulation
 

@@ -572,7 +572,10 @@ ChBce::~ChBce() {}
 
 void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                        std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
-                       std::shared_ptr<FsiMeshDataD> fsiMeshD) {
+                       std::shared_ptr<FsiMeshDataD> fsiMeshD,
+                       std::vector<int> fsiBodyBceNum,
+                       std::vector<int> fsiShellBceNum,
+                       std::vector<int> fsiCableBceNum) {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
     CopyParams_NumberOfObjects(paramsH, numObjectsH);
@@ -616,73 +619,53 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     rhoPreMu_ModifiedBCE.resize(numFlexAndRigidAndBoundaryMarkers);
 
     // Populate local position of BCE markers
-    Populate_RigidSPH_MeshPos_LRF(sphMarkersD, fsiBodiesD);
-    Populate_FlexSPH_MeshPos_LRF(sphMarkersD, fsiMeshD);
+    Populate_RigidSPH_MeshPos_LRF(sphMarkersD, fsiBodiesD, fsiBodyBceNum);
+    Populate_FlexSPH_MeshPos_LRF(sphMarkersD, fsiMeshD, fsiShellBceNum, fsiCableBceNum);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::MakeRigidIdentifier() {
-    if (numObjectsH->numRigidBodies > 0) {
-        int haveGhost = (numObjectsH->numGhostMarkers > 0) ? 1 : 0;
-        int haveHelper = (numObjectsH->numHelperMarkers > 0) ? 1 : 0;
-
-        for (size_t rigidNum = 0; rigidNum < numObjectsH->numRigidBodies; rigidNum++) {
-            int4 referencePart = fsiGeneralData->referenceArray[haveHelper + haveGhost + 2 + rigidNum];
-            if (referencePart.z != 1) {
-                std::cout << "ERROR (MakeRigidIdentifier): incorrect array index " << referencePart.z << " != 1"
-                          << std::endl;
-                return;
-            }
-            int2 updatePortion = mI2(referencePart);  // first two component of the
-            thrust::fill(fsiGeneralData->rigidIdentifierD.begin() + (updatePortion.x - numObjectsH->startRigidMarkers),
-                         fsiGeneralData->rigidIdentifierD.begin() + (updatePortion.y - numObjectsH->startRigidMarkers),
-                         rigidNum);
-        }
+void ChBce::MakeRigidIdentifier(std::vector<int> fsiBodyBceNum) {
+    int num_start = 0;
+    int num_end = fsiBodyBceNum[0];
+    for (int rigidNum = 0; rigidNum < fsiBodyBceNum.size(); rigidNum++) {
+        thrust::fill(fsiGeneralData->rigidIdentifierD.begin() + num_start,
+                     fsiGeneralData->rigidIdentifierD.begin() + num_end, rigidNum);
+        num_start = num_start + fsiBodyBceNum[rigidNum];
+        num_end = num_end + fsiBodyBceNum[rigidNum + 1];
     }
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::MakeFlexIdentifier() {
+void ChBce::MakeFlexIdentifier(std::vector<int> fsiShellBceNum, std::vector<int> fsiCableBceNum) {
     if ((numObjectsH->numFlexBodies1D + numObjectsH->numFlexBodies2D) > 0) {
         fsiGeneralData->FlexIdentifierD.resize(numObjectsH->numFlex_SphMarkers);
 
-        for (int CableNum = 0; CableNum < numObjectsH->numFlexBodies1D; CableNum++) {
-            int4 referencePart = fsiGeneralData->referenceArray_FEA[CableNum];
-
-            if (referencePart.z != 2) {
-                std::cout << "ERROR (MakeFlexIdentifier): incorrect array index " << referencePart.z << " != 2"
-                          << std::endl;
-                return;
-            }
-            int2 updatePortion = mI2(referencePart);
-            thrust::fill(fsiGeneralData->FlexIdentifierD.begin() + (updatePortion.x - numObjectsH->startFlexMarkers),
-                         fsiGeneralData->FlexIdentifierD.begin() + (updatePortion.y - numObjectsH->startFlexMarkers),
-                         CableNum);
-
-            printf("From %d to %d FlexIdentifierD=%d\n", updatePortion.x, updatePortion.y, CableNum);
+        int num_start_cable = 0;
+        int num_end_cable = fsiCableBceNum[0];
+        for (int CableNum = 0; CableNum < fsiCableBceNum.size(); CableNum++) {
+            thrust::fill(fsiGeneralData->FlexIdentifierD.begin() + num_start_cable,
+                         fsiGeneralData->FlexIdentifierD.begin() + num_end_cable, CableNum);
+            num_start_cable = num_start_cable + fsiCableBceNum[CableNum];
+            num_end_cable = num_end_cable + fsiCableBceNum[CableNum + 1];
         }
 
-        for (size_t shellNum = 0; shellNum < numObjectsH->numFlexBodies2D; shellNum++) {
-            int4 referencePart = fsiGeneralData->referenceArray_FEA[numObjectsH->numFlexBodies1D + shellNum];
+        int num_start_shell = num_start_cable;
+        int num_end_shell = num_start_cable + fsiShellBceNum[0];
+        for (int shellNum = 0; shellNum < fsiShellBceNum.size(); shellNum++) {
 
-            if (referencePart.z != 3) {
-                std::cout << "ERROR (MakeFlexIdentifier): incorrect array index " << referencePart.z << " != 3"
-                                 << std::endl;
-                return;
-            }
-            int2 updatePortion = mI2(referencePart);
-            thrust::fill(fsiGeneralData->FlexIdentifierD.begin() + (updatePortion.x - numObjectsH->startFlexMarkers),
-                         fsiGeneralData->FlexIdentifierD.begin() + (updatePortion.y - numObjectsH->startFlexMarkers),
-                         shellNum + numObjectsH->numFlexBodies1D);
+            thrust::fill(fsiGeneralData->FlexIdentifierD.begin() + num_start_shell,
+                         fsiGeneralData->FlexIdentifierD.begin() + num_end_shell, shellNum + fsiCableBceNum.size());
+            num_start_shell = num_start_shell + fsiShellBceNum[shellNum];
+            num_end_shell = num_end_shell + fsiShellBceNum[shellNum + 1];
         }
     }
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                          std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
-    if (numObjectsH->numRigidBodies == 0) {
+                                          std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                                          std::vector<int> fsiBodyBceNum) {
+    if (numObjectsH->numRigidBodies == 0)
         return;
-    }
 
-    MakeRigidIdentifier();
+    MakeRigidIdentifier(fsiBodyBceNum);
 
     uint nBlocks_numRigid_SphMarkers;
     uint nThreads_SphMarkers;
@@ -699,12 +682,14 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMar
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::Populate_FlexSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                         std::shared_ptr<FsiMeshDataD> fsiMeshD) {
-    if ((numObjectsH->numFlexBodies1D + numObjectsH->numFlexBodies2D) == 0) {
-        return;
-    }
+                                         std::shared_ptr<FsiMeshDataD> fsiMeshD,
+                                         std::vector<int> fsiShellBceNum,
+                                         std::vector<int> fsiCableBceNum) {
 
-    MakeFlexIdentifier();
+    if ((numObjectsH->numFlexBodies1D + numObjectsH->numFlexBodies2D) == 0)
+        return;
+
+    MakeFlexIdentifier(fsiShellBceNum, fsiCableBceNum);
 
     uint nBlocks_numFlex_SphMarkers;
     uint nThreads_SphMarkers;
