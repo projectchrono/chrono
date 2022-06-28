@@ -108,6 +108,14 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/rover"))) {
+        std::cerr << "Error creating directory " << out_dir + "/rover" << std::endl;
+        return 1;
+    }
 
     // Create a physical system and a corresponding FSI system
     ChSystemNSC sysMBS;
@@ -181,14 +189,10 @@ int main(int argc, char* argv[]) {
     std::vector<std::shared_ptr<ChBody>>& FSI_Bodies = sysFSI.GetFsiBodies();
     auto Rover = FSI_Bodies[0];
 
-    // write the Penetration into file
-    std::ofstream myFile;
-    myFile.open("./body_position.txt", std::ios::trunc);
-    myFile.close();
-    myFile.open("./body_position.txt", std::ios::app);
-    myFile << 0.0 << "\t" << Rover->GetPos().x() << "\t" << Rover->GetPos().y() << "\t" << Rover->GetPos().z() << "\t"
-           << Rover->GetPos_dt().x() << "\t" << Rover->GetPos_dt().y() << "\t" << Rover->GetPos_dt().z() << "\n";
-    myFile.close();
+    // Write position and velocity to file
+    std::ofstream ofile;
+    if (output)
+        ofile.open(out_dir + "./body_position.txt");
 
     // Create a run-tme visualizer
     ChVisualizationFsi fsi_vis(&sysFSI);
@@ -206,27 +210,23 @@ int main(int argc, char* argv[]) {
     double time = 0.0;
     int current_step = 0;
 
+    auto body = sysMBS.Get_bodylist()[1];
+
     ChTimer<> timer;
     while (time < total_time) {
-        printf("\nstep : %d, time= : %f (s) \n", current_step, time);
+        std::cout << current_step << "  time: " << time << "  sim. time: " << timer() << std::endl; 
 
         rover->Update();
 
-        if (output && current_step % output_steps == 0)
-            SaveParaViewFiles(sysFSI, sysMBS, time);
-
-        auto bbody = sysMBS.Get_bodylist()[0];
-        auto rbody = sysMBS.Get_bodylist()[1];
-
-        printf("bin=%f,%f,%f\n", bbody->GetPos().x(), bbody->GetPos().y(), bbody->GetPos().z());
-        printf("Rover=%f,%f,%f\n", rbody->GetPos().x(), rbody->GetPos().y(), rbody->GetPos().z());
-        printf("Rover=%f,%f,%f\n", rbody->GetPos_dt().x(), rbody->GetPos_dt().y(), rbody->GetPos_dt().z());
-        printf("Physical time and computational cost = %f, %f\n", time, timer());
-        myFile.open("./body_position.txt", std::ios::app);
-        myFile << time << "\t" << rbody->GetPos().x() << "\t" << rbody->GetPos().y() << "\t" << rbody->GetPos().z()
-               << "\t" << rbody->GetPos_dt().x() << "\t" << rbody->GetPos_dt().y() << "\t" << rbody->GetPos_dt().z()
-               << "\n";
-        myFile.close();
+        std::cout << "  pos: " << body->GetPos() << std::endl;
+        std::cout << "  vel: " << body->GetPos_dt() << std::endl;
+        if (output) {
+            ofile << time << "  " << body->GetPos() << "    " << body->GetPos_dt() << std::endl;
+            if (current_step % output_steps == 0) {
+                sysFSI.PrintParticleToFile(out_dir + "/particles");
+                SaveParaViewFiles(sysFSI, sysMBS, time);
+            }
+        }
 
         // Render system
         if (render && current_step % render_steps == 0) {
@@ -241,6 +241,9 @@ int main(int argc, char* argv[]) {
         time += dT;
         current_step++;
     }
+
+    if (output)
+        ofile.close();
 
     return 0;
 }
@@ -317,12 +320,10 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
 // Function to save the povray files of the MBD
 //------------------------------------------------------------------
 void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
+    std::string rover_dir = out_dir + "/rover";
     std::string filename;
     static int frame_number = -1;
     frame_number++;
-
-    // save the SPH particles
-    sysFSI.PrintParticleToFile(out_dir);
 
     // save the VIPER body to obj/vtk files
     for (int i = 0; i < 1; i++) {
@@ -345,11 +346,11 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         mmesh->Transform(body_pos, ChMatrix33<>(body_rot));  // rotate the mesh based on the orientation of body
 
         if (save_obj) {  // save to obj file
-            filename = out_dir + "/body_" + std::to_string(frame_number) + ".obj";
+            filename = rover_dir + "/body_" + std::to_string(frame_number) + ".obj";
             std::vector<geometry::ChTriangleMeshConnected> meshes = {*mmesh};
             geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
         } else {  // save to vtk file
-            filename = out_dir + "/body_" + std::to_string(frame_number) + ".vtk";
+            filename = rover_dir + "/body_" + std::to_string(frame_number) + ".vtk";
             std::ofstream file;
             file.open(filename);
             file << "# vtk DataFile Version 2.0" << std::endl;
@@ -408,11 +409,11 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         mmesh->Transform(body_pos, ChMatrix33<>(body_rot));  // rotate the mesh based on the orientation of body
 
         if (save_obj) {  // save to obj file
-            filename = out_dir + "/wheel_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".obj";
+            filename = rover_dir + "/wheel_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".obj";
             std::vector<geometry::ChTriangleMeshConnected> meshes = {*mmesh};
             geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
         } else {  // save to vtk file
-            filename = out_dir + "/wheel_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
+            filename = rover_dir + "/wheel_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
             std::ofstream file;
             file.open(filename);
             file << "# vtk DataFile Version 2.0" << std::endl;
@@ -473,11 +474,11 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         mmesh->Transform(body_pos, ChMatrix33<>(body_rot));  // rotate the mesh based on the orientation of body
 
         if (save_obj) {  // save to obj file
-            filename = out_dir + "/steerRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".obj";
+            filename = rover_dir + "/steerRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".obj";
             std::vector<geometry::ChTriangleMeshConnected> meshes = {*mmesh};
             geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
         } else {  // save to vtk file
-            filename = out_dir + "/steerRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
+            filename = rover_dir + "/steerRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
             std::ofstream file;
             file.open(filename);
             file << "# vtk DataFile Version 2.0" << std::endl;
@@ -538,11 +539,11 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         mmesh->Transform(body_pos, ChMatrix33<>(body_rot));  // rotate the mesh based on the orientation of body
 
         if (save_obj) {  // save to obj file
-            filename = out_dir + "/lowerRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".obj";
+            filename = rover_dir + "/lowerRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".obj";
             std::vector<geometry::ChTriangleMeshConnected> meshes = {*mmesh};
             geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
         } else {  // save to vtk file
-            filename = out_dir + "/lowerRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
+            filename = rover_dir + "/lowerRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
             std::ofstream file;
             file.open(filename);
             file << "# vtk DataFile Version 2.0" << std::endl;
@@ -604,11 +605,11 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         mmesh->Transform(body_pos, ChMatrix33<>(body_rot));  // rotate the mesh based on the orientation of body
 
         if (save_obj) {  // save to obj file
-            filename = out_dir + "/upperRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".obj";
+            filename = rover_dir + "/upperRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".obj";
             std::vector<geometry::ChTriangleMeshConnected> meshes = {*mmesh};
             geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
         } else {  // save to vtk file
-            filename = out_dir + "/upperRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
+            filename = rover_dir + "/upperRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
             std::ofstream file;
             file.open(filename);
             file << "# vtk DataFile Version 2.0" << std::endl;
@@ -644,7 +645,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
     ChVector<double> Node8 = ChVector<double>(-lx, ly, lz);
 
     for (int i = 0; i < 2; i++) {
-        filename = out_dir + "/obstacle_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
+        filename = rover_dir + "/obstacle_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
         std::ofstream file;
         file.open(filename);
         file << "# vtk DataFile Version 2.0" << std::endl;
@@ -692,7 +693,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         ChVector<> vel = body->GetPos_dt();
 
         std::string delim = ",";
-        filename = out_dir + "/body_pos_rot_vel" + std::to_string(i) + ".csv";
+        filename = rover_dir + "/body_pos_rot_vel" + std::to_string(i) + ".csv";
         std::ofstream file;
         if (sysMBS.GetChTime() > 0)
             file.open(filename, std::fstream::app);

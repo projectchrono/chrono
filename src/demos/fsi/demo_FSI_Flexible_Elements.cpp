@@ -28,6 +28,7 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChVisualizationFsi.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChLinkDirFrame.h"
@@ -45,13 +46,11 @@ using namespace chrono::collision;
 using namespace chrono::fsi;
 
 //****************************************************************************************
-const std::string out_dir = GetChronoOutputPath() + "FSI_FLEXIBLE_Elements/";
+const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Elements/";
 std::string MESH_CONNECTIVITY = out_dir + "Flex_MESH.vtk";
 
-// Save data as csv files, turn it on to be able to see the results off-line using paraview
-bool pv_output = true;
-
-// Output frequency
+// Save data for visualization
+bool output = true;
 double out_fps = 20;
 
 std::vector<std::vector<int>> NodeNeighborElement_mesh;
@@ -70,15 +69,15 @@ bool flexible_elem_1D = false;
 // Final simulation time
 double t_end = 10.0;
 
-void SaveParaViewFiles(ChSystemFsi& sysFSI,
-                       ChSystemSMC& sysMBS,
-                       std::shared_ptr<fea::ChMesh> my_mesh,
-                       std::vector<std::vector<int>> NodeNeighborElementMesh,
-                       int next_frame,
-                       double mTime);
+// Enable/disable run-time visualization (if Chrono::OpenGL is available)
+bool render = true;
+float render_fps = 100;
+
+//----------------------------------------------------------------------------------------
+
 void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
 
-//****************************************************************************************
+//----------------------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     // Create oputput directories
@@ -132,12 +131,22 @@ int main(int argc, char* argv[]) {
         sysFSI.AddSPHParticle(points[i]);
     }
 
-    // ******************************* Create Solid region ****************************************
+    // Create solids
     Create_MB_FE(sysMBS, sysFSI);
     sysFSI.Initialize();
     auto my_mesh = sysFSI.GetFsiMesh();
 
-    double mTime = 0;
+    // Create a run-tme visualizer
+    ChVisualizationFsi fsi_vis(&sysFSI);
+    if (render) {
+        fsi_vis.SetTitle("Chrono::FSI single wheel demo");
+        fsi_vis.SetCameraPosition(ChVector<>(0, -5 * byDim, 5 * bzDim), ChVector<>(0, 0, 0));
+        fsi_vis.SetCameraMoveScale(1.0f);
+        fsi_vis.EnableBoundaryMarkers(false);
+        fsi_vis.Initialize();
+    }
+
+    // Set MBS solver
 #undef CHRONO_PARDISO_MKL
 #ifdef CHRONO_PARDISO_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -164,43 +173,48 @@ int main(int argc, char* argv[]) {
 
     //    sysMBS.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 
+    // Simulation loop
     double dT = sysFSI.GetStepSize();
-    int stepEnd = int(t_end / dT);
-    stepEnd = 1000000;
-    SaveParaViewFiles(sysFSI, sysMBS, my_mesh, NodeNeighborElement_mesh, 0, mTime);
 
-    double time = 0;
+    unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
+    unsigned int render_steps = (unsigned int)(1 / (render_fps * dT));
+
+    double time = 0.0;
+    int current_step = 0;
+
     bool isAdaptive = false;
-    double Global_max_dT = sysFSI.GetMaxStepSize();
-    double TIMING_sta = clock();
-    for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
-        printf("\nstep : %d, time= : %f (s) \n", tStep, time);
-        double frame_time = 1.0 / out_fps;
-        int next_frame = (int)floor((time + 1e-6) / frame_time) + 1;
-        double next_frame_time = next_frame * frame_time;
-        double max_allowable_dt = next_frame_time - time;
-        if (max_allowable_dt > 1e-6)
-            sysFSI.SetMaxStepSize(std::min(Global_max_dT, max_allowable_dt));
-        else
-            sysFSI.SetMaxStepSize(Global_max_dT);
 
-        printf("next_frame is:%d,  max dt is set to %f\n", next_frame, sysFSI.GetMaxStepSize());
-        if (tStep < 5 && sysFSI.GetAdaptiveTimeStepping()) {
+    ChTimer<> timer;
+    timer.start();
+    while (time < t_end) {
+        std::cout << current_step << " time: " << time << std::endl;
+
+        if (output && current_step % output_steps == 0) {
+            std::cout << "-------- Output" << std::endl;
+            sysFSI.PrintParticleToFile(out_dir + "/particles");
+            static int counter = 0;
+            std::string filename = out_dir + "/vtk/flex_body." + std::to_string(counter++) + ".vtk";
+            fea::ChMeshExporter::writeFrame(my_mesh, (char*)filename.c_str(), MESH_CONNECTIVITY);
+        }
+
+        // Render SPH particles
+        if (render && current_step % render_steps == 0) {
+            if (!fsi_vis.Render())
+                break;
+        }
+
+        if (current_step < 5 && sysFSI.GetAdaptiveTimeStepping()) {
             sysFSI.SetAdaptiveTimeStepping(false);
             isAdaptive = true;
         }
         sysFSI.DoStepDynamics_FSI();
         sysFSI.SetAdaptiveTimeStepping(isAdaptive);
+
         time += dT;
-        SaveParaViewFiles(sysFSI, sysMBS, my_mesh, NodeNeighborElement_mesh, next_frame, time);
-
-        if (time > t_end)
-            break;
+        current_step++;
     }
-
-    // Total computational cost
-    double TIMING_end = (clock() - TIMING_sta) / (double)CLOCKS_PER_SEC;
-    printf("\nSimulation Finished in %f (s)\n", TIMING_end);
+    timer.stop();
+    std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
 
     return 0;
 }
@@ -208,7 +222,6 @@ int main(int argc, char* argv[]) {
 //------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid/flexible bodies, and if fsi, their
 // bce representation are created and added to the systems
-//------------------------------------------------------------------
 void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.Set_G_acc(ChVector<>(0.0, 0, 0));
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -413,35 +426,4 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     sysFSI.SetFsiMesh(my_mesh);
     fea::ChMeshExporter::writeMesh(my_mesh, MESH_CONNECTIVITY);
-}
-
-//------------------------------------------------------------------
-// Function to save the paraview files
-//------------------------------------------------------------------
-void SaveParaViewFiles(ChSystemFsi& sysFSI,
-                       ChSystemSMC& sysMBS,
-                       std::shared_ptr<fea::ChMesh> my_mesh,
-                       std::vector<std::vector<int>> NodeNeighborElementMesh,
-                       int next_frame,
-                       double mTime) {
-    static double exec_time;
-    exec_time += sysMBS.GetTimerStep();
-    double frame_time = 1.0 / out_fps;
-    static int out_frame = 0;
-
-    if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-6) {
-        sysFSI.PrintParticleToFile(out_dir + "/particles");
-
-        std::cout << "-------------------------------------\n" << std::endl;
-        std::cout << "             Output frame:   " << next_frame << std::endl;
-        std::cout << "             Time:           " << mTime << std::endl;
-        std::cout << "-------------------------------------\n" << std::endl;
-
-        char SaveAsBuffer[256];  // The filename buffer.
-        snprintf(SaveAsBuffer, sizeof(char) * 256, (out_dir + "vtk/flex_body.%d.vtk").c_str(), next_frame);
-        char MeshFileBuffer[256];  // The filename buffer.
-        snprintf(MeshFileBuffer, sizeof(char) * 256, ("%s"), MESH_CONNECTIVITY.c_str());
-        fea::ChMeshExporter::writeFrame(my_mesh, SaveAsBuffer, MESH_CONNECTIVITY);
-        out_frame++;
-    }
 }
