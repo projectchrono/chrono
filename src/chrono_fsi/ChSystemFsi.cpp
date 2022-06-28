@@ -799,7 +799,8 @@ void ChSystemFsi::Initialize() {
     m_fsi_interface->ResizeChronoFEANodesData();
 
     // This also sets the referenceArray and counts numbers of various objects
-    m_sysFSI->ResizeData(m_fsi_bodies.size(), m_fsi_cables.size(), m_fsi_shells.size(), m_fsi_mesh->GetNnodes());
+    m_sysFSI->ResizeData(m_fsi_bodies.size(), m_fsi_cables.size(), m_fsi_shells.size(),
+                         (size_t)m_fsi_mesh->GetNnodes());
 
     if (m_verbose) {
         cout << "Counters" << endl;
@@ -811,8 +812,8 @@ void ChSystemFsi::Initialize() {
         cout << "  numHelperMarkers: " << m_sysFSI->numObjects->numHelperMarkers << endl;
         cout << "  numFluidMarkers: " << m_sysFSI->numObjects->numFluidMarkers << endl;
         cout << "  numBoundaryMarkers: " << m_sysFSI->numObjects->numBoundaryMarkers << endl;
-        cout << "  numRigid_SphMarkers: " << m_sysFSI->numObjects->numRigid_SphMarkers << endl;
-        cout << "  numFlex_SphMarkers: " << m_sysFSI->numObjects->numFlex_SphMarkers << endl;
+        cout << "  numRigidMarkers: " << m_sysFSI->numObjects->numRigidMarkers << endl;
+        cout << "  numFlexMarkers: " << m_sysFSI->numObjects->numFlexMarkers << endl;
         cout << "  numAllMarkers: " << m_sysFSI->numObjects->numAllMarkers << endl;
         cout << "  startRigidMarkers: " << m_sysFSI->numObjects->startRigidMarkers << endl;
         cout << "  startFlexMarkers: " << m_sysFSI->numObjects->startFlexMarkers << endl;
@@ -850,8 +851,8 @@ void ChSystemFsi::Initialize() {
     m_fluid_dynamics->GetForceSystem()->SetLinearSolver(m_paramsH->LinearSolver);
 
     // Initialize worker objects
-    m_bce_manager->Initialize(m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD1, m_sysFSI->fsiMeshD, 
-        m_fsi_bodies_bce_num, m_fsi_shells_bce_num, m_fsi_cables_bce_num);
+    m_bce_manager->Initialize(m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD1, m_sysFSI->fsiMeshD, m_fsi_bodies_bce_num,
+                              m_fsi_shells_bce_num, m_fsi_cables_bce_num);
     m_fluid_dynamics->Initialize();
 
     // Mark system as initialized
@@ -1491,7 +1492,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
         m_sysFSI->sphMarkersH->tauXyXzYzH.push_back(mR3(0.0));
     }
     if (isSolid)
-        m_fsi_bodies_bce_num.push_back(posRadBCE.size());
+        m_fsi_bodies_bce_num.push_back((int)posRadBCE.size());
 }
 
 void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::host_vector<Real4>& posRadBCE,
@@ -1589,7 +1590,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::
     int type = 3;
 
     fea::ChElementShellANCF_3423::ShapeVector N;
-    size_t posRadSizeModified = 0;
+    int posRadSizeModified = 0;
 
     double my_h = (kernel_h == 0) ? m_paramsH->HSML : kernel_h;
 
@@ -1726,11 +1727,11 @@ size_t ChSystemFsi::GetNumFluidMarkers() const {
 }
 
 size_t ChSystemFsi::GetNumRigidBodyMarkers() const {
-    return m_sysFSI->numObjects->numRigid_SphMarkers;
+    return m_sysFSI->numObjects->numRigidMarkers;
 }
 
 size_t ChSystemFsi::GetNumFlexBodyMarkers() const {
-    return m_sysFSI->numObjects->numFlex_SphMarkers;
+    return m_sysFSI->numObjects->numFlexMarkers;
 }
 
 size_t ChSystemFsi::GetNumBoundaryMarkers() const {

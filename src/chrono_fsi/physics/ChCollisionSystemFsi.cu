@@ -320,7 +320,7 @@ ChCollisionSystemFsi::ChCollisionSystemFsi(std::shared_ptr<SphMarkerDataD> other
                                            std::shared_ptr<ProximityDataD> otherMarkersProximityD,
                                            std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
                                            std::shared_ptr<SimParams> otherParamsH,
-                                           std::shared_ptr<NumberOfObjects> otherNumObjects)
+                                           std::shared_ptr<ChCounters> otherNumObjects)
     : sortedSphMarkersD(otherSortedSphMarkersD),
       markersProximityD(otherMarkersProximityD),
       fsiGeneralData(otherFsiGeneralData),
@@ -333,7 +333,7 @@ ChCollisionSystemFsi::~ChCollisionSystemFsi() {}
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChCollisionSystemFsi::Initialize() {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
+    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

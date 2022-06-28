@@ -30,7 +30,7 @@ ChFsiForce::ChFsiForce(std::shared_ptr<ChBce> otherBceWorker,
                        std::shared_ptr<ProximityDataD> otherMarkersProximityD,
                        std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
                        std::shared_ptr<SimParams> otherParamsH,
-                       std::shared_ptr<NumberOfObjects> otherNumObjects,
+                       std::shared_ptr<ChCounters> otherNumObjects,
                        bool verb)
     : bceWorker(otherBceWorker),
       sortedSphMarkersD(otherSortedSphMarkersD),
@@ -47,7 +47,7 @@ ChFsiForce::ChFsiForce(std::shared_ptr<ChBce> otherBceWorker,
 
 void ChFsiForce::Initialize() {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
+    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
 
     if (verbose)
         printf("ChFsiForce number of all particles = %zd\n", numObjectsH->numAllMarkers);

@@ -39,7 +39,7 @@ ChFsiForceIISPH::ChFsiForceIISPH(std::shared_ptr<ChBce> otherBceWorker,
                                  std::shared_ptr<ProximityDataD> otherMarkersProximityD,
                                  std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
                                  std::shared_ptr<SimParams> otherParamsH,
-                                 std::shared_ptr<NumberOfObjects> otherNumObjects,
+                                 std::shared_ptr<ChCounters> otherNumObjects,
                                  bool verb)
     : ChFsiForce(otherBceWorker,
                  otherSortedSphMarkersD,
@@ -56,7 +56,7 @@ ChFsiForceIISPH::~ChFsiForceIISPH() {}
 void ChFsiForceIISPH::Initialize() {
     ChFsiForce::Initialize();
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
+    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
     cudaMemcpyFromSymbol(paramsH.get(), paramsD, sizeof(SimParams));
     cudaDeviceSynchronize();
 }
@@ -509,7 +509,7 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
     Real3 my_normal = Normals[i_idx];
 
     Real3 source_term = paramsD.gravity + paramsD.bodyForce3;
-    //  if (bceIndex >= numObjectsD.numRigid_SphMarkers) {
+    //  if (bceIndex >= numObjectsD.numRigidMarkers) {
     //    return;
     //  }
 
@@ -1425,11 +1425,11 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
 
     double durationFormAXB;
 
-    int end_fluid = numObjectsH->numGhostMarkers + numObjectsH->numHelperMarkers + numObjectsH->numFluidMarkers;
-    int end_bndry = end_fluid + numObjectsH->numBoundaryMarkers;
-    int end_rigid = end_bndry + numObjectsH->numRigid_SphMarkers;
-    int end_flex = end_rigid + numObjectsH->numFlex_SphMarkers;
-    int4 updatePortion = mI4(end_fluid, end_bndry, end_rigid, end_flex);
+    size_t end_fluid = numObjectsH->numGhostMarkers + numObjectsH->numHelperMarkers + numObjectsH->numFluidMarkers;
+    size_t end_bndry = end_fluid + numObjectsH->numBoundaryMarkers;
+    size_t end_rigid = end_bndry + numObjectsH->numRigidMarkers;
+    size_t end_flex = end_rigid + numObjectsH->numFlexMarkers;
+    int4 updatePortion = mI4((int)end_fluid, (int)end_bndry, (int)end_rigid, (int)end_flex);
 
     uint NNZ;
     if (mySolutionType == PPESolutionType::FORM_SPARSE_MATRIX) {

@@ -47,7 +47,7 @@ class ChBce : public ChFsiGeneral {
           std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< information for neighbor search
           std::shared_ptr<FsiGeneralData> otherFsiGeneralData,     ///< general information, e.g, ordering of the phases
           std::shared_ptr<SimParams> otherParamsH,                 ///< simulation parameters
-          std::shared_ptr<NumberOfObjects> otherNumObjects,        ///< number of sph particles on each phase
+          std::shared_ptr<ChCounters> otherNumObjects,             ///< number of sph particles on each phase
           bool verb                                                ///< verbose terminal output
     );
 
@@ -97,19 +97,13 @@ class ChBce : public ChFsiGeneral {
                     std::vector<int> fsiCableBceNum);
 
   private:
-    std::shared_ptr<FsiGeneralData>
-        fsiGeneralData;  ///< General information of the simulation, e.g, ordering of the phases.
-    std::shared_ptr<SphMarkerDataD>
-        sortedSphMarkersD;  ///< Holds the position, velocity, denisty, pressure, viscousity and
-                            /// types of the SPH particles.
-    std::shared_ptr<ProximityDataD> markersProximityD;  ///< Holds the information for the neighbor search and mapping
-                                                        /// from the  sorted variables to an unsorted ones.
-    std::shared_ptr<SimParams> paramsH;                 ///< Parameters of the simulation.
-    std::shared_ptr<NumberOfObjects> numObjectsH;       ///< Holds the number of SPH particles on each phase.
-    thrust::device_vector<Real4>
-        totalSurfaceInteractionRigid4;  ///< Total surface-integrated forces from the fluid dynamics to Chbodies.
-    thrust::device_vector<Real3>
-        torqueMarkersD;  ///< Total surface-integrated torques from the fluid dynamics to Chbodies.
+    std::shared_ptr<FsiGeneralData> fsiGeneralData;              ///< General information of the simulation
+    std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;           ///< Particle state, properties, type
+    std::shared_ptr<ProximityDataD> markersProximityD;           ///< Information for neighbor search
+    std::shared_ptr<SimParams> paramsH;                          ///< Parameters of the simulation
+    std::shared_ptr<ChCounters> numObjectsH;                     ///< Holds the number of SPH particles on each phase
+    thrust::device_vector<Real4> totalSurfaceInteractionRigid4;  ///< Total forces from fluid to bodies
+    thrust::device_vector<Real3> torqueMarkersD;                 ///< Total torques from fluid to bodies
 
     thrust::device_vector<int> dummyIdentify;
 
@@ -123,7 +117,7 @@ class ChBce : public ChFsiGeneral {
                              const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
                              const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
                              const thrust::device_vector<uint>& rigidIdentifierD,
-                             int numRigid_SphMarkers);
+                             int numRigidMarkers);
 
     /// Calculates pressure and velocity of the BCE particles.
     void RecalcSortedVelocityPressure_BCE(std::shared_ptr<FsiBodiesDataD> fsiBodiesD,

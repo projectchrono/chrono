@@ -36,7 +36,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
         std::shared_ptr<FsiGeneralData> otherFsiGeneralData,     ///< SPH general data
         std::shared_ptr<SimParams> otherParamsH,                 ///< simulation parameters on host
-        std::shared_ptr<NumberOfObjects> otherNumObjects,        ///< counters
+        std::shared_ptr<ChCounters> otherNumObjects,        ///< counters
         bool verb                                                ///< verbose terminal output
     );
 

@@ -314,10 +314,9 @@ class ChSystemFsi_impl : public ChFsiGeneral {
                         Real3 tauXyXzYz = mR3(0.0));
 
     /// Resize the simulation data based on the FSI system constructed.
-    void ResizeData(int numRigidBodies, int numFlexBodies1D, int numFlexBodies2D, int numFlexNodes);
+    void ResizeData(size_t numRigidBodies, size_t numFlexBodies1D, size_t numFlexBodies2D, size_t numFlexNodes);
 
-    std::shared_ptr<NumberOfObjects>
-        numObjects;  ///< Number of objects (SPH particles, BCE particles, rigid bodies and such).
+    std::shared_ptr<ChCounters> numObjects;  ///< Counters (SPH particles, BCE particles, bodies, etc)
 
     std::shared_ptr<SphMarkerDataD> sphMarkersD1;       ///< Information of SPH particles at state 1 on device
     std::shared_ptr<SphMarkerDataD> sphMarkersD2;       ///< Information of SPH particles at state 2 on device

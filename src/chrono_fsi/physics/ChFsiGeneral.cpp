@@ -22,7 +22,7 @@ namespace fsi {
 
 ChFsiGeneral::ChFsiGeneral() : paramsH(NULL), numObjectsH(NULL) {}
 
-ChFsiGeneral::ChFsiGeneral(std::shared_ptr<SimParams> other_paramsH, std::shared_ptr<NumberOfObjects> other_numObjects)
+ChFsiGeneral::ChFsiGeneral(std::shared_ptr<SimParams> other_paramsH, std::shared_ptr<ChCounters> other_numObjects)
     : paramsH(other_paramsH), numObjectsH(other_numObjects) {}
 
 uint ChFsiGeneral::iDivUp(uint a, uint b) {

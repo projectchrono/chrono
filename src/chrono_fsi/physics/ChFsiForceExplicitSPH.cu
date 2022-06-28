@@ -411,7 +411,7 @@ __global__ void Shear_Stress_Rate(uint* indexOfIndex,
                         if (rhoPresMuB.w > -0.5) {
                             int bceIndexB = gridMarkerIndex[j] - numObjectsD.numFluidMarkers;
                             if (!(bceIndexB >= 0 &&
-                                  bceIndexB < numObjectsD.numBoundaryMarkers + numObjectsD.numRigid_SphMarkers)) {
+                                  bceIndexB < numObjectsD.numBoundaryMarkers + numObjectsD.numRigidMarkers)) {
                                 printf("Error! bceIndex out of bound, collideCell !\n");
                             }
                             rhoPresMuB = rhoPreMu_ModifiedBCE[bceIndexB];  // to check
@@ -1012,7 +1012,7 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                         if (rhoPresMuB.w > -0.5) {
                             int bceIndexB = gridMarkerIndex[j] - numObjectsD.numFluidMarkers;
                             // if (!(bceIndexB >= 0 &&
-                            //       bceIndexB < numObjectsD.numBoundaryMarkers + numObjectsD.numRigid_SphMarkers)) {
+                            //       bceIndexB < numObjectsD.numBoundaryMarkers + numObjectsD.numRigidMarkers)) {
                             //     printf("Error! bceIndex out of bound, collideCell !\n");
                             // }
                             rhoPresMuB = rhoPreMu_ModifiedBCE[bceIndexB];
@@ -1516,7 +1516,7 @@ ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(std::shared_ptr<ChBce> otherBceWork
                                              std::shared_ptr<ProximityDataD> otherMarkersProximityD,
                                              std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
                                              std::shared_ptr<SimParams> otherParamsH,
-                                             std::shared_ptr<NumberOfObjects> otherNumObjects,
+                                             std::shared_ptr<ChCounters> otherNumObjects,
                                              bool verb)
     : ChFsiForce(otherBceWorker,
                  otherSortedSphMarkersD,
@@ -1536,7 +1536,7 @@ ChFsiForceExplicitSPH::~ChFsiForceExplicitSPH() {}
 void ChFsiForceExplicitSPH::Initialize() {
     ChFsiForce::Initialize();
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
+    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
     cudaMemcpyFromSymbol(paramsH.get(), paramsD, sizeof(SimParams));
     cudaDeviceSynchronize();
 }
@@ -1579,7 +1579,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         calcRho_kernel<<<numBlocks, numThreads>>>(
             mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old),
             U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
-            numObjectsH->numBoundaryMarkers, numObjectsH->numRigid_SphMarkers, density_initialization, isErrorD);
+            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, density_initialization, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcRho_kernel");
         density_initialization = 0;
     }
@@ -1607,7 +1607,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
 
         // Find the index which is related to the wall boundary particle
         uint numBlocks1, numThreads1;
-        computeGridSize((int)numObjectsH->numFluidMarkers + (int)numObjectsH->numRigid_SphMarkers, 256, numBlocks1,
+        computeGridSize((int)numObjectsH->numFluidMarkers + (int)numObjectsH->numRigidMarkers, 256, numBlocks1,
                         numThreads1);
 
         thrust::device_vector<uint> indexOfIndex(numObjectsH->numAllMarkers);
@@ -1625,7 +1625,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
             mR4CAST(bceWorker->rhoPreMu_ModifiedBCE), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
             mR3CAST(sortedSphMarkersD->tauXyXzYzD), U1CAST(markersProximityD->gridMarkerIndexD),
             U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
-            numObjectsH->numBoundaryMarkers, numObjectsH->numRigid_SphMarkers, isErrorD);
+            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Navier_Stokes");
     }
 
@@ -1675,7 +1675,7 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
             U1CAST(markersProximityD->mapOriginalToSorted), numObjectsH->numAllMarkers);
     } else {
         uint numBlocks1, numThreads1;
-        computeGridSize((int)numObjectsH->numFluidMarkers + (int)numObjectsH->numRigid_SphMarkers, 256, numBlocks1,
+        computeGridSize((int)numObjectsH->numFluidMarkers + (int)numObjectsH->numRigidMarkers, 256, numBlocks1,
                         numThreads1);
 
         thrust::device_vector<Real4> sortedPosRad_old = sortedSphMarkersD->posRadD;
@@ -1696,7 +1696,7 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedXSPHandShift),
             U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
             U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers, numObjectsH->numBoundaryMarkers,
-            numObjectsH->numRigid_SphMarkers, isErrorD);
+            numObjectsH->numRigidMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "CalcVel_XSPH_D");
 
         CopySortedToOriginal_XSPH_D<<<numBlocks, numThreads>>>(

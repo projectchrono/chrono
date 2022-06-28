@@ -43,7 +43,7 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(Real3* rigidSPH_MeshPos_LRF
                                                      Real3* posRigidD,
                                                      Real4* qD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numRigid_SphMarkers) {
+    if (index >= numObjectsD.numRigidMarkers) {
         return;
     }
     int rigidIndex = rigidIdentifierD[index];
@@ -66,7 +66,7 @@ __global__ void Populate_FlexSPH_MeshPos_LRF_kernel(Real3* FlexSPH_MeshPos_LRF_D
                                                     Real3* pos_fsi_fea_D,
                                                     Real Spacing) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numFlex_SphMarkers) {
+    if (index >= numObjectsD.numFlexMarkers) {
         return;
     }
 
@@ -134,7 +134,7 @@ __global__ void Calc_Rigid_FSI_ForcesD_TorquesD(Real3* rigid_FSI_ForcesD,
                                                 Real3* rigidSPH_MeshPos_LRF_D,
                                                 Real4* qD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numRigid_SphMarkers) {
+    if (index >= numObjectsD.numRigidMarkers) {
         return;
     }
     int RigidIndex = rigidIdentifierD[index];
@@ -176,7 +176,7 @@ __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
                                       Real3* pos_fsi_fea_D,
                                       Real3* Flex_FSI_ForcesD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numFlex_SphMarkers) {
+    if (index >= numObjectsD.numFlexMarkers) {
         return;
     }
     int FlexIndex = FlexIdentifierD[index];
@@ -355,7 +355,7 @@ __global__ void new_BCE_VelocityPressure(Real4* velMassRigid_fsiBodies_D,
         if (rhoPreMuA.w > 0.5 && rhoPreMuA.w < 1.5) {
             // only need acceleration of rigid body's BCE particle
             int rigidBceIndex = sphIndex - numObjectsD.startRigidMarkers;
-            if (rigidBceIndex < 0 || rigidBceIndex >= numObjectsD.numRigid_SphMarkers) {
+            if (rigidBceIndex < 0 || rigidBceIndex >= numObjectsD.numRigidMarkers) {
                 printf(
                     "Error! particle index out of bound: thrown from "
                     "ChBce.cu, new_BCE_VelocityPressure !\n");
@@ -385,7 +385,7 @@ __global__ void calcBceAcceleration_kernel(Real3* bceAcc,
                                            Real3* rigidSPH_MeshPos_LRF_D,
                                            const uint* rigidIdentifierD) {
     uint bceIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    if (bceIndex >= numObjectsD.numRigid_SphMarkers) {
+    if (bceIndex >= numObjectsD.numRigidMarkers) {
         return;
     }
 
@@ -419,7 +419,7 @@ __global__ void UpdateRigidMarkersPositionVelocityD(Real4* posRadD,
                                                     Real3* omegaLRF_D,
                                                     Real4* qD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numRigid_SphMarkers) {
+    if (index >= numObjectsD.numRigidMarkers) {
         return;
     }
     uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
@@ -456,7 +456,7 @@ __global__ void UpdateFlexMarkersPositionVelocityAccD(Real4* posRadD,
                                                       Real3* vel_fsi_fea_D,
                                                       Real Spacing) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numFlex_SphMarkers) {
+    if (index >= numObjectsD.numFlexMarkers) {
         return;
     }
     int FlexIndex = FlexIdentifierD[index];
@@ -554,7 +554,7 @@ ChBce::ChBce(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
              std::shared_ptr<ProximityDataD> otherMarkersProximityD,
              std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
              std::shared_ptr<SimParams> otherParamsH,
-             std::shared_ptr<NumberOfObjects> otherNumObjects,
+             std::shared_ptr<ChCounters> otherNumObjects,
              bool verb)
     : sortedSphMarkersD(otherSortedSphMarkersD),
       markersProximityD(otherMarkersProximityD),
@@ -578,11 +578,11 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                        std::vector<int> fsiShellBceNum,
                        std::vector<int> fsiCableBceNum) {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
+    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
     CopyParams_NumberOfObjects(paramsH, numObjectsH);
     totalSurfaceInteractionRigid4.resize(numObjectsH->numRigidBodies);
     dummyIdentify.resize(numObjectsH->numRigidBodies);
-    torqueMarkersD.resize(numObjectsH->numRigid_SphMarkers);
+    torqueMarkersD.resize(numObjectsH->numRigidMarkers);
 
     // Resizing the arrays used to modify the BCE velocity and pressure according to ADAMI
 
@@ -612,7 +612,7 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
         }
     }
 
-    if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigid_SphMarkers + numObjectsH->numFlex_SphMarkers) !=
+    if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers + numObjectsH->numFlexMarkers) !=
         numFlexAndRigidAndBoundaryMarkers) {
         throw std::runtime_error("Error! number of flex and rigid and boundary markers are saved incorrectly!\n");
     }
@@ -643,7 +643,7 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMar
 
     uint nBlocks_numRigid_SphMarkers;
     uint nThreads_SphMarkers;
-    computeGridSize((uint)numObjectsH->numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
+    computeGridSize((uint)numObjectsH->numRigidMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
 
     Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(
         mR3CAST(fsiGeneralData->rigidSPH_MeshPos_LRF_D), mR4CAST(sphMarkersD->posRadD),
@@ -684,7 +684,7 @@ void ChBce::Populate_FlexSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMark
 
     uint nBlocks_numFlex_SphMarkers;
     uint nThreads_SphMarkers;
-    computeGridSize((uint)numObjectsH->numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
+    computeGridSize((uint)numObjectsH->numFlexMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
 
     thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_H = fsiGeneralData->FlexSPH_MeshPos_LRF_H;
     Populate_FlexSPH_MeshPos_LRF_kernel<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
@@ -754,10 +754,10 @@ void ChBce::CalcBceAcceleration(thrust::device_vector<Real3>& bceAcc,
                                 const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
                                 const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
                                 const thrust::device_vector<uint>& rigidIdentifierD,
-                                int numRigid_SphMarkers) {
+                                int numRigidMarkers) {
     // thread per particle
     uint numThreads, numBlocks;
-    computeGridSize(numRigid_SphMarkers, 256, numBlocks, numThreads);
+    computeGridSize(numRigidMarkers, 256, numBlocks, numThreads);
 
     calcBceAcceleration_kernel<<<numBlocks, numThreads>>>(
         mR3CAST(bceAcc), mR4CAST(q_fsiBodies_D), mR3CAST(accRigid_fsiBodies_D), mR3CAST(omegaVelLRF_fsiBodies_D),
@@ -773,7 +773,7 @@ void ChBce::ModifyBceVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::
     if (numObjectsH->numRigidBodies == 0)
         numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[1].y - fsiGeneralData->referenceArray[0].y;
 
-    if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
+    if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers) != numRigidAndBoundaryMarkers) {
         throw std::runtime_error(
             "Error! number of rigid and boundary markers are "
             "saved incorrectly. Thrown from ModifyBceVelocity!\n");
@@ -790,12 +790,12 @@ void ChBce::ModifyBceVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::
         updatePortion.z = fsiGeneralData->referenceArray[1].y;
 
     if (paramsH->bceType == BceVersion::ADAMI) {
-        thrust::device_vector<Real3> bceAcc(numObjectsH->numRigid_SphMarkers);
-        if (numObjectsH->numRigid_SphMarkers > 0) {
+        thrust::device_vector<Real3> bceAcc(numObjectsH->numRigidMarkers);
+        if (numObjectsH->numRigidMarkers > 0) {
             CalcBceAcceleration(bceAcc, fsiBodiesD->q_fsiBodies_D, fsiBodiesD->accRigid_fsiBodies_D,
                                 fsiBodiesD->omegaVelLRF_fsiBodies_D, fsiBodiesD->omegaAccLRF_fsiBodies_D,
                                 fsiGeneralData->rigidSPH_MeshPos_LRF_D, fsiGeneralData->rigidIdentifierD,
-                                (int)numObjectsH->numRigid_SphMarkers);
+                                (int)numObjectsH->numRigidMarkers);
         }
         // ADAMI BC for rigid body, ORIGINAL BC for fixed wall
         if (paramsH->bceTypeWall == BceVersion::ORIGINAL) {
@@ -803,7 +803,7 @@ void ChBce::ModifyBceVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::
                          velMas_ModifiedBCE.begin());
             thrust::copy(sphMarkersD->rhoPresMuD.begin() + updatePortion.x,
                          sphMarkersD->rhoPresMuD.begin() + updatePortion.y, rhoPreMu_ModifiedBCE.begin());
-            if (numObjectsH->numRigid_SphMarkers > 0) {
+            if (numObjectsH->numRigidMarkers > 0) {
                 RecalcSortedVelocityPressure_BCE(
                     fsiBodiesD, velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, sortedSphMarkersD->posRadD,
                     sortedSphMarkersD->velMasD, sortedSphMarkersD->rhoPresMuD, markersProximityD->cellStartD,
@@ -837,7 +837,7 @@ void ChBce::Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD,
 
     uint nBlocks_numRigid_SphMarkers;
     uint nThreads_SphMarkers;
-    computeGridSize((uint)numObjectsH->numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
+    computeGridSize((uint)numObjectsH->numRigidMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
     Calc_Rigid_FSI_ForcesD_TorquesD<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(
         mR3CAST(fsiGeneralData->rigid_FSI_ForcesD), mR3CAST(fsiGeneralData->rigid_FSI_TorquesD),
         mR4CAST(fsiGeneralData->derivVelRhoD), mR4CAST(fsiGeneralData->derivVelRhoD_old), mR4CAST(sphMarkersD->posRadD),
@@ -856,7 +856,7 @@ void ChBce::Flex_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared
 
     uint nBlocks_numFlex_SphMarkers;
     uint nThreads_SphMarkers;
-    computeGridSize((int)numObjectsH->numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
+    computeGridSize((int)numObjectsH->numFlexMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
 
     Calc_Flex_FSI_ForcesD<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
         mR3CAST(fsiGeneralData->FlexSPH_MeshPos_LRF_D), U1CAST(fsiGeneralData->FlexIdentifierD),
@@ -875,7 +875,7 @@ void ChBce::UpdateRigidMarkersPositionVelocity(std::shared_ptr<SphMarkerDataD> s
     }
     uint nBlocks_numRigid_SphMarkers;
     uint nThreads_SphMarkers;
-    computeGridSize((int)numObjectsH->numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
+    computeGridSize((int)numObjectsH->numRigidMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
     UpdateRigidMarkersPositionVelocityD<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(fsiGeneralData->rigidSPH_MeshPos_LRF_D),
         U1CAST(fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
@@ -895,7 +895,7 @@ void ChBce::UpdateFlexMarkersPositionVelocity(std::shared_ptr<SphMarkerDataD> sp
     uint nThreads_SphMarkers;
     printf("UpdateFlexMarkersPositionVelocity..\n");
 
-    computeGridSize((int)numObjectsH->numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
+    computeGridSize((int)numObjectsH->numFlexMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
     UpdateFlexMarkersPositionVelocityAccD<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
         mR4CAST(sphMarkersD->posRadD), mR3CAST(fsiGeneralData->FlexSPH_MeshPos_LRF_D), mR3CAST(sphMarkersD->velMasD),
         U1CAST(fsiGeneralData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,

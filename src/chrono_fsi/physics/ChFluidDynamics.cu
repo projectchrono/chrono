@@ -545,7 +545,7 @@ __global__ void UpdateActivityD(Real4* posRadD,
 ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
                                  ChSystemFsi_impl& otherFsiSystem,
                                  std::shared_ptr<SimParams> otherParamsH,
-                                 std::shared_ptr<NumberOfObjects> otherNumObjects,
+                                 std::shared_ptr<ChCounters> otherNumObjects,
                                  TimeIntegrator type,
                                  bool verb)
     : fsiSystem(otherFsiSystem),
@@ -603,7 +603,7 @@ ChFluidDynamics::~ChFluidDynamics() {}
 void ChFluidDynamics::Initialize() {
     forceSystem->Initialize();
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
+    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
     cudaMemcpyFromSymbol(paramsH.get(), paramsD, sizeof(SimParams));
 }
 
@@ -634,7 +634,7 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD
                                      std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
                                      Real Time) {
     // Update portion of the SPH particles (should be all particles here)
-    int2 updatePortion = mI2(0, numObjectsH->numAllMarkers);
+    int2 updatePortion = mI2(0, (int)numObjectsH->numAllMarkers);
 
     bool *isErrorH, *isErrorD;
     isErrorH = (bool*)malloc(sizeof(bool));

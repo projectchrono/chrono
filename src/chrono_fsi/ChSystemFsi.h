@@ -45,7 +45,7 @@ class ChFsiInterface;
 class ChFluidDynamics;
 class ChBce;
 struct SimParams;
-struct NumberOfObjects;
+struct ChCounters;
 struct Real4;
 
 /// @addtogroup fsi_physics
@@ -443,7 +443,7 @@ class CH_FSI_API ChSystemFsi {
     /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
     void CopyDeviceDataToHalfStep();
 
-    ChSystem& m_sysMBS;         ///< reference to the multi-body system
+    ChSystem& m_sysMBS;  ///< reference to the multi-body system
 
     std::shared_ptr<SimParams> m_paramsH;  ///< pointer to the simulation parameters
     TimeIntegrator fluidIntegrator;        ///< IISPH by default
@@ -463,7 +463,7 @@ class CH_FSI_API ChSystemFsi {
     std::unique_ptr<ChFsiInterface> m_fsi_interface;    ///< FSI interface system
     std::shared_ptr<ChBce> m_bce_manager;               ///< BCE manager
 
-    std::shared_ptr<NumberOfObjects> m_num_objectsH;  ///< number of objects, fluid, bce, and boundary markers
+    std::shared_ptr<ChCounters> m_num_objectsH;       ///< number of objects, fluid, bce, and boundary markers
     std::vector<std::vector<int>> m_fea_shell_nodes;  ///< indices of nodes of each shell element
     std::vector<std::vector<int>> m_fea_cable_nodes;  ///< indices of nodes of each cable element
 

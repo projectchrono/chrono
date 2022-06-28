@@ -51,7 +51,7 @@ class ChFluidDynamics : public ChFsiGeneral {
     ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,             ///< Pointer to the information of BCE particles
                     ChSystemFsi_impl& otherFsiSystem,                  ///< Pointer to the FSI system
                     std::shared_ptr<SimParams> otherParamsH,           ///< Pointer to the simulation parameters
-                    std::shared_ptr<NumberOfObjects> otherNumObjects,  ///< Pointer to the number of objects
+                    std::shared_ptr<ChCounters> otherNumObjects,  ///< Pointer to the number of objects
                     TimeIntegrator otherIntegrator,                    ///< Integration type (only for ISPH)
                     bool verb                                          ///< verbose terminal output
     );
@@ -94,7 +94,7 @@ class ChFluidDynamics : public ChFsiGeneral {
   protected:
     ChSystemFsi_impl& fsiSystem;                   ///< FSI data; values are maintained externally
     std::shared_ptr<SimParams> paramsH;            ///< FSI parameters; values are mainained externally
-    std::shared_ptr<NumberOfObjects> numObjectsH;  ///< counters (fluid particles, number of rigids, boundaries)
+    std::shared_ptr<ChCounters> numObjectsH;  ///< counters (fluid particles, number of rigids, boundaries)
 
     std::shared_ptr<ChFsiForce> forceSystem;  ///< Force system object; calculates the force between particles
     TimeIntegrator integrator_type;           ///< Integrator type
