@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "Flexible_Shell_I2SPH",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,
@@ -35,7 +32,6 @@
     "Fluid time step":               2e-4,
     "Solid time step":               2e-4,
     "Maximum time step":             2e-4,
-    "End time":                      10,
     "Write frame per second":        100
   },
 

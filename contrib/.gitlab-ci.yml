@@ -3,6 +3,12 @@
 ## ProjectChrono Default CI Config ##
 #####################################
 
+# Option to disable CI builds for a particular branch
+#workflow:
+#  rules:
+#    - if: '$CI_COMMIT_REF_NAME == "feature/fsi"'
+#      when: never
+
 # Build Stages (shared by each platform)
 stages:
   - build

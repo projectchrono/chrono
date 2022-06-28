@@ -30,39 +30,43 @@ ChFsiForce::ChFsiForce(std::shared_ptr<ChBce> otherBceWorker,
                        std::shared_ptr<ProximityDataD> otherMarkersProximityD,
                        std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
                        std::shared_ptr<SimParams> otherParamsH,
-                       std::shared_ptr<NumberOfObjects> otherNumObjects)
+                       std::shared_ptr<ChCounters> otherNumObjects,
+                       bool verb)
     : bceWorker(otherBceWorker),
       sortedSphMarkersD(otherSortedSphMarkersD),
       markersProximityD(otherMarkersProximityD),
       fsiGeneralData(otherFsiGeneralData),
       numObjectsH(otherNumObjects),
-      paramsH(otherParamsH) {
-    fsiCollisionSystem = chrono_types::make_shared<ChCollisionSystemFsi>(
-        sortedSphMarkersD, markersProximityD, fsiGeneralData, paramsH, numObjectsH);
+      paramsH(otherParamsH),
+      verbose(verb) {
+    fsiCollisionSystem = chrono_types::make_shared<ChCollisionSystemFsi>(sortedSphMarkersD, markersProximityD,
+                                                                         fsiGeneralData, paramsH, numObjectsH);
     sphMarkersD = NULL;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiForce::Finalize() {
+void ChFsiForce::Initialize() {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
-    printf("ChFsiForce::Finalize() number of all particles = %zd\n", numObjectsH->numAllMarkers);
+    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
+
+    if (verbose)
+        printf("ChFsiForce number of all particles = %zd\n", numObjectsH->numAllMarkers);
 
     vel_XSPH_Sorted_D.resize(numObjectsH->numAllMarkers);
     vel_vis_Sorted_D.resize(numObjectsH->numAllMarkers);
     derivVelRhoD_Sorted_D.resize(numObjectsH->numAllMarkers);
-    fsiCollisionSystem->Finalize();
+    fsiCollisionSystem->Initialize();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
 ChFsiForce::~ChFsiForce() {}
 
-void ChFsiForce::SetLinearSolver(ChFsiLinearSolver::SolverType other_solverType) {
-    switch (other_solverType) {
-        case ChFsiLinearSolver::SolverType::BICGSTAB:
+void ChFsiForce::SetLinearSolver(SolverType type) {
+    switch (type) {
+        case SolverType::BICGSTAB:
             myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverBiCGStab>();
             break;
-        case ChFsiLinearSolver::SolverType::GMRES:
+        case SolverType::GMRES:
             myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverGMRES>();
             break;
         default:
@@ -72,7 +76,7 @@ void ChFsiForce::SetLinearSolver(ChFsiLinearSolver::SolverType other_solverType)
     }
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-// Use invasive to avoid one extra copy. 
+// Use invasive to avoid one extra copy.
 // However, keep in mind that sorted is changed.
 void ChFsiForce::CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
                                                   thrust::device_vector<Real3>& sorted,
@@ -90,7 +94,7 @@ void ChFsiForce::CopySortedToOriginal_NonInvasive_R3(thrust::device_vector<Real3
     CopySortedToOriginal_Invasive_R3(original, dummySorted, gridMarkerIndex);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-// Use invasive to avoid one extra copy. 
+// Use invasive to avoid one extra copy.
 // However, keep in mind that sorted is changed.
 void ChFsiForce::CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& original,
                                                   thrust::device_vector<Real4>& sorted,
