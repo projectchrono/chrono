@@ -500,7 +500,7 @@ windows:vs2019:deploy:
   - git submodule update
   - mkdir -p build
   - export BREW_PY_MAJOR=$(python3 --version | awk '{print $2;}' | cut -d. -f1,2)
-  - export BREW_PY_VER=$(find $HOMEBREW_PREFIX/python@$BREW_PY_MAJOR -d1 | cut -d/ -f2)
+  - export BREW_PY_VER=$(find $HOMEBREW_PREFIX/Cellar/python@$BREW_PY_MAJOR -d1 | cut -d/ -f2)
 
 .macos-monterey:
   extends: .macos
