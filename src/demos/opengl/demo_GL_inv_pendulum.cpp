@@ -253,7 +253,8 @@ int main(int argc, char* argv[]) {
     // Create OpenGL window and camera
     // -------------------------------
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "Inverted Pendulum", &system);
+    gl_window.AttachSystem(&system);
+    gl_window.Initialize(1280, 720, "Inverted Pendulum");
     gl_window.SetCamera(ChVector<>(0, 0, 5), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0));
     gl_window.SetRenderMode(opengl::WIREFRAME);
 

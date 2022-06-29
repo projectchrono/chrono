@@ -29,6 +29,7 @@ namespace fsi {
 
 ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
     : m_systemFSI(sysFSI),
+      m_user_system(nullptr),
       m_title(""),
       m_cam_pos(0, -3, 0),
       m_cam_target(0, 0, 0),
@@ -129,7 +130,10 @@ void ChVisualizationFsi::Initialize() {
     }
 
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, m_title.c_str(), m_system);
+    gl_window.AttachSystem(m_system);
+    if (m_user_system)
+        gl_window.AttachSystem(m_user_system);
+    gl_window.Initialize(1280, 720, m_title.c_str());
     gl_window.SetCamera(m_cam_pos, m_cam_target, m_cam_up, m_cam_scale);
     gl_window.SetRenderMode(opengl::WIREFRAME);
     gl_window.SetParticleRenderMode(m_radius, opengl::POINTS);

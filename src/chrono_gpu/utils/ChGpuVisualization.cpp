@@ -90,7 +90,8 @@ void ChGpuVisualization::Initialize() {
     }
 
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, m_title.c_str(), m_system);
+    gl_window.AttachSystem(m_system);
+    gl_window.Initialize(1280, 720, m_title.c_str());
     gl_window.SetCamera(m_cam_pos, m_cam_target, m_cam_up, m_cam_scale);
     gl_window.SetRenderMode(opengl::WIREFRAME);
 #endif
