@@ -499,7 +499,8 @@ windows:vs2019:deploy:
   - git submodule init
   - git submodule update
   - mkdir -p build
-  - export BREW_PY_VER=$(python3 --version | awk '{print $2;}')
+  - export BREW_PY_MAJOR=$(python3 --version | awk '{print $2;}' | cut -d. -f1,2)
+  - export BREW_PY_VER=$(find $HOMEBREW_PREFIX/Cellar/python@$BREW_PY_MAJOR -depth 1 | cut -d/ -f6)
 
 .macos-monterey:
   extends: .macos
