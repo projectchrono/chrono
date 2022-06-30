@@ -115,6 +115,9 @@ private:
     vsg::ref_ptr<vsg::Options> m_options;
     vsg::ref_ptr<vsg::WindowTraits> m_windowTraits;
     vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
+    vsg::ref_ptr<vsg::Builder> m_cloudBuilder = vsg::Builder::create();
+    vsg::GeometryInfo m_cloudGeometry;
+    vsg::StateInfo m_cloudState;
     std::string m_imageFilename;
     //
     bool m_use_skybox = false;
@@ -138,6 +141,7 @@ private:
     vsg::ref_ptr<vsg::CommandGraph> m_commandGraph;
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
     //
+    void export_image2();
     void export_image();
 };
 }  // namespace vsg3d
