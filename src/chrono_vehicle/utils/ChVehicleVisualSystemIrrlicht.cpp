@@ -165,7 +165,7 @@ void ChVehicleVisualSystemIrrlicht::EnableSound(bool sound) {
         // play it looped.
         if (m_sound_engine) {
             m_car_sound =
-                m_sound_engine->play2D(GetChronoDataFile("vehicle/sounds/carsound.ogg").c_str(), true, false, true);
+                m_sound_engine->play2D(GetChronoDataFile("vehicle/sounds/carsound_old.ogg").c_str(), true, false, true);
             m_car_sound->setIsPaused(true);
         } else
             GetLog() << "Cannot start sound engine Irrklang \n";
