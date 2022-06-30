@@ -17,7 +17,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -172,7 +171,7 @@ int main(int argc, char* argv[]) {
     int render_steps = (int)std::ceil(render_step_size / step_size);
     int step_number = 0;
 
-    ChRealtimeStepTimer realtime_timer;
+    my_hmmwv.GetVehicle().EnableRealtime(true);
     utils::ChRunningAverage RTF_filter(50);
 
     while (vis->Run()) {
@@ -207,10 +206,6 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
         vis->Advance(step_size);
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
-        ////std::cout << RTF_filter.Add(realtime_timer.RTF) << std::endl;
     }
 
     return 0;
