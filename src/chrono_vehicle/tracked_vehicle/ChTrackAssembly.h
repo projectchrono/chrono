@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // Base class for a track assembly which consists of one sprocket, one idler,
-// a collection of road wheel assemblies (suspensions), a collection of rollers,
-// and a collection of track shoes.
+// a collection of track suspensions, a collection of rollers, and a collection
+// of track shoes.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -29,7 +29,7 @@
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
-#include "chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/ChRoller.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 
@@ -71,13 +71,13 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     const ChRoadWheelAssemblyList& GetRoadWheelAssemblies() const { return m_suspensions; }
 
     /// Get a handle to the specified suspension subsystem.
-    std::shared_ptr<ChRoadWheelAssembly> GetRoadWheelAssembly(size_t id) const { return m_suspensions[id]; }
+    std::shared_ptr<ChTrackSuspension> GetRoadWheelAssembly(size_t id) const { return m_suspensions[id]; }
 
     /// Get a handle to the specified roller subsystem.
     std::shared_ptr<ChRoller> GetRoller(size_t id) const { return m_rollers[id]; }
 
     /// Get a handle to the specified road wheel subsystem.
-    std::shared_ptr<ChRoadWheel> GetRoadWheel(size_t id) const { return m_suspensions[id]->GetRoadWheel(); }
+    std::shared_ptr<ChTrackWheel> GetRoadWheel(size_t id) const { return m_suspensions[id]->GetRoadWheel(); }
 
     /// Get a handle to the specified track shoe subsystem.
     virtual std::shared_ptr<ChTrackShoe> GetTrackShoe(size_t id) const = 0;
@@ -148,7 +148,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
 
     /// Return current suspension forces or torques, as appropriate (spring and shock) for the specified suspension.
     /// Different suspension types will load different quantities in the output struct.
-    ChRoadWheelAssembly::ForceTorque ReportSuspensionForce(size_t id) const;
+    ChTrackSuspension::ForceTorque ReportSuspensionForce(size_t id) const;
 
     /// Set visualization type for the sprocket subsystem.
     void SetSprocketVisualizationType(VisualizationType vis);

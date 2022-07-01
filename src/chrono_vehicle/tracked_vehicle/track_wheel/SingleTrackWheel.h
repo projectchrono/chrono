@@ -12,15 +12,15 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Single road-wheel model constructed with data from file (JSON format).
+// Single track-wheel model constructed with data from file (JSON format).
 //
 // =============================================================================
 
-#ifndef SINGLE_ROAD_WHEEL_H
-#define SINGLE_ROAD_WHEEL_H
+#ifndef SINGLE_TRACK_WHEEL_H
+#define SINGLE_TRACK_WHEEL_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/road_wheel/ChSingleRoadWheel.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/ChSingleTrackWheel.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -30,12 +30,12 @@ namespace vehicle {
 /// @addtogroup vehicle_tracked_suspension
 /// @{
 
-/// Single road-wheel model constructed with data from file (JSON format).
-class CH_VEHICLE_API SingleRoadWheel : public ChSingleRoadWheel {
+/// Single track-wheel model constructed with data from file (JSON format).
+class CH_VEHICLE_API SingleTrackWheel : public ChSingleTrackWheel {
   public:
-    SingleRoadWheel(const std::string& filename);
-    SingleRoadWheel(const rapidjson::Document& d);
-    ~SingleRoadWheel() {}
+    SingleTrackWheel(const std::string& filename);
+    SingleTrackWheel(const rapidjson::Document& d);
+    ~SingleTrackWheel() {}
 
     virtual double GetWheelRadius() const override { return m_wheel_radius; }
     virtual double GetWheelWidth() const override { return m_wheel_width; }

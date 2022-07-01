@@ -23,7 +23,7 @@
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/road_wheel/ChDoubleRoadWheel.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/ChDoubleTrackWheel.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -35,7 +35,7 @@ namespace m113 {
 /// @{
 
 /// Road-wheel model for the M113 vehicle (base class).
-class CH_MODELS_API M113_RoadWheel : public ChDoubleRoadWheel {
+class CH_MODELS_API M113_RoadWheel : public ChDoubleTrackWheel {
   public:
     virtual ~M113_RoadWheel() {}
 

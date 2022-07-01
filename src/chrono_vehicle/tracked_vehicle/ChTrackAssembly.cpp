@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // Base class for a track assembly which consists of one sprocket, one idler,
-// a collection of road wheel assemblies (suspensions), a collection of rollers,
-// and a collection of track shoes.
+// a collection of track suspensions, a collection of rollers, and a collection
+// of track shoes.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -151,7 +151,7 @@ void ChTrackAssembly::UpdateInertiaProperties() {
 }
 
 // -----------------------------------------------------------------------------
-ChRoadWheelAssembly::ForceTorque ChTrackAssembly::ReportSuspensionForce(size_t id) const {
+ChTrackSuspension::ForceTorque ChTrackAssembly::ReportSuspensionForce(size_t id) const {
     return m_suspensions[id]->ReportSuspensionForce();
 }
 

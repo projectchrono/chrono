@@ -12,24 +12,25 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a torsion-bar suspension system using rotational damper
-// (template definition).
+// Base class for a torsion-bar suspension system using linear dampers (template
+// definition).
 //
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChPointPointShape.h"
 
-#include "chrono_vehicle/tracked_vehicle/suspension/ChRotationalDamperRWAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-ChRotationalDamperRWAssembly::ChRotationalDamperRWAssembly(const std::string& name, bool has_shock, bool lock_arm)
-    : ChRoadWheelAssembly(name, has_shock, lock_arm) {}
+ChLinearDamperSuspension::ChLinearDamperSuspension(const std::string& name, bool has_shock, bool lock_arm)
+    : ChTrackSuspension(name, has_shock, lock_arm) {}
 
-ChRotationalDamperRWAssembly::~ChRotationalDamperRWAssembly() {
+ChLinearDamperSuspension::~ChLinearDamperSuspension() {
     auto sys = m_arm->GetSystem();
     if (sys) {
         sys->Remove(m_arm);
@@ -41,9 +42,9 @@ ChRotationalDamperRWAssembly::~ChRotationalDamperRWAssembly() {
 }
 
 // -----------------------------------------------------------------------------
-void ChRotationalDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
-                                              const ChVector<>& location,
-                                              ChTrackAssembly* track) {
+void ChLinearDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
+                                          const ChVector<>& location,
+                                          ChTrackAssembly* track) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> susp_to_abs(location);
     susp_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
@@ -81,6 +82,7 @@ void ChRotationalDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis
     m_pA = m_arm->TransformPointParentToLocal(points[ARM]);
     m_pAW = m_arm->TransformPointParentToLocal(points[ARM_WHEEL]);
     m_pAC = m_arm->TransformPointParentToLocal(points[ARM_CHASSIS]);
+    m_pAS = m_arm->TransformPointParentToLocal(points[SHOCK_A]);
     m_dY = m_arm->TransformDirectionParentToLocal(y_dir);
 
     ChQuaternion<> z2y = susp_to_abs.GetRot() * Q_from_AngX(-CH_C_PI_2);
@@ -108,25 +110,25 @@ void ChRotationalDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis
     m_spring->RegisterTorqueFunctor(GetSpringTorqueFunctor());
     chassis->GetSystem()->AddLink(m_spring);
 
-    // Create and initialize the rotational shock torque element.
+    // Create and initialize the translational shock force element.
     if (m_has_shock) {
-        m_shock = chrono_types::make_shared<ChLinkRSDA>();
+        m_shock = chrono_types::make_shared<ChLinkTSDA>();
         m_shock->SetNameString(m_name + "_shock");
-        m_shock->Initialize(chassis->GetBody(), m_arm, ChCoordsys<>(points[ARM_CHASSIS], z2y));
-        m_shock->RegisterTorqueFunctor(GetShockTorqueCallback());
+        m_shock->Initialize(chassis->GetBody(), m_arm, false, points[SHOCK_C], points[SHOCK_A]);
+        m_shock->RegisterForceFunctor(GetShockForceFunctor());
         chassis->GetSystem()->AddLink(m_shock);
     }
 
     // Invoke the base class implementation. This initializes the associated road wheel.
     // Note: we must call this here, after the m_arm body is created.
-    ChRoadWheelAssembly::Initialize(chassis, location, track);
+    ChTrackSuspension::Initialize(chassis, location, track);
 }
 
-void ChRotationalDamperRWAssembly::InitializeInertiaProperties() {
+void ChLinearDamperSuspension::InitializeInertiaProperties() {
     m_mass = GetArmMass() + m_road_wheel->GetWheelMass();
 }
 
-void ChRotationalDamperRWAssembly::UpdateInertiaProperties() {
+void ChLinearDamperSuspension::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
     // Calculate COM and inertia expressed in global frame
@@ -142,21 +144,21 @@ void ChRotationalDamperRWAssembly::UpdateInertiaProperties() {
     m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
-double ChRotationalDamperRWAssembly::GetCarrierAngle() const {
+double ChLinearDamperSuspension::GetCarrierAngle() const {
     return m_spring->GetAngle();
 }
 
 // -----------------------------------------------------------------------------
-ChRoadWheelAssembly::ForceTorque ChRotationalDamperRWAssembly::ReportSuspensionForce() const {
-    ChRoadWheelAssembly::ForceTorque force;
+ChTrackSuspension::ForceTorque ChLinearDamperSuspension::ReportSuspensionForce() const {
+    ChTrackSuspension::ForceTorque force;
 
     force.spring_ft = m_spring->GetTorque();
     force.spring_displ = m_spring->GetAngle();
     force.spring_velocity = m_spring->GetVelocity();
 
     if (m_has_shock) {
-        force.shock_ft = m_shock->GetTorque();
-        force.shock_displ = m_shock->GetAngle();
+        force.shock_ft = m_shock->GetForce();
+        force.shock_displ = m_shock->GetLength();
         force.shock_velocity = m_shock->GetVelocity();
     } else {
         force.shock_ft = 0;
@@ -168,7 +170,7 @@ ChRoadWheelAssembly::ForceTorque ChRotationalDamperRWAssembly::ReportSuspensionF
 }
 
 // -----------------------------------------------------------------------------
-void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
+void ChLinearDamperSuspension::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
@@ -191,6 +193,14 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
         m_arm->AddVisualShape(cyl);
     }
 
+    if ((m_pA - m_pAS).Length2() > threshold2) {
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
+        cyl->GetCylinderGeometry().p1 = m_pA;
+        cyl->GetCylinderGeometry().p2 = m_pAS;
+        cyl->GetCylinderGeometry().rad = 0.75 * radius;
+        m_arm->AddVisualShape(cyl);
+    }
+
     // Revolute joint (arm-chassis)
     {
         auto cyl = chrono_types::make_shared<ChCylinderShape>();
@@ -209,15 +219,21 @@ void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis)
         cyl->GetCylinderGeometry().rad = radius;
         m_arm->AddVisualShape(cyl);
     }
+
+    // Visualization of the shock (with default color)
+    if (m_has_shock) {
+        m_shock->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    }
 }
 
-void ChRotationalDamperRWAssembly::RemoveVisualizationAssets() {
+void ChLinearDamperSuspension::RemoveVisualizationAssets() {
     ChPart::RemoveVisualizationAssets(m_arm);
+    if (m_has_shock)
+        ChPart::RemoveVisualizationAssets(m_shock);
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChRotationalDamperRWAssembly::LogConstraintViolations() {
+void ChLinearDamperSuspension::LogConstraintViolations() {
     ChVectorDynamic<> C = m_joint->GetConstraintViolation();
     GetLog() << "  Arm-chassis joint\n";
     GetLog() << "  " << C(0) << "  ";
@@ -230,9 +246,8 @@ void ChRotationalDamperRWAssembly::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChRotationalDamperRWAssembly::ExportComponentList(rapidjson::Document& jsonDocument) const {
-    ChRoadWheelAssembly::ExportComponentList(jsonDocument);
+void ChLinearDamperSuspension::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChTrackSuspension::ExportComponentList(jsonDocument);
 
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_arm);
@@ -246,12 +261,16 @@ void ChRotationalDamperRWAssembly::ExportComponentList(rapidjson::Document& json
 
     std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
     rot_springs.push_back(m_spring);
-    if (m_has_shock)
-        rot_springs.push_back(m_shock);
     ChPart::ExportRotSpringList(jsonDocument, rot_springs);
+
+    if (m_has_shock) {
+        std::vector<std::shared_ptr<ChLinkTSDA>> lin_springs;
+        lin_springs.push_back(m_shock);
+        ChPart::ExportLinSpringList(jsonDocument, lin_springs);
+    }
 }
 
-void ChRotationalDamperRWAssembly::Output(ChVehicleOutput& database) const {
+void ChLinearDamperSuspension::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
@@ -267,9 +286,13 @@ void ChRotationalDamperRWAssembly::Output(ChVehicleOutput& database) const {
 
     std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
     rot_springs.push_back(m_spring);
-    if (m_has_shock)
-        rot_springs.push_back(m_shock);
     database.WriteRotSprings(rot_springs);
+
+    if (m_has_shock) {
+        std::vector<std::shared_ptr<ChLinkTSDA>> lin_springs;
+        lin_springs.push_back(m_shock);
+        database.WriteLinSprings(lin_springs);
+    }
 }
 
 }  // end namespace vehicle

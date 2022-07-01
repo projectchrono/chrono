@@ -12,15 +12,15 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Double road-wheel model constructed with data from file (JSON format).
+// Double track-wheel model constructed with data from file (JSON format).
 //
 // =============================================================================
 
-#ifndef DOUBLE_ROAD_WHEEL_H
-#define DOUBLE_ROAD_WHEEL_H
+#ifndef DOUBLE_TRACK_WHEEL_H
+#define DOUBLE_TRACK_WHEEL_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/road_wheel/ChDoubleRoadWheel.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/ChDoubleTrackWheel.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -30,12 +30,12 @@ namespace vehicle {
 /// @addtogroup vehicle_tracked_suspension
 /// @{
 
-/// Double road-wheel model constructed with data from file (JSON format).
-class CH_VEHICLE_API DoubleRoadWheel : public ChDoubleRoadWheel {
+/// Double track-wheel model constructed with data from file (JSON format).
+class CH_VEHICLE_API DoubleTrackWheel : public ChDoubleTrackWheel {
   public:
-    DoubleRoadWheel(const std::string& filename);
-    DoubleRoadWheel(const rapidjson::Document& d);
-    ~DoubleRoadWheel() {}
+    DoubleTrackWheel(const std::string& filename);
+    DoubleTrackWheel(const rapidjson::Document& d);
+    ~DoubleTrackWheel() {}
 
     virtual double GetWheelRadius() const override { return m_wheel_radius; }
     virtual double GetWheelWidth() const override { return m_wheel_width; }

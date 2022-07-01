@@ -52,7 +52,7 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     /// Return the type of track shoe consistent with this idler.
     virtual GuidePinType GetType() const = 0;
 
-    /// Get a handle to the road wheel body.
+    /// Get a handle to the wheel body.
     std::shared_ptr<ChBody> GetWheelBody() const { return m_wheel; }
 
     /// Get a handle to the revolute joint.

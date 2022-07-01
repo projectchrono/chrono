@@ -47,14 +47,14 @@ class CH_VEHICLE_API ChRoller : public ChPart {
     /// Get a handle to the revolute joint.
     std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
 
-    /// Get the radius of the road wheel.
+    /// Get the radius of the wheel.
     virtual double GetRadius() const = 0;
 
     virtual double GetRollerMass() const = 0;
 
     virtual const ChVector<>& GetRollerInertia() const = 0;
 
-    /// Turn on/off collision flag for the road wheel.
+    /// Turn on/off collision flag for the wheel.
     void SetCollide(bool val) { m_wheel->SetCollide(val); }
 
     /// Initialize this roller subsystem.

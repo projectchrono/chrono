@@ -21,17 +21,17 @@
 #include "chrono_vehicle/tracked_vehicle/idler/SingleIdler.h"
 #include "chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
 
-#include "chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
-#include "chrono_vehicle/tracked_vehicle/road_wheel/ChSingleRoadWheel.h"
-#include "chrono_vehicle/tracked_vehicle/road_wheel/ChDoubleRoadWheel.h"
-#include "chrono_vehicle/tracked_vehicle/road_wheel/SingleRoadWheel.h"
-#include "chrono_vehicle/tracked_vehicle/road_wheel/DoubleRoadWheel.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/ChSingleTrackWheel.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/ChDoubleTrackWheel.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/SingleTrackWheel.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/DoubleTrackWheel.h"
 
-#include "chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperRWAssembly.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/ChRotationalDamperRWAssembly.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperRWAssembly.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/RotationalDamperRWAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/ChRotationalDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/RotationalDamperSuspension.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
@@ -74,17 +74,17 @@
 %shared_ptr(chrono::vehicle::SingleIdler)
 %shared_ptr(chrono::vehicle::DoubleIdler)
 
-%shared_ptr(chrono::vehicle::ChRoadWheel)
-%shared_ptr(chrono::vehicle::ChSingleRoadWheel)
-%shared_ptr(chrono::vehicle::ChDoubleRoadWheel)
-%shared_ptr(chrono::vehicle::SingleRoadWheel)
-%shared_ptr(chrono::vehicle::DoubleRoadWheel)
+%shared_ptr(chrono::vehicle::ChTrackWheel)
+%shared_ptr(chrono::vehicle::ChSingleTrackWheel)
+%shared_ptr(chrono::vehicle::ChDoubleTrackWheel)
+%shared_ptr(chrono::vehicle::SingleTrackWheel)
+%shared_ptr(chrono::vehicle::DoubleTrackWheel)
 
-%shared_ptr(chrono::vehicle::ChRoadWheelAssembly)
-%shared_ptr(chrono::vehicle::ChLinearDamperRWAssembly)
-%shared_ptr(chrono::vehicle::ChRotationalDamperRWAssembly)
-%shared_ptr(chrono::vehicle::LinearDamperRWAssembly)
-%shared_ptr(chrono::vehicle::RotationalDamperRWAssembly)
+%shared_ptr(chrono::vehicle::ChTrackSuspension)
+%shared_ptr(chrono::vehicle::ChLinearDamperSuspension)
+%shared_ptr(chrono::vehicle::ChRotationalDamperSuspension)
+%shared_ptr(chrono::vehicle::LinearDamperSuspension)
+%shared_ptr(chrono::vehicle::RotationalDamperSuspension)
 
 %shared_ptr(chrono::vehicle::ChTrackShoe)
 %shared_ptr(chrono::vehicle::ChTrackShoeBand)
@@ -136,18 +136,18 @@
 %include "../../../chrono_vehicle/tracked_vehicle/idler/SingleIdler.h"
 %include "../../../chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
 
-%include "../../../chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
-%include "../../../chrono_vehicle/tracked_vehicle/road_wheel/ChSingleRoadWheel.h"
-%include "../../../chrono_vehicle/tracked_vehicle/road_wheel/ChDoubleRoadWheel.h"
-%include "../../../chrono_vehicle/tracked_vehicle/road_wheel/SingleRoadWheel.h"
-%include "../../../chrono_vehicle/tracked_vehicle/road_wheel/DoubleRoadWheel.h"
+%include "../../../chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
+%include "../../../chrono_vehicle/tracked_vehicle/track_wheel/ChSingleTrackWheel.h"
+%include "../../../chrono_vehicle/tracked_vehicle/track_wheel/ChDoubleTrackWheel.h"
+%include "../../../chrono_vehicle/tracked_vehicle/track_wheel/SingleTrackWheel.h"
+%include "../../../chrono_vehicle/tracked_vehicle/track_wheel/DoubleTrackWheel.h"
 
-%ignore chrono::vehicle::ChLinearDamperRWAssembly::GetLocation;
-%include "../../../chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
-%include "../../../chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperRWAssembly.h"
-%include "../../../chrono_vehicle/tracked_vehicle/suspension/ChRotationalDamperRWAssembly.h"
-%include "../../../chrono_vehicle/tracked_vehicle/suspension/LinearDamperRWAssembly.h"
-%include "../../../chrono_vehicle/tracked_vehicle/suspension/RotationalDamperRWAssembly.h"
+%ignore chrono::vehicle::ChLinearDamperSuspension::GetLocation;
+%include "../../../chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
+%include "../../../chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperSuspension.h"
+%include "../../../chrono_vehicle/tracked_vehicle/suspension/ChRotationalDamperSuspension.h"
+%include "../../../chrono_vehicle/tracked_vehicle/suspension/LinearDamperSuspension.h"
+%include "../../../chrono_vehicle/tracked_vehicle/suspension/RotationalDamperSuspension.h"
 
 %include "../../../chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"

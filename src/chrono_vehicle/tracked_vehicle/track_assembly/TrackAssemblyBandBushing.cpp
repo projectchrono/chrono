@@ -26,7 +26,7 @@
 #include "chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
 #include "chrono_vehicle/tracked_vehicle/idler/SingleIdler.h"
 
-#include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperRWAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperSuspension.h"
 
 #include "chrono_vehicle/tracked_vehicle/roller/DoubleRoller.h"
 

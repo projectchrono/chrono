@@ -12,27 +12,26 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a road wheel assembly (suspension).  A road wheel assembly
-// contains a road wheel body (connected through a revolute joint to the chassis)
-// with different suspension topologies.
+// Base class for a track suspension.  A track suspension contains a road wheel
+// (connected through a revolute joint) with different suspension topologies.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-ChRoadWheelAssembly::ChRoadWheelAssembly(const std::string& name, bool has_shock, bool lock_arm)
+ChTrackSuspension::ChTrackSuspension(const std::string& name, bool has_shock, bool lock_arm)
     : ChPart(name), m_has_shock(has_shock), m_lock_arm(lock_arm), m_track(nullptr) {}
 
 // -----------------------------------------------------------------------------
-void ChRoadWheelAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
+void ChTrackSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
                                      const ChVector<>& location,
                                      ChTrackAssembly* track) {
     m_parent = chassis;
@@ -43,13 +42,13 @@ void ChRoadWheelAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 // -----------------------------------------------------------------------------
-void ChRoadWheelAssembly::SetOutput(bool state) {
+void ChTrackSuspension::SetOutput(bool state) {
     m_output = state;
     m_road_wheel->SetOutput(state);
 }
 
 // -----------------------------------------------------------------------------
-void ChRoadWheelAssembly::ExportComponentList(rapidjson::Document& jsonDocument) const {
+void ChTrackSuspension::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);
 
     jsonDocument.AddMember("has shock", m_has_shock, jsonDocument.GetAllocator());

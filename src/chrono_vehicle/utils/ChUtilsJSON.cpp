@@ -75,11 +75,11 @@
 #include "chrono_vehicle/tracked_vehicle/driveline/TrackDrivelineBDS.h"
 #include "chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
 #include "chrono_vehicle/tracked_vehicle/idler/SingleIdler.h"
-#include "chrono_vehicle/tracked_vehicle/road_wheel/DoubleRoadWheel.h"
-#include "chrono_vehicle/tracked_vehicle/road_wheel/SingleRoadWheel.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/DoubleTrackWheel.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/SingleTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/roller/DoubleRoller.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperRWAssembly.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/RotationalDamperRWAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/RotationalDamperSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
@@ -674,10 +674,10 @@ std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
     return idler;
 }
 
-std::shared_ptr<ChRoadWheelAssembly> ReadRoadWheelAssemblyJSON(const std::string& filename,
+std::shared_ptr<ChTrackSuspension> ReadRoadWheelAssemblyJSON(const std::string& filename,
                                                                bool has_shock,
                                                                bool lock_arm) {
-    std::shared_ptr<ChRoadWheelAssembly> suspension;
+    std::shared_ptr<ChTrackSuspension> suspension;
 
     Document d;
     ReadFileJSON(filename, d);
@@ -694,10 +694,10 @@ std::shared_ptr<ChRoadWheelAssembly> ReadRoadWheelAssemblyJSON(const std::string
     std::string subtype = d["Template"].GetString();
 
     // Create the road-wheel assembly using the appropriate template.
-    if (subtype.compare("LinearDamperRWAssembly") == 0) {
-        suspension = chrono_types::make_shared<LinearDamperRWAssembly>(d, has_shock, lock_arm);
-    } else if (subtype.compare("RotationalDamperRWAssembly") == 0) {
-        suspension = chrono_types::make_shared<RotationalDamperRWAssembly>(d, has_shock, lock_arm);
+    if (subtype.compare("LinearDamperSuspension") == 0) {
+        suspension = chrono_types::make_shared<LinearDamperSuspension>(d, has_shock, lock_arm);
+    } else if (subtype.compare("RotationalDamperSuspension") == 0) {
+        suspension = chrono_types::make_shared<RotationalDamperSuspension>(d, has_shock, lock_arm);
     } else {
         throw ChException("Suspension type not supported in ReadRoadWheelAssemblyJSON.");
     }
@@ -731,8 +731,8 @@ std::shared_ptr<ChRoller> ReadRollerJSON(const std::string& filename) {
     return roller;
 }
 
-std::shared_ptr<ChRoadWheel> ReadRoadWheelJSON(const std::string& filename) {
-    std::shared_ptr<ChRoadWheel> wheel;
+std::shared_ptr<ChTrackWheel> ReadRoadWheelJSON(const std::string& filename) {
+    std::shared_ptr<ChTrackWheel> wheel;
 
     Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -748,10 +748,10 @@ std::shared_ptr<ChRoadWheel> ReadRoadWheelJSON(const std::string& filename) {
     std::string subtype = d["Template"].GetString();
 
     // Create the road-wheel using the appropriate template.
-    if (subtype.compare("SingleRoadWheel") == 0) {
-        wheel = chrono_types::make_shared<SingleRoadWheel>(d);
-    } else if (subtype.compare("DoubleRoadWheel") == 0) {
-        wheel = chrono_types::make_shared<DoubleRoadWheel>(d);
+    if (subtype.compare("SingleTrackWheel") == 0) {
+        wheel = chrono_types::make_shared<SingleTrackWheel>(d);
+    } else if (subtype.compare("DoubleTrackWheel") == 0) {
+        wheel = chrono_types::make_shared<DoubleTrackWheel>(d);
     } else {
         throw ChException("Road-wheel type not supported in ReadRoadWheelJSON.");
     }

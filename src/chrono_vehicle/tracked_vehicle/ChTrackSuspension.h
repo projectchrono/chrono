@@ -12,17 +12,16 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a road wheel assembly (suspension).  A road wheel assembly
-// contains a road wheel body (connected through a revolute joint to the chassis)
-// with different suspension topologies.
+// Base class for a track suspension.  A track suspension contains a road wheel
+// body (connected through a revolute joint) with different suspension topologies.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
 //
 // =============================================================================
 
-#ifndef CH_ROAD_WHEEL_ASSEMBLY_H
-#define CH_ROAD_WHEEL_ASSEMBLY_H
+#ifndef CH_TRACK_SUSPENSION_H
+#define CH_TRACK_SUSPENSION_H
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
@@ -31,7 +30,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
 
-#include "chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -42,7 +41,7 @@ class ChTrackAssembly;
 /// @{
 
 /// Base class for tracked vehicle suspension (road-wheel assembly) subsystem.
-class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
+class CH_VEHICLE_API ChTrackSuspension : public ChPart {
   public:
     /// Output structure for spring-damper forces or torques.
     struct ForceTorque {
@@ -54,13 +53,13 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
         double shock_velocity;   ///< translational (rotational) damper displacement velocity
     };
 
-    virtual ~ChRoadWheelAssembly() {}
+    virtual ~ChTrackSuspension() {}
 
     /// Return the type of track shoe consistent with this road wheel.
     GuidePinType GetType() const { return m_type; }
 
     /// Return a handle to the road wheel subsystem.
-    std::shared_ptr<ChRoadWheel> GetRoadWheel() const { return m_road_wheel; }
+    std::shared_ptr<ChTrackWheel> GetRoadWheel() const { return m_road_wheel; }
 
     /// Return a handle to the carrier body.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const = 0;
@@ -104,7 +103,7 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
     virtual void LogConstraintViolations() = 0;
 
   protected:
-    ChRoadWheelAssembly(const std::string& name,  ///< [in] name of the subsystem
+    ChTrackSuspension(const std::string& name,  ///< [in] name of the subsystem
                         bool has_shock,           ///< [in] specify whether or not the suspension has a damper
                         bool lock_arm             ///< [in] if true, the suspension arm is locked
     );
@@ -116,14 +115,14 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
     bool m_lock_arm;      ///< specified whether the suspension arm is locked
 
     ChVector<> m_rel_loc;                       ///< idler subsystem location relative to chassis
-    std::shared_ptr<ChRoadWheel> m_road_wheel;  ///< road-wheel subsystem
+    std::shared_ptr<ChTrackWheel> m_road_wheel;  ///< road-wheel subsystem
     ChTrackAssembly* m_track;                   ///< containing track assembly
 
     friend class ChTrackAssembly;
 };
 
 /// Vector of handles to road wheel assembly subsystems.
-typedef std::vector<std::shared_ptr<ChRoadWheelAssembly> > ChRoadWheelAssemblyList;
+typedef std::vector<std::shared_ptr<ChTrackSuspension> > ChRoadWheelAssemblyList;
 
 /// @} vehicle_tracked_suspension
 

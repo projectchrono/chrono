@@ -12,18 +12,18 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a double road wheel (template definition).
-// A double road wheel is of type CENTRAL_PIN.
+// Base class for a single track wheel (template definition).
+// A single track wheel is of type LATERAL_PIN.
 //
 // =============================================================================
 
-#ifndef CH_DOUBLE_ROAD_WHEEL_H
-#define CH_DOUBLE_ROAD_WHEEL_H
+#ifndef CH_SINGLE_TRACK_WHEEL_H
+#define CH_SINGLE_TRACK_WHEEL_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
-#include "chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,38 +31,36 @@ namespace vehicle {
 /// @addtogroup vehicle_tracked_suspension
 /// @{
 
-/// Base class for a double road wheel (template definition).
-class CH_VEHICLE_API ChDoubleRoadWheel : public ChRoadWheel {
+/// Base class for a single track wheel (template definition).
+class CH_VEHICLE_API ChSingleTrackWheel : public ChTrackWheel {
   public:
-    ChDoubleRoadWheel(const std::string& name  ///< [in] name of the subsystem
+    ChSingleTrackWheel(const std::string& name  ///< [in] name of the subsystem
                       );
 
-    virtual ~ChDoubleRoadWheel() {}
+    virtual ~ChSingleTrackWheel() {}
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "DoubleRoadWheel"; }
+    virtual std::string GetTemplateName() const override { return "SingleTrackWheel"; }
 
-    /// Return the type of track shoe consistent with this road wheel.
-    virtual GuidePinType GetType() const final override { return GuidePinType::CENTRAL_PIN; }
+    /// Return the type of track shoe consistent with this track wheel.
+    virtual GuidePinType GetType() const final override { return GuidePinType::LATERAL_PIN; }
 
-    /// Initialize this road wheel subsystem.
+    /// Initialize this track wheel subsystem.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             std::shared_ptr<ChBody> carrier,        ///< [in] handle to the carrier body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
                             ChTrackAssembly* track                  ///< [in] containing track assembly
                             ) override;
 
-    /// Add visualization assets for the road-wheel subsystem.
+    /// Add visualization assets for the track-wheel subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-    /// Remove visualization assets for the road-wheel subsystem.
+    /// Remove visualization assets for the track-wheel subsystem.
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
-    /// Return the total width of the road wheel.
+    /// Return the width of the track wheel.
     virtual double GetWheelWidth() const = 0;
-    /// Return the gap width.
-    virtual double GetWheelGap() const = 0;
 };
 
 /// @} vehicle_tracked_suspension

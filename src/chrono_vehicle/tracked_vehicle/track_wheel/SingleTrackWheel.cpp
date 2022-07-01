@@ -12,13 +12,13 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Double road-wheel model constructed with data from file (JSON format).
+// Single track-wheel model constructed with data from file (JSON format).
 //
 // =============================================================================
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/road_wheel/DoubleRoadWheel.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/SingleTrackWheel.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -30,7 +30,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-DoubleRoadWheel::DoubleRoadWheel(const std::string& filename) : ChDoubleRoadWheel(""), m_has_mesh(false) {
+SingleTrackWheel::SingleTrackWheel(const std::string& filename) : ChSingleTrackWheel(""), m_has_mesh(false) {
     Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
@@ -40,11 +40,11 @@ DoubleRoadWheel::DoubleRoadWheel(const std::string& filename) : ChDoubleRoadWhee
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-DoubleRoadWheel::DoubleRoadWheel(const rapidjson::Document& d) : ChDoubleRoadWheel(""), m_has_mesh(false) {
+SingleTrackWheel::SingleTrackWheel(const rapidjson::Document& d) : ChSingleTrackWheel(""), m_has_mesh(false) {
     Create(d);
 }
 
-void DoubleRoadWheel::Create(const rapidjson::Document& d) {
+void SingleTrackWheel::Create(const rapidjson::Document& d) {
     // Invoke base class method.
     ChPart::Create(d);
 
@@ -52,7 +52,6 @@ void DoubleRoadWheel::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Wheel"));
     m_wheel_radius = d["Wheel"]["Radius"].GetDouble();
     m_wheel_width = d["Wheel"]["Width"].GetDouble();
-    m_wheel_gap = d["Wheel"]["Gap"].GetDouble();
     m_wheel_mass = d["Wheel"]["Mass"].GetDouble();
     m_wheel_inertia = ReadVectorJSON(d["Wheel"]["Inertia"]);
 
@@ -70,11 +69,11 @@ void DoubleRoadWheel::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void DoubleRoadWheel::CreateContactMaterial(ChContactMethod contact_method) {
+void SingleTrackWheel::CreateContactMaterial(ChContactMethod contact_method) {
     m_material = m_mat_info.CreateMaterial(contact_method);
 }
 
-void DoubleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
+void SingleTrackWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
         auto trimesh =
             geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
@@ -84,7 +83,7 @@ void DoubleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetMutable(false);
         m_wheel->AddVisualShape(trimesh_shape);
     } else {
-        ChDoubleRoadWheel::AddVisualizationAssets(vis);
+        ChSingleTrackWheel::AddVisualizationAssets(vis);
     }
 }
 

@@ -12,14 +12,14 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a road wheel.
+// Base class for a track wheel (road wheel, idler wheel, or roller wheel).
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
@@ -27,9 +27,9 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChRoadWheel::ChRoadWheel(const std::string& name) : ChPart(name), m_track(nullptr) {}
+ChTrackWheel::ChTrackWheel(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
-ChRoadWheel::~ChRoadWheel() {
+ChTrackWheel::~ChTrackWheel() {
     auto sys = m_wheel->GetSystem();
     if (sys) {
         sys->Remove(m_wheel);
@@ -39,13 +39,13 @@ ChRoadWheel::~ChRoadWheel() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChTrackWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                              std::shared_ptr<ChBody> carrier,
                              const ChVector<>& location,
                              ChTrackAssembly* track) {
     m_track = track;
 
-    // Express the road wheel reference frame in the absolute coordinate system.
+    // Express the wheel reference frame in the absolute coordinate system.
     ChFrame<> wheel_to_abs(location);
     wheel_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
@@ -60,7 +60,7 @@ void ChRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     chassis->GetSystem()->AddBody(m_wheel);
 
     // Create and initialize the revolute joint between wheel and carrier.
-    // The axis of rotation is the y axis of the road wheel reference frame.
+    // The axis of rotation is the y axis of the wheel reference frame.
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(carrier, m_wheel,
@@ -68,20 +68,20 @@ void ChRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     chassis->GetSystem()->AddLink(m_revolute);
 }
 
-void ChRoadWheel::InitializeInertiaProperties() {
+void ChTrackWheel::InitializeInertiaProperties() {
     m_mass = GetWheelMass();
     m_inertia = ChMatrix33<>(0);
     m_inertia.diagonal() = GetWheelInertia().eigen();
     m_com = ChFrame<>();
 }
 
-void ChRoadWheel::UpdateInertiaProperties() {
+void ChTrackWheel::UpdateInertiaProperties() {
     m_xform = m_wheel->GetFrame_REF_to_abs();
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRoadWheel::LogConstraintViolations() {
+void ChTrackWheel::LogConstraintViolations() {
     ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
     GetLog() << "  Road-wheel revolute\n";
     GetLog() << "  " << C(0) << "  ";
@@ -93,7 +93,7 @@ void ChRoadWheel::LogConstraintViolations() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRoadWheel::ExportComponentList(rapidjson::Document& jsonDocument) const {
+void ChTrackWheel::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);
 
     std::vector<std::shared_ptr<ChBody>> bodies;
@@ -105,7 +105,7 @@ void ChRoadWheel::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportJointList(jsonDocument, joints);
 }
 
-void ChRoadWheel::Output(ChVehicleOutput& database) const {
+void ChTrackWheel::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 

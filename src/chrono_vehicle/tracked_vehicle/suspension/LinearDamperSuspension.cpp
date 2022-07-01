@@ -12,12 +12,12 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Torsion-bar suspension system using rotational damper constructed with data
-// from file (JSON format)
+// Torsion-bar suspension system using linear dampers constructed with data from
+// file (JSON format)
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/suspension/RotationalDamperRWAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperSuspension.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -29,8 +29,8 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-RotationalDamperRWAssembly::RotationalDamperRWAssembly(const std::string& filename, bool has_shock, bool lock_arm)
-    : ChRotationalDamperRWAssembly("", has_shock, lock_arm), m_spring_torqueCB(nullptr), m_shock_torqueCB(nullptr) {
+LinearDamperSuspension::LinearDamperSuspension(const std::string& filename, bool has_shock, bool lock_arm)
+    : ChLinearDamperSuspension("", has_shock, lock_arm), m_spring_torqueCB(nullptr), m_shock_forceCB(nullptr) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -41,14 +41,14 @@ RotationalDamperRWAssembly::RotationalDamperRWAssembly(const std::string& filena
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-RotationalDamperRWAssembly::RotationalDamperRWAssembly(const rapidjson::Document& d, bool has_shock, bool lock_arm)
-    : ChRotationalDamperRWAssembly("", has_shock, lock_arm), m_spring_torqueCB(nullptr), m_shock_torqueCB(nullptr) {
+LinearDamperSuspension::LinearDamperSuspension(const rapidjson::Document& d, bool has_shock, bool lock_arm)
+    : ChLinearDamperSuspension("", has_shock, lock_arm), m_spring_torqueCB(nullptr), m_shock_forceCB(nullptr) {
     Create(d);
 }
 
-RotationalDamperRWAssembly::~RotationalDamperRWAssembly() {}
+LinearDamperSuspension::~LinearDamperSuspension() {}
 
-void RotationalDamperRWAssembly::Create(const rapidjson::Document& d) {
+void LinearDamperSuspension::Create(const rapidjson::Document& d) {
     // Invoke base class method.
     ChPart::Create(d);
 
@@ -76,20 +76,11 @@ void RotationalDamperRWAssembly::Create(const rapidjson::Document& d) {
 
     // Read linear shock data
     assert(d.HasMember("Damper"));
-    assert(d["Damper"].IsObject());
 
-    if (d["Damper"].HasMember("Damping Coefficient")) {
-        double damper_c = d["Damper"]["Damping Coefficient"].GetDouble();
-        m_shock_torqueCB = chrono_types::make_shared<LinearDamperTorque>(damper_c);
-    } else {
-        int num_points = d["Damper"]["Curve Data"].Size();
-        auto shockTorqueCB = chrono_types::make_shared<MapDamperTorque>();
-        for (int i = 0; i < num_points; i++) {
-            shockTorqueCB->add_point(d["Damper"]["Curve Data"][i][0u].GetDouble(),
-                                     d["Damper"]["Curve Data"][i][1u].GetDouble());
-        }
-        m_shock_torqueCB = shockTorqueCB;
-    }
+    m_points[SHOCK_C] = ReadVectorJSON(d["Damper"]["Location Chassis"]);
+    m_points[SHOCK_A] = ReadVectorJSON(d["Damper"]["Location Arm"]);
+    double shock_c = d["Damper"]["Damping Coefficient"].GetDouble();
+    m_shock_forceCB = chrono_types::make_shared<LinearDamperForce>(shock_c);
 
     // Create the associated road-wheel
     assert(d.HasMember("Road Wheel Input File"));

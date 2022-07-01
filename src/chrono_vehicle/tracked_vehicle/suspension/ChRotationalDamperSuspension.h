@@ -12,22 +12,21 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a torsion-bar suspension system using linear dampers (template
-// definition).
+// Base class for a torsion-bar suspension system using rotational damper
+// (template definition).
 //
 // =============================================================================
 
-#ifndef CH_LINEAR_DAMPER_RWA_H
-#define CH_LINEAR_DAMPER_RWA_H
+#ifndef CH_ROTATIONAL_DAMPER_RWA_H
+#define CH_ROTATIONAL_DAMPER_RWA_H
 
 #include "chrono/physics/ChLinkRSDA.h"
-#include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkForce.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
-#include "chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
 
 namespace chrono {
 namespace vehicle {
@@ -35,18 +34,18 @@ namespace vehicle {
 /// @addtogroup vehicle_tracked_suspension
 /// @{
 
-/// Base class for a torsion-bar suspension system using linear dampers (template definition).
-class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
+/// Base class for a torsion-bar suspension system using a rotational damper (template definition).
+class CH_VEHICLE_API ChRotationalDamperSuspension : public ChTrackSuspension {
   public:
-    ChLinearDamperRWAssembly(const std::string& name,  ///< [in] name of the subsystem
-                             bool has_shock = true,    ///< [in] specify whether or not the suspension has a damper
-                             bool lock_arm = false     ///< [in] if true, the suspension arm is locked
+    ChRotationalDamperSuspension(const std::string& name,  ///< [in] name of the subsystem
+                                 bool has_shock = true,    ///< [in] specify whether or not the suspension has a damper
+                                 bool lock_arm = false     ///< [in] if true, the suspension arm is locked
     );
 
-    virtual ~ChLinearDamperRWAssembly();
+    virtual ~ChRotationalDamperSuspension();
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "LinearDamperRWAssembly"; }
+    virtual std::string GetTemplateName() const override { return "RotationalDamperSuspension"; }
 
     /// Get a handle to the carrier body.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_arm; }
@@ -68,7 +67,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
                             ) override;
 
     /// Return current suspension forces or torques, as appropriate (spring and shock).
-    /// A ChLinearDamperRWAssembly returns a torque for the spring and a force for the damper.
+    /// A ChRotationalDamperSuspension returns torques for both the spring and the damper.
     virtual ForceTorque ReportSuspensionForce() const override;
 
     /// Add visualization assets for the suspension subsystem.
@@ -86,8 +85,6 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
         ARM,          ///< arm location
         ARM_WHEEL,    ///< arm, connection point to road wheel
         ARM_CHASSIS,  ///< arm, connection point to chassis
-        SHOCK_A,      ///< shock, arm location
-        SHOCK_C,      ///< shock, chassis location
         NUM_POINTS
     };
 
@@ -108,8 +105,8 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     /// Return the functor object for the torsional spring torque.
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetSpringTorqueFunctor() const = 0;
 
-    /// Return the functor object for the translational shock force.
-    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetShockForceFunctor() const = 0;
+    /// Return the functor object for the rotational shock force.
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetShockTorqueCallback() const = 0;
 
     /// Return stiffness and damping data for the arm bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
@@ -122,7 +119,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     std::shared_ptr<ChBody> m_arm;            ///< trailing arm body
     std::shared_ptr<ChVehicleJoint> m_joint;  ///< joint arm-chassis
     std::shared_ptr<ChLinkRSDA> m_spring;     ///< rotational spring link
-    std::shared_ptr<ChLinkTSDA> m_shock;      ///< translational shock link
+    std::shared_ptr<ChLinkRSDA> m_shock;      ///< rotational shock link
 
   private:
     // Points for arm visualization
@@ -130,7 +127,6 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     ChVector<> m_pA;
     ChVector<> m_pAC;
     ChVector<> m_pAW;
-    ChVector<> m_pAS;
     ChVector<> m_dY;
 };
 
