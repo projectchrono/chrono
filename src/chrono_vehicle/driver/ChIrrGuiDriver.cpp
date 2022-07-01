@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen, Conlain Kelly
+// Authors: Radu Serban, Justin Madsen, Conlain Kelly, Marcel Offermans
 // =============================================================================
 //
 // Irrlicht-based GUI driver for the a vehicle. This class implements the
@@ -27,8 +27,10 @@
 #include <iostream>
 #include <sstream>
 #include <climits>
+#include <bitset>
 
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace irr;
 
@@ -53,7 +55,34 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleVisualSystemIrrlicht& vsys)
       m_mode(KEYBOARD) {
     vsys.AddUserEventReceiver(this);
     m_dT = 0;
+    m_debugPrintDelay = 0;
     core::array<SJoystickInfo> joystickInfo = core::array<SJoystickInfo>();
+
+    // Load joystick configuration...
+    rapidjson::Document d;
+    std::string joystickFile = chrono::vehicle::GetDataFile("joystick.json");
+    ReadFileJSON(joystickFile, d);
+    if (!d.IsNull()) {
+        steerAxis.read(d, "steering");
+        throttleAxis.read(d, "throttle");
+        brakeAxis.read(d, "brake");
+        clutchAxis.read(d, "clutch");
+        shiftUpButton.read(d, "shiftUp");
+        shiftDownButton.read(d, "shiftDown");
+        gearReverseButton.read(d, "gearReverse");
+        gear1Button.read(d, "gear1");
+        gear2Button.read(d, "gear2");
+        gear3Button.read(d, "gear3");
+        gear4Button.read(d, "gear4");
+        gear5Button.read(d, "gear5");
+        gear6Button.read(d, "gear6");
+        gear7Button.read(d, "gear7");
+        gear8Button.read(d, "gear8");
+        gear9Button.read(d, "gear9");
+        toggleManualGearboxButton.read(d, "toggleManualGearbox");
+    } else {
+        GetLog() << "Could not load joystick settings from " << joystickFile << "\n.";
+    }
 
     /// Activates joysticks, if available
     vsys.GetDevice()->activateJoysticks(joystickInfo);
@@ -82,6 +111,59 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleVisualSystemIrrlicht& vsys)
                     GetLog() << "unknown\n";
                     break;
             }
+
+            // Now try to assign any axis and buttons to this joystick...
+            if (strcmp(throttleAxis.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                throttleAxis.id = joystick;
+            }
+            if (strcmp(brakeAxis.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                brakeAxis.id = joystick;
+            }
+            if (strcmp(clutchAxis.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                clutchAxis.id = joystick;
+            }
+            if (strcmp(steerAxis.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                steerAxis.id = joystick;
+            }
+            if (strcmp(shiftUpButton.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                shiftUpButton.id = joystick;
+            }
+            if (strcmp(shiftDownButton.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                shiftDownButton.id = joystick;
+            }
+            if (strcmp(gear1Button.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                gear1Button.id = joystick;
+            }
+            if (strcmp(gear2Button.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                gear2Button.id = joystick;
+            }
+            if (strcmp(gear3Button.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                gear3Button.id = joystick;
+            }
+            if (strcmp(gear4Button.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                gear4Button.id = joystick;
+            }
+            if (strcmp(gear5Button.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                gear5Button.id = joystick;
+            }
+            if (strcmp(gear6Button.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                gear6Button.id = joystick;
+            }
+            if (strcmp(gear7Button.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                gear7Button.id = joystick;
+            }
+            if (strcmp(gear8Button.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                gear8Button.id = joystick;
+            }
+            if (strcmp(gear9Button.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                gear9Button.id = joystick;
+            }
+            if (strcmp(gearReverseButton.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                gearReverseButton.id = joystick;
+            }
+            if (strcmp(toggleManualGearboxButton.name.c_str(), joystickInfo[joystick].Name.c_str()) == 0) {
+                toggleManualGearboxButton.id = joystick;
+            }
         }
     }
 }
@@ -102,39 +184,95 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
 
         m_dT = 0;
 
-        double th = event.JoystickEvent.Axis[throttle_axis] + SHRT_MAX;
-        double br = event.JoystickEvent.Axis[brake_axis] + SHRT_MAX;
-        double new_steering = (double)event.JoystickEvent.Axis[steer_axis] / SHRT_MAX;
-        double new_throttle = (2 * SHRT_MAX - th) / (2 * SHRT_MAX);
-        double new_braking = (2 * SHRT_MAX - br) / (2 * SHRT_MAX);
+        // Update steering, throttle and brake axes...
+        SetSteering(steerAxis.getValue(event.JoystickEvent));
+        SetThrottle(throttleAxis.getValue(event.JoystickEvent));
+        SetBraking(brakeAxis.getValue(event.JoystickEvent));
 
-        if (m_steering != new_steering)
-            SetSteering(new_steering);
-        if (m_throttle != new_throttle)
-            SetThrottle(new_throttle);
-        if (m_braking != new_braking)
-            SetBraking(new_braking);
+        // Sequential shifter code...
+        if (m_vehicle.GetPowertrain()) {
+            // To prevent people from "double shifting" we add a shift delay here and ignore any further
+            // button presses for a while. Also we make sure that after pressing the shifter, you need
+            // to release it again before you can shift again.
+            if (shiftUpButton.isPressed(event.JoystickEvent)) {
+                m_vehicle.GetPowertrain()->ShiftUp();
+            } else if (shiftDownButton.isPressed(event.JoystickEvent)) {
+                m_vehicle.GetPowertrain()->ShiftDown();
+            }
+        }
 
-        if (event.JoystickEvent.Axis[clutch_axis] != SHRT_MAX && clutch_axis!=NONE) {
-            SetThrottle(0);
-            if (m_vsys.m_vehicle->GetPowertrain()) {
-                if (event.JoystickEvent.IsButtonPressed(22)) {
-                    /// Gear is set to reverse
-                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::REVERSE);
-                } else if (event.JoystickEvent.IsButtonPressed(12) || event.JoystickEvent.IsButtonPressed(13) ||
-                           event.JoystickEvent.IsButtonPressed(14) || event.JoystickEvent.IsButtonPressed(15) ||
-                           event.JoystickEvent.IsButtonPressed(16) || event.JoystickEvent.IsButtonPressed(17)) {
-                    // All 'forward' gears set drive mode to forward, regardless of gear
-                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::FORWARD);
-                } else {
-                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::NEUTRAL);
+        // H-shifter code...
+        if (clutchAxis.axis != NONE) {
+            //double rawClutchPosition = (double)event.JoystickEvent.Axis[clutchAxis.axis];
+            double clutchPosition = clutchAxis.getValue(event.JoystickEvent);
+            // Check if that clutch is pressed...
+            if ((clutchAxis.scaled_max - clutchPosition) < 0.1) {
+                SetThrottle(0);
+                bool reverseGearEngaged = gearReverseButton.isPressed(event.JoystickEvent);
+                int forwardGearEngaged = 0;
+                if (gear1Button.isPressed(event.JoystickEvent, true)) {
+                    forwardGearEngaged = 1;
+                } else if (gear2Button.isPressed(event.JoystickEvent, true)) {
+                    forwardGearEngaged = 2;
+                } else if (gear3Button.isPressed(event.JoystickEvent, true)) {
+                    forwardGearEngaged = 3;
+                } else if (gear4Button.isPressed(event.JoystickEvent, true)) {
+                    forwardGearEngaged = 4;
+                } else if (gear5Button.isPressed(event.JoystickEvent, true)) {
+                    forwardGearEngaged = 5;
+                } else if (gear6Button.isPressed(event.JoystickEvent, true)) {
+                    forwardGearEngaged = 6;
+                } else if (gear7Button.isPressed(event.JoystickEvent, true)) {
+                    forwardGearEngaged = 7;
+                } else if (gear8Button.isPressed(event.JoystickEvent, true)) {
+                    forwardGearEngaged = 8;
+                } else if (gear9Button.isPressed(event.JoystickEvent, true)) {
+                    forwardGearEngaged = 9;
+                }
+
+                if (m_vsys.m_vehicle->GetPowertrain() && m_vsys.m_vehicle->GetPowertrain()->GetTransmissionMode() == ChPowertrain::TransmissionMode::MANUAL) {
+                    if (reverseGearEngaged) {
+                        /// Gear is set to reverse
+                        m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::REVERSE);
+                        m_vsys.m_vehicle->GetPowertrain()->SetGear(0);
+                    } else if (forwardGearEngaged > 0) {
+                        // All 'forward' gears set drive mode to forward, regardless of gear
+                        m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::FORWARD);
+                        m_vsys.m_vehicle->GetPowertrain()->SetGear(forwardGearEngaged);
+                    } else {
+                        m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::NEUTRAL);
+                        // Here you see it would be beneficial to have a gear selection for 'neutral' in the model.
+                    }
                 }
             }
         }
         // joystick callback, outside of condition because it might be used to switch to joystick
         if (callbackButton > -1 && cb_fun != nullptr && event.JoystickEvent.IsButtonPressed(callbackButton) ) {
-                cb_fun();
+            cb_fun();
+        }
+        // Toggle between a manual and automatic gearbox
+        if (toggleManualGearboxButton.isPressed(event.JoystickEvent)) {
+            if (m_vsys.m_vehicle->GetPowertrain()->GetTransmissionMode() == ChPowertrain::TransmissionMode::AUTOMATIC) {
+                m_vsys.m_vehicle->GetPowertrain()->SetTransmissionMode(ChPowertrain::TransmissionMode::MANUAL);
+            } else {
+                m_vsys.m_vehicle->GetPowertrain()->SetTransmissionMode(ChPowertrain::TransmissionMode::AUTOMATIC);
             }
+        }
+
+        // Output some debug information (can be very useful when setting up or calibrating joysticks)
+        if (m_debugJoystickData) {
+            if (m_debugPrintDelay < 30) {
+                m_debugPrintDelay++;
+            } else {
+                m_debugPrintDelay = 0;
+                std::string joystickLine = "Joystick " + std::to_string(event.JoystickEvent.Joystick) + " A:";
+                for (int i = 0; i < 6; i++) {
+                    joystickLine += " " + std::to_string(event.JoystickEvent.Axis[i]);
+                }
+                joystickLine += " B: " + std::bitset<32>(event.JoystickEvent.ButtonStates).to_string() + "\n";
+                GetLog() << joystickLine;
+            }
+        }
 
         return true;
     }
@@ -280,14 +418,6 @@ void ChIrrGuiDriver::SetInputMode(InputMode mode) {
             m_mode = JOYSTICK;
             break;
     }
-}
-
-void ChIrrGuiDriver::SetJoystickAxes(JoystickAxes tr_ax, JoystickAxes br_ax, JoystickAxes st_ax, JoystickAxes cl_ax){
-
-    throttle_axis = tr_ax;
-    brake_axis = br_ax; 
-    steer_axis = st_ax;
-    clutch_axis = cl_ax;
 }
 
 // -----------------------------------------------------------------------------

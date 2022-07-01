@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "Cylinder_DropIISPH",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,
@@ -30,7 +27,6 @@
   {
     "Fluid time step":               5e-4,
     "Solid time step":               5e-4,
-    "End time":                      20,
     "Write frame per second":        50
   },
 
@@ -52,24 +48,6 @@
   {
     "BoxDimensionX":                1.0,
     "BoxDimensionY":                0.6,
-    "BoxDimensionZ":                1.2,
-    "FluidDimensionX":              1.0,
-    "FluidDimensionY":              0.600000001,
-    "FluidDimensionZ":              0.5
-  },
-
-  "Body Inf":
-  {
-    "BodyDimensionX":               0.0,
-    "BodyDimensionY":               0.0,
-    "BodyDimensionZ":               0.0,
-    "BodyRadius":                   0.12,
-    "BodyLength":                   0.2001,
-    "BodyIniPosX":                  0.0,
-    "BodyIniPosY":                  0.0,
-    "BodyIniPosZ":                  0.0,
-    "BodyMass":                     0.0,
-    "BodyDensity":                  0.0
+    "BoxDimensionZ":                1.2
   }
-
 }

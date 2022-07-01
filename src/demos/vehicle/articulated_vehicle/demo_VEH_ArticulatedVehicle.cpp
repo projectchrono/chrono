@@ -22,8 +22,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
@@ -126,7 +124,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    ChRealtimeStepTimer realtime_timer;
+    vehicle.EnableRealtime(true);
     while (vis->Run()) {
         double time = vehicle.GetSystem()->GetChTime();
 
@@ -149,9 +147,6 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         vehicle.Advance(step_size);
         vis->Advance(step_size);
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     return 0;

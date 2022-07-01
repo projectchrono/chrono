@@ -50,7 +50,8 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
       m_output_frame(0),
       m_mass(0),
       m_inertia(0),
-      m_realtime_force(true),
+      m_realtime_force(false),
+      m_RTF(0),
       m_initialized(false) {
     m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                         : static_cast<ChSystem*>(new ChSystemSMC);
@@ -84,7 +85,8 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
       m_output_frame(0),
       m_mass(0),
       m_inertia(0),
-      m_realtime_force(true),
+      m_realtime_force(false),
+      m_RTF(0),
       m_initialized(false) {}
 
 // -----------------------------------------------------------------------------
@@ -173,11 +175,16 @@ void ChVehicle::Advance(double step) {
         m_system->DoStepDynamics(step);
     }
 
-    if (m_realtime_force)
-        m_realtime_timer.Spin(step);
-
     // Update inertia properties
     UpdateInertiaProperties();
+
+    m_sim_timer.stop();
+    m_RTF = m_sim_timer() / step;
+    if (m_realtime_force) {
+        m_realtime_timer.Spin(step);
+    }
+    m_sim_timer.reset();
+    m_sim_timer.start();
 }
 
 // -----------------------------------------------------------------------------

@@ -16,16 +16,15 @@
 
 #ifndef CH_SPH_GENERAL_CUH
 #define CH_SPH_GENERAL_CUH
-// ----------------------------------------------------------------------------
-// CUDA headers
-// ----------------------------------------------------------------------------
+
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 #include <device_launch_parameters.h>
+
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
-#include "chrono_fsi/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
 #include "chrono_fsi/physics/ChParams.h"
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
 #include "chrono_fsi/math/ExactLinearSolvers.cuh"
@@ -36,7 +35,7 @@ namespace fsi {
 
 /// Declared as const variables static in order to be able to use them in a different translation units in the utils
 __constant__ static SimParams paramsD;
-__constant__ static NumberOfObjects numObjectsD;
+__constant__ static ChCounters numObjectsD;
 
 /// Short define of the kernel function
 #define W3h W3h_Spline
@@ -44,7 +43,7 @@ __constant__ static NumberOfObjects numObjectsD;
 /// Short define of the kernel function gradient
 #define GradWh GradWh_Spline
 
-void CopyParams_NumberOfObjects(std::shared_ptr<SimParams> paramsH, std::shared_ptr<NumberOfObjects> numObjectsH);
+void CopyParams_NumberOfObjects(std::shared_ptr<SimParams> paramsH, std::shared_ptr<ChCounters> numObjectsH);
 
 // 3D kernel function
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -268,9 +267,9 @@ inline __device__ Real Inertia_num(Real Strain_rate, Real rho, Real p, Real diam
 ////--------------------------------------------------------------------------------------------------------------------------------
 inline __device__ Real mu_I(Real Strain_rate, Real I) {
     Real mu = 0;
-    if (paramsD.mu_of_I == friction_law::constant)
+    if (paramsD.mu_of_I == FrictionLaw::CONSTANT)
         mu = paramsD.mu_fric_s;
-    else if (paramsD.mu_of_I == friction_law::linear)
+    else if (paramsD.mu_of_I == FrictionLaw::NONLINEAR)
         mu = paramsD.mu_fric_s + paramsD.mu_I_b * I;
     else
         mu = paramsD.mu_fric_s + (paramsD.mu_fric_2 - paramsD.mu_fric_s) * (I / (paramsD.mu_I0 + I));

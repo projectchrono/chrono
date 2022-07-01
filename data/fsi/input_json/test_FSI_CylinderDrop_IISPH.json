@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "Cylinder_Drop",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,
@@ -30,7 +27,6 @@
   {
     "Fluid time step":               1e-3,
     "Solid time step":               1e-3,
-    "End time":                      1e-2,
     "Write frame per second":        50
   },
 

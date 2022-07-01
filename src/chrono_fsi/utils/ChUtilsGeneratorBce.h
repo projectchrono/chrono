@@ -38,6 +38,18 @@ namespace utils {
 /// @addtogroup fsi_utils
 /// @{
 
+/// This utility function converts a given position and orientation, specified
+/// with respect to a body's reference frame, into a frame defined with respect
+/// to the body's centroidal frame. Note that by default, a body's reference
+/// frame is the centroidal frame. This is not true for a ChBodyAuxRef.
+ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const ChVector<>& pos);
+
+/// This utility function converts a given position and orientation, specified
+/// with respect to a body's reference frame, into a frame defined with respect
+/// to the body's centroidal frame. Note that by default, a body's reference
+/// frame is the centroidal frame. This is not true for a ChBodyAuxRef.
+ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const Real3& pos3);
+
 /// Create BCE particles from a sphere.
 void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, std::shared_ptr<SimParams> paramsH);
 

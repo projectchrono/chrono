@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChTimer.h"
 
 #include "chrono_opengl/core/ChApiOpenGL.h"
@@ -35,6 +34,12 @@
 #include <GLFW/glfw3.h>
 
 namespace chrono {
+
+class ChSystem;
+#ifdef CHRONO_MULTICORE
+class ChSystemMulticore;
+#endif
+
 namespace opengl {
 
 /// @addtogroup opengl_module
@@ -45,9 +50,10 @@ enum RenderMode { POINTS, WIREFRAME, SOLID };
 /// OpenGL viewer, this class draws the system to the screen and handles input.
 class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   public:
-    ChOpenGLViewer(ChSystem* system);
+    ChOpenGLViewer();
     ~ChOpenGLViewer();
     void TakeDown();
+    void AttachSystem(ChSystem* system);
     bool Initialize();
     bool Update(double time_step);
     void Render(bool render_hud);
@@ -69,8 +75,13 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     float window_aspect;
     int interval;
 
-    ChOpenGLCamera render_camera, ortho_camera;
-    ChSystem* physics_system;
+    ChOpenGLCamera render_camera;
+    ChOpenGLCamera ortho_camera;
+
+    std::vector<ChSystem*> m_systems;
+#ifdef CHRONO_MULTICORE
+    std::vector<ChSystemMulticore*> m_systems_mcore;
+#endif
 
     ChOpenGLShader main_shader;
     ChOpenGLShader cloud_shader;

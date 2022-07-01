@@ -19,7 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -147,7 +146,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    ChRealtimeStepTimer realtime_timer;
+    my_hmmwv.GetVehicle().EnableRealtime(true);
     while (vis->Run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();
 
@@ -170,9 +169,6 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
         vis->Advance(step_size);
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     return 0;

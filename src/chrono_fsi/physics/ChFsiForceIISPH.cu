@@ -39,23 +39,28 @@ ChFsiForceIISPH::ChFsiForceIISPH(std::shared_ptr<ChBce> otherBceWorker,
                                  std::shared_ptr<ProximityDataD> otherMarkersProximityD,
                                  std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
                                  std::shared_ptr<SimParams> otherParamsH,
-                                 std::shared_ptr<NumberOfObjects> otherNumObjects)
+                                 std::shared_ptr<ChCounters> otherNumObjects,
+                                 bool verb)
     : ChFsiForce(otherBceWorker,
                  otherSortedSphMarkersD,
                  otherMarkersProximityD,
                  otherFsiGeneralData,
                  otherParamsH,
-                 otherNumObjects) {}
-//--------------------------------------------------------------------------------------------------------------------------------
+                 otherNumObjects,
+                 verb) {}
+
 ChFsiForceIISPH::~ChFsiForceIISPH() {}
+
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceIISPH::Finalize() {
-    ChFsiForce::Finalize();
+
+void ChFsiForceIISPH::Initialize() {
+    ChFsiForce::Initialize();
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
+    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
     cudaMemcpyFromSymbol(paramsH.get(), paramsD, sizeof(SimParams));
     cudaDeviceSynchronize();
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void V_i_np__AND__d_ii_kernel(Real4* sortedPosRad,  // input: sorted positions
                                          Real3* sortedVelMas,
@@ -394,7 +399,6 @@ __global__ void CalcNumber_Contacts(uint* numContacts,
                                 }
                             }
                         }
-
                     }
                 }
             }
@@ -505,7 +509,7 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
     Real3 my_normal = Normals[i_idx];
 
     Real3 source_term = paramsD.gravity + paramsD.bodyForce3;
-    //  if (bceIndex >= numObjectsD.numRigid_SphMarkers) {
+    //  if (bceIndex >= numObjectsD.numRigidMarkers) {
     //    return;
     //  }
 
@@ -774,7 +778,6 @@ __device__ void Calc_fluid_aij_Bi(const uint i_idx,
                                 }
                             }
                         }
-
                     }
                 }
             }
@@ -1353,7 +1356,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
                                         thrust::device_vector<Real>& Color) {
     //    Real RES = paramsH->PPE_res;
 
-    PPE_SolutionType mySolutionType = paramsH->PPE_Solution_type;
+    PPESolutionType mySolutionType = paramsH->PPE_Solution_type;
     std::cout << "time step in calcPressureIISPH " << paramsH->dT << std::endl;
 
     double total_step_timeClock = clock();
@@ -1422,19 +1425,14 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
 
     double durationFormAXB;
 
-    int numFlexbodies = (int)numObjectsH->numFlexBodies1D + (int)numObjectsH->numFlexBodies2D;
-
-    int haveGhost = (numObjectsH->numGhostMarkers > 0) ? 1 : 0;
-    int haveHelper = (numObjectsH->numHelperMarkers > 0) ? 1 : 0;
-
-    int4 updatePortion =
-        mI4(fsiGeneralData->referenceArray[haveGhost + haveHelper + 0].y,  // end of fluid
-            fsiGeneralData->referenceArray[haveGhost + haveHelper + 1].y,  // end of boundary
-            fsiGeneralData->referenceArray[haveGhost + haveHelper + 1 + numObjectsH->numRigidBodies].y,
-            fsiGeneralData->referenceArray[haveGhost + haveHelper + 1 + numObjectsH->numRigidBodies + numFlexbodies].y);
+    size_t end_fluid = numObjectsH->numGhostMarkers + numObjectsH->numHelperMarkers + numObjectsH->numFluidMarkers;
+    size_t end_bndry = end_fluid + numObjectsH->numBoundaryMarkers;
+    size_t end_rigid = end_bndry + numObjectsH->numRigidMarkers;
+    size_t end_flex = end_rigid + numObjectsH->numFlexMarkers;
+    int4 updatePortion = mI4((int)end_fluid, (int)end_bndry, (int)end_rigid, (int)end_flex);
 
     uint NNZ;
-    if (mySolutionType == PPE_SolutionType::FORM_SPARSE_MATRIX) {
+    if (mySolutionType == PPESolutionType::FORM_SPARSE_MATRIX) {
         thrust::fill(a_ij.begin(), a_ij.end(), 0.0);
         thrust::fill(B_i.begin(), B_i.end(), 0.0);
         //        thrust::fill(summGradW.begin(), summGradW.end(), mR3(0.0));
@@ -1532,7 +1530,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
     myLinearSolver->SetIterationLimit(paramsH->LinearSolver_Max_Iter);
 
     if (paramsH->USE_LinearSolver) {
-        if (paramsH->PPE_Solution_type != PPE_SolutionType::FORM_SPARSE_MATRIX) {
+        if (paramsH->PPE_Solution_type != PPESolutionType::FORM_SPARSE_MATRIX) {
             printf(
                 "You should paramsH->PPE_Solution_type == FORM_SPARSE_MATRIX in order to use the "
                 "chrono_fsi linear "
@@ -1558,7 +1556,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
                 throw std::runtime_error("Error! program crashed after Initialize_Variables!\n");
             }
 
-            if (mySolutionType == PPE_SolutionType::MATRIX_FREE) {
+            if (mySolutionType == PPESolutionType::MATRIX_FREE) {
                 *isErrorH = false;
                 cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
                 Calc_dij_pj<<<numBlocks, numThreads>>>(
@@ -1600,7 +1598,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
                 }
             }
 
-            if (mySolutionType == PPE_SolutionType::FORM_SPARSE_MATRIX) {
+            if (mySolutionType == PPESolutionType::FORM_SPARSE_MATRIX) {
                 *isErrorH = false;
                 cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
                 Calc_Pressure_AXB_USING_CSR<<<numBlocks, numThreads>>>(

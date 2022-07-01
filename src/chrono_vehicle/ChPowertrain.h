@@ -99,6 +99,10 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
     /// Shift down.
     void ShiftDown();
 
+    /// Shift to the specified gear.
+    /// Note that reverse gear is index 0 and forward gears are index > 0.
+    void SetGear(int gear);
+
   protected:
     ChPowertrain(const std::string& name);
 
@@ -127,10 +131,6 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
 
     /// Advance the state of this powertrain system by the specified time step.
     virtual void Advance(double step) {}
-
-    /// Shift to the specified gear.
-    /// Note that reverse gear is index 0 and forward gears are index > 0.
-    void SetGear(int gear);
 
     TransmissionMode m_transmission_mode;      ///< transmission mode (automatic or manual)
     DriveMode m_drive_mode;                    ///< drive mode (neutral, forward, or reverse)
