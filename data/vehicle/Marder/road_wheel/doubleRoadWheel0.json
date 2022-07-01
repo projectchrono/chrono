@@ -1,7 +1,7 @@
 {
   "Name":                           "Marder Double RoadWheel Left",
-  "Type":                           "RoadWheel",
-  "Template":                       "DoubleRoadWheel",
+  "Type":                           "TrackWheel",
+  "Template":                       "DoubleTrackWheel",
 
   "Wheel":
   {

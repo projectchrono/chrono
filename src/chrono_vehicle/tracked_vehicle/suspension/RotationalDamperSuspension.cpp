@@ -95,7 +95,7 @@ void RotationalDamperSuspension::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Road Wheel Input File"));
 
     std::string file_name = d["Road Wheel Input File"].GetString();
-    m_road_wheel = ReadRoadWheelJSON(vehicle::GetDataFile(file_name));
+    m_road_wheel = ReadTrackWheelJSON(vehicle::GetDataFile(file_name));
 }
 
 }  // end namespace vehicle

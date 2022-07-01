@@ -1,7 +1,7 @@
 {
   "Name":                           "M113 Linear Damper Suspension Left",
-  "Type":                           "RoadWheelAssembly",
-  "Template":                       "LinearDamperRWAssembly",
+  "Type":                           "TrackSuspension",
+  "Template":                       "LinearDamperSuspension",
 
   "Suspension Arm":
   {

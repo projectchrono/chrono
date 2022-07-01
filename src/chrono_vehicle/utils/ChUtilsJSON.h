@@ -122,7 +122,7 @@ CH_VEHICLE_API std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::strin
 CH_VEHICLE_API std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename);
 
 /// Load and return a road-wheel assembly (track suspension) from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChTrackSuspension> ReadRoadWheelAssemblyJSON(const std::string& filename,
+CH_VEHICLE_API std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const std::string& filename,
                                                                               bool has_shock,
                                                                               bool lock_arm);
 
@@ -130,7 +130,7 @@ CH_VEHICLE_API std::shared_ptr<ChTrackSuspension> ReadRoadWheelAssemblyJSON(cons
 CH_VEHICLE_API std::shared_ptr<ChRoller> ReadRollerJSON(const std::string& filename);
 
 /// Load and return a road-wheel from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChTrackWheel> ReadRoadWheelJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename);
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -674,7 +674,7 @@ std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
     return idler;
 }
 
-std::shared_ptr<ChTrackSuspension> ReadRoadWheelAssemblyJSON(const std::string& filename,
+std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const std::string& filename,
                                                                bool has_shock,
                                                                bool lock_arm) {
     std::shared_ptr<ChTrackSuspension> suspension;
@@ -687,7 +687,7 @@ std::shared_ptr<ChTrackSuspension> ReadRoadWheelAssemblyJSON(const std::string& 
     // Check that the given file is a road-wheel assembly specification file.
     assert(d.HasMember("Type"));
     std::string type = d["Type"].GetString();
-    assert(type.compare("RoadWheelAssembly") == 0);
+    assert(type.compare("TrackSuspension") == 0);
 
     // Extract road-wheel assembly type.
     assert(d.HasMember("Template"));
@@ -699,7 +699,7 @@ std::shared_ptr<ChTrackSuspension> ReadRoadWheelAssemblyJSON(const std::string& 
     } else if (subtype.compare("RotationalDamperSuspension") == 0) {
         suspension = chrono_types::make_shared<RotationalDamperSuspension>(d, has_shock, lock_arm);
     } else {
-        throw ChException("Suspension type not supported in ReadRoadWheelAssemblyJSON.");
+        throw ChException("Suspension type not supported in ReadTrackSuspensionJSON.");
     }
 
     return suspension;
@@ -731,7 +731,7 @@ std::shared_ptr<ChRoller> ReadRollerJSON(const std::string& filename) {
     return roller;
 }
 
-std::shared_ptr<ChTrackWheel> ReadRoadWheelJSON(const std::string& filename) {
+std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename) {
     std::shared_ptr<ChTrackWheel> wheel;
 
     Document d;ReadFileJSON(filename, d);
@@ -741,7 +741,7 @@ std::shared_ptr<ChTrackWheel> ReadRoadWheelJSON(const std::string& filename) {
     // Check that the given file is a road-wheel specification file.
     assert(d.HasMember("Type"));
     std::string type = d["Type"].GetString();
-    assert(type.compare("RoadWheel") == 0);
+    assert(type.compare("TrackWheel") == 0);
 
     // Extract the road-wheel type
     assert(d.HasMember("Template"));
@@ -753,7 +753,7 @@ std::shared_ptr<ChTrackWheel> ReadRoadWheelJSON(const std::string& filename) {
     } else if (subtype.compare("DoubleTrackWheel") == 0) {
         wheel = chrono_types::make_shared<DoubleTrackWheel>(d);
     } else {
-        throw ChException("Road-wheel type not supported in ReadRoadWheelJSON.");
+        throw ChException("Road-wheel type not supported in ReadTrackWheelJSON.");
     }
 
     return wheel;

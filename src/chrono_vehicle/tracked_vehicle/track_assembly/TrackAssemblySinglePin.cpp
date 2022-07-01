@@ -167,7 +167,7 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
         if (d["Suspension Subsystems"][i].HasMember("Lock Arm")) {
             lock_arm = d["Suspension Subsystems"][i]["Lock Arm"].GetBool();
         }
-        m_suspensions[i] = ReadRoadWheelAssemblyJSON(vehicle::GetDataFile(file_name), has_shock, lock_arm);
+        m_suspensions[i] = ReadTrackSuspensionJSON(vehicle::GetDataFile(file_name), has_shock, lock_arm);
         if (d["Suspension Subsystems"][i].HasMember("Output")) {
             m_suspensions[i]->SetOutput(d["Suspension Subsystems"][i]["Output"].GetBool());
         }
