@@ -1,9 +1,9 @@
 {
   "Name":                           "Marder Roller",
-  "Type":                           "Roller",
-  "Template":                       "DoubleRoller",
+  "Type":                           "TrackWheel",
+  "Template":                       "DoubleTrackWheel",
 
-  "Roller":
+  "Wheel":
   {
       "Radius":                     0.118,
       "Width":                      0.181,

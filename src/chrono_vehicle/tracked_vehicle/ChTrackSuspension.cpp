@@ -32,13 +32,13 @@ ChTrackSuspension::ChTrackSuspension(const std::string& name, bool has_shock, bo
 
 // -----------------------------------------------------------------------------
 void ChTrackSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
-                                     const ChVector<>& location,
-                                     ChTrackAssembly* track) {
+                                   const ChVector<>& location,
+                                   ChTrackAssembly* track) {
     m_parent = chassis;
     m_rel_loc = location;
     m_track = track;
 
-    m_road_wheel->Initialize(chassis->GetBody(), GetCarrierBody(), location, track);
+    m_road_wheel->Initialize(chassis, GetCarrierBody(), location, track);
 }
 
 // -----------------------------------------------------------------------------

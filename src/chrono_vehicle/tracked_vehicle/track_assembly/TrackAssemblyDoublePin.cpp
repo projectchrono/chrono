@@ -28,7 +28,8 @@
 
 #include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperSuspension.h"
 
-#include "chrono_vehicle/tracked_vehicle/roller/DoubleRoller.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/DoubleTrackWheel.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/SingleTrackWheel.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -181,7 +182,7 @@ void TrackAssemblyDoublePin::Create(const rapidjson::Document& d) {
         m_roller_locs.resize(m_num_rollers);
         for (int i = 0; i < m_num_rollers; i++) {
             std::string file_name = d["Rollers"][i]["Input File"].GetString();
-            m_rollers[i] = ReadRollerJSON(vehicle::GetDataFile(file_name));
+            m_rollers[i] = ReadTrackWheelJSON(vehicle::GetDataFile(file_name));
             if (d["Rollers"][i].HasMember("Output")) {
                 m_rollers[i]->SetOutput(d["Rollers"][i]["Output"].GetBool());
             }

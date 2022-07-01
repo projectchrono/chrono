@@ -104,8 +104,8 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
 
   protected:
     ChTrackSuspension(const std::string& name,  ///< [in] name of the subsystem
-                        bool has_shock,           ///< [in] specify whether or not the suspension has a damper
-                        bool lock_arm             ///< [in] if true, the suspension arm is locked
+                      bool has_shock,           ///< [in] specify whether or not the suspension has a damper
+                      bool lock_arm             ///< [in] if true, the suspension arm is locked
     );
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
@@ -114,9 +114,9 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
     bool m_has_shock;     ///< specifies whether or not the suspension has a damper
     bool m_lock_arm;      ///< specified whether the suspension arm is locked
 
-    ChVector<> m_rel_loc;                       ///< idler subsystem location relative to chassis
+    ChVector<> m_rel_loc;                        ///< idler subsystem location relative to chassis
     std::shared_ptr<ChTrackWheel> m_road_wheel;  ///< road-wheel subsystem
-    ChTrackAssembly* m_track;                   ///< containing track assembly
+    ChTrackAssembly* m_track;                    ///< containing track assembly
 
     friend class ChTrackAssembly;
 };

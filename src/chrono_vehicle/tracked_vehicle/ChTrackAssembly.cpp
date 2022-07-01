@@ -65,9 +65,7 @@ void ChTrackAssembly::GetTrackShoeStates(BodyStates& states) const {
 // -----------------------------------------------------------------------------
 // Initialize this track assembly subsystem.
 // -----------------------------------------------------------------------------
-void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
-                                 const ChVector<>& location,
-                                 bool create_shoes) {
+void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location, bool create_shoes) {
     m_parent = chassis;
     m_rel_loc = location;
 
@@ -83,7 +81,7 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Initialize the roller subsystems
     for (size_t i = 0; i < m_rollers.size(); ++i) {
-        m_rollers[i]->Initialize(chassis, location + GetRollerLocation(static_cast<int>(i)), this);
+        m_rollers[i]->Initialize(chassis, chassis->GetBody(), location + GetRollerLocation(static_cast<int>(i)), this);
     }
 
     if (!create_shoes) {

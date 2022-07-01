@@ -30,7 +30,7 @@
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
-#include "chrono_vehicle/tracked_vehicle/ChRoller.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 
 namespace chrono {
@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     std::shared_ptr<ChTrackSuspension> GetRoadWheelAssembly(size_t id) const { return m_suspensions[id]; }
 
     /// Get a handle to the specified roller subsystem.
-    std::shared_ptr<ChRoller> GetRoller(size_t id) const { return m_rollers[id]; }
+    std::shared_ptr<ChTrackWheel> GetRoller(size_t id) const { return m_rollers[id]; }
 
     /// Get a handle to the specified road wheel subsystem.
     std::shared_ptr<ChTrackWheel> GetRoadWheel(size_t id) const { return m_suspensions[id]->GetRoadWheel(); }
@@ -213,10 +213,10 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     std::shared_ptr<ChIdler> m_idler;       ///< idler (and tensioner) subsystem
     std::shared_ptr<ChTrackBrake> m_brake;  ///< sprocket brake
     ChRoadWheelAssemblyList m_suspensions;  ///< road-wheel assemblies
-    ChRollerList m_rollers;                 ///< roller subsystems
+    ChTrackWheelList m_rollers;             ///< roller subsystems
 
     bool m_roadwheel_as_cylinder;
-    bool m_idler_as_cylinder; 
+    bool m_idler_as_cylinder;
     bool m_roller_as_cylinder;
 
     friend class ChTrackedVehicle;

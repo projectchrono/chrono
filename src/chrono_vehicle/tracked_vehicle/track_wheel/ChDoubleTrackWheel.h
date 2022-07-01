@@ -35,7 +35,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChDoubleTrackWheel : public ChTrackWheel {
   public:
     ChDoubleTrackWheel(const std::string& name  ///< [in] name of the subsystem
-                      );
+    );
 
     virtual ~ChDoubleTrackWheel() {}
 
@@ -46,10 +46,10 @@ class CH_VEHICLE_API ChDoubleTrackWheel : public ChTrackWheel {
     virtual GuidePinType GetType() const final override { return GuidePinType::CENTRAL_PIN; }
 
     /// Initialize this track wheel subsystem.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            std::shared_ptr<ChBody> carrier,        ///< [in] handle to the carrier body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track                  ///< [in] containing track assembly
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                            std::shared_ptr<ChBody> carrier,     ///< [in] the carrier body
+                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track               ///< [in] containing track assembly
                             ) override;
 
     /// Add visualization assets for the track-wheel subsystem.

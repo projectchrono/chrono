@@ -30,15 +30,14 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDoubleTrackWheel::ChDoubleTrackWheel(const std::string& name) : ChTrackWheel(name) {
-}
+ChDoubleTrackWheel::ChDoubleTrackWheel(const std::string& name) : ChTrackWheel(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleTrackWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                   std::shared_ptr<ChBody> carrier,
-                                   const ChVector<>& location,
-                                   ChTrackAssembly* track) {
+void ChDoubleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
+                                    std::shared_ptr<ChBody> carrier,
+                                    const ChVector<>& location,
+                                    ChTrackAssembly* track) {
     // Invoke the base class method
     ChTrackWheel::Initialize(chassis, carrier, location, track);
 

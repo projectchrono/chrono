@@ -54,7 +54,7 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
 
     /// Return the mass of the track wheel body.
     virtual double GetWheelMass() const = 0;
-  
+
     /// Return the moments of inertia of the track wheel body.
     virtual const ChVector<>& GetWheelInertia() = 0;
 
@@ -71,10 +71,10 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     /// reference frame is always aligned with the chassis reference frame.
     /// A derived track wheel subsystem template class must extend this default
     /// implementation and specify contact geometry for the track wheel.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            std::shared_ptr<ChBody> carrier,        ///< [in] handle to the carrier body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track                  ///< [in] containing track assembly
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                            std::shared_ptr<ChBody> carrier,     ///< [in] carrier body
+                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track               ///< [in] containing track assembly
     );
 
     /// Log current constraint violations.
@@ -94,14 +94,17 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
 
     virtual void Output(ChVehicleOutput& database) const override;
 
-    std::shared_ptr<ChBody> m_wheel;                 ///< handle to the track wheel body
-    std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to wheel revolute joint
+    std::shared_ptr<ChBody> m_wheel;                 ///< track wheel body
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< wheel revolute joint
     std::shared_ptr<ChMaterialSurface> m_material;   ///< contact material;
     ChTrackAssembly* m_track;                        ///< containing track assembly
 
     friend class ChTrackAssembly;
     friend class ChTrackSuspension;
 };
+
+/// Vector of track wheel subsystems.
+typedef std::vector<std::shared_ptr<ChTrackWheel> > ChTrackWheelList;
 
 /// @} vehicle_tracked_suspension
 

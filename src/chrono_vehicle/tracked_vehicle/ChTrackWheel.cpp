@@ -39,15 +39,15 @@ ChTrackWheel::~ChTrackWheel() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                             std::shared_ptr<ChBody> carrier,
-                             const ChVector<>& location,
-                             ChTrackAssembly* track) {
+void ChTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
+                              std::shared_ptr<ChBody> carrier,
+                              const ChVector<>& location,
+                              ChTrackAssembly* track) {
     m_track = track;
 
     // Express the wheel reference frame in the absolute coordinate system.
     ChFrame<> wheel_to_abs(location);
-    wheel_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    wheel_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Create and initialize the wheel body.
     m_wheel = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
