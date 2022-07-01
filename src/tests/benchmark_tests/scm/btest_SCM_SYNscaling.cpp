@@ -339,6 +339,9 @@ int main(int argc, char* argv[]) {
     // ---------------
     bool stats_done = false;
 
+    // Disable automatic vehicle realtime
+    hmmwv.GetVehicle().EnableRealtime(false);
+
     // Solver settings
     sys.SetSolverMaxIterations(50);
 

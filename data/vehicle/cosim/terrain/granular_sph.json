@@ -43,5 +43,6 @@
         "kernel threshold": 0.8
     },
 
-    "Body Active Domain": [ 0.6, 0.3, 0.6 ]
+    "Body Active Domain": [ 0.8, 0.5, 1.0 ],
+    "Settling Time": 0.0
 }

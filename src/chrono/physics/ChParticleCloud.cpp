@@ -18,7 +18,7 @@
 #include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/collision/ChCollisionModelBullet.h"
 
@@ -217,12 +217,12 @@ void ChAparticle::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChParticlesClones)
+CH_FACTORY_REGISTER(ChParticleCloud)
 
-ChParticlesClones::ChParticlesClones()
+ChParticleCloud::ChParticleCloud()
     : do_collide(false),
       do_limit_speed(false),
-      do_sleep(false),
+      fixed(false),
       max_speed(0.5f),
       max_wvel((float)CH_C_2PI),
       sleep_time(0.6f),
@@ -243,9 +243,8 @@ ChParticlesClones::ChParticlesClones()
     matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 }
 
-ChParticlesClones::ChParticlesClones(const ChParticlesClones& other) : ChIndexedParticles(other) {
+ChParticleCloud::ChParticleCloud(const ChParticleCloud& other) : ChIndexedParticles(other) {
     do_collide = other.do_collide;
-    do_sleep = other.do_sleep;
     do_limit_speed = other.do_limit_speed;
 
     SetMass(other.GetMass());
@@ -267,7 +266,7 @@ ChParticlesClones::ChParticlesClones(const ChParticlesClones& other) : ChIndexed
     sleep_minwvel = other.sleep_minwvel;
 }
 
-ChParticlesClones::~ChParticlesClones() {
+ChParticleCloud::~ChParticleCloud() {
     ResizeNparticles(0);
 
     if (particle_collision_model)
@@ -275,7 +274,7 @@ ChParticlesClones::~ChParticlesClones() {
     particle_collision_model = 0;
 }
 
-void ChParticlesClones::ResizeNparticles(int newsize) {
+void ChParticleCloud::ResizeNparticles(int newsize) {
     bool oldcoll = GetCollide();
     SetCollide(false);  // this will remove old particle coll.models from coll.engine, if previously added
 
@@ -303,7 +302,7 @@ void ChParticlesClones::ResizeNparticles(int newsize) {
     SetCollide(oldcoll);  // this will also add particle coll.models to coll.engine, if already in a ChSystem
 }
 
-void ChParticlesClones::AddParticle(ChCoordsys<double> initial_state) {
+void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
     ChAparticle* newp = new ChAparticle;
     newp->SetCoord(initial_state);
 
@@ -322,7 +321,7 @@ void ChParticlesClones::AddParticle(ChCoordsys<double> initial_state) {
 
 // STATE BOOKKEEPING FUNCTIONS
 
-void ChParticlesClones::IntStateGather(const unsigned int off_x,  // offset in x state vector
+void ChParticleCloud::IntStateGather(const unsigned int off_x,  // offset in x state vector
                                        ChState& x,                // state vector, position part
                                        const unsigned int off_v,  // offset in v state vector
                                        ChStateDelta& v,           // state vector, speed part
@@ -339,7 +338,7 @@ void ChParticlesClones::IntStateGather(const unsigned int off_x,  // offset in x
     }
 }
 
-void ChParticlesClones::IntStateScatter(const unsigned int off_x,  // offset in x state vector
+void ChParticleCloud::IntStateScatter(const unsigned int off_x,  // offset in x state vector
                                         const ChState& x,          // state vector, position part
                                         const unsigned int off_v,  // offset in v state vector
                                         const ChStateDelta& v,     // state vector, speed part
@@ -355,21 +354,21 @@ void ChParticlesClones::IntStateScatter(const unsigned int off_x,  // offset in 
     Update(T, full_update);
 }
 
-void ChParticlesClones::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
+void ChParticleCloud::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         a.segment(off_a + 6 * j + 0, 3) = particles[j]->coord_dtdt.pos.eigen();
         a.segment(off_a + 6 * j + 3, 3) = particles[j]->GetWacc_loc().eigen();
     }
 }
 
-void ChParticlesClones::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
+void ChParticleCloud::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->SetPos_dtdt(a.segment(off_a + 6 * j, 3));
         particles[j]->SetWacc_loc(a.segment(off_a + 6 * j + 3, 3));
     }
 }
 
-void ChParticlesClones::IntStateIncrement(const unsigned int off_x,  // offset in x state vector
+void ChParticleCloud::IntStateIncrement(const unsigned int off_x,  // offset in x state vector
                                           ChState& x_new,            // state vector, position part, incremented result
                                           const ChState& x,          // state vector, initial position part
                                           const unsigned int off_v,  // offset in v state vector
@@ -390,7 +389,7 @@ void ChParticlesClones::IntStateIncrement(const unsigned int off_x,  // offset i
     }
 }
 
-void ChParticlesClones::IntStateGetIncrement(const unsigned int off_x,  // offset in x state vector
+void ChParticleCloud::IntStateGetIncrement(const unsigned int off_x,  // offset in x state vector
                                           const ChState& x_new,            // state vector, position part, incremented result
                                           const ChState& x,          // state vector, initial position part
                                           const unsigned int off_v,  // offset in v state vector
@@ -411,7 +410,7 @@ void ChParticlesClones::IntStateGetIncrement(const unsigned int off_x,  // offse
     }
 }
 
-void ChParticlesClones::IntLoadResidual_F(const unsigned int off,  // offset in R residual
+void ChParticleCloud::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                           ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                           const double c           // a scaling factor
                                           ) {
@@ -430,7 +429,7 @@ void ChParticlesClones::IntLoadResidual_F(const unsigned int off,  // offset in 
     }
 }
 
-void ChParticlesClones::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
+void ChParticleCloud::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
                                            ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
                                            const ChVectorDynamic<>& w,  // the w vector
                                            const double c               // a scaling factor
@@ -444,7 +443,7 @@ void ChParticlesClones::IntLoadResidual_Mv(const unsigned int off,      // offse
     }
 }
 
-void ChParticlesClones::IntToDescriptor(const unsigned int off_v,  // offset in v, R
+void ChParticleCloud::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                         const ChStateDelta& v,
                                         const ChVectorDynamic<>& R,
                                         const unsigned int off_L,  // offset in L, Qc
@@ -456,7 +455,7 @@ void ChParticlesClones::IntToDescriptor(const unsigned int off_v,  // offset in 
     }
 }
 
-void ChParticlesClones::IntFromDescriptor(const unsigned int off_v,  // offset in v
+void ChParticleCloud::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                           ChStateDelta& v,
                                           const unsigned int off_L,  // offset in L
                                           ChVectorDynamic<>& L) {
@@ -465,20 +464,20 @@ void ChParticlesClones::IntFromDescriptor(const unsigned int off_v,  // offset i
     }
 }
 
-void ChParticlesClones::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    // variables.SetDisabled(!IsActive());
+void ChParticleCloud::InjectVariables(ChSystemDescriptor& mdescriptor) {
     for (unsigned int j = 0; j < particles.size(); j++) {
+        particles[j]->variables.SetDisabled(!IsActive());
         mdescriptor.InsertVariables(&(particles[j]->variables));
     }
 }
 
-void ChParticlesClones::VariablesFbReset() {
+void ChParticleCloud::VariablesFbReset() {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->variables.Get_fb().setZero();
     }
 }
 
-void ChParticlesClones::VariablesFbLoadForces(double factor) {
+void ChParticleCloud::VariablesFbLoadForces(double factor) {
     ChVector<> Gforce;
     if (GetSystem())
         Gforce = GetSystem()->Get_G_acc() * particle_mass.GetBodyMass();
@@ -494,7 +493,7 @@ void ChParticlesClones::VariablesFbLoadForces(double factor) {
     }
 }
 
-void ChParticlesClones::VariablesQbLoadSpeed() {
+void ChParticleCloud::VariablesQbLoadSpeed() {
     for (unsigned int j = 0; j < particles.size(); j++) {
         // set current speed in 'qb', it can be used by the solver when working in incremental mode
         particles[j]->variables.Get_qb().segment(0, 3) = particles[j]->GetCoord_dt().pos.eigen();
@@ -502,13 +501,13 @@ void ChParticlesClones::VariablesQbLoadSpeed() {
     }
 }
 
-void ChParticlesClones::VariablesFbIncrementMq() {
+void ChParticleCloud::VariablesFbIncrementMq() {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->variables.Compute_inc_Mb_v(particles[j]->variables.Get_fb(), particles[j]->variables.Get_qb());
     }
 }
 
-void ChParticlesClones::VariablesQbSetSpeed(double step) {
+void ChParticleCloud::VariablesQbSetSpeed(double step) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         ChCoordsys<> old_coord_dt = particles[j]->GetCoord_dt();
 
@@ -527,9 +526,9 @@ void ChParticlesClones::VariablesQbSetSpeed(double step) {
     }
 }
 
-void ChParticlesClones::VariablesQbIncrementPosition(double dt_step) {
-    // if (!IsActive())
-    //	return;
+void ChParticleCloud::VariablesQbIncrementPosition(double dt_step) {
+     if (!IsActive())
+    	return;
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         // Updates position with incremental action of speed contained in the
@@ -553,7 +552,7 @@ void ChParticlesClones::VariablesQbIncrementPosition(double dt_step) {
     }
 }
 
-void ChParticlesClones::SetNoSpeedNoAcceleration() {
+void ChParticleCloud::SetNoSpeedNoAcceleration() {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->SetPos_dt(VNULL);
         particles[j]->SetWvel_loc(VNULL);
@@ -562,7 +561,7 @@ void ChParticlesClones::SetNoSpeedNoAcceleration() {
     }
 }
 
-void ChParticlesClones::ClampSpeed() {
+void ChParticleCloud::ClampSpeed() {
     if (GetLimitSpeed()) {
         for (unsigned int j = 0; j < particles.size(); j++) {
             double w = 2.0 * particles[j]->GetRot_dt().Length();
@@ -578,17 +577,17 @@ void ChParticlesClones::ClampSpeed() {
 
 // The inertia tensor functions
 
-void ChParticlesClones::SetInertia(const ChMatrix33<>& newXInertia) {
+void ChParticleCloud::SetInertia(const ChMatrix33<>& newXInertia) {
     particle_mass.SetBodyInertia(newXInertia);
 }
 
-void ChParticlesClones::SetInertiaXX(const ChVector<>& iner) {
+void ChParticleCloud::SetInertiaXX(const ChVector<>& iner) {
     particle_mass.GetBodyInertia()(0, 0) = iner.x();
     particle_mass.GetBodyInertia()(1, 1) = iner.y();
     particle_mass.GetBodyInertia()(2, 2) = iner.z();
     particle_mass.GetBodyInvInertia() = particle_mass.GetBodyInertia().inverse();
 }
-void ChParticlesClones::SetInertiaXY(const ChVector<>& iner) {
+void ChParticleCloud::SetInertiaXY(const ChVector<>& iner) {
     particle_mass.GetBodyInertia()(0, 1) = iner.x();
     particle_mass.GetBodyInertia()(0, 2) = iner.y();
     particle_mass.GetBodyInertia()(1, 2) = iner.z();
@@ -598,7 +597,7 @@ void ChParticlesClones::SetInertiaXY(const ChVector<>& iner) {
     particle_mass.GetBodyInvInertia() = particle_mass.GetBodyInertia().inverse();
 }
 
-ChVector<> ChParticlesClones::GetInertiaXX() const {
+ChVector<> ChParticleCloud::GetInertiaXX() const {
     ChVector<> iner;
     iner.x() = particle_mass.GetBodyInertia()(0, 0);
     iner.y() = particle_mass.GetBodyInertia()(1, 1);
@@ -606,7 +605,7 @@ ChVector<> ChParticlesClones::GetInertiaXX() const {
     return iner;
 }
 
-ChVector<> ChParticlesClones::GetInertiaXY() const {
+ChVector<> ChParticleCloud::GetInertiaXY() const {
     ChVector<> iner;
     iner.x() = particle_mass.GetBodyInertia()(0, 1);
     iner.y() = particle_mass.GetBodyInertia()(0, 2);
@@ -614,11 +613,11 @@ ChVector<> ChParticlesClones::GetInertiaXY() const {
     return iner;
 }
 
-void ChParticlesClones::Update(bool update_assets) {
-    ChParticlesClones::Update(GetChTime(), update_assets);
+void ChParticleCloud::Update(bool update_assets) {
+    ChParticleCloud::Update(GetChTime(), update_assets);
 }
 
-void ChParticlesClones::Update(double mytime, bool update_assets) {
+void ChParticleCloud::Update(double mytime, bool update_assets) {
     ChTime = mytime;
 
     // TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
@@ -626,7 +625,7 @@ void ChParticlesClones::Update(double mytime, bool update_assets) {
 }
 
 // collision stuff
-void ChParticlesClones::SetCollide(bool mcoll) {
+void ChParticleCloud::SetCollide(bool mcoll) {
     if (mcoll == do_collide)
         return;
 
@@ -647,13 +646,13 @@ void ChParticlesClones::SetCollide(bool mcoll) {
     }
 }
 
-void ChParticlesClones::SyncCollisionModels() {
+void ChParticleCloud::SyncCollisionModels() {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->collision_model->SyncPosition();
     }
 }
 
-void ChParticlesClones::AddCollisionModelsToSystem() {
+void ChParticleCloud::AddCollisionModelsToSystem() {
     assert(GetSystem());
     SyncCollisionModels();
     for (unsigned int j = 0; j < particles.size(); j++) {
@@ -661,7 +660,7 @@ void ChParticlesClones::AddCollisionModelsToSystem() {
     }
 }
 
-void ChParticlesClones::RemoveCollisionModelsFromSystem() {
+void ChParticleCloud::RemoveCollisionModelsFromSystem() {
     assert(GetSystem());
     for (unsigned int j = 0; j < particles.size(); j++) {
         GetSystem()->GetCollisionSystem()->Remove(particles[j]->collision_model);
@@ -670,7 +669,7 @@ void ChParticlesClones::RemoveCollisionModelsFromSystem() {
 
 //
 
-void ChParticlesClones::UpdateParticleCollisionModels() {
+void ChParticleCloud::UpdateParticleCollisionModels() {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->collision_model->ClearModel();
         particles[j]->collision_model->AddCopyOfAnotherModel(particle_collision_model);
@@ -680,9 +679,9 @@ void ChParticlesClones::UpdateParticleCollisionModels() {
 
 // FILE I/O
 
-void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive) {
+void ChParticleCloud::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChParticlesClones>();
+    marchive.VersionWrite<ChParticleCloud>();
 
     // serialize parent class
     ChIndexedParticles::ArchiveOUT(marchive);
@@ -694,7 +693,6 @@ void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(matsurface);
     marchive << CHNVP(do_collide);
     marchive << CHNVP(do_limit_speed);
-    marchive << CHNVP(do_sleep);
     marchive << CHNVP(max_speed);
     marchive << CHNVP(max_wvel);
     marchive << CHNVP(sleep_time);
@@ -703,9 +701,9 @@ void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(sleep_starttime);
 }
 
-void ChParticlesClones::ArchiveIN(ChArchiveIn& marchive) {
+void ChParticleCloud::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChParticlesClones>();
+    /*int version =*/ marchive.VersionRead<ChParticleCloud>();
 
     // deserialize parent class:
     ChIndexedParticles::ArchiveIN(marchive);
@@ -720,7 +718,6 @@ void ChParticlesClones::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(matsurface);
     marchive >> CHNVP(do_collide);
     marchive >> CHNVP(do_limit_speed);
-    marchive >> CHNVP(do_sleep);
     marchive >> CHNVP(max_speed);
     marchive >> CHNVP(max_wvel);
     marchive >> CHNVP(sleep_time);

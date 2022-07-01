@@ -19,7 +19,33 @@
 namespace chrono {
 namespace opengl {
 
-void ChOpenGLWindow::Initialize(int size_x, int size_y, const char* title, ChSystem* msystem) {
+ChOpenGLWindow::ChOpenGLWindow() : render_hud(true) {
+    viewer = new ChOpenGLViewer();
+}
+
+void ChOpenGLWindow::AttachSystem(ChSystem* system) {
+    viewer->AttachSystem(system);
+}
+
+void ChOpenGLWindow::SetCamera(ChVector<> pos,
+                               ChVector<> look,
+                               ChVector<> up,
+                               float scale,
+                               float near_clip_dist,
+                               float far_clip_dist) {
+    viewer->render_camera.camera_position = glm::vec3(pos.x(), pos.y(), pos.z());
+    viewer->render_camera.camera_look_at = glm::vec3(look.x(), look.y(), look.z());
+    viewer->render_camera.camera_up = glm::vec3(up.x(), up.y(), up.z());
+    viewer->render_camera.camera_scale = scale;
+    viewer->render_camera.SetClipping(near_clip_dist, far_clip_dist);
+}
+
+void ChOpenGLWindow::SetParticleRenderMode(float radius, RenderMode mode) {
+    viewer->particle_radius = radius;
+    viewer->particle_render_mode = mode;
+}
+
+void ChOpenGLWindow::Initialize(int size_x, int size_y, const char* title) {
     if (!glfwInit()) {
         std::cout << "could not initialize glfw- exiting" << std::endl;
         exit(EXIT_FAILURE);
@@ -64,8 +90,6 @@ void ChOpenGLWindow::Initialize(int size_x, int size_y, const char* title, ChSys
 
     GLReturnedError("Initialize GLEW");
     GLFWGetVersion(window);
-
-    viewer = new ChOpenGLViewer(msystem);
 
     glfwGetFramebufferSize(window, &size_x, &size_y);
     if (size_y > 0) {

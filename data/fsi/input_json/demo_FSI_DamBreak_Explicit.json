@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "DamBreak_WCSPH",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,
@@ -33,7 +30,6 @@
     "Fluid time step":               0.0001,
     "Solid time step":               0.0001,
     "Maximum time step":             0.0001,
-    "End time":                      10.0,
     "Write frame per second":        20
   },
 
@@ -41,9 +37,6 @@
   {
     "BoxDimensionX":                6.0,
     "BoxDimensionY":                1.0,
-    "BoxDimensionZ":                4.0,
-    "FluidDimensionX":              2.0,
-    "FluidDimensionY":              1.0,
-    "FluidDimensionZ":              2.0
+    "BoxDimensionZ":                4.0
   }
 }

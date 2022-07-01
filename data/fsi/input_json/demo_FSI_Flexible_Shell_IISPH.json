@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "Flexible_Shell",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,
@@ -28,7 +25,6 @@
   {
     "Fluid time step":               0.001,
     "Solid time step":               0.001,
-    "End time":                      10,
     "Write frame per second":        50
   },
 

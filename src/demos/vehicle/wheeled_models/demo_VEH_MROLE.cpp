@@ -20,7 +20,6 @@
 // =============================================================================
 
 #include "chrono/core/ChStream.h"
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 
@@ -264,7 +263,7 @@ int main(int argc, char* argv[]) {
         vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     }
 
-    ChRealtimeStepTimer realtime_timer;
+    my_mrole.GetVehicle().EnableRealtime(true);
     utils::ChRunningAverage RTF_filter(50);
 
     while (vis->Run()) {
@@ -327,10 +326,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
-        ////std::cout << RTF_filter.Add(realtime_timer.RTF) << std::endl;
     }
 
     if (driver_mode == RECORD) {

@@ -381,7 +381,8 @@ int main(int argc, char* argv[]) {
     // Initialize OpenGL
     if (render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "HMMWV acceleration", system);
+        gl_window.AttachSystem(system);
+        gl_window.Initialize(1280, 720, "HMMWV acceleration");
         gl_window.SetCamera(ChVector<>(-horizontal_pos, -5, 0), ChVector<>(-horizontal_pos, 0, 0), ChVector<>(0, 0, 1));
         gl_window.SetRenderMode(opengl::WIREFRAME);
     }

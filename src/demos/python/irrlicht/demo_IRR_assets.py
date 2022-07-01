@@ -160,7 +160,7 @@ body.AddVisualShape(mesh, chrono.ChFrameD(chrono.ChVectorD(2,1,2), chrono.QUNIT)
 
 
 # ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
-objmesh = chrono.ChObjShapeFile()
+objmesh = chrono.ChObjFileShape()
 objmesh.SetFilename(chrono.GetChronoDataFile('models/forklift/body.obj'))
 objmesh.SetTexture(chrono.GetChronoDataFile('textures/bluewhite.png'))
 body.AddVisualShape(objmesh, chrono.ChFrameD(chrono.ChVectorD(0,0,2), chrono.QUNIT))
@@ -182,12 +182,12 @@ for j in range(20):
 # that define a single "sample" 3D shape. This will be shwon
 # N times in Irrlicht.
 
-# Create the ChParticlesClones, populate it with random particles,
+# Create the ChParticleCloud, populate it with random particles,
 # and add it to physical sys:
-particles = chrono.ChParticlesClones()
+particles = chrono.ChParticleCloud()
 
 # Note: coll. shape, if needed, must be specified before creating particles.
-# This will be shared among all particles in the ChParticlesClones.
+# This will be shared among all particles in the ChParticleCloud.
 particle_mat = chrono.ChMaterialSurfaceNSC()
 
 particles.GetCollisionModel().ClearModel()
@@ -200,7 +200,7 @@ for i in range(100):
     particles.AddParticle(chrono.ChCoordsysD(chrono.ChVectorD(chrono.ChRandom() - 2, 1.5, chrono.ChRandom() + 2)))
 
 # Mass and inertia properties.
-# This will be shared among all particles in the ChParticlesClones.
+# This will be shared among all particles in the ChParticleCloud.
 particles.SetMass(0.1)
 particles.SetInertiaXX(chrono.ChVectorD(0.001, 0.001, 0.001))
 

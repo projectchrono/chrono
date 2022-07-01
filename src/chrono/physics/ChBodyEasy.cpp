@@ -22,7 +22,7 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
-#include "chrono/assets/ChObjShapeFile.h"
+#include "chrono/assets/ChObjFileShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/collision/ChCollisionUtilsBullet.h"

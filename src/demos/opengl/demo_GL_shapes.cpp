@@ -75,7 +75,8 @@ int main(int argc, char *argv[]) {
 
     // Render everything
     opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "OpenGL Shapes", &sys);
+    gl_window.AttachSystem(&sys);
+    gl_window.Initialize(1280, 720, "OpenGL Shapes");
     gl_window.SetCamera(ChVector<>(6, -10, 0), ChVector<>(6, 0, 0), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::WIREFRAME);
 

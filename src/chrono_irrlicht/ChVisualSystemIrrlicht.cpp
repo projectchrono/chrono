@@ -20,7 +20,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChSurfaceShape.h"
-#include "chrono/assets/ChObjShapeFile.h"
+#include "chrono/assets/ChObjFileShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
@@ -691,7 +691,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
         if (!shape->IsVisible())
             continue;
 
-        if (auto obj = std::dynamic_pointer_cast<ChObjShapeFile>(shape)) {
+        if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
             bool irrmesh_already_loaded = false;
             if (GetSceneManager()->getMeshCache()->getMeshByName(obj->GetFilename().c_str()))
                 irrmesh_already_loaded = true;
@@ -735,6 +735,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             mproxynode->Update();  // force syncing of triangle positions & face indexes
             mproxynode->drop();
 
+            SetVisualMaterial(mchildnode, shape);
             mchildnode->setMaterialFlag(video::EMF_WIREFRAME, trimesh->IsWireframe());
             mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trimesh->IsBackfaceCull());
         } else if (auto surf = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
@@ -753,6 +754,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             mproxynode->Update();  // force syncing of triangle positions & face indexes
             mproxynode->drop();
 
+            SetVisualMaterial(mchildnode, shape);
             mchildnode->setMaterialFlag(video::EMF_WIREFRAME, surf->IsWireframe());
         } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
             if (sphereMesh) {

@@ -134,7 +134,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFrameMoving<double>)
 
 //%shared_ptr(chrono::ChColor)
-%shared_ptr(chrono::ChObjShapeFile)
+%shared_ptr(chrono::ChObjFileShape)
 %shared_ptr(chrono::ChBoxShape) 
 %shared_ptr(chrono::ChSphereShape)
 %shared_ptr(chrono::ChEllipsoidShape)
@@ -216,7 +216,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChAparticle)
 %shared_ptr(chrono::ChParticleBase)
 %shared_ptr(chrono::ChIndexedParticles)
-%shared_ptr(chrono::ChParticlesClones)
+%shared_ptr(chrono::ChParticleCloud)
 %shared_ptr(chrono::ChSystemNSC)
 %shared_ptr(chrono::ChSystemSMC)
 %shared_ptr(chrono::ChContactContainer)
@@ -353,7 +353,7 @@ using namespace chrono::fea;
 %include "../chrono/assets/ChVisualMaterial.h"
 %include "ChVisualShape.i"
 %include "ChVisualModel.i"
-%include "ChObjShapeFile.i"
+%include "ChObjFileShape.i"
 %include "ChBoxShape.i"
 %include "ChSphereShape.i"
 %include "ChCylinderShape.i"
@@ -381,9 +381,10 @@ using namespace chrono::fea;
 %include "ChBody.i"
 %include "ChBodyAuxRef.i"
 %include "../../../chrono/physics/ChBodyEasy.h"
+%include "ChNodeXYZ.i"
 %include "ChConveyor.i"
 %include "ChIndexedParticles.i"
-%include "ChParticlesClones.i"
+%include "ChParticleCloud.i"
 %include "ChLinkBase.i"
 %include "ChLink.i"
 %include "ChLinkMarkers.i"
@@ -440,14 +441,14 @@ using namespace chrono::fea;
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
 // enable _automatic_ downcasting from ChVisualShape to derived classes (shared pointers versions)
-%downcast_output_sharedptr(chrono::ChVisualShape, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape)
+%downcast_output_sharedptr(chrono::ChVisualShape, chrono::ChObjFileShape, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape)
 
 %DefSharedPtrDynamicDowncast(chrono,ChContactable, ChBody)
 
 %DefSharedPtrDynamicDowncast(chrono,ChLoadable, ChBody)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadable, ChNodeBase)
 
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChObjShapeFile)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChObjFileShape)
 %DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChBoxShape)
 %DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChSphereShape)
 %DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChCylinderShape)
@@ -471,7 +472,9 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChConveyor)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChBodyAuxRef)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChIndexedParticles)
-%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChParticlesClones)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChParticleCloud)
+
+%DefSharedPtrDynamicDowncast(chrono,ChNodeBase, ChNodeXYZ)
 
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLink)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMarkers)

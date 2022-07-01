@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChParticleCloud.h"
 
 %}
  
@@ -15,7 +15,7 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../../../chrono/physics/ChParticlesClones.h"  
+%include "../../../chrono/physics/ChParticleCloud.h"  
 
 
 
