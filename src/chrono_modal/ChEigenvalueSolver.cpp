@@ -666,7 +666,7 @@ void expandKrylov(
 ) {
 
 	for (int k = sk + 1; k <= ek; ++k) {
-		ChVectorDynamic<std::complex<double>> v;
+		ChVectorDynamic<std::complex<double>> v(Q.rows());
 		Ax_function->compute(v, Q.col(k - 1));  // v = Ax(Q(:, k));                
 		ChVectorDynamic<std::complex<double>> w = (Q.leftCols(k)).adjoint()  * v;  //w = Q(:, 1:k)' * v;
 		v = v - Q.leftCols(k) * w;     // v = v - Q(:, 1 : k) * w;

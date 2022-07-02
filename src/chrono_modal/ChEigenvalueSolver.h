@@ -378,7 +378,7 @@ public:
 class callback_Ax {
 public:
     // Inherit this. It must compute A*x. How A is stored (full, sparse, factorised, etc. ) is up to you.
-    void compute(ChVectorDynamic<std::complex<double>>& A_x,    ///< output: result of A*x
+    void compute(ChVectorDynamic<std::complex<double>>& A_x,    ///< output: result of A*x. Assume already sized.
         const ChVectorDynamic<std::complex<double>>& x          ///< input:  x in A*x
     ) {};
 };
