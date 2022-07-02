@@ -574,7 +574,8 @@ int testConverge(
 		}
 	}
 	else {                               // complex case
-		std::complex<double> lambda = (H(i-1, i-1) + H(i, i) , sqrt(-delta)) / 2;
+		std::complex<double> lambda(H(i - 1, i - 1).real() + H(i, i).real(), sqrt(-delta)); 
+		lambda *= 0.5;
 		if (abs(H(k, i-1)) < std::max(H.norm() * epsilon, abs(lambda) * tol)) {
 			flag = 2;
 		}
@@ -595,7 +596,7 @@ void truncateKrylov(
 	auto Qo = Q;
 	auto Ho = H;
 	Q.setZero(Qo.rows(), k + 1);
-	Q << Qo(placeholders::all, seq(0, k - 1)), Qo(placeholders::all, m); //Q = [Q(:, 1 : k),   Q(:, m + 1)];
+	Q << Qo(Eigen::all, seq(0, k - 1)), Qo(Eigen::all, m); //Q = [Q(:, 1 : k),   Q(:, m + 1)];
 	
 	H.setZero(k + 1, k);
 	H << Ho(seq(0, k-1), seq(0, k-1)), Ho(m, seq(0,k-1));				 //H = [H(1:k, 1:k); H(m + 1, 1:k)]; 
@@ -733,7 +734,7 @@ void KrylovSchur(
 		sortSchur(U, T, isC, H(seq(p - 1, m - 1), seq(p - 1, m - 1)), k - p + 1);  // matlab: H.block(p:m, p:m) 
 		H(seq(p - 1, m - 1), seq(p - 1, m - 1)) = T;  // H(p:m, p:m) = T;
 		H(seq(0, p - 1 - 1), seq(p - 1, m - 1)) = H(seq(0, p - 1 - 1), seq(p - 1, m - 1)) * U; // H(1:p-1, p:m) = H(1:p-1, p:m) * U;
-		Q(placeholders::all, seq(p - 1, m - 1)) = Q(placeholders::all, seq(p - 1, m - 1)) * U; //Q(:, p:m) = Q(:, p:m) * U;
+		Q(Eigen::all, seq(p - 1, m - 1)) = Q(Eigen::all, seq(p - 1, m - 1)) * U; //Q(:, p:m) = Q(:, p:m) * U;
 		H.row(m)(seq(p - 1, m - 1)) = H(m, m - 1) * U.bottomRows(1); //H(m+1, p:m) = H(m+1, m) * U(end, :);    
 		//disp('err'); disp(Ax(Q(:, 1:m)) - Q(:, 1:m+1) * H(1:m+1, 1:m)); 
 		//disp('Q'); disp(Q); disp('H'); disp(H);
