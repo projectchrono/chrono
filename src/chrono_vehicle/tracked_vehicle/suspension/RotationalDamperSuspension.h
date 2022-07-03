@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef ROTATIONAL_DAMPER_RWA_H
-#define ROTATIONAL_DAMPER_RWA_H
+#ifndef ROTATIONAL_DAMPER_SUSPENSION_H
+#define ROTATIONAL_DAMPER_SUSPENSION_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/suspension/ChRotationalDamperSuspension.h"

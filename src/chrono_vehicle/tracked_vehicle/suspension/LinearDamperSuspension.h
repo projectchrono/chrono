@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef LINEAR_DAMPER_RWA_H
-#define LINEAR_DAMPER_RWA_H
+#ifndef LINEAR_DAMPER_SUSPENSION_H
+#define LINEAR_DAMPER_SUSPENSION_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperSuspension.h"

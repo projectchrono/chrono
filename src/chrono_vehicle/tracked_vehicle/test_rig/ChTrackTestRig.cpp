@@ -159,7 +159,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
     m_track->Initialize(m_chassis, ChVector<>(0, 0, 0), create_track);
 
     // Create and initialize the shaker post body
-    auto num_wheels = m_track->GetNumRoadWheelAssemblies();
+    auto num_wheels = m_track->GetNumTrackSuspensions();
     double rw_radius = m_track->GetRoadWheel(0)->GetRadius();
 
     m_post_hheight = 0.05;
@@ -231,7 +231,7 @@ void ChTrackTestRig::Initialize() {
     m_track->GetSprocket()->SetCollide((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) != 0);
 
     bool collide_wheels = (m_collide_flags & static_cast<int>(TrackedCollisionFlag::WHEELS_LEFT)) != 0;
-    for (size_t i = 0; i < m_track->GetNumRoadWheelAssemblies(); ++i)
+    for (size_t i = 0; i < m_track->GetNumTrackSuspensions(); ++i)
         m_track->GetRoadWheel(i)->SetCollide(collide_wheels);
 
     bool collide_shoes = (m_collide_flags & static_cast<int>(TrackedCollisionFlag::SHOES_LEFT)) != 0;
@@ -431,7 +431,7 @@ void ChTrackTestRig::CollectPlotData(double time) {
     *m_csv << m_track->GetSprocket()->GetGearBody()->GetPos();
     *m_csv << m_track->GetIdler()->GetWheelBody()->GetPos();
 
-    for (auto suspension : m_track->GetRoadWheelAssemblies()) {
+    for (auto suspension : m_track->GetTrackSuspensions()) {
         *m_csv << suspension->GetRoadWheel()->GetBody()->GetPos();
         //// TODO: spring and shock forces
     }
@@ -459,7 +459,7 @@ void ChTrackTestRig::PlotOutput(const std::string& out_dir, const std::string& o
     mplot.SetCommand("set terminal wxt size 800, 600");
     mplot.Plot(out_file.c_str(), 1, 4, "sprocket", " with lines lw 2");
     mplot.Plot(out_file.c_str(), 1, 7, "idler", " with lines lw 2");
-    for (int i = 0; i < m_track->GetNumRoadWheelAssemblies(); i++) {
+    for (int i = 0; i < m_track->GetNumTrackSuspensions(); i++) {
         std::string label = "wheel #" + std::to_string(i);
         mplot.Plot(out_file.c_str(), 1, 7 + 3 * i + 3, label.c_str(), " with lines lw 2");
     }

@@ -186,9 +186,9 @@ void ChTrackedVehicle::SetIdlerCollide(bool state) {
 }
 
 void ChTrackedVehicle::SetRoadWheelCollide(bool state) {
-    for (size_t i = 0; i < m_tracks[0]->GetNumRoadWheelAssemblies(); ++i)
+    for (size_t i = 0; i < m_tracks[0]->GetNumTrackSuspensions(); ++i)
         m_tracks[0]->GetRoadWheel(i)->SetCollide(state);
-    for (size_t i = 0; i < m_tracks[1]->GetNumRoadWheelAssemblies(); ++i)
+    for (size_t i = 0; i < m_tracks[1]->GetNumTrackSuspensions(); ++i)
         m_tracks[1]->GetRoadWheel(i)->SetCollide(state);
 }
 
@@ -223,9 +223,9 @@ void ChTrackedVehicle::SetCollide(int flags) {
 
     bool collide_wheelsL = (flags & static_cast<int>(TrackedCollisionFlag::WHEELS_LEFT)) != 0;
     bool collide_wheelsR = (flags & static_cast<int>(TrackedCollisionFlag::WHEELS_RIGHT)) != 0;
-    for (size_t i = 0; i < m_tracks[0]->GetNumRoadWheelAssemblies(); ++i)
+    for (size_t i = 0; i < m_tracks[0]->GetNumTrackSuspensions(); ++i)
         m_tracks[0]->GetRoadWheel(i)->SetCollide(collide_wheelsL);
-    for (size_t i = 0; i < m_tracks[1]->GetNumRoadWheelAssemblies(); ++i)
+    for (size_t i = 0; i < m_tracks[1]->GetNumTrackSuspensions(); ++i)
         m_tracks[1]->GetRoadWheel(i)->SetCollide(collide_wheelsR);
 
     bool collide_rollersL = (flags & static_cast<int>(TrackedCollisionFlag::ROLLERS_LEFT)) != 0;

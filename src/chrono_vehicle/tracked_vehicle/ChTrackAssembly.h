@@ -50,7 +50,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     VehicleSide GetVehicleSide() const { return m_side; }
 
     /// Get the number of suspensions.
-    size_t GetNumRoadWheelAssemblies() const { return m_suspensions.size(); }
+    size_t GetNumTrackSuspensions() const { return m_suspensions.size(); }
 
     /// Get the number of rollers.
     size_t GetNumRollers() const { return m_rollers.size(); }
@@ -71,7 +71,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     std::shared_ptr<ChTrackBrake> GetBrake() const { return m_brake; }
 
     /// Get the list of suspension subsystems.
-    const ChTrackSuspensionList& GetRoadWheelAssemblies() const { return m_suspensions; }
+    const ChTrackSuspensionList& GetTrackSuspensions() const { return m_suspensions; }
 
     /// Get a handle to the specified suspension subsystem.
     std::shared_ptr<ChTrackSuspension> GetTrackSuspension(size_t id) const { return m_suspensions[id]; }

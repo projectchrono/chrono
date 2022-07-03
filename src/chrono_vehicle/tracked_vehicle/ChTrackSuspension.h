@@ -13,7 +13,8 @@
 // =============================================================================
 //
 // Base class for a track suspension.  A track suspension contains a road wheel
-// body (connected through a revolute joint) with different suspension topologies.
+// body (connected through a revolute joint to a suspension carrier arm) using
+// different suspension topologies.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -64,7 +65,7 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
     /// Return the body of the idler wheel.
     std::shared_ptr<ChBody> GetWheelBody() const { return m_road_wheel->GetBody(); }
 
-    /// Return a handle to the carrier body.
+    /// Return a handle to the carrier body (the body to which the road-wheel is attached).
     virtual std::shared_ptr<ChBody> GetCarrierBody() const = 0;
 
     /// Return the current pitch angle of the carrier body.

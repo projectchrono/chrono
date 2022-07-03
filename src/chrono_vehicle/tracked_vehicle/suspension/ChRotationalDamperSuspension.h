@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef CH_ROTATIONAL_DAMPER_RWA_H
-#define CH_ROTATIONAL_DAMPER_RWA_H
+#ifndef CH_ROTATIONAL_DAMPER_SUSPENSION_H
+#define CH_ROTATIONAL_DAMPER_SUSPENSION_H
 
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkForce.h"
