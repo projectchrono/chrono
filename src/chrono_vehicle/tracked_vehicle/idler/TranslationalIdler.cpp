@@ -26,8 +26,6 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 TranslationalIdler::TranslationalIdler(const std::string& filename) : ChTranslationalIdler("") {
     Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
