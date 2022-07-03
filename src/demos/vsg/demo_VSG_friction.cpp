@@ -27,7 +27,6 @@ using namespace chrono::vsg3d;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2022 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-
     // Create a physical system
     ChSystemNSC sys;
 
@@ -124,30 +123,31 @@ int main(int argc, char* argv[]) {
 
     sys.Add(bin);
 
-    // Create the VSG visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     sys.SetVisualSystem(vis);
-    vis->SetCameraVertical(vsg3d::CameraVerticalDir::Y);
     vis->SetWindowSize(ChVector2<int>(800, 600));
-    vis->SetWindowPosition(ChVector2<int>(100, 300));
-    vis->SetWindowTitle("Rolling and spinning friction");
-    vis->SetUseSkyBox(true);
-    vis->SetLightIntensity(0.9);
-    vis->SetLightDirection(1.5*CH_C_PI_2, CH_C_PI_4);
+    vis->SetWindowPosition(ChVector2<int>(100, 100));
+    vis->SetWindowTitle("VSG Rolling Friction");
+    vis->SetClearColor(ChColor(0.8,0.85,0.9));
+    vis->SetUseSkyBox(true); // use built-in path
+    vis->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
+    vis->AddCamera(ChVector<>(0, 14, -20));
+    vis->SetCameraAngleDeg(40.0);
+    vis->SetWireFrameMode(false);
     vis->Initialize();
+    vis->BindAll();
 
-    // Modify some setting of the physical system for the simulation
-    sys.SetSolverType(ChSolver::Type::APGD);
-    sys.SetSolverMaxIterations(100);
-
+    size_t numFrame = 0;
     // Simulation loop
     double timestep = 0.005;
-    ChRealtimeStepTimer realtime_timer;
-    while(vis->Run()){
-        vis->Render();
+    while(vis->Run()) {
+        if(numFrame == 10) {
+            std::string imageFileName = "image.png"; // must be png
+            vis->WriteImageToFile(imageFileName); // does not work with frame == 0!
+        }
         sys.DoStepDynamics(timestep);
-        realtime_timer.Spin(timestep);
+        vis->Render();
+        numFrame++;
     }
-    GetLog() << "Terminated at simulation time " << sys.GetChTime() << " secs.\n";
     return 0;
 }

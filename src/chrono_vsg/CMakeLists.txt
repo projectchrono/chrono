@@ -27,8 +27,6 @@ SET(CE_VSG_BASE_FILES
 
 SET(CE_VSG_CORE_FILES
     core/ChApiVSG.h
-    core/lineShader_frag.h
-    core/lineShader_vert.h
 )
 
 SET(CE_VSG_SHAPES_FILES
@@ -54,7 +52,8 @@ SET(CE_VSG_RESOURCES_FILES
     resources/lineShader_frag.h
     resources/lineShader_vert.h
     resources/cubemapShaders.h
-    resources/pushConstantShaders.h
+    resources/pcShader_frag.h
+    resources/pcShader_vert.h
 )
 
 SET(CE_VSG_TOOLS_FILES
@@ -62,6 +61,8 @@ SET(CE_VSG_TOOLS_FILES
         tools/createQuad.h
         tools/createSkybox.cpp
         tools/createSkybox.h
+        tools/exportScreenshot.cpp
+        tools/exportScreenshot.h
         ../chrono_thirdparty/stb/stb_image_write.cpp
         ../chrono_thirdparty/stb/stb_image_resize.cpp
 )

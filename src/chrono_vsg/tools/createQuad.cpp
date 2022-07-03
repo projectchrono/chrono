@@ -1,6 +1,7 @@
 #include "createQuad.h"
 
-#include "chrono_vsg/resources/pushConstantShaders.h"
+#include "chrono_vsg/resources/pcShader_vert.h"
+#include "chrono_vsg/resources/pcShader_frag.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -57,8 +58,8 @@ vsg::ref_ptr<vsg::Node> createQuad(const vsg::vec3& origin,
         return {};
 
     // load shaders from memory
-    auto vertexShader = vert_PushConstants();
-    auto fragmentShader = frag_PushConstants();
+    auto vertexShader = pcShader_vert();
+    auto fragmentShader = pcShader_frag();
     if (!vertexShader || !fragmentShader) {
         std::cout << "Could not create shaders." << std::endl;
         return {};

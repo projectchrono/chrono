@@ -1,15 +1,16 @@
 #include <vsg/io/VSG.h>
 static auto lineShader_vert = []() {std::istringstream str(
-R"(#vsga 0.1.5
+R"(#vsga 0.5.1
 Root id=1 vsg::ShaderStage
 {
-  NumUserObjects 0
+  userObjects 0
   stage 1
   entryPointName "main"
   module id=2 vsg::ShaderModule
   {
-    NumUserObjects 0
-    Source "#version 450
+    userObjects 0
+    hints id=0
+    source "#version 450
 #extension GL_ARB_separate_shader_objects : enable
 
 layout(push_constant) uniform PushConstants {
@@ -31,9 +32,8 @@ void main() {
     fragColor = inColor;
  }
 "
-    hints id=0
-    SPIRVSize 307
-    SPIRV 119734787 65536 524298 40 0 131089 1 393227 1 1280527431 1685353262 808793134
+    code 307
+     119734787 65536 524298 40 0 131089 1 393227 1 1280527431 1685353262 808793134
      0 196622 0 1 589839 0 4 1852399981 0 10 26 37
      38 196611 2 450 589828 1096764487 1935622738 1918988389 1600484449 1684105331 1868526181 1667590754
      29556 262149 4 1852399981 0 393221 8 1348430951 1700164197 2019914866 0 393222

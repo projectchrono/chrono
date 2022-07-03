@@ -21,8 +21,8 @@
 #include "GetTriangleMeshShapeData.h"
 #include "GetSurfaceShapeData.h"
 
-#include "chrono_vsg/core/lineShader_frag.h"
-#include "chrono_vsg/core/lineShader_vert.h"
+#include "chrono_vsg/resources/lineShader_vert.h"
+#include "chrono_vsg/resources/lineShader_frag.h"
 
 namespace chrono {
 namespace vsg3d {

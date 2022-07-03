@@ -1,15 +1,33 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2022 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Rainer Gericke, code taken from https://github.com/vsg-dev/vsgExamples.git
+// =============================================================================
+
+#ifndef PC_SHADER_FRAG_H
+#define PC_SHADER_FRAG_H
+
 #include <vsg/io/VSG.h>
-static auto frag_shader_PushConstants = []() {std::istringstream str(
-R"(#vsga 0.2.11
+static auto pcShader_frag = []() {std::istringstream str(
+R"(#vsga 0.5.1
 Root id=1 vsg::ShaderStage
 {
-  NumUserObjects 0
+  userObjects 0
   stage 16
   entryPointName "main"
   module id=2 vsg::ShaderModule
   {
-    NumUserObjects 0
-    Source "#version 450
+    userObjects 0
+    hints id=0
+    source "#version 450
 #extension GL_ARB_separate_shader_objects : enable
 
 layout(binding = 0) uniform sampler2D texSampler;
@@ -23,9 +41,8 @@ void main() {
     outColor = texture(texSampler, fragTexCoord);
 }
 "
-    hints id=0
-    SPIRVSize 173
-    SPIRV 119734787 65536 524298 23 0 131089 1 393227 1 1280527431 1685353262 808793134
+    code 173
+     119734787 65536 524298 23 0 131089 1 393227 1 1280527431 1685353262 808793134
      0 196622 0 1 524303 4 4 1852399981 0 9 17 22
      196624 4 7 196611 2 450 589828 1096764487 1935622738 1918988389 1600484449 1684105331
      1868526181 1667590754 29556 262149 4 1852399981 0 327685 9 1131705711 1919904879 0
@@ -47,3 +64,5 @@ void main() {
 vsg::VSG io;
 return io.read_cast<vsg::ShaderStage>(str);
 };
+
+#endif
