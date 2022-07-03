@@ -1,8 +1,9 @@
+#ifndef CH_EXPORT_SCREENSHOT_H
+#define CH_EXPORT_SCREENSHOT_H
+
 #include <vsg/all.h>
 
-#ifdef vsgXchange_FOUND
-#    include <vsgXchange/all.h>
-#endif
+#include <vsgXchange/all.h>
 
 #include <algorithm>
 #include <chrono>
@@ -10,5 +11,6 @@
 #include <thread>
 #include <string>
 
-void exportScreenshot(vsg::ref_ptr<vsg::Window> window, std::string &imageFilename);
+void exportScreenshot(vsg::ref_ptr<vsg::Window> window, std::string& imageFilename);
 
+#endif

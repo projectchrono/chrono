@@ -234,7 +234,7 @@ int main(int argc, char* argv[]) {
     auto cadet_blue = chrono_types::make_shared<ChVisualMaterial>();
     cadet_blue->SetDiffuseColor(ChColor(0.37f, 0.62f, 0.62f));
     hull->GetVisualShape(0)->SetMaterial(0, cadet_blue);
-
+    hull->GetVisualShape(0)->GetMaterial(0)->SetOpacity(0.5); // DepthSorted???
     sys.Add(hull);
 
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
@@ -254,7 +254,11 @@ int main(int argc, char* argv[]) {
     size_t numFrame = 0;
     while (vis->Run()) {
         if (numFrame == 10) {
+#ifdef WIN32
+            std::string imageFileName = "image.ppm";  // allowed formats png, bmp, jpg, tga
+#else
             std::string imageFileName = "image.png";  // allowed formats png, bmp, jpg, tga
+#endif
             vis->WriteImageToFile(imageFileName);     // does not work with frame == 0!
         }
         vis->Render();

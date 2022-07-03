@@ -63,6 +63,8 @@ SET(CE_VSG_TOOLS_FILES
         tools/createSkybox.h
         tools/exportScreenshot.cpp
         tools/exportScreenshot.h
+        tools/exportScreenshotNoBlit.cpp
+        tools/exportScreenshotNoBlit.h
         ../chrono_thirdparty/stb/stb_image_write.cpp
         ../chrono_thirdparty/stb/stb_image_resize.cpp
 )

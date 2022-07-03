@@ -33,6 +33,7 @@
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "tools/exportScreenshot.h"
+#include "tools/exportScreenshotNoBlit.h"
 #include "ChVisualSystemVSG.h"
 #include <algorithm>
 #include <string>
@@ -121,6 +122,12 @@ void ChVisualSystemVSG::Initialize() {
     windowTraits->height = m_windowHeight;
     windowTraits->x = m_windowX;
     windowTraits->y = m_windowY;
+    windowTraits->deviceExtensionNames = {VK_KHR_MULTIVIEW_EXTENSION_NAME, VK_KHR_MAINTENANCE2_EXTENSION_NAME,
+            VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
+            VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME};
+    windowTraits->swapchainPreferences.imageUsage =
+            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    windowTraits->depthImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
     vsg::GeometryInfo geomInfo;
     geomInfo.dx.set(1.0f, 0.0f, 0.0f);
@@ -144,10 +151,11 @@ void ChVisualSystemVSG::Initialize() {
             m_useSkybox = false;
     }
 
+    /*
     auto ambientLight = vsg::AmbientLight::create();
     ambientLight->name = "ambient";
     ambientLight->color.set(1.0, 1.0, 1.0);
-    ambientLight->intensity = 0.1;
+    ambientLight->intensity = 0.01;
 
     auto directionalLight = vsg::DirectionalLight::create();
     directionalLight->name = "head light";
@@ -166,7 +174,7 @@ void ChVisualSystemVSG::Initialize() {
     absoluteTransform->addChild(directionalLight);
 
     m_scene->addChild(absoluteTransform);
-
+*/
     // create the viewer and assign window(s) to it
     m_viewer = vsg::Viewer::create();
 
@@ -222,7 +230,11 @@ void ChVisualSystemVSG::Render() {
     m_viewer->update();
 
     m_viewer->recordAndSubmit();
+#ifdef WIN32
+    if (m_do_image_export) exportScreenshotNoBlit(m_window,m_imageFilename);
+#else
     if (m_do_image_export) exportScreenshot(m_window,m_imageFilename);
+#endif
     m_do_image_export = false;
 
     m_viewer->present();

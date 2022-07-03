@@ -208,13 +208,21 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
         m_options->sharedObjects->share(stateGroup);
     }
     if (phongMat->value().alphaMask < 1.0) {
-        vsg::ComputeBounds computeBounds;
-        scenegraph->accept(computeBounds);
-        auto depthSorted = vsg::DepthSorted::create();
-        depthSorted->binNumber = 1;
-        depthSorted->bound.set(0.0f, 0.0f, 0.0f, boundingSphereRadius);
-        depthSorted->child = stateGroup;
+        //vsg::ComputeBounds computeBounds;
+        //scenegraph->accept(computeBounds);
+        /*
+        auto bounds = vsg::visit<vsg::ComputeBounds>(scenegraph).bounds;
+        vsg::dvec3 center = (bounds.max + bounds.min) * 0.5;
+        double radius = vsg::length(bounds.max - bounds.min) * 0.5;
+        vsg::dsphere boundSphere;
+        boundSphere.set(center[0], center[1], center[2], radius);
+        auto depthSorted = vsg::DepthSorted::create(10,boundSphere,stateGroup);
+        //depthSorted->binNumber = 1;
+        //depthSorted->bound.set(0.0f, 0.0f, 0.0f, boundingSphereRadius);
+        //depthSorted->child = stateGroup;
         transform->addChild(depthSorted);
+        */
+        transform->addChild(stateGroup);
     } else {
         transform->addChild(stateGroup);
     }
