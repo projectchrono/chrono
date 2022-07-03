@@ -166,6 +166,7 @@ void ChTrackAssembly::SetSprocketVisualizationType(VisualizationType vis) {
 
 void ChTrackAssembly::SetIdlerVisualizationType(VisualizationType vis) {
     GetIdler()->SetVisualizationType(vis);
+    GetIdler()->GetIdlerWheel()->SetVisualizationType(vis);
 }
 
 void ChTrackAssembly::SetRoadWheelAssemblyVisualizationType(VisualizationType vis) {

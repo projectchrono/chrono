@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2022 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,15 +9,15 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// M113 road wheel subsystem.
+// M113 idler wheel subsystem.
 //
 // =============================================================================
 
-#ifndef M113_ROAD_WHEEL_H
-#define M113_ROAD_WHEEL_H
+#ifndef MARDER_IDLER_WHEEL_H
+#define MARDER_IDLER_WHEEL_H
 
 #include <string>
 
@@ -29,29 +29,29 @@
 
 namespace chrono {
 namespace vehicle {
-namespace m113 {
+namespace marder {
 
-/// @addtogroup vehicle_models_m113
+/// @addtogroup vehicle_models_marder
 /// @{
 
-/// Road-wheel model for the M113 vehicle (base class).
-class CH_MODELS_API M113_RoadWheel : public ChDoubleTrackWheel {
+/// Idler-wheel model for the Marder vehicle (base class).
+class CH_MODELS_API Marder_IdlerWheel : public ChDoubleTrackWheel {
   public:
-    virtual ~M113_RoadWheel() {}
+    virtual ~Marder_IdlerWheel() {}
 
-    /// Return the mass of the road wheel body.
+    /// Return the mass of the idler wheel body.
     virtual double GetWheelMass() const override { return m_wheel_mass; }
-    /// Return the moments of inertia of the road wheel body.
+    /// Return the moments of inertia of the idler wheel body.
     virtual const ChVector<>& GetWheelInertia() override { return m_wheel_inertia; }
-    /// Return the radius of the road wheel.
+    /// Return the radius of the idler wheel.
     virtual double GetWheelRadius() const override { return m_wheel_radius; }
-    /// Return the total width of the road wheel.
+    /// Return the total width of the idler wheel.
     virtual double GetWheelWidth() const override { return m_wheel_width; }
     /// Return the gap width.
     virtual double GetWheelGap() const override { return m_wheel_gap; }
 
   protected:
-    M113_RoadWheel(const std::string& name);
+    Marder_IdlerWheel(const std::string& name);
 
     virtual VehicleSide GetVehicleSide() const = 0;
 
@@ -70,11 +70,11 @@ class CH_MODELS_API M113_RoadWheel : public ChDoubleTrackWheel {
     static const double m_wheel_gap;
 };
 
-/// Road-wheel model for the M113 vehicle (left side).
-class CH_MODELS_API M113_RoadWheelLeft : public M113_RoadWheel {
+/// Idler-wheel model for the M113 vehicle (left side).
+class CH_MODELS_API Marder_IdlerWheelLeft : public Marder_IdlerWheel {
   public:
-    M113_RoadWheelLeft(int index) : M113_RoadWheel("M113_RoadWheelLeft_" + std::to_string(index)) {}
-    ~M113_RoadWheelLeft() {}
+    Marder_IdlerWheelLeft() : Marder_IdlerWheel("Marder_IdlerWheelLeft") {}
+    ~Marder_IdlerWheelLeft() {}
 
     virtual VehicleSide GetVehicleSide() const override { return LEFT; }
 
@@ -84,11 +84,11 @@ class CH_MODELS_API M113_RoadWheelLeft : public M113_RoadWheel {
     static const std::string m_meshFile;
 };
 
-/// Road-wheel model for the M113 vehicle (right side).
-class CH_MODELS_API M113_RoadWheelRight : public M113_RoadWheel {
+/// Idler-wheel model for the M113 vehicle (right side).
+class CH_MODELS_API Marder_IdlerWheelRight : public Marder_IdlerWheel {
   public:
-    M113_RoadWheelRight(int index) : M113_RoadWheel("M113_RoadWheelRight_" + std::to_string(index)) {}
-    ~M113_RoadWheelRight() {}
+    Marder_IdlerWheelRight() : Marder_IdlerWheel("Marder_IdlerWheelRight") {}
+    ~Marder_IdlerWheelRight() {}
 
     virtual VehicleSide GetVehicleSide() const override { return RIGHT; }
 
@@ -98,9 +98,9 @@ class CH_MODELS_API M113_RoadWheelRight : public M113_RoadWheel {
     static const std::string m_meshFile;
 };
 
-/// @} vehicle_models_m113
+/// @} vehicle_models_marder
 
-}  // end namespace m113
+}  // namespace marder
 }  // end namespace vehicle
 }  // end namespace chrono
 

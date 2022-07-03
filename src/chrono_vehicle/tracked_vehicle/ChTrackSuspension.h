@@ -61,6 +61,9 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
     /// Return a handle to the road wheel subsystem.
     std::shared_ptr<ChTrackWheel> GetRoadWheel() const { return m_road_wheel; }
 
+    /// Return the body of the idler wheel.
+    std::shared_ptr<ChBody> GetWheelBody() const { return m_road_wheel->GetWheelBody(); }
+
     /// Return a handle to the carrier body.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const = 0;
 
@@ -68,9 +71,6 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
     /// This angle is measured in the x-z transversal plane, from the initial configuration,
     /// and follows the right-hand rule.
     virtual double GetCarrierAngle() const = 0;
-
-    /// Get a handle to the road wheel body.
-    std::shared_ptr<ChBody> GetWheelBody() const { return m_road_wheel->GetWheelBody(); }
 
     /// Get a handle to the revolute joint of the road-wheel.
     std::shared_ptr<ChLinkLockRevolute> GetWheelRevolute() const { return m_road_wheel->GetRevolute(); }
@@ -114,7 +114,7 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
     bool m_has_shock;     ///< specifies whether or not the suspension has a damper
     bool m_lock_arm;      ///< specified whether the suspension arm is locked
 
-    ChVector<> m_rel_loc;                        ///< idler subsystem location relative to chassis
+    ChVector<> m_rel_loc;                        ///< suspension subsystem location relative to chassis
     std::shared_ptr<ChTrackWheel> m_road_wheel;  ///< road-wheel subsystem
     ChTrackAssembly* m_track;                    ///< containing track assembly
 

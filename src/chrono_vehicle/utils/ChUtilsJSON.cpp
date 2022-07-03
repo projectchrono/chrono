@@ -73,8 +73,8 @@
 #include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeShafts.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/SimpleTrackDriveline.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/TrackDrivelineBDS.h"
-#include "chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
-#include "chrono_vehicle/tracked_vehicle/idler/SingleIdler.h"
+#include "chrono_vehicle/tracked_vehicle/idler/TranslationalIdler.h"
+//#include "chrono_vehicle/tracked_vehicle/idler/DistanceIdler.h"
 #include "chrono_vehicle/tracked_vehicle/track_wheel/DoubleTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/track_wheel/SingleTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperSuspension.h"
@@ -675,10 +675,10 @@ std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
     std::string subtype = d["Template"].GetString();
 
     // Create the idler using the appropriate template.
-    if (subtype.compare("SingleIdler") == 0) {
-        idler = chrono_types::make_shared<SingleIdler>(d);
-    } else if (subtype.compare("DoubleIdler") == 0) {
-        idler = chrono_types::make_shared<DoubleIdler>(d);
+    if (subtype.compare("TranslationalIdler") == 0) {
+        idler = chrono_types::make_shared<TranslationalIdler>(d);
+    ////} else if (subtype.compare("DistanceIdler") == 0) {
+    ////    idler = chrono_types::make_shared<DistanceIdler>(d);
     } else {
         throw ChException("Idler type not supported in ReadIdlerJSON.");
     }

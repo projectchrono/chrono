@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2022 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,15 +12,15 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Single idler model constructed with data from file (JSON format).
+// Translational idler model constructed with data from file (JSON format).
 //
 // =============================================================================
 
-#ifndef SINGLE_IDLER_H
-#define SINGLE_IDLER_H
+#ifndef DOUBLE_IDLER_H
+#define DOUBLE_IDLER_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/idler/ChSingleIdler.h"
+#include "chrono_vehicle/tracked_vehicle/idler/ChTranslationalIdler.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -30,18 +30,12 @@ namespace vehicle {
 /// @addtogroup vehicle_tracked_idler
 /// @{
 
-/// Single idler model constructed with data from file (JSON format).
-class CH_VEHICLE_API SingleIdler : public ChSingleIdler {
+/// Double idler model constructed with data from file (JSON format).
+class CH_VEHICLE_API TranslationalIdler : public ChTranslationalIdler {
   public:
-    SingleIdler(const std::string& filename);
-    SingleIdler(const rapidjson::Document& d);
-    ~SingleIdler() {}
-
-    virtual double GetWheelRadius() const override { return m_wheel_radius; }
-    virtual double GetWheelWidth() const override { return m_wheel_width; }
-
-    virtual double GetWheelMass() const override { return m_wheel_mass; }
-    virtual const ChVector<>& GetWheelInertia() override { return m_wheel_inertia; }
+    TranslationalIdler(const std::string& filename);
+    TranslationalIdler(const rapidjson::Document& d);
+    ~TranslationalIdler() {}
 
     virtual double GetCarrierMass() const override { return m_carrier_mass; }
     virtual const ChVector<>& GetCarrierInertia() override { return m_carrier_inertia; }
@@ -56,16 +50,8 @@ class CH_VEHICLE_API SingleIdler : public ChSingleIdler {
     virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
-    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     ChVector<> m_points[NUM_POINTS];
-
-    double m_wheel_radius;
-    double m_wheel_width;
-
-    double m_wheel_mass;
-    ChVector<> m_wheel_inertia;
 
     double m_carrier_mass;
     ChVector<> m_carrier_inertia;
@@ -76,11 +62,6 @@ class CH_VEHICLE_API SingleIdler : public ChSingleIdler {
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_tensionerForceCB;
     double m_tensioner_l0;
-
-    bool m_has_mesh;
-    std::string m_meshFile;
-
-    MaterialInfo m_mat_info;
 };
 
 /// @} vehicle_tracked_idler

@@ -23,8 +23,8 @@
 
 #include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
 
-#include "chrono_vehicle/tracked_vehicle/idler/SingleIdler.h"
-#include "chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
+#include "chrono_vehicle/tracked_vehicle/idler/TranslationalIdler.h"
+//#include "chrono_vehicle/tracked_vehicle/idler/DistanceIdler.h"
 
 #include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperSuspension.h"
 

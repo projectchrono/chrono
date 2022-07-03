@@ -630,15 +630,15 @@ set(CV_TV_DRIVELINE_FILES
 source_group("tracked_vehicle\\driveline" FILES ${CV_TV_DRIVELINE_FILES})
 
 set(CV_TV_IDLER_FILES
-    tracked_vehicle/idler/ChSingleIdler.h
-    tracked_vehicle/idler/ChSingleIdler.cpp
-    tracked_vehicle/idler/ChDoubleIdler.h
-    tracked_vehicle/idler/ChDoubleIdler.cpp
+    tracked_vehicle/idler/ChTranslationalIdler.h
+    tracked_vehicle/idler/ChTranslationalIdler.cpp
+    #tracked_vehicle/idler/ChDistanceIdler.h
+    #tracked_vehicle/idler/ChDistanceIdler.cpp
 
-    tracked_vehicle/idler/SingleIdler.h
-    tracked_vehicle/idler/SingleIdler.cpp
-    tracked_vehicle/idler/DoubleIdler.h
-    tracked_vehicle/idler/DoubleIdler.cpp
+    tracked_vehicle/idler/TranslationalIdler.h
+    tracked_vehicle/idler/TranslationalIdler.cpp
+    #tracked_vehicle/idler/DistanceIdler.h
+    #tracked_vehicle/idler/DistanceIdler.cpp
 )
 source_group("tracked_vehicle\\idler" FILES ${CV_TV_IDLER_FILES})
 

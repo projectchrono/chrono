@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2022 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,16 +12,14 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Double idler model constructed with data from file (JSON format).
+// Translational idler model constructed with data from file (JSON format).
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/tracked_vehicle/idler/TranslationalIdler.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -30,7 +28,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-DoubleIdler::DoubleIdler(const std::string& filename) : ChDoubleIdler(""), m_has_mesh(false) {
+TranslationalIdler::TranslationalIdler(const std::string& filename) : ChTranslationalIdler("") {
     Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
@@ -40,22 +38,13 @@ DoubleIdler::DoubleIdler(const std::string& filename) : ChDoubleIdler(""), m_has
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-DoubleIdler::DoubleIdler(const rapidjson::Document& d) : ChDoubleIdler(""), m_has_mesh(false) {
+TranslationalIdler::TranslationalIdler(const rapidjson::Document& d) : ChTranslationalIdler("") {
     Create(d);
 }
 
-void DoubleIdler::Create(const rapidjson::Document& d) {
+void TranslationalIdler::Create(const rapidjson::Document& d) {
     // Invoke base class method.
     ChPart::Create(d);
-
-    // Read wheel geometry and mass properties
-    assert(d.HasMember("Wheel"));
-    m_wheel_radius = d["Wheel"]["Radius"].GetDouble();
-    m_wheel_width = d["Wheel"]["Width"].GetDouble();
-    m_wheel_gap = d["Wheel"]["Gap"].GetDouble();
-    m_wheel_mass = d["Wheel"]["Mass"].GetDouble();
-    m_wheel_inertia = ReadVectorJSON(d["Wheel"]["Inertia"]);
-    m_points[WHEEL] = ReadVectorJSON(d["Wheel"]["COM"]);
 
     // Read carrier geometry and mass properties
     assert(d.HasMember("Carrier"));
@@ -63,6 +52,7 @@ void DoubleIdler::Create(const rapidjson::Document& d) {
     m_carrier_inertia = ReadVectorJSON(d["Carrier"]["Inertia"]);
     m_points[CARRIER] = ReadVectorJSON(d["Carrier"]["COM"]);
     m_points[CARRIER_CHASSIS] = ReadVectorJSON(d["Carrier"]["Location Chassis"]);
+    m_points[CARRIER_WHEEL] = ReadVectorJSON(d["Carrier"]["Location Wheel"]);
     m_carrier_vis_radius = d["Carrier"]["Visualization Radius"].GetDouble();
     m_pitch_angle = d["Carrier"]["Pitch Angle"].GetDouble();
 
@@ -94,36 +84,11 @@ void DoubleIdler::Create(const rapidjson::Document& d) {
         m_tensionerForceCB = tensionerForceCB;
     }
 
-    // Read contact material data
-    assert(d.HasMember("Contact Material"));
-    m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
+    // Create the associated road-wheel
+    assert(d.HasMember("Idler Wheel Input File"));
 
-    // Read wheel visualization
-    if (d.HasMember("Visualization")) {
-        assert(d["Visualization"].HasMember("Mesh"));
-        m_meshFile = d["Visualization"]["Mesh"].GetString();
-        m_has_mesh = true;
-    }
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void DoubleIdler::CreateContactMaterial(ChContactMethod contact_method) {
-    m_material = m_mat_info.CreateMaterial(contact_method);
-}
-
-void DoubleIdler::AddVisualizationAssets(VisualizationType vis) {
-    ChDoubleIdler::AddVisualizationAssets(vis);
-
-    if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh =
-            geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
-        trimesh_shape->SetMutable(false);
-        m_wheel->AddVisualShape(trimesh_shape);
-    }
+    std::string file_name = d["Idler Wheel Input File"].GetString();
+    m_idler_wheel = ReadTrackWheelJSON(vehicle::GetDataFile(file_name));
 }
 
 }  // end namespace vehicle

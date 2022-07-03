@@ -84,7 +84,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
 
     CirclePosAll[1].x() = idler_pos_3d.x();
     CirclePosAll[1].y() = idler_pos_3d.z();
-    CircleRadiusAll[1] = m_idler->GetWheelRadius();
+    CircleRadiusAll[1] = m_idler->GetIdlerWheel()->GetWheelRadius();
 
     for (int i = 0; i < num_wheels; i++) {
         ChVector<> wheel_pos = chassis->TransformPointParentToLocal(m_suspensions[i]->GetWheelBody()->GetPos());

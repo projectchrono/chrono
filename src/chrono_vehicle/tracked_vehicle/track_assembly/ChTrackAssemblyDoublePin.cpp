@@ -92,7 +92,7 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     double shoe_pitch = m_shoes[0]->GetPitch();
     double shoe_height = m_shoes[0]->GetHeight();
     double sprocket_radius = m_sprocket->GetAssemblyRadius();
-    double idler_radius = m_idler->GetWheelRadius() + 0.9 * shoe_height;
+    double idler_radius = m_idler->GetIdlerWheel()->GetWheelRadius() + 0.9 * shoe_height;
     double wheel_radius = m_suspensions[0]->GetWheelRadius() + 1.1 * shoe_height;
 
     m_sprocket_offset = sprocket_pos_3d.y();

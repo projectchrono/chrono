@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2022 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,12 +12,12 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// M113 road wheel subsystem.
+// M113 idler wheel subsystem.
 //
 // =============================================================================
 
-#ifndef M113_ROAD_WHEEL_H
-#define M113_ROAD_WHEEL_H
+#ifndef M113_IDLER_WHEEL_H
+#define M113_IDLER_WHEEL_H
 
 #include <string>
 
@@ -34,24 +34,24 @@ namespace m113 {
 /// @addtogroup vehicle_models_m113
 /// @{
 
-/// Road-wheel model for the M113 vehicle (base class).
-class CH_MODELS_API M113_RoadWheel : public ChDoubleTrackWheel {
+/// Idler-wheel model for the M113 vehicle (base class).
+class CH_MODELS_API M113_IdlerWheel : public ChDoubleTrackWheel {
   public:
-    virtual ~M113_RoadWheel() {}
+    virtual ~M113_IdlerWheel() {}
 
-    /// Return the mass of the road wheel body.
+    /// Return the mass of the idler wheel body.
     virtual double GetWheelMass() const override { return m_wheel_mass; }
-    /// Return the moments of inertia of the road wheel body.
+    /// Return the moments of inertia of the idler wheel body.
     virtual const ChVector<>& GetWheelInertia() override { return m_wheel_inertia; }
-    /// Return the radius of the road wheel.
+    /// Return the radius of the idler wheel.
     virtual double GetWheelRadius() const override { return m_wheel_radius; }
-    /// Return the total width of the road wheel.
+    /// Return the total width of the idler wheel.
     virtual double GetWheelWidth() const override { return m_wheel_width; }
     /// Return the gap width.
     virtual double GetWheelGap() const override { return m_wheel_gap; }
 
   protected:
-    M113_RoadWheel(const std::string& name);
+    M113_IdlerWheel(const std::string& name);
 
     virtual VehicleSide GetVehicleSide() const = 0;
 
@@ -70,11 +70,11 @@ class CH_MODELS_API M113_RoadWheel : public ChDoubleTrackWheel {
     static const double m_wheel_gap;
 };
 
-/// Road-wheel model for the M113 vehicle (left side).
-class CH_MODELS_API M113_RoadWheelLeft : public M113_RoadWheel {
+/// Idler-wheel model for the M113 vehicle (left side).
+class CH_MODELS_API M113_IdlerWheelLeft : public M113_IdlerWheel {
   public:
-    M113_RoadWheelLeft(int index) : M113_RoadWheel("M113_RoadWheelLeft_" + std::to_string(index)) {}
-    ~M113_RoadWheelLeft() {}
+    M113_IdlerWheelLeft() : M113_IdlerWheel("M113_IdlerWheelLeft") {}
+    ~M113_IdlerWheelLeft() {}
 
     virtual VehicleSide GetVehicleSide() const override { return LEFT; }
 
@@ -84,11 +84,11 @@ class CH_MODELS_API M113_RoadWheelLeft : public M113_RoadWheel {
     static const std::string m_meshFile;
 };
 
-/// Road-wheel model for the M113 vehicle (right side).
-class CH_MODELS_API M113_RoadWheelRight : public M113_RoadWheel {
+/// Idler-wheel model for the M113 vehicle (right side).
+class CH_MODELS_API M113_IdlerWheelRight : public M113_IdlerWheel {
   public:
-    M113_RoadWheelRight(int index) : M113_RoadWheel("M113_RoadWheelRight_" + std::to_string(index)) {}
-    ~M113_RoadWheelRight() {}
+    M113_IdlerWheelRight() : M113_IdlerWheel("M113_IdlerWheelRight") {}
+    ~M113_IdlerWheelRight() {}
 
     virtual VehicleSide GetVehicleSide() const override { return RIGHT; }
 

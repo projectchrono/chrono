@@ -28,12 +28,8 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChDoubleTrackWheel::ChDoubleTrackWheel(const std::string& name) : ChTrackWheel(name) {}
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChDoubleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
                                     std::shared_ptr<ChBody> carrier,
                                     const ChVector<>& location,
@@ -53,9 +49,6 @@ void ChDoubleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_wheel->GetCollisionModel()->ClearModel();
 
-    m_wheel->GetCollisionModel()->SetFamily(TrackedCollisionFamily::WHEELS);
-    m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
-
     if (track->IsRoadwheelCylinder()) {
         m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2, ChVector<>(0, +offset, 0));
         m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2, ChVector<>(0, -offset, 0));
@@ -67,8 +60,6 @@ void ChDoubleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     m_wheel->GetCollisionModel()->BuildModel();
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChDoubleTrackWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;

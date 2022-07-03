@@ -26,11 +26,9 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
 ChTrackSuspension::ChTrackSuspension(const std::string& name, bool has_shock, bool lock_arm)
     : ChPart(name), m_has_shock(has_shock), m_lock_arm(lock_arm), m_track(nullptr) {}
 
-// -----------------------------------------------------------------------------
 void ChTrackSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
                                    const ChVector<>& location,
                                    ChTrackAssembly* track) {
@@ -39,15 +37,18 @@ void ChTrackSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
     m_track = track;
 
     m_road_wheel->Initialize(chassis, GetCarrierBody(), location, track);
+
+    // Set collision flags for the road wheel body
+    m_road_wheel->GetWheelBody()->GetCollisionModel()->SetFamily(TrackedCollisionFamily::WHEELS);
+    m_road_wheel->GetWheelBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(
+        TrackedCollisionFamily::IDLERS);
 }
 
-// -----------------------------------------------------------------------------
 void ChTrackSuspension::SetOutput(bool state) {
     m_output = state;
     m_road_wheel->SetOutput(state);
 }
 
-// -----------------------------------------------------------------------------
 void ChTrackSuspension::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);
 

@@ -16,10 +16,10 @@
 #include "chrono_vehicle/tracked_vehicle/sprocket/SprocketBand.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
-#include "chrono_vehicle/tracked_vehicle/idler/ChSingleIdler.h"
-#include "chrono_vehicle/tracked_vehicle/idler/ChDoubleIdler.h"
-#include "chrono_vehicle/tracked_vehicle/idler/SingleIdler.h"
-#include "chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
+#include "chrono_vehicle/tracked_vehicle/idler/ChTranslationalIdler.h"
+//#include "chrono_vehicle/tracked_vehicle/idler/ChDistanceIdler.h"
+#include "chrono_vehicle/tracked_vehicle/idler/TranslationalIdler.h"
+//#include "chrono_vehicle/tracked_vehicle/idler/DistanceIdler.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/track_wheel/ChSingleTrackWheel.h"
@@ -69,10 +69,10 @@
 %shared_ptr(chrono::vehicle::SprocketBand)
 
 %shared_ptr(chrono::vehicle::ChIdler)
-%shared_ptr(chrono::vehicle::ChSingleIdler)
-%shared_ptr(chrono::vehicle::ChDoubleIdler)
-%shared_ptr(chrono::vehicle::SingleIdler)
-%shared_ptr(chrono::vehicle::DoubleIdler)
+%shared_ptr(chrono::vehicle::ChTranslationalIdler)
+//%shared_ptr(chrono::vehicle::ChDistanceIdler)
+%shared_ptr(chrono::vehicle::TranslationalIdler)
+//%shared_ptr(chrono::vehicle::DistanceIdler)
 
 %shared_ptr(chrono::vehicle::ChTrackWheel)
 %shared_ptr(chrono::vehicle::ChSingleTrackWheel)
@@ -131,10 +131,10 @@
 
 %ignore chrono::vehicle::ChIdler::GetLocation;
 %include "../../../chrono_vehicle/tracked_vehicle/ChIdler.h"
-%include "../../../chrono_vehicle/tracked_vehicle/idler/ChSingleIdler.h"
-%include "../../../chrono_vehicle/tracked_vehicle/idler/ChDoubleIdler.h"
-%include "../../../chrono_vehicle/tracked_vehicle/idler/SingleIdler.h"
-%include "../../../chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
+%include "../../../chrono_vehicle/tracked_vehicle/idler/ChTranslationalIdler.h"
+//%include "../../../chrono_vehicle/tracked_vehicle/idler/ChDistanceIdler.h"
+%include "../../../chrono_vehicle/tracked_vehicle/idler/TranslationalIdler.h"
+//%include "../../../chrono_vehicle/tracked_vehicle/idler/DistanceIdler.h"
 
 %include "../../../chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_wheel/ChSingleTrackWheel.h"

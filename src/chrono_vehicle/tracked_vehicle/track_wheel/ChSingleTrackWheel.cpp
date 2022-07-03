@@ -28,12 +28,8 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChSingleTrackWheel::ChSingleTrackWheel(const std::string& name) : ChTrackWheel(name) {}
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChSingleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
                                     std::shared_ptr<ChBody> carrier,
                                     const ChVector<>& location,
@@ -52,9 +48,6 @@ void ChSingleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_wheel->GetCollisionModel()->ClearModel();
 
-    m_wheel->GetCollisionModel()->SetFamily(TrackedCollisionFamily::WHEELS);
-    m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
-
     if (track->IsRoadwheelCylinder()) {
         m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2);
     } else {
@@ -64,8 +57,6 @@ void ChSingleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     m_wheel->GetCollisionModel()->BuildModel();
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChSingleTrackWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
