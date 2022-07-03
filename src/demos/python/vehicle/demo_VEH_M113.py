@@ -47,7 +47,8 @@ def main():
     vehicle.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
     vehicle.SetSprocketVisualizationType(veh.VisualizationType_MESH);
     vehicle.SetIdlerVisualizationType(veh.VisualizationType_MESH);
-    vehicle.SetRoadWheelAssemblyVisualizationType(veh.VisualizationType_MESH);
+    vehicle.SetIdlerWheelVisualizationType(veh.VisualizationType_MESH);
+    vehicle.SetSuspensionVisualizationType(veh.VisualizationType_MESH);
     vehicle.SetRoadWheelVisualizationType(veh.VisualizationType_MESH);
     vehicle.SetTrackShoeVisualizationType(veh.VisualizationType_MESH);
 

@@ -200,8 +200,9 @@ int main(int argc, char* argv[]) {
     vehicle.SetTrackShoeVisualizationType(track_shoe_vis_type);
     vehicle.SetSprocketVisualizationType(sprocket_vis_type);
     vehicle.SetIdlerVisualizationType(idler_vis_type);
+    vehicle.SetIdlerWheelVisualizationType(idler_vis_type);
     vehicle.SetRoadWheelVisualizationType(road_wheel_vis_type);
-    vehicle.SetRoadWheelAssemblyVisualizationType(road_wheel_assembly_vis_type);
+    vehicle.SetSuspensionVisualizationType(road_wheel_assembly_vis_type);
 
     // Create and initialize the powertrain system
     auto powertrain = ReadPowertrainJSON(powertrain_file);

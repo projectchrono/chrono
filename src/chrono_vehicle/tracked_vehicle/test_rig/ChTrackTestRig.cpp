@@ -160,7 +160,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
 
     // Create and initialize the shaker post body
     auto num_wheels = m_track->GetNumRoadWheelAssemblies();
-    double rw_radius = m_track->GetRoadWheel(0)->GetWheelRadius();
+    double rw_radius = m_track->GetRoadWheel(0)->GetRadius();
 
     m_post_hheight = 0.05;
     m_post_radius = 0.9 * rw_radius;
@@ -171,14 +171,14 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
     // Find center height of the lowest road-wheel
     double zmin = 100;
     for (size_t i = 0; i < num_wheels; ++i) {
-        if (m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z() < zmin)
-            zmin = m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z();
+        if (m_track->GetRoadWheel(i)->GetBody()->GetPos().z() < zmin)
+            zmin = m_track->GetRoadWheel(i)->GetBody()->GetPos().z();
     }
     zmin -= create_track ? (rw_radius + m_track->GetTrackShoe(0)->GetHeight() + 0.2) : rw_radius;
 
     // Create posts and associated actuators under each road wheel
     for (size_t i = 0; i < num_wheels; ++i) {
-        auto post_pos = m_track->GetRoadWheel(i)->GetWheelBody()->GetPos();
+        auto post_pos = m_track->GetRoadWheel(i)->GetBody()->GetPos();
         post_pos.z() = zmin;
 
         auto post = std::shared_ptr<ChBody>(m_system->NewBody());
@@ -432,7 +432,7 @@ void ChTrackTestRig::CollectPlotData(double time) {
     *m_csv << m_track->GetIdler()->GetWheelBody()->GetPos();
 
     for (auto suspension : m_track->GetRoadWheelAssemblies()) {
-        *m_csv << suspension->GetRoadWheel()->GetWheelBody()->GetPos();
+        *m_csv << suspension->GetRoadWheel()->GetBody()->GetPos();
         //// TODO: spring and shock forces
     }
 

@@ -98,7 +98,8 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
         vehicle->SetChassisVisualizationType(VisualizationType::MESH);
         vehicle->SetSprocketVisualizationType(VisualizationType::MESH);
         vehicle->SetIdlerVisualizationType(VisualizationType::MESH);
-        vehicle->SetRoadWheelAssemblyVisualizationType(VisualizationType::MESH);
+        vehicle->SetSuspensionVisualizationType(VisualizationType::MESH);
+        vehicle->SetIdlerWheelVisualizationType(VisualizationType::MESH);
         vehicle->SetRoadWheelVisualizationType(VisualizationType::MESH);
         vehicle->SetTrackShoeVisualizationType(VisualizationType::MESH);
 

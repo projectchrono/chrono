@@ -82,7 +82,8 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     m_m113->SetChassisVisualizationType(VisualizationType::NONE);
     m_m113->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     m_m113->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
-    m_m113->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    m_m113->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    m_m113->SetIdlerWheelVisualizationType(VisualizationType::PRIMITIVES);
     m_m113->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     m_m113->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
