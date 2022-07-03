@@ -164,7 +164,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
         ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
         ChQuaternion<> rot = m_shoe->GetRot() * z2y;
         auto bushing = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_shoe, m_web_segments[0],
+            ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[0], m_shoe,
             ChCoordsys<>(loc, rot), GetBushingData());
         chassis->AddJoint(bushing);
         m_web_bushings.push_back(bushing->GetAsBushing());
@@ -175,8 +175,8 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
         ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
         ChQuaternion<> rot = m_web_segments[is]->GetRot() * z2y;
         auto bushing = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[is],
-            m_web_segments[is + 1], ChCoordsys<>(loc, rot), GetBushingData());
+            ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[is + 1],
+            m_web_segments[is], ChCoordsys<>(loc, rot), GetBushingData());
         chassis->AddJoint(bushing);
         m_web_bushings.push_back(bushing->GetAsBushing());
     }
@@ -187,11 +187,15 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
         ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
         ChQuaternion<> rot = m_web_segments[is]->GetRot() * z2y;
         auto bushing = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[is],
-            next->GetShoeBody(), ChCoordsys<>(loc, rot), GetBushingData());
+            ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), next->GetShoeBody(),
+            m_web_segments[is], ChCoordsys<>(loc, rot), GetBushingData());
         chassis->AddJoint(bushing);
         m_web_bushings.push_back(bushing->GetAsBushing());
     }
+}
+
+ChVector<> ChTrackShoeBandBushing::GetTension() const {
+    return m_web_bushings[0]->GetForce();
 }
 
 // -----------------------------------------------------------------------------

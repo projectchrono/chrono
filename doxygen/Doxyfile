@@ -870,7 +870,6 @@ EXCLUDE                = ../src/chrono/collision/bullet \
                          ../src/chrono/collision/convexdecomposition \
                          ../src/chrono/collision/gimpact \
                          ../src/chrono/collision/edgetempest \
-                         ../src/chrono_matlab \
                          ../src/chrono_thirdparty \
                          ../src/chrono_synchrono/flatbuffer/message/SynFlatBuffers_generated.h \
                          ../src/chrono_synchrono/README.md \

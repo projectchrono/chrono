@@ -58,7 +58,11 @@ std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json"
 ////std::string filename("M113/track_assembly/M113_TrackAssemblyDoublePin_Left.json");
 
 TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
-bool add_track_RSDA = true;
+DoublePinTrackShoeType shoe_topology = DoublePinTrackShoeType::ONE_CONNECTOR;
+
+bool use_track_bushings = false;
+bool use_suspension_bushings = false;
+bool use_track_RSDA = true;
 
 // Specification of test rig inputs
 enum class DriverMode {
@@ -234,13 +238,13 @@ int main(int argc, char* argv[]) {
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (shoe_type) {
             case TrackShoeType::SINGLE_PIN: {
-                track_assembly =
-                    chrono_types::make_shared<M113_TrackAssemblySinglePin>(side, brake_type, add_track_RSDA);
+                track_assembly = chrono_types::make_shared<M113_TrackAssemblySinglePin>(
+                    side, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA);
                 break;
             }
             case TrackShoeType::DOUBLE_PIN: {
-                track_assembly =
-                    chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side, brake_type, add_track_RSDA);
+                track_assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(
+                    side, shoe_topology, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA);
                 break;
             }
             default:

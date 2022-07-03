@@ -24,6 +24,8 @@
 
 #include <numeric>
 
+#include "chrono/core/ChRealtimeStep.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
@@ -128,6 +130,14 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Get the global location of the driver.
     ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
+
+    /// Enable/disable soft real-time (default: true).
+    /// If enabled, a spinning timer is used to maintain simulation time in sync with real time (if simulation is faster).
+    void EnableRealtime(bool val) { m_realtime_force = val; }
+
+    /// Get current estimated RTF (real time factor).
+    /// This value is not calculated if soft real-time is disabled. 
+    double GetRTF() const { return m_realtime_timer.RTF; }
 
     /// Change the default collision detection system.
     /// Note that this function should be called *before* initialization of the vehicle system in order to create
@@ -244,6 +254,8 @@ class CH_VEHICLE_API ChVehicle {
 
   private:
     bool m_initialized;
+    bool m_realtime_force;
+    ChRealtimeStepTimer m_realtime_timer;
 
     friend class ChVehicleCosimVehicleNode;
 };

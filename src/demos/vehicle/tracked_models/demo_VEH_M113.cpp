@@ -17,9 +17,9 @@
 // =============================================================================
 
 #include <sstream>
+#include <iomanip>
 
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/solver/ChIterativeSolverVI.h"
@@ -28,7 +28,9 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
@@ -57,19 +59,23 @@ using std::endl;
 // =============================================================================
 
 TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
+DoublePinTrackShoeType shoe_topology = DoublePinTrackShoeType::ONE_CONNECTOR;
 BrakeType brake_type = BrakeType::SIMPLE;
 DrivelineTypeTV driveline_type = DrivelineTypeTV::BDS;
 PowertrainModelType powertrain_type = PowertrainModelType::SHAFTS;
+
+bool use_track_bushings = false;
+bool use_suspension_bushings = false;
+bool use_track_RSDA = false;
 
 // Initial vehicle position
 ChVector<> initLoc(-40, 0, 0.8);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
-// ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
-// ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
-// ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
-// ChQuaternion<> initRot(0, 0, 0, 1);
+////ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
+////ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
+////ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
@@ -79,13 +85,16 @@ double terrainWidth = 100.0;   // size in Y direction
 // Specification of vehicle inputs
 enum class DriverMode {
     KEYBOARD,  // interactive (Irrlicht) driver
-    DATAFILE   // inputs from data file
+    DATAFILE,  // inputs from data file
+    PATH       // drives in a straight line
 };
 std::string driver_file("M113/driver/Acceleration2.txt");  // used for mode=DATAFILE
-DriverMode driver_mode = DriverMode::DATAFILE;
+double target_speed = 5;                                   // used for mode=PATH
+
+DriverMode driver_mode = DriverMode::PATH;
 
 // Contact formulation (NSC or SMC)
-ChContactMethod contact_method = ChContactMethod::SMC;
+ChContactMethod contact_method = ChContactMethod::NSC;
 
 // Simulation step size
 double step_size_NSC = 1e-3;
@@ -93,6 +102,7 @@ double step_size_SMC = 5e-4;
 
 // Solver and integrator types
 ////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
+////ChSolver::Type slvr_type = ChSolver::Type::APGD;
 ////ChSolver::Type slvr_type = ChSolver::Type::PSOR;
 ////ChSolver::Type slvr_type = ChSolver::Type::MINRES;
 ////ChSolver::Type slvr_type = ChSolver::Type::GMRES;
@@ -256,9 +266,67 @@ void ReportTiming(ChSystem& sys) {
     std::cout << ss.str() << std::endl;
 }
 
+void ReportConstraintViolation(ChSystem& sys, double threshold = 1e-3) {
+    Eigen::Index imax = 0;
+    double vmax = 0;
+    std::string nmax = "";
+    for (auto joint : sys.Get_linklist()) {
+        if (joint->GetConstraintViolation().size() == 0)
+            continue;
+        Eigen::Index cimax;
+        auto cmax = joint->GetConstraintViolation().maxCoeff(&cimax);
+        if (cmax > vmax) {
+            vmax = cmax;
+            imax = cimax;
+            nmax = joint->GetNameString();
+        }
+    }
+    if (vmax > threshold)
+        std::cout << vmax << "  in  " << nmax << " [" << imax << "]" << std::endl;
+}
+
+bool ReportTrackFailure(ChTrackedVehicle& veh, double threshold = 1e-2) {
+    for (int i = 0; i < 2; i++) {
+        auto track = veh.GetTrackAssembly(VehicleSide(i));
+        auto nshoes = track->GetNumTrackShoes();
+        auto shoe1 = track->GetTrackShoe(0).get();
+        for (int j = 1; j < nshoes; j++) {
+            auto shoe2 = track->GetTrackShoe(j % (nshoes - 1)).get();
+            auto dir = shoe2->GetShoeBody()->TransformDirectionParentToLocal(shoe2->GetTransform().GetPos() -
+                                                                             shoe1->GetTransform().GetPos());
+            if (std::abs(dir.y()) > threshold) {
+                std::cout << "...Track " << i << " broken between shoes " << j - 1 << " and " << j << std::endl;
+                std::cout << "time " << veh.GetChTime() << std::endl;
+                std::cout << "shoe " << j - 1 << " position: " << shoe1->GetTransform().GetPos() << std::endl;
+                std::cout << "shoe " << j << " position: " << shoe2->GetTransform().GetPos() << std::endl;
+                std::cout << "Lateral offset: " << dir.y() << std::endl;
+                return true;
+            }
+            shoe1 = shoe2;
+        }
+    }
+    return false;
+}
+
 // =============================================================================
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
+    // Compatibility checks
+    if (use_track_bushings || use_suspension_bushings) {
+        if (contact_method == ChContactMethod::NSC) {
+            cout << "The NSC iterative solvers cannot be used if bushings are present." << endl;
+            return 1;
+        }
+    }
+    
+    if (shoe_type == TrackShoeType::DOUBLE_PIN && shoe_topology == DoublePinTrackShoeType::TWO_CONNECTORS) {
+        if (!use_track_bushings) {
+            cout << "Double-pin two-connector track shoes must use bushings." << endl;
+            return 1;
+        }
+    }
 
     // --------------------------
     // Construct the M113 vehicle
@@ -274,6 +342,10 @@ int main(int argc, char* argv[]) {
     m113.SetContactMethod(contact_method);
     m113.SetCollisionSystemType(collsys_type);
     m113.SetTrackShoeType(shoe_type);
+    m113.SetDoublePinTrackShoeType(shoe_topology);
+    m113.SetTrackBushings(use_track_bushings);
+    m113.SetSuspensionBushings(use_suspension_bushings);
+    m113.SetTrackStiffness(use_track_RSDA);
     m113.SetDrivelineType(driveline_type);
     m113.SetBrakeType(brake_type);
     m113.SetPowertrainType(powertrain_type);
@@ -465,7 +537,6 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    m113.GetVehicle().SetVisualSystem(vis);
 
     // ------------------------
     // Create the driver system
@@ -490,9 +561,25 @@ int main(int argc, char* argv[]) {
             driver = data_driver;
             break;
         }
+        case DriverMode::PATH: {
+            auto endLoc = initLoc + initRot.Rotate(ChVector<>(terrainLength,0,0));
+            auto path = chrono::vehicle::StraightLinePath(initLoc, endLoc, 50);
+            auto path_driver = std::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
+            path_driver->GetSteeringController().SetLookAheadDistance(5.0);
+            path_driver->GetSteeringController().SetGains(0.5, 0, 0);
+            path_driver->GetSpeedController().SetGains(0.6, 0.3, 0);
+            driver = path_driver;
+        }
     }
 
     driver->Initialize();
+
+    std::cout << "Track shoe type: " << vehicle.GetTrackShoe(LEFT, 0)->GetTemplateName() << std::endl;
+    std::cout << "Driveline type:  " << vehicle.GetDriveline()->GetTemplateName() << std::endl;
+    std::cout << "Powertrain type: " << m113.GetPowertrain()->GetTemplateName() << std::endl;
+    std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
+
+    m113.GetVehicle().SetVisualSystem(vis);
 
     // -----------------
     // Initialize output
@@ -571,7 +658,6 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    ChRealtimeStepTimer realtime_timer;
     while (vis->Run()) {
         // Debugging output
         if (dbg_output) {
@@ -653,6 +739,11 @@ int main(int argc, char* argv[]) {
 
         ////ReportTiming(*m113.GetSystem());
 
+        if (ReportTrackFailure(vehicle, 0.1)) {
+            ReportConstraintViolation(*m113.GetSystem());
+            break;
+        }
+
         // Report if the chassis experienced a collision
         if (vehicle.IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
             std::cout << time << "  chassis contact" << std::endl;
@@ -660,9 +751,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     vehicle.WriteContacts(out_dir + "/M113_contacts.out");

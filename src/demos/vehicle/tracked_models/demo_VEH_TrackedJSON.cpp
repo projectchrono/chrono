@@ -24,7 +24,6 @@
 #include <vector>
 
 #include "chrono/core/ChStream.h"
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/solver/ChIterativeSolverLS.h"
@@ -40,6 +39,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
@@ -57,6 +57,9 @@
 using namespace chrono;
 using namespace chrono::vehicle;
 
+using std::cout;
+using std::endl;
+
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
@@ -73,7 +76,6 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 ////ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
 ////ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
 ////ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
-////ChQuaternion<> initRot(0, 0, 0, 1);
 
 // JSON files for terrain (rigid plane)
 std::string rigidterrain_file("terrain/RigidPlane.json");
@@ -97,17 +99,17 @@ double step_size_NSC = 1e-3;
 double step_size_SMC = 5e-4;
 
 // Solver and integrator types
-ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
+////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
 ////ChSolver::Type slvr_type = ChSolver::Type::PSOR;
 ////ChSolver::Type slvr_type = ChSolver::Type::MINRES;
 ////ChSolver::Type slvr_type = ChSolver::Type::GMRES;
 ////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_LU;
 ////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_QR;
-////ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
+ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
 ////ChSolver::Type slvr_type = ChSolver::Type::MUMPS;
 
-ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
 ////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT;
 ////ChTimestepper::Type intgr_type = ChTimestepper::Type::HHT;
 
@@ -245,6 +247,48 @@ void ReportTiming(ChSystem& sys) {
     std::cout << ss.str() << std::endl;
 }
 
+void ReportConstraintViolation(ChSystem& sys, double threshold = 1e-3) {
+    Eigen::Index imax = 0;
+    double vmax = 0;
+    std::string nmax = "";
+    for (auto joint : sys.Get_linklist()) {
+        if (joint->GetConstraintViolation().size() == 0)
+            continue;
+        Eigen::Index cimax;
+        auto cmax = joint->GetConstraintViolation().maxCoeff(&cimax);
+        if (cmax > vmax) {
+            vmax = cmax;
+            imax = cimax;
+            nmax = joint->GetNameString();
+        }
+    }
+    if (vmax > threshold)
+        std::cout << vmax << "  in  " << nmax << " [" << imax << "]" << std::endl;
+}
+
+bool ReportTrackFailure(ChTrackedVehicle& veh, double threshold = 1e-2) {
+    for (int i = 0; i < 2; i++) {
+        auto track = veh.GetTrackAssembly(VehicleSide(i));
+        auto nshoes = track->GetNumTrackShoes();
+        auto shoe1 = track->GetTrackShoe(0).get();
+        for (int j = 1; j < nshoes; j++) {
+            auto shoe2 = track->GetTrackShoe(j % (nshoes - 1)).get();
+            auto dir = shoe2->GetShoeBody()->TransformDirectionParentToLocal(shoe2->GetTransform().GetPos() -
+                                                                             shoe1->GetTransform().GetPos());
+            if (std::abs(dir.y()) > threshold) {
+                std::cout << "...Track " << i << " broken between shoes " << j - 1 << " and " << j << std::endl;
+                std::cout << "time " << veh.GetChTime() << std::endl;
+                std::cout << "shoe " << j - 1 << " position: " << shoe1->GetTransform().GetPos() << std::endl;
+                std::cout << "shoe " << j << " position: " << shoe2->GetTransform().GetPos() << std::endl;
+                std::cout << "Lateral offset: " << dir.y() << std::endl;
+                return true;
+            }
+            shoe1 = shoe2;
+        }
+    }
+    return false;
+}
+
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -319,6 +363,14 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
     terrain.Initialize();
+
+    // Compatibility checks
+    if (vehicle.HasBushings()) {
+        if (contact_method == ChContactMethod::NSC) {
+            cout << "The NSC iterative solvers cannot be used if bushings are present." << endl;
+            return 1;
+        }
+    }
 
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("JSON Tracked Vehicle Demo");
@@ -409,7 +461,6 @@ int main(int argc, char* argv[]) {
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
 
-    ChRealtimeStepTimer realtime_timer;
     while (vis->Run()) {
         if (step_number % render_steps == 0) {
             // Render scene
@@ -438,11 +489,13 @@ int main(int argc, char* argv[]) {
 
         ////ReportTiming(*vehicle.GetSystem());
 
+        if (ReportTrackFailure(vehicle, 0.1)) {
+            ReportConstraintViolation(*vehicle.GetSystem());
+            break;
+        }
+
         // Increment frame number
         step_number++;
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     return 0;
