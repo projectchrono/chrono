@@ -19,7 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -135,7 +134,7 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize();
 
-    ////auto truss_mesh = chrono_types::make_shared<ChObjShapeFile>();
+    ////auto truss_mesh = chrono_types::make_shared<ChObjFileShape>();
     ////truss_mesh->SetFilename(GetChronoDataFile("vehicle/gator/gator_chassis.obj"));
     ////patch->GetGroundBody()->AddVisualShape(truss_mesh, ChFrame<>(ChVector<>(-10, -2, 3)));
 
@@ -201,7 +200,7 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    ChRealtimeStepTimer realtime_timer;
+    gator.GetVehicle().EnableRealtime(true);
     while (vis->Run()) {
         double time = gator.GetSystem()->GetChTime();
 
@@ -221,7 +220,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Get driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
@@ -237,9 +236,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     return 0;

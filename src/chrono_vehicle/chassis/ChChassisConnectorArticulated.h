@@ -53,8 +53,8 @@ class CH_VEHICLE_API ChChassisConnectorArticulated : public ChChassisConnector {
     /// The connector subsystem is provided the current steering driver input (a value between -1 and +1).
     /// Positive steering input indicates steering to the left.
     /// This connector uses the steering input to control the angle in the underlying rotational motor.
-    virtual void Synchronize(double time,     ///< [in] current time
-                             double steering  ///< [in] current steering input [-1,+1]
+    virtual void Synchronize(double time,                           ///< [in] current time
+                             const DriverInputs& driver_inputs  ///< [in] current driver inputs
                              ) override;
 
   protected:

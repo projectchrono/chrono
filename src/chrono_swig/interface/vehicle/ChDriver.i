@@ -77,7 +77,6 @@
 #endif             // --------------------------------------------------------------------- PYTHON
 
 
-%rename(DriverInputs) chrono::vehicle::ChDriver::Inputs;
 %rename(DataDriverEntry) chrono::vehicle::ChDataDriver::Entry;
 %template(vector_Entry) std::vector< chrono::vehicle::ChDataDriver::Entry >;
 

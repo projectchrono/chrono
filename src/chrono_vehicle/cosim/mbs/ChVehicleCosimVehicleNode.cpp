@@ -176,7 +176,7 @@ void ChVehicleCosimVehicleNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> f
 void ChVehicleCosimVehicleNode::PreAdvance() {
     // Synchronize vehicle systems
     double time = m_vehicle->GetChTime();
-    ChDriver::Inputs driver_inputs;
+    DriverInputs driver_inputs;
     if (m_driver) {
         driver_inputs = m_driver->GetInputs();
         m_driver->Synchronize(time);

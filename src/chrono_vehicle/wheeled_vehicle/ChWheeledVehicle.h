@@ -23,7 +23,6 @@
 #define CH_WHEELED_VEHICLE_H
 
 #include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSubchassis.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
@@ -196,9 +195,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
     /// braking between 0 and 1), and a reference to the terrain system.
-    virtual void Synchronize(double time,                            ///< [in] current time
-                             const ChDriver::Inputs& driver_inputs,  ///< [in] current driver inputs
-                             const ChTerrain& terrain                ///< [in] reference to the terrain system
+    virtual void Synchronize(double time,                        ///< [in] current time
+                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
+                             const ChTerrain& terrain            ///< [in] reference to the terrain system
     );
 
     /// Advance the state of this vehicle by the specified time step.

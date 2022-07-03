@@ -95,6 +95,9 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// Clear all data.
     virtual void Clear() override;
 
+    /// Compute bounding box along the directions defined by the given rotation matrix.
+    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
+
     /// Compute barycenter, mass, inertia tensor.
     void ComputeMassProperties(bool bodyCoords, double& mass, ChVector<>& center, ChMatrix33<>& inertia);
 

@@ -96,7 +96,7 @@ class IrrAppWrapper {
   public:
     IrrAppWrapper(std::shared_ptr<ChWheeledVehicleVisualSystemIrrlicht> app = nullptr) : m_app(app) {}
 
-    void Synchronize(const std::string& msg, const ChDriver::Inputs& driver_inputs) {
+    void Synchronize(const std::string& msg, const DriverInputs& driver_inputs) {
         if (m_app)
             m_app->Synchronize(msg, driver_inputs);
     }
@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
             app.Render();
 
         // Get driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         syn_manager.Synchronize(time);  // Synchronize between nodes

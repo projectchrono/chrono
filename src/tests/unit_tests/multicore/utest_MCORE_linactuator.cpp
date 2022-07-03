@@ -298,7 +298,8 @@ TEST_P(ChLinActuatorTest, simulate) {
     if (animate) {
 #ifdef CHRONO_OPENGL
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "", msystem);
+        gl_window.AttachSystem(msystem);
+        gl_window.Initialize(1280, 720, "");
         gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
         gl_window.SetRenderMode(opengl::WIREFRAME);
 

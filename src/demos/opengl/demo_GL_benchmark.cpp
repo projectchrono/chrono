@@ -58,7 +58,8 @@ int main(int argc, char* argv[]) {
 
     // Render everything
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "benchmarkOpenGL", &msystem);
+    gl_window.AttachSystem(&msystem);
+    gl_window.Initialize(1280, 720, "benchmarkOpenGL");
     gl_window.SetCamera(ChVector<>(-50, -50, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
     
     std::function<void()> step_iter = [&]() {

@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "Compressibility_I2SPH",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,
@@ -34,7 +31,6 @@
     "Fluid time step":               0.002,
     "Solid time step":               0.002,
     "Maximum time step":             0.01,
-    "End time":                      1.0,
     "Write frame per second":        20
   },
 

@@ -38,7 +38,8 @@ ChSystemSMC::ChSystemSMC(bool use_material_properties)
       m_contact_model(Hertz),
       m_adhesion_model(AdhesionForceModel::Constant),
       m_tdispl_model(OneStep),
-      m_stiff_contact(false) {
+      m_stiff_contact(false),
+      m_force_algo(new ChDefaultContactForceSMC) {
     descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
     SetSolverType(ChSolver::Type::PSOR);
@@ -70,7 +71,9 @@ void ChSystemSMC::SetSlipVelocityThreshold(double vel) {
     m_minSlipVelocity = std::max(vel, std::numeric_limits<double>::epsilon());
 }
 
-// STREAMING - FILE HANDLING
+void ChSystemSMC::SetContactForceAlgorithm(std::unique_ptr<ChContactForceSMC>&& algorithm) {
+    m_force_algo = std::move(algorithm);
+}
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
 // enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
@@ -119,7 +122,7 @@ void ChSystemSMC::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChSystemSMC::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSystemSMC>();
+    /*int version =*/marchive.VersionRead<ChSystemSMC>();
 
     // deserialize parent class
     ChSystem::ArchiveIN(marchive);

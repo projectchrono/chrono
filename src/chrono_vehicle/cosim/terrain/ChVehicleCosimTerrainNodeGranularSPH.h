@@ -73,8 +73,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     ChSystemSMC* m_system;          ///< containing system
     fsi::ChSystemFsi* m_systemFSI;  ///< containing FSI system
 
-    std::shared_ptr<fsi::SimParams> m_params;  ///< FSI parameters
-    double m_depth;                            ///< SPH soil depth
+    double m_depth;  ///< SPH soil depth
 
     double m_radius_g;  ///< radius of one particle of granular material
     double m_rho_g;     ///< particle material density

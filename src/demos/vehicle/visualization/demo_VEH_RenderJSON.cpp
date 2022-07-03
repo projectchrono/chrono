@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     auto vehicle = CreateVehicle(&sys, is_wheeled);
 
     // (Constant) driver inputs
-    ChDriver::Inputs driver_inputs;
+    DriverInputs driver_inputs;
     driver_inputs.m_braking = 1;
     driver_inputs.m_steering = 0;
     driver_inputs.m_throttle = 0;
@@ -186,7 +186,8 @@ int main(int argc, char* argv[]) {
     // Initialize OpenGL
     double factor = (is_wheeled ? 3.0 : 5.0);
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "JSON visualization", &sys);
+    gl_window.AttachSystem(&sys);
+    gl_window.Initialize(1280, 720, "JSON visualization");
     gl_window.SetCamera(factor * ChVector<>(-1, -1, 0.75), ChVector<>(0, 0, 0.5), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::SOLID);
     gl_window.EnableHUD(false);

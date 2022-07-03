@@ -20,6 +20,7 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 
 #include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChObjFileShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
@@ -31,7 +32,7 @@ namespace chrono {
 namespace vehicle {
 
 ChVehicleGeometry::ChVehicleGeometry()
-    : m_has_primitives(false), m_has_mesh(false), m_has_collision(false), m_has_colors(false) {}
+    : m_has_primitives(false), m_has_obj(false), m_has_mesh(false), m_has_collision(false), m_has_colors(false) {}
 
 void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -40,6 +41,13 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
     if (!body->GetVisualModel()) {
         auto model = chrono_types::make_shared<ChVisualModel>();
         body->AddVisualModel(model);
+    }
+
+    if (vis == VisualizationType::MESH && m_has_obj) {
+        auto obj_shape = chrono_types::make_shared<ChObjFileShape>();
+        obj_shape->SetFilename(vehicle::GetDataFile(m_vis_mesh_file));
+        body->AddVisualShape(obj_shape, ChFrame<>());
+        return;
     }
 
     if (vis == VisualizationType::MESH && m_has_mesh) {

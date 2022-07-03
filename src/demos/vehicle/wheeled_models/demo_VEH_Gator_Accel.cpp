@@ -19,7 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -144,7 +143,7 @@ int main(int argc, char* argv[]) {
     // Initialize simulation frame counters
     int step_number = 0;
 
-    ChRealtimeStepTimer realtime_timer;
+    gator.GetVehicle().EnableRealtime(true);
     while (vis->Run()) {
         double time = gator.GetSystem()->GetChTime();
 
@@ -154,7 +153,7 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         // Get driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
         if (gator.GetVehicle().GetPos().x() > 4) {
             driver_inputs.m_braking = 1;
             driver_inputs.m_throttle = 0;
@@ -174,9 +173,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     return 0;

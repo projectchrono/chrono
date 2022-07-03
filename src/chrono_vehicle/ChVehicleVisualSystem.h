@@ -52,7 +52,7 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     void SetChaseCameraMultipliers(double minMult, double maxMult);
 
     /// Update information related to driver inputs.
-    virtual void Synchronize(const std::string& msg, const ChDriver::Inputs& driver_inputs);
+    virtual void Synchronize(const std::string& msg, const DriverInputs& driver_inputs);
 
   protected:
     virtual void OnAttachToVehicle();

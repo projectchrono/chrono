@@ -395,7 +395,8 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_OPENGL
     // Initialize OpenGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "M113", system);
+    gl_window.AttachSystem(system);
+    gl_window.Initialize(1280, 720, "M113");
     gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::WIREFRAME);
 #endif
@@ -419,7 +420,7 @@ int main(int argc, char* argv[]) {
 
     while (time < time_end) {
         // Collect output data from modules
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
         m113.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
         m113.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
 

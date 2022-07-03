@@ -19,7 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -322,7 +321,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Simulation loop
-    ChRealtimeStepTimer realtime_timer;
+    vehicle.EnableRealtime(true);
     while (vis->Run()) {
         // Render scene
         vis->BeginScene();
@@ -330,14 +329,14 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         // Get driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         if (add_trailer)
-            trailer->Synchronize(time, driver_inputs.m_braking, terrain);
+            trailer->Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
         vis->Synchronize(vehicle_model.ModelName(), driver_inputs);
 
@@ -348,9 +347,6 @@ int main(int argc, char* argv[]) {
             trailer->Advance(step_size);
         terrain.Advance(step_size);
         vis->Advance(step_size);
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     return 0;

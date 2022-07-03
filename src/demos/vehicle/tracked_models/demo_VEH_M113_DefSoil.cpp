@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect output data from modules
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
         m113.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
         m113.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
 

@@ -73,7 +73,7 @@ void ChTrackedVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powert
 // forces on the track shoes (expressed in the global reference frame).
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::Synchronize(double time,
-                                   const ChDriver::Inputs& driver_inputs,
+                                   const DriverInputs& driver_inputs,
                                    const TerrainForces& shoe_forces_left,
                                    const TerrainForces& shoe_forces_right) {
     // Let the driveline combine driver inputs if needed.
@@ -91,15 +91,15 @@ void ChTrackedVehicle::Synchronize(double time,
         // Extract the torque from the powertrain.
         powertrain_torque = m_powertrain->GetOutputTorque();
         // Synchronize the associated powertrain system (pass throttle input).
-        m_powertrain->Synchronize(time, driver_inputs.m_throttle, m_driveline->GetDriveshaft()->GetPos_dt());
+        m_powertrain->Synchronize(time, driver_inputs, m_driveline->GetDriveshaft()->GetPos_dt());
     }
 
     // Apply powertrain torque to the driveline's input shaft.
-    m_driveline->Synchronize(driver_inputs.m_steering, powertrain_torque);
+    m_driveline->Synchronize(time, driver_inputs, powertrain_torque);
 
     // Pass the steering input to any chassis connectors (in case one of them is actuated).
     for (auto& connector : m_chassis_connectors) {
-        connector->Synchronize(time, driver_inputs.m_steering);
+        connector->Synchronize(time, driver_inputs);
     }
 
     m_chassis->Synchronize(time);

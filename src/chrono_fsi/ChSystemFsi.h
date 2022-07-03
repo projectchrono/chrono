@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu, Radu Serban
 // =============================================================================
 //
 // Implementation of FSI system that includes all subclasses for proximity and
@@ -20,16 +20,13 @@
 #ifndef CH_SYSTEM_FSI_H
 #define CH_SYSTEM_FSI_H
 
+#include <thrust/host_vector.h>
+
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono_fsi/physics/ChBce.cuh"
-#include "chrono_fsi/physics/ChFluidDynamics.cuh"
-#include "chrono_fsi/physics/ChFsiGeneral.h"
-#include "chrono_fsi/ChFsiInterface.h"
-#include "chrono_fsi/ChFsiDefines.h"
-#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
+#include "chrono_fsi/ChApiFsi.h"
+#include "chrono_fsi/ChDefinitionsFsi.h"
 
 namespace chrono {
 
@@ -39,11 +36,17 @@ class ChNodeFEAxyzD;
 class ChMesh;
 class ChElementCableANCF;
 class ChElementShellANCF_3423;
-}
+}  // namespace fea
 
 namespace fsi {
 
 class ChSystemFsi_impl;
+class ChFsiInterface;
+class ChFluidDynamics;
+class ChBce;
+struct SimParams;
+struct ChCounters;
+struct Real4;
 
 /// @addtogroup fsi_physics
 /// @{
@@ -51,194 +54,175 @@ class ChSystemFsi_impl;
 /// @brief Physical system for fluid-solid interaction problems.
 ///
 /// This class is used to represent fluid-solid interaction problems consisting of fluid dynamics and multibody system.
-/// Each of the two underlying physics is an independent object owned and instantiated by this class. Additionally, the
-/// FSI system owns other objects to handle the interface between the two systems, boundary condition enforcing markers,
-/// and data.
+/// Each of the two underlying physics is an independent object owned and instantiated by this class. The FSI system
+/// owns other objects to handle the interface between the two systems, boundary condition enforcing markers, and data.
 class CH_FSI_API ChSystemFsi {
   public:
+    /// Output mode.
+    enum class OutpuMode {
+        CSV,   ///< comma-separated value
+        CHPF,  ///< binary
+        NONE   ///< none
+    };
+
+    /// Structure with elastic material properties.
+    /// Used if solving an SPH continuum representation of granular dynamics.
+    struct ElasticMaterialProperties {
+        double Young_modulus;     ///< Young's modulus
+        double Poisson_ratio;     ///< Poisson's ratio
+        double stress;            ///< Artifical stress
+        double viscosity_alpha;   ///< Artifical viscosity coefficient
+        double viscosity_beta;    ///< Artifical viscosity coefficient
+        double mu_I0;             ///< Reference Inertia number
+        double mu_fric_s;         ///< friction mu_s
+        double mu_fric_2;         ///< mu_2 constant in mu=mu(I)
+        double average_diam;      ///< average particle diameter
+        double friction_angle;    ///< Frictional angle of granular material
+        double dilation_angle;    ///< Dilate angle of granular material
+        double cohesion_coeff;    ///< Cohesion coefficient
+        double kernel_threshold;  ///< Threshold of the integration of the kernel function
+
+        ElasticMaterialProperties();
+    };
+
     /// Constructor for FSI system.
-    ChSystemFsi(ChSystem& other_physicalSystem,
-                CHFSI_TIME_INTEGRATOR time_integrator = CHFSI_TIME_INTEGRATOR::ExplicitSPH);
+    ChSystemFsi(ChSystem& other_physicalSystem);
 
     /// Destructor for the FSI system.
     ~ChSystemFsi();
 
     /// Function to integrate the FSI system in time.
-    /// It uses a Runge-Kutta 2nd order algorithm to update both the fluid and multibody
-    /// system dynamics. The midpoint data of MBS is needed for fluid dynamics update.
+    /// It uses a Runge-Kutta 2nd order algorithm to update both the fluid and multibody system dynamics. The midpoint
+    /// data of MBS is needed for fluid dynamics update.
     void DoStepDynamics_FSI();
 
-    /// Function to integrate the multibody system dynamics based on Runge-Kutta
-    /// 2nd-order integration scheme.
+    /// Function to integrate the multibody system dynamics based on Runge-Kutta 2nd-order integration scheme.
     void DoStepDynamics_ChronoRK2();
 
-    /// Function to initialize the midpoint device data of the fluid system by
-    /// copying from the full step
-    void CopyDeviceDataToHalfStep();
+    /// Enable/disable m_verbose terminal output.
+    void SetVerbose(bool m_verbose);
 
-    /// Fill out the dependent data based on the independent one. For instance,
-    /// it copies the position of the rigid bodies from the multibody dynamics system
-    /// to arrays in FSI system since they are needed for internal use.
-    void FinalizeData();
+    /// Read Chrono::FSI parameters from the specified JSON file.
+    void ReadParametersFromFile(const std::string& json_file);
 
-    /// Get a pointer to the data manager.
-    std::shared_ptr<ChSystemFsi_impl> GetFsiData() { return fsiSystem; }
+    /// Set initial spacing.
+    void SetInitialSpacing(double spacing);
 
-    /// Set the linear system solver for implicit methods
-    void SetFluidSystemLinearSolver(ChFsiLinearSolver::SolverType other_solverType) {
-        fluidDynamics->GetForceSystem()->SetLinearSolver(other_solverType);
-    }
+    /// Set SPH kernel length.
+    void SetKernelLength(double length);
 
-    /// Set the SPH method to be used for fluid dynamics.
-    void SetFluidDynamics(fluid_dynamics params_type = fluid_dynamics::I2SPH);
+    /// Set the fluid container dimension
+    void SetContainerDim(const ChVector<>& boxDim);
 
-    /// Get a pointer to the parameters used to set up the simulation.
-    std::shared_ptr<SimParams> GetSimParams() { return paramsH; }
+    /// Set periodic boundary condition for fluid.
+    void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax);
 
-    /// Get a reference to the FSI bodies.
-    /// FSI bodies are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<ChBody>>& GetFsiBodies() { return fsiBodies; }
+    /// Set number of boundary layers (default: 3).
+    void SetNumBoundaryLayers(int num_layers);
 
-    /// Get a reference to the FSI ChElementCableANCF.
-    /// FSI ChElementCableANCF are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<fea::ChElementCableANCF>>& GetFsiCables() { return fsiCables; }
-
-    /// Get a reference to the FSI ChElementShellANCF_3423.
-    /// FSI ChElementShellANCF_3423 are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& GetFsiShells() { return fsiShells; }
-
-    /// Get a reference to the FSI ChNodeFEAxyzD.
-    /// FSI ChNodeFEAxyzD are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& GetFsiNodes() { return fsiNodes; }
-
-    /// Add FSI body to the FsiSystem.
-    void AddFsiBody(std::shared_ptr<ChBody> mbody) { fsiBodies.push_back(mbody); }
-
-    /// Complete construction of the FSI system (fluid and BDE objects).
-    void Finalize();
-
-    /// Finalize the construction of cable elements in the FSI system.
-    void SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes) {
-        CableElementsNodes = elementsNodes;
-        size_t test = fsiSystem->fsiGeneralData->CableElementsNodes.size();
-        std::cout << "numObjects.numFlexNodes" << test << std::endl;
-    }
-
-    /// Finalize the construction of cable elements in the FSI system.
-    void SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes) {
-        ShellElementsNodes = elementsNodes;
-        size_t test = fsiSystem->fsiGeneralData->ShellElementsNodes.size();
-        std::cout << "numObjects.numFlexNodes" << test << std::endl;
-    }
-
-    /// Set the FSI mesh for flexible elements.
-    void SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) {
-        fsi_mesh = other_fsi_mesh;
-        fsiInterface->SetFsiMesh(other_fsi_mesh);
-    }
-
-    /// Set the FSI system output mode (default: NONE).
-    void SetParticleOutputMode(CHFSI_OUTPUT_MODE mode) { file_write_mode = mode; }
-
-    /// Write FSI system particle output.
-    void WriteParticleFile(const std::string& outfilename) const;
-
-    /// Save the SPH particle information into files.
-    /// This function creates three files to write fluid, boundary, and BCE markers data to separate files.
-    void PrintParticleToFile(const std::string& out_dir) const;
-
-    /// Add SPH particle's information into the FSI system.
-    void AddSphMarker(const ChVector<>& point,
-                      double rho0,
-                      double pres0,
-                      double mu0,
-                      double h,
-                      double particle_type,
-                      const ChVector<>& velocity = ChVector<>(0),
-                      const ChVector<>& tauXxYyZz = ChVector<>(0),
-                      const ChVector<>& tauXyXzYz = ChVector<>(0));
-
-    /// Add reference array for SPH particles.
-    void AddRefArray(const int start, const int numPart, const int compType, const int phaseType);
-
-    /// Add BCE particle for a box.
-    void AddBceBox(std::shared_ptr<SimParams> paramsH,
-                   std::shared_ptr<ChBody> body,
-                   const ChVector<>& relPos,
-                   const ChQuaternion<>& relRot,
-                   const ChVector<>& size,
-                   int plane = 12,
-                   bool isSolid = false);
-
-    /// Add BCE particle for a sphere.
-    void AddBceSphere(std::shared_ptr<SimParams> paramsH,
-                      std::shared_ptr<ChBody> body,
-                      const ChVector<>& relPos,
-                      const ChQuaternion<>& relRot,
-                      double radius);
-
-    /// Add BCE particle for a cylinder.
-    void AddBceCylinder(std::shared_ptr<SimParams> paramsH,
-                        std::shared_ptr<ChBody> body,
-                        const ChVector<>& relPos,
-                        const ChQuaternion<>& relRot,
-                        double radius,
-                        double height,
-                        double kernel_h,
-                        bool cartesian = true);
-
-    /// Add BCE particles from a set of points.
-    void AddBceFromPoints(std::shared_ptr<SimParams> paramsH,
-                          std::shared_ptr<ChBody> body,
-                          const std::vector<ChVector<>>& points,
-                          const ChVector<>& collisionShapeRelativePos,
-                          const ChQuaternion<>& collisionShapeRelativeRot);
-
-    /// Add BCE particle from a file.
-    void AddBceFile(std::shared_ptr<SimParams> paramsH,
-                    std::shared_ptr<ChBody> body,
-                    const std::string& dataPath,
-                    const ChVector<>& collisionShapeRelativePos,
-                    const ChQuaternion<>& collisionShapeRelativeRot,
-                    double scale,
-                    bool isSolid = true);
-
-    /// Add BCE particle from mesh.
-    void AddBceFromMesh(std::shared_ptr<SimParams> paramsH,
-                        std::shared_ptr<fea::ChMesh> my_mesh,
-                        const std::vector<std::vector<int>>& NodeNeighborElement,
-                        const std::vector<std::vector<int>>& _1D_elementsNodes,
-                        const std::vector<std::vector<int>>& _2D_elementsNodes,
-                        bool add1DElem,
-                        bool add2DElem,
-                        bool multiLayer,
-                        bool removeMiddleLayer,
-                        int SIDE,
-                        int SIZE2D);
-
-    /// Set FSI parameters from a JSON file.
-    void SetSimParameter(const std::string& inputJson, std::shared_ptr<SimParams> paramsH, const ChVector<>& box_size);
-
-    /// Set Periodic boundary condition for fluid.
-    void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax, std::shared_ptr<SimParams> paramsH);
+    /// Set (initial) density.
+    void SetDensity(double rho0);
 
     /// Set prescribed initial pressure for gravity field.
-    void SetInitPressure(std::shared_ptr<SimParams> paramsH, const double fzDim);
+    void SetInitPressure(const double fzDim);
 
-    /// Gets the FSI mesh for flexible elements.
-    std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
+    /// Set gravity for the FSI syatem.
+    void Set_G_acc(const ChVector<>& gravity);
 
-    /// Return the SPH kernel length of kernel function.
-    float GetKernelLength() const;
+    /// Set a constant force applied to the fluid.
+    /// Solid bodies are not explicitly affected by this force, but they are affected indirectly through the fluid.
+    void SetBodyForce(const ChVector<>& force);
 
-    /// Set subdomains so that we find neighbor particles faster.
-    void SetSubDomain(std::shared_ptr<SimParams> paramsH);
+    /// Set FSI integration step size.
+    void SetStepSize(double dT, double dT_Flex = 0);
+
+    /// Set the maximum allowable integration step size.
+    void SetMaxStepSize(double dT_max);
+
+    /// Enable/disable adaptive time stepping.
+    void SetAdaptiveTimeStepping(bool adaptive);
+
+    /// Set SPH discretization type, consistent or inconsistent
+    void SetDiscreType(bool useGmatrix, bool useLmatrix);
+
+    /// Set wall boundary condition
+    void SetWallBC(BceVersion wallBC);
+
+    /// Set the linear system solver for implicit methods.
+    void SetSPHLinearSolver(SolverType lin_solver);
+
+    /// Set the SPH method and, optionally, the linear solver type.
+    void SetSPHMethod(FluidDynamics SPH_method, SolverType lin_solver = SolverType::BICGSTAB);
+
+    /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
+    /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
+    void SetElasticSPH(const ElasticMaterialProperties mat_props);
 
     /// Set output directory for FSI data.
-    void SetFsiOutputDir(std::shared_ptr<SimParams> paramsH,
-                         std::string& demo_dir,
-                         std::string out_dir,
-                         std::string inputJson);
+    /// No output is generated by default (for better performance). If an output directory is specified, output files
+    /// with information on each FSI body and node are generated in a subdirectory 'fsi/' of the given output directory.
+    /// It is the caller's responsibility to ensure that output_dir exists.
+    void SetOutputDirectory(const std::string& output_dir);
+
+    /// Set simulation data output length
+    void SetOutputLength(int OutputLength);
+
+    /// Set the FSI system output mode (default: NONE).
+    void SetParticleOutputMode(OutpuMode mode) { m_write_mode = mode; }
+
+    /// Return the SPH kernel length of kernel function.
+    double GetKernelLength() const;
+
+    /// Return the initial spacing of the SPH particles.
+    double GetInitialSpacing() const;
+
+    /// Set the fluid container dimension
+    ChVector<> GetContainerDim() const;
+
+    /// Return density.
+    double GetDensity() const;
+
+    /// Return viscosity.
+    double GetViscosity() const;
+
+    /// Return SPH particle mass.
+    double GetParticleMass() const;
+
+    /// Return base pressure.
+    double GetBasePressure() const;
+
+    /// Return gravitational acceleration.
+    ChVector<> Get_G_acc() const;
+
+    /// Return the speed of sound in the fluid phase.
+    double GetSoundSpeed() const;
+
+    /// Return the constant force applied to the fluid (if any).
+    ChVector<> GetBodyForce() const;
+
+    /// Return the FSI integration step size.
+    double GetStepSize() const;
+
+    /// Return the current value of the maximum allowable integration step size.
+    double GetMaxStepSize() const;
+
+    /// Return a flag inicating whether adaptive time stepping is enabled.
+    bool GetAdaptiveTimeStepping() const;
+
+    /// Get the current number of fluid SPH particles.
+    size_t GetNumFluidMarkers() const;
+
+    /// Get the current number of boundary BCE markers.
+    size_t GetNumBoundaryMarkers() const;
+
+    /// Get the current number of rigid body BCE markers.
+    size_t GetNumRigidBodyMarkers() const;
+
+    /// Get the current number of flexible body BCE markers.
+    size_t GetNumFlexBodyMarkers() const;
+
+    /// Get current simulation time.
+    double GetSimTime() const { return m_time; }
 
     /// Return the SPH particle position.
     std::vector<ChVector<>> GetParticlePosOrProperties();
@@ -246,43 +230,251 @@ class CH_FSI_API ChSystemFsi {
     /// Return the SPH particle velocity.
     std::vector<ChVector<>> GetParticleVel();
 
-    /// Set SPH discretization type, consistent or inconsistent
-    void SetDiscreType(bool useGmatrix, bool useLmatrix);
+    /// Get a reference to the FSI bodies.
+    /// FSI bodies are the ones seen by the fluid dynamics system.
+    std::vector<std::shared_ptr<ChBody>>& GetFsiBodies() { return m_fsi_bodies; }
 
-    /// Set FSI information output
-    void SetFsiInfoOutput(bool outputFsiInfo);
+    /// Return the FSI mesh for flexible elements.
+    std::shared_ptr<fea::ChMesh> GetFsiMesh() { return m_fsi_mesh; }
 
-    /// Set simulation data output length
-    void SetOutputLength(int OutputLength);
+    /// Get a reference to the FSI ChElementCableANCF.
+    /// FSI ChElementCableANCF are the ones seen by the fluid dynamics system.
+    std::vector<std::shared_ptr<fea::ChElementCableANCF>>& GetFsiCables() { return m_fsi_cables; }
 
-    /// Set wall boundary condition
-    void SetWallBC(BceVersion wallBC);
+    /// Get a reference to the FSI ChElementShellANCF_3423.
+    /// FSI ChElementShellANCF_3423 are the ones seen by the fluid dynamics system.
+    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& GetFsiShells() { return m_fsi_shells; }
+
+    /// Get a reference to the FSI ChNodeFEAxyzD.
+    /// FSI ChNodeFEAxyzD are the ones seen by the fluid dynamics system.
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& GetFsiNodes() { return m_fsi_nodes; }
+
+    /// Add FSI body to the FsiSystem.
+    void AddFsiBody(std::shared_ptr<ChBody> mbody) { m_fsi_bodies.push_back(mbody); }
+
+    /// Set number of nodes in FEA cable elements in the FSI system.
+    void SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes);
+
+    /// Set number of nodes in FEA shell elements in the FSI system.
+    void SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes);
+
+    /// Set the FSI mesh for flexible elements.
+    void SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh);
+
+    /// Complete construction of the FSI system (fluid and BDE objects).
+    /// Use parameters read from JSON file and/or specified through various Set functions.
+    void Initialize();
+
+    /// Write FSI system particle output.
+    void WriteParticleFile(const std::string& outfilename) const;
+
+    /// Save the SPH particle information into files.
+    /// This function creates three CSV files for SPH particles, boundary BCE markers, and solid BCE markers data.
+    void PrintParticleToFile(const std::string& dir) const;
+
+    /// Add an SPH particle with given properties to the FSI system.
+    void AddSPHParticle(const ChVector<>& point,
+                        double rho0,
+                        double pres0,
+                        double mu0,
+                        double h,
+                        const ChVector<>& velocity = ChVector<>(0),
+                        const ChVector<>& tauXxYyZz = ChVector<>(0),
+                        const ChVector<>& tauXyXzYz = ChVector<>(0));
+
+    /// Add an SPH particle with current properties to the SPH system.
+    void AddSPHParticle(const ChVector<>& point,
+                        const ChVector<>& velocity = ChVector<>(0),
+                        const ChVector<>& tauXxYyZz = ChVector<>(0),
+                        const ChVector<>& tauXyXzYz = ChVector<>(0));
+
+    /// Create SPH particles in the specified box volume.
+    /// The SPH particles are created on a uniform grid with given spacing.
+    void AddBoxSPH(double initSpace, double kernelLength, const ChVector<>& boxCenter, const ChVector<>& boxHalfDim);
+
+    /// Add BCE markers in a box of given dimensions and at given position associated with the specified body.
+    void AddBoxBCE(std::shared_ptr<ChBody> body,
+                   const ChVector<>& relPos,
+                   const ChQuaternion<>& relRot,
+                   const ChVector<>& size,
+                   int plane = 12,
+                   bool isSolid = false);
+
+    /// Add BCE markers in a sphere of given radius associated with the specified body.
+    void AddSphereBCE(std::shared_ptr<ChBody> body,
+                      const ChVector<>& relPos,
+                      const ChQuaternion<>& relRot,
+                      double radius);
+
+    /// Add BCE markers on a spherical surface of given radius associated with the specified body.
+    void AddSphereSurfaceBCE(std::shared_ptr<ChBody> body,
+                             const ChVector<>& relPos,
+                             const ChQuaternion<>& relRot,
+                             double radius,
+                             double kernel_h);
+
+    /// Add BCE markers in a cylinder of given dimensions and at given position associated with the specified body.
+    void AddCylinderBCE(std::shared_ptr<ChBody> body,
+                        const ChVector<>& relPos,
+                        const ChQuaternion<>& relRot,
+                        double radius,
+                        double height,
+                        double kernel_h,
+                        bool cartesian = true);
+
+    /// Add BCE markers on a cylindrical surface of given dimensions and at given position associated with the specified
+    /// body.
+    void AddCylinderSurfaceBCE(std::shared_ptr<ChBody> body,
+                               const ChVector<>& relPos,
+                               const ChQuaternion<>& relRot,
+                               double radius,
+                               double height,
+                               double kernel_h);
+
+    /// Add BCE markers in a cone of given dimensions and at given position associated with the specified body.
+    void AddConeBCE(std::shared_ptr<ChBody> body,
+                    const ChVector<>& relPos,
+                    const ChQuaternion<>& relRot,
+                    double radius,
+                    double height,
+                    double kernel_h,
+                    bool cartesian = true);
+
+    /// Add BCE markers from a set of points and associate them with the given body.
+    void AddPointsBCE(std::shared_ptr<ChBody> body,
+                      const std::vector<ChVector<>>& points,
+                      const ChVector<>& collisionShapeRelativePos,
+                      const ChQuaternion<>& collisionShapeRelativeRot);
+
+    /// Add BCE markers read from the specified file andd associate them with the given body.
+    void AddFileBCE(std::shared_ptr<ChBody> body,
+                    const std::string& dataPath,
+                    const ChVector<>& collisionShapeRelativePos,
+                    const ChQuaternion<>& collisionShapeRelativeRot,
+                    double scale,
+                    bool isSolid = true);
+
+    /// Add BCE markers from mesh.
+    void AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
+                       const std::vector<std::vector<int>>& NodeNeighborElement,
+                       const std::vector<std::vector<int>>& _1D_elementsNodes,
+                       const std::vector<std::vector<int>>& _2D_elementsNodes,
+                       bool add1DElem,
+                       bool add2DElem,
+                       bool multiLayer,
+                       bool removeMiddleLayer,
+                       int SIDE,
+                       int SIZE2D);
+
+    /// Add BCE markers genetrated from ANCF shell elements.
+    void AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& m_fsi_shells,
+                         std::shared_ptr<fea::ChMesh> mesh,
+                         bool multiLayer = true,
+                         bool removeMiddleLayer = false,
+                         int SIDE = -2);
+
+    /// Add BCE markers genetrated from shell elements.
+    void AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& m_fsi_shells,
+                         std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& m_fsi_nodes,
+                         std::shared_ptr<fea::ChMesh> mesh,
+                         const std::vector<std::vector<int>>& elementsNodes,
+                         const std::vector<std::vector<int>>& NodeNeighborElement,
+                         bool multiLayer = true,
+                         bool removeMiddleLayer = false,
+                         int SIDE = -2);
+
+    /// Create and add to the FSI system a rigid body with spherical shape.
+    /// BCE markers are created in the entire spherical volume using the current spacing value.
+    void AddSphereBody(std::shared_ptr<ChMaterialSurface> mat_prop,
+                       double density,
+                       const ChVector<>& pos,
+                       double radius);
+
+    /// Create and add to the FSI system a rigid body with cylindrical shape.
+    /// BCE markers are created in the entire cylindrical volume using the current spacing value.
+    void AddCylinderBody(std::shared_ptr<ChMaterialSurface> mat_prop,
+                         double density,
+                         const ChVector<>& pos,
+                         const ChQuaternion<>& rot,
+                         double radius,
+                         double length);
+
+    /// Create and add to the FSI system a rigid body with box shape.
+    /// BCE markers are created in the entire box volume using the current spacing value.
+    void AddBoxBody(std::shared_ptr<ChMaterialSurface> mat_prop,
+                    double density,
+                    const ChVector<>& pos,
+                    const ChQuaternion<>& rot,
+                    const ChVector<>& hsize);
+
+    /// Utility function for creating points filling a closed mesh.
+    static void CreateMeshPoints(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
+                                 double delta,
+                                 std::vector<ChVector<>>& point_cloud);
 
   private:
-    /// Set the type of the fluid dynamics.
-    void SetFluidIntegratorType(fluid_dynamics params_type);
+    /// Initialize simulation parameters with default values.
+    void InitParams();
 
-    std::shared_ptr<ChSystemFsi_impl> fsiSystem;  ///< underlying system implementation
+    /// Create BCE particles from the local position on a body.
+    void CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vector<Real4>& posRadBCE,
+                                               std::shared_ptr<ChBody> body,
+                                               const ChVector<>& collisionShapeRelativePos = ChVector<>(0),
+                                               const ChQuaternion<>& collisionShapeRelativeRot = QUNIT,
+                                               bool isSolid = true,
+                                               bool add_to_fluid_helpers = false,
+                                               bool add_to_previous_object = false);
 
-    CHFSI_OUTPUT_MODE file_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
+    void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::host_vector<Real4>& posRadBCE,
+                                                         std::shared_ptr<fea::ChElementCableANCF> cable);
 
-    std::vector<std::shared_ptr<ChBody>> fsiBodies;                        ///< vector of a pointers to FSI bodies
-    std::vector<std::shared_ptr<fea::ChElementCableANCF>> fsiCables;       ///< vector of cable ANCF elements
-    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>> fsiShells;  ///< vector of shell ANCF elements
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> fsiNodes;             ///< vector of FEA nodes
-    std::shared_ptr<fea::ChMesh> fsi_mesh;                                 ///< FEA mesh
+    void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::host_vector<Real4>& posRadBCE,
+                                                         std::shared_ptr<fea::ChElementShellANCF_3423> shell,
+                                                         double kernel_h = 0);
 
-    std::vector<std::vector<int>> ShellElementsNodes;  ///< indices of nodes of each shell element
-    std::vector<std::vector<int>> CableElementsNodes;  ///< indices of nodes of each cable element
-    std::shared_ptr<ChFluidDynamics> fluidDynamics;    ///< pointer to the fluid system
-    CHFSI_TIME_INTEGRATOR fluidIntegrator;             ///< IISPH by default
-    std::shared_ptr<ChFsiInterface> fsiInterface;      ///< pointer to the FSI interface system
-    std::shared_ptr<ChBce> bceWorker;                  ///< pointer to the bce workers
-    std::shared_ptr<SimParams> paramsH;                ///< pointer to the simulation parameters
-    std::shared_ptr<NumberOfObjects> numObjectsH;      ///< number of objects, fluid, bce, and boundary markers
-    chrono::ChSystem& mphysicalSystem;                 ///< reference to the multi-body system
+    /// Create BCE particles from the local position on a boundary.
+    void CreateBceGlobalMarkersFromBceLocalPosBoundary(const thrust::host_vector<Real4>& posRadBCE,
+                                                       std::shared_ptr<ChBody> body,
+                                                       const ChVector<>& collisionShapeRelativePos,
+                                                       const ChQuaternion<>& collisionShapeRelativeRot,
+                                                       bool isSolid = false,
+                                                       bool add_to_previous = true);
 
-    double mTime;  ///< current real time of the simulation
+    /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
+    void CopyDeviceDataToHalfStep();
+
+    ChSystem& m_sysMBS;  ///< reference to the multi-body system
+
+    std::shared_ptr<SimParams> m_paramsH;  ///< pointer to the simulation parameters
+    TimeIntegrator fluidIntegrator;        ///< IISPH by default
+
+    bool m_verbose;          ///< enable/disable m_verbose terminal output (default: true)
+    std::string m_outdir;    ///< output directory
+    OutpuMode m_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
+
+    std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;                        ///< vector of a pointers to FSI bodies
+    std::vector<std::shared_ptr<fea::ChElementCableANCF>> m_fsi_cables;       ///< vector of cable ANCF elements
+    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>> m_fsi_shells;  ///< vector of shell ANCF elements
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> m_fsi_nodes;             ///< vector of FEA nodes
+    std::shared_ptr<fea::ChMesh> m_fsi_mesh;                                  ///< FEA mesh
+
+    std::unique_ptr<ChSystemFsi_impl> m_sysFSI;         ///< underlying system implementation
+    std::unique_ptr<ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
+    std::unique_ptr<ChFsiInterface> m_fsi_interface;    ///< FSI interface system
+    std::shared_ptr<ChBce> m_bce_manager;               ///< BCE manager
+
+    std::shared_ptr<ChCounters> m_num_objectsH;       ///< number of objects, fluid, bce, and boundary markers
+    std::vector<std::vector<int>> m_fea_shell_nodes;  ///< indices of nodes of each shell element
+    std::vector<std::vector<int>> m_fea_cable_nodes;  ///< indices of nodes of each cable element
+
+    std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles of each fsi body
+    std::vector<int> m_fsi_cables_bce_num;  ///< number of BCE particles of each fsi cable
+    std::vector<int> m_fsi_shells_bce_num;  ///< number of BCE particles of each fsi shell
+
+    bool m_is_initialized;  ///< set to true once the Initialize function is called
+    double m_time;          ///< current real time of the simulation
+
+    friend class ChVisualizationFsi;
 };
 
 /// @} fsi_physics

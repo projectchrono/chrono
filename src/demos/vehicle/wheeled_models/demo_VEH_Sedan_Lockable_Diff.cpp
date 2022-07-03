@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs = {0, 0, 0};
+        DriverInputs driver_inputs = {0, 0, 0};
         if (time > 2)
             driver_inputs.m_throttle = 0.6;
         else if (time > 1)

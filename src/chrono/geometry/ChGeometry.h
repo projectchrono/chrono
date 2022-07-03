@@ -16,6 +16,7 @@
 #define CHC_GEOMETRY
 
 #include <memory>
+#include <limits>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMath.h"
@@ -68,51 +69,25 @@ class ChApi ChGeometry {
     /// Each inherited class must return an unique ID.
     virtual GeometryType GetClassType() const { return NONE; }
 
-    /// Compute bounding box.
-    /// If a matrix Rot is not null, it should compute bounding box along
-    /// the rotated directions represented by that transformation matrix Rot.
-    /// It must be overridden by inherited classes.
-    virtual void GetBoundingBox(double& xmin,
-                                double& xmax,
-                                double& ymin,
-                                double& ymax,
-                                double& zmin,
-                                double& zmax,
-                                ChMatrix33<>* Rot = nullptr) const {
-        xmin = xmax = ymin = ymax = zmin = zmax = 0.0;
-    }
+    /// Compute bounding box along the directions defined by the given rotation matrix.
+    /// The default implementation returns a bounding box with zeros dimensions.
+    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const;
 
-    /// Enlarge a previous existing bounding box.
-    /// Usually it does not need to be overridden: base function uses GetBoundingBox()
-    /// If Rot is not null, the bounding box axes are considered rotated.
-    virtual void InflateBoundingBox(double& xmin,
-                                    double& xmax,
-                                    double& ymin,
-                                    double& ymax,
-                                    double& zmin,
-                                    double& zmax,
-                                    ChMatrix33<>* Rot = NULL) const;
+    /// Enlarge the given existing bounding box with the bounding box of this object.
+    void InflateBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const;
 
-    /// Returns the radius of the sphere which can enclose the geometry
-    virtual double Size() const;
+    /// Returns the radius of a bounding sphere for this geometry.
+    /// The default implementation returns the radius of a sphere bounding the geometry bounding box, which is not always the tightest possible.
+    virtual double GetBoundingSphereRadius() const;
 
     /// Compute center of mass
-    /// It should be overridden by inherited classes
     virtual ChVector<> Baricenter() const { return VNULL; }
 
-    /// Compute the 3x3 covariance matrix (only the diagonal and upper part)
-    /// It should be overridden by inherited classes
-    // TODO: obsolete (unused)
-    virtual void CovarianceMatrix(ChMatrix33<>& C) const { C.setZero(); }
-
-    /// Tells the dimension of the geometry
+    /// Returns the dimension of the geometry
     /// (0=point, 1=line, 2=surface, 3=solid)
     virtual int GetManifoldDimension() const { return 0; }
 
-    /// Generic update of internal data. Default, does nothing.
-    /// Most often it is not needed to implement this method, but
-    /// some inherited classes may implement it (ex. to update references to
-    /// external data. etc.).
+    /// Generic update of internal data. 
     virtual void Update() {}
 
     /// Method to allow serialization of transient data to archives.

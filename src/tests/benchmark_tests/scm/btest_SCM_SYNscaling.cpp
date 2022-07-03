@@ -339,6 +339,9 @@ int main(int argc, char* argv[]) {
     // ---------------
     bool stats_done = false;
 
+    // Disable automatic vehicle realtime
+    hmmwv.GetVehicle().EnableRealtime(false);
+
     // Solver settings
     sys.SetSolverMaxIterations(50);
 
@@ -410,7 +413,7 @@ int main(int argc, char* argv[]) {
 #endif
 
         // Get driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Synchronize between nodes
         syn_manager.Synchronize(time);

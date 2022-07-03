@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "Compressibility_WCSPH",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,
@@ -34,7 +31,6 @@
     "Fluid time step":               0.0001,
     "Solid time step":               0.0001,
     "Maximum time step":             0.0001,
-    "End time":                      40,
     "Write frame per second":        10
   },
 

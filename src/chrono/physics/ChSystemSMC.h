@@ -26,17 +26,15 @@
 
 namespace chrono {
 
-/// Class for a physical system in which contact is modeled using a smooth
-/// (penalty-based) method.
+/// Class for a physical system in which contact is modeled using a smooth (penalty-based) method.
 class ChApi ChSystemSMC : public ChSystem {
-
   public:
     /// Enum for SMC contact type.
     enum ContactForceModel {
-        Hooke,        ///< linear Hookean model
-        Hertz,        ///< nonlinear Hertzian model
-        PlainCoulomb, ///< basic tangential force definition for non-granular bodies
-        Flores        ///< nonlinear Hertzian model
+        Hooke,         ///< linear Hookean model
+        Hertz,         ///< nonlinear Hertzian model
+        PlainCoulomb,  ///< basic tangential force definition for non-granular bodies
+        Flores         ///< nonlinear Hertzian model
     };
 
     /// Enum for adhesion force model.
@@ -109,9 +107,35 @@ class ChApi ChSystemSMC : public ChSystem {
     void SetCharacteristicImpactVelocity(double vel) { m_characteristicVelocity = vel; }
     double GetCharacteristicImpactVelocity() const { return m_characteristicVelocity; }
 
-    //
-    // SERIALIZATION
-    //
+    /// Base class for contact force calculation.
+    /// A user can override thie default implementation by attaching a custom derived class; see
+    /// SetContactForceAlgorithm.
+    class ChApi ChContactForceSMC {
+      public:
+        virtual ~ChContactForceSMC() {}
+
+        /// Calculate contact force (resultant of both normal and tangential components) for a contact between two
+        /// objects, obj1 and obj2. Note that this function is always called with delta > 0.
+        virtual ChVector<> CalculateForce(
+            const ChSystemSMC& sys,             ///< containing system
+            const ChVector<>& normal_dir,       ///< normal contact direction (expressed in global frame)
+            const ChVector<>& p1,               ///< most penetrated point on obj1 (expressed in global frame)
+            const ChVector<>& p2,               ///< most penetrated point on obj2 (expressed in global frame)
+            const ChVector<>& vel1,             ///< velocity of contact point on obj1 (expressed in global frame)
+            const ChVector<>& vel2,             ///< velocity of contact point on obj2 (expressed in global frame)
+            const ChMaterialCompositeSMC& mat,  ///< composite material for contact pair
+            double delta,                       ///< overlap in normal direction
+            double eff_radius,                  ///< effective radius of curvature at contact
+            double mass1,                       ///< mass of obj1
+            double mass2                        ///< mass of obj2
+            ) const = 0;
+    };
+
+    /// Change the default SMC contact force calculation.
+    virtual void SetContactForceAlgorithm(std::unique_ptr<ChContactForceSMC>&& algorithm);
+
+    /// Accessor for the current SMC contact force calculation.
+    const ChContactForceSMC& GetContactForceAlgorithm() const { return *m_force_algo; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
@@ -127,6 +151,7 @@ class ChApi ChSystemSMC : public ChSystem {
     bool m_stiff_contact;                        ///< flag indicating stiff contacts (triggers Jacobian calculation)
     double m_minSlipVelocity;                    ///< slip velocity below which no tangential forces are generated
     double m_characteristicVelocity;             ///< characteristic impact velocity (Hooke model)
+    std::unique_ptr<ChContactForceSMC> m_force_algo;  /// contact force calculation
 };
 
 CH_CLASS_VERSION(ChSystemSMC, 0)

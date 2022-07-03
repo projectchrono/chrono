@@ -99,9 +99,9 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// Put the shaft in sleeping state if requirements are satisfied.
     bool TrySleeping();
 
-    /// Tell if the body is active, i.e. it is neither fixed to ground nor
-    /// it is in sleep mode.
-    bool IsActive() const { return !(sleeping || fixed); }
+    /// Return true if the shaft is currently active and thereofre included into the system solver.
+    /// A shaft is inactive if it is fixed to ground or is in sleep mode.
+    virtual bool IsActive() const override { return !(sleeping || fixed); }
 
     //
     // FUNCTIONS

@@ -42,10 +42,17 @@ bool render = true;
 float render_fps = 2000;
 
 int main(int argc, char* argv[]) {
-    ChGpuSimulationParameters params;
-
-    if (argc != 2 || ParseJSON(gpu::GetDataFile(argv[1]), params) == false) {
+    std::string inputJson = GetChronoDataFile("gpu/demo_GPU_mixer.json");
+    if (argc == 2) {
+        inputJson = std::string(argv[1]);
+    } else if (argc > 2) {
         std::cout << "Usage:\n./demo_GPU_mixer <json_file>" << std::endl;
+        return 1;
+    }
+
+    ChGpuSimulationParameters params;
+    if (!ParseJSON(inputJson, params)) {
+        std ::cout << "ERROR: reading input file " << inputJson << std::endl;
         return 1;
     }
 
@@ -189,7 +196,7 @@ int main(int argc, char* argv[]) {
         if (render && step % render_steps == 0) {
             mixer->SetPos(mesh_pos);
             mixer->SetRot(mesh_rot);
-            if (gpu_vis.Render())
+            if (!gpu_vis.Render())
                 break;
         }
 

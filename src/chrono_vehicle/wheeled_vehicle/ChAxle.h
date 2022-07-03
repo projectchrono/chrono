@@ -65,7 +65,9 @@ class CH_VEHICLE_API ChAxle {
     );
 
     /// Synchronize this suspension subsystem.
-    void Synchronize(double braking);
+    void Synchronize(double time,                           ///< [in] current time
+                     const DriverInputs& driver_inputs  ///< [in] current driver inputs
+    );
 
     /// Get all wheels from this axle.
     /// The wheels associated with an axle are assumed to be ordered from inner to outer wheels, first left then right.

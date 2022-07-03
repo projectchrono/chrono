@@ -22,33 +22,24 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChGeometry)  // NO! Abstract class!
 
-void ChGeometry::InflateBoundingBox(double& xmin,
-                                    double& xmax,
-                                    double& ymin,
-                                    double& ymax,
-                                    double& zmin,
-                                    double& zmax,
-                                    ChMatrix33<>* Rot) const {
-    double bxmin, bxmax, bymin, bymax, bzmin, bzmax;
-    GetBoundingBox(bxmin, bxmax, bymin, bymax, bzmin, bzmax, Rot);
-    if (xmin > bxmin)
-        xmin = bxmin;
-    if (ymin > bymin)
-        ymin = bymin;
-    if (zmin > bzmin)
-        zmin = bzmin;
-    if (xmax < bxmax)
-        xmax = bxmax;
-    if (ymax < bymax)
-        ymax = bymax;
-    if (zmax < bzmax)
-        zmax = bzmax;
+void ChGeometry::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
+    cmin = ChVector<>(0);
+    cmax = ChVector<>(0);
 }
 
-double ChGeometry::Size() const {
-    double bxmin, bxmax, bymin, bymax, bzmin, bzmax;
-    GetBoundingBox(bxmin, bxmax, bymin, bymax, bzmin, bzmax);
-    return sqrt(pow((0.5 * (bxmax - bxmin)), 2) + pow((0.5 * (bymax - bymin)), 2) + pow((0.5 * (bzmax - bzmin)), 2));
+void ChGeometry::InflateBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
+    ChVector<> amin;
+    ChVector<> amax;
+    GetBoundingBox(amin, amax, rot);
+    cmin = ChVector<>(ChMin(cmin.x(), amin.x()), ChMin(cmin.y(), amin.y()), ChMin(cmin.z(), amin.z()));
+    cmax = ChVector<>(ChMax(cmax.x(), amax.x()), ChMax(cmax.y(), amax.y()), ChMax(cmax.z(), amax.z()));
+}
+
+double ChGeometry::GetBoundingSphereRadius() const {
+    ChVector<> amin;
+    ChVector<> amax;
+    GetBoundingBox(amin, amax, ChMatrix33<>(1));
+    return (amax - amin).Length() / 2;
 }
 
 void ChGeometry::ArchiveOUT(ChArchiveOut& marchive) {

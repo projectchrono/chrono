@@ -33,7 +33,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChObjShapeFile.h"
+#include "chrono/assets/ChObjFileShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
@@ -650,7 +650,7 @@ void ChParserOpenSim::initFunctionTable() {
             auto geometry = fieldNode->first_node("GeometrySet")->first_node("objects")->first_node();
             while (geometry != nullptr) {
                 std::string meshFilename(geometry->first_node("geometry_file")->value());
-                auto bodyMesh = chrono_types::make_shared<ChObjShapeFile>();
+                auto bodyMesh = chrono_types::make_shared<ChObjFileShape>();
                 bodyMesh->SetFilename(m_datapath + meshFilename);
                 newBody->AddVisualShape(bodyMesh);
                 geometry = geometry->next_sibling();

@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/geometry/ChLineNurbs.h"
 #include "chrono/geometry/ChSurfaceNurbs.h"
@@ -155,9 +155,8 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(mesh, ChFrame<>(ChVector<>(2, 1, 2), QUNIT));
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
-    auto objmesh = chrono_types::make_shared<ChObjShapeFile>();
+    auto objmesh = chrono_types::make_shared<ChObjFileShape>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
-    objmesh->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), QUNIT));
 
     // ==Asset== Attach an array of boxes, each rotated to make a spiral
@@ -174,17 +173,15 @@ int main(int argc, char* argv[]) {
     // EXAMPLE 3:
     //
 
-    // Create a ChParticleClones cluster, and attach 'assets'
-    // that define a single "sample" 3D shape. This will be shown
-    // N times in Irrlicht.
-    //***NOTE*** This crashes with Irrlicht 1.8 , it is ok with 1.7.x and 1.8.1 + ,
+    // Create a ChParticleClones cluster, and attach 'assets' that define a single "sample" 3D shape. 
+    // This will be shown N times in Irrlicht.
 
     // Create the ChParticleClones, populate it with some random particles,
     // and add it to physical system:
-    auto particles = chrono_types::make_shared<ChParticlesClones>();
+    auto particles = chrono_types::make_shared<ChParticleCloud>();
 
     // Note: the collision shape, if needed, must be specified before creating particles.
-    // This will be shared among all particles in the ChParticlesClones.
+    // This will be shared among all particles in the ChParticleCloud.
     auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     particles->GetCollisionModel()->ClearModel();
@@ -197,7 +194,7 @@ int main(int argc, char* argv[]) {
         particles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1.5, ChRandom() + 2)));
 
     // Mass and inertia properties.
-    // This will be shared among all particles in the ChParticlesClones.
+    // This will be shared among all particles in the ChParticleCloud.
     particles->SetMass(0.1);
     particles->SetInertiaXX(ChVector<>(0.001, 0.001, 0.001));
 
@@ -209,6 +206,12 @@ int main(int argc, char* argv[]) {
     auto sphereparticle = chrono_types::make_shared<ChSphereShape>();
     sphereparticle->GetSphereGeometry().rad = 0.05;
     particles->AddVisualShape(sphereparticle);
+
+    //
+    // EXAMPLE 4:
+    //
+
+    // Create a convex hull shape
 
     ChVector<> displ(1, 0.0, 0);
     std::vector<ChVector<>> points;
@@ -223,6 +226,12 @@ int main(int argc, char* argv[]) {
     ////hull->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(2,0.3,0)));
     ////hull->SetPos(ChVector<>(2,0.3,0));
     hull->Move(ChVector<>(2, 0.3, 0));
+    
+     // Create a visualization material
+    auto cadet_blue = chrono_types::make_shared<ChVisualMaterial>();
+    cadet_blue->SetDiffuseColor(ChColor(0.37f, 0.62f, 0.62f));
+    hull->GetVisualShape(0)->SetMaterial(0, cadet_blue);
+
     sys.Add(hull);
 
     // Create the Irrlicht visualization system

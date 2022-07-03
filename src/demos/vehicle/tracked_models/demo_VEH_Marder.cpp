@@ -17,7 +17,6 @@
 // =============================================================================
 
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -335,7 +334,7 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    ChRealtimeStepTimer realtime_timer;
+    marder.GetVehicle().EnableRealtime(true);
     while (vis->Run()) {
         // Debugging output
         if (dbg_output) {
@@ -394,7 +393,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect output data from modules
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
         marder.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
         marder.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
 
@@ -418,9 +417,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     marder.GetVehicle().WriteContacts("Marder_contacts.out");

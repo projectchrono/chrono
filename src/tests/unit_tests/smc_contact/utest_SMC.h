@@ -16,9 +16,14 @@
 //
 // =============================================================================
 
-#include "chrono_multicore/physics/ChSystemMulticore.h"
+#include "chrono/ChConfig.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+
+#ifdef SMC_MULTICORE
+    #include "chrono_multicore/physics/ChSystemMulticore.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -39,7 +44,7 @@ std::string ForceModel_name(ChSystemSMC::ContactForceModel f) {
 }
 
 std::shared_ptr<ChBody> AddSphere(int id,
-                                  ChSystemMulticoreSMC* sys,
+                                  ChSystem* sys,
                                   std::shared_ptr<ChMaterialSurfaceSMC> mat,
                                   double radius,
                                   double mass,
@@ -72,7 +77,7 @@ std::shared_ptr<ChBody> AddSphere(int id,
 }
 
 std::shared_ptr<ChBody> AddWall(int id,
-                                ChSystemMulticoreSMC* sys,
+                                ChSystem* sys,
                                 std::shared_ptr<ChMaterialSurfaceSMC> mat,
                                 ChVector<> size,
                                 double mass,
@@ -105,6 +110,25 @@ std::shared_ptr<ChBody> AddWall(int id,
     return body;
 }
 
+#ifdef SMC_SEQUENTIAL
+void SetSimParameters(
+    ChSystemSMC* sys,
+    const ChVector<>& gravity,
+    ChSystemSMC::ContactForceModel fmodel,
+    ChSystemSMC::TangentialDisplacementModel tmodel = ChSystemSMC::TangentialDisplacementModel::MultiStep) {
+    // Set solver settings and collision detection parameters
+    sys->Set_G_acc(gravity);
+
+    sys->SetMaxiter(100);
+    sys->SetSolverTolerance(1e-3);
+
+    sys->SetContactForceModel(fmodel);
+    sys->SetTangentialDisplacementModel(tmodel);
+    sys->SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
+}
+#endif
+
+#ifdef SMC_MULTICORE
 void SetSimParameters(
     ChSystemMulticoreSMC* sys,
     const ChVector<>& gravity,
@@ -123,8 +147,9 @@ void SetSimParameters(
     sys->GetSettings()->collision.bins_per_axis = vec3(1, 1, 1);
     sys->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 }
+#endif
 
-bool CalcKE(ChSystemMulticoreSMC* sys, const double& threshold) {
+bool CalcKE(ChSystem* sys, const double& threshold) {
     const std::shared_ptr<ChBody> body = sys->Get_bodylist().at(1);
 
     ChVector<> eng_trn = 0.5 * body->GetMass() * body->GetPos_dt() * body->GetPos_dt();
@@ -139,7 +164,7 @@ bool CalcKE(ChSystemMulticoreSMC* sys, const double& threshold) {
     return false;
 }
 
-bool CalcAverageKE(ChSystemMulticoreSMC* sys, const double& threshold) {
+bool CalcAverageKE(ChSystem* sys, const double& threshold) {
     // Calculate average KE
     double KE_trn = 0;
     double KE_rot = 0;

@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "Compressibility",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,
@@ -28,7 +25,6 @@
   {
     "Fluid time step":               0.005,
     "Solid time step":               0.001,
-    "End time":                      20,
     "Write frame per second":        20
   },
 

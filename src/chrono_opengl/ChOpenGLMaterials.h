@@ -37,6 +37,7 @@ static glm::vec3 ColorConverter(int hex_value) {
 
 static ChOpenGLMaterial white(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
 static ChOpenGLMaterial red(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 1, 1));
+static ChOpenGLMaterial cadet_blue(glm::vec3(0, 0, 0), glm::vec3(0.37, 0.62, 0.62), glm::vec3(1, 1, 1));
 
 static ChOpenGLMaterial grid(glm::vec3(0, 0, 0), ColorConverter(0x324D5C), glm::vec3(1, 1, 1));
 

@@ -19,8 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/AIDriver.h"
@@ -90,7 +88,7 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // Simulation loop
-    ChRealtimeStepTimer realtime_timer;
+    my_sedan.GetVehicle().EnableRealtime(true);
     double step_size = 2e-3;
 
     while (vis->Run()) {
@@ -117,7 +115,7 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time, long_acc, wheel_angle, 0.0);
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
         terrain.Synchronize(time);
         my_sedan.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize("", driver_inputs);
@@ -127,9 +125,6 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         my_sedan.Advance(step_size);
         vis->Advance(step_size);
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     return 0;

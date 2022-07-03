@@ -1,27 +1,14 @@
 %{
-
-/* Includes the header in the wrapper code */
 #include "chrono/core/ChFrame.h"
-
-using namespace chrono;
-
 %}
  
-
 %import "ChMatrix33.i" 
-
-
 
 /* Parse the header file to generate wrappers */
 %include "../../../chrono/core/ChFrame.h"    
 
-
-
 %template(ChFrameD) chrono::ChFrame<double>; 
 // %template(ChFrameF) chrono::ChFrame<float>; 
-
-
-
 
 //%rename(__rshift__) chrono::ChFrame<double>::operator>>;
 
