@@ -71,10 +71,10 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     std::shared_ptr<ChTrackBrake> GetBrake() const { return m_brake; }
 
     /// Get the list of suspension subsystems.
-    const ChRoadWheelAssemblyList& GetRoadWheelAssemblies() const { return m_suspensions; }
+    const ChTrackSuspensionList& GetRoadWheelAssemblies() const { return m_suspensions; }
 
     /// Get a handle to the specified suspension subsystem.
-    std::shared_ptr<ChTrackSuspension> GetRoadWheelAssembly(size_t id) const { return m_suspensions[id]; }
+    std::shared_ptr<ChTrackSuspension> GetTrackSuspension(size_t id) const { return m_suspensions[id]; }
 
     /// Get a handle to the specified roller subsystem.
     std::shared_ptr<ChTrackWheel> GetRoller(size_t id) const { return m_rollers[id]; }
@@ -218,7 +218,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     ChVector<> m_rel_loc;                   ///< assembly location relative to chassis
     std::shared_ptr<ChIdler> m_idler;       ///< idler (and tensioner) subsystem
     std::shared_ptr<ChTrackBrake> m_brake;  ///< sprocket brake
-    ChRoadWheelAssemblyList m_suspensions;  ///< road-wheel assemblies
+    ChTrackSuspensionList m_suspensions;  ///< road-wheel assemblies
     ChTrackWheelList m_rollers;             ///< roller subsystems
 
     bool m_roadwheel_as_cylinder;

@@ -694,16 +694,16 @@ std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const std::string& fi
     if (d.IsNull())
         return nullptr;
 
-    // Check that the given file is a road-wheel assembly specification file.
+    // Check that the given file is a track suspension specification file.
     assert(d.HasMember("Type"));
     std::string type = d["Type"].GetString();
     assert(type.compare("TrackSuspension") == 0);
 
-    // Extract road-wheel assembly type.
+    // Extract track suspension type.
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
 
-    // Create the road-wheel assembly using the appropriate template.
+    // Create the track suspension using the appropriate template.
     if (subtype.compare("LinearDamperSuspension") == 0) {
         suspension = chrono_types::make_shared<LinearDamperSuspension>(d, has_shock, lock_arm);
     } else if (subtype.compare("RotationalDamperSuspension") == 0) {

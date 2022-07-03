@@ -399,7 +399,7 @@ int main(int argc, char* argv[]) {
     cout << "     Sprocket:   " << vehicle.GetTrackAssembly(LEFT)->GetSprocket()->GetTemplateName() << endl;
     cout << "     Brake:      " << vehicle.GetTrackAssembly(LEFT)->GetBrake()->GetTemplateName() << endl;
     cout << "     Idler:      " << vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetTemplateName() << endl;
-    cout << "     Suspension: " << vehicle.GetTrackAssembly(LEFT)->GetRoadWheelAssembly(0)->GetTemplateName() << endl;
+    cout << "     Suspension: " << vehicle.GetTrackAssembly(LEFT)->GetTrackSuspension(0)->GetTemplateName() << endl;
     cout << "     Track shoe: " << vehicle.GetTrackShoe(LEFT, 0)->GetTemplateName() << endl;
     cout << "  Driveline type:  " << vehicle.GetDriveline()->GetTemplateName() << endl;
     cout << "  Powertrain type: " << powertrain->GetTemplateName() << endl;

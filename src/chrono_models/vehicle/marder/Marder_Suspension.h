@@ -33,7 +33,7 @@ namespace marder {
 /// @addtogroup vehicle_models_marder
 /// @{
 
-/// Linear-damper Marder suspension (road-wheel assembly).
+/// Linear-damper Marder track suspension.
 class CH_MODELS_API Marder_Suspension : public ChLinearDamperSuspension {
   public:
     Marder_Suspension(const std::string& name, VehicleSide side, int index, bool has_shock);

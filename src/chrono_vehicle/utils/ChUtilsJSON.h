@@ -121,7 +121,7 @@ CH_VEHICLE_API std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::strin
 /// Load and return an idler from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename);
 
-/// Load and return a road-wheel assembly (track suspension) from the specified JSON file.
+/// Load and return a track suspension from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const std::string& filename,
                                                                           bool has_shock,
                                                                           bool lock_arm);

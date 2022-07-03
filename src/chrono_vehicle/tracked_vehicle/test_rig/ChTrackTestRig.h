@@ -85,7 +85,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// Set visualization type for the idler subsystem (default: PRIMITIVES).
     void SetIdlerVisualizationType(VisualizationType vis) { m_vis_idler = vis; }
 
-    /// Set visualization type for the road-wheel assembly subsystem (default: PRIMITIVES).
+    /// Set visualization type for the track suspension subsystem (default: PRIMITIVES).
     void SetSuspensionVisualizationType(VisualizationType vis) { m_vis_suspension = vis; }
 
     /// Set visualization type for the idler-wheel subsystem (default: PRIMITIVES).

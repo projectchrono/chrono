@@ -33,7 +33,7 @@ namespace m113 {
 /// @addtogroup vehicle_models_m113
 /// @{
 
-/// Linear-damper M113 suspension (road-wheel assembly).
+/// Linear-damper M113 track suspension.
 class CH_MODELS_API M113_Suspension : public ChLinearDamperSuspension {
   public:
     M113_Suspension(const std::string& name, VehicleSide side, int index, bool use_bushings, bool has_shock);

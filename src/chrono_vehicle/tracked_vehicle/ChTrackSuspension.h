@@ -40,7 +40,7 @@ class ChTrackAssembly;
 /// @addtogroup vehicle_tracked_suspension
 /// @{
 
-/// Base class for tracked vehicle suspension (road-wheel assembly) subsystem.
+/// Base class for a tracked vehicle suspension subsystem.
 class CH_VEHICLE_API ChTrackSuspension : public ChPart {
   public:
     /// Output structure for spring-damper forces or torques.
@@ -121,8 +121,8 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
     friend class ChTrackAssembly;
 };
 
-/// Vector of handles to road wheel assembly subsystems.
-typedef std::vector<std::shared_ptr<ChTrackSuspension> > ChRoadWheelAssemblyList;
+/// Vector of handles to track suspension subsystems.
+typedef std::vector<std::shared_ptr<ChTrackSuspension> > ChTrackSuspensionList;
 
 /// @} vehicle_tracked_suspension
 

@@ -691,12 +691,12 @@ int main(int argc, char* argv[]) {
             }
             cout << "      L suspensions (arm angles):";
             for (size_t i = 0; i < track_L->GetNumRoadWheelAssemblies(); i++) {
-                cout << " " << track_L->GetRoadWheelAssembly(i)->GetCarrierAngle();
+                cout << " " << track_L->GetTrackSuspension(i)->GetCarrierAngle();
             }
             cout << endl;
             cout << "      R suspensions (arm angles):";
             for (size_t i = 0; i < track_R->GetNumRoadWheelAssemblies(); i++) {
-                cout << " " << track_R->GetRoadWheelAssembly(i)->GetCarrierAngle();
+                cout << " " << track_R->GetTrackSuspension(i)->GetCarrierAngle();
             }
             cout << endl;
         }
