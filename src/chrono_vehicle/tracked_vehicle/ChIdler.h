@@ -48,10 +48,13 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     std::shared_ptr<ChTrackWheel> GetIdlerWheel() const { return m_idler_wheel; }
 
     /// Return the body of the idler wheel.
-    std::shared_ptr<ChBody> GetWheelBody() const { return m_idler_wheel->GetWheelBody(); }
+    std::shared_ptr<ChBody> GetWheelBody() const { return m_idler_wheel->GetBody(); }
 
     /// Return a handle to the carrier body to which the idler wheel is connected.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const = 0;
+
+    /// Get the radius of the idler wheel.
+    double GetWheelRadius() const { return m_idler_wheel->GetRadius(); }
 
     /// Initialize this idler subsystem.
     /// The idler subsystem is initialized by attaching it to the specified chassis at the specified location (with

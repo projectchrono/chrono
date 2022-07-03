@@ -55,8 +55,8 @@ void ChTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     m_wheel->SetIdentifier(BodyID::WHEEL_BODY);
     m_wheel->SetPos(wheel_to_abs.GetPos());
     m_wheel->SetRot(wheel_to_abs.GetRot());
-    m_wheel->SetMass(GetWheelMass());
-    m_wheel->SetInertiaXX(GetWheelInertia());
+    m_wheel->SetMass(GetMass());
+    m_wheel->SetInertiaXX(GetInertia());
     chassis->GetSystem()->AddBody(m_wheel);
 
     // Create and initialize the revolute joint between wheel and carrier.
@@ -69,9 +69,9 @@ void ChTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 void ChTrackWheel::InitializeInertiaProperties() {
-    m_mass = GetWheelMass();
+    m_mass = GetMass();
     m_inertia = ChMatrix33<>(0);
-    m_inertia.diagonal() = GetWheelInertia().eigen();
+    m_inertia.diagonal() = GetInertia().eigen();
     m_com = ChFrame<>();
 }
 

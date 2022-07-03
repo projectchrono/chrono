@@ -47,19 +47,22 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     virtual GuidePinType GetType() const = 0;
 
     /// Get a handle to the wheel body.
-    std::shared_ptr<ChBody> GetWheelBody() const { return m_wheel; }
+    std::shared_ptr<ChBody> GetBody() const { return m_wheel; }
 
     /// Get a handle to the revolute joint.
     std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
 
     /// Return the mass of the track wheel body.
-    virtual double GetWheelMass() const = 0;
+    virtual double GetMass() const = 0;
 
     /// Return the moments of inertia of the track wheel body.
-    virtual const ChVector<>& GetWheelInertia() = 0;
+    virtual const ChVector<>& GetInertia() = 0;
 
     /// Get the radius of the track wheel.
-    virtual double GetWheelRadius() const = 0;
+    virtual double GetRadius() const = 0;
+
+    /// Return the total width of the track wheel.
+    virtual double GetWidth() const = 0;
 
     /// Turn on/off collision flag for the track wheel (default: true).
     void SetCollide(bool val) { m_wheel->SetCollide(val); }

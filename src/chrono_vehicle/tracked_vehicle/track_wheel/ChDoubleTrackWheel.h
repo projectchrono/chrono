@@ -59,10 +59,8 @@ class CH_VEHICLE_API ChDoubleTrackWheel : public ChTrackWheel {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
-    /// Return the total width of the track wheel.
-    virtual double GetWheelWidth() const = 0;
     /// Return the gap width.
-    virtual double GetWheelGap() const = 0;
+    virtual double GetGap() const = 0;
 };
 
 /// @} vehicle_tracked_suspension

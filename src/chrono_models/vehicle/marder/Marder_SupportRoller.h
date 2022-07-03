@@ -40,15 +40,15 @@ class CH_MODELS_API Marder_SupportRoller : public ChDoubleTrackWheel {
     virtual ~Marder_SupportRoller() {}
 
     /// Return the mass of the idler wheel body.
-    virtual double GetWheelMass() const override { return m_wheel_mass; }
+    virtual double GetMass() const override { return m_wheel_mass; }
     /// Return the moments of inertia of the idler wheel body.
-    virtual const ChVector<>& GetWheelInertia() override { return m_wheel_inertia; }
+    virtual const ChVector<>& GetInertia() override { return m_wheel_inertia; }
     /// Return the radius of the idler wheel.
-    virtual double GetWheelRadius() const override { return m_wheel_radius; }
+    virtual double GetRadius() const override { return m_wheel_radius; }
     /// Return the total width of the idler wheel.
-    virtual double GetWheelWidth() const override { return m_wheel_width; }
+    virtual double GetWidth() const override { return m_wheel_width; }
     /// Return the gap width.
-    virtual double GetWheelGap() const override { return m_wheel_gap; }
+    virtual double GetGap() const override { return m_wheel_gap; }
 
   protected:
     Marder_SupportRoller(const std::string& name);

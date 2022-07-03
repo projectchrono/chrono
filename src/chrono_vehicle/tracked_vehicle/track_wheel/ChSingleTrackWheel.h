@@ -57,10 +57,6 @@ class CH_VEHICLE_API ChSingleTrackWheel : public ChTrackWheel {
 
     /// Remove visualization assets for the track-wheel subsystem.
     virtual void RemoveVisualizationAssets() override final;
-
-  protected:
-    /// Return the width of the track wheel.
-    virtual double GetWheelWidth() const = 0;
 };
 
 /// @} vehicle_tracked_suspension

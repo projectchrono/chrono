@@ -62,7 +62,7 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
     std::shared_ptr<ChTrackWheel> GetRoadWheel() const { return m_road_wheel; }
 
     /// Return the body of the idler wheel.
-    std::shared_ptr<ChBody> GetWheelBody() const { return m_road_wheel->GetWheelBody(); }
+    std::shared_ptr<ChBody> GetWheelBody() const { return m_road_wheel->GetBody(); }
 
     /// Return a handle to the carrier body.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const = 0;
@@ -76,7 +76,7 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
     std::shared_ptr<ChLinkLockRevolute> GetWheelRevolute() const { return m_road_wheel->GetRevolute(); }
 
     /// Get the radius of the road wheel.
-    double GetWheelRadius() const { return m_road_wheel->GetWheelRadius(); }
+    double GetWheelRadius() const { return m_road_wheel->GetRadius(); }
 
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified

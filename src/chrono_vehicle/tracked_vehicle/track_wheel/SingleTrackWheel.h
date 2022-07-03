@@ -37,11 +37,11 @@ class CH_VEHICLE_API SingleTrackWheel : public ChSingleTrackWheel {
     SingleTrackWheel(const rapidjson::Document& d);
     ~SingleTrackWheel() {}
 
-    virtual double GetWheelRadius() const override { return m_wheel_radius; }
-    virtual double GetWheelWidth() const override { return m_wheel_width; }
+    virtual double GetRadius() const override { return m_wheel_radius; }
+    virtual double GetWidth() const override { return m_wheel_width; }
 
-    virtual double GetWheelMass() const override { return m_wheel_mass; }
-    virtual const ChVector<>& GetWheelInertia() override { return m_wheel_inertia; }
+    virtual double GetMass() const override { return m_wheel_mass; }
+    virtual const ChVector<>& GetInertia() override { return m_wheel_inertia; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;

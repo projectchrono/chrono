@@ -40,15 +40,15 @@ class CH_MODELS_API M113_RoadWheel : public ChDoubleTrackWheel {
     virtual ~M113_RoadWheel() {}
 
     /// Return the mass of the road wheel body.
-    virtual double GetWheelMass() const override { return m_wheel_mass; }
+    virtual double GetMass() const override { return m_wheel_mass; }
     /// Return the moments of inertia of the road wheel body.
-    virtual const ChVector<>& GetWheelInertia() override { return m_wheel_inertia; }
+    virtual const ChVector<>& GetInertia() override { return m_wheel_inertia; }
     /// Return the radius of the road wheel.
-    virtual double GetWheelRadius() const override { return m_wheel_radius; }
+    virtual double GetRadius() const override { return m_wheel_radius; }
     /// Return the total width of the road wheel.
-    virtual double GetWheelWidth() const override { return m_wheel_width; }
+    virtual double GetWidth() const override { return m_wheel_width; }
     /// Return the gap width.
-    virtual double GetWheelGap() const override { return m_wheel_gap; }
+    virtual double GetGap() const override { return m_wheel_gap; }
 
   protected:
     M113_RoadWheel(const std::string& name);

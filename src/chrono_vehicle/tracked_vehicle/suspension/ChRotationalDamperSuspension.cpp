@@ -123,7 +123,7 @@ void ChRotationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis
 }
 
 void ChRotationalDamperSuspension::InitializeInertiaProperties() {
-    m_mass = GetArmMass() + m_road_wheel->GetWheelMass();
+    m_mass = GetArmMass() + m_road_wheel->GetMass();
 }
 
 void ChRotationalDamperSuspension::UpdateInertiaProperties() {
@@ -132,8 +132,8 @@ void ChRotationalDamperSuspension::UpdateInertiaProperties() {
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;
     composite.AddComponent(m_arm->GetFrame_COG_to_abs(), m_arm->GetMass(), m_arm->GetInertia());
-    composite.AddComponent(m_road_wheel->GetWheelBody()->GetFrame_COG_to_abs(), m_road_wheel->GetWheelBody()->GetMass(),
-                           m_road_wheel->GetWheelBody()->GetInertia());
+    composite.AddComponent(m_road_wheel->GetBody()->GetFrame_COG_to_abs(), m_road_wheel->GetBody()->GetMass(),
+                           m_road_wheel->GetBody()->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
     m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());

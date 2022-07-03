@@ -41,9 +41,9 @@ void ChDoubleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     assert(m_material && m_material->GetContactMethod() == m_wheel->GetSystem()->GetContactMethod());
 
     // Add contact geometry
-    double radius = GetWheelRadius();
-    double width = 0.5 * (GetWheelWidth() - GetWheelGap());
-    double offset = 0.25 * (GetWheelWidth() + GetWheelGap());
+    double radius = GetRadius();
+    double width = 0.5 * (GetWidth() - GetGap());
+    double offset = 0.25 * (GetWidth() + GetGap());
 
     m_wheel->SetCollide(true);
 
@@ -64,9 +64,9 @@ void ChDoubleTrackWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    double radius = GetWheelRadius();
-    double width = GetWheelWidth();
-    double gap = GetWheelGap();
+    double radius = GetRadius();
+    double width = GetWidth();
+    double gap = GetGap();
 
     auto cyl_1 = chrono_types::make_shared<ChCylinderShape>();
     cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);

@@ -99,7 +99,7 @@ void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
 }
 
 void ChTranslationalIdler::InitializeInertiaProperties() {
-    m_mass = GetCarrierMass() + m_idler_wheel->GetWheelMass();
+    m_mass = GetCarrierMass() + m_idler_wheel->GetMass();
 }
 
 void ChTranslationalIdler::UpdateInertiaProperties() {
@@ -108,8 +108,8 @@ void ChTranslationalIdler::UpdateInertiaProperties() {
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;
     composite.AddComponent(m_carrier->GetFrame_COG_to_abs(), m_carrier->GetMass(), m_carrier->GetInertia());
-    composite.AddComponent(m_idler_wheel->GetWheelBody()->GetFrame_COG_to_abs(), m_idler_wheel->GetWheelBody()->GetMass(),
-                           m_idler_wheel->GetWheelBody()->GetInertia());
+    composite.AddComponent(m_idler_wheel->GetBody()->GetFrame_COG_to_abs(), m_idler_wheel->GetBody()->GetMass(),
+                           m_idler_wheel->GetBody()->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
     m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
