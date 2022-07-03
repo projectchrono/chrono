@@ -134,7 +134,8 @@ int main(int argc, char* argv[]) {
     marder.SetSprocketVisualizationType(track_vis);
     marder.SetIdlerVisualizationType(track_vis);
     marder.SetRollerVisualizationType(track_vis);
-    marder.SetRoadWheelAssemblyVisualizationType(track_vis);
+    marder.SetSuspensionVisualizationType(track_vis);
+    marder.SetIdlerWheelVisualizationType(track_vis);
     marder.SetRoadWheelVisualizationType(track_vis);
     marder.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 

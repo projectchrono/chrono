@@ -77,7 +77,8 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
       m_collide_flags(0xFFFF),
       m_vis_sprocket(VisualizationType::NONE),
       m_vis_idler(VisualizationType::NONE),
-      m_vis_roadwheel_assembly(VisualizationType::NONE),
+      m_vis_suspension(VisualizationType::NONE),
+      m_vis_idlerwheel(VisualizationType::NONE),
       m_vis_roadwheel(VisualizationType::NONE),
       m_vis_shoe(VisualizationType::NONE),
       m_plot_output(false),
@@ -123,7 +124,8 @@ ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
       m_collide_flags(0xFFFF),
       m_vis_sprocket(VisualizationType::NONE),
       m_vis_idler(VisualizationType::NONE),
-      m_vis_roadwheel_assembly(VisualizationType::NONE),
+      m_vis_suspension(VisualizationType::NONE),
+      m_vis_idlerwheel(VisualizationType::NONE),
       m_vis_roadwheel(VisualizationType::NONE),
       m_vis_shoe(VisualizationType::NONE),
       m_plot_output(false),
@@ -218,12 +220,13 @@ void ChTrackTestRig::Initialize() {
     // Set visualization modes
     m_track->SetSprocketVisualizationType(m_vis_sprocket);
     m_track->SetIdlerVisualizationType(m_vis_idler);
-    m_track->SetRoadWheelAssemblyVisualizationType(m_vis_roadwheel_assembly);
+    m_track->SetSuspensionVisualizationType(m_vis_suspension);
+    m_track->SetIdlerWheelVisualizationType(m_vis_idlerwheel);
     m_track->SetRoadWheelVisualizationType(m_vis_roadwheel);
     m_track->SetTrackShoeVisualizationType(m_vis_shoe);
 
     // Set collisions
-    m_track->GetIdler()->SetCollide((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
+    m_track->GetIdlerWheel()->SetCollide((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
 
     m_track->GetSprocket()->SetCollide((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) != 0);
 

@@ -166,10 +166,13 @@ void ChTrackAssembly::SetSprocketVisualizationType(VisualizationType vis) {
 
 void ChTrackAssembly::SetIdlerVisualizationType(VisualizationType vis) {
     GetIdler()->SetVisualizationType(vis);
+}
+
+void ChTrackAssembly::SetIdlerWheelVisualizationType(VisualizationType vis) {
     GetIdler()->GetIdlerWheel()->SetVisualizationType(vis);
 }
 
-void ChTrackAssembly::SetRoadWheelAssemblyVisualizationType(VisualizationType vis) {
+void ChTrackAssembly::SetSuspensionVisualizationType(VisualizationType vis) {
     for (size_t i = 0; i < m_suspensions.size(); ++i) {
         m_suspensions[i]->SetVisualizationType(vis);
     }

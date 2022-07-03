@@ -311,7 +311,8 @@ int main(int argc, char* argv[]) {
 
     rig->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
-    rig->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetIdlerWheelVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 

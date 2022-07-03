@@ -53,9 +53,6 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     /// Return a handle to the carrier body to which the idler wheel is connected.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const = 0;
 
-    /// Turn on/off collision flag for the idler wheel.
-    void SetCollide(bool val) { GetWheelBody()->SetCollide(val); }
-
     /// Initialize this idler subsystem.
     /// The idler subsystem is initialized by attaching it to the specified chassis at the specified location (with
     /// respect to and expressed in the reference frame of the chassis). It is assumed that the idler subsystem

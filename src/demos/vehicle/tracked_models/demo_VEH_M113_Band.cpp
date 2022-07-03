@@ -136,7 +136,8 @@ int main(int argc, char* argv[]) {
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetIdlerWheelVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 

@@ -374,7 +374,8 @@ int main(int argc, char* argv[]) {
     m113.SetChassisVisualizationType(VisualizationType::NONE);
     m113.SetSprocketVisualizationType(track_vis);
     m113.SetIdlerVisualizationType(track_vis);
-    m113.SetRoadWheelAssemblyVisualizationType(track_vis);
+    m113.SetSuspensionVisualizationType(track_vis);
+    m113.SetIdlerWheelVisualizationType(track_vis);
     m113.SetRoadWheelVisualizationType(track_vis);
     m113.SetTrackShoeVisualizationType(track_vis);
 

@@ -64,6 +64,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Get a handle to the idler subsystem.
     std::shared_ptr<ChIdler> GetIdler() const { return m_idler; }
 
+    /// Get a handle to the idelr wheel subsystem.
+    std::shared_ptr<ChTrackWheel> GetIdlerWheel() const { return m_idler->GetIdlerWheel(); }
+
     /// Get a handle to the brake subsystem.
     std::shared_ptr<ChTrackBrake> GetBrake() const { return m_brake; }
 
@@ -157,7 +160,10 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     void SetIdlerVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the suspension subsystems.
-    void SetRoadWheelAssemblyVisualizationType(VisualizationType vis);
+    void SetSuspensionVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the idler-wheel subsystems.
+    void SetIdlerWheelVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the road-wheel subsystems.
     void SetRoadWheelVisualizationType(VisualizationType vis);

@@ -86,7 +86,10 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     void SetIdlerVisualizationType(VisualizationType vis) { m_vis_idler = vis; }
 
     /// Set visualization type for the road-wheel assembly subsystem (default: PRIMITIVES).
-    void SetRoadWheelAssemblyVisualizationType(VisualizationType vis) { m_vis_roadwheel_assembly = vis; }
+    void SetSuspensionVisualizationType(VisualizationType vis) { m_vis_suspension = vis; }
+
+    /// Set visualization type for the idler-wheel subsystem (default: PRIMITIVES).
+    void SetIdlerWheelVisualizationType(VisualizationType vis) { m_vis_idlerwheel = vis; }
 
     /// Set visualization type for the road-wheel subsystem (default: PRIMITIVES).
     void SetRoadWheelVisualizationType(VisualizationType vis) { m_vis_roadwheel = vis; }
@@ -229,7 +232,8 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     VisualizationType m_vis_sprocket;
     VisualizationType m_vis_idler;
-    VisualizationType m_vis_roadwheel_assembly;
+    VisualizationType m_vis_suspension;
+    VisualizationType m_vis_idlerwheel;
     VisualizationType m_vis_roadwheel;
     VisualizationType m_vis_shoe;
 

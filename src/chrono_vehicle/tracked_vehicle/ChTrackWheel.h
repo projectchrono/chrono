@@ -61,7 +61,7 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     /// Get the radius of the track wheel.
     virtual double GetWheelRadius() const = 0;
 
-    /// Turn on/off collision flag for the track wheel.
+    /// Turn on/off collision flag for the track wheel (default: true).
     void SetCollide(bool val) { m_wheel->SetCollide(val); }
 
     /// Initialize this track wheel subsystem.
