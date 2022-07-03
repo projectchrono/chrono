@@ -1,53 +1,26 @@
 {
-  "Name":                           "Marder Double Idler Left",
-  "Type":                           "Idler",
-  "Template":                       "DoubleIdler",
+    "Name": "Marder Idler Left",
+    "Type": "Idler",
+    "Template": "TranslationalIdler",
 
-  "Wheel":
-  {
-      "Radius":                     0.334,
-      "Width":                      0.181,
-      "Gap":                        0.051,
-      "Mass":                       25.76,
-      "COM":                        [0, 0, 0],
-      "Inertia":                    [0.618, 1.12, 0.618]
-  },
+    "Carrier": {
+        "Mass": 10.0,
+        "COM": [ 0, -0.1, 0 ],
+        "Inertia": [ 0.04, 0.04, 0.04 ],
+        "Location Wheel": [ 0, 0, 0 ],
+        "Location Chassis": [ 0, -0.2, 0 ],
+        "Visualization Radius": 0.02,
+        "Pitch Angle": 0
+    },
 
-  "Carrier":
-  {
-      "Mass":                       10.0,
-      "COM":                        [0, -0.1, 0],
-      "Inertia":                    [0.04, 0.04, 0.04],
-      "Location Chassis":           [0, -0.2, 0],
-      "Visualization Radius":       0.02,
-      "Pitch Angle":                0
-  },
+    "Tensioner": {
+        "Location Carrier": [ 0, -0.2, 0 ],
+        "Location Chassis": [ 0.5, -0.2, 0 ],
+        "Preload": 24525,
+        "Free Length": 0.75,
+        "Spring Coefficient": 2e6,
+        "Damping Coefficient": 100000
+    },
 
-  "Tensioner":
-  {
-    "Location Carrier":             [0, -0.2, 0],
-    "Location Chassis":             [0.5, -0.2, 0],
-    "Preload":                      24525,
-    "Free Length":                  0.75,
-    "Spring Coefficient":           2e6,
-    "Damping Coefficient":          100000
-  },
-
-  "Contact Material":
-  {
-      "Coefficient of Friction":    0.4,
-      "Coefficient of Restitution": 0.75,
-
-      "Properties": {
-          "Young Modulus":          1e7,
-          "Poisson Ratio":          0.3
-      },
-
-      "Coefficients": {
-          "Normal Stiffness":       2e5,
-          "Normal Damping":         40.0,
-          "Tangential Stiffness":   2e5,
-          "Tangential Damping":     20.0
-      }
-  }
+    "Idler Wheel Input File": "Marder/idler_wheel/doubleIdlerWheel0.json"
 }
