@@ -40,6 +40,8 @@
 #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
@@ -72,6 +74,10 @@ bool include_aero_drag = false;
 double step_size = 1e-3;
 double tire_step_size = 1e-3;
 
+// Output
+bool output = true;
+std::string out_dir = GetChronoOutputPath() + "HMMWV_ACCELERATION";
+
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -83,15 +89,23 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Create output directory
+    if (output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+    }
+
+    // --------------
+    // Create systems
+    // --------------
+
     ChQuaternion<> yaw_rot = Q_from_AngZ(yaw_angle);
     ChCoordsys<> patch_sys(VNULL, yaw_rot);
     ChVector<> init_loc = patch_sys.TransformPointLocalToParent(ChVector<>(-terrainLength / 2 + 5, 0, 0.7));
     ChVector<> path_start = patch_sys.TransformPointLocalToParent(ChVector<>(-terrainLength / 2, 0, 0.5));
     ChVector<> path_end = patch_sys.TransformPointLocalToParent(ChVector<>(+terrainLength / 2, 0, 0.5));
-
-    // --------------
-    // Create systems
-    // --------------
 
     // Create the HMMWV vehicle, set parameters, and initialize.
     // Typical aerodynamic drag for HMMWV: Cd = 0.5 and area ~5 m2
@@ -162,6 +176,11 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    // Output file
+    utils::CSV_writer csv("\t");
+    csv.stream().setf(std::ios::scientific | std::ios::showpos);
+    csv.stream().precision(6);
+
     // Running average of vehicle speed
     utils::ChRunningAverage speed_filter(500);
     double last_speed = -1;
@@ -182,6 +201,17 @@ int main(int argc, char* argv[]) {
         double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetSpeed());
         if (!done) {
             speed_recorder.AddPoint(time, speed);
+
+            if (output) {
+                auto wheel_state = my_hmmwv.GetVehicle().GetWheel(0, LEFT)->GetState();
+                auto frc = my_hmmwv.GetVehicle().GetTire(0, LEFT)->ReportTireForce(terrain.get());
+                   
+                csv << time << wheel_state.omega;
+                csv << my_hmmwv.GetChassisBody()->TransformDirectionParentToLocal(frc.force);
+                csv << my_hmmwv.GetChassisBody()->TransformDirectionParentToLocal(frc.moment);
+                csv << std::endl;
+            }
+
             if (time > 6 && std::abs((speed - last_speed) / step_size) < 2e-4) {
                 done = true;
                 timer.stop();
@@ -234,6 +264,9 @@ int main(int argc, char* argv[]) {
 
         vis->EndScene();
     }
+
+    if (output)
+        csv.write_to_file(out_dir + "/tire_force.out");
 
     return 0;
 }
