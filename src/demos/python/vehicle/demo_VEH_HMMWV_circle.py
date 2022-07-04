@@ -59,7 +59,7 @@ minfo.cr = 0.01
 minfo.Y = 2e7
 patch_mat = minfo.CreateMaterial(my_hmmwv.GetSystem().GetContactMethod())
 terrain = veh.RigidTerrain(my_hmmwv.GetSystem())
-patch = terrain.AddPatch(patch_mat, chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 200, 200)
+patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 200, 200)
 patch.SetColor(chrono.ChColor(1, 1, 1))
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
 terrain.Initialize()
@@ -103,6 +103,8 @@ ballT.getMaterial(0).EmissiveColor = chronoirr.SColor(0, 0, 255, 0)
 # ---------------
 
 steeringPID_output = 0
+
+my_hmmwv.GetVehicle().EnableRealtime(True)
 
 while vis.Run() :
     time = my_hmmwv.GetSystem().GetChTime()

@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
-            patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 100.0, 100.0);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, 100.0, 100.0);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:

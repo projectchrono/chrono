@@ -65,6 +65,9 @@ TireModelType tire_model = TireModelType::PAC02;
 // Terrain length (X direction)
 double terrainLength = 300.0;
 
+// Lane direction
+double yaw_angle = 0 * CH_C_DEG_TO_RAD;
+
 // Simulation step sizes
 double step_size = 1e-3;
 double tire_step_size = 1e-3;
@@ -83,7 +86,7 @@ int main(int argc, char* argv[]) {
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
+    my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.7), Q_from_AngZ(yaw_angle)));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(tire_model);
@@ -108,7 +111,7 @@ int main(int argc, char* argv[]) {
     patch_mat->SetRestitution(0.01f);
     patch_mat->SetYoungModulus(2e7f);
     patch_mat->SetPoissonRatio(0.3f);
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, 5);
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, 5);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
     terrain.Initialize();

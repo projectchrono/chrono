@@ -51,14 +51,14 @@ def main():
     patch1_mat = chrono.ChMaterialSurfaceNSC()
     patch1_mat.SetFriction(0.9)
     patch1_mat.SetRestitution(0.01)
-    patch1 = terrain.AddPatch(patch1_mat, chrono.ChVectorD(-16, 0, 0), chrono.ChVectorD(0, 0, 1), 32, 20)
+    patch1 = terrain.AddPatch(patch1_mat, chrono.ChCoordsysD(chrono.ChVectorD(-16, 0, 0), chrono.QUNIT), 32, 20)
     patch1.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
     patch1.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 20, 20)
 
     patch2_mat = chrono.ChMaterialSurfaceNSC()
     patch2_mat.SetFriction(0.9)
     patch2_mat.SetRestitution(0.01)
-    patch2 = terrain.AddPatch(patch2_mat, chrono.ChVectorD(16, 0, 0.15), chrono.ChVectorD(0, 0, 1), 32, 30);
+    patch2 = terrain.AddPatch(patch2_mat, chrono.ChCoordsysD(chrono.ChVectorD(16, 0, 0.15), chrono.QUNIT), 32, 30);
     patch2.SetColor(chrono.ChColor(1.0, 0.5, 0.5))
     patch2.SetTexture(veh.GetDataFile("terrain/textures/concrete.jpg"), 20, 20)
 
@@ -97,7 +97,8 @@ def main():
     driver.SetBrakingDelta(0.06)
     driver.Initialize()
 
-    realtime_timer = chrono.ChRealtimeStepTimer()
+    my_hmmwv.GetVehicle().EnableRealtime(True)
+
     while vis.Run() :
         time = my_hmmwv.GetSystem().GetChTime()
 
@@ -120,9 +121,6 @@ def main():
         terrain.Advance(step_size)
         my_hmmwv.Advance(step_size)
         vis.Advance(step_size)
-
-        # Spin in place for real time to catch up
-        realtime_timer.Spin(step_size)
 
     return 0
 
