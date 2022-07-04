@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     double timestep = 0.005;
     while(vis->Run()) {
         if(numFrame == 10) {
-            std::string imageFileName = "image.png"; // must be png
+            std::string imageFileName = "image.png";
             vis->WriteImageToFile(imageFileName); // does not work with frame == 0!
         }
         sys.DoStepDynamics(timestep);

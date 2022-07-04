@@ -254,12 +254,7 @@ int main(int argc, char* argv[]) {
     size_t numFrame = 0;
     while (vis->Run()) {
         if (numFrame == 10) {
-#ifdef WIN32
-            std::string imageFileName = "image.ppm";  // allowed formats png, bmp, jpg, tga
-#else
-            std::string imageFileName = "image.png";  // allowed formats png, bmp, jpg, tga
-#endif
-            vis->WriteImageToFile(imageFileName);     // does not work with frame == 0!
+            vis->WriteImageToFile("shot.png");     // does not work with frame == 0!
         }
         vis->Render();
         sys.DoStepDynamics(0.01);

@@ -151,7 +151,7 @@ void ChVisualSystemVSG::Initialize() {
             m_useSkybox = false;
     }
 
-    /*
+
     auto ambientLight = vsg::AmbientLight::create();
     ambientLight->name = "ambient";
     ambientLight->color.set(1.0, 1.0, 1.0);
@@ -174,7 +174,7 @@ void ChVisualSystemVSG::Initialize() {
     absoluteTransform->addChild(directionalLight);
 
     m_scene->addChild(absoluteTransform);
-*/
+
     // create the viewer and assign window(s) to it
     m_viewer = vsg::Viewer::create();
 
