@@ -41,7 +41,7 @@ def main():
     m113.SetPowertrainType(veh.PowertrainModelType_SHAFTS)
     m113.SetBrakeType(veh.BrakeType_SIMPLE)
 
-    m113.SetInitialPosition(chrono.ChCoordsysD(initLoc, initRot))
+    m113.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
     m113.Initialize()
 
     m113.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
@@ -54,7 +54,7 @@ def main():
     # Create the terrain
     # ------------------
 
-    terrain = veh.RigidTerrain(vehicle.GetSystem())
+    terrain = veh.RigidTerrain(m113.GetSystem())
     if (contact_method == chrono.ChContactMethod_NSC):
         patch_mat = chrono.ChMaterialSurfaceNSC()
         patch_mat.SetFriction(0.9)
@@ -103,8 +103,8 @@ def main():
     # ---------------
 
     # Inter-module communication data
-    shoe_forces_left = veh.TerrainForces(vehicle.GetNumTrackShoes(veh.LEFT))
-    shoe_forces_right = veh.TerrainForces(vehicle.GetNumTrackShoes(veh.RIGHT))
+    shoe_forces_left = veh.TerrainForces(m113.GetVehicle().GetNumTrackShoes(veh.LEFT))
+    shoe_forces_right = veh.TerrainForces(m113.GetVehicle().GetNumTrackShoes(veh.RIGHT))
 
     # Number of simulation steps between miscellaneous events
     render_steps = m.ceil(render_step_size / step_size)
@@ -115,7 +115,7 @@ def main():
     m113.GetVehicle().EnableRealtime(True)
 
     while vis.Run() :
-        time = vehicle.GetSystem().GetChTime()
+        time = m113.GetSystem().GetChTime()
 
         vis.BeginScene()
         vis.DrawAll()
