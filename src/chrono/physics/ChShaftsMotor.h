@@ -154,7 +154,7 @@ class ChApi ChShaftsMotor : public ChShaftsMotorBase {
 
     enum eCh_shaftsmotor_mode { MOT_MODE_ROTATION = 0, MOT_MODE_SPEED, MOT_MODE_TORQUE } motor_mode;
 
-    /// Se the motor mode. The options are that you impose
+    /// Se the motor mode. The m_options are that you impose
     /// the relative torque between the two shafts,
     /// or their relative rotation phase, or
     /// their relative speed, but one mode excludes the others.

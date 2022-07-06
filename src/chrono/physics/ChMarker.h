@@ -187,11 +187,11 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     Vector GetMotion_axis() const { return motion_axis; }
 
     /// Sets the way the motion of this marker (if any) is handled (see
-    /// the eChMarkerMotion enum options).
+    /// the eChMarkerMotion enum m_options).
     void SetMotionType(eChMarkerMotion m_motion) { motion_type = m_motion; }
 
     /// Gets the way the motion of this marker (if any) is handled (see
-    /// the eChMarkerMotion enum options).
+    /// the eChMarkerMotion enum m_options).
     eChMarkerMotion GetMotionType() const { return motion_type; }
 
     //

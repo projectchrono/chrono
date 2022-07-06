@@ -56,7 +56,7 @@ Create a new _empty_ directory inside of the Chrono SDK source directory. This w
 
 -  Run `emcmake ccmake -G Ninja ..` from the build directory. The wrapper `emcmake` will set up the emscripten toolchain for CMake, and then a text based GUI will appear in the terminal.
 
--  Enter `c` to **Configure** and continue. The interface will reload to a new screen with more options.
+-  Enter `c` to **Configure** and continue. The interface will reload to a new screen with more m_options.
   
 -  Specify the location of the Eigen installation.
    If this is not detected automatically, you may need to manually set the CMake variable `EIGEN3_INCLUDE_DIR`.<br>

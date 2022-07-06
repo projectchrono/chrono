@@ -8,7 +8,7 @@ tagged release version.
 # Quick start
 
 This is a lightweight C++ option parser library, supporting the standard GNU
-style syntax for options.
+style syntax for m_options.
 
 Options can be given as:
 
@@ -32,13 +32,13 @@ Additionally, anything after `--` will be parsed as a positional argument.
 Create a `cxxopts::Options` instance.
 
 ```cpp
-cxxopts::Options options("MyProgram", "One line description of MyProgram");
+cxxopts::Options m_options("MyProgram", "One line description of MyProgram");
 ```
 
 Then use `add_options`.
 
 ```cpp
-options.add_options()
+m_options.add_options()
   ("d,debug", "Enable debugging") // a bool parameter
   ("i,integer", "Int param", cxxopts::value<int>())
   ("f,file", "File name", cxxopts::value<std::string>())
@@ -53,7 +53,7 @@ Any type can be given as long as it can be parsed, with operator>>.
 To parse the command line do:
 
 ```cpp
-auto result = options.parse(argc, argv);
+auto result = m_options.parse(argc, argv);
 ```
 
 To retrieve an option use `result.count("option")` to get the number of times
@@ -66,15 +66,15 @@ result["opt"].as<type>()
 to get its value. If "opt" doesn't exist, or isn't of the right type, then an
 exception will be thrown.
 
-Note that the result of `options.parse` should only be used as long as the
-`options` object that created it is in scope.
+Note that the result of `m_options.parse` should only be used as long as the
+`m_options` object that created it is in scope.
 
 ## Exceptions
 
 Exceptional situations throw C++ exceptions. There are two types of
-exceptions: errors defining the options, and errors when parsing a list of
+exceptions: errors defining the m_options, and errors when parsing a list of
 arguments. All exceptions derive from `cxxopts::OptionException`. Errors
-defining options derive from `cxxopts::OptionSpecException` and errors
+defining m_options derive from `cxxopts::OptionSpecException` and errors
 parsing arguments derive from `cxxopts::OptionParseException`.
 
 All exceptions define a `what()` function to get a printable string
@@ -83,17 +83,17 @@ explaining the error.
 ## Help groups
 
 Options can be placed into groups for the purposes of displaying help messages.
-To place options in a group, pass the group as a string to `add_options`. Then,
+To place m_options in a group, pass the group as a string to `add_options`. Then,
 when displaying the help, pass the groups that you would like displayed as a
 vector to the `help` function.
 
 ## Positional Arguments
 
-Positional arguments can be optionally parsed into one or more options.
+Positional arguments can be optionally parsed into one or more m_options.
 To set up positional arguments, call
 
 ```cpp
-options.parse_positional({"first", "second", "last"})
+m_options.parse_positional({"first", "second", "last"})
 ```
 
 where "last" should be the name of an option with a container type, and the
@@ -127,7 +127,7 @@ though it was given on the command line.
 
 ## Boolean values
 
-Boolean options have a default implicit value of `"true"`, which can be
+Boolean m_options have a default implicit value of `"true"`, which can be
 overridden. The effect is that writing `-o` by itself will set option `o` to
 `true`. However, they can also be written with various strings using `=value`.
 There is no way to disambiguate positional arguments from the value following
@@ -149,8 +149,8 @@ that can be parsed as a `std::vector<double>`:
 ## Custom help
 
 The string after the program name on the first line of the help can be
-completely replaced by calling `options.custom_help`. Note that you might
-also want to override the positional help by calling `options.positional_help`.
+completely replaced by calling `m_options.custom_help`. Note that you might
+also want to override the positional help by calling `m_options.positional_help`.
 
 
 ## Example
@@ -159,20 +159,20 @@ Putting all together:
 ```cpp
 int main(int argc, char** argv)
 {
-    cxxopts::Options options("test", "A brief description");
+    cxxopts::Options m_options("test", "A brief description");
 
-    options.add_options()
+    m_options.add_options()
         ("b,bar", "Param bar", cxxopts::value<std::string>())
         ("d,debug", "Enable debugging", cxxopts::value<bool>()->default_value("false"))
         ("f,foo", "Param foo", cxxopts::value<int>()->default_value("10"))
         ("h,help", "Print usage")
     ;
 
-    auto result = options.parse(argc, argv);
+    auto result = m_options.parse(argc, argv);
 
     if (result.count("help"))
     {
-      std::cout << options.help() << std::endl;
+      std::cout << m_options.help() << std::endl;
       exit(0);
     }
     bool debug = result["debug"].as<bool>();
@@ -205,4 +205,4 @@ The following compilers are known not to work:
 
 # TODO list
 
-* Allow unrecognised options.
+* Allow unrecognised m_options.

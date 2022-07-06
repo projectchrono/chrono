@@ -40,7 +40,7 @@ subject to the following restrictions:
  * 
  * An alternative to premake is cmake. You can download cmake from http://www.cmake.org
  * cmake can autogenerate projectfiles for Microsoft Visual Studio, Apple Xcode, KDevelop and Unix Makefiles.
- * The easiest is to run the CMake cmake-gui graphical user interface and choose the options and generate projectfiles.
+ * The easiest is to run the CMake cmake-gui graphical user interface and choose the m_options and generate projectfiles.
  * You can also use cmake in the command-line. Here are some examples for various platforms:
  * cmake . -G "Visual Studio 9 2008"
  * cmake . -G Xcode

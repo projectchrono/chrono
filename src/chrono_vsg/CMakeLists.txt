@@ -63,11 +63,6 @@ SET(CE_VSG_TOOLS_FILES
         tools/createSkybox.h
         tools/exportScreenshot.cpp
         tools/exportScreenshot.h
-        tools/exportScreenshotNoBlit.cpp
-        tools/exportScreenshotNoBlit.h
-        ../chrono_thirdparty/stb/stb_image_write.cpp
-        ../chrono_thirdparty/stb/stb_image_resize.cpp
-        ../chrono_thirdparty/Easy_BMP/EasyBMP.cpp        
 )
 
 SOURCE_GROUP("" FILES ${CE_VSG_BASE_FILES})

@@ -64,11 +64,11 @@ bool enable_moving_patch = true;
 bool var_params = true;
 
 // Specify rover chassis type
-// The options are Scarecrow and FullRover
+// The m_options are Scarecrow and FullRover
 CuriosityChassisType chassis_type = CuriosityChassisType::FullRover;
 
 // Specify rover wheel type
-// The options are RealWheel, SimpleWheel, and CylWheel
+// The m_options are RealWheel, SimpleWheel, and CylWheel
 CuriosityWheelType wheel_type = CuriosityWheelType::RealWheel;
 
 // Simulation time step

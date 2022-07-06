@@ -14,7 +14,7 @@
 # Values that contain spaces should be placed between quotes (\" \").
 
 #---------------------------------------------------------------------------
-# Project related configuration options
+# Project related configuration m_options
 #---------------------------------------------------------------------------
 
 # This tag specifies the encoding used for all characters in the configuration
@@ -446,7 +446,7 @@ TYPEDEF_HIDES_STRUCT   = NO
 LOOKUP_CACHE_SIZE      = 0
 
 #---------------------------------------------------------------------------
-# Build related configuration options
+# Build related configuration m_options
 #---------------------------------------------------------------------------
 
 # If the EXTRACT_ALL tag is set to YES, doxygen will assume all entities in
@@ -738,7 +738,7 @@ LAYOUT_FILE            = layout.xml
 CITE_BIB_FILES         =
 
 #---------------------------------------------------------------------------
-# Configuration options related to warning and progress messages
+# Configuration m_options related to warning and progress messages
 #---------------------------------------------------------------------------
 
 # The QUIET tag can be used to turn on/off the messages that are generated to
@@ -804,7 +804,7 @@ WARN_FORMAT            = "$file:$line: $text"
 WARN_LOGFILE           =
 
 #---------------------------------------------------------------------------
-# Configuration options related to the input files
+# Configuration m_options related to the input files
 #---------------------------------------------------------------------------
 
 # The INPUT tag is used to specify the files and/or directories that contain
@@ -992,7 +992,7 @@ FILTER_SOURCE_PATTERNS =
 USE_MDFILE_AS_MAINPAGE =
 
 #---------------------------------------------------------------------------
-# Configuration options related to source browsing
+# Configuration m_options related to source browsing
 #---------------------------------------------------------------------------
 
 # If the SOURCE_BROWSER tag is set to YES then a list of source files will be
@@ -1089,7 +1089,7 @@ VERBATIM_HEADERS       = NO
 CLANG_ASSISTED_PARSING = NO
 
 # If clang assisted parsing is enabled you can provide the compiler with command
-# line options that you would normally use when invoking the compiler. Note that
+# line m_options that you would normally use when invoking the compiler. Note that
 # the include paths will already be set by doxygen for the files and directories
 # specified with INPUT and INCLUDE_PATH.
 # This tag requires that the tag CLANG_ASSISTED_PARSING is set to YES.
@@ -1100,14 +1100,14 @@ CLANG_OPTIONS          =
 # path to the compilation database (see:
 # http://clang.llvm.org/docs/HowToSetupToolingForLLVM.html) used when the files
 # were built. This is equivalent to specifying the "-p" option to a clang tool,
-# such as clang-check. These options will then be passed to the parser.
+# such as clang-check. These m_options will then be passed to the parser.
 # Note: The availability of this option depends on whether or not doxygen was
 # generated with the -Duse_libclang=ON option for CMake.
 
 CLANG_DATABASE_PATH    =
 
 #---------------------------------------------------------------------------
-# Configuration options related to the alphabetical class index
+# Configuration m_options related to the alphabetical class index
 #---------------------------------------------------------------------------
 
 # If the ALPHABETICAL_INDEX tag is set to YES, an alphabetical index of all
@@ -1133,7 +1133,7 @@ COLS_IN_ALPHA_INDEX    = 3
 IGNORE_PREFIX          = Ch
 
 #---------------------------------------------------------------------------
-# Configuration options related to the HTML output
+# Configuration m_options related to the HTML output
 #---------------------------------------------------------------------------
 
 # If the GENERATE_HTML tag is set to YES, doxygen will generate HTML output
@@ -1161,7 +1161,7 @@ HTML_FILE_EXTENSION    = .html
 # standard header.
 #
 # To get valid HTML the header file that includes any scripts and style sheets
-# that doxygen needs, which is dependent on the configuration options used (e.g.
+# that doxygen needs, which is dependent on the configuration m_options used (e.g.
 # the setting GENERATE_TREEVIEW). It is highly recommended to start with a
 # default header using
 # doxygen -w html new_header.html new_footer.html new_stylesheet.css
@@ -1620,7 +1620,7 @@ MATHJAX_CODEFILE       =
 # <CTRL>, <ALT>/<option>, or both). Inside the search box use the <cursor down
 # key> to jump into the search results window, the results can be navigated
 # using the <cursor keys>. Press <Enter> to select an item or <escape> to cancel
-# the search. The filter options can be selected when the cursor is inside the
+# the search. The filter m_options can be selected when the cursor is inside the
 # search box by pressing <Shift>+<cursor down>. Also here use the <cursor keys>
 # to select a filter and <Enter> or <escape> to activate or cancel the filter
 # option.
@@ -1695,7 +1695,7 @@ EXTERNAL_SEARCH_ID     =
 EXTRA_SEARCH_MAPPINGS  =
 
 #---------------------------------------------------------------------------
-# Configuration options related to the LaTeX output
+# Configuration m_options related to the LaTeX output
 #---------------------------------------------------------------------------
 
 # If the GENERATE_LATEX tag is set to YES, doxygen will generate LaTeX output.
@@ -1885,7 +1885,7 @@ LATEX_TIMESTAMP        = NO
 LATEX_EMOJI_DIRECTORY  =
 
 #---------------------------------------------------------------------------
-# Configuration options related to the RTF output
+# Configuration m_options related to the RTF output
 #---------------------------------------------------------------------------
 
 # If the GENERATE_RTF tag is set to YES, doxygen will generate RTF output. The
@@ -1951,7 +1951,7 @@ RTF_EXTENSIONS_FILE    =
 RTF_SOURCE_CODE        = NO
 
 #---------------------------------------------------------------------------
-# Configuration options related to the man page output
+# Configuration m_options related to the man page output
 #---------------------------------------------------------------------------
 
 # If the GENERATE_MAN tag is set to YES, doxygen will generate man pages for
@@ -1995,7 +1995,7 @@ MAN_SUBDIR             =
 MAN_LINKS              = NO
 
 #---------------------------------------------------------------------------
-# Configuration options related to the XML output
+# Configuration m_options related to the XML output
 #---------------------------------------------------------------------------
 
 # If the GENERATE_XML tag is set to YES, doxygen will generate an XML file that
@@ -2029,7 +2029,7 @@ XML_PROGRAMLISTING     = YES
 XML_NS_MEMB_FILE_SCOPE = NO
 
 #---------------------------------------------------------------------------
-# Configuration options related to the DOCBOOK output
+# Configuration m_options related to the DOCBOOK output
 #---------------------------------------------------------------------------
 
 # If the GENERATE_DOCBOOK tag is set to YES, doxygen will generate Docbook files
@@ -2056,7 +2056,7 @@ DOCBOOK_OUTPUT         = docbook
 DOCBOOK_PROGRAMLISTING = NO
 
 #---------------------------------------------------------------------------
-# Configuration options for the AutoGen Definitions output
+# Configuration m_options for the AutoGen Definitions output
 #---------------------------------------------------------------------------
 
 # If the GENERATE_AUTOGEN_DEF tag is set to YES, doxygen will generate an
@@ -2068,7 +2068,7 @@ DOCBOOK_PROGRAMLISTING = NO
 GENERATE_AUTOGEN_DEF   = NO
 
 #---------------------------------------------------------------------------
-# Configuration options related to the Perl module output
+# Configuration m_options related to the Perl module output
 #---------------------------------------------------------------------------
 
 # If the GENERATE_PERLMOD tag is set to YES, doxygen will generate a Perl module
@@ -2106,7 +2106,7 @@ PERLMOD_PRETTY         = YES
 PERLMOD_MAKEVAR_PREFIX =
 
 #---------------------------------------------------------------------------
-# Configuration options related to the preprocessor
+# Configuration m_options related to the preprocessor
 #---------------------------------------------------------------------------
 
 # If the ENABLE_PREPROCESSING tag is set to YES, doxygen will evaluate all
@@ -2193,7 +2193,7 @@ EXPAND_AS_DEFINED      =
 SKIP_FUNCTION_MACROS   = YES
 
 #---------------------------------------------------------------------------
-# Configuration options related to external references
+# Configuration m_options related to external references
 #---------------------------------------------------------------------------
 
 # The TAGFILES tag can be used to specify one or more tag files. For each tag
@@ -2245,7 +2245,7 @@ EXTERNAL_PAGES         = YES
 PERL_PATH              = /usr/bin/perl
 
 #---------------------------------------------------------------------------
-# Configuration options related to the dot tool
+# Configuration m_options related to the dot tool
 #---------------------------------------------------------------------------
 
 # If the CLASS_DIAGRAMS tag is set to YES, doxygen will generate a class diagram
@@ -2282,7 +2282,7 @@ HIDE_UNDOC_RELATIONS   = YES
 # If you set the HAVE_DOT tag to YES then doxygen will assume the dot tool is
 # available from the path. This tool is part of Graphviz (see:
 # http://www.graphviz.org/), a graph visualization toolkit from AT&T and Lucent
-# Bell Labs. The other options in this section have no effect if this option is
+# Bell Labs. The other m_options in this section have no effect if this option is
 # set to NO
 # The default value is: NO.
 
@@ -2540,7 +2540,7 @@ MAX_DOT_GRAPH_DEPTH    = 0
 DOT_TRANSPARENT        = NO
 
 # Set the DOT_MULTI_TARGETS tag to YES to allow dot to generate multiple output
-# files in one run (i.e. multiple -o and -T options on the command line). This
+# files in one run (i.e. multiple -o and -T m_options on the command line). This
 # makes dot run faster, but since only newer versions of dot (>1.8.10) support
 # this, this feature is disabled by default.
 # The default value is: NO.

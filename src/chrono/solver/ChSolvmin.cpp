@@ -292,7 +292,7 @@ bool ChOptimizerLocal::DoOptimize() {
 
     error_code = OPT_ERR_OK;
 
-    // set vector of options
+    // set vector of m_options
     solvopt_options[0] = nstep;
     solvopt_options[1] = arg_tol;
     solvopt_options[2] = fun_tol;
@@ -1445,12 +1445,12 @@ double solvopt(unsigned int n,
       grad    is the entry name of an external function which computes the gradient
               vector of the function 'fun' at a point x.
               synopsis: void grad(double x[],double g[])
-      options is a vector of optional parameters (see the description in SOLVOPT.H).
+      m_options is a vector of optional parameters (see the description in SOLVOPT.H).
             Returned optional values:
-            options[8], the number of iterations, options[8]<0 means
+            m_options[8], the number of iterations, m_options[8]<0 means
                         an error occurred
-            options[9], the number of objective function evaluations, and
-            options[10],the number of gradient evaluations.
+            m_options[9], the number of objective function evaluations, and
+            m_options[10],the number of gradient evaluations.
       idData rappresenta un dato a 32 bit per contenere particolari informazioni
       showVarFun puntatore a funzione void (*)() per il display delle variabili
              chiamata in ogni ciclo
@@ -1520,7 +1520,7 @@ double solvopt(unsigned int n,
         dx += x[i] * x[i];
     dx = sqrt(dx);
 
-    /* Default values for options */
+    /* Default values for m_options */
     for (i = 0; i <= 7; i++)
         if (options[i] == zero)
             options[i] = default_options[i];
@@ -1577,7 +1577,7 @@ double solvopt(unsigned int n,
 
         f = fun(x, idData);
         options[9] += one;     // +++++++++
-        if (fabs(f) > maxf) {  // if (options[4]!=-one)
+        if (fabs(f) > maxf) {  // if (m_options[4]!=-one)
             //  ; //printf (slv_err3);
             options[8] = k;
             err_code = 3;
@@ -1613,7 +1613,7 @@ double solvopt(unsigned int n,
             e2g += g[i] * g[i];
         e2g = sqrt(e2g);
         /* Check the norm of the gradient:   */
-        if (e2g < eps) {  // if (options[4]!=-one)
+        if (e2g < eps) {  // if (m_options[4]!=-one)
             //  ; //printf (slv_wrn1);
             err_code = 4;
             options[8] = k;
@@ -1705,7 +1705,7 @@ double solvopt(unsigned int n,
             }
             if (e2z == zero && kcheck > 2)
                 reset = 1;
-            if (reset) {  // if (options[4]!=-one)
+            if (reset) {  // if (m_options[4]!=-one)
                 //	printf (slv_wrn2);
                 kcheck = 0;
                 h = h1 * dx / 6.e0;
@@ -1767,7 +1767,7 @@ double solvopt(unsigned int n,
                     err_code = 11;
                     goto endrun;
                 }
-                if (fabs(f) > maxf) {  // if (options[4]!=-one)
+                if (fabs(f) > maxf) {  // if (m_options[4]!=-one)
                                        //		printf (slv_err3);
                     err_code = 3;
                     options[8] = k;
@@ -1878,7 +1878,7 @@ double solvopt(unsigned int n,
 
             /* Check the norm of the gradient: */
 
-            if (e2g < eps) {  // if (options[4]!=-one)
+            if (e2g < eps) {  // if (m_options[4]!=-one)
                 //    printf (slv_wrn1);
                 nzero += 1;
 
@@ -1902,7 +1902,7 @@ double solvopt(unsigned int n,
                             z[i] = x1[i] + h;
                     }
                 } else { /* Use a random point: */
-                    // if (options[4]!=-one)
+                    // if (m_options[4]!=-one)
                     //       printf(slv_wrn3);
                     if (k > nzero + 1)
                         for (i = 0; i < n; i++)
@@ -1919,7 +1919,7 @@ double solvopt(unsigned int n,
                         err_code = 11;
                         goto endrun;
                     }
-                    if (fabs(f) > maxf) {  // if (options[4]!=-one)
+                    if (fabs(f) > maxf) {  // if (m_options[4]!=-one)
                         //   printf (slv_err3);
                         err_code = 3;
                         options[8] = k;
@@ -1952,7 +1952,7 @@ double solvopt(unsigned int n,
                         e2g += g[i] * g[i];
                     e2g = sqrt(e2g);
                     /* Check the norm of the gradient: */
-                    if (e2g < eps) {  // if (options[4]!=-one)
+                    if (e2g < eps) {  // if (m_options[4]!=-one)
                                       //     printf (slv_wrn1);
                         err_code = 4;
                         options[8] = k;
@@ -1982,7 +1982,7 @@ double solvopt(unsigned int n,
             termin = 1;
             for (i = 0; i < n; i++) {
                 if (fabs(x[i]) > xlb) {
-                    // if (fabs(z[i]-x[i])/fabs(x[i])>=options[1])	// modified by alex in the absolute err form...
+                    // if (fabs(z[i]-x[i])/fabs(x[i])>=m_options[1])	// modified by alex in the absolute err form...
                     if (fabs(z[i] - x[i]) >= options[1]) {
                         termin = 0;
                         break;
@@ -1994,7 +1994,7 @@ double solvopt(unsigned int n,
             /* CRITERION FOR THE FUNCTION:  */
             if (termin && ((app && kstop >= 1) || app == 0)) {
                 if (fabs(f) > options[2] * options[2]) {
-                    // if (fabs((f-fopt)/f)<options[2] )	// modified by alex in the absolute err form...
+                    // if (fabs((f-fopt)/f)<m_options[2] )	// modified by alex in the absolute err form...
                     if (fabs(f - fopt) < options[2]) {
                         options[8] = k;
                         goto endrun;

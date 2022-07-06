@@ -560,7 +560,7 @@ CH_FACTORY_REGISTER(ChTimestepperTrapezoidal)
 // original derivation would lead to a scheme that produces oscillatory
 // reactions in constraints, so this is a modified version that is first
 // order in constraint reactions. Use damped HHT or damped Newmark for
-// more advanced options.
+// more advanced m_options.
 void ChTimestepperTrapezoidal::Advance(const double dt) {
     // downcast
     ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;

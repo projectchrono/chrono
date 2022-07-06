@@ -79,8 +79,8 @@ public:
         return *this;
     }
 
-    //! Set pretty writer formatting options.
-    /*! \param options Formatting options.
+    //! Set pretty writer formatting m_options.
+    /*! \param options Formatting m_options.
     */
     PrettyWriter& SetFormatOptions(PrettyFormatOptions options) {
         formatOptions_ = options;

@@ -41,7 +41,7 @@ Reactions and joint rotations/velocities are computed with respect to the *maste
 
 Note that angles are considered in [rad], not in degrees!. Ex. a 180° turn = PI [rad] = 3.1415 [rad] etc. Same for angular velocity, that is [rad/s], and angular acceleration, that is in [rad/s^2].
 
-By default, all rotational motors also provide a revolute constraint for the other relative degrees of freedom (translation about **X**,**Y**,**Z** and rotation about **RX** and **RY**, except rotation RZ that is the one controlled by the motor) so you do not need to create additional joints, like ChLinkLockRevolute for example, to keep the two parts together. Anyway, if you prefer, this behavior can be changed by using the ChLinkMotorRotation::SetSpindleConstraint() function, that can accept the following options:
+By default, all rotational motors also provide a revolute constraint for the other relative degrees of freedom (translation about **X**,**Y**,**Z** and rotation about **RX** and **RY**, except rotation RZ that is the one controlled by the motor) so you do not need to create additional joints, like ChLinkLockRevolute for example, to keep the two parts together. Anyway, if you prefer, this behavior can be changed by using the ChLinkMotorRotation::SetSpindleConstraint() function, that can accept the following m_options:
 
 - FREE : enforces no constraint on spindle direction/alignment
 - REVOLUTE: enforces **X**,**Y**,**Z**, **RX**, **RY** constraints (default)
@@ -428,7 +428,7 @@ They assume that a part A translates about a part B, where **the guide is the X 
 
 Reactions and joint rotations/velocities are computed with respect to the *master frame*, that is frame F2. For example use ChLinkMotorLinear::GetMotorPos(), ChLinkMotorRotation::GetMotorPos_dt() and ChLinkMotorRotation::GetMotorPos_dtdt() to get the current motor displacement, velocity, acceleration. 
 
-By default, all linear motors also provide a prismatic constraint for the other relative degrees of freedom (translation about **Y**,**Z** and rotation about **RX**, **RY, **RZ**, except rotation translation Z that is the one controlled by the motor) so you do not need to create additional joints, like ChLinkLockPrismatic for example, to keep the two parts together. Anyway, if you prefer, this behavior can be changed by using the ChLinkMotorLinear::SetGuideConstraint() function, that can accept the following options:
+By default, all linear motors also provide a prismatic constraint for the other relative degrees of freedom (translation about **Y**,**Z** and rotation about **RX**, **RY, **RZ**, except rotation translation Z that is the one controlled by the motor) so you do not need to create additional joints, like ChLinkLockPrismatic for example, to keep the two parts together. Anyway, if you prefer, this behavior can be changed by using the ChLinkMotorLinear::SetGuideConstraint() function, that can accept the following m_options:
 
 - FREE : enforces no constraint on roller direction/alignment
 - PRISMATIC: enforces **Y**,**Z**, **RX**, **RY**, **RZ** constraints (default)

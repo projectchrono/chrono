@@ -63,7 +63,7 @@ Create a new directory **outside** of the Chrono SDK source directory. This will
 
 -  Run `ccmake /path/to/chrono` from the build directory. A text based GUI will appear in the terminal.
 
--  Enter `c` to **Configure** and continue. The interface will reload to a new screen with more options.
+-  Enter `c` to **Configure** and continue. The interface will reload to a new screen with more m_options.
   
 -  Specify the location of the Eigen installation.
    If this is not detected automatically, you may need to manually set the CMake variable `EIGEN3_INCLUDE_DIR`.<br>

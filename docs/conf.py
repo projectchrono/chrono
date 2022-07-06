@@ -65,7 +65,7 @@ release = '2.0.0'
 # for a list of supported languages.
 #language = None
 
-# There are two options for replacing |today|: either, you set today to some
+# There are two m_options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
 #today = ''
 # Else, today_fmt is used as the format for a strftime call.
@@ -106,8 +106,8 @@ pygments_style = 'sphinx'
 # a list of builtin themes.
 html_theme = 'default'
 
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
+# Theme m_options are theme-specific and customize the look and feel of a theme
+# further.  For a list of m_options available for each theme, see the
 # documentation.
 #html_theme_options = {}
 

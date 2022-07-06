@@ -68,6 +68,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::string m_windowTitle;
     ChColor m_clearColor;
     //
+    vsg::ref_ptr<vsg::Options> m_options;
+    //
     vsg::ref_ptr<vsg::Group> m_scene;
     std::string m_skyboxPath;
     bool m_useSkybox;

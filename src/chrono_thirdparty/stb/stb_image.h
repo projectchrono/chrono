@@ -5896,7 +5896,7 @@ static void *stbi__psd_load(stbi__context *s, int *x, int *y, int *comp, int req
       return stbi__errpuc("unsupported bit depth", "PSD bit depth is not 8 or 16 bit");
 
    // Make sure the color mode is RGB.
-   // Valid options are:
+   // Valid m_options are:
    //   0: Bitmap
    //   1: Grayscale
    //   2: Indexed color

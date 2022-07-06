@@ -37,11 +37,11 @@ THE SOFTWARE.
 // version 1.1.1 : Support smoothing groups(#162)
 // version 1.1.0 : Support parsing vertex color(#144)
 // version 1.0.8 : Fix parsing `g` tag just after `usemtl`(#138)
-// version 1.0.7 : Support multiple tex options(#126)
+// version 1.0.7 : Support multiple tex m_options(#126)
 // version 1.0.6 : Add TINYOBJLOADER_USE_DOUBLE option(#124)
 // version 1.0.5 : Ignore `Tr` when `d` exists in MTL(#43)
 // version 1.0.4 : Support multiple filenames for 'mtllib'(#112)
-// version 1.0.3 : Support parsing texture options(#85)
+// version 1.0.3 : Support parsing texture m_options(#85)
 // version 1.0.2 : Improve parsing speed by about a factor of 2 for large
 // files(#105)
 // version 1.0.1 : Fixes a shape is lost if obj ends with a 'usemtl'(#104)

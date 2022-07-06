@@ -726,7 +726,7 @@ class OptionValue {
 
     size_t count() const noexcept { return m_count; }
 
-    // TODO: maybe default options should count towards the number of arguments
+    // TODO: maybe default m_options should count towards the number of arguments
     bool has_default() const noexcept { return m_default; }
 
     template <typename T>
@@ -936,7 +936,7 @@ class Options {
     std::vector<std::string>::iterator m_next_positional;
     std::unordered_set<std::string> m_positional_set;
 
-    // mapping from groups to help options
+    // mapping from groups to help m_options
     std::map<std::string, HelpGroupDetails> m_help;
 };
 
@@ -1267,7 +1267,7 @@ inline void ParseResult::parse(int& argc, char**& argv) {
 
                 if (iter == m_options->end()) {
                     if (m_allow_unrecognised) {
-                        // keep unrecognised options in argument list, skip to next argument
+                        // keep unrecognised m_options in argument list, skip to next argument
                         argv[nextKeep] = argv[current];
                         ++nextKeep;
                         ++current;
@@ -1377,7 +1377,7 @@ inline String Options::help_one_group(const std::string& g) const {
     String result;
 
     if (!g.empty()) {
-        result += toLocalString(" " + g + " options:\n");
+        result += toLocalString(" " + g + " m_options:\n");
     }
 
     for (const auto& o : group->second.options) {

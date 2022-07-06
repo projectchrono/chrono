@@ -179,7 +179,7 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
 /// The node position is constrained to a given coordinate system CSYS that moves with the ChBodyFrame. The movements of
 /// the node respect to X, Y, Z  axes of such CSYS can be costrained or not,  depending on three boolean toggles. By
 /// default, XYZ are all constrained and the node follows the center of CSYS,  s it is completely locked to it, but
-/// other options are, for example, that you just enable the X constraint (so the node moves on the flat YZ plane) or
+/// other m_options are, for example, that you just enable the X constraint (so the node moves on the flat YZ plane) or
 /// you just enable XY constraints (so the node moves along the Z direction), etc.
 class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
   private:

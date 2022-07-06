@@ -158,7 +158,7 @@ Notes:
 - Once the visual system is initialized **and** attached to the Chrono system, all currently defined visual models are processed and Irrlicht nodes created.  
 - If visual models are created at a later time, these must be converted to Irrlicht nodes through a call to `ChVisualSystemIrrlicht::BindAll()` (to process all visual models in the Chrono system) or to `ChVisualSystemIrrlicht::BindItem` (to process the visual model for the specified Chrono physics item).
 
-Additional rendering options can be enabled with calls to `Enable***` methods which must be made only after the visualization system was initialized and attached to a Chrono system.  These options include enabling various ways of rendering collision and contact information and body or link reference frames.
+Additional rendering m_options can be enabled with calls to `Enable***` methods which must be made only after the visualization system was initialized and attached to a Chrono system.  These m_options include enabling various ways of rendering collision and contact information and body or link reference frames.
 
 A typical simulation loop with Irrlicht-based run-time visualization has the form:
 ```cpp
@@ -175,7 +175,7 @@ A typical simulation loop with Irrlicht-based run-time visualization has the for
 ```
 
 
-The Irrlicht visualization system also provides a GUI (displayed using the `i` key during simulation) which allows changing rendering options at run-time.
+The Irrlicht visualization system also provides a GUI (displayed using the `i` key during simulation) which allows changing rendering m_options at run-time.
 
 See the various Chrono demos (in `src/demos/irrlicht/`) for different ways of using the new visualization system mechanism in Chrono.  Note that the Chrono::Vehicle Irrlicht-based visualization systems (`ChWheeledVehicleVisualSystemIrrlicht` and `ChTrackedVehicleVisualSystemIrrlicht`) use a correspondingly similar mechanism for their definition and usage in a vehicle  simulation loop. See demos under `src/demos/vehicle/`. 
 
@@ -300,7 +300,7 @@ Note that this is not a limitation because Chrono::Vehicle was also modified to 
 Additional vehicle subsystems (such as steering mechanisms or subchassis components) can be adding to either type of STR (`ChSuspensionTestRigPlatform` or `ChSuspensionTestRigPushrod`) using the functions `IncludeSteeringMechanism` and `IncludeSubchassis`. This simply means that: (i) run-time visualization of the additional subsystem can be enabled and (ii) the additional subsystem is included in the rig output (if that is enabled).
 The associated vehicle is initialized with its chassis fixed and its driveline automatically disconnected. Simulation of the test rig (through the function `ChSuspensionTestRig::Advance`) performs a simulation of the entire vehicle with all its components, but vehicle subsystems not explicitly included in testing are invisible and do not participate in any output.
 
-See `demo_VEH_SuspensionTestRig` for various examples and options, and look at the JSON files used in that demo for changes in their formats.
+See `demo_VEH_SuspensionTestRig` for various examples and m_options, and look at the JSON files used in that demo for changes in their formats.
 
 Note also that the format for a data file with STR actuation information (used by a ChDataDriverSTR) was modified by moving the steering input in the 2nd column.
 In other words, each line of this ASCII file should now contain:<br>
@@ -401,7 +401,7 @@ Output feature include:
 - Simulation output.  A variety of output files are created from each type of co-simulation node, as well as from the drawbar-pull rig (if one is present).  These include both files with information from all time steps and individual frame files created at each output step.
 - Off-line visualization.  If desired, the user can invoke functions to generate post-processing visualization output.  The visualization output files (where possible) are meant to be used with the new Blender-based python scripts available in Chrono and allow rendering in a single scene the visualization assets from all co-simulation nodes.
 
-The design of the co-simulation framework is such that all inter-node co-simulation communication is transparent to the user.  User code need only instantiate the appropriate number of co-simulation nodes of the appropriate type (MBS, Tire, or Terrain), select simulation options, and make calls to advance the state of the coupled system from step to step.  At a minimum, the main user simulation loop must call `Synchronize` followed by `Advance` for all co-simulation nodes; optional calls may be made to functions controlling simulation and off-line visualization output.  A set of demo programs (named `demo_VEH_Cosim***`) are provided to illustrate the use of the co-simulation framework with different multibody systems and terrain models.
+The design of the co-simulation framework is such that all inter-node co-simulation communication is transparent to the user.  User code need only instantiate the appropriate number of co-simulation nodes of the appropriate type (MBS, Tire, or Terrain), select simulation m_options, and make calls to advance the state of the coupled system from step to step.  At a minimum, the main user simulation loop must call `Synchronize` followed by `Advance` for all co-simulation nodes; optional calls may be made to functions controlling simulation and off-line visualization output.  A set of demo programs (named `demo_VEH_Cosim***`) are provided to illustrate the use of the co-simulation framework with different multibody systems and terrain models.
 
 
 ### [Changed] Chrono::Fsi API redesign
@@ -1069,7 +1069,7 @@ or write a particular mesh to a file by
 
 ### [Added] Support for the Emscripten compiler targeting WebAssembly
 
-Chrono now provides limited support for compiling to WebAssembly and running in browser or Node.js. The core library is supported along with Chrono::OpenGL and Chrono::Vehicle. It is recommended to use the `emcmake` wrapper and Ninja generator when targeting WASM to ensure that all of the configuration options are set correctly. 
+Chrono now provides limited support for compiling to WebAssembly and running in browser or Node.js. The core library is supported along with Chrono::OpenGL and Chrono::Vehicle. It is recommended to use the `emcmake` wrapper and Ninja generator when targeting WASM to ensure that all of the configuration m_options are set correctly. 
 
 ```sh
 cd build
@@ -1453,7 +1453,7 @@ Here's a summary of the main API changes (there were many other changes under th
 
 9. Utility functions in ChUtilsCreators.  Similar to `ChBodyEasy***`, the various `utils::Add***Geometry` functions now also require a contact material;  this is always their 2nd argument.
 
-10. FEA contact surfaces.  The two options, `ChContactSurfaceMesh` and `ChContactSurfaceNodeCloud` now require a contact material at construction (there is no SetSurfaceMaterial() method anymore).  As you already know, the only acceptable type of material in this case is ChMaterialSurfaceSMC.  Note that the contact material passed at construction is shared by all components of the FEA contact surface (triangles or nodes, respectively).  Sample code:
+10. FEA contact surfaces.  The two m_options, `ChContactSurfaceMesh` and `ChContactSurfaceNodeCloud` now require a contact material at construction (there is no SetSurfaceMaterial() method anymore).  As you already know, the only acceptable type of material in this case is ChMaterialSurfaceSMC.  Note that the contact material passed at construction is shared by all components of the FEA contact surface (triangles or nodes, respectively).  Sample code:
     ```cpp
     auto my_surf = chrono_types::make_shared<ChContactSurfaceMesh>(my_materialSMC);
     my_mesh->AddContactSurface(my_surf);

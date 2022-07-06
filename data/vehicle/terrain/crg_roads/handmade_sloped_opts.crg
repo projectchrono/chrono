@@ -46,7 +46,7 @@ D:long section at v =  1.000,m           ! 1.00m left  of reference line
 D:long section at v =  1.250,m           ! 1.25m left  of reference line
 D:long section at v =  1.500,m           ! 1.50m left  of reference line
 $!**********************************************************************
-$ROAD_CRG_OPTS                          ! crg runtime evaluation options
+$ROAD_CRG_OPTS                          ! crg runtime evaluation m_options
 *
 * CRG elevation grid border modes in u and v directions
 * BORDER_MODE_U = 0             ! return NaN
@@ -69,7 +69,7 @@ $ROAD_CRG_OPTS                          ! crg runtime evaluation options
   REFLINE_SEARCH_FAR = 1.5      ! far value (default: 1.5)
   REFLINE_SEARCH_CLOSE = 0.3    ! close value (default: sfar/5)
 *
-* CRG message options
+* CRG message m_options
 *   = 0: no messages at all
 *   = -1: unlimited messages
 *   > 0: max. number of messages to show
@@ -87,7 +87,7 @@ $ROAD_CRG_OPTS                          ! crg runtime evaluation options
   LOG_STAT = -1                 ! evaluation statistics (default: -1)
   LOG_STAT_FREQ = 100000        ! how often (default: 100000)
 *
-* CRG check options
+* CRG check m_options
   CHECK_EPS = 0.000001          ! expected min. accuracy (default: 1e-6)
   CHECK_INC = 0.001             ! expected min. increm. (default: 1e-3)
   CHECK_TOL = 0.0001            ! expected abs. tol. (default: 0.1*cinc)

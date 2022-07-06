@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     sys.Set_G_acc(ChVector<>(0, gravity, 0));
     sys.SetCollisionSystemType(collision_type);
 
-    // The following two lines are optional, since they are the default options. They are added for future reference,
+    // The following two lines are optional, since they are the default m_options. They are added for future reference,
     // i.e. when needed to change those models.
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);

@@ -11,6 +11,6 @@
 #include <thread>
 #include <string>
 
-void exportScreenshot(vsg::ref_ptr<vsg::Window> window, std::string& imageFilename);
+void exportScreenshot(vsg::ref_ptr<vsg::Window> window, vsg::ref_ptr<vsg::Options> options, std::string& imageFilename);
 
 #endif

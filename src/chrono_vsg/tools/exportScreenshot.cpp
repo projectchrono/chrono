@@ -1,12 +1,12 @@
 
 #include "exportScreenshot.h"
-#include "chrono_thirdparty/stb/stb_image_write.h"
-#include "chrono_thirdparty/stb/stb_image_resize.h"
 #include <string>
 
 using namespace std;
 
-void exportScreenshot(vsg::ref_ptr<vsg::Window> window, std::string& imageFilename) {
+void exportScreenshot(vsg::ref_ptr<vsg::Window> window,
+                      vsg::ref_ptr<vsg::Options> options,
+                      std::string& imageFilename) {
     auto width = window->extent2D().width;
     auto height = window->extent2D().height;
 
@@ -38,7 +38,7 @@ void exportScreenshot(vsg::ref_ptr<vsg::Window> window, std::string& imageFilena
         targetImageFormat = VK_FORMAT_R8G8B8A8_UNORM;
     }
 
-    // std::cout<<"supportsBlit = "<<supportsBlit<<std::endl;
+    // vsg::info("supportsBlit = ", supportsBlit);
 
     //
     // 2) create image to write to
@@ -109,11 +109,11 @@ void exportScreenshot(vsg::ref_ptr<vsg::Window> window, std::string& imageFilena
         region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         region.srcSubresource.layerCount = 1;
         region.srcOffsets[0] = VkOffset3D{0, 0, 0};
-        region.srcOffsets[1] = VkOffset3D{static_cast<int32_t>(width), static_cast<int32_t>(height), 0};
+        region.srcOffsets[1] = VkOffset3D{static_cast<int32_t>(width), static_cast<int32_t>(height), 1};
         region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         region.dstSubresource.layerCount = 1;
         region.dstOffsets[0] = VkOffset3D{0, 0, 0};
-        region.dstOffsets[1] = VkOffset3D{static_cast<int32_t>(width), static_cast<int32_t>(height), 0};
+        region.dstOffsets[1] = VkOffset3D{static_cast<int32_t>(width), static_cast<int32_t>(height), 1};
 
         auto blitImage = vsg::BlitImage::create();
         blitImage->srcImage = sourceImage;
@@ -200,55 +200,10 @@ void exportScreenshot(vsg::ref_ptr<vsg::Window> window, std::string& imageFilena
     auto imageData = vsg::MappedData<vsg::ubvec4Array2D>::create(deviceMemory, subResourceLayout.offset, 0,
                                                                  vsg::Data::Layout{targetImageFormat}, width,
                                                                  height);  // deviceMemory, offset, flags and dimensions
-    size_t nPixelBytes = width * height * 4;
-    // unsigned char* pixels = new unsigned char[nPixelBytes];
-    unsigned char* pixels = (unsigned char*)imageData->dataPointer();
-    // retrieve file output format
-    size_t dotPos = imageFilename.find_last_of(".");
-    string format;
-    if (dotPos != string::npos)
-        format = imageFilename.substr(dotPos + 1);
-    else
-        format = "unknown";
-    std::transform(format.begin(), format.end(), format.begin(), [](unsigned char c) { return std::tolower(c); });
 
-    if (pixels) {
-        if (window->traits()->width == width && window->traits()->height == height) {
-            // standard display
-            if ((format.compare("png") == 0)) {
-                int ans = stbi_write_png(imageFilename.c_str(), width, height, 4, pixels, 0);
-            } else if ((format.compare("tga") == 0)) {
-                int ans = stbi_write_tga(imageFilename.c_str(), width, height, 4, pixels);
-            } else if ((format.compare("jpg") == 0) || (format.compare("jpeg") == 0)) {
-                int ans = stbi_write_jpg(imageFilename.c_str(), width, height, 4, pixels, 100);
-            } else if ((format.compare("bmp") == 0)) {
-                int ans = stbi_write_bmp(imageFilename.c_str(), width, height, 4, pixels);
-            } else {
-                cout << "No screen capture written due to unknown image format. Use png, tga, jpg or bmp!" << endl;
-            }
-        } else {
-            // std::cout << "need scaling\n";
-            // retina display on the Mac
-            size_t nPixelBytesReduced = window->traits()->width * window->traits()->height * 4;
-            unsigned char* pixelsReduced = new unsigned char[nPixelBytesReduced];
-            stbir_resize_uint8(pixels, width, height, 0, pixelsReduced, window->traits()->width,
-                               window->traits()->height, 0, 4);
-            if ((format.compare("png") == 0)) {
-                int ans = stbi_write_png(imageFilename.c_str(), window->traits()->width, window->traits()->height, 4,
-                                         pixelsReduced, 0);
-            } else if ((format.compare("tga") == 0)) {
-                int ans = stbi_write_tga(imageFilename.c_str(), window->traits()->width, window->traits()->height, 4,
-                                         pixelsReduced);
-            } else if ((format.compare("jpg") == 0) || (format.compare("jpeg") == 0)) {
-                int ans = stbi_write_jpg(imageFilename.c_str(), window->traits()->width, window->traits()->height, 4,
-                                         pixelsReduced, 95);
-            } else if ((format.compare("bmp") == 0)) {
-                int ans = stbi_write_bmp(imageFilename.c_str(), window->traits()->width, window->traits()->height, 4,
-                                         pixelsReduced);
-            } else {
-                cout << "No creen capture written due to unknown image format. Use png, tga, jpg or bmp!" << endl;
-            }
-            delete[] pixelsReduced;
-        }
+    if (vsg::write(imageData, imageFilename, options)) {
+        std::cout << "Written color buffer to " << imageFilename << std::endl;
+    } else {
+        std::cout << "Failed to written color buffer to " << imageFilename << std::endl;
     }
 }
