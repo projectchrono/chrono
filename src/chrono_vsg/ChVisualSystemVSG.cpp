@@ -44,6 +44,7 @@ namespace vsg3d {
 
 using namespace std;
 
+
 ChVisualSystemVSG::ChVisualSystemVSG() {
     m_windowTitle = string("Window Title");
     m_clearColor = ChColor(0.0, 0.0, 0.0);

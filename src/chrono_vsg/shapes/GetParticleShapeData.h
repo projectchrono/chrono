@@ -8,14 +8,14 @@
 // in the LICENSE file at the top level of the distribution and at
 // http://projectchrono.org/license-chrono.txt.
 //
-// Spheres are modeled with a 15x15 deg grid
+// Particles are modeled a spheres but with a courser grid (30 * 30) degrees
 //
 // =============================================================================
 // Radu Serban, Rainer Gericke
 // =============================================================================
 
-#ifndef CH_SPHERE_SHAPE_DATA_H
-#define CH_SPHERE_SHAPE_DATA_H
+#ifndef CH_PARTICLE_SHAPE_DATA_H
+#define CH_PARTICLE_SHAPE_DATA_H
 
 #include <iostream>
 #include <string>
@@ -29,7 +29,7 @@
 
 namespace chrono {
     namespace vsg3d {
-        void GetSphereShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
+        void GetParticleShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
                 vsg::ref_ptr<vsg::vec3Array>& normals,
                 vsg::ref_ptr<vsg::vec2Array>& texcoords,
                 vsg::ref_ptr<vsg::ushortArray>& indices,

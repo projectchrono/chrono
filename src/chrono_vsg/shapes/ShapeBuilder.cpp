@@ -15,6 +15,7 @@
 #include "ShapeBuilder.h"
 #include "GetBoxShapeData.h"
 #include "GetSphereShapeData.h"
+#include "GetParticleShapeData.h"
 #include "GetCylinderShapeData.h"
 #include "GetCapsuleShapeData.h"
 #include "GetConeShapeData.h"
@@ -293,7 +294,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createParticleShape(std::shared_ptr<ChVis
     vsg::ref_ptr<vsg::ushortArray> indices;
     float boundingSphereRadius;
 
-    GetSphereShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+    GetParticleShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
     auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
 
     vsg::DataList vertexArrays;
