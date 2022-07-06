@@ -153,7 +153,7 @@ void ChVisualSystemVSG::Initialize() {
     auto ambientLight = vsg::AmbientLight::create();
     ambientLight->name = "ambient";
     ambientLight->color.set(1.0, 1.0, 1.0);
-    ambientLight->intensity = 0.01;
+    ambientLight->intensity = 0.1;
 
     auto directionalLight = vsg::DirectionalLight::create();
     directionalLight->name = "head light";
@@ -172,6 +172,10 @@ void ChVisualSystemVSG::Initialize() {
     absoluteTransform->addChild(directionalLight);
 
     m_scene->addChild(absoluteTransform);
+    m_bodyScene = vsg::Group::create();
+    m_scene->addChild(m_bodyScene);
+    m_particleScene = vsg::Group::create();
+    m_scene->addChild(m_particleScene);
 
     // create the viewer and assign window(s) to it
     m_viewer = vsg::Viewer::create();
@@ -293,8 +297,8 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                m_scene->addChild(m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, body, shape_instance, material,
-                                                              transform, m_draw_as_wireframe));
+                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, body, shape_instance,
+                                                                  material, transform, m_draw_as_wireframe));
             } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
                 GetLog() << "... has a sphere shape\n";
                 ChVector<> scale = sphere->GetSphereGeometry().rad;
@@ -302,8 +306,8 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                m_scene->addChild(m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, body, shape_instance,
-                                                              material, transform, m_draw_as_wireframe));
+                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, body, shape_instance,
+                                                                  material, transform, m_draw_as_wireframe));
             } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
                 GetLog() << "... has a ellipsoid shape\n";
                 ChVector<> scale = ellipsoid->GetEllipsoidGeometry().rad;
@@ -311,8 +315,8 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                m_scene->addChild(m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, body, shape_instance,
-                                                              material, transform, m_draw_as_wireframe));
+                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, body, shape_instance,
+                                                                  material, transform, m_draw_as_wireframe));
             } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
                 GetLog() << "... has a capsule shape\n";
                 double rad = capsule->GetCapsuleGeometry().rad;
@@ -322,8 +326,8 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                m_scene->addChild(m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, body, shape_instance,
-                                                              material, transform, m_draw_as_wireframe));
+                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, body, shape_instance,
+                                                                  material, transform, m_draw_as_wireframe));
             } else if (auto barrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
                 GetLog() << "... has a barrel shape (to do)\n";
             } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
@@ -333,8 +337,8 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(rad.x(), rad.y(), rad.z());
-                m_scene->addChild(m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, body, shape_instance, material,
-                                                              transform, m_draw_as_wireframe));
+                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, body, shape_instance,
+                                                                  material, transform, m_draw_as_wireframe));
             } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
                 GetLog() << "... has a triangle mesh shape\n";
                 ChVector<> scale = trimesh->GetScale();
@@ -342,17 +346,18 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                m_scene->addChild(m_shapeBuilder->createShape(ShapeBuilder::TRIANGLE_MESH_SHAPE, body, shape_instance,
-                                                              material, transform, m_draw_as_wireframe, trimesh));
+                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::TRIANGLE_MESH_SHAPE, body,
+                                                                  shape_instance, material, transform,
+                                                                  m_draw_as_wireframe, trimesh));
             } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
                 GetLog() << "... has a surface mesh shape\n";
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(1.0, 1.0, 1.0);
-                m_scene->addChild(m_shapeBuilder->createShape(ShapeBuilder::SURFACE_SHAPE, body, shape_instance,
-                                                              material, transform, m_draw_as_wireframe, nullptr,
-                                                              surface));
+                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::SURFACE_SHAPE, body, shape_instance,
+                                                                  material, transform, m_draw_as_wireframe, nullptr,
+                                                                  surface));
             } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
                 GetLog() << "... has a obj file shape (to do)\n";
             } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
@@ -361,14 +366,14 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(1.0, 1.0, 1.0);
-                m_scene->addChild(m_shapeBuilder->createLineShape(body, shape_instance, material, transform, line));
+                m_bodyScene->addChild(m_shapeBuilder->createLineShape(body, shape_instance, material, transform, line));
             } else if (auto path = std::dynamic_pointer_cast<ChPathShape>(shape)) {
                 GetLog() << "... has a path shape\n";
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(1.0, 1.0, 1.0);
-                m_scene->addChild(m_shapeBuilder->createPathShape(body, shape_instance, material, transform, path));
+                m_bodyScene->addChild(m_shapeBuilder->createPathShape(body, shape_instance, material, transform, path));
             } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
                 GetLog() << "... has a cylinder shape\n";
                 double rad = cylinder->GetCylinderGeometry().rad;
@@ -395,8 +400,28 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(rad, height, rad);
-                m_scene->addChild(m_shapeBuilder->createShape(ShapeBuilder::CYLINDER_SHAPE, body, shape_instance,
-                                                              material, transform, m_draw_as_wireframe));
+                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::CYLINDER_SHAPE, body, shape_instance,
+                                                                  material, transform, m_draw_as_wireframe));
+            }
+        }
+    }
+    for (auto& item : m_system->Get_otherphysicslist()) {
+        if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
+            if (!pcloud->GetVisualModel())
+                continue;
+            GetLog() << "Generating Particle Cloud....\n";
+            auto numParticles = pcloud->GetNparticles();
+            std::vector<double> size = pcloud->GetCollisionModel()->GetShapeDimensions(0);
+            std::shared_ptr<ChVisualMaterial> material;
+            material = chrono_types::make_shared<ChVisualMaterial>();
+            material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
+            material->SetAmbientColor(ChColor(0.1, 0.1, 0.1));
+            for (int i = 0; i < pcloud->GetNparticles(); i++) {
+                const auto& pos = pcloud->GetVisualModelFrame(i).GetPos();
+                auto transform = vsg::MatrixTransform::create();
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) * vsg::scale(size[0], size[0], size[0]);
+                m_particleScene->addChild(
+                    m_shapeBuilder->createParticleShape(material, transform, m_draw_as_wireframe));
             }
         }
     }
@@ -404,7 +429,7 @@ void ChVisualSystemVSG::BindAll() {
 
 void ChVisualSystemVSG::OnUpdate() {
     // GetLog() << "Update requested.\n";
-    for (auto child : m_scene->children) {
+    for (auto child : m_bodyScene->children) {
         std::shared_ptr<ChPhysicsItem> item;
         ChVisualModel::ShapeInstance shapeInstance;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
@@ -496,6 +521,29 @@ void ChVisualSystemVSG::OnUpdate() {
             transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                 vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                 vsg::scale(rad, height, rad);
+        }
+    }
+    // Update particles
+    for (auto& item : m_system->Get_otherphysicslist()) {
+        if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
+            auto numParticles = pcloud->GetNparticles();
+            std::vector<double> size = pcloud->GetCollisionModel()->GetShapeDimensions(0);
+            bool childTest = numParticles == m_particleScene->children.size();
+            if (!childTest) {
+                GetLog() << "Caution: Ill Shaped Particle Scenegraph! Not Updated.\n";
+                GetLog() << "Found Particles = " << numParticles << "\n";
+                GetLog() << "Found Children  = " << m_particleScene->children.size() << "\n";
+                continue;
+            }
+            size_t idx = 0;
+            for (auto child : m_particleScene->children) {
+                vsg::ref_ptr<vsg::MatrixTransform> transform;
+                if (!child->getValue("TransformPtr", transform))
+                    continue;
+                const auto& pos = pcloud->GetVisualModelFrame(idx).GetPos();
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) * vsg::scale(size[0], size[0], size[0]);
+                idx++;
+            }
         }
     }
 }

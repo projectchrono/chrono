@@ -70,7 +70,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //
     vsg::ref_ptr<vsg::Options> m_options;
     //
+    //  m_scene +- skybox, lights +- m_bodyScene
+    //                            |
+    //                            +- m_particleScene
     vsg::ref_ptr<vsg::Group> m_scene;
+    vsg::ref_ptr<vsg::Group> m_bodyScene;
+    vsg::ref_ptr<vsg::Group> m_particleScene;
     std::string m_skyboxPath;
     bool m_useSkybox;
     //
