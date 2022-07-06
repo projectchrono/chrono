@@ -152,12 +152,12 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     void SetJoystickDebug(bool val) { m_joystick_debug = val; }
 
     /// Feed button number and callback function to implement a custom callback.
-    void SetButtonCallback(int button, void (*cbfun)()) {
-        cb_fun = cbfun;
-        callbackButton = button;
-    }
+    void SetButtonCallback(int button, void (*cbfun)());
 
   protected:
+    bool ProcessJoystickEvents(const irr::SEvent& event);
+    bool ProcessKeyboardEvents(const irr::SEvent& event);
+
     ChVehicleVisualSystemIrrlicht& m_vsys;
 
     InputMode m_mode;  ///< current mode of the driver
@@ -202,8 +202,8 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     ChIrrJoystickButton gear9Button;
     ChIrrJoystickButton toggleManualGearboxButton;
 
-    int callbackButton = -1;     ///< Joystick button associated to the custom callback
-    void (*cb_fun)() = nullptr;  ///< Custom callback, can be implemented in the application
+    int m_callback_button;          ///< joystick button associated to the custom callback
+    void (*m_callback_function)();  ///< custom callback, can be implemented in the application
 
     // Variables for mode=DATAFILE
     double m_time_shift;                          ///< time at which mode was switched to DATAFILE
