@@ -42,7 +42,7 @@ namespace vehicle {
 /// @{
 
 /// Irrlicht interface to a specific joystick axis and its calibration data.
-struct ChIrrJoystickAxis {
+struct CH_VEHICLE_API ChIrrJoystickAxis {
     ChIrrJoystickAxis();
 
     /// Exposes the unnamed enum of irrlicht axes to enforce right values in API usage.
@@ -71,7 +71,7 @@ struct ChIrrJoystickAxis {
 };
 
 /// Irrlicht interface to a specific joystick button.
-struct ChIrrJoystickButton {
+struct CH_VEHICLE_API ChIrrJoystickButton {
     ChIrrJoystickButton();
 
     /// Return press state for this joystick event (if triggered by this button).
