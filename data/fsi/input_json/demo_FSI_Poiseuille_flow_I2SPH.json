@@ -1,8 +1,5 @@
 {
 
-  "Output Folder": "Poiseuille_flow_I2SPH",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,
@@ -24,7 +21,6 @@
     "Shifting Coefficient":           0.0,
     "Density Reinitialization":       0,
     "Conservative Discretization":    false
-
   },
 
   "Time Stepping":
@@ -34,7 +30,6 @@
     "Fluid time step":               0.002,
     "Solid time step":               0.002,
     "Maximum time step":             0.002,
-    "End time":                      100,
     "Write frame per second":        10
   },
 
@@ -58,9 +53,6 @@
   {
     "BoxDimensionX":                0.2,
     "BoxDimensionY":                0.1,
-    "BoxDimensionZ":                0.2,
-    "FluidDimensionX":              0.2,
-    "FluidDimensionY":              0.1,
-    "FluidDimensionZ":              0.2
+    "BoxDimensionZ":                0.2
   }
 }

@@ -20,7 +20,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 
@@ -133,7 +132,7 @@ int main(int argc, char* argv[]) {
     auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 300, 300);
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 300, 300);
     patch->SetColor(ChColor(0.8f, 0.8f, 1.0f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 1200, 1200);
     terrain.Initialize();
@@ -192,7 +191,7 @@ int main(int argc, char* argv[]) {
 
     double maxKingpinAngle = 0.0;
 
-    ChRealtimeStepTimer realtime_timer;
+    uaz.GetVehicle().EnableRealtime(true);
     utils::ChRunningAverage RTF_filter(50);
 
     while (vis->Run()) {
@@ -241,10 +240,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
-        ////std::cout << RTF_filter.Add(realtime_timer.RTF) << std::endl;
     }
 
     std::cout << "Maximum Kingpin Angle = " << maxKingpinAngle << " deg" << std::endl;

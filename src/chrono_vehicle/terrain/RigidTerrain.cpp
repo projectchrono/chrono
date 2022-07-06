@@ -106,7 +106,7 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
     // Create patch geometry (infer type based on existing keys)
     if (d["Geometry"].HasMember("Dimensions")) {
         auto size = ReadVectorJSON(d["Geometry"]["Dimensions"]);
-        patch = AddPatch(material, loc, ChMatrix33<>(rot).Get_A_Zaxis(), size.x(), size.y(), size.z());
+        patch = AddPatch(material, ChCoordsys<>(loc, rot), size.x(), size.y(), size.z());
     } else if (d["Geometry"].HasMember("Mesh Filename")) {
         std::string mesh_file = d["Geometry"]["Mesh Filename"].GetString();
         bool connected_mesh = true;
@@ -175,23 +175,15 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMaterialSurface> material,
-                                                            const ChVector<>& location,
-                                                            const ChVector<>& normal,
+                                                            const ChCoordsys<>& position,
                                                             double length,
                                                             double width,
                                                             double thickness,
                                                             bool tiled,
                                                             double max_tile_size,
                                                             bool visualization) {
-    ChVector<> up = normal.GetNormalized();
-    ChVector<> lateral = Vcross(up, ChWorldFrame::Forward());
-    lateral.Normalize();
-    ChVector<> forward = Vcross(lateral, up);
-    ChMatrix33<> rot;
-    rot.Set_A_axis(forward, lateral, up);
-
     auto patch = chrono_types::make_shared<BoxPatch>();
-    AddPatch(patch, ChCoordsys<>(location - 0.5 * thickness * up, rot.Get_A_quaternion()), material);
+    AddPatch(patch, position, material);
     patch->m_visualize = visualization;
 
     // Create the collision model (one or more boxes) attached to the patch body
@@ -203,21 +195,24 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         double sizeY1 = width / nY;
         for (int ix = 0; ix < nX; ix++) {
             for (int iy = 0; iy < nY; iy++) {
-                patch->m_body->GetCollisionModel()->AddBox(                                                 //
-                    material,                                                                               //
-                    0.5 * sizeX1, 0.5 * sizeY1, 0.5 * thickness,                                            //
-                    ChVector<>((sizeX1 - length) / 2 + ix * sizeX1, (sizeY1 - width) / 2 + iy * sizeY1, 0)  //
+                patch->m_body->GetCollisionModel()->AddBox(          //
+                    material,                                        //
+                    0.5 * sizeX1, 0.5 * sizeY1, 0.5 * thickness,     //
+                    ChVector<>((sizeX1 - length) / 2 + ix * sizeX1,  //
+                               (sizeY1 - width) / 2 + iy * sizeY1,   //
+                               -0.5 * thickness)                     //
                 );
             }
         }
     } else {
-        patch->m_body->GetCollisionModel()->AddBox(material, 0.5 * length, 0.5 * width, 0.5 * thickness);
+        patch->m_body->GetCollisionModel()->AddBox(material, 0.5 * length, 0.5 * width, 0.5 * thickness,
+                                                   ChVector<>(0, 0, -0.5 * thickness));
     }
     patch->m_body->GetCollisionModel()->BuildModel();
 
     // Cache patch parameters
-    patch->m_location = location;
-    patch->m_normal = up;
+    patch->m_location = position.pos;
+    patch->m_normal = position.rot.GetZaxis();
     patch->m_hlength = length / 2;
     patch->m_hwidth = width / 2; 
     patch->m_hthickness = thickness / 2;
@@ -528,8 +523,8 @@ void RigidTerrain::BoxPatch::Initialize() {
         m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
         auto box = chrono_types::make_shared<ChBoxShape>();
         box->AddMaterial(m_vis_mat);
-        box->GetBoxGeometry().Size = (ChVector<>(m_hlength, m_hwidth, m_hthickness));
-        m_body->AddVisualShape(box);
+        box->GetBoxGeometry().Size = ChVector<>(m_hlength, m_hwidth, m_hthickness);
+        m_body->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -m_hthickness)));
     }
 }
 

@@ -19,16 +19,15 @@
 #include "chrono_gpu/utils/ChGpuVisualization.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
 namespace chrono {
 namespace gpu {
 
-ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU, ChSystem* sys)
+ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU)
     : m_systemGPU(sysGPU),
-      m_system(nullptr),
-      m_owns_sys(false),
+      m_user_system(nullptr),
       m_title(""),
       m_cam_pos(0, -3, 0),
       m_cam_target(0, 0, 0),
@@ -36,21 +35,14 @@ ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU, ChSystem* sys)
       m_cam_scale(0.1f),
       m_part_start_index(0) {
 #ifdef CHRONO_OPENGL
-    if (!sys) {
-        m_system = new ChSystemSMC();
-        m_owns_sys = true;
-    } else {
-        m_system = sys;
-        m_owns_sys = false;
-    }
+    m_system = new ChSystemSMC();
 #else
     std::cout << "\nWARNING! Chrono::OpenGL not available.  Visualization disabled!\n" << std::endl;
 #endif
 }
 
 ChGpuVisualization::~ChGpuVisualization() {
-    if (m_owns_sys)
-        delete m_system;
+    delete m_system;
 }
 
 void ChGpuVisualization::SetCameraPosition(const ChVector<>& pos, const ChVector<>& target) {
@@ -90,7 +82,10 @@ void ChGpuVisualization::Initialize() {
     }
 
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, m_title.c_str(), m_system);
+    gl_window.AttachSystem(m_system);
+    if (m_user_system)
+        gl_window.AttachSystem(m_user_system);
+    gl_window.Initialize(1280, 720, m_title.c_str());
     gl_window.SetCamera(m_cam_pos, m_cam_target, m_cam_up, m_cam_scale);
     gl_window.SetRenderMode(opengl::WIREFRAME);
 #endif
@@ -98,10 +93,8 @@ void ChGpuVisualization::Initialize() {
 
 bool ChGpuVisualization::Render() {
 #ifdef CHRONO_OPENGL
-    if (m_owns_sys) {
-        // Only for display in OpenGL window
-        m_system->SetChTime(m_systemGPU->GetSimTime());
-    }
+    // Only for display in OpenGL window
+    m_system->SetChTime(m_systemGPU->GetSimTime());
 
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     if (gl_window.Active()) {
@@ -111,9 +104,9 @@ bool ChGpuVisualization::Render() {
             blist[m_part_start_index + i]->SetPos(pos);
         }
         gl_window.Render();
-        return false;
+        return true;
     }
-    return true;  // rendering stopped
+    return false;  // rendering stopped
 #else
     return false;
 #endif

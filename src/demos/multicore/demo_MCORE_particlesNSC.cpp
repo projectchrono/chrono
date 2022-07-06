@@ -152,7 +152,8 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "Particles NSC", &msystem);
+    gl_window.AttachSystem(&msystem);
+    gl_window.Initialize(1280, 720, "Particles NSC");
     gl_window.SetCamera(ChVector<>(0, -2, -1), ChVector<>(0, 0, -1), ChVector<>(0, 0, 1), .2f);
     gl_window.SetRenderMode(opengl::WIREFRAME);
     gl_window.Pause();

@@ -20,20 +20,54 @@
 #include <cmath>
 
 #include "chrono/core/ChMathematics.h"
+#include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
+
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/utils/ChUtilsGeneratorBce.h"
+#include "chrono_fsi/utils/ChUtilsTypeConvert.h"
 
 namespace chrono {
 namespace fsi {
 namespace utils {
+
+// =============================================================================
+
+// TransformToCOG
+// This utility function converts a given position and orientation, specified
+// with respect to a body's reference frame, into a frame defined with respect
+// to the body's centroidal frame.  Note that by default, a body's reference
+// frame is the centroidal frame. This is not true for a ChBodyAuxRef.
+void TransformBceFrameToCOG(std::shared_ptr<ChBody> body,
+                            const ChVector<>& pos,
+                            const ChMatrix33<>& rot,
+                            ChFrame<>& frame) {
+    frame = ChFrame<>(pos, rot);
+    if (std::shared_ptr<ChBodyAuxRef> body_ar = std::dynamic_pointer_cast<ChBodyAuxRef>(body)) {
+        frame = frame >> body_ar->GetFrame_REF_to_COG();
+    }
+}
+
+ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const ChVector<>& pos) {
+    ChFrame<> frame;
+    TransformBceFrameToCOG(body, pos, QUNIT, frame);
+    return frame.GetPos();
+}
+
+ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const Real3& pos3) {
+    ChVector<> pos = ChUtilsTypeConvert::Real3ToChVector(pos3);
+    return TransformBCEToCOG(body, pos);
+}
+
+
+
 // =============================================================================
 void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, std::shared_ptr<SimParams> paramsH) {
     Real spacing = paramsH->MULT_INITSPACE * paramsH->HSML;
-    printf("Creating BCE particles on a sphere\n");
+
     for (Real r = 0.5 * spacing; r < rad; r += spacing) {
         int numphi = (int)std::floor(3.1415 * r / spacing);
         for (size_t p = 0; p < numphi; p++) {
@@ -54,7 +88,7 @@ void CreateBCE_On_surface_of_Sphere(thrust::host_vector<Real4>& posRadBCE, Real 
     Real spacing = kernel_h;
     Real r = rad;
     int numphi = (int)std::floor(3.1415 * r / spacing);
-    printf("Creating BCE particles on the surface of a sphere\n");
+
     for (size_t p = 0; p < numphi; p++) {
         Real phi = p * 3.1415 / numphi;
         int numTheta = (int)std::floor(2 * 3.1415 * r * sin(phi) / spacing);
@@ -74,7 +108,7 @@ void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
                            bool cartesian) {
     Real spacing = kernel_h * paramsH->MULT_INITSPACE;
     int num_layers = (int)std::floor(1.00001 * cyl_h / spacing) + 1;
-    printf("Creating BCE particles on a cylinder\n");
+
     for (size_t si = 0; si < num_layers; si++) {
         Real s = -0.5 * cyl_h + spacing * si;
         if (cartesian)
@@ -109,7 +143,7 @@ void CreateBCE_On_Cone(thrust::host_vector<Real4>& posRadBCE,
                        bool cartesian) {
     Real spacing = kernel_h * paramsH->MULT_INITSPACE;
     int num_layers = (int)std::floor(cone_h / spacing);
-    printf("Creating BCE particles on a cone\n");
+
     for (size_t si = 0; si < num_layers; si++) {
         Real s = -0.5 * cone_h + spacing / 2 + (cone_h / num_layers) * si;
         Real cone_h0 = spacing / 2 + (cone_h / num_layers) * si;
@@ -168,7 +202,7 @@ void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
                                       Real cyl_h,
                                       Real spacing) {
     int num_layers = (int)std::floor(cyl_h / spacing);
-    printf("Creating BCE particles on the surface of a cylinder\n");
+
     for (size_t si = 0; si < num_layers; si++) {
         Real s = -0.5 * cyl_h + (cyl_h / num_layers) * si;
         Real3 centerPointLF = mR3(0, s, 0);
@@ -198,9 +232,9 @@ void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
                       int face,
                       std::shared_ptr<SimParams> paramsH) {
     Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-    int nFX = (int)round(hsize.x / (initSpace0));  // changed fron ceil to round
-    int nFY = (int)round(hsize.y / (initSpace0));  // changed fron ceil to round
-    int nFZ = (int)round(hsize.z / (initSpace0));  // changed fron ceil to round
+    int nFX = (int)round(hsize.x / initSpace0);
+    int nFY = (int)round(hsize.y / initSpace0);
+    int nFZ = (int)round(hsize.z / initSpace0);
 
     Real initSpaceX = hsize.x / nFX;
     Real initSpaceY = hsize.y / nFY;
@@ -236,7 +270,6 @@ void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
             break;
     }
 
-    printf("Creating BCE particles on a box\n");
     for (int i = iBound.x; i <= iBound.y; i++) {
         for (int j = jBound.x; j <= jBound.y; j++) {
             for (int k = kBound.x; k <= kBound.y; k++) {

@@ -19,8 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/AIDriver.h"
@@ -65,7 +63,7 @@ int main(int argc, char* argv[]) {
     minfo.Y = 2e7f;
     auto patch_mat = minfo.CreateMaterial(ChContactMethod::SMC);
 
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 100.0, 100.0);
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 100.0, 100.0);
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
 
@@ -90,7 +88,7 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // Simulation loop
-    ChRealtimeStepTimer realtime_timer;
+    my_sedan.GetVehicle().EnableRealtime(true);
     double step_size = 2e-3;
 
     while (vis->Run()) {
@@ -127,9 +125,6 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         my_sedan.Advance(step_size);
         vis->Advance(step_size);
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     return 0;

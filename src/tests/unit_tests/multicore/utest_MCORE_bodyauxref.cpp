@@ -176,7 +176,8 @@ TEST(ChronoMulticore, bodyauxref) {
     if (animate) {
 #ifdef CHRONO_OPENGL
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "BodyAuxRef", system);
+        gl_window.AttachSystem(system);
+        gl_window.Initialize(1280, 720, "BodyAuxRef");
         gl_window.SetCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
         gl_window.SetRenderMode(opengl::WIREFRAME);
         gl_window.StartDrawLoop(time_step);

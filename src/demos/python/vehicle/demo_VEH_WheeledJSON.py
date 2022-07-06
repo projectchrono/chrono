@@ -93,7 +93,7 @@ def main() :
     # Simulation loop
     # ---------------
 
-    realtime_timer = chrono.ChRealtimeStepTimer()
+    vehicle.EnableRealtime(True);
     while vis.Run() :
 
         # Render scene
@@ -116,9 +116,6 @@ def main() :
         vehicle.Advance(step_size)
         terrain.Advance(step_size)
         vis.Advance(step_size)
-
-        # Spin in place for real time to catch up
-        realtime_timer.Spin(step_size)
 
 # =============================================================================
 

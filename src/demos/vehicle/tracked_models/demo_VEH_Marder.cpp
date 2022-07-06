@@ -17,7 +17,6 @@
 // =============================================================================
 
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -192,7 +191,7 @@ int main(int argc, char* argv[]) {
     minfo.cr = 0.75f;
     minfo.Y = 2e7f;
     auto patch_mat = minfo.CreateMaterial(contact_method);
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
@@ -335,7 +334,7 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    ChRealtimeStepTimer realtime_timer;
+    marder.GetVehicle().EnableRealtime(true);
     while (vis->Run()) {
         // Debugging output
         if (dbg_output) {
@@ -418,9 +417,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     marder.GetVehicle().WriteContacts("Marder_contacts.out");

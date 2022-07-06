@@ -224,7 +224,8 @@ int main(int argc, char* argv[]) {
 
     // Create the OpenGL visualization system
     auto& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1600, 900, "OpenGL meshes", &sys);
+    gl_window.AttachSystem(&sys);
+    gl_window.Initialize(1600, 900, "OpenGL meshes");
     gl_window.SetCamera(ChVector<>(-2.0, 3.0, -4.0), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0));
 
     gl_window.SetRenderMode(opengl::SOLID);

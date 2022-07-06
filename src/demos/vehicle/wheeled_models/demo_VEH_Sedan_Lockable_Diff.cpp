@@ -85,8 +85,8 @@ int main(int argc, char* argv[]) {
     patch2_mat->SetYoungModulus(2e7f);
     patch2_mat->SetPoissonRatio(0.3f);
 
-    auto patch1 = terrain.AddPatch(patch1_mat, ChVector<>(0, -25, 0), ChVector<>(0, 0, 1), 100, 50);
-    auto patch2 = terrain.AddPatch(patch2_mat, ChVector<>(0, +25, 0), ChVector<>(0, 0, 1), 100, 50);
+    auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(0, -25, 0), QUNIT), 100, 50);
+    auto patch2 = terrain.AddPatch(patch2_mat, ChCoordsys<>(ChVector<>(0, +25, 0), QUNIT), 100, 50);
 
     patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch1->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 50);

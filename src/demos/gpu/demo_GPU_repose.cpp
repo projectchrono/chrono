@@ -34,11 +34,17 @@ using namespace chrono::gpu;
 bool render = true;
 
 int main(int argc, char* argv[]) {
-    ChGpuSimulationParameters params;
-
-    // Some of the default values might be overwritten by user via command line
-    if (argc != 2 || ParseJSON(gpu::GetDataFile(argv[1]), params) == false) {
+    std::string inputJson = GetChronoDataFile("gpu/demo_GPU_repose.json");
+    if (argc == 2) {
+        inputJson = std::string(argv[1]);
+    } else if (argc > 2) {
         std::cout << "Usage:\n./demo_GPU_repose <json_file>" << std::endl;
+        return 1;
+    }
+
+    ChGpuSimulationParameters params;
+    if (!ParseJSON(inputJson, params)) {
+        std ::cout << "ERROR: reading input file " << inputJson << std::endl;
         return 1;
     }
 
@@ -176,7 +182,7 @@ int main(int argc, char* argv[]) {
     while (curr_time < params.time_end) {
         gpu_sys.AdvanceSimulation(frame_step);
 
-        if (render && gpu_vis.Render())
+        if (render && !gpu_vis.Render())
             break;
 
         printf("Output frame %u of %u\n", currframe, total_frames);

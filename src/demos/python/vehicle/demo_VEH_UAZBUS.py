@@ -119,7 +119,7 @@ patch_mat = chrono.ChMaterialSurfaceNSC()
 patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
 patch = terrain.AddPatch(patch_mat, 
-                         chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
+                         chrono.CSYSNORM, 
                          200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
@@ -170,7 +170,8 @@ render_frame = 0
 
 maxKingpinAngle = 0.0
 
-realtime_timer = chrono.ChRealtimeStepTimer()
+uaz.GetVehicle().EnableRealtime(True)
+
 while vis.Run() :
     time = uaz.GetSystem().GetChTime()
 
@@ -207,8 +208,5 @@ while vis.Run() :
 
     # Increment frame number
     step_number += 1
-
-    # Spin in place for real time to catch up
-    realtime_timer.Spin(step_size)
 
 print( "Maximum Kingpin Angle = " + str(maxKingpinAngle ) + " deg \n" )

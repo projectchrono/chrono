@@ -165,7 +165,8 @@ int main(int argc, char* argv[]) {
     // -----------------
 
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "Granular terrain demo", system);
+    gl_window.AttachSystem(system);
+    gl_window.Initialize(1280, 720, "Granular terrain demo");
     gl_window.SetCamera(center - ChVector<>(0, 3, 0), center, ChVector<>(0, 0, 1), 0.05f);
     gl_window.SetRenderMode(opengl::SOLID);
 

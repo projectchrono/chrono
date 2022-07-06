@@ -1,15 +1,10 @@
 {
 
-  "Output Folder": "Rover",
-
-
   "Physical Properties of Fluid": {
     "Density": 1700,
     "Viscosity": 0.0,
     "Body Force": [ 0.0, 0.0, 0.0 ],
-    "Gravity": [ 0.0, 0.0, -9.81 ],
-    "Surface Tension Kappa": 0.0,
-    "Characteristic Length": 1.0
+    "Gravity": [ 0.0, 0.0, -9.81 ]
   },
 
   "SPH Parameters": {
@@ -19,12 +14,10 @@
     "Epsilon": 0.01,
     "Maximum Velocity": 1.0,
     "XSPH Coefficient": 0.5,
-    "Viscous damping": 0.0e-5,
     "Shifting Coefficient": 1.0,
     "Density Reinitialization": 1000000000,
-    "Conservative Discretization": true,
-    "Gradient Discretization Type": 1,
-    "Laplacian Discretization Type": 1
+    "Consistent Discretization for Gradient": false,
+    "Consistent Discretization for Laplacian": false
   },
 
   "Time Stepping": {
@@ -34,52 +27,27 @@
     "Fluid time step": 2.5e-4,
     "Solid time step": 2.5e-4,
     "Maximum time step": 2.5e-4,
-    "End time": 5.0,
     "Write frame per second": 20
   },
 
   "Elastic SPH": {
     "Poisson ratio": 0.3,
     "Young modulus": 1.0e6,
-    "Artificial stress": 0.0,
     "Artificial viscosity alpha": 0.5,
     "Artificial viscosity beta": 0.0,
     "I0": 0.04,
     "mu_s": 0.7,
     "mu_2": 0.7,
     "particle diameter": 0.005,
-    "frictional angle": 0.0, //3.1416, 1.5708, 0.5236
-    "dilate angle": 0.0,
-    "cohesion coefficient": 0.0,
     "kernel threshold":0.8
   },
 
   "Geometry Inf": {
     "BoxDimensionX": 4.0,
     "BoxDimensionY": 2.0,
-    "BoxDimensionZ": 0.1,
-    "FluidDimensionX": 4.0,
-    "FluidDimensionY": 2.0,
-    "FluidDimensionZ": 0.08
+    "BoxDimensionZ": 0.1
   },
 
-  "Body Inf": {
-    "BodyDimensionX": 0.2,
-    "BodyDimensionY": 0.5,
-    "BodyDimensionZ": 0.1,
-    "BodyRadius": 0.0,
-    "BodyLength": 0.0,
-    "BodyIniPosX": -1.0,
-    "BodyIniPosY": 0.0,
-    "BodyIniPosZ": 0.4,
-    "BodyIniVelX": 0.0,
-    "BodyIniVelY": 0.0,
-    "BodyIniVelZ": 0.0,
-    "BodyIniAngVel": 0.0,
-    "BodyMass": 0.0,
-    "BodyDensity": 200.0
-  },
-
-  "Body Active Domain": [ 0.4, 0.3, 0.5 ]
-
+  "Body Active Domain": [ 0.4, 0.3, 0.5 ],
+  "Settling Time": 0.0
 }

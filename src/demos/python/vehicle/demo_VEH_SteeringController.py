@@ -60,7 +60,7 @@ def main():
         patch_mat.SetRestitution(0.01)
         patch_mat.SetYoungModulus(2e7)
     patch = terrain.AddPatch(patch_mat, 
-                             chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
+                             chrono.CSYSNORM, 
                              300, 50)
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
@@ -93,7 +93,8 @@ def main():
     ballT.getMaterial(0).EmissiveColor = irr.SColor(0, 0, 255, 0);
 
     # Simulation loop
-    realtime_timer = chrono.ChRealtimeStepTimer()
+    my_hmmwv.GetVehicle().EnableRealtime(True)
+
     while vis.Run() :
         time = my_hmmwv.GetSystem().GetChTime()
 
@@ -126,9 +127,6 @@ def main():
         terrain.Advance(step_size)
         my_hmmwv.Advance(step_size)
         vis.Advance(step_size)
-
-        # Spin in place for real time to catch up
-        realtime_timer.Spin(step_size)
 
     return 0
 

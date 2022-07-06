@@ -445,7 +445,7 @@ void ChTireTestRig::CreateTerrainRigid() {
     auto patch_mat = minfo.CreateMaterial(m_system->GetContactMethod());
 
     auto patch =
-        terrain->AddPatch(patch_mat, location, ChVector<>(0, 0, 1), m_params_rigid.length, m_params_rigid.width, 0.1);
+        terrain->AddPatch(patch_mat, ChCoordsys<>(location, QUNIT), m_params_rigid.length, m_params_rigid.width, 0.1);
 
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     patch->SetTexture(GetChronoDataFile("textures/pinkwhite.png"), 10 * (float)m_params_rigid.length,

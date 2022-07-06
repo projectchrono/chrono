@@ -17,7 +17,15 @@ Finally, Chrono::Vehicle includes several closed-looped driver system models, ba
 
 ## Interactive driver {#vehicle_driver_interactive}
 
-The interactive driver [ChIrrGuiDriver](@ref chrono::vehicle::ChIrrGuiDriver) can control (steer/accelerate/brake) a simulated vehicle through user input. Since it relies on Irrlicht to handle keyboard events, it is only available with Irrlicht based programs.
+The interactive driver [ChIrrGuiDriver](@ref chrono::vehicle::ChIrrGuiDriver) can control (steer/accelerate/brake) a simulated vehicle through user input. Since it relies on Irrlicht to handle keyboard and controller events, it is only available with Irrlicht based programs.
+
+Other features of this driver subsystem model include:
+- experimental controller support
+- ability to lock/unlock driver inputs to their current values (controlled through key `J`)
+- ability to record and playback user inputs (using an embedded data-based driver; see below)
+
+### Keyboard driver
+
 - key `A` increases left turn steering wheel angle
 - key `D` increases right turn steering wheel angle
 - key `W` accelerate
@@ -25,10 +33,69 @@ The interactive driver [ChIrrGuiDriver](@ref chrono::vehicle::ChIrrGuiDriver) ca
 
 The throttle and braking controls are coupled, in the sense that acceleration first drives braking to zero before increasing throttle input (and vice-versa for deceleration).
 
-Other features of this driver subsystem model include:
-- experimental joystick support
-- ability to lock/unlock driver inputs to their current values (controlled through key `J`)
-- ability to record and playback user inputs (using an embedded data-based driver; see below)
+### Controller driver
+
+Modern simulators commonly have multiple (USB) devices for all the different control elements in a car. They come with devices for pedals, a wheel, an H-shifter, a sequential shifter, a handbrake and a button box (with tons of buttons to change in-car systems). Chrono supports this by being able to assign controller axis and buttons to multiple devices attached. Axis can also be calibrated, setting the minimum and maximum (raw) value for that axis as well as the intended (scaled) output values.
+
+Mapping and calibration are done using a "controller.json" file in the `data/vehicles` folder that allows you to assign controls to axis and buttons of those “controllers”. We ship a couple of examples of such files, but typically you need to customize this file to your own setup:
+
+* `controller_XboxOneForWindows.json` is a fairly standard controller setup that should be easy to adapt for most users, it maps all axis and include a sequential shifter setup as well as a way to toggle between automatic and manual gearboxes.
+* `controller_WheelPedalsAndShifters.json` is an example of a more complex, multi-controller setup, featuring a steering wheel, three pedals, as well as both a sequential and H-shifter setup. This example probably needs extensive modification if you want to use it, but it shows how different controllers can be used.
+
+#### Example controller file
+
+```json
+{
+    "steering": {
+        "name": "Steering Wheel", "axis": 0,
+        "min": -32768, "max": 32767, "scaled_min": 1, "scaled_max": -1
+    },
+    "throttle": {
+        "name": "Pedal Box", "axis": 2,
+        "min": -1, "max": -32767, "scaled_min": 0, "scaled_max": 1
+    },
+    "brake": {
+        "name": "Pedal Box", "axis": 2,
+        "min": 0, "max": 32767, "scaled_min": 0, "scaled_max": 1
+    },
+    "clutch": {
+        "name": "Pedal Box", "axis": 4,
+        "min": 0, "max": 32767, "scaled_min": 0, "scaled_max": 1
+    },
+    "gearReverse": { "name": "H-Shifter", "button": 0 },
+    "gear1": { "name": "H-Shifter", "button": 1 },
+    "gear2": { "name": "H-Shifter", "button": 2 },
+    "gear3": { "name": "H-Shifter", "button": 3 },
+    "gear4": { "name": "H-Shifter", "button": 4 },
+    "gear5": { "name": "H-Shifter", "button": 5 },
+    "gear6": { "name": "H-Shifter", "button": 6 },
+    "gear7": { "name": "H-Shifter", "button": 7 },
+    "gear8": { "name": "H-Shifter", "button": 8 },
+    "gear9": { "name": "H-Shifter", "button": 9 },
+    "shiftUp": { "name": "Steering Wheel", "button": 4 },
+    "shiftDown": { "name": "Steering Wheel", "button": 5 },
+    "toggleManualGearbox": { "name": "Button Box", "button": 2 }
+}
+```
+
+At the top level of the file, we have a collection of controller functions (`steering`, `throttle`, `shiftUp`, ...) and for each of these we can specify either an axis or button definition with all the mapping details:
+* Axis: `steering`, `throttle`, `brake`, `clutch` have the following attributes:
+  * `name` is the name of the controller on the system;
+  * `axis` is the number of the axis you want to map to;
+  * `min` and `max` are the raw minimum and maximum values of this axis;
+  * `scaled_min` and `scaled_max` are the output minimum and maximum values of this axis;
+* Buttons: `shiftUp`, `shiftDown`, `gearReverse`, `gear1`, `gear2`, ..., `gear9`, `toggleManualGearbox` have the following attributes:
+    * `name` is the name of the controller on the system;
+    * `button` is the number of the button you want to map to;
+
+A word about controlling the gearbox:
+ * There is support for sequential shifters if you have a manual gearbox. You can toggle between automatic and manual gearboxes with another button.
+ * There is also H-shifter support. The code supports up to 9 forward gears and has support for shifting (as long as you have the clutch fully pressed down).
+
+There is also a debug mode that will, twice per second, print all the values of the axes and buttons of all connected controllers. This comes in handy when you're defining a file and probably should be disabled otherwise.
+
+#### Limitations of the current implementation
+* All controller handling is linked to IrrLicht which means you need to use that for visualisation. It also means we inherit all the limitations of how IrrLicht handles controllers. This is mainly reflected in the number of buttons per controller that are supported, but other limitations might also exist.
 
 ## Data-based (open-loop) driver {#vehicle_driver_data}
 
