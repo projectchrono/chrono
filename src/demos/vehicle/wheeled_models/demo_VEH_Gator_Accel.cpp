@@ -46,8 +46,8 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // Brake type (SIMPLE or SHAFTS)
 BrakeType brake_type = BrakeType::SHAFTS;
 
-// Terrain slope (degrees)
-double slope = 20;
+// Terrain slope (radians)
+double slope = 20 * CH_C_DEG_TO_RAD;
 
 // Set speed (m/s)
 double target_speed = 4;
@@ -99,17 +99,18 @@ int main(int argc, char* argv[]) {
     minfo.Y = 2e7f;
     auto patch_mat = minfo.CreateMaterial(ChContactMethod::NSC);
 
-    auto patch1 = terrain.AddPatch(patch_mat, ChVector<>(-25, 0, 0), ChVector<>(0, 0, 1), 50.0, 20.0);
+    auto patch1 = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(-25, 0, 0), QUNIT), 50.0, 20.0);
     patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
     patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
 
-    double s = std::sin(slope * CH_C_DEG_TO_RAD);
-    double c = std::cos(slope * CH_C_DEG_TO_RAD);
-    auto patch2 = terrain.AddPatch(patch_mat, ChVector<>(100 * c, 0, 100 * s), ChVector<>(-s, 0, c), 200.0, 20.0);
+    double s = std::sin(slope);
+    double c = std::cos(slope);
+    auto patch2 =
+        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(100 * c, 0, 100 * s), Q_from_AngY(-slope)), 200.0, 20.0);
     patch2->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
     patch2->SetColor(ChColor(0.8f, 0.5f, 0.8f));
 
-    auto patch3 = terrain.AddPatch(patch_mat, ChVector<>(200 * c + 25, 0, 200 * s), ChVector<>(0, 0, 1), 50.0, 20.0);
+    auto patch3 = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(200 * c + 25, 0, 200 * s), QUNIT), 50.0, 20.0);
     patch3->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
     patch3->SetColor(ChColor(0.8f, 0.8f, 0.5f));
 

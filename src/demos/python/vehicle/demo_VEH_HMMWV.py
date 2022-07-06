@@ -66,7 +66,7 @@ def main():
         patch_mat.SetRestitution(0.01)
         patch_mat.SetYoungModulus(2e7)
     patch = terrain.AddPatch(patch_mat, 
-                             chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
+                             chrono.CSYSNORM, 
                              terrainLength, terrainWidth)
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
@@ -129,7 +129,8 @@ def main():
         vis.SetSymbolscale(1e-4);
         # vis.EnableContactDrawing(irr.IrrContactsDrawMode_CONTACT_FORCES);
 
-    realtime_timer = chrono.ChRealtimeStepTimer()
+    my_hmmwv.GetVehicle().EnableRealtime(True)
+
     while vis.Run() :
         time = my_hmmwv.GetSystem().GetChTime()
 
@@ -180,9 +181,6 @@ def main():
 
         # Increment frame number
         step_number += 1
-
-        # Spin in place for real time to catch up
-        realtime_timer.Spin(step_size)
 
     return 0
 

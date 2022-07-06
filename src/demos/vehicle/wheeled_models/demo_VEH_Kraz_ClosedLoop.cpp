@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     patch_mat->SetPoissonRatio(0.3f);
     for (size_t i = 0; i < 3; i++) {
         auto patch =
-            terrain.AddPatch(patch_mat, ChVector<>(terrainLength * i, 0, 0), ChVector<>(0, 0, 1), terrainLength, 5);
+            terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(terrainLength * i, 0, 0), QUNIT), terrainLength, 5);
         patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
         patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
     }

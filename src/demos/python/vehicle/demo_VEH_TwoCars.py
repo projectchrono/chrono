@@ -36,7 +36,7 @@ def main():
     patch_mat = chrono.ChMaterialSurfaceNSC()
     patch_mat.SetFriction(0.9)
     patch_mat.SetRestitution(0.01)
-    patch = terrain.AddPatch(patch_mat, chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 200, 100)
+    patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 200, 100)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     terrain.Initialize()
@@ -100,7 +100,8 @@ def main():
     vis.AddSkyBox()
 
     # Simulation loop
-    realtime_timer = chrono.ChRealtimeStepTimer()
+    hmmwv_1.GetVehicle().EnableRealtime(True)
+
     while vis.Run() :
         time = hmmwv_1.GetSystem().GetChTime()
 
@@ -131,8 +132,6 @@ def main():
         # Advance state of entire system (containing both vehicles)
         sys.DoStepDynamics(step_size)
 
-        # Spin in place for real time to catch up
-        realtime_timer.Spin(step_size)
     return 0
 
 # The path to the Chrono data directory containing various assets (meshes, textures, data files)

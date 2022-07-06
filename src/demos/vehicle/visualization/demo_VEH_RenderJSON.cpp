@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
         minfo.cr = 0.01f;
         minfo.Y = 2e7f;
         auto patch_mat = minfo.CreateMaterial(sys.GetContactMethod());
-        auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 10, 5);
+        auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 10, 5);
         terrain.Initialize();
     }
 

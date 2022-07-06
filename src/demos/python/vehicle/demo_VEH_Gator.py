@@ -101,7 +101,7 @@ patch_mat = chrono.ChMaterialSurfaceNSC()
 patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
 patch = terrain.AddPatch(patch_mat, 
-                         chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
+                         chrono.CSYSNORM, 
                          200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
@@ -139,7 +139,8 @@ driver.Initialize()
 # Simulation loop
 # ---------------
 
-realtime_timer = chrono.ChRealtimeStepTimer()
+gator.GetVehicle().EnableRealtime(True)
+
 while vis.Run() :
     time = gator.GetSystem().GetChTime()
 
@@ -162,6 +163,3 @@ while vis.Run() :
     terrain.Advance(step_size)
     gator.Advance(step_size)
     vis.Advance(step_size)
-
-    # Spin in place for real time to catch up
-    realtime_timer.Spin(step_size)

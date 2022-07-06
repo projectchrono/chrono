@@ -1,0 +1,46 @@
+{
+	"steering": {
+		"name": "Controller (Xbox One For Windows)",
+		"axis": 0,
+		"min": -32768,
+		"max": 32767,
+		"scaled_min": 1,
+		"scaled_max": -1
+	},
+	"throttle": {
+		"name": "Controller (Xbox One For Windows)",
+		"axis": 2,
+		"min": -1,
+		"max": -32767,
+		"scaled_min": 0,
+		"scaled_max": 1
+	},
+	"brake": {
+		"name": "Controller (Xbox One For Windows)",
+		"axis": 2,
+		"min": 0,
+		"max": 32767,
+		"scaled_min": 0,
+		"scaled_max": 1
+	},
+	"clutch": {
+		"name": "Controller (Xbox One For Windows)",
+		"axis": 4,
+		"min": 0,
+		"max": 32767,
+		"scaled_min": 0,
+		"scaled_max": 1
+	},
+	"shiftUp": {
+		"name": "Controller (Xbox One For Windows)",
+		"button": 4
+	},
+	"shiftDown": {
+		"name": "Controller (Xbox One For Windows)",
+		"button": 5
+	},
+	"toggleManualGearbox": {
+		"name": "Controller (Xbox One For Windows)",
+		"button": 6
+	}
+}

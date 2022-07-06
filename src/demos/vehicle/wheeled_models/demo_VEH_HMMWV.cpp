@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
-            patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
     // force it to playback the driver inputs.
     if (driver_mode == DriverMode::PLAYBACK) {
         driver.SetInputDataFile(driver_file);
-        driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
+        driver.SetInputMode(ChIrrGuiDriver::InputMode::DATAFILE);
     }
 
     driver.Initialize();
