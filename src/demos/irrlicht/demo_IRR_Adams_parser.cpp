@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     // Make a system
     ChSystemSMC sys;
 
-    // Create parser instance and set m_options.
+    // Create parser instance and set options.
     // Use LOADED to read the ADAMS primitives
     ChParserAdams parser;
     parser.SetVisualizationType(ChParserAdams::VisType::LOADED);

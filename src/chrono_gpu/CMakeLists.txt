@@ -196,7 +196,7 @@ option(GPU_VERBOSE_PTXAS "Enable verbose output from ptxas during compilation" O
 mark_as_advanced(GPU_VERBOSE_PTXAS)
 
 if(GPU_VERBOSE_PTXAS)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --ptxas-m_options=-v")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --ptxas-options=-v")
 endif()
 
 #message(STATUS "NVCC Flags: ${CUDA_NVCC_FLAGS}")
@@ -226,7 +226,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
             message(FATAL_ERROR "Using GCC version ${CMAKE_CXX_COMPILER_VERSION}. GCC <= 4.9 is not supported! Please use a newer compiler")
         endif()
     endif()
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-m_options -fPIC --compiler-m_options -Wall -lineinfo)
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC --compiler-options -Wall -lineinfo)
 
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 

@@ -54,7 +54,7 @@ sys.Add(mfloor)
 # Now we will create a falling object whose shape is defined by a .obj mesh.
 #
 # NOTE: collision detection with generic concave meshes is slower and less
-# robust than any other m_options for collision shapes, so use it if defining
+# robust than any other options for collision shapes, so use it if defining 
 # collision shapes via primitives like spheres boxes cylinders or their
 # clusters is too complex.
 #

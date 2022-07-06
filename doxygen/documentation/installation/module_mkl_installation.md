@@ -70,7 +70,7 @@ The file extension will be .dll for Win and .so on Linux.
 
 ### Set up the environment
 
-Before creating executables that can actually leverage the Intel MKL library, you have to make sure that the Intel _run-time_ libraries are available to the executable itself. This is achieved by setting the PATH environmental variable in a proper way. To do so, two m_options are available:
+Before creating executables that can actually leverage the Intel MKL library, you have to make sure that the Intel _run-time_ libraries are available to the executable itself. This is achieved by setting the PATH environmental variable in a proper way. To do so, two options are available:
 + the [official method proposed by Intel](https://software.intel.com/content/www/us/en/develop/documentation/onemkl-windows-developer-guide/top/getting-started/setting-environment-variables.html); this method _temporarly_ sets the PATH variable only from the current command prompt session; this means that, if you run it from Visual Studio or from a new command prompt, this method is difficult/cumbersome for you;
 + the unofficial method, for which the PATH variable is set manually, but _once and for all_; description follows...
 
@@ -86,7 +86,7 @@ The following unofficial method needs that you set the environmental variable of
 1. Add these system environment variables<br>
 	`MKL_INTERFACE_LAYER` = `LP64`<br>
 	`MKL_THREADING_LAYER` = `INTEL`<br>
-	or, more in general, you can have [different m_options](https://software.intel.com/en-us/mkl-linux-developer-guide-dynamically-selecting-the-interface-and-threading-layer), depending on your Architecture and the desired Threading Layer.
+	or, more in general, you can have [different options](https://software.intel.com/en-us/mkl-linux-developer-guide-dynamically-selecting-the-interface-and-threading-layer), depending on your Architecture and the desired Threading Layer.
 
 2. reboot your IDE, close any open CMake
 

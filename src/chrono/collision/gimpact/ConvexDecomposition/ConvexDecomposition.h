@@ -164,7 +164,7 @@ namespace ConvexDecomposition
 	};
 
 	// just to avoid passing a zillion parameters to the method the
-	// m_options are packed into this descriptor.
+	// options are packed into this descriptor.
 	class DecompDesc
 	{
 	public:
@@ -188,7 +188,7 @@ namespace ConvexDecomposition
 		unsigned int  mTcount;   // the number of triangles in the source mesh.
 		unsigned int *mIndices;  // the indexed triangle list array (zero index based)
 
-		// m_options
+		// options
 		unsigned int  mDepth;    // depth to split, a maximum of 10, generally not over 7.
 		float         mCpercent; // the concavity threshold percentage.  0=20 is reasonable.
 		float         mPpercent; // the percentage volume conservation threshold to collapse hulls. 0-30 is reasonable.

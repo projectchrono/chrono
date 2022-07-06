@@ -29,7 +29,7 @@ These slides refer to the API of Chrono release 3.0.0.
 - Basic multibody system modeling support in Chrono
   [pdf](http://www.projectchrono.org/assets/slides_3_0_0/2_Multibody/2_Chrono_ModelingMBS.pdf)
 
-- Visualization m_options in Chrono
+- Visualization options in Chrono
   [pdf](http://www.projectchrono.org/assets/slides_3_0_0/2_Multibody/3_Chrono_Visualization.pdf)
 
 ## Contact and Friction, Solution Methods

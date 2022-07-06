@@ -1,7 +1,7 @@
 Install PyChrono {#pychrono_installation}
 ==========================
 
-There are two m_options for installing PyChrono on your computer, A) or B). 
+There are two options for installing PyChrono on your computer, A) or B). 
 The first is the reccommended way. The second is for users that need to build the full library starting from the C++ source.
 
 
@@ -63,7 +63,7 @@ the Python language (syntax highlighting, intellisense, etc.).
 The default IDE installed with most Python distribution is IDLE: 
 it is suficient only for simple stuff, so we suggest to use a more powerful editor. 
 Our best pick is **Spyder**, the IDE that comes together with 
-the [Anaconda](https://www.anaconda.com/download/) Python distribution. Other free m_options could be
+the [Anaconda](https://www.anaconda.com/download/) Python distribution. Other free options could be
 or [Visual Studio Code](https://code.visualstudio.com/) or the Python add-on for VisualStudio.
 </div>
 

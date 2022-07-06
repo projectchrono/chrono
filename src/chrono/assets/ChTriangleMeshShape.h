@@ -24,7 +24,7 @@ namespace chrono {
 
 /// Class for referencing a triangle mesh shape that can be visualized in some way.
 /// A ChTriangleMeshShape can be attached to a physics object.
-/// Provides various rendering m_options (e.g., drawing as wireframe, performing backface culling, etc.) which may not be
+/// Provides various rendering options (e.g., drawing as wireframe, performing backface culling, etc.) which may not be
 /// supported by a particular visualization system.
 class ChApi ChTriangleMeshShape : public ChVisualShape {
   public:

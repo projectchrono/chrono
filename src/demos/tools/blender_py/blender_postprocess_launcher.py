@@ -20,7 +20,7 @@ datadir = ['./', 'C:/Users/benatti/codes/blender/NADS/dat_files/']
 # resolution: 'HIGH',  'MID', 'LOW': divide by 1,4,16 the default HD resolution of 3840x2160
 res = 'MID'#'LOW'
 
-# Camera m_options: 'Follow', 'Fixed', 'Lookat'
+# Camera options: 'Follow', 'Fixed', 'Lookat'
 camera_mode = "Fixed" # 'Fixed' 'Lookat'
 
 # If true, sky is added

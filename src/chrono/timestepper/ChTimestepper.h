@@ -429,7 +429,7 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
 /// Performs a step of trapezoidal implicit for II order systems.
 /// NOTE this is a modified version of the trapezoidal for DAE: the original derivation would lead
 /// to a scheme that produces oscillatory reactions in constraints, so this is a modified version
-/// that is first order in constraint reactions. Use damped HHT or damped Newmark for more advanced m_options.
+/// that is first order in constraint reactions. Use damped HHT or damped Newmark for more advanced options.
 class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
   protected:
     ChStateDelta Dv;

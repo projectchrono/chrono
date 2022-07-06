@@ -30,7 +30,7 @@ endif()
 #mark_as_advanced(CLEAR USE_FSI_DOUBLE)
 
 # ------------------------------------------------------------------------------
-# Additional m_options for this module
+# Additional options for this module
 # ------------------------------------------------------------------------------
 
 option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" ON)

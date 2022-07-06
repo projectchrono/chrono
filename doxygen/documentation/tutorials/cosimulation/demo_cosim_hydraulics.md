@@ -253,7 +253,7 @@ The input and output signals of the 'CoSimulate' block accepts vectors. To build
 </div>
 
 <div class="ce-info">
-If you have multiple m_options for choosing where to split a system in two subsystems for cosimulation, keep in mind this rule of thumb: split in a place where the connecting variables (forces, displacements or such) experience 'low frequencies' rather than high frequencies because the higher the frequencies that flow in the interface, the smaller the communication step must be.
+If you have multiple options for choosing where to split a system in two subsystems for cosimulation, keep in mind this rule of thumb: split in a place where the connecting variables (forces, displacements or such) experience 'low frequencies' rather than high frequencies because the higher the frequencies that flow in the interface, the smaller the communication step must be.
 </div>
 
 <div class="ce-info">

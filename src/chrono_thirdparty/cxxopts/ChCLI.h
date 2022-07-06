@@ -12,7 +12,7 @@
 // Authors: Aaron Young, Jay Taves
 // =============================================================================
 //
-// Wrapper for cxxopts that provides several common command-line m_options to the
+// Wrapper for cxxopts that provides several common command-line options to the
 // user.
 //
 // =============================================================================
@@ -27,7 +27,7 @@ namespace chrono {
 class ChCLI {
   public:
     /// Constructor
-    ChCLI(const std::string& program, const std::string& help_string= " - command line m_options") : m_options(program, help_string) {
+    ChCLI(const std::string& program, const std::string& help_string= " - command line options") : m_options(program, help_string) {
         m_options.add_option("", cxxopts::Option("h,help", "Print usage"));
     }
 
@@ -126,7 +126,7 @@ class ChCLI {
     }
 
   private:
-    cxxopts::Options m_options;                      ///< Command line m_options
+    cxxopts::Options m_options;                      ///< Command line options
     std::shared_ptr<cxxopts::ParseResult> m_result;  ///< Parsing results
 };
 

@@ -20,7 +20,7 @@ SynChrono demos:
     * demo_SYN_DDS_tracked - Demo with driveable tracked vehicles, on flat, rigid terrain using DDS
     * demo_SYN_DDS_distributed - Demo with driveable wheeled vehicles. Setup to allow for DDS nodes spread across multiple physical computing nodes via IP.
 
-All SynChrono demos use command-line arguments to control various m_options at run-time rather than needing a re-compile. You can view the m_options for a particular demo by running `./path/to/demo_SYN_somedemo --help`. To run an MPI-based demo with `n` nodes, run the command:
+All SynChrono demos use command-line arguments to control various options at run-time rather than needing a re-compile. You can view the options for a particular demo by running `./path/to/demo_SYN_somedemo --help`. To run an MPI-based demo with `n` nodes, run the command:
 ````
 mpirun -n <num nodes> path/to/demo_SYN_MPI_demo
 ````

@@ -34,11 +34,11 @@ using namespace chrono::irrlicht;
 using namespace chrono::curiosity;
 
 // Specify rover chassis type
-// The m_options are Scarecrow and FullRover
+// The options are Scarecrow and FullRover
 CuriosityChassisType chassis_type = CuriosityChassisType::FullRover;
 
 // Specify rover wheel type
-// The m_options are RealWheel, SimpleWheel, and CylWheel
+// The options are RealWheel, SimpleWheel, and CylWheel
 CuriosityWheelType wheel_type = CuriosityWheelType::RealWheel;
 
 // Simulation time step

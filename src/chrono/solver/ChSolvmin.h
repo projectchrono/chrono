@@ -364,7 +364,7 @@ ChApi double solvopt(unsigned int n,
 /*
          solvopt_options[0]= H, where sign(H)=-1 resp. sign(H)=+1 means minimize
                      resp. maximize FUN and H itself is a factor for the
-                     initial trial step size (m_options[0]=-1 by default),
+                     initial trial step size (options[0]=-1 by default),
          solvopt_options[1]= relative error for the argument
                      in terms of the max-norm (1.e-6 by default),
          solvopt_options[2]= relative error for the function value (1.e-7 by default),
@@ -374,17 +374,17 @@ ChApi double solvopt(unsigned int n,
                      i.e., no intermediate output but error and warning
                      messages),
         @solvopt_options[5]= constant gamma used by the line search procedure
-                     (m_options[5]=2.001 by default),
+                     (options[5]=2.001 by default),
         @solvopt_options[6]= the coefficient of space dilation (2.5 by default),
         @solvopt_options[7]= lower bound for the stepsize used for the difference
                      approximation of gradients (1.e-100 by default).
                       (@ ... changes should be done with care)
 
-         m_options[8], return the number of iterations, m_options[8]<0 means
+         options[8], return the number of iterations, options[8]<0 means
                        an error occurred
-         m_options[9], return the number of objective function evaluations, and
-         m_options[10],return the number of gradient evaluations.
-         m_options[11],limit on the maximum number of fx evaluations. No default.
+         options[9], return the number of objective function evaluations, and
+         options[10],return the number of gradient evaluations.
+         options[11],limit on the maximum number of fx evaluations. No default.
  */
 
 }  // end namespace chrono

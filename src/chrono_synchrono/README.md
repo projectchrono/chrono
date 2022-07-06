@@ -77,7 +77,7 @@ Follow the standard [Chrono build process](http://api.projectchrono.org/tutorial
 Flatbuffers is included in chrono_thirdparty as a submodule but you can also use a local copy if it is already installed on your system. Follow the [build instructions](https://google.github.io/flatbuffers/flatbuffers_guide_building.html). The flatbuffer include directory within CMake is pointed directly to the submodule in chrono_thirdparty, so ensure the submodule is used and built.
 
 #### MPI
-For most systems (Linux, MacOS), you can use [OpenMPI](https://www.open-mpi.org/) or [MPICH](https://www.mpich.org/). For Windows there are two main m_options:
+For most systems (Linux, MacOS), you can use [OpenMPI](https://www.open-mpi.org/) or [MPICH](https://www.mpich.org/). For Windows there are two main options:
 - Intel MPI: [Intel MPI](https://software.intel.com/en-us/mpi-library/choose-download/windows)
 - MS-MPI: [MS-MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
 

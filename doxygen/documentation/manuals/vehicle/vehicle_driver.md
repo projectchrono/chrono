@@ -4,7 +4,7 @@ Driver subsystem {#vehicle_driver}
 \tableofcontents
 
 
-Driver inputs (steering, throttle, and braking) are provided from a driver subsystem with available m_options in Chrono::Vehicle including interactive, data-driven, and closed-loop (e.g., path-following based on PID controllers).
+Driver inputs (steering, throttle, and braking) are provided from a driver subsystem with available options in Chrono::Vehicle including interactive, data-driven, and closed-loop (e.g., path-following based on PID controllers).
 
 The base class for a  driver system, [ChDriver](@ref chrono::vehicle::ChDriver), imposes minimal requirements from a driver system template, in particular the ability to return throttle input (normalized in the \f$[0,1]\f$ range), steering input (normalized in the \f$[-1, +1]\f$ range, with a negative value indicating steering to the left), and braking input (normalized in the \f$[0,1]\f$ range).  In addition, a driver system can receive information from any other system (e.g., the vehicle state) through its `Synchronize` method and may have internal dynamics (implemented in its `Advance` method).  Specific templates for a driver system may extend the set of vehicle inputs generated, for example including the current selected gear for a manual transmission, enabling/disabling the cross-drive capability on a tracked vehicle, etc.
 
