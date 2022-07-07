@@ -61,7 +61,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void OnUpdate() override;
 
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
-        bool showGui = true;  // (don't) show the imgui menu
+        bool showGui = true;  // (don't) show the imgui menu, actually unused
         bool do_image_capture = false; // mark image capturing as needed
     };
 
@@ -102,7 +102,7 @@ private:
     vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
     //
     std::string m_imageFilename;
-    bool m_do_image_export = false;
+    //bool m_do_image_export = false;
 };
 }  // namespace vsg3d
 }  // namespace chrono

@@ -253,7 +253,7 @@ void ChVisualSystemVSG::Initialize() {
     // default sets automatic directional light
     // auto renderGraph = vsg::RenderGraph::create(m_window, m_view);
     // scwitches off sets automatic directional light
-    auto renderGraph = vsg::createCommandGraphForView(m_window, camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
+    auto renderGraph = vsg::createRenderGraphForView(m_window, camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
     auto commandGraph = vsg::CommandGraph::create(m_window, renderGraph);
     m_viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
 
@@ -277,16 +277,16 @@ void ChVisualSystemVSG::Render() {
 
     m_viewer->recordAndSubmit();
 
-    if (m_do_image_export)
+    if (m_params->do_image_capture)
         exportScreenshot(m_window, m_options, m_imageFilename);
-    m_do_image_export = false;
+    m_params->do_image_capture = false;
 
     m_viewer->present();
 }
 
 void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
     m_imageFilename = filename;
-    m_do_image_export = true;
+    m_params->do_image_capture = true;
 }
 
 void ChVisualSystemVSG::BindAll() {

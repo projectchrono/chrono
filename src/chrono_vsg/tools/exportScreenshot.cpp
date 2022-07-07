@@ -34,10 +34,15 @@ void exportScreenshot(vsg::ref_ptr<vsg::Window> window,
     bool supportsBlit = ((srcFormatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT) != 0) &&
                         ((destFormatProperties.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT) != 0);
 
+#ifdef WIN32
+    supportsBlit = false;
+#endif
     if (supportsBlit) {
         // we can automatically convert the image format when blit, so take advantage of it to ensure RGBA
         targetImageFormat = VK_FORMAT_R8G8B8A8_UNORM;
     }
+
+
 
     // vsg::info("supportsBlit = ", supportsBlit);
 
@@ -201,10 +206,54 @@ void exportScreenshot(vsg::ref_ptr<vsg::Window> window,
     auto imageData = vsg::MappedData<vsg::ubvec4Array2D>::create(deviceMemory, subResourceLayout.offset, 0,
                                                                  vsg::Data::Layout{targetImageFormat}, width,
                                                                  height);  // deviceMemory, offset, flags and dimensions
+#ifdef WIN32
+    // Windows, you are a nail in my casket
+    const char* data = (char*) imageData->dataPointer();
+    data += subResourceLayout.offset;
+    std::ofstream file("Test.ppm", std::ios::out | std::ios::binary);
 
+    // ppm header
+    file << "P6\n" << width << "\n" << height << "\n" << 255 << "\n";
+
+    // If source is BGR (destination is always RGB) and we can't use blit (which does automatic conversion), we'll have to manually swizzle color components
+    bool colorSwizzle = false;
+    // Check if source is BGR
+    // Note: Not complete, only contains most common and basic BGR surface formats for demonstration purposes
+    if (!supportsBlit)
+    {
+        std::vector<VkFormat> formatsBGR = { VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SNORM };
+        colorSwizzle = (std::find(formatsBGR.begin(), formatsBGR.end(), swapchain->getImageFormat()) != formatsBGR.end());
+    }
+
+    // ppm binary pixel data
+    for (uint32_t y = 0; y < height; y++)
+    {
+        unsigned int *row = (unsigned int*)data;
+        for (uint32_t x = 0; x < width; x++)
+        {
+            if (colorSwizzle)
+            {
+                file.write((char*)row+2, 1);
+                file.write((char*)row+1, 1);
+                file.write((char*)row, 1);
+            }
+            else
+            {
+                file.write((char*)row, 3);
+            }
+            row++;
+        }
+        data += subResourceLayout.rowPitch;
+    }
+    file.close();
+
+    std::cout << "Screenshot saved to disk" << std::endl;
+
+#else
     if (vsg::write(imageData, imageFilename, options)) {
         std::cout << "Written color buffer to " << imageFilename << std::endl;
     } else {
         std::cout << "Failed to written color buffer to " << imageFilename << std::endl;
     }
+#endif
 }
