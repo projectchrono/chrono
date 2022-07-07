@@ -67,14 +67,24 @@ void RotationalDamperSuspension::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Torsional Spring"));
     assert(d["Torsional Spring"].IsObject());
 
-    double torsion_a0 = d["Torsional Spring"]["Free Angle"].GetDouble();
-    double torsion_k = d["Torsional Spring"]["Spring Constant"].GetDouble();
-    double torsion_c = d["Torsional Spring"]["Damping Coefficient"].GetDouble();
-    double torsion_t = d["Torsional Spring"]["Preload"].GetDouble();
-    m_spring_torqueCB =
-        chrono_types::make_shared<LinearSpringDamperActuatorTorque>(torsion_k, torsion_c, torsion_t, torsion_a0);
+    if (d["Torsional Spring"].HasMember("Spring Constant")) {
+        double torsion_a0 = d["Torsional Spring"]["Free Angle"].GetDouble();
+        double torsion_k = d["Torsional Spring"]["Spring Constant"].GetDouble();
+        double torsion_c = d["Torsional Spring"]["Damping Coefficient"].GetDouble();
+        double torsion_t = d["Torsional Spring"]["Preload"].GetDouble();
+        m_spring_torqueCB =
+            chrono_types::make_shared<LinearSpringDamperActuatorTorque>(torsion_k, torsion_c, torsion_t, torsion_a0);
+    } else {
+        int num_points = d["Torsional Spring"]["Curve Data"].Size();
+        auto springTorqueCB = chrono_types::make_shared<MapDamperTorque>();
+        for (int i = 0; i < num_points; i++) {
+            springTorqueCB->add_point(d["Damper"]["Curve Data"][i][0u].GetDouble(),
+                                      d["Damper"]["Curve Data"][i][1u].GetDouble());
+        }
+        m_spring_torqueCB = springTorqueCB;
+    }
 
-    // Read linear shock data
+    // Read rotational shock data
     assert(d.HasMember("Damper"));
     assert(d["Damper"].IsObject());
 
