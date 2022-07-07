@@ -42,6 +42,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void Initialize();
     void Render();
     bool Run();
+    // terminate
+    void Quit();
     void WriteImageToFile(const std::string& filename) override;
     void SetWindowSize(ChVector2<int> size);
     void SetWindowPosition(ChVector2<int> pos);
@@ -58,7 +60,13 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void BindAll() override;
     void OnUpdate() override;
 
-  private:
+    struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
+        bool showGui = true;  // (don't) show the imgui menu
+        bool do_image_capture = false; // mark image capturing as needed
+    };
+
+
+private:
     vsg::ref_ptr<vsg::Viewer> m_viewer;
     vsg::ref_ptr<vsg::Window> m_window;
     int m_windowWidth = 800;
@@ -69,6 +77,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     ChColor m_clearColor;
     //
     vsg::ref_ptr<vsg::Options> m_options;
+    vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
     //
     //  m_scene +- skybox, lights +- m_bodyScene
     //                            |

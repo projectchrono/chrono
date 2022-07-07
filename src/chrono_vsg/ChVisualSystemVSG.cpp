@@ -44,6 +44,35 @@ namespace vsg3d {
 
 using namespace std;
 
+    class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler> {
+    public:
+        AppKeyboardHandler(vsg::Viewer* viewer) : m_viewer(viewer) {}
+
+        void SetParams(vsg::ref_ptr<ChVisualSystemVSG::StateParams> params, ChVisualSystemVSG* appPtr) {
+            _params = params;
+            m_appPtr = appPtr;
+        }
+
+        void apply(vsg::KeyPressEvent& keyPress) override {
+            if (keyPress.keyBase == 'm' || keyPress.keyModified == 'm') {
+                // toggle graphical menu
+                _params->showGui = !_params->showGui;
+            }
+            if (keyPress.keyBase == 't' || keyPress.keyModified == 't') {
+                // terminate process
+                m_appPtr->Quit();
+            }
+            if (keyPress.keyBase == vsg::KEY_Escape || keyPress.keyModified == 65307) {
+                // terminate process
+                m_appPtr->Quit();
+            }
+        }
+
+    private:
+        vsg::observer_ptr<vsg::Viewer> m_viewer;
+        vsg::ref_ptr<ChVisualSystemVSG::StateParams> _params;
+        ChVisualSystemVSG* m_appPtr;
+    };
 
 ChVisualSystemVSG::ChVisualSystemVSG() {
     m_windowTitle = string("Window Title");
@@ -55,6 +84,10 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
 }
 
 ChVisualSystemVSG::~ChVisualSystemVSG() {}
+
+void ChVisualSystemVSG::Quit() {
+    m_viewer->close();
+}
 
 void ChVisualSystemVSG::SetWindowSize(ChVector2<int> size) {
     m_windowWidth = size[0];
@@ -207,6 +240,11 @@ void ChVisualSystemVSG::Initialize() {
         nearFarRatio * radius, radius * 10.0);
 
     auto camera = vsg::Camera::create(perspective, lookAt, vsg::ViewportState::create(m_window->extent2D()));
+
+    // add keyboard handler
+    auto kbHandler = AppKeyboardHandler::create(m_viewer);
+    kbHandler->SetParams(m_params, this);
+    m_viewer->addEventHandler(kbHandler);
 
     m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
 
