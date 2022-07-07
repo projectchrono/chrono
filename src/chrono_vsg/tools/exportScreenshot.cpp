@@ -1,7 +1,10 @@
 
 
 #include "exportScreenshot.h"
+#include "chrono_thirdparty/stb/stb_image_write.h"
 #include <string>
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -41,8 +44,6 @@ void exportScreenshot(vsg::ref_ptr<vsg::Window> window,
         // we can automatically convert the image format when blit, so take advantage of it to ensure RGBA
         targetImageFormat = VK_FORMAT_R8G8B8A8_UNORM;
     }
-
-
 
     // vsg::info("supportsBlit = ", supportsBlit);
 
@@ -208,45 +209,59 @@ void exportScreenshot(vsg::ref_ptr<vsg::Window> window,
                                                                  height);  // deviceMemory, offset, flags and dimensions
 #ifdef WIN32
     // Windows, you are a nail in my casket
-    const char* data = (char*) imageData->dataPointer();
+    const char* data = (char*)imageData->dataPointer();
     data += subResourceLayout.offset;
-    std::ofstream file("Test.ppm", std::ios::out | std::ios::binary);
+    std::ostringstream pixels(std::ios::out | std::ios::binary);
 
-    // ppm header
-    file << "P6\n" << width << "\n" << height << "\n" << 255 << "\n";
-
-    // If source is BGR (destination is always RGB) and we can't use blit (which does automatic conversion), we'll have to manually swizzle color components
+    // If source is BGR (destination is always RGB) and we can't use blit (which does automatic conversion), we'll have
+    // to manually swizzle color components
     bool colorSwizzle = false;
     // Check if source is BGR
     // Note: Not complete, only contains most common and basic BGR surface formats for demonstration purposes
-    if (!supportsBlit)
-    {
-        std::vector<VkFormat> formatsBGR = { VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SNORM };
-        colorSwizzle = (std::find(formatsBGR.begin(), formatsBGR.end(), swapchain->getImageFormat()) != formatsBGR.end());
+    if (!supportsBlit) {
+        std::vector<VkFormat> formatsBGR = {VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_B8G8R8A8_UNORM,
+                                            VK_FORMAT_B8G8R8A8_SNORM};
+        colorSwizzle =
+            (std::find(formatsBGR.begin(), formatsBGR.end(), swapchain->getImageFormat()) != formatsBGR.end());
     }
 
-    // ppm binary pixel data
-    for (uint32_t y = 0; y < height; y++)
-    {
-        unsigned int *row = (unsigned int*)data;
-        for (uint32_t x = 0; x < width; x++)
-        {
-            if (colorSwizzle)
-            {
-                file.write((char*)row+2, 1);
-                file.write((char*)row+1, 1);
-                file.write((char*)row, 1);
-            }
-            else
-            {
-                file.write((char*)row, 3);
+    size_t dotPos = imageFilename.find_last_of(".");
+    string format;
+    if (dotPos != string::npos)
+        format = imageFilename.substr(dotPos + 1);
+    else
+        format = "unknown";
+    std::transform(format.begin(), format.end(), format.begin(), [](unsigned char c) { return std::tolower(c); });
+    // based on Sascha Willems ppm output
+    for (uint32_t y = 0; y < height; y++) {
+        unsigned int* row = (unsigned int*)data;
+        for (uint32_t x = 0; x < width; x++) {
+            if (colorSwizzle) {
+                pixels.put(*((char*)row + 2));
+                pixels.put(*((char*)row + 1));
+                pixels.put(*((char*)row));
+            } else {
+                pixels.put(*((char*)row));
+                pixels.put(*((char*)row + 1));
+                pixels.put(*((char*)row + 2));
             }
             row++;
         }
         data += subResourceLayout.rowPitch;
     }
-    file.close();
+    if ((format.compare("png") == 0)) {
+        int ans = stbi_write_png(imageFilename.c_str(), width, height, 3, pixels.str().c_str(), 0);
+    } else if ((format.compare("tga") == 0)) {
+        int ans = stbi_write_tga(imageFilename.c_str(), width, height, 3, pixels.str().c_str());
+    } else if ((format.compare("jpg") == 0) || (format.compare("jpeg") == 0)) {
+        int ans = stbi_write_jpg(imageFilename.c_str(), width, height, 3, pixels.str().c_str(), 95);
+    } else if ((format.compare("bmp") == 0)) {
+        int ans = stbi_write_bmp(imageFilename.c_str(), width, height, 3, pixels.str().c_str());
+    } else {
+        cout << "No screen capture written due to unknown image format. Use png, tga, jpg or bmp!" << endl;
+    }
 
+    int ans = stbi_write_png("Test.png", width, height, 3, pixels.str().c_str(), 0);
     std::cout << "Screenshot saved to disk" << std::endl;
 
 #else

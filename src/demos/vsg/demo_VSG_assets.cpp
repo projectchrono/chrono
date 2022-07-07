@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
     size_t numFrame = 0;
     while (vis->Run()) {
         if (numFrame == 10) {
-            vis->WriteImageToFile("shot.png");     // does not work with frame == 0!
+            vis->WriteImageToFile("newshot.png");     // does not work with frame == 0!
         }
         vis->Render();
         sys.DoStepDynamics(0.01);
