@@ -44,35 +44,137 @@ namespace vsg3d {
 
 using namespace std;
 
-    class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler> {
-    public:
-        AppKeyboardHandler(vsg::Viewer* viewer) : m_viewer(viewer) {}
+class GuiComponent {
+  public:
+    GuiComponent(vsg::ref_ptr<ChVisualSystemVSG::StateParams> params, ChVisualSystemVSG* appPtr)
+        : _params(params), m_appPtr(appPtr) {}
 
-        void SetParams(vsg::ref_ptr<ChVisualSystemVSG::StateParams> params, ChVisualSystemVSG* appPtr) {
-            _params = params;
-            m_appPtr = appPtr;
+    // Example here taken from the Dear imgui comments (mostly)
+    bool operator()() {
+        bool visibleComponents = false;
+        ImGuiIO& io = ImGui::GetIO();
+#ifdef __APPLE__
+        io.FontGlobalScale = 2.0;
+#else
+        io.FontGlobalScale = 1.0;
+#endif
+
+        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+        if (_params->showGui) {
+            ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+            ImGui::Begin("App:");  // Create a window called "Hello, world!" and append into it.
+
+            if (ImGui::Button(
+                    "Quit"))  // Buttons return true when clicked (most widgets return true when edited/activated)
+                m_appPtr->Quit();
+
+            ImGui::End();
+            visibleComponents = true;
         }
 
-        void apply(vsg::KeyPressEvent& keyPress) override {
-            if (keyPress.keyBase == 'm' || keyPress.keyModified == 'm') {
-                // toggle graphical menu
-                _params->showGui = !_params->showGui;
-            }
-            if (keyPress.keyBase == 't' || keyPress.keyModified == 't') {
-                // terminate process
-                m_appPtr->Quit();
-            }
-            if (keyPress.keyBase == vsg::KEY_Escape || keyPress.keyModified == 65307) {
-                // terminate process
-                m_appPtr->Quit();
-            }
+        return visibleComponents;
+    }
+
+  private:
+    vsg::ref_ptr<ChVisualSystemVSG::StateParams> _params;
+    ChVisualSystemVSG* m_appPtr;
+};
+
+class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler> {
+  public:
+    AppKeyboardHandler(vsg::Viewer* viewer) : m_viewer(viewer) {}
+
+    void SetParams(vsg::ref_ptr<ChVisualSystemVSG::StateParams> params, ChVisualSystemVSG* appPtr) {
+        _params = params;
+        m_appPtr = appPtr;
+    }
+
+    void apply(vsg::KeyPressEvent& keyPress) override {
+        if (keyPress.keyBase == 'm' || keyPress.keyModified == 'm') {
+            // toggle graphical menu
+            _params->showGui = !_params->showGui;
+        }
+        if (keyPress.keyBase == 't' || keyPress.keyModified == 't') {
+            // terminate process
+            m_appPtr->Quit();
+        }
+        if (keyPress.keyBase == vsg::KEY_Escape || keyPress.keyModified == 65307) {
+            // terminate process
+            m_appPtr->Quit();
+        }
+    }
+
+  private:
+    vsg::observer_ptr<vsg::Viewer> m_viewer;
+    vsg::ref_ptr<ChVisualSystemVSG::StateParams> _params;
+    ChVisualSystemVSG* m_appPtr;
+};
+
+struct Merge : public vsg::Inherit<vsg::Operation, Merge> {
+    Merge(const vsg::Path& in_path,
+          vsg::observer_ptr<vsg::Viewer> in_viewer,
+          vsg::ref_ptr<vsg::Group> in_attachmentPoint,
+          vsg::ref_ptr<vsg::Node> in_node,
+          const vsg::CompileResult& in_compileResult)
+        : path(in_path),
+          viewer(in_viewer),
+          attachmentPoint(in_attachmentPoint),
+          node(in_node),
+          compileResult(in_compileResult) {}
+
+    vsg::Path path;
+    vsg::observer_ptr<vsg::Viewer> viewer;
+    vsg::ref_ptr<vsg::Group> attachmentPoint;
+    vsg::ref_ptr<vsg::Node> node;
+    vsg::CompileResult compileResult;
+
+    void run() override {
+        std::cout << "Merge::run() path = " << path << ", " << attachmentPoint << ", " << node << std::endl;
+
+        vsg::ref_ptr<vsg::Viewer> ref_viewer = viewer;
+        if (ref_viewer) {
+            updateViewer(*ref_viewer, compileResult);
         }
 
-    private:
-        vsg::observer_ptr<vsg::Viewer> m_viewer;
-        vsg::ref_ptr<ChVisualSystemVSG::StateParams> _params;
-        ChVisualSystemVSG* m_appPtr;
-    };
+        attachmentPoint->addChild(node);
+    }
+};
+
+struct LoadOperation : public vsg::Inherit<vsg::Operation, LoadOperation> {
+    LoadOperation(vsg::ref_ptr<vsg::Viewer> in_viewer,
+                  vsg::ref_ptr<vsg::Group> in_attachmentPoint,
+                  const vsg::Path& in_filename,
+                  vsg::ref_ptr<vsg::Options> in_options)
+        : viewer(in_viewer), attachmentPoint(in_attachmentPoint), filename(in_filename), options(in_options) {}
+
+    vsg::observer_ptr<vsg::Viewer> viewer;
+    vsg::ref_ptr<vsg::Group> attachmentPoint;
+    vsg::Path filename;
+    vsg::ref_ptr<vsg::Options> options;
+
+    void run() override {
+        vsg::ref_ptr<vsg::Viewer> ref_viewer = viewer;
+
+        // std::cout << "Loading " << filename << std::endl;
+        if (auto node = vsg::read_cast<vsg::Node>(filename, options)) {
+            // std::cout << "Loaded " << filename << std::endl;
+
+            vsg::ComputeBounds computeBounds;
+            node->accept(computeBounds);
+
+            vsg::dvec3 centre = (computeBounds.bounds.min + computeBounds.bounds.max) * 0.5;
+            double radius = vsg::length(computeBounds.bounds.max - computeBounds.bounds.min) * 0.5;
+            auto scale = vsg::MatrixTransform::create(vsg::scale(1.0 / radius, 1.0 / radius, 1.0 / radius) *
+                                                      vsg::translate(-centre));
+
+            scale->addChild(node);
+
+            auto result = ref_viewer->compileManager->compile(node);
+            if (result)
+                ref_viewer->addUpdateOperation(Merge::create(filename, viewer, attachmentPoint, scale, result));
+        }
+    }
+};
 
 ChVisualSystemVSG::ChVisualSystemVSG() {
     m_windowTitle = string("Window Title");
@@ -155,6 +257,7 @@ void ChVisualSystemVSG::Initialize() {
     windowTraits->height = m_windowHeight;
     windowTraits->x = m_windowX;
     windowTraits->y = m_windowY;
+    windowTraits->debugLayer = false;
     windowTraits->deviceExtensionNames = {VK_KHR_MULTIVIEW_EXTENSION_NAME, VK_KHR_MAINTENANCE2_EXTENSION_NAME,
                                           VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
                                           VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME};
@@ -224,12 +327,6 @@ void ChVisualSystemVSG::Initialize() {
 
     vsg::ref_ptr<vsg::LookAt> lookAt;
 
-    // compute the bounds of the scene graph to help position camera
-    // vsg::ComputeBounds computeBounds;
-    // scene->accept(computeBounds);
-    // vsg::dvec3 centre = (computeBounds.bounds.min + computeBounds.bounds.max) * 0.5;
-    // double radius = vsg::length(computeBounds.bounds.max - computeBounds.bounds.min) * 0.6 * 10.0;
-
     // set up the camera
     lookAt = vsg::LookAt::create(m_cameraEye, m_cameraTarget, m_cameraUpVector);
 
@@ -255,6 +352,14 @@ void ChVisualSystemVSG::Initialize() {
     // scwitches off sets automatic directional light
     auto renderGraph = vsg::createRenderGraphForView(m_window, camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
     auto commandGraph = vsg::CommandGraph::create(m_window, renderGraph);
+
+    // actually there is a bug in vsgImgui, can only be used in Release mode!
+    // Create the ImGui node and add it to the renderGraph
+    // renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, GuiComponent(m_params,this)));
+
+    // Add the ImGui event handler first to handle events early
+    // m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
+
     m_viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
 
     // assign a CompileTraversal to the Builder that will compile for all the views assigned to the viewer,
@@ -262,7 +367,18 @@ void ChVisualSystemVSG::Initialize() {
     auto compileTraversal = vsg::CompileTraversal::create(*m_viewer);
     m_shapeBuilder->assignCompileTraversal(compileTraversal);
 
-    m_viewer->compile();
+    vsg::ref_ptr<vsg::ResourceHints> resourceHints;
+    if (!resourceHints)
+    {
+        // To help reduce the number of vsg::DescriptorPool that need to be allocated we'll provide a minimum requirement via ResourceHints.
+        resourceHints = vsg::ResourceHints::create();
+        resourceHints->numDescriptorSets = 256;
+        resourceHints->descriptorPoolSizes.push_back(VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 256});
+    }
+
+    m_viewer->compile(resourceHints);
+    //vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
+    m_loadThreads = vsg::OperationThreads::create(m_numThreads, m_viewer->status);
 }
 
 bool ChVisualSystemVSG::Run() {
@@ -398,7 +514,17 @@ void ChVisualSystemVSG::BindAll() {
                                                                   material, transform, m_draw_as_wireframe, nullptr,
                                                                   surface));
             } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
-                GetLog() << "... has a obj file shape (to do)\n";
+                GetLog() << "... has a obj file shape\n";
+                string objFilename = obj->GetFilename();
+                auto transform = vsg::MatrixTransform::create();
+                transform->setValue("ItemPtr", body);
+                transform->setValue("ShapeInstancePtr", shape_instance);
+                transform->setValue("TransformPtr", transform);
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
+                m_bodyScene->addChild(transform);
+                vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
+                m_loadThreads->add(LoadOperation::create(observer_viewer, transform, objFilename, m_options));
             } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
                 GetLog() << "... has a line shape\n";
                 auto transform = vsg::MatrixTransform::create();
@@ -532,6 +658,11 @@ void ChVisualSystemVSG::OnUpdate() {
             ChVector<> scale(rad, height, rad);
             transform->matrix =
                 vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(scale.x(), scale.y(), scale.z());
+        } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
+            GetLog() << "... has a obj file shape\n";
+            string objFilename = obj->GetFilename();
+            transform->matrix = vsg::translate(pos) *
+                    vsg::rotate(angle, rotax);
         } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
             double radius = cylinder->GetCylinderGeometry().rad;
             double rad = cylinder->GetCylinderGeometry().rad;

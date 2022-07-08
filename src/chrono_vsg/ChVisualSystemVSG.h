@@ -78,6 +78,8 @@ private:
     //
     vsg::ref_ptr<vsg::Options> m_options;
     vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
+    int m_numThreads = 16;
+    vsg::ref_ptr<vsg::OperationThreads> m_loadThreads;
     //
     //  m_scene +- skybox, lights +- m_bodyScene
     //                            |
