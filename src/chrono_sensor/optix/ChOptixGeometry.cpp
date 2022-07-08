@@ -652,6 +652,8 @@ void ChOptixGeometry::RebuildRootStructure() {
                                       nullptr,  // emitted property list
                                       0         // num emitted properties
                                       ));
+
+    cudaDeviceSynchronize();
 }
 
 void ChOptixGeometry::UpdateBodyTransformsStart(float t_start, float t_target_end) {
