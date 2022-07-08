@@ -109,8 +109,9 @@ class Marder_SinglePin : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "Marder_SinglePin"; }
     virtual std::string VehicleJSON() const override {
-        return "Marder/vehicle/marder_bushings.json";
-        ////return "Marder/vehicle/marder_noBushings.json";
+        ////return "Marder/vehicle/marder_sp_joints_shafts.json";
+        ////return "Marder/vehicle/marder_sp_bushings_shafts.json";
+        return "Marder/vehicle/marder_sp_bushings_simple.json";
     }
     virtual std::string PowertrainJSON() const override {
         return "Marder/powertrain/simpleCVTPowertrain.json";
@@ -161,6 +162,7 @@ double step_size_SMC = 5e-4;
 // Solver and integrator types
 ////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
 ////ChSolver::Type slvr_type = ChSolver::Type::PSOR;
+////ChSolver::Type slvr_type = ChSolver::Type::PMINRES;
 ////ChSolver::Type slvr_type = ChSolver::Type::MINRES;
 ////ChSolver::Type slvr_type = ChSolver::Type::GMRES;
 ////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_LU;

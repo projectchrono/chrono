@@ -1,3 +1,7 @@
+// Marder track assembly RIGHT
+// - single pin track shoes
+// - kinematic joints between track shoes
+// - shafts brake model
 {
   "Name":                     "Marder SinglePin TrackAssembly Right",
   "Type":                     "TrackAssembly",
@@ -11,7 +15,7 @@
 
   "Brake":
   {
-      "Input File":           "Marder/brake/brakeShafts.json"
+      "Input File":           "Marder/brake/brake_shafts.json"
   },
 
   "Idler":

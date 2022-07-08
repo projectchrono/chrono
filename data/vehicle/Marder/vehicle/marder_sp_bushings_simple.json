@@ -1,3 +1,7 @@
+// Marder vehicle
+// - single pin track shoes
+// - bushings between track shoes
+// - simple brake model
 {
   "Name":     "Marder vehicle",
   "Type":     "Vehicle",
@@ -11,12 +15,12 @@
   "Track Assemblies":
   [
     {
-      "Input File":         "Marder/track_assembly/singlePin0_noBushings.json",
+      "Input File":         "Marder/track_assembly/assembly_sp_bushings_simple_0.json",
       "Offset":             1.36
     },
 
     {
-      "Input File":         "Marder/track_assembly/singlePin1_noBushings.json",
+      "Input File":         "Marder/track_assembly/assembly_sp_bushings_simple_1.json",
       "Offset":             -1.36
     }
   ],
