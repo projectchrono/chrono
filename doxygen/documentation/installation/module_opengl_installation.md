@@ -51,3 +51,7 @@ Most demos and tutorials do **not** use this module for visualization, as they u
 the [IRRLICHT module](group__irrlicht__module.html), which is easier to use, and at a more advanced stage of development.
 </div>
 
+## MacOS issues
+
+You can configure and build this module on the Mac, but due to malconfigured shader programs you cannot run it.
+
