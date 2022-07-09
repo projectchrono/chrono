@@ -596,6 +596,14 @@ void ChSystemFsi::SetWallBC(BceVersion wallBC) {
     m_paramsH->bceTypeWall = wallBC;
 }
 
+void ChSystemFsi::SetRigidBodyBC(BceVersion rigidBodyBC) {
+    m_paramsH->bceType = rigidBodyBC;
+}
+
+void ChSystemFsi::SetCohesionForce(double Fc) {
+    m_paramsH->Coh_coeff = Fc;
+}
+
 ChSystemFsi::ElasticMaterialProperties::ElasticMaterialProperties()
     : Young_modulus(1e6),
       Poisson_ratio(0.3),

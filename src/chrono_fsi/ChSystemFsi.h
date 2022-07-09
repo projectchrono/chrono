@@ -148,6 +148,12 @@ class CH_FSI_API ChSystemFsi {
     /// Set wall boundary condition
     void SetWallBC(BceVersion wallBC);
 
+    /// Set rigid body boundary condition
+    void SetRigidBodyBC(BceVersion rigidBodyBC);
+
+    /// Set cohesion force of the granular material
+    void SetCohesionForce(double Fc);
+
     /// Set the linear system solver for implicit methods.
     void SetSPHLinearSolver(SolverType lin_solver);
 
