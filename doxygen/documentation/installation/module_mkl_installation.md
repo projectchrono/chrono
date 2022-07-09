@@ -117,3 +117,7 @@ mkl_solver->UseSparsityPatternLearner(false);
 
 
 - Look at the [API section](group__mkl__module.html) of this module for documentation about classes and functions.
+
+## MacOS support
+
+This module cannot be built for Macs with Apple Silicon hardware, Macs with Intel hardware can use it.
