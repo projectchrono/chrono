@@ -65,3 +65,7 @@ For more detail, read the [Chrono::Sensor](@ref manual_sensor) section of the re
 - Look at the [API section](@ref sensor) of this module for documentation about classes and functions.
 
 - Look at the C++ and Python source of [demos](@ref tutorial_table_of_content_chrono_sensor) to learn how to use the functions of this module.
+
+## MacOS support
+
+This module is not supported on the Mac.

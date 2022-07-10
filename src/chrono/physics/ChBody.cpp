@@ -442,12 +442,12 @@ void ChBody::Empty_forces_accumulators() {
 }
 
 void ChBody::Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, bool local) {
-    ChVector<> mabsforce;
-    ChVector<> mabstorque;
-    To_abs_forcetorque(force, appl_point, local, mabsforce, mabstorque);
+    ChVector<> absforce;
+    ChVector<> abstorque;
+    To_abs_forcetorque(force, appl_point, local, absforce, abstorque);
 
-    Force_acc += mabsforce;
-    Torque_acc += mabstorque;
+    Force_acc += absforce;
+    Torque_acc += Dir_World2Body(abstorque);
 }
 
 void ChBody::Accumulate_torque(const ChVector<>& torque, bool local) {
