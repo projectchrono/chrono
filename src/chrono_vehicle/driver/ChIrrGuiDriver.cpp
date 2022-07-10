@@ -412,6 +412,7 @@ void ChIrrGuiDriver::Initialize() {
         gear7Button.Read(d, "gear7", m_joystick_debug);
         gear8Button.Read(d, "gear8", m_joystick_debug);
         gear9Button.Read(d, "gear9", m_joystick_debug);
+        toggleManualGearboxButton.Read(d, "toggleManualGearbox", m_joystick_debug);
 
         // Loop over available controllers and distribute axes per controller if specified
         for (u32 id = 0; id < m_joystick_info.size(); ++id) {
