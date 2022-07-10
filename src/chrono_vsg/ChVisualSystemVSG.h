@@ -62,6 +62,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
         bool showGui = true;  // (don't) show the imgui menu, actually unused
+        double guiFontScale = 1.0;
         bool do_image_capture = false; // mark image capturing as needed
     };
 

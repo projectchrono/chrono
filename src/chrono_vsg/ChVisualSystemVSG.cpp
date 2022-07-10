@@ -53,11 +53,7 @@ class GuiComponent {
     bool operator()() {
         bool visibleComponents = false;
         ImGuiIO& io = ImGui::GetIO();
-#ifdef __APPLE__
-        io.FontGlobalScale = 2.0;
-#else
-        io.FontGlobalScale = 1.0;
-#endif
+        io.FontGlobalScale = _params->guiFontScale;
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         if (_params->showGui) {
@@ -324,7 +320,11 @@ void ChVisualSystemVSG::Initialize() {
     }
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
     m_viewer->addWindow(m_window);
-
+    if ((m_window->extent2D().width > m_window->traits()->width) &&
+        (m_window->extent2D().height > m_window->traits()->height)) {
+        // we seem to have a retina display, make the menu text readable
+        m_params->guiFontScale = 2.0;
+    }
     vsg::ref_ptr<vsg::LookAt> lookAt;
 
     // set up the camera
@@ -353,13 +353,16 @@ void ChVisualSystemVSG::Initialize() {
     auto renderGraph = vsg::createRenderGraphForView(m_window, camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
     auto commandGraph = vsg::CommandGraph::create(m_window, renderGraph);
 
+#ifdef NDEBUG
     // actually there is a bug in vsgImgui, can only be used in Release mode!
     // Create the ImGui node and add it to the renderGraph
-    // renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, GuiComponent(m_params,this)));
+    renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, GuiComponent(m_params, this)));
 
     // Add the ImGui event handler first to handle events early
-    // m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
-
+    m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
+#else
+    GetLog() << "Graphical menu disabled due to bug in vsgImgui. Rebuild in Release mode, if needed.\n";
+#endif
     m_viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
 
     // assign a CompileTraversal to the Builder that will compile for all the views assigned to the viewer,
@@ -368,16 +371,18 @@ void ChVisualSystemVSG::Initialize() {
     m_shapeBuilder->assignCompileTraversal(compileTraversal);
 
     vsg::ref_ptr<vsg::ResourceHints> resourceHints;
-    if (!resourceHints)
-    {
-        // To help reduce the number of vsg::DescriptorPool that need to be allocated we'll provide a minimum requirement via ResourceHints.
+    if (!resourceHints) {
+        // To help reduce the number of vsg::DescriptorPool that need to be allocated we'll provide a minimum
+        // requirement via ResourceHints.
         resourceHints = vsg::ResourceHints::create();
         resourceHints->numDescriptorSets = 256;
-        resourceHints->descriptorPoolSizes.push_back(VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 256});
+        resourceHints->descriptorPoolSizes.push_back(
+            VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 256});
     }
 
     m_viewer->compile(resourceHints);
-    //vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
+
+    // prepare reading 3d files
     m_loadThreads = vsg::OperationThreads::create(m_numThreads, m_viewer->status);
 }
 
@@ -521,7 +526,7 @@ void ChVisualSystemVSG::BindAll() {
                 transform->setValue("ShapeInstancePtr", shape_instance);
                 transform->setValue("TransformPtr", transform);
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
                 m_bodyScene->addChild(transform);
                 vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
                 m_loadThreads->add(LoadOperation::create(observer_viewer, transform, objFilename, m_options));
@@ -661,8 +666,7 @@ void ChVisualSystemVSG::OnUpdate() {
         } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
             GetLog() << "... has a obj file shape\n";
             string objFilename = obj->GetFilename();
-            transform->matrix = vsg::translate(pos) *
-                    vsg::rotate(angle, rotax);
+            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax);
         } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
             double radius = cylinder->GetCylinderGeometry().rad;
             double rad = cylinder->GetCylinderGeometry().rad;
