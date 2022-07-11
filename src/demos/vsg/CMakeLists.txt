@@ -4,6 +4,7 @@
 SET(DEMOS
   demo_VSG_assets
   demo_VSG_friction
+  demo_VSG_earthquake
   demo_VSG_lab
 )
 

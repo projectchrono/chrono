@@ -125,7 +125,7 @@ struct Merge : public vsg::Inherit<vsg::Operation, Merge> {
     vsg::CompileResult compileResult;
 
     void run() override {
-        std::cout << "Merge::run() path = " << path << ", " << attachmentPoint << ", " << node << std::endl;
+        //std::cout << "Merge::run() path = " << path << ", " << attachmentPoint << ", " << node << std::endl;
 
         vsg::ref_ptr<vsg::Viewer> ref_viewer = viewer;
         if (ref_viewer) {
@@ -150,24 +150,10 @@ struct LoadOperation : public vsg::Inherit<vsg::Operation, LoadOperation> {
 
     void run() override {
         vsg::ref_ptr<vsg::Viewer> ref_viewer = viewer;
-
-        // std::cout << "Loading " << filename << std::endl;
         if (auto node = vsg::read_cast<vsg::Node>(filename, options)) {
-            // std::cout << "Loaded " << filename << std::endl;
-
-            vsg::ComputeBounds computeBounds;
-            node->accept(computeBounds);
-
-            vsg::dvec3 centre = (computeBounds.bounds.min + computeBounds.bounds.max) * 0.5;
-            double radius = vsg::length(computeBounds.bounds.max - computeBounds.bounds.min) * 0.5;
-            auto scale = vsg::MatrixTransform::create(vsg::scale(1.0 / radius, 1.0 / radius, 1.0 / radius) *
-                                                      vsg::translate(-centre));
-
-            scale->addChild(node);
-
             auto result = ref_viewer->compileManager->compile(node);
             if (result)
-                ref_viewer->addUpdateOperation(Merge::create(filename, viewer, attachmentPoint, scale, result));
+                ref_viewer->addUpdateOperation(Merge::create(filename, viewer, attachmentPoint, node, result));
         }
     }
 };
@@ -260,14 +246,6 @@ void ChVisualSystemVSG::Initialize() {
     windowTraits->swapchainPreferences.imageUsage =
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     windowTraits->depthImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-
-    vsg::GeometryInfo geomInfo;
-    geomInfo.dx.set(1.0f, 0.0f, 0.0f);
-    geomInfo.dy.set(0.0f, 1.0f, 0.0f);
-    geomInfo.dz.set(0.0f, 0.0f, 1.0f);
-
-    vsg::StateInfo stateInfo;
-    vsg::dvec3 centre = {0.0, 0.0, 0.0};
 
     m_scene = vsg::Group::create();
 
@@ -398,9 +376,10 @@ void ChVisualSystemVSG::Render() {
 
     m_viewer->recordAndSubmit();
 
-    if (m_params->do_image_capture)
+    if (m_params->do_image_capture) {
         exportScreenshot(m_window, m_options, m_imageFilename);
-    m_params->do_image_capture = false;
+        m_params->do_image_capture = false;
+    }
 
     m_viewer->present();
 }

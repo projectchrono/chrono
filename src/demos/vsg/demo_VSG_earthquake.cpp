@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Rainer Gericke (VSG)
+// Authors: Alessandro Tasora
 // =============================================================================
 //
 //   Demo code about
@@ -35,13 +35,13 @@ using namespace chrono::vsg3d;
 // because they will be considered 'wrapped' in a convex hull anyway.
 
 void create_column(ChSystemNSC& sys,
-                   ChCoordsys<> base_pos,
-                   std::shared_ptr<ChMaterialSurface> material,
-                   int col_nedges = 10,
-                   double col_radius_hi = 0.45,
-                   double col_radius_lo = 0.5,
-                   double col_height = 3,
-                   double col_density = 3000) {
+        ChCoordsys<> base_pos,
+        std::shared_ptr<ChMaterialSurface> material,
+        int col_nedges = 10,
+        double col_radius_hi = 0.45,
+        double col_radius_lo = 0.5,
+        double col_height = 3,
+        double col_density = 3000) {
     double col_base = 0;
 
     std::vector<ChVector<> > mpoints;
@@ -68,7 +68,6 @@ void create_column(ChSystemNSC& sys,
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-
     // Create a ChronoENGINE physical system
     ChSystemNSC sys;
 
@@ -120,9 +119,9 @@ int main(int argc, char* argv[]) {
 
         if (icol < 4) {
             auto bodyTop = chrono_types::make_shared<ChBodyEasyBox>(spacing, 0.4, 1.2,  // x y z sizes
-                                                                    density,            // density
-                                                                    true, true,         // visualize?, collision?
-                                                                    column_mat);        // contact material
+                    density,            // density
+                    true, true,         // visualize?, collision?
+                    column_mat);        // contact material
 
             ChCoordsys<> cog_top(ChVector<>(icol * spacing + spacing / 2, 4.5 + 0.4 / 2, 0));
             bodyTop->SetCoord(cog_top);
@@ -130,32 +129,24 @@ int main(int argc, char* argv[]) {
             sys.Add(bodyTop);
         }
     }
-
-    // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     sys.SetVisualSystem(vis);
     vis->SetCameraVertical(vsg3d::CameraVerticalDir::Y);
     vis->SetWindowSize(ChVector2<int>(800, 600));
     vis->SetWindowPosition(ChVector2<int>(100, 300));
-    vis->SetWindowTitle("ChronoVSG: Collisions between objects");
+    vis->SetWindowTitle("Chrono VSG Assets");
     vis->SetUseSkyBox(true);
-    vis->SetLightIntensity(0.9);
+    vis->AddCamera(ChVector<>(1, 8, -15));
+    vis->SetCameraAngleDeg(50);
+    vis->SetLightIntensity(1.0);
     vis->SetLightDirection(1.5*CH_C_PI_2, CH_C_PI_4);
     vis->Initialize();
+    vis->BindAll();
 
-    // Modify some setting of the physical system for the simulation, if you want
-    sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(50);
-
-    // sys.SetUseSleeping(true);
-
-    // Simulation loop
-    double timestep = 0.005;
-    ChRealtimeStepTimer m_realtime_timer;
     while (vis->Run()) {
         vis->Render();
-        sys.DoStepDynamics(timestep);
-        m_realtime_timer.Spin(timestep);
+        sys.DoStepDynamics(0.01);
     }
+
     return 0;
 }
