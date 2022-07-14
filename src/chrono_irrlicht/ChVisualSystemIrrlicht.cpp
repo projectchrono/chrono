@@ -671,9 +671,10 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
         // Use default material
         node->getMaterial(0) = *default_material;
     } else {
-        // Use the first material in the list
-        node->getMaterial(0) =
-            tools::ToIrrlichtMaterial(shape->GetMaterial(0), node->getSceneManager()->getVideoDriver());
+        assert(shape->GetNumMaterials() == node->getMaterialCount());
+        for (int i = 0; i < shape->GetNumMaterials(); i++)
+            node->getMaterial(i) =
+                tools::ToIrrlichtMaterial(shape->GetMaterial(i), node->getSceneManager()->getVideoDriver());
     }
 
     // Do not use vertex coloring

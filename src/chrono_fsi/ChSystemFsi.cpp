@@ -528,6 +528,10 @@ void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax) 
     m_paramsH->use_default_limits = false;
 }
 
+void ChSystemFsi::SetActiveDomain(const ChVector<>& boxDim) {
+    m_paramsH->bodyActiveDomain = ChUtilsTypeConvert::ChVectorToReal3(boxDim);
+}
+
 void ChSystemFsi::SetNumBoundaryLayers(int num_layers) {
     m_paramsH->NUM_BOUNDARY_LAYERS = num_layers;
 }
@@ -1754,6 +1758,31 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleVel() {
         vel.push_back(ChUtilsTypeConvert::Real3ToChVector(velH[i]));
     }
     return vel;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+thrust::device_vector<int> ChSystemFsi::FindParticlesInBox(const ChFrame<>& frame, const ChVector<>& size) {
+    const ChVector<>& Pos = frame.GetPos();
+    ChVector<> Ax = frame.GetA().Get_A_Xaxis();
+    ChVector<> Ay = frame.GetA().Get_A_Yaxis();
+    ChVector<> Az = frame.GetA().Get_A_Zaxis();
+
+    auto hsize = 0.5 * mR3(size.x(), size.y(), size.z());
+    auto pos = mR3(Pos.x(), Pos.y(), Pos.z());
+    auto ax = mR3(Ax.x(), Ax.y(), Ax.z());
+    auto ay = mR3(Ay.x(), Ay.y(), Ay.z());
+    auto az = mR3(Az.x(), Az.y(), Az.z());
+
+    return m_sysFSI->FindParticlesInBox(hsize, pos, ax, ay, az);
+}
+
+thrust::device_vector<Real4> ChSystemFsi::GetParticlePositions(const thrust::device_vector<int>& indices) {
+    return m_sysFSI->GetParticlePositions(indices);
+}
+
+thrust::device_vector<Real3> ChSystemFsi::GetParticleVelocities(const thrust::device_vector<int>& indices) {
+    return m_sysFSI->GetParticleVelocities(indices);
 }
 
 }  // end namespace fsi
