@@ -1,0 +1,26 @@
+# Blender MTL File: 'Tree.blend'
+# Material Count: 2
+
+newmtl TreeTexture
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures\\mapletree.png
+map_d textures\\mapletree_Transmission.png
+
+newmtl TreeTexture90
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures\\mapletree90.png
+map_d textures\\mapletree90_Transmission.png

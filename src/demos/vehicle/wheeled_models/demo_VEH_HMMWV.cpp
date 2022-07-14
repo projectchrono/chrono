@@ -82,8 +82,8 @@ TireModelType tire_model = TireModelType::TMEASY;
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 double terrainHeight = 0;      // terrain height (FLAT terrain only)
-double terrainLength = 100.0;  // size in X direction
-double terrainWidth = 100.0;   // size in Y direction
+double terrainLength = 200.0;  // size in X direction
+double terrainWidth = 200.0;   // size in Y direction
 
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 1.75);
@@ -173,6 +173,18 @@ int main(int argc, char* argv[]) {
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
 
     terrain.Initialize();
+
+    // Optionally, attach additional visual assets to ground.
+    // Note: this must be done after initializing the terrain (so that its visual model is created).
+    if (patch->GetGroundBody()->GetVisualModel()) {
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+            GetChronoDataFile("models/trees/tree.obj"), true, true);
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetName("Trees");
+        trimesh_shape->SetMutable(false);
+        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI_2)));
+    }
 
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
