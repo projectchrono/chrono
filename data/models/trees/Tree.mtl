@@ -11,7 +11,7 @@ Ni 1.450000
 d 1.000000
 illum 2
 map_Kd textures\\mapletree.png
-map_d textures\\mapletree_Transmission.png
+map_d textures\\mapletreeA.png
 
 newmtl TreeTexture90
 Ns 250.000000
@@ -23,4 +23,4 @@ Ni 1.450000
 d 1.000000
 illum 2
 map_Kd textures\\mapletree90.png
-map_d textures\\mapletree90_Transmission.png
+map_d textures\\mapletree90A.png
