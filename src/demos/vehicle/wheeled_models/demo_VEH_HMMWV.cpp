@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     // Note: this must be done after initializing the terrain (so that its visual model is created).
     if (patch->GetGroundBody()->GetVisualModel()) {
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
-            GetChronoDataFile("models/trees/tree.obj"), true, true);
+            GetChronoDataFile("models/trees/Tree.obj"), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName("Trees");
