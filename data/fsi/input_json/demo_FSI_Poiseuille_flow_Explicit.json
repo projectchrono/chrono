@@ -4,6 +4,7 @@
   {
     "Density":                1000,
     "Viscosity":              1.0,
+    "Body Force":             [0.01, 0.0,  0.0],
     "Gravity":                [0.0, 0.0,  0.0]
   },
 

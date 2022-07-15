@@ -9,7 +9,7 @@
 
   "SPH Parameters":
   {
-    "Method":                         "WCSPH", //WCSPH, IISPH, I2SPHH
+    "Method":                         "WCSPH",
     "Kernel h":                       0.1,
     "Initial Spacing":                0.1,
     "Maximum Velocity":               10.0,
