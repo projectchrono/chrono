@@ -113,8 +113,8 @@ void ChSystemFsi::InitParams() {
     m_paramsH->Conservative_Form = true;
     m_paramsH->gradient_type = 0;
     m_paramsH->laplacian_type = 0;
-    m_paramsH->USE_Consistent_L = true;
-    m_paramsH->USE_Consistent_G = true;
+    m_paramsH->USE_Consistent_L = false;
+    m_paramsH->USE_Consistent_G = false;
 
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 

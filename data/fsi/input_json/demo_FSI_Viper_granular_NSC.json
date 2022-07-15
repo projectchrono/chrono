@@ -2,32 +2,21 @@
 
   "Physical Properties of Fluid": {
     "Density": 1700,
-    "Viscosity": 0.0,
-    "Body Force": [ 0.0, 0.0, 0.0 ],
     "Gravity": [ 0.0, 0.0, -9.81 ]
   },
 
   "SPH Parameters": {
-    "Method": "WCSPH", //WCSPH, IISPH, I2SPHH
+    "Method": "WCSPH",
     "Kernel h": 0.01,
     "Initial Spacing": 0.01,
-    "Epsilon": 0.01,
-    "Maximum Velocity": 1.0,
     "XSPH Coefficient": 0.5,
-    "Shifting Coefficient": 1.0,
-    "Density Reinitialization": 1000000000,
-    "Consistent Discretization for Gradient": false,
-    "Consistent Discretization for Laplacian": false
+    "Shifting Coefficient": 1.0
   },
 
   "Time Stepping": {
-    "Adaptive Time stepping": false,
-    "CFL number": 0.2,
-    "Beta": 0.0,
     "Fluid time step": 2.5e-4,
     "Solid time step": 2.5e-4,
-    "Maximum time step": 2.5e-4,
-    "Write frame per second": 20
+    "Maximum time step": 2.5e-4
   },
 
   "Elastic SPH": {
@@ -40,12 +29,6 @@
     "mu_2": 0.7,
     "particle diameter": 0.005,
     "kernel threshold":0.8
-  },
-
-  "Geometry Inf": {
-    "BoxDimensionX": 4.0,
-    "BoxDimensionY": 2.0,
-    "BoxDimensionZ": 0.1
   },
 
   "Body Active Domain": [ 0.4, 0.3, 0.5 ],
