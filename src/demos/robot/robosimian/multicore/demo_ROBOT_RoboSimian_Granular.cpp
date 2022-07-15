@@ -322,7 +322,8 @@ int main(int argc, char* argv[]) {
 
     if (render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "RoboSimian - Granular terrain", sys);
+        gl_window.AttachSystem(sys);
+        gl_window.Initialize(1280, 720, "RoboSimian - Granular terrain");
         gl_window.SetCamera(ChVector<>(2, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
         gl_window.SetRenderMode(opengl::WIREFRAME);
     }

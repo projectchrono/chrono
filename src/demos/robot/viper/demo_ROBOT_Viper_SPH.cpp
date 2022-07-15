@@ -201,6 +201,8 @@ int main(int argc, char* argv[]) {
         fsi_vis.SetCameraPosition(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
         fsi_vis.SetCameraMoveScale(1.0f);
         fsi_vis.EnableBoundaryMarkers(false);
+        fsi_vis.EnableRigidBodyMarkers(false);
+        fsi_vis.AttachSystem(&sysMBS);
         fsi_vis.Initialize();
     }
 

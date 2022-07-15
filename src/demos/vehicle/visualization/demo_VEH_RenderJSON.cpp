@@ -179,14 +179,15 @@ int main(int argc, char* argv[]) {
         minfo.cr = 0.01f;
         minfo.Y = 2e7f;
         auto patch_mat = minfo.CreateMaterial(sys.GetContactMethod());
-        auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 10, 5);
+        auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 10, 5);
         terrain.Initialize();
     }
 
     // Initialize OpenGL
     double factor = (is_wheeled ? 3.0 : 5.0);
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "JSON visualization", &sys);
+    gl_window.AttachSystem(&sys);
+    gl_window.Initialize(1280, 720, "JSON visualization");
     gl_window.SetCamera(factor * ChVector<>(-1, -1, 0.75), ChVector<>(0, 0, 0.5), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::SOLID);
     gl_window.EnableHUD(false);

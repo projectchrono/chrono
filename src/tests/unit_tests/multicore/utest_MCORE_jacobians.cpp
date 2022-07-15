@@ -242,7 +242,8 @@ TEST(ChronoMulticore, jacobians) {
     if (animate) {
 #ifdef CHRONO_OPENGL
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "Jacobians", msystem);
+        gl_window.AttachSystem(msystem);
+        gl_window.Initialize(1280, 720, "Jacobians");
         gl_window.SetCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
         gl_window.SetRenderMode(opengl::WIREFRAME);
 

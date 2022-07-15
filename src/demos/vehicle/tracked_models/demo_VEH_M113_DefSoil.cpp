@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
 
     // Set file with driver input time series
     driver.SetInputDataFile(vehicle::GetDataFile("M113/driver/Acceleration.txt"));
-    driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
+    driver.SetInputMode(ChIrrGuiDriver::InputMode::DATAFILE);
 
     driver.Initialize();
 

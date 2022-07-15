@@ -550,7 +550,8 @@ int main(int argc, char* argv[]) {
 
     // Create OpenGL visualization
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "Rotational motor", sys);
+    gl_window.AttachSystem(sys);
+    gl_window.Initialize(1280, 720, "Rotational motor");
     gl_window.SetCamera(ChVector<>(1, 3, -7), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0), 0.5f);
     gl_window.SetRenderMode(opengl::WIREFRAME);
 

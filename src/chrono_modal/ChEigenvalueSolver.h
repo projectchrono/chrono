@@ -365,12 +365,49 @@ public:
     double tolerance = 1e-10;   ///< tolerance for the iterative solver. 
     int max_iterations = 500;   ///< upper limit for the number of iterations. If too low might not converge.
     bool verbose = false;       ///< turn to true to see some diagnostic.
-    const ChQuadraticEigenvalueSolver& msolver; 
+    const ChQuadraticEigenvalueSolver& msolver;
 };
 
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////7
+//
+// EXPERIMENTAL CODE
 
+// Inherit from this class to define how to compute A*x
+class callback_Ax {
+public:
+    // Inherit this. It must compute A*x. How A is stored (full, sparse, factorised, etc. ) is up to you.
+    virtual void compute(ChVectorDynamic<std::complex<double>>& A_x,    ///< output: result of A*x. Assume already sized.
+        const ChVectorDynamic<std::complex<double>>& x          ///< input:  x in A*x
+    ) {};
+};
+
+
+// Calculate (complex) eigenvalues and eigenvectors of matrix A.
+// using the Krylov-Schur algorithm.
+// Adapted from Matlab code at  https://github.com/dingxiong/KrylovSchur
+
+class  ChApiModal KrylovSchurEig  {
+public:
+    
+    // Construct and compute results, returned in v and eig.
+    KrylovSchurEig(
+        ChMatrixDynamic<std::complex<double>>& v,   ///< output matrix with eigenvectors as columns, will be resized 
+        ChVectorDynamic<std::complex<double>>& eig, ///< output vector with eigenvalues (real part not zero if some damping), will be resized 
+        bool& isC,									///< 0 = k-th eigenvalue is real, 1= k-th and k-th+1 are complex conjugate pairs
+        bool& flag,									///< 0 = has converged, 1 = hasn't converged 
+        int& nc,									///< number of converged eigenvalues
+        int& ni,									///< number of used iterations
+        callback_Ax* Ax_function, // void (*Ax_function)(ChVectorDynamic<std::complex<double>>& A_x, const ChVectorDynamic<std::complex<double>>& x),  ///< compute the A*x operation, for standard eigenvalue problem A*v=lambda*v. 
+        ChVectorDynamic<std::complex<double>>& v1,  ///< initial approx of eigenvector, or random
+        const int n,								///< size of A
+        const int k,								///< number of needed eigenvalues
+        const int m,								///< Krylov restart threshold (largest dimension of krylov subspace)
+        const int maxIt,							///< max iteration number
+        const double tol							///< tolerance
+    );
+};
 
 
 }  // end namespace modal

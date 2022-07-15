@@ -20,7 +20,6 @@
 // =============================================================================
 
 #include "chrono/core/ChStream.h"
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 
@@ -83,8 +82,8 @@ TireModelType tire_model = TireModelType::TMEASY;
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 double terrainHeight = 0;      // terrain height (FLAT terrain only)
-double terrainLength = 100.0;  // size in X direction
-double terrainWidth = 100.0;   // size in Y direction
+double terrainLength = 200.0;  // size in X direction
+double terrainWidth = 200.0;   // size in Y direction
 
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 1.75);
@@ -158,7 +157,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
-            patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
@@ -174,6 +173,18 @@ int main(int argc, char* argv[]) {
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
 
     terrain.Initialize();
+
+    // Optionally, attach additional visual assets to ground.
+    // Note: this must be done after initializing the terrain (so that its visual model is created).
+    if (patch->GetGroundBody()->GetVisualModel()) {
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+            GetChronoDataFile("models/trees/Tree.obj"), true, true);
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetName("Trees");
+        trimesh_shape->SetMutable(false);
+        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI_2)));
+    }
 
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
@@ -233,7 +244,7 @@ int main(int argc, char* argv[]) {
     // force it to playback the driver inputs.
     if (driver_mode == DriverMode::PLAYBACK) {
         driver.SetInputDataFile(driver_file);
-        driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
+        driver.SetInputMode(ChIrrGuiDriver::InputMode::DATAFILE);
     }
 
     driver.Initialize();
@@ -262,7 +273,7 @@ int main(int argc, char* argv[]) {
         vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     }
 
-    ChRealtimeStepTimer realtime_timer;
+    my_hmmwv.GetVehicle().EnableRealtime(true);
     utils::ChRunningAverage RTF_filter(50);
  
     while (vis->Run()) {
@@ -325,10 +336,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
-        ////std::cout << RTF_filter.Add(realtime_timer.RTF) << std::endl;
     }
 
     if (driver_mode == DriverMode::RECORD) {

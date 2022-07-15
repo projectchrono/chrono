@@ -293,7 +293,8 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     // Create the visualization window
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "Terrain Node (Rigid)", m_system);
+        gl_window.AttachSystem(m_system);
+        gl_window.Initialize(1280, 720, "Terrain Node (Rigid)");
         gl_window.SetCamera(ChVector<>(0, -2, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
         gl_window.SetRenderMode(opengl::SOLID);
     }

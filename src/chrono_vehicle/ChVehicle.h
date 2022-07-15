@@ -131,13 +131,13 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the global location of the driver.
     ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
 
-    /// Enable/disable soft real-time (default: true).
+    /// Enable/disable soft real-time (default: false).
     /// If enabled, a spinning timer is used to maintain simulation time in sync with real time (if simulation is faster).
     void EnableRealtime(bool val) { m_realtime_force = val; }
 
     /// Get current estimated RTF (real time factor).
-    /// This value is not calculated if soft real-time is disabled. 
-    double GetRTF() const { return m_realtime_timer.RTF; }
+    /// Note that the "true" RTF is returned, even if soft real-time is enforced.
+    double GetRTF() const { return m_RTF; }
 
     /// Change the default collision detection system.
     /// Note that this function should be called *before* initialization of the vehicle system in order to create
@@ -256,6 +256,8 @@ class CH_VEHICLE_API ChVehicle {
     bool m_initialized;
     bool m_realtime_force;
     ChRealtimeStepTimer m_realtime_timer;
+    ChTimer<> m_sim_timer;
+    double m_RTF;
 
     friend class ChVehicleCosimVehicleNode;
 };

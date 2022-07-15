@@ -1,0 +1,50 @@
+{
+	"steering": {
+		"name": "Steering Wheel",
+		"axis": 0,
+		"min": -32768,
+		"max": 32767,
+		"scaled_min": 3,
+		"scaled_max": -3
+	},
+	"throttle": {
+		"name": "USB Pedals",
+		"axis": 0,
+		"min": 32768,
+		"max": 0,
+		"scaled_min": 0,
+		"scaled_max": 1
+	},
+	"brake": {
+		"name": "USB Pedals",
+		"axis": 1,
+		"min": 32768,
+		"max": 0,
+		"scaled_min": 0,
+		"scaled_max": 1
+	},
+	"clutch": {
+		"name": "USB Pedals",
+		"axis": 2,
+		"min": 0,
+		"max": 32768,
+		"scaled_min": 0,
+		"scaled_max": 1
+	},
+	"shiftUp": {
+		"name": "Precision GT3 Wheel",
+		"button": 9
+	},
+	"shiftDown": {
+		"name": "Precision GT3 Wheel",
+		"button": 8
+	},
+	"gear1": { "name": "Pro-Sim H-Pattern Gear Shifter", "button": 1 },
+	"gear2": { "name": "Pro-Sim H-Pattern Gear Shifter", "button": 5 },
+	"gear3": { "name": "Pro-Sim H-Pattern Gear Shifter", "button": 2 },
+	"gear4": { "name": "Pro-Sim H-Pattern Gear Shifter", "button": 6 },
+	"gear5": { "name": "Pro-Sim H-Pattern Gear Shifter", "button": 3 },
+	"gear6": { "name": "Pro-Sim H-Pattern Gear Shifter", "button": 7 },
+	"gearReverse": { "name": "Pro-Sim H-Pattern Gear Shifter", "button": 0 },
+	"toggleManualGearbox": { "name": "Precision GT3 Wheel", "button": 11 }
+}

@@ -22,8 +22,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
@@ -84,7 +82,7 @@ int main(int argc, char* argv[]) {
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     auto patch =
-        terrain.AddPatch(patch_mat, ChVector<>(0, 0, terrainHeight), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
+        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(0, 0, terrainHeight), QUNIT), terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.5f, 0.5f, 1));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
@@ -126,7 +124,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    ChRealtimeStepTimer realtime_timer;
+    vehicle.EnableRealtime(true);
     while (vis->Run()) {
         double time = vehicle.GetSystem()->GetChTime();
 
@@ -149,9 +147,6 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         vehicle.Advance(step_size);
         vis->Advance(step_size);
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     return 0;

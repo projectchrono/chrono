@@ -143,7 +143,8 @@ int main(int argc, char* argv[]) {
 
     // Create the visualization window
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "SMC callbacks", &system);
+    gl_window.AttachSystem(&system);
+    gl_window.Initialize(1280, 720, "SMC callbacks");
     gl_window.SetCamera(ChVector<>(4, 4, -5), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0));
     gl_window.SetRenderMode(opengl::WIREFRAME);
 

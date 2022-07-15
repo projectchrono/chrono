@@ -19,7 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -78,14 +77,14 @@ int main(int argc, char* argv[]) {
     auto patch1_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     patch1_mat->SetFriction(0.9f);
     patch1_mat->SetRestitution(0.01f);
-    auto patch1 = terrain.AddPatch(patch1_mat, ChVector<>(-16, 0, 0), ChVector<>(0, 0, 1), 32, 20);
+    auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(-16, 0, 0), QUNIT), 32, 20);
     patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 20, 20);
 
     auto patch2_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     patch2_mat->SetFriction(0.9f);
     patch2_mat->SetRestitution(0.01f);
-    auto patch2 = terrain.AddPatch(patch1_mat, ChVector<>(16, 0, 0.15), ChVector<>(0, 0, 1), 32, 30);
+    auto patch2 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(16, 0, 0.15), QUNIT), 32, 30);
     patch2->SetColor(ChColor(1.0f, 0.5f, 0.5f));
     patch2->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 20, 20);
 
@@ -147,7 +146,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    ChRealtimeStepTimer realtime_timer;
+    my_hmmwv.GetVehicle().EnableRealtime(true);
     while (vis->Run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();
 
@@ -170,9 +169,6 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
         vis->Advance(step_size);
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     return 0;

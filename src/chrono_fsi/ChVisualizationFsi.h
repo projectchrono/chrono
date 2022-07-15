@@ -73,6 +73,11 @@ class CH_FSI_API ChVisualizationFsi {
     /// Enable/disable rendering of boundary BCE markers (default: false).
     void EnableBoundaryMarkers(bool val) { m_bndry_bce_markers = val; }
 
+    /// Attach a user-provided Chrono system for rendering.
+    /// By default, the FSI run-time visualization renders SPH particles and BCE markers.
+    /// This function can be used to also render the mechanical system interacting with the SPH system.
+    void AttachSystem(ChSystem* system) { m_user_system = system; }
+
     /// Add additional proxy body to supplemental system.
     /// Must be called before Initialize().
     /// The provided body is set fixed to ground and it is the caller's responsibility to update the position of this
@@ -93,7 +98,8 @@ class CH_FSI_API ChVisualizationFsi {
 
   private:
     ChSystemFsi* m_systemFSI;  ///< associated Chrono::FSI system
-    ChSystem* m_system;        ///< supplemental Chrono system (holds proxy bodies)
+    ChSystem* m_system;        ///< internal Chrono system (holds proxy bodies)
+    ChSystem* m_user_system;   ///< optional user-provided system
 
     double m_radius;           ///< particle visualization radius
     bool m_sph_markers;        ///< render fluid SPH particles?

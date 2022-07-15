@@ -962,6 +962,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${OPENCRG_DLL}"
             "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
+      install(FILES "${OPENCRG_DLL}" DESTINATION bin)
     endif()
 
 endif()
