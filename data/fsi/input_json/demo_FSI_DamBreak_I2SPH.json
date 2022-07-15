@@ -51,12 +51,5 @@
     "Verbose monitoring":       false,
     "Constraint Pressure":      false,
     "Average Pressure":         0.0
-  },
-
-  "Geometry Inf":
-  {
-    "BoxDimensionX":                6.0,
-    "BoxDimensionY":                1.0,
-    "BoxDimensionZ":                4.0
   }
 }

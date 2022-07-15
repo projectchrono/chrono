@@ -23,12 +23,5 @@
     "Fluid time step":               1e-4,
     "Solid time step":               1e-4,
     "Maximum time step":             1e-4
-  },
-
-  "Geometry Inf":
-  {
-    "BoxDimensionX":                1.0,
-    "BoxDimensionY":                0.6,
-    "BoxDimensionZ":                1.2
   }
 }

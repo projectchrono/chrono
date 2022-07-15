@@ -42,12 +42,6 @@
     "Constraint Pressure":      false,
     "Clamp Pressure":           true,
     "Average Pressure":         0.0
-  },
-
-  "Geometry Inf":
-  {
-    "BoxDimensionX":                1.0,
-    "BoxDimensionY":                0.6,
-    "BoxDimensionZ":                1.2
   }
+  
 }
