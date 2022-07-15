@@ -52,7 +52,10 @@ double cyl_radius = 0.12;
 double t_end = 2.0;
 
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
-bool render = true;
+bool render = false;
+#ifdef CHRONO_OPENGL
+    render = true;
+#endif
 float render_fps = 1000;
 
 //------------------------------------------------------------------
