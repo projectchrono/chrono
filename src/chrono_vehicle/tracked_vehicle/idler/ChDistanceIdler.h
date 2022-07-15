@@ -123,11 +123,8 @@ class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
     std::shared_ptr<ChLinkMotorLinearPosition> m_tensioner;  ///< linear motor tensioner element
 
   private:
-    // Points for carrier visualization
-    ChVector<> m_pW;
-    ChVector<> m_pC;
-    ChVector<> m_pR;
-    ChVector<> m_pM;
+    // Hardpoints expressed in absolute frame
+    std::vector<ChVector<>> m_points;
 };
 
 /// @} vehicle_tracked_idler

@@ -76,37 +76,31 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     idler_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform all points and directions to absolute frame
-    std::vector<ChVector<>> points(NUM_POINTS);
+    m_points.resize(NUM_POINTS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = GetLocation(static_cast<PointId>(i));
-        points[i] = idler_to_abs.TransformPointLocalToParent(rel_pos);
+        m_points[i] = idler_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
     // Create and initialize the carrier body
     m_carrier = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_carrier->SetNameString(m_name + "_carrier");
-    m_carrier->SetPos(points[CARRIER]);
+    m_carrier->SetPos(m_points[CARRIER]);
     m_carrier->SetRot(idler_to_abs.GetRot());
     m_carrier->SetMass(GetCarrierMass());
     m_carrier->SetInertiaXX(GetCarrierInertia());
     chassis->GetSystem()->AddBody(m_carrier);
 
-    // Cache points for carrier visualization (expressed in the carrier frame)
-    m_pC = m_carrier->TransformPointParentToLocal(points[CARRIER]);
-    m_pW = m_carrier->TransformPointParentToLocal(points[CARRIER_WHEEL]);
-    m_pR = m_carrier->TransformPointParentToLocal(points[CARRIER_CHASSIS]);
-    m_pM = m_carrier->TransformPointParentToLocal(points[MOTOR_CARRIER]);
-
     // Create and initialize the revolute joint between carrier and chassis
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_carrier_pin");
     m_revolute->Initialize(chassis->GetBody(), m_carrier,
-                           ChCoordsys<>(points[CARRIER_CHASSIS], idler_to_abs.GetRot() * Q_from_AngY(CH_C_PI_2)));
+                           ChCoordsys<>(m_points[CARRIER_CHASSIS], idler_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Linear actuator function
-    double init_dist = (points[MOTOR_ARM] - points[MOTOR_CARRIER]).Length();
+    double init_dist = (m_points[MOTOR_ARM] - m_points[MOTOR_CARRIER]).Length();
     assert(init_dist < GetTensionerDistance());
     auto motfun = chrono_types::make_shared<DistanceIdlerFunction>(GetTensionerExtensionTime(), init_dist,
                                                                    GetTensionerDistance());
@@ -119,7 +113,7 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     m_tensioner->SetNameString(m_name + "_tensioner");
     m_tensioner->SetMotionFunction(motfun);
     m_tensioner->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
-    m_tensioner->Initialize(arm, m_carrier, false, ChFrame<>(points[MOTOR_ARM]), ChFrame<>(points[MOTOR_CARRIER]));
+    m_tensioner->Initialize(arm, m_carrier, false, ChFrame<>(m_points[MOTOR_ARM]), ChFrame<>(m_points[MOTOR_CARRIER]));
     chassis->GetSystem()->AddLink(m_tensioner);
 
     // Invoke the base class implementation. This initializes the associated idler wheel.
@@ -152,31 +146,58 @@ void ChDistanceIdler::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    static const double threshold2 = 1e-6;
+    // Express hardpoints in carrier local frame
+    auto pC = m_carrier->TransformPointParentToLocal(m_points[CARRIER]);
+    auto pW = m_carrier->TransformPointParentToLocal(m_points[CARRIER_WHEEL]);
+    auto pR = m_carrier->TransformPointParentToLocal(m_points[CARRIER_CHASSIS]);
+    auto pM = m_carrier->TransformPointParentToLocal(m_points[MOTOR_CARRIER]);
+
     double radius = GetCarrierVisRadius();
 
-    if ((m_pW - m_pC).Length2() > threshold2) {
+    ChColor carrier_col(0.6f, 0.2f, 0.6f);
+
+    // Carrier-chassis revolute joint
+    { 
         auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = m_pW;
-        cyl->GetCylinderGeometry().p2 = m_pC;
-        cyl->GetCylinderGeometry().rad = radius;
+        cyl->GetCylinderGeometry().p1 = ChVector<>(pR.x(), pC.y() - radius, pR.z());
+        cyl->GetCylinderGeometry().p2 = ChVector<>(pR.x(), pC.y() + radius, pR.z());
+        cyl->GetCylinderGeometry().rad = 3 * radius;
+        cyl->SetColor(carrier_col);
         m_carrier->AddVisualShape(cyl);
     }
 
-    if ((m_pC - m_pR).Length2() > threshold2) {
+    // Carrier-wheel revolute joint
+    {
         auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = m_pC;
-        cyl->GetCylinderGeometry().p2 = m_pR;
-        cyl->GetCylinderGeometry().rad = radius;
+        cyl->GetCylinderGeometry().p1 = ChVector<>(pW.x(), pC.y() - radius, pW.z());
+        cyl->GetCylinderGeometry().p2 = ChVector<>(pW.x(), pC.y() + radius, pW.z());
+        cyl->GetCylinderGeometry().rad = 2 * radius;
+        cyl->SetColor(carrier_col);
         m_carrier->AddVisualShape(cyl);
     }
 
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(3 * radius, radius, radius);
-    m_carrier->AddVisualShape(box, ChFrame<>(m_pR));
+    {
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
+        cyl->GetCylinderGeometry().p1 = ChVector<>(pR.x(), pC.y(), pR.z());
+        cyl->GetCylinderGeometry().p2 = ChVector<>(pW.x(), pC.y(), pW.z());
+        cyl->GetCylinderGeometry().rad = radius;
+        cyl->SetColor(carrier_col);
+        m_carrier->AddVisualShape(cyl);
+    }
 
-    // Visualization of the tensioner spring (with default color)
-    m_tensioner->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    {
+        auto cyl = chrono_types::make_shared<ChCylinderShape>();
+        cyl->GetCylinderGeometry().p1 = ChVector<>(pW.x(), pC.y(), pW.z());
+        cyl->GetCylinderGeometry().p2 = ChVector<>(pM.x(), pC.y(), pM.z());
+        cyl->GetCylinderGeometry().rad = radius;
+        cyl->SetColor(carrier_col);
+        m_carrier->AddVisualShape(cyl);
+    }
+
+    // Visualization of the tensioner spring
+    auto seg = chrono_types::make_shared<ChSegmentShape>();
+    seg->SetColor(carrier_col);
+    m_tensioner->AddVisualShape(seg);
 }
 
 void ChDistanceIdler::RemoveVisualizationAssets() {
