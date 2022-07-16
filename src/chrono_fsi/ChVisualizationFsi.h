@@ -38,28 +38,39 @@ namespace fsi {
 /// Chrono::OpenGL window and use the function ChOpenGLWindow::SetCamera().
 class CH_FSI_API ChVisualizationFsi {
   public:
-    /// <summary>
+    /// Rendering mode for mesh objects.
+    enum class RenderMode {WIREFRAME, SOLID};
+
     /// Create a run-time visualization object associated with a given Chrono::Fsi system.
     ChVisualizationFsi(ChSystemFsi* sysFSI);
     ~ChVisualizationFsi();
 
     /// Set title of the visualization window (default: "").
+    /// Must be called before Initialize().
     void SetTitle(const std::string& title) { m_title = title; }
 
-    /// Set camera position and target (look at) point.
+    /// Set window dimensions (default: 1280x720).
     /// Must be called before Initialize().
+    void SetSize(int width, int height);
+
+    /// Set camera position and target (look at) point.
     void SetCameraPosition(const ChVector<>& pos, const ChVector<>& target);
 
     /// Set camera up vector (default: Z).
-    /// Must be called before Initialize().
     void SetCameraUpVector(const ChVector<>& up);
 
     /// Set scale for camera movement increments (default: 0.1).
-    /// Must be called before Initialize().
     void SetCameraMoveScale(float scale);
 
     /// Set visualization radius for SPH particles (default: half initial spacing).
+    /// Must be called before Initialize().
     void SetVisualizationRadius(double radius);
+
+    /// Set rendering mode for mesh objects (default: WIREFRAME).
+    void SetRenderMode(RenderMode mode);
+
+    /// Enable/disable information overlay (default: false).
+    void EnableInfoOverlay(bool val);
 
     /// Enable/disable rendering of fluid SPH particles (default: true).
     void EnableFluidMarkers(bool val) { m_sph_markers = val; }
@@ -110,11 +121,15 @@ class CH_FSI_API ChVisualizationFsi {
     std::shared_ptr<ChParticleCloud> m_particles;  ///< particle cloud proxy for SPH markers
     unsigned int m_bce_start_index;                ///< start index of BCE proxy bodies in m_system's body list
 
-    std::string m_title;      ///< visualization window title
-    ChVector<> m_cam_pos;     ///< current camera position
-    ChVector<> m_cam_target;  ///< current camera look at point
-    ChVector<> m_cam_up;      ///< camera up vector
-    float m_cam_scale;        ///< camera move increment scale
+    std::string m_title;       ///< visualization window title
+    int m_width;               ///< window width
+    int m_height;              ///< window height
+    ChVector<> m_cam_pos;      ///< current camera position
+    ChVector<> m_cam_target;   ///< current camera look at point
+    ChVector<> m_cam_up;       ///< camera up vector
+    float m_cam_scale;         ///< camera move increment scale
+    RenderMode m_render_mode;  ///< render mode for mesh objects
+    bool m_show_info;          ///< show/hide info overlay
 };
 
 /// @} fsi_utils
