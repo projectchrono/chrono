@@ -189,6 +189,8 @@ void SelectSolver(ChSystem& sys, ChSolver::Type& solver_type, ChTimestepper::Typ
                 solver->EnableDiagonalPreconditioner(true);
                 break;
             }
+            default:
+                break;
         }
     }
 
@@ -211,6 +213,7 @@ void SelectSolver(ChSystem& sys, ChSolver::Type& solver_type, ChTimestepper::Typ
             integrator->SetAbsTolerances(1e-4, 1e2);
             break;
         }
+        default:
         case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
         case ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
             break;
@@ -230,7 +233,7 @@ int main(int argc, char* argv[]) {
 
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, contact_method), detracking_control;
+        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, contact_method, detracking_control);
         std::cout << "Rig uses track assembly from JSON file: " << vehicle::GetDataFile(filename) << std::endl;
     } else {
         VehicleSide side = LEFT;

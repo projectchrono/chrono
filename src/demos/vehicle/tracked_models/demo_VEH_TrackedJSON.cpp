@@ -263,6 +263,8 @@ void SelectSolver(ChSystem& sys, ChSolver::Type& solver_type, ChTimestepper::Typ
                 solver->EnableDiagonalPreconditioner(true);
                 break;
             }
+            default:
+                break;
         }
     }
 
@@ -285,6 +287,7 @@ void SelectSolver(ChSystem& sys, ChSolver::Type& solver_type, ChTimestepper::Typ
             integrator->SetAbsTolerances(1e-4, 1e2);
             break;
         }
+        default:
         case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
         case ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
             break;
