@@ -14,8 +14,8 @@
 
 namespace chrono {
 
-ChApi const ChCoordsys<double> CSYSNULL(VNULL, QNULL);
-ChApi const ChCoordsys<double> CSYSNORM(VNULL, QUNIT);
+ChApi const ChCoordsys<double> CSYSNULL(ChVector<>(0, 0, 0), ChQuaternion<>(0, 0, 0, 0));
+ChApi const ChCoordsys<double> CSYSNORM(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
 
 Coordsys Force2Dcsys(const Coordsys& cs) {
     Coordsys res;

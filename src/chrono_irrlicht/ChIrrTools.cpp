@@ -124,6 +124,21 @@ video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video
         irr_mat.DiffuseColor.setBlue(255);
     }
 
+    auto opacity_texture_name = mat->GetOpacityTexture();
+    if (!opacity_texture_name.empty()) {
+        auto scale = mat->GetOpacityTextureScale();
+        auto opacity_texture = driver->getTexture(opacity_texture_name.c_str());
+        irr_mat.setTexture(2, opacity_texture);
+        irr_mat.getTextureMatrix(2).setTextureScale(scale.x(), scale.y());
+
+        irr_mat.MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
+
+        // Same as when Irrlicht loads the OBJ+MTL.  Is this really needed?
+        ////irr_mat.DiffuseColor.setRed(255);
+        ////irr_mat.DiffuseColor.setGreen(255);
+        ////irr_mat.DiffuseColor.setBlue(255);
+    }
+
     return irr_mat;
 }
 

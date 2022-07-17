@@ -79,8 +79,8 @@ void ChLugreTire::AddVisualizationAssets(VisualizationType vis) {
 void ChLugreTire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChLugreTire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets to the same body (the spindle/wheel).
-    for (int id = 0; id < GetNumDiscs(); id++) {
-        ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shapes[id]);
+    for (auto& cyl : m_cyl_shapes) {
+        ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), cyl);
     }
     m_cyl_shapes.clear();
 }

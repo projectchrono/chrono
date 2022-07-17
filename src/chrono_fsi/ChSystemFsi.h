@@ -21,12 +21,14 @@
 #define CH_SYSTEM_FSI_H
 
 #include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChDefinitionsFsi.h"
+#include "chrono_fsi/math/custom_math.h"
 
 namespace chrono {
 
@@ -116,6 +118,9 @@ class CH_FSI_API ChSystemFsi {
 
     /// Set periodic boundary condition for fluid.
     void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax);
+
+    /// Set size of active domain.
+    void SetActiveDomain(const ChVector<>& boxDim);
 
     /// Set number of boundary layers (default: 3).
     void SetNumBoundaryLayers(int num_layers);
@@ -224,10 +229,10 @@ class CH_FSI_API ChSystemFsi {
     /// Get current simulation time.
     double GetSimTime() const { return m_time; }
 
-    /// Return the SPH particle position.
+    /// Return the SPH particle positions.
     std::vector<ChVector<>> GetParticlePosOrProperties();
 
-    /// Return the SPH particle velocity.
+    /// Return the SPH particle velocities.
     std::vector<ChVector<>> GetParticleVel();
 
     /// Get a reference to the FSI bodies.
@@ -411,6 +416,19 @@ class CH_FSI_API ChSystemFsi {
     static void CreateMeshPoints(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
                                  double delta,
                                  std::vector<ChVector<>>& point_cloud);
+
+    /// Utility function for finding indices of SPH particles inside a given OBB.
+    /// The object-oriented box, of specified size, is assumed centered at the origin of the provided frame and aligned
+    /// with the axes of that frame. The return value is a device thrust vector.
+    thrust::device_vector<int> FindParticlesInBox(const ChFrame<>& frame, const ChVector<>& size);
+
+    /// Extract positions of all SPH particles with indices in the provided array.
+    /// The return value is a device thrust vector.
+    thrust::device_vector<Real4> GetParticlePositions(const thrust::device_vector<int>& indices);
+
+    /// Extract velocities of all SPH particles with indices in the provided array.
+    /// The return value is a device thrust vector.
+    thrust::device_vector<Real3> GetParticleVelocities(const thrust::device_vector<int>& indices);
 
   private:
     /// Initialize simulation parameters with default values.

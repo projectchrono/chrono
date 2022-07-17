@@ -31,10 +31,14 @@ ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
     : m_systemFSI(sysFSI),
       m_user_system(nullptr),
       m_title(""),
+      m_width(1280),
+      m_height(720),
       m_cam_pos(0, -3, 0),
       m_cam_target(0, 0, 0),
       m_cam_up(0, 0, 1),
       m_cam_scale(0.1f),
+      m_render_mode(RenderMode::WIREFRAME),
+      m_show_info(false),
       m_sph_markers(true),
       m_rigid_bce_markers(true),
       m_flex_bce_markers(true),
@@ -52,21 +56,44 @@ ChVisualizationFsi::~ChVisualizationFsi() {
     delete m_system;
 }
 
+void ChVisualizationFsi::SetSize(int width, int height) {
+    m_width = width;
+    m_height = height;
+}
+
 void ChVisualizationFsi::SetCameraPosition(const ChVector<>& pos, const ChVector<>& target) {
     m_cam_pos = pos;
     m_cam_target = target;
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    gl_window.SetCamera(m_cam_pos, m_cam_target, m_cam_up, m_cam_scale);
 }
 
 void ChVisualizationFsi::SetCameraUpVector(const ChVector<>& up) {
     m_cam_up = up;
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    gl_window.SetCamera(m_cam_pos, m_cam_target, m_cam_up, m_cam_scale);
 }
 
 void ChVisualizationFsi::SetCameraMoveScale(float scale) {
     m_cam_scale = scale;
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    gl_window.SetCamera(m_cam_pos, m_cam_target, m_cam_up, m_cam_scale);
 }
 
 void ChVisualizationFsi::SetVisualizationRadius(double radius) {
     m_radius = radius;
+}
+
+void ChVisualizationFsi::SetRenderMode(RenderMode mode) {
+    m_render_mode = mode;
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    gl_window.SetRenderMode(m_render_mode == RenderMode::WIREFRAME ? opengl::WIREFRAME : opengl::SOLID);
+}
+
+void ChVisualizationFsi::EnableInfoOverlay(bool val) {
+    m_show_info = val;
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    gl_window.EnableHUD(m_show_info);
 }
 
 void ChVisualizationFsi::AddProxyBody(std::shared_ptr<ChBody> body) {
@@ -133,9 +160,10 @@ void ChVisualizationFsi::Initialize() {
     gl_window.AttachSystem(m_system);
     if (m_user_system)
         gl_window.AttachSystem(m_user_system);
-    gl_window.Initialize(1280, 720, m_title.c_str());
+    gl_window.Initialize(m_width, m_height, m_title.c_str());
     gl_window.SetCamera(m_cam_pos, m_cam_target, m_cam_up, m_cam_scale);
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+    gl_window.SetRenderMode(m_render_mode == RenderMode::WIREFRAME ? opengl::WIREFRAME : opengl::SOLID);
+    gl_window.EnableHUD(m_show_info);
     gl_window.SetParticleRenderMode(m_radius, opengl::POINTS);
 #endif
 }
