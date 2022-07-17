@@ -27,17 +27,10 @@
 #include <vector>
 
 #include "chrono/assets/ChColor.h"
-#include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChShaftsGear.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChLinkMotorRotation.h"
 
 #include "chrono_models/ChApiModels.h"
-
-#include "chrono/physics/ChInertiaUtils.h"
 
 namespace chrono {
 
