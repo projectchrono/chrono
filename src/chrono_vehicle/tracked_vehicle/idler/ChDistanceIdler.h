@@ -30,7 +30,7 @@
 #define CH_DISTANCE_IDLER_H
 
 #include "chrono/physics/ChLinkLock.h"
-#include "chrono/physics/ChLinkMotorLinearPosition.h"
+#include "chrono/physics/ChLinkLinActuator.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -60,7 +60,7 @@ class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
     virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_carrier; }
 
     /// Get the tensioner motor element.
-    std::shared_ptr<ChLinkMotorLinearPosition> GetTensioner() const { return m_tensioner; }
+    std::shared_ptr<ChLinkLinActuator> GetTensioner() const { return m_tensioner; }
 
     /// Initialize this idler subsystem.
     /// The idler subsystem is initialized by attaching it to the specified chassis at the specified location (with
@@ -118,9 +118,9 @@ class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
 
     virtual void Output(ChVehicleOutput& database) const override;
 
-    std::shared_ptr<ChBody> m_carrier;                       ///< carrier body
-    std::shared_ptr<ChLinkLockRevolute> m_revolute;          ///< carrier-chassis revolute joint
-    std::shared_ptr<ChLinkMotorLinearPosition> m_tensioner;  ///< linear motor tensioner element
+    std::shared_ptr<ChBody> m_carrier;               ///< carrier body
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< carrier-chassis revolute joint
+    std::shared_ptr<ChLinkLinActuator> m_tensioner;  ///< linear motor tensioner element
 
   private:
     // Hardpoints expressed in absolute frame

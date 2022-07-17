@@ -109,11 +109,10 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     // Connect the idler wheel carrier to the arm of the last suspension subsystem.
     // Attach a ramp function to extend the tensioner to desired distance.
     auto arm = track->GetTrackSuspensions().back()->GetCarrierBody();
-    m_tensioner = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+    m_tensioner = chrono_types::make_shared<ChLinkLinActuator>();
     m_tensioner->SetNameString(m_name + "_tensioner");
-    m_tensioner->SetMotionFunction(motfun);
-    m_tensioner->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
-    m_tensioner->Initialize(arm, m_carrier, false, ChFrame<>(m_points[MOTOR_ARM]), ChFrame<>(m_points[MOTOR_CARRIER]));
+    m_tensioner->SetActuatorFunction(motfun);
+    m_tensioner->Initialize(arm, m_carrier, false, ChCoordsys<>(m_points[MOTOR_ARM]), ChCoordsys<>(m_points[MOTOR_CARRIER]));
     chassis->GetSystem()->AddLink(m_tensioner);
 
     // Invoke the base class implementation. This initializes the associated idler wheel.
