@@ -634,7 +634,7 @@ void ChOpenGLViewer::RenderFluid() {
 void ChOpenGLViewer::RenderParticles() {
     size_t num_particles = 0;
     for (auto s : m_systems) {
-        for (auto& item : m_systems[0]->Get_otherphysicslist()) {
+        for (auto& item : s->Get_otherphysicslist()) {
             if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
                 if (!pcloud->GetVisualModel())
                     continue;
@@ -655,7 +655,7 @@ void ChOpenGLViewer::RenderParticles() {
 
     size_t start = 0;
     for (auto s : m_systems) {
-        for (auto& item : m_systems[0]->Get_otherphysicslist()) {
+        for (auto& item : s->Get_otherphysicslist()) {
             if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
                 if (!pcloud->GetVisualModel())
                     continue;
