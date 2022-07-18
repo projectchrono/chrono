@@ -125,7 +125,7 @@ struct Merge : public vsg::Inherit<vsg::Operation, Merge> {
     vsg::CompileResult compileResult;
 
     void run() override {
-        //std::cout << "Merge::run() path = " << path << ", " << attachmentPoint << ", " << node << std::endl;
+        // std::cout << "Merge::run() path = " << path << ", " << attachmentPoint << ", " << node << std::endl;
 
         vsg::ref_ptr<vsg::Viewer> ref_viewer = viewer;
         if (ref_viewer) {
@@ -571,6 +571,22 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) * vsg::scale(size[0], size[0], size[0]);
                 m_particleScene->addChild(
                     m_shapeBuilder->createParticleShape(material, transform, m_draw_as_wireframe));
+            }
+        }
+    }
+    // loop through links in the system
+    for (auto ilink : m_system->Get_linklist()) {
+        auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink);
+        if (!link)
+            continue;
+        if (!link->GetVisualModel())
+            continue;
+        for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
+            auto& shape = shape_instance.first;
+            if (std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
+                GetLog() << "Found line segment\n";
+            } else if (std::dynamic_pointer_cast<ChSpringShape>(shape)) {
+                GetLog() << "Found spring shape\n";
             }
         }
     }
