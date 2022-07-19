@@ -96,8 +96,9 @@ ChOpenGLViewer::~ChOpenGLViewer() {}
 
 void ChOpenGLViewer::TakeDown() {
     render_camera.TakeDown();
-    main_shader.TakeDown();
+    ortho_camera.TakeDown();
 
+    main_shader.TakeDown();
     cloud_shader.TakeDown();
     dot_shader.TakeDown();
     sphere_shader.TakeDown();
@@ -106,13 +107,25 @@ void ChOpenGLViewer::TakeDown() {
     box.TakeDown();
     cylinder.TakeDown();
     cone.TakeDown();
+
     cloud.TakeDown();
+    fluid.TakeDown();    
     grid.TakeDown();
+
+    particles.TakeDown();
+
+    mpm_grid.TakeDown();
+    mpm_node.TakeDown();
+
     fea_nodes.TakeDown();
     fea_elements.TakeDown();
+
+    line_path.TakeDown();
+
     contact_renderer.TakeDown();
     HUD_renderer.TakeDown();
     graph_renderer.TakeDown();
+    
     for (std::map<std::string, ChOpenGLMesh>::iterator iter = obj_files.begin(); iter != obj_files.end(); iter++) {
         (*iter).second.TakeDown();
     }
