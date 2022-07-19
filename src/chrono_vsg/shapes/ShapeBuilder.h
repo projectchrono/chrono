@@ -70,6 +70,11 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                                vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                std::shared_ptr<ChSpringShape> ss);
 
+    vsg::ref_ptr<vsg::Group> createUnitSegment(std::shared_ptr<ChLinkBase> linkItem,
+                                               ChVisualModel::ShapeInstance shapeInstance,
+                                               std::shared_ptr<ChVisualMaterial> material,
+                                               vsg::ref_ptr<vsg::MatrixTransform> transform);
+
     vsg::ref_ptr<vsg::Group> createPathShape(std::shared_ptr<ChPhysicsItem> physItem,
                                              ChVisualModel::ShapeInstance shapeInstance,
                                              std::shared_ptr<ChVisualMaterial> material,

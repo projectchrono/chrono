@@ -116,6 +116,7 @@ int main(int argc, char* argv[]) {
 
     // Attach a visualization asset.
     spring_1->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.05, 80, 15));
+    spring_1->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 
     // Create a body suspended through a ChLinkTSDA (custom force functor)
     // -------------------------------------------------------------------
@@ -147,6 +148,7 @@ int main(int argc, char* argv[]) {
 
     // Attach a visualization asset.
     spring_2->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.05, 80, 15));
+    spring_2->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     sys.SetVisualSystem(vis);
