@@ -29,7 +29,7 @@
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -185,16 +185,20 @@ int main(int argc, char* argv[]) {
 
     // Initialize OpenGL
     double factor = (is_wheeled ? 3.0 : 5.0);
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(&sys);
-    gl_window.Initialize(1280, 720, "JSON visualization");
-    gl_window.SetCamera(factor * ChVector<>(-1, -1, 0.75), ChVector<>(0, 0, 0.5), ChVector<>(0, 0, 1));
-    gl_window.SetRenderMode(opengl::SOLID);
-    gl_window.EnableHUD(false);
+
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(&sys);
+    vis.SetWindowTitle("JSON visualization");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::SOLID);
+    vis.EnableHUD(false);
+    vis.Initialize();
+    vis.AddCamera(factor * ChVector<>(-1, -1, 0.75), ChVector<>(0, 0, 0.5));
+    vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // Attache event receiver (use key 'U' to trigger a vehicle update)
     EventCB my_receiver(vehicle, is_wheeled);
-    gl_window.SetUserEventReceiver(&my_receiver);
+    vis.AddUserEventReceiver(&my_receiver);
 
     // Simulation loop
     double step_size = 5e-4;
@@ -207,8 +211,8 @@ int main(int argc, char* argv[]) {
         shoe_forces_right.resize(static_cast<TrackedVehicle*>(vehicle)->GetNumTrackShoes(RIGHT));
     }
 
-    while (gl_window.Active()) {
-        gl_window.Render();
+    while (vis.Run()) {
+        vis.DrawAll();
 
         if (!vehicle)
             continue;
