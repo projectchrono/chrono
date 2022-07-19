@@ -27,6 +27,7 @@
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChSurfaceShape.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -62,6 +63,12 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                              std::shared_ptr<ChVisualMaterial> material,
                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
                                              std::shared_ptr<ChLineShape> ls);
+
+    vsg::ref_ptr<vsg::Group> createSpringShape(std::shared_ptr<ChLinkBase> linkItem,
+                                               ChVisualModel::ShapeInstance shapeInstance,
+                                               std::shared_ptr<ChVisualMaterial> material,
+                                               vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                               std::shared_ptr<ChSpringShape> ss);
 
     vsg::ref_ptr<vsg::Group> createPathShape(std::shared_ptr<ChPhysicsItem> physItem,
                                              ChVisualModel::ShapeInstance shapeInstance,

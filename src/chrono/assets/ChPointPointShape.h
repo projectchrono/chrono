@@ -57,6 +57,9 @@ class ChApi ChSpringShape : public ChPointPointShape {
   public:
     ChSpringShape(double mradius = 0.05, int mresolution = 65, double mturns = 5.)
         : radius(mradius), turns(mturns), resolution(mresolution) {}
+    double GetRadius() { return radius; }
+    size_t GetResolution() { return resolution; }
+    double GetTurns() { return turns; }
 
   private:
     // Set line geometry as coil between two end point

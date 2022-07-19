@@ -84,9 +84,12 @@ private:
     //
     //  m_scene +- skybox, lights +- m_bodyScene
     //                            |
+    //                            +- m_linkScene
+    //                            |
     //                            +- m_particleScene
     vsg::ref_ptr<vsg::Group> m_scene;
     vsg::ref_ptr<vsg::Group> m_bodyScene;
+    vsg::ref_ptr<vsg::Group> m_linkScene;
     vsg::ref_ptr<vsg::Group> m_particleScene;
     std::string m_skyboxPath;
     bool m_useSkybox;
