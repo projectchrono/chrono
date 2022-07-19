@@ -327,7 +327,7 @@ void DPCapPress() {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -710,7 +710,7 @@ void ShellBrickContact() {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -1012,7 +1012,7 @@ void SimpleBoxContact() {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -1330,7 +1330,7 @@ void SoilBin() {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -1828,7 +1828,7 @@ void BendingQuasiStatic() {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -2053,7 +2053,7 @@ void SwingingShell() {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // ----------------------------------
     // Perform a dynamic time integration

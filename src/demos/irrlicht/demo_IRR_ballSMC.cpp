@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(0, 3, -6));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // The soft-real-time cycle
     double time = 0.0;

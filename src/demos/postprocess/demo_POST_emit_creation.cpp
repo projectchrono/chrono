@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
     emitter.RegisterAddBodyCallback(creation_callback);
 
     // Bind all existing visual shapes to the visualization system
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Export all existing visual shapes to POV-Ray
     pov_exporter.AddAll();

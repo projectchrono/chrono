@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.1, 0.2, -0.2));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // SIMULATION LOOP
 

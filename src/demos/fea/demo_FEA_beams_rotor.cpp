@@ -241,7 +241,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(1024, 768);
     vis->SetWindowTitle("Rotor with simplified blade: steady state statics & dynamics");
     vis->Initialize();
