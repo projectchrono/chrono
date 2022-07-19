@@ -13,6 +13,11 @@
 // =============================================================================
 
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
+
+#ifdef CHRONO_MULTICORE
+    #include "chrono_multicore/physics/ChSystemMulticore.h"
+#endif
+
 #include "chrono_thirdparty/stb/stb_image_write.h"
 
 namespace chrono {
@@ -29,8 +34,7 @@ ChVisualSystemOpenGL::ChVisualSystemOpenGL()
       m_camera_scale(0.5f),
       m_camera_near(0.1f),
       m_camera_far(1000.0f),
-      render_hud(true) {
-}
+      render_hud(true) {}
 
 ChVisualSystemOpenGL::~ChVisualSystemOpenGL() {
     viewer->TakeDown();
@@ -64,6 +68,13 @@ void ChVisualSystemOpenGL::SetCameraVertical(CameraVerticalDir vert) {
     }
 }
 
+void ChVisualSystemOpenGL::SetCameraVertical(const ChVector<>& up) {
+    m_camera_up = up;
+    if (viewer) {
+        viewer->render_camera.camera_up = glm::vec3(m_camera_up.x(), m_camera_up.y(), m_camera_up.z());
+    }
+}
+
 void ChVisualSystemOpenGL::SetCameraProperties(float scale, float near_clip_dist, float far_clip_dist) {
     m_camera_scale = scale;
     m_camera_near = near_clip_dist;
@@ -90,18 +101,19 @@ void ChVisualSystemOpenGL::SetParticleRenderMode(float radius, RenderMode mode) 
     }
 }
 
-void ChVisualSystemOpenGL::AttachSystem(ChSystem* system) {
-    if (system != m_system)
-        viewer->AttachSystem(system);
+void ChVisualSystemOpenGL::AttachSystem(ChSystem* sys) {
+    ChVisualSystem::AttachSystem(sys);
+#ifdef CHRONO_MULTICORE
+    ChSystemMulticore* msys = dynamic_cast<ChSystemMulticore*>(sys);
+    if (msys)
+        m_systems_mcore.push_back(msys);
+#endif
 }
 
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemOpenGL::Initialize() {
-    viewer = new ChOpenGLViewer();
-
-    if (viewer->m_systems.empty())
-        viewer->AttachSystem(m_system);
+    viewer = new ChOpenGLViewer(this);
 
     viewer->render_camera.camera_position = glm::vec3(m_camera_pos.x(), m_camera_pos.y(), m_camera_pos.z());
     viewer->render_camera.camera_look_at = glm::vec3(m_camera_targ.x(), m_camera_targ.y(), m_camera_targ.z());
@@ -264,16 +276,11 @@ void ChVisualSystemOpenGL::CallbackMousePos(GLFWwindow* window, double x, double
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemOpenGL::OnAttach() {
-    if (viewer)
-        viewer->AttachSystem(m_system);
-}
+void ChVisualSystemOpenGL::OnSetup(ChSystem* sys) {}
 
-void ChVisualSystemOpenGL::OnSetup() {}
+void ChVisualSystemOpenGL::OnUpdate(ChSystem* sys) {}
 
-void ChVisualSystemOpenGL::OnUpdate() {}
-
-void ChVisualSystemOpenGL::OnClear() {}
+void ChVisualSystemOpenGL::OnClear(ChSystem* sys) {}
 
 // -----------------------------------------------------------------------------
 

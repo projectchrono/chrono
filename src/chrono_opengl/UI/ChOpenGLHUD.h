@@ -38,12 +38,12 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
     bool Initialize(ChOpenGLCamera* camera, ChTimer<>* render, ChTimer<>* text, ChTimer<>* geometry);
     void GenerateHelp();
     void GenerateCamera();
-    void GenerateSystem(ChSystem* physics_system);
-    void GenerateSolver(ChSystem* physics_system);
-    void GenerateCD(ChSystem* physics_system);
+    void GenerateSystem(ChSystem& physics_system);
+    void GenerateSolver(ChSystem& physics_system);
+    void GenerateCD(ChSystem& physics_system);
     void GenerateRenderer();
-    void GenerateStats(ChSystem* physics_system);
-    void GenerateExtraStats(ChSystem* physics_system);
+    void GenerateStats(ChSystem& physics_system);
+    void GenerateExtraStats(ChSystem& physics_system);
     
     virtual void TakeDown() override;
 

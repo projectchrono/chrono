@@ -194,7 +194,7 @@ ChIrrGUI::ChIrrGUI()
 void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     m_vis = vis;
     m_device = vis->GetDevice();
-    m_system = &vis->GetSystem();
+    m_system = &vis->GetSystem(0);
     initialized = true;
 
     // Set the default event receiver

@@ -60,12 +60,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "chrono_opengl/ChOpenGLViewer.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
 
 namespace chrono {
 namespace opengl {
 
-ChOpenGLViewer::ChOpenGLViewer() {
+ChOpenGLViewer::ChOpenGLViewer(ChVisualSystemOpenGL* vis) : m_vis(vis) {
     render_camera.SetMode(FREE);
     render_camera.SetPosition(glm::vec3(0, 0, -10));
     render_camera.SetLookAt(glm::vec3(0, 0, 0));
@@ -131,19 +132,7 @@ void ChOpenGLViewer::TakeDown() {
     }
 }
 
-void ChOpenGLViewer::AttachSystem(ChSystem* system) {
-    m_systems.push_back(system);
-#ifdef CHRONO_MULTICORE
-    ChSystemMulticore* msys = dynamic_cast<ChSystemMulticore*>(system);
-    if (msys)
-        m_systems_mcore.push_back(msys);
-#endif
-}
-
 bool ChOpenGLViewer::Initialize() {
-    if (m_systems.empty())
-        return false;
-
     // Initialize all of the shaders and compile them
     if (!main_shader.InitializeStrings("phong", phong_vert, phong_frag)) {
         return false;
@@ -207,7 +196,7 @@ bool ChOpenGLViewer::Update(double time_step) {
         return false;
     }
     simulation_h = time_step;
-    for (auto s : m_systems)
+    for (auto s : m_vis->GetSystems())
         s->DoStepDynamics(time_step);
     single_step = false;
     return true;
@@ -247,7 +236,7 @@ void ChOpenGLViewer::Render(bool render_hud) {
             model_cylinder.clear();
             model_obj.clear();
             line_path_data.clear();
-            for (auto s : m_systems) {
+            for (auto s : m_vis->GetSystems()) {
                 for (const auto& b : s->Get_bodylist())
                     DrawVisualModel(b);
                 for (const auto& l : s->Get_linklist())
@@ -283,10 +272,10 @@ void ChOpenGLViewer::Render(bool render_hud) {
 
         } else {
             size_t cloud_size = 0;
-            for (auto s : m_systems)
+            for (auto s : m_vis->GetSystems())
                 cloud_size += s->Get_bodylist().size();
             cloud_data.resize(cloud_size);
-            for (auto s : m_systems) {
+            for (auto s : m_vis->GetSystems()) {
 #pragma omp parallel for
                 for (int i = 0; i < s->Get_bodylist().size(); i++) {
                     auto abody = s->Get_bodylist().at(i);
@@ -527,16 +516,19 @@ void ChOpenGLViewer::DisplayHUD(bool render_hud) {
     if (!render_hud && !view_help)
         return;
 
+    if (m_vis->GetSystems().empty())
+        return;
+
     GLReturnedError("Start text");
     HUD_renderer.Update(window_size, dpi, fps, time_geometry, time_text, time_total);
     if (view_help) {
         HUD_renderer.GenerateHelp();
     } else {
-        HUD_renderer.GenerateStats(m_systems[0]);
+        HUD_renderer.GenerateStats(m_vis->GetSystem(0));
     }
 
     if (view_info) {
-        HUD_renderer.GenerateExtraStats(m_systems[0]);
+        HUD_renderer.GenerateExtraStats(m_vis->GetSystem(0));
     }
 
     HUD_renderer.Draw();
@@ -547,7 +539,7 @@ void ChOpenGLViewer::RenderContacts() {
         return;
     }
 
-    for (auto s : m_systems)
+    for (auto s : m_vis->GetSystems())
         contact_renderer.Update(s);
 
     contact_renderer.Draw(projection, view);
@@ -560,7 +552,7 @@ void ChOpenGLViewer::RenderAABB() {
 
 #ifdef CHRONO_MULTICORE
     uint num_rigid_shapes = 0;
-    for (auto s : m_systems_mcore) {
+    for (auto s : m_vis->m_systems_mcore) {
         num_rigid_shapes += s->data_manager->cd_data->num_rigid_shapes;
     }
 
@@ -571,7 +563,7 @@ void ChOpenGLViewer::RenderAABB() {
     model_box.resize(num_rigid_shapes);
 
     int start = 0;
-    for (auto s : m_systems_mcore) {
+    for (auto s : m_vis->m_systems_mcore) {
         ChMulticoreDataManager* data_manager = s->data_manager;
         custom_vector<real3>& aabb_min = data_manager->cd_data->aabb_min;
         custom_vector<real3>& aabb_max = data_manager->cd_data->aabb_max;
@@ -602,7 +594,7 @@ void ChOpenGLViewer::RenderAABB() {
 void ChOpenGLViewer::RenderFluid() {
 #ifdef CHRONO_MULTICORE
     uint num_fluid_bodies = 0;
-    for (auto s : m_systems_mcore) {
+    for (auto s : m_vis->m_systems_mcore) {
         num_fluid_bodies += s->data_manager->num_fluid_bodies;
     }
 
@@ -618,7 +610,7 @@ void ChOpenGLViewer::RenderFluid() {
     }
 
     int start = 0;
-    for (auto s : m_systems_mcore) {
+    for (auto s : m_vis->m_systems_mcore) {
         ChMulticoreDataManager* data_manager = s->data_manager;
         if (data_manager->num_fluid_bodies <= 0)
             continue;
@@ -646,8 +638,8 @@ void ChOpenGLViewer::RenderFluid() {
 
 void ChOpenGLViewer::RenderParticles() {
     size_t num_particles = 0;
-    for (auto s : m_systems) {
-        for (auto& item : m_systems[0]->Get_otherphysicslist()) {
+    for (auto s : m_vis->GetSystems()) {
+        for (auto& item :s->Get_otherphysicslist()) {
             if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
                 if (!pcloud->GetVisualModel())
                     continue;
@@ -667,8 +659,8 @@ void ChOpenGLViewer::RenderParticles() {
         particles.AttachShader(&sphere_shader);
 
     size_t start = 0;
-    for (auto s : m_systems) {
-        for (auto& item : m_systems[0]->Get_otherphysicslist()) {
+    for (auto s : m_vis->GetSystems()) {
+        for (auto& item : s->Get_otherphysicslist()) {
             if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
                 if (!pcloud->GetVisualModel())
                     continue;
@@ -722,17 +714,17 @@ void ChOpenGLViewer::RenderFEA() {
 }
 
 void ChOpenGLViewer::RenderGrid() {
-    if (view_grid == false) {
+    if (view_grid == false)
         return;
-    }
+
     grid_data.clear();
 #ifdef CHRONO_MULTICORE
-    if (m_systems_mcore.empty())
+    if (m_vis->m_systems_mcore.empty())
         return;
 
     //// RADU TODO
     //// Consider adapting to render grids for more than one Multicore system
-    ChMulticoreDataManager* data_manager = m_systems_mcore[0]->data_manager;
+    ChMulticoreDataManager* data_manager = m_vis->m_systems_mcore[0]->data_manager;
 
     vec3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 bin_size_vec = data_manager->measures.collision.bin_size;

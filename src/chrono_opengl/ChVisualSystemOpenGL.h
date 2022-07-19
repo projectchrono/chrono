@@ -15,18 +15,24 @@
 #ifndef CH_VISUAL_SYSTEM_OPENGL_H
 #define CH_VISUAL_SYSTEM_OPENGL_H
 
+#include "chrono/ChConfig.h"
 #include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_opengl/core/ChApiOpenGL.h"
 #include "chrono_opengl/ChOpenGLViewer.h"
 
 namespace chrono {
+
+#ifdef CHRONO_MULTICORE
+class ChSystemMulticore;
+#endif
+
 namespace opengl {
 
 /// Interface of an object which can receive events.
-class CH_OPENGL_API ChOpenGLEventCB1 {
+class CH_OPENGL_API ChOpenGLEventCB {
   public:
-    virtual ~ChOpenGLEventCB1() {}
+    virtual ~ChOpenGLEventCB() {}
 
     /// GLFW callback to handle keyboard events.
     /// Return 'true' if the event is completely done and no further processing is to occur.
@@ -55,9 +61,13 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     /// Must be called before Initialize().
     void SetWindowTitle(const std::string& win_title);
 
-    /// Use Y-up camera rendering (default CameraVerticalDir::Z).
+    /// Set camera vertical direction (default CameraVerticalDir::Z).
     void SetCameraVertical(CameraVerticalDir vert);
 
+    /// Set camera vertical direction (default (0,0,1)).
+    void SetCameraVertical(const ChVector<>& up);
+
+    /// Set camera scale and clip distances. 
     void SetCameraProperties(float scale = 0.5f,            ///< zoom level (default 0.5)
                              float near_clip_dist = 0.1f,   ///< near clipping distance (default 0.1)
                              float far_clip_dist = 1000.0f  ///< far clipping distance (default 1000)
@@ -69,8 +79,12 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     /// Set render mode for particle systems (default: POINTS)
     void SetParticleRenderMode(float radius, RenderMode mode);
 
-    /// Attach another Chrono system to the run-time visualization system.
-    void AttachSystem(ChSystem* system);
+    /// Attach a Chrono system to the run-time visualization system.
+    /// ChVisualSystemOpenGL allows simultaneous rendering of multiple Chrono systems.
+    virtual void AttachSystem(ChSystem* sys) override;
+
+    /// Enable/disable HUD display (default: true).
+    void EnableHUD(bool state) { render_hud = state; }
 
     /// Initialize the visualization system.
     /// This creates the Irrlicht device using the current values for the optional device parameters.
@@ -83,7 +97,7 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     void AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL);
 
     /// Attach a custom event receiver to the application.
-    void AddUserEventReceiver(ChOpenGLEventCB1* receiver) { user_receivers.push_back(receiver); }
+    void AddUserEventReceiver(ChOpenGLEventCB* receiver) { user_receivers.push_back(receiver); }
 
     /// Process all visual assets in the associated ChSystem.
     /// This function is called by default by Initialize(), but can also be called later if further modifications to
@@ -120,17 +134,14 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     static void WrapRenderStep(void* stepFunction);
 
   private:
-    /// Perform any necessary operations when the visualization system is attached to a ChSystem.
-    virtual void OnAttach() override;
-
     /// Perform necessary setup operations at the beginning of a time step.
-    virtual void OnSetup() override;
+    virtual void OnSetup(ChSystem* sys) override;
 
     /// Perform necessary update operations at the end of a time step.
-    virtual void OnUpdate() override;
+    virtual void OnUpdate(ChSystem* sys) override;
 
     /// Remove all visualization objects from this visualization system.
-    virtual void OnClear() override;
+    virtual void OnClear(ChSystem* sys) override;
 
     /// Provide the version of the OpenGL context along with driver information.
     static void GLFWGetVersion(GLFWwindow* main_window);
@@ -172,7 +183,13 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     float m_camera_far;        ///< camera far clip distance
 
     bool render_hud;
-    std::vector<ChOpenGLEventCB1*> user_receivers;
+    std::vector<ChOpenGLEventCB*> user_receivers;
+
+#ifdef CHRONO_MULTICORE
+    std::vector<ChSystemMulticore*> m_systems_mcore;
+#endif
+
+    friend class ChOpenGLViewer;
 };
 
 }  // namespace opengl

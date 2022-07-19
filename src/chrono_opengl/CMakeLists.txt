@@ -175,10 +175,8 @@ ENDFOREACH()
 SET(CE_OpenGL_BASE_FILES
   ChOpenGLViewer.cpp 
   ChOpenGLCamera.cpp
-  ChOpenGLWindow.cpp
   ChOpenGLViewer.h 
   ChOpenGLCamera.h
-  ChOpenGLWindow.h
   ChOpenGLMaterials.h
   ChVisualSystemOpenGL.h
   ChVisualSystemOpenGL.cpp

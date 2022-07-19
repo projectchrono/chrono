@@ -30,17 +30,12 @@
 #include "chrono_opengl/UI/ChOpenGLHUD.h"
 #include "chrono_opengl/UI/ChOpenGLGraphs.h"
 
-//#include "chrono_multicore/physics/ChSystemMulticore.h"
 #include <GLFW/glfw3.h>
 
 namespace chrono {
-
-class ChSystem;
-#ifdef CHRONO_MULTICORE
-class ChSystemMulticore;
-#endif
-
 namespace opengl {
+
+class ChVisualSystemOpenGL;
 
 /// @addtogroup opengl_module
 /// @{
@@ -50,10 +45,9 @@ enum RenderMode { POINTS, WIREFRAME, SOLID };
 /// OpenGL viewer, this class draws the system to the screen and handles input.
 class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   public:
-    ChOpenGLViewer();
+    ChOpenGLViewer(ChVisualSystemOpenGL* vis);
     ~ChOpenGLViewer();
     void TakeDown();
-    void AttachSystem(ChSystem* system);
     bool Initialize();
     bool Update(double time_step);
     void Render(bool render_hud);
@@ -68,6 +62,8 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     void RenderPlots();
     void HandleInput(unsigned char key, int x, int y);
 
+    ChVisualSystemOpenGL* m_vis;
+
     glm::ivec2 window_size;
     glm::ivec2 window_position;
     glm::ivec2 window_physical_size;
@@ -77,11 +73,6 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 
     ChOpenGLCamera render_camera;
     ChOpenGLCamera ortho_camera;
-
-    std::vector<ChSystem*> m_systems;
-#ifdef CHRONO_MULTICORE
-    std::vector<ChSystemMulticore*> m_systems_mcore;
-#endif
 
     ChOpenGLShader main_shader;
     ChOpenGLShader cloud_shader;

@@ -158,20 +158,20 @@ void ChOpenGLHUD::GenerateCamera() {
     text.Render(buffer, LEFT, TOP - SPACING * 4, sx, sy);
 }
 
-void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
+void ChOpenGLHUD::GenerateSystem(ChSystem& physics_system) {
     int num_shapes = 0;
     int num_rigid_bodies = 0;
     int num_fluid_bodies = 0;
     int num_contacts = 0;
     int num_bilaterals = 0;
-    double timer_step = physics_system->GetTimerStep();
-    double timer_collision_broad = physics_system->GetTimerCollisionBroad();
-    double timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
-    double timer_lcp = physics_system->GetTimerAdvance();
-    double timer_update = physics_system->GetTimerUpdate();
+    double timer_step = physics_system.GetTimerStep();
+    double timer_collision_broad = physics_system.GetTimerCollisionBroad();
+    double timer_collision_narrow = physics_system.GetTimerCollisionNarrow();
+    double timer_lcp = physics_system.GetTimerAdvance();
+    double timer_update = physics_system.GetTimerUpdate();
 
 #ifdef CHRONO_MULTICORE
-    auto parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system);
+    auto parallel_system = dynamic_cast<ChSystemMulticore*>(&physics_system);
     if (parallel_system) {
         num_shapes =
             parallel_system->data_manager->cd_data->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
@@ -264,12 +264,12 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
     text.Render(buffer, LEFT, TOP - SPACING * 28, sx, sy);
 }
 
-void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
-    double iters = std::static_pointer_cast<ChIterativeSolverVI>(physics_system->GetSolver())->GetIterations();
+void ChOpenGLHUD::GenerateSolver(ChSystem& physics_system) {
+    double iters = std::static_pointer_cast<ChIterativeSolverVI>(physics_system.GetSolver())->GetIterations();
     const std::vector<double>& vhist =
-        std::static_pointer_cast<ChIterativeSolverVI>(physics_system->GetSolver())->GetViolationHistory();
+        std::static_pointer_cast<ChIterativeSolverVI>(physics_system.GetSolver())->GetViolationHistory();
     const std::vector<double>& dhist =
-        std::static_pointer_cast<ChIterativeSolverVI>(physics_system->GetSolver())->GetDeltalambdaHistory();
+        std::static_pointer_cast<ChIterativeSolverVI>(physics_system.GetSolver())->GetDeltalambdaHistory();
     double residual = vhist.size() > 0 ? vhist.back() : 0.0;
     double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
 
@@ -285,9 +285,9 @@ void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
     text.Render(buffer, LEFT, TOP - SPACING * 15, sx, sy);
 }
 
-void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
+void ChOpenGLHUD::GenerateCD(ChSystem& physics_system) {
 #ifdef CHRONO_MULTICORE
-    if (ChSystemMulticore* parallel_sys = dynamic_cast<ChSystemMulticore*>(physics_system)) {
+    if (ChSystemMulticore* parallel_sys = dynamic_cast<ChSystemMulticore*>(&physics_system)) {
         vec3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
         real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size;
         real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
@@ -322,11 +322,11 @@ void ChOpenGLHUD::GenerateRenderer() {
     text.Render(buffer, LEFT, TOP - SPACING * 33, sx, sy);
 }
 
-void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
+void ChOpenGLHUD::GenerateStats(ChSystem& physics_system) {
     sprintf(buffer, "Press h for help");
     text.Render(buffer, CENTER, TOP, sx, sy);
 
-    sprintf(buffer, "TIME:  %04f  [%04f]", physics_system->GetChTime(), physics_system->GetStep());
+    sprintf(buffer, "TIME:  %04f  [%04f]", physics_system.GetChTime(), physics_system.GetStep());
     text.Render(buffer, LEFT, TOP, sx, sy);
 
     GenerateCamera();
@@ -335,7 +335,7 @@ void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
     GenerateCD(physics_system);
     GenerateRenderer();
 }
-void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
+void ChOpenGLHUD::GenerateExtraStats(ChSystem& physics_system) {
     // if (ChSystemMulticoreNSC* parallel_sys = dynamic_cast<ChSystemMulticoreNSC*>(physics_system)) {
     //  ChTimerMulticore& system_timer = parallel_sys->data_manager->system_timer;
 

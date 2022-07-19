@@ -60,7 +60,7 @@ class RS_IEventReceiver : public irr::IEventReceiver {
 
 RoboSimianVisualSystemIrrlicht::RoboSimianVisualSystemIrrlicht(RoboSimian* robot, RS_Driver* driver)
     : m_robot(robot), m_driver(driver), m_HUD_x(650), m_HUD_y(20) {
-    m_system = robot->GetSystem();
+    m_systems.push_back(robot->GetSystem());
     m_erecv = new RS_IEventReceiver(this);
     AddUserEventReceiver(m_erecv);
 }

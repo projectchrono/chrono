@@ -148,7 +148,7 @@ class CH_VEHICLE_API ChVehicle {
     void SetVisualSystem(std::shared_ptr<ChVehicleVisualSystem> vsys);
 
     /// Get the associated visualization system (if any).
-    std::shared_ptr<ChVehicleVisualSystem> GetVisualSystem() const;
+    ChVehicleVisualSystem* GetVisualSystem() const;
 
     /// Enable output for this vehicle system.
     void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB

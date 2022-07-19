@@ -86,11 +86,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Concrete derived classes must implement this.
     virtual ChSystem* Clone() const = 0;
 
-    /// Attach a visualization system.
-    void SetVisualSystem(std::shared_ptr<ChVisualSystem> vsys);
-
     /// Get the associated visualization system (if any).
-    std::shared_ptr<ChVisualSystem> GetVisualSystem() const { return visual_system; }
+    ChVisualSystem* GetVisualSystem() const { return visual_system; }
 
     /// Sets the time step used for integration (dynamical simulation).
     /// The lower this value, the more precise the simulation. Usually, values
@@ -970,9 +967,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     collision::ChCollisionSystemType collision_system_type;                     ///< type of the collision engine
     std::shared_ptr<collision::ChCollisionSystem> collision_system;             ///< collision engine
-    std::shared_ptr<ChVisualSystem> visual_system;                              ///< run-time visualization engine
     std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;  ///< user-defined collision callbacks
     std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;        /// material composition strategy
+
+    ChVisualSystem* visual_system;  ///< run-time visualization engine
 
     // OpenMP
     int nthreads_chrono;

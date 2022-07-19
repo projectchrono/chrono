@@ -146,7 +146,7 @@ void ChSystem::Clear() {
     assembly.Clear();
 
     if (visual_system)
-        visual_system->OnClear();
+        visual_system->OnClear(this);
 
     // contact_container->RemoveAllContacts();
 
@@ -229,13 +229,6 @@ void ChSystem::Remove(std::shared_ptr<ChPhysicsItem> item) {
 }
 
 // -----------------------------------------------------------------------------
-
-void ChSystem::SetVisualSystem(std::shared_ptr<ChVisualSystem> vsys) {
-    assert(vsys);
-    visual_system = vsys;
-    visual_system->m_system = this;
-    visual_system->OnAttach();
-}
 
 void ChSystem::SetSolverMaxIterations(int max_iters) {
     if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
@@ -776,7 +769,7 @@ void ChSystem::Update(bool update_assets) {
 
     // Update any attached visualization system only when also updating assets
     if (visual_system && update_assets)
-        visual_system->OnUpdate();
+        visual_system->OnUpdate(this);
 
     timer_update.stop();
 }
@@ -1456,7 +1449,7 @@ bool ChSystem::Integrate_Y() {
 
     // Let the visualization system (if any) perform setup operations
     if (visual_system)
-        visual_system->OnSetup();
+        visual_system->OnSetup(this);
 
     // Compute contacts and create contact constraints
     int ncontacts_old = ncontacts;
@@ -1512,7 +1505,7 @@ bool ChSystem::Integrate_Y() {
 
     // Update the run-time visualization system, if present
     if (visual_system)
-        visual_system->OnUpdate();
+        visual_system->OnUpdate(this);
 
     // Tentatively mark system as unchanged (i.e., no updated necessary)
     is_updated = true;
@@ -1568,7 +1561,7 @@ bool ChSystem::DoAssembly(int action) {
 
     // Update any attached visualization system
     if (visual_system)
-        visual_system->OnUpdate();
+        visual_system->OnUpdate(this);
 
     return true;
 }
@@ -1625,7 +1618,7 @@ bool ChSystem::DoStaticLinear() {
 
     // Update any attached visualization system
     if (visual_system)
-        visual_system->OnUpdate();
+        visual_system->OnUpdate(this);
 
     return true;
 }
@@ -1663,7 +1656,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
 
     // Update any attached visualization system
     if (visual_system)
-        visual_system->OnUpdate();
+        visual_system->OnUpdate(this);
 
     return true;
 }
@@ -1686,7 +1679,7 @@ bool ChSystem::DoStaticAnalysis(std::shared_ptr<ChStaticAnalysis> analysis) {
 
     // Update any attached visualization system
     if (visual_system)
-        visual_system->OnUpdate();
+        visual_system->OnUpdate(this);
 
     return true;
 }
@@ -1721,7 +1714,7 @@ bool ChSystem::DoStaticNonlinearRheonomic(int nsteps, bool verbose, std::shared_
 
     // Update any attached visualization system
     if (visual_system)
-        visual_system->OnUpdate();
+        visual_system->OnUpdate(this);
 
     return true;
 }
@@ -1779,7 +1772,7 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 
     // Update any attached visualization system
     if (visual_system)
-        visual_system->OnUpdate();
+        visual_system->OnUpdate(this);
 
     return last_err;
 }
