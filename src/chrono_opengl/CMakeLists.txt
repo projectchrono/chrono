@@ -180,6 +180,8 @@ SET(CE_OpenGL_BASE_FILES
   ChOpenGLCamera.h
   ChOpenGLWindow.h
   ChOpenGLMaterials.h
+  ChVisualSystemOpenGL.h
+  ChVisualSystemOpenGL.cpp
   )
 
 SET(CE_OpenGL_CORE_FILES
@@ -243,12 +245,20 @@ SET(CE_OpenGL_TINYOBJLOADER_FILES
   ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader/tiny_obj_loader.h
   )
 
+set(CE_OpenGL_STB_FILES
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
+)
+
 SOURCE_GROUP("" FILES ${CE_OpenGL_BASE_FILES})
 SOURCE_GROUP("core" FILES ${CE_OpenGL_CORE_FILES})
 SOURCE_GROUP("shapes" FILES ${CE_OpenGL_SHAPES_FILES})
 SOURCE_GROUP("ui" FILES ${CE_OpenGL_UI_FILES})
 SOURCE_GROUP("resources" FILES ${CE_OpenGL_RESOURCES_FILES})
-SOURCE_GROUP("tinyobjloader" FILES ${CE_OpenGL_TINYOBJLOADER_FILES})
+SOURCE_GROUP("utils" FILES ${CE_OpenGL_STB_FILES} ${CE_OpenGL_TINYOBJLOADER_FILES})
 
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_opengl library
@@ -260,6 +270,7 @@ ADD_LIBRARY(ChronoEngine_opengl SHARED
   ${CE_OpenGL_SHAPES_FILES}
   ${CE_OpenGL_UI_FILES}
   ${CE_OpenGL_RESOURCES_FILES}
+  ${CE_OpenGL_STB_FILES}
   ${CE_OpenGL_TINYOBJLOADER_FILES}
 ) 
 
