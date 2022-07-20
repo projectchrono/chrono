@@ -356,7 +356,7 @@ void DPCapPress() {
 
     while (vis->Run() && (sys.GetChTime() <= 0.5)) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(timestep);
 
@@ -754,7 +754,7 @@ void ShellBrickContact() {
         }
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(timestep);
 
@@ -1044,7 +1044,7 @@ void SimpleBoxContact() {
     int timecount = 0;
     while (vis->Run() && (sys.GetChTime() <= 1.0)) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(timestep);
 
@@ -1371,7 +1371,7 @@ void SoilBin() {
         Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(timestep);
 
@@ -1633,7 +1633,7 @@ void AxialDynamics() {
     int Iter = 0;
     while (/*vis->Run() && */ (sys.GetChTime() <= 1.0)) {
         // application.BeginScene();
-        // application.DrawAll();
+        // application.Render();
         // application.DoStep();
 
         force = 300 * std::sin(sys.GetChTime() * CH_C_PI) / 4;
@@ -1862,7 +1862,7 @@ void BendingQuasiStatic() {
     double force = 0.0;
     while (vis->Run() && (sys.GetChTime() <= 2.0)) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         if (sys.GetChTime() > 1.0) {
             force = -50;
@@ -2086,7 +2086,7 @@ void SwingingShell() {
 
     while (vis->Run() && (sys.GetChTime() < 2.01)) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         sys.DoStepDynamics(timestep);
 

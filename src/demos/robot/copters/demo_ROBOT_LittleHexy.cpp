@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
         vis->GetActiveCamera()->setTarget(ipos);
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         // ADVANCE THE SIMULATION FOR ONE TIMESTEP

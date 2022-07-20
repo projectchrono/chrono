@@ -320,7 +320,7 @@ int main(int argc, char* argv[]) {
     double timestep = 0.02;
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         // Continuosly create particle flow:

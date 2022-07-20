@@ -82,8 +82,8 @@ void RoboSimianVisualSystemIrrlicht::renderTextBox(const std::string& msg,
     font->draw(msg.c_str(), irr::core::rect<irr::s32>(xpos + 3, ypos + 3, xpos + length, ypos + height), color);
 }
 
-void RoboSimianVisualSystemIrrlicht::DrawAll() {
-    ChVisualSystemIrrlicht::DrawAll();
+void RoboSimianVisualSystemIrrlicht::Render() {
+    ChVisualSystemIrrlicht::Render();
 
     char msg[100];
 

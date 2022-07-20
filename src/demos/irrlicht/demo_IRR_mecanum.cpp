@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         // ADVANCE THE SIMULATION FOR ONE TIMESTEP

@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         if (frame % frame_skip == 0) {
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->EndScene();
         }
         sys->DoStepDynamics(time_step);

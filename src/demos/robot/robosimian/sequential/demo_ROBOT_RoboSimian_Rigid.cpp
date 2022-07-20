@@ -361,7 +361,7 @@ int main(int argc, char* argv[]) {
         }
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         if (data_output && sim_frame % output_steps == 0) {
             robot.Output();

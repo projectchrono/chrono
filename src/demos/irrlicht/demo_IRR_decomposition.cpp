@@ -412,7 +412,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
     }
 

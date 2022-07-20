@@ -145,7 +145,7 @@ void ChainTest<N>::SimulateVis() {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         m_system->DoStepDynamics(m_step);
         vis->EndScene();
     }

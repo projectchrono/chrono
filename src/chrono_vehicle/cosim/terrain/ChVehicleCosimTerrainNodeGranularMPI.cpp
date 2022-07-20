@@ -434,7 +434,7 @@ void ChVehicleCosimTerrainNodeGranularMPI::Construct() {
         m_vsys->SetWindowSize(1280, 720);
         m_vsys->SetRenderMode(opengl::WIREFRAME);
         m_vsys->Initialize();
-        m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+        m_vsys->SetCameraPosition(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
         m_vsys->SetCameraProperties(0.05f);
         m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     }
@@ -1038,7 +1038,7 @@ void ChVehicleCosimTerrainNodeGranularMPI::OnAdvance(double step_size) {
 void ChVehicleCosimTerrainNodeGranularMPI::Render(double time) {
 #ifdef CHRONO_OPENGL
     if (m_vsys->Run()) {
-        m_vsys->DrawAll();
+        m_vsys->Render();
     } else {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }

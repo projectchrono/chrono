@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         // Mimic controls from an Autonomy Stack

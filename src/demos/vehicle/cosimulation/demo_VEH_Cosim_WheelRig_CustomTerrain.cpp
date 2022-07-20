@@ -184,7 +184,7 @@ void MyTerrain::Render(double time) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
     m_vis->BeginScene();
-    m_vis->DrawAll();
+    m_vis->Render();
     m_vis->EndScene();
 #endif
 }

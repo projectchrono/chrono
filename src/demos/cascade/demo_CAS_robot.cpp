@@ -423,7 +423,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         tools::drawChFunction(vis.get(), motlaw_z.get(), 0, 10, -0.9, 0.2, 10, 400, 300, 80);
         tools::drawChFunction(vis.get(), motlaw_y.get(), 0, 10, -0.9, 0.2, 10, 500, 300, 80);
         vis->EndScene();

@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         drawer->Draw(mode, use_zbuffer);
         vis->EndScene();
         sys.DoStepDynamics(timestep);

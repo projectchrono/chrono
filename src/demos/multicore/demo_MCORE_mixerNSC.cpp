@@ -202,12 +202,12 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, -3, 2), ChVector<>(0, 0, 0));
+    vis.SetCameraPosition(ChVector<>(0, -3, 2), ChVector<>(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     while (vis.Run()) {
         sys.DoStepDynamics(time_step);
-        vis.DrawAll();
+        vis.Render();
 
         ////auto frc = mixer->GetAppliedForce();
         ////auto trq = mixer->GetAppliedTorque();

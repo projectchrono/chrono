@@ -303,13 +303,13 @@ TEST_P(ChLinActuatorTest, simulate) {
         vis.SetWindowSize(1280, 720);
         vis.SetRenderMode(opengl::WIREFRAME);
         vis.Initialize();
-        vis.AddCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0));
+        vis.SetCameraPosition(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);
 
         while (time < time_end) {
             // Advance simulation by one step.
             sys->DoStepDynamics(time_step);
-            vis.DrawAll();
+            vis.Render();
             time += time_step;
             VerifySolution(time);
         }

@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.AddCamera(center - ChVector<>(0, 3, 0), center);
+    vis.SetCameraPosition(center - ChVector<>(0, 3, 0), center);
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // ---------------
@@ -207,19 +207,19 @@ int main(int argc, char* argv[]) {
                     double body_x = body->GetPos().x();
                     ChVector<> cam_loc(body_x + buffer_dist, -4, 0);
                     ChVector<> cam_point(body_x + buffer_dist, 0, 0);
-                    vis.AddCamera(cam_loc, cam_point);
+                    vis.SetCameraPosition(cam_loc, cam_point);
                     break;
                 }
                 case TRACK: {
                     ChVector<> cam_point = body->GetPos();
                     ChVector<> cam_loc = cam_point + ChVector<>(-3 * body_rad, -1, 0.6);
-                    vis.AddCamera(cam_loc, cam_point);
+                    vis.SetCameraPosition(cam_loc, cam_point);
                     break;
                 }
                 default:
                     break;
             }
-            vis.DrawAll();
+            vis.Render();
         } else {
             break;
         }

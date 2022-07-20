@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     double timestep = 0.01;
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         // Create particle flow

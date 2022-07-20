@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         tools::drawGrid(vis.get(), 2, 2, 20, 20, ChCoordsys<>(ChVector<>(0, -20, 0), Q_from_AngX(CH_C_PI_2)),
                         ChColor(0.3f, 0.5f, 0.5f), true);
 

@@ -142,7 +142,7 @@ int main() {
         camera->setTarget(irr::core::vector3df(x, y + 0.25f, z));
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         rig.Advance(step_size);
         vis->EndScene();
 

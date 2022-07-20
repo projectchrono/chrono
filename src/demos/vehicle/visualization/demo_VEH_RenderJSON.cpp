@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
     vis.SetRenderMode(opengl::SOLID);
     vis.EnableHUD(false);
     vis.Initialize();
-    vis.AddCamera(factor * ChVector<>(-1, -1, 0.75), ChVector<>(0, 0, 0.5));
+    vis.SetCameraPosition(factor * ChVector<>(-1, -1, 0.75), ChVector<>(0, 0, 0.5));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // Attache event receiver (use key 'U' to trigger a vehicle update)
@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
     }
 
     while (vis.Run()) {
-        vis.DrawAll();
+        vis.Render();
 
         if (!vehicle)
             continue;

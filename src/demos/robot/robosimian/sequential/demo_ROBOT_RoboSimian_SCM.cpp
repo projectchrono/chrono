@@ -467,7 +467,7 @@ int main(int argc, char* argv[]) {
 
         if (render) {
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
         }
 
         if (data_output && sim_frame % output_steps == 0) {

@@ -288,7 +288,7 @@ void ANCFBeamTest::SimulateVis() {
         std::cout << "Time(s): " << this->m_system->GetChTime() << "  Tip Pos(m): " << this->GetBeamEndPointPos()
                   << std::endl;
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(1, 0, 0), ChColor(1, 0, 0));
         irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 1, 0), ChColor(0, 1, 0));
         irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 0, 1), ChColor(0, 0, 1));

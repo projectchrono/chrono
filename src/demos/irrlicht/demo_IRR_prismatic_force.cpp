@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
         ////std::cout << time << "   " << x << " " << x_d << "   " << xa << " " << xa_d << std::endl;
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(timestep);
         realtime_timer.Spin(timestep);

@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
         double time = sys.GetChTime();
         if (time >= out_time) {
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->EndScene();
 
             ////auto frc = mixer->GetAppliedForce();

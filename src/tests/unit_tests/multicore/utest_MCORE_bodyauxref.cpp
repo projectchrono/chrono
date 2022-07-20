@@ -181,12 +181,12 @@ TEST(ChronoMulticore, bodyauxref) {
         vis.SetWindowSize(1280, 720);
         vis.SetRenderMode(opengl::WIREFRAME);
         vis.Initialize();
-        vis.AddCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0));
+        vis.SetCameraPosition(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);
 
         while (vis.Run()) {
             sys->DoStepDynamics(time_step);
-            vis.DrawAll();
+            vis.Render();
         }
 #else
         std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;

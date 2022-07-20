@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         // draw spring elements as lines
         for (auto mspring : springs) {

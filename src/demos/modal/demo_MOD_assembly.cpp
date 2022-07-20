@@ -371,7 +371,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     int current_example = ID_current_example;
     while (ID_current_example == current_example && !SWITCH_EXAMPLE && vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         tools::drawGrid(vis, 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
         vis->EndScene();

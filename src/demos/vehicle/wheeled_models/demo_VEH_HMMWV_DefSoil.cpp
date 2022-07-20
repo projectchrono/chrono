@@ -317,7 +317,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         tools::drawColorbar(vis.get(), 0, 0.1, "Sinkage", 30);
         vis->EndScene();
 

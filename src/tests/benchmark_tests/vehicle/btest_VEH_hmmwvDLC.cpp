@@ -151,7 +151,7 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
         DriverInputs driver_inputs = m_driver->GetInputs();
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         ExecuteStep();
         vis->Synchronize("Acceleration test", driver_inputs);
         vis->Advance(m_step_veh);

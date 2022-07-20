@@ -424,7 +424,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         tools::drawGrid(vis.get(), 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
                         ChColor(0.4f, 0.4f, 0.4f), true);
 

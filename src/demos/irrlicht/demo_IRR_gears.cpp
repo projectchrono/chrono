@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         // .. draw also some circle lines representing gears - just for aesthetical reasons
 

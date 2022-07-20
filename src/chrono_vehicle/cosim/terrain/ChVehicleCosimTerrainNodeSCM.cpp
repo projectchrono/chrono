@@ -369,7 +369,7 @@ void ChVehicleCosimTerrainNodeSCM::Render(double time) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
     m_vsys->BeginScene();
-    m_vsys->DrawAll();
+    m_vsys->Render();
     irrlicht::tools::drawColorbar(m_vsys.get(), 0, max_sinkage, "Sinkage [m]", 1180);
     m_vsys->EndScene();
 #endif

@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
         // skeleton of the mechanism, in this instant:
         //
         // .. draw items belonging to Irrlicht scene, if any
-        vis->DrawAll();
+        vis->Render();
         // .. draw a grid
         tools::drawGrid(vis.get(), 0.5, 0.5);
         // .. draw GUI items belonging to Irrlicht screen, if any

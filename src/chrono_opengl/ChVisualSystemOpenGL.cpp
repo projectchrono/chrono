@@ -52,7 +52,7 @@ void ChVisualSystemOpenGL::SetWindowTitle(const std::string& win_title) {
     m_win_title = win_title;
 }
 
-void ChVisualSystemOpenGL::AddCamera(const ChVector<>& pos, ChVector<> targ) {
+void ChVisualSystemOpenGL::SetCameraPosition(const ChVector<>& pos, ChVector<> targ) {
     m_camera_pos = pos;
     m_camera_targ = targ;
     if (viewer) {
@@ -296,7 +296,7 @@ bool ChVisualSystemOpenGL::Run() {
 
 void ChVisualSystemOpenGL::BeginScene(bool backBuffer, bool zBuffer, ChColor color) {}
 
-void ChVisualSystemOpenGL::DrawAll() {
+void ChVisualSystemOpenGL::Render() {
     if (!viewer->pause_vis) {
         glEnable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);

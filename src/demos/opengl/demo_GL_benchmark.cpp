@@ -62,12 +62,12 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(-50, -50, 0), ChVector<>(0, 0, 0));
+    vis.SetCameraPosition(ChVector<>(-50, -50, 0), ChVector<>(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     
     std::function<void()> step_iter = [&]() {
-        vis.DrawAll();
+        vis.Render();
     };
     
 #ifdef __EMSCRIPTEN__

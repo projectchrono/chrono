@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
 
         if (step_number % render_steps == 0) {
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->RenderFrame(ChFrame<>(), 10);
             vis->RenderGrid(ChVector<>(0, 0.01, 0), 20, 1.0);
             vis->EndScene();

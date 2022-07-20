@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     double timestep = 0.0025;
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         for (auto ph : sys.Get_otherphysicslist()) {
             if (ChMatterSPH* myfluid = dynamic_cast<ChMatterSPH*>(ph.get())) {

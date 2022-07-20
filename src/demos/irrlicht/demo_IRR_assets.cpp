@@ -248,7 +248,7 @@ int main(int argc, char* argv[]) {
     // Rendering loop
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         irrlicht::tools::drawGrid(vis.get(), 0.5, 0.5, 12, 12,
                                   ChCoordsys<>(ChVector<>(0, -0.5, 0), Q_from_AngX(CH_C_PI_2)),
                                   ChColor(0.31f, 0.43f, 0.43f), true);

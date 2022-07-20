@@ -226,13 +226,13 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(2, 1, 2), ChVector<>(0, 0, 0));
+    vis.SetCameraPosition(ChVector<>(2, 1, 2), ChVector<>(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     // Simulation loop
     while (vis.Run()) {
         sys->DoStepDynamics(time_step);
-        vis.DrawAll();
+        vis.Render();
     }
 
     delete sys;

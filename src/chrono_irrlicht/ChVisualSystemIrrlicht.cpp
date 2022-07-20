@@ -541,7 +541,7 @@ void ChVisualSystemIrrlicht::EndScene() {
     GetVideoDriver()->endScene();
 }
 
-void ChVisualSystemIrrlicht::DrawAll() {
+void ChVisualSystemIrrlicht::Render() {
     assert(!m_systems.empty() && m_systems[0]->GetVisualSystem());
 
     if (m_use_effects)
@@ -549,7 +549,7 @@ void ChVisualSystemIrrlicht::DrawAll() {
     else
         GetSceneManager()->drawAll();  // draw 3D scene the usual way, if no shadow maps
 
-    m_gui->DrawAll();
+    m_gui->Render();
 }
 
 void ChVisualSystemIrrlicht::WriteImageToFile(const std::string& filename) {

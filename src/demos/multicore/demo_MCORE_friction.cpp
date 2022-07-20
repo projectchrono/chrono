@@ -157,13 +157,13 @@ int main(int argc, char** argv) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(10, 10, 20), ChVector<>(0, 0, 0));
+    vis.SetCameraPosition(ChVector<>(10, 10, 20), ChVector<>(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     // Simulate sys
     while (vis.Run()) {
         sys.DoStepDynamics(time_step);
-        vis.DrawAll();
+        vis.Render();
         ////std::cout << "num contacts: " << sys.GetNcontacts() << "\n\n";
     }
 

@@ -221,8 +221,8 @@ void ChVehicleVisualSystemIrrlicht::Advance(double step) {
 // -----------------------------------------------------------------------------
 // Render the Irrlicht scene and additional visual elements.
 // -----------------------------------------------------------------------------
-void ChVehicleVisualSystemIrrlicht::DrawAll() {
-    ChVisualSystemIrrlicht::DrawAll();
+void ChVehicleVisualSystemIrrlicht::Render() {
+    ChVisualSystemIrrlicht::Render();
 
     if (m_renderStats)
         renderStats();

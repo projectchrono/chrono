@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         if (step_number % render_steps == 0) {
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->EndScene();
 
             if (img_output) {

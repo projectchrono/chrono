@@ -41,7 +41,7 @@ ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
     m_vsys->SetCameraProperties(0.1f);
     m_vsys->SetRenderMode(opengl::WIREFRAME);
     m_vsys->SetParticleRenderMode(sysFSI->GetInitialSpacing() / 2, opengl::POINTS);
-    m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+    m_vsys->SetCameraPosition(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
     m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
     m_vsys->EnableHUD(false);
 #else
@@ -70,7 +70,7 @@ void ChVisualizationFsi::SetTitle(const std::string& title) {
 
 void ChVisualizationFsi::SetCameraPosition(const ChVector<>& pos, const ChVector<>& target) {
 #ifdef CHRONO_OPENGL
-    m_vsys->AddCamera(pos, target);
+    m_vsys->SetCameraPosition(pos, target);
 #endif
 }
 
@@ -213,7 +213,7 @@ bool ChVisualizationFsi::Render() {
             }            
         }
 
-        m_vsys->DrawAll();
+        m_vsys->Render();
         return true;
     }
     return false;  // rendering stopped

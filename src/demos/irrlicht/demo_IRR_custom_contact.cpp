@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         if (frame % 100 == 0) {
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->EndScene();
         }
 

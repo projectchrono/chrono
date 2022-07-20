@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
         caster.Update();
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         if (draw_rays) {
             for (auto& p : caster.GetPoints()) {

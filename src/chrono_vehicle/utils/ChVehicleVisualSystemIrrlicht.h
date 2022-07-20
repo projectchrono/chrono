@@ -78,7 +78,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     virtual void Initialize() override;
 
     /// Render the Irrlicht scene and additional visual elements.
-    virtual void DrawAll() override;
+    virtual void Render() override;
 
     /// Render a horizontal grid at the specified location.
     void RenderGrid(const ChVector<>& loc, int num_divs, double delta);

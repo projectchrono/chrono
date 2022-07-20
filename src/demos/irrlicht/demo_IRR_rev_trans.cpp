@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         // Render the connecting body.
         // Recall that the joint reference frame is given in the Body coordinates.

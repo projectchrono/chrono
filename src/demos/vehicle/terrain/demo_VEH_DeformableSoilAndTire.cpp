@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         tools::drawColorbar(vis.get(), 0, 30000, "Pressure yield [Pa]", 1180);
         vis->EndScene();
         sys.DoStepDynamics(0.002);

@@ -389,7 +389,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene and output images
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         // Draw the world reference frame at the sentinel location
         vis->RenderFrame(ChFrame<>(driver.GetSentinelLocation()));

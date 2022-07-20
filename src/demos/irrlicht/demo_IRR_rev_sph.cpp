@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         // Render the rev-sph massless link.
         tools::drawSegment(vis.get(), rev_sph->GetPoint1Abs(), rev_sph->GetPoint2Abs(), ChColor(0, 0.2f, 0), true);

@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         ChVector<> p0(0, 0, 0);
         ChVector<> p1(std::cos(min_angle), -std::sin(min_angle), 0);
         ChVector<> p2(std::cos(max_angle), -std::sin(max_angle), 0);

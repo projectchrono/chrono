@@ -109,7 +109,7 @@ class IrrAppWrapper {
     void Render() {
         if (m_app) {
             m_app->BeginScene();
-            m_app->DrawAll();
+            m_app->Render();
             m_app->EndScene();
         }
     }

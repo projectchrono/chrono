@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector<>(0.25, -0.20, 0), 0, VECT_Y),
                         ChColor(0.3f, 0.3f, 0.3f), true);

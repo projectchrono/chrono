@@ -80,10 +80,10 @@ int main(int argc, char *argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(6, -10, 0), ChVector<>(6, 0, 0));
+    vis.SetCameraPosition(ChVector<>(6, -10, 0), ChVector<>(6, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
-    std::function<void()> step_iter = [&]() { vis.DrawAll(); };
+    std::function<void()> step_iter = [&]() { vis.Render(); };
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(&opengl::ChVisualSystemOpenGL::WrapRenderStep, (void*)&step_iter, 50, true);

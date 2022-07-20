@@ -237,12 +237,12 @@ int main(int argc, char* argv[]) {
         vis.SetWindowSize(1280, 720);
         vis.SetRenderMode(opengl::WIREFRAME);
         vis.Initialize();
-        vis.AddCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0));
+        vis.SetCameraPosition(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);
 
         while (time < time_end) {
             if (vis.Run()) {
-                vis.DrawAll();
+                vis.Render();
             }
 
             Sync(msystem_mpr, msystem_r);

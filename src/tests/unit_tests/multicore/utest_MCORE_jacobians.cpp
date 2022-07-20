@@ -247,13 +247,13 @@ TEST(ChronoMulticore, jacobians) {
         vis.SetWindowSize(1280, 720);
         vis.SetRenderMode(opengl::WIREFRAME);
         vis.Initialize();
-        vis.AddCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0));
+        vis.SetCameraPosition(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);
 
         // Loop until reaching the end time...
         while (time < time_end) {
             if (vis.Run()) {
-                vis.DrawAll();
+                vis.Render();
             }
             auto pos_rigid = sys->data_manager->host_data.pos_rigid;
             auto rot_rigid = sys->data_manager->host_data.rot_rigid;

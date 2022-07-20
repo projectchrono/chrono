@@ -117,7 +117,7 @@ void MixerTestNSC<N>::SimulateVis() {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         ExecuteStep();
         vis->EndScene();
     }

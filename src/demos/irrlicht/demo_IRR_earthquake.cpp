@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer m_realtime_timer;
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         sys.DoStepDynamics(timestep);

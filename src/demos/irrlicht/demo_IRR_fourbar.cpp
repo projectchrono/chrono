@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         // .. draw a grid
         tools::drawGrid(vis.get(), 0.5, 0.5);

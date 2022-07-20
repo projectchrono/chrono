@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         // Render scene
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         // Advance simulation of the rig

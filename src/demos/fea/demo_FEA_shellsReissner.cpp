@@ -471,7 +471,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         // .. draw also a grid
         tools::drawGrid(vis.get(), 1, 1);

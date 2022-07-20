@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Node tip vertical position: " << nodetip1->GetPos().z() << "\n";
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(time_step);
     }

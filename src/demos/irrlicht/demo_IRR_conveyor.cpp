@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
     double timestep = 0.005;
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         sys.DoStepDynamics(timestep);

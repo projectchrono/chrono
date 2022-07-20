@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         irrlicht::tools::drawGrid(vis.get(), 0.5, 0.5, 12, 12,
                                   ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
         irrlicht::tools::drawAllCOGs(vis.get(), 1.0);

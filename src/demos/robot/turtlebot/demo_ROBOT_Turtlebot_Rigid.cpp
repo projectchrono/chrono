@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     float time = 0.0f;
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         // at time = 1 s, start left turn

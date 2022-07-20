@@ -161,13 +161,13 @@ TEST_P(JointsDVI, simulate) {
         vis.SetWindowSize(1280, 720);
         vis.SetRenderMode(opengl::WIREFRAME);
         vis.Initialize();
-        vis.AddCamera(ChVector<>(0, -8, 0), ChVector<>(0, 0, 0));
+        vis.SetCameraPosition(ChVector<>(0, -8, 0), ChVector<>(0, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);
 
         while (sys->GetChTime() < time_end) {
             if (vis.Run()) {
                 sys->DoStepDynamics(time_step);
-                vis.DrawAll();
+                vis.Render();
             }
         }
 #endif

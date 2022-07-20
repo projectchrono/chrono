@@ -320,7 +320,7 @@ int main(int argc, char* argv[]) {
         // Render scene
         if (app && step_number % render_steps == 0) {
             app->BeginScene();
-            app->DrawAll();
+            app->Render();
             app->EndScene();
         }
 #endif

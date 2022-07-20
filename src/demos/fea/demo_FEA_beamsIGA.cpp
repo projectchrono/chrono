@@ -128,7 +128,7 @@ void MakeAndRunDemo0(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         sys.DoStepDynamics(0.01);
         vis->EndScene();
     }
@@ -228,7 +228,7 @@ void MakeAndRunDemo1(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         sys.DoStepDynamics(0.01);
         vis->EndScene();
     }
@@ -318,7 +318,7 @@ void MakeAndRunDemo2(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         sys.DoStepDynamics(0.01);
         vis->EndScene();
     }
@@ -429,7 +429,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         sys.DoStepDynamics(0.01);
         vis->EndScene();
 
@@ -608,7 +608,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         sys.DoStepDynamics(0.002);
         vis->EndScene();
         file_out1 << sys.GetChTime() << " " << node_mid->GetPos().y() << " " << node_mid->GetPos().z() << "\n";

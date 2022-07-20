@@ -232,7 +232,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// <pre>
     ///    while(vis->Run()) {...}
     /// </pre>
-    virtual void DrawAll();
+    virtual void Render();
 
     /// End the scene draw at the end of each animation frame.
     virtual void EndScene();

@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(4, 4, -5), ChVector<>(0, 0, 0));
+    vis.SetCameraPosition(ChVector<>(4, 4, -5), ChVector<>(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     // Callback for contact reporting
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
     // Simulate sys
     while (vis.Run()) {
         sys.DoStepDynamics(1e-3);
-        vis.DrawAll();
+        vis.Render();
 
         // Process contacts
         std::cout << sys.GetChTime() << "  " << sys.GetNcontacts() << std::endl;

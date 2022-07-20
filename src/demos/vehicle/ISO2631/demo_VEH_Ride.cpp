@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         // Render scene
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         // Get driver inputs
         DriverInputs driver_inputs = driver.GetInputs();

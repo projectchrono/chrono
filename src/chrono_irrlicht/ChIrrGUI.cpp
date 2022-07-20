@@ -445,8 +445,8 @@ static void recurse_update_tree_node(ChValue* value, irr::gui::IGUITreeViewNode*
     }
 }
 
-void ChIrrGUI::DrawAll() {
-    CH_PROFILE("DrawAll");
+void ChIrrGUI::Render() {
+    CH_PROFILE("Render");
 
     irr::core::stringw str = "World time:  ";
     str += (int)(1000 * m_system->GetChTime());

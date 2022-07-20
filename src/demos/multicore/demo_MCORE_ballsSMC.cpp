@@ -185,13 +185,13 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0));
+    vis.SetCameraPosition(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     while (true) {
         if (vis.Run()) {
             sys.DoStepDynamics(time_step);
-            vis.DrawAll();
+            vis.Render();
             // Print cumulative contact force on container bin.
             real3 frc = sys.GetBodyContactForce(0);
             std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;

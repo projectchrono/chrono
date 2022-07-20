@@ -195,14 +195,14 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, 0, -10), ChVector<>(0, 0, 0));
+    vis.SetCameraPosition(ChVector<>(0, 0, -10), ChVector<>(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     std::function<void()> step_iter = [&]() {
         if (sys.DoStepDynamics(0.01)) {
             // Add code here that will only run after a step is taken
         }
-        vis.DrawAll();
+        vis.Render();
     };
 
 #ifdef __EMSCRIPTEN__

@@ -528,7 +528,7 @@ int main(int argc, char* argv[]) {
         }
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();

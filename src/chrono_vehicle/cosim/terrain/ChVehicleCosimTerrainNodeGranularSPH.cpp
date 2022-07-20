@@ -273,7 +273,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         m_vsys->SetWindowSize(1280, 720);
         m_vsys->SetRenderMode(opengl::WIREFRAME);
         m_vsys->Initialize();
-        m_vsys->AddCamera(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0));
+        m_vsys->SetCameraPosition(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0));
         m_vsys->SetCameraProperties(0.05f);
         m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     }
@@ -380,8 +380,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Render(double time) {
         const auto& proxies = m_proxies[0];  // proxies for first tire
         ChVector<> cam_point = proxies[0].m_body->GetPos();
         ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
-        m_vsys->AddCamera(cam_loc, cam_point);
-        m_vsys->DrawAll();
+        m_vsys->SetCameraPosition(cam_loc, cam_point);
+        m_vsys->Render();
     } else {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }

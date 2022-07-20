@@ -38,7 +38,7 @@ ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU)
     m_vsys->SetWindowSize(1280, 720);
     m_vsys->SetCameraProperties(0.1f);
     m_vsys->SetRenderMode(opengl::WIREFRAME);
-    m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+    m_vsys->SetCameraPosition(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
     m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
     m_vsys->EnableHUD(false);
 #else
@@ -67,7 +67,7 @@ void ChGpuVisualization::SetTitle(const std::string& title) {
 
 void ChGpuVisualization::SetCameraPosition(const ChVector<>& pos, const ChVector<>& target) {
 #ifdef CHRONO_OPENGL
-    m_vsys->AddCamera(pos, target);
+    m_vsys->SetCameraPosition(pos, target);
 #endif
 }
 
@@ -124,7 +124,7 @@ bool ChGpuVisualization::Render() {
             auto pos = m_systemGPU->GetParticlePosition(i);
             blist[m_part_start_index + i]->SetPos(pos);
         }
-        m_vsys->DrawAll();
+        m_vsys->Render();
         return true;
     }
     return false;  // rendering stopped
