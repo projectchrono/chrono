@@ -329,20 +329,16 @@ void ChVisualSystemVSG::Initialize() {
 
     // default sets automatic directional light
     // auto renderGraph = vsg::RenderGraph::create(m_window, m_view);
-    // scwitches off sets automatic directional light
+    // switches off automatic directional light setting
     auto renderGraph = vsg::createRenderGraphForView(m_window, camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
     auto commandGraph = vsg::CommandGraph::create(m_window, renderGraph);
 
-#ifdef NDEBUG
-    // actually there is a bug in vsgImgui, can only be used in Release mode!
     // Create the ImGui node and add it to the renderGraph
     renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, GuiComponent(m_params, this)));
 
     // Add the ImGui event handler first to handle events early
     m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
-#else
-    GetLog() << "Graphical menu disabled due to bug in vsgImgui. Rebuild in Release mode, if needed.\n";
-#endif
+
     m_viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
 
     // assign a CompileTraversal to the Builder that will compile for all the views assigned to the viewer,
