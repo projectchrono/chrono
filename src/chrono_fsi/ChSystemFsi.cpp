@@ -990,7 +990,8 @@ void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
 void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
     utils::PrintToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->sphMarkersD2->velMasD,
                        m_sysFSI->sphMarkersD2->rhoPresMuD, m_sysFSI->fsiGeneralData->sr_tau_I_mu_i,
-                       m_sysFSI->fsiGeneralData->referenceArray, thrust::host_vector<int4>(), dir, m_paramsH, true);
+                       m_sysFSI->fsiGeneralData->referenceArray, m_sysFSI->fsiGeneralData->referenceArray_FEA, 
+                       dir, m_paramsH, true);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
