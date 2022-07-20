@@ -212,10 +212,10 @@ SET(CE_OpenGL_SHAPES_FILES
 
 SET(CE_OpenGL_UI_FILES
   UI/ChOpenGLContacts.cpp
-  UI/ChOpenGLHUD.cpp
+  UI/ChOpenGLStats.cpp
   UI/ChOpenGLGraphs.cpp
   UI/ChOpenGLContacts.h
-  UI/ChOpenGLHUD.h
+  UI/ChOpenGLStats.h
   UI/ChOpenGLGraphs.h
   )
 

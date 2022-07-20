@@ -43,7 +43,7 @@ ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
     m_vsys->SetParticleRenderMode(sysFSI->GetInitialSpacing() / 2, opengl::POINTS);
     m_vsys->SetCameraPosition(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
     m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
-    m_vsys->EnableHUD(false);
+    m_vsys->EnableStats(false);
 #else
     m_system = nullptr;
     m_vsys = nullptr;
@@ -100,7 +100,7 @@ void ChVisualizationFsi::SetRenderMode(RenderMode mode) {
 
 void ChVisualizationFsi::EnableInfoOverlay(bool val) {
 #ifdef CHRONO_OPENGL
-    m_vsys->EnableHUD(val);
+    m_vsys->EnableStats(val);
 #endif
 }
 

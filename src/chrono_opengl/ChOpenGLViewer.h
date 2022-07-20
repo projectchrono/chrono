@@ -27,7 +27,7 @@
 #include "chrono_opengl/shapes/ChOpenGLText.h"
 #include "chrono_opengl/shapes/ChOpenGLOBJ.h"
 #include "chrono_opengl/UI/ChOpenGLContacts.h"
-#include "chrono_opengl/UI/ChOpenGLHUD.h"
+#include "chrono_opengl/UI/ChOpenGLStats.h"
 #include "chrono_opengl/UI/ChOpenGLGraphs.h"
 
 #include <GLFW/glfw3.h>
@@ -47,12 +47,11 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   public:
     ChOpenGLViewer(ChVisualSystemOpenGL* vis);
     ~ChOpenGLViewer();
-    void TakeDown();
     bool Initialize();
-    bool Update(double time_step);
-    void Render(bool render_hud);
+    void TakeDown();
+    void Render(bool render_stats);
     void DrawVisualModel(std::shared_ptr<ChPhysicsItem> item);
-    void DisplayHUD(bool render_hud);
+    void RenderStats();
     void RenderContacts();
     void RenderAABB();
     void RenderGrid();
@@ -99,7 +98,6 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     ChOpenGLWires line_path;
 
     ChOpenGLContacts contact_renderer;
-    ChOpenGLHUD HUD_renderer;
     ChOpenGLGraphs graph_renderer;
 
     std::vector<glm::vec3> cloud_data;
@@ -112,13 +110,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     std::vector<glm::vec3> line_path_data;
     std::vector<glm::vec3> particle_data;
 
-    int simulation_frame;    // The current frame number
-    double simulation_h;     // The simulation step size
-    double simulation_time;  // The current simulation time
-    bool pause_sim;
-    bool pause_vis;
-    bool single_step;
-    bool view_contacts, view_help, view_aabb, view_grid, view_info;
+    bool view_contacts, view_help, view_aabb, view_grid;
     bool use_vsync;
     RenderMode render_mode;
 

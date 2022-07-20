@@ -34,7 +34,9 @@ ChVisualSystemOpenGL::ChVisualSystemOpenGL()
       m_camera_scale(0.5f),
       m_camera_near(0.1f),
       m_camera_far(1000.0f),
-      render_hud(true) {}
+      render_stats(true) {
+    stats_renderer = chrono_types::make_shared<ChOpenGLStatsDefault>();
+}
 
 ChVisualSystemOpenGL::~ChVisualSystemOpenGL() {
     viewer->TakeDown();
@@ -99,6 +101,12 @@ void ChVisualSystemOpenGL::SetParticleRenderMode(float radius, RenderMode mode) 
         viewer->particle_radius = m_particle_radius;
         viewer->particle_render_mode = m_particle_render_mode;
     }
+}
+
+void ChVisualSystemOpenGL::SetStatsRenderer(std::shared_ptr<ChOpenGLStats> renderer) {
+    stats_renderer = renderer;
+    if (viewer)
+        stats_renderer->Initialize(&viewer->render_camera);
 }
 
 void ChVisualSystemOpenGL::AttachSystem(ChSystem* sys) {
@@ -297,19 +305,16 @@ bool ChVisualSystemOpenGL::Run() {
 void ChVisualSystemOpenGL::BeginScene(bool backBuffer, bool zBuffer, ChColor color) {}
 
 void ChVisualSystemOpenGL::Render() {
-    if (!viewer->pause_vis) {
-        glEnable(GL_BLEND);
-        glEnable(GL_DEPTH_TEST);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_CULL_FACE);
-        glClearColor(18.0f / 255.0f, 26.0f / 255.0f, 32.0f / 255.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        GLReturnedError("Before Render");
-        viewer->Render(render_hud);
-        GLReturnedError("After Render");
-        glfwSwapBuffers(window);
-    }
-
+    glEnable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_CULL_FACE);
+    glClearColor(18.0f / 255.0f, 26.0f / 255.0f, 32.0f / 255.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GLReturnedError("Before Render");
+    viewer->Render(render_stats);
+    GLReturnedError("After Render");
+    glfwSwapBuffers(window);
     glfwPollEvents();
 }
 

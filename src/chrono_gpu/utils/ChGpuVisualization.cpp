@@ -40,7 +40,7 @@ ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU)
     m_vsys->SetRenderMode(opengl::WIREFRAME);
     m_vsys->SetCameraPosition(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
     m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
-    m_vsys->EnableHUD(false);
+    m_vsys->EnableStats(false);
 #else
     m_system = nullptr;
     m_vsys = nullptr;
