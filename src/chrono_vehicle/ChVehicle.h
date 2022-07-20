@@ -144,9 +144,6 @@ class CH_VEHICLE_API ChVehicle {
     /// consistent collision models.
     void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type);
 
-    /// Attach a vehicle visualization system.
-    void SetVisualSystem(std::shared_ptr<ChVehicleVisualSystem> vsys);
-
     /// Get the associated visualization system (if any).
     ChVehicleVisualSystem* GetVisualSystem() const;
 

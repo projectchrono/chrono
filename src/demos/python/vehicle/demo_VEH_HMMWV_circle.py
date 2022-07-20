@@ -122,7 +122,7 @@ while vis.Run() :
     ballT.setPosition(chronoirr.vector3df(pT.x, pT.y, pT.z))
     
     vis.BeginScene()
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
     
     # Update modules (process inputs from other modules)

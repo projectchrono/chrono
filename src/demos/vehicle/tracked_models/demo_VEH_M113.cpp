@@ -579,7 +579,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Powertrain type: " << m113.GetPowertrain()->GetTemplateName() << std::endl;
     std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
 
-    m113.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&m113.GetVehicle());
 
     // -----------------
     // Initialize output

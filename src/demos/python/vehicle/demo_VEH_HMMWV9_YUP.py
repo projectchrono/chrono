@@ -87,7 +87,7 @@ def main():
         time = my_hmmwv.GetSystem().GetChTime()
 
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.RenderFrame(chrono.ChFrameD(), 10)
         vis.RenderGrid(chrono.ChVectorD(0, 0.01, 0), 20, 1.0)
         vis.EndScene()

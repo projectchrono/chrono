@@ -99,7 +99,7 @@ def main():
         time = my_feda.GetSystem().GetChTime()
 
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
 
         # Get driver inputs

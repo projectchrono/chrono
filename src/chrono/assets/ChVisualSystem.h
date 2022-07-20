@@ -41,9 +41,8 @@ class ChApi ChVisualSystem {
     }
 
     /// Process all visual assets in the associated ChSystem.
-    /// This function is called by default when the visualization system is attached to a Chrono system (using
-    /// ChSystem::SetVisualSystem()), but can also be called later if further modifications to visualization assets
-    /// occur.
+    /// This function is called by default when a Chrono system is attached to this visualization system (see
+    /// AttachSystem), but can also be called later if further modifications to visualization assets occur.
     virtual void BindAll() {}
 
     /// Process the visual assets for the spcified physics item.

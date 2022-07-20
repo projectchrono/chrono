@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    uaz.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&uaz.GetVehicle());
 
     // Create the interactive driver system
     ChIrrGuiDriver driver(*vis);

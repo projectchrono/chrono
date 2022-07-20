@@ -229,7 +229,7 @@ sys.Add(hull)
 
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Chrono::Irrlicht visualization')
 vis.Initialize()
@@ -241,7 +241,7 @@ vis.AddTypicalLights()
 # Simulation loop
 while vis.Run():
     vis.BeginScene()
-    vis.DrawAll()
+    vis.Render()
     vis.GetGUIEnvironment().addStaticText('Hello World!', chronoirr.recti(50, 60, 150, 80))
     vis.EndScene()
     sys.DoStepDynamics(0.01)

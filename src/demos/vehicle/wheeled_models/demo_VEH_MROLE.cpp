@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    my_mrole.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&my_mrole.GetVehicle());
 
     // -----------------
     // Initialize output

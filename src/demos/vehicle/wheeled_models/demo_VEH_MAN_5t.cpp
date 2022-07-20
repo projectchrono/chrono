@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    my_truck.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&my_truck.GetVehicle());
 
     // -----------------
     // Initialize output

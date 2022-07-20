@@ -94,7 +94,7 @@ def main() :
 
         # Render scene
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
 
         # Advance simulation of the rig 

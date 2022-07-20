@@ -98,7 +98,7 @@ def main() :
 
         # Render scene
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
 
         # Collect output data from modules (for inter-module communication)

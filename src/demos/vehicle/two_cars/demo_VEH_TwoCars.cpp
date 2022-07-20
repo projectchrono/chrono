@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AddTypicalLights();
-    hmmwv_1.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&hmmwv_1.GetVehicle());
 
     // ---------------
     // Simulation loop

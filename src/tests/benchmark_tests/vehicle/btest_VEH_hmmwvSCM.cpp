@@ -204,11 +204,11 @@ template <int TIRE_TYPE, bool OBJECTS>
 void HmmwvScmTest<TIRE_TYPE, OBJECTS>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->AttachVehicle(&m_hmmwv->GetVehicle());
     vis->SetWindowTitle("HMMWV SMC benchmark");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
-    m_hmmwv->GetVehicle().SetVisualSystem(vis);
 
     while (vis->Run()) {
         DriverInputs driver_inputs = m_driver->GetInputs();

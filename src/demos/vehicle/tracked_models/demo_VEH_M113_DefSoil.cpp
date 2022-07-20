@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    m113.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&m113.GetVehicle());
 
     // ------------------------
     // Create the driver system

@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    truck.GetTractor().SetVisualSystem(vis);
+    vis->AttachVehicle(&truck.GetTractor());
 
     // ---------------
     // Simulation loop

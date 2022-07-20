@@ -317,11 +317,11 @@ int main(int argc, char* argv[]) {
 
     rig->Initialize();
 
-    rig->SetVisualSystem(vis);
     vis->Initialize();
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
+    vis->AttachVehicle(rig);
 
     ////ChVector<> target_point = rig->GetPostPosition();
     ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();

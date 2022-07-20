@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    rig->SetVisualSystem(vis);
+    vis->AttachVehicle(rig);
 
     // ---------------------------------------
     // Contact reporter object (for debugging)

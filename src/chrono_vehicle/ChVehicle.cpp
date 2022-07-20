@@ -106,17 +106,6 @@ void ChVehicle::SetCollisionSystemType(collision::ChCollisionSystemType collsys_
         m_system->SetCollisionSystemType(collsys_type);
 }
 
-// -----------------------------------------------------------------------------
-// Set/get the vehicle visualization system
-// -----------------------------------------------------------------------------
-void ChVehicle::SetVisualSystem(std::shared_ptr<ChVehicleVisualSystem> vsys) {
-    if (m_system) {
-        vsys->AttachSystem(m_system);
-        vsys->m_vehicle = this;
-        vsys->OnAttachToVehicle();
-    }
-}
-
 ChVehicleVisualSystem* ChVehicle::GetVisualSystem() const {
     if (m_system)
         return dynamic_cast<ChVehicleVisualSystem*>(m_system->GetVisualSystem());

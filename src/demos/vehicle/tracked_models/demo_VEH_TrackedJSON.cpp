@@ -420,7 +420,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Powertrain type: " << powertrain->GetTemplateName() << std::endl;
     std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
 
-    vehicle.SetVisualSystem(vis);
+    vis->AttachVehicle(&vehicle);
 
     // ------------------------------
     // Solver and integrator settings

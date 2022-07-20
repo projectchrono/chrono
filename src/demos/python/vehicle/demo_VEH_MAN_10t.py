@@ -163,7 +163,7 @@ while vis.Run() :
     # Render scene and output POV-Ray data
     if (step_number % render_steps == 0) :
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
         render_frame += 1
     

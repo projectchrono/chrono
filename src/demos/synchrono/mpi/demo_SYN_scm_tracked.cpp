@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
         app->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 10.0, 0.5);
         app->Initialize();
         app->AddTypicalLights();
-        m113.GetVehicle().SetVisualSystem(app);
+        app->AttachVehicle(&m113.GetVehicle());
     }
 
     // Time interval between two render frames (1/FPS)

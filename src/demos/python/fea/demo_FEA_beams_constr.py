@@ -223,7 +223,7 @@ mesh.AddVisualShapeFEA(mvisualizebeamC)
 
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Beams and constraints')
 vis.Initialize()
@@ -244,7 +244,7 @@ sys.SetTimestepper(ts)
 # Simulation loop
 while vis.Run():
     vis.BeginScene()
-    vis.DrawAll()
+    vis.Render()
     chronoirr.drawGrid(vis,
         0.05, 0.05, 20, 20, 
         chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), chrono.Q_from_AngZ(chrono.CH_C_PI_2)))

@@ -215,7 +215,7 @@ def main():
 
         if(step_number%render_steps ==0):
             vis.BeginScene()
-            vis.DrawAll()
+            vis.Render()
             vis.EndScene()
 
         #Debug logging

@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    my_rccar.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&my_rccar.GetVehicle());
 
     // -----------------
     // Initialize output

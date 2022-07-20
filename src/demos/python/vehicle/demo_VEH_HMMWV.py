@@ -139,7 +139,7 @@ def main():
             break
 
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
 
         #Debug logging

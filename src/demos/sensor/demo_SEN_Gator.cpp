@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    gator.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&gator.GetVehicle());
 
     // -----------------
     // Initialize output

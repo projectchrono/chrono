@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    rig->GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&rig->GetVehicle());
 
     // Set up rig output
     if (!filesystem::create_directory(filesystem::path(out_dir))) {

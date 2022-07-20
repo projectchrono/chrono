@@ -266,7 +266,7 @@ caster = RayCaster(sys, chrono.ChFrameD(chrono.ChVectorD(0, -2, -1), chrono.Q_fr
 # -------------------------------
 
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('RoboSimian - Rigid terrain')
 vis.Initialize()
@@ -327,7 +327,7 @@ while (vis.Run()) :
 
 
     vis.BeginScene()
-    vis.DrawAll()
+    vis.Render()
 
     if data_output and sim_frame % output_steps == 0 :
         robot.Output()

@@ -111,7 +111,7 @@ def main():
 
         # Draw scene
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
 
         # Get driver inputs

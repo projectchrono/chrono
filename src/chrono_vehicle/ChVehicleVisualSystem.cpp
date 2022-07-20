@@ -39,23 +39,31 @@ ChVehicleVisualSystem::ChVehicleVisualSystem()
 
 ChVehicleVisualSystem ::~ChVehicleVisualSystem() {}
 
-void ChVehicleVisualSystem::Synchronize(const std::string& msg, const DriverInputs& driver_inputs) {
-    m_driver_msg = msg;
-    m_steering = driver_inputs.m_steering;
-    m_throttle = driver_inputs.m_throttle;
-    m_braking = driver_inputs.m_braking;
-}
+void ChVehicleVisualSystem::AttachVehicle(ChVehicle* vehicle) {
+    m_vehicle = vehicle;
 
-void ChVehicleVisualSystem::OnAttachToVehicle() {
-    m_camera = chrono_types::make_unique<utils::ChChaseCamera>(m_vehicle->GetChassisBody());
+    // Attach the vehicle's Chrono system to the visualization system
+    //// RADU TOOD
+    //// Is this good enough for cases where the vehicle does NOT own the system?
+    if (m_systems.empty())
+        AttachSystem(vehicle->GetSystem());
 
+    // Create a vehicle chase-cam and associate it with the vehicle
     // Attention: order of calls is important here!
+    m_camera = chrono_types::make_unique<utils::ChChaseCamera>(m_vehicle->GetChassisBody());
     m_camera->SetCameraPos(m_camera_pos);
     m_camera->SetCameraAngle(m_camera_angle);
     m_camera->SetState(m_camera_state);
     m_camera->Initialize(m_camera_point, m_vehicle->GetChassis()->GetLocalDriverCoordsys(), m_camera_dist,
                          m_camera_height, ChWorldFrame::Vertical(), ChWorldFrame::Forward());
     m_camera->SetMultLimits(m_camera_minMult, m_camera_maxMult);
+}
+
+void ChVehicleVisualSystem::Synchronize(const std::string& msg, const DriverInputs& driver_inputs) {
+    m_driver_msg = msg;
+    m_steering = driver_inputs.m_steering;
+    m_throttle = driver_inputs.m_throttle;
+    m_braking = driver_inputs.m_braking;
 }
 
 void ChVehicleVisualSystem::SetChaseCamera(const ChVector<>& ptOnChassis, double chaseDist, double chaseHeight) {
