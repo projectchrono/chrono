@@ -92,7 +92,6 @@ def main():
 
     # Create the vehicle Irrlicht interface
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-    my_hmmwv.GetVehicle().SetVisualSystem(vis)
     vis.SetWindowTitle('HMMWV Deformable Soil Demo')
     vis.SetWindowSize(1280, 1024)
     vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
@@ -100,6 +99,7 @@ def main():
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddTypicalLights()
     vis.AddSkyBox()
+    vis.AttachVehicle(my_hmmwv.GetVehicle())
 
     # Simulation loop
     while vis.Run() :

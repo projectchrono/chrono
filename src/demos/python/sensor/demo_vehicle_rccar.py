@@ -119,13 +119,13 @@ terrain.Initialize()
 
 # Create the vehicle Irrlicht interface
 #vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-#my_rccar.GetVehicle().SetVisualSystem(vis)
 #vis.SetWindowTitle('RCcar')
 #vis.SetWindowSize(1280, 1024)
 #vis.SetChaseCamera(trackPoint, 1.5, 0.5)
 #vis.Initialize()
 #vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 #vis.AddTypicalLights()
+#vis.AttachVehicle(my_rccar.GetVehicle())
 
 
 # Create the driver system

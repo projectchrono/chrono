@@ -115,7 +115,6 @@ terrain.Initialize()
 
 # Create the vehicle Irrlicht interface
 vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-my_bus.GetVehicle().SetVisualSystem(vis)
 vis.SetWindowTitle('Citybus')
 vis.SetWindowSize(1280, 1024)
 vis.SetChaseCamera(trackPoint, 15.0, 0.5)
@@ -123,6 +122,7 @@ vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddTypicalLights()
 vis.AddSkyBox()
+vis.AttachVehicle(my_bus.GetVehicle())
 
 # Create the driver system
 driver = veh.ChIrrGuiDriver(vis)
