@@ -63,8 +63,8 @@ CH_SENSOR_API void ChFilterCameraNoiseConstNormal::Apply() {
 }
 
 //============ TODO: finish implementing the noise addition kernel
-ChFilterCameraNoisePixDep::ChFilterCameraNoisePixDep(float gain, float sigma_read, float sigma_adc, std::string name)
-    : m_gain(gain), m_sigma_read(sigma_read), m_sigma_adc(sigma_adc), ChFilter(name) {}
+ChFilterCameraNoisePixDep::ChFilterCameraNoisePixDep(float variance_slope, float variance_intercept, std::string name)
+    : m_variance_slope(variance_slope), m_variance_intercept(variance_intercept), ChFilter(name) {}
 
 CH_SENSOR_API void ChFilterCameraNoisePixDep::Initialize(std::shared_ptr<ChSensor> pSensor,
                                                          std::shared_ptr<SensorBuffer>& bufferInOut) {
@@ -93,11 +93,11 @@ CH_SENSOR_API void ChFilterCameraNoisePixDep::Initialize(std::shared_ptr<ChSenso
 CH_SENSOR_API void ChFilterCameraNoisePixDep::Apply() {
     if (m_rgba8InOut) {
         cuda_camera_noise_pixel_dependent((unsigned char*)m_rgba8InOut->Buffer.get(), (int)m_rgba8InOut->Width,
-                                          (int)m_rgba8InOut->Height, m_gain, m_sigma_read, m_sigma_adc, m_rng.get(),
+                                          (int)m_rgba8InOut->Height, m_variance_slope, m_variance_intercept, m_rng.get(),
                                           m_cuda_stream);
     } else if (m_r8InOut) {
         cuda_camera_noise_pixel_dependent((unsigned char*)m_r8InOut->Buffer.get(), (int)m_r8InOut->Width,
-                                          (int)m_r8InOut->Height, m_gain, m_sigma_read, m_sigma_adc, m_rng.get(),
+                                          (int)m_r8InOut->Height, m_variance_slope, m_variance_intercept, m_rng.get(),
                                           m_cuda_stream);
     }
 }

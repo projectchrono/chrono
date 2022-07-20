@@ -61,13 +61,11 @@ class CH_SENSOR_API ChFilterCameraNoiseConstNormal : public ChFilter {
 class CH_SENSOR_API ChFilterCameraNoisePixDep : public ChFilter {
   public:
     /// Class constructor
-    /// @param gain The correlation factor between the image intensity and noise variance
-    /// @param sigma_read The standard deviation of the multiplicative noise
-    /// @param sigma_adc The standard deviation of the additive noise
+    /// @param variance_slope The standard deviation of the multiplicative noise
+    /// @param variance_intercept The standard deviation of the additive noise
     /// @param name The string name of the filter.
-    ChFilterCameraNoisePixDep(float gain,
-                              float sigma_read,
-                              float sigma_adc,
+    ChFilterCameraNoisePixDep(float variance_slope,
+                              float variance_intercept,
                               std::string name = "ChFilterCameraNoisePixDep");
 
     /// Apply function. Adds uniform Gaussian noise to an image.
@@ -80,9 +78,8 @@ class CH_SENSOR_API ChFilterCameraNoisePixDep : public ChFilter {
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    float m_gain;        ///< The linear correlation factor between the intensity and the noise variance
-    float m_sigma_read;  ///< The standard deviation of the multiplicative noise
-    float m_sigma_adc;   ///< The standard deviation of the additive noise
+    float m_variance_slope;                                 ///< The variance of the multiplicative noise
+    float m_variance_intercept;                             ///< The variance of the additive noise
     std::shared_ptr<curandState_t> m_rng;                   ///< cuda random number generator
     bool m_noise_init = true;                               ///< initialize noise only once
     std::shared_ptr<SensorDeviceRGBA8Buffer> m_rgba8InOut;  ///< input/output buffer for rgba8
