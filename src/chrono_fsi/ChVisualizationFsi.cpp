@@ -44,6 +44,7 @@ ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
 #ifdef CHRONO_OPENGL
     m_system = new ChSystemSMC();
 #else
+    m_system = nullptr;
     std::cout << "\nWARNING! Chrono::OpenGL not available.  Visualization disabled!\n" << std::endl;
 #endif
 }
@@ -188,7 +189,7 @@ bool ChVisualizationFsi::Render() {
     }
     return false;  // rendering stopped
 #else
-    return false;
+    return true;
 #endif
 }
 

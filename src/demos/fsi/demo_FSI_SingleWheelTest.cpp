@@ -78,10 +78,7 @@ int out_fps = 20;
 const std::string out_dir = GetChronoOutputPath() + "FSI_Single_Wheel_Test/";
 
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
-bool render = false;
-#ifdef CHRONO_OPENGL
-    render = true;
-#endif
+bool render = true;
 float render_fps = 100;
 
 // Verbose terminal output

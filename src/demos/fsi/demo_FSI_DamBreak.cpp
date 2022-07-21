@@ -54,10 +54,7 @@ double fzDim = 2.0;
 double t_end = 10.0;
 
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
-bool render = false;
-#ifdef CHRONO_OPENGL
-    render = true;
-#endif
+bool render = true;
 float render_fps = 100;
 
 //------------------------------------------------------------------
