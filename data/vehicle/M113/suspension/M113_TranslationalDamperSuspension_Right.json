@@ -1,7 +1,7 @@
 {
   "Name":                           "M113 Linear Damper Suspension Right",
   "Type":                           "TrackSuspension",
-  "Template":                       "LinearDamperSuspension",
+  "Template":                       "TranslationalDamperSuspension",
 
   "Suspension Arm":
   {

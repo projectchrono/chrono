@@ -27,37 +27,37 @@
   "Suspension Subsystems":
   [
     {
-        "Input File":         "Marder/suspension/linearDamper1.json",
+        "Input File":         "Marder/suspension/translationalDamper1.json",
         "Has Shock":          true,
         "Location":           [-0.7458, 0, -0.3759]
     },
 
     {
-        "Input File":         "Marder/suspension/linearDamper1.json",
+        "Input File":         "Marder/suspension/translationalDamper1.json",
         "Has Shock":          true,
         "Location":           [-1.5258, 0, -0.3759]
     },
 
     {
-        "Input File":         "Marder/suspension/linearDamper1.json",
+        "Input File":         "Marder/suspension/translationalDamper1.json",
         "Has Shock":          false,
         "Location":           [-2.3058, 0, -0.3759]
     },
 
     {
-        "Input File":         "Marder/suspension/linearDamper1.json",
+        "Input File":         "Marder/suspension/translationalDamper1.json",
         "Has Shock":          false,
         "Location":           [-3.0858, 0, -0.3759]
     },
 
     {
-        "Input File":         "Marder/suspension/linearDamper1.json",
+        "Input File":         "Marder/suspension/translationalDamper1.json",
         "Has Shock":          true,
         "Location":           [-3.8658, 0, -0.3759]
     },
 
     {
-        "Input File":         "Marder/suspension/linearDamper1.json",
+        "Input File":         "Marder/suspension/translationalDamper1.json",
         "Has Shock":          true,
         "Location":           [-4.6458, 0, -0.3759]
     }
