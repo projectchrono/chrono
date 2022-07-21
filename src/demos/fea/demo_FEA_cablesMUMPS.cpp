@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Configure MKL solver.
     // For this simple and relatively small problem, use of the sparsity pattern learner may introduce additional
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(0.01);
         ////model.PrintBodyPositions();

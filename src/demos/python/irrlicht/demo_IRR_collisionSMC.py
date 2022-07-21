@@ -154,7 +154,7 @@ AddFallingItems(sys)
 
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Collisions between objects')
 vis.Initialize()
@@ -172,7 +172,7 @@ while vis.Run():
     time = sys.GetChTime()
     if (time >= out_time):
         vis.BeginScene() 
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
         out_time += out_step
    

@@ -77,7 +77,6 @@ def main():
 
     # Create the vehicle Irrlicht interface
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-    my_hmmwv.GetVehicle().SetVisualSystem(vis)
     vis.SetWindowTitle('HMMWV steering controller')
     vis.SetWindowSize(1280, 1024)
     vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
@@ -85,6 +84,7 @@ def main():
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddTypicalLights()
     vis.AddSkyBox()
+    vis.AttachVehicle(my_hmmwv.GetVehicle())
 
    	# Visualization of controller points (sentinel & target)
     ballS = vis.GetSceneManager().addSphereSceneNode(0.1);
@@ -110,7 +110,7 @@ def main():
 
         # Draw scene
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
 
         # Get driver inputs

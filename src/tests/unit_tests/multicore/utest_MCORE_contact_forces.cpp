@@ -26,7 +26,7 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 //#define USE_OPENGL
 #endif
 
@@ -37,14 +37,14 @@ using namespace chrono;
 class ContactForceTest : public ::testing::TestWithParam<ChContactMethod> {
   protected:
     ContactForceTest();
-    ~ContactForceTest() { delete system; }
+    ~ContactForceTest() { delete sys; }
 
-    ChSystemMulticore* system;
+    ChSystemMulticore* sys;
     std::shared_ptr<ChBody> ground;
     double total_weight;
 };
 
-ContactForceTest::ContactForceTest() {
+ContactForceTest::ContactForceTest() : sys(nullptr) {
     bool use_mat_properties = false;
     ChSystemSMC::ContactForceModel force_model = ChSystemSMC::Hooke;
     ChSystemSMC::TangentialDisplacementModel tdispl_model = ChSystemSMC::OneStep;
@@ -60,13 +60,14 @@ ContactForceTest::ContactForceTest() {
     float gt = 0;
 
     std::shared_ptr<ChMaterialSurface> material;
+
     switch (GetParam()) {
         case ChContactMethod::SMC: {
-            ChSystemMulticoreSMC* sys = new ChSystemMulticoreSMC;
-            sys->GetSettings()->solver.contact_force_model = force_model;
-            sys->GetSettings()->solver.tangential_displ_mode = tdispl_model;
-            sys->GetSettings()->solver.use_material_properties = use_mat_properties;
-            system = sys;
+            ChSystemMulticoreSMC* sysSMC = new ChSystemMulticoreSMC;
+            sysSMC->GetSettings()->solver.contact_force_model = force_model;
+            sysSMC->GetSettings()->solver.tangential_displ_mode = tdispl_model;
+            sysSMC->GetSettings()->solver.use_material_properties = use_mat_properties;
+            sys = sysSMC;
 
             auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             mat->SetYoungModulus(young_modulus);
@@ -82,13 +83,13 @@ ContactForceTest::ContactForceTest() {
             break;
         }
         case ChContactMethod::NSC: {
-            ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC;
-            sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-            sys->GetSettings()->solver.max_iteration_normal = 0;
-            sys->GetSettings()->solver.max_iteration_sliding = 100;
-            sys->GetSettings()->solver.max_iteration_spinning = 0;
-            sys->ChangeSolverType(SolverType::APGD);
-            system = sys;
+            ChSystemMulticoreNSC* sysNSC = new ChSystemMulticoreNSC;
+            sysNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+            sysNSC->GetSettings()->solver.max_iteration_normal = 0;
+            sysNSC->GetSettings()->solver.max_iteration_sliding = 100;
+            sysNSC->GetSettings()->solver.max_iteration_spinning = 0;
+            sysNSC->ChangeSolverType(SolverType::APGD);
+            sys = sysNSC;
 
             auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             mat->SetRestitution(restitution);
@@ -97,15 +98,18 @@ ContactForceTest::ContactForceTest() {
 
             break;
         }
+
+        default:
+            break;
     }
 
-    // Set other system properties
+    // Set other sys properties
     double gravity = -9.81;
-    system->Set_G_acc(ChVector<>(0, gravity, 0));
-    system->GetSettings()->solver.tolerance = 1e-5;
-    system->GetSettings()->solver.max_iteration_bilateral = 100;
-    system->GetSettings()->solver.clamp_bilaterals = false;
-    system->GetSettings()->solver.bilateral_clamp_speed = 1000;
+    sys->Set_G_acc(ChVector<>(0, gravity, 0));
+    sys->GetSettings()->solver.tolerance = 1e-5;
+    sys->GetSettings()->solver.max_iteration_bilateral = 100;
+    sys->GetSettings()->solver.clamp_bilaterals = false;
+    sys->GetSettings()->solver.bilateral_clamp_speed = 1000;
 
     // Create the falling balls
     unsigned int num_balls = 8;
@@ -119,7 +123,7 @@ ContactForceTest::ContactForceTest() {
     std::vector<std::shared_ptr<ChBody>> balls(num_balls);
     total_weight = 0;
     for (unsigned int i = 0; i < num_balls; i++) {
-        auto ball = std::shared_ptr<ChBody>(system->NewBody());
+        auto ball = std::shared_ptr<ChBody>(sys->NewBody());
 
         ball->SetMass(mass);
         ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
@@ -139,7 +143,7 @@ ContactForceTest::ContactForceTest() {
         sphere->SetColor(ChColor(1, 0, 1));
         ball->AddVisualShape(sphere);
 
-        system->AddBody(ball);
+        sys->AddBody(ball);
         balls[i] = ball;
 
         total_weight += ball->GetMass();
@@ -148,17 +152,8 @@ ContactForceTest::ContactForceTest() {
     ////std::cout << "Total weight = " << total_weight << std::endl;
 
     // Create container box
-    ground = utils::CreateBoxContainer(system, 0, material, ChVector<>(20, 20, 2 * radius), 0.1, ChVector<>(0, 0, 0),
+    ground = utils::CreateBoxContainer(sys, 0, material, ChVector<>(20, 20, 2 * radius), 0.1, ChVector<>(0, 0, 0),
                                        ChQuaternion<>(1, 0, 0, 0), true, true, false, false);
-
-    // Create the OpenGL visualization window
-#ifdef USE_OPENGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1200, 800, "", system);
-    gl_window.SetCamera(ChVector<>(20, 0, 0), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0), (float)radius,
-                        (float)radius);
-    gl_window.SetRenderMode(opengl::WIREFRAME);
-#endif
 }
 
 TEST_P(ContactForceTest, simulate) {
@@ -168,23 +163,31 @@ TEST_P(ContactForceTest, simulate) {
 
     double rtol = 1e-3;  // validation relative error
 
-    while (system->GetChTime() < end_time) {
+    while (sys->GetChTime() < end_time) {
 #ifdef USE_OPENGL
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        if (!gl_window.Active())
+        opengl::ChVisualSystemOpenGL vis;
+        vis.AttachSystem(sys);
+        vis.SetWindowTitle("");
+        vis.SetWindowSize(1200, 800);
+        vis.SetRenderMode(opengl::WIREFRAME);
+        vis.Initialize();
+        vis.SetCameraPosition(ChVector<>(20, 0, 0), ChVector<>(0, 0, 0));
+        vis.SetCameraVertical(CameraVerticalDir::Z);
+
+        if (!vis.Run())
             break;
-        gl_window.DoStepDynamics(time_step);
-        gl_window.Render();
+        sys->DoStepDynamics(time_step);
+        vis.Render();
 #else
-        system->DoStepDynamics(time_step);
+        sys->DoStepDynamics(time_step);
 #endif
 
-        system->GetContactContainer()->ComputeContactForces();
+        sys->GetContactContainer()->ComputeContactForces();
         ChVector<> contact_force = ground->GetContactForce();
-        ////std::cout << "t = " << system->GetChTime() << " num contacts = " << system->GetNumContacts()
+        ////std::cout << "t = " << sys->GetChTime() << " num contacts = " << sys->GetNumContacts()
         ////          << "  force =  " << contact_force.y() << std::endl;
 
-        if (system->GetChTime() > start_time) {
+        if (sys->GetChTime() > start_time) {
             ASSERT_LT(std::abs(1 - contact_force.y() / total_weight), rtol);
         }
     }

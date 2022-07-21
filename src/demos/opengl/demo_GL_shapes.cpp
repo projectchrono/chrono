@@ -25,7 +25,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
 using namespace geometry;
@@ -74,18 +74,21 @@ int main(int argc, char *argv[]) {
     utils::AddCapsuleGeometry(bin.get(), mat, c, 0.5, zdir * 6, rot);
 
     // Render everything
-    opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(&sys);
-    gl_window.Initialize(1280, 720, "OpenGL Shapes");
-    gl_window.SetCamera(ChVector<>(6, -10, 0), ChVector<>(6, 0, 0), ChVector<>(0, 0, 1));
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(&sys);
+    vis.SetWindowTitle("OpenGL Shapes");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::WIREFRAME);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(6, -10, 0), ChVector<>(6, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Z);
 
-    std::function<void()> step_iter = [&]() { gl_window.Render(); };
+    std::function<void()> step_iter = [&]() { vis.Render(); };
 
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop_arg(&opengl::ChOpenGLWindow::WrapRenderStep, (void*)&step_iter, 50, true);
+    emscripten_set_main_loop_arg(&opengl::ChVisualSystemOpenGL::WrapRenderStep, (void*)&step_iter, 50, true);
 #else
-    while (gl_window.Active()) {
+    while (vis.Run()) {
         step_iter();
     }
 #endif

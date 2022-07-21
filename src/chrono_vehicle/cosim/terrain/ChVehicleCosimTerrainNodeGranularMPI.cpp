@@ -42,10 +42,6 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularMPI.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChOpenGLWindow.h"
-#endif
-
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -100,6 +96,12 @@ ChVehicleCosimTerrainNodeGranularMPI::ChVehicleCosimTerrainNodeGranularMPI(doubl
         cerr << "Error: Inconsistent intracommunicator rank." << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
+
+    // Create OpenGL visualization system
+#ifdef CHRONO_OPENGL
+    if (m_rank == TERRAIN_NODE_RANK)
+        m_vsys = new opengl::ChVisualSystemOpenGL;
+#endif
 }
 
 ChVehicleCosimTerrainNodeGranularMPI::ChVehicleCosimTerrainNodeGranularMPI(const std::string& specfile)
@@ -129,10 +131,20 @@ ChVehicleCosimTerrainNodeGranularMPI::ChVehicleCosimTerrainNodeGranularMPI(const
     // Read granular OMP terrain parameters from provided specfile
     SetFromSpecfile(specfile);
     m_init_height = m_init_depth;
+
+    // Create OpenGL visualization system
+#ifdef CHRONO_OPENGL
+    if (m_rank == TERRAIN_NODE_RANK)
+        m_vsys = new opengl::ChVisualSystemOpenGL;
+#endif
 }
 
 ChVehicleCosimTerrainNodeGranularMPI::~ChVehicleCosimTerrainNodeGranularMPI() {
     delete m_system;
+#ifdef CHRONO_OPENGL
+    if (m_rank == TERRAIN_NODE_RANK)
+        delete m_vsys;
+#endif
 }
 
 void ChVehicleCosimTerrainNodeGranularMPI::CreateSystem() {
@@ -417,11 +429,14 @@ void ChVehicleCosimTerrainNodeGranularMPI::Construct() {
 
     // Create the visualization window
     if (m_render) {
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.AttachSystem(m_system);
-        gl_window.Initialize(1280, 720, "Terrain Node (GranularOMP)");
-        gl_window.SetCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
-        gl_window.SetRenderMode(opengl::WIREFRAME);
+        m_vsys->AttachSystem(m_system);
+        m_vsys->SetWindowTitle("Terrain Node (GranularMPI)");
+        m_vsys->SetWindowSize(1280, 720);
+        m_vsys->SetRenderMode(opengl::WIREFRAME);
+        m_vsys->Initialize();
+        m_vsys->SetCameraPosition(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+        m_vsys->SetCameraProperties(0.05f);
+        m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     }
 #endif
 
@@ -1022,9 +1037,8 @@ void ChVehicleCosimTerrainNodeGranularMPI::OnAdvance(double step_size) {
 
 void ChVehicleCosimTerrainNodeGranularMPI::Render(double time) {
 #ifdef CHRONO_OPENGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    if (gl_window.Active()) {
-        gl_window.Render();
+    if (m_vsys->Run()) {
+        m_vsys->Render();
     } else {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }

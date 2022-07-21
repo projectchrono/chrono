@@ -12,7 +12,7 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Demonstration of the granular terrain system in Chrono::Vehicle.
+// Demonstration of the granular terrain sys in Chrono::Vehicle.
 //
 // =============================================================================
 
@@ -24,7 +24,7 @@
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -72,44 +72,44 @@ int main(int argc, char* argv[]) {
     CameraType cam_type = FIXED;
 
     // ----------------------------------
-    // Create the multicore Chrono system
+    // Create the multicore Chrono sys
     // ----------------------------------
 
     // Prepare rotated acceleration vector
     ChVector<> gravity(0, 0, -9.81);
     ChVector<> gravityR = ChMatrix33<>(slope_g, ChVector<>(0, 1, 0)) * gravity;
 
-    ChSystemMulticoreNSC* system = new ChSystemMulticoreNSC();
-    system->Set_G_acc(gravity);
+    ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
+    sys->Set_G_acc(gravity);
 
     // Set number of threads
-    system->SetNumThreads(4);
+    sys->SetNumThreads(4);
 
-    // Edit system settings
-    system->GetSettings()->solver.tolerance = 1e-3;
-    system->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-    system->GetSettings()->solver.max_iteration_normal = 0;
-    system->GetSettings()->solver.max_iteration_sliding = 50;
-    system->GetSettings()->solver.max_iteration_spinning = 0;
-    system->GetSettings()->solver.max_iteration_bilateral = 100;
-    system->GetSettings()->solver.compute_N = false;
-    system->GetSettings()->solver.alpha = 0;
-    system->GetSettings()->solver.cache_step_length = true;
-    system->GetSettings()->solver.use_full_inertia_tensor = false;
-    system->GetSettings()->solver.contact_recovery_speed = 1000;
-    system->GetSettings()->solver.bilateral_clamp_speed = 1e8;
-    system->ChangeSolverType(SolverType::BB);
+    // Edit sys settings
+    sys->GetSettings()->solver.tolerance = 1e-3;
+    sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+    sys->GetSettings()->solver.max_iteration_normal = 0;
+    sys->GetSettings()->solver.max_iteration_sliding = 50;
+    sys->GetSettings()->solver.max_iteration_spinning = 0;
+    sys->GetSettings()->solver.max_iteration_bilateral = 100;
+    sys->GetSettings()->solver.compute_N = false;
+    sys->GetSettings()->solver.alpha = 0;
+    sys->GetSettings()->solver.cache_step_length = true;
+    sys->GetSettings()->solver.use_full_inertia_tensor = false;
+    sys->GetSettings()->solver.contact_recovery_speed = 1000;
+    sys->GetSettings()->solver.bilateral_clamp_speed = 1e8;
+    sys->ChangeSolverType(SolverType::BB);
 
-    system->GetSettings()->collision.collision_envelope = envelope;
-    system->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
-    system->GetSettings()->collision.broadphase_grid = ChBroadphase::GridType::FIXED_RESOLUTION;
-    system->GetSettings()->collision.bins_per_axis = vec3(100, 30, 2);
+    sys->GetSettings()->collision.collision_envelope = envelope;
+    sys->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    sys->GetSettings()->collision.broadphase_grid = ChBroadphase::GridType::FIXED_RESOLUTION;
+    sys->GetSettings()->collision.bins_per_axis = vec3(100, 30, 2);
 
     // ------------------
     // Create the terrain
     // ------------------
 
-    GranularTerrain terrain(system);
+    GranularTerrain terrain(sys);
     auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(terrain.GetContactMaterial());
     mat->SetFriction((float)mu_g);
     mat->SetCohesion((float)coh_g);
@@ -136,12 +136,12 @@ int main(int argc, char* argv[]) {
 
     ChVector<> tire_center(terrain.GetPatchRear() + tire_rad, (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2,
                            terrain_height + 1.01 * tire_rad);
-    auto body = std::shared_ptr<ChBody>(system->NewBody());
+    auto body = std::shared_ptr<ChBody>(sys->NewBody());
     body->SetMass(500);
     body->SetInertiaXX(ChVector<>(20, 20, 20));
     body->SetPos(tire_center);
     body->SetRot(Q_from_AngZ(CH_C_PI_2));
-    system->AddBody(body);
+    sys->AddBody(body);
 
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
     motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, -tire_ang_vel));
     motor->Initialize(body, terrain.GetGroundBody(), ChFrame<>(tire_center, Q_from_AngX(CH_C_PI_2)));
-    system->Add(motor);
+    sys->Add(motor);
 
     std::cout << "Tire location: " << tire_center.x() << " " << tire_center.y() << " " << tire_center.z() << std::endl;
 
@@ -175,11 +175,14 @@ int main(int argc, char* argv[]) {
     // Initialize OpenGL
     // -----------------
 
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(system);
-    gl_window.Initialize(1280, 720, "Granular terrain demo");
-    gl_window.SetCamera(center - ChVector<>(0, 3, 0), center, ChVector<>(0, 0, 1), 0.05f);
-    gl_window.SetRenderMode(opengl::SOLID);
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(sys);
+    vis.SetWindowTitle("Granular terrain demo");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::SOLID);
+    vis.Initialize();
+    vis.SetCameraPosition(center - ChVector<>(0, 3, 0), center);
+    vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // ---------------
     // Simulation loop
@@ -193,40 +196,39 @@ int main(int argc, char* argv[]) {
         if (!is_pitched && time > time_pitch) {
             std::cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z()
                       << std::endl;
-            system->Set_G_acc(gravityR);
+            sys->Set_G_acc(gravityR);
             is_pitched = true;
         }
 
         terrain.Synchronize(time);
-        system->DoStepDynamics(time_step);
+        sys->DoStepDynamics(time_step);
 
         ////if (terrain.PatchMoved()) {
-        ////    auto aabb_min = system->data_manager->measures.collision.rigid_min_bounding_point;
-        ////    auto aabb_max = system->data_manager->measures.collision.rigid_max_bounding_point;
+        ////    auto aabb_min = sys->data_manager->measures.collision.rigid_min_bounding_point;
+        ////    auto aabb_max = sys->data_manager->measures.collision.rigid_max_bounding_point;
         ////    std::cout << "   Global AABB: " << std::endl;
         ////    std::cout << "   " << aabb_min.x << "  " << aabb_min.y << "  " << aabb_min.z << std::endl;
         ////    std::cout << "   " << aabb_max.x << "  " << aabb_max.y << "  " << aabb_max.z << std::endl;
         ////}
 
-        ////opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        if (gl_window.Active()) {
+        if (vis.Run()) {
             switch (cam_type) {
                 case FRONT: {
                     ChVector<> cam_loc(terrain.GetPatchFront(), -3, 0);
                     ChVector<> cam_point(terrain.GetPatchFront(), 0, 0);
-                    gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
+                    vis.SetCameraPosition(cam_loc, cam_point);
                     break;
                 }
                 case TRACK: {
                     ChVector<> cam_point = body->GetPos();
                     ChVector<> cam_loc = cam_point + ChVector<>(-3 * tire_rad, -1, 0.6);
-                    gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
+                    vis.SetCameraPosition(cam_loc, cam_point);
                     break;
                 }
                 default:
                     break;
             }
-            gl_window.Render();
+            vis.Render();
         } else {
             break;
         }

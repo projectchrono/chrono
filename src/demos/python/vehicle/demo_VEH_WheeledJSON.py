@@ -52,7 +52,6 @@ def main() :
         vehicle.InitializeTire(tireR, axle.m_wheels[1], veh.VisualizationType_MESH)
 
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-    vehicle.SetVisualSystem(vis)
     vis.SetWindowTitle('HMMWV JSON specification')
     vis.SetWindowSize(1280, 1024)
     vis.SetChaseCamera(trackPoint, 6.0, 0.5)
@@ -60,6 +59,7 @@ def main() :
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddTypicalLights()
     vis.AddSkyBox()
+    vis.AttachVehicle(vehicle)
 
     driver = veh.ChIrrGuiDriver(vis)
 
@@ -98,7 +98,7 @@ def main() :
 
         # Render scene
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
 
         # Collect output data from modules (for inter-module communication)

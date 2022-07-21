@@ -115,7 +115,6 @@ terrain.Initialize()
 
 # Create the vehicle Irrlicht interface
 vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-my_bus.GetVehicle().SetVisualSystem(vis)
 vis.SetWindowTitle('Citybus')
 vis.SetWindowSize(1280, 1024)
 vis.SetChaseCamera(trackPoint, 15.0, 0.5)
@@ -123,6 +122,7 @@ vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddTypicalLights()
 vis.AddSkyBox()
+vis.AttachVehicle(my_bus.GetVehicle())
 
 # Create the driver system
 driver = veh.ChIrrGuiDriver(vis)
@@ -163,7 +163,7 @@ while vis.Run() :
     # Render scene and output POV-Ray data
     if (step_number % render_steps == 0) :
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
         render_frame += 1
     

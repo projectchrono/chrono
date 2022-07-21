@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    gator.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&gator.GetVehicle());
 
     // -----------------
     // Initialize output
@@ -474,7 +474,7 @@ int main(int argc, char* argv[]) {
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0) {
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->EndScene();
 
             if (povray_output) {

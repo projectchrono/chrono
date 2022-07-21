@@ -37,8 +37,10 @@ class CH_VEHICLE_API ChWheeledVehicleVisualSystemIrrlicht : public ChVehicleVisu
 
     ~ChWheeledVehicleVisualSystemIrrlicht() {}
 
+    /// Attach a vehicle to this Irrlicht wheeled vehicle visualization system.
+    virtual void AttachVehicle(ChVehicle* vehicle) override;
+
   private:
-    virtual void OnAttachToVehicle() override;
     virtual void renderOtherStats(int left, int top) override;
 
     ChWheeledVehicle* m_wvehicle;

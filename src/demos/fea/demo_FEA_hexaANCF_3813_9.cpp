@@ -327,7 +327,7 @@ void DPCapPress() {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -356,7 +356,7 @@ void DPCapPress() {
 
     while (vis->Run() && (sys.GetChTime() <= 0.5)) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(timestep);
 
@@ -710,7 +710,7 @@ void ShellBrickContact() {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -754,7 +754,7 @@ void ShellBrickContact() {
         }
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(timestep);
 
@@ -1012,7 +1012,7 @@ void SimpleBoxContact() {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -1044,7 +1044,7 @@ void SimpleBoxContact() {
     int timecount = 0;
     while (vis->Run() && (sys.GetChTime() <= 1.0)) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(timestep);
 
@@ -1330,7 +1330,7 @@ void SoilBin() {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -1371,7 +1371,7 @@ void SoilBin() {
         Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(timestep);
 
@@ -1633,7 +1633,7 @@ void AxialDynamics() {
     int Iter = 0;
     while (/*vis->Run() && */ (sys.GetChTime() <= 1.0)) {
         // application.BeginScene();
-        // application.DrawAll();
+        // application.Render();
         // application.DoStep();
 
         force = 300 * std::sin(sys.GetChTime() * CH_C_PI) / 4;
@@ -1828,7 +1828,7 @@ void BendingQuasiStatic() {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -1862,7 +1862,7 @@ void BendingQuasiStatic() {
     double force = 0.0;
     while (vis->Run() && (sys.GetChTime() <= 2.0)) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         if (sys.GetChTime() > 1.0) {
             force = -50;
@@ -2053,7 +2053,7 @@ void SwingingShell() {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -2086,7 +2086,7 @@ void SwingingShell() {
 
     while (vis->Run() && (sys.GetChTime() < 2.01)) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         sys.DoStepDynamics(timestep);
 

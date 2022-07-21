@@ -160,14 +160,14 @@ void MakeAndRunDemoCantilever(ChSystem& sys, bool base_fixed) {
                  << "  Im=" << my_assembly->Get_modes_eig()(i).imag() << "\n";
 
     // This is needed if you want to see things in Irrlicht
-    auto vis = std::dynamic_pointer_cast<ChVisualSystemIrrlicht>(sys.GetVisualSystem());
+    auto vis = dynamic_cast<ChVisualSystemIrrlicht*>(sys.GetVisualSystem());
     vis->BindAll();
 
     int current_example = ID_current_example;
     while ((ID_current_example == current_example) && vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
-        tools::drawGrid(vis.get(), 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
+        vis->Render();
+        tools::drawGrid(vis, 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
         vis->EndScene();
     }
@@ -305,14 +305,14 @@ void MakeAndRunDemoLbeam(ChSystem& sys, bool body1fixed, bool body2fixed) {
         GetLog() << "Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) << "\n";
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    auto vis = std::dynamic_pointer_cast<ChVisualSystemIrrlicht>(sys.GetVisualSystem());
+    auto vis = dynamic_cast<ChVisualSystemIrrlicht*>(sys.GetVisualSystem());
     vis->BindAll();
 
     int current_example = ID_current_example;
     while ((ID_current_example == current_example) && vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
-        tools::drawGrid(vis.get(), 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
+        vis->Render();
+        tools::drawGrid(vis, 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
         vis->EndScene();
     }
@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(1024, 768);
     vis->SetWindowTitle("Modal analysis");
     vis->Initialize();

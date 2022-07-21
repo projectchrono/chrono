@@ -45,7 +45,7 @@
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -240,7 +240,7 @@ class CustomCompositionStrategy : public ChMaterialCompositionStrategy {
 
 // =============================================================================
 
-HMMWV_Full* CreateVehicle(ChSystem* system, double vertical_offset);
+HMMWV_Full* CreateVehicle(ChSystem* sys, double vertical_offset);
 HMMWV_Driver* CreateDriver(HMMWV_Full* hmmwv);
 
 void progressbar(unsigned int x, unsigned int n, unsigned int w = 50);
@@ -293,56 +293,56 @@ int main(int argc, char* argv[]) {
     }
 
     // -------------
-    // Create system
+    // Create sys
     // -------------
 
     // Prepare rotated acceleration vector
     ChVector<> gravity(0, 0, -9.81);
     ChVector<> gravityR = ChMatrix33<>(slope_g, ChVector<>(0, 1, 0)) * gravity;
 
-    ChSystemMulticoreNSC* system = new ChSystemMulticoreNSC();
-    system->Set_G_acc(gravity);
+    ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
+    sys->Set_G_acc(gravity);
 
     // Use a custom material property composition strategy.
     // This ensures that tire-terrain interaction always uses the same coefficient of friction.
     std::unique_ptr<CustomCompositionStrategy> strategy(new CustomCompositionStrategy);
-    system->SetMaterialCompositionStrategy(std::move(strategy));
+    sys->SetMaterialCompositionStrategy(std::move(strategy));
 
-    system->SetNumThreads(threads);
+    sys->SetNumThreads(threads);
 
     // --------------------
-    // Edit system settings
+    // Edit sys settings
     // --------------------
 
-    system->GetSettings()->solver.tolerance = tolerance;
-    system->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-    system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
-    system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
-    system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    system->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
-    system->GetSettings()->solver.compute_N = false;
-    system->GetSettings()->solver.alpha = alpha;
-    system->GetSettings()->solver.cache_step_length = true;
-    system->GetSettings()->solver.use_full_inertia_tensor = false;
-    system->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
-    system->GetSettings()->solver.bilateral_clamp_speed = 1e8;
-    system->ChangeSolverType(SolverType::BB);
+    sys->GetSettings()->solver.tolerance = tolerance;
+    sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+    sys->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
+    sys->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
+    sys->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
+    sys->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
+    sys->GetSettings()->solver.compute_N = false;
+    sys->GetSettings()->solver.alpha = alpha;
+    sys->GetSettings()->solver.cache_step_length = true;
+    sys->GetSettings()->solver.use_full_inertia_tensor = false;
+    sys->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
+    sys->GetSettings()->solver.bilateral_clamp_speed = 1e8;
+    sys->ChangeSolverType(SolverType::BB);
 
-    system->GetSettings()->collision.collision_envelope = envelope;
-    system->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
-    system->GetSettings()->collision.broadphase_grid = ChBroadphase::GridType::FIXED_RESOLUTION;
-    system->GetSettings()->collision.bins_per_axis = vec3(100, 30, 2);
+    sys->GetSettings()->collision.collision_envelope = envelope;
+    sys->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    sys->GetSettings()->collision.broadphase_grid = ChBroadphase::GridType::FIXED_RESOLUTION;
+    sys->GetSettings()->collision.bins_per_axis = vec3(100, 30, 2);
 
     // Specify active box.
-    system->GetSettings()->collision.use_aabb_active = false;
-    system->GetSettings()->collision.aabb_min = real3(-1.1 * hdimX, -1.1 * hdimY, 0);
-    system->GetSettings()->collision.aabb_max = real3(+1.1 * hdimX, +1.1 * hdimY, 10 * hdimZ);
+    sys->GetSettings()->collision.use_aabb_active = false;
+    sys->GetSettings()->collision.aabb_min = real3(-1.1 * hdimX, -1.1 * hdimY, 0);
+    sys->GetSettings()->collision.aabb_max = real3(+1.1 * hdimX, +1.1 * hdimY, 10 * hdimZ);
 
     // ------------------
     // Create the terrain
     // ------------------
 
-    GranularTerrain terrain(system);
+    GranularTerrain terrain(sys);
     auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(terrain.GetContactMaterial());
     mat->SetFriction((float)mu_g);
     mat->SetCohesion((float)coh_g);
@@ -379,12 +379,15 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_OPENGL
     // Initialize OpenGL
+    opengl::ChVisualSystemOpenGL vis;
     if (render) {
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.AttachSystem(system);
-        gl_window.Initialize(1280, 720, "HMMWV acceleration");
-        gl_window.SetCamera(ChVector<>(-horizontal_pos, -5, 0), ChVector<>(-horizontal_pos, 0, 0), ChVector<>(0, 0, 1));
-        gl_window.SetRenderMode(opengl::WIREFRAME);
+        vis.AttachSystem(sys);
+        vis.SetWindowTitle("HMMWV granular terrain");
+        vis.SetWindowSize(1280, 720);
+        vis.SetRenderMode(opengl::WIREFRAME);
+        vis.Initialize();
+        vis.SetCameraPosition(ChVector<>(-horizontal_pos, -5, 0), ChVector<>(-horizontal_pos, 0, 0));
+        vis.SetCameraVertical(CameraVerticalDir::Z);
     }
 #endif
 
@@ -431,7 +434,7 @@ int main(int argc, char* argv[]) {
         if (povray && sim_frame == next_povray_frame) {
             char filename[100];
             sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), povray_frame + 1);
-            utils::WriteVisualizationAssets(system, filename);
+            utils::WriteVisualizationAssets(sys, filename);
 
             std::cout << "Povray output at time " << time << "  " << filename << std::endl;
             povray_frame++;
@@ -443,7 +446,7 @@ int main(int argc, char* argv[]) {
             cout << time << "    Create vehicle" << endl;
 
             double max_height = terrain.GetHeight(ChVector<>(0, 0, 0));
-            hmmwv = CreateVehicle(system, max_height);
+            hmmwv = CreateVehicle(sys, max_height);
             driver = CreateDriver(hmmwv);
 
             // Enable moving patch, based on vehicle location
@@ -456,11 +459,11 @@ int main(int argc, char* argv[]) {
         // Rotate gravity vector
         if (!is_pitched && time > time_pitch) {
             cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z() << endl;
-            system->Set_G_acc(gravityR);
+            sys->Set_G_acc(gravityR);
             is_pitched = true;
         }
 
-        // Synchronize terrain system
+        // Synchronize terrain sys
         terrain.Synchronize(time);
 
         if (hmmwv) {
@@ -480,7 +483,7 @@ int main(int argc, char* argv[]) {
                 ChVector<> vv = hmmwv->GetChassisBody()->GetFrame_REF_to_abs().GetPos_dt();
                 ChVector<> av = hmmwv->GetChassisBody()->GetFrame_REF_to_abs().GetPos_dtdt();
 
-                ofile << system->GetChTime() << del;
+                ofile << sys->GetChTime() << del;
                 ofile << driver_inputs.m_throttle << del << driver_inputs.m_steering << del;
 
                 ofile << pv.x() << del << pv.y() << del << pv.z() << del;
@@ -498,26 +501,25 @@ int main(int argc, char* argv[]) {
             hmmwv->Advance(time_step);
         }
 
-        // Advance system state (no vehicle created yet)
-        system->DoStepDynamics(time_step);
+        // Advance sys state (no vehicle created yet)
+        sys->DoStepDynamics(time_step);
 
 #ifdef CHRONO_OPENGL
         if (render) {
-            opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-            if (gl_window.Active())
-                gl_window.Render();
+            if (vis.Run())
+                vis.Render();
             else
                 break;
         }
 #endif
 
         // Display performance metrics
-        TimingOutput(system);
+        TimingOutput(sys);
 
         // Update counters.
         time += time_step;
         sim_frame++;
-        exec_time += system->GetTimerStep();
+        exec_time += sys->GetTimerStep();
     }
 
     // Final stats
@@ -538,8 +540,8 @@ int main(int argc, char* argv[]) {
 
 // =============================================================================
 
-HMMWV_Full* CreateVehicle(ChSystem* system, double vertical_offset) {
-    auto hmmwv = new HMMWV_Full(system);
+HMMWV_Full* CreateVehicle(ChSystem* sys, double vertical_offset) {
+    auto hmmwv = new HMMWV_Full(sys);
 
     hmmwv->SetContactMethod(ChContactMethod::NSC);
     hmmwv->SetChassisFixed(false);

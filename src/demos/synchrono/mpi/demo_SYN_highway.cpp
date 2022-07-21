@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
         app->SetChaseCamera(trackPoint, 6.0, 0.5);
         app->Initialize();
         app->AddTypicalLights();
-        vehicle.SetVisualSystem(app);
+        app->AttachVehicle(&vehicle);
     }
 
 #ifdef CHRONO_SENSOR
@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0 && app) {
             app->BeginScene();
-            app->DrawAll();
+            app->Render();
             app->EndScene();
         }
 

@@ -171,7 +171,7 @@ link_shaker.SetMotion_Z(mfunZ)
 #  Create an Irrlicht application to visualize the sys
 #
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Earthquake demo')
 vis.Initialize()
@@ -194,7 +194,7 @@ vis.AddLightWithShadow(chrono.ChVectorD(0, 3, 6),    # point
 
 while vis.Run():
     vis.BeginScene() 
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
     for substep in range(0,5):
         sys.DoStepDynamics(1e-4)

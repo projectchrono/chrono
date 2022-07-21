@@ -579,7 +579,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Powertrain type: " << m113.GetPowertrain()->GetTemplateName() << std::endl;
     std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
 
-    m113.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&m113.GetVehicle());
 
     // -----------------
     // Initialize output
@@ -703,7 +703,7 @@ int main(int argc, char* argv[]) {
         if (step_number % render_steps == 0) {
             // Render scene
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->EndScene();
 
             if (povray_output) {

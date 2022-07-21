@@ -117,6 +117,7 @@ set(Chrono_HAS_sensor @ENABLE_MODULE_SENSOR@)
 set(Chrono_HAS_pardisoproject @ENABLE_MODULE_PARDISO_PROJECT@)
 set(Chrono_HAS_synchrono @ENABLE_MODULE_SYNCHRONO@)
 set(Chrono_HAS_modal @ENABLE_MODULE_MODAL@)
+set(Chrono_HAS_distributed @ENABLE_MODULE_DISTRIBUTED@)
 
 #-------------------------------------------------------------------------------
 # Vehicle cosimulation module
@@ -156,6 +157,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
            endif()
            if(Chrono_HAS_fsi)
               set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};FSI")
+           endif()
+           if(Chrono_HAS_distributed)
+              set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Distributed")
            endif()
            if(Chrono_HAS_pardisomkl)
               set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};PardisoMKL")
@@ -263,6 +267,19 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
           list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_modal")
           list(APPEND CHRONO_DLL_NAMES "ChronoEngine_modal.dll")
       endif()
+
+    elseif(${COMPONENT_UPPER} MATCHES "DISTRIBUTED")
+      
+      separate_arguments(MPI_CXX_COMPILE_FLAGS NATIVE_COMMAND "@MPI_CXX_COMPILE_FLAGS@")
+      separate_arguments(MPI_CXX_LINK_FLAGS NATIVE_COMMAND "@MPI_CXX_LINK_FLAGS@")
+      list(APPEND CHRONO_CXX_FLAGS ${MPI_CXX_COMPILE_FLAGS})
+      list(APPEND CHRONO_LINKER_FLAGS ${MPI_CXX_LINK_FLAGS})
+      
+      list(APPEND CHRONO_INCLUDE_DIRS "@MPI_CXX_INCLUDE_PATH@")
+      list(APPEND CHRONO_LIBRARIES "@MPI_CXX_LIBRARIES@")
+
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_distributed")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_distributed.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "VEHICLE")
 

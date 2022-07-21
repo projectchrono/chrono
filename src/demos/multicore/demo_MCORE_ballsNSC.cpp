@@ -35,7 +35,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 using namespace chrono;
@@ -141,59 +141,55 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystemMulticoreNSC msystem;
+    ChSystemMulticoreNSC sys;
 
     // Set number of threads
-    msystem.SetNumThreads(8);
+    sys.SetNumThreads(8);
 
     // Set gravitational acceleration
-    msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
+    sys.Set_G_acc(ChVector<>(0, 0, -gravity));
 
     // Set solver parameters
-    msystem.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-    msystem.GetSettings()->solver.max_iteration_normal = max_iteration / 3;
-    msystem.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
-    msystem.GetSettings()->solver.max_iteration_spinning = 0;
-    msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration / 3;
-    msystem.GetSettings()->solver.tolerance = tolerance;
-    msystem.GetSettings()->solver.alpha = 0;
-    msystem.GetSettings()->solver.contact_recovery_speed = 10000;
-    msystem.ChangeSolverType(SolverType::APGDREF);
-    msystem.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    sys.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+    sys.GetSettings()->solver.max_iteration_normal = max_iteration / 3;
+    sys.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
+    sys.GetSettings()->solver.max_iteration_spinning = 0;
+    sys.GetSettings()->solver.max_iteration_bilateral = max_iteration / 3;
+    sys.GetSettings()->solver.tolerance = tolerance;
+    sys.GetSettings()->solver.alpha = 0;
+    sys.GetSettings()->solver.contact_recovery_speed = 10000;
+    sys.ChangeSolverType(SolverType::APGDREF);
+    sys.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
-    msystem.GetSettings()->collision.collision_envelope = 0.01;
-    msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
+    sys.GetSettings()->collision.collision_envelope = 0.01;
+    sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Create the fixed and moving bodies
     // ----------------------------------
 
-    AddContainer(&msystem);
-    AddFallingBalls(&msystem);
+    AddContainer(&sys);
+    AddFallingBalls(&sys);
 
 // Perform the simulation
 // ----------------------
 
 #ifdef CHRONO_OPENGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(&msystem);
-    gl_window.Initialize(1280, 720, "ballsNSC");
-    gl_window.SetCamera(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-    gl_window.SetRenderMode(opengl::WIREFRAME);
-
-    // Uncomment the following two lines for the OpenGL manager to automatically
-    // run the simulation in an infinite loop.
-    // gl_window.StartDrawLoop(time_step);
-    // return 0;
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(&sys);
+    vis.SetWindowTitle("Balls NSC");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::WIREFRAME);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Z);
 
     while (true) {
-        if (gl_window.Active()) {
-            gl_window.DoStepDynamics(time_step);
-            gl_window.Render();
-            ////if (gl_window.Running()) {
-            ////  msystem.CalculateContactForces();
-            ////  real3 frc = msystem.GetBodyContactForce(0);
+        if (vis.Run()) {
+            sys.DoStepDynamics(time_step);
+            vis.Render();
+            ////  sys.CalculateContactForces();
+            ////  real3 frc = sys.GetBodyContactForce(0);
             ////  std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
-            ////}
         } else {
             break;
         }
@@ -205,7 +201,7 @@ int main(int argc, char* argv[]) {
     double time = 0;
 
     for (int i = 0; i < num_steps; i++) {
-        msystem.DoStepDynamics(time_step);
+        sys.DoStepDynamics(time_step);
         time += time_step;
     }
 #endif

@@ -117,7 +117,7 @@ int main() {
 
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetCameraVertical(CameraVerticalDir::Z);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Tire Test Rig");
@@ -142,7 +142,7 @@ int main() {
         camera->setTarget(irr::core::vector3df(x, y + 0.25f, z));
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         rig.Advance(step_size);
         vis->EndScene();
 

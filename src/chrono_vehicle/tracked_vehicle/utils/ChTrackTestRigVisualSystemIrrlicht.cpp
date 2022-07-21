@@ -36,8 +36,8 @@ ChTrackTestRigVisualSystemIrrlicht::ChTrackTestRigVisualSystemIrrlicht()
       m_axis_sprocket(1),
       m_axis_idler(1) {}
 
-void ChTrackTestRigVisualSystemIrrlicht::OnAttachToVehicle() {
-    ChVehicleVisualSystemIrrlicht::OnAttachToVehicle();
+void ChTrackTestRigVisualSystemIrrlicht::AttachVehicle(ChVehicle* vehicle) {
+    ChVehicleVisualSystemIrrlicht::AttachVehicle(vehicle);
     m_rig = dynamic_cast<ChTrackTestRig*>(m_vehicle);
     assert(m_rig);
 }

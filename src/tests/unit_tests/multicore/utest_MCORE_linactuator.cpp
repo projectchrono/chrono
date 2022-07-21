@@ -24,7 +24,7 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 #include "unit_testing.h"
@@ -43,11 +43,11 @@ class ChLinActuatorTest
     : public ::testing::TestWithParam<std::tuple<ChContactMethod, double, ChQuaternion<>>> {
   protected:
     ChLinActuatorTest();
-    ~ChLinActuatorTest() { delete msystem; }
+    ~ChLinActuatorTest() { delete sys; }
 
     void VerifySolution(double time);
 
-    ChSystemMulticore* msystem;
+    ChSystemMulticore* sys;
     ChContactMethod cm;
     ChQuaternion<> rot;
     double speed;
@@ -78,25 +78,25 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     // Create the mechanical system
     switch (cm) {
         case ChContactMethod::SMC:
-            msystem = new ChSystemMulticoreSMC();
+            sys = new ChSystemMulticoreSMC();
             break;
         case ChContactMethod::NSC:
-            msystem = new ChSystemMulticoreNSC();
+            sys = new ChSystemMulticoreNSC();
             break;
     }
-    msystem->Set_G_acc(gravity);
+    sys->Set_G_acc(gravity);
 
     // Set number of threads
-    msystem->SetNumThreads(1);
+    sys->SetNumThreads(1);
 
     // Edit system settings
-    msystem->GetSettings()->solver.tolerance = tolerance;
-    msystem->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
-    msystem->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
-    msystem->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
+    sys->GetSettings()->solver.tolerance = tolerance;
+    sys->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
+    sys->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
+    sys->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
     if (cm == ChContactMethod::NSC) {
-        ChSystemMulticoreNSC* msystemNSC = static_cast<ChSystemMulticoreNSC*>(msystem);
+        ChSystemMulticoreNSC* msystemNSC = static_cast<ChSystemMulticoreNSC*>(sys);
         msystemNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
         msystemNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
         msystemNSC->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
@@ -105,9 +105,9 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     }
 
     // Create the ground body.
-    std::shared_ptr<ChBody> ground(msystem->NewBody());
+    std::shared_ptr<ChBody> ground(sys->NewBody());
 
-    msystem->AddBody(ground);
+    sys->AddBody(ground);
     ground->SetBodyFixed(true);
 
     auto box_g = chrono_types::make_shared<ChBoxShape>();
@@ -115,8 +115,8 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     ground->AddVisualShape(box_g, ChFrame<>(2.5 * axis, rot));
 
     // Create the plate body.
-    plate = std::shared_ptr<ChBody>(msystem->NewBody());
-    msystem->AddBody(plate);
+    plate = std::shared_ptr<ChBody>(sys->NewBody());
+    sys->AddBody(plate);
     plate->SetPos(ChVector<>(0, 0, 0));
     plate->SetRot(rot);
     plate->SetPos_dt(speed * axis);
@@ -132,7 +132,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     // call) so that the link coordinate system is expressed in the ground frame.
     prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic->Initialize(plate, ground, ChCoordsys<>(ChVector<>(0, 0, 0), rot));
-    msystem->AddLink(prismatic);
+    sys->AddLink(prismatic);
 
     // Create a ramp function to impose constant speed.  This function returns
     //   y(t) = 0 + t * speed
@@ -149,7 +149,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     actuator->Initialize(ground, plate, false, ChCoordsys<>(pt1, rot), ChCoordsys<>(pt2, rot));
     actuator->Set_lin_offset(1);
     actuator->Set_dist_funct(actuator_fun);
-    msystem->AddLink(actuator);
+    sys->AddLink(actuator);
 }
 
 // Verify simulation results against analytical solution at the specified time.
@@ -297,16 +297,19 @@ TEST_P(ChLinActuatorTest, simulate) {
 
     if (animate) {
 #ifdef CHRONO_OPENGL
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.AttachSystem(msystem);
-        gl_window.Initialize(1280, 720, "");
-        gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-        gl_window.SetRenderMode(opengl::WIREFRAME);
+        opengl::ChVisualSystemOpenGL vis;
+        vis.AttachSystem(sys);
+        vis.SetWindowTitle("");
+        vis.SetWindowSize(1280, 720);
+        vis.SetRenderMode(opengl::WIREFRAME);
+        vis.Initialize();
+        vis.SetCameraPosition(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0));
+        vis.SetCameraVertical(CameraVerticalDir::Z);
 
         while (time < time_end) {
             // Advance simulation by one step.
-            gl_window.DoStepDynamics(time_step);
-            gl_window.Render();
+            sys->DoStepDynamics(time_step);
+            vis.Render();
             time += time_step;
             VerifySolution(time);
         }
@@ -316,7 +319,7 @@ TEST_P(ChLinActuatorTest, simulate) {
 #endif
     } else {
         while (time < time_end) {
-            msystem->DoStepDynamics(time_step);
+            sys->DoStepDynamics(time_step);
             time += time_step;
             VerifySolution(time);
         }

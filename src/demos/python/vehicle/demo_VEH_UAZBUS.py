@@ -131,7 +131,6 @@ terrain.Initialize()
 # -------------------------------------
 
 vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-uaz.GetVehicle().SetVisualSystem(vis)
 vis.SetWindowTitle('UAZ bus')
 vis.SetWindowSize(1280, 1024)
 vis.SetChaseCamera(trackPoint, 6.0, 0.5)
@@ -139,6 +138,7 @@ vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddTypicalLights()
 vis.AddSkyBox()
+vis.AttachVehicle(uaz.GetVehicle())
 
 # Create the interactive driver system
 driver = veh.ChIrrGuiDriver(vis)
@@ -178,7 +178,7 @@ while vis.Run() :
     # Render scene
     if (step_number % render_steps == 0) :
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
 
 

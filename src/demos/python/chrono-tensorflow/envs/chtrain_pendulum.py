@@ -53,7 +53,7 @@ class Model(object):
       if self.render:
              
              self.vis = chronoirr.ChVisualSystemIrrlicht()
-             self.rev_pend_sys.SetVisualSystem(self.vis)
+             self.vis.AttachSystem(self.rev_pend_sys)
              self.vis.Initialize()
              self.vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
              self.vis.AddSkyBox()
@@ -166,7 +166,7 @@ class Model(object):
        if self.render:
               self.vis.Run()
               self.vis.BeginScene()
-              self.vis.DrawAll()
+              self.vis.Render()
        self.rev_pend_sys.DoStepDynamics(self.timestep)
        self.rew = 1.0
                   

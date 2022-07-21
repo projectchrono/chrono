@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
 
     // 4- Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Simple slider-crank example");
     vis->Initialize();
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
         // skeleton of the mechanism, in this instant:
         //
         // .. draw items belonging to Irrlicht scene, if any
-        vis->DrawAll();
+        vis->Render();
         // .. draw a grid
         tools::drawGrid(vis.get(), 0.5, 0.5);
         // .. draw GUI items belonging to Irrlicht screen, if any

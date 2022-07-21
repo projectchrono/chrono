@@ -530,9 +530,9 @@ void MPM_ComputeBounds() {
 
     host_settings.bin_edge = host_settings.kernel_radius * 2;
 
-    host_settings.bins_per_axis_x = int(max_bounding_point.x - min_bounding_point.x) / (int)host_settings.bin_edge;
-    host_settings.bins_per_axis_y = int(max_bounding_point.y - min_bounding_point.y) / (int)host_settings.bin_edge;
-    host_settings.bins_per_axis_z = int(max_bounding_point.z - min_bounding_point.z) / (int)host_settings.bin_edge;
+    host_settings.bins_per_axis_x = int((max_bounding_point.x - min_bounding_point.x) / host_settings.bin_edge);
+    host_settings.bins_per_axis_y = int((max_bounding_point.y - min_bounding_point.y) / host_settings.bin_edge);
+    host_settings.bins_per_axis_z = int((max_bounding_point.z - min_bounding_point.z) / host_settings.bin_edge);
 
     host_settings.inv_bin_edge = float(1.) / host_settings.bin_edge;
     host_settings.num_mpm_nodes =

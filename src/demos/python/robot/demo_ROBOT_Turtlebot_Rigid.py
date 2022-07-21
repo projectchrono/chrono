@@ -47,7 +47,7 @@ robot.Initialize()
 
 # Create run-time visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
-system.SetVisualSystem(vis)
+vis.AttachSystem(system)
 vis.SetCameraVertical(chrono.CameraVerticalDir_Z)
 vis.SetWindowSize(1280, 720)
 vis.SetWindowTitle('Turtlebot Robot - Rigid terrain')
@@ -83,6 +83,6 @@ while (vis.Run()) :
     time = time + time_step
 
     vis.BeginScene()
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
     system.DoStepDynamics(time_step)

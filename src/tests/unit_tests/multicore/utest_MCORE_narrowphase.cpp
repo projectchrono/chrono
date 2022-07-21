@@ -28,7 +28,7 @@
 #include "unit_testing.h"
 
 #ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 using namespace chrono;
@@ -231,15 +231,18 @@ int main(int argc, char* argv[]) {
 
     if (animate) {
 #ifdef CHRONO_OPENGL
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.AttachSystem(msystem_mpr);
-        gl_window.Initialize(1280, 720, "Narrowphase");
-        gl_window.SetCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-        gl_window.SetRenderMode(opengl::WIREFRAME);
+        opengl::ChVisualSystemOpenGL vis;
+        vis.AttachSystem(msystem_mpr);
+        vis.SetWindowTitle("");
+        vis.SetWindowSize(1280, 720);
+        vis.SetRenderMode(opengl::WIREFRAME);
+        vis.Initialize();
+        vis.SetCameraPosition(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0));
+        vis.SetCameraVertical(CameraVerticalDir::Z);
 
         while (time < time_end) {
-            if (gl_window.Active()) {
-                gl_window.Render();
+            if (vis.Run()) {
+                vis.Render();
             }
 
             Sync(msystem_mpr, msystem_r);

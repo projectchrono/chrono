@@ -12,6 +12,9 @@
 // Radu Serban, Alessandro Tasora
 // =============================================================================
 
+//// RADU TODO
+//// Allow attaching more than one ChSystem to the same Irrlicht visualization
+
 #include <codecvt>
 #include <locale>
 
@@ -129,6 +132,22 @@ void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
 
 // -----------------------------------------------------------------------------
 
+void ChVisualSystemIrrlicht::AttachSystem(ChSystem* sys) {
+    ChVisualSystem::AttachSystem(sys);
+
+    // If the visualization system is already initialized
+    if (m_device) {
+        assert(!m_gui->initialized);
+        m_gui->Initialize(this);
+
+        // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
+        // This is a recursive call to accomodate any existing sub-assemblies.
+        BindAll();
+    }
+}
+
+// -----------------------------------------------------------------------------
+
 void ChVisualSystemIrrlicht::Initialize() {
     if (m_device)
         return;
@@ -170,7 +189,7 @@ void ChVisualSystemIrrlicht::Initialize() {
     }
 
     // If the visualization system is already attached to a ChSystem
-    if (m_system) {
+    if (!m_systems.empty()) {
         // Create an Irrlicht GUI
         assert(!m_gui->initialized);
         m_gui->Initialize(this);
@@ -184,33 +203,21 @@ void ChVisualSystemIrrlicht::Initialize() {
 // -----------------------------------------------------------------------------
 
 bool ChVisualSystemIrrlicht::Run() {
-    assert(m_system->GetVisualSystem());
+    assert(!m_systems.empty() && m_systems[0]->GetVisualSystem());
     return m_device->run();
 }
 
-void ChVisualSystemIrrlicht::OnAttach() {
-    // If the visualization system is already initialized
-    if (m_device) {
-        assert(!m_gui->initialized);
-        m_gui->Initialize(this);
-
-        // Parse the mechanical assembly and create a ChIrrNodeModel for each physics item with a visual model.
-        // This is a recursive call to accomodate any existing sub-assemblies.
-        BindAll();
-    }
-}
-
-void ChVisualSystemIrrlicht::OnSetup() {
+void ChVisualSystemIrrlicht::OnSetup(ChSystem* sys) {
     PurgeIrrNodes();
 }
 
-void ChVisualSystemIrrlicht::OnUpdate() {
+void ChVisualSystemIrrlicht::OnUpdate(ChSystem* sys) {
     for (auto& node : m_nodes) {
         node.second->UpdateChildren();
     }
 }
 
-void ChVisualSystemIrrlicht::OnClear() {
+void ChVisualSystemIrrlicht::OnClear(ChSystem* sys) {
     for (auto& node : m_nodes) {
         node.second->removeAll();
         node.second->remove();
@@ -396,7 +403,7 @@ void ChVisualSystemIrrlicht::EnableShadows(std::shared_ptr<ChPhysicsItem> item) 
         return;
     }
 
-    if (!m_system) {
+    if (m_systems.empty()) {
         std::cerr << "EnableShadows - visualization system not attached to a ChSystem" << std::endl;
         return;
     }
@@ -406,16 +413,16 @@ void ChVisualSystemIrrlicht::EnableShadows(std::shared_ptr<ChPhysicsItem> item) 
         if (node != m_nodes.end())
             AddShadowToIrrNode(node->second.get());
     } else {
-        for (auto& body : m_system->Get_bodylist()) {
+        for (auto& body : m_systems[0]->Get_bodylist()) {
             EnableShadows(body);
         }
-        for (auto& link : m_system->Get_linklist()) {
+        for (auto& link : m_systems[0]->Get_linklist()) {
             EnableShadows(link);
         }
-        for (auto& mesh : m_system->Get_meshlist()) {
+        for (auto& mesh : m_systems[0]->Get_meshlist()) {
             EnableShadows(mesh);
         }
-        for (auto& ph : m_system->Get_otherphysicslist()) {
+        for (auto& ph : m_systems[0]->Get_otherphysicslist()) {
             EnableShadows(ph);
         }
     }
@@ -480,7 +487,7 @@ void ChVisualSystemIrrlicht::ShowExplorer(bool val) {
 
 // Clean canvas at beginning of scene.
 void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor color) {
-    assert(m_system->GetVisualSystem());
+    assert(!m_systems.empty() && m_systems[0]->GetVisualSystem());
 
     utils::ChProfileManager::Reset();
     utils::ChProfileManager::Start_Profile("Irrlicht loop");
@@ -496,7 +503,7 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
             m_gui->modal_phi = 0;
 
         // scan for modal assemblies, if any
-        for (const auto& item : m_system->Get_otherphysicslist()) {
+        for (const auto& item : m_systems[0]->Get_otherphysicslist()) {
             if (auto modalassembly = std::dynamic_pointer_cast<modal::ChModalAssembly>(item)) {
                 try {
                     // superposition of modal shape
@@ -507,7 +514,7 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
                     // fetch damping factor
                     m_gui->modal_current_dampingfactor = modalassembly->Get_modes_damping_ratios()(m_gui->modal_mode_n);
                     // Force an update of the visual system
-                    OnUpdate();
+                    OnUpdate(m_systems[0]);
                 } catch (...) {
                     m_gui->modal_current_freq = 0;
                     m_gui->modal_current_dampingfactor = 0;
@@ -525,7 +532,7 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
 
 // Call this to end the scene draw at the end of each animation frame.
 void ChVisualSystemIrrlicht::EndScene() {
-    assert(m_system->GetVisualSystem());
+    assert(!m_systems.empty() && m_systems[0]->GetVisualSystem());
 
     utils::ChProfileManager::Stop_Profile();
 
@@ -534,15 +541,15 @@ void ChVisualSystemIrrlicht::EndScene() {
     GetVideoDriver()->endScene();
 }
 
-void ChVisualSystemIrrlicht::DrawAll() {
-    assert(m_system->GetVisualSystem());
+void ChVisualSystemIrrlicht::Render() {
+    assert(!m_systems.empty() && m_systems[0]->GetVisualSystem());
 
     if (m_use_effects)
         m_effect_handler->update();  // draw 3D scene using Xeffects for shadow maps
     else
         GetSceneManager()->drawAll();  // draw 3D scene the usual way, if no shadow maps
 
-    m_gui->DrawAll();
+    m_gui->Render();
 }
 
 void ChVisualSystemIrrlicht::WriteImageToFile(const std::string& filename) {
@@ -556,20 +563,20 @@ void ChVisualSystemIrrlicht::WriteImageToFile(const std::string& filename) {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemIrrlicht::BindItem(std::shared_ptr<ChPhysicsItem> item) {
-    if (!m_system || !m_device)
+    if (m_systems.empty() || !m_device)
         return;
 
     CreateIrrNode(item);
 }
 
 void ChVisualSystemIrrlicht::BindAll() {
-    if (!m_system || !m_device)
+    if (m_systems.empty() || !m_device)
         return;
 
     PurgeIrrNodes();
 
     std::unordered_set<const ChAssembly*> trace;
-    CreateIrrNodes(&m_system->GetAssembly(), trace);
+    CreateIrrNodes(&m_systems[0]->GetAssembly(), trace);
 }
 
 void ChVisualSystemIrrlicht::CreateIrrNodes(const ChAssembly* assembly, std::unordered_set<const ChAssembly*>& trace) {

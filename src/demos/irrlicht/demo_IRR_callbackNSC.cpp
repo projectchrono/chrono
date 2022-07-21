@@ -102,16 +102,16 @@ int main(int argc, char* argv[]) {
     double collision_envelope = .001;
 
     // -----------------
-    // Create the system
+    // Create the sys
     // -----------------
 
-    ChSystemNSC system;
-    system.Set_G_acc(ChVector<>(0, -10, 0));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, -10, 0));
 
     // Set solver settings
-    system.SetSolverMaxIterations(100);
-    system.SetMaxPenetrationRecoverySpeed(1e8);
-    system.SetSolverForceTolerance(0);
+    sys.SetSolverMaxIterations(100);
+    sys.SetMaxPenetrationRecoverySpeed(1e8);
+    sys.SetSolverForceTolerance(0);
 
     // --------------------------------------------------
     // Create a contact material, shared among all bodies
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     // ----------
 
     auto container = chrono_types::make_shared<ChBody>();
-    system.Add(container);
+    sys.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
@@ -150,9 +150,9 @@ int main(int argc, char* argv[]) {
     box1->GetCollisionModel()->BuildModel();
     box1->GetVisualShape(0)->SetColor(ChColor(0.1f, 0.1f, 0.4f));
 
-    system.AddBody(box1);
+    sys.AddBody(box1);
 
-    auto box2 = std::shared_ptr<ChBody>(system.NewBody());
+    auto box2 = std::shared_ptr<ChBody>(sys.NewBody());
     box2->SetMass(10);
     box2->SetInertiaXX(ChVector<>(1, 1, 1));
     box2->SetPos(ChVector<>(-1, 0.21, +1));
@@ -165,14 +165,14 @@ int main(int argc, char* argv[]) {
     box2->GetCollisionModel()->BuildModel();
     box2->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.1f, 0.1f));
 
-    system.AddBody(box2);
+    sys.AddBody(box2);
 
     // -------------------------------
     // Create the visualization window
     // -------------------------------
 
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    system.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("NSC callbacks");
     vis->Initialize();
@@ -182,25 +182,25 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
 
     // ---------------
-    // Simulate system
+    // Simulate sys
     // ---------------
 
     auto creporter = chrono_types::make_shared<ContactReporter>(box1, box2);
 
     auto cmaterial = chrono_types::make_shared<ContactMaterial>();
-    system.GetContactContainer()->RegisterAddContactCallback(cmaterial);
+    sys.GetContactContainer()->RegisterAddContactCallback(cmaterial);
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         irrlicht::tools::drawGrid(vis.get(), 0.5, 0.5, 12, 12,
                                   ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
-        system.DoStepDynamics(1e-3);
+        sys.DoStepDynamics(1e-3);
         vis->EndScene();
 
         // Process contacts
-        std::cout << system.GetChTime() << "  " << system.GetNcontacts() << std::endl;
-        system.GetContactContainer()->ReportAllContacts(creporter);
+        std::cout << sys.GetChTime() << "  " << sys.GetNcontacts() << std::endl;
+        sys.GetContactContainer()->ReportAllContacts(creporter);
 
         // Cumulative contact force and torque on boxes (as applied to COM)
         ChVector<> frc1 = box1->GetContactForce();

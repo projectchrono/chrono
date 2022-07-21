@@ -126,7 +126,7 @@ endif()
 # files in your project. 
 #--------------------------------------------------------------
 
-add_executable(myexe my_example.cpp)
+add_executable(my_demo my_example.cpp)
 
 #--------------------------------------------------------------
 # Set properties for your executable target
@@ -137,15 +137,15 @@ add_executable(myexe my_example.cpp)
 # install tree (if using an installed version of Chrono).
 #--------------------------------------------------------------
 
-target_compile_definitions(myexe PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
-target_compile_options(myexe PUBLIC ${CHRONO_CXX_FLAGS})
-target_link_options(myexe PUBLIC ${CHRONO_LINKER_FLAGS})
+target_compile_definitions(my_demo PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
+target_compile_options(my_demo PUBLIC ${CHRONO_CXX_FLAGS})
+target_link_options(my_demo PUBLIC ${CHRONO_LINKER_FLAGS})
 
 #--------------------------------------------------------------
 # Link to Chrono libraries and dependency libraries
 #--------------------------------------------------------------
 
-target_link_libraries(myexe ${CHRONO_LIBRARIES})
+target_link_libraries(my_demo ${CHRONO_LIBRARIES})
 
 #--------------------------------------------------------------
 # === 4 (OPTIONAL) ===

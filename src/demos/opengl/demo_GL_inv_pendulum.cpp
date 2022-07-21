@@ -19,7 +19,7 @@
 // to the cart in order to maintain the pendulum vertical, while moving the cart
 // to a prescribed target location.  The target location switches periodically.
 //
-// The mechanical system eveolves in the X-Y plane (Y up).
+// The mechanical sys eveolves in the X-Y plane (Y up).
 //
 // =============================================================================
 
@@ -35,7 +35,7 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
 
@@ -182,14 +182,14 @@ int main(int argc, char* argv[]) {
     double travel_dist = 2;
     double switch_period = 20;
 
-    // Create the Chrono physical system
+    // Create the Chrono physical sys
     // ---------------------------------
-    ChSystemNSC system;
+    ChSystemNSC sys;
 
     // Create the ground body
     // ----------------------
     auto ground = chrono_types::make_shared<ChBody>();
-    system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
 
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
     // Create the cart body
     // --------------------
     auto cart = chrono_types::make_shared<ChBody>();
-    system.AddBody(cart);
+    sys.AddBody(cart);
     cart->SetIdentifier(1);
     cart->SetMass(mass_cart);
     cart->SetInertiaXX(ChVector<>(1, 1, 1));
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
     // Create the pendulum body
     // ------------------------
     auto pend = chrono_types::make_shared<ChBody>();
-    system.AddBody(pend);
+    sys.AddBody(pend);
     pend->SetIdentifier(2);
     pend->SetMass(mass_pend);
     pend->SetInertiaXX(ChVector<>(1, 1, J_pend));
@@ -236,13 +236,13 @@ int main(int argc, char* argv[]) {
     // -------------------------------
     auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic->Initialize(ground, cart, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngY(CH_C_PI_2)));
-    system.AddLink(prismatic);
+    sys.AddLink(prismatic);
 
     // Revolute joint cart-pendulum
     // ----------------------------
     auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     revolute->Initialize(cart, pend, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
-    system.AddLink(revolute);
+    sys.AddLink(revolute);
 
     // Create the PID controller
     // -------------------------
@@ -252,11 +252,14 @@ int main(int argc, char* argv[]) {
 
     // Create OpenGL window and camera
     // -------------------------------
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(&system);
-    gl_window.Initialize(1280, 720, "Inverted Pendulum");
-    gl_window.SetCamera(ChVector<>(0, 0, 5), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0));
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(&sys);
+    vis.SetWindowTitle("Inverted Pendulum");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::WIREFRAME);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(0, 0, 5), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Y);
 
     // Simulation loop
     // ---------------
@@ -268,30 +271,28 @@ int main(int argc, char* argv[]) {
     double switch_time = 0;
 
     std::function<void()> step_iter = [&]() -> void {
-        if (gl_window.Running()) {
-            // At a switch time, flip target for cart location
-            if (system.GetChTime() > switch_time) {
-                controller.SetTargetCartLocation(travel_dist * (1 - 2 * target_id));
-                target_id = 1 - target_id;
-                switch_time += switch_period;
-            }
-
-            // Apply controller force on cart body
-            cart->Empty_forces_accumulators();
-            cart->Accumulate_force(ChVector<>(controller.GetForce(), 0, 0), ChVector<>(0, 0, 0), true);
-
-            // Advance system and controller states
-            system.DoStepDynamics(time_step);
-            controller.Advance(time_step);
-
-            gl_window.Render();
+        // At a switch time, flip target for cart location
+        if (sys.GetChTime() > switch_time) {
+            controller.SetTargetCartLocation(travel_dist * (1 - 2 * target_id));
+            target_id = 1 - target_id;
+            switch_time += switch_period;
         }
+
+        // Apply controller force on cart body
+        cart->Empty_forces_accumulators();
+        cart->Accumulate_force(ChVector<>(controller.GetForce(), 0, 0), ChVector<>(0, 0, 0), true);
+
+        // Advance sys and controller states
+        sys.DoStepDynamics(time_step);
+        controller.Advance(time_step);
+
+        vis.Render();
     };
 
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop_arg(&opengl::ChOpenGLWindow::WrapRenderStep, (void*)&step_iter, 50, true);
+    emscripten_set_main_loop_arg(&opengl::ChVisualSystemOpenGL::WrapRenderStep, (void*)&step_iter, 50, true);
 #else
-    while (gl_window.Active()) {
+    while (vis.Run()) {
         step_iter();
         realtime_timer.Spin(time_step);
     }

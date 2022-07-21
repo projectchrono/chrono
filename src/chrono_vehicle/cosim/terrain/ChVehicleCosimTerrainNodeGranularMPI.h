@@ -22,11 +22,16 @@
 #ifndef TESTRIG_TERRAIN_NODE_GRANULAR_MPI_H
 #define TESTRIG_TERRAIN_NODE_GRANULAR_MPI_H
 
+#include "chrono/ChConfig.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
+
+#ifdef CHRONO_OPENGL
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#endif
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -111,6 +116,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularMPI : public ChVehicleCosi
     ChSystemDistributed* m_system;  ///< containing system
     bool m_constructed;             ///< system construction completed?
     bool m_proxies_constructed;     ///< proxy bodies created?
+
+#ifdef CHRONO_OPENGL
+    opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
+#endif
 
     int m_sub_rank;  ///< MPI rank within the terrain MPI intracommunicator
 

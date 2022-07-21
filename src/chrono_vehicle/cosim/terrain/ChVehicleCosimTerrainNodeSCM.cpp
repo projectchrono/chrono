@@ -239,7 +239,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     // Create the visualization window
     if (m_render) {
         m_vsys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
-        m_system->SetVisualSystem(m_vsys);
+        m_vsys->AttachSystem(m_system);
         m_vsys->SetCameraVertical(CameraVerticalDir::Z);
         m_vsys->SetWindowSize(1280, 720);
         m_vsys->SetWindowTitle("Terrain Node (SCM)");
@@ -369,7 +369,7 @@ void ChVehicleCosimTerrainNodeSCM::Render(double time) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
     m_vsys->BeginScene();
-    m_vsys->DrawAll();
+    m_vsys->Render();
     irrlicht::tools::drawColorbar(m_vsys.get(), 0, max_sinkage, "Sinkage [m]", 1180);
     m_vsys->EndScene();
 #endif

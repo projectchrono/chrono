@@ -180,7 +180,7 @@ sys.AddLink(link_pulleyDE);
 
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Gears annd pulleys')
 vis.Initialize()
@@ -195,7 +195,7 @@ sys.SetTimestepperType(chrono.ChTimestepper.Type_EULER_IMPLICIT_PROJECTED)
 # Simulation loop
 while vis.Run():
     vis.BeginScene() 
-    vis.DrawAll()
+    vis.Render()
     # Draw some segments for a simplified representation of pulley
     chronoirr.drawSegment(vis,
                           link_pulleyDE.Get_belt_up1(),

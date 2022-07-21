@@ -443,7 +443,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(0.0, 6.0, -10.0));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -471,7 +471,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         // .. draw also a grid
         tools::drawGrid(vis.get(), 1, 1);

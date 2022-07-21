@@ -296,7 +296,7 @@ void ANCFHexaTest::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
-    m_system->SetVisualSystem(vis);
+    vis->AttachSystem(m_system);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("ANCF Hexa 3843");
     vis->Initialize();
@@ -309,7 +309,7 @@ void ANCFHexaTest::SimulateVis() {
         std::cout << "Time(s): " << this->m_system->GetChTime() << "  Corner Pos(m): " << this->GetCornerPointPos()
                   << std::endl;
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(1, 0, 0), ChColor(1, 0, 0));
         irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 1, 0), ChColor(0, 1, 0));
         irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 0, 1), ChColor(0, 0, 1));

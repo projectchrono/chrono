@@ -16,11 +16,16 @@
 
 #include <string>
 
+#include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChParticleCloud.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChSystemFsi.h"
+
+#ifdef CHRONO_OPENGL
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#endif
 
 namespace chrono {
 namespace fsi {
@@ -46,11 +51,9 @@ class CH_FSI_API ChVisualizationFsi {
     ~ChVisualizationFsi();
 
     /// Set title of the visualization window (default: "").
-    /// Must be called before Initialize().
-    void SetTitle(const std::string& title) { m_title = title; }
+    void SetTitle(const std::string& title);
 
     /// Set window dimensions (default: 1280x720).
-    /// Must be called before Initialize().
     void SetSize(int width, int height);
 
     /// Set camera position and target (look at) point.
@@ -111,6 +114,9 @@ class CH_FSI_API ChVisualizationFsi {
     ChSystemFsi* m_systemFSI;  ///< associated Chrono::FSI system
     ChSystem* m_system;        ///< internal Chrono system (holds proxy bodies)
     ChSystem* m_user_system;   ///< optional user-provided system
+#ifdef CHRONO_OPENGL
+    opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
+#endif
 
     double m_radius;           ///< particle visualization radius
     bool m_sph_markers;        ///< render fluid SPH particles?
@@ -120,16 +126,6 @@ class CH_FSI_API ChVisualizationFsi {
 
     std::shared_ptr<ChParticleCloud> m_particles;  ///< particle cloud proxy for SPH markers
     unsigned int m_bce_start_index;                ///< start index of BCE proxy bodies in m_system's body list
-
-    std::string m_title;       ///< visualization window title
-    int m_width;               ///< window width
-    int m_height;              ///< window height
-    ChVector<> m_cam_pos;      ///< current camera position
-    ChVector<> m_cam_target;   ///< current camera look at point
-    ChVector<> m_cam_up;       ///< camera up vector
-    float m_cam_scale;         ///< camera move increment scale
-    RenderMode m_render_mode;  ///< render mode for mesh objects
-    bool m_show_info;          ///< show/hide info overlay
 };
 
 /// @} fsi_utils
