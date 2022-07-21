@@ -44,7 +44,7 @@ class ContactForceTest : public ::testing::TestWithParam<ChContactMethod> {
     double total_weight;
 };
 
-ContactForceTest::ContactForceTest() {
+ContactForceTest::ContactForceTest() : sys(nullptr) {
     bool use_mat_properties = false;
     ChSystemSMC::ContactForceModel force_model = ChSystemSMC::Hooke;
     ChSystemSMC::TangentialDisplacementModel tdispl_model = ChSystemSMC::OneStep;
@@ -60,13 +60,14 @@ ContactForceTest::ContactForceTest() {
     float gt = 0;
 
     std::shared_ptr<ChMaterialSurface> material;
+
     switch (GetParam()) {
         case ChContactMethod::SMC: {
-            ChSystemMulticoreSMC* sys = new ChSystemMulticoreSMC;
-            sys->GetSettings()->solver.contact_force_model = force_model;
-            sys->GetSettings()->solver.tangential_displ_mode = tdispl_model;
-            sys->GetSettings()->solver.use_material_properties = use_mat_properties;
-            sys = sys;
+            ChSystemMulticoreSMC* sysSMC = new ChSystemMulticoreSMC;
+            sysSMC->GetSettings()->solver.contact_force_model = force_model;
+            sysSMC->GetSettings()->solver.tangential_displ_mode = tdispl_model;
+            sysSMC->GetSettings()->solver.use_material_properties = use_mat_properties;
+            sys = sysSMC;
 
             auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             mat->SetYoungModulus(young_modulus);
@@ -82,13 +83,13 @@ ContactForceTest::ContactForceTest() {
             break;
         }
         case ChContactMethod::NSC: {
-            ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC;
-            sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-            sys->GetSettings()->solver.max_iteration_normal = 0;
-            sys->GetSettings()->solver.max_iteration_sliding = 100;
-            sys->GetSettings()->solver.max_iteration_spinning = 0;
-            sys->ChangeSolverType(SolverType::APGD);
-            sys = sys;
+            ChSystemMulticoreNSC* sysNSC = new ChSystemMulticoreNSC;
+            sysNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+            sysNSC->GetSettings()->solver.max_iteration_normal = 0;
+            sysNSC->GetSettings()->solver.max_iteration_sliding = 100;
+            sysNSC->GetSettings()->solver.max_iteration_spinning = 0;
+            sysNSC->ChangeSolverType(SolverType::APGD);
+            sys = sysNSC;
 
             auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             mat->SetRestitution(restitution);
@@ -97,6 +98,9 @@ ContactForceTest::ContactForceTest() {
 
             break;
         }
+
+        default:
+            break;
     }
 
     // Set other sys properties
