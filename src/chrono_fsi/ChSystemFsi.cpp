@@ -840,6 +840,11 @@ void ChSystemFsi::Initialize() {
             const int4& num = m_sysFSI->fsiGeneralData->referenceArray[i];
             cout << "  " << i << ":  " << num.x << " " << num.y << " " << num.z << " " << num.w << endl;
         }
+        cout << "Reference array FEA (size: " << m_sysFSI->fsiGeneralData->referenceArray_FEA.size() << ")" << endl;
+        for (size_t i = 0; i < m_sysFSI->fsiGeneralData->referenceArray_FEA.size(); i++) {
+            const int4& num = m_sysFSI->fsiGeneralData->referenceArray_FEA[i];
+            cout << "  " << i << ":  " << num.x << " " << num.y << " " << num.z << " " << num.w << endl;
+        }
     }
 
     m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI->fsiBodiesD1);
@@ -928,6 +933,9 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
         m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI->fsiBodiesD2);
         m_bce_manager->UpdateRigidMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
+
+        m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
+        m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
     } else {
         // A different coupling scheme is used for implicit SPH formulations
         m_fsi_interface->Copy_ChSystem_to_External();

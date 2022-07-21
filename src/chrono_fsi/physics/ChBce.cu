@@ -614,7 +614,7 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     int haveFlex2D = (numObjectsH->numFlexBodies2D > 0) ? 1 : 0;
 
     int numFlexAndRigidAndBoundaryMarkers =
-        fsiGeneralData->referenceArray[2 + haveHelper + haveGhost + haveRigid + haveFlex1D + haveFlex2D - 1].y -
+        fsiGeneralData->referenceArray[haveHelper + haveGhost + haveRigid + haveFlex1D + haveFlex2D + 1].y -
         fsiGeneralData->referenceArray[haveHelper + haveGhost].y;
 
     if (verbose) {
@@ -642,10 +642,11 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     tauXxYyZz_ModifiedBCE.resize(numFlexAndRigidAndBoundaryMarkers);
     tauXyXzYz_ModifiedBCE.resize(numFlexAndRigidAndBoundaryMarkers);
 
-    // Populate local position of BCE markers
+    // Populate local position of BCE markers - on rigid bodies
     if (haveRigid)
         Populate_RigidSPH_MeshPos_LRF(sphMarkersD, fsiBodiesD, fsiBodyBceNum);
 
+    // Populate local position of BCE markers - on flexible bodies
     if (haveFlex1D || haveFlex2D)
         Populate_FlexSPH_MeshPos_LRF(sphMarkersD, fsiMeshD, fsiShellBceNum, fsiCableBceNum);
 }
@@ -699,11 +700,6 @@ void ChBce::Populate_FlexSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMark
             start_bce = end_bce;
         }
     }
-
-#if 0
-    for (uint i = 0; i < fsiGeneralData->FlexIdentifierD.size(); i++)
-        std::cout << i << "  " << fsiGeneralData->FlexIdentifierD[i] << std::endl;
-#endif
 
     uint nBlocks_numFlex_SphMarkers;
     uint nThreads_SphMarkers;

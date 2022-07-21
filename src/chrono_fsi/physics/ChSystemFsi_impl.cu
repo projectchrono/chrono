@@ -352,8 +352,6 @@ void ChSystemFsi_impl::InitNumObjects() {
 void ChSystemFsi_impl::CalcNumObjects() {
     InitNumObjects();
     size_t rSize = fsiGeneralData->referenceArray.size();
-    bool flagRigid = false;
-    bool flagFlex = false;
 
     for (size_t i = 0; i < rSize; i++) {
         int4 rComp4 = fsiGeneralData->referenceArray[i];
@@ -375,17 +373,14 @@ void ChSystemFsi_impl::CalcNumObjects() {
             case 1:
                 numObjects->numRigidMarkers += numMarkers;
                 numObjects->numRigidBodies++;
-                flagRigid = true;
                 break;
             case 2:
                 numObjects->numFlexMarkers += numMarkers;
                 numObjects->numFlexBodies1D++;
-                flagFlex = true;
                 break;
             case 3:
                 numObjects->numFlexMarkers += numMarkers;
                 numObjects->numFlexBodies2D++;
-                flagFlex = true;
                 break;
             default:
                 std::cerr << "ERROR (CalcNumObjects): particle type not defined." << std::endl;
@@ -398,11 +393,9 @@ void ChSystemFsi_impl::CalcNumObjects() {
     numObjects->numAllMarkers = numObjects->numFluidMarkers + numObjects->numBoundaryMarkers +
                                 numObjects->numRigidMarkers + numObjects->numFlexMarkers;
 
-    numObjects->startRigidMarkers =
-        (flagRigid) ? (numObjects->numFluidMarkers + numObjects->numBoundaryMarkers) : numObjects->numAllMarkers;
-    numObjects->startFlexMarkers =
-        (flagFlex) ? (numObjects->numFluidMarkers + numObjects->numBoundaryMarkers + numObjects->numRigidMarkers)
-                   : numObjects->numAllMarkers;
+    numObjects->startRigidMarkers = numObjects->numFluidMarkers + numObjects->numBoundaryMarkers;
+    numObjects->startFlexMarkers = numObjects->numFluidMarkers + numObjects->numBoundaryMarkers 
+                                 + numObjects->numRigidMarkers;
 }
 
 void ChSystemFsi_impl::ConstructReferenceArray() {
