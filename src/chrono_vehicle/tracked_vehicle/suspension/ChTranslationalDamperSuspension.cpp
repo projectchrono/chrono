@@ -20,17 +20,17 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChPointPointShape.h"
 
-#include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/ChTranslationalDamperSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-ChLinearDamperSuspension::ChLinearDamperSuspension(const std::string& name, bool has_shock, bool lock_arm)
+ChTranslationalDamperSuspension::ChTranslationalDamperSuspension(const std::string& name, bool has_shock, bool lock_arm)
     : ChTrackSuspension(name, has_shock, lock_arm) {}
 
-ChLinearDamperSuspension::~ChLinearDamperSuspension() {
+ChTranslationalDamperSuspension::~ChTranslationalDamperSuspension() {
     auto sys = m_arm->GetSystem();
     if (sys) {
         sys->Remove(m_arm);
@@ -44,9 +44,9 @@ ChLinearDamperSuspension::~ChLinearDamperSuspension() {
 }
 
 // -----------------------------------------------------------------------------
-void ChLinearDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
-                                          const ChVector<>& location,
-                                          ChTrackAssembly* track) {
+void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
+                                                 const ChVector<>& location,
+                                                 ChTrackAssembly* track) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> susp_to_abs(location);
     susp_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
@@ -137,11 +137,11 @@ void ChLinearDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
     ChTrackSuspension::Initialize(chassis, location, track);
 }
 
-void ChLinearDamperSuspension::InitializeInertiaProperties() {
+void ChTranslationalDamperSuspension::InitializeInertiaProperties() {
     m_mass = GetArmMass() + m_road_wheel->GetMass();
 }
 
-void ChLinearDamperSuspension::UpdateInertiaProperties() {
+void ChTranslationalDamperSuspension::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
     // Calculate COM and inertia expressed in global frame
@@ -157,12 +157,12 @@ void ChLinearDamperSuspension::UpdateInertiaProperties() {
     m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
-double ChLinearDamperSuspension::GetCarrierAngle() const {
+double ChTranslationalDamperSuspension::GetCarrierAngle() const {
     return m_spring->GetAngle();
 }
 
 // -----------------------------------------------------------------------------
-ChTrackSuspension::ForceTorque ChLinearDamperSuspension::ReportSuspensionForce() const {
+ChTrackSuspension::ForceTorque ChTranslationalDamperSuspension::ReportSuspensionForce() const {
     ChTrackSuspension::ForceTorque force;
 
     force.spring_ft = m_spring->GetTorque();
@@ -189,7 +189,7 @@ ChTrackSuspension::ForceTorque ChLinearDamperSuspension::ReportSuspensionForce()
 }
 
 // -----------------------------------------------------------------------------
-void ChLinearDamperSuspension::AddVisualizationAssets(VisualizationType vis) {
+void ChTranslationalDamperSuspension::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
@@ -245,14 +245,14 @@ void ChLinearDamperSuspension::AddVisualizationAssets(VisualizationType vis) {
     }
 }
 
-void ChLinearDamperSuspension::RemoveVisualizationAssets() {
+void ChTranslationalDamperSuspension::RemoveVisualizationAssets() {
     ChPart::RemoveVisualizationAssets(m_arm);
     if (m_has_shock)
         ChPart::RemoveVisualizationAssets(m_shock);
 }
 
 // -----------------------------------------------------------------------------
-void ChLinearDamperSuspension::LogConstraintViolations() {
+void ChTranslationalDamperSuspension::LogConstraintViolations() {
     ChVectorDynamic<> C = m_joint->GetConstraintViolation();
     GetLog() << "  Arm-chassis joint\n";
     GetLog() << "  " << C(0) << "  ";
@@ -265,7 +265,7 @@ void ChLinearDamperSuspension::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-void ChLinearDamperSuspension::ExportComponentList(rapidjson::Document& jsonDocument) const {
+void ChTranslationalDamperSuspension::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChTrackSuspension::ExportComponentList(jsonDocument);
 
     std::vector<std::shared_ptr<ChBody>> bodies;
@@ -291,7 +291,7 @@ void ChLinearDamperSuspension::ExportComponentList(rapidjson::Document& jsonDocu
     }
 }
 
-void ChLinearDamperSuspension::Output(ChVehicleOutput& database) const {
+void ChTranslationalDamperSuspension::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 

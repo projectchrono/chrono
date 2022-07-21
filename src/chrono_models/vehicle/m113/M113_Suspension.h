@@ -22,7 +22,7 @@
 #include <string>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/ChTranslationalDamperSuspension.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -34,7 +34,7 @@ namespace m113 {
 /// @{
 
 /// Linear-damper M113 track suspension.
-class CH_MODELS_API M113_Suspension : public ChLinearDamperSuspension {
+class CH_MODELS_API M113_Suspension : public ChTranslationalDamperSuspension {
   public:
     M113_Suspension(const std::string& name, VehicleSide side, int index, bool use_bushings, bool has_shock);
     ~M113_Suspension();

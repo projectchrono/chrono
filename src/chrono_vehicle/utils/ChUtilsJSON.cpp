@@ -77,7 +77,7 @@
 #include "chrono_vehicle/tracked_vehicle/idler/DistanceIdler.h"
 #include "chrono_vehicle/tracked_vehicle/track_wheel/DoubleTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/track_wheel/SingleTrackWheel.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/TranslationalDamperSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/suspension/RotationalDamperSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h"
@@ -704,8 +704,8 @@ std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const std::string& fi
     std::string subtype = d["Template"].GetString();
 
     // Create the track suspension using the appropriate template.
-    if (subtype.compare("LinearDamperSuspension") == 0) {
-        suspension = chrono_types::make_shared<LinearDamperSuspension>(d, has_shock, lock_arm);
+    if (subtype.compare("TranslationalDamperSuspension") == 0) {
+        suspension = chrono_types::make_shared<TranslationalDamperSuspension>(d, has_shock, lock_arm);
     } else if (subtype.compare("RotationalDamperSuspension") == 0) {
         suspension = chrono_types::make_shared<RotationalDamperSuspension>(d, has_shock, lock_arm);
     } else {

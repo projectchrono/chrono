@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/TranslationalDamperSuspension.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -29,8 +29,8 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-LinearDamperSuspension::LinearDamperSuspension(const std::string& filename, bool has_shock, bool lock_arm)
-    : ChLinearDamperSuspension("", has_shock, lock_arm), m_spring_torqueCB(nullptr), m_shock_forceCB(nullptr) {
+TranslationalDamperSuspension::TranslationalDamperSuspension(const std::string& filename, bool has_shock, bool lock_arm)
+    : ChTranslationalDamperSuspension("", has_shock, lock_arm), m_spring_torqueCB(nullptr), m_shock_forceCB(nullptr) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -41,14 +41,14 @@ LinearDamperSuspension::LinearDamperSuspension(const std::string& filename, bool
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-LinearDamperSuspension::LinearDamperSuspension(const rapidjson::Document& d, bool has_shock, bool lock_arm)
-    : ChLinearDamperSuspension("", has_shock, lock_arm), m_spring_torqueCB(nullptr), m_shock_forceCB(nullptr) {
+TranslationalDamperSuspension::TranslationalDamperSuspension(const rapidjson::Document& d, bool has_shock, bool lock_arm)
+    : ChTranslationalDamperSuspension("", has_shock, lock_arm), m_spring_torqueCB(nullptr), m_shock_forceCB(nullptr) {
     Create(d);
 }
 
-LinearDamperSuspension::~LinearDamperSuspension() {}
+TranslationalDamperSuspension::~TranslationalDamperSuspension() {}
 
-void LinearDamperSuspension::Create(const rapidjson::Document& d) {
+void TranslationalDamperSuspension::Create(const rapidjson::Document& d) {
     // Invoke base class method.
     ChPart::Create(d);
 

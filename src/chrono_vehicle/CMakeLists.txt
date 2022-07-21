@@ -673,13 +673,13 @@ set(CV_TV_SPROCKET_FILES
 source_group("tracked_vehicle\\sprocket" FILES ${CV_TV_SPROCKET_FILES})
 
 set(CV_TV_SUSPENSION_FILES
-    tracked_vehicle/suspension/ChLinearDamperSuspension.h
-    tracked_vehicle/suspension/ChLinearDamperSuspension.cpp
+    tracked_vehicle/suspension/ChTranslationalDamperSuspension.h
+    tracked_vehicle/suspension/ChTranslationalDamperSuspension.cpp
     tracked_vehicle/suspension/ChRotationalDamperSuspension.h
     tracked_vehicle/suspension/ChRotationalDamperSuspension.cpp
 
-    tracked_vehicle/suspension/LinearDamperSuspension.h
-    tracked_vehicle/suspension/LinearDamperSuspension.cpp
+    tracked_vehicle/suspension/TranslationalDamperSuspension.h
+    tracked_vehicle/suspension/TranslationalDamperSuspension.cpp
     tracked_vehicle/suspension/RotationalDamperSuspension.h
     tracked_vehicle/suspension/RotationalDamperSuspension.cpp
 )

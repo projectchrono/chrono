@@ -17,11 +17,11 @@
 //
 // =============================================================================
 
-#ifndef LINEAR_DAMPER_SUSPENSION_H
-#define LINEAR_DAMPER_SUSPENSION_H
+#ifndef TRANSLATIONAL_DAMPER_SUSPENSION_H
+#define TRANSLATIONAL_DAMPER_SUSPENSION_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/ChTranslationalDamperSuspension.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -33,11 +33,11 @@ namespace vehicle {
 
 /// Torsion-bar suspension system using linear dampers constructed with data from
 /// file (JSON format)
-class CH_VEHICLE_API LinearDamperSuspension : public ChLinearDamperSuspension {
+class CH_VEHICLE_API TranslationalDamperSuspension : public ChTranslationalDamperSuspension {
   public:
-    LinearDamperSuspension(const std::string& filename, bool has_shock, bool lock_arm);
-    LinearDamperSuspension(const rapidjson::Document& d, bool has_shock, bool lock_arm);
-    ~LinearDamperSuspension();
+    TranslationalDamperSuspension(const std::string& filename, bool has_shock, bool lock_arm);
+    TranslationalDamperSuspension(const rapidjson::Document& d, bool has_shock, bool lock_arm);
+    ~TranslationalDamperSuspension();
 
     /// Return the mass of the arm body.
     virtual double GetArmMass() const override { return m_arm_mass; }

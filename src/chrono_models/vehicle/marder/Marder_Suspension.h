@@ -22,7 +22,7 @@
 #include <string>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/ChTranslationalDamperSuspension.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -34,7 +34,7 @@ namespace marder {
 /// @{
 
 /// Linear-damper Marder track suspension.
-class CH_MODELS_API Marder_Suspension : public ChLinearDamperSuspension {
+class CH_MODELS_API Marder_Suspension : public ChTranslationalDamperSuspension {
   public:
     Marder_Suspension(const std::string& name, VehicleSide side, int index, bool has_shock);
     ~Marder_Suspension();

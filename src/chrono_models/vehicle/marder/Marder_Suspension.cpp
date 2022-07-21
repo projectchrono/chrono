@@ -76,7 +76,7 @@ class Marder_ShockForce : public ChLinkTSDA::ForceFunctor {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Marder_Suspension::Marder_Suspension(const std::string& name, VehicleSide side, int index, bool has_shock)
-    : ChLinearDamperSuspension(name, has_shock), m_side(side) {
+    : ChTranslationalDamperSuspension(name, has_shock), m_side(side) {
     // Instantiate the force callback for the shock (damper).
     m_shock_forceCB = chrono_types::make_shared<Marder_ShockForce>(m_shock_c);
 

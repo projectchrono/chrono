@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef CH_LINEAR_DAMPER_SUSPENSION_H
-#define CH_LINEAR_DAMPER_SUSPENSION_H
+#ifndef CH_TRANSLATIONAL_DAMPER_SUSPENSION_H
+#define CH_TRANSLATIONAL_DAMPER_SUSPENSION_H
 
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkTSDA.h"
@@ -36,17 +36,17 @@ namespace vehicle {
 /// @{
 
 /// Base class for a torsion-bar suspension system using linear dampers (template definition).
-class CH_VEHICLE_API ChLinearDamperSuspension : public ChTrackSuspension {
+class CH_VEHICLE_API ChTranslationalDamperSuspension : public ChTrackSuspension {
   public:
-    ChLinearDamperSuspension(const std::string& name,  ///< [in] name of the subsystem
-                             bool has_shock = true,    ///< [in] specify whether or not the suspension has a damper
-                             bool lock_arm = false     ///< [in] if true, the suspension arm is locked
+    ChTranslationalDamperSuspension(const std::string& name,  ///< [in] name of the subsystem
+                                    bool has_shock = true,  ///< [in] specify whether or not the suspension has a damper
+                                    bool lock_arm = false   ///< [in] if true, the suspension arm is locked
     );
 
-    virtual ~ChLinearDamperSuspension();
+    virtual ~ChTranslationalDamperSuspension();
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "LinearDamperSuspension"; }
+    virtual std::string GetTemplateName() const override { return "TranslationalDamperSuspension"; }
 
     /// Get a handle to the carrier body.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_arm; }
@@ -68,7 +68,7 @@ class CH_VEHICLE_API ChLinearDamperSuspension : public ChTrackSuspension {
                             ) override;
 
     /// Return current suspension forces or torques, as appropriate (spring and shock).
-    /// A ChLinearDamperSuspension returns a torque for the spring and a force for the damper.
+    /// A ChTranslationalDamperSuspension returns a torque for the spring and a force for the damper.
     virtual ForceTorque ReportSuspensionForce() const override;
 
     /// Add visualization assets for the suspension subsystem.

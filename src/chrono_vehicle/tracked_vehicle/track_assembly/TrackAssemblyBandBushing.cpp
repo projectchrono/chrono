@@ -26,7 +26,7 @@
 #include "chrono_vehicle/tracked_vehicle/idler/TranslationalIdler.h"
 //#include "chrono_vehicle/tracked_vehicle/idler/DistanceIdler.h"
 
-#include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/TranslationalDamperSuspension.h"
 
 #include "chrono_vehicle/tracked_vehicle/track_wheel/DoubleTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/track_wheel/SingleTrackWheel.h"
