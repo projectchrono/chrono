@@ -53,11 +53,12 @@ class CH_MODELS_API M113_Suspension : public ChLinearDamperSuspension {
     /// Return bushing data.
     virtual std::shared_ptr<ChVehicleBushingData> getArmBushingData() const override { return m_bushing_data; }
 
+    /// Return the free (rest) angle of the spring element.
+    virtual double GetSpringRestAngle() const override { return 0; }
     /// Return the functor object for the torsional spring torque.
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetSpringTorqueFunctor() const override {
         return m_spring_torqueCB;
     }
-
     /// Return the functor object for the translational shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetShockForceFunctor() const override { return m_shock_forceCB; }
 

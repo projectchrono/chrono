@@ -50,11 +50,12 @@ class CH_MODELS_API Marder_Suspension : public ChLinearDamperSuspension {
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
+    /// Return the free (rest) angle of the spring element.
+    virtual double GetSpringRestAngle() const override { return 0; }
     /// Return the functor object for the torsional spring torque.
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetSpringTorqueFunctor() const override {
         return m_spring_torqueCB;
     }
-
     /// Return the functor object for the translational shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetShockForceFunctor() const override { return m_shock_forceCB; }
 

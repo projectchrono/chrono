@@ -102,9 +102,10 @@ class CH_VEHICLE_API ChRotationalDamperSuspension : public ChTrackSuspension {
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const = 0;
 
+    /// Return the free (rest) angle of the spring element.
+    virtual double GetSpringRestAngle() const = 0;
     /// Return the functor object for the torsional spring torque.
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetSpringTorqueFunctor() const = 0;
-
     /// Return the functor object for the rotational shock force.
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetShockTorqueCallback() const = 0;
 

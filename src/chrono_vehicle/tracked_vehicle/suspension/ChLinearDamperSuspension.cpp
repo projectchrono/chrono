@@ -36,6 +36,8 @@ ChLinearDamperSuspension::~ChLinearDamperSuspension() {
         sys->Remove(m_arm);
         ChChassis::RemoveJoint(m_joint);
         sys->Remove(m_spring);
+        if (m_damper)
+            sys->Remove(m_damper);
         if (m_shock)
             sys->Remove(m_shock);
     }
@@ -107,8 +109,19 @@ void ChLinearDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
     m_spring = chrono_types::make_shared<ChLinkRSDA>();
     m_spring->SetNameString(m_name + "_spring");
     m_spring->Initialize(chassis->GetBody(), m_arm, ChCoordsys<>(points[ARM_CHASSIS], z2y));
+    m_spring->SetRestAngle(GetSpringRestAngle());
     m_spring->RegisterTorqueFunctor(GetSpringTorqueFunctor());
     chassis->GetSystem()->AddLink(m_spring);
+
+    // Create and initialize the (optional) rotational damper torque element.
+    // The reference RSDA frame is aligned with the chassis frame.
+    if (GetDamperTorqueFunctor()) {
+        m_damper = chrono_types::make_shared<ChLinkRSDA>();
+        m_damper->SetNameString(m_name + "_damper");
+        m_damper->Initialize(chassis->GetBody(), m_arm, ChCoordsys<>(points[ARM_CHASSIS], z2y));
+        m_damper->RegisterTorqueFunctor(GetDamperTorqueFunctor());
+        chassis->GetSystem()->AddLink(m_damper);
+    }
 
     // Create and initialize the translational shock force element.
     if (m_has_shock) {
@@ -155,6 +168,12 @@ ChTrackSuspension::ForceTorque ChLinearDamperSuspension::ReportSuspensionForce()
     force.spring_ft = m_spring->GetTorque();
     force.spring_displ = m_spring->GetAngle();
     force.spring_velocity = m_spring->GetVelocity();
+
+    if (m_damper) {
+        force.spring_ft += m_damper->GetTorque();
+        force.spring_displ += m_damper->GetAngle();
+        force.spring_velocity += m_damper->GetVelocity();
+    }
 
     if (m_has_shock) {
         force.shock_ft = m_shock->GetForce();
@@ -261,6 +280,8 @@ void ChLinearDamperSuspension::ExportComponentList(rapidjson::Document& jsonDocu
 
     std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
     rot_springs.push_back(m_spring);
+    if (m_damper)
+        rot_springs.push_back(m_damper);
     ChPart::ExportRotSpringList(jsonDocument, rot_springs);
 
     if (m_has_shock) {
@@ -286,6 +307,8 @@ void ChLinearDamperSuspension::Output(ChVehicleOutput& database) const {
 
     std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
     rot_springs.push_back(m_spring);
+    if (m_damper)
+        rot_springs.push_back(m_damper);
     database.WriteRotSprings(rot_springs);
 
     if (m_has_shock) {

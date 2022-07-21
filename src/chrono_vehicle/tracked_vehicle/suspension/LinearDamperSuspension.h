@@ -46,11 +46,16 @@ class CH_VEHICLE_API LinearDamperSuspension : public ChLinearDamperSuspension {
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
+    /// Return the free (rest) angle of the spring element.
+    virtual double GetSpringRestAngle() const override { return m_spring_rest_angle; }
     /// Return the functor object for the torsional spring torque.
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetSpringTorqueFunctor() const override {
         return m_spring_torqueCB;
     }
-
+    /// Return the functor object for the (optional) linear rotational damper.
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetDamperTorqueFunctor() const override {
+        return m_damper_torqueCB;
+    }
     /// Return the functor object for the translational shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetShockForceFunctor() const override { return m_shock_forceCB; }
 
@@ -59,7 +64,9 @@ class CH_VEHICLE_API LinearDamperSuspension : public ChLinearDamperSuspension {
 
     virtual void Create(const rapidjson::Document& d) override;
 
+    double m_spring_rest_angle;
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_spring_torqueCB;
+    std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_damper_torqueCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shock_forceCB;
 
     ChVector<> m_points[NUM_POINTS];

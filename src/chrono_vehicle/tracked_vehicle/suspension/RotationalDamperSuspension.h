@@ -46,11 +46,12 @@ class CH_VEHICLE_API RotationalDamperSuspension : public ChRotationalDamperSuspe
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
+    /// Return the free (rest) angle of the spring element.
+    virtual double GetSpringRestAngle() const override { return m_spring_rest_angle; }
     /// Return the functor object for the torsional spring torque.
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetSpringTorqueFunctor() const override {
         return m_spring_torqueCB;
     }
-
     /// Return the functor object for the torsional shock force.
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetShockTorqueCallback() const override {
         return m_shock_torqueCB;
@@ -61,6 +62,7 @@ class CH_VEHICLE_API RotationalDamperSuspension : public ChRotationalDamperSuspe
 
     virtual void Create(const rapidjson::Document& d) override;
 
+    double m_spring_rest_angle;
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_spring_torqueCB;
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_shock_torqueCB;
 

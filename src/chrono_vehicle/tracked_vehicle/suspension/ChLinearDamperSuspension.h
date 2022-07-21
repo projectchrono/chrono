@@ -105,9 +105,12 @@ class CH_VEHICLE_API ChLinearDamperSuspension : public ChTrackSuspension {
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const = 0;
 
+    /// Return the free (rest) angle of the spring element.
+    virtual double GetSpringRestAngle() const = 0;
     /// Return the functor object for the torsional spring torque.
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetSpringTorqueFunctor() const = 0;
-
+    /// Return the functor object for the (optional) linear rotational damper.
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetDamperTorqueFunctor() const { return nullptr; }
     /// Return the functor object for the translational shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetShockForceFunctor() const = 0;
 
@@ -121,8 +124,9 @@ class CH_VEHICLE_API ChLinearDamperSuspension : public ChTrackSuspension {
 
     std::shared_ptr<ChBody> m_arm;            ///< trailing arm body
     std::shared_ptr<ChVehicleJoint> m_joint;  ///< joint arm-chassis
-    std::shared_ptr<ChLinkRSDA> m_spring;     ///< rotational spring link
-    std::shared_ptr<ChLinkTSDA> m_shock;      ///< translational shock link
+    std::shared_ptr<ChLinkRSDA> m_spring;     ///< rotational spring
+    std::shared_ptr<ChLinkRSDA> m_damper;     ///< optional rotational damper
+    std::shared_ptr<ChLinkTSDA> m_shock;      ///< translational shock element
 
   private:
     // Points for arm visualization
