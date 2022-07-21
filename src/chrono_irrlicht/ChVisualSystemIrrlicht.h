@@ -12,6 +12,9 @@
 // Radu Serban, Alessandro Tasora
 // =============================================================================
 
+//// RADU TODO
+//// Allow attaching more than one ChSystem to the same Irrlicht visualization
+
 #ifndef CH_VISUAL_SYSTEM_IRRLICHT_H
 #define CH_VISUAL_SYSTEM_IRRLICHT_H
 
@@ -45,6 +48,10 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
   public:
     ChVisualSystemIrrlicht();
     virtual ~ChVisualSystemIrrlicht();
+
+    /// Attach another Chrono system to the run-time visualization system.
+    /// Currently only the first associated Chrono system is rendered. 
+    virtual void AttachSystem(ChSystem* sys) override;
 
     /// Enable/disable antialias (default true).
     /// Must be called before Initialize().
@@ -223,9 +230,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Draw all 3D shapes and GUI elements at the current frame.
     /// This function is typically called inside a loop such as
     /// <pre>
-    ///    while(vis->GetDevice()->run()) {...}
+    ///    while(vis->Run()) {...}
     /// </pre>
-    virtual void DrawAll();
+    virtual void Render();
 
     /// End the scene draw at the end of each animation frame.
     virtual void EndScene();
@@ -252,17 +259,14 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Add shadow to an Irrlicht node.
     void AddShadowToIrrNode(irr::scene::ISceneNode* node);
 
-    /// Perform any necessary operations when the visualization system is attached to a ChSystem.
-    virtual void OnAttach() override;
-
     /// Perform necessary setup operations at the beginning of a time step.
-    virtual void OnSetup() override;
+    virtual void OnSetup(ChSystem* sys) override;
 
     /// Perform necessary update operations at the end of a time step.
-    virtual void OnUpdate() override;
+    virtual void OnUpdate(ChSystem* sys) override;
 
     /// Remove all visualization objects from this visualization system.
-    virtual void OnClear() override;
+    virtual void OnClear(ChSystem* sys) override;
 
     std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;
 

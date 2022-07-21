@@ -164,7 +164,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
         m_vis->AddCamera(ChVector<>(2, 1.4, 1));
         m_vis->AddTypicalLights();
 
-        m_system->SetVisualSystem(m_vis);
+        m_vis->AttachSystem(m_system);
     }
 #endif
 }
@@ -184,7 +184,7 @@ void MyTerrain::Render(double time) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
     m_vis->BeginScene();
-    m_vis->DrawAll();
+    m_vis->Render();
     m_vis->EndScene();
 #endif
 }

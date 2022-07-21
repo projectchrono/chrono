@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Actuated prismatic joint");
     vis->Initialize();
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
         ////std::cout << time << "   " << x << " " << x_d << "   " << xa << " " << xa_d << std::endl;
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(timestep);
         realtime_timer.Spin(timestep);

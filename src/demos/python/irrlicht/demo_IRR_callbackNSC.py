@@ -154,7 +154,7 @@ sys.AddBody(box2)
 # -------------------------------
 
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('NSC callbacks')
 vis.Initialize()
@@ -174,7 +174,7 @@ sys.GetContactContainer().RegisterAddContactCallback(cmaterial)
 
 while vis.Run():
     vis.BeginScene() 
-    vis.DrawAll()
+    vis.Render()
     chronoirr.drawGrid(vis, 0.5, 0.5, 12, 12,
                        chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
     chronoirr.drawAllCOGs(vis, 1.0)

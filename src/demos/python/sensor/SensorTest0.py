@@ -67,7 +67,7 @@ sys.Add(mlink)
 
 #  Create an Irrlicht application to visualize the system
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('PyChrono example')
 vis.Initialize()
@@ -113,7 +113,7 @@ manager.AddSensor(imu)
 
 while vis.Run():
     vis.BeginScene()
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
 
     sys.DoStepDynamics(5e-3)

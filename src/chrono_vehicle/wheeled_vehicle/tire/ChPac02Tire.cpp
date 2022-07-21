@@ -38,7 +38,7 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
       m_alpha(0),
       m_gamma(0),
       m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
-      m_use_friction_ellipsis(false),
+      m_use_friction_ellipsis(true),
       m_mu(0),
       m_Shf(0),
       m_measured_side(LEFT),

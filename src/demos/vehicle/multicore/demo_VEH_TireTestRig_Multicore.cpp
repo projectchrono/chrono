@@ -19,7 +19,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 //
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 //
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 //
@@ -31,32 +31,32 @@ using namespace chrono;
 using namespace chrono::vehicle;
 
 int main() {
-    // Create system
+    // Create sys
     // -------------
 
-    ChSystemMulticoreNSC system;
+    ChSystemMulticoreNSC sys;
     double step_size = 5e-3;
     double tire_step_size = 1e-4;
-    system.ChangeSolverType(SolverType::APGD);
+    sys.ChangeSolverType(SolverType::APGD);
 
-    ////ChSystemMulticoreSMC system;
+    ////ChSystemMulticoreSMC sys;
     ////double step_size = 1e-4;
     ////double tire_step_size = 1e-4;
 
-    system.SetNumThreads(8);
+    sys.SetNumThreads(8);
 
-    system.GetSettings()->solver.tolerance = 1e-5;
-    system.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-    system.GetSettings()->solver.max_iteration_normal = 0;
-    system.GetSettings()->solver.max_iteration_sliding = 150;
-    system.GetSettings()->solver.max_iteration_spinning = 0;
-    system.GetSettings()->solver.max_iteration_bilateral = 50;
-    system.GetSettings()->solver.compute_N = false;
-    system.GetSettings()->solver.alpha = 0;
-    system.GetSettings()->solver.cache_step_length = true;
-    system.GetSettings()->solver.use_full_inertia_tensor = false;
-    system.GetSettings()->solver.contact_recovery_speed = 1000;
-    system.GetSettings()->solver.bilateral_clamp_speed = 1e8;
+    sys.GetSettings()->solver.tolerance = 1e-5;
+    sys.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+    sys.GetSettings()->solver.max_iteration_normal = 0;
+    sys.GetSettings()->solver.max_iteration_sliding = 150;
+    sys.GetSettings()->solver.max_iteration_spinning = 0;
+    sys.GetSettings()->solver.max_iteration_bilateral = 50;
+    sys.GetSettings()->solver.compute_N = false;
+    sys.GetSettings()->solver.alpha = 0;
+    sys.GetSettings()->solver.cache_step_length = true;
+    sys.GetSettings()->solver.use_full_inertia_tensor = false;
+    sys.GetSettings()->solver.contact_recovery_speed = 1000;
+    sys.GetSettings()->solver.bilateral_clamp_speed = 1e8;
 
     // Create wheel and tire subsystems
     // --------------------------------
@@ -67,7 +67,7 @@ int main() {
     // Create and configure test rig
     // -----------------------------
 
-    ChTireTestRig rig(wheel, tire, &system);
+    ChTireTestRig rig(wheel, tire, &sys);
 
     ////rig.SetGravitationalAcceleration(0);
     rig.SetNormalLoad(2000);
@@ -89,16 +89,16 @@ int main() {
     double collision_envelope;
     ChVector<int> collision_bins;
     rig.GetSuggestedCollisionSettings(collision_envelope, collision_bins);
-    system.GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
-    system.GetSettings()->collision.broadphase_grid = collision::ChBroadphase::GridType::FIXED_RESOLUTION;
-    system.GetSettings()->collision.bins_per_axis = vec3(collision_bins.x(), collision_bins.y(), collision_bins.z());
+    sys.GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
+    sys.GetSettings()->collision.broadphase_grid = collision::ChBroadphase::GridType::FIXED_RESOLUTION;
+    sys.GetSettings()->collision.bins_per_axis = vec3(collision_bins.x(), collision_bins.y(), collision_bins.z());
 
-    switch (system.GetContactMethod()) {
+    switch (sys.GetContactMethod()) {
         case ChContactMethod::NSC:
-            system.GetSettings()->collision.collision_envelope = collision_envelope;
+            sys.GetSettings()->collision.collision_envelope = collision_envelope;
             break;
         case ChContactMethod::SMC:
-            system.GetSettings()->collision.collision_envelope = 0;
+            sys.GetSettings()->collision.collision_envelope = 0;
             break;
     }
 
@@ -136,27 +136,30 @@ int main() {
     // Initialize OpenGL
     // -----------------
 
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(&system);
-    gl_window.Initialize(1280, 720, "Granular terrain demo");
-    gl_window.SetCamera(ChVector<>(0, 3, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
-    gl_window.SetRenderMode(opengl::SOLID);
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(&sys);
+    vis.SetWindowTitle("Granular terrain demo");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::SOLID);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(0, 3, 0), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // Perform the simulation
     // ----------------------
 
-    while (gl_window.Active()) {
+    while (vis.Run()) {
         rig.Advance(step_size);
 
         double body_x = rig.GetPos().x();
         double buffer_dist = 0;
         ChVector<> cam_loc(body_x + buffer_dist, 3, -0.5);
         ChVector<> cam_point(body_x + buffer_dist, 0, -0.5);
-        gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
-        gl_window.Render();
+        vis.SetCameraPosition(cam_loc, cam_point);
+        vis.Render();
 
-        ////system.GetContactContainer()->ComputeContactForces();
-        ////std::cout << system.GetChTime() << std::endl;
+        ////sys.GetContactContainer()->ComputeContactForces();
+        ////std::cout << sys.GetChTime() << std::endl;
         ////auto long_slip = tire->GetLongitudinalSlip();
         ////auto slip_angle = tire->GetSlipAngle();
         ////auto camber_angle = tire->GetCamberAngle();

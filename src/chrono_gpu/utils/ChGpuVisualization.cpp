@@ -19,7 +19,7 @@
 #include "chrono_gpu/utils/ChGpuVisualization.h"
 
 #ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 namespace chrono {
@@ -28,34 +28,59 @@ namespace gpu {
 ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU)
     : m_systemGPU(sysGPU),
       m_user_system(nullptr),
-      m_title(""),
-      m_cam_pos(0, -3, 0),
-      m_cam_target(0, 0, 0),
-      m_cam_up(0, 0, 1),
-      m_cam_scale(0.1f),
       m_part_start_index(0) {
 #ifdef CHRONO_OPENGL
     m_system = new ChSystemSMC();
+
+    m_vsys = new opengl::ChVisualSystemOpenGL();
+    m_vsys->AttachSystem(m_system);
+    m_vsys->SetWindowTitle("");
+    m_vsys->SetWindowSize(1280, 720);
+    m_vsys->SetCameraProperties(0.1f);
+    m_vsys->SetRenderMode(opengl::WIREFRAME);
+    m_vsys->SetCameraPosition(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+    m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
+    m_vsys->EnableStats(false);
 #else
+    m_system = nullptr;
+    m_vsys = nullptr;
     std::cout << "\nWARNING! Chrono::OpenGL not available.  Visualization disabled!\n" << std::endl;
 #endif
 }
 
 ChGpuVisualization::~ChGpuVisualization() {
+    delete m_vsys;
     delete m_system;
 }
 
+void ChGpuVisualization::SetSize(int width, int height) {
+#ifdef CHRONO_OPENGL
+    m_vsys->SetWindowSize(width, height);
+#endif
+}
+
+void ChGpuVisualization::SetTitle(const std::string& title) {
+#ifdef CHRONO_OPENGL
+    m_vsys->SetWindowTitle("");
+#endif
+}
+
 void ChGpuVisualization::SetCameraPosition(const ChVector<>& pos, const ChVector<>& target) {
-    m_cam_pos = pos;
-    m_cam_target = target;
+#ifdef CHRONO_OPENGL
+    m_vsys->SetCameraPosition(pos, target);
+#endif
 }
 
 void ChGpuVisualization::SetCameraUpVector(const ChVector<>& up) {
-    m_cam_up = up;
+#ifdef CHRONO_OPENGL
+    m_vsys->SetCameraVertical(up);
+#endif
 }
 
 void ChGpuVisualization::SetCameraMoveScale(float scale) {
-    m_cam_scale = scale;
+#ifdef CHRONO_OPENGL
+    m_vsys->SetCameraProperties(scale);
+#endif
 }
 
 void ChGpuVisualization::AddProxyBody(std::shared_ptr<ChBody> body) {
@@ -81,13 +106,10 @@ void ChGpuVisualization::Initialize() {
         m_system->AddBody(body);
     }
 
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(m_system);
     if (m_user_system)
-        gl_window.AttachSystem(m_user_system);
-    gl_window.Initialize(1280, 720, m_title.c_str());
-    gl_window.SetCamera(m_cam_pos, m_cam_target, m_cam_up, m_cam_scale);
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+        m_vsys->AttachSystem(m_user_system);
+
+    m_vsys->Initialize();
 #endif
 }
 
@@ -96,14 +118,13 @@ bool ChGpuVisualization::Render() {
     // Only for display in OpenGL window
     m_system->SetChTime(m_systemGPU->GetSimTime());
 
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    if (gl_window.Active()) {
+    if (m_vsys->Run()) {
         const auto& blist = m_system->Get_bodylist();
         for (unsigned int i = 0; i < m_systemGPU->GetNumParticles(); i++) {
             auto pos = m_systemGPU->GetParticlePosition(i);
             blist[m_part_start_index + i]->SetPos(pos);
         }
-        gl_window.Render();
+        m_vsys->Render();
         return true;
     }
     return false;  // rendering stopped

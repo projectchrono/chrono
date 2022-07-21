@@ -34,10 +34,6 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChOpenGLWindow.h"
-#endif
-
 using std::cout;
 using std::endl;
 
@@ -70,6 +66,11 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
 
     // Set number of threads
     m_system->SetNumThreads(1);
+
+    // Create OpenGL visualization system
+#ifdef CHRONO_OPENGL
+    m_vsys = new opengl::ChVisualSystemOpenGL;
+#endif
 }
 
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile)
@@ -86,6 +87,19 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const
 
     // Read SPH granular terrain parameters from provided specfile
     SetFromSpecfile(specfile);
+
+    // Create OpenGL visualization system
+#ifdef CHRONO_OPENGL
+    m_vsys = new opengl::ChVisualSystemOpenGL;
+#endif
+}
+
+ChVehicleCosimTerrainNodeGranularSPH::~ChVehicleCosimTerrainNodeGranularSPH() {
+    delete m_systemFSI;
+    delete m_system;
+#ifdef CHRONO_OPENGL
+    delete m_vsys;
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -107,11 +121,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& sp
 
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     m_systemFSI->ReadParametersFromFile(specfile);
-}
-
-ChVehicleCosimTerrainNodeGranularSPH::~ChVehicleCosimTerrainNodeGranularSPH() {
-    delete m_systemFSI;
-    delete m_system;
 }
 
 void ChVehicleCosimTerrainNodeGranularSPH::SetGranularMaterial(double radius, double density) {
@@ -259,11 +268,14 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
     // Create the visualization window
     if (m_render) {
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.AttachSystem(m_system);
-        gl_window.Initialize(1280, 720, "Terrain Node (GranularSPH)");
-        gl_window.SetCamera(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
-        gl_window.SetRenderMode(opengl::WIREFRAME);
+        m_vsys->AttachSystem(m_system);
+        m_vsys->SetWindowTitle("Terrain Node (GranularSPH)");
+        m_vsys->SetWindowSize(1280, 720);
+        m_vsys->SetRenderMode(opengl::WIREFRAME);
+        m_vsys->Initialize();
+        m_vsys->SetCameraPosition(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0));
+        m_vsys->SetCameraProperties(0.05f);
+        m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     }
 #endif
 
@@ -364,13 +376,12 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnAdvance(double step_size) {
 
 void ChVehicleCosimTerrainNodeGranularSPH::Render(double time) {
 #ifdef CHRONO_OPENGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    if (gl_window.Active()) {
+    if (m_vsys->Run()) {
         const auto& proxies = m_proxies[0];  // proxies for first tire
         ChVector<> cam_point = proxies[0].m_body->GetPos();
         ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
-        gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
-        gl_window.Render();
+        m_vsys->SetCameraPosition(cam_loc, cam_point);
+        m_vsys->Render();
     } else {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }

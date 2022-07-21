@@ -49,7 +49,7 @@ class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
         mattransp.Lighting = false;
         m_vis->GetVideoDriver()->setMaterial(mattransp);
 
-        m_vis->GetSystem().GetCollisionSystem()->Visualize(flags);
+        m_vis->GetSystem(0).GetCollisionSystem()->Visualize(flags);
     }
 
   private:
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Collision visualization demo");
     vis->Initialize();
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         drawer->Draw(mode, use_zbuffer);
         vis->EndScene();
         sys.DoStepDynamics(timestep);

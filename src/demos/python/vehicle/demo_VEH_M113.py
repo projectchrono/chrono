@@ -75,7 +75,6 @@ def main():
     # -------------------------------------
 
     vis = veh.ChTrackedVehicleVisualSystemIrrlicht()
-    m113.GetVehicle().SetVisualSystem(vis)
     vis.SetWindowTitle('M113')
     vis.SetWindowSize(1280, 1024)
     vis.SetChaseCamera(trackPoint, 6.0, 0.5)
@@ -83,6 +82,7 @@ def main():
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddTypicalLights()
     vis.AddSkyBox()
+    vis.AttachVehicle(m113.GetVehicle())
 
     # Create the interactive driver system
     # ------------------------------------
@@ -118,7 +118,7 @@ def main():
         time = m113.GetSystem().GetChTime()
 
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
 
         # Get driver inputs

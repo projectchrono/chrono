@@ -207,7 +207,7 @@ sys.Add(parallelism);
 
 #  Create an Irrlicht application to visualize the system
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Import STEP')
 vis.Initialize()
@@ -235,7 +235,7 @@ sys.SetSolverMaxIterations(300)
 # Run the simulation
 while vis.Run():
     vis.BeginScene()
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(0.01)
 

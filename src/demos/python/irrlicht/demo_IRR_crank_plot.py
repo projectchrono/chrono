@@ -107,7 +107,7 @@ sys.Add(mjointC)
 #
 
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Crank demo')
 vis.Initialize()
@@ -139,7 +139,7 @@ while vis.Run():
     
     # here happens the visualization and step time integration
     vis.BeginScene() 
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(5e-3)
     

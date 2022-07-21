@@ -31,50 +31,77 @@ namespace opengl {
 /// @addtogroup opengl_module
 /// @{
 
-/// Class that renders the text and other UI elements.
-class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
+/// Base class for an OpenGL stats overlay
+class CH_OPENGL_API ChOpenGLStats : public ChOpenGLBase {
   public:
-    ChOpenGLHUD();
-    bool Initialize(ChOpenGLCamera* camera, ChTimer<>* render, ChTimer<>* text, ChTimer<>* geometry);
-    void GenerateHelp();
-    void GenerateCamera();
-    void GenerateSystem(ChSystem* physics_system);
-    void GenerateSolver(ChSystem* physics_system);
-    void GenerateCD(ChSystem* physics_system);
-    void GenerateRenderer();
-    void GenerateStats(ChSystem* physics_system);
-    void GenerateExtraStats(ChSystem* physics_system);
-    
+    virtual ~ChOpenGLStats() {}
+
+    virtual bool Initialize(ChOpenGLCamera* camera);
+
+    virtual void GenerateStats(ChSystem& sys) = 0;
+    virtual void GenerateHelp() {}
+
+    virtual void Render();
+
     virtual void TakeDown() override;
 
+  protected:
+    /// Screen coordinates for text placement
+    struct Screen {
+        float LEFT;
+        float TOP;
+        float BOTTOM;
+        float RIGHT;
+        float CENTER;
+        float SPACING;
+        float SCALE;
+        float SX;
+        float SY;
+    } screen;
+
+    ChOpenGLStats();
+
+    double time_geometry, time_text, time_total, fps;
+
+    ChOpenGLText text;
+    ChOpenGLBars bars;
+    ChOpenGLShader font_shader;
+    ChOpenGLShader bar_shader;
+
+    ChOpenGLCamera* render_camera;
+
+  private:
     void Update(const glm::ivec2& window_size,
                 const double& dpi,
                 const double& frame_per_sec,
                 const double& t_geometry,
                 const double& t_text,
                 const double& t_total);
-    void Draw();
+
+    friend class ChOpenGLViewer;
+};
+
+/// Class that renders the text and other UI elements.
+class CH_OPENGL_API ChOpenGLStatsDefault : public ChOpenGLStats {
+  public:
+    ChOpenGLStatsDefault();
+    virtual bool Initialize(ChOpenGLCamera* camera) override;
+    virtual void GenerateStats(ChSystem& sys) override;
+    virtual void GenerateHelp() override;
 
   private:
-    ChOpenGLText text;
-    ChOpenGLBars bars;
-    ChOpenGLShader font_shader;
-    ChOpenGLShader bar_shader;
+    void GenerateCamera();
+    void GenerateSystem(ChSystem& sys);
+    void GenerateSolver(ChSystem& sys);
+    void GenerateCD(ChSystem& sys);
+    void GenerateRenderer();
 
-    float sx, sy;
-    float aspect;
     char buffer[50];
-    ChOpenGLCamera* render_camera;
-    double time_geometry, time_text, time_total, fps;
-
-    ChTimer<>* timer_render;
-    ChTimer<>* timer_text;
-    ChTimer<>* timer_geometry;
 };
 
 /// @} opengl_module
 
-}
-}
+}  // namespace opengl
+}  // namespace chrono
 
 #endif

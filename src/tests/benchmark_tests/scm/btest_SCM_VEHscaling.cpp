@@ -225,11 +225,11 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChWheeledVehicleVisualSystemIrrlicht> vis;
     if (visualize) {
         vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+        vis->AttachVehicle(&hmmwv.GetVehicle());
         vis->SetWindowTitle("Chrono SCM test");
         vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
         vis->Initialize();
         vis->AddTypicalLights();
-        hmmwv.GetVehicle().SetVisualSystem(vis);
     }
 
     // Time interval between two render frames (1/FPS)
@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
         // Render scene
         if (vis && step_number % render_steps == 0) {
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->EndScene();
         }
 #endif

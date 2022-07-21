@@ -29,7 +29,7 @@
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -144,6 +144,24 @@ class EventCB : public opengl::ChOpenGLEventCB {
     bool m_chassis_vis;
 };
 
+class JSONStats : public opengl::ChOpenGLStats {
+  public:
+    JSONStats() : ChOpenGLStats() {}
+    virtual void GenerateStats(ChSystem& sys) override {
+        char buffer[150];
+        sprintf(buffer, "JSON FILE:  %s", json_file.c_str());
+        text.Render(buffer, screen.LEFT, screen.TOP - 1 * screen.SPACING, screen.SX, screen.SY);
+
+        sprintf(buffer, "TIME:       %04f", sys.GetChTime());
+        text.Render(buffer, screen.LEFT, screen.TOP - 3 * screen.SPACING, screen.SX, screen.SY);
+
+        sprintf(buffer, "FPS:        %04d", int(fps));
+        text.Render(buffer, screen.LEFT, screen.TOP - 4 * screen.SPACING, screen.SX, screen.SY);
+
+    }
+    std::string json_file;
+};
+
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -185,16 +203,25 @@ int main(int argc, char* argv[]) {
 
     // Initialize OpenGL
     double factor = (is_wheeled ? 3.0 : 5.0);
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(&sys);
-    gl_window.Initialize(1280, 720, "JSON visualization");
-    gl_window.SetCamera(factor * ChVector<>(-1, -1, 0.75), ChVector<>(0, 0, 0.5), ChVector<>(0, 0, 1));
-    gl_window.SetRenderMode(opengl::SOLID);
-    gl_window.EnableHUD(false);
+
+    opengl::ChVisualSystemOpenGL vis;
+    vis.SetWindowTitle("JSON visualization");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::SOLID);
+    vis.SetCameraPosition(factor * ChVector<>(-1, -1, 0.75), ChVector<>(0, 0, 0.5));
+    vis.SetCameraVertical(CameraVerticalDir::Z);
+    vis.Initialize();
+    vis.AttachSystem(&sys);
 
     // Attache event receiver (use key 'U' to trigger a vehicle update)
     EventCB my_receiver(vehicle, is_wheeled);
-    gl_window.SetUserEventReceiver(&my_receiver);
+    vis.AddUserEventReceiver(&my_receiver);
+
+    // Attach custom stats overlay
+    auto my_stats = chrono_types::make_shared<JSONStats>();
+    my_stats->json_file = setup.VehicleJSON();
+    vis.SetStatsRenderer(my_stats);
+    vis.EnableStats(true);
 
     // Simulation loop
     double step_size = 5e-4;
@@ -207,8 +234,8 @@ int main(int argc, char* argv[]) {
         shoe_forces_right.resize(static_cast<TrackedVehicle*>(vehicle)->GetNumTrackShoes(RIGHT));
     }
 
-    while (gl_window.Active()) {
-        gl_window.Render();
+    while (vis.Run()) {
+        vis.Render();
 
         if (!vehicle)
             continue;

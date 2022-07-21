@@ -37,7 +37,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 using namespace chrono;
@@ -158,57 +158,60 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystemMulticoreNSC msystem;
+    ChSystemMulticoreNSC sys;
 
     // Set number of threads
-    msystem.SetNumThreads(8);
+    sys.SetNumThreads(8);
 
     // Set gravitational acceleration
-    msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
+    sys.Set_G_acc(ChVector<>(0, 0, -gravity));
 
     // Set solver parameters
-    msystem.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-    msystem.GetSettings()->solver.max_iteration_normal = max_iteration / 3;
-    msystem.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
-    msystem.GetSettings()->solver.max_iteration_spinning = 0;
-    msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration / 3;
-    msystem.GetSettings()->solver.tolerance = tolerance;
-    msystem.GetSettings()->solver.alpha = 0;
-    msystem.GetSettings()->solver.contact_recovery_speed = 10000;
-    msystem.ChangeSolverType(SolverType::APGD);
-    msystem.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    sys.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+    sys.GetSettings()->solver.max_iteration_normal = max_iteration / 3;
+    sys.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
+    sys.GetSettings()->solver.max_iteration_spinning = 0;
+    sys.GetSettings()->solver.max_iteration_bilateral = max_iteration / 3;
+    sys.GetSettings()->solver.tolerance = tolerance;
+    sys.GetSettings()->solver.alpha = 0;
+    sys.GetSettings()->solver.contact_recovery_speed = 10000;
+    sys.ChangeSolverType(SolverType::APGD);
+    sys.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
-    msystem.GetSettings()->collision.collision_envelope = 0.01;
-    msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
+    sys.GetSettings()->collision.collision_envelope = 0.01;
+    sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Enable active bounding box
-    ////msystem.GetSettings()->collision.use_aabb_active = true;
-    ////msystem.GetSettings()->collision.aabb_min = real3(-1, -1, -1.5);
-    ////msystem.GetSettings()->collision.aabb_max = real3(+1, +1, +1.5);
+    ////sys.GetSettings()->collision.use_aabb_active = true;
+    ////sys.GetSettings()->collision.aabb_min = real3(-1, -1, -1.5);
+    ////sys.GetSettings()->collision.aabb_max = real3(+1, +1, +1.5);
 
     // Create the fixed and moving bodies
     // ----------------------------------
 
-    auto mixer = AddContainer(&msystem);
-    AddFallingBalls(&msystem);
+    auto mixer = AddContainer(&sys);
+    AddFallingBalls(&sys);
 
     // Perform the simulation
     // ----------------------
 
 #ifdef CHRONO_OPENGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(&msystem);
-    gl_window.Initialize(1280, 720, "mixerNSC");
-    gl_window.SetCamera(ChVector<>(0, -3, 2), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(&sys);
+    vis.SetWindowTitle("Mixer NSC");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::WIREFRAME);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(0, -3, 2), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Y);
 
-    while (gl_window.Active()) {
-        gl_window.DoStepDynamics(time_step);
-        gl_window.Render();
+    while (vis.Run()) {
+        sys.DoStepDynamics(time_step);
+        vis.Render();
 
         ////auto frc = mixer->GetAppliedForce();
         ////auto trq = mixer->GetAppliedTorque();
-        ////std::cout << msystem.GetChTime() << "  force: " << frc << "  torque: " << trq << std::endl;
+        ////std::cout << sys.GetChTime() << "  force: " << frc << "  torque: " << trq << std::endl;
     }
 #else
     // Run simulation for specified time
@@ -216,7 +219,7 @@ int main(int argc, char* argv[]) {
     int num_steps = (int)std::ceil(time_end / time_step);
     double time = 0;
     for (int i = 0; i < num_steps; i++) {
-        msystem.DoStepDynamics(time_step);
+        sys.DoStepDynamics(time_step);
         time += time_step;
     }
 #endif

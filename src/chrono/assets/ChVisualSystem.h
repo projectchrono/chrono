@@ -29,12 +29,20 @@ enum class CameraVerticalDir { Y, Z };
 /// Base class for a Chrono run-time visualization system.
 class ChApi ChVisualSystem {
   public:
-    virtual ~ChVisualSystem() {}
+    virtual ~ChVisualSystem() {
+        for (auto s : m_systems)
+            s->visual_system = nullptr;
+    }
+
+    /// Attach a Chrono system to this visualization system.
+    virtual void AttachSystem(ChSystem* sys) {
+        m_systems.push_back(sys);
+        sys->visual_system = this;
+    }
 
     /// Process all visual assets in the associated ChSystem.
-    /// This function is called by default when the visualization system is attached to a Chrono system (using
-    /// ChSystem::SetVisualSystem()), but can also be called later if further modifications to visualization assets
-    /// occur.
+    /// This function is called by default when a Chrono system is attached to this visualization system (see
+    /// AttachSystem), but can also be called later if further modifications to visualization assets occur.
     virtual void BindAll() {}
 
     /// Process the visual assets for the spcified physics item.
@@ -60,29 +68,28 @@ class ChApi ChVisualSystem {
     /// Set the speed of the shown mode (only if some ChModalAssembly is found).
     virtual void SetModalSpeed(double val) {}
 
-    /// Get the associated Chrono system.
-    ChSystem& GetSystem() const { return *m_system; }
+    /// Get the list of associated Chrono systems.
+    std::vector<ChSystem*> GetSystems() const { return m_systems; }
+
+    /// Get the specified associated Chrono system.
+    ChSystem& GetSystem(int i) const { return *m_systems[i]; }
 
   protected:
-    ChVisualSystem() : m_system(nullptr) {}
-
-    /// Perform any necessary operations when the visualization system is attached to a ChSystem.
-    /// Called by the associated ChSystem after it sets m_system.
-    virtual void OnAttach() {}
+    ChVisualSystem() {}
 
     /// Perform any necessary setup operations at the beginning of a time step.
-    /// Called by the associated ChSystem.
-    virtual void OnSetup() {}
+    /// Called by an associated ChSystem.
+    virtual void OnSetup(ChSystem* sys) {}
 
     /// Perform any necessary update operations at the end of a time step.
-    /// Called by the associated ChSystem.
-    virtual void OnUpdate() {}
+    /// Called by an associated ChSystem.
+    virtual void OnUpdate(ChSystem* sys) {}
 
     /// Remove all visualization objects from this visualization system.
-    /// Called by the associated ChSystem.
-    virtual void OnClear() {}
+    /// Called by an associated ChSystem.
+    virtual void OnClear(ChSystem* sys) {}
 
-    ChSystem* m_system;  ///< associated Chrono system
+    std::vector<ChSystem*> m_systems;  ///< associated Chrono system(s)
 
     friend class ChSystem;
 };

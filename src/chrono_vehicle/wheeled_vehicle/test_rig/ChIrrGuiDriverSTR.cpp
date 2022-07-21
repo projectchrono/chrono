@@ -35,7 +35,7 @@ ChIrrGuiDriverSTR::ChIrrGuiDriverSTR(irrlicht::ChVisualSystemIrrlicht& vsys)
 }
 
 bool ChIrrGuiDriverSTR::OnEvent(const SEvent& event) {
-    if (m_vsys.GetSystem().GetChTime() < m_delay)
+    if (m_vsys.GetSystem(0).GetChTime() < m_delay)
         return false;
 
     // Only interpret keyboard inputs.

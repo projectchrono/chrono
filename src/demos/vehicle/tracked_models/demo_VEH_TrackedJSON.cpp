@@ -420,7 +420,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Powertrain type: " << powertrain->GetTemplateName() << std::endl;
     std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
 
-    vehicle.SetVisualSystem(vis);
+    vis->AttachVehicle(&vehicle);
 
     // ------------------------------
     // Solver and integrator settings
@@ -465,7 +465,7 @@ int main(int argc, char* argv[]) {
         if (step_number % render_steps == 0) {
             // Render scene
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->EndScene();
         }
 

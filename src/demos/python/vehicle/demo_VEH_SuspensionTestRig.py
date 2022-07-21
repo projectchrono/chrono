@@ -59,7 +59,6 @@ def main() :
     # Create the vehicle Irrlicht application
     cam_loc = (rig.GetSpindlePos(0, veh.LEFT) + rig.GetSpindlePos(0, veh.RIGHT)) * 0.5
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-    rig.GetVehicle().SetVisualSystem(vis)
     vis.SetWindowTitle('Suspension Test Rig')
     vis.SetWindowSize(1280, 1024)
     vis.Initialize()
@@ -67,6 +66,7 @@ def main() :
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.SetChaseCamera(cam_loc, 4.0, 0.5)
     vis.AddSkyBox()
+    vis.AttachVehicle(rig)
 
     # Create and attach an STR driver
     driver = veh.ChDataDriverSTR(driver_file)
@@ -94,7 +94,7 @@ def main() :
 
         # Render scene
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
 
         # Advance simulation of the rig 

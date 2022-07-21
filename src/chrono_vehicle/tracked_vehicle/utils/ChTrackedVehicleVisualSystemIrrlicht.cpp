@@ -35,8 +35,9 @@ ChTrackedVehicleVisualSystemIrrlicht::ChTrackedVehicleVisualSystemIrrlicht()
       m_render_frame_shoes{false, false},
       m_render_frame_sprockets{false, false} {}
 
-void ChTrackedVehicleVisualSystemIrrlicht::OnAttachToVehicle() {
-    ChVehicleVisualSystemIrrlicht::OnAttachToVehicle();
+
+void ChTrackedVehicleVisualSystemIrrlicht::AttachVehicle(ChVehicle* vehicle) {
+    ChVehicleVisualSystemIrrlicht::AttachVehicle(vehicle);
     m_tvehicle = dynamic_cast<ChTrackedVehicle*>(m_vehicle);
     assert(m_tvehicle);
 }

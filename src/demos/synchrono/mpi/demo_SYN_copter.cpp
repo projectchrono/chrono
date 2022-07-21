@@ -49,7 +49,7 @@ class IrrAppWrapper {
     void Render() {
         if (m_vis) {
             m_vis->BeginScene();
-            m_vis->DrawAll();
+            m_vis->Render();
             m_vis->EndScene();
         }
     }
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     if (cli.HasValueInVector<int>("irr", node_id)) {
         auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-        sys.SetVisualSystem(vis);
+        vis->AttachSystem(&sys);
         vis->SetCameraVertical(CameraVerticalDir::Z);
         vis->SetWindowSize(800, 600);
         vis->SetWindowTitle("HexaCopter Test");

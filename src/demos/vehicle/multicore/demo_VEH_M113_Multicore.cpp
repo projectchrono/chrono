@@ -30,7 +30,7 @@
 //#undef CHRONO_OPENGL
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 // Chrono utility header files
@@ -147,7 +147,7 @@ int out_fps = 60;
 
 // =============================================================================
 
-double CreateParticles(ChSystem* system) {
+double CreateParticles(ChSystem* sys) {
     // Create a material
 #ifdef USE_SMC
     auto mat_g = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -162,7 +162,7 @@ double CreateParticles(ChSystem* system) {
     // Create a particle generator and a mixture entirely made out of spheres
     double r = 1.01 * r_g;
     utils::PDSampler<double> sampler(2 * r);
-    utils::Generator gen(system);
+    utils::Generator gen(sys);
     std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->setDefaultMaterial(mat_g);
     m1->setDefaultDensity(rho_g);
@@ -226,66 +226,66 @@ int main(int argc, char* argv[]) {
     }
 
     // --------------
-    // Create system.
+    // Create sys.
     // --------------
 
 #ifdef USE_SEQ
     // ----  Sequential
 #ifdef USE_SMC
-    std::cout << "Create SMC system" << std::endl;
-    ChSystemSMC* system = new ChSystemSMC();
+    std::cout << "Create SMC sys" << std::endl;
+    ChSystemSMC* sys = new ChSystemSMC();
 #else
-    std::cout << "Create NSC system" << std::endl;
-    ChSystemNSC* system = new ChSystemNSC();
+    std::cout << "Create NSC sys" << std::endl;
+    ChSystemNSC* sys = new ChSystemNSC();
 #endif
 
 #else
     // ----  Multicore
 #ifdef USE_SMC
-    std::cout << "Create Multicore SMC system" << std::endl;
-    ChSystemMulticoreSMC* system = new ChSystemMulticoreSMC();
+    std::cout << "Create Multicore SMC sys" << std::endl;
+    ChSystemMulticoreSMC* sys = new ChSystemMulticoreSMC();
 #else
-    std::cout << "Create Multicore NSC system" << std::endl;
-    ChSystemMulticoreNSC* system = new ChSystemMulticoreNSC();
+    std::cout << "Create Multicore NSC sys" << std::endl;
+    ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
 #endif
 
 #endif
 
-    system->Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys->Set_G_acc(ChVector<>(0, 0, -9.81));
 
 
     // ---------------------
-    // Edit system settings.
+    // Edit sys settings.
     // ---------------------
 
 #ifdef USE_SEQ
 
-    system->SetSolverMaxIterations(50);
+    sys->SetSolverMaxIterations(50);
 
 #else
 
     // Set number of threads
-    system->SetNumThreads(threads);
+    sys->SetNumThreads(threads);
 
     // Set solver parameters
-    system->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
-    system->GetSettings()->solver.use_full_inertia_tensor = false;
-    system->GetSettings()->solver.tolerance = tolerance;
+    sys->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
+    sys->GetSettings()->solver.use_full_inertia_tensor = false;
+    sys->GetSettings()->solver.tolerance = tolerance;
 
 #ifndef USE_SMC
-    system->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-    system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
-    system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
-    system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    system->GetSettings()->solver.alpha = 0;
-    system->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
-    system->ChangeSolverType(SolverType::APGD);
-    system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
+    sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+    sys->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
+    sys->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
+    sys->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
+    sys->GetSettings()->solver.alpha = 0;
+    sys->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
+    sys->ChangeSolverType(SolverType::APGD);
+    sys->GetSettings()->collision.collision_envelope = 0.1 * r_g;
 #else
-    system->GetSettings()->solver.contact_force_model = ChSystemSMC::PlainCoulomb;
+    sys->GetSettings()->solver.contact_force_model = ChSystemSMC::PlainCoulomb;
 #endif
 
-    system->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
+    sys->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
 #endif
 
@@ -305,7 +305,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Ground body
-    auto ground = std::shared_ptr<ChBody>(system->NewBody());
+    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
@@ -347,21 +347,21 @@ int main(int argc, char* argv[]) {
 
     ground->GetCollisionModel()->BuildModel();
 
-    system->AddBody(ground);
+    sys->AddBody(ground);
 
     // Create the granular material.
     double vertical_offset = 0;
 
     if (terrain_type == GRANULAR_TERRAIN) {
-        vertical_offset = CreateParticles(system);
+        vertical_offset = CreateParticles(sys);
     }
 
     // --------------------------
     // Construct the M113 vehicle
     // --------------------------
 
-    // Create and initialize vehicle system
-    M113 m113(system);
+    // Create and initialize vehicle sys
+    M113 m113(sys);
     m113.SetTrackShoeType(TrackShoeType::SINGLE_PIN);
     m113.SetDrivelineType(DrivelineTypeTV::SIMPLE);
     m113.SetBrakeType(BrakeType::SIMPLE);
@@ -384,7 +384,7 @@ int main(int argc, char* argv[]) {
     ////m113.GetVehicle().SetCollide(TrackCollide::WHEELS_LEFT | TrackCollide::WHEELS_RIGHT);
     ////m113.GetVehicle().SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT) & (~TrackCollide::SPROCKET_RIGHT));
 
-    // Create the driver system
+    // Create the driver sys
     ChDataDriver driver(m113.GetVehicle(), vehicle::GetDataFile("M113/driver/Acceleration.txt"));
     driver.Initialize();
 
@@ -394,11 +394,14 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_OPENGL
     // Initialize OpenGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(system);
-    gl_window.Initialize(1280, 720, "M113");
-    gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(sys);
+    vis.SetWindowTitle("M113");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::WIREFRAME);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Z);
 #endif
 
     // Number of simulation steps between two 3D view render frames
@@ -439,7 +442,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame + 1);
-                utils::WriteVisualizationAssets(system, filename);
+                utils::WriteVisualizationAssets(sys, filename);
             }
 
             out_frame++;
@@ -460,11 +463,11 @@ int main(int argc, char* argv[]) {
         // Advance simulation for one timestep for all modules
         driver.Advance(time_step);
         m113.Advance(time_step);
-        system->DoStepDynamics(time_step);
+        sys->DoStepDynamics(time_step);
 
 #ifdef CHRONO_OPENGL
-        if (gl_window.Active())
-            gl_window.Render();
+        if (vis.Run())
+            vis.Render();
         else
             break;
 #endif
@@ -479,8 +482,8 @@ int main(int argc, char* argv[]) {
         // Update counters.
         time += time_step;
         sim_frame++;
-        exec_time += system->GetTimerStep();
-        num_contacts += system->GetNcontacts();
+        exec_time += sys->GetTimerStep();
+        num_contacts += sys->GetNcontacts();
     }
 
     // Final stats

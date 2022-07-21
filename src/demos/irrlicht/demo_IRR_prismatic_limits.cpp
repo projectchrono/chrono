@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Limits on LinkLockPrismatic demo");
     vis->Initialize();
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
         }
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         tools::drawSegment(vis.get(), ChVector<>(+2, 0, 0), ChVector<>(+2, 0, -2), ChColor(1, 0.5f, 0), true);
         if (max_lim_enabled) {
             tools::drawSegment(vis.get(), ChVector<>(-1, 0, 0), ChVector<>(-1, 0, -2), ChColor(1, 0.5f, 0), true);

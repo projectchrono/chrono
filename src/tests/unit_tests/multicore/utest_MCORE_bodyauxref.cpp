@@ -40,7 +40,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 #include "unit_testing.h"
@@ -65,24 +65,24 @@ TEST(ChronoMulticore, bodyauxref) {
     bool clamp_bilaterals = false;
     double bilateral_clamp_speed = 1000;
 
-    // Create the mechanical system
-    ChSystemMulticoreNSC* system = new ChSystemMulticoreNSC();
-    system->Set_G_acc(ChVector<>(0, 0, -9.81));
+    // Create the mechanical sys
+    ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
+    sys->Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Set number of threads
-    system->SetNumThreads(1);
+    sys->SetNumThreads(1);
 
-    // Edit system settings
-    system->GetSettings()->solver.tolerance = tolerance;
-    system->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
-    system->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
-    system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
+    // Edit sys settings
+    sys->GetSettings()->solver.tolerance = tolerance;
+    sys->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
+    sys->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
+    sys->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-    system->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-    system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
-    system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
-    system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    system->ChangeSolverType(SolverType::APGD);
+    sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+    sys->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
+    sys->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
+    sys->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
+    sys->ChangeSolverType(SolverType::APGD);
 
     // Define a couple of rotations for later use
     ChQuaternion<> y2x;
@@ -91,9 +91,9 @@ TEST(ChronoMulticore, bodyauxref) {
     z2y.Q_from_AngX(-CH_C_PI / 2);
 
     // Create the ground body
-    auto ground = std::shared_ptr<ChBody>(system->NewBody());
+    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
     ground->SetBodyFixed(true);
-    system->AddBody(ground);
+    sys->AddBody(ground);
 
     // Attach a visualization asset representing the Y axis.
     auto box = chrono_types::make_shared<ChBoxShape>();
@@ -101,8 +101,8 @@ TEST(ChronoMulticore, bodyauxref) {
     ground->AddVisualShape(box);
 
     // Create a pendulum modeled using ChBody
-    auto pend_1 = std::shared_ptr<ChBody>(system->NewBody());
-    system->AddBody(pend_1);
+    auto pend_1 = std::shared_ptr<ChBody>(sys->NewBody());
+    sys->AddBody(pend_1);
     pend_1->SetIdentifier(1);
     pend_1->SetBodyFixed(false);
     pend_1->SetCollide(false);
@@ -127,11 +127,11 @@ TEST(ChronoMulticore, bodyauxref) {
     // coordinate frame in the absolute frame.
     auto rev_1 = chrono_types::make_shared<ChLinkLockRevolute>();
     rev_1->Initialize(ground, pend_1, ChCoordsys<>(ChVector<>(0, 1, 0), z2y));
-    system->AddLink(rev_1);
+    sys->AddLink(rev_1);
 
     // Create a pendulum modeled using ChBodyAuxRef
-    auto pend_2 = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
-    system->Add(pend_2);
+    auto pend_2 = std::shared_ptr<ChBodyAuxRef>(sys->NewBodyAuxRef());
+    sys->Add(pend_2);
     pend_2->SetIdentifier(2);
     pend_2->SetBodyFixed(false);
     pend_2->SetCollide(false);
@@ -161,7 +161,7 @@ TEST(ChronoMulticore, bodyauxref) {
     // coordinate frame in the absolute frame.
     auto rev_2 = chrono_types::make_shared<ChLinkLockRevolute>();
     rev_2->Initialize(ground, pend_2, ChCoordsys<>(ChVector<>(0, -1, 0), z2y));
-    system->AddLink(rev_2);
+    sys->AddLink(rev_2);
 
     // Tolerances
     double pos_tol = 1e-6;
@@ -175,19 +175,26 @@ TEST(ChronoMulticore, bodyauxref) {
     // Perform the simulation
     if (animate) {
 #ifdef CHRONO_OPENGL
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.AttachSystem(system);
-        gl_window.Initialize(1280, 720, "BodyAuxRef");
-        gl_window.SetCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-        gl_window.SetRenderMode(opengl::WIREFRAME);
-        gl_window.StartDrawLoop(time_step);
+        opengl::ChVisualSystemOpenGL vis;
+        vis.AttachSystem(sys);
+        vis.SetWindowTitle("BodyAuxRef");
+        vis.SetWindowSize(1280, 720);
+        vis.SetRenderMode(opengl::WIREFRAME);
+        vis.Initialize();
+        vis.SetCameraPosition(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0));
+        vis.SetCameraVertical(CameraVerticalDir::Z);
+
+        while (vis.Run()) {
+            sys->DoStepDynamics(time_step);
+            vis.Render();
+        }
 #else
         std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;
         FAIL();
 #endif
     } else {
-        while (system->GetChTime() < time_end) {
-            system->DoStepDynamics(time_step);
+        while (sys->GetChTime() < time_end) {
+            sys->DoStepDynamics(time_step);
 
             ASSERT_NEAR(pend_1->GetPos().x(), pend_2->GetPos().x(), pos_tol);
             ASSERT_NEAR(pend_1->GetPos().z(), pend_2->GetPos().z(), pos_tol);

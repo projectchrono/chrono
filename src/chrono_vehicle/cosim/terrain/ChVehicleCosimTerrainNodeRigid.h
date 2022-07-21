@@ -22,9 +22,14 @@
 #ifndef CH_VEHCOSIM_TERRAIN_NODE_RIGID_H
 #define CH_VEHCOSIM_TERRAIN_NODE_RIGID_H
 
+#include "chrono/ChConfig.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
+
+#ifdef CHRONO_OPENGL
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#endif
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -77,6 +82,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
   private:
     ChSystemMulticore* m_system;  ///< containing system
     double m_radius_p;            ///< radius for a proxy body
+
+#ifdef CHRONO_OPENGL
+    opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
+#endif
 
     virtual bool SupportsMeshInterface() const override { return true; }
 

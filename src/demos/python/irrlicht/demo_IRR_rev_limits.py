@@ -79,7 +79,7 @@ rev.Initialize(ground, pend, chrono.ChCoordsysD(chrono.VNULL, chrono.QUNIT))
 
 # Create the Irrlicht application
 vis = irr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Limits on LinkLockRevolute demo')
 vis.Initialize()
@@ -96,7 +96,7 @@ p2 = chrono.ChVectorD(m.cos(max_angle), -m.sin(max_angle), 0)
 # Simulation loop
 while vis.Run():
     vis.BeginScene() 
-    vis.DrawAll()
+    vis.Render()
     irr.drawSegment(vis, p0, p0 + p1 * 4);
     irr.drawSegment(vis, p0, p0 + p2 * 4);
     vis.EndScene()

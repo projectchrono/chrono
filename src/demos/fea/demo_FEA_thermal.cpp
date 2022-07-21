@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
     vis->AddLight(ChVector<>(+20, 20, +20), 90, ChColor(0.5, 0.5, 0.5));
     vis->AddLight(ChVector<>(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
     vis->AddCamera(ChVector<>(0, 0.7, -1), ChVector<>(0, 0.4, 0));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // SIMULATION LOOP
 
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(0.01);
 

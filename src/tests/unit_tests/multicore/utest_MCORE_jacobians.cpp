@@ -27,7 +27,7 @@
 #include "unit_testing.h"
 
 #ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 // Comment the following line to use multicore collision detection
@@ -93,8 +93,8 @@ void CreateGranularMaterial(ChSystemMulticore* sys) {
     }
 }
 
-void SetupSystem(ChSystemMulticoreNSC* msystem) {
-    msystem->Set_G_acc(ChVector<>(0, 0, -9.81));
+void SetupSystem(ChSystemMulticoreNSC* sys) {
+    sys->Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Solver settings
     int max_iteration_normal = 0;
@@ -103,21 +103,21 @@ void SetupSystem(ChSystemMulticoreNSC* msystem) {
     float contact_recovery_speed = 10e30f;
     double tolerance = 1e-2;
 
-    msystem->GetSettings()->solver.tolerance = tolerance;
-    msystem->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-    msystem->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
-    msystem->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
-    msystem->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    msystem->GetSettings()->solver.alpha = 0;
-    msystem->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
-    msystem->ChangeSolverType(SolverType::APGD);
-    msystem->GetSettings()->collision.collision_envelope = 0.00;
-    msystem->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
+    sys->GetSettings()->solver.tolerance = tolerance;
+    sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+    sys->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
+    sys->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
+    sys->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
+    sys->GetSettings()->solver.alpha = 0;
+    sys->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
+    sys->ChangeSolverType(SolverType::APGD);
+    sys->GetSettings()->collision.collision_envelope = 0.00;
+    sys->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
-    msystem->SetNumThreads(1);
+    sys->SetNumThreads(1);
 
-    CreateContainer(msystem);
-    CreateGranularMaterial(msystem);
+    CreateContainer(sys);
+    CreateGranularMaterial(sys);
 }
 
 // Sync the positions and velocities of the rigid bodies
@@ -221,54 +221,56 @@ void CompareContacts(ChMulticoreDataManager* data_manager,
 TEST(ChronoMulticore, jacobians) {
     bool animate = false;
 
-    ChSystemMulticoreNSC* msystem = new ChSystemMulticoreNSC();
-    msystem->SetNumThreads(1);
+    ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
+    sys->SetNumThreads(1);
 
 #ifdef BULLET
-    msystem->SetCollisionSystemType(ChCollisionSystemType::BULLET);
+    sys->SetCollisionSystemType(ChCollisionSystemType::BULLET);
 #else
-    msystem->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    sys->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 #endif
 
-    SetupSystem(msystem);
+    SetupSystem(sys);
 
     // Initialize counters
     double time = 0;
     double time_end = 1.0;
     double time_step = 1e-3;
 
-    msystem->DoStepDynamics(time_step);
+    sys->DoStepDynamics(time_step);
 
     if (animate) {
 #ifdef CHRONO_OPENGL
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.AttachSystem(msystem);
-        gl_window.Initialize(1280, 720, "Jacobians");
-        gl_window.SetCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-        gl_window.SetRenderMode(opengl::WIREFRAME);
+        opengl::ChVisualSystemOpenGL vis;
+        vis.AttachSystem(sys);
+        vis.SetWindowTitle("Jacobians");
+        vis.SetWindowSize(1280, 720);
+        vis.SetRenderMode(opengl::WIREFRAME);
+        vis.Initialize();
+        vis.SetCameraPosition(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0));
+        vis.SetCameraVertical(CameraVerticalDir::Z);
 
         // Loop until reaching the end time...
         while (time < time_end) {
-            if (gl_window.Active()) {
-                gl_window.Render();
+            if (vis.Run()) {
+                vis.Render();
             }
-            auto pos_rigid = msystem->data_manager->host_data.pos_rigid;
-            auto rot_rigid = msystem->data_manager->host_data.rot_rigid;
-            msystem->DoStepDynamics(time_step);
-            CompareContacts(msystem->data_manager, pos_rigid, rot_rigid);
+            auto pos_rigid = sys->data_manager->host_data.pos_rigid;
+            auto rot_rigid = sys->data_manager->host_data.rot_rigid;
+            sys->DoStepDynamics(time_step);
+            CompareContacts(sys->data_manager, pos_rigid, rot_rigid);
             time += time_step;
         }
-
 #else
         std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;
         return;
 #endif
     } else {
         while (time < time_end) {
-            auto pos_rigid = msystem->data_manager->host_data.pos_rigid;
-            auto rot_rigid = msystem->data_manager->host_data.rot_rigid;
-            msystem->DoStepDynamics(time_step);
-            CompareContacts(msystem->data_manager, pos_rigid, rot_rigid);
+            auto pos_rigid = sys->data_manager->host_data.pos_rigid;
+            auto rot_rigid = sys->data_manager->host_data.rot_rigid;
+            sys->DoStepDynamics(time_step);
+            CompareContacts(sys->data_manager, pos_rigid, rot_rigid);
             time += time_step;
         }
     }

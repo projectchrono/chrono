@@ -28,12 +28,12 @@ body_1.SetInertiaXY(chrono.ChVectorD(-1.52558132324693e-06,-4.37709719642171e-05
 body_1.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(-0.00959089760382167,0.0486210957135911,-0.109837837967947),chrono.ChQuaternionD(1,0,0,0)))
 
 # Visualization shape 
-body_1_1_shape = chrono.ChObjShapeFile() 
+body_1_1_shape = chrono.ChObjFileShape() 
 body_1_1_shape.SetFilename(shapes_dir +'body_1_1.obj') 
 body_1.AddVisualShape(body_1_1_shape, chrono.ChFrameD(chrono.ChVectorD(0.0654391949504455,0.043691361648147,-0.187114016856069), chrono.ChQuaternionD(0.667465028254667,-0.66746502825467,-0.233431865984475,-0.233431865984475)))
 
 # Visualization shape 
-body_1_2_shape = chrono.ChObjShapeFile() 
+body_1_2_shape = chrono.ChObjFileShape() 
 body_1_2_shape.SetFilename(shapes_dir +'body_1_2.obj') 
 body_1.AddVisualShape(body_1_2_shape, chrono.ChFrameD(chrono.ChVectorD(0.0654391949504455,0.053691361648147,-0.187114016856069), chrono.ChQuaternionD(0.667465028254667,-0.66746502825467,-0.233431865984476,-0.233431865984475)))
 
@@ -101,7 +101,7 @@ body_2.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(5.96881493747061e-20
 body_2.SetBodyFixed(True)
 
 # Visualization shape 
-body_2_1_shape = chrono.ChObjShapeFile() 
+body_2_1_shape = chrono.ChObjFileShape() 
 body_2_1_shape.SetFilename(shapes_dir +'body_2_1.obj') 
 body_2.AddVisualShape(body_2_1_shape, chrono.ChFrameD(chrono.ChVectorD(0,0,0), chrono.ChQuaternionD(1,0,0,0)))
 
@@ -139,7 +139,7 @@ body_3.SetInertiaXY(chrono.ChVectorD(-6.70222328430828e-08,8.32022499599561e-05,
 body_3.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(0.21901864850551,0.0330968348592532,9.59245261293635e-07),chrono.ChQuaternionD(1,0,0,0)))
 
 # Visualization shape 
-body_3_1_shape = chrono.ChObjShapeFile() 
+body_3_1_shape = chrono.ChObjFileShape() 
 body_3_1_shape.SetFilename(shapes_dir +'body_3_1.obj') 
 body_3.AddVisualShape(body_3_1_shape, chrono.ChFrameD(chrono.ChVectorD(0,0,0), chrono.ChQuaternionD(1,0,0,0)))
 
@@ -172,7 +172,7 @@ body_4.SetInertiaXY(chrono.ChVectorD(0.000173569396944232,-3.15578528386675e-19,
 body_4.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(-1.55722279465587e-17,3.80579019057423e-17,0.00631453892912046),chrono.ChQuaternionD(1,0,0,0)))
 
 # Visualization shape 
-body_4_1_shape = chrono.ChObjShapeFile() 
+body_4_1_shape = chrono.ChObjFileShape() 
 body_4_1_shape.SetFilename(shapes_dir +'body_4_1.obj') 
 body_4.AddVisualShape(body_4_1_shape, chrono.ChFrameD(chrono.ChVectorD(0,0,0), chrono.ChQuaternionD(1,0,0,0)))
 

@@ -33,7 +33,7 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 using namespace chrono;
@@ -141,19 +141,18 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
 // Run settling simulation with visualization
 void SettlingSMC::SimulateVis() {
 #ifdef CHRONO_OPENGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(m_system);
-    gl_window.Initialize(1280, 720, "settling test");
-    gl_window.SetCamera(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(m_system);
+    vis.SetWindowTitle("Settling test");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::WIREFRAME);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Z);
 
-    while (true) {
-        if (gl_window.Active()) {
-            ExecuteStep();
-            gl_window.Render();
-        } else {
-            break;
-        }
+    while (vis.Run()) {
+        ExecuteStep();
+        vis.Render();
     }
 #endif
 }

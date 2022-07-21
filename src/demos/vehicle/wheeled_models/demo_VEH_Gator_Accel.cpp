@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    gator.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&gator.GetVehicle());
 
     // ---------------
     // Simulation loop
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         // Get driver inputs

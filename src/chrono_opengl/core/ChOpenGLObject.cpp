@@ -71,6 +71,14 @@ void ChOpenGLObject::TakeDown() {
     if (this->vertex_model_handle != GLuint(-1))
         glDeleteBuffers(1, &this->vertex_model_handle);
 
+    this->vertex_array_handle = GLuint(-1);
+    this->vertex_data_handle = GLuint(-1);
+    this->vertex_element_handle = GLuint(-1);
+    this->vertex_ambient_handle = GLuint(-1);
+    this->vertex_diffuse_handle = GLuint(-1);
+    this->vertex_specular_handle = GLuint(-1);
+    this->vertex_model_handle = GLuint(-1);
+
     this->InternalInitialize();
 }
 
