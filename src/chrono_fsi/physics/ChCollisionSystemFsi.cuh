@@ -20,7 +20,7 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/physics/ChFsiGeneral.h"
-#include "chrono_fsi/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -37,7 +37,7 @@ class ChCollisionSystemFsi : public ChFsiGeneral {
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< Proximity information of the system
         std::shared_ptr<FsiGeneralData> otherFsiGeneralData,     ///< Pointer to the SPH general data
         std::shared_ptr<SimParams> otherParamsH,                 ///< Parameters of the simulation
-        std::shared_ptr<NumberOfObjects> otherNumObjects         ///< Size of different objects in the system
+        std::shared_ptr<ChCounters> otherNumObjects         ///< Size of different objects in the system
     );
 
     /// Destructor of the ChCollisionSystemFsi class
@@ -46,8 +46,8 @@ class ChCollisionSystemFsi : public ChFsiGeneral {
     /// Encapsulate calcHash and reaorderDataAndFindCellStart
     void ArrangeData(std::shared_ptr<SphMarkerDataD> otherSphMarkersD);
 
-    /// Finalize the data in ChCollisionSystemFsi.
-    void Finalize();
+    /// Complete construction.
+    void Initialize();
 
   private:
     std::shared_ptr<SphMarkerDataD> sphMarkersD;        ///< Information of the particles in the original array
@@ -55,7 +55,7 @@ class ChCollisionSystemFsi : public ChFsiGeneral {
     std::shared_ptr<ProximityDataD> markersProximityD;  ///< Proximity information of the system
     std::shared_ptr<FsiGeneralData> fsiGeneralData;     ///< Pointer to the SPH general data
     std::shared_ptr<SimParams> paramsH;                 ///< Parameters of the simulation
-    std::shared_ptr<NumberOfObjects> numObjectsH;       ///< Size of different objects in the system
+    std::shared_ptr<ChCounters> numObjectsH;       ///< Size of different objects in the system
 
     void ResetCellSize(int s);
 

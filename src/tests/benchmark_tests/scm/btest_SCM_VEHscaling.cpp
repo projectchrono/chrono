@@ -40,7 +40,7 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
         for (auto& axle : hmmwv.GetVehicle().GetAxles()) {
             terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
             terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
-        }    
+        }
     } else {
         // Optionally, enable moving patch feature (single patch around vehicle chassis)
         terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
@@ -222,14 +222,14 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_IRRLICHT
     // Create the vehicle Irrlicht application
-    std::shared_ptr<ChWheeledVehicleIrrApp> app;
+    std::shared_ptr<ChWheeledVehicleVisualSystemIrrlicht> vis;
     if (visualize) {
-        app = chrono_types::make_shared<ChWheeledVehicleIrrApp>(&hmmwv.GetVehicle(), L"Chrono SCM test");
-        app->AddTypicalLights();
-        app->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-        app->SetTimestep(step_size);
-        app->AssetBindAll();
-        app->AssetUpdateAll();
+        vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+        vis->AttachVehicle(&hmmwv.GetVehicle());
+        vis->SetWindowTitle("Chrono SCM test");
+        vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+        vis->Initialize();
+        vis->AddTypicalLights();
     }
 
     // Time interval between two render frames (1/FPS)
@@ -242,6 +242,9 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
     bool stats_done = false;
+
+    // Disable automatic vehicle realtime
+    hmmwv.GetVehicle().EnableRealtime(false);
 
     // Solver settings
     sys.SetSolverMaxIterations(50);
@@ -268,7 +271,7 @@ int main(int argc, char* argv[]) {
 
                 std::string fname = "stats_" + std::to_string(nthreads) + ".out";
                 std::ofstream ofile(fname.c_str(), std::ios_base::app);
-                ofile << raytest / nsteps << " " << raycast / nsteps << " " << rtf << endl; 
+                ofile << raytest / nsteps << " " << raycast / nsteps << " " << rtf << endl;
                 ofile.close();
                 cout << "\nOUTPUT FILE: " << fname << endl;
 
@@ -288,31 +291,31 @@ int main(int argc, char* argv[]) {
             }
 
             if (!visualize)
-                break;            
+                break;
         }
 
 #ifdef CHRONO_IRRLICHT
-        if (app && !app->GetDevice()->run())  //  Irrlicht visualization has stopped
+        if (vis && !vis->Run())  //  Irrlicht visualization has stopped
             break;
 
         // Render scene
-        if (app && step_number % render_steps == 0) {
-            app->BeginScene();
-            app->DrawAll();
-            app->EndScene();
+        if (vis && step_number % render_steps == 0) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
         }
 #endif
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules
         driver.Synchronize(time);
         terrain.Synchronize(time);
         hmmwv.Synchronize(time, driver_inputs, terrain);
 #ifdef CHRONO_IRRLICHT
-        if (app)
-            app->Synchronize("", driver_inputs);
+        if (vis)
+            vis->Synchronize("", driver_inputs);
 #endif
 
         // Advance dynamics
@@ -321,8 +324,8 @@ int main(int argc, char* argv[]) {
         hmmwv.Advance(step_size);
         sys.DoStepDynamics(step_size);
 #ifdef CHRONO_IRRLICHT
-        if (app)
-            app->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
 #endif
 
         chrono_step += sys.GetTimerStep();
@@ -341,7 +344,8 @@ void AddCommandLineOptions(ChCLI& cli) {
     cli.AddOption<double>("Test", "s,step_size", "Step size", std::to_string(step_size));
     cli.AddOption<double>("Test", "e,end_time", "End time", std::to_string(end_time));
     cli.AddOption<int>("Test", "n,nthreads", "Number threads", std::to_string(nthreads));
-    cli.AddOption<bool>("Test", "c,csys", "Use Chrono multicore collision (false: Bullet)", std ::to_string(chrono_collsys));
+    cli.AddOption<bool>("Test", "c,csys", "Use Chrono multicore collision (false: Bullet)",
+                        std ::to_string(chrono_collsys));
     cli.AddOption<bool>("Test", "w,wheel_patches", "Use patches under each wheel", std::to_string(wheel_patches));
     cli.AddOption<bool>("Test", "v,vis", "Enable run-time visualization", std::to_string(visualize));
 }

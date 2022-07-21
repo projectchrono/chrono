@@ -41,8 +41,8 @@ class CH_MODELS_API HMMWV_Pac89Tire : public ChPac89Tire {
         return m_normalDamping * velocity;
     }
 
-    virtual double GetMass() const override { return m_mass; }
-    virtual ChVector<> GetInertia() const override { return m_inertia; }
+    virtual double GetTireMass() const override { return m_mass; }
+    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
 
     virtual double GetVisualizationWidth() const override { return m_width; }
 

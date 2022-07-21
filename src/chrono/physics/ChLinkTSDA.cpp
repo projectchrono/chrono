@@ -309,6 +309,9 @@ void ChLinkTSDA::IntStateGather(const unsigned int off_x,  // offset in x state 
                                 ChStateDelta& v,           // state vector, speed part
                                 double& T                  // time
 ) {
+    if (!IsActive())
+        return;
+
     if (m_variables) {
         x.segment(off_x, m_nstates).setZero();
         v.segment(off_v, m_nstates) = m_states;
@@ -323,6 +326,9 @@ void ChLinkTSDA::IntStateScatter(const unsigned int off_x,  // offset in x state
                                  const double T,            // time
                                  bool full_update           // perform complete update
 ) {
+    if (!IsActive())
+        return;
+
     // Important: set the internal states first, as they will be used in Update.
     if (m_variables) {
         m_states = v.segment(off_v, m_nstates);
@@ -332,6 +338,9 @@ void ChLinkTSDA::IntStateScatter(const unsigned int off_x,  // offset in x state
 }
 
 void ChLinkTSDA::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
+    if (!IsActive())
+        return;
+
     if (m_variables) {
         a.segment(off_a, m_nstates) = m_Qforce.segment(12, m_nstates);
     }
@@ -345,6 +354,9 @@ void ChLinkTSDA::IntLoadResidual_F(const unsigned int off,  // offset in R resid
                                    ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                    const double c           // a scaling factor
 ) {
+    if (!IsActive())
+        return;
+
     // Add forces to connected bodies (from the current vector of forcing terms)
     if (Body1->Variables().IsActive()) {
         R.segment(Body1->Variables().GetOffset() + 0, 3) += c * m_Qforce.segment(0, 3);
@@ -366,6 +378,9 @@ void ChLinkTSDA::IntLoadResidual_Mv(const unsigned int off,      // offset in R 
                                     const ChVectorDynamic<>& v,  // the v vector
                                     const double c               // a scaling factor
 ) {
+    if (!IsActive())
+        return;
+
     if (m_variables) {
         R.segment(off, m_nstates) += c * v.segment(off, m_nstates);
     }
@@ -377,6 +392,9 @@ void ChLinkTSDA::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                  const unsigned int off_L,  // offset in L, Qc
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) {
+    if (!IsActive())
+        return;
+
     if (m_variables) {
         m_variables->Get_qb() = v.segment(off_v, m_nstates);
         m_variables->Get_fb() = R.segment(off_v, m_nstates);
@@ -387,6 +405,9 @@ void ChLinkTSDA::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                    ChStateDelta& v,
                                    const unsigned int off_L,  // offset in L
                                    ChVectorDynamic<>& L) {
+    if (!IsActive())
+        return;
+
     if (m_variables) {
         v.segment(off_v, m_nstates) = m_variables->Get_qb();
     }
@@ -439,6 +460,9 @@ void ChLinkTSDA::VariablesQbIncrementPosition(double dt_step) {
 }
 
 void ChLinkTSDA::ConstraintsFbLoadForces(double factor) {
+    if (!IsActive())
+        return;
+
     // Add forces to connected bodies (from the current vector of forcing terms)
     Body1->Variables().Get_fb().segment(0, 3) += factor * m_Qforce.segment(0, 3);
     Body1->Variables().Get_fb().segment(3, 3) += factor * m_Qforce.segment(3, 3);

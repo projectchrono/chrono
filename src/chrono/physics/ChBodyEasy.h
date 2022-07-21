@@ -251,13 +251,13 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
 class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
   public:
     /// Create a ChBodyAuxRef with optional mesh visualization and/or collision shape. The mesh is assumed to be
-    /// provided in an OBJ Wavefront file and defined with respect to the body reference frame. Mass and inertia are set
+    /// provided in a Wavefront OBJ file and defined with respect to the body reference frame. Mass and inertia are set
     /// automatically depending on density.
-    ChBodyEasyMesh(const std::string filename,  ///< file name for OBJ Wavefront mesh
-                   double density,              ///< density of the body
-                   bool compute_mass = true,    ///< automatic evaluation of inertia properties
-                   bool visualize = true,       ///< create visualization asset
-                   bool collide = false,        ///< enable collision
+    ChBodyEasyMesh(const std::string& filename,  ///< name of the Wavefront OBJ file
+                   double density,               ///< density of the body
+                   bool compute_mass = true,     ///< automatic evaluation of inertia properties
+                   bool visualize = true,        ///< create visualization asset
+                   bool collide = false,         ///< enable collision
                    std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
                    double sphere_swept = 0.001,  ///< thickness (collision detection robustness)
                    std::shared_ptr<collision::ChCollisionModel> collision_model =
@@ -278,9 +278,9 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
     );
 
     /// Create a ChBodyAuxRef with a mesh visualization and collision shape using the specified collision model type.
-    /// The mesh is assumed to be provided in an OBJ Wavefront file and defined with respect to the body reference
+    /// The mesh is assumed to be provided in a Wavefront OBJ file and defined with respect to the body reference
     /// frame. Mass and inertia are set automatically depending on density.
-    ChBodyEasyMesh(const std::string filename,                      ///< file name for OBJ Wavefront mesh
+    ChBodyEasyMesh(const std::string& filename,                     ///< name of the Wavefront OBJ file
                    double density,                                  ///< density of the body
                    std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
                    double sphere_swept,                             ///< thickness (collision detection robustness)

@@ -32,8 +32,6 @@ namespace vehicle {
 /// Base class for a wheeled vehicle driveline subsystem.
 class CH_VEHICLE_API ChDrivelineWV : public ChDriveline {
   public:
-    ChDrivelineWV(const std::string& name);
-
     virtual ~ChDrivelineWV() {}
 
     /// Return the number of driven axles.
@@ -49,7 +47,10 @@ class CH_VEHICLE_API ChDrivelineWV : public ChDriveline {
     /// Update the driveline subsystem.
     /// The motor torque represents the input to the driveline subsystem from the powertrain system.
     /// The default implementation applies this torque to the driveline's driveshaft.
-    virtual void Synchronize(double torque);
+    virtual void Synchronize(double time,                            ///< [in] current time
+                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
+                             double torque                           ///< [in] motor torque
+    );
 
     /// Lock/unlock the differential on the specified axle.
     /// By convention, axles are counted front to back, starting with index 0 for the front-most axle.
@@ -69,6 +70,8 @@ class CH_VEHICLE_API ChDrivelineWV : public ChDriveline {
     virtual void Disconnect() = 0;
 
   protected:
+    ChDrivelineWV(const std::string& name);
+
     std::vector<int> m_driven_axles;  ///< indexes of the driven vehicle axles
 };
 

@@ -21,21 +21,26 @@ CompositeInertia::CompositeInertia() : m_mass(0) {
     m_inertia.setZero();
 }
 
-// Calculate and return the inertia tensor of the composite body, with respect
-// to its centroidal frame.
-ChMatrix33<> CompositeInertia::GetInertia() const {
-    ChMatrix33<> offset;
-    offset(0, 0) = m_com.y() * m_com.y() + m_com.z() * m_com.z();
-    offset(1, 1) = m_com.x() * m_com.x() + m_com.z() * m_com.z();
-    offset(2, 2) = m_com.x() * m_com.x() + m_com.y() * m_com.y();
-    offset(0, 1) = -m_com.x() * m_com.y();
-    offset(1, 0) = -m_com.x() * m_com.y();
-    offset(0, 2) = -m_com.x() * m_com.z();
-    offset(2, 0) = -m_com.x() * m_com.z();
-    offset(1, 2) = -m_com.y() * m_com.z();
-    offset(2, 1) = -m_com.y() * m_com.z();
+// Utility function for calculating an inertia shift matrix from a given vector.
+// This matrix is used when applying the parallel axis theorem.
+ChMatrix33<> CompositeInertia::InertiaShiftMatrix(const ChVector<>& v) {
+    ChMatrix33<> shift;
+    shift(0, 0) = v.y() * v.y() + v.z() * v.z();
+    shift(1, 1) = v.x() * v.x() + v.z() * v.z();
+    shift(2, 2) = v.x() * v.x() + v.y() * v.y();
+    shift(0, 1) = -v.x() * v.y();
+    shift(1, 0) = -v.x() * v.y();
+    shift(0, 2) = -v.x() * v.z();
+    shift(2, 0) = -v.x() * v.z();
+    shift(1, 2) = -v.y() * v.z();
+    shift(2, 1) = -v.y() * v.z();
 
-    return m_inertia - offset * m_mass;
+    return shift;
+}
+
+// Calculate and return the inertia tensor of the composite body, with respect to its centroidal frame.
+ChMatrix33<> CompositeInertia::GetInertia() const {
+    return m_inertia - InertiaShiftMatrix(m_com) * m_mass;
 }
 
 // Include sub-component inertia properties.
@@ -56,20 +61,8 @@ void CompositeInertia::AddComponent(
     // Update composite mass
     m_mass = m_mass + sign * mass;
 
-    // Express sub-component inertia w.r.t. the reference frame
-    // and update composite inertia
-    ChMatrix33<> offset;
-    offset(0, 0) = com.y() * com.y() + com.z() * com.z();
-    offset(1, 1) = com.x() * com.x() + com.z() * com.z();
-    offset(2, 2) = com.x() * com.x() + com.y() * com.y();
-    offset(0, 1) = -com.x() * com.y();
-    offset(1, 0) = -com.x() * com.y();
-    offset(0, 2) = -com.x() * com.z();
-    offset(2, 0) = -com.x() * com.z();
-    offset(1, 2) = -com.y() * com.z();
-    offset(2, 1) = -com.y() * com.z();
-
-    ChMatrix33<> increment = A.transpose() * inertia * A + offset * mass;
+    // Express sub-component inertia w.r.t. the reference frame and update composite inertia
+    ChMatrix33<> increment = A * inertia * A.transpose() + InertiaShiftMatrix(com) * mass;
     if (is_void)
         m_inertia -= increment;
     else

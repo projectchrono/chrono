@@ -24,7 +24,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -111,8 +111,8 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Create the system
     // -----------------
-    ChSystemNSC mphysicalSystem;
-    mphysicalSystem.Set_G_acc({0, 0, -9.81});
+    ChSystemNSC sys;
+    sys.Set_G_acc({0, 0, -9.81});
 
     // -------------------------------
     // Create a double pendulum system
@@ -120,36 +120,36 @@ int main(int argc, char* argv[]) {
     auto base = chrono_types::make_shared<ChBodyEasyBox>(.2, .2, 1, 1000, true, false);
     base->SetPos(ChVector<>(-.2, 0, .5));
     base->SetBodyFixed(true);  // the truss does not move!
-    mphysicalSystem.Add(base);
+    sys.Add(base);
 
     auto pendulum_leg_1 = chrono_types::make_shared<ChBodyEasyBox>(.2, .4, .2, 1000, true, false);
     pendulum_leg_1->SetPos(ChVector<>(0, .2, 1));
     pendulum_leg_1->SetBodyFixed(false);
-    mphysicalSystem.Add(pendulum_leg_1);
+    sys.Add(pendulum_leg_1);
 
     auto pendulum_leg_2 = chrono_types::make_shared<ChBodyEasyBox>(.2, .4, .2, 1000, true, false);
     pendulum_leg_2->SetPos(ChVector<>(0, .6, 1));
     pendulum_leg_2->SetBodyFixed(false);
-    mphysicalSystem.Add(pendulum_leg_2);
+    sys.Add(pendulum_leg_2);
 
     auto plate = chrono_types::make_shared<ChBodyEasyBox>(.4, .2, .2, 1000, true, false);
     plate->SetPos(ChVector<>(0, 0, 4));
     plate->SetBodyFixed(true);
-    mphysicalSystem.Add(plate);
+    sys.Add(plate);
 
     auto link1 = chrono_types::make_shared<ChLinkLockRevolute>();
     link1->Initialize(base, pendulum_leg_1, ChCoordsys<>({0, 0, 1}, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
-    mphysicalSystem.AddLink(link1);
+    sys.AddLink(link1);
 
     auto link2 = chrono_types::make_shared<ChLinkLockRevolute>();
     link2->Initialize(pendulum_leg_1, pendulum_leg_2,
                       ChCoordsys<>({0, .4, 1}, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
-    mphysicalSystem.AddLink(link2);
+    sys.AddLink(link2);
 
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
 
     // ---------------------------------------------
     // Create a IMU and add it to the sensor manager
@@ -343,10 +343,10 @@ int main(int argc, char* argv[]) {
         manager->Update();
 
         // Perform step of dynamics
-        mphysicalSystem.DoStepDynamics(step_size);
+        sys.DoStepDynamics(step_size);
 
         // Get the current time of the simulation
-        ch_time = (float)mphysicalSystem.GetChTime();
+        ch_time = (float)sys.GetChTime();
     }
 
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();

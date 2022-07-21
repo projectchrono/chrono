@@ -34,33 +34,27 @@ def main():
     #  Create the M113 vehicle
     # ------------------------
 
-    vehicle = veh.M113_Vehicle(False, 
-                               veh.TrackShoeType_SINGLE_PIN, 
-                               veh.DrivelineTypeTV_BDS,
-                               veh.BrakeType_SIMPLE, 
-                               False,
-                               chrono.ChContactMethod_SMC,
-                               veh.CollisionType_NONE)
+    m113 = veh.M113()
+    m113.SetContactMethod(chrono.ChContactMethod_SMC)
+    m113.SetTrackShoeType(veh.TrackShoeType_SINGLE_PIN)
+    m113.SetDrivelineType(veh.DrivelineTypeTV_BDS)
+    m113.SetPowertrainType(veh.PowertrainModelType_SHAFTS)
+    m113.SetBrakeType(veh.BrakeType_SIMPLE)
 
-    vehicle.Initialize(chrono.ChCoordsysD(initLoc, initRot))
+    m113.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+    m113.Initialize()
 
-    vehicle.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
-    vehicle.SetSprocketVisualizationType(veh.VisualizationType_MESH);
-    vehicle.SetIdlerVisualizationType(veh.VisualizationType_MESH);
-    vehicle.SetRoadWheelAssemblyVisualizationType(veh.VisualizationType_MESH);
-    vehicle.SetRoadWheelVisualizationType(veh.VisualizationType_MESH);
-    vehicle.SetTrackShoeVisualizationType(veh.VisualizationType_MESH);
-
-    # Create the powertrain system
-    # ----------------------------
-
-    powertrain = veh.M113_SimpleCVTPowertrain("Powertrain")
-    vehicle.InitializePowertrain(powertrain)
+    m113.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
+    m113.SetSprocketVisualizationType(veh.VisualizationType_MESH);
+    m113.SetIdlerVisualizationType(veh.VisualizationType_MESH);
+    m113.SetRoadWheelAssemblyVisualizationType(veh.VisualizationType_MESH);
+    m113.SetRoadWheelVisualizationType(veh.VisualizationType_MESH);
+    m113.SetTrackShoeVisualizationType(veh.VisualizationType_MESH);
 
     # Create the terrain
     # ------------------
 
-    terrain = veh.RigidTerrain(vehicle.GetSystem())
+    terrain = veh.RigidTerrain(m113.GetSystem())
     if (contact_method == chrono.ChContactMethod_NSC):
         patch_mat = chrono.ChMaterialSurfaceNSC()
         patch_mat.SetFriction(0.9)
@@ -71,7 +65,7 @@ def main():
         patch_mat.SetRestitution(0.01)
         patch_mat.SetYoungModulus(2e7)
     patch = terrain.AddPatch(patch_mat, 
-                             chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
+                             chrono.CSYSNORM, 
                              terrainLength, terrainWidth)
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.5, 0.8, 0.5))
@@ -80,18 +74,20 @@ def main():
     # Create the vehicle Irrlicht interface
     # -------------------------------------
 
-    app = veh.ChTrackedVehicleIrrApp(vehicle, 'M113')
-    app.AddTypicalLights()
-    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    app.SetChaseCamera(trackPoint, 6.0, 0.5)
-    app.SetTimestep(step_size)
-    app.AssetBindAll()
-    app.AssetUpdateAll()
+    vis = veh.ChTrackedVehicleVisualSystemIrrlicht()
+    vis.SetWindowTitle('M113')
+    vis.SetWindowSize(1280, 1024)
+    vis.SetChaseCamera(trackPoint, 6.0, 0.5)
+    vis.Initialize()
+    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddTypicalLights()
+    vis.AddSkyBox()
+    vis.AttachVehicle(m113.GetVehicle())
 
     # Create the interactive driver system
     # ------------------------------------
 
-    driver = veh.ChIrrGuiDriver(app)
+    driver = veh.ChIrrGuiDriver(vis)
 
     # Set the time response for steering and throttle keyboard inputs.
     steering_time = 0.5  # time to go from 0 to +1 (or from 0 to -1)
@@ -107,8 +103,8 @@ def main():
     # ---------------
 
     # Inter-module communication data
-    shoe_forces_left = veh.TerrainForces(vehicle.GetNumTrackShoes(veh.LEFT))
-    shoe_forces_right = veh.TerrainForces(vehicle.GetNumTrackShoes(veh.RIGHT))
+    shoe_forces_left = veh.TerrainForces(m113.GetVehicle().GetNumTrackShoes(veh.LEFT))
+    shoe_forces_right = veh.TerrainForces(m113.GetVehicle().GetNumTrackShoes(veh.RIGHT))
 
     # Number of simulation steps between miscellaneous events
     render_steps = m.ceil(render_step_size / step_size)
@@ -116,13 +112,14 @@ def main():
     # Initialize simulation frame counter and simulation time
     step_number = 0
 
-    realtime_timer = chrono.ChRealtimeStepTimer()
-    while (app.GetDevice().run()):
-        time = vehicle.GetSystem().GetChTime()
+    m113.GetVehicle().EnableRealtime(True)
 
-        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-        app.DrawAll()
-        app.EndScene()
+    while vis.Run() :
+        time = m113.GetSystem().GetChTime()
+
+        vis.BeginScene()
+        vis.Render()
+        vis.EndScene()
 
         # Get driver inputs
         driver_inputs = driver.GetInputs()
@@ -130,20 +127,17 @@ def main():
         # Update modules (process inputs from other modules)
         driver.Synchronize(time)
         terrain.Synchronize(time)
-        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right)
-        app.Synchronize("", driver_inputs)
+        m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right)
+        vis.Synchronize("", driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)
         terrain.Advance(step_size)
-        vehicle.Advance(step_size)
-        app.Advance(step_size)
+        m113.Advance(step_size)
+        vis.Advance(step_size)
 
         # Increment frame number
         step_number += 1
-
-        # Spin in place for real time to catch up
-        realtime_timer.Spin(step_size)
 
     return 0
 

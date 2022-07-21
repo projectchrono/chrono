@@ -5,8 +5,6 @@
 // to the specialized types, when polimorphic objects return
 // from a function.
 // Parameters: base class, inherited, inherited, inherited, ...
-//  Example:
-// %downcast_output (chrono::ChFunction, chrono::ChFunction_Sine, chrono::ChFunction_Const)
 
 
 
@@ -82,10 +80,6 @@
 //
 // Parameters: base class, inherited, inherited, ... (only the 
 //    classes wrapped by the chared ptr)
-//
-// Example:
-//   %downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile)
-
 
 
 %define %_shpointers_dispatch(Type) 

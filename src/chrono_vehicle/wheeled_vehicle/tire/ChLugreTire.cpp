@@ -32,7 +32,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name) {
+ChLugreTire::ChLugreTire(const std::string& name) : ChForceElementTire(name) {
     m_tireForce.force = ChVector<>(0, 0, 0);
     m_tireForce.point = ChVector<>(0, 0, 0);
     m_tireForce.moment = ChVector<>(0, 0, 0);
@@ -71,28 +71,16 @@ void ChLugreTire::AddVisualizationAssets(VisualizationType vis) {
         m_cyl_shapes[id]->GetCylinderGeometry().rad = disc_radius;
         m_cyl_shapes[id]->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + disc_locs[id] + discWidth / 2, 0);
         m_cyl_shapes[id]->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() + disc_locs[id] - discWidth / 2, 0);
-        m_wheel->GetSpindle()->AddAsset(m_cyl_shapes[id]);
+        m_cyl_shapes[id]->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
+        m_wheel->GetSpindle()->AddVisualShape(m_cyl_shapes[id]);
     }
-
-    m_texture = chrono_types::make_shared<ChTexture>();
-    m_texture->SetTextureFilename(GetChronoDataFile("textures/greenwhite.png"));
-    m_wheel->GetSpindle()->AddAsset(m_texture);
 }
 
 void ChLugreTire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChLugreTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    for (int id = 0; id < m_cyl_shapes.size(); id++) {
-        auto it = std::find(assets.begin(), assets.end(), m_cyl_shapes[id]);
-        if (it != assets.end())
-            assets.erase(it);
-    }
-    {
-        auto it = std::find(assets.begin(), assets.end(), m_texture);
-        if (it != assets.end())
-            assets.erase(it);
+    // This is important for the ChTire object because a wheel may add its own assets to the same body (the spindle/wheel).
+    for (auto& cyl : m_cyl_shapes) {
+        ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), cyl);
     }
     m_cyl_shapes.clear();
 }
@@ -137,7 +125,7 @@ void ChLugreTire::Synchronize(double time,
 
         // Calculate normal contact force. If the resulting force is negative, the disc is moving away from the terrain
         // so fast that no contact force is generated.
-        double Fn_mag = (GetNormalStiffness() * depth - GetNormalDamping() * m_data[id].vel.z()) / GetNumDiscs();
+        double Fn_mag = (GetNormalStiffnessForce(depth) + GetNormalDampingForce(depth, -m_data[id].vel.z())) / GetNumDiscs();
         if (Fn_mag < 0)
             Fn_mag = 0;
         m_data[id].normal_force = Fn_mag;

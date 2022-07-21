@@ -28,11 +28,11 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChDrivelineTV::ChDrivelineTV(const std::string& name) : ChDriveline(name), m_gyration_mode(false) {}
 
-void ChDrivelineTV::Synchronize(double steering, double torque) { 
+void ChDrivelineTV::Synchronize(double time, const DriverInputs& driver_inputs, double torque) { 
     m_driveshaft->SetAppliedTorque(torque);
 }
 
-void ChDrivelineTV::CombineDriverInputs(const ChDriver::Inputs& driver_inputs,
+void ChDrivelineTV::CombineDriverInputs(const DriverInputs& driver_inputs,
                                         double& braking_left,
                                         double& braking_right) {
     braking_left = driver_inputs.m_braking;

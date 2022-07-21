@@ -99,8 +99,15 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
     /// Shift down.
     void ShiftDown();
 
+    /// Shift to the specified gear.
+    /// Note that reverse gear is index 0 and forward gears are index > 0.
+    void SetGear(int gear);
+
   protected:
     ChPowertrain(const std::string& name);
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Initialize this powertrain system by attaching it to an existing vehicle chassis.
     /// A derived class override must first call this base class version.
@@ -117,17 +124,13 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
 
     /// Synchronize the state of this powertrain system at the current time.
     /// The powertrain system is provided the current driver throttle input, a value in the range [0,1].
-    virtual void Synchronize(double time,        ///< [in] current time
-                             double throttle,    ///< [in] current throttle input [0,1]
-                             double shaft_speed  ///< [in] driveshaft speed
+    virtual void Synchronize(double time,                            ///< [in] current time
+                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
+                             double shaft_speed                      ///< [in] driveshaft speed
                              ) = 0;
 
     /// Advance the state of this powertrain system by the specified time step.
     virtual void Advance(double step) {}
-
-    /// Shift to the specified gear.
-    /// Note that reverse gear is index 0 and forward gears are index > 0.
-    void SetGear(int gear);
 
     TransmissionMode m_transmission_mode;      ///< transmission mode (automatic or manual)
     DriveMode m_drive_mode;                    ///< drive mode (neutral, forward, or reverse)
@@ -136,6 +139,9 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
     std::vector<double> m_gear_ratios;  ///< gear ratios (0: reverse, 1+: forward)
     int m_current_gear;                 ///< current transmission gear (0: reverse, 1+: forward)
     double m_current_gear_ratio;        ///< current gear ratio (positive for forward, negative for reverse)
+
+  private:
+    ////virtual void UpdateInertiaProperties() override final;
 
     friend class ChWheeledVehicle;
     friend class ChTrackedVehicle;

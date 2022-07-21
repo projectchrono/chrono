@@ -20,7 +20,6 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
@@ -113,6 +112,9 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
     m_ground->SetPos(ChVector<>(0, 0, 0));
     m_ground->SetBodyFixed(true);
     m_ground->SetCollide(false);
+
+    m_ground->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
+
     system->Add(m_ground);
 }
 
@@ -190,8 +192,8 @@ float ObsModTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
 
 void ObsModTerrain::Initialize(ObsModTerrain::VisualisationType vType) {
     GetLog() << "Init Terrain:\n";
-    GetLog() << "Testhöhe 1 =  " << GetHeight(ChVector<>(0, 0, 0)) << "\n";
-    GetLog() << "Testhöhe 2 =  " << GetHeight(ChVector<>(m_x[1], m_y[1], 0)) << "\n";
+    GetLog() << "Testhright 1 =  " << GetHeight(ChVector<>(0, 0, 0)) << "\n";
+    GetLog() << "Testheight 2 =  " << GetHeight(ChVector<>(m_x[1], m_y[1], 0)) << "\n";
     switch (vType) {
         case ObsModTerrain::VisualisationType::NONE:
             break;
@@ -232,14 +234,10 @@ void ObsModTerrain::GenerateMesh() {
     }
     auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
     vmesh->SetMesh(m_mesh);
-    vmesh->SetStatic(true);
+    vmesh->SetMutable(false);
     vmesh->SetName("ISO_track");
-
-    auto vcolor = chrono_types::make_shared<ChColorAsset>();
-    vcolor->SetColor(ChColor(0.6f, 0.6f, 0.8f));
-
-    m_ground->AddAsset(vcolor);
-    m_ground->AddAsset(vmesh);
+    vmesh->SetColor(ChColor(0.6f, 0.6f, 0.8f));
+    m_ground->AddVisualShape(vmesh);
 }
 
 void ObsModTerrain::EnableCollisionMesh(std::shared_ptr<ChMaterialSurface> material,
@@ -267,8 +265,7 @@ void ObsModTerrain::SetupCollision() {
 
         auto box = chrono_types::make_shared<ChBoxShape>();
         box->GetBoxGeometry().SetLengths(ChVector<>(m_start_length, m_width, thickness));
-        box->Pos = loc;
-        m_ground->AddAsset(box);
+        m_ground->AddVisualShape(box, ChFrame<>(loc));
 
         // we also need an end plate here
         double end_length = 10.0;
@@ -277,8 +274,7 @@ void ObsModTerrain::SetupCollision() {
 
         auto box2 = chrono_types::make_shared<ChBoxShape>();
         box2->GetBoxGeometry().SetLengths(ChVector<>(end_length, m_width, thickness));
-        box2->Pos = loc2;
-        m_ground->AddAsset(box2);
+        m_ground->AddVisualShape(box2, ChFrame<>(loc2));
     }
 
     m_ground->GetCollisionModel()->BuildModel();

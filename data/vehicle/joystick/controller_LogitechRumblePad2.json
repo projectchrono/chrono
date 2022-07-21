@@ -1,0 +1,46 @@
+{
+	"steering": {
+		"name": "Logitech RumblePad 2 USB",
+		"axis": 2,
+		"min": -32768,
+		"max": 32767,
+		"scaled_min": 1,
+		"scaled_max": -1
+	},
+	"throttle": {
+		"name": "Logitech RumblePad 2 USB",
+		"axis": 1,
+		"min": -1,
+		"max": -32767,
+		"scaled_min": 0,
+		"scaled_max": 1
+	},
+	"brake": {
+		"name": "Logitech RumblePad 2 USB",
+		"axis": 1,
+		"min": 0,
+		"max": 32767,
+		"scaled_min": 0,
+		"scaled_max": 1
+	},
+	"clutch": {
+		"name": "Logitech RumblePad 2 USB",
+		"axis": 4,
+		"min": 0,
+		"max": 32767,
+		"scaled_min": 0,
+		"scaled_max": 1
+	},
+	"shiftUp": {
+		"name": "Logitech RumblePad 2 USB",
+		"button": 4
+	},
+	"shiftDown": {
+		"name": "Logitech RumblePad 2 USB",
+		"button": 5
+	},
+	"toggleManualGearbox": {
+		"name": "Logitech RumblePad 2 USB",
+		"button": 6
+	}
+}

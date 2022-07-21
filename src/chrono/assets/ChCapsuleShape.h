@@ -15,23 +15,20 @@
 #ifndef CHCAPSULESHAPE_H
 #define CHCAPSULESHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChCapsule.h"
 
 namespace chrono {
 
 /// Class for referencing a capsule shape that can be visualized in some way.
-class ChApi ChCapsuleShape : public ChVisualization {
-  protected:
-    geometry::ChCapsule gcapsule;
-
+class ChApi ChCapsuleShape : public ChVisualShape {
   public:
-    ChCapsuleShape() {}
-    ChCapsuleShape(const geometry::ChCapsule& mcap) : gcapsule(mcap) {}
+    ChCapsuleShape();
+    ChCapsuleShape(const geometry::ChCapsule& cap);
 
-    virtual ~ChCapsuleShape() {}
+    ~ChCapsuleShape() {}
 
-    // Access the capsule geometry
+    // Access the capsule geometry.
     geometry::ChCapsule& GetCapsuleGeometry() { return gcapsule; }
 
     /// Method to allow serialization of transient data to archives.
@@ -39,6 +36,9 @@ class ChApi ChCapsuleShape : public ChVisualization {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    geometry::ChCapsule gcapsule;
 };
 
 CH_CLASS_VERSION(ChCapsuleShape, 0)

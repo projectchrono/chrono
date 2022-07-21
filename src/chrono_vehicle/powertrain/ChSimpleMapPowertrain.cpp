@@ -43,7 +43,7 @@ void ChSimpleMapPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     assert(m_full_throttle_map.GetPoints().size() > 0);
 }
 
-void ChSimpleMapPowertrain::Synchronize(double time, double throttle, double shaft_speed) {
+void ChSimpleMapPowertrain::Synchronize(double time, const DriverInputs& driver_inputs, double shaft_speed) {
     // Automatic gear selection (based on ideal shift points)
     if (m_transmission_mode == TransmissionMode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD) {
         if (m_motor_speed > m_shift_points[m_current_gear].second) {
@@ -59,16 +59,17 @@ void ChSimpleMapPowertrain::Synchronize(double time, double throttle, double sha
         }
     }
 
-    // Calculate engine speed and clamp to specified maximum:
+    // Calculate engine speed and clamp to specified maximum
     m_motor_speed = std::abs(shaft_speed) / m_current_gear_ratio;
     ChClampValue(m_motor_speed, 0.0, GetMaxEngineSpeed());
 
-    // Motor torque is linearly interpolated by throttle value:
+    // Motor torque is linearly interpolated by throttle value
+    double throttle = driver_inputs.m_throttle;
     double fullThrottleTorque = m_full_throttle_map.Get_y(m_motor_speed);
     double zeroThrottleTorque = m_zero_throttle_map.Get_y(m_motor_speed);
     m_motor_torque = zeroThrottleTorque * (1 - throttle) + fullThrottleTorque * (throttle);
 
-    // The torque at motor shaft:
+    // The torque at motor shaft
     m_shaft_torque = m_motor_torque / m_current_gear_ratio;
 }
 

@@ -37,13 +37,13 @@ TEST(ChOptixEngine, render_synchronization) {}
 
 // for making sure we can add sensors safely while the simulation is running
 TEST(ChOptixEngine, assign_sensor_safety) {
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box->SetBodyFixed(true);
-    mphysicalSystem.Add(box);
+    sys.Add(box);
 
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 500);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
@@ -63,9 +63,9 @@ TEST(ChOptixEngine, assign_sensor_safety) {
 
     while (ch_time < end_time) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
 
-        ch_time = (float)mphysicalSystem.GetChTime();
+        ch_time = (float)sys.GetChTime();
     }
 
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(
@@ -81,9 +81,9 @@ TEST(ChOptixEngine, assign_sensor_safety) {
 
     while (ch_time < 2 * end_time) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
 
-        ch_time = (float)mphysicalSystem.GetChTime();
+        ch_time = (float)sys.GetChTime();
     }
 
     ASSERT_TRUE(success);
@@ -91,13 +91,13 @@ TEST(ChOptixEngine, assign_sensor_safety) {
 
 // for making sure user interaction with the render engine is safe while the simulation is running
 TEST(ChOptixEngine, construct_scene_safety) {
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box->SetBodyFixed(true);
-    mphysicalSystem.Add(box);
+    sys.Add(box);
 
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 500);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
@@ -121,17 +121,17 @@ TEST(ChOptixEngine, construct_scene_safety) {
 
     while (ch_time < end_time) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
 
         if (frame == 10) {
             auto b = chrono_types::make_shared<ChBodyEasyBox>(.5, .5, .5, 1000, true, false);
             b->SetPos({0, 0, 2});
             b->SetBodyFixed(true);
-            mphysicalSystem.Add(b);
+            sys.Add(b);
             engine->ConstructScene();
         }
 
-        ch_time = (float)mphysicalSystem.GetChTime();
+        ch_time = (float)sys.GetChTime();
         frame++;
     }
 
@@ -139,13 +139,13 @@ TEST(ChOptixEngine, construct_scene_safety) {
 }
 
 TEST(ChOptixEngine, construct_scene_safety_2) {
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box->SetBodyFixed(true);
-    mphysicalSystem.Add(box);
+    sys.Add(box);
 
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 500);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
@@ -170,17 +170,17 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
 
     while (ch_time < end_time) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
 
         if (frame == 10) {
             auto b = chrono_types::make_shared<ChBodyEasyBox>(.5, .5, .5, 1000, true, false);
             b->SetPos({0, 0, 2});
             b->SetBodyFixed(true);
-            mphysicalSystem.Add(b);
+            sys.Add(b);
             manager->ReconstructScenes();
         }
 
-        ch_time = (float)mphysicalSystem.GetChTime();
+        ch_time = (float)sys.GetChTime();
         frame++;
     }
 
@@ -188,13 +188,13 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
 }
 
 TEST(ChOptixEngine, lights) {
-    ChSystemNSC mphysicalSystem;
+    ChSystemNSC sys;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box->SetBodyFixed(true);
-    mphysicalSystem.Add(box);
+    sys.Add(box);
 
-    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 500);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
@@ -210,18 +210,18 @@ TEST(ChOptixEngine, lights) {
 
     ASSERT_EQ(manager->scene->GetPointLights().size(), 1);
 
-    while ((float)mphysicalSystem.GetChTime() < end_time) {
+    while ((float)sys.GetChTime() < end_time) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
     }
 
     for (int i = 0; i < 10; i++) {
         manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 500);
     }
 
-    while ((float)mphysicalSystem.GetChTime() < 2 * end_time) {
+    while ((float)sys.GetChTime() < 2 * end_time) {
         manager->Update();
-        mphysicalSystem.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.01);
     }
 
     ASSERT_EQ(manager->scene->GetPointLights().size(), 11);

@@ -52,18 +52,18 @@ TEST(FullAssembly, Assemble) {
     ChQuaternion<> jointRot = Q_from_AngX(jointAngle);  // orientation of revolute joint
 
     // Create the mechanical system
-    ChSystemNSC my_system;
-    my_system.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
 
     // Integrator settings
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    my_system.SetSolverType(ChSolver::Type::PSOR);
-    my_system.SetSolverMaxIterations(100);
-    my_system.SetSolverForceTolerance(1e-4);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.SetSolverMaxIterations(100);
+    sys.SetSolverForceTolerance(1e-4);
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBody>();
-    my_system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetIdentifier(0);
     ground->SetBodyFixed(true);
 
@@ -72,7 +72,7 @@ TEST(FullAssembly, Assemble) {
     // consistent with the specified joint location.
     // The pendulum CG is assumed to be at half its length.
     auto pendulum = chrono_types::make_shared<ChBody>();
-    my_system.AddBody(pendulum);
+    sys.AddBody(pendulum);
     pendulum->SetIdentifier(1);
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
     pendulum->SetRot(jointRot);
@@ -86,11 +86,11 @@ TEST(FullAssembly, Assemble) {
     revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
     ////auto revoluteJoint = chrono_types::make_shared<ChLinkRevolute>();
     ////revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
-    my_system.AddLink(revoluteJoint);
+    sys.AddLink(revoluteJoint);
 
     // Perform a system assembly.
-    ////my_system.DoAssembly(AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
-    my_system.DoFullAssembly();
+    ////sys.DoAssembly(AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
+    sys.DoFullAssembly();
 
     // Extract position, velocity, and acceleration of pendulum body.
     ChVector<> pos = pendulum->GetPos();

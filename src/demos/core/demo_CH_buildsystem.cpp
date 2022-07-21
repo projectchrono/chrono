@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
         GetLog() << " Example: create a physical system.. \n";
 
         // The physical system: it contains all physical objects.
-        ChSystemNSC my_system;
+        ChSystemNSC sys;
 
         // Create a bunch of rigid bodies..
         // Note that we use shared pointers, so you don't
@@ -72,20 +72,20 @@ int main(int argc, char* argv[]) {
 
         // Ok, remember that rigid bodies must be added to
         // the physical system.
-        my_system.AddBody(my_body_A);
-        my_system.AddBody(my_body_B);
-        my_system.AddBody(my_body_C);
+        sys.AddBody(my_body_A);
+        sys.AddBody(my_body_B);
+        sys.AddBody(my_body_C);
 
         // Show the hierarchy in the shell window...
         GetLog() << "Here's the system hierarchy which you built: \n\n ";
-        my_system.ShowHierarchy(GetLog());
+        sys.ShowHierarchy(GetLog());
 
         // Do you want to remove items? Use the
         // Remove...() functions.
         my_body_A->RemoveAllForces();
 
         // Remove a single body..
-        my_system.RemoveBody(my_body_A);
+        sys.RemoveBody(my_body_A);
 
         // Add markers to another body...
         my_body_B->AddMarker(my_marker_a1);
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
         // ..so you can later use  my_body_B.SearchMarker("JohnFoo"); etc.
 
         GetLog() << "\n\n\nHere's the system hierarchy after modifications: \n\n ";
-        my_system.ShowHierarchy(GetLog());
+        sys.ShowHierarchy(GetLog());
     }
 
     {
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
         GetLog() << " Example: create a slider-crank system: \n";
 
         // The physical system: it contains all physical objects.
-        ChSystemNSC my_system;
+        ChSystemNSC sys;
 
         // Create three rigid bodies and add them to the system:
         auto my_body_A = chrono_types::make_shared<ChBody>();
@@ -120,9 +120,9 @@ int main(int argc, char* argv[]) {
         my_body_B->SetName("crank");
         my_body_C->SetName("rod");
 
-        my_system.AddBody(my_body_A);
-        my_system.AddBody(my_body_B);
-        my_system.AddBody(my_body_C);
+        sys.AddBody(my_body_A);
+        sys.AddBody(my_body_B);
+        sys.AddBody(my_body_C);
 
         // Set initial position of the bodies (center of mass)
         my_body_A->SetBodyFixed(true);  // truss does not move!
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
         auto my_link_BC = chrono_types::make_shared<ChLinkLockRevolute>();
         my_link_BC->Initialize(my_marker_b, my_marker_c);
         my_link_BC->SetName("REVOLUTE crank-rod");
-        my_system.AddLink(my_link_BC);
+        sys.AddLink(my_link_BC);
 
         // Phew! All this 'marker' stuff is boring!
         // Note that there's an easier way to create a link,
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
         // For example, to create the rod-truss constraint:
         auto my_link_CA = chrono_types::make_shared<ChLinkLockPointLine>();
         my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector<>(6, 0, 0)));
-        my_system.AddLink(my_link_CA);
+        sys.AddLink(my_link_CA);
 
         my_link_CA->GetMarker1()->SetName("rod_poinline");
         my_link_CA->GetMarker2()->SetName("truss_pointline");
@@ -171,13 +171,13 @@ int main(int argc, char* argv[]) {
         my_motor_AB->SetName("MOTOR truss-crank");
         my_motor_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
         my_motor_AB->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI));
-        my_system.AddLink(my_motor_AB);
+        sys.AddLink(my_motor_AB);
 
         GetLog() << "\n\n\nHere's the system hierarchy for slider-crank: \n\n ";
-        my_system.ShowHierarchy(GetLog());
+        sys.ShowHierarchy(GetLog());
 
         GetLog() << "Now use an interator to scan through already-added constraints:\n\n";
-        for (auto link : my_system.Get_linklist()) {
+        for (auto link : sys.Get_linklist()) {
             GetLog() << "   Link class: " << typeid(link).name() << "\n";
         }
 
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
             chronoTime += 0.01;
 
             // PERFORM SIMULATION UP TO chronoTime
-            my_system.DoFrameDynamics(chronoTime);
+            sys.DoFrameDynamics(chronoTime);
 
             // Print something on the console..
             GetLog() << "Time: " << chronoTime

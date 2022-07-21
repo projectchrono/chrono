@@ -54,10 +54,6 @@ class CH_VEHICLE_API ChChassisConnectorTorsion : public ChChassisConnector {
 
     std::shared_ptr<ChLinkLockRevolute> m_joint;  ///< revolute joint of the connector
     std::shared_ptr<ChLinkRSDA> m_spring;         ///< rotational spring-damper
-
-  private:
-    virtual double GetMass() const override final { return 0; }
-    virtual ChVector<> GetCOMPos() const override final { return ChVector<>(0, 0, 0); }
 };
 
 /// @} vehicle

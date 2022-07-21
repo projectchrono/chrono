@@ -18,8 +18,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointDrawing.h"
-#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 #include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperRWAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
@@ -118,9 +117,24 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
     ChRoadWheelAssembly::Initialize(chassis, location, track);
 }
 
-// -----------------------------------------------------------------------------
-double ChLinearDamperRWAssembly::GetMass() const {
-    return GetArmMass() + m_road_wheel->GetWheelMass();
+void ChLinearDamperRWAssembly::InitializeInertiaProperties() {
+    m_mass = GetArmMass() + m_road_wheel->GetWheelMass();
+}
+
+void ChLinearDamperRWAssembly::UpdateInertiaProperties() {
+    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_arm->GetFrame_COG_to_abs(), m_arm->GetMass(), m_arm->GetInertia());
+    composite.AddComponent(m_road_wheel->GetWheelBody()->GetFrame_COG_to_abs(), m_road_wheel->GetWheelBody()->GetMass(),
+                           m_road_wheel->GetWheelBody()->GetInertia());
+
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
 }
 
 double ChLinearDamperRWAssembly::GetCarrierAngle() const {
@@ -161,7 +175,7 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p1 = m_pA;
         cyl->GetCylinderGeometry().p2 = m_pAW;
         cyl->GetCylinderGeometry().rad = radius;
-        m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
 
     if ((m_pA - m_pAC).Length2() > threshold2) {
@@ -169,7 +183,7 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p1 = m_pA;
         cyl->GetCylinderGeometry().p2 = m_pAC;
         cyl->GetCylinderGeometry().rad = radius;
-        m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
 
     if ((m_pA - m_pAS).Length2() > threshold2) {
@@ -177,7 +191,7 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p1 = m_pA;
         cyl->GetCylinderGeometry().p2 = m_pAS;
         cyl->GetCylinderGeometry().rad = 0.75 * radius;
-        m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
 
     // Revolute joint (arm-chassis)
@@ -186,7 +200,7 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p1 = m_pAC - radius * m_dY;
         cyl->GetCylinderGeometry().p2 = m_pAC + radius * m_dY;
         cyl->GetCylinderGeometry().rad = 1.5 * radius;
-        m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
 
     // Revolute joint (arm-wheel)
@@ -196,23 +210,19 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
         cyl->GetCylinderGeometry().p1 = m_pO;
         cyl->GetCylinderGeometry().p2 = m_pAW + (m_pAW - m_pO) * radius/len;
         cyl->GetCylinderGeometry().rad = radius;
-        m_arm->AddAsset(cyl);
+        m_arm->AddVisualShape(cyl);
     }
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.6f, 0.3f));
-    m_arm->AddAsset(col);
 
     // Visualization of the shock (with default color)
     if (m_has_shock) {
-        m_shock->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+        m_shock->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
     }
 }
 
 void ChLinearDamperRWAssembly::RemoveVisualizationAssets() {
-    m_arm->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_arm);
     if (m_has_shock)
-      m_shock->GetAssets().clear();
+        ChPart::RemoveVisualizationAssets(m_shock);
 }
 
 // -----------------------------------------------------------------------------

@@ -37,15 +37,6 @@ class CH_VEHICLE_API RigidChassis : public ChRigidChassis {
     RigidChassis(const rapidjson::Document& d);
     ~RigidChassis() {}
 
-    /// Return the mass of the chassis body.
-    virtual double GetMass() const override { return m_mass; }
-
-    /// Return the inertia tensor of the chassis body.
-    virtual const ChMatrix33<>& GetInertia() const override { return m_inertia; }
-
-    /// Get the location of the center of mass in the chassis frame.
-    virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
-
     /// Get the location (in the local frame of this chassis) of the connection to a rear chassis.
     virtual const ChVector<> GetLocalPosRearConnector() const override { return m_connector_rear_loc; }
 
@@ -54,12 +45,16 @@ class CH_VEHICLE_API RigidChassis : public ChRigidChassis {
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
   private:
+    virtual double GetBodyMass() const override { return m_body_mass; }
+    virtual ChMatrix33<> GetBodyInertia() const override { return m_body_inertia; }
+    virtual ChFrame<> GetBodyCOMFrame() const override { return ChFrame<>(m_body_COM_loc, QUNIT); }
+
     virtual void Create(const rapidjson::Document& d) override;
     virtual void CreateContactMaterials(ChContactMethod contact_method) override;
 
-    double m_mass;                    ///< chassis mass
-    ChMatrix33<> m_inertia;           ///< chassis inertia tensor, w.r.t. centroidal frame
-    ChVector<> m_COM_loc;             ///< location of the chassis COM in the chassis reference frame
+    double m_body_mass;               ///< chassis body mass
+    ChMatrix33<> m_body_inertia;      ///< chassis body inertia tensor, w.r.t. centroidal frame
+    ChVector<> m_body_COM_loc;        ///< location of the chassis COM in the chassis reference frame
     ChVector<> m_connector_rear_loc;  ///< location of connector to a potential rear chassis
     ChCoordsys<> m_driverCsys;        ///< driver position and orientation relative to chassis
 
@@ -73,15 +68,6 @@ class CH_VEHICLE_API RigidChassisRear : public ChRigidChassisRear {
     RigidChassisRear(const rapidjson::Document& d);
     ~RigidChassisRear() {}
 
-    /// Return the mass of the chassis body.
-    virtual double GetMass() const override { return m_mass; }
-
-    /// Return the inertia tensor of the chassis body.
-    virtual const ChMatrix33<>& GetInertia() const override { return m_inertia; }
-
-    /// Get the location of the center of mass in the chassis frame.
-    virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
-
     /// Get the location (in the local frame of this chassis) of the connection to the front chassis.
     virtual const ChVector<>& GetLocalPosFrontConnector() const override { return m_connector_front_loc; }
 
@@ -89,12 +75,16 @@ class CH_VEHICLE_API RigidChassisRear : public ChRigidChassisRear {
     virtual const ChVector<> GetLocalPosRearConnector() const override { return m_connector_rear_loc; }
 
   private:
+    virtual double GetBodyMass() const override { return m_body_mass; }
+    virtual ChMatrix33<> GetBodyInertia() const override { return m_body_inertia; }
+    virtual ChFrame<> GetBodyCOMFrame() const override { return ChFrame<>(m_body_COM_loc, QUNIT); }
+
     virtual void Create(const rapidjson::Document& d) override;
     virtual void CreateContactMaterials(ChContactMethod contact_method) override;
 
-    double m_mass;                     ///< chassis mass
-    ChMatrix33<> m_inertia;            ///< chassis inertia tensor, w.r.t. centroidal frame
-    ChVector<> m_COM_loc;              ///< location of the chassis COM in the chassis reference frame
+    double m_body_mass;                ///< chassis body mass
+    ChMatrix33<> m_body_inertia;       ///< chassis body inertia tensor, w.r.t. centroidal frame
+    ChVector<> m_body_COM_loc;         ///< location of the chassis body COM in the chassis reference frame
     ChVector<> m_connector_front_loc;  ///< location of connector to the front chassis
     ChVector<> m_connector_rear_loc;   ///< location of connector to a potential rear chassis
 

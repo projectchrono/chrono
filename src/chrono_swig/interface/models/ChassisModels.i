@@ -48,9 +48,6 @@
 // Parse the header file to generate wrappers
 %import "chrono_swig/interface/vehicle/ChChassis.i"
 
-%import "../../../chrono/assets/ChAsset.h"
-%import "../../../chrono/assets/ChAssetLevel.h"
-
 // Model:
 %include "../../../chrono_models/vehicle/generic/Generic_Chassis.h"
 %include "../../../chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"

@@ -22,7 +22,7 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
 
@@ -164,8 +164,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_coarse.obj"), true, false);
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+        GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_coarse.obj"));
 
     object->GetCollisionModel()->ClearModel();
     object->GetCollisionModel()->AddTriangleMesh(object_mat, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("tire");
-    object->AddAsset(trimesh_shape);
+    object->AddVisualShape(trimesh_shape);
 
     // Create ground body
     auto ground = std::shared_ptr<ChBody>(sys->NewBody());
@@ -217,20 +217,22 @@ int main(int argc, char* argv[]) {
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(width, length, thickness);
-    ////box->GetBoxGeometry().Pos = ChVector<>(0, 0, -thickness); // not interpreted in multicore collision sys
-    box->Pos = ChVector<>(0, 0, -thickness);
-    ground->AddAsset(box);
+    ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -thickness)));
 
     // Create the visualization window
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "Mesh-mesh test", sys);
-    gl_window.SetCamera(ChVector<>(2, 1, 2), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0), 0.05f);
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(sys);
+    vis.SetWindowTitle("Mesh-mesh test");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::WIREFRAME);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(2, 1, 2), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Y);
 
     // Simulation loop
-    while (gl_window.Active()) {
+    while (vis.Run()) {
         sys->DoStepDynamics(time_step);
-        gl_window.Render();
+        vis.Render();
     }
 
     delete sys;

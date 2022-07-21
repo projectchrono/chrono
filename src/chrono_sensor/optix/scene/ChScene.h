@@ -32,6 +32,7 @@
 // #include <optixu/optixu_math_namespace.h>
 
 #include "chrono/physics/ChBody.h"
+#include "chrono/assets/ChColor.h"
 
 #include "chrono_sensor/ChApiSensor.h"
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
@@ -64,7 +65,7 @@ class CH_SENSOR_API ChScene {
     /// @param color The golor of the light source
     /// @param max_range the range at which the light intensity is equal to 1% of its maximum intensity
     /// @return the index of the light that has been added
-    unsigned int AddPointLight(ChVector<float> pos, ChVector<float> color, float max_range);
+    unsigned int AddPointLight(ChVector<float> pos, ChColor color, float max_range);
 
     /// Add a point light that emits light in all directions.
     /// @param p A point light the will be added directly

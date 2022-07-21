@@ -73,8 +73,8 @@ void Gator_RigidTire_Front::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void Gator_RigidTire_Front::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChRigidTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 // -----------------------------------------------------------------------------
@@ -103,8 +103,8 @@ void Gator_RigidTire_Rear::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void Gator_RigidTire_Rear::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChRigidTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace gator

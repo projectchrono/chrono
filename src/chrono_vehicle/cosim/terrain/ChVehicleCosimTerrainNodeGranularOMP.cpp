@@ -39,10 +39,6 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChOpenGLWindow.h"
-#endif
-
 using std::cout;
 using std::endl;
 
@@ -120,6 +116,11 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(doubl
 
     // Set default number of threads
     m_system->SetNumThreads(1);
+
+    // Create OpenGL visualization system
+#ifdef CHRONO_OPENGL
+    m_vsys = new opengl::ChVisualSystemOpenGL;
+#endif
 }
 
 ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
@@ -170,10 +171,18 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
 
     // Read granular OMP terrain parameters from provided specfile
     SetFromSpecfile(specfile);
+
+    // Create OpenGL visualization system
+#ifdef CHRONO_OPENGL
+    m_vsys = new opengl::ChVisualSystemOpenGL;
+#endif
 }
 
 ChVehicleCosimTerrainNodeGranularOMP::~ChVehicleCosimTerrainNodeGranularOMP() {
     delete m_system;
+#ifdef CHRONO_OPENGL
+    delete m_vsys;
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -511,8 +520,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     int id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(GetChronoDataFile(b.m_mesh_filename), true, true);
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename),
+                                                                                  true, true);
         double mass;
         ChVector<> baricenter;
         ChMatrix33<> inertia;
@@ -537,20 +546,21 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
-        trimesh_shape->Pos = ChVector<>(0, 0, 0);
-        trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-        body->GetAssets().push_back(trimesh_shape);
-
+        body->AddVisualShape(trimesh_shape, ChFrame<>());
         m_system->AddBody(body);
     }
 
 #ifdef CHRONO_OPENGL
     // Create the visualization window
     if (m_render) {
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "Terrain Node (GranularOMP)", m_system);
-        gl_window.SetCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
-        gl_window.SetRenderMode(opengl::WIREFRAME);
+        m_vsys->AttachSystem(m_system);
+        m_vsys->SetWindowTitle("Terrain Node (GranularOMP)");
+        m_vsys->SetWindowSize(1280, 720);
+        m_vsys->SetRenderMode(opengl::WIREFRAME);
+        m_vsys->Initialize();
+        m_vsys->SetCameraPosition(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+        m_vsys->SetCameraProperties(0.05f);
+        m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     }
 #endif
 
@@ -828,9 +838,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateWheelProxy(unsigned int i) {
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("wheel_" + std::to_string(i));
-    trimesh_shape->Pos = ChVector<>(0, 0, 0);
-    trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-    body->GetAssets().push_back(trimesh_shape);
+    body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     m_system->AddBody(body);
     m_proxies[i].push_back(ProxyBody(body, 0));
@@ -996,9 +1004,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnAdvance(double step_size) {
 
 void ChVehicleCosimTerrainNodeGranularOMP::Render(double time) {
 #ifdef CHRONO_OPENGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    if (gl_window.Active()) {
-        gl_window.Render();
+    if (m_vsys->Run()) {
+        m_vsys->Render();
     } else {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }

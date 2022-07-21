@@ -15,21 +15,18 @@
 #ifndef CHROUNDEDBOXSHAPE_H
 #define CHROUNDEDBOXSHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChRoundedBox.h"
 
 namespace chrono {
 
 /// Class for referencing a rounded box shape that can be visualized in some way.
-class ChApi ChRoundedBoxShape : public ChVisualization {
-  protected:
-    geometry::ChRoundedBox groundedbox;
-
+class ChApi ChRoundedBoxShape : public ChVisualShape {
   public:
-    ChRoundedBoxShape() {}
-    ChRoundedBoxShape(const geometry::ChRoundedBox& mcap) : groundedbox(mcap) {}
+    ChRoundedBoxShape();
+    ChRoundedBoxShape(const geometry::ChRoundedBox& box);
 
-    virtual ~ChRoundedBoxShape() {}
+    ~ChRoundedBoxShape() {}
 
     // Access the rounded box geometry
     geometry::ChRoundedBox& GetRoundedBoxGeometry() { return groundedbox; }
@@ -39,6 +36,9 @@ class ChApi ChRoundedBoxShape : public ChVisualization {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    geometry::ChRoundedBox groundedbox;
 };
 
 CH_CLASS_VERSION(ChRoundedBoxShape, 0)

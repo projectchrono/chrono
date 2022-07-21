@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHCASCADEDOC_H
-#define CHCASCADEDOC_H
+#ifndef CH_CASCADE_DOC_H
+#define CH_CASCADE_DOC_H
 
 #include "chrono_cascade/ChApiCASCADE.h"
 
@@ -36,10 +36,8 @@ namespace cascade {
 /// @addtogroup cascade_module
 /// @{
 
-/// Class that contains an OCAF document (a tree hierarchy of
-/// shapes in the OpenCascade framework). Most often this is
-/// populated by loading a STEP file from disk.
-
+/// Class that contains an OCAF document (a tree hierarchy of shapes in the OpenCascade framework).
+/// Most often this is populated by loading a STEP file from disk.
 class ChApiCASCADE ChCascadeDoc {
   public:
     ChCascadeDoc();

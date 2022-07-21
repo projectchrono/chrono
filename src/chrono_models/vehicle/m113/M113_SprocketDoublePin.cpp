@@ -68,17 +68,13 @@ void M113_SprocketDoublePin::CreateContactMaterial(ChContactMethod contact_metho
 // -----------------------------------------------------------------------------
 void M113_SprocketDoublePin::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        //// TODO
-        //// Set up mesh for sprocket gear
-        //// For now, default to rendering the profile.
-        ChSprocket::AddVisualizationAssets(vis);
-        ////geometry::ChTriangleMeshConnected trimesh;
-        ////trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
-        ////auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        ////trimesh_shape->SetMesh(trimesh);
-        ////trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
-        ////trimesh_shape->SetStatic(true);
-        ////m_gear->AddAsset(trimesh_shape);
+        ////auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
+        auto trimesh = CreateVisualizationMesh(0.15, 0.03, 0.02);
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
+        trimesh_shape->SetMutable(false);
+        m_gear->AddVisualShape(trimesh_shape);
     } else {
         ChSprocket::AddVisualizationAssets(vis);
     }

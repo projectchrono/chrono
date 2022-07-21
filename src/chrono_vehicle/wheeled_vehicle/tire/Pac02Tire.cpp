@@ -54,6 +54,10 @@ void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         // Default value = 3
         m_use_mode = d["Use Mode"].GetInt();
     }
+    if (d.HasMember("Use Friction Ellipsis")) {
+        // Default value = true
+        m_use_friction_ellipsis = d["Use Friction Ellipsis"].GetBool();
+    }
     if (d.HasMember("Coefficient of Friction")) {
         // Default value = 0.8
         m_PacCoeff.mu0 = d["Coefficient of Friction"].GetDouble();
@@ -557,8 +561,8 @@ void Pac02Tire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void Pac02Tire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChPac02Tire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // namespace vehicle

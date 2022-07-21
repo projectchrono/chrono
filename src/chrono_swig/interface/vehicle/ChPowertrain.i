@@ -11,6 +11,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_vehicle/ChPowertrain.h"

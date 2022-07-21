@@ -32,8 +32,6 @@ namespace vehicle {
 /// Base class for a tracked vehicle brake subsystem.
 class CH_VEHICLE_API ChTrackBrake : public ChPart {
   public:
-    ChTrackBrake(const std::string& name);
-
     virtual ~ChTrackBrake() {}
 
     /// Initialize the brake by providing the sprocket's revolute link.
@@ -50,6 +48,12 @@ class CH_VEHICLE_API ChTrackBrake : public ChPart {
 
     /// Get the current brake torque.
     virtual double GetBrakeTorque() = 0;
+
+  protected:
+    ChTrackBrake(const std::string& name);
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 };
 
 /// Vector of handles to brake subsystems.

@@ -19,13 +19,12 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/gator/Gator.h"
 #include "chrono_models/vehicle/gator/Gator_SimplePowertrain.h"
@@ -47,7 +46,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 VisualizationType chassis_vis_type = VisualizationType::MESH;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
-VisualizationType wheel_vis_type = VisualizationType::NONE;
+VisualizationType wheel_vis_type = VisualizationType::MESH;
 VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
@@ -116,14 +115,15 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
-            patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 100.0, 100.0);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, 100.0, 100.0);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-            patch =
-                terrain.AddPatch(patch_mat, ChVector<>(10, 0, 0), Q_from_AngY(-10 * CH_C_DEG_TO_RAD).GetZaxis(), 5, 10);
+            patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(10, 0, 0), Q_from_AngY(-10 * CH_C_DEG_TO_RAD)),
+                                     5, 10);
+            patch->SetColor(ChColor(0.6f, 0.5f, 0.2f));
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     128, 128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+                                     128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
@@ -131,20 +131,26 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
     }
-    patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
 
     terrain.Initialize();
+
+    ////auto truss_mesh = chrono_types::make_shared<ChObjFileShape>();
+    ////truss_mesh->SetFilename(GetChronoDataFile("vehicle/gator/gator_chassis.obj"));
+    ////patch->GetGroundBody()->AddVisualShape(truss_mesh, ChFrame<>(ChVector<>(-10, -2, 3)));
 
     // -------------------------------------
     // Create the vehicle Irrlicht interface
     // -------------------------------------
 
-    ChWheeledVehicleIrrApp app(&gator.GetVehicle(), L"Gator Demo");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Gator Demo");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
+    vis->Initialize();
+    vis->AddLightDirectional(70, 20);
+    ////vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vis->AttachVehicle(&gator.GetVehicle());
 
     // -----------------
     // Initialize output
@@ -167,7 +173,7 @@ int main(int argc, char* argv[]) {
     // ------------------------
 
     // Create the interactive driver system
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
 
     // Set the time response for steering and throttle keyboard inputs.
     double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
@@ -185,7 +191,7 @@ int main(int argc, char* argv[]) {
 
     // output vehicle mass
     gator.GetVehicle().LogSubsystemTypes();
-    std::cout << "\nVehicle mass: " << gator.GetTotalMass() << std::endl;
+    std::cout << "\nVehicle mass: " << gator.GetVehicle().GetMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -194,15 +200,15 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    ChRealtimeStepTimer realtime_timer;
-    while (app.GetDevice()->run()) {
+    gator.GetVehicle().EnableRealtime(true);
+    while (vis->Run()) {
         double time = gator.GetSystem()->GetChTime();
 
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
 
             if (povray_output) {
                 char filename[100];
@@ -214,25 +220,22 @@ int main(int argc, char* argv[]) {
         }
 
         // Get driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
         gator.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         gator.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
     return 0;

@@ -49,25 +49,24 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     /// Set the 'broken' status vof this link.
     virtual void SetBroken(bool mon) { broken = mon; }
 
-    /// An important function!
-    /// Tells if the link is currently active, in general,
-    /// that is tells if it must be included into the system solver or not.
-    /// This method cumulates the effect of various flags (so a link may
-    /// be not active either because disabled, or broken, or not valid)
-    bool IsActive() { return (valid && !disabled && !broken); }
+    /// Return true if the link is currently active and thereofre included into the system solver.
+    /// This method cumulates the effect of various flags (so a link may be inactive either because disabled, or broken,
+    /// or not valid)
+    virtual bool IsActive() const override { return (valid && !disabled && !broken); }
 
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() = 0;
 
     /// Get the link coordinate system in absolute reference.
-    /// This represents the 'main' reference of the link: reaction forces
-    /// and reaction torques are expressed in this coordinate system.
-    /// Child classes should implement this.
+    /// This represents the 'main' reference of the link: reaction forces and reaction torques are expressed in this
+    /// coordinate system. Child classes should implement this.
     virtual ChCoordsys<> GetLinkAbsoluteCoords() { return CSYSNORM; }
 
-    /// Get the master coordinate system for the assets, in absolute reference.
-    /// (should be implemented by children classes)
-    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) override { return ChFrame<>(GetLinkAbsoluteCoords()); }
+    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
+    /// For a ChLink, the default implementation returns the link coordinate frame.
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override {
+        return ChFrame<>(GetLinkAbsoluteCoords());
+    }
 
     /// To get reaction force, expressed in link coordinate system:
     virtual ChVector<> Get_react_force() { return VNULL; }

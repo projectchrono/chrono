@@ -710,11 +710,11 @@ void example5(const std::string& out_dir) {
     // Ok, let's create the same pendulum but using the multibody toolset of Chrono,
     // that is using the ChBody, ChLinkLockRevolute and ChSystem classes:
 
-    ChSystemNSC my_system;
+    ChSystemNSC sys;
     auto my_body_A = chrono_types::make_shared<ChBody>();
     auto my_body_B = chrono_types::make_shared<ChBody>();
-    my_system.AddBody(my_body_A);
-    my_system.AddBody(my_body_B);
+    sys.AddBody(my_body_A);
+    sys.AddBody(my_body_B);
 
     my_body_A->SetBodyFixed(true);  
     my_body_B->SetMass(2.0);
@@ -724,15 +724,15 @@ void example5(const std::string& out_dir) {
 
     auto my_link_AB = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>());
-    my_system.AddLink(my_link_AB);
+    sys.AddLink(my_link_AB);
 
     // use a precise linear solver
     auto msolver = chrono_types::make_shared<ChSolverSparseQR>();
-    my_system.SetSolver(msolver);
+    sys.SetSolver(msolver);
     // use the HHT timestepper to compare with HHT in previous MyIntegrable simple case
-    auto mstepper4b = chrono_types::make_shared<ChTimestepperHHT>(&my_system);
+    auto mstepper4b = chrono_types::make_shared<ChTimestepperHHT>(&sys);
     mstepper4b->SetAlpha(-0.3);  // HHT dissipation 
-    my_system.SetTimestepper(mstepper4b);
+    sys.SetTimestepper(mstepper4b);
 
     // Execute the time integration
     while (mystepper1.GetTime() < 12) {
@@ -743,7 +743,7 @@ void example5(const std::string& out_dir) {
         mystepper4.Advance(timestep);
         mystepper5.Advance(timestep);
         mystepper6.Advance(timestep);
-        my_system.DoStepDynamics(timestep);
+        sys.DoStepDynamics(timestep);
 
         GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0) << "  y=" << mystepper1.get_X()(1)
                  << "\n";

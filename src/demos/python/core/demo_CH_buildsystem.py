@@ -1,12 +1,14 @@
-#------------------------------------------------------------------------------
-# Name:        pychrono example
-# Purpose:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
 #
-# Author:      Alessandro Tasora
+# Copyright (c) 2014 projectchrono.org
+# All rights reserved.
 #
-# Created:     1/01/2019
-# Copyright:   (c) ProjectChrono 2019
-#------------------------------------------------------------------------------
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+#
+# =============================================================================
 
 print ("Second tutorial: create and populate a physical system");
 
@@ -93,9 +95,9 @@ bodyC.SetMass(346.17080777653)
 bodyC.SetInertiaXX(chrono.ChVectorD(48583.2418823358,526927.118351673,490689.966726565))
 bodyC.SetInertiaXY(chrono.ChVectorD(1.70380722975012e-11,1.40840344485366e-11,-2.31869065456271e-12))
 bodyC.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(68.9923703887577,-60.1266363930238,70.1327223302498),chrono.ChQuaternionD(1,0,0,0)))
-myasset = chrono.ChObjShapeFile()
+myasset = chrono.ChObjFileShape()
 myasset.SetFilename("shapes/test.obj")
-bodyC.GetAssets().push_back(myasset)
+bodyC.AddVisualShape(myasset)
 
 # Add a revolute joint 
 rev = chrono.ChLinkLockRevolute()

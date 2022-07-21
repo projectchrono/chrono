@@ -17,23 +17,26 @@
 
 #include <vector>
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
 
 /// Class for referencing a triangle mesh shape that can be visualized in some way.
-/// As a child class of ChAsset, it can be 'attached' to physics items.
-/// It also defines flags such as 'draw as wireframe', 'do backface culling' etc.
-/// but remember that depending on the type of visualization system
-/// (POVray, Irrlich,etc.) these flags might not be supported.
-class ChApi ChTriangleMeshShape : public ChVisualization {
+/// A ChTriangleMeshShape can be attached to a physics object.
+/// Provides various rendering options (e.g., drawing as wireframe, performing backface culling, etc.) which may not be
+/// supported by a particular visualization system.
+class ChApi ChTriangleMeshShape : public ChVisualShape {
   public:
     ChTriangleMeshShape();
     ~ChTriangleMeshShape() {}
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() { return trimesh; }
-    void SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh) { trimesh = mesh; }
+
+    /// Associate the mesh asset with a triangle mesh geometry.  
+    /// Optionally, if `load_materials` is set to `true` and if the provided trimesh was loaded from a Wavefront OBJ file, 
+    /// associated material files are searched for and visualization materials loaded.
+    void SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, bool load_materials = true);
 
     bool IsWireframe() const { return wireframe; }
     void SetWireframe(bool mw) { wireframe = mw; }
@@ -58,7 +61,7 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-  protected:
+  private:
     std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
 
     bool wireframe;

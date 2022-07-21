@@ -140,7 +140,6 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     /// Get shortcut handle to underlying b right hand-side known vector, for A*x=b
     ChVectorDynamic<double>& b() { return m_rhs; }
 
-
     /// Perform the solver setup operations.
     /// Here, sysd is the system description with constraints and variables.
     /// Returns true if successful and false otherwise.
@@ -150,23 +149,19 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     /// Here, sysd is the system description with constraints and variables.
     virtual double Solve(ChSystemDescriptor& sysd) override;
 
-
     /// Generic setup-solve without passing through the ChSystemDescriptor,
-    /// in cases where a sparse matrix has been already assembled. 
+    /// in cases where a sparse matrix has been already assembled.
     /// Performs the solver setup operations, assuming someone
     /// has already filled A() matrix before calling this.
     virtual bool SetupCurrent();
 
     /// Generic setup-solve without passing through the ChSystemDescriptor,
-    /// in cases where the a sparse matrix has been already assembled. 
+    /// in cases where the a sparse matrix has been already assembled.
     /// Here, sysd is the system description with constraints and variables.
     /// Performs the solver setup operations, assuming someone
-    /// has already filled the b() vector before calling this. 
+    /// has already filled the b() vector before calling this.
     /// Call x() afterward to get results.
     virtual double SolveCurrent();
-
-
-
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
@@ -214,6 +209,10 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     ChTimer<> m_timer_setup_solvercall;  ///< timer for factorization
     ChTimer<> m_timer_solve_assembly;    ///< timer for RHS assembly
     ChTimer<> m_timer_solve_solvercall;  ///< timer for solution
+
+  private:
+    void WriteMatrix(const std::string& filename, const ChSparseMatrix& M);
+    void WriteVector(const std::string& filename, const ChVectorDynamic<double>& v);
 };
 
 // ---------------------------------------------------------------------------

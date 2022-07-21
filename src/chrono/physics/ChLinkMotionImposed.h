@@ -53,7 +53,7 @@ class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
     /// This function should be C0 continuous and, to prevent acceleration spikes,
     /// it should ideally be C1 continuous.
 	/// The position is imposed to frame1 respect to frame2, in frame2 coordinate system.
-    void SetPositionFunction(const std::shared_ptr<ChFunctionPosition> mf) { position_function = mf; }
+    void SetPositionFunction(std::shared_ptr<ChFunctionPosition> mf) { position_function = mf; }
 
 	/// Get the position function q=q(t).
     std::shared_ptr<ChFunctionPosition> GetPositionFunction() const { return position_function; }
@@ -63,7 +63,7 @@ class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
     /// This function should be C0 continuous and, to prevent acceleration spikes,
     /// it should ideally be C1 continuous.
 	/// The position is imposed to frame1 respect to frame2, in frame2 coordinate system.
-    void SetRotationFunction(const std::shared_ptr<ChFunctionRotation> mf) { rotation_function = mf; }
+    void SetRotationFunction(std::shared_ptr<ChFunctionRotation> mf) { rotation_function = mf; }
 
     /// Get the rotation function q=q(t).
     std::shared_ptr<ChFunctionRotation> GetRotationFunction() const { return rotation_function; }

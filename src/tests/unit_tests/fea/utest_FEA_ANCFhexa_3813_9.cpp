@@ -119,8 +119,8 @@ int main(int argc, char* argv[]) {
 // QuasiStatic
 bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
-    ChSystemNSC my_system;
-    my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-3;
     bool genRefFile = false;
     double precision = 1e-3;  // Precision for unit test
@@ -236,36 +236,36 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     }
 
     // Add the mesh to the system
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
-    my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
+    sys.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(500);
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
     // Set the time integrator parameters
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-6, 1e-1);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetVerbose(false);
     mystepper->SetScaling(true);
-    my_system.Setup();
-    my_system.Update();
+    sys.Setup();
+    sys.Update();
 
     double force1 = -50;
     nodetip->SetForce(ChVector<>(0.0, 0.0, force1));
 
     if (genRefFile) {
         outputfile = fopen("UT_QuasiBendingBrick9.txt", "w");
-        fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
+        fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
         fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
         fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
@@ -274,17 +274,17 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     unsigned int it = 0;
     double RelVal, RelVal1, RelVal2, RelVal3;
 
-    while (my_system.GetChTime() < 0.02) {
-        if (my_system.GetChTime() <= 1.0)
-            nodetip->SetForce(ChVector<>(0.0, 0.0, force1 * my_system.GetChTime()));
+    while (sys.GetChTime() < 0.02) {
+        if (sys.GetChTime() <= 1.0)
+            nodetip->SetForce(ChVector<>(0.0, 0.0, force1 * sys.GetChTime()));
         else
             nodetip->SetForce(ChVector<>(0.0, 0.0, force1));
 
-        my_system.DoStepDynamics(time_step);
+        sys.DoStepDynamics(time_step);
         it++;
 
         if (genRefFile) {
-            fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
+            fprintf(outputfile, "%15.7e  ", sys.GetChTime());
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
@@ -310,8 +310,8 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
     double precision = 1e-3;  // Precision for test
     bool genRefFile = false;
-    ChSystemNSC my_system;
-    my_system.Set_G_acc(ChVector<>(0, 0, 0));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, 0));
 
     GetLog() << "--------------------------------------------------------------------\n";
     GetLog() << "--------------------------------------------------------------------\n";
@@ -428,13 +428,13 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     }
 
     // Add the mesh to the system
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
     // -------------------------------------
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
+    sys.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -442,15 +442,15 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(500);
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
     // Set the time integrator parameters
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-6, 1e-1);
@@ -458,12 +458,12 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     mystepper->SetVerbose(false);
     mystepper->SetScaling(true);
 
-    my_system.Setup();
-    my_system.Update();
+    sys.Setup();
+    sys.Update();
 
     if (genRefFile) {
         outputfile = fopen("SwingingShellRef.txt", "w");
-        fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
+        fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
         fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
         fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
@@ -472,12 +472,12 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     unsigned int it = 0;
     double RelVal, RelVal1, RelVal2, RelVal3;
 
-    while (my_system.GetChTime() < 0.03) {
-        my_system.DoStepDynamics(timestep);
+    while (sys.GetChTime() < 0.03) {
+        sys.DoStepDynamics(timestep);
         it++;
 
         if (genRefFile) {
-            fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
+            fprintf(outputfile, "%15.7e  ", sys.GetChTime());
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
@@ -500,8 +500,8 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
 // J2 Flow Plasticity
 bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
-    ChSystemNSC my_system;
-    my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;
     double precision = 1e-5;  // Precision for unit test
@@ -633,33 +633,33 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     }
 
     // Add the mesh to the system
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
-    my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
+    sys.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(500);
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
     // Set the time integrator parameters
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-8, 1e-1);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetVerbose(false);
     mystepper->SetScaling(true);
-    my_system.Setup();
-    my_system.Update();
+    sys.Setup();
+    sys.Update();
 
     if (genRefFile) {
         outputfile = fopen("UT_J2PlasticBrick9Ref.txt", "w");
-        fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
+        fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
         fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
         fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
@@ -668,18 +668,18 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     unsigned int it = 0;
     double RelVal, RelVal1, RelVal2, RelVal3, force;
 
-    while (my_system.GetChTime() < 0.005) {
-        force = 75 * std::sin(my_system.GetChTime() * CH_C_PI);
+    while (sys.GetChTime() < 0.005) {
+        force = 75 * std::sin(sys.GetChTime() * CH_C_PI);
         nodetip1->SetForce(ChVector<>(force, 0.0, 0.0));
         nodetip2->SetForce(ChVector<>(force, 0.0, 0.0));
         nodetip3->SetForce(ChVector<>(force, 0.0, 0.0));
         nodetip4->SetForce(ChVector<>(force, 0.0, 0.0));
 
-        my_system.DoStepDynamics(time_step);
+        sys.DoStepDynamics(time_step);
         it++;
 
         if (genRefFile) {
-            fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
+            fprintf(outputfile, "%15.7e  ", sys.GetChTime());
             fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
             fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
             fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
@@ -703,8 +703,8 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
 // Drucker-Prager Plasticity
 bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
-    ChSystemNSC my_system;
-    my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;
     double precision = 1e-5;  // Precision for unit test
@@ -841,33 +841,33 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     }
 
     // Add the mesh to the system
-    my_system.Add(my_mesh);
+    sys.Add(my_mesh);
 
-    my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
+    sys.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
-    my_system.SetSolver(solver);
+    sys.SetSolver(solver);
     solver->SetMaxIterations(500);
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
     // Set the time integrator parameters
-    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-8, 1e-1);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetVerbose(false);
     mystepper->SetScaling(true);
-    my_system.Setup();
-    my_system.Update();
+    sys.Setup();
+    sys.Update();
 
     if (genRefFile) {
         outputfile = fopen("UT_DruckerPragerPlasticBrick9Ref.txt", "w");
-        fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
+        fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
         fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
         fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
@@ -876,18 +876,18 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     unsigned int it = 0;
     double RelVal, RelVal1, RelVal2, RelVal3, force;
 
-    while (my_system.GetChTime() < 0.005) {
-        force = 75 * std::sin(my_system.GetChTime() * CH_C_PI);
+    while (sys.GetChTime() < 0.005) {
+        force = 75 * std::sin(sys.GetChTime() * CH_C_PI);
         nodetip1->SetForce(ChVector<>(force, 0.0, 0.0));
         nodetip2->SetForce(ChVector<>(force, 0.0, 0.0));
         nodetip3->SetForce(ChVector<>(force, 0.0, 0.0));
         nodetip4->SetForce(ChVector<>(force, 0.0, 0.0));
 
-        my_system.DoStepDynamics(time_step);
+        sys.DoStepDynamics(time_step);
         it++;
 
         if (genRefFile) {
-            fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
+            fprintf(outputfile, "%15.7e  ", sys.GetChTime());
             fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
             fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
             fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());

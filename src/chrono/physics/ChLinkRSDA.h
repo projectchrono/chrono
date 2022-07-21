@@ -17,7 +17,7 @@
 
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointShape.h"
 
 namespace chrono {
 
@@ -91,9 +91,9 @@ class ChApi ChLinkRSDA : public ChLink {
     /// This represents the 'main' reference of the link: reaction torques are expressed in this coordinate system.
     virtual ChCoordsys<> GetLinkRelativeCoords() override;
 
-    /// Get the frame for the assets (expressed in absolute coordinates).
+    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// Return the coordinate system on body1.
-    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) override;
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override;
 
     /// Initialize the rotational spring by specifying the two bodies to be connected and an RSDA frame specified in the
     /// absolute frame. The RSDA is constructed such that it acts on the Z axis of the joint frame. Unless

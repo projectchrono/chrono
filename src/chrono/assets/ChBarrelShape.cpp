@@ -20,11 +20,19 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBarrelShape)
 
+ChBarrelShape::ChBarrelShape() {
+    SetMutable(false);
+}
+ChBarrelShape::ChBarrelShape(double mHlow, double mHsup, double mRvert, double mRhor, double mRoffset)
+    : Hlow(mHlow), Hsup(mHsup), Rvert(mRvert), Rhor(mRhor), Roffset(mRoffset) {
+    SetMutable(false);
+}
+
 void ChBarrelShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChBarrelShape>();
     // serialize parent class
-    ChVisualization::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(Hlow);
 	marchive << CHNVP(Hsup);
@@ -38,7 +46,7 @@ void ChBarrelShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChBarrelShape>();
     // deserialize parent class
-    ChVisualization::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(Hlow);
 	marchive >> CHNVP(Hsup);

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #ifndef CHCOLOR_H
@@ -21,33 +21,30 @@
 
 namespace chrono {
 
-/// Class for setting a color (used by ChVisualization)
+/// Definition of a visual color.
+/// The red (R), green (G), and blue (B) channels take values between 0 and 1.
 class ChApi ChColor {
   public:
-    float R;  /// red channel (0,1)
-    float G;  /// green channel (0,1)
-    float B;  /// blue channel (0,1)
-    float A;  /// alpha channel (0,1)
+    float R;  ///< red channel [0,1]
+    float G;  ///< green channel [0,1]
+    float B;  ///< blue channel [0,1]
 
-    /// Constructors
-    ChColor() : R(1), G(1), B(1), A(0) {}
-    ChColor(float mR, float mG, float mB, float mA = 0) : R(mR), G(mG), B(mB), A(mA) {}
-    ChColor(const ChColor& other) : R(other.R), G(other.G), B(other.B), A(other.A) {}
+    ChColor() : R(1), G(1), B(1) {}
+    ChColor(float red, float green, float blue) : R(red), G(green), B(blue) {}
+    ChColor(const ChColor& other) : R(other.R), G(other.G), B(other.B) {}
 
-    /// Assignment: copy from another color
     ChColor& operator=(const ChColor& other) {
         if (&other == this)
             return *this;
         R = other.R;
         G = other.G;
         B = other.B;
-        A = other.A;
         return *this;
     }
 
     /// Compute a false color from a scalar value. Uses a cold-to-hot colormap.
     /// The 'v' scalar value is mapped in the vmin-vmax range.
-    /// If out_of_range_as_bw option is true, when v>vmax the color is white and for v<vmin the color is black.
+    /// If out_of_range_as_bw option is true, then return white for v>vmax and black for v<vmin.
     static ChColor ComputeFalseColor(double v, double vmin, double vmax, bool out_of_range_as_bw = false);
 
     /// Method to allow serialization of transient data to archives.

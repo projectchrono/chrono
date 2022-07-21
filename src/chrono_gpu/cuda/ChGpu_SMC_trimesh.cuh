@@ -173,9 +173,9 @@ inline __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
                 SDhalfSizes[1] = (gran_params->SD_size_Y_SU + gran_params->SD_size_Y_SU / SAFETY_PARAM) / 2;
                 SDhalfSizes[2] = (gran_params->SD_size_Z_SU + gran_params->SD_size_Z_SU / SAFETY_PARAM) / 2;
 
-                SDcenter[0] = gran_params->BD_frame_X + (i * 2 + 1) * gran_params->SD_size_X_SU / 2;
-                SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * gran_params->SD_size_Y_SU / 2;
-                SDcenter[2] = gran_params->BD_frame_Z + (k * 2 + 1) * gran_params->SD_size_Z_SU / 2;
+                SDcenter[0] = gran_params->BD_frame_X + (int64_t)(i * 2 + 1) * (int64_t)gran_params->SD_size_X_SU / 2;
+                SDcenter[1] = gran_params->BD_frame_Y + (int64_t)(j * 2 + 1) * (int64_t)gran_params->SD_size_Y_SU / 2;
+                SDcenter[2] = gran_params->BD_frame_Z + (int64_t)(k * 2 + 1) * (int64_t)gran_params->SD_size_Z_SU / 2;
 
                 if (check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
                     unsigned int currSD = SDTripletID(i, j, k, gran_params);
@@ -265,9 +265,9 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                 SDhalfSizes[1] = (gran_params->SD_size_Y_SU + gran_params->SD_size_Y_SU / SAFETY_PARAM) / 2;
                 SDhalfSizes[2] = (gran_params->SD_size_Z_SU + gran_params->SD_size_Z_SU / SAFETY_PARAM) / 2;
 
-                SDcenter[0] = gran_params->BD_frame_X + (i * 2 + 1) * gran_params->SD_size_X_SU / 2;
-                SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * gran_params->SD_size_Y_SU / 2;
-                SDcenter[2] = gran_params->BD_frame_Z + (k * 2 + 1) * gran_params->SD_size_Z_SU / 2;
+                SDcenter[0] = gran_params->BD_frame_X + (int64_t)(i * 2 + 1) * (int64_t)gran_params->SD_size_X_SU / 2;
+                SDcenter[1] = gran_params->BD_frame_Y + (int64_t)(j * 2 + 1) * (int64_t)gran_params->SD_size_Y_SU / 2;
+                SDcenter[2] = gran_params->BD_frame_Z + (int64_t)(k * 2 + 1) * (int64_t)gran_params->SD_size_Z_SU / 2;
 
                 if (check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
                     unsigned int currSD = SDTripletID(i, j, k, gran_params);

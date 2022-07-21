@@ -80,6 +80,7 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
   private:
     // Test collision between a connector body and the sprocket's gear profiles.
     void CheckConnectorSprocket(std::shared_ptr<ChBody> connector,                 // connector body
+                                const ChFrame<>& shape_frame,                      // frame of connector collision shape
                                 std::shared_ptr<ChMaterialSurface> mat_connector,  // connector contact material
                                 const ChVector<>& locS_abs                         // center of sprocket (global frame)
     );
@@ -171,11 +172,24 @@ void SprocketDoublePinContactCB::OnCustomCollision(ChSystem* system) {
     for (size_t is = 0; is < m_track->GetNumTrackShoes(); ++is) {
         auto shoe = std::static_pointer_cast<ChTrackShoeDoublePin>(m_track->GetTrackShoe(is));
 
-        // Perform collision test for the "left" connector body
-        CheckConnectorSprocket(shoe->m_connector_L, shoe->GetSprocketContactMaterial(), locS_abs);
-
-        // Perform collision test for the "right" connector body
-        CheckConnectorSprocket(shoe->m_connector_R, shoe->GetSprocketContactMaterial(), locS_abs);
+        switch (shoe->m_topology) {
+            case DoublePinTrackShoeType::TWO_CONNECTORS: {
+                // The collision shape frames are the same as the left and right connector body frames
+                CheckConnectorSprocket(shoe->m_connector_L, *shoe->m_connector_L, shoe->GetSprocketContactMaterial(),
+                                       locS_abs);
+                CheckConnectorSprocket(shoe->m_connector_R, *shoe->m_connector_R, shoe->GetSprocketContactMaterial(),
+                                       locS_abs);
+            } break;
+            case DoublePinTrackShoeType::ONE_CONNECTOR: {
+                // The collision shape frames are offset in the Y direction from the connector body frame.
+                ChFrame<> frame_left = *shoe->m_connector_L;
+                frame_left.coord.pos += frame_left.GetA() * ChVector<>(0, shoe->GetShoeWidth() / 2, 0);
+                CheckConnectorSprocket(shoe->m_connector_L, frame_left, shoe->GetSprocketContactMaterial(), locS_abs);
+                ChFrame<> frame_right = *shoe->m_connector_L;
+                frame_right.coord.pos -= frame_right.GetA() * ChVector<>(0, shoe->GetShoeWidth() / 2, 0);
+                CheckConnectorSprocket(shoe->m_connector_L, frame_right, shoe->GetSprocketContactMaterial(), locS_abs);
+            } break;
+        }
 
         if (m_lateral_contact) {
             // Express guiding pin center in the global frame
@@ -189,18 +203,19 @@ void SprocketDoublePinContactCB::OnCustomCollision(ChSystem* system) {
 
 // Perform collision test between the specified connector body and the associated sprocket.
 void SprocketDoublePinContactCB::CheckConnectorSprocket(std::shared_ptr<ChBody> connector,
+                                                        const ChFrame<>& shape_frame,
                                                         std::shared_ptr<ChMaterialSurface> mat_connector,
                                                         const ChVector<>& locS_abs) {
-    // (1) Express the center of the connector body in the sprocket frame
-    ChVector<> loc = m_sprocket->GetGearBody()->TransformPointParentToLocal(connector->GetPos());
+    // (1) Express the center of the connector shape in the sprocket frame
+    ChVector<> loc = m_sprocket->GetGearBody()->TransformPointParentToLocal(shape_frame.GetPos());
 
-    // (2) Broadphase collision test: no contact if the connector's center is too far from the
+    // (2) Broadphase collision test: no contact if the shape's center is too far from the
     // center of the gear (test performed in the sprocket's x-z plane).
     if (loc.x() * loc.x() + loc.z() * loc.z() > m_R_sum * m_R_sum)
         return;
 
     // (3) Working in the frame of the sprocket, find the candidate tooth space.
-    // This is the closest tooth space to the connector center point.
+    // This is the closest tooth space to the shape center point.
 
     // Angle formed by 'locC' and the line z>0
     double angle = std::atan2(loc.x(), loc.z());
@@ -240,9 +255,9 @@ void SprocketDoublePinContactCB::CheckConnectorSprocket(std::shared_ptr<ChBody> 
     p3R = rot * p3R;
     p4R = rot * p4R;
 
-    // (5) Express the centers of the two connector end-caps in the sprocket frame.
-    ChVector<> P1_abs = connector->TransformPointLocalToParent(ChVector<>(m_shoe_len / 2, 0, 0));
-    ChVector<> P2_abs = connector->TransformPointLocalToParent(ChVector<>(-m_shoe_len / 2, 0, 0));
+    // (5) Express the centers of the two shape end-caps in the sprocket frame.
+    ChVector<> P1_abs = shape_frame.TransformPointLocalToParent(ChVector<>(m_shoe_len / 2, 0, 0));
+    ChVector<> P2_abs = shape_frame.TransformPointLocalToParent(ChVector<>(-m_shoe_len / 2, 0, 0));
     ChVector<> P1 = m_sprocket->GetGearBody()->TransformPointParentToLocal(P1_abs);
     ChVector<> P2 = m_sprocket->GetGearBody()->TransformPointParentToLocal(P2_abs);
 

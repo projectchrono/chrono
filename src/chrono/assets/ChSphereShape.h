@@ -15,23 +15,20 @@
 #ifndef CHOBJSPHERESHAPE_H
 #define CHOBJSPHERESHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChSphere.h"
 
 namespace chrono {
 
 /// Class for referencing a sphere shape that can be visualized in some way.
-class ChApi ChSphereShape : public ChVisualization {
-  protected:
-    geometry::ChSphere gsphere;
-
+class ChApi ChSphereShape : public ChVisualShape {
   public:
-    ChSphereShape() {}
-    ChSphereShape(const geometry::ChSphere& msphere) : gsphere(msphere) {}
+    ChSphereShape();
+    ChSphereShape(const geometry::ChSphere& sphere);
 
-    virtual ~ChSphereShape() {}
+    ~ChSphereShape() {}
 
-    // Access the sphere geometry
+    // Access the sphere geometry.
     geometry::ChSphere& GetSphereGeometry() { return gsphere; }
 
     /// Method to allow serialization of transient data to archives.
@@ -39,6 +36,9 @@ class ChApi ChSphereShape : public ChVisualization {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    geometry::ChSphere gsphere;
 };
 
 CH_CLASS_VERSION(ChSphereShape, 0)

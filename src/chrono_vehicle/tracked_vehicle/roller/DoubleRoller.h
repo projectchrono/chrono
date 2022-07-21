@@ -41,8 +41,8 @@ class CH_VEHICLE_API DoubleRoller : public ChDoubleRoller {
     virtual double GetWidth() const override { return m_roller_width; }
     virtual double GetGap() const override { return m_roller_gap; }
 
-    virtual double GetMass() const override { return m_roller_mass; }
-    virtual const ChVector<>& GetInertia() override { return m_roller_inertia; }
+    virtual double GetRollerMass() const override { return m_roller_mass; }
+    virtual const ChVector<>& GetRollerInertia() const override { return m_roller_inertia; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;

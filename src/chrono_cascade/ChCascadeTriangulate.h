@@ -10,8 +10,8 @@
 //
 // =============================================================================
 
-#ifndef CHCASCADETRIANGULATE_H
-#define CHCASCADETRIANGULATE_H
+#ifndef CH_CASCADE_TRIANGULATE_H
+#define CH_CASCADE_TRIANGULATE_H
 
 #include "chrono/core/ChTypes.h"
 
@@ -21,46 +21,20 @@ namespace cascade {
 /// @addtogroup cascade_module
 /// @{
 
-// This header includes a class for making easier to pass parameters on tesselation of Cascade shapes
-
-/// Base class for storing settings on openCASCADE tesselation of shapes.
-class ChCascadeTriangulate{
-public:
-	virtual ~ChCascadeTriangulate() {}
-
-	// Support cloning
-	virtual std::unique_ptr<ChCascadeTriangulate> clone() const = 0;
-};
-
-/// Class for storing settings on openCASCADE tesselation of shapes. 
-class ChCascadeTriangulateTolerances : public ChCascadeTriangulate {
+/// Class for storing settings on OpenCASCADE tesselation of shapes.
+class ChCascadeTriangulate {
   public:
-	  ChCascadeTriangulateTolerances(
-		  double mdeflection = 0.05,	///< maximum allowed chordal deflection
-		  bool mrel = false,			///< chordal deflection is assumed relative to triangle chord (default false)
-		  double mang = 0.5				///< angular deflection
-	  ) : deflection(mdeflection), deflection_is_relative(mrel), angular_deflection(mang) {}
+    ChCascadeTriangulate(
+        double defl = 0.05,   ///< maximum allowed chordal deflection
+        bool is_rel = false,  ///< chordal deflection is assumed relative to triangle chord (default false)
+        double ang = 0.5      ///< angular deflection
+        )
+        : deflection_is_relative(is_rel), deflection(defl), angular_deflection(ang) {}
 
-	  double deflection; 
-	  bool   deflection_is_relative;
-	  double angular_deflection;
-
-	// Support cloning
-	virtual std::unique_ptr<ChCascadeTriangulate> clone() const override {
-        return chrono_types::make_unique<ChCascadeTriangulateTolerances>(*this);
-    }
-
+    bool deflection_is_relative;
+    double deflection;
+    double angular_deflection;
 };
-
-/// Class for storing settings on openCASCADE tesselation of shapes. 
-class ChCascadeTriangulateNone : public ChCascadeTriangulate {
-
-	// Support cloning
-	virtual std::unique_ptr<ChCascadeTriangulate> clone() const override {
-        return chrono_types::make_unique<ChCascadeTriangulateNone>(*this);
-    }
-};
-
 
 /// @} cascade_module
 

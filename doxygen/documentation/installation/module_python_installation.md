@@ -17,20 +17,21 @@ This module consists of *two* main sets of build targets:
     - *pychrono.fea*, which wraps FEA classes, equivalent to the chrono::fea namespace.
     - *pychrono.postprocess*, which wraps the POSTPROCESS module.
     - *pychrono.irrlicht*, which wraps the IRRLICHT module.
-    - *pychrono.pardisomkl*, which wraps the Pardiso MKL module.
-    - *pychrono.cascade*, which wraps the CASCADE module (doesn't work on the Mac).
+    - *pychrono.pardisomkl*, which wraps the Pardiso MKL module (not available on the Mac).
+    - *pychrono.cascade*, which wraps the CASCADE module.
 
 - A *PYPARSER module*, which is a C++ module for parsing / executing / interpreting 
   Python instructions from C++ programs.
 
 <div class="ce-info">
-    Note: If you are only interested in using PyChrono, an alternative to building the Chronmo Python module is to install the precompiled [PyChrono conda package](@ref pychrono_installation).
+    Note: If you are only interested in using PyChrono, an alternative to building the Chrono Python module is to install the precompiled [PyChrono conda package](@ref pychrono_installation).
 </div>
 
 ## Requirements
 
 - To **run** applications based on this module:
-    - you must have [Python](http://www.python.org) installed. On the Mac type <tt>brew install python</tt> to get python3. The preinstalled python(2) doesn't work with pychrono.
+    - you must have [Python](http://www.python.org) installed. On the Mac load the actual Python distribution from https://www.python.org and install it. Set the appropriate environment variable. Don't use the python installed by homebrew.
+    
 - To **build** this module:
     - you must have [Python](http://www.python.org) installed,
     - you must have the [SWIG](http://www.swig.org/) wrapper generator installed. On the Mac type <tt>brew install swig</tt>.
@@ -89,6 +90,18 @@ Setting/changing environment variables is platform-specific.
 
 
 ## Usage
+At runtime all systems need a few Python modules: <tt>numpy</tt> and <tt>six</tt>. Run this command:<br>
+<tt>pip3 list</tt><br>
+You should see something like this:<br>
+<tt>Package    Version<br>
+---------- -------<br>
+numpy      1.22.3<br>
+pip        22.0.4<br>
+setuptools 58.1.0<br>
+six        1.16.0</tt><br>
+You can install the missing modules with:<br>
+<tt>pip3 install numpy six</tt><br>
+
 For more details on how to use the resulting modules, look here:
 
 - C++ functions (as Python parser)

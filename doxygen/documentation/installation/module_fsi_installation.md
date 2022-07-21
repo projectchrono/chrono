@@ -55,3 +55,7 @@ Running Chrono::FSI programs on Windows may require adjusting the Timeout Detect
 - Look at the [API section](group__fsi.html) of this module for documentation about classes and functions.
 
 - Look at the C++ source of [demos](@ref tutorial_table_of_content_chrono_fsi) to learn how to use the functions of this module.
+
+## MacOS support
+
+This module cannot be built for MacOS, Nvidia GPU hardware and CUDA are unsupported.

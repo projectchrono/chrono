@@ -19,7 +19,6 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualization.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -109,13 +108,7 @@ int main(int argc, char* argv[]) {
     auto checkerboard = chrono_types::make_shared<ChVisualMaterial>();
     checkerboard->SetKdTexture(GetChronoDataFile("sensor/textures/checkerboard.png"));
     checkerboard->SetRoughness(0.8);
-
-    {
-        auto asset = box_body->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(checkerboard);
-        }
-    }
+    box_body->GetVisualModel()->GetShape(0)->SetMaterial(0,checkerboard);
 
     // -----------------------
     // Create a sensor manager

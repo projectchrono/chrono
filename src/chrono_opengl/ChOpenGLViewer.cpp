@@ -16,10 +16,12 @@
 
 #include "chrono/ChConfig.h"
 
+#include "chrono/physics/ChSystem.h"
+
 #ifdef CHRONO_MULTICORE
-#include "chrono_multicore/physics/ChSystemMulticore.h"
-#include "chrono_multicore/ChDataManager.h"
-#include "chrono_multicore/physics/Ch3DOFContainer.h"
+    #include "chrono_multicore/physics/ChSystemMulticore.h"
+    #include "chrono_multicore/ChDataManager.h"
+    #include "chrono_multicore/physics/Ch3DOFContainer.h"
 #endif
 
 #include "chrono/assets/ChBoxShape.h"
@@ -35,6 +37,8 @@
 #include "chrono/solver/ChIterativeSolverVI.h"
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
+
+#include "chrono/physics/ChParticleCloud.h"
 
 // Includes are generated at compile time!
 #include "resources/phong_frag.h"
@@ -56,63 +60,34 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "chrono_opengl/ChOpenGLViewer.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
 
 namespace chrono {
 namespace opengl {
 
-ChOpenGLViewer::ChOpenGLViewer(ChSystem* system) {
-    physics_system = system;
-
+ChOpenGLViewer::ChOpenGLViewer(ChVisualSystemOpenGL* vis) : m_vis(vis) {
     render_camera.SetMode(FREE);
     render_camera.SetPosition(glm::vec3(0, 0, -10));
     render_camera.SetLookAt(glm::vec3(0, 0, 0));
     render_camera.SetClipping(.1, 1000);
     render_camera.SetFOV(45);
 
-    simulation_frame = 0;
-    simulation_time = 0;
-    simulation_h = 0;
-    pause_sim = 0;
-    pause_vis = 0;
-    single_step = 0;
-    view_contacts = 0;
-    view_aabb = 0;
-    view_help = 0;
-    view_grid = 0;
-    view_info = 0;
-    use_vsync = 0;
-    render_mode = POINTS;
+    view_contacts = false;
+    view_aabb = false;
+    view_help = false;
+    view_grid = false;
+    use_vsync = false;
+    render_mode = SOLID;
+    particle_render_mode = POINTS;
+    particle_radius = 0.1f;
     time_total = old_time = current_time = 0;
     time_text = time_geometry = 0;
     fps = 0;
+
 }
 
 ChOpenGLViewer::~ChOpenGLViewer() {}
-
-void ChOpenGLViewer::TakeDown() {
-    render_camera.TakeDown();
-    main_shader.TakeDown();
-
-    cloud_shader.TakeDown();
-    dot_shader.TakeDown();
-    sphere_shader.TakeDown();
-
-    sphere.TakeDown();
-    box.TakeDown();
-    cylinder.TakeDown();
-    cone.TakeDown();
-    cloud.TakeDown();
-    grid.TakeDown();
-    fea_nodes.TakeDown();
-    fea_elements.TakeDown();
-    contact_renderer.TakeDown();
-    HUD_renderer.TakeDown();
-    graph_renderer.TakeDown();
-    for (std::map<std::string, ChOpenGLMesh>::iterator iter = obj_files.begin(); iter != obj_files.end(); iter++) {
-        (*iter).second.TakeDown();
-    }
-}
 
 bool ChOpenGLViewer::Initialize() {
     // Initialize all of the shaders and compile them
@@ -135,7 +110,7 @@ bool ChOpenGLViewer::Initialize() {
     cylinder.InitializeString(cylinder_mesh_data, cylinder_color, &main_shader);
     cone.InitializeString(cone_mesh_data, cone_color, &main_shader);
 
-    HUD_renderer.Initialize(&render_camera, &timer_render, &timer_text, &timer_render);
+    m_vis->stats_renderer->Initialize(&render_camera);
 
     cloud_data.push_back(glm::vec3(0, 0, 0));
     grid_data.push_back(glm::vec3(0, 0, 0));
@@ -152,129 +127,171 @@ bool ChOpenGLViewer::Initialize() {
     mpm_node.Initialize(cloud_data, white, &cloud_shader);
     line_path.Initialize(line_path_data, red, &cloud_shader);
 
+    particles.Initialize(cloud_data, cadet_blue, &sphere_shader);
+
     fea_nodes.Initialize(fea_node_data, fea_color, &dot_shader);
     fea_elements.Initialize(fea_element_data, fea_color, &cloud_shader);
 
     contact_renderer.Initialize(contact_color, &dot_shader);
     graph_renderer.Initialize(white, &cloud_shader);
 
+#ifndef __EMSCRIPTEN__
+    glEnable(GL_POINT_SPRITE);
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+#endif
     // glEnable(GL_MULTISAMPLE);
-    // glEnable(GL_POINT_SPRITE);
-    // glEnable(GL_PROGRAM_POINT_SIZE);
-    // glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // glLineWidth(10);
     // glEnable(GL_LINE_SMOOTH);
     return 1;
 }
-bool ChOpenGLViewer::Update(double time_step) {
-    if (pause_sim == true && single_step == false) {
-        return false;
+
+void ChOpenGLViewer::TakeDown() {
+    render_camera.TakeDown();
+    ortho_camera.TakeDown();
+
+    main_shader.TakeDown();
+    cloud_shader.TakeDown();
+    dot_shader.TakeDown();
+    sphere_shader.TakeDown();
+
+    sphere.TakeDown();
+    box.TakeDown();
+    cylinder.TakeDown();
+    cone.TakeDown();
+
+    cloud.TakeDown();
+    fluid.TakeDown();
+    grid.TakeDown();
+
+    particles.TakeDown();
+
+    mpm_grid.TakeDown();
+    mpm_node.TakeDown();
+
+    fea_nodes.TakeDown();
+    fea_elements.TakeDown();
+
+    line_path.TakeDown();
+
+    contact_renderer.TakeDown();
+    graph_renderer.TakeDown();
+    m_vis->stats_renderer->TakeDown();
+
+    for (std::map<std::string, ChOpenGLMesh>::iterator iter = obj_files.begin(); iter != obj_files.end(); iter++) {
+        (*iter).second.TakeDown();
     }
-    simulation_h = time_step;
-    physics_system->DoStepDynamics(time_step);
-    single_step = false;
-    return true;
 }
-void ChOpenGLViewer::Render(bool render_hud) {
+
+void ChOpenGLViewer::Render(bool render_stats) {
     timer_render.reset();
     timer_text.reset();
     timer_geometry.reset();
 
     timer_render.start();
-    if (pause_vis == false) {
-        timer_geometry.start();
-        render_camera.aspect = window_aspect;
-        render_camera.window_width = window_size.x;
-        render_camera.window_height = window_size.y;
-        render_camera.Update();
-        render_camera.GetMatricies(projection, view, model);
+    timer_geometry.start();
+    render_camera.aspect = window_aspect;
+    render_camera.window_width = window_size.x;
+    render_camera.window_height = window_size.y;
+    render_camera.Update();
+    render_camera.GetMatricies(projection, view, model);
 
-        main_shader.SetViewport(window_size);
-        cloud_shader.SetViewport(window_size);
-        dot_shader.SetViewport(window_size);
-        sphere_shader.SetViewport(window_size);
+    main_shader.SetViewport(window_size);
+    cloud_shader.SetViewport(window_size);
+    dot_shader.SetViewport(window_size);
+    sphere_shader.SetViewport(window_size);
 
-        // if (render_mode == WIREFRAME) {
-        //     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        // } else {
-        //     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        // }
+#ifndef __EMSCRIPTEN__
+    if (render_mode == WIREFRAME) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    } else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+#endif
 
-        if (render_mode != POINTS) {
-            model_box.clear();
-            model_sphere.clear();
-            model_cone.clear();
-            model_cylinder.clear();
-            model_obj.clear();
-            line_path_data.clear();
-            for (auto body : physics_system->Get_bodylist()) {
-                DrawObject(body);
+    if (render_mode != POINTS) {
+        model_box.clear();
+        model_sphere.clear();
+        model_cone.clear();
+        model_cylinder.clear();
+        model_obj.clear();
+        line_path_data.clear();
+        for (auto s : m_vis->GetSystems()) {
+            for (const auto& b : s->Get_bodylist())
+                DrawVisualModel(b);
+            for (const auto& l : s->Get_linklist())
+                DrawVisualModel(l);
+        }
+        if (model_box.size() > 0) {
+            box.Update(model_box);
+            box.Draw(projection, view);
+        }
+        if (model_sphere.size() > 0) {
+            sphere.Update(model_sphere);
+            sphere.Draw(projection, view);
+        }
+        if (model_cone.size() > 0) {
+            cone.Update(model_cone);
+            cone.Draw(projection, view);
+        }
+        if (model_cylinder.size() > 0) {
+            cylinder.Update(model_cylinder);
+            cylinder.Draw(projection, view);
+        }
+        if (model_obj.size() > 0) {
+            for (std::map<std::string, ChOpenGLMesh>::iterator iter = obj_files.begin(); iter != obj_files.end();
+                 iter++) {
+                (*iter).second.Update(model_obj[(*iter).first]);
+                (*iter).second.Draw(projection, view);
             }
-            for (auto link : physics_system->Get_linklist()) {
-                DrawObject(link);
-            }
-            if (model_box.size() > 0) {
-                box.Update(model_box);
-                box.Draw(projection, view);
-            }
-            if (model_sphere.size() > 0) {
-                sphere.Update(model_sphere);
-                sphere.Draw(projection, view);
-            }
-            if (model_cone.size() > 0) {
-                cone.Update(model_cone);
-                cone.Draw(projection, view);
-            }
-            if (model_cylinder.size() > 0) {
-                cylinder.Update(model_cylinder);
-                cylinder.Draw(projection, view);
-            }
-            if (model_obj.size() > 0) {
-                for (std::map<std::string, ChOpenGLMesh>::iterator iter = obj_files.begin(); iter != obj_files.end();
-                     iter++) {
-                    (*iter).second.Update(model_obj[(*iter).first]);
-                    (*iter).second.Draw(projection, view);
-                }
-            }
-            if (line_path_data.size() > 0) {
-                line_path.Update(line_path_data);
-                line_path.Draw(projection, view);
-            }
+        }
+        if (line_path_data.size() > 0) {
+            line_path.Update(line_path_data);
+            line_path.Draw(projection, view);
+        }
 
-        } else {
-            cloud_data.resize(physics_system->Get_bodylist().size());
+    } else {
+        size_t cloud_size = 0;
+        for (auto s : m_vis->GetSystems())
+            cloud_size += s->Get_bodylist().size();
+        cloud_data.resize(cloud_size);
+        for (auto s : m_vis->GetSystems()) {
 #pragma omp parallel for
-            for (int i = 0; i < physics_system->Get_bodylist().size(); i++) {
-                auto abody = physics_system->Get_bodylist().at(i);
+            for (int i = 0; i < s->Get_bodylist().size(); i++) {
+                auto abody = s->Get_bodylist().at(i);
                 ChVector<> pos = abody->GetPos();
                 cloud_data[i] = glm::vec3(pos.x(), pos.y(), pos.z());
             }
         }
-
-        if (render_mode == POINTS) {
-            cloud.Update(cloud_data);
-            glm::mat4 model(10);
-            cloud.Draw(projection, view * model);
-        }
-
-        RenderFluid();
-        RenderFEA();
-
-        RenderGrid();
-        RenderAABB();
-        RenderPlots();
-        RenderContacts();
-
-        timer_geometry.stop();
-        time_geometry = .5 * timer_geometry() + .5 * time_geometry;
-
-        timer_text.start();
-        DisplayHUD(render_hud);
-        timer_text.stop();
-        time_text = .5 * timer_text() + .5 * time_text;
     }
+
+    if (render_mode == POINTS) {
+        cloud.Update(cloud_data);
+        glm::mat4 model(10);
+        cloud.Draw(projection, view * model);
+    }
+
+    RenderFluid();
+    RenderFEA();
+
+    RenderParticles();
+
+    RenderGrid();
+    RenderAABB();
+    RenderPlots();
+    RenderContacts();
+
+    timer_geometry.stop();
+    time_geometry = .5 * timer_geometry() + .5 * time_geometry;
+
+    timer_text.start();
+    if (render_stats || view_help)
+        RenderStats();
+    timer_text.stop();
+    time_text = .5 * timer_text() + .5 * time_text;
+
     timer_render.stop();
     time_total = .5 * timer_render() + .5 * time_total;
     current_time = time_total;
@@ -283,179 +300,97 @@ void ChOpenGLViewer::Render(bool render_hud) {
     fps = 1.0 / current_time;
 }
 
-void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
-    if (abody->GetAssets().size() == 0) {
+void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
+    if (!item->GetVisualModel())
         return;
-    }
-	//position of the body
-    const Vector pos = abody->GetFrame_REF_to_abs().GetPos();
-	//rotation of the body
-    Quaternion rot = abody->GetFrame_REF_to_abs().GetRot();
-    double angle;
-    Vector axis;
-    rot.Q_to_AngAxis(angle, axis);
 
-    for (int i = 0; i < abody->GetAssets().size(); i++) {
-        auto asset = abody->GetAssets().at(i);
+    // Get the visual model reference frame
+    const ChFrame<>& X_AM = item->GetVisualModelFrame();
 
-        if (!std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            continue;
-        }
+    for (auto& shape_instance : item->GetVisualModel()->GetShapes()) {
+        const auto& shape = shape_instance.first;
+        const auto& X_SM = shape_instance.second;
 
-        ChVisualization* visual_asset = ((ChVisualization*)(asset.get()));
-		//position of the asset
-        Vector center = visual_asset->Pos;
-		//rotate asset pos into global frame
-        center = rot.Rotate(center);
-		//Get the local rotation of the asset
-        Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
-		//add the local rotation to the rotation of the body
-        lrot = rot % lrot;
-        lrot.Normalize();
-        lrot.Q_to_AngAxis(angle, axis);
+        ChFrame<> X_SA = X_AM * X_SM;
+        auto pos = X_SA.GetPos();
+        auto rot = X_SA.GetRot();
+        double angle;
+        Vector axis;
+        rot.Q_to_AngAxis(angle, axis);
 
-        if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(asset.get())) {
+        if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(shape.get())) {
             double radius = sphere_shape->GetSphereGeometry().rad;
-            ChVector<> pos_final = pos + center;
 
-            model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
+            model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::scale(model, glm::vec3(radius, radius, radius));
             model_sphere.push_back(model);
-
-        } else if (ChEllipsoidShape* ellipsoid_shape = dynamic_cast<ChEllipsoidShape*>(asset.get())) {
+        } else if (ChEllipsoidShape* ellipsoid_shape = dynamic_cast<ChEllipsoidShape*>(shape.get())) {
             Vector radius = ellipsoid_shape->GetEllipsoidGeometry().rad;
-            ChVector<> pos_final = pos + center;
-            model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
+
+            model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::scale(model, glm::vec3(radius.x(), radius.y(), radius.z()));
             model_sphere.push_back(model);
+        } else if (ChBoxShape* box_shape = dynamic_cast<ChBoxShape*>(shape.get())) {
+            Vector size = box_shape->GetBoxGeometry().Size;
 
-        } else if (ChBoxShape* box_shape = dynamic_cast<ChBoxShape*>(asset.get())) {
-            ChVector<> pos_final = pos + center;
-            Vector radius = box_shape->GetBoxGeometry().Size;
-
-            model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
+            model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::scale(model, glm::vec3(radius.x(), radius.y(), radius.z()));
+            model = glm::scale(model, glm::vec3(size.x(), size.y(), size.z()));
             model_box.push_back(model);
-
-        } else if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
+        } else if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(shape.get())) {
             double rad = cylinder_shape->GetCylinderGeometry().rad;
-			ChVector<> dir = cylinder_shape->GetCylinderGeometry().p2 - cylinder_shape->GetCylinderGeometry().p1;
-			double height = dir.Length();
-			dir.Normalize();
-			ChVector<> mx, my, mz;
-			dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-			ChMatrix33<> mrot;
-			mrot.Set_A_axis(mx, my, mz);
-            lrot =rot % (visual_asset->Rot.Get_A_quaternion() % mrot.Get_A_quaternion());
-			//position of cylinder based on two points
-			ChVector<> mpos = center + 0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
+            const auto& P1 = cylinder_shape->GetCylinderGeometry().p1;
+            const auto& P2 = cylinder_shape->GetCylinderGeometry().p2;
 
-            lrot.Q_to_AngAxis(angle, axis);
-			ChVector<> pos_final = pos  + rot.Rotate(mpos);
+            ChVector<> dir = P2 - P1;
+            double height = dir.Length();
+            dir.Normalize();
+            ChVector<> mx, my, mz;
+            dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
+            ChMatrix33<> R_CS;
+            R_CS.Set_A_axis(mx, my, mz);
 
-            model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
+            auto t_CS = 0.5 * (P2 + P1);
+            ChFrame<> X_CS(t_CS, R_CS);
+            ChFrame<> X_CA = X_SA * X_CS;
+
+            pos = X_CA.GetPos();
+            rot = X_CA.GetRot();
+            rot.Q_to_AngAxis(angle, axis);
+
+            model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::scale(model, glm::vec3(rad, height * .5, rad));
             model_cylinder.push_back(model);
-
-        } else if (ChConeShape* cone_shape = dynamic_cast<ChConeShape*>(asset.get())) {
+        } else if (ChConeShape* cone_shape = dynamic_cast<ChConeShape*>(shape.get())) {
             Vector rad = cone_shape->GetConeGeometry().rad;
-            ChVector<> pos_final = pos + center;
-            model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
+
+            model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::scale(model, glm::vec3(rad.x(), rad.y(), rad.z()));
             model_cone.push_back(model);
-
-        } else if (ChRoundedBoxShape* shape = dynamic_cast<ChRoundedBoxShape*>(asset.get())) {
-            Vector rad = shape->GetRoundedBoxGeometry().Size;
-            double radsphere = shape->GetRoundedBoxGeometry().radsphere;
-            ChVector<> pos_final = pos + center;
-            model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
-            model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::scale(model, glm::vec3(rad.x(), rad.y(), rad.z()));
-            model_box.push_back(model);
-
-            glm::vec3 local =
-                glm::rotate(glm::vec3(rad.x(), rad.y(), rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3((float)radsphere));
-            model_sphere.push_back(model);
-
-            local = glm::rotate(glm::vec3(rad.x(), rad.y(), -rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3((float)radsphere));
-            model_sphere.push_back(model);
-
-            local = glm::rotate(glm::vec3(-rad.x(), rad.y(), rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3((float)radsphere));
-            model_sphere.push_back(model);
-
-            local = glm::rotate(glm::vec3(-rad.x(), rad.y(), -rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3((float)radsphere));
-            model_sphere.push_back(model);
-
-            local = glm::rotate(glm::vec3(rad.x(), -rad.y(), rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3((float)radsphere));
-            model_sphere.push_back(model);
-
-            local = glm::rotate(glm::vec3(rad.x(), -rad.y(), -rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3((float)radsphere));
-            model_sphere.push_back(model);
-
-            local = glm::rotate(glm::vec3(-rad.x(), -rad.y(), rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3((float)radsphere));
-            model_sphere.push_back(model);
-
-            local = glm::rotate(glm::vec3(-rad.x(), -rad.y(), -rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3((float)radsphere));
-            model_sphere.push_back(model);
-        } else if (ChCapsuleShape* capsule_shape = dynamic_cast<ChCapsuleShape*>(asset.get())) {
+        } else if (ChCapsuleShape* capsule_shape = dynamic_cast<ChCapsuleShape*>(shape.get())) {
             double rad = capsule_shape->GetCapsuleGeometry().rad;
             double height = capsule_shape->GetCapsuleGeometry().hlen;
-            // Quaternion rott(1,0,0,0);
-            lrot = visual_asset->Rot.Get_A_quaternion();
-            // lrot = lrot % rott;
-            lrot = rot % lrot;
 
-            lrot.Q_to_AngAxis(angle, axis);
-            ChVector<> pos_final = pos + center;
-            model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
+            model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::scale(model, glm::vec3(rad, height, rad));
             model_cylinder.push_back(model);
-            glm::vec3 local = glm::rotate(glm::vec3(0, height, 0), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+
+            glm::vec3 s1 = glm::rotate(glm::vec3(0, height, 0), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(glm::mat4(1), glm::vec3(pos.x() + s1.x, pos.y() + s1.y, pos.z() + s1.z));
             model = glm::scale(model, glm::vec3((float)rad));
             model_sphere.push_back(model);
 
-            local = glm::rotate(glm::vec3(0, -height, 0), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            glm::vec3 s2 = glm::rotate(glm::vec3(0, -height, 0), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(glm::mat4(1), glm::vec3(pos.x() + s2.x, pos.y() + s2.y, pos.z() + s2.z));
             model = glm::scale(model, glm::vec3((float)rad));
             model_sphere.push_back(model);
-
-        } else if (ChTriangleMeshShape* trimesh_shape = dynamic_cast<ChTriangleMeshShape*>(asset.get())) {
-            ChVector<> pos_final = pos + center;
-            model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
+        } else if (ChTriangleMeshShape* trimesh_shape = dynamic_cast<ChTriangleMeshShape*>(shape.get())) {
+            model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
 
             if (obj_files.find(trimesh_shape->GetName()) == obj_files.end()) {
@@ -466,43 +401,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             } else {
                 model_obj[trimesh_shape->GetName()].push_back(model);
             }
-        } else if (ChPathShape* path_shape = dynamic_cast<ChPathShape*>(asset.get())) {
-            // std::shared_ptr<geometry::ChLine> mline;
-            // mline = path_shape->GetPathGeometry();
-        } else if (ChLineShape* line_shape = dynamic_cast<ChLineShape*>(asset.get())) {
-            std::shared_ptr<geometry::ChLine> mline;
-            mline = line_shape->GetLineGeometry();
-
-            lrot = visual_asset->Rot.Get_A_quaternion();
-            lrot = rot % lrot;
-            lrot.Q_to_AngAxis(angle, axis);
-
-            double maxU = 1;
-            if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(mline))
-                maxU = mline_path->GetPathDuration();
-            ChVector<> pos_final = pos + center;
-
-            for (unsigned int ig = 0; ig < 200; ig++) {
-                double mU = maxU * ((double)ig / (double)(200 - 1));  // abscyssa
-                ChVector<> t2;
-                mline->Evaluate(t2, mU);
-                t2 = pos_final + lrot.Rotate(t2);
-                line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
-
-                mU = maxU * ((double)(ig + 1) / (double)(200 - 1));  // abscyssa
-                mline->Evaluate(t2, mU);
-                t2 = pos_final + lrot.Rotate(t2);
-                line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
-            }
-        }
-    }
-}
-
-void ChOpenGLViewer::DrawObject(std::shared_ptr<ChLinkBase> link) {
-    const auto& asset_frame = link->GetAssetsFrame();
-
-    for (auto asset : link->GetAssets()) {
-        if (ChLineShape* line_shape = dynamic_cast<ChLineShape*>(asset.get())) {
+        } else if (ChLineShape* line_shape = dynamic_cast<ChLineShape*>(shape.get())) {
             std::shared_ptr<geometry::ChLine> mline;
             mline = line_shape->GetLineGeometry();
 
@@ -512,40 +411,103 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChLinkBase> link) {
 
             ChVector<> t2;
             mline->Evaluate(t2, 0.0);
-            t2 = asset_frame.TransformPointLocalToParent(t2);
+            t2 = X_SA.TransformPointLocalToParent(t2);
             line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
 
             for (unsigned int ig = 1; ig < maxU; ig++) {
                 mline->Evaluate(t2, (double)ig);
-                t2 = asset_frame.TransformPointLocalToParent(t2);
+                t2 = X_SA.TransformPointLocalToParent(t2);
                 line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
                 line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
             }
 
             mline->Evaluate(t2, maxU);
-            t2 = asset_frame.TransformPointLocalToParent(t2);
+            t2 = X_SA.TransformPointLocalToParent(t2);
             line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
         }
+        /*
+        else if (ChRoundedBoxShape* shape = dynamic_cast<ChRoundedBoxShape*>(asset.get())) {
+            Vector rad = shape->GetRoundedBoxGeometry().Size;
+            double radsphere = shape->GetRoundedBoxGeometry().radsphere;
+            ChVector<> pos_final = pos + center;
+            model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
+            model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::scale(model, glm::vec3(rad.x(), rad.y(), rad.z()));
+            model_box.push_back(model);
+
+            glm::vec3 local = glm::rotate(glm::vec3(rad.x(), rad.y(), rad.z()), float(angle),
+                                          glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            model = glm::scale(model, glm::vec3((float)radsphere));
+            model_sphere.push_back(model);
+
+            local = glm::rotate(glm::vec3(rad.x(), rad.y(), -rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            model = glm::scale(model, glm::vec3((float)radsphere));
+            model_sphere.push_back(model);
+
+            local = glm::rotate(glm::vec3(-rad.x(), rad.y(), rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            model = glm::scale(model, glm::vec3((float)radsphere));
+            model_sphere.push_back(model);
+
+            local = glm::rotate(glm::vec3(-rad.x(), rad.y(), -rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            model = glm::scale(model, glm::vec3((float)radsphere));
+            model_sphere.push_back(model);
+
+            local = glm::rotate(glm::vec3(rad.x(), -rad.y(), rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            model = glm::scale(model, glm::vec3((float)radsphere));
+            model_sphere.push_back(model);
+
+            local = glm::rotate(glm::vec3(rad.x(), -rad.y(), -rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            model = glm::scale(model, glm::vec3((float)radsphere));
+            model_sphere.push_back(model);
+
+            local = glm::rotate(glm::vec3(-rad.x(), -rad.y(), rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            model = glm::scale(model, glm::vec3((float)radsphere));
+            model_sphere.push_back(model);
+
+            local = glm::rotate(glm::vec3(-rad.x(), -rad.y(), -rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            model = glm::scale(model, glm::vec3((float)radsphere));
+            model_sphere.push_back(model);
+        }
+        */
     }
 }
 
-void ChOpenGLViewer::DisplayHUD(bool render_hud) {
-    if (!render_hud && !view_help)
+void ChOpenGLViewer::RenderStats() {
+    if (m_vis->GetSystems().empty())
         return;
 
     GLReturnedError("Start text");
-    HUD_renderer.Update(window_size, dpi, fps, time_geometry, time_text, time_total);
+    m_vis->stats_renderer->Update(window_size, dpi, fps, time_geometry, time_text, time_total);
     if (view_help) {
-        HUD_renderer.GenerateHelp();
+        m_vis->stats_renderer->GenerateHelp();
     } else {
-        HUD_renderer.GenerateStats(physics_system);
+        m_vis->stats_renderer->GenerateStats(m_vis->GetSystem(0));
     }
 
-    if (view_info) {
-        HUD_renderer.GenerateExtraStats(physics_system);
-    }
-
-    HUD_renderer.Draw();
+    m_vis->stats_renderer->Render();
 }
 
 void ChOpenGLViewer::RenderContacts() {
@@ -553,23 +515,36 @@ void ChOpenGLViewer::RenderContacts() {
         return;
     }
 
-    contact_renderer.Update(physics_system);
+    for (auto s : m_vis->GetSystems())
+        contact_renderer.Update(s);
+
     contact_renderer.Draw(projection, view);
 }
+
 void ChOpenGLViewer::RenderAABB() {
     if (view_aabb == false) {
         return;
     }
-#ifdef CHRONO_MULTICORE
-    if (ChSystemMulticore* system = dynamic_cast<ChSystemMulticore*>(physics_system)) {
-        ChMulticoreDataManager* data_manager = system->data_manager;
-        model_box.clear();
 
+#ifdef CHRONO_MULTICORE
+    uint num_rigid_shapes = 0;
+    for (auto s : m_vis->m_systems_mcore) {
+        num_rigid_shapes += s->data_manager->cd_data->num_rigid_shapes;
+    }
+
+    if (num_rigid_shapes <= 0)
+        return;
+
+    model_box.clear();
+    model_box.resize(num_rigid_shapes);
+
+    int start = 0;
+    for (auto s : m_vis->m_systems_mcore) {
+        ChMulticoreDataManager* data_manager = s->data_manager;
         custom_vector<real3>& aabb_min = data_manager->cd_data->aabb_min;
         custom_vector<real3>& aabb_max = data_manager->cd_data->aabb_max;
 
-        model_box.resize(data_manager->cd_data->num_rigid_shapes);
-#pragma omp parallel for
+    #pragma omp parallel for
         for (int i = 0; i < (signed)data_manager->cd_data->num_rigid_shapes; i++) {
             real3 min_p = aabb_min[i] + data_manager->measures.collision.global_origin;
             real3 max_p = aabb_max[i] + data_manager->measures.collision.global_origin;
@@ -579,22 +554,30 @@ void ChOpenGLViewer::RenderAABB() {
 
             glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(center.x, center.y, center.z));
             model = glm::scale(model, glm::vec3(radius.x, radius.y, radius.z));
-            model_box[i] = (model);
+            model_box[start + i] = (model);
         }
-        if (model_box.size() > 0) {
-            box.Update(model_box);
-            box.Draw(projection, view);
-        }
+
+        start += data_manager->cd_data->num_rigid_shapes;
     }
 
+    if (model_box.size() > 0) {
+        box.Update(model_box);
+        box.Draw(projection, view);
+    }
 #endif
 }
+
 void ChOpenGLViewer::RenderFluid() {
 #ifdef CHRONO_MULTICORE
-    ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system);
-    if (!parallel_system || parallel_system->data_manager->num_fluid_bodies <= 0) {
-        return;
+    uint num_fluid_bodies = 0;
+    for (auto s : m_vis->m_systems_mcore) {
+        num_fluid_bodies += s->data_manager->num_fluid_bodies;
     }
+
+    if (num_fluid_bodies <= 0)
+        return;
+
+    fluid_data.resize(num_fluid_bodies);
 
     if (render_mode != POINTS) {
         fluid.AttachShader(&sphere_shader);
@@ -602,19 +585,25 @@ void ChOpenGLViewer::RenderFluid() {
         fluid.AttachShader(&dot_shader);
     }
 
-    fluid_data.resize(parallel_system->data_manager->num_fluid_bodies);
-#pragma omp parallel for
-    for (int i = 0; i < (signed)parallel_system->data_manager->num_fluid_bodies; i++) {
-        real3 pos = parallel_system->data_manager->host_data.pos_3dof[i];
-        fluid_data[i] = glm::vec3(pos.x, pos.y, pos.z);
-    }
+    int start = 0;
+    for (auto s : m_vis->m_systems_mcore) {
+        ChMulticoreDataManager* data_manager = s->data_manager;
+        if (data_manager->num_fluid_bodies <= 0)
+            continue;
 
-    if (auto fluid_container =
-            std::dynamic_pointer_cast<ChFluidContainer>(parallel_system->data_manager->node_container)) {
-        fluid.SetPointSize(float(fluid_container->kernel_radius * .75));
-    } else if (auto particle_container =
-                   std::dynamic_pointer_cast<ChParticleContainer>(parallel_system->data_manager->node_container)) {
-        fluid.SetPointSize(float(particle_container->kernel_radius * .75));
+    #pragma omp parallel for
+        for (int i = 0; i < (signed)data_manager->num_fluid_bodies; i++) {
+            real3 pos = data_manager->host_data.pos_3dof[i];
+            fluid_data[start + i] = glm::vec3(pos.x, pos.y, pos.z);
+        }
+
+        if (auto f_container = std::dynamic_pointer_cast<ChFluidContainer>(data_manager->node_container)) {
+            fluid.SetPointSize(float(f_container->kernel_radius * .75));
+        } else if (auto p_container = std::dynamic_pointer_cast<ChParticleContainer>(data_manager->node_container)) {
+            fluid.SetPointSize(float(p_container->kernel_radius * .75));
+        }
+
+        start += data_manager->num_fluid_bodies;
     }
 
     fluid.Update(fluid_data);
@@ -623,8 +612,54 @@ void ChOpenGLViewer::RenderFluid() {
 #endif
 }
 
+void ChOpenGLViewer::RenderParticles() {
+    size_t num_particles = 0;
+    for (auto s : m_vis->GetSystems()) {
+        for (auto& item : s->Get_otherphysicslist()) {
+            if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
+                if (!pcloud->GetVisualModel())
+                    continue;
+                num_particles += pcloud->GetNparticles();
+            }
+        }
+    }
+
+    if (num_particles <= 0)
+        return;
+
+    particle_data.resize(num_particles);
+
+    if (render_mode != SOLID || particle_render_mode == POINTS)
+        particles.AttachShader(&dot_shader);
+    else
+        particles.AttachShader(&sphere_shader);
+
+    size_t start = 0;
+    for (auto s : m_vis->GetSystems()) {
+        for (auto& item : s->Get_otherphysicslist()) {
+            if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
+                if (!pcloud->GetVisualModel())
+                    continue;
+
+                for (int i = 0; i < pcloud->GetNparticles(); i++) {
+                    const auto& pos = pcloud->GetVisualModelFrame(i).GetPos();
+                    particle_data[start + i] = glm::vec3(pos.x(), pos.y(), pos.z());
+                }
+
+                start += pcloud->GetNparticles();
+            }
+        }
+    }
+
+    particles.SetPointSize(particle_radius);
+
+    particles.Update(particle_data);
+    glm::mat4 model(1);
+    particles.Draw(projection, view * model);
+}
+
 void ChOpenGLViewer::RenderFEA() {
-/*
+    /*
 #ifdef CHRONO_MULTICORE
     ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system);
     if (!parallel_system || parallel_system->data_manager->num_fea_nodes <= 0) {
@@ -655,47 +690,52 @@ void ChOpenGLViewer::RenderFEA() {
 }
 
 void ChOpenGLViewer::RenderGrid() {
-    if (view_grid == false) {
+    if (view_grid == false)
         return;
-    }
+
     grid_data.clear();
 #ifdef CHRONO_MULTICORE
-    if (ChSystemMulticore* parallel_sys = dynamic_cast<ChSystemMulticore*>(physics_system)) {
-        vec3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
-        real3 bin_size_vec = parallel_sys->data_manager->measures.collision.bin_size;
-        real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
-        real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
-        real3 center = (min_pt + max_pt) * .5;
+    if (m_vis->m_systems_mcore.empty())
+        return;
 
-        for (int i = 0; i <= bins_per_axis.x; i++) {
-            grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, min_pt.z));
-            grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, max_pt.z));
-        }
-        for (int i = 0; i <= bins_per_axis.z; i++) {
-            grid_data.push_back(glm::vec3(min_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
-            grid_data.push_back(glm::vec3(max_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
-        }
+    //// RADU TODO
+    //// Consider adapting to render grids for more than one Multicore system
+    ChMulticoreDataManager* data_manager = m_vis->m_systems_mcore[0]->data_manager;
 
-        for (int i = 0; i <= bins_per_axis.y; i++) {
-            grid_data.push_back(glm::vec3(min_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
-            grid_data.push_back(glm::vec3(max_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
-        }
-        for (int i = 0; i <= bins_per_axis.y; i++) {
-            grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, min_pt.z));
-            grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, max_pt.z));
-        }
+    vec3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
+    real3 bin_size_vec = data_manager->measures.collision.bin_size;
+    real3 min_pt = data_manager->measures.collision.min_bounding_point;
+    real3 max_pt = data_manager->measures.collision.max_bounding_point;
+    real3 center = (min_pt + max_pt) * .5;
 
-        for (int i = 0; i <= bins_per_axis.x; i++) {
-            grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, min_pt.y, center.z));
-            grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, max_pt.y, center.z));
-        }
-        for (int i = 0; i <= bins_per_axis.z; i++) {
-            grid_data.push_back(glm::vec3(center.x, min_pt.y, i * bin_size_vec.z + min_pt.z));
-            grid_data.push_back(glm::vec3(center.x, max_pt.y, i * bin_size_vec.z + min_pt.z));
-        }
-
-        grid.Update(grid_data);
+    for (int i = 0; i <= bins_per_axis.x; i++) {
+        grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, min_pt.z));
+        grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, max_pt.z));
     }
+    for (int i = 0; i <= bins_per_axis.z; i++) {
+        grid_data.push_back(glm::vec3(min_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
+        grid_data.push_back(glm::vec3(max_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
+    }
+
+    for (int i = 0; i <= bins_per_axis.y; i++) {
+        grid_data.push_back(glm::vec3(min_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
+        grid_data.push_back(glm::vec3(max_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
+    }
+    for (int i = 0; i <= bins_per_axis.y; i++) {
+        grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, min_pt.z));
+        grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, max_pt.z));
+    }
+
+    for (int i = 0; i <= bins_per_axis.x; i++) {
+        grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, min_pt.y, center.z));
+        grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, max_pt.y, center.z));
+    }
+    for (int i = 0; i <= bins_per_axis.z; i++) {
+        grid_data.push_back(glm::vec3(center.x, min_pt.y, i * bin_size_vec.z + min_pt.z));
+        grid_data.push_back(glm::vec3(center.x, max_pt.y, i * bin_size_vec.z + min_pt.z));
+    }
+
+    grid.Update(grid_data);
 #endif
     glm::mat4 model(1);
     grid.Draw(projection, view * model);
@@ -764,7 +804,7 @@ void ChOpenGLViewer::RenderPlots() {
     //  if (view_info == false || view_help) {
     //    return;
     //  }
-    //  graph_renderer.Update(physics_system, window_size);
+    //  graph_renderer.Update(m_systems[0], window_size);
     //
     //  projection = glm::ortho(0.0f, float(window_size.x), 0.0f, float(window_size.y), -2.0f, 2.0f);
     //  modelview = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1));
@@ -793,12 +833,6 @@ void ChOpenGLViewer::HandleInput(unsigned char key, int x, int y) {
         case 'E':
             render_camera.Move(UP);
             break;
-        case GLFW_KEY_SPACE:
-            pause_sim = !pause_sim;
-            break;
-        case 'P':
-            pause_vis = !pause_vis;
-            break;
         case '1':
             render_mode = POINTS;
             break;
@@ -820,9 +854,6 @@ void ChOpenGLViewer::HandleInput(unsigned char key, int x, int y) {
         case 'H':
             view_help = !view_help;
             break;
-        case 'I':
-            view_info = !view_info;
-            break;
         case 'V':
             //         use_vsync = !use_vsync;
             //         if (use_vsync) {
@@ -830,9 +861,6 @@ void ChOpenGLViewer::HandleInput(unsigned char key, int x, int y) {
             //         } else {
             //            glfwSwapInterval(0);
             //         }
-            break;
-        case GLFW_KEY_PERIOD:
-            single_step = true;
             break;
         default:
             break;

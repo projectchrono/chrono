@@ -17,11 +17,18 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChEllipsoidShape)
 
+ChEllipsoidShape::ChEllipsoidShape() {
+    SetMutable(false);
+}
+ChEllipsoidShape::ChEllipsoidShape(const geometry::ChEllipsoid& ellipsoid) : gellipsoid(ellipsoid) {
+    SetMutable(false);
+}
+
 void ChEllipsoidShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChEllipsoidShape>();
     // serialize parent class
-    ChVisualization::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(gellipsoid);
 }
@@ -30,7 +37,7 @@ void ChEllipsoidShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChEllipsoidShape>();
     // deserialize parent class
-    ChVisualization::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(gellipsoid);
 }

@@ -29,13 +29,11 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChDoubleIdler::ChDoubleIdler(const std::string& name) : ChIdler(name) {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChDoubleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChDoubleIdler::Initialize(std::shared_ptr<ChChassis> chassis,
                                const ChVector<>& location,
                                ChTrackAssembly* track) {
     // Invoke the base class method
@@ -68,7 +66,6 @@ void ChDoubleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChDoubleIdler::AddVisualizationAssets(VisualizationType vis) {
     ChIdler::AddVisualizationAssets(vis);
 
@@ -83,23 +80,18 @@ void ChDoubleIdler::AddVisualizationAssets(VisualizationType vis) {
     cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
     cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, gap / 2, 0);
     cyl_1->GetCylinderGeometry().rad = radius;
-    m_wheel->AddAsset(cyl_1);
+    m_wheel->AddVisualShape(cyl_1);
 
     auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -width / 2, 0);
     cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, -gap / 2, 0);
     cyl_2->GetCylinderGeometry().rad = radius;
-    m_wheel->AddAsset(cyl_2);
-
-    auto tex = chrono_types::make_shared<ChTexture>();
-    tex->SetTextureFilename(chrono::GetChronoDataFile("textures/bluewhite.png"));
-    m_wheel->AddAsset(tex);
+    m_wheel->AddVisualShape(cyl_2);
 }
 
 void ChDoubleIdler::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAssets(m_wheel);
     ChIdler::RemoveVisualizationAssets();
-
-    m_wheel->GetAssets().clear();
 }
 
 }  // end namespace vehicle

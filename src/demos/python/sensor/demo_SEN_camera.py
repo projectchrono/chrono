@@ -1,12 +1,12 @@
 # =============================================================================
-# PROJECT CHRONO - http:#projectchrono.org
+# PROJECT CHRONO - http://projectchrono.org
 #
 # Copyright (c) 2019 projectchrono.org
 # All rights reserved.
 #
 # Use of this source code is governed by a BSD-style license that can be found
 # in the LICENSE file at the top level of the distribution and at
-# http:#projectchrono.org/license-chrono.txt.
+# http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
 # Authors: Asher Elmquist
@@ -42,11 +42,11 @@ def main():
     trimesh_shape = chrono.ChTriangleMeshShape()
     trimesh_shape.SetMesh(mmesh)
     trimesh_shape.SetName("HMMWV Chassis Mesh")
-    trimesh_shape.SetStatic(True)
+    trimesh_shape.SetMutable(False)
 
     mesh_body = chrono.ChBody()
     mesh_body.SetPos(chrono.ChVectorD(0, 0, 0))
-    mesh_body.AddAsset(trimesh_shape)
+    mesh_body.AddVisualShape(trimesh_shape)
     mesh_body.SetBodyFixed(True)
     mphysicalSystem.Add(mesh_body)
 
@@ -56,14 +56,10 @@ def main():
     manager = sens.ChSensorManager(mphysicalSystem)
 
     intensity = 1.0
-    manager.scene.AddPointLight(chrono.ChVectorF(
-        2, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(
-        9, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(
-        16, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(
-        23, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(2, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(9, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(16, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(23, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
 
     # ------------------------------------------------
     # Create a camera and add it to the sensor manager

@@ -36,7 +36,7 @@ def main():
     patch_mat = chrono.ChMaterialSurfaceNSC()
     patch_mat.SetFriction(0.9)
     patch_mat.SetRestitution(0.01)
-    patch = terrain.AddPatch(patch_mat, chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 200, 100)
+    patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 200, 100)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     terrain.Initialize()
@@ -86,26 +86,29 @@ def main():
     driver_2.Initialize()
 
 
-
     # Create the vehicle Irrlicht interface
-    app = veh.ChWheeledVehicleIrrApp(hmmwv_1.GetVehicle(), 'Two Car Demo')
-    app.AddTypicalLights()
-    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    app.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
-    app.SetChaseCameraState(veh.ChChaseCamera.Track)
-    app.SetChaseCameraPosition(chrono.ChVectorD(-15, 0, 2.0))
-    app.SetTimestep(step_size)
-    app.AssetBindAll()
-    app.AssetUpdateAll()
+    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+    vis.SetWindowTitle('Two Car Demo')
+    vis.SetWindowSize(1280, 1024)
+    vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
+    vis.SetChaseCameraState(veh.ChChaseCamera.Track)
+    vis.SetChaseCameraPosition(chrono.ChVectorD(-10, 0, 2.0))
+    vis.Initialize()
+    vis.AddTypicalLights()
+    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddSkyBox()
+    vis.AttachVehicle(hmmwv_1.GetVehicle())
+
 
     # Simulation loop
-    realtime_timer = chrono.ChRealtimeStepTimer()
-    while (app.GetDevice().run()):
+    hmmwv_1.GetVehicle().EnableRealtime(True)
+
+    while vis.Run() :
         time = hmmwv_1.GetSystem().GetChTime()
 
-        app.BeginScene(True, True, irr.SColor(255, 140, 161, 192))
-        app.DrawAll()
-        app.EndScene()
+        vis.BeginScene()
+        vis.Render()
+        vis.EndScene()
 
         # Get driver inputs
         driver_inputs_1 = driver_1.GetInputs()
@@ -117,7 +120,7 @@ def main():
         hmmwv_1.Synchronize(time, driver_inputs_1, terrain)
         hmmwv_2.Synchronize(time, driver_inputs_2, terrain)
         terrain.Synchronize(time)
-        app.Synchronize("", driver_inputs_1)
+        vis.Synchronize("", driver_inputs_1)
 
         # Advance simulation for one timestep for all modules
         driver_1.Advance(step_size)
@@ -125,13 +128,11 @@ def main():
         hmmwv_1.Advance(step_size)
         hmmwv_2.Advance(step_size)
         terrain.Advance(step_size)
-        app.Advance(step_size)
+        vis.Advance(step_size)
 
         # Advance state of entire system (containing both vehicles)
         sys.DoStepDynamics(step_size)
 
-        # Spin in place for real time to catch up
-        realtime_timer.Spin(step_size)
     return 0
 
 # The path to the Chrono data directory containing various assets (meshes, textures, data files)

@@ -6,6 +6,7 @@ SET(DEMOS
   demo_GL_inv_pendulum
   demo_GL_benchmark
   demo_GL_shapes
+  demo_GL_assets
 )
 
 #--------------------------------------------------------------

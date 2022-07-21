@@ -43,17 +43,10 @@ class ChApi ChTriangle : public ChGeometry {
 
     virtual GeometryType GetClassType() const override { return TRIANGLE; }
 
-    virtual void GetBoundingBox(double& xmin,
-                                double& xmax,
-                                double& ymin,
-                                double& ymax,
-                                double& zmin,
-                                double& zmax,
-                                ChMatrix33<>* Rot = NULL) const override;
+    /// Compute bounding box along the directions defined by the given rotation matrix.
+    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
 
     virtual ChVector<> Baricenter() const override;
-
-    virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
 
     /// This is a surface
     virtual int GetManifoldDimension() const override { return 2; }

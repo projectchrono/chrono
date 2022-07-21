@@ -78,8 +78,8 @@ void FMTV_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void FMTV_TMeasyTire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChTMeasyTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // namespace fmtv

@@ -39,6 +39,26 @@ ChNodeXYZ& ChNodeXYZ::operator=(const ChNodeXYZ& other) {
     return *this;
 }
 
+void ChNodeXYZ::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+    mD.segment(block_offset, 3) = pos.eigen();
+}
+
+void ChNodeXYZ::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+    mD.segment(block_offset, 3) = pos_dt.eigen();
+}
+
+void ChNodeXYZ::LoadableStateIncrement(const unsigned int off_x,
+                                       ChState& x_new,
+                                       const ChState& x,
+                                       const unsigned int off_v,
+                                       const ChStateDelta& Dv) {
+    NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
+}
+
+void ChNodeXYZ::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+    mvars.push_back(&Variables());
+};
+
 void ChNodeXYZ::ComputeNF(
     const double U,              // x coordinate of application point in absolute space
     const double V,              // y coordinate of application point in absolute space
@@ -48,7 +68,7 @@ void ChNodeXYZ::ComputeNF(
     const ChVectorDynamic<>& F,  // Input F vector, size is 3, it is Force x,y,z in absolute coords.
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
-    ) {
+) {
     // ChVector<> abs_pos(U,V,W); not needed, nodes has no torque. Assuming load is applied to node center
     ChVector<> absF(F.segment(0, 3));
     Qi.segment(0, 3) = absF.eigen();
@@ -71,7 +91,7 @@ void ChNodeXYZ::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChNodeXYZ::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChNodeXYZ>();
+    /*int version =*/marchive.VersionRead<ChNodeXYZ>();
 
     // deserialize parent class:
     ChNodeBase::ArchiveIN(marchive);

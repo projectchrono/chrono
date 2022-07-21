@@ -82,8 +82,8 @@ void UAZBUS_TMeasyTireFront::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void UAZBUS_TMeasyTireFront::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChTMeasyTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 // -----------------------------------------------------------------------------
@@ -130,8 +130,8 @@ void UAZBUS_TMeasyTireRear::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void UAZBUS_TMeasyTireRear::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChTMeasyTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace uaz

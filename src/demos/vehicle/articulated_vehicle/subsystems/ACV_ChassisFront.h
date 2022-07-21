@@ -25,15 +25,6 @@ class ACV_ChassisFront : public chrono::vehicle::ChRigidChassis {
   public:
     ACV_ChassisFront(const std::string& name, bool fixed = false);
     ~ACV_ChassisFront() {}
-
-    /// Return the mass of the chassis body.
-    virtual double GetMass() const override { return m_mass; }
-
-    /// Return the inertia tensor of the chassis body.
-    virtual const chrono::ChMatrix33<>& GetInertia() const override { return m_inertia; }
-
-    /// Get the location of the center of mass in the chassis frame.
-    virtual const chrono::ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
     
     /// Get the location (in the local frame of this chassis) of the connection to the rear chassis.
     virtual const chrono::ChVector<> GetLocalPosRearConnector() const override { return m_connector_loc; }
@@ -43,12 +34,16 @@ class ACV_ChassisFront : public chrono::vehicle::ChRigidChassis {
     virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
   protected:
-    chrono::ChMatrix33<> m_inertia;
+    virtual double GetBodyMass() const override { return m_body_mass; }
+    virtual chrono::ChMatrix33<> GetBodyInertia() const override { return m_body_inertia; }
+    virtual chrono::ChFrame<> GetBodyCOMFrame() const override { return chrono::ChFrame<>(m_body_COM_loc, chrono::QUNIT); }
 
-    static const double m_mass;
-    static const chrono::ChVector<> m_inertiaXX;
-    static const chrono::ChVector<> m_inertiaXY;
-    static const chrono::ChVector<> m_COM_loc;
+    chrono::ChMatrix33<> m_body_inertia;
+
+    static const double m_body_mass;
+    static const chrono::ChVector<> m_body_inertiaXX;
+    static const chrono::ChVector<> m_body_inertiaXY;
+    static const chrono::ChVector<> m_body_COM_loc;
     static const chrono::ChCoordsys<> m_driverCsys;
     static const chrono::ChVector<> m_connector_loc;
 };

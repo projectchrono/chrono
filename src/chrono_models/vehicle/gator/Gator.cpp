@@ -126,7 +126,7 @@ void Gator::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = 2 * (tire_FL->ReportMass() + tire_RL->ReportMass());
+            m_tire_mass = 2 * (tire_FL->GetMass() + tire_RL->GetMass());
 
             break;
         }
@@ -142,7 +142,7 @@ void Gator::Initialize() {
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = 2 * (tire_FL->ReportMass() + tire_RL->ReportMass());
+            m_tire_mass = 2 * (tire_FL->GetMass() + tire_RL->GetMass());
 
             break;
         }
@@ -160,6 +160,9 @@ void Gator::Initialize() {
     }
 
     m_vehicle->EnableBrakeLocking(m_brake_locking);
+
+    // Recalculate vehicle mass, to properly account for all subsystems
+    m_vehicle->InitializeInertiaProperties();
 }
 
 // -----------------------------------------------------------------------------
@@ -172,18 +175,13 @@ void Gator::SetWheelVisualizationType(VisualizationType vis) {
 }
 
 // -----------------------------------------------------------------------------
-void Gator::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
+void Gator::Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) {
     m_vehicle->Synchronize(time, driver_inputs, terrain);
 }
 
 // -----------------------------------------------------------------------------
 void Gator::Advance(double step) {
     m_vehicle->Advance(step);
-}
-
-// -----------------------------------------------------------------------------
-double Gator::GetTotalMass() const {
-    return m_vehicle->GetVehicleMass() + m_tire_mass;
 }
 
 }  // end namespace gator
