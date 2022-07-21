@@ -58,6 +58,7 @@ ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
     : m_sysMBS(other_physicalSystem),
       m_verbose(true),
       m_is_initialized(false),
+      m_integrate_SPH(true),
       m_time(0),
       m_write_mode(OutpuMode::NONE) {
     m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>();
@@ -113,8 +114,8 @@ void ChSystemFsi::InitParams() {
     m_paramsH->Conservative_Form = true;
     m_paramsH->gradient_type = 0;
     m_paramsH->laplacian_type = 0;
-    m_paramsH->USE_Consistent_L = true;
-    m_paramsH->USE_Consistent_G = true;
+    m_paramsH->USE_Consistent_L = false;
+    m_paramsH->USE_Consistent_G = false;
 
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 
@@ -581,6 +582,10 @@ void ChSystemFsi::SetAdaptiveTimeStepping(bool adaptive) {
     m_paramsH->Adaptive_time_stepping = adaptive;
 }
 
+void ChSystemFsi::SetSPHintegration(bool runSPH) {
+    m_integrate_SPH = runSPH;
+}
+
 void ChSystemFsi::SetDensity(double rho0) {
     m_paramsH->rho0 = rho0;
     m_paramsH->invrho0 = 1 / m_paramsH->rho0;
@@ -598,6 +603,14 @@ void ChSystemFsi::SetOutputLength(int OutputLength) {
 
 void ChSystemFsi::SetWallBC(BceVersion wallBC) {
     m_paramsH->bceTypeWall = wallBC;
+}
+
+void ChSystemFsi::SetRigidBodyBC(BceVersion rigidBodyBC) {
+    m_paramsH->bceType = rigidBodyBC;
+}
+
+void ChSystemFsi::SetCohesionForce(double Fc) {
+    m_paramsH->Coh_coeff = Fc;
 }
 
 ChSystemFsi::ElasticMaterialProperties::ElasticMaterialProperties()
@@ -888,10 +901,12 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         // The following is used to execute the Explicit WCSPH
         CopyDeviceDataToHalfStep();
         ChUtilsDevice::FillMyThrust4(m_sysFSI->fsiGeneralData->derivVelRhoD, mR4(0));
-        m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD2,
-                                       m_sysFSI->fsiMeshD, 0.5 * m_paramsH->dT, m_time);
-        m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD1, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
-                                       m_sysFSI->fsiMeshD, 1.0 * m_paramsH->dT, m_time);
+        if (m_integrate_SPH){
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD2,
+                                           m_sysFSI->fsiMeshD, 0.5 * m_paramsH->dT, m_time);
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD1, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
+                                           m_sysFSI->fsiMeshD, 1.0 * m_paramsH->dT, m_time);
+        }
         m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
         m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
 
@@ -916,8 +931,10 @@ void ChSystemFsi::DoStepDynamics_FSI() {
     } else {
         // A different coupling scheme is used for implicit SPH formulations
         m_fsi_interface->Copy_ChSystem_to_External();
-        m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
-                                       m_sysFSI->fsiMeshD, 0.0, m_time);
+        if (m_integrate_SPH){
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
+                                           m_sysFSI->fsiMeshD, 0.0, m_time);
+        }
         m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
         m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
 
@@ -973,7 +990,8 @@ void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
 void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
     utils::PrintToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->sphMarkersD2->velMasD,
                        m_sysFSI->sphMarkersD2->rhoPresMuD, m_sysFSI->fsiGeneralData->sr_tau_I_mu_i,
-                       m_sysFSI->fsiGeneralData->referenceArray, thrust::host_vector<int4>(), dir, m_paramsH, true);
+                       m_sysFSI->fsiGeneralData->referenceArray, m_sysFSI->fsiGeneralData->referenceArray_FEA, 
+                       dir, m_paramsH, true);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

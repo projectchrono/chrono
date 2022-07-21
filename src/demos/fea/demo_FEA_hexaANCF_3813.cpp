@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(1.2, 0.6, 0.3), ChVector<>(0.2, -0.2, 0.0));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Perform a dynamic time integration:
 
@@ -251,7 +251,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(0.004);
     }

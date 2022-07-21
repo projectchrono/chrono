@@ -119,7 +119,7 @@ sys.AddLink(spring)
 
 # Create the Irrlicht visualization
 vis = irr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('ChLinkRSDA demo')
 vis.Initialize()
@@ -132,7 +132,7 @@ vis.AddTypicalLights()
 frame = 0
 while vis.Run():
     vis.BeginScene() 
-    vis.DrawAll()
+    vis.Render()
     irr.drawAllCOGs(vis, 1.0)
     irr.drawAllLinkframes(vis, 1.5)
     vis.EndScene()

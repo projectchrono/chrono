@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     for (auto& loc : light_locs)
         vis->AddLight(ChWorldFrame::FromISO(loc), 500);
-    my_hmmwv.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&my_hmmwv.GetVehicle());
 
     // Visualization of controller points (sentinel & target)
     irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
@@ -389,7 +389,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene and output images
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         // Draw the world reference frame at the sentinel location
         vis->RenderFrame(ChFrame<>(driver.GetSentinelLocation()));

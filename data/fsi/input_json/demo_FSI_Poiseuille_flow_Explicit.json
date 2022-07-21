@@ -5,39 +5,24 @@
     "Density":                1000,
     "Viscosity":              1.0,
     "Body Force":             [0.01, 0.0,  0.0],
-    "Gravity":                [0.0, 0.0,  0.0],
-    "Surface Tension Kappa":   0.0,
-    "Characteristic Length":   1.0
+    "Gravity":                [0.0, 0.0,  0.0]
   },
 
   "SPH Parameters":
   {
-    "Method":                         "WCSPH",//WCSPH, IISPH, I2SPHH
+    "Method":                         "WCSPH",
     "Kernel h":                       0.01,
     "Initial Spacing":                0.01,
-    "Epsilon":                        0.0001,
     "Maximum Velocity":               0.1,
     "XSPH Coefficient":               0.0,
     "Shifting Coefficient":           0.0,
-    "Density Reinitialization":       10000,
-    "Conservative Discretization":    false
-
+    "Density Reinitialization":       10000
   },
 
   "Time Stepping":
   {
-    "Adaptive Time stepping":        false,
-    "CFL number":                    0.1,
     "Fluid time step":               0.002,
     "Solid time step":               0.002,
-    "Maximum time step":             0.002,
-    "Write frame per second":        10
-  },
-
-  "Geometry Inf":
-  {
-    "BoxDimensionX":                0.2,
-    "BoxDimensionY":                0.1,
-    "BoxDimensionZ":                0.2
+    "Maximum time step":             0.002
   }
 }

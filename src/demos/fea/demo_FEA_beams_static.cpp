@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Use a solver that can handle stiffness matrices:
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector<>(0.25, -0.20, 0), 0, VECT_Y),
                         ChColor(0.3f, 0.3f, 0.3f), true);

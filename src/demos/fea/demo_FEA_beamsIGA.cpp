@@ -124,11 +124,11 @@ void MakeAndRunDemo0(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         sys.DoStepDynamics(0.01);
         vis->EndScene();
     }
@@ -206,7 +206,7 @@ void MakeAndRunDemo1(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Do a linear static analysis.
     sys.DoStaticLinear();
@@ -228,7 +228,7 @@ void MakeAndRunDemo1(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         sys.DoStepDynamics(0.01);
         vis->EndScene();
     }
@@ -314,11 +314,11 @@ void MakeAndRunDemo2(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         sys.DoStepDynamics(0.01);
         vis->EndScene();
     }
@@ -422,14 +422,14 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     std::string filename = out_dir + "/plasticity.dat";
     ChStreamOutAsciiFile my_plasticfile(filename.c_str());
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         sys.DoStepDynamics(0.01);
         vis->EndScene();
 
@@ -592,7 +592,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     std::string filename = out_dir + "/rotor_displ.dat";
     chrono::ChStreamOutAsciiFile file_out1(filename.c_str());
@@ -608,7 +608,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         sys.DoStepDynamics(0.002);
         vis->EndScene();
         file_out1 << sys.GetChTime() << " " << node_mid->GetPos().y() << " " << node_mid->GetPos().z() << "\n";

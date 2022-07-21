@@ -320,6 +320,12 @@ int main(int argc, char* argv[]) {
     // Set wall boundary condition
     sysFSI.SetWallBC(BceVersion::ORIGINAL);
 
+    // Set rigid body boundary condition
+    sysFSI.SetRigidBodyBC(BceVersion::ORIGINAL);
+
+    // Set cohsion of the granular material
+    sysFSI.SetCohesionForce(1.0e2);
+
     // Setup the SPH method
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
 

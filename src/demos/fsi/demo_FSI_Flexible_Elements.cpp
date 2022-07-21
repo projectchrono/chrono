@@ -361,7 +361,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         // Create an isotropic material.
         // All layers for all elements share the same material.
         double rho = 8000;
-        double E = 5e7;
+        double E = 5e5;
         double nu = 0.3;
         auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
         // Create the elements

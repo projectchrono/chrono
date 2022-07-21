@@ -114,7 +114,7 @@ slider2.AddForce(frc2)
 
 # Create the Irrlicht application
 vis = irr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Actuated prismatic joint demo')
 vis.Initialize()
@@ -127,7 +127,7 @@ x0 = slider1.GetPos().x
 
 while vis.Run():
     vis.BeginScene() 
-    vis.DrawAll()
+    vis.Render()
     irr.drawAllLinkframes(vis, 1)
     vis.EndScene()
     sys.DoStepDynamics(1e-3)

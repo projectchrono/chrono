@@ -22,7 +22,7 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
 
@@ -220,16 +220,19 @@ int main(int argc, char* argv[]) {
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -thickness)));
 
     // Create the visualization window
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(sys);
-    gl_window.Initialize(1280, 720, "Mesh-mesh test");
-    gl_window.SetCamera(ChVector<>(2, 1, 2), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0), 0.05f);
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(sys);
+    vis.SetWindowTitle("Mesh-mesh test");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::WIREFRAME);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(2, 1, 2), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Y);
 
     // Simulation loop
-    while (gl_window.Active()) {
+    while (vis.Run()) {
         sys->DoStepDynamics(time_step);
-        gl_window.Render();
+        vis.Render();
     }
 
     delete sys;

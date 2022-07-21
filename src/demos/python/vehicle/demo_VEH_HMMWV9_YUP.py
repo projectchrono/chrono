@@ -62,7 +62,6 @@ def main():
 
     # Create the vehicle Irrlicht interface
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-    my_hmmwv.GetVehicle().SetVisualSystem(vis)
     vis.SetCameraVertical(chrono.CameraVerticalDir_Y)
     vis.SetWindowTitle('HMMWV-9 YUP world frame')
     vis.SetWindowSize(1280, 1024)
@@ -71,6 +70,7 @@ def main():
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddTypicalLights()
     vis.AddSkyBox()
+    vis.AttachVehicle(my_hmmwv.GetVehicle())
 
     # Create the interactive driver system
     driver = veh.ChIrrGuiDriver(vis)
@@ -87,7 +87,7 @@ def main():
         time = my_hmmwv.GetSystem().GetChTime()
 
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.RenderFrame(chrono.ChFrameD(), 10)
         vis.RenderGrid(chrono.ChVectorD(0, 0.01, 0), 20, 1.0)
         vis.EndScene()

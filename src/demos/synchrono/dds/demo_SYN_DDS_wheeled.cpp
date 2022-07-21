@@ -108,7 +108,7 @@ class IrrAppWrapper {
     void Render() {
         if (m_app) {
             m_app->BeginScene();
-            m_app->DrawAll();
+            m_app->Render();
             m_app->EndScene();
         }
     }
@@ -233,7 +233,7 @@ int main(int argc, char* argv[]) {
         temp_app->SetChaseCamera(trackPoint, cam_distance, 0.5);
         temp_app->Initialize();
         temp_app->AddTypicalLights();
-        vehicle.SetVisualSystem(temp_app);
+        temp_app->AttachVehicle(&vehicle);
 
         // Create the interactive driver system
         auto irr_driver = chrono_types::make_shared<ChIrrGuiDriver>(*temp_app);

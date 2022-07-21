@@ -119,13 +119,13 @@ terrain.Initialize()
 
 # Create the vehicle Irrlicht interface
 #vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-#my_rccar.GetVehicle().SetVisualSystem(vis)
 #vis.SetWindowTitle('RCcar')
 #vis.SetWindowSize(1280, 1024)
 #vis.SetChaseCamera(trackPoint, 1.5, 0.5)
 #vis.Initialize()
 #vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 #vis.AddTypicalLights()
+#vis.AttachVehicle(my_rccar.GetVehicle())
 
 
 # Create the driver system
@@ -208,7 +208,7 @@ while True :
     # Render scene and output POV-Ray data
     # if (step_number % render_steps == 0) :
     #     vis.BeginScene()
-    #     vis.DrawAll()
+    #     vis.Render()
     #     vis.EndScene()
     #     render_frame += 1
 

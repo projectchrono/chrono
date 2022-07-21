@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    uaz.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&uaz.GetVehicle());
 
     // Create the interactive driver system
     ChIrrGuiDriver driver(*vis);
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
         // Render scene
         if (step_number % render_steps == 0) {
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->EndScene();
 
             if (povray_output && step_number % render_steps == 0) {

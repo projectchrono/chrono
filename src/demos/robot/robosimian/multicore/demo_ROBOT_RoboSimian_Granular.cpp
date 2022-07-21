@@ -31,7 +31,7 @@
 
 #include "chrono_vehicle/terrain/GranularTerrain.h"
 
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/filesystem/path.h"
@@ -320,12 +320,15 @@ int main(int argc, char* argv[]) {
     // Initialize OpenGL
     // -----------------
 
+    opengl::ChVisualSystemOpenGL vis;
     if (render) {
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.AttachSystem(sys);
-        gl_window.Initialize(1280, 720, "RoboSimian - Granular terrain");
-        gl_window.SetCamera(ChVector<>(2, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
-        gl_window.SetRenderMode(opengl::WIREFRAME);
+        vis.AttachSystem(sys);
+        vis.SetWindowTitle("RoboSimian - Granular terrain");
+        vis.SetWindowSize(1280, 720);
+        vis.SetRenderMode(opengl::WIREFRAME);
+        vis.Initialize();
+        vis.SetCameraPosition(ChVector<>(2, -2, 0), ChVector<>(0, 0, 0));
+        vis.SetCameraVertical(CameraVerticalDir::Z);
     }
 
     // ---------------------------------
@@ -427,9 +430,8 @@ int main(int argc, char* argv[]) {
         ////}
 
         if (render) {
-            opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-            if (gl_window.Active()) {
-                gl_window.Render();
+            if (vis.Run()) {
+                vis.Render();
             } else {
                 break;
             }

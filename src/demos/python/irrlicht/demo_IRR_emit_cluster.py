@@ -137,7 +137,7 @@ emitter.SetParticleCreator(mcreator_hulls)
 
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Particle emitter demo')
 vis.Initialize()
@@ -170,7 +170,7 @@ stepsize = 1e-2
 
 while vis.Run():
     vis.BeginScene() 
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
 
     # Create particle flow

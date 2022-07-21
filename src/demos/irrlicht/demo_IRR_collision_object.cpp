@@ -44,10 +44,10 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
 // ====================================================================================
 
 int main(int argc, char* argv[]) {
-    // Collision detection system
+    // Collision detection sys
     collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::CHRONO;
 
-    // Narrowphase algorithm (only for the Chrono multicore collision system)
+    // Narrowphase algorithm (only for the Chrono multicore collision sys)
     collision::ChNarrowphase::Algorithm narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
 
     // Collision envelope (NSC only)
@@ -123,8 +123,8 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "-----------------------" << std::endl;
 
-    // Create the system
-    ChSystem* system = nullptr;
+    // Create the sys
+    ChSystem* sys = nullptr;
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
@@ -132,28 +132,28 @@ int main(int argc, char* argv[]) {
             sysNSC->SetSolverType(ChSolver::Type::APGD);
             sysNSC->SetSolverMaxIterations(100);
             sysNSC->SetMaxPenetrationRecoverySpeed(10);
-            system = sysNSC;
+            sys = sysNSC;
             break;
         }
         case ChContactMethod::SMC: {
             auto sysSMC = new ChSystemSMC(use_mat_properties);
             sysSMC->SetContactForceModel(ChSystemSMC::Hertz);
             sysSMC->SetTangentialDisplacementModel(ChSystemSMC::OneStep);
-            system = sysSMC;
+            sys = sysSMC;
             break;
         }
     }
 
-    system->Set_G_acc(ChVector<>(0, -9.81, 0));
+    sys->Set_G_acc(ChVector<>(0, -9.81, 0));
 
-    // Create and attach the collision detection system (default BULLET)
+    // Create and attach the collision detection sys (default BULLET)
     if (collision_type == collision::ChCollisionSystemType::CHRONO) {
-        ////system->SetCollisionSystemType(collision_type);
+        ////sys->SetCollisionSystemType(collision_type);
         auto cd_chrono = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
         cd_chrono->SetBroadphaseGridResolution(ChVector<int>(1, 1, 1));
         cd_chrono->SetNarrowphaseAlgorithm(narrowphase_algorithm);
         cd_chrono->SetEnvelope(collision_envelope);
-        system->SetCollisionSystem(cd_chrono);
+        sys->SetCollisionSystem(cd_chrono);
     }
 
     // Rotation Z->Y (because meshes used here assume Z up)
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
 
     // Create the falling object
     auto object = chrono_types::make_shared<ChBody>(collision_type);
-    system->AddBody(object);
+    sys->AddBody(object);
 
     object->SetName("object");
     object->SetMass(1500);
@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
 
     // Create ground body
     auto ground = chrono_types::make_shared<ChBody>(collision_type);
-    system->AddBody(ground);
+    sys->AddBody(ground);
 
     ground->SetName("ground");
     ground->SetMass(1);
@@ -294,9 +294,9 @@ int main(int argc, char* argv[]) {
     box->SetTexture(GetChronoDataFile("textures/checker1.png"), 4, 2);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, -hy, 0), QUNIT));
 
-    // Create the Irrlicht visualization system
+    // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    system->SetVisualSystem(vis);
+    vis->AttachSystem(sys);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Collision test");
     vis->Initialize();
@@ -316,17 +316,17 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
-        system->DoStepDynamics(time_step);
+        sys->DoStepDynamics(time_step);
 
         /*
-        std::cout << "----\nTime: " << system->GetChTime() << "  " << system->GetNcontacts() << std::endl;
+        std::cout << "----\nTime: " << sys->GetChTime() << "  " << sys->GetNcontacts() << std::endl;
         std::cout << "Object position: " << object->GetPos() << std::endl;
-        if (system->GetNcontacts()) {
+        if (sys->GetNcontacts()) {
             // Report all contacts
-            system->GetContactContainer()->ReportAllContacts(cmanager);
+            sys->GetContactContainer()->ReportAllContacts(cmanager);
 
             // Cumulative contact force on object
             ChVector<> frc1 = object->GetContactForce();

@@ -137,7 +137,7 @@ spring_2.AddVisualShape(chrono.ChSpringShape(0.05, 80, 15))
 # -------------------------------
 
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('ChLinkTSDA demo')
 vis.Initialize()
@@ -151,7 +151,7 @@ frame = 0
 
 while vis.Run() :
     vis.BeginScene() 
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(1e-3)
 

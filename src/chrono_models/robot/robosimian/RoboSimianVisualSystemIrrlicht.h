@@ -43,7 +43,7 @@ class CH_MODELS_API RoboSimianVisualSystemIrrlicht : public irrlicht::ChVisualSy
     ~RoboSimianVisualSystemIrrlicht();
 
     /// Render the Irrlicht scene and additional visual elements.
-    virtual void DrawAll() override;
+    virtual void Render() override;
 
   private:
     void renderTextBox(const std::string& msg,

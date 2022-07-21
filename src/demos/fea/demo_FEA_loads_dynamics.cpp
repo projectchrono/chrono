@@ -457,7 +457,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(0.5, 0.0, -3.0), ChVector<>(0.5, 0.0, 0.0));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // -----------------------------------------------------------------
 
@@ -489,7 +489,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         sys.DoStepDynamics(1e-3);

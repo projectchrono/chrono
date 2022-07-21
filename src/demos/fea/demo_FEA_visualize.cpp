@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Simulation loop
 
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(0.001);
 

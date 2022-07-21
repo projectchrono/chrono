@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
     vis->GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
     vis->AddLight(ChVector<>(-50, -30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector<>(+10, +30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
-    lmtv.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&lmtv.GetVehicle());
 
     // Visualization of controller points (sentinel & target)
     irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
@@ -376,7 +376,7 @@ int main(int argc, char* argv[]) {
         // Render scene
         if (step_number % render_steps == 0) {
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->EndScene();
         }
 #endif

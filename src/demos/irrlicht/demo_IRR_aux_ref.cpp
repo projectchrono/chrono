@@ -14,7 +14,7 @@
 //
 // To demonstrate the use of ChBodyAuxRef, this simple example constructs two
 // identical pendulums, one modeled as a ChBody, the other as a ChBodyAuxRef.
-// The system is modeled in a (right-hand) frame with Y up.
+// The sys is modeled in a (right-hand) frame with Y up.
 //
 // The two pendulums have length 2 and are pinned to ground through revolute
 // joints with the rotation axis along the Z axis. The absolute locations of
@@ -53,14 +53,14 @@ using namespace irr;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    ChSystemNSC system;
-    system.Set_G_acc(ChVector<>(0, -9.81, 0));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Create the ground body with two visualization cylinders
     // -------------------------------------------------------
 
     auto ground = chrono_types::make_shared<ChBody>();
-    system.AddBody(ground);
+    sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     // --------------------------------------
 
     auto pend_1 = chrono_types::make_shared<ChBody>();
-    system.AddBody(pend_1);
+    sys.AddBody(pend_1);
     pend_1->SetIdentifier(1);
     pend_1->SetBodyFixed(false);
     pend_1->SetCollide(false);
@@ -109,13 +109,13 @@ int main(int argc, char* argv[]) {
     // coordinate frame in the absolute frame.
     auto rev_1 = chrono_types::make_shared<ChLinkLockRevolute>();
     rev_1->Initialize(ground, pend_1, ChCoordsys<>(ChVector<>(0, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
-    system.AddLink(rev_1);
+    sys.AddLink(rev_1);
 
     // Create a pendulum modeled using ChBodyAuxRef
     // --------------------------------------------
 
     auto pend_2 = chrono_types::make_shared<ChBodyAuxRef>();
-    system.Add(pend_2);
+    sys.Add(pend_2);
     pend_2->SetIdentifier(2);
     pend_2->SetBodyFixed(false);
     pend_2->SetCollide(false);
@@ -160,13 +160,13 @@ int main(int argc, char* argv[]) {
     // coordinate frame in the absolute frame.
     auto rev_2 = chrono_types::make_shared<ChLinkLockRevolute>();
     rev_2->Initialize(ground, pend_2, ChCoordsys<>(ChVector<>(0, 0, -1), ChQuaternion<>(1, 0, 0, 0)));
-    system.AddLink(rev_2);
+    sys.AddLink(rev_2);
 
     // Create the Irrlicht application
     // -------------------------------
 
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    system.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("ChBodyAuxRef demo");
     vis->Initialize();
@@ -180,17 +180,17 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
-        system.DoStepDynamics(1e-3);
+        sys.DoStepDynamics(1e-3);
 
-        if (log_info && system.GetChTime() > 1.0) {
+        if (log_info && sys.GetChTime() > 1.0) {
             // Note that GetPos() and similar functions will return information for
             // the centroidal frame for both pendulums:
             ChVector<> pos_1 = pend_1->GetPos();
             ChVector<> pos_2 = pend_2->GetPos();
-            GetLog() << "t = " << system.GetChTime() << "\n";
+            GetLog() << "t = " << sys.GetChTime() << "\n";
             GetLog() << "      " << pos_1.x() << "  " << pos_1.y() << "\n";
             GetLog() << "      " << pos_2.x() << "  " << pos_2.y() << "\n";
 

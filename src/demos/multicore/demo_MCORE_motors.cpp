@@ -29,7 +29,7 @@
 //
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 //
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
 
@@ -549,18 +549,19 @@ int main(int argc, char* argv[]) {
     ExampleB4(*sys, material);
 
     // Create OpenGL visualization
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(sys);
-    gl_window.Initialize(1280, 720, "Rotational motor");
-    gl_window.SetCamera(ChVector<>(1, 3, -7), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0), 0.5f);
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(sys);
+    vis.SetWindowTitle("Demo motors");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::SOLID);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(1, 3, -7), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Y);
 
-    //
     // Simulate system
-    //
-    while (gl_window.Active()) {
+    while (vis.Run()) {
         sys->DoStepDynamics(step_size);
-        gl_window.Render();
+        vis.Render();
     }
 
     return 0;

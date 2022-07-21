@@ -25,7 +25,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
 
@@ -95,17 +95,17 @@ int main(int argc, char* argv[]) {
     // Parameters
     float friction = 0.6f;
 
-    // Create the system
-    ChSystemMulticoreSMC system;
-    system.Set_G_acc(ChVector<>(0, -10, 0));
+    // Create the sys
+    ChSystemMulticoreSMC sys;
+    sys.Set_G_acc(ChVector<>(0, -10, 0));
 
     // Create a contact material, shared among all bodies
     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     material->SetFriction(friction);
 
     // Add bodies
-    auto container = std::shared_ptr<ChBody>(system.NewBody());
-    system.Add(container);
+    auto container = std::shared_ptr<ChBody>(sys.NewBody());
+    sys.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(container.get(), material, ChVector<>(4, 0.5, 4), ChVector<>(0, -0.5, 0));
     container->GetCollisionModel()->BuildModel();
 
-    auto obj1 = std::shared_ptr<ChBody>(system.NewBody());
+    auto obj1 = std::shared_ptr<ChBody>(sys.NewBody());
     obj1->SetMass(10);
     obj1->SetInertiaXX(ChVector<>(1, 1, 1));
     obj1->SetPos(ChVector<>(-1, 0.21, -1));
@@ -126,9 +126,9 @@ int main(int argc, char* argv[]) {
     utils::AddCapsuleGeometry(obj1.get(), material, 0.2, 0.4, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
     obj1->GetCollisionModel()->BuildModel();
 
-    system.AddBody(obj1);
+    sys.AddBody(obj1);
 
-    auto obj2 = std::shared_ptr<ChBody>(system.NewBody());
+    auto obj2 = std::shared_ptr<ChBody>(sys.NewBody());
     obj2->SetMass(10);
     obj2->SetInertiaXX(ChVector<>(1, 1, 1));
     obj2->SetPos(ChVector<>(-1, 0.21, +1));
@@ -139,30 +139,33 @@ int main(int argc, char* argv[]) {
     utils::AddCapsuleGeometry(obj2.get(), material, 0.2, 0.4, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
     obj2->GetCollisionModel()->BuildModel();
 
-    system.AddBody(obj2);
+    sys.AddBody(obj2);
 
     // Create the visualization window
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(&system);
-    gl_window.Initialize(1280, 720, "SMC callbacks");
-    gl_window.SetCamera(ChVector<>(4, 4, -5), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0));
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(&sys);
+    vis.SetWindowTitle("SMC callbacks (Chrono::Multicore)");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::WIREFRAME);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(4, 4, -5), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Y);
 
     // Callback for contact reporting
     auto creporter = chrono_types::make_shared<ContactReporter>(obj1, obj2);
 
     // Callback for contact addition
     auto cmaterial = chrono_types::make_shared<ContactMaterial>();
-    system.GetContactContainer()->RegisterAddContactCallback(cmaterial);
+    sys.GetContactContainer()->RegisterAddContactCallback(cmaterial);
 
-    // Simulate system
-    while (gl_window.Active()) {
-        gl_window.DoStepDynamics(1e-3);
-        gl_window.Render();
+    // Simulate sys
+    while (vis.Run()) {
+        sys.DoStepDynamics(1e-3);
+        vis.Render();
 
         // Process contacts
-        std::cout << system.GetChTime() << "  " << system.GetNcontacts() << std::endl;
-        system.GetContactContainer()->ReportAllContacts(creporter);
+        std::cout << sys.GetChTime() << "  " << sys.GetNcontacts() << std::endl;
+        sys.GetContactContainer()->ReportAllContacts(creporter);
 
         // Cumulative contact force and torque on objects (as applied to COM)
         ChVector<> frc1 = obj1->GetContactForce();

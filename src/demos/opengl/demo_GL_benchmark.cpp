@@ -26,7 +26,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
 using namespace geometry;
@@ -52,24 +52,28 @@ void AddMixture(ChSystem* sys) {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    ChSystemNSC msystem;
+    ChSystemNSC sys;
 
-    AddMixture(&msystem);
+    AddMixture(&sys);
 
-    // Render everything
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(&msystem);
-    gl_window.Initialize(1280, 720, "benchmarkOpenGL");
-    gl_window.SetCamera(ChVector<>(-50, -50, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(&sys);
+    vis.SetWindowTitle("benchmarkOpenGL");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::SOLID);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(-50, -50, 0), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Z);
+
     
     std::function<void()> step_iter = [&]() {
-        gl_window.Render();
+        vis.Render();
     };
     
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop_arg(&opengl::ChOpenGLWindow::WrapRenderStep, (void*)&step_iter, 50, true);
+    emscripten_set_main_loop_arg(&opengl::ChVisualSystemOpenGL::WrapRenderStep, (void*)&step_iter, 50, true);
 #else
-    while (gl_window.Active()) {
+    while (vis.Run()) {
         step_iter();
     }
 #endif

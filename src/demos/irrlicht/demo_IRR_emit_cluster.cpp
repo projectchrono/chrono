@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     emitter.RegisterAddBodyCallback(mcreation_callback);
 
     // Bind all existing visual shapes to the visualization system
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Modify some setting of the physical system for the simulation, if you want
     sys.SetSolverType(ChSolver::Type::PSOR);
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     double timestep = 0.01;
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         // Create particle flow

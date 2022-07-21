@@ -41,7 +41,7 @@ class ChApiIrr ChIrrGUI {
     void BeginScene();
 
     /// Render the GUI.
-    void DrawAll();
+    void Render();
 
     /// Perform operations before closing the Irrlicht scene for the current frame.
     void EndScene();

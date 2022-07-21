@@ -157,7 +157,7 @@ terrain.SetPlotType(veh.SCMDeformableTerrain.PLOT_PRESSURE, 0, 30000.2)
 # ------------------------------------------
 
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1280,720)
 vis.SetWindowTitle('Deformable soil')
 vis.Initialize()
@@ -173,6 +173,6 @@ vis.AddTypicalLights()
 while vis.Run() :
     vis.BeginScene()
     vis.GetSceneManager().getActiveCamera().setTarget(chronoirr.vector3dfCH(body.GetPos()))
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(0.002)

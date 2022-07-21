@@ -228,7 +228,7 @@ void FEAcontactTest::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
-    m_system->SetVisualSystem(vis);
+    vis->AttachSystem(m_system);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("FEA contacts");
     vis->Initialize();
@@ -239,7 +239,7 @@ void FEAcontactTest::SimulateVis() {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         ExecuteStep();
         vis->EndScene();
     }

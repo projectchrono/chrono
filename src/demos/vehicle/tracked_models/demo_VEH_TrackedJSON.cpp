@@ -463,7 +463,7 @@ int main(int argc, char* argv[]) {
 
     driver->Initialize();
 
-    vehicle.SetVisualSystem(vis);
+    vis->AttachVehicle(&vehicle);
 
     // Solver and integrator settings
     double step_size = 1e-3;
@@ -505,7 +505,7 @@ int main(int argc, char* argv[]) {
         if (step_number % render_steps == 0) {
             // Render scene
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->EndScene();
         }
 

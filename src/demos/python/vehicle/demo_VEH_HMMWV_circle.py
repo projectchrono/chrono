@@ -82,7 +82,6 @@ steeringPID.Reset(my_hmmwv.GetVehicle())
 
 # Create the vehicle Irrlicht application
 vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-my_hmmwv.GetVehicle().SetVisualSystem(vis)
 vis.SetWindowTitle('Constant radius test')
 vis.SetWindowSize(1280, 1024)
 vis.SetHUDLocation(500, 20)
@@ -91,6 +90,7 @@ vis.AddLogo()
 vis.AddTypicalLights()
 vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
 vis.AddSkyBox()
+vis.AttachVehicle(my_hmmwv.GetVehicle())
 
 # Visualization of controller points (sentinel & target)
 ballS = vis.GetSceneManager().addSphereSceneNode(0.1)
@@ -122,7 +122,7 @@ while vis.Run() :
     ballT.setPosition(chronoirr.vector3df(pT.x, pT.y, pT.z))
     
     vis.BeginScene()
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
     
     # Update modules (process inputs from other modules)
