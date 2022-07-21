@@ -28,9 +28,9 @@
 #include "chrono_vehicle/tracked_vehicle/track_wheel/DoubleTrackWheel.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/ChTRanslationalDamperSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/suspension/ChRotationalDamperSuspension.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/TranslationalDamperSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/suspension/RotationalDamperSuspension.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
@@ -81,9 +81,9 @@
 %shared_ptr(chrono::vehicle::DoubleTrackWheel)
 
 %shared_ptr(chrono::vehicle::ChTrackSuspension)
-%shared_ptr(chrono::vehicle::ChLinearDamperSuspension)
+%shared_ptr(chrono::vehicle::ChTranslationalDamperSuspension)
 %shared_ptr(chrono::vehicle::ChRotationalDamperSuspension)
-%shared_ptr(chrono::vehicle::LinearDamperSuspension)
+%shared_ptr(chrono::vehicle::TranslationalDamperSuspension)
 %shared_ptr(chrono::vehicle::RotationalDamperSuspension)
 
 %shared_ptr(chrono::vehicle::ChTrackShoe)
@@ -142,11 +142,11 @@
 %include "../../../chrono_vehicle/tracked_vehicle/track_wheel/SingleTrackWheel.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_wheel/DoubleTrackWheel.h"
 
-%ignore chrono::vehicle::ChLinearDamperSuspension::GetLocation;
+%ignore chrono::vehicle::ChTranslationalDamperSuspension::GetLocation;
 %include "../../../chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
-%include "../../../chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperSuspension.h"
+%include "../../../chrono_vehicle/tracked_vehicle/suspension/ChTranslationalDamperSuspension.h"
 %include "../../../chrono_vehicle/tracked_vehicle/suspension/ChRotationalDamperSuspension.h"
-%include "../../../chrono_vehicle/tracked_vehicle/suspension/LinearDamperSuspension.h"
+%include "../../../chrono_vehicle/tracked_vehicle/suspension/TranslationalDamperSuspension.h"
 %include "../../../chrono_vehicle/tracked_vehicle/suspension/RotationalDamperSuspension.h"
 
 %include "../../../chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
