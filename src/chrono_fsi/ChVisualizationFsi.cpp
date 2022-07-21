@@ -218,7 +218,7 @@ bool ChVisualizationFsi::Render() {
     }
     return false;  // rendering stopped
 #else
-    return false;
+    return true;
 #endif
 }
 

@@ -147,11 +147,20 @@ class CH_FSI_API ChSystemFsi {
     /// Enable/disable adaptive time stepping.
     void SetAdaptiveTimeStepping(bool adaptive);
 
+    /// Enable/disable SPH integration.
+    void SetSPHintegration(bool runSPH);
+
     /// Set SPH discretization type, consistent or inconsistent
     void SetDiscreType(bool useGmatrix, bool useLmatrix);
 
     /// Set wall boundary condition
     void SetWallBC(BceVersion wallBC);
+
+    /// Set rigid body boundary condition
+    void SetRigidBodyBC(BceVersion rigidBodyBC);
+
+    /// Set cohesion force of the granular material
+    void SetCohesionForce(double Fc);
 
     /// Set the linear system solver for implicit methods.
     void SetSPHLinearSolver(SolverType lin_solver);
@@ -490,6 +499,7 @@ class CH_FSI_API ChSystemFsi {
     std::vector<int> m_fsi_shells_bce_num;  ///< number of BCE particles of each fsi shell
 
     bool m_is_initialized;  ///< set to true once the Initialize function is called
+    bool m_integrate_SPH;  ///< set to true if needs to integrate the fsi solver
     double m_time;          ///< current real time of the simulation
 
     friend class ChVisualizationFsi;

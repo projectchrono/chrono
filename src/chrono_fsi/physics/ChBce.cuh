@@ -42,6 +42,10 @@ class ChBce : public ChFsiGeneral {
     /// Modified density, pressure information for BCE particles.
     thrust::device_vector<Real4> rhoPreMu_ModifiedBCE;
 
+    /// Modified stress tensor for BCE particles.
+    thrust::device_vector<Real3> tauXxYyZz_ModifiedBCE;
+    thrust::device_vector<Real3> tauXyXzYz_ModifiedBCE;
+
     /// Constructor of the ChBce class
     ChBce(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< data for SPH particles
           std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< information for neighbor search
@@ -123,9 +127,13 @@ class ChBce : public ChFsiGeneral {
     void RecalcSortedVelocityPressure_BCE(std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
                                           thrust::device_vector<Real3>& velMas_ModifiedBCE,
                                           thrust::device_vector<Real4>& rhoPreMu_ModifiedBCE,
+                                          thrust::device_vector<Real3>& tauXxYyZz_ModifiedBCE,
+                                          thrust::device_vector<Real3>& tauXyXzYz_ModifiedBCE,
                                           const thrust::device_vector<Real4>& sortedPosRad,
                                           const thrust::device_vector<Real3>& sortedVelMas,
                                           const thrust::device_vector<Real4>& sortedRhoPreMu,
+                                          const thrust::device_vector<Real3>& sortedTauXxYyZz,
+                                          const thrust::device_vector<Real3>& sortedTauXyXzYz,
                                           const thrust::device_vector<uint>& cellStart,
                                           const thrust::device_vector<uint>& cellEnd,
                                           const thrust::device_vector<uint>& mapOriginalToSorted,

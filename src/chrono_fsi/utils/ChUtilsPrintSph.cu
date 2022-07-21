@@ -182,7 +182,7 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
 
     // Save rigid BCE particles to files
     int refSize = (int)referenceArray.size();
-    if (refSize > haveHelper + haveGhost + 2) {
+    if (refSize > haveHelper + haveGhost + 2 && referenceArray[2].z == 1) {
         std::string nameBCE = dir + "/BCE_Rigid" + std::to_string(frame_num) + ".csv";
 
         std::ofstream fileNameBCE;

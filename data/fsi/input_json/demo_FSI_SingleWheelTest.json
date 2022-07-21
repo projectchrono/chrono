@@ -3,7 +3,6 @@
   "Physical Properties of Fluid":
   {
     "Density":                1700,
-    "Body Force":             [0.0,  0.0,  0.0],
     "Gravity":                [0.0,  0.0, -9.81]
   },
 
@@ -12,26 +11,21 @@
     "Method":                         "WCSPH",
     "Kernel h":                       0.01,
     "Initial Spacing":                0.01,
-    "Epsilon":                        0.01,
     "XSPH Coefficient":               0.5,
-    "Shifting Coefficient":           1.0,
-    "Density Reinitialization":       1000000000
+    "Shifting Coefficient":           1.0
   },
 
   "Time Stepping":
   {
-    "Beta":                          0.0,
     "Fluid time step":               2.5e-4,
     "Solid time step":               2.5e-4,
-    "Maximum time step":             2.5e-4,
-    "Write frame per second":        20
+    "Maximum time step":             2.5e-4
   },
 
   "Elastic SPH":
   {
     "Poisson ratio":                0.3,
     "Young modulus":                1.0e6,
-    "Artificial stress":            0.0,
     "Artificial viscosity alpha":   0.5,
     "Artificial viscosity beta":    0.0,
     "I0":     0.03,

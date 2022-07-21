@@ -42,7 +42,9 @@ bool output = true;
 double out_fps = 20;
 
 // Dimension of the space domain
-double bxDim, byDim, bzDim;
+double bxDim = 1.0;
+double byDim = 0.6;
+double bzDim = 1.2;
 
 // Size of the cylinder
 double cyl_length = 0.2001;
@@ -258,12 +260,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     sysFSI.ReadParametersFromFile(inputJson);
-
-    // Reset the domain size
-    ChVector<> bDim = sysFSI.GetContainerDim();
-    bxDim = bDim.x();
-    byDim = bDim.y();
-    bzDim = bDim.z();
 
     // Set the periodic boundary condition (if not, set relative larger values)
     auto initSpace0 = sysFSI.GetInitialSpacing();
