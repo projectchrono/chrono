@@ -58,7 +58,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetLightDirection(double acimut, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
     void BindAll() override;
-    void OnUpdate() override;
+    void OnUpdate(ChSystem* sys) override;
 
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
         bool showGui = true;  // (don't) show the imgui menu, actually unused

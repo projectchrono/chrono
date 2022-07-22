@@ -2,7 +2,9 @@
 # List of all OpenGL demos
 
 SET(DEMOS
+  demo_VSG_adams_parser
   demo_VSG_assets
+  demo_VSG_aux_ref
   demo_VSG_bricks
   demo_VSG_friction
   demo_VSG_earthquake

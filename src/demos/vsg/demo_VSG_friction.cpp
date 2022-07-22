@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     sys.Add(bin);
 
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(ChVector2<int>(800, 600));
     vis->SetWindowPosition(ChVector2<int>(100, 100));
     vis->SetWindowTitle("VSG Rolling Friction");
@@ -133,6 +133,8 @@ int main(int argc, char* argv[]) {
     vis->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
     vis->AddCamera(ChVector<>(0, 14, -20));
     vis->SetCameraAngleDeg(40.0);
+    vis->SetLightIntensity(1.0);
+    vis->SetLightDirection(1.5*CH_C_PI_2, CH_C_PI_4);
     vis->SetWireFrameMode(false);
     vis->Initialize();
     vis->BindAll();

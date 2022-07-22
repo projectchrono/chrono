@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(bin);
 
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(ChVector2<int>(800, 600));
     vis->SetWindowPosition(ChVector2<int>(100, 100));
     vis->SetWindowTitle("VSG Test Lab");
@@ -43,7 +44,6 @@ int main(int argc, char* argv[]) {
     vis->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Z);
     vis->AddCamera(ChVector<>(-2, 3, -4));
     vis->Initialize();
-    sys.SetVisualSystem(vis);
 
     size_t numFrame = 0;
     while(vis->Run()) {

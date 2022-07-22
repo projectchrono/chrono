@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     sys.SetMaxPenetrationRecoverySpeed(1.0);
 
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(ChVector2<int>(800, 600));
     vis->SetWindowPosition(ChVector2<int>(100, 100));
     vis->SetWindowTitle("VSG Bricks Demo");

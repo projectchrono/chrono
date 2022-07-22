@@ -389,24 +389,27 @@ void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
 
 void ChVisualSystemVSG::BindAll() {
     cout << "BindAll() called!" << endl;
-    if (!m_system) {
+    if (m_systems.empty()) {
         cout << "No system attached, nothing to bind!" << endl;
         return;
     }
-    if (m_system->Get_bodylist().size() < 1) {
+    if (m_systems[0]->Get_bodylist().size() < 1) {
         cout << "Attached system must have at least 1 rigid body, nothing to bind!" << endl;
         return;
     }
-    for (auto& body : m_system->GetAssembly().Get_bodylist()) {
+    for (auto& body : m_systems[0]->GetAssembly().Get_bodylist()) {
         // CreateIrrNode(body);
         GetLog() << "Body# " << body->GetId() << "\n";
         if (!body->GetVisualModel()) {
             GetLog() << "   ... has no visual representation\n";
             continue;
         }
+        auto theBody = std::dynamic_pointer_cast<ChBodyAuxRef>(body);
+        if(theBody) {
+            GetLog() << "Body# " << theBody->GetId() << " is a ChBodyAuxRef\n";
+        }
         // Get the visual model reference frame
         const ChFrame<>& X_AM = body->GetVisualModelFrame();
-
         for (const auto& shape_instance : body->GetVisualModel()->GetShapes()) {
             auto& shape = shape_instance.first;
             auto& X_SM = shape_instance.second;
@@ -552,7 +555,7 @@ void ChVisualSystemVSG::BindAll() {
             }
         }
     }
-    for (auto& item : m_system->Get_otherphysicslist()) {
+    for (auto& item : m_systems[0]->Get_otherphysicslist()) {
         if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
             if (!pcloud->GetVisualModel())
                 continue;
@@ -573,7 +576,7 @@ void ChVisualSystemVSG::BindAll() {
         }
     }
     // loop through links in the system
-    for (auto ilink : m_system->Get_linklist()) {
+    for (auto ilink : m_systems[0]->Get_linklist()) {
         auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink);
         if (!link)
             continue;
@@ -659,7 +662,7 @@ void ChVisualSystemVSG::BindAll() {
     }
 }
 
-void ChVisualSystemVSG::OnUpdate() {
+void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
     // GetLog() << "Update requested.\n";
     for (auto child : m_bodyScene->children) {
         std::shared_ptr<ChPhysicsItem> item;
@@ -760,7 +763,7 @@ void ChVisualSystemVSG::OnUpdate() {
         }
     }
     // Update particles
-    for (auto& item : m_system->Get_otherphysicslist()) {
+    for (auto& item : m_systems[0]->Get_otherphysicslist()) {
         if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
             auto numParticles = pcloud->GetNparticles();
             std::vector<double> size = pcloud->GetCollisionModel()->GetShapeDimensions(0);
