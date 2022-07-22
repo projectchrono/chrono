@@ -239,9 +239,12 @@ void ChTrackTestRig::Initialize() {
         m_track->GetTrackShoe(i)->SetCollide(collide_shoes);
 
     // Post locations (in X direction)
+    auto idler_x = m_track->GetIdlerWheel()->GetBody()->GetPos().x();
+    bool front_sprocket = m_track->GetSprocket()->GetGearBody()->GetPos().x() > idler_x;
     std::vector<double> locations;
     for (int i = 0; i < m_post.size(); i++) {
-        locations.push_back(m_post[i]->GetPos().x());
+        auto loc = front_sprocket ? m_post[i]->GetPos().x() : m_post[i]->GetPos().x() - idler_x;
+        locations.push_back(loc);
     }
 
     // Initialize the driver system
