@@ -28,7 +28,7 @@
 #include "chrono_vehicle/tracked_vehicle/track_wheel/DoubleTrackWheel.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/ChTRanslationalDamperSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/ChTranslationalDamperSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/suspension/ChRotationalDamperSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/suspension/TranslationalDamperSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/suspension/RotationalDamperSuspension.h"
