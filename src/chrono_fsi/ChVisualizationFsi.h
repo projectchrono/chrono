@@ -38,9 +38,6 @@ namespace fsi {
 ///
 /// Note that using run-time visualization for a Chrono::FSI system incurs the penalty of collecting positions of all
 /// particles every time the Render() function is invoked.
-///
-/// To implement a moving camera (i.e., prescribe the camera position), get the current instance of the active
-/// Chrono::OpenGL window and use the function ChOpenGLWindow::SetCamera().
 class CH_FSI_API ChVisualizationFsi {
   public:
     /// Rendering mode for mesh objects.
