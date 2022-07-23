@@ -404,10 +404,6 @@ void ChVisualSystemVSG::BindAll() {
             GetLog() << "   ... has no visual representation\n";
             continue;
         }
-        auto theBody = std::dynamic_pointer_cast<ChBodyAuxRef>(body);
-        if(theBody) {
-            GetLog() << "Body# " << theBody->GetId() << " is a ChBodyAuxRef\n";
-        }
         // Get the visual model reference frame
         const ChFrame<>& X_AM = body->GetVisualModelFrame();
         for (const auto& shape_instance : body->GetVisualModel()->GetShapes()) {
@@ -733,7 +729,6 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
             string objFilename = obj->GetFilename();
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax);
         } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
-            double radius = cylinder->GetCylinderGeometry().rad;
             double rad = cylinder->GetCylinderGeometry().rad;
             const auto& P1 = cylinder->GetCylinderGeometry().p1;
             const auto& P2 = cylinder->GetCylinderGeometry().p2;
@@ -756,7 +751,6 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
             ChVector<> rotAxis;
             rot.Q_to_AngAxis(rotAngle, rotAxis);
 
-            auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                 vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                 vsg::scale(rad, height, rad);
