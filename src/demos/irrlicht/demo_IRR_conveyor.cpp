@@ -13,6 +13,7 @@
 // =============================================================================
 //
 // Demonstration of the conveyor belt primitive.
+// For more advanced features regarding feeding devices, look at demo_IRR_feeder.cpp
 //
 // =============================================================================
 

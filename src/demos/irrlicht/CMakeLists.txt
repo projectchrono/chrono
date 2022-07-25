@@ -5,6 +5,7 @@ SET(DEMOS
   demo_IRR_bricks
   demo_IRR_cohesion
   demo_IRR_conveyor
+  demo_IRR_feeder
   demo_IRR_crank
   demo_IRR_decomposition
   demo_IRR_forklift
