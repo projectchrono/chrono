@@ -135,6 +135,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChProximityContainer.cpp
     physics/ChProximityContainerSPH.cpp
     physics/ChConveyor.cpp
+    physics/ChFeeder.cpp
     physics/ChAssembly.cpp
     )
 
@@ -145,6 +146,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChBodyEasy.h
     physics/ChController.h
     physics/ChConveyor.h
+    physics/ChFeeder.h
     physics/ChForce.h
     physics/ChIndexedNodes.h
     physics/ChIndexedParticles.h
