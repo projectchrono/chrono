@@ -127,6 +127,35 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     /// object.
     virtual void ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) override;
 
+    /// Class to be used as a NSC-specific callback interface for some user defined action to be taken
+    /// for each contact (already added to the container, maybe with already computed forces).
+    /// It can be used to report or post-process contacts. 
+    /// It also tells the offset of the contact (first component, normal) in the vector of lagrangian multipliers,
+    /// if this info is not needed, you can just use ChContactContainer::ReportContactCallback
+    class ChApi ReportContactCallbackNSC {
+      public:
+        virtual ~ReportContactCallbackNSC() {}
+
+        /// Callback used to report contact points already added to the container.
+        /// If it returns false, the contact scanning will be stopped.
+        virtual bool OnReportContact(
+            const ChVector<>& pA,             ///< contact pA
+            const ChVector<>& pB,             ///< contact pB
+            const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
+            const double& distance,           ///< contact distance
+            const double& eff_radius,         ///< effective radius of curvature at contact
+            const ChVector<>& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
+            const ChVector<>& react_torques,  ///< react.torques, if rolling friction (if already computed).
+            ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)
+            ChContactable* contactobjB,  ///< model B (note: some containers may not support it and could be nullptr)
+            const int offset  ///< offset of the first constraint (the normal component) in the vector of lagrangian multipliers, if already book-keeped
+            ) = 0;
+    };
+
+    /// Scan all the NSC contacts and for each contact executes the OnReportContact() function of the provided callback
+    /// object.
+    virtual void ReportAllContactsNSC(std::shared_ptr<ReportContactCallbackNSC> callback);
+
     /// Report the number of scalar unilateral constraints.
     /// Note: friction constraints aren't exactly unilaterals, but they are still counted.
     virtual int GetDOC_d() override {
