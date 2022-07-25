@@ -46,14 +46,15 @@ ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
     m_vsys->EnableStats(false);
 #else
     m_system = nullptr;
-    m_vsys = nullptr;
     std::cout << "\nWARNING! Chrono::OpenGL not available.  Visualization disabled!\n" << std::endl;
 #endif
 }
 
 ChVisualizationFsi::~ChVisualizationFsi() {
-    delete m_vsys;
     delete m_system;
+#ifdef CHRONO_OPENGL
+    delete m_vsys;
+#endif
 }
 
 void ChVisualizationFsi::SetSize(int width, int height) {
