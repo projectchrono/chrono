@@ -478,10 +478,11 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
                                const size_t numFluidMarkers,
                                const size_t numBounMarkers,
                                const size_t numRigidMarkers,
+                               const size_t numAllMarkers,
                                int density_reinit,
                                volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numFluidMarkers + numBounMarkers + numRigidMarkers)
+    if (index >= numAllMarkers)
         return;
 
     if (sortedRhoPreMu[index].w > -0.5 && sortedRhoPreMu[index].w < 0.5)
@@ -545,9 +546,10 @@ __global__ void calcKernelSupport(Real4* sortedPosRad,
                                   const size_t numFluidMarkers,
                                   const size_t numBounMarkers,
                                   const size_t numRigidMarkers,
+                                  const size_t numAllMarkers,
                                   volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numFluidMarkers + numBounMarkers + numRigidMarkers)
+    if (index >= numAllMarkers)
         return;
 
     Real h_i = sortedPosRad[index].w;
@@ -1678,7 +1680,8 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
             mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             mR3CAST(sortedKernelSupport), U1CAST(markersProximityD->cellStartD),
             U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
-            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers,isErrorD);
+            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, numObjectsH->numAllMarkers,
+            isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcKernelSupport");
     }
 
@@ -1689,7 +1692,8 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         calcRho_kernel<<<numBlocks, numThreads>>>(
             mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old),
             U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
-            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, density_initialization, isErrorD);
+            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, numObjectsH->numAllMarkers, 
+            density_initialization, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcRho_kernel");
         density_initialization = 0;
     }

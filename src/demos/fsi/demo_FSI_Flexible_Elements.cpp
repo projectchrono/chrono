@@ -312,13 +312,13 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         // Geometry of the plate
         double plate_lenght_x = 0.02;
         double plate_lenght_y = byDim;
-        double plate_lenght_z = initSpace0 * 10;
-        ChVector<> center_plate(bxDim / 8 + 3 * initSpace0, 0.0, plate_lenght_z / 2 + 1 * initSpace0);
+        double plate_lenght_z = initSpace0 * 20;
+        ChVector<> center_plate(0.0, 0.0, plate_lenght_z / 2 + 1 * initSpace0);
 
         // Specification of the mesh
         int numDiv_x = 1;
-        int numDiv_y = 2;
-        int numDiv_z = 6;
+        int numDiv_y = 5;
+        int numDiv_z = 10;
         int N_y = numDiv_y + 1;
         int N_z = numDiv_z + 1;
         // Number of elements in the z direction is considered as 1
