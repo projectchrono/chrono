@@ -298,7 +298,7 @@ mesh.AddVisualShapeFEA(mvisualizeshellB)
 
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024, 768)
 vis.SetWindowTitle('Shells FEA test: triangle BST elements')
 vis.Initialize()
@@ -329,7 +329,7 @@ mtime = 0
 # Simulation loop
 while vis.Run():
     vis.BeginScene()
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(timestep)
 

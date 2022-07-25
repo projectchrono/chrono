@@ -119,7 +119,7 @@ patch_mat = chrono.ChMaterialSurfaceNSC()
 patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
 patch = terrain.AddPatch(patch_mat, 
-                         chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
+                         chrono.CSYSNORM, 
                          200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
@@ -131,7 +131,6 @@ terrain.Initialize()
 # -------------------------------------
 
 vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-uaz.GetVehicle().SetVisualSystem(vis)
 vis.SetWindowTitle('UAZ bus')
 vis.SetWindowSize(1280, 1024)
 vis.SetChaseCamera(trackPoint, 6.0, 0.5)
@@ -139,6 +138,7 @@ vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddTypicalLights()
 vis.AddSkyBox()
+vis.AttachVehicle(uaz.GetVehicle())
 
 # Create the interactive driver system
 driver = veh.ChIrrGuiDriver(vis)
@@ -170,14 +170,15 @@ render_frame = 0
 
 maxKingpinAngle = 0.0
 
-realtime_timer = chrono.ChRealtimeStepTimer()
+uaz.GetVehicle().EnableRealtime(True)
+
 while vis.Run() :
     time = uaz.GetSystem().GetChTime()
 
     # Render scene
     if (step_number % render_steps == 0) :
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
 
 
@@ -207,8 +208,5 @@ while vis.Run() :
 
     # Increment frame number
     step_number += 1
-
-    # Spin in place for real time to catch up
-    realtime_timer.Spin(step_size)
 
 print( "Maximum Kingpin Angle = " + str(maxKingpinAngle ) + " deg \n" )

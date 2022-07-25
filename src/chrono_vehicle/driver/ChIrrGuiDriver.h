@@ -41,106 +41,66 @@ namespace vehicle {
 /// @addtogroup vehicle_driver
 /// @{
 
-/// Interactive driver model using keyboard inputs.
-/// Irrlicht-based GUI driver for the a vehicle. This class implements the
-/// functionality required by its base ChDriver class using keyboard inputs.
-/// As an Irrlicht event receiver, its OnEvent() callback is used to keep track
-/// and update the current driver inputs.
-///
-/// @sa ChDataDriver
-class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver {
-  public:
-    /// Functioning modes for a ChIrrGuiDriver
-    enum InputMode {
-        LOCK,      ///< driver inputs locked at current values
-        KEYBOARD,  ///< driver inputs from keyboard
-        DATAFILE,  ///< driver inputs from data file
-        JOYSTICK   ///< driver inputs from joystick
-    };
+/// Irrlicht interface to a specific joystick axis and its calibration data.
+struct CH_VEHICLE_API ChIrrJoystickAxis {
+    ChIrrJoystickAxis();
 
-    /// Exposes the unnamed enum of irrlicht axes to enforce right values in API usage
-    enum JoystickAxes {
+    /// Exposes the unnamed enum of irrlicht axes to enforce right values in API usage.
+    enum Axis {
         AXIS_X = irr::SEvent::SJoystickEvent::AXIS_X,
-        AXIS_Y = irr::SEvent::SJoystickEvent::AXIS_Y,		
-        AXIS_Z = irr::SEvent::SJoystickEvent::AXIS_Z,		
-        AXIS_R = irr::SEvent::SJoystickEvent::AXIS_R,		
+        AXIS_Y = irr::SEvent::SJoystickEvent::AXIS_Y,
+        AXIS_Z = irr::SEvent::SJoystickEvent::AXIS_Z,
+        AXIS_R = irr::SEvent::SJoystickEvent::AXIS_R,
         AXIS_U = irr::SEvent::SJoystickEvent::AXIS_U,
         AXIS_V = irr::SEvent::SJoystickEvent::AXIS_V,
         NONE
     };
 
-    /// Defines a specific joystick axis and its calibration data.
-    struct SpecificJoystickAxis {
-        int id;
-        JoystickAxes axis;
-        std::string name;
-        double min, max, scaled_min, scaled_max;
-        double value;
+    /// Get value from joystick event (if triggered by this axis).
+    double GetValue(const irr::SEvent::SJoystickEvent& joystickEvent);
 
-        double getValue(const irr::SEvent::SJoystickEvent& joystickEvent) {
-            if (joystickEvent.Joystick == id) {
-                // Scales raw_value which can range from scaled_min to scaled_max so it ends up in a range from min to
-                // max.
-                value = (joystickEvent.Axis[axis] - max) * (scaled_max - scaled_min) / (max - min) + scaled_max;
-            }
-            return value;
-        }
+    /// Read axis configuration from JSON file.
+    void Read(rapidjson::Document& d, char* elementName, bool dbg_print);
 
-        void read(rapidjson::Document& d, char* elementName) {
-            if (d.HasMember(elementName) && d[elementName].IsObject()) {
-                id = -1;
-                name = d[elementName]["name"].GetString();
-                axis = (JoystickAxes)d[elementName]["axis"].GetInt();
-                min = d[elementName]["min"].GetDouble();
-                max = d[elementName]["max"].GetDouble();
-                scaled_min = d[elementName]["scaled_min"].GetDouble();
-                scaled_max = d[elementName]["scaled_max"].GetDouble();
-            } else {
-                GetLog() << "Expected a joystick axis definition for " << elementName << " but did not find one.\n";
-                id = -1;
-                name = "Unknown";
-                axis = JoystickAxes::NONE;
-                min = 0;
-                max = 1;
-                scaled_min = 0;
-                scaled_max = 1;
-            }
-            value = min;
-        }
-    };
+    int id;                         ///< controller ID
+    Axis axis;                      ///< controller axis
+    std::string name;               ///< axis name
+    double min, max;                ///< input range
+    double scaled_min, scaled_max;  ///< output range
+    double value;                   ///< current output value
+};
 
-    /// Defines a specific joystick button.
-    struct SpecificJoystickButton {
-        int id;
-        int button;
-        std::string name;
-        int buttonPressedCount;
-        bool buttonPressed;
-        bool isPressed(const irr::SEvent::SJoystickEvent& joystickEvent, bool continuous = false) {
-            if (joystickEvent.Joystick == id) {
-                buttonPressed = joystickEvent.IsButtonPressed(button);
-            }
-            if (buttonPressed) {
-                buttonPressedCount++;
-            } else {
-                buttonPressedCount = 0;
-            }
-            return continuous ? buttonPressedCount > 0 : buttonPressedCount == 1;
-        }
-        void read(rapidjson::Document& d, char* elementName) {
-            if (d.HasMember(elementName) && d[elementName].IsObject()) {
-                id = -1;
-                name = d[elementName]["name"].GetString();
-                button = d[elementName]["button"].GetInt();
-            } else {
-                GetLog() << "Expected a joystick button definition for " << elementName << " but did not find one.\n";
-                id = -1;
-                name = "Unknown";
-                button = -1;
-            }
-            buttonPressed = false;
-            buttonPressedCount = 0;
-        }
+/// Irrlicht interface to a specific joystick button.
+struct CH_VEHICLE_API ChIrrJoystickButton {
+    ChIrrJoystickButton();
+
+    /// Return press state for this joystick event (if triggered by this button).
+    bool IsPressed(const irr::SEvent::SJoystickEvent& joystickEvent, bool continuous = false);
+
+    /// Read button configuration from JSON file.
+    void Read(rapidjson::Document& d, char* elementName, bool dbg_print);
+
+    int id;                  ///< controller ID
+    int button;              ///< controller button
+    std::string name;        ///< buttoin name
+    int buttonPressedCount;  ///< counter to identify continuous press
+    bool buttonPressed;      ///< current output value
+};
+
+/// Interactive driver model using keyboard inputs.
+/// Irrlicht-based GUI driver for the a vehicle. This class implements the functionality required by its base ChDriver
+/// class using keyboard or joystick inputs. As an Irrlicht event receiver, its OnEvent() callback is used to keep track
+/// and update the current driver inputs.
+///
+/// @sa ChDataDriver
+class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver {
+  public:
+    /// Functioning modes for a ChIrrGuiDriver.
+    enum class InputMode {
+        LOCK,      ///< driver inputs locked at current values
+        KEYBOARD,  ///< driver inputs from keyboard
+        DATAFILE,  ///< driver inputs from data file
+        JOYSTICK   ///< driver inputs from joystick
     };
 
     /// Construct an Irrlicht GUI driver.
@@ -151,11 +111,20 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     /// Intercept and process keyboard inputs.
     virtual bool OnEvent(const irr::SEvent& event) override;
 
+    /// Initialize this driver system.
+    virtual void Initialize() override;
+
     /// Update the state of this driver system at the specified time.
     virtual void Synchronize(double time) override;
 
     /// Advance the state of this driver system by the specified time step.
     virtual void Advance(double step) override;
+
+    /// Set the current functioning mode.
+    void SetInputMode(InputMode mode);
+
+    /// Return the current functioning mode as a string.
+    std::string GetInputModeAsString() const;
 
     /// Set the increment in throttle input for each recorded keypress (default 1/50).
     void SetThrottleDelta(double delta);
@@ -176,19 +145,22 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     /// Set the input file for the underlying data driver.
     void SetInputDataFile(const std::string& filename);
 
-    /// Set the current functioning mode.
-    void SetInputMode(InputMode mode);
+    /// Set joystick JSON configuration file name.
+    void SetJoystickConfigFile(const std::string& filename);
 
-    /// Return the current functioning mode as a string.
-    std::string GetInputModeAsString() const;
+    /// Enable/disable joystick debugging output (default: false).
+    void SetJoystickDebug(bool val) { m_joystick_debug = val; }
 
     /// Feed button number and callback function to implement a custom callback.
-    void SetButtonCallback(int button, void(*cbfun)()) {cb_fun = cbfun; callbackButton=button; }
+    void SetButtonCallback(int button, void (*cbfun)());
 
   protected:
+    bool ProcessJoystickEvents(const irr::SEvent& event);
+    bool ProcessKeyboardEvents(const irr::SEvent& event);
+
     ChVehicleVisualSystemIrrlicht& m_vsys;
 
-    InputMode m_mode; ///< current mode of the driver
+    InputMode m_mode;  ///< current mode of the driver
 
     // Variables for mode=KEYBOARD
     double m_steering_target;  ///< current target value for steering input
@@ -206,33 +178,32 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     double m_braking_gain;   ///< gain for braking internal dynamics
 
     // Variables for mode=JOYSTICK
-    int m_dT;
-    bool m_debugJoystickData = true;
-    int m_debugPrintDelay;
+    irr::core::array<irr::SJoystickInfo> m_joystick_info;  ///< Irrlicht joystick information
+    std::string m_joystick_file;                           ///< JSON specification file
+    int m_joystick_proccess_frame;                         ///< counter for successive event processing frames
+    bool m_joystick_debug;                                 ///< enable/disable debug output
+    int m_joystick_debug_frame;                            ///< counter for successive output frames
 
-    // Axes and buttons for joystick usage
-    SpecificJoystickAxis steerAxis;
-    SpecificJoystickAxis throttleAxis;
-    SpecificJoystickAxis brakeAxis;
-    SpecificJoystickAxis clutchAxis;
-    SpecificJoystickButton shiftUpButton;
-    SpecificJoystickButton shiftDownButton;
-    SpecificJoystickButton gearReverseButton;
-    SpecificJoystickButton gear1Button;
-    SpecificJoystickButton gear2Button;
-    SpecificJoystickButton gear3Button;
-    SpecificJoystickButton gear4Button;
-    SpecificJoystickButton gear5Button;
-    SpecificJoystickButton gear6Button;
-    SpecificJoystickButton gear7Button;
-    SpecificJoystickButton gear8Button;
-    SpecificJoystickButton gear9Button;
-    SpecificJoystickButton toggleManualGearboxButton;
+    ChIrrJoystickAxis steerAxis;
+    ChIrrJoystickAxis throttleAxis;
+    ChIrrJoystickAxis brakeAxis;
+    ChIrrJoystickAxis clutchAxis;
+    ChIrrJoystickButton shiftUpButton;
+    ChIrrJoystickButton shiftDownButton;
+    ChIrrJoystickButton gearReverseButton;
+    ChIrrJoystickButton gear1Button;
+    ChIrrJoystickButton gear2Button;
+    ChIrrJoystickButton gear3Button;
+    ChIrrJoystickButton gear4Button;
+    ChIrrJoystickButton gear5Button;
+    ChIrrJoystickButton gear6Button;
+    ChIrrJoystickButton gear7Button;
+    ChIrrJoystickButton gear8Button;
+    ChIrrJoystickButton gear9Button;
+    ChIrrJoystickButton toggleManualGearboxButton;
 
-    // Joystick button associated to the custom callback
-    int callbackButton = -1;
-    // Custom callback, can be implemented in the application
-    void (*cb_fun)() = nullptr;
+    int m_callback_button;          ///< joystick button associated to the custom callback
+    void (*m_callback_function)();  ///< custom callback, can be implemented in the application
 
     // Variables for mode=DATAFILE
     double m_time_shift;                          ///< time at which mode was switched to DATAFILE

@@ -49,3 +49,7 @@ Here are the main features:
 - Look at the [API section](group__gpu__module.html) of this module for documentation about classes and functions.
 
 - Look at the C++ source of [demos](@ref tutorial_table_of_content_chrono_gpu) to learn how to use the functions of this module.
+
+## MacOS support
+
+This module cannot be built for MacOS, Nvidia GPU hardware and CUDA are unsupported.

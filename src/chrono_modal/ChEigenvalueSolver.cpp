@@ -619,17 +619,21 @@ void sortSchur(
 	//[U, T] = schur(A, 'real');
     //es = ordeig(T);     
     //[esp, ix] = sort(abs(es), 'descend');
+
 	Eigen::ComplexSchur<ChMatrixDynamic<std::complex<double>>> mschur(A, true);
 	const ChMatrixDynamic<std::complex<double>>& U = mschur.matrixU();
 	const ChMatrixDynamic<std::complex<double>>& T = mschur.matrixT();
+	//TODO: maybe call computeFromHessenberg?
+
+
 	ChVectorDynamic<std::complex<double>> es = T.diagonal();
+
+
 	std::vector<int> ix(es.size());
 	std::iota(ix.begin(), ix.end(), 0);
-	std::sort(ix.begin(), ix.end(), [&](int a, int b) {
-		return std::abs(es[a]) < std::abs(es[b]);
-	});
-	Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> perm; 
-	perm.indices() =  Eigen::Map<Eigen::ArrayXi>(ix.data(), ix.size());
+	std::sort(ix.begin(), ix.end(), [&](int a, int b) {return std::abs(es[a]) > std::abs(es[b]);});
+	//Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> perm;
+	//perm.indices() = Eigen::Map<Eigen::ArrayXi>(ix.data(), ix.size());
 
     // judge the k-th and (k+1)-th eigenvalues are conjugate complex
     // pair or not.
@@ -640,24 +644,28 @@ void sortSchur(
 	// Alex: since  we did a Eigen::ComplexSchur(), then all eigens are on the diagonal as complexes, not 2x2 diag blocks, so do instead: 
 	double delta = pow(T(k1, k1).real() - T(k2, k2).real(),2) + 4 * T(k1, k1).imag() * T(k2, k2).imag();
 	if ((k2 - k1 == 1) && (delta < 0)) {
-		isC = 1;
+		isC = 1; //DARIO: using ComplexSchur I assume we should never hit this branch
 	}
 	else {
 		isC = 0;
 	}
 
-	ChVectorDynamic<bool> select; 
+	// Modify the following reordering to pick different eigenvalues
+	ChVectorDynamic<bool> select(es.size());
 	select.setZero(es.size());		// select = zeros(length(es), 1);
-	for (int i=0; i<k+isC; ++i)
-		select(ix[i]) = true;		// select(ix(1:k+isC)) = true;
+	//for (int i=0; i<k+isC; ++i)
+	//	select(ix[i]) = true;		// select(ix(1:k+isC)) = true;
+     for (int i=0; i<k; ++i)
+    	select(ix[i]) = true;		// select(ix(1:k+isC)) = true;
 	US = U;
 	TS = T;
 	ordschur(US, TS, select);		// the ordshur() has no equivalent in EIGEN! Use own ordschur() 
+	// TODO: can US and TS be reordered in-place?
 }
 
 // Expand Krylov subspace.
-// The function contruct the sk + 1, sk + 2, ..., ek_th column of Q.
-// A* Q(:, 1 : ek) = Q(:, 1 : ek + 1) * H
+// The function contructs the sk + 1, sk + 2, ..., ek_th column of Q while Q(sk) is only read;
+// It builds also H(0:ek, sk:ex-1)
 void expandKrylov(
 	ChMatrixDynamic<std::complex<double>>& Q,   ///< orthonormal matrix with dimension [n x k+1] or [n x k+2]
 	ChMatrixDynamic<std::complex<double>>& H,   ///< `Hessenberg' matrix with dimension [k+1 x k] or [k+2 x k+1]
@@ -666,22 +674,25 @@ void expandKrylov(
 	int ek  // end index
 ) {
 
-	for (int k = sk + 1; k <= ek; ++k) {
+	//TODO: could we avoid resizing?
+	Q.conservativeResize(NoChange, ek + 1);
+    H.conservativeResizeLike(Eigen::MatrixXd::Zero(ek + 1, ek));
+
+
+	for (int k = sk; k < ek; ++k) {
 		ChVectorDynamic<std::complex<double>> v(Q.rows());
-		Ax_function->compute(v, Q.col(k - 1));  // v = Ax(Q(:, k));                
-		ChVectorDynamic<std::complex<double>> w = (Q.leftCols(k)).adjoint()  * v;  //w = Q(:, 1:k)' * v;
-		v = v - Q.leftCols(k) * w;     // v = v - Q(:, 1 : k) * w;
-		ChVectorDynamic<std::complex<double>> w2 = Q.leftCols(k).adjoint() * v; //  w2 = Q(:, 1 : k)' * v;            // double normalize
-		v = v - Q.leftCols(k) * w2;    // v = v - Q(:, 1 : k) * w2;
+		Ax_function->compute(v, Q.col(k));  // v = Ax(Q(:, k));
+		ChVectorDynamic<std::complex<double>> w = Q.leftCols(k+1).adjoint()  * v;  //w = Q(:, 1:k)' * v;
+		v = v - Q.leftCols(k+1) * w;     // v = v - Q(:, 1 : k) * w;
+		ChVectorDynamic<std::complex<double>> w2 = Q.leftCols(k+1).adjoint() * v; //  w2 = Q(:, 1 : k)' * v;            // double normalize
+		v = v - Q.leftCols(k+1) * w2;    // v = v - Q(:, 1 : k) * w2;
 		w = w + w2;
 		double nv = v.norm();
-		Q.conservativeResize(NoChange, k+1);
-		Q.col(k)  = v / nv;            // Q(:, k + 1) = v / nv;  
-		ChVectorDynamic<std::complex<double>> wnv(w.size() + 1);
-		wnv << w, nv;
-		H.conservativeResize(k+1, k);
-		H(k, seq(0,k-2)) = Eigen::MatrixXd::Zero(1, k - 1); // lower unused border of H, not zeroed automatically by H.conservativeResize(k+1, k);
-		H(seq(0,k), k-1) = wnv;      // H(1:k+1, k) = [w; nv]; // right column of H
+		
+		Q.col(k+1)  = v / nv;            // Q(:, k + 1) = v / nv;
+		
+		H(seq(0, k), k) = w;      // H(1:k+1, k) = [w; nv]; // right column of H
+        H(k + 1, k) = nv;
 	}
 }
 
@@ -711,7 +722,7 @@ void KrylovSchur(
     isC = 0;                           // complex flag
 	
     // initialize stage
-    expandKrylov(Q,H, Ax_function, 0, k); 
+    expandKrylov(Q, H, Ax_function, 0, k);
     
 	// note on matrix slicing: 
 	//   Eigen c++:                 equivalent to       Matlab:
@@ -724,8 +735,6 @@ void KrylovSchur(
 	while ((i < maxIt) && (p <= k))
 	{
 		i = i + 1;
-		//fprintf(1, 'i = %d, isC = %d, p = %d, r = %g \n', ...
-		//        i, isC, p, H(k+1+isC, p));
 
 		// expand stage 
 		expandKrylov(Q, H, Ax_function, k + isC, m);

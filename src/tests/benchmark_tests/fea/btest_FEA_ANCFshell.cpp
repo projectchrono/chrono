@@ -243,7 +243,7 @@ void ANCFshell<N>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
-    m_system->SetVisualSystem(vis);
+    vis->AttachSystem(m_system);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("ANCF shells");
     vis->Initialize();
@@ -255,7 +255,7 @@ void ANCFshell<N>::SimulateVis() {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(1, 0, 0), ChColor(1, 0, 0));
         irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 1, 0), ChColor(0, 1, 0));
         irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 0, 1), ChColor(0, 0, 1));

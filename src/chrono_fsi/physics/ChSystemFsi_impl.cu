@@ -17,6 +17,13 @@
 //
 // =============================================================================
 
+#include <thrust/copy.h>
+#include <thrust/gather.h>
+#include <thrust/for_each.h>
+#include <thrust/iterator/counting_iterator.h>
+#include <thrust/functional.h>
+#include <thrust/execution_policy.h>
+
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
 
 namespace chrono {
@@ -526,6 +533,113 @@ void ChSystemFsi_impl::ResizeData(size_t numRigidBodies,
     fsiMeshD->resize(numObjects->numFlexNodes);
     fsiMeshH->resize(numObjects->numFlexNodes);
     fsiGeneralData->Flex_FSI_ForcesD.resize(numObjects->numFlexNodes);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+struct in_box {
+    in_box() {}
+
+    __device__ bool operator()(const Real4 v) {
+        // Convert location in box frame
+        auto d = mR3(v) - pos;
+        auto w = mR3(                              //
+            ax.x * d.x + ax.y * d.y + ax.z * d.z,  //
+            ay.x * d.x + ay.y * d.y + ay.z * d.z,  //
+            az.x * d.x + az.y * d.y + az.z * d.z   //
+        );
+        // Check w between all box limits
+        return (w.x >= -hsize.x && w.x <= +hsize.x) && (w.y >= -hsize.y && w.y <= +hsize.y) &&
+               (w.z >= -hsize.z && w.z <= +hsize.z);
+    }
+
+    Real3 hsize;
+    Real3 pos;
+    Real3 ax;
+    Real3 ay;
+    Real3 az;
+};
+
+thrust::device_vector<int> ChSystemFsi_impl::FindParticlesInBox(const Real3& hsize,
+                                                                const Real3& pos,
+                                                                const Real3& ax,
+                                                                const Real3& ay,
+                                                                const Real3& az) {
+    // Extract indices of SPH particles contained in the OBB
+    auto& ref = fsiGeneralData->referenceArray;
+    auto& pos_D = sphMarkersD2->posRadD;
+
+    // Find start and end locations for SPH particles (exclude ghost and BCE markers)
+    int haveHelper = (ref[0].z == -3) ? 1 : 0;
+    int haveGhost = (ref[0].z == -2 || ref[1].z == -2) ? 1 : 0;
+    auto sph_start = ref[haveHelper + haveGhost].x;
+    auto sph_end = ref[haveHelper + haveGhost].y;
+    auto num_sph = sph_end - sph_start;
+
+    // Preallocate output vector of indices
+    thrust::device_vector<int> indices_D(num_sph);
+
+    // Extract indices of SPH particles inside OBB
+    thrust::counting_iterator<int> first(0);
+    thrust::counting_iterator<int> last(num_sph);
+    in_box predicate;
+    predicate.hsize = hsize;
+    predicate.pos = pos;
+    predicate.ax = ax;
+    predicate.ay = ay;
+    predicate.az = az;
+    auto end = thrust::copy_if(thrust::device,     // execution policy
+                               first, last,        // range of all particle indices
+                               pos_D.begin(),      // stencil vector
+                               indices_D.begin(),  // beginning of destination
+                               predicate           // predicate for stencil elements
+    );
+
+    // Trim the output vector of indices
+    size_t num_active = (size_t)(end - indices_D.begin());
+    indices_D.resize(num_active);
+
+    return indices_D;
+}
+
+thrust::device_vector<Real4> ChSystemFsi_impl::GetParticlePositions(const thrust::device_vector<int>& indices) {
+    // Gather positions from particles with specified indices
+    const auto& allpos = sphMarkersD2->posRadD;
+
+    thrust::device_vector<Real4> pos(allpos.size());
+
+    auto end = thrust::gather(thrust::device,                  // execution policy
+                              indices.begin(), indices.end(),  // range of gather locations
+                              allpos.begin(),                  // beginning of source
+                              pos.begin()                      // beginning of destination
+    );
+
+    // Trim the output vector of particle positions
+    size_t num_active = (size_t)(end - pos.begin());
+    assert(num_active == indices.size());
+    pos.resize(num_active);
+
+    return pos;
+}
+
+thrust::device_vector<Real3> ChSystemFsi_impl::GetParticleVelocities(const thrust::device_vector<int>& indices) {
+    // Gather positions from particles with specified indices
+    auto allvel = sphMarkersD2->velMasD;
+
+    thrust::device_vector<Real3> vel(allvel.size());
+
+    auto end = thrust::gather(thrust::device,                  // execution policy
+                              indices.begin(), indices.end(),  // range of gather locations
+                              allvel.begin(),                  // beginning of source
+                              vel.begin()                      // beginning of destination
+    );
+
+    // Trim the output vector of particle positions
+    size_t num_active = (size_t)(end - vel.begin());
+    assert(num_active == indices.size());
+    vel.resize(num_active);
+
+    return vel;
 }
 
 }  // end namespace fsi

@@ -33,8 +33,8 @@ namespace vehicle {
 ChWheeledVehicleVisualSystemIrrlicht::ChWheeledVehicleVisualSystemIrrlicht()
     : ChVehicleVisualSystemIrrlicht(), m_wvehicle(nullptr) {}
 
-void ChWheeledVehicleVisualSystemIrrlicht::OnAttachToVehicle() {
-    ChVehicleVisualSystemIrrlicht::OnAttachToVehicle();
+void ChWheeledVehicleVisualSystemIrrlicht::AttachVehicle(ChVehicle* vehicle) {
+    ChVehicleVisualSystemIrrlicht::AttachVehicle(vehicle);
     m_wvehicle = dynamic_cast<ChWheeledVehicle*>(m_vehicle);
     assert(m_wvehicle);
 }

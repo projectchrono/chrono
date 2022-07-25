@@ -62,6 +62,9 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
 
     virtual ~ChVehicleVisualSystemIrrlicht();
 
+    /// Attach a vehicle to this Irrlicht vehicle visualization system.
+    virtual void AttachVehicle(ChVehicle* vehicle) override;
+
     /// Set the upper-left point of HUD elements.
     void SetHUDLocation(int HUD_x, int HUD_y) {
         m_HUD_x = HUD_x;
@@ -78,7 +81,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     virtual void Initialize() override;
 
     /// Render the Irrlicht scene and additional visual elements.
-    virtual void DrawAll() override;
+    virtual void Render() override;
 
     /// Render a horizontal grid at the specified location.
     void RenderGrid(const ChVector<>& loc, int num_divs, double delta);
@@ -92,8 +95,6 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     void Advance(double step);
 
   protected:
-    virtual void OnAttachToVehicle() override;
-
     /// Render additional graphics
     virtual void renderOtherGraphics() {}
 

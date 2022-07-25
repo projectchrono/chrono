@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
     patch_mat->SetRestitution(0.01f);
     patch_mat->SetYoungModulus(2e7f);
     patch_mat->SetPoissonRatio(0.3f);
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    vehicle.SetVisualSystem(vis);
+    vis->AttachVehicle(&vehicle);
 
     // ------------------------
     // Create the driver system
@@ -394,7 +394,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 #endif
 
         if (step_number % render_steps == 0) {

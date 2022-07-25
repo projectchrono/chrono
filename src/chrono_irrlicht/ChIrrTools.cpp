@@ -124,6 +124,21 @@ video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video
         irr_mat.DiffuseColor.setBlue(255);
     }
 
+    auto opacity_texture_name = mat->GetOpacityTexture();
+    if (!opacity_texture_name.empty()) {
+        auto scale = mat->GetOpacityTextureScale();
+        auto opacity_texture = driver->getTexture(opacity_texture_name.c_str());
+        irr_mat.setTexture(2, opacity_texture);
+        irr_mat.getTextureMatrix(2).setTextureScale(scale.x(), scale.y());
+
+        irr_mat.MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
+
+        // Same as when Irrlicht loads the OBJ+MTL.  Is this really needed?
+        ////irr_mat.DiffuseColor.setRed(255);
+        ////irr_mat.DiffuseColor.setGreen(255);
+        ////irr_mat.DiffuseColor.setBlue(255);
+    }
+
     return irr_mat;
 }
 
@@ -212,7 +227,7 @@ int drawAllContactPoints(ChVisualSystemIrrlicht* vis, double mlen, ContactsDrawM
     my_drawer->drawtype = drawtype;
 
     // scan all contacts
-    vis->GetSystem().GetContactContainer()->ReportAllContacts(my_drawer);
+    vis->GetSystem(0).GetContactContainer()->ReportAllContacts(my_drawer);
 
     return 0;
 }
@@ -289,7 +304,7 @@ int drawAllContactLabels(ChVisualSystemIrrlicht* vis, ContactsLabelMode labeltyp
     my_label_rep->labeltype = labeltype;
 
     // scan all contacts
-    vis->GetSystem().GetContactContainer()->ReportAllContacts(my_label_rep);
+    vis->GetSystem(0).GetContactContainer()->ReportAllContacts(my_label_rep);
 
     return 0;
 }
@@ -307,7 +322,7 @@ int drawAllLinks(ChVisualSystemIrrlicht* vis, double mlen, LinkDrawMode drawtype
     mattransp.Lighting = false;
     vis->GetVideoDriver()->setMaterial(mattransp);
 
-    for (auto link : vis->GetSystem().Get_linklist()) {
+    for (auto& link : vis->GetSystem(0).Get_linklist()) {
         ChCoordsys<> mlinkframe = link->GetLinkAbsoluteCoords();
         ChVector<> v1abs = mlinkframe.pos;
         ChVector<> v2;
@@ -339,7 +354,7 @@ int drawAllLinkLabels(ChVisualSystemIrrlicht* vis, LinkLabelMode labeltype, ChCo
     if (labeltype == LinkLabelMode::LINK_NONE_VAL)
         return 0;
 
-    for (auto link : vis->GetSystem().Get_linklist()) {
+    for (auto& link : vis->GetSystem(0).Get_linklist()) {
         ChCoordsys<> mlinkframe = link->GetLinkAbsoluteCoords();
 
         char buffer[25];
@@ -395,7 +410,7 @@ int drawAllBoundingBoxes(ChVisualSystemIrrlicht* vis) {
     mattransp.Lighting = false;
     vis->GetVideoDriver()->setMaterial(mattransp);
 
-    for (auto body : vis->GetSystem().Get_bodylist()) {
+    for (auto& body : vis->GetSystem(0).Get_bodylist()) {
         irr::video::SColor mcol;
 
         if (body->GetSleeping())
@@ -451,7 +466,7 @@ int drawAllCOGs(ChVisualSystemIrrlicht* vis, double scale) {
     mattransp.Lighting = false;
     vis->GetVideoDriver()->setMaterial(mattransp);
 
-    for (auto body : vis->GetSystem().Get_bodylist()) {
+    for (auto& body : vis->GetSystem(0).Get_bodylist()) {
         irr::video::SColor mcol;
         const ChFrame<>& mframe_cog = body->GetFrame_COG_to_abs();
         const ChFrame<>& mframe_ref = body->GetFrame_REF_to_abs();
@@ -494,7 +509,7 @@ int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale) {
     mattransp.Lighting = false;
     vis->GetVideoDriver()->setMaterial(mattransp);
 
-    for (auto link : vis->GetSystem().Get_linklist()) {
+    for (auto& link : vis->GetSystem(0).Get_linklist()) {
         ChFrame<> frAabs;
         ChFrame<> frBabs;
 
@@ -548,7 +563,7 @@ int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void drawHUDviolation(ChVisualSystemIrrlicht* vis, int mx, int my, int sx, int sy, double spfact) {
-    auto msolver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(vis->GetSystem().GetSolver());
+    auto msolver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(vis->GetSystem(0).GetSolver());
     if (!msolver_speed)
         return;
 

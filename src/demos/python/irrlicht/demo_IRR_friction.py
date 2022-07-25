@@ -143,7 +143,7 @@ sys.Add(bin)
 # ---------------------------------------------------------------------
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Friction demo')
 vis.Initialize()
@@ -158,7 +158,7 @@ sys.SetSolverType(chrono.ChSolver.Type_APGD)
 
 while vis.Run():
     vis.BeginScene() 
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(5e-3)
 

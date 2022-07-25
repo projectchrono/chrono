@@ -105,7 +105,7 @@ class ContactForce : public ChSystemSMC::ChContactForceSMC {
   public:
     // Demonstration only.
     virtual ChVector<> CalculateForce(
-        const ChSystemSMC& sys,             ///< containing system
+        const ChSystemSMC& sys,             ///< containing sys
         const ChVector<>& normal_dir,       ///< normal contact direction (expressed in global frame)
         const ChVector<>& p1,               ///< most penetrated point on obj1 (expressed in global frame)
         const ChVector<>& p2,               ///< most penetrated point on obj2 (expressed in global frame)
@@ -162,15 +162,15 @@ int main(int argc, char* argv[]) {
     float friction = 0.6f;
 
     // -----------------
-    // Create the system
+    // Create the sys
     // -----------------
 
-    ChSystemSMC system;
-    system.Set_G_acc(ChVector<>(0, -10, 0));
+    ChSystemSMC sys;
+    sys.Set_G_acc(ChVector<>(0, -10, 0));
 
     // Set solver settings
-    system.SetSolverMaxIterations(100);
-    system.SetSolverForceTolerance(0);
+    sys.SetSolverMaxIterations(100);
+    sys.SetSolverForceTolerance(0);
 
     // Change default collision effective radius of curvature
     ////collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
@@ -186,8 +186,8 @@ int main(int argc, char* argv[]) {
     // Add bodies
     // ----------
 
-    auto container = std::shared_ptr<ChBody>(system.NewBody());
-    system.Add(container);
+    auto container = std::shared_ptr<ChBody>(sys.NewBody());
+    sys.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
     container->GetCollisionModel()->BuildModel();
     container->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
 
-    auto box1 = std::shared_ptr<ChBody>(system.NewBody());
+    auto box1 = std::shared_ptr<ChBody>(sys.NewBody());
     box1->SetMass(10);
     box1->SetInertiaXX(ChVector<>(1, 1, 1));
     box1->SetPos(ChVector<>(-1, 0.21, -1));
@@ -210,9 +210,9 @@ int main(int argc, char* argv[]) {
     box1->GetCollisionModel()->BuildModel();
     box1->GetVisualShape(0)->SetColor(ChColor(0.1f, 0.1f, 0.4f));
 
-    system.AddBody(box1);
+    sys.AddBody(box1);
 
-    auto box2 = std::shared_ptr<ChBody>(system.NewBody());
+    auto box2 = std::shared_ptr<ChBody>(sys.NewBody());
     box2->SetMass(10);
     box2->SetInertiaXX(ChVector<>(1, 1, 1));
     box2->SetPos(ChVector<>(-1, 0.21, +1));
@@ -224,14 +224,14 @@ int main(int argc, char* argv[]) {
     box2->GetCollisionModel()->BuildModel();
     box2->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.1f, 0.1f));
 
-    system.AddBody(box2);
+    sys.AddBody(box2);
 
     // -------------------------------
     // Create the visualization window
     // -------------------------------
 
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    system.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("SMC callbacks");
     vis->Initialize();
@@ -246,36 +246,36 @@ int main(int argc, char* argv[]) {
 
     // User-defined SMC contact force calculation
     auto cforce = chrono_types::make_unique<ContactForce>();
-    system.SetContactForceAlgorithm(std::move(cforce));
+    sys.SetContactForceAlgorithm(std::move(cforce));
 
     // User-defined composite coefficent of friction
     auto cmat = chrono_types::make_unique<ChMaterialCompositionStrategy>();
-    system.SetMaterialCompositionStrategy(std::move(cmat));
+    sys.SetMaterialCompositionStrategy(std::move(cmat));
 
     // OVerride material properties at each new contact
     auto cmaterial = chrono_types::make_shared<ContactMaterial>();
-    system.GetContactContainer()->RegisterAddContactCallback(cmaterial);
+    sys.GetContactContainer()->RegisterAddContactCallback(cmaterial);
 
     // User-defined callback for contact reporting
     auto creporter = chrono_types::make_shared<ContactReporter>(box1, box2);
 
     // ---------------
-    // Simulate system
+    // Simulate sys
     // ---------------
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         irrlicht::tools::drawGrid(vis.get(), 0.5, 0.5, 12, 12,
                                   ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
         irrlicht::tools::drawAllCOGs(vis.get(), 1.0);
 
-        system.DoStepDynamics(1e-3);
+        sys.DoStepDynamics(1e-3);
         vis->EndScene();
 
         // Process contacts
-        std::cout << system.GetChTime() << "  " << system.GetNcontacts() << std::endl;
-        system.GetContactContainer()->ReportAllContacts(creporter);
+        std::cout << sys.GetChTime() << "  " << sys.GetNcontacts() << std::endl;
+        sys.GetContactContainer()->ReportAllContacts(creporter);
 
         // Cumulative contact force and torque on boxes (as applied to COM)
         ChVector<> frc1 = box1->GetContactForce();

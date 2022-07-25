@@ -302,7 +302,10 @@ __global__ void UpdateFluidD(Real4* posRadD,
             updatedTauXxYyZz.y += p_tr;
             updatedTauXxYyZz.z += p_tr;
 
-            if (p_tr > 0.0) {
+            Real coh = paramsD.Coh_coeff;
+            Real inv_mus = 1.0 / paramsD.mu_fric_s;
+            Real P_cri = - coh * inv_mus;
+            if (p_tr > P_cri) {
                 Real tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + square(updatedTauXxYyZz.z) +
                               2.0 * square(updatedTauXyXzYz.x) + 2.0 * square(updatedTauXyXzYz.y) +
                               2.0 * square(updatedTauXyXzYz.z);
@@ -332,7 +335,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 //     updatedTauXxYyZz = updatedTauXxYyZz*coeff;
                 //     updatedTauXyXzYz = updatedTauXyXzYz*coeff;
                 // }
-                Real tau_max = p_tr * mu;  // p_tr*paramsD.Q_FA;
+                Real tau_max = p_tr * mu + coh;  // p_tr*paramsD.Q_FA;
                 if (tau_tr > tau_max) {    // should use tau_max instead of s_0 according to
                                            // "A constitutive law for dense granular flows" Nature 2006
                     Real coeff = tau_max / (tau_tr + 1e-9);
@@ -340,10 +343,10 @@ __global__ void UpdateFluidD(Real4* posRadD,
                     updatedTauXyXzYz = updatedTauXyXzYz * coeff;
                 }
             }
-            if (p_tr < 0.0) {
+            if (p_tr < P_cri) {
                 updatedTauXxYyZz = mR3(0.0);
                 updatedTauXyXzYz = mR3(0.0);
-                p_tr = 0.0;
+                p_tr = P_cri;
             }
             if (derivVelRho.w < 0.0) {
                 updatedTauXxYyZz = mR3(0.0);

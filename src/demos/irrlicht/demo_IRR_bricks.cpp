@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Bricks test");
     vis->Initialize();
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
         tools::drawGrid(vis.get(), 5, 5, 20, 20,
                         ChCoordsys<>(ChVector<>(0, 0.04, 0), Q_from_AngAxis(CH_C_PI / 2, VECT_X)),
                         ChColor(0.35f, 0.35f, 0.59f), true);
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         sys.DoStepDynamics(0.02);

@@ -24,7 +24,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 // Use the namespace of Chrono
 
@@ -188,27 +188,27 @@ int main(int argc, char* argv[]) {
     // Use the above callback to process each contact as it is created.
     sys.GetContactContainer()->RegisterAddContactCallback(mycontact_callback);
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(&sys);
-    gl_window.Initialize(1280, 720, "Demo_Cohesion_GL");
-    gl_window.SetCamera(ChVector<>(0, 0, -10), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0));
-    gl_window.Pause();
+    // Create run-time visualization system
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(&sys);
+    vis.SetWindowTitle("Demo cohesion");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::SOLID);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(0, 0, -10), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Y);
 
     std::function<void()> step_iter = [&]() {
-        if (gl_window.DoStepDynamics(0.01)) {
+        if (sys.DoStepDynamics(0.01)) {
             // Add code here that will only run after a step is taken
         }
-        gl_window.Render();
+        vis.Render();
     };
 
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop_arg(&opengl::ChOpenGLWindow::WrapRenderStep, (void*)&step_iter, 50, true);
+    emscripten_set_main_loop_arg(&opengl::ChVisualSystemOpenGL::WrapRenderStep, (void*)&step_iter, 50, true);
 #else
-    while (gl_window.Active()) {
+    while (vis.Run()) {
         step_iter();
     }
 #endif

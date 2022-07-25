@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Limits on LinkLockRevolute demo");
     vis->Initialize();
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         ChVector<> p0(0, 0, 0);
         ChVector<> p1(std::cos(min_angle), -std::sin(min_angle), 0);
         ChVector<> p2(std::cos(max_angle), -std::sin(max_angle), 0);

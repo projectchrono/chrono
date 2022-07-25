@@ -365,7 +365,7 @@ public:
     double tolerance = 1e-10;   ///< tolerance for the iterative solver. 
     int max_iterations = 500;   ///< upper limit for the number of iterations. If too low might not converge.
     bool verbose = false;       ///< turn to true to see some diagnostic.
-    const ChQuadraticEigenvalueSolver& msolver; 
+    const ChQuadraticEigenvalueSolver& msolver;
 };
 
 
@@ -378,7 +378,7 @@ public:
 class callback_Ax {
 public:
     // Inherit this. It must compute A*x. How A is stored (full, sparse, factorised, etc. ) is up to you.
-    void compute(ChVectorDynamic<std::complex<double>>& A_x,    ///< output: result of A*x. Assume already sized.
+    virtual void compute(ChVectorDynamic<std::complex<double>>& A_x,    ///< output: result of A*x. Assume already sized.
         const ChVectorDynamic<std::complex<double>>& x          ///< input:  x in A*x
     ) {};
 };

@@ -35,7 +35,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 using namespace chrono;
@@ -150,55 +150,51 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystemMulticoreSMC msystem;
+    ChSystemMulticoreSMC sys;
 
     // Set number of threads
-    msystem.SetNumThreads(8);
+    sys.SetNumThreads(8);
 
     // Set gravitational acceleration
-    msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
+    sys.Set_G_acc(ChVector<>(0, 0, -gravity));
 
     // Set solver parameters
-    msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration;
-    msystem.GetSettings()->solver.tolerance = tolerance;
+    sys.GetSettings()->solver.max_iteration_bilateral = max_iteration;
+    sys.GetSettings()->solver.tolerance = tolerance;
 
-    msystem.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
-    msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
+    sys.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // The following two lines are optional, since they are the default options. They are added for future reference,
     // i.e. when needed to change those models.
-    msystem.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
-    msystem.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
+    sys.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
+    sys.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
 
     // Create the fixed and moving bodies
     // ----------------------------------
-    AddContainer(&msystem);
-    AddFallingBalls(&msystem);
+    AddContainer(&sys);
+    AddFallingBalls(&sys);
 
 // Perform the simulation
 // ----------------------
 
 #ifdef CHRONO_OPENGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(&msystem);
-    gl_window.Initialize(1280, 720, "ballsSMC");
-    gl_window.SetCamera(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-    gl_window.SetRenderMode(opengl::WIREFRAME);
-
-    // Uncomment the following two lines for the OpenGL manager to automatically
-    // run the simulation in an infinite loop.
-    // gl_window.StartDrawLoop(time_step);
-    // return 0;
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(&sys);
+    vis.SetWindowTitle("Balls SMC");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::WIREFRAME);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Z);
 
     while (true) {
-        if (gl_window.Active()) {
-            gl_window.DoStepDynamics(time_step);
-            gl_window.Render();
-            if (gl_window.Running()) {
-                // Print cumulative contact force on container bin.
-                real3 frc = msystem.GetBodyContactForce(0);
-                std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
-            }
+        if (vis.Run()) {
+            sys.DoStepDynamics(time_step);
+            vis.Render();
+            // Print cumulative contact force on container bin.
+            real3 frc = sys.GetBodyContactForce(0);
+            std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
         } else {
             break;
         }
@@ -210,7 +206,7 @@ int main(int argc, char* argv[]) {
     double time = 0;
 
     for (int i = 0; i < num_steps; i++) {
-        msystem.DoStepDynamics(time_step);
+        sys.DoStepDynamics(time_step);
         time += time_step;
     }
 #endif

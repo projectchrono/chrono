@@ -60,7 +60,7 @@ class RS_IEventReceiver : public irr::IEventReceiver {
 
 RoboSimianVisualSystemIrrlicht::RoboSimianVisualSystemIrrlicht(RoboSimian* robot, RS_Driver* driver)
     : m_robot(robot), m_driver(driver), m_HUD_x(650), m_HUD_y(20) {
-    m_system = robot->GetSystem();
+    m_systems.push_back(robot->GetSystem());
     m_erecv = new RS_IEventReceiver(this);
     AddUserEventReceiver(m_erecv);
 }
@@ -82,8 +82,8 @@ void RoboSimianVisualSystemIrrlicht::renderTextBox(const std::string& msg,
     font->draw(msg.c_str(), irr::core::rect<irr::s32>(xpos + 3, ypos + 3, xpos + length, ypos + height), color);
 }
 
-void RoboSimianVisualSystemIrrlicht::DrawAll() {
-    ChVisualSystemIrrlicht::DrawAll();
+void RoboSimianVisualSystemIrrlicht::Render() {
+    ChVisualSystemIrrlicht::Render();
 
     char msg[100];
 

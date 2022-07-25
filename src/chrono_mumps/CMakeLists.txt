@@ -187,7 +187,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             "${MUMPS_SHARED_LIBRARIES}"
             "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
     MAIN_DEPENDENCY ChronoEngine_mumps
-    COMMENT "Copying Mumps DLL..."
+      install(FILES "${MUMPS_SHARED_LIBRARIES}" DESTINATION bin)
   )
 
   # Make variable visible from outside this directory

@@ -344,6 +344,9 @@ class ChSystemGpu_impl {
     /// Get the number of particles that are higher than a given Z coordinate
     unsigned int GetNumParticleAboveZ(float ZValue);
 
+    /// Get the number of particles that are higher than a given X coordinate
+    unsigned int GetNumParticleAboveX(float XValue);
+
     /// Return the total kinetic energy of all particles.
     float ComputeTotalKE();
 

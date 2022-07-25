@@ -92,7 +92,7 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     patch_material->SetFriction(0.9f);
     patch_material->SetRestitution(0.01f);
     patch_material->SetYoungModulus(2e7f);
-    auto patch = m_terrain->AddPatch(patch_material, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 500, 5);
+    auto patch = m_terrain->AddPatch(patch_material, CSYSNORM, 500, 5);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 500, 5);
     m_terrain->Initialize();
@@ -154,17 +154,17 @@ template <typename EnumClass, EnumClass SHOE_TYPE>
 void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+    vis->AttachVehicle(&m_m113->GetVehicle());
     vis->SetWindowTitle("M113 acceleration test");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 6.0, 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
-    m_m113->GetVehicle().SetVisualSystem(vis);
 
     while (vis->Run()) {
         DriverInputs driver_inputs = m_driver->GetInputs();
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         ExecuteStep();
         vis->Synchronize("Acceleration test", driver_inputs);
         vis->Advance(m_step);

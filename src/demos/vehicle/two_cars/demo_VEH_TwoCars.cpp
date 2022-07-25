@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 200, 100);
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 200, 100);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AddTypicalLights();
-    hmmwv_1.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&hmmwv_1.GetVehicle());
 
     // ---------------
     // Simulation loop
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         // Driver inputs
         DriverInputs driver_inputs_1 = driver_1.GetInputs();

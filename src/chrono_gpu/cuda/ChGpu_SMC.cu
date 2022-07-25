@@ -98,6 +98,29 @@ __host__ unsigned int ChSystemGpu_impl::GetNumParticleAboveZ(float ZValue) {
     return *(sphere_data->sphere_stats_buffer_int + nSpheres);
 }
 
+__host__ unsigned int ChSystemGpu_impl::GetNumParticleAboveX(float XValue) {
+    size_t nSpheres = sphere_local_pos_X.size();
+    if (nSpheres == 0)
+        CHGPU_ERROR("ERROR! 0 particle in system! Please call this method after Initialize().\n");
+
+    const unsigned int threadsPerBlock = 1024;
+    unsigned int nBlocks = (nSpheres + threadsPerBlock - 1) / threadsPerBlock;
+    elementalXAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, nSpheres,
+                                                       gran_params, XValue);
+    gpuErrchk(cudaDeviceSynchronize());
+
+    // Use CUB to find the max or min X.
+    size_t temp_storage_bytes = 0;
+    cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
+                           sphere_data->sphere_stats_buffer_int + nSpheres, nSpheres);
+    void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
+    cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
+                           sphere_data->sphere_stats_buffer_int + nSpheres, nSpheres);
+    gpuErrchk(cudaDeviceSynchronize());
+    gpuErrchk(cudaPeekAtLastError());
+    return *(sphere_data->sphere_stats_buffer_int + nSpheres);
+}
+
 // Reset broadphase data structures
 void ChSystemGpu_impl::resetBroadphaseInformation() {
     // Set all the offsets to zero

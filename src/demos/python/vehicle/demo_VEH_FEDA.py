@@ -62,7 +62,7 @@ def main():
         patch_mat.SetRestitution(0.01)
         patch_mat.SetYoungModulus(2e7)
     patch = terrain.AddPatch(patch_mat, 
-                             chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
+                             chrono.CSYSNORM, 
                              terrainLength, terrainWidth)
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
@@ -70,7 +70,6 @@ def main():
 
     # Create the vehicle Irrlicht interface
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-    my_feda.GetVehicle().SetVisualSystem(vis)
     vis.SetWindowTitle('FED-Alpha')
     vis.SetWindowSize(1280, 1024)
     vis.SetChaseCamera(trackPoint, 6.0, 0.5)
@@ -78,6 +77,7 @@ def main():
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddTypicalLights()
     vis.AddSkyBox()
+    vis.AttachVehicle(my_feda.GetVehicle())
 
     # Create the interactive driver system
     driver = veh.ChIrrGuiDriver(vis)
@@ -93,12 +93,13 @@ def main():
     driver.Initialize()
 
     # Simulation loop
-    realtime_timer = chrono.ChRealtimeStepTimer()
+    my_feda.GetVehicle().EnableRealtime(True)
+
     while vis.Run() :
         time = my_feda.GetSystem().GetChTime()
 
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
 
         # Get driver inputs
@@ -115,9 +116,6 @@ def main():
         terrain.Advance(step_size)
         my_feda.Advance(step_size)
         vis.Advance(step_size)
-
-        # Spin in place for real time to catch up
-        realtime_timer.Spin(step_size)
 
     return 0
 

@@ -24,7 +24,7 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -44,34 +44,34 @@ int main(int argc, char** argv) {
     uint max_iteration_spinning = 100;
     uint max_iteration_bilateral = 0;
 
-    // Create the multicore system
-    ChSystemMulticoreNSC system;
+    // Create the multicore sys
+    ChSystemMulticoreNSC sys;
 
-    system.Set_G_acc(ChVector<>(0, -9.81, 0));
+    sys.Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Set number of threads
-    system.SetNumThreads(1);
+    sys.SetNumThreads(1);
 
     // Set solver settings
-    system.ChangeSolverType(SolverType::APGD);
+    sys.ChangeSolverType(SolverType::APGD);
 
-    system.GetSettings()->solver.solver_mode = SolverMode::SPINNING;
-    system.GetSettings()->solver.max_iteration_normal = max_iteration_normal;
-    system.GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
-    system.GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    system.GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
-    system.GetSettings()->solver.alpha = 0;
-    system.GetSettings()->solver.contact_recovery_speed = 1e32;
-    system.GetSettings()->solver.use_full_inertia_tensor = false;
-    system.GetSettings()->solver.tolerance = 0;
+    sys.GetSettings()->solver.solver_mode = SolverMode::SPINNING;
+    sys.GetSettings()->solver.max_iteration_normal = max_iteration_normal;
+    sys.GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
+    sys.GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
+    sys.GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
+    sys.GetSettings()->solver.alpha = 0;
+    sys.GetSettings()->solver.contact_recovery_speed = 1e32;
+    sys.GetSettings()->solver.use_full_inertia_tensor = false;
+    sys.GetSettings()->solver.tolerance = 0;
 
-    system.GetSettings()->collision.collision_envelope = 0.1 * radius;
-    system.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
-    system.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
+    sys.GetSettings()->collision.collision_envelope = 0.1 * radius;
+    sys.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Create the container body
-    auto container = std::shared_ptr<ChBody>(system.NewBody());
-    system.Add(container);
+    auto container = std::shared_ptr<ChBody>(sys.NewBody());
+    sys.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
         mat->SetFriction(0.4f);
         mat->SetRollingFriction(((float)bi / 10) * 0.05f);
 
-        auto ball = std::shared_ptr<ChBody>(system.NewBody());
+        auto ball = std::shared_ptr<ChBody>(sys.NewBody());
         ball->SetIdentifier(bi);
         ball->SetMass(mass);
         ball->SetInertiaXX(ChVector<>(inertia));
@@ -120,8 +120,8 @@ int main(int argc, char** argv) {
         utils::AddSphereGeometry(ball.get(), mat, radius);
         ball->GetCollisionModel()->BuildModel();
 
-        // Add to the system
-        system.Add(ball);
+        // Add to the sys
+        sys.Add(ball);
     }
 
     // Create some spheres that spin in place, with increasing spinning friction values
@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
         mat->SetFriction(0.4f);
         mat->SetSpinningFriction(((float)bi / 10) * 0.02f);
 
-        auto ball = std::shared_ptr<ChBody>(system.NewBody());
+        auto ball = std::shared_ptr<ChBody>(sys.NewBody());
         ball->SetIdentifier(bi);
         ball->SetMass(mass);
         ball->SetInertiaXX(ChVector<>(inertia));
@@ -146,22 +146,25 @@ int main(int argc, char** argv) {
         utils::AddSphereGeometry(ball.get(), mat, radius);
         ball->GetCollisionModel()->BuildModel();
 
-        // Add to the system
-        system.Add(ball);
+        // Add to the sys
+        sys.Add(ball);
     }
 
     // Create the visualization window
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(&system);
-    gl_window.Initialize(1280, 720, "Settling test");
-    gl_window.SetCamera(ChVector<>(10, 10, 20), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0), 0.05f);
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(&sys);
+    vis.SetWindowTitle("Friction test");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::WIREFRAME);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(10, 10, 20), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Y);
 
-    // Simulate system
-    while (gl_window.Active()) {
-        system.DoStepDynamics(time_step);
-        gl_window.Render();
-        ////std::cout << "num contacts: " << system.GetNcontacts() << "\n\n";
+    // Simulate sys
+    while (vis.Run()) {
+        sys.DoStepDynamics(time_step);
+        vis.Render();
+        ////std::cout << "num contacts: " << sys.GetNcontacts() << "\n\n";
     }
 
     return 0;

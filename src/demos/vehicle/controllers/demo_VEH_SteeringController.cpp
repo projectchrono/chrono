@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     minfo.Y = 2e7f;
     auto patch_mat = minfo.CreateMaterial(contact_method);
 
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
     patch->SetColor(ChColor(1, 1, 1));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
 
@@ -210,6 +210,8 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
 
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->AttachVehicle(&my_hmmwv.GetVehicle());
+
 #ifdef USE_PID
     vis->SetWindowTitle("Steering PID Controller Demo");
 #endif
@@ -228,8 +230,6 @@ int main(int argc, char* argv[]) {
     vis->AddLight(ChVector<>(-150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector<>(+150, -150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector<>(+150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
-
-    my_hmmwv.GetVehicle().SetVisualSystem(vis);
 
     // Visualization of controller points (sentinel & target)
     irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
@@ -324,7 +324,7 @@ int main(int argc, char* argv[]) {
         ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         // Output POV-Ray data

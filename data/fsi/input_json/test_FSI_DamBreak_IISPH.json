@@ -4,18 +4,15 @@
   {
     "Density":                1000,
     "Viscosity":              0.001,
-    "Body Force":             [0.0, 0.0,  0.0],
-    "Gravity":                [0.0, 0.0, -9.81],
-    "Surface Tension Kappa":   0.0,
-    "Characteristic Length":   1.0
+    "Gravity":                [0.0, 0.0, -9.81]
   },
 
   "SPH Parameters":
   {
+    "Method":                         "IISPH",
     "Kernel h":                       0.1,
     "Initial Spacing":                0.1,
     "Initial Spacing Solid":          0.1,
-    "Epsilon":                        0.0001,
     "Maximum Velocity":               1.0,
     "XSPH Coefficient":               0.2,
     "Shifting Coefficient":           0.00,
@@ -27,8 +24,7 @@
   "Time Stepping":
   {
     "Fluid time step":               0.005,
-    "Solid time step":               0.001,
-    "Write frame per second":        20
+    "Solid time step":               0.001
   },
 
 

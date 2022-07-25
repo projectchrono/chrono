@@ -29,7 +29,7 @@
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/assets/ChObjFileShape.h"
 
-#include "chrono_opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 // Use the namespace of Chrono
 using namespace chrono;
@@ -222,22 +222,24 @@ int main(int argc, char* argv[]) {
     hull->Move(ChVector<>(2, 0.3, 0));
     sys.Add(hull);
 
-    // Create the OpenGL visualization system
-    auto& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(&sys);
-    gl_window.Initialize(1600, 900, "OpenGL meshes");
-    gl_window.SetCamera(ChVector<>(-2.0, 3.0, -4.0), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0));
-
-    gl_window.SetRenderMode(opengl::SOLID);
-    gl_window.SetParticleRenderMode(0.05f, opengl::POINTS);
-    ////gl_window.SetParticleRenderMode(0.1f, opengl::SOLID);
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(&sys);
+    vis.SetWindowTitle("OpenGL assets");
+    vis.SetWindowSize(1600, 900);
+    vis.SetRenderMode(opengl::SOLID);
+    vis.SetParticleRenderMode(0.05f, opengl::POINTS);
+    vis.Initialize();
+    vis.SetCameraPosition(ChVector<>(-2.0, 3.0, -4.0), ChVector<>(0, 0, 0));
+    vis.SetCameraVertical(CameraVerticalDir::Y);
+    vis.SetCameraProperties(0.5f, 0.1f, 500.0f);
 
     double step = 0.01;
-    while (gl_window.Active()) {
-        if (gl_window.Running()) {
-            sys.DoStepDynamics(step);
-        }
-        gl_window.Render();
+    while (vis.Run()) {
+        vis.BeginScene();
+        vis.Render();
+        vis.EndScene();
+
+        sys.DoStepDynamics(step);
     }
 
     return 0;

@@ -656,7 +656,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Simple vehicle suspension");
     vis->Initialize();
@@ -680,7 +680,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         tools::drawGrid(vis.get(), 2, 2, 30, 30, ChCoordsys<>(ChVector<>(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)),
                         ChColor(0.31f, 0.51f, 0.51f), true);
 

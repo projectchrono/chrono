@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(0, 3, -6));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // The soft-real-time cycle
     double time = 0.0;
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         tools::drawGrid(vis.get(), 0.2, 0.2, 20, 20, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
                         ChColor(0.31f, 0.39f, 0.39f), true);
         vis->EndScene();

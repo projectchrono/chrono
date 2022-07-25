@@ -213,7 +213,7 @@ impose_5.SetRotationFunction(f_squad)
 
 # Create the Irrlicht application
 vis = irr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Imposing rotation and position to bodies')
 vis.Initialize()
@@ -227,7 +227,7 @@ frame = 0
 
 while vis.Run():
     vis.BeginScene() 
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(1e-3)
 

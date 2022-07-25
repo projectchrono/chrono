@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    m113.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&m113.GetVehicle());
 
     // ------------------------
     // Create the driver system
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
 
     // Set file with driver input time series
     driver.SetInputDataFile(vehicle::GetDataFile("M113/driver/Acceleration.txt"));
-    driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
+    driver.SetInputMode(ChIrrGuiDriver::InputMode::DATAFILE);
 
     driver.Initialize();
 
@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         if (step_number % render_steps == 0) {
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->EndScene();
 
             if (img_output) {

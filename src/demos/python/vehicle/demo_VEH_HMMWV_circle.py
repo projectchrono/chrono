@@ -59,7 +59,7 @@ minfo.cr = 0.01
 minfo.Y = 2e7
 patch_mat = minfo.CreateMaterial(my_hmmwv.GetSystem().GetContactMethod())
 terrain = veh.RigidTerrain(my_hmmwv.GetSystem())
-patch = terrain.AddPatch(patch_mat, chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 200, 200)
+patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 200, 200)
 patch.SetColor(chrono.ChColor(1, 1, 1))
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
 terrain.Initialize()
@@ -82,7 +82,6 @@ steeringPID.Reset(my_hmmwv.GetVehicle())
 
 # Create the vehicle Irrlicht application
 vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-my_hmmwv.GetVehicle().SetVisualSystem(vis)
 vis.SetWindowTitle('Constant radius test')
 vis.SetWindowSize(1280, 1024)
 vis.SetHUDLocation(500, 20)
@@ -91,6 +90,7 @@ vis.AddLogo()
 vis.AddTypicalLights()
 vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
 vis.AddSkyBox()
+vis.AttachVehicle(my_hmmwv.GetVehicle())
 
 # Visualization of controller points (sentinel & target)
 ballS = vis.GetSceneManager().addSphereSceneNode(0.1)
@@ -103,6 +103,8 @@ ballT.getMaterial(0).EmissiveColor = chronoirr.SColor(0, 0, 255, 0)
 # ---------------
 
 steeringPID_output = 0
+
+my_hmmwv.GetVehicle().EnableRealtime(True)
 
 while vis.Run() :
     time = my_hmmwv.GetSystem().GetChTime()
@@ -120,7 +122,7 @@ while vis.Run() :
     ballT.setPosition(chronoirr.vector3df(pT.x, pT.y, pT.z))
     
     vis.BeginScene()
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
     
     # Update modules (process inputs from other modules)

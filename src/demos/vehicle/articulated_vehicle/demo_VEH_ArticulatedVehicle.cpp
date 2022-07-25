@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     auto patch =
-        terrain.AddPatch(patch_mat, ChVector<>(0, 0, terrainHeight), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
+        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(0, 0, terrainHeight), QUNIT), terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.5f, 0.5f, 1));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    vehicle.SetVisualSystem(vis);
+    vis->AttachVehicle(&vehicle);
 
     // Initialize interactive driver
     ChIrrGuiDriver driver(*vis);
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         // Get driver inputs

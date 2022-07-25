@@ -19,16 +19,7 @@
         "Method": "WCSPH",
         "Epsilon": 0.001,
         "XSPH Coefficient": 0.5,
-        "Shifting Coefficient": 1.0,
-        "Density Reinitialization": 100000000,
-        "Consistent Discretization for Gradient": false,
-        "Consistent Discretization for Laplacian": false
-    },
-
-    "Time Stepping": {
-        "Adaptive Time stepping": false,
-        "Beta": 0.0,
-        "CFL number": 0.2
+        "Shifting Coefficient": 1.0
     },
 
     "Elastic SPH": {

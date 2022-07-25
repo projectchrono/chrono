@@ -58,6 +58,7 @@ ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
     : m_sysMBS(other_physicalSystem),
       m_verbose(true),
       m_is_initialized(false),
+      m_integrate_SPH(true),
       m_time(0),
       m_write_mode(OutpuMode::NONE) {
     m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>();
@@ -113,8 +114,8 @@ void ChSystemFsi::InitParams() {
     m_paramsH->Conservative_Form = true;
     m_paramsH->gradient_type = 0;
     m_paramsH->laplacian_type = 0;
-    m_paramsH->USE_Consistent_L = true;
-    m_paramsH->USE_Consistent_G = true;
+    m_paramsH->USE_Consistent_L = false;
+    m_paramsH->USE_Consistent_G = false;
 
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 
@@ -528,6 +529,10 @@ void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax) 
     m_paramsH->use_default_limits = false;
 }
 
+void ChSystemFsi::SetActiveDomain(const ChVector<>& boxDim) {
+    m_paramsH->bodyActiveDomain = ChUtilsTypeConvert::ChVectorToReal3(boxDim);
+}
+
 void ChSystemFsi::SetNumBoundaryLayers(int num_layers) {
     m_paramsH->NUM_BOUNDARY_LAYERS = num_layers;
 }
@@ -577,6 +582,10 @@ void ChSystemFsi::SetAdaptiveTimeStepping(bool adaptive) {
     m_paramsH->Adaptive_time_stepping = adaptive;
 }
 
+void ChSystemFsi::SetSPHintegration(bool runSPH) {
+    m_integrate_SPH = runSPH;
+}
+
 void ChSystemFsi::SetDensity(double rho0) {
     m_paramsH->rho0 = rho0;
     m_paramsH->invrho0 = 1 / m_paramsH->rho0;
@@ -594,6 +603,14 @@ void ChSystemFsi::SetOutputLength(int OutputLength) {
 
 void ChSystemFsi::SetWallBC(BceVersion wallBC) {
     m_paramsH->bceTypeWall = wallBC;
+}
+
+void ChSystemFsi::SetRigidBodyBC(BceVersion rigidBodyBC) {
+    m_paramsH->bceType = rigidBodyBC;
+}
+
+void ChSystemFsi::SetCohesionForce(double Fc) {
+    m_paramsH->Coh_coeff = Fc;
 }
 
 ChSystemFsi::ElasticMaterialProperties::ElasticMaterialProperties()
@@ -884,10 +901,12 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         // The following is used to execute the Explicit WCSPH
         CopyDeviceDataToHalfStep();
         ChUtilsDevice::FillMyThrust4(m_sysFSI->fsiGeneralData->derivVelRhoD, mR4(0));
-        m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD2,
-                                       m_sysFSI->fsiMeshD, 0.5 * m_paramsH->dT, m_time);
-        m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD1, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
-                                       m_sysFSI->fsiMeshD, 1.0 * m_paramsH->dT, m_time);
+        if (m_integrate_SPH){
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD2,
+                                           m_sysFSI->fsiMeshD, 0.5 * m_paramsH->dT, m_time);
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD1, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
+                                           m_sysFSI->fsiMeshD, 1.0 * m_paramsH->dT, m_time);
+        }
         m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
         m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
 
@@ -912,8 +931,10 @@ void ChSystemFsi::DoStepDynamics_FSI() {
     } else {
         // A different coupling scheme is used for implicit SPH formulations
         m_fsi_interface->Copy_ChSystem_to_External();
-        m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
-                                       m_sysFSI->fsiMeshD, 0.0, m_time);
+        if (m_integrate_SPH){
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
+                                           m_sysFSI->fsiMeshD, 0.0, m_time);
+        }
         m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
         m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
 
@@ -969,7 +990,8 @@ void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
 void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
     utils::PrintToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->sphMarkersD2->velMasD,
                        m_sysFSI->sphMarkersD2->rhoPresMuD, m_sysFSI->fsiGeneralData->sr_tau_I_mu_i,
-                       m_sysFSI->fsiGeneralData->referenceArray, thrust::host_vector<int4>(), dir, m_paramsH, true);
+                       m_sysFSI->fsiGeneralData->referenceArray, m_sysFSI->fsiGeneralData->referenceArray_FEA, 
+                       dir, m_paramsH, true);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1754,6 +1776,31 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleVel() {
         vel.push_back(ChUtilsTypeConvert::Real3ToChVector(velH[i]));
     }
     return vel;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+thrust::device_vector<int> ChSystemFsi::FindParticlesInBox(const ChFrame<>& frame, const ChVector<>& size) {
+    const ChVector<>& Pos = frame.GetPos();
+    ChVector<> Ax = frame.GetA().Get_A_Xaxis();
+    ChVector<> Ay = frame.GetA().Get_A_Yaxis();
+    ChVector<> Az = frame.GetA().Get_A_Zaxis();
+
+    auto hsize = 0.5 * mR3(size.x(), size.y(), size.z());
+    auto pos = mR3(Pos.x(), Pos.y(), Pos.z());
+    auto ax = mR3(Ax.x(), Ax.y(), Ax.z());
+    auto ay = mR3(Ay.x(), Ay.y(), Ay.z());
+    auto az = mR3(Az.x(), Az.y(), Az.z());
+
+    return m_sysFSI->FindParticlesInBox(hsize, pos, ax, ay, az);
+}
+
+thrust::device_vector<Real4> ChSystemFsi::GetParticlePositions(const thrust::device_vector<int>& indices) {
+    return m_sysFSI->GetParticlePositions(indices);
+}
+
+thrust::device_vector<Real3> ChSystemFsi::GetParticleVelocities(const thrust::device_vector<int>& indices) {
+    return m_sysFSI->GetParticleVelocities(indices);
 }
 
 }  // end namespace fsi

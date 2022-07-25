@@ -103,12 +103,11 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     ~RigidTerrain();
 
     /// Add a terrain patch represented by a rigid box.
-    /// If tiled = true, multiple side-by-side boxes are used.
-    /// The "driving" surface is assumed to be the +z face of the specified box domain.
+    /// The patch is constructed such that the center of its top surface (the "driving" surface) is in the x-y plane of
+    /// the specified coordinate system. If tiled = true, multiple side-by-side boxes are used.
     std::shared_ptr<Patch> AddPatch(
         std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
-        const ChVector<>& location,                   ///< [in] center of top surface
-        const ChVector<>& normal,                     ///< [in] normal to top surface
+        const ChCoordsys<>& position,                 ///< [in] patch location and orientation
         double length,                                ///< [in] patch length
         double width,                                 ///< [in] patch width
         double thickness = 1,                         ///< [in] box thickness

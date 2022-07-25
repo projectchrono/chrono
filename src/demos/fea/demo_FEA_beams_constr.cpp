@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // SIMULATION LOOP
 
@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         tools::drawGrid(vis.get(), 0.05, 0.05, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_Z),
                         ChColor(0.4f, 0.4f, 0.4f), true);

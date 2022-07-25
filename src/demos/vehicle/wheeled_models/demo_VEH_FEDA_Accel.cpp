@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     patch_mat->SetYoungModulus(2e7f);
     patch_mat->SetPoissonRatio(0.3f);
     RigidTerrain terrain(my_feda.GetSystem());
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, 5);
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, 5);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
     terrain.Initialize();
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     vis->AddLight(ChVector<>(-300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector<>(+300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector<>(+300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f));
-    my_feda.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&my_feda.GetVehicle());
 
     // Prepare output
     if (data_output) {
@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
             break;
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();

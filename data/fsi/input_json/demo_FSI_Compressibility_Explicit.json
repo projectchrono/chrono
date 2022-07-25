@@ -4,50 +4,25 @@
   {
     "Density":                1000,
     "Viscosity":              0.1,
-    "Body Force":             [0.0, 0.0,  0.0],
-    "Gravity":                [0.0, 0.0, -1.0],
-    "Surface Tension Kappa":   0.0,
-    "Characteristic Length":   1.0
+    "Gravity":                [0.0, 0.0, -1.0]
   },
 
   "SPH Parameters":
   {
-    "Method":                         "WCSPH", //WCSPH, IISPH, I2SPHH
+    "Method":                         "WCSPH",
     "Kernel h":                       0.1,
     "Initial Spacing":                0.1,
-    "Epsilon":                        0.001,
     "Maximum Velocity":               1.0,
     "XSPH Coefficient":               0.0,
     "Shifting Coefficient":           0.0,
-    "Density Reinitialization":       2,
-    "Conservative Discretization":    true
-
+    "Density Reinitialization":       2
   },
 
   "Time Stepping":
   {
-    "Adaptive Time stepping":        false,
-    "CFL number":                    0.1,
     "Fluid time step":               0.0001,
     "Solid time step":               0.0001,
-    "Maximum time step":             0.0001,
-    "Write frame per second":        10
-  },
-
-
-  "Pressure Equation":
-  {
-    "Boundary Conditions":     "Generalized Wall BC",
-    "Linear solver":           "GMRES",
-    "Poisson source term":     "Density-Based",
-    "Projection method":       "Non-Incremental",
-    "Under-relaxation":         0.99,
-    "Alpha":                    0.1,
-    "Absolute residual":        1e-10,
-    "Relative residual":        0.0,
-    "Maximum Iterations":       500,
-    "Verbose monitoring":       false,
-    "Constraint Pressure":      false,
-    "Average Pressure":         0.0
+    "Maximum time step":             0.0001
   }
+
 }

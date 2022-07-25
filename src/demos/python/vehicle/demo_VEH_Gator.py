@@ -101,7 +101,7 @@ patch_mat = chrono.ChMaterialSurfaceNSC()
 patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
 patch = terrain.AddPatch(patch_mat, 
-                         chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
+                         chrono.CSYSNORM, 
                          200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
@@ -113,7 +113,6 @@ terrain.Initialize()
 # -------------------------------------
 
 vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-gator.GetVehicle().SetVisualSystem(vis)
 vis.SetWindowTitle('Gator')
 vis.SetWindowSize(1280, 1024)
 vis.SetChaseCamera(trackPoint, 6.0, 0.5)
@@ -121,6 +120,7 @@ vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddTypicalLights()
 vis.AddSkyBox()
+vis.AttachVehicle(gator.GetVehicle())
 
 # Create the interactive driver system
 driver = veh.ChIrrGuiDriver(vis)
@@ -139,13 +139,14 @@ driver.Initialize()
 # Simulation loop
 # ---------------
 
-realtime_timer = chrono.ChRealtimeStepTimer()
+gator.GetVehicle().EnableRealtime(True)
+
 while vis.Run() :
     time = gator.GetSystem().GetChTime()
 
     # Render scene
     vis.BeginScene()
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
 
     # Collect output data from modules (for inter-module communication)
@@ -162,6 +163,3 @@ while vis.Run() :
     terrain.Advance(step_size)
     gator.Advance(step_size)
     vis.Advance(step_size)
-
-    # Spin in place for real time to catch up
-    realtime_timer.Spin(step_size)

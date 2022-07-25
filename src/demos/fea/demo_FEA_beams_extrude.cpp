@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddTypicalLights();
     vis->AddCamera(ChVector<>(-0.1, 0.2, -0.2));
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // SIMULATION LOOP
 
@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         tools::drawGrid(vis.get(), 0.1, 0.1, 20, 20, CSYSNORM, ChColor(0.4f, 0.4f, 0.4f), true);
 
         sys.DoStepDynamics(0.0002);

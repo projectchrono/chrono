@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 300, 300);
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 300, 300);
     patch->SetColor(ChColor(0.8f, 0.8f, 1.0f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 1200, 1200);
     terrain.Initialize();
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
-    uaz.GetVehicle().SetVisualSystem(vis);
+    vis->AttachVehicle(&uaz.GetVehicle());
 
     // Create the interactive driver system
     ChIrrGuiDriver driver(*vis);
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
         // Render scene
         if (step_number % render_steps == 0) {
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
             vis->EndScene();
 
             if (povray_output && step_number % render_steps == 0) {

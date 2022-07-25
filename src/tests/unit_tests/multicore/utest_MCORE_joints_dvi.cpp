@@ -12,12 +12,12 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Test for bilateral joint constraints in a NSC system.
+// Test for bilateral joint constraints in a NSC sys.
 //
 // The mechanism consists of three bodies (ground, sled, and pendulum) with a
 // prismatic joint between ground and sled and a revolute joint between sled and
 // pendulum.
-// The system is simulated with different combinations of solver settings
+// The sys is simulated with different combinations of solver settings
 // (type of solver, solver mode, maximum number of iterations).  Constraint
 // violations are monitored and verified.
 //
@@ -30,7 +30,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 #include "unit_testing.h"
@@ -61,36 +61,36 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         // Problem parameters
         double init_vel = 2;
 
-        // Create the mechanical system
-        system = new ChSystemMulticoreNSC();
-        system->Set_G_acc(ChVector<>(0, 0, -9.81));
+        // Create the mechanical sys
+        sys = new ChSystemMulticoreNSC();
+        sys->Set_G_acc(ChVector<>(0, 0, -9.81));
 
         // Set number of threads
-        system->SetNumThreads(1);
+        sys->SetNumThreads(1);
 
-        // Edit system settings
-        system->GetSettings()->solver.tolerance = tolerance;
-        system->GetSettings()->solver.max_iteration_bilateral = opts.max_iter_bilateral;
-        system->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
-        system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
+        // Edit sys settings
+        sys->GetSettings()->solver.tolerance = tolerance;
+        sys->GetSettings()->solver.max_iteration_bilateral = opts.max_iter_bilateral;
+        sys->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
+        sys->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-        system->GetSettings()->solver.solver_mode = opts.mode;
-        system->GetSettings()->solver.max_iteration_normal = opts.max_iter_normal;
-        system->GetSettings()->solver.max_iteration_sliding = opts.max_iter_sliding;
-        system->GetSettings()->solver.max_iteration_spinning = 0;
-        system->GetSettings()->solver.alpha = 0;
-        system->GetSettings()->solver.contact_recovery_speed = 1e4;
-        system->ChangeSolverType(opts.type);
+        sys->GetSettings()->solver.solver_mode = opts.mode;
+        sys->GetSettings()->solver.max_iteration_normal = opts.max_iter_normal;
+        sys->GetSettings()->solver.max_iteration_sliding = opts.max_iter_sliding;
+        sys->GetSettings()->solver.max_iteration_spinning = 0;
+        sys->GetSettings()->solver.alpha = 0;
+        sys->GetSettings()->solver.contact_recovery_speed = 1e4;
+        sys->ChangeSolverType(opts.type);
 
         // Create the ground body
-        auto ground = std::shared_ptr<ChBody>(system->NewBody());
+        auto ground = std::shared_ptr<ChBody>(sys->NewBody());
         ground->SetIdentifier(-1);
         ground->SetBodyFixed(true);
         ground->SetCollide(false);
-        system->AddBody(ground);
+        sys->AddBody(ground);
 
         // Create the sled body
-        auto sled = std::shared_ptr<ChBody>(system->NewBody());
+        auto sled = std::shared_ptr<ChBody>(sys->NewBody());
         sled->SetIdentifier(1);
         sled->SetMass(550);
         sled->SetInertiaXX(ChVector<>(100, 100, 100));
@@ -103,10 +103,10 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         box_sled->GetBoxGeometry().Size = ChVector<>(1, 0.25, 0.25);
         sled->AddVisualShape(box_sled, ChFrame<>());
 
-        system->AddBody(sled);
+        sys->AddBody(sled);
 
         // Create the wheel body
-        auto wheel = std::shared_ptr<ChBody>(system->NewBody());
+        auto wheel = std::shared_ptr<ChBody>(sys->NewBody());
         wheel->SetIdentifier(2);
         wheel->SetMass(350);
         wheel->SetInertiaXX(ChVector<>(50, 138, 138));
@@ -122,22 +122,22 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         utils::AddCylinderGeometry(wheel.get(), wheel_mat, 0.3, 0.1, ChVector<>(0, 0, 0), Q_from_AngZ(CH_C_PI_2));
         wheel->GetCollisionModel()->BuildModel();
 
-        system->AddBody(wheel);
+        sys->AddBody(wheel);
 
         // Create and initialize translational joint ground - sled
         prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
         prismatic->Initialize(ground, sled, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngY(CH_C_PI_2)));
-        system->AddLink(prismatic);
+        sys->AddLink(prismatic);
 
         // Create and initialize revolute joint sled - wheel
         revolute = chrono_types::make_shared<ChLinkLockRevolute>();
         revolute->Initialize(wheel, sled, ChCoordsys<>(ChVector<>(1, 0, 0), Q_from_AngX(CH_C_PI_2)));
-        system->AddLink(revolute);
+        sys->AddLink(revolute);
     }
 
     Options opts;
     bool animate;
-    ChSystemMulticoreNSC* system;
+    ChSystemMulticoreNSC* sys;
     std::shared_ptr<ChLinkLockPrismatic> prismatic;
     std::shared_ptr<ChLinkLockRevolute> revolute;
 };
@@ -155,23 +155,26 @@ TEST_P(JointsDVI, simulate) {
 
     if (animate) {
 #ifdef CHRONO_OPENGL
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.AttachSystem(system);
-        gl_window.Initialize(1280, 720, "");
-        gl_window.SetCamera(ChVector<>(0, -8, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-        gl_window.SetRenderMode(opengl::WIREFRAME);
+        opengl::ChVisualSystemOpenGL vis;
+        vis.AttachSystem(sys);
+        vis.SetWindowTitle("");
+        vis.SetWindowSize(1280, 720);
+        vis.SetRenderMode(opengl::WIREFRAME);
+        vis.Initialize();
+        vis.SetCameraPosition(ChVector<>(0, -8, 0), ChVector<>(0, 0, 0));
+        vis.SetCameraVertical(CameraVerticalDir::Z);
 
-        while (system->GetChTime() < time_end) {
-            if (gl_window.Active()) {
-                gl_window.DoStepDynamics(time_step);
-                gl_window.Render();
+        while (sys->GetChTime() < time_end) {
+            if (vis.Run()) {
+                sys->DoStepDynamics(time_step);
+                vis.Render();
             }
         }
 #endif
     } else {
-        while (system->GetChTime() < time_end) {
+        while (sys->GetChTime() < time_end) {
             // Advance simulation.
-            system->DoStepDynamics(time_step);
+            sys->DoStepDynamics(time_step);
 
             // Check constraints for prismatic joint
             ChVectorDynamic<> pC = prismatic->GetConstraintViolation();

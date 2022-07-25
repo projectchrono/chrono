@@ -388,7 +388,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<robosimian::RoboSimianVisualSystemIrrlicht> vis;
     if (render) {
         vis = chrono_types::make_shared<robosimian::RoboSimianVisualSystemIrrlicht>(&robot, driver.get());
-        my_sys.SetVisualSystem(vis);
+        vis->AttachSystem(&my_sys);
         vis->SetWindowTitle("RoboSimian - SCM terrain");
         vis->SetWindowSize(800, 600);
         vis->Initialize();
@@ -467,7 +467,7 @@ int main(int argc, char* argv[]) {
 
         if (render) {
             vis->BeginScene();
-            vis->DrawAll();
+            vis->Render();
         }
 
         if (data_output && sim_frame % output_steps == 0) {

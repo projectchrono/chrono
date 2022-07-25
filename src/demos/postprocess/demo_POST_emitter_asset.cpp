@@ -243,7 +243,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Bind all existing visual shapes to the visualization system
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
 
     // Export all existing visual shapes to POV-Ray
     pov_exporter.AddAll();
@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
     double timestep = 0.01;
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         vis->EndScene();
 
         // Continuosly create particle flow

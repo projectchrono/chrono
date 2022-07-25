@@ -62,7 +62,7 @@ for item in exported_items:
 #
 
 vis = chronoirr.ChVisualSystemIrrlicht()
-sys.SetVisualSystem(vis)
+vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('Test: using data exported by Chrono::Solidworks')
 vis.Initialize()
@@ -83,7 +83,7 @@ sys.SetMaxPenetrationRecoverySpeed(0.002);
 
 while vis.Run():
     vis.BeginScene()
-    vis.DrawAll()
+    vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(0.002)
 

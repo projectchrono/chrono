@@ -34,6 +34,9 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     ChVehicleVisualSystem();
     virtual ~ChVehicleVisualSystem();
 
+    /// Attach a vehicle to this vehicle visualization system.
+    virtual void AttachVehicle(ChVehicle* vehicle);
+
     /// Set parameters for the underlying chase camera.
     void SetChaseCamera(const ChVector<>& ptOnChassis,  ///< tracked point on chassis body (in vehicle reference frame)
                         double chaseDist,               ///< chase distance (behind tracked point)
@@ -55,8 +58,6 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     virtual void Synchronize(const std::string& msg, const DriverInputs& driver_inputs);
 
   protected:
-    virtual void OnAttachToVehicle();
-
     ChVehicle* m_vehicle;  ///< pointer to the associated vehicle system
 
     std::unique_ptr<utils::ChChaseCamera> m_camera;  ///< chase camera

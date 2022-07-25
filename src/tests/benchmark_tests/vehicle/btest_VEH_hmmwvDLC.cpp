@@ -87,7 +87,7 @@ HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_t
     patch_material->SetFriction(0.9f);
     patch_material->SetRestitution(0.01f);
     patch_material->SetYoungModulus(2e7f);
-    auto patch = m_terrain->AddPatch(patch_material, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 300, 20);
+    auto patch = m_terrain->AddPatch(patch_material, CSYSNORM, 300, 20);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 300, 20);
     m_terrain->Initialize();
@@ -130,11 +130,11 @@ template <typename EnumClass, EnumClass TIRE_MODEL>
 void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->AttachVehicle(&m_hmmwv->GetVehicle());
     vis->SetWindowTitle("HMMWV DLC");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
-    m_hmmwv->GetVehicle().SetVisualSystem(vis);
 
     // Visualization of controller points (sentinel & target)
     irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
@@ -151,7 +151,7 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
         DriverInputs driver_inputs = m_driver->GetInputs();
 
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
         ExecuteStep();
         vis->Synchronize("Acceleration test", driver_inputs);
         vis->Advance(m_step_veh);

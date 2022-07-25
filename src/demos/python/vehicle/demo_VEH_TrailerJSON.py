@@ -66,7 +66,6 @@ def main() :
 
     # Create the vehicle Irrlicht interface
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-    vehicle.SetVisualSystem(vis)
     vis.SetWindowTitle('Sedan+Trailer (JSON specification)')
     vis.SetWindowSize(1280, 1024)
     vis.SetChaseCamera(trackPoint, 6.0, 0.5)
@@ -74,6 +73,7 @@ def main() :
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddTypicalLights()
     vis.AddSkyBox()
+    vis.AttachVehicle(vehicle)
 
     driver = veh.ChIrrGuiDriver(vis)
 
@@ -92,12 +92,13 @@ def main() :
     # Simulation loop
     # ---------------
 
-    realtime_timer = chrono.ChRealtimeStepTimer()
+    vehicle.EnableRealtime(True)
+
     while vis.Run() :
 
         # Render scene
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
 
         # Collect output data from modules (for inter-module communication)
@@ -107,7 +108,7 @@ def main() :
         time = vehicle.GetSystem().GetChTime()
         driver.Synchronize(time)
         vehicle.Synchronize(time, driver_inputs, terrain)
-        trailer.Synchronize(time, driver_inputs.m_braking, terrain)
+        trailer.Synchronize(time, driver_inputs, terrain)
         terrain.Synchronize(time)
         vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
 
@@ -117,9 +118,6 @@ def main() :
         trailer.Advance(step_size)
         terrain.Advance(step_size)
         vis.Advance(step_size)
-
-        # Spin in place for real time to catch up
-        realtime_timer.Spin(step_size)
 
 # =============================================================================
 

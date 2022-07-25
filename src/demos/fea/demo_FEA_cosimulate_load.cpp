@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    sys.SetVisualSystem(vis);
+    vis->AttachSystem(&sys);
     vis->SetWindowSize(1280, 720);
     vis->SetWindowTitle("demo_FEA_cosimulate_load");
     vis->Initialize();
@@ -248,7 +248,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->DrawAll();
+        vis->Render();
 
         sys.DoStepDynamics(0.005);
 

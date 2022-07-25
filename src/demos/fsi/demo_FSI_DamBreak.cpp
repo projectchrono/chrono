@@ -149,12 +149,6 @@ int main(int argc, char* argv[]) {
     }
     sysFSI.ReadParametersFromFile(inputJson);
 
-    // Dimension of the space domain
-    ChVector<> bDim = sysFSI.GetContainerDim();
-    bxDim = bDim.x();
-    byDim = bDim.y();
-    bzDim = bDim.z();
-
     // Set up the periodic boundary condition (only in Y direction)
     auto initSpace0 = sysFSI.GetInitialSpacing();
     ChVector<> cMin = ChVector<>(-bxDim / 2 - 10.0 * initSpace0, -byDim / 2 - 1.0 * initSpace0 / 2.0, -2.0 * bzDim);

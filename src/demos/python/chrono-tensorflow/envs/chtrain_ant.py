@@ -69,7 +69,7 @@ class Model(object):
       
       if (self.animate) :
           self.vis = chronoirr.ChVisualSystemIrrlicht()
-          self.ant_sys.SetVisualSystem(self.vis)
+          self.vis.AttachSystem(self.ant_sys)
           self.vis.Initialize()
           self.vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
           self.vis.AddSkyBox()
@@ -213,7 +213,7 @@ class Model(object):
 
               self.vis.Run()
               self.vis.BeginScene()
-              self.vis.DrawAll()
+              self.vis.Render()
        self.ac = ac.reshape((-1,))
        for i in range(len(self.leg_motor)): 
 

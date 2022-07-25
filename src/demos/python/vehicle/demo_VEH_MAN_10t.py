@@ -107,7 +107,7 @@ elif (contact_method == chrono.ChContactMethod_SMC):
     patch_mat.SetRestitution(0.01)
     patch_mat.SetYoungModulus(2e7)
 patch = terrain.AddPatch(patch_mat, 
-                         chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
+                         chrono.CSYSNORM, 
                          terrainLength, terrainWidth)
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
@@ -115,7 +115,6 @@ terrain.Initialize()
 
 # Create the vehicle Irrlicht interface
 vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-my_truck.GetVehicle().SetVisualSystem(vis)
 vis.SetWindowTitle('MAN 10t')
 vis.SetWindowSize(1280, 1024)
 vis.SetChaseCamera(trackPoint, 10.0, 0.5)
@@ -123,6 +122,7 @@ vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddTypicalLights()
 vis.AddSkyBox()
+vis.AttachVehicle(my_truck.GetVehicle())
 
 # Create the driver system
 driver = veh.ChIrrGuiDriver(vis)
@@ -148,9 +148,10 @@ print( "VEHICLE MASS: ",  my_truck.GetVehicle().GetMass())
 render_steps = math.ceil(render_step_size / step_size)
 
 # Initialize simulation frame counter s
-realtime_timer = chrono.ChRealtimeStepTimer()
 step_number = 0
 render_frame = 0
+
+my_truck.GetVehicle().EnableRealtime(True)
 
 while vis.Run() :
     time = my_truck.GetSystem().GetChTime()
@@ -162,7 +163,7 @@ while vis.Run() :
     # Render scene and output POV-Ray data
     if (step_number % render_steps == 0) :
         vis.BeginScene()
-        vis.DrawAll()
+        vis.Render()
         vis.EndScene()
         render_frame += 1
     
@@ -183,8 +184,3 @@ while vis.Run() :
 
     # Increment frame number
     step_number += 1
-
-    # Spin in place for real time to catch up
-    realtime_timer.Spin(step_size)
-
-del app

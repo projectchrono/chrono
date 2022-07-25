@@ -12,7 +12,6 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChBoxShape.h"
@@ -20,21 +19,12 @@
 #include "chrono_fsi/ChVisualizationFsi.h"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChOpenGLWindow.h"
-#endif
-
 namespace chrono {
 namespace fsi {
 
 ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
     : m_systemFSI(sysFSI),
       m_user_system(nullptr),
-      m_title(""),
-      m_cam_pos(0, -3, 0),
-      m_cam_target(0, 0, 0),
-      m_cam_up(0, 0, 1),
-      m_cam_scale(0.1f),
       m_sph_markers(true),
       m_rigid_bce_markers(true),
       m_flex_bce_markers(true),
@@ -43,30 +33,76 @@ ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
     m_radius = sysFSI->GetInitialSpacing() / 2;
 #ifdef CHRONO_OPENGL
     m_system = new ChSystemSMC();
+
+    m_vsys = new opengl::ChVisualSystemOpenGL();
+    m_vsys->AttachSystem(m_system);
+    m_vsys->SetWindowTitle("");
+    m_vsys->SetWindowSize(1280, 720);
+    m_vsys->SetCameraProperties(0.1f);
+    m_vsys->SetRenderMode(opengl::WIREFRAME);
+    m_vsys->SetParticleRenderMode(sysFSI->GetInitialSpacing() / 2, opengl::POINTS);
+    m_vsys->SetCameraPosition(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+    m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
+    m_vsys->EnableStats(false);
 #else
+    m_system = nullptr;
     std::cout << "\nWARNING! Chrono::OpenGL not available.  Visualization disabled!\n" << std::endl;
 #endif
 }
 
 ChVisualizationFsi::~ChVisualizationFsi() {
     delete m_system;
+#ifdef CHRONO_OPENGL
+    delete m_vsys;
+#endif
+}
+
+void ChVisualizationFsi::SetSize(int width, int height) {
+#ifdef CHRONO_OPENGL
+    m_vsys->SetWindowSize(width, height);
+#endif
+}
+
+void ChVisualizationFsi::SetTitle(const std::string& title) {
+#ifdef CHRONO_OPENGL
+    m_vsys->SetWindowTitle("");
+#endif
 }
 
 void ChVisualizationFsi::SetCameraPosition(const ChVector<>& pos, const ChVector<>& target) {
-    m_cam_pos = pos;
-    m_cam_target = target;
+#ifdef CHRONO_OPENGL
+    m_vsys->SetCameraPosition(pos, target);
+#endif
 }
 
 void ChVisualizationFsi::SetCameraUpVector(const ChVector<>& up) {
-    m_cam_up = up;
+#ifdef CHRONO_OPENGL
+    m_vsys->SetCameraVertical(up);
+#endif
 }
 
 void ChVisualizationFsi::SetCameraMoveScale(float scale) {
-    m_cam_scale = scale;
+#ifdef CHRONO_OPENGL
+    m_vsys->SetCameraProperties(scale);
+#endif
 }
 
 void ChVisualizationFsi::SetVisualizationRadius(double radius) {
-    m_radius = radius;
+#ifdef CHRONO_OPENGL
+    m_vsys->SetParticleRenderMode(radius, opengl::POINTS);
+#endif
+}
+
+void ChVisualizationFsi::SetRenderMode(RenderMode mode) {
+#ifdef CHRONO_OPENGL
+    m_vsys->SetRenderMode(mode == RenderMode::WIREFRAME ? opengl::WIREFRAME : opengl::SOLID);
+#endif
+}
+
+void ChVisualizationFsi::EnableInfoOverlay(bool val) {
+#ifdef CHRONO_OPENGL
+    m_vsys->EnableStats(val);
+#endif
 }
 
 void ChVisualizationFsi::AddProxyBody(std::shared_ptr<ChBody> body) {
@@ -129,14 +165,10 @@ void ChVisualizationFsi::Initialize() {
         }
     }
 
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.AttachSystem(m_system);
     if (m_user_system)
-        gl_window.AttachSystem(m_user_system);
-    gl_window.Initialize(1280, 720, m_title.c_str());
-    gl_window.SetCamera(m_cam_pos, m_cam_target, m_cam_up, m_cam_scale);
-    gl_window.SetRenderMode(opengl::WIREFRAME);
-    gl_window.SetParticleRenderMode(m_radius, opengl::POINTS);
+        m_vsys->AttachSystem(m_user_system);
+
+    m_vsys->Initialize();
 #endif
 }
 
@@ -145,8 +177,7 @@ bool ChVisualizationFsi::Render() {
     // Only for display in OpenGL window
     m_system->SetChTime(m_systemFSI->GetSimTime());
 
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    if (gl_window.Active()) {
+    if (m_vsys->Run()) {
         // Copy SPH particle positions from device to host
         thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkersD2->posRadD;
 
@@ -183,12 +214,12 @@ bool ChVisualizationFsi::Render() {
             }            
         }
 
-        gl_window.Render();
+        m_vsys->Render();
         return true;
     }
     return false;  // rendering stopped
 #else
-    return false;
+    return true;
 #endif
 }
 

@@ -16,11 +16,16 @@
 
 #include <string>
 
+#include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChParticleCloud.h"
 
 #include "chrono_gpu/ChApiGpu.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
+
+#ifdef CHRONO_OPENGL
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#endif
 
 namespace chrono {
 namespace gpu {
@@ -35,9 +40,6 @@ namespace gpu {
 /// system. This separate system can be provided by the user or else created automatically. Note that using run-time
 /// visualization for a Chrono::Gpu system incurs the penalty of collecting positions of all particles every time the
 /// Render() function is invoked.
-///
-/// To implement a moving camera (i.e., prescribe the camera position), get the current instance of the active
-/// Chrono::OpenGL window and use the function ChOpenGLWindow::SetCamera().
 class CH_GPU_API ChGpuVisualization {
   public:
     /// <summary>
@@ -51,14 +53,15 @@ class CH_GPU_API ChGpuVisualization {
     ~ChGpuVisualization();
 
     /// Set title of the visualization window (default: "").
-    void SetTitle(const std::string& title) { m_title = title; }
+    void SetTitle(const std::string& title);
+
+    /// Set window dimensions (default: 1280x720).
+    void SetSize(int width, int height);
 
     /// Set camera position and target (look at) point.
-    /// Must be called before Initialize().
     void SetCameraPosition(const ChVector<>& pos, const ChVector<>& target);
 
     /// Set camera up vector (default: Z).
-    /// Must be called before Initialize().
     void SetCameraUpVector(const ChVector<>& up);
 
     /// Set scale for camera movement increments (default: 0.1).
@@ -92,14 +95,11 @@ class CH_GPU_API ChGpuVisualization {
     ChSystemGpu* m_systemGPU;  ///< associated Chrono::Gpu system
     ChSystem* m_system;        ///< supplemental Chrono system (holds proxy bodies)
     ChSystem* m_user_system;   ///< optional user-provided system
+#ifdef CHRONO_OPENGL
+    opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
+#endif
 
     unsigned int m_part_start_index;  ///< start index of particles in m_system's body list
-
-    std::string m_title;      ///< visualization window title
-    ChVector<> m_cam_pos;     ///< current camera position
-    ChVector<> m_cam_target;  ///< current camera look at point
-    ChVector<> m_cam_up;      ///< camera up vector
-    float m_cam_scale;        ///< camera move increment scale
 };
 
 /// @} gpu_utils
