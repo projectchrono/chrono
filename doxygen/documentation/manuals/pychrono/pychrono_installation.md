@@ -14,7 +14,7 @@ To install a PyChrono conda module, do the following:
 1. Be sure that you have installed the [Anaconda](https://www.anaconda.com/download/) Python distribution. <br>
    (If you already have [Python](http://www.python.org) installed, you can still install Anaconda or MiniConda).
 
-2. Add conda-forge and intel to your conda channel:
+2. Add the `conda-forge` and `intel` channels to the top of the list of channels:
 ```
    conda config --add channels https://conda.anaconda.org/conda-forge
    conda config --add channels https://conda.anaconda.org/intel
@@ -23,6 +23,12 @@ To install a PyChrono conda module, do the following:
 4. Decide which version of the Chrono code (latest release or latest code) you want and for which Python version.  See the full list of available modules on the [PyChrono Anaconda Repository](https://anaconda.org/projectchrono/pychrono/files)
 
 5. We recommend you use a dedicated conda environment (for example `chrono`) and install the desired Python distribution and PyChrono module there.
+
+   For example, to create a `chrono` environment with Python 3.10, use:
+
+```
+   conda create -n chrono python=3.10
+```   
 
 6. Install the necessary dependencies (all as conda packages):
 
@@ -34,9 +40,9 @@ To install a PyChrono conda module, do the following:
    ```
    conda install -c conda-forge irrlicht
    ```
-   - for Cascade support
+   - for Cascade support (**Attention**: Chrono requires version 7.4 of OpenCascade.  Use the DLR-SC channel to install the appropriate version!)
    ``` 
-   **TODO**
+   conda install -c dlr-sc opencascade
    ```
 
 7. If you want the PyChrono package for the latest Chrono *release*, simply do
