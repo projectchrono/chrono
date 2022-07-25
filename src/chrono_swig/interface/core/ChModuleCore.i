@@ -213,6 +213,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChBodyEasyMesh)
 %shared_ptr(chrono::ChBodyEasyClusterOfSpheres)
 %shared_ptr(chrono::ChConveyor)
+%shared_ptr(chrono::ChFeeder)
 %shared_ptr(chrono::ChAparticle)
 %shared_ptr(chrono::ChParticleBase)
 %shared_ptr(chrono::ChIndexedParticles)
@@ -383,6 +384,7 @@ using namespace chrono::fea;
 %include "../../../chrono/physics/ChBodyEasy.h"
 %include "ChNodeXYZ.i"
 %include "ChConveyor.i"
+%include "ChFeeder.i"
 %include "ChIndexedParticles.i"
 %include "ChParticleCloud.i"
 %include "ChLinkBase.i"
