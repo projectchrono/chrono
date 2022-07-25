@@ -851,7 +851,8 @@ void ChSystemFsi::Initialize() {
     m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
     m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
 
-    m_sysFSI->fsiBodiesD2 = m_sysFSI->fsiBodiesD1;  //(2) construct midpoint rigid data
+    // Construct midpoint rigid data
+    m_sysFSI->fsiBodiesD2 = m_sysFSI->fsiBodiesD1;  
 
     // Create BCE and SPH worker objects
     m_bce_manager = chrono_types::make_shared<ChBce>(m_sysFSI->sortedSphMarkersD, m_sysFSI->markersProximityD,

@@ -56,14 +56,15 @@ double out_fps = 20;
 std::vector<std::vector<int>> NodeNeighborElement_mesh;
 
 // Dimension of the domain
-double bxDim = 3;
-double byDim = 0.2;
-double bzDim = 1.5;
+double smalldis = 1.0e-9;
+double bxDim = 3.0 + smalldis;
+double byDim = 0.2 + smalldis;
+double bzDim = 2.0 + smalldis;
 
 // Dimension of the fluid domain
-double fxDim = 1;
-double fyDim = byDim;
-double fzDim = 1;
+double fxDim = 1.0 + smalldis;
+double fyDim = 0.2 + smalldis;
+double fzDim = 1.0 + smalldis;
 bool flexible_elem_1D = false;
 
 // Final simulation time
@@ -112,18 +113,19 @@ int main(int argc, char* argv[]) {
     }
     sysFSI.ReadParametersFromFile(inputJson);
 
-    ChVector<> cMin = ChVector<>(-bxDim, -byDim, -bzDim) - ChVector<>(sysFSI.GetKernelLength() * 5);
-    ChVector<> cMax = ChVector<>(bxDim, byDim, 1.2 * bzDim) + ChVector<>(sysFSI.GetKernelLength() * 5);
+    sysFSI.SetContainerDim(ChVector<>(bxDim, byDim, bzDim));
+
+    auto initSpace0 = sysFSI.GetInitialSpacing();
+    ChVector<> cMin = ChVector<>(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim );
+    ChVector<> cMax = ChVector<>( 5 * bxDim,  byDim / 2.0 + initSpace0 / 2.0,  5 * bzDim );
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Setup the output directory for FSI data
     sysFSI.SetOutputDirectory(out_dir);
 
-    // ******************************* Create Fluid region ****************************************
-    ////paramsH->MULT_INITSPACE_Shells = 1;
-    auto initSpace0 = sysFSI.GetInitialSpacing();
+    // Create SPH particles of fluid region
     chrono::utils::GridSampler<> sampler(initSpace0);
-    ChVector<> boxCenter(-bxDim / 2 + fxDim / 2, 0 * initSpace0, fzDim / 2 + 1 * initSpace0);
+    ChVector<> boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2 + 1 * initSpace0);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
     chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
@@ -259,17 +261,17 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XY, pos_zn, QUNIT, true);
     chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xp, QUNIT, true);
     chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xn, QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yp, QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yn, QUNIT, true);
+    // chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yp, QUNIT, true);
+    // chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yn, QUNIT, true);
     sysMBS.AddBody(ground);
 
     // Fluid representation of walls
     sysFSI.AddBoxBCE(ground, pos_zn, QUNIT, size_XY, 12);
-    sysFSI.AddBoxBCE(ground, pos_zp, QUNIT, size_XY, 12);
+    // sysFSI.AddBoxBCE(ground, pos_zp, QUNIT, size_XY, 12);
     sysFSI.AddBoxBCE(ground, pos_xp, QUNIT, size_YZ, 23);
     sysFSI.AddBoxBCE(ground, pos_xn, QUNIT, size_YZ, 23);
-    sysFSI.AddBoxBCE(ground, pos_yp, QUNIT, size_XZ, 13);
-    sysFSI.AddBoxBCE(ground, pos_yn, QUNIT, size_XZ, 13);
+    // sysFSI.AddBoxBCE(ground, pos_yp, QUNIT, size_XZ, 13);
+    // sysFSI.AddBoxBCE(ground, pos_yn, QUNIT, size_XZ, 13);
 
     // ******************************* Flexible bodies ***********************************
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
@@ -361,7 +363,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         // Create an isotropic material.
         // All layers for all elements share the same material.
         double rho = 8000;
-        double E = 5e5;
+        double E = 5e7;
         double nu = 0.3;
         auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
         // Create the elements

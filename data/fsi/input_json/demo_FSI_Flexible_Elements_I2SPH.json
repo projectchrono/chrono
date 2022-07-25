@@ -10,15 +10,14 @@
   "SPH Parameters":
   {
     "Method":                         "I2SPH",
-    "Kernel h":                       0.025,
-    "Initial Spacing":                0.025,
-    "Epsilon":                        0.001,
-    "Maximum Velocity":               1.0,
+    "Kernel h":                       0.02,
+    "Initial Spacing":                0.02,
+    "Epsilon":                        0.01,
+    "Maximum Velocity":               10.0,
     "XSPH Coefficient":               0.5,
     "Shifting Coefficient":           0.0,
     "Density Reinitialization":       200,
     "Conservative Discretization":    true
-
   },
 
   "Time Stepping":
@@ -32,8 +31,8 @@
 
   "Pressure Equation":
   {
-    "Boundary Conditions":     "Generalized Wall BC",//Generalized Wall BC, Original
-    "Linear solver":           "Jacobi",//Jacobi, BICGSTAB, GMRES
+    "Boundary Conditions":     "Generalized Wall BC",
+    "Linear solver":           "Jacobi",
     "Poisson source term":     "Density-Based",
     "Projection method":       "Non-Incremental",
     "Under-relaxation":         0.5,

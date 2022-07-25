@@ -966,9 +966,10 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                               const size_t numFluidMarkers,
                               const size_t numBounMarkers,
                               const size_t numRigidMarkers,
+                              const size_t numAllMarkers,
                               volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numFluidMarkers + numRigidMarkers)
+    if (id >= numAllMarkers - numBounMarkers)
         return;
 
     uint index = indexOfIndex[id];
@@ -1498,9 +1499,10 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
                                const size_t numFluidMarkers,
                                const size_t numBounMarkers,
                                const size_t numRigidMarkers,
+                               const size_t numAllMarkers,
                                volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numFluidMarkers + numRigidMarkers)
+    if (id >= numAllMarkers - numBounMarkers)
         return;
 
     uint index = indexOfIndex[id];
@@ -1660,8 +1662,8 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     uint numBlocks, numThreads;
     computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
     uint numBlocks1, numThreads1;
-    computeGridSize((int)numObjectsH->numFluidMarkers +
-        (int)numObjectsH->numRigidMarkers, 256, numBlocks1, numThreads1);
+    computeGridSize((int)numObjectsH->numAllMarkers -
+        (int)numObjectsH->numBoundaryMarkers, 256, numBlocks1, numThreads1);
 
     // Execute the kernel
     thrust::device_vector<Real4> sortedDerivVelRho(numObjectsH->numAllMarkers);
@@ -1730,7 +1732,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
             mR4CAST(bceWorker->rhoPreMu_ModifiedBCE), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
             mR3CAST(sortedSphMarkersD->tauXyXzYzD), U1CAST(markersProximityD->gridMarkerIndexD),
             U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
-            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, isErrorD);
+            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, numObjectsH->numAllMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Navier_Stokes");
     }
 
@@ -1781,7 +1783,7 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
             U1CAST(markersProximityD->mapOriginalToSorted), numObjectsH->numAllMarkers);
     } else {
         uint numBlocks1, numThreads1;
-        computeGridSize((int)numObjectsH->numFluidMarkers + (int)numObjectsH->numRigidMarkers, 256, numBlocks1,
+        computeGridSize((int)numObjectsH->numAllMarkers - (int)numObjectsH->numBoundaryMarkers, 256, numBlocks1,
                         numThreads1);
 
         thrust::device_vector<Real4> sortedPosRad_old = sortedSphMarkersD->posRadD;
@@ -1802,7 +1804,7 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedXSPHandShift),
             U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
             U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers, numObjectsH->numBoundaryMarkers,
-            numObjectsH->numRigidMarkers, isErrorD);
+            numObjectsH->numRigidMarkers, numObjectsH->numAllMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "CalcVel_XSPH_D");
 
         CopySortedToOriginal_XSPH_D<<<numBlocks, numThreads>>>(

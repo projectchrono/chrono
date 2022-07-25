@@ -793,76 +793,89 @@ void ChBce::CalcBceAcceleration(thrust::device_vector<Real3>& bceAcc,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::ModifyBceVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
-    // modify BCE velocity and pressure
-    int numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[2].y - fsiGeneralData->referenceArray[0].y;
-    if (numObjectsH->numRigidBodies == 0)
-        numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[1].y - fsiGeneralData->referenceArray[0].y;
+    if (numObjectsH->numFlexBodies1D + numObjectsH->numFlexBodies2D == 0){
+        // modify BCE velocity and pressure
+        int numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[2].y - fsiGeneralData->referenceArray[0].y;
+        if (numObjectsH->numRigidBodies == 0)
+            numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[1].y - fsiGeneralData->referenceArray[0].y;
 
-    if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers) != numRigidAndBoundaryMarkers) {
-        throw std::runtime_error(
-            "Error! number of rigid and boundary markers are "
-            "saved incorrectly. Thrown from ModifyBceVelocity!\n");
-    }
-    if (!(velMas_ModifiedBCE.size() == numRigidAndBoundaryMarkers &&
-          rhoPreMu_ModifiedBCE.size() == numRigidAndBoundaryMarkers &&
-          tauXxYyZz_ModifiedBCE.size() == numRigidAndBoundaryMarkers &&
-          tauXyXzYz_ModifiedBCE.size() == numRigidAndBoundaryMarkers)) {
-        throw std::runtime_error(
-            "Error! size error velMas_ModifiedBCE and "
-            "tauXxYyZz_ModifiedBCE and tauXyXzYz_ModifiedBCE and "
-            "rhoPreMu_ModifiedBCE. Thrown from ModifyBceVelocity!\n");
-    }
-    int3 updatePortion = mI3(fsiGeneralData->referenceArray[0].y, fsiGeneralData->referenceArray[1].y,
-                             fsiGeneralData->referenceArray[2].y);
-    if (numObjectsH->numRigidBodies == 0)
-        updatePortion.z = fsiGeneralData->referenceArray[1].y;
-
-    if (paramsH->bceType == BceVersion::ADAMI) {
-        thrust::device_vector<Real3> bceAcc(numObjectsH->numRigidMarkers);
-        if (numObjectsH->numRigidMarkers > 0) {
-            CalcBceAcceleration(bceAcc, fsiBodiesD->q_fsiBodies_D, fsiBodiesD->accRigid_fsiBodies_D,
-                                fsiBodiesD->omegaVelLRF_fsiBodies_D, fsiBodiesD->omegaAccLRF_fsiBodies_D,
-                                fsiGeneralData->rigidSPH_MeshPos_LRF_D, fsiGeneralData->rigidIdentifierD,
-                                (int)numObjectsH->numRigidMarkers);
+        if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers) != numRigidAndBoundaryMarkers) {
+            throw std::runtime_error(
+                "Error! number of rigid and boundary markers are "
+                "saved incorrectly. Thrown from ModifyBceVelocity!\n");
         }
-        // ADAMI BC for rigid body, ORIGINAL BC for fixed wall
-        if (paramsH->bceTypeWall == BceVersion::ORIGINAL) {
-            thrust::copy(sphMarkersD->velMasD.begin() + updatePortion.x, 
-                         sphMarkersD->velMasD.begin() + updatePortion.y, velMas_ModifiedBCE.begin());
-            thrust::copy(sphMarkersD->rhoPresMuD.begin() + updatePortion.x,
-                         sphMarkersD->rhoPresMuD.begin() + updatePortion.y, rhoPreMu_ModifiedBCE.begin());
-            thrust::copy(sphMarkersD->tauXxYyZzD.begin() + updatePortion.x,
-                         sphMarkersD->tauXxYyZzD.begin() + updatePortion.y, tauXxYyZz_ModifiedBCE.begin());
-            thrust::copy(sphMarkersD->tauXyXzYzD.begin() + updatePortion.x,
-                         sphMarkersD->tauXyXzYzD.begin() + updatePortion.y, tauXyXzYz_ModifiedBCE.begin());
+        if (!(velMas_ModifiedBCE.size() == numRigidAndBoundaryMarkers &&
+            rhoPreMu_ModifiedBCE.size() == numRigidAndBoundaryMarkers &&
+            tauXxYyZz_ModifiedBCE.size() == numRigidAndBoundaryMarkers &&
+            tauXyXzYz_ModifiedBCE.size() == numRigidAndBoundaryMarkers)) {
+            throw std::runtime_error(
+                "Error! size error velMas_ModifiedBCE and "
+                "tauXxYyZz_ModifiedBCE and tauXyXzYz_ModifiedBCE and "
+                "rhoPreMu_ModifiedBCE. Thrown from ModifyBceVelocity!\n");
+        }
+        int3 updatePortion = mI3(fsiGeneralData->referenceArray[0].y, fsiGeneralData->referenceArray[1].y,
+                                fsiGeneralData->referenceArray[2].y);
+        if (numObjectsH->numRigidBodies == 0)
+            updatePortion.z = fsiGeneralData->referenceArray[1].y;
+
+        if (paramsH->bceType == BceVersion::ADAMI) {
+            thrust::device_vector<Real3> bceAcc(numObjectsH->numRigidMarkers);
             if (numObjectsH->numRigidMarkers > 0) {
+                CalcBceAcceleration(bceAcc, fsiBodiesD->q_fsiBodies_D, fsiBodiesD->accRigid_fsiBodies_D,
+                                    fsiBodiesD->omegaVelLRF_fsiBodies_D, fsiBodiesD->omegaAccLRF_fsiBodies_D,
+                                    fsiGeneralData->rigidSPH_MeshPos_LRF_D, fsiGeneralData->rigidIdentifierD,
+                                    (int)numObjectsH->numRigidMarkers);
+            }
+            // ADAMI BC for rigid body, ORIGINAL BC for fixed wall
+            if (paramsH->bceTypeWall == BceVersion::ORIGINAL) {
+                thrust::copy(sphMarkersD->velMasD.begin() + updatePortion.x, 
+                            sphMarkersD->velMasD.begin() + updatePortion.y, velMas_ModifiedBCE.begin());
+                thrust::copy(sphMarkersD->rhoPresMuD.begin() + updatePortion.x,
+                            sphMarkersD->rhoPresMuD.begin() + updatePortion.y, rhoPreMu_ModifiedBCE.begin());
+                thrust::copy(sphMarkersD->tauXxYyZzD.begin() + updatePortion.x,
+                            sphMarkersD->tauXxYyZzD.begin() + updatePortion.y, tauXxYyZz_ModifiedBCE.begin());
+                thrust::copy(sphMarkersD->tauXyXzYzD.begin() + updatePortion.x,
+                            sphMarkersD->tauXyXzYzD.begin() + updatePortion.y, tauXyXzYz_ModifiedBCE.begin());
+                if (numObjectsH->numRigidMarkers > 0) {
+                    RecalcSortedVelocityPressure_BCE(
+                        fsiBodiesD, velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, tauXxYyZz_ModifiedBCE, tauXyXzYz_ModifiedBCE,
+                        sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, sortedSphMarkersD->rhoPresMuD,
+                        sortedSphMarkersD->tauXxYyZzD, sortedSphMarkersD->tauXyXzYzD, markersProximityD->cellStartD, 
+                        markersProximityD->cellEndD, markersProximityD->mapOriginalToSorted,bceAcc, updatePortion);
+                        
+                }
+            }
+            // ADAMI BC for both rigid body and fixed wall
+            else if (paramsH->bceTypeWall == BceVersion::ADAMI) {
                 RecalcSortedVelocityPressure_BCE(
                     fsiBodiesD, velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, tauXxYyZz_ModifiedBCE, tauXyXzYz_ModifiedBCE,
-                    sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, sortedSphMarkersD->rhoPresMuD,
+                    sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, sortedSphMarkersD->rhoPresMuD, 
                     sortedSphMarkersD->tauXxYyZzD, sortedSphMarkersD->tauXyXzYzD, markersProximityD->cellStartD, 
-                    markersProximityD->cellEndD, markersProximityD->mapOriginalToSorted,bceAcc, updatePortion);
+                    markersProximityD->cellEndD, markersProximityD->mapOriginalToSorted, bceAcc, updatePortion);
                     
             }
+            bceAcc.clear();
+        } else {
+            thrust::copy(sphMarkersD->velMasD.begin() + updatePortion.x, 
+                        sphMarkersD->velMasD.begin() + updatePortion.z, velMas_ModifiedBCE.begin());
+            thrust::copy(sphMarkersD->rhoPresMuD.begin() + updatePortion.x,
+                        sphMarkersD->rhoPresMuD.begin() + updatePortion.z, rhoPreMu_ModifiedBCE.begin());
+            thrust::copy(sphMarkersD->tauXxYyZzD.begin() + updatePortion.x,
+                        sphMarkersD->tauXxYyZzD.begin() + updatePortion.z, tauXxYyZz_ModifiedBCE.begin());
+            thrust::copy(sphMarkersD->tauXyXzYzD.begin() + updatePortion.x,
+                        sphMarkersD->tauXyXzYzD.begin() + updatePortion.z, tauXyXzYz_ModifiedBCE.begin());
         }
-        // ADAMI BC for both rigid body and fixed wall
-        else if (paramsH->bceTypeWall == BceVersion::ADAMI) {
-            RecalcSortedVelocityPressure_BCE(
-                fsiBodiesD, velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, tauXxYyZz_ModifiedBCE, tauXyXzYz_ModifiedBCE,
-                sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, sortedSphMarkersD->rhoPresMuD, 
-                sortedSphMarkersD->tauXxYyZzD, sortedSphMarkersD->tauXyXzYzD, markersProximityD->cellStartD, 
-                markersProximityD->cellEndD, markersProximityD->mapOriginalToSorted, bceAcc, updatePortion);
-                
-        }
-        bceAcc.clear();
     } else {
+        int3 updatePortion = mI3(fsiGeneralData->referenceArray[0].y, fsiGeneralData->referenceArray[1].y,
+            fsiGeneralData->referenceArray[2].y);
         thrust::copy(sphMarkersD->velMasD.begin() + updatePortion.x, 
-                     sphMarkersD->velMasD.begin() + updatePortion.z, velMas_ModifiedBCE.begin());
+                    sphMarkersD->velMasD.begin() + updatePortion.z, velMas_ModifiedBCE.begin());
         thrust::copy(sphMarkersD->rhoPresMuD.begin() + updatePortion.x,
-                     sphMarkersD->rhoPresMuD.begin() + updatePortion.z, rhoPreMu_ModifiedBCE.begin());
+                    sphMarkersD->rhoPresMuD.begin() + updatePortion.z, rhoPreMu_ModifiedBCE.begin());
         thrust::copy(sphMarkersD->tauXxYyZzD.begin() + updatePortion.x,
-                     sphMarkersD->tauXxYyZzD.begin() + updatePortion.z, tauXxYyZz_ModifiedBCE.begin());
+                    sphMarkersD->tauXxYyZzD.begin() + updatePortion.z, tauXxYyZz_ModifiedBCE.begin());
         thrust::copy(sphMarkersD->tauXyXzYzD.begin() + updatePortion.x,
-                     sphMarkersD->tauXyXzYzD.begin() + updatePortion.z, tauXyXzYz_ModifiedBCE.begin());
+                    sphMarkersD->tauXyXzYzD.begin() + updatePortion.z, tauXyXzYz_ModifiedBCE.begin());
     }
 }
 //--------------------------------------------------------------------------------------------------------------------------------
