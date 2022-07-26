@@ -32,6 +32,6 @@
 
   "Visualization":
   {
-      "Mesh":              "M113/Idler_L.obj"
+      "Mesh":              "M113/meshes/Idler_L.obj"
   }
 }
