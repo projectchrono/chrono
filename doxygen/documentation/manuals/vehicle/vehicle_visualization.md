@@ -7,10 +7,9 @@ Chrono::Vehicle provides visualization support both for run-time interactive sim
 
 ## Irrlicht-based run-time visualization {#vehicle_visualization_irrlicht}
 
-The vehicle Irrlicht-based run-time visualization uses the customized Irrlicht applications [ChWheeledVehicleIrrApp](@ref chrono::vehicle::ChWheeledVehicleIrrApp) and [ChTrackedVehicleIrrApp](@ref chrono::vehicle::ChTrackedVehicleIrrApp) for wheeled and tracked vehicles, respectively.
+The vehicle Irrlicht-based run-time visualization uses the customized Irrlicht applications [ChWheeledVehicleIrrApp](@ref chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht) and [ChTrackedVehicleIrrApp](@ref chrono::vehicle::ChTrackedVehicleVisualSystemIrrlicht) for wheeled and tracked vehicles, respectively.
 
-These are extensions of the base [ChIrrApp](@ref chrono::irrlicht::ChIrrApp) application to allow:
-- rendering in the default Chrono::Vehicle Z-up ISO reference frame (note that, because Irrlicht uses left-handed frames, renderings are mirrored left/right)
+These are extensions of the base [ChIrrApp](@ref chrono::irrlicht::ChVisualSystemIrrlicht) application to allow:
 - using a vehicle-centric camera location (point of view)
 - displaying additional (vehicle-specific) statistics, such as vehicle speed, current driver inputs, powertrain torques, wheel and sprocket torques, etc.
 - rendering of specified contact forces (tracked vehicles)

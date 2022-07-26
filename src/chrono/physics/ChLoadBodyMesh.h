@@ -95,8 +95,8 @@ class ChApi ChLoadBodyMesh : public ChLoadBase {
     virtual bool IsStiff() override { return false; }
 
     virtual void CreateJacobianMatrices() override;
-    virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;
-    virtual void LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {}; // nothing here because no M
+    virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, double c) override;
+    virtual void LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, double c) {}
     virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 

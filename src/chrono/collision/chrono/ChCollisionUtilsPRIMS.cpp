@@ -31,13 +31,13 @@ namespace ch_utils {
 // Utilities for triangle collisions
 // -----------------------------------------------------------------------------
 
-/// This utility function takes the location 'P' and snaps it to the closest
-/// point on the triangular face with given vertices (A, B, and C). The result
-/// is returned in 'res'. Both 'P' and 'res' are assumed to be specified in
-/// the same frame as the face vertices. This function returns 'true' if the
-/// result is on an edge of this face and 'false' if the result is inside the
-/// triangle.
-/// Code from Ericson, "Real-time collision detection", 2005, pp. 141
+// This utility function takes the location 'P' and snaps it to the closest
+// point on the triangular face with given vertices (A, B, and C). The result
+// is returned in 'res'. Both 'P' and 'res' are assumed to be specified in
+// the same frame as the face vertices. This function returns 'true' if the
+// result is on an edge of this face and 'false' if the result is inside the
+// triangle.
+// Code from Ericson, "Real-time collision detection", 2005, pp. 141
 bool snap_to_triangle(const real3& A, const real3& B, const real3& C, const real3& P, real3& res) {
     real3 AB = B - A;
     real3 AC = C - A;
@@ -458,8 +458,6 @@ int box_intersects_triangle(const real3& hdims,
     // Otherwise, they are separated (but not by more that 'separation').
     return (minOverlap >= separation) ? -1 : +1;
 }
-
-/// @} collision_mc
 
 }  // end namespace ch_utils
 }  // end namespace collision
