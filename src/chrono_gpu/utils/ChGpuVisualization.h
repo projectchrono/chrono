@@ -47,7 +47,6 @@ class CH_GPU_API ChGpuVisualization {
     /// If a supplemental Chrono system is not provided (default), one will be created internally.
     /// </summary>
     /// <param name="sysGPU">Associated Chrono::Gpu system</param>
-    /// <param name="sys">Supplemental Chrono system containing visualization proxies</param>
     ChGpuVisualization(ChSystemGpu* sysGPU);
 
     ~ChGpuVisualization();
