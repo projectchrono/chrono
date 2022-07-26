@@ -107,6 +107,10 @@ class CH_FSI_API ChVisualizationFsi {
     /// If the Chrono::OpenGL module is not available, this function is no-op.
     bool Render();
 
+#ifdef CHRONO_OPENGL
+    opengl::ChVisualSystemOpenGL& GetVisualSystem() const { return *m_vsys; }
+#endif
+
   private:
     ChSystemFsi* m_systemFSI;  ///< associated Chrono::FSI system
     ChSystem* m_system;        ///< internal Chrono system (holds proxy bodies)
