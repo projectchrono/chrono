@@ -65,6 +65,7 @@ using std::endl;
 // Available models:
 //    M113_SinglePin
 //    M113_DoublePin
+//    M113_RS_SinglePin
 //    Marder
 
 class Vehicle_Model {
@@ -72,6 +73,7 @@ class Vehicle_Model {
     virtual std::string ModelName() const = 0;
     virtual std::string VehicleJSON() const = 0;
     virtual std::string PowertrainJSON() const = 0;
+    virtual ChVector<> CameraPoint() const = 0; 
     virtual double CameraDistance() const = 0;
 };
 
@@ -87,6 +89,7 @@ class M113_SinglePin : public Vehicle_Model {
         ////return "M113/powertrain/M113_SimpleMapPowertrain.json";
         ////return "M113/powertrain/M113_ShaftsPowertrain.json";
     }
+    virtual ChVector<> CameraPoint() const override { return ChVector<>(0, 0, 0); }
     virtual double CameraDistance() const override { return 6.0; }
 };
 
@@ -102,6 +105,23 @@ class M113_DoublePin : public Vehicle_Model {
         ////return "M113/powertrain/M113_SimpleMapPowertrain.json";
         ////return "M113/powertrain/M113_ShaftsPowertrain.json";
     }
+    virtual ChVector<> CameraPoint() const override { return ChVector<>(0, 0, 0); }
+    virtual double CameraDistance() const override { return 6.0; }
+};
+
+class M113_RS_SinglePin : public Vehicle_Model {
+  public:
+    virtual std::string ModelName() const override { return "M113_RS_SinglePin"; }
+    virtual std::string VehicleJSON() const override {
+        ////return "M113_RS/vehicle/M113_Vehicle_SinglePin_Translational_BDS.json";
+        return "M113_RS/vehicle/M113_Vehicle_SinglePin_Distance_BDS.json";
+    }
+    virtual std::string PowertrainJSON() const override {
+        return "M113_RS/powertrain/M113_SimpleCVTPowertrain.json";
+        ////return "M113_RS/powertrain/M113_SimpleMapPowertrain.json";
+        ////return "M113_RS/powertrain/M113_ShaftsPowertrain.json";
+    }
+    virtual ChVector<> CameraPoint() const override { return ChVector<>(4, 0, 0); }
     virtual double CameraDistance() const override { return 6.0; }
 };
 
@@ -117,6 +137,7 @@ class Marder_SinglePin : public Vehicle_Model {
         return "Marder/powertrain/simpleCVTPowertrain.json";
         ////return "Marder/powertrain/simplePowertrain.json";
     }
+    virtual ChVector<> CameraPoint() const override { return ChVector<>(0, 0, 0); }
     virtual double CameraDistance() const override { return 8.0; }
 };
 
@@ -127,6 +148,7 @@ class Marder_SinglePin : public Vehicle_Model {
 // Current vehicle model selection
 auto vehicle_model = M113_SinglePin();
 ////auto vehicle_model = M113_DoublePin();
+////auto vehicle_model = M113_RS_SinglePin();
 ////auto vehicle_model = Marder_SinglePin();
 
 // JSON files for terrain (rigid plane)
@@ -372,9 +394,10 @@ int main(int argc, char* argv[]) {
 
     // Initialize the vehicle at the specified position.
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+    ////vehicle.GetChassis()->SetFixed(true);
 
     // Set visualization type for vehicle components
-    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetChassisVisualizationType(VisualizationType::NONE);
     vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
@@ -425,7 +448,7 @@ int main(int argc, char* argv[]) {
     // Create the run-time visualization system
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("JSON Tracked Vehicle Demo");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), vehicle_model.CameraDistance(), 0.5);
+    vis->SetChaseCamera(vehicle_model.CameraPoint(), vehicle_model.CameraDistance(), 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
     vis->AddSkyBox();
@@ -502,8 +525,8 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
 
     while (vis->Run()) {
+        // Render scene
         if (step_number % render_steps == 0) {
-            // Render scene
             vis->BeginScene();
             vis->Render();
             vis->EndScene();
@@ -513,6 +536,15 @@ int main(int argc, char* argv[]) {
         DriverInputs driver_inputs = driver->GetInputs();
         vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
+
+        // Release chassis
+        ////if (vehicle.GetChTime() < 1) {
+        ////    driver_inputs.m_throttle = 0;
+        ////    driver_inputs.m_braking = 0;
+        ////    driver_inputs.m_steering = 0;
+        ////} else {
+        ////    vehicle.GetChassis()->SetFixed(false);
+        ////}
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetChTime();

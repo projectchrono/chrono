@@ -1,0 +1,65 @@
+// M113 single-pin RIGHT assembly
+// - rear sprocket, front idler
+// - distance idler
+// - translational damper suspension
+{
+  "Name":                     "M113 SinglePin TrackAssembly Right",
+  "Type":                     "TrackAssembly",
+  "Template":                 "TrackAssemblySinglePin",
+
+  "Sprocket":
+  {
+      "Input File":           "M113_RS/sprocket/M113_SprocketSinglePin_Right.json",
+      "Location":             [0, 0, 0]
+  },
+
+  "Brake":
+  {
+      "Input File":           "M113_RS/brake/M113_TrackBrakeSimple.json"
+  },
+
+  "Idler":
+  {
+      "Input File":           "M113_RS/idler/M113_DoubleIdler_Distance_Right.json",
+      "Location":             [3.83, 0, -0.12]
+  },
+
+  "Suspension Subsystems":
+  [
+    {
+        "Input File":         "M113_RS/suspension/M113_TranslationalDamperSuspension_Right.json",
+        "Has Shock":          true,
+        "Location":           [0.740, 0, -0.215]
+    },
+
+    {
+        "Input File":         "M113_RS/suspension/M113_TranslationalDamperSuspension_Right.json",
+        "Has Shock":          true,
+        "Location":           [1.407, 0, -0.215]
+    },
+
+    {
+        "Input File":         "M113_RS/suspension/M113_TranslationalDamperSuspension_Right.json",
+        "Has Shock":          false,
+        "Location":           [2.074, 0, -0.215]
+    },
+
+    {
+        "Input File":         "M113_RS/suspension/M113_TranslationalDamperSuspension_Right.json",
+        "Has Shock":          false,
+        "Location":           [2.740, 0, -0.215]
+    },
+
+    {
+        "Input File":         "M113_RS/suspension/M113_TranslationalDamperSuspension_Right.json",
+        "Has Shock":          true,
+        "Location":           [3.407, 0, -0.215]
+    }
+  ],
+
+  "Track Shoes":
+  {
+      "Input File":           "M113_RS/track_shoe/M113_TrackShoeSinglePin.json",
+      "Number Shoes":         64
+  }
+ }

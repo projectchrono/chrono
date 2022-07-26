@@ -1,0 +1,38 @@
+{
+  "Name":                           "M113 SinglePin Sprocket Left",
+  "Type":                           "Sprocket",
+  "Template":                       "SprocketSinglePin",
+
+  "Number Teeth":                   10,
+  "Gear Mass":                      27.68,
+  "Gear Inertia":                   [0.646, 0.883, 0.646],
+  "Axle Inertia":                   0.4,
+  "Gear Separation":                0.225,
+  "Lateral Backlash":               0.02,
+
+  "Profile": 
+  {
+      "Addenum Radius":             0.2605,
+      "Arc Radius":                 0.089,
+      "Arc Centers Radius":         0.3,
+      "Assembly Radius":            0.245
+  },
+
+  "Contact Material":
+  {
+      "Coefficient of Friction":    0.4,
+      "Coefficient of Restitution": 0.75,
+
+      "Properties": {
+          "Young Modulus":          1e9,
+          "Poisson Ratio":          0.3
+      },
+
+      "Coefficients": {
+          "Normal Stiffness":       2e5,
+          "Normal Damping":         40.0,
+          "Tangential Stiffness":   2e5,
+          "Tangential Damping":     20.0
+      }
+  }
+}

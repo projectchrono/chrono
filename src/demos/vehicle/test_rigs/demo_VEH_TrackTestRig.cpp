@@ -53,9 +53,12 @@ using std::endl;
 // =============================================================================
 
 // Rig construction
-bool use_JSON = false;
+bool use_JSON = true;
+
 std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json");
 ////std::string filename("M113/track_assembly/M113_TrackAssemblyDoublePin_Left.json");
+////std::string filename("M113_RS/track_assembly/M113_TrackAssemblySinglePin_Translational_Left.json");
+////std::string filename("M113_RS/track_assembly/M113_TrackAssemblySinglePin_Distance_Left.json");
 
 TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
 DoublePinTrackShoeType shoe_topology = DoublePinTrackShoeType::ONE_CONNECTOR;
