@@ -602,7 +602,7 @@ void drawHUDviolation(ChVisualSystemIrrlicht* vis, int mx, int my, int sx, int s
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void drawChFunction(ChVisualSystemIrrlicht* vis,
-                    ChFunction* fx,
+                    std::shared_ptr<chrono::ChFunction> fx,
                     double xmin,
                     double xmax,
                     double ymin,
@@ -610,7 +610,9 @@ void drawChFunction(ChVisualSystemIrrlicht* vis,
                     int mx,
                     int my,
                     int sx,
-                    int sy) {
+                    int sy,
+                    chrono::ChColor col,
+                    const char* title) {
     irr::video::IVideoDriver* driver = vis->GetDevice()->getVideoDriver();
 
     if (!fx)
@@ -639,6 +641,8 @@ void drawChFunction(ChVisualSystemIrrlicht* vis,
                            irr::video::SColor(200, 100, 0, 0));
             }
         }
+        vis->GetDevice()->getGUIEnvironment()->addStaticText(irr::core::stringw(title).c_str(),
+                                                             irr::core::rect<s32>(mx, my - 15, mx + sx, my));
     }
 
     int prevx = 0;
@@ -651,7 +655,7 @@ void drawChFunction(ChVisualSystemIrrlicht* vis,
         int px = mx + ix;
         if (ix > 0)
             driver->draw2DLine(irr::core::position2d<s32>(px, py), irr::core::position2d<s32>(prevx, prevy),
-                               irr::video::SColor(200, 255, 0, 0));
+                               ToIrrlichtSColor(col));
         prevx = px;
         prevy = py;
     }
