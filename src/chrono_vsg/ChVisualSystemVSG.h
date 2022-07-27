@@ -57,12 +57,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetLightIntensity(double intensity) { m_lightIntensity = ChClamp(intensity,0.0,1.0);}
     void SetLightDirection(double acimut, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
+    void SetGuiFontSize(float theSize=20.f) { m_guiFontSize = theSize; }
     void BindAll() override;
     void OnUpdate(ChSystem* sys) override;
 
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
         bool showGui = true;  // (don't) show the imgui menu, actually unused
-        double guiFontScale = 1.0;
         bool do_image_capture = false; // mark image capturing as needed
     };
 
@@ -109,6 +109,7 @@ private:
     //
     std::string m_imageFilename;
     //bool m_do_image_export = false;
+    float m_guiFontSize = 25.0f;
 };
 }  // namespace vsg3d
 }  // namespace chrono

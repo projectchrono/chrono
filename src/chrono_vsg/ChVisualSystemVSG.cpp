@@ -52,9 +52,10 @@ class GuiComponent {
     // Example here taken from the Dear imgui comments (mostly)
     bool operator()() {
         bool visibleComponents = false;
+        /*
         ImGuiIO& io = ImGui::GetIO();
         io.FontGlobalScale = _params->guiFontScale;
-
+        */
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         if (_params->showGui) {
             ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
@@ -300,11 +301,6 @@ void ChVisualSystemVSG::Initialize() {
     }
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
     m_viewer->addWindow(m_window);
-    if ((m_window->extent2D().width > m_window->traits()->width) &&
-        (m_window->extent2D().height > m_window->traits()->height)) {
-        // we seem to have a retina display, make the menu text readable
-        m_params->guiFontScale = 2.0;
-    }
     vsg::ref_ptr<vsg::LookAt> lookAt;
 
     // set up the camera
@@ -333,6 +329,23 @@ void ChVisualSystemVSG::Initialize() {
     auto renderGraph = vsg::createRenderGraphForView(m_window, camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
     auto commandGraph = vsg::CommandGraph::create(m_window, renderGraph);
 
+    auto foundFontFile = vsg::findFile("vsg/fonts/Ubuntu_Mono/UbuntuMono-Regular.ttf", m_options);
+    if(foundFontFile) {
+        GetLog() << "Font file found = "<< foundFontFile.string() << "\n";
+        // convert native filename to UTF8 string that is compatible with ImuGUi.
+        std::string c_fontFile = foundFontFile.string();
+
+        // initialize ImGui
+        ImGui::CreateContext();
+        // read the font via ImGui, which will then be current when vsgImGui::RenderImGui initializes the rest of ImGui/Vulkan below
+        ImGuiIO& io = ImGui::GetIO();
+        auto imguiFont = io.Fonts->AddFontFromFileTTF(c_fontFile.c_str(), m_guiFontSize);
+        if (!imguiFont)
+        {
+            std::cout << "Failed to load font: " << c_fontFile << std::endl;
+            return;
+        }
+    }
     // Create the ImGui node and add it to the renderGraph
     renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, GuiComponent(m_params, this)));
 
