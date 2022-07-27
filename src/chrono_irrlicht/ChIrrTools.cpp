@@ -660,7 +660,7 @@ void drawChFunction(ChVisualSystemIrrlicht* vis,
 // -----------------------------------------------------------------------------
 // Draw segment lines in 3D space, with given color.
 // -----------------------------------------------------------------------------
-void drawSegment(ChVisualSystemIrrlicht* vis, ChVector<> start, ChVector<> end, ChColor col, bool use_Zbuffer) {
+void drawSegment(ChVisualSystemIrrlicht* vis, ChVector<> start, ChVector<> end, chrono::ChColor col, bool use_Zbuffer) {
     vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = use_Zbuffer;
@@ -673,7 +673,10 @@ void drawSegment(ChVisualSystemIrrlicht* vis, ChVector<> start, ChVector<> end, 
 // -----------------------------------------------------------------------------
 // Draw a polyline in 3D space, given the array of points as a std::vector.
 // -----------------------------------------------------------------------------
-void drawPolyline(ChVisualSystemIrrlicht* vis, std::vector<ChVector<> >& points, ChColor col, bool use_Zbuffer) {
+void drawPolyline(ChVisualSystemIrrlicht* vis,
+                  std::vector<ChVector<> >& points,
+                  chrono::ChColor col,
+                  bool use_Zbuffer) {
     // not very efficient, but enough as an example..
     if (points.size() < 2)
         return;
@@ -688,7 +691,7 @@ void drawPolyline(ChVisualSystemIrrlicht* vis, std::vector<ChVector<> >& points,
 void drawCircle(ChVisualSystemIrrlicht* vis,
                 double radius,
                 ChCoordsys<> pos,
-                ChColor col,
+                chrono::ChColor col,
                 int resolution,
                 bool use_Zbuffer) {
     vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
@@ -716,7 +719,7 @@ void drawSpring(ChVisualSystemIrrlicht* vis,
                 double radius,
                 ChVector<> start,
                 ChVector<> end,
-                ChColor col,
+                chrono::ChColor col,
                 int resolution,
                 double turns,
                 bool use_Zbuffer) {
@@ -760,7 +763,7 @@ ChApiIrr void drawRotSpring(ChVisualSystemIrrlicht* vis,
                             double radius,
                             double start_angle,
                             double end_angle,
-                            ChColor col,
+                            chrono::ChColor col,
                             int resolution,
                             bool use_Zbuffer) {
     vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
@@ -790,7 +793,7 @@ void drawGrid(ChVisualSystemIrrlicht* vis,
               int nu,
               int nv,
               ChCoordsys<> pos,
-              ChColor col,
+              chrono::ChColor col,
               bool use_Zbuffer) {
     vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
@@ -861,7 +864,7 @@ void drawPlot3D(ChVisualSystemIrrlicht* vis,
                 ChMatrixConstRef Y,
                 ChMatrixConstRef Z,
                 ChCoordsys<> pos,
-                ChColor col,
+                chrono::ChColor col,
                 bool use_Zbuffer) {
     vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
