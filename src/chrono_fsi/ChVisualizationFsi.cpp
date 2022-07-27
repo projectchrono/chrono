@@ -24,6 +24,7 @@ namespace fsi {
 
 ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
     : m_systemFSI(sysFSI),
+      m_owns_vis(true),
       m_user_system(nullptr),
       m_sph_markers(true),
       m_rigid_bce_markers(true),
@@ -50,10 +51,37 @@ ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
 #endif
 }
 
+#ifdef CHRONO_OPENGL
+ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI, opengl::ChVisualSystemOpenGL* vis)
+    : m_systemFSI(sysFSI),
+      m_owns_vis(false),
+      m_user_system(nullptr),
+      m_sph_markers(true),
+      m_rigid_bce_markers(true),
+      m_flex_bce_markers(true),
+      m_bndry_bce_markers(false),
+      m_bce_start_index(0) {
+    m_radius = sysFSI->GetInitialSpacing() / 2;
+    m_system = new ChSystemSMC();
+
+    m_vsys = vis;
+    m_vsys->AttachSystem(m_system);
+    m_vsys->SetWindowTitle("");
+    m_vsys->SetWindowSize(1280, 720);
+    m_vsys->SetCameraProperties(0.1f);
+    m_vsys->SetRenderMode(opengl::WIREFRAME);
+    m_vsys->SetParticleRenderMode(sysFSI->GetInitialSpacing() / 2, opengl::POINTS);
+    m_vsys->SetCameraPosition(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+    m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
+    m_vsys->EnableStats(false);
+}
+#endif
+
 ChVisualizationFsi::~ChVisualizationFsi() {
     delete m_system;
 #ifdef CHRONO_OPENGL
-    delete m_vsys;
+    if (m_owns_vis)
+        delete m_vsys;
 #endif
 }
 
@@ -87,15 +115,26 @@ void ChVisualizationFsi::SetCameraMoveScale(float scale) {
 #endif
 }
 
-void ChVisualizationFsi::SetVisualizationRadius(double radius) {
+void ChVisualizationFsi::SetParticleRenderMode(double radius, RenderMode mode) {
 #ifdef CHRONO_OPENGL
-    m_vsys->SetParticleRenderMode(radius, opengl::POINTS);
+    opengl::RenderMode gl_mode = (mode == RenderMode::SOLID) ? opengl::SOLID : opengl::POINTS;
+    m_vsys->SetParticleRenderMode(radius, gl_mode);
 #endif
 }
 
 void ChVisualizationFsi::SetRenderMode(RenderMode mode) {
 #ifdef CHRONO_OPENGL
-    m_vsys->SetRenderMode(mode == RenderMode::WIREFRAME ? opengl::WIREFRAME : opengl::SOLID);
+    switch (mode) {
+        case RenderMode::SOLID:
+            m_vsys->SetRenderMode(opengl::SOLID);
+            break;
+        case RenderMode::WIREFRAME:
+            m_vsys->SetRenderMode(opengl::WIREFRAME);
+            break;
+        case RenderMode::POINTS:
+            m_vsys->SetRenderMode(opengl::POINTS);
+            break;
+    }
 #endif
 }
 
@@ -165,10 +204,11 @@ void ChVisualizationFsi::Initialize() {
         }
     }
 
-    if (m_user_system)
-        m_vsys->AttachSystem(m_user_system);
-
-    m_vsys->Initialize();
+    if (m_owns_vis) {
+        if (m_user_system)
+            m_vsys->AttachSystem(m_user_system);
+        m_vsys->Initialize();
+    }
 #endif
 }
 

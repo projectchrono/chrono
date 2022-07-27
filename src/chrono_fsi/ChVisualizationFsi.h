@@ -40,11 +40,18 @@ namespace fsi {
 /// particles every time the Render() function is invoked.
 class CH_FSI_API ChVisualizationFsi {
   public:
-    /// Rendering mode for mesh objects.
-    enum class RenderMode {WIREFRAME, SOLID};
+    /// Rendering mode for particles and mesh objects.
+    enum class RenderMode {POINTS, WIREFRAME, SOLID};
 
-    /// Create a run-time visualization object associated with a given Chrono::Fsi system.
+    /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
     ChVisualizationFsi(ChSystemFsi* sysFSI);
+
+#ifdef CHRONO_OPENGL
+    /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system and using an existing
+    /// OpenGL visual system.
+    ChVisualizationFsi(ChSystemFsi* sysFSI, opengl::ChVisualSystemOpenGL* vis);
+#endif
+
     ~ChVisualizationFsi();
 
     /// Set title of the visualization window (default: "").
@@ -64,7 +71,7 @@ class CH_FSI_API ChVisualizationFsi {
 
     /// Set visualization radius for SPH particles (default: half initial spacing).
     /// Must be called before Initialize().
-    void SetVisualizationRadius(double radius);
+    void SetParticleRenderMode(double radius, RenderMode mode = RenderMode::POINTS);
 
     /// Set rendering mode for mesh objects (default: WIREFRAME).
     void SetRenderMode(RenderMode mode);
@@ -115,6 +122,7 @@ class CH_FSI_API ChVisualizationFsi {
     ChSystemFsi* m_systemFSI;  ///< associated Chrono::FSI system
     ChSystem* m_system;        ///< internal Chrono system (holds proxy bodies)
     ChSystem* m_user_system;   ///< optional user-provided system
+    bool m_owns_vis;           ///< ownership flag for OpenGL visualization system
 #ifdef CHRONO_OPENGL
     opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
 #endif
