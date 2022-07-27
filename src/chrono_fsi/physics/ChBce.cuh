@@ -73,7 +73,9 @@ class ChBce : public ChFsiGeneral {
     void Flex_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshDataD> fsiMeshD);
 
     /// Modify the velocity of BCE particles according to the SPH particles around.
-    void ModifyBceVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiBodiesDataD> fsiBodiesD);
+    void ModifyBceVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD, 
+                           std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                           std::shared_ptr<FsiMeshDataD> fsiMeshD);
 
     /// Populates the BCE particles on the rigid bodies at the initial configuration of the system.
     /// The local coordinates w.r.t to the coordinate system of the rigid bodies is saved and is used
@@ -113,15 +115,28 @@ class ChBce : public ChFsiGeneral {
 
     bool verbose;
 
-    /// Calculates the acceleration of the BCE particles based on the information of the ChSystem.
-    void CalcBceAcceleration(thrust::device_vector<Real3>& bceAcc,
-                             const thrust::device_vector<Real4>& q_fsiBodies_D,
-                             const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
-                             const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
-                             const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
-                             const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
-                             const thrust::device_vector<uint>& rigidIdentifierD,
-                             int numRigidMarkers);
+    /// Calculates the acceleration of the rigid BCE particles based on the information of the ChSystem.
+    void CalcRigidBceAcceleration(thrust::device_vector<Real3>& bceAcc,
+                                  const thrust::device_vector<Real4>& q_fsiBodies_D,
+                                  const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
+                                  const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
+                                  const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
+                                  const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+                                  const thrust::device_vector<uint>& rigidIdentifierD,
+                                  int numRigidMarkers);
+
+    /// Calculates the acceleration of the flexible BCE particles based on the information of the ChSystem.
+    void CalcFlexBceAcceleration(thrust::device_vector<Real3>& bceAcc,
+                                 const thrust::device_vector<Real3>& pos_fsi_fea_D,
+                                 const thrust::device_vector<Real3>& vel_fsi_fea_D,
+                                 const thrust::device_vector<Real3>& acc_fsi_fea_D,
+                                 const thrust::device_vector<Real3>& FlexSPH_MeshPos_LRF_D,
+                                 const thrust::device_vector<int2>& CableElementsNodes,
+                                 const thrust::device_vector<int4>& ShellElementsNodes,
+                                 const thrust::device_vector<uint>& FlexIdentifierD,
+                                 int numFlexMarkers,
+                                 int numFlexBodies1D,
+                                 int numFlexBodies2D);
 
     /// Calculates pressure and velocity of the BCE particles.
     void RecalcSortedVelocityPressure_BCE(std::shared_ptr<FsiBodiesDataD> fsiBodiesD,

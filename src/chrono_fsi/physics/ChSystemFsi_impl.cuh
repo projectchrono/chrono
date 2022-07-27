@@ -150,7 +150,7 @@ struct FsiMeshDataD {
 struct FsiShellsDataH {
     thrust::host_vector<Real3> posFlex_fsiBodies_nA_H;  ///< Vector of the node A position
     thrust::host_vector<Real3> posFlex_fsiBodies_nB_H;  ///< Vector of the node B position
-    thrust::host_vector<Real3> posFlex_fsiBodies_nC_H;  ///< Vector of the node B position
+    thrust::host_vector<Real3> posFlex_fsiBodies_nC_H;  ///< Vector of the node C position
     thrust::host_vector<Real3> posFlex_fsiBodies_nD_H;  ///< Vector of the node D position
 
     thrust::host_vector<Real3> velFlex_fsiBodies_nA_H;  ///< Vector of the node A velocity

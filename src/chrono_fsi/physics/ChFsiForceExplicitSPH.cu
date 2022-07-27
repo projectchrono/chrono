@@ -1643,10 +1643,10 @@ void ChFsiForceExplicitSPH::Initialize() {
 
 void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                      std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD,
-                                     std::shared_ptr<FsiMeshDataD> fsiMeshD) {
+                                     std::shared_ptr<FsiMeshDataD> otherFsiMeshD) {
     sphMarkersD = otherSphMarkersD;
     fsiCollisionSystem->ArrangeData(sphMarkersD);
-    bceWorker->ModifyBceVelocity(sphMarkersD, otherFsiBodiesD);
+    bceWorker->ModifyBceVelocity(sphMarkersD, otherFsiBodiesD, otherFsiMeshD);
     CollideWrapper();
     CalculateXSPH_velocity();
     // AddGravityToFluid();

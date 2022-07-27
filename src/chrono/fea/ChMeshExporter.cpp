@@ -138,7 +138,7 @@ void ChMeshExporter::writeFrame(std::shared_ptr<ChMesh> my_mesh, char SaveAsBuff
     SaveAsBuffer_string.erase(SaveAsBuffer_string.length() - 4, 4);
     std::cout << SaveAsBuffer_string << std::endl;
     snprintf(SaveAsBuffer, sizeof(char) * 256, ("%s"), (SaveAsBuffer_string + ".vtk").c_str());
-    output.open(SaveAsBuffer, std::ios::app);
+    output.open(SaveAsBuffer, std::ios::trunc);
 
     output << "# vtk DataFile Version 2.0" << std::endl;
     output << "Unstructured Grid Example" << std::endl;
