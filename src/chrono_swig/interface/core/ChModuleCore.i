@@ -61,6 +61,7 @@
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChIndexedNodes.h"
+
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/assets/ChPointPointShape.h"
@@ -83,6 +84,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsCreators.h"
+
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::geometry;
@@ -370,6 +372,7 @@ using namespace chrono::fea;
 %include "../../../chrono/assets/ChVisualSystem.h"
 
 // physics/  classes
+%include "ChController.i"
 %include "ChLoadable.i"
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
@@ -421,6 +424,7 @@ using namespace chrono::fea;
 %include "ChShaft.i"
 %include "ChShaftMotor.i"
 %include "ChLinkMotor.i"
+
 
 // Utils
 
