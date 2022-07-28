@@ -26,6 +26,9 @@ class SYN_API ChMultiplePathSteeringController : public vehicle::ChSteeringContr
     /// Destructor for ChPathSteeringController.
     ~ChMultiplePathSteeringController() {}
 
+    /// Set the gains for the PID controller.
+    void SetGains(double Kp, double Ki, double Kd);
+
     /// Return a pointer to the Bezier curve
     std::vector<std::shared_ptr<ChBezierCurve>> GetPath() const { return m_path; }
 
@@ -46,8 +49,18 @@ class SYN_API ChMultiplePathSteeringController : public vehicle::ChSteeringContr
     /// the current location of the sentinel point.
     virtual void CalcTargetLocation() override;
 
+    /// Advance the state of the PID controller.
+    /// This function performs the required integration for the integral component of the PID controller and returns the
+    /// calculated steering value.
+    virtual double Advance(const vehicle::ChVehicle& vehicle, double step) override;
+
   private:
     int m_lane;
+
+    double m_Kp;  ///< Proportional gain
+    double m_Ki;  ///< Integral gain
+    double m_Kd;  ///< Differential gain
+
     std::vector<std::shared_ptr<ChBezierCurve>> m_path;            ///< tracked path (piecewise cubic Bezier curve)
     std::vector<std::shared_ptr<ChBezierCurveTracker>> m_tracker;  ///< path tracker
 };

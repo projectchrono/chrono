@@ -61,6 +61,7 @@
 
 %shared_ptr(chrono::vehicle::ChDriver)
 %shared_ptr(chrono::vehicle::ChDataDriver)
+%shared_ptr(chrono::vehicle::ChClosedLoopDriver)
 %shared_ptr(chrono::vehicle::ChPathFollowerDriver)
 %shared_ptr(chrono::vehicle::ChPathFollowerDriverXT)
 %shared_ptr(chrono::vehicle::ChPathFollowerDriverSR)
