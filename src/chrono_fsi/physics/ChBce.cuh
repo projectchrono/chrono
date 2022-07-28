@@ -72,10 +72,10 @@ class ChBce : public ChFsiGeneral {
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on flexible bodies.
     void Flex_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshDataD> fsiMeshD);
 
-    /// Modify the velocity of BCE particles according to the SPH particles around.
-    void ModifyBceVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD, 
-                           std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
-                           std::shared_ptr<FsiMeshDataD> fsiMeshD);
+    /// Modify the velocity, pressure, stress of BCE particles according to the SPH particles around.
+    void ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkersD, 
+                                         std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                                         std::shared_ptr<FsiMeshDataD> fsiMeshD);
 
     /// Populates the BCE particles on the rigid bodies at the initial configuration of the system.
     /// The local coordinates w.r.t to the coordinate system of the rigid bodies is saved and is used
@@ -139,8 +139,7 @@ class ChBce : public ChFsiGeneral {
                                  int numFlexBodies2D);
 
     /// Calculates pressure and velocity of the BCE particles.
-    void RecalcSortedVelocityPressure_BCE(std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
-                                          thrust::device_vector<Real3>& velMas_ModifiedBCE,
+    void ReCalcVelocityPressureStress_BCE(thrust::device_vector<Real3>& velMas_ModifiedBCE,
                                           thrust::device_vector<Real4>& rhoPreMu_ModifiedBCE,
                                           thrust::device_vector<Real3>& tauXxYyZz_ModifiedBCE,
                                           thrust::device_vector<Real3>& tauXyXzYz_ModifiedBCE,
