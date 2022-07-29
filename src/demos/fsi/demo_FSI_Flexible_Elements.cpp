@@ -45,15 +45,9 @@ using namespace chrono::fea;
 using namespace chrono::collision;
 using namespace chrono::fsi;
 
-//****************************************************************************************
+// Set the output directory
 const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Elements/";
 std::string MESH_CONNECTIVITY = out_dir + "Flex_MESH.vtk";
-
-// Save data for visualization
-bool output = true;
-double out_fps = 20;
-
-std::vector<std::vector<int>> NodeNeighborElement_mesh;
 
 // Dimension of the domain
 double smalldis = 1.0e-9;
@@ -67,6 +61,10 @@ double fyDim = 0.2 + smalldis;
 double fzDim = 1.0 + smalldis;
 bool flexible_elem_1D = false;
 
+// Output frequency
+bool output = true;
+double out_fps = 20;
+
 // Final simulation time
 double t_end = 10.0;
 
@@ -74,11 +72,9 @@ double t_end = 10.0;
 bool render = true;
 float render_fps = 100;
 
-//----------------------------------------------------------------------------------------
+std::vector<std::vector<int>> NodeNeighborElement_mesh;
 
 void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
-
-//----------------------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     // Create oputput directories
@@ -100,7 +96,7 @@ int main(int argc, char* argv[]) {
     ChSystemFsi sysFSI(sysMBS);
 
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Elements_I2SPH.json");
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Elements_Explicit.json");
     if (argc == 1) {
         std::cout << "Use the default JSON file" << std::endl;
     } else if (argc == 2) {
@@ -108,7 +104,7 @@ int main(int argc, char* argv[]) {
         std::string my_inputJson = std::string(argv[1]);
         inputJson = my_inputJson;
     } else {
-        std::cout << "usage: ./demo_FSI_Flexible_Shell <json_file>" << std::endl;
+        std::cout << "usage: ./demo_FSI_Flexible_Elements <json_file>" << std::endl;
         return 1;
     }
     sysFSI.ReadParametersFromFile(inputJson);
@@ -141,7 +137,7 @@ int main(int argc, char* argv[]) {
     // Create a run-tme visualizer
     ChVisualizationFsi fsi_vis(&sysFSI);
     if (render) {
-        fsi_vis.SetTitle("Chrono::FSI single wheel demo");
+        fsi_vis.SetTitle("Chrono::FSI flexible element demo");
         fsi_vis.SetCameraPosition(ChVector<>(bxDim / 8, -3, 0.25), ChVector<>(bxDim / 8, 0.0, 0.25));
         fsi_vis.SetCameraMoveScale(1.0f);
         fsi_vis.EnableBoundaryMarkers(false);
@@ -149,7 +145,6 @@ int main(int argc, char* argv[]) {
     }
 
     // Set MBS solver
-#undef CHRONO_PARDISO_MKL
 #ifdef CHRONO_PARDISO_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
@@ -161,19 +156,8 @@ int main(int argc, char* argv[]) {
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
-
     sysMBS.SetSolverForceTolerance(1e-10);
 #endif
-
-    //    sysMBS.SetTimestepperType(ChTimestepper::Type::HHT);
-    //    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sysMBS.GetTimestepper());
-    //    mystepper->SetAlpha(-0.2);
-    //    mystepper->SetMaxiters(1000);
-    //    mystepper->SetAbsTolerances(1e-5);
-    //    mystepper->SetMode(ChTimestepperHHT::POSITION);
-    //    mystepper->SetScaling(true);
-
-    //    sysMBS.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 
     // Simulation loop
     double dT = sysFSI.GetStepSize();
@@ -183,8 +167,6 @@ int main(int argc, char* argv[]) {
 
     double time = 0.0;
     int current_step = 0;
-
-    bool isAdaptive = false;
 
     ChTimer<> timer;
     timer.start();
@@ -205,12 +187,7 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
-        if (current_step < 5 && sysFSI.GetAdaptiveTimeStepping()) {
-            sysFSI.SetAdaptiveTimeStepping(false);
-            isAdaptive = true;
-        }
         sysFSI.DoStepDynamics_FSI();
-        sysFSI.SetAdaptiveTimeStepping(isAdaptive);
 
         time += dT;
         current_step++;
@@ -221,14 +198,15 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-//------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid/flexible bodies, and if fsi, their
-// bce representation are created and added to the systems
+//--------------------------------------------------------------------
+// Create the objects of the MBD system. Rigid/flexible bodies, and if 
+// fsi, their bce representation are created and added to the systems
 void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    sysMBS.Set_G_acc(ChVector<>(0.0, 0, 0));
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-
+    sysMBS.Set_G_acc(ChVector<>(0, 0, 0));
+    sysFSI.Set_G_acc(ChVector<>(0, 0, -9.81));
+    
     // Set common material Properties
+    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(6e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
@@ -289,7 +267,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         msection_cable->SetBeamRaleyghDamping(0.02);
 
         ChBuilderCableANCF builder;
-        double loc_x = -0.3;  //+bxDim / 8 + 3 * initSpace0;
+        double loc_x = -0.3;
         builder.BuildBeam_FSI(
             my_mesh,         // the mesh where to put the created nodes and elements
             msection_cable,  // the ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
@@ -307,7 +285,6 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         dir_const->Initialize(node, ground);
         dir_const->SetDirectionInAbsoluteCoords(node->D);
         sysMBS.Add(dir_const);
-
     } else {
         // Geometry of the plate
         double plate_lenght_x = 0.02;
@@ -321,9 +298,11 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         int numDiv_z = 10;
         int N_y = numDiv_y + 1;
         int N_z = numDiv_z + 1;
+
         // Number of elements in the z direction is considered as 1
         int TotalNumElements = numDiv_y * numDiv_z;
         int TotalNumNodes = (numDiv_y + 1) * (numDiv_z + 1);
+
         // For uniform mesh
         double dx = plate_lenght_x / numDiv_x;
         double dy = plate_lenght_y / numDiv_y;
@@ -331,8 +310,8 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
         _2D_elementsNodes_mesh.resize(TotalNumElements);
         NodeNeighborElement_mesh.resize(TotalNumNodes);
-        // Create and add the nodes
 
+        // Create and add the nodes
         for (int k = 0; k < N_z; k++) {
             for (int j = 0; j < N_y; j++) {
                 double loc_x = center_plate.x();
@@ -344,11 +323,11 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                 double dir_z = 0;
 
                 // Create the node
-                auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z),
-                                                                     ChVector<>(dir_x, dir_y, dir_z));
+                auto node = chrono_types::make_shared<ChNodeFEAxyzD>(
+                    ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
 
                 node->SetMass(0);
-                // Fix all nodes along the axis X=0
+                // Fix nodes connected to the ground
                 if (k == 0)
                     node->SetFixed(true);
 
@@ -384,6 +363,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                 NodeNeighborElement_mesh[node1].push_back(num_elem);
                 NodeNeighborElement_mesh[node2].push_back(num_elem);
                 NodeNeighborElement_mesh[node3].push_back(num_elem);
+
                 // Create the element and set its nodes.
                 auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
                 element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
@@ -397,8 +377,8 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                 // Add a single layers with a fiber angle of 0 degrees.
                 element->AddLayer(dx, 0 * CH_C_DEG_TO_RAD, mat);
 
-                // Set other element properties
-                element->SetAlphaDamp(0.05);  // Structural damping for this element
+                // Set structural damping for this element
+                element->SetAlphaDamp(0.05);
 
                 // Add element to mesh
                 my_mesh->AddElement(element);
@@ -418,8 +398,8 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     bool removeMiddleLayer = true;
     bool add1DElem = flexible_elem_1D;
     bool add2DElem = !flexible_elem_1D;
-    sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, _1D_elementsNodes_mesh, _2D_elementsNodes_mesh, add1DElem,
-                         add2DElem, multilayer, removeMiddleLayer, 0, 0);
+    sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, _1D_elementsNodes_mesh, 
+        _2D_elementsNodes_mesh, add1DElem, add2DElem, multilayer, removeMiddleLayer, 0, 0);
 
     if (flexible_elem_1D)
         sysFSI.SetCableElementsNodes(_1D_elementsNodes_mesh);
