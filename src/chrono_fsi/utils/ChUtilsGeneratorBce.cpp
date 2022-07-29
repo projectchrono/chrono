@@ -431,7 +431,6 @@ void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
 
     double dx = shell->GetLengthX() / 2;
     double dy = shell->GetLengthY() / 2;
-    printf("CreateBCE_On_ChElementShellANCF: dx,dy=%f,%f\n", dx, dy);
 
     double nX = dx / initSpace0 - std::floor(dx / initSpace0);
     double nY = dy / initSpace0 - std::floor(dy / initSpace0);
@@ -459,17 +458,17 @@ void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
         kBound = mI2(0, 0);            // This will create some marker deficiency and reduce the accuracy but look nicer
 
     for (int k = kBound.x; k <= kBound.y; k++) {
+        if (k == 0 && SIDE == 0 && multiLayer && removeMiddleLayer) {
+            // skip the middle layer for this specific case, change value of paramsH->MULT_INITSPACE_Shells
+            printf(
+                " paramsH->MULT_INITSPACE_Shells was changed in CreateBCE_On_ChElementShellANCF to 0.5. "
+                "\n");
+            paramsH->MULT_INITSPACE_Shells = 0.5;
+            continue;
+        }
         for (int j = jBound.x; j <= jBound.y; j++) {
             for (int i = iBound.x; i <= iBound.y; i++) {
                 Real3 relMarkerPos = mR3(i * initSpaceX, j * initSpaceY, k);
-                if (k == 0 && SIDE == 0 && multiLayer && removeMiddleLayer) {
-                    // skip the middle layer for this specific case
-                    printf(
-                        "---------------paramsH->MULT_INITSPACE_Shells was changed in CreateBCE_On_Mesh to 0.5. "
-                        "\n");
-                    paramsH->MULT_INITSPACE_Shells = 0.5;
-                    continue;
-                }
 
                 // It has to skip puting BCE on the nodes if one of the following conditions is true
                 bool con1 = (remove[0] && remove[1] && j == jBound.x);
