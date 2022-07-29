@@ -166,6 +166,7 @@ using namespace gui;
 %template(dimension2du) irr::core::dimension2d<irr::u32>;
 
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChVisualSystem.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChColor.i"
 
 %ignore chrono::irrlicht::ScreenQuadCB;
 %include "../../../chrono_irrlicht/ChIrrEffects.h"
