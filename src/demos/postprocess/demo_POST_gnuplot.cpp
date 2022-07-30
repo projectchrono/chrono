@@ -50,8 +50,7 @@ int main(int argc, char* argv[]) {
         // The most low-level way of using the ChGnuPlot class:
         // use the the SetCommand() or alternatively << , to build the script file.
 
-        std::string filename = out_dir + "/tmp_gnuplot_1.gpl";
-        ChGnuPlot mplot(filename.c_str());
+        ChGnuPlot mplot(out_dir + "/tmp_gnuplot_1.gpl");
         mplot << "set contour";
         mplot << "set title 'Demo of specifying discrete contour levels'";
         mplot << "splot x*y";
@@ -66,13 +65,12 @@ int main(int argc, char* argv[]) {
         //
 
         // Use the Open... functions to define the output terminal.
-        // Open two plots in two windows and save the second to an EPS file too.
+        // Open two plots in two windows and also save the second to EPS and PNG files.
         // Learn shortcut calls:
         //  SetGrid() to make a grid
         //  SetLabelX() SetLabelY() to setup labels
 
-        std::string filename = out_dir + "/tmp_gnuplot_2.gpl";
-        ChGnuPlot mplot(filename.c_str());
+        ChGnuPlot mplot(out_dir + "/tmp_gnuplot_2.gpl");
         mplot.SetGrid();
 
         mplot.OutputWindow(0);
@@ -85,8 +83,8 @@ int main(int argc, char* argv[]) {
         mplot.SetLabelY("w");
         mplot << "plot [-10:10] real(sin(x)**besj0(x))";
 
-        std::string epsfile = out_dir + "/test_eps.eps";
-        mplot.OutputEPS(epsfile.c_str());
+        mplot.OutputEPS(out_dir + "/test_eps.eps");
+        mplot.OutputPNG(out_dir + "/test_eps.png", 800, 600);
         mplot.Replot();  // repeat last plot
     }
 
@@ -110,13 +108,12 @@ int main(int argc, char* argv[]) {
         // NOTE. The plot shortcuts. In this case you pass the .dat filename, the columns IDs, title and custom settings
         // NOTE. You can have multiple Plot() calls for a single Output,
         // they will be overlapped as when you use commas in gnuplot:  "plot ... , ... , ..."
-        std::string filename = out_dir + "/tmp_gnuplot_3.gpl";
-        ChGnuPlot mplot(filename.c_str());
+        ChGnuPlot mplot(out_dir + "/tmp_gnuplot_3.gpl");
         mplot.SetGrid();
         mplot.SetLabelX("x");
         mplot.SetLabelY("y");
-        mplot.Plot("test_gnuplot_data.dat", 1, 2, "sine", " with lines lt -1 lw 2");
-        mplot.Plot("test_gnuplot_data.dat", 1, 3, "cosine", " with lines lt 2 lw 2");
+        mplot.Plot(datafile, 1, 2, "sine", " with lines lt -1 lw 2");
+        mplot.Plot(datafile, 1, 3, "cosine", " with lines lt 2 lw 2");
     }
 
     {
@@ -159,8 +156,7 @@ int main(int argc, char* argv[]) {
 
         // Create the plot.
         // NOTE. The plot shortcuts.
-        std::string filename = out_dir + "/tmp_gnuplot_4.gpl";
-        ChGnuPlot mplot(filename.c_str());
+        ChGnuPlot mplot(out_dir + "/tmp_gnuplot_4.gpl");
         mplot.SetGrid();
         mplot.Plot(mx, my, "from x,y ChVectorDynamic", " every 5 pt 1 ps 0.5");
         mplot.Plot(mfun, "from ChFunction_Recorder", " with lines lt -1 lc rgb'#00AAEE' ");
