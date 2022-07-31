@@ -135,13 +135,15 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector<>(0, 3, -6));
     vis->SetWindowSize(ChVector2<int>(800, 600));
     vis->SetWindowPosition(ChVector2<int>(100, 100));
-    vis->SetClearColor(ChColor(0.8,0.85,0.9));
-    vis->SetUseSkyBox(true); // use built-in path
+    vis->SetClearColor(ChColor(0.8, 0.85, 0.9));
+    vis->SetUseSkyBox(true);  // use built-in path
     vis->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
     vis->SetCameraAngleDeg(40.0);
     vis->SetLightIntensity(1.0);
-    vis->SetLightDirection(1.5*CH_C_PI_2, CH_C_PI_4);
+    vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
     vis->SetWireFrameMode(false);
+    vis->SetDecoGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector<>(0, 0.11, 0), Q_from_AngX(CH_C_PI_2)),
+                     ChColor(0.11f, 0.11f, 0.11f));
     vis->Initialize();
     vis->BindAll();
 

@@ -166,6 +166,21 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_useSkybox = false;
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
     m_yup = false;
+    // creation here allows to set entries before initialize
+    m_bodyScene = vsg::Group::create();
+    m_linkScene = vsg::Group::create();
+    m_particleScene = vsg::Group::create();
+    m_decoScene = vsg::Group::create();
+    // set up defaults and read command line arguments to override them
+    m_options = vsg::Options::create();
+    m_options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
+    m_options->paths.push_back(GetChronoDataPath());
+    // add vsgXchange's support for reading and writing 3rd party file formats, mandatory for chrono_vsg!
+    m_options->add(vsgXchange::all::create());
+    m_options->sharedObjects = vsg::SharedObjects::create();
+    m_shapeBuilder = ShapeBuilder::create();
+    m_shapeBuilder->m_options = m_options;
+    m_shapeBuilder->m_sharedObjects = m_options->sharedObjects;
 }
 
 ChVisualSystemVSG::~ChVisualSystemVSG() {}
@@ -220,17 +235,6 @@ void ChVisualSystemVSG::SetLightDirection(double acimut, double elevation) {
 }
 
 void ChVisualSystemVSG::Initialize() {
-    // set up defaults and read command line arguments to override them
-    m_options = vsg::Options::create();
-    m_options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
-    m_options->paths.push_back(GetChronoDataPath());
-    // add vsgXchange's support for reading and writing 3rd party file formats, mandatory for chrono_vsg!
-    m_options->add(vsgXchange::all::create());
-    m_options->sharedObjects = vsg::SharedObjects::create();
-    m_shapeBuilder = ShapeBuilder::create();
-    m_shapeBuilder->m_options = m_options;
-    m_shapeBuilder->m_sharedObjects = m_options->sharedObjects;
-
     auto builder = vsg::Builder::create();
     builder->options = m_options;
 
@@ -284,12 +288,14 @@ void ChVisualSystemVSG::Initialize() {
     absoluteTransform->addChild(directionalLight);
 
     m_scene->addChild(absoluteTransform);
-    m_bodyScene = vsg::Group::create();
+    //m_bodyScene = vsg::Group::create();
     m_scene->addChild(m_bodyScene);
-    m_linkScene = vsg::Group::create();
+    //m_linkScene = vsg::Group::create();
     m_scene->addChild(m_linkScene);
-    m_particleScene = vsg::Group::create();
+    //m_particleScene = vsg::Group::create();
     m_scene->addChild(m_particleScene);
+    //m_decoScene = vsg::Group::create();
+    m_scene->addChild(m_decoScene);
 
     // create the viewer and assign window(s) to it
     m_viewer = vsg::Viewer::create();
@@ -858,6 +864,10 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
                     vsg::scale(rad, height, rad);
         }
     }
+}
+
+void ChVisualSystemVSG::SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col) {
+    m_decoScene->addChild(m_shapeBuilder->createDecoGrid(ustep, vstep, nu, nv, pos, col));
 }
 
 }  // namespace vsg3d

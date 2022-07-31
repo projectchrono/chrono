@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
     // First create the ChLineNurbs geometry, then put it inside a ChLineShape
     auto nurbs = chrono_types::make_shared<ChLineNurbs>();
     std::vector<ChVector<>> controlpoints = {ChVector<>(1, 2, -1), ChVector<>(1, 3, -1), ChVector<>(1, 3, -2),
-            ChVector<>(1, 4, -2)};
+                                             ChVector<>(1, 4, -2)};
     nurbs->SetupData(3, controlpoints);
 
     auto nurbsasset = chrono_types::make_shared<ChLineShape>();
@@ -159,11 +159,11 @@ int main(int argc, char* argv[]) {
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
     auto objmesh = chrono_types::make_shared<ChObjFileShape>();
-    //objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj")); since MacOS 12.5 extremely slow
-    //body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), Q_UNIT));
-    objmesh->SetFilename(GetChronoDataFile("vsg/models/forklift/body.vsgb")); // converted with vsgconv
+    // objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj")); since MacOS 12.5 extremely slow
+    // body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), Q_UNIT));
+    objmesh->SetFilename(GetChronoDataFile("vsg/models/forklift/body.vsgb"));  // converted with vsgconv
     // vsgconv changes orientation!
-    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), Q_from_AngAxis(-CH_C_PI_2, ChVector<>(1,0,0))));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), Q_from_AngAxis(-CH_C_PI_2, ChVector<>(1, 0, 0))));
 
     // ==Asset== Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
     points.push_back(ChVector<>(0.0, 0.0, 0.3) + displ);
     points.push_back(ChVector<>(0.8, 0.0, 0.3) + displ);
     auto hull = chrono_types::make_shared<ChBodyEasyConvexHullAuxRef>(
-            points, 1000, true, true, chrono_types::make_shared<ChMaterialSurfaceNSC>());
+        points, 1000, true, true, chrono_types::make_shared<ChMaterialSurfaceNSC>());
     ////hull->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(2,0.3,0)));
     ////hull->SetPos(ChVector<>(2,0.3,0));
     hull->Move(ChVector<>(2, 0.3, 0));
@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
     auto cadet_blue = chrono_types::make_shared<ChVisualMaterial>();
     cadet_blue->SetDiffuseColor(ChColor(0.37f, 0.62f, 0.62f));
     hull->GetVisualShape(0)->SetMaterial(0, cadet_blue);
-    hull->GetVisualShape(0)->GetMaterial(0)->SetOpacity(0.5); // DepthSorted???
+    hull->GetVisualShape(0)->GetMaterial(0)->SetOpacity(0.5);  // DepthSorted???
     sys.Add(hull);
 
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
@@ -250,14 +250,16 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector<>(-8, 8, -16));
     vis->SetCameraAngleDeg(40);
     vis->SetLightIntensity(1.0);
-    vis->SetLightDirection(1.5*CH_C_PI_2, CH_C_PI_4);
+    vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+    vis->SetDecoGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector<>(0, -0.49, 0), Q_from_AngX(CH_C_PI_2)),
+                     ChColor(0.31f, 0.43f, 0.43f));
     vis->Initialize();
     vis->BindAll();
 
     size_t numFrame = 0;
     while (vis->Run()) {
         if (numFrame == 10) {
-            vis->WriteImageToFile("newshot.png");     // does not work with frame == 0!
+            vis->WriteImageToFile("newshot.png");  // does not work with frame == 0!
         }
         vis->Render();
         sys.DoStepDynamics(0.01);

@@ -51,23 +51,23 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetClearColor(ChColor color);
     void SetUseSkyBox(bool yesno);
     // Draw scene as wireframes
-    void SetWireFrameMode(bool mode=true) { m_draw_as_wireframe = mode; }
+    void SetWireFrameMode(bool mode = true) { m_draw_as_wireframe = mode; }
     void SetCameraVertical(chrono::vsg3d::CameraVerticalDir upDir);
     void AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL);
-    void SetLightIntensity(double intensity) { m_lightIntensity = ChClamp(intensity,0.0,1.0);}
+    void SetLightIntensity(double intensity) { m_lightIntensity = ChClamp(intensity, 0.0, 1.0); }
     void SetLightDirection(double acimut, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
-    void SetGuiFontSize(float theSize=20.f) { m_guiFontSize = theSize; }
+    void SetGuiFontSize(float theSize = 20.f) { m_guiFontSize = theSize; }
+    void SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
     void BindAll() override;
     void OnUpdate(ChSystem* sys) override;
 
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
-        bool showGui = true;  // (don't) show the imgui menu, actually unused
-        bool do_image_capture = false; // mark image capturing as needed
+        bool showGui = true;            // (don't) show the imgui menu, actually unused
+        bool do_image_capture = false;  // mark image capturing as needed
     };
 
-
-private:
+  private:
     vsg::ref_ptr<vsg::Viewer> m_viewer;
     vsg::ref_ptr<vsg::Window> m_window;
     int m_windowWidth = 800;
@@ -87,10 +87,13 @@ private:
     //                            +- m_linkScene
     //                            |
     //                            +- m_particleScene
+    //                            |
+    //                            +- m_decoScene
     vsg::ref_ptr<vsg::Group> m_scene;
     vsg::ref_ptr<vsg::Group> m_bodyScene;
     vsg::ref_ptr<vsg::Group> m_linkScene;
     vsg::ref_ptr<vsg::Group> m_particleScene;
+    vsg::ref_ptr<vsg::Group> m_decoScene;
     std::string m_skyboxPath;
     bool m_useSkybox;
     //
@@ -108,7 +111,7 @@ private:
     vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
     //
     std::string m_imageFilename;
-    //bool m_do_image_export = false;
+    // bool m_do_image_export = false;
     float m_guiFontSize = 25.0f;
 };
 }  // namespace vsg3d

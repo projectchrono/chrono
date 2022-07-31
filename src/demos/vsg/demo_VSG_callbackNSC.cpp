@@ -184,6 +184,12 @@ int main(int argc, char* argv[]) {
     vis->SetLightIntensity(1.0);
     vis->SetLightDirection(1.5*CH_C_PI_2, CH_C_PI_4);
     vis->SetWireFrameMode(false);
+    ChColor red(1.0,0.0,0.0);
+    vis->SetDecoGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)), red);
+    /*
+    irrlicht::tools::drawGrid(vis.get(), 0.5, 0.5, 12, 12,
+            ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
+    */
     vis->Initialize();
     vis->BindAll();
 
