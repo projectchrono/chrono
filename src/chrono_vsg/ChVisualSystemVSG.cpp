@@ -168,6 +168,7 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_yup = false;
     // creation here allows to set entries before initialize
     m_bodyScene = vsg::Group::create();
+    m_cogScene = vsg::Group::create();
     m_linkScene = vsg::Group::create();
     m_particleScene = vsg::Group::create();
     m_decoScene = vsg::Group::create();
@@ -288,13 +289,10 @@ void ChVisualSystemVSG::Initialize() {
     absoluteTransform->addChild(directionalLight);
 
     m_scene->addChild(absoluteTransform);
-    //m_bodyScene = vsg::Group::create();
     m_scene->addChild(m_bodyScene);
-    //m_linkScene = vsg::Group::create();
+    m_scene->addChild(m_cogScene);
     m_scene->addChild(m_linkScene);
-    //m_particleScene = vsg::Group::create();
     m_scene->addChild(m_particleScene);
-    //m_decoScene = vsg::Group::create();
     m_scene->addChild(m_decoScene);
 
     // create the viewer and assign window(s) to it
@@ -336,18 +334,18 @@ void ChVisualSystemVSG::Initialize() {
     auto commandGraph = vsg::CommandGraph::create(m_window, renderGraph);
 
     auto foundFontFile = vsg::findFile("vsg/fonts/Ubuntu_Mono/UbuntuMono-Regular.ttf", m_options);
-    if(foundFontFile) {
-        GetLog() << "Font file found = "<< foundFontFile.string() << "\n";
+    if (foundFontFile) {
+        GetLog() << "Font file found = " << foundFontFile.string() << "\n";
         // convert native filename to UTF8 string that is compatible with ImuGUi.
         std::string c_fontFile = foundFontFile.string();
 
         // initialize ImGui
         ImGui::CreateContext();
-        // read the font via ImGui, which will then be current when vsgImGui::RenderImGui initializes the rest of ImGui/Vulkan below
+        // read the font via ImGui, which will then be current when vsgImGui::RenderImGui initializes the rest of
+        // ImGui/Vulkan below
         ImGuiIO& io = ImGui::GetIO();
         auto imguiFont = io.Fonts->AddFontFromFileTTF(c_fontFile.c_str(), m_guiFontSize);
-        if (!imguiFont)
-        {
+        if (!imguiFont) {
             std::cout << "Failed to load font: " << c_fontFile << std::endl;
             return;
         }
@@ -406,6 +404,10 @@ void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
     m_params->do_image_capture = true;
 }
 
+void ChVisualSystemVSG::ShowAllCoGs(double size) {
+    m_params->cogSymbolSize = size;
+}
+
 void ChVisualSystemVSG::BindAll() {
     cout << "BindAll() called!" << endl;
     if (m_systems.empty()) {
@@ -415,6 +417,20 @@ void ChVisualSystemVSG::BindAll() {
     if (m_systems[0]->Get_bodylist().size() < 1) {
         cout << "Attached system must have at least 1 rigid body, nothing to bind!" << endl;
         return;
+    }
+    // generate CoG symbols if needed
+    if (m_params->cogSymbolSize > 0.0f) {
+        for (auto& body : m_systems[0]->GetAssembly().Get_bodylist()) {
+            auto pos = body->GetPos();
+            auto rotAngle = body->GetRotAngle();
+            auto rotAxis = body->GetRotAxis();
+            vsg::dvec3 scale(m_params->cogSymbolSize, m_params->cogSymbolSize, m_params->cogSymbolSize);
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                    vsg::scale(scale);
+            m_cogScene->addChild(m_shapeBuilder->createCoGSymbol(body, transform));
+        }
     }
     for (auto& body : m_systems[0]->GetAssembly().Get_bodylist()) {
         // CreateIrrNode(body);
@@ -631,10 +647,9 @@ void ChVisualSystemVSG::BindAll() {
 
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                        vsg::scale(0.0, height, 0.0);
-                m_linkScene->addChild(
-                        m_shapeBuilder->createUnitSegment(ilink, shape_instance, material, transform));
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                    vsg::scale(0.0, height, 0.0);
+                m_linkScene->addChild(m_shapeBuilder->createUnitSegment(ilink, shape_instance, material, transform));
             } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
                 GetLog() << "Found spring shape\n";
                 double rad = sprshape->GetRadius();
@@ -678,7 +693,25 @@ void ChVisualSystemVSG::BindAll() {
 }
 
 void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
-    // GetLog() << "Update requested.\n";
+    // generate CoG symbols if needed
+    if (m_params->cogSymbolSize > 0.0f) {
+        for (auto child : m_cogScene->children) {
+            std::shared_ptr<ChBody> body;
+            vsg::ref_ptr<vsg::MatrixTransform> transform;
+            if (!child->getValue("BodyPtr", body))
+                continue;
+            if (!child->getValue("TransformPtr", transform))
+                continue;
+            auto pos = body->GetPos();
+            auto rotAngle = body->GetRotAngle();
+            auto rotAxis = body->GetRotAxis();
+            vsg::dvec3 scale(m_params->cogSymbolSize, m_params->cogSymbolSize, m_params->cogSymbolSize);
+            transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                    vsg::scale(scale);
+        }
+    }
+    // update body visualization related graphic nodes
     for (auto child : m_bodyScene->children) {
         std::shared_ptr<ChPhysicsItem> item;
         ChVisualModel::ShapeInstance shapeInstance;
@@ -690,7 +723,6 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
         if (!child->getValue("TransformPtr", transform))
             continue;
         // begin matrix update
-
         // Get the visual model reference frame
         const ChFrame<>& X_AM = item->GetVisualModelFrame();
         auto shape = shapeInstance.first;
@@ -799,7 +831,7 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
         }
     }
     // Update link shapes
-    for(auto child : m_linkScene->children) {
+    for (auto child : m_linkScene->children) {
         std::shared_ptr<ChLinkBase> item;
         ChVisualModel::ShapeInstance shapeInstance;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
@@ -816,8 +848,8 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
             continue;
         auto& shape = shapeInstance.first;
         if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
-            const auto &P1 = link->GetPoint1Abs();
-            const auto &P2 = link->GetPoint2Abs();
+            const auto& P1 = link->GetPoint1Abs();
+            const auto& P2 = link->GetPoint2Abs();
 
             ChVector<> dir = P2 - P1;
             double height = dir.Length();
@@ -836,12 +868,12 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
             ChVector<> rotAxis;
             rot.Q_to_AngAxis(rotAngle, rotAxis);
             transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                    vsg::scale(0.0, height, 0.0);
+                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                vsg::scale(0.0, height, 0.0);
         } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
             double rad = sprshape->GetRadius();
-            const auto &P1 = link->GetPoint1Abs();
-            const auto &P2 = link->GetPoint2Abs();
+            const auto& P1 = link->GetPoint1Abs();
+            const auto& P2 = link->GetPoint2Abs();
 
             ChVector<> dir = P2 - P1;
             double height = dir.Length();
@@ -860,8 +892,8 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
             ChVector<> rotAxis;
             rot.Q_to_AngAxis(rotAngle, rotAxis);
             transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                    vsg::scale(rad, height, rad);
+                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                vsg::scale(rad, height, rad);
         }
     }
 }

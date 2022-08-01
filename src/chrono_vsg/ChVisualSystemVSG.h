@@ -57,6 +57,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetLightIntensity(double intensity) { m_lightIntensity = ChClamp(intensity, 0.0, 1.0); }
     void SetLightDirection(double acimut, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
+    void ShowAllCoGs(double size);
     void SetGuiFontSize(float theSize = 20.f) { m_guiFontSize = theSize; }
     void SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
     void BindAll() override;
@@ -65,6 +66,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
         bool showGui = true;            // (don't) show the imgui menu, actually unused
         bool do_image_capture = false;  // mark image capturing as needed
+        double cogSymbolSize = 0.0;
     };
 
   private:
@@ -84,6 +86,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //
     //  m_scene +- skybox, lights +- m_bodyScene
     //                            |
+    //                            +- m_cogScene
+    //                            |
     //                            +- m_linkScene
     //                            |
     //                            +- m_particleScene
@@ -91,6 +95,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //                            +- m_decoScene
     vsg::ref_ptr<vsg::Group> m_scene;
     vsg::ref_ptr<vsg::Group> m_bodyScene;
+    vsg::ref_ptr<vsg::Group> m_cogScene;
     vsg::ref_ptr<vsg::Group> m_linkScene;
     vsg::ref_ptr<vsg::Group> m_particleScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;

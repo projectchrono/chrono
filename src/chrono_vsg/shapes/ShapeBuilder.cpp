@@ -572,6 +572,100 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createSpringShape(std::shared_ptr<ChLinkB
     return scenegraph;
 }
 
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createCoGSymbol(std::shared_ptr<ChBody> body,
+                                                       vsg::ref_ptr<vsg::MatrixTransform> transform) {
+    auto scenegraph = vsg::Group::create();
+    // store some information for easier update
+    scenegraph->setValue("BodyPtr", body);
+    scenegraph->setValue("TransformPtr", transform);
+
+    vsg::ref_ptr<vsg::ShaderStage> vertexShader = lineShader_vert();
+    vsg::ref_ptr<vsg::ShaderStage> fragmentShader = lineShader_frag();
+
+    // set up graphics pipeline
+    vsg::DescriptorSetLayoutBindings descriptorBindings{
+        {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+         nullptr}  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
+    };
+
+    auto descriptorSetLayout = vsg::DescriptorSetLayout::create(descriptorBindings);
+
+    vsg::PushConstantRanges pushConstantRanges{
+        {VK_SHADER_STAGE_VERTEX_BIT, 0, 128}  // projection view, and model matrices, actual push constant calls
+                                              // autoaatically provided by the VSG's DispatchTraversal
+    };
+
+    vsg::VertexInputState::Bindings vertexBindingsDescriptions{
+        VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // vertex data
+        VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX}   // colour data
+    };
+
+    vsg::VertexInputState::Attributes vertexAttributeDescriptions{
+        VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0},  // vertex data
+        VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0}   // colour data
+    };
+
+    vsg::ref_ptr<vsg::InputAssemblyState> iaState = vsg::InputAssemblyState::create();
+    iaState->topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+
+    vsg::ref_ptr<vsg::RasterizationState> raState = vsg::RasterizationState::create();
+    raState->lineWidth = 1.0;  // only allowed value (also set as standard)
+
+    vsg::GraphicsPipelineStates pipelineStates{
+        vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
+        iaState,
+        raState,
+        vsg::MultisampleState::create(),
+        vsg::ColorBlendState::create(),
+        vsg::DepthStencilState::create()};
+
+    auto pipelineLayout =
+        vsg::PipelineLayout::create(vsg::DescriptorSetLayouts{descriptorSetLayout}, pushConstantRanges);
+    auto graphicsPipeline =
+        vsg::GraphicsPipeline::create(pipelineLayout, vsg::ShaderStages{vertexShader, fragmentShader}, pipelineStates);
+    auto bindGraphicsPipeline = vsg::BindGraphicsPipeline::create(graphicsPipeline);
+
+    // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of Descriptors
+    // to decorate the whole graph
+    scenegraph->addChild(bindGraphicsPipeline);
+
+    // set up model transformation node
+    // auto transform = vsg::MatrixTransform::create(); // VK_SHADER_STAGE_VERTEX_BIT
+
+    // add transform to root of the scene graph
+    scenegraph->addChild(transform);
+
+    // calculate vertices
+    const int numPoints = 6;
+    auto vertices = vsg::vec3Array::create(numPoints);
+    auto colors = vsg::vec3Array::create(numPoints);
+    double length = 1;
+    vertices->set(0, vsg::vec3(0.0, 0.0, 0.0));
+    vertices->set(1, vsg::vec3(1.0, 0.0, 0.0));
+    colors->set(0, vsg::vec3(1.0, 0.0, 0.0));
+    colors->set(1, vsg::vec3(1.0, 0.0, 0.0));
+    vertices->set(2, vsg::vec3(0.0, 0.0, 0.0));
+    vertices->set(3, vsg::vec3(0.0, 1.0, 0.0));
+    colors->set(2, vsg::vec3(0.0, 1.0, 0.0));
+    colors->set(3, vsg::vec3(0.0, 1.0, 0.0));
+    vertices->set(4, vsg::vec3(0.0, 0.0, 0.0));
+    vertices->set(5, vsg::vec3(0.0, 0.0, 1.0));
+    colors->set(4, vsg::vec3(0.0, 0.0, 1.0));
+    colors->set(5, vsg::vec3(0.0, 0.0, 1.0));
+
+    // setup geometry
+    auto drawCommands = vsg::Commands::create();
+    drawCommands->addChild(vsg::BindVertexBuffers::create(0, vsg::DataList{vertices, colors}));
+    drawCommands->addChild(vsg::Draw::create(vertices->size(), 1, 0, 0));
+
+    // add drawCommands to transform
+    transform->addChild(drawCommands);
+
+    if (compileTraversal)
+        compileTraversal->compile(scenegraph);
+    return scenegraph;
+}
+
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createUnitSegment(std::shared_ptr<ChLinkBase> linkItem,
                                                          ChVisualModel::ShapeInstance shapeInstance,
                                                          std::shared_ptr<ChVisualMaterial> material,
@@ -771,25 +865,25 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createDecoGrid(double ustep,
 
     // set up graphics pipeline
     vsg::DescriptorSetLayoutBindings descriptorBindings{
-            {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                    nullptr}  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
+        {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+         nullptr}  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
     };
 
     auto descriptorSetLayout = vsg::DescriptorSetLayout::create(descriptorBindings);
 
     vsg::PushConstantRanges pushConstantRanges{
-            {VK_SHADER_STAGE_VERTEX_BIT, 0, 128}  // projection view, and model matrices, actual push constant calls
-            // automatically provided by the VSG's DispatchTraversal
+        {VK_SHADER_STAGE_VERTEX_BIT, 0, 128}  // projection view, and model matrices, actual push constant calls
+                                              // automatically provided by the VSG's DispatchTraversal
     };
 
     vsg::VertexInputState::Bindings vertexBindingsDescriptions{
-            VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // vertex data
-            VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX}   // colour data
+        VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // vertex data
+        VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX}   // colour data
     };
 
     vsg::VertexInputState::Attributes vertexAttributeDescriptions{
-            VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0},  // vertex data
-            VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0}   // colour data
+        VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0},  // vertex data
+        VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0}   // colour data
     };
 
     vsg::ref_ptr<vsg::InputAssemblyState> iaState = vsg::InputAssemblyState::create();
@@ -799,17 +893,17 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createDecoGrid(double ustep,
     raState->lineWidth = 1.0;  // only allowed value (also set as standard)
 
     vsg::GraphicsPipelineStates pipelineStates{
-            vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
-            iaState,
-            raState,
-            vsg::MultisampleState::create(),
-            vsg::ColorBlendState::create(),
-            vsg::DepthStencilState::create()};
+        vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
+        iaState,
+        raState,
+        vsg::MultisampleState::create(),
+        vsg::ColorBlendState::create(),
+        vsg::DepthStencilState::create()};
 
     auto pipelineLayout =
-            vsg::PipelineLayout::create(vsg::DescriptorSetLayouts{descriptorSetLayout}, pushConstantRanges);
+        vsg::PipelineLayout::create(vsg::DescriptorSetLayouts{descriptorSetLayout}, pushConstantRanges);
     auto graphicsPipeline =
-            vsg::GraphicsPipeline::create(pipelineLayout, vsg::ShaderStages{vertexShader, fragmentShader}, pipelineStates);
+        vsg::GraphicsPipeline::create(pipelineLayout, vsg::ShaderStages{vertexShader, fragmentShader}, pipelineStates);
     auto bindGraphicsPipeline = vsg::BindGraphicsPipeline::create(graphicsPipeline);
 
     // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of Descriptors
@@ -826,8 +920,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createDecoGrid(double ustep,
     double rotAngle;
     ChVector<> rotAxis;
     r.Q_to_AngAxis(rotAngle, rotAxis);
-    transform->matrix = vsg::translate(p.x(), p.y(), p.z()) *
-            vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
+    transform->matrix =
+        vsg::translate(p.x(), p.y(), p.z()) * vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
 
     scenegraph->addChild(transform);
     // calculate vertices
@@ -837,7 +931,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createDecoGrid(double ustep,
         ChVector<> V2(iu * ustep, -vstep * (nv / 2), 0);
         v.push_back(V1);
         v.push_back(V2);
-        //drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        // drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
     }
 
     for (int iv = -nv / 2; iv <= nv / 2; iv++) {
@@ -845,7 +939,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createDecoGrid(double ustep,
         ChVector<> V2(-ustep * (nu / 2), iv * vstep, 0);
         v.push_back(V1);
         v.push_back(V2);
-        //drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        // drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
     }
 
     const int numPoints = v.size();
@@ -853,8 +947,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createDecoGrid(double ustep,
     auto colors = vsg::vec3Array::create(numPoints);
     auto cv = vsg::vec3(col.R, col.G, col.B);
     colors->set(0, cv);
-    for(size_t i=0; i<numPoints; i++) {
-        vertices->set(i,vsg::vec3(v[i].x(),v[i].y(),v[i].z()));
+    for (size_t i = 0; i < numPoints; i++) {
+        vertices->set(i, vsg::vec3(v[i].x(), v[i].y(), v[i].z()));
         colors->set(i, cv);
     }
     // setup geometry

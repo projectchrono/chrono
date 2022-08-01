@@ -81,6 +81,9 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
                                              std::shared_ptr<ChPathShape> ps);
 
+    vsg::ref_ptr<vsg::Group> createCoGSymbol(std::shared_ptr<ChBody> body,
+                                             vsg::ref_ptr<vsg::MatrixTransform> transform);
+
     vsg::ref_ptr<vsg::Group> createDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
 
     /// assign compile traversal to enable compilation.
