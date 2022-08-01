@@ -106,12 +106,6 @@ void ChVehicle::SetCollisionSystemType(collision::ChCollisionSystemType collsys_
         m_system->SetCollisionSystemType(collsys_type);
 }
 
-ChVehicleVisualSystem* ChVehicle::GetVisualSystem() const {
-    if (m_system)
-        return dynamic_cast<ChVehicleVisualSystem*>(m_system->GetVisualSystem());
-    return nullptr;
-}
-
 // -----------------------------------------------------------------------------
 // Enable output for this vehicle system.
 // -----------------------------------------------------------------------------

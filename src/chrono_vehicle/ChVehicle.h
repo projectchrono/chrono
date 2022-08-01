@@ -144,9 +144,6 @@ class CH_VEHICLE_API ChVehicle {
     /// consistent collision models.
     void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type);
 
-    /// Get the associated visualization system (if any).
-    ChVehicleVisualSystem* GetVisualSystem() const;
-
     /// Enable output for this vehicle system.
     void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB
                    const std::string& out_dir,   ///< [in] output directory name
