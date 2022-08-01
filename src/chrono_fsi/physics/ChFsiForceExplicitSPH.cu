@@ -1213,6 +1213,7 @@ __global__ void NS_SSR(uint* activityIdentifierD,
                        uint* cellStart,
                        uint* cellEnd,
                        uint* mapOriginalToSorted,
+                       uint* sortedFreeSurfaceIdD,
                        const size_t numAllMarkers,
                        volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1456,9 +1457,9 @@ __global__ void NS_SSR(uint* activityIdentifierD,
 
     // Check particles who have not enough neighbor particles (only for granular now)
     if (sum_w_i < paramsD.C_Wi) {
-        derivVelRho.w = -1.0;
+        sortedFreeSurfaceIdD[index] = 1;
     } else {
-        derivVelRho.w = 1.0;
+        sortedFreeSurfaceIdD[index] = 0;
     }
 
     // Calculate the shifting vector
@@ -1568,6 +1569,8 @@ __global__ void CopySortedToOriginal_D(Real4* sortedDerivVelRho,
                                        uint* gridMarkerIndex,
                                        uint* activityIdentifierD,
                                        uint* mapOriginalToSorted,
+                                       uint* originalFreeSurfaceId,
+                                       uint* sortedFreeSurfaceId,
                                        const size_t numAllMarkers) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numAllMarkers)
@@ -1584,6 +1587,7 @@ __global__ void CopySortedToOriginal_D(Real4* sortedDerivVelRho,
     if (paramsD.elastic_SPH) {
         originalDerivTauXxYyZz[id] = sortedDerivTauXxYyZz[index];
         originalDerivTauXyXzYz[id] = sortedDerivTauXyXzYz[index];
+        originalFreeSurfaceId[id] = sortedFreeSurfaceId[index];
     }
     return;
 }
@@ -1672,6 +1676,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     thrust::device_vector<Real3> sortedDerivTauXxYyZz(numObjectsH->numAllMarkers);
     thrust::device_vector<Real3> sortedDerivTauXyXzYz(numObjectsH->numAllMarkers);
     thrust::device_vector<Real3> sortedKernelSupport(numObjectsH->numAllMarkers);
+    thrust::device_vector<uint> sortedFreeSurfaceId(numObjectsH->numAllMarkers);
     sortedXSPHandShift.resize(numObjectsH->numAllMarkers);
 
     // Calculate the kernel support of each particle
@@ -1680,8 +1685,8 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
             mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             mR3CAST(sortedKernelSupport), U1CAST(markersProximityD->cellStartD),
             U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
-            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, numObjectsH->numAllMarkers,
-            isErrorD);
+            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, 
+            numObjectsH->numAllMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcKernelSupport");
     }
 
@@ -1690,10 +1695,11 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
         printf("Re-initializing density after %d steps.\n", paramsH->densityReinit);
         calcRho_kernel<<<numBlocks, numThreads>>>(
-            mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old),
-            U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
-            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, numObjectsH->numAllMarkers, 
-            density_initialization, isErrorD);
+            mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), 
+            mR4CAST(rhoPresMuD_old), U1CAST(markersProximityD->cellStartD), 
+            U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
+            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, 
+            numObjectsH->numAllMarkers, density_initialization, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcRho_kernel");
         density_initialization = 0;
     }
@@ -1706,15 +1712,16 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
 
         // execute the kernel Navier_Stokes and Shear_Stress_Rate in one kernel
         NS_SSR<<<numBlocks, numThreads>>>(
-            U1CAST(fsiGeneralData->activityIdentifierD), mR4CAST(sortedDerivVelRho), mR3CAST(sortedDerivTauXxYyZz),
-            mR3CAST(sortedDerivTauXyXzYz), mR3CAST(sortedXSPHandShift), mR3CAST(sortedKernelSupport), 
-            mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+            U1CAST(fsiGeneralData->activityIdentifierD), mR4CAST(sortedDerivVelRho), 
+            mR3CAST(sortedDerivTauXxYyZz), mR3CAST(sortedDerivTauXyXzYz), mR3CAST(sortedXSPHandShift), 
+            mR3CAST(sortedKernelSupport), mR4CAST(sortedSphMarkersD->posRadD), 
+            mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             mR3CAST(bceWorker->velMas_ModifiedBCE), mR4CAST(bceWorker->rhoPreMu_ModifiedBCE),
             mR3CAST(bceWorker->tauXxYyZz_ModifiedBCE), mR3CAST(bceWorker->tauXyXzYz_ModifiedBCE),
             mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD),
             U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
             U1CAST(markersProximityD->cellEndD), U1CAST(markersProximityD->mapOriginalToSorted),
-            numObjectsH->numAllMarkers, isErrorD);
+            U1CAST(sortedFreeSurfaceId), numObjectsH->numAllMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Navier_Stokes and Shear_Stress_Rate");
     } else {  // For fluid
         *isErrorH = false;
@@ -1726,7 +1733,8 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         calIndexOfIndex<<<numBlocks, numThreads>>>(
             U1CAST(indexOfIndex), U1CAST(identityOfIndex), U1CAST(markersProximityD->gridMarkerIndexD),
             numObjectsH->numFluidMarkers, numObjectsH->numBoundaryMarkers, numObjectsH->numAllMarkers);
-        thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), identityOfIndex.begin(), thrust::identity<int>());
+        thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), 
+            identityOfIndex.begin(), thrust::identity<int>());
 
         // execute the kernel
         Navier_Stokes<<<numBlocks1, numThreads1>>>(
@@ -1735,8 +1743,9 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(bceWorker->velMas_ModifiedBCE),
             mR4CAST(bceWorker->rhoPreMu_ModifiedBCE), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
             mR3CAST(sortedSphMarkersD->tauXyXzYzD), U1CAST(markersProximityD->gridMarkerIndexD),
-            U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
-            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, numObjectsH->numAllMarkers, isErrorD);
+            U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), 
+            numObjectsH->numFluidMarkers, numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers,
+            numObjectsH->numAllMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Navier_Stokes");
     }
 
@@ -1747,12 +1756,13 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         mR4CAST(fsiGeneralData->derivVelRhoD_old), mR3CAST(fsiGeneralData->derivTauXxYyZzD),
         mR3CAST(fsiGeneralData->derivTauXyXzYzD), U1CAST(markersProximityD->gridMarkerIndexD),
         U1CAST(fsiGeneralData->activityIdentifierD), U1CAST(markersProximityD->mapOriginalToSorted),
-        numObjectsH->numAllMarkers);
+        U1CAST(fsiGeneralData->freeSurfaceIdD), U1CAST(sortedFreeSurfaceId), numObjectsH->numAllMarkers);
 
     sortedDerivVelRho.clear();
     sortedDerivTauXxYyZz.clear();
     sortedDerivTauXyXzYz.clear();
     sortedKernelSupport.clear();
+    sortedFreeSurfaceId.clear();
     cudaFree(isErrorD);
     free(isErrorH);
 }
@@ -1761,8 +1771,8 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
 void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     // Calculate vel_XSPH
     if (vel_XSPH_Sorted_D.size() != numObjectsH->numAllMarkers) {
-        printf("vel_XSPH_Sorted_D.size() %zd numObjectsH->numAllMarkers %zd \n", vel_XSPH_Sorted_D.size(),
-               numObjectsH->numAllMarkers);
+        printf("vel_XSPH_Sorted_D.size() %zd numObjectsH->numAllMarkers %zd \n", 
+            vel_XSPH_Sorted_D.size(), numObjectsH->numAllMarkers);
         throw std::runtime_error(
             "Error! size error vel_XSPH_Sorted_D Thrown from "
             "CalculateXSPH_velocity!\n");
@@ -1783,12 +1793,14 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
         // The XSPH vector already included in the shifting vector
         CopySortedToOriginal_XSPH_D<<<numBlocks, numThreads>>>(
             mR3CAST(sortedXSPHandShift), mR3CAST(fsiGeneralData->vel_XSPH_D),
-            U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(fsiGeneralData->activityIdentifierD),
-            U1CAST(markersProximityD->mapOriginalToSorted), numObjectsH->numAllMarkers);
+            U1CAST(markersProximityD->gridMarkerIndexD), 
+            U1CAST(fsiGeneralData->activityIdentifierD),
+            U1CAST(markersProximityD->mapOriginalToSorted), 
+            numObjectsH->numAllMarkers);
     } else {
         uint numBlocks1, numThreads1;
-        computeGridSize((int)numObjectsH->numAllMarkers - (int)numObjectsH->numBoundaryMarkers, 256, numBlocks1,
-                        numThreads1);
+        computeGridSize((int)numObjectsH->numAllMarkers - 
+            (int)numObjectsH->numBoundaryMarkers, 256, numBlocks1, numThreads1);
 
         thrust::device_vector<Real4> sortedPosRad_old = sortedSphMarkersD->posRadD;
         thrust::fill(vel_XSPH_Sorted_D.begin(), vel_XSPH_Sorted_D.end(), mR3(0.0));
@@ -1797,9 +1809,13 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
         thrust::device_vector<uint> indexOfIndex(numObjectsH->numAllMarkers);
         thrust::device_vector<uint> identityOfIndex(numObjectsH->numAllMarkers);
         calIndexOfIndex<<<numBlocks, numThreads>>>(
-            U1CAST(indexOfIndex), U1CAST(identityOfIndex), U1CAST(markersProximityD->gridMarkerIndexD),
-            numObjectsH->numFluidMarkers, numObjectsH->numBoundaryMarkers, numObjectsH->numAllMarkers);
-        thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), identityOfIndex.begin(), thrust::identity<int>());
+            U1CAST(indexOfIndex), U1CAST(identityOfIndex), 
+            U1CAST(markersProximityD->gridMarkerIndexD),
+            numObjectsH->numFluidMarkers, 
+            numObjectsH->numBoundaryMarkers, 
+            numObjectsH->numAllMarkers);
+        thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), 
+            identityOfIndex.begin(), thrust::identity<int>());
 
         // Execute the kernel
         CalcVel_XSPH_D<<<numBlocks1, numThreads1>>>(
@@ -1807,19 +1823,22 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
             mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedXSPHandShift),
             U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
-            U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers, numObjectsH->numBoundaryMarkers,
-            numObjectsH->numRigidMarkers, numObjectsH->numAllMarkers, isErrorD);
+            U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers, 
+            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, 
+            numObjectsH->numAllMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "CalcVel_XSPH_D");
 
         CopySortedToOriginal_XSPH_D<<<numBlocks, numThreads>>>(
             mR3CAST(vel_XSPH_Sorted_D), mR3CAST(fsiGeneralData->vel_XSPH_D),
-            U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(fsiGeneralData->activityIdentifierD),
-            U1CAST(markersProximityD->mapOriginalToSorted), numObjectsH->numAllMarkers);
+            U1CAST(markersProximityD->gridMarkerIndexD), 
+            U1CAST(fsiGeneralData->activityIdentifierD),
+            U1CAST(markersProximityD->mapOriginalToSorted), 
+            numObjectsH->numAllMarkers);
     }
 
     if (density_initialization % paramsH->densityReinit == 0)
-        CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkersD->rhoPresMuD,
-                                            markersProximityD->gridMarkerIndexD);
+        CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, 
+            sortedSphMarkersD->rhoPresMuD, markersProximityD->gridMarkerIndexD);
     cudaFree(isErrorD);
     free(isErrorH);
 }

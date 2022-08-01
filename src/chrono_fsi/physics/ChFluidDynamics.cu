@@ -262,6 +262,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
                              Real3* derivTauXyXzYzD,
                              Real4* sr_tau_I_mu_iD,
                              uint* activityIdentifierD,
+                             uint* freeSurfaceIdD,
                              int2 updatePortion,
                              Real dT,
                              volatile bool* isErrorD) {
@@ -306,11 +307,11 @@ __global__ void UpdateFluidD(Real4* posRadD,
             Real inv_mus = 1.0 / paramsD.mu_fric_s;
             Real P_cri = - coh * inv_mus;
             if (p_tr > P_cri) {
-                Real tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + square(updatedTauXxYyZz.z) +
-                              2.0 * square(updatedTauXyXzYz.x) + 2.0 * square(updatedTauXyXzYz.y) +
-                              2.0 * square(updatedTauXyXzYz.z);
+                Real tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + 
+                    square(updatedTauXxYyZz.z) + 2.0 * square(updatedTauXyXzYz.x) + 
+                    2.0 * square(updatedTauXyXzYz.y) + 2.0 * square(updatedTauXyXzYz.z);
                 Real tau_n = square(tauXxYyZz.x) + square(tauXxYyZz.y) + square(tauXxYyZz.z) +
-                             2.0 * square(tauXyXzYz.x) + 2.0 * square(tauXyXzYz.y) + 2.0 * square(tauXyXzYz.z);
+                    2.0 * square(tauXyXzYz.x) + 2.0 * square(tauXyXzYz.y) + 2.0 * square(tauXyXzYz.z);
                 tau_tr = sqrt(0.5 * tau_tr);
                 tau_n = sqrt(0.5 * tau_n);
                 Real Chi = abs(tau_tr - tau_n) * paramsD.INV_G_shear / dT;
@@ -336,28 +337,31 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 //     updatedTauXyXzYz = updatedTauXyXzYz*coeff;
                 // }
                 Real tau_max = p_tr * mu + coh;  // p_tr*paramsD.Q_FA;
-                if (tau_tr > tau_max) {    // should use tau_max instead of s_0 according to
-                                           // "A constitutive law for dense granular flows" Nature 2006
+                // should use tau_max instead of s_0 according to
+                // "A constitutive law for dense granular flows" Nature 2006
+                if (tau_tr > tau_max) {       
                     Real coeff = tau_max / (tau_tr + 1e-9);
                     updatedTauXxYyZz = updatedTauXxYyZz * coeff;
                     updatedTauXyXzYz = updatedTauXyXzYz * coeff;
                 }
             }
+            // Set stress to zero if the pressure is smaller than a critical value
             if (p_tr < P_cri) {
                 updatedTauXxYyZz = mR3(0.0);
                 updatedTauXyXzYz = mR3(0.0);
                 p_tr = P_cri;
             }
-            if (derivVelRho.w < 0.0) {
+            // Set stress to zero if the particle is close to free surface
+            if (freeSurfaceIdD[index] == 1) {
                 updatedTauXxYyZz = mR3(0.0);
                 updatedTauXyXzYz = mR3(0.0);
                 p_tr = 0.0;
             }
 
             if (paramsD.output_length == 2) {
-                Real tau_tr =
-                    square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + square(updatedTauXxYyZz.z) +
-                    2.0 * (square(updatedTauXyXzYz.x) + square(updatedTauXyXzYz.y) + square(updatedTauXyXzYz.z));
+                Real tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + 
+                    square(updatedTauXxYyZz.z) + 2.0 * (square(updatedTauXyXzYz.x) + 
+                    square(updatedTauXyXzYz.y) + square(updatedTauXyXzYz.z));
                 tau_tr = sqrt(0.5 * tau_tr);
                 sr_tau_I_mu_iD[index].y = tau_tr;
             }
@@ -684,7 +688,7 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, R
         mR3CAST(fsiSystem.fsiGeneralData->vel_XSPH_D), mR4CAST(fsiSystem.fsiGeneralData->derivVelRhoD_old),
         mR3CAST(fsiSystem.fsiGeneralData->derivTauXxYyZzD), mR3CAST(fsiSystem.fsiGeneralData->derivTauXyXzYzD),
         mR4CAST(fsiSystem.fsiGeneralData->sr_tau_I_mu_i), U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD),
-        updatePortion, dT, isErrorD);
+        U1CAST(fsiSystem.fsiGeneralData->freeSurfaceIdD), updatePortion, dT, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------
