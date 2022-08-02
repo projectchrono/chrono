@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("Sedan AI Demo");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&my_sedan.GetVehicle());

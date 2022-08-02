@@ -307,8 +307,8 @@ int main(int argc, char* argv[]) {
     // Set environment map
     Background b;
     b.mode = BackgroundMode::GRADIENT;
-    b.color_horizon = {.6, .7, .8};
-    b.color_zenith = {.4, .5, .6};
+    b.color_horizon = {0.6f, 0.7f, 0.8f};
+    b.color_zenith = {0.4f, 0.5f, 0.6f};
     manager->scene->SetBackground(b);
 
     // ------------------------------------------------

@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("mrole Demo");
     vis->SetChaseCamera(trackPoint, 6.0, 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&my_mrole.GetVehicle());

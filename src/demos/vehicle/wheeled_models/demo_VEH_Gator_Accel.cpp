@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("Gator Acceleration");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&gator.GetVehicle());

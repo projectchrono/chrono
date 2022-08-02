@@ -90,6 +90,10 @@ class CH_GPU_API ChGpuVisualization {
     /// If the Chrono::OpenGL module is not available, this function is no-op.
     bool Render();
 
+#ifdef CHRONO_OPENGL
+    opengl::ChVisualSystemOpenGL& GetVisualSystem() const { return *m_vsys; }
+#endif
+
   private:
     ChSystemGpu* m_systemGPU;  ///< associated Chrono::Gpu system
     ChSystem* m_system;        ///< supplemental Chrono system (holds proxy bodies)

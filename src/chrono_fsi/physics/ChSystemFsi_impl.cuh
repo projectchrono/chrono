@@ -150,7 +150,7 @@ struct FsiMeshDataD {
 struct FsiShellsDataH {
     thrust::host_vector<Real3> posFlex_fsiBodies_nA_H;  ///< Vector of the node A position
     thrust::host_vector<Real3> posFlex_fsiBodies_nB_H;  ///< Vector of the node B position
-    thrust::host_vector<Real3> posFlex_fsiBodies_nC_H;  ///< Vector of the node B position
+    thrust::host_vector<Real3> posFlex_fsiBodies_nC_H;  ///< Vector of the node C position
     thrust::host_vector<Real3> posFlex_fsiBodies_nD_H;  ///< Vector of the node D position
 
     thrust::host_vector<Real3> velFlex_fsiBodies_nA_H;  ///< Vector of the node A velocity
@@ -279,11 +279,11 @@ struct FsiGeneralData {
     thrust::device_vector<uint> activityIdentifierD;  ///< Identifies if a particle is an active particle or not
     thrust::device_vector<uint> extendedActivityIdD;  ///< Identifies if a particle is in an extended active domain
 
+    thrust::device_vector<uint> freeSurfaceIdD;  ///< Identifies if a particle is close to free surface
+
     // BCE
-    thrust::device_vector<Real3>
-        rigidSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a rigid body in a local
-    thrust::device_vector<Real3>
-        FlexSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a mesh in a local on device
+    thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a rigid body in a local
+    thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a mesh in a local on device
     thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;  ///< Position of a particle attached to a mesh in a local on host
 
     thrust::device_vector<uint> rigidIdentifierD;  ///< Identifies which rigid body a particle belongs to

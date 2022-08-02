@@ -450,7 +450,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("JSON Tracked Vehicle Demo");
     vis->SetChaseCamera(vehicle_model.CameraPoint(), vehicle_model.CameraDistance(), 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
 
