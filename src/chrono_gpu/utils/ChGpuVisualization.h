@@ -40,9 +40,6 @@ namespace gpu {
 /// system. This separate system can be provided by the user or else created automatically. Note that using run-time
 /// visualization for a Chrono::Gpu system incurs the penalty of collecting positions of all particles every time the
 /// Render() function is invoked.
-///
-/// To implement a moving camera (i.e., prescribe the camera position), get the current instance of the active
-/// Chrono::OpenGL window and use the function ChOpenGLWindow::SetCamera().
 class CH_GPU_API ChGpuVisualization {
   public:
     /// <summary>
@@ -50,7 +47,6 @@ class CH_GPU_API ChGpuVisualization {
     /// If a supplemental Chrono system is not provided (default), one will be created internally.
     /// </summary>
     /// <param name="sysGPU">Associated Chrono::Gpu system</param>
-    /// <param name="sys">Supplemental Chrono system containing visualization proxies</param>
     ChGpuVisualization(ChSystemGpu* sysGPU);
 
     ~ChGpuVisualization();
@@ -93,6 +89,10 @@ class CH_GPU_API ChGpuVisualization {
     /// Returns false if the visualization window was closed.
     /// If the Chrono::OpenGL module is not available, this function is no-op.
     bool Render();
+
+#ifdef CHRONO_OPENGL
+    opengl::ChVisualSystemOpenGL& GetVisualSystem() const { return *m_vsys; }
+#endif
 
   private:
     ChSystemGpu* m_systemGPU;  ///< associated Chrono::Gpu system

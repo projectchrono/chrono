@@ -376,7 +376,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("JSON Tracked Vehicle Demo");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 6.0, 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
 

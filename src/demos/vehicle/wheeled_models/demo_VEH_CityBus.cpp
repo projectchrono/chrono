@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("City Bus Demo");
     vis->SetChaseCamera(trackPoint, 14.0, 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&my_bus.GetVehicle());

@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("HMMWV Deformable Soil Demo");
     vis->SetChaseCamera(trackPoint, 6.0, 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&my_hmmwv.GetVehicle());

@@ -49,9 +49,6 @@ void ChFsiForce::Initialize() {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
 
-    if (verbose)
-        printf("ChFsiForce number of all particles = %zd\n", numObjectsH->numAllMarkers);
-
     vel_XSPH_Sorted_D.resize(numObjectsH->numAllMarkers);
     vel_vis_Sorted_D.resize(numObjectsH->numAllMarkers);
     derivVelRhoD_Sorted_D.resize(numObjectsH->numAllMarkers);

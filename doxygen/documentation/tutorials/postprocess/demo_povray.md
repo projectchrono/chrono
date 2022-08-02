@@ -2,27 +2,21 @@ Export POVray animations (demo_POST_povray.cpp)  {#tutorial_demo_povray}
 ==========================
 
 
-Tutorial that teaches how to use the 
-[POSTPROCESS module](group__postprocess__module.html)
-to create animations with [POVray](http://www.povray.org). 
+Tutorial that teaches how to use the [POSTPROCESS module](group__postprocess__module.html) to create animations with [POVray](http://www.povray.org). 
 
-When the simulation is run, a set of .pov and .ini files 
-are saved on disk, so that one can use POVray 
-later to do high-quality rendering of simulations.
+When the simulation is run, a set of .pov and .ini files are saved on disk, so that one can use POVray later to do high-quality rendering of simulations.
 
-- Learn how to attach @ref chrono::ChAsset shapes to rigid bodies.
+- Learn how to attach @ref chrono::ChVisualShape to rigid bodies.
 - Learn how to output data for POVray. 
 
-Note: the same assets can be used to render animations 
-in real-time in the interactive 3D view of Irrlicht, 
-as explained in demo_IRR_assets.cpp
+Note: the same assets can be used to render animations in real-time in the interactive 3D view of Irrlicht, as explained in demo_IRR_assets.cpp
 
 
 # Example 1
 
 Create a @ref chrono::ChBody, and attach some 'assets' that define 3D shapes. 
-These shapes can be shown by Irrlicht or POV postprocessing, etc...
-Note: these assets are independent from collision shapes!
+These shapes can be shown by Irrlicht, OpenGL, or POV postprocessing.
+Note: these assets are independent from collision shapes.
 
 \snippet demo_POST_povray.cpp Example 1
 
@@ -30,15 +24,14 @@ Note: these assets are independent from collision shapes!
 # Example 2
 
 Textures, colors, asset levels with transformations.
-This section shows how to add more advanced types of assets and 
-how to group assets in @ref chrono::ChAssetLevel containers.
+This section shows how to add more advanced types of assets.
 
 \snippet demo_POST_povray.cpp Example 2
 
 
 # Example 3
 
-Create a @ref chrono::ChParticlesClones cluster, and attach 'assets' that define a 
+Create a @ref chrono::ChParticleCloud cluster, and attach 'assets' that define a 
 single "sample" 3D shape. This will be shown N times in POV or Irrlicht.
 	
 \snippet demo_POST_povray.cpp Example 3

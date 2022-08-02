@@ -47,7 +47,7 @@ double beam_wz = 0.3;
 double beam_wy = 0.05;
 double beam_L = 6;
 
-void MakeAndRunDemoCantilever(ChSystem& sys, bool base_fixed) {
+void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool base_fixed) {
     // Clear previous demo, if any:
     sys.Clear();
     sys.SetChTime(0);
@@ -160,20 +160,19 @@ void MakeAndRunDemoCantilever(ChSystem& sys, bool base_fixed) {
                  << "  Im=" << my_assembly->Get_modes_eig()(i).imag() << "\n";
 
     // This is needed if you want to see things in Irrlicht
-    auto vis = dynamic_cast<ChVisualSystemIrrlicht*>(sys.GetVisualSystem());
-    vis->BindAll();
+    vis.BindAll();
 
     int current_example = ID_current_example;
-    while ((ID_current_example == current_example) && vis->Run()) {
-        vis->BeginScene();
-        vis->Render();
-        tools::drawGrid(vis, 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
+    while ((ID_current_example == current_example) && vis.Run()) {
+        vis.BeginScene();
+        vis.Render();
+        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
-        vis->EndScene();
+        vis.EndScene();
     }
 }
 
-void MakeAndRunDemoLbeam(ChSystem& sys, bool body1fixed, bool body2fixed) {
+void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1fixed, bool body2fixed) {
     // Clear previous demo, if any:
     sys.Clear();
     sys.SetChTime(0);
@@ -287,7 +286,7 @@ void MakeAndRunDemoLbeam(ChSystem& sys, bool body1fixed, bool body2fixed) {
     //   mode.
     my_assembly->ComputeModes(16);
 
-    // If you need to enter more detailed settings for the eigenvalue solver, do this : 
+    // If you need to enter more detailed settings for the eigenvalue solver, do this :
     /*
     my_assembly->ComputeModes(ChModalSolveUndamped(
         12,             // n. lowest nodes to search, or modes clusters {{freq1,nnodes2},{freq2,nnodes2},{...,...}}
@@ -299,29 +298,27 @@ void MakeAndRunDemoLbeam(ChSystem& sys, bool body1fixed, bool body2fixed) {
     );
     */
 
-
     // Just for logging the frequencies:
     for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
         GetLog() << "Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) << "\n";
 
     // This is needed if you want to see things in Irrlicht 3D view.
-    auto vis = dynamic_cast<ChVisualSystemIrrlicht*>(sys.GetVisualSystem());
-    vis->BindAll();
+    vis.BindAll();
 
     int current_example = ID_current_example;
-    while ((ID_current_example == current_example) && vis->Run()) {
-        vis->BeginScene();
-        vis->Render();
-        tools::drawGrid(vis, 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
+    while ((ID_current_example == current_example) && vis.Run()) {
+        vis.BeginScene();
+        vis.Render();
+        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
-        vis->EndScene();
+        vis.EndScene();
     }
 }
 
 // Custom event manager
 class MyEventReceiver : public irr::IEventReceiver {
   public:
-    MyEventReceiver(ChVisualSystemIrrlicht* vis) : m_vis(vis) {}
+    MyEventReceiver() {}
 
     bool OnEvent(const irr::SEvent& event) {
         // check if user presses keys
@@ -348,9 +345,6 @@ class MyEventReceiver : public irr::IEventReceiver {
         }
         return false;
     }
-
-  private:
-    ChVisualSystemIrrlicht* m_vis;
 };
 
 int main(int argc, char* argv[]) {
@@ -373,25 +367,25 @@ int main(int argc, char* argv[]) {
     // VISUALIZATION
 
     // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(1024, 768);
-    vis->SetWindowTitle("Modal analysis");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(1, 1.3, 6), ChVector<>(3, 0, 0));
-    vis->AddLightWithShadow(ChVector<>(20, 20, 20), ChVector<>(0, 0, 0), 50, 5, 50, 55);
-    vis->AddLight(ChVector<>(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
-    vis->AddLight(ChVector<>(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
+    ChVisualSystemIrrlicht vis;
+    vis.AttachSystem(&sys);
+    vis.SetWindowSize(1024, 768);
+    vis.SetWindowTitle("Modal analysis");
+    vis.Initialize();
+    vis.AddLogo();
+    vis.AddSkyBox();
+    vis.AddCamera(ChVector<>(1, 1.3, 6), ChVector<>(3, 0, 0));
+    vis.AddLightWithShadow(ChVector<>(20, 20, 20), ChVector<>(0, 0, 0), 50, 5, 50, 55);
+    vis.AddLight(ChVector<>(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis.AddLight(ChVector<>(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
 
     // This is for GUI tweaking of system parameters..
-    MyEventReceiver receiver(vis.get());
+    MyEventReceiver receiver;
     // note how to add a custom event receiver to the default interface:
-    vis->AddUserEventReceiver(&receiver);
+    vis.AddUserEventReceiver(&receiver);
 
     // Some help on the screen
-    vis->GetGUIEnvironment()->addStaticText(
+    vis.GetGUIEnvironment()->addStaticText(
         L"Press 1: fixed cantilever\n"
         L"Press 2: free-free cantilever\n"
         L"Press 3: L-beam, root fixed\n"
@@ -401,38 +395,38 @@ int main(int argc, char* argv[]) {
 
     // Note, in order to have this modal visualization  working, a ChModalAssembly must have been added to the ChSystem,
     // where some modes must have been already computed.
-    vis->EnableModalAnalysis(true);
-    vis->SetModalSpeed(15);
-    vis->SetModalAmplitude(0.8);
-    vis->SetModalModeNumber(0);
+    vis.EnableModalAnalysis(true);
+    vis.SetModalSpeed(15);
+    vis.SetModalAmplitude(0.8);
+    vis.SetModalModeNumber(0);
 
     // Optional: open the GUI for changing the N of the mode shape via a slider in the Irrlicht view
-    vis->ShowInfoPanel(true);
-    vis->SetInfoTab(1);
+    vis.ShowInfoPanel(true);
+    vis.SetInfoTab(1);
 
     // Run the sub-demos
     while (true) {
         switch (ID_current_example) {
             case 1:
-                MakeAndRunDemoCantilever(sys,
+                MakeAndRunDemoCantilever(sys, vis,
                                          true);  // root fixed
                 break;
             case 2:
-                MakeAndRunDemoCantilever(sys,
+                MakeAndRunDemoCantilever(sys, vis,
                                          false);  // root free, for free-free mode
                 break;
             case 3:
-                MakeAndRunDemoLbeam(sys,
+                MakeAndRunDemoLbeam(sys, vis,
                                     true,    // end 1 fixed
                                     false);  // end 2 free
                 break;
             case 4:
-                MakeAndRunDemoLbeam(sys,
+                MakeAndRunDemoLbeam(sys, vis,
                                     false,   // end 1 free
                                     false);  // end 2 free
                 break;
             case 5:
-                MakeAndRunDemoLbeam(sys,
+                MakeAndRunDemoLbeam(sys, vis,
                                     true,   // end 1 fixed
                                     true);  // end 2 fixed
                 break;
@@ -440,7 +434,7 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
-        if (!vis->Run())
+        if (!vis.Run())
             break;
     }
 

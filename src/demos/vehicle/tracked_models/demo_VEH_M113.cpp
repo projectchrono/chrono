@@ -534,7 +534,7 @@ int main(int argc, char* argv[]) {
     ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector<>(0, 2, 0));
     vis->SetChaseCameraMultipliers(1e-4, 10);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
 

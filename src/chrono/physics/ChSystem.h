@@ -86,9 +86,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Concrete derived classes must implement this.
     virtual ChSystem* Clone() const = 0;
 
-    /// Get the associated visualization system (if any).
-    ChVisualSystem* GetVisualSystem() const { return visual_system; }
-
     /// Sets the time step used for integration (dynamical simulation).
     /// The lower this value, the more precise the simulation. Usually, values
     /// about 0.01 s are enough for simple simulations. It may be modified automatically

@@ -4,15 +4,12 @@
   {
     "Density":                1000,
     "Viscosity":              0.001,
-    "Body Force":             [0.0, 0.0,  0.0],
-    "Gravity":                [0.0, 0.0, -9.81],
-    "Surface Tension Kappa":   0.0,
-    "Characteristic Length":   1.0
+    "Gravity":                [0.0, 0.0, -9.81]
   },
 
   "SPH Parameters":
   {
-    "Method":                         "I2SPH", //WCSPH, IISPH, I2SPHH
+    "Method":                         "I2SPH",
     "Kernel h":                       0.1,
     "Initial Spacing":                0.1,
     "Epsilon":                        0.01,
@@ -31,8 +28,7 @@
     "CFL number":                    0.2,
     "Fluid time step":               0.001,
     "Solid time step":               0.001,
-    "Maximum time step":             0.001,
-    "Write frame per second":        20
+    "Maximum time step":             0.001
   },
 
 
@@ -51,12 +47,5 @@
     "Verbose monitoring":       false,
     "Constraint Pressure":      false,
     "Average Pressure":         0.0
-  },
-
-  "Geometry Inf":
-  {
-    "BoxDimensionX":                6.0,
-    "BoxDimensionY":                1.0,
-    "BoxDimensionZ":                4.0
   }
 }

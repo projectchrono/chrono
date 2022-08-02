@@ -486,6 +486,14 @@ if(ENABLE_MODULE_PARDISO_MKL)
   # Install .py module wrapper
   install(FILES "${CHPY_MKL_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
+  if (DBG_SCRIPT)
+    message("Module name:     ${CHPY_MKL}")
+    message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_MKL}_REAL_NAME}")
+    message("PY file:         ${CHPY_MKL_PY_FILE}")
+    message("PYD file:        ${CHPY_MKL_PYD_FILE}")
+    message("PYD path:        ${CHPY_MKL_PYD_PATH}")
+  endif()
+
 endif()
 
 
@@ -559,6 +567,15 @@ if(ENABLE_MODULE_CASCADE)
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
   # Install .py module wrapper
   install(FILES "${CHPY_CASCADE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+
+  if (DBG_SCRIPT)
+    message("Cascade includes:  ${OpenCASCADE_INCLUDE_DIR}")
+    message("Module name:     ${CHPY_CASCADE}")
+    message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME}")
+    message("PY file:         ${CHPY_CASCADE_PY_FILE}")
+    message("PYD file:        ${CHPY_CASCADE_PYD_FILE}")
+    message("PYD path:        ${CHPY_CASCADE_PYD_PATH}")
+  endif()
 
 endif()
 
@@ -647,6 +664,14 @@ if(ENABLE_MODULE_VEHICLE)
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
   # Install .py module wrapper
   install(FILES "${CHPY_VEHICLE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+
+  if (DBG_SCRIPT)
+    message("Module name:     ${CHPY_VEHICLE}")
+    message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME}")
+    message("PY file:         ${CHPY_VEHICLE_PY_FILE}")
+    message("PYD file:        ${CHPY_VEHICLE_PYD_FILE}")
+    message("PYD path:        ${CHPY_VEHICLE_PYD_PATH}")
+  endif()
 
 endif()
 

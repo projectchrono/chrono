@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("RCCar Demo");
     vis->SetChaseCamera(trackPoint, 1.5, 0.05);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&my_rccar.GetVehicle());

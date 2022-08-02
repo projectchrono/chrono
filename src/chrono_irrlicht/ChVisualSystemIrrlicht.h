@@ -114,10 +114,10 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Light direction is defined by:
     /// - elevation (deg) between 0 (at the horizon) and 90 (above)
     /// - azimuth (deg) between 0 and 360, with 0 = South (-X), 90 = East (-Y), 180 = North (+X), 270 = West (+Y)
-    irr::scene::ILightSceneNode* AddLightDirectional(double elevation = 90,                         ///< light elevation
-                                                     double azimuth = 0,                            ///< light azimuth
-                                                     ChColor ambient = ChColor(0.3f, 0.3f, 0.3f),   ///< ambient color
-                                                     ChColor specular = ChColor(0.8f, 0.8f, 0.8f),  ///< specular color
+    irr::scene::ILightSceneNode* AddLightDirectional(double elevation = 60,                         ///< light elevation
+                                                     double azimuth = 60,                            ///< light azimuth
+                                                     ChColor ambient = ChColor(0.5f, 0.5f, 0.5f),   ///< ambient color
+                                                     ChColor specular = ChColor(0.2f, 0.2f, 0.2f),  ///< specular color
                                                      ChColor diffuse = ChColor(1.0f, 1.0f, 1.0f)    ///< diffuse color
     );
 

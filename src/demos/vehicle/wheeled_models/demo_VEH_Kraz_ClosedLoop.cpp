@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("Semi-trailer truck :: Follows Straight Line");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&truck.GetTractor());

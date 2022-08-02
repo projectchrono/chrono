@@ -4,16 +4,15 @@
 
 # List FSI demos that do not have other dependencies
 SET(FSI_DEMOS 
-demo_FSI_DamBreak
-demo_FSI_Compressibility
-demo_FSI_Poiseuille_flow
-demo_FSI_CylinderDrop
-demo_FSI_SingleWheelTest
+    demo_FSI_DamBreak
+    demo_FSI_Compressibility
+    demo_FSI_Poiseuille_flow
+    demo_FSI_CylinderDrop
+    demo_FSI_SingleWheelTest
 )
 
-# FSI demos that require Chrono::PardisoMKL
-SET(FSI_MKL_DEMOS 
-demo_FSI_Flexible_Elements
+set(FSI_MKL_DEMOS
+    demo_FSI_Flexible_Elements
 )
 
 #--------------------------------------------------------------

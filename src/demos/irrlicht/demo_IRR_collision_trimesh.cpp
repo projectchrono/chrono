@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (vis->Run()) {
-        vis->BeginScene(true, true, ChColor(0.55, 0.63, 0.75));
+        vis->BeginScene(true, true, ChColor(0.55f, 0.63f, 0.75f));
         vis->Render();
         vis->EndScene();
         sys.DoStepDynamics(0.005);

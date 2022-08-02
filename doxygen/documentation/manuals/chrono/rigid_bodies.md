@@ -49,7 +49,7 @@ Creating/Setting up a ChBody object typically involves the following steps:
    my_system.Add(body_b);
    ~~~
 5. Optional: add [collision shapes](@ref collision_shapes)
-6. Optional: add [visualization assets](@ref visualization_assets)
+6. Optional: add [visualization assets](@ref visualization_system)
 
 # ChBodyAuxRef   {#manual_ChBodyAuxRef}
 
@@ -66,7 +66,7 @@ Remarks:
 - Calls such as mybody->GetPos(), mybody->GetRot(), mybody->GetPos_dt(), mybody->GetWvel(), etc., will report the kinematic quantities ''for the COG frame''. If you need those of the REF, do mybody->GetFrame_REF_to_abs().GetPos(), etc.
 - The REF frame is used for
   - [collision shapes](@ref collision_shapes)
-  - [visualization shapes](@ref visualization_assets)
+  - [visualization model](@ref visualization_system)
 
 The following is a short example on how to set the position 
 of the body using the REF frame:

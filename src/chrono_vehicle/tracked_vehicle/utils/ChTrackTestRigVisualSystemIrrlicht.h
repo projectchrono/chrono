@@ -38,7 +38,7 @@ class CH_VEHICLE_API ChTrackTestRigVisualSystemIrrlicht : public ChVehicleVisual
     ~ChTrackTestRigVisualSystemIrrlicht() {}
 
     /// Attach a vehicle to this Irrlicht track rig visualization system.
-    virtual void AttachVehicle(ChVehicle* vehicle) override;
+    virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
 
     /// Enable/disable rendering of track shoe body frames.
     void RenderTrackShoeFrames(bool state, double axis_length = 1);

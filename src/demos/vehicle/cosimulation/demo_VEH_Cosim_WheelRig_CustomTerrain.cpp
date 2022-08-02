@@ -162,7 +162,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
         m_vis->AddLogo();
         m_vis->AddSkyBox();
         m_vis->AddCamera(ChVector<>(2, 1.4, 1));
-        m_vis->AddTypicalLights();
+        m_vis->AddLightDirectional();
 
         m_vis->AttachSystem(m_system);
     }

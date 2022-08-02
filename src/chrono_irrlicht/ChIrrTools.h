@@ -146,7 +146,7 @@ ChApiIrr void drawHUDviolation(ChVisualSystemIrrlicht* vis,
                                double spfact = 100.0);
 
 ChApiIrr void drawChFunction(ChVisualSystemIrrlicht* vis,
-                             ChFunction* fx,
+                             std::shared_ptr<ChFunction> fx,
                              double xmin = 0,
                              double xmax = 1,
                              double ymin = -1,
@@ -154,7 +154,9 @@ ChApiIrr void drawChFunction(ChVisualSystemIrrlicht* vis,
                              int mx = 10,
                              int my = 290,
                              int sx = 300,
-                             int sy = 100);
+                             int sy = 100,
+                             ChColor col = ChColor(1, 0, 0),
+                             const char* title = 0);
 
 /// Draw line segments in 3D space with given color.
 ChApiIrr void drawSegment(ChVisualSystemIrrlicht* vis,
