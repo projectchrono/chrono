@@ -107,7 +107,7 @@ struct ByteImageData {
 /// @param pipeline_compile_options compile options for the pipeline
 CH_SENSOR_API void GetShaderFromFile(OptixDeviceContext context,
                                      OptixModule& module,
-                                     std::string file_name,
+                                     const std::string& file_name,
                                      OptixModuleCompileOptions& module_compile_options,
                                      OptixPipelineCompileOptions& pipeline_compile_options);
 
@@ -129,7 +129,7 @@ CH_SENSOR_API void optix_log_callback(unsigned int level, const char* tag, const
 
 /// loads image to struct ByteImageData, returns an empty struct with 0 values if loading failed
 /// @param filename
-CH_SENSOR_API ByteImageData LoadByteImage(std::string filename);
+CH_SENSOR_API ByteImageData LoadByteImage(const std::string& filename);
 
 /*
 /// creates an empty optix transform::node
@@ -185,7 +185,7 @@ void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector<double> 
 void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector<double> b, ChVector<double> s);
 */
 
-CH_SENSOR_API void SetSensorShaderDir(std::string path);
+CH_SENSOR_API void SetSensorShaderDir(const std::string& path);
 
 /*
 /// prefix for ptx file

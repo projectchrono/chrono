@@ -54,12 +54,12 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
          return;
 
     double xnozzlesize = 0.2;
-    double znozzlesize = 0.56;
     double ynozzle = 0.0;
+    ////double znozzlesize = 0.56;
 
-    double box_fraction = 0.7;  // 70% boxes, the rest are cylinders
+    ////double box_fraction = 0.7;  // 70% boxes, the rest are cylinders
 
-    double sphrad = 0.013;
+    ////double sphrad = 0.013;
 
     double exact_particles_dt = dt * particles_second;
     double particles_dt = floor(exact_particles_dt);
@@ -91,7 +91,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
             ynozzle + particlelist.size() * 0.005,
             ((((particlelist.size() - particlelist.size() % 3) %5)/(5.0))  -0.5 )* xnozzlesize ));
 
-        rigidBody->GetVisualShape(0)->SetColor(ChColor(0.3, 0.6, 0.6));
+        rigidBody->GetVisualShape(0)->SetColor(ChColor(0.3f, 0.6f, 0.6f));
 
         sys.Add(rigidBody);
 

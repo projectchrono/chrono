@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddCamera(ChVector<>(2.0, 1.4, 0.0), ChVector<>(0, tire_rad, 0));
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
 
 
     //

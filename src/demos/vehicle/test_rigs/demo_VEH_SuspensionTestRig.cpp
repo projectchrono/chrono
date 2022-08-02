@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
     rig->Initialize();
 
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&rig->GetVehicle());

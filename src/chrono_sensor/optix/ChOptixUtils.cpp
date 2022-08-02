@@ -45,13 +45,13 @@ std::string SensorConfig::ptx_pre = "ChronoEngine_sensor_generated_";
 std::string SensorConfig::ptx_suff = ".cu.ptx";
 std::string SensorConfig::SENSOR_SHADER_DIR = std::string(CMAKE_SHADER_OUTPUT_PATH);
 
-void SetSensorShaderDir(std::string path){
+void SetSensorShaderDir(const std::string& path){
     SensorConfig::SENSOR_SHADER_DIR = path;
 }
 
 void GetShaderFromFile(OptixDeviceContext context,
                        OptixModule& module,
-                       std::string file_name,
+                       const std::string& file_name,
                        OptixModuleCompileOptions& module_compile_options,
                        OptixPipelineCompileOptions& pipeline_compile_options) {
 #ifdef USE_CUDA_NVRTC
@@ -145,7 +145,7 @@ void optix_log_callback(unsigned int level, const char* tag, const char* message
     std::cerr << "[" << std::setw(2) << level << "][" << std::setw(12) << tag << "]: " << message << "\n";
 }
 
-ByteImageData LoadByteImage(std::string filename) {
+ByteImageData LoadByteImage(const std::string& filename) {
     ByteImageData img_data;
     int w;
     int h;
