@@ -1467,7 +1467,6 @@ __global__ void NS_SSR(uint* activityIdentifierD,
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
                                Real3* vel_XSPH_Sorted_D,  // output: new velocity
-                               Real4* sortedPosRad_old,   // input: sorted positions
                                Real4* sortedPosRad,       // input: sorted positions
                                Real3* sortedVelMas,       // input: sorted velocities
                                Real4* sortedRhoPreMu,
@@ -1490,7 +1489,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
     Real3 velMasA = sortedVelMas[index];
     Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
 
-    Real3 posRadA = mR3(sortedPosRad_old[index]);
+    Real3 posRadA = mR3(sortedPosRad[index]);
     Real3 deltaV = mR3(0);
 
     // get address in grid
@@ -1508,7 +1507,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
                 uint endIndex = cellEnd[gridHash];
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (j != index) {  // check not colliding with self
-                        Real3 posRadB = mR3(sortedPosRad_old[j]);
+                        Real3 posRadB = mR3(sortedPosRad[j]);
                         Real3 dist3 = Distance(posRadA, posRadB);
                         Real d = length(dist3);
                         if (d > SuppRadii)
@@ -1778,7 +1777,6 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
         computeGridSize((int)numObjectsH->numAllMarkers - 
             (int)numObjectsH->numBoundaryMarkers, 256, numBlocks1, numThreads1);
 
-        thrust::device_vector<Real4> sortedPosRad_old = sortedSphMarkersD->posRadD;
         thrust::fill(vel_XSPH_Sorted_D.begin(), vel_XSPH_Sorted_D.end(), mR3(0.0));
 
         // Find the index which is related to the wall boundary particle
@@ -1795,7 +1793,7 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
 
         // Execute the kernel
         CalcVel_XSPH_D<<<numBlocks1, numThreads1>>>(
-            U1CAST(indexOfIndex), mR3CAST(vel_XSPH_Sorted_D), mR4CAST(sortedPosRad_old),
+            U1CAST(indexOfIndex), mR3CAST(vel_XSPH_Sorted_D),
             mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedXSPHandShift),
             U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
