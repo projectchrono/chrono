@@ -51,7 +51,7 @@ class ChFluidDynamics : public ChFsiGeneral {
     ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,             ///< Pointer to the information of BCE particles
                     ChSystemFsi_impl& otherFsiSystem,                  ///< Pointer to the FSI system
                     std::shared_ptr<SimParams> otherParamsH,           ///< Pointer to the simulation parameters
-                    std::shared_ptr<ChCounters> otherNumObjects,  ///< Pointer to the number of objects
+                    std::shared_ptr<ChCounters> otherNumObjects,       ///< Pointer to the number of objects
                     TimeIntegrator otherIntegrator,                    ///< Integration type (only for ISPH)
                     bool verb                                          ///< verbose terminal output
     );
@@ -66,7 +66,7 @@ class ChFluidDynamics : public ChFsiGeneral {
     /// used to to update the particles position, velocity, and density in
     /// time, the latter is used to update the pressure from an equation of
     /// state. In the implicit scheme, the pressures are updated instead of density.
-    virtual void IntegrateSPH(
+    void IntegrateSPH(
         std::shared_ptr<SphMarkerDataD> sphMarkersD2,  ///< Pointer SPH particle information at the second half step
         std::shared_ptr<SphMarkerDataD> sphMarkersD1,  ///< Pointer SPH particle information at the first half step
         std::shared_ptr<FsiBodiesDataD> fsiBodiesD,    ///< Pointer information of rigid bodies
@@ -78,7 +78,7 @@ class ChFluidDynamics : public ChFsiGeneral {
     /// Function to Shepard Filtering.
     /// It calculates the densities directly, not based on the derivative of the
     /// density. This function is used in addition to the density update in UpdateFluid.
-    virtual void DensityReinitialization();
+    void DensityReinitialization();
 
     /// Synchronize the copy of the data between device (GPU) and host (CPU).
     /// Including the parameters and number of objects.
@@ -92,10 +92,9 @@ class ChFluidDynamics : public ChFsiGeneral {
     std::shared_ptr<ChFsiForce> GetForceSystem() { return forceSystem; }
 
   protected:
-    ChSystemFsi_impl& fsiSystem;                   ///< FSI data; values are maintained externally
-    std::shared_ptr<SimParams> paramsH;            ///< FSI parameters; values are mainained externally
+    ChSystemFsi_impl& fsiSystem;              ///< FSI data; values are maintained externally
+    std::shared_ptr<SimParams> paramsH;       ///< FSI parameters; values are mainained externally
     std::shared_ptr<ChCounters> numObjectsH;  ///< counters (fluid particles, number of rigids, boundaries)
-
     std::shared_ptr<ChFsiForce> forceSystem;  ///< Force system object; calculates the force between particles
     TimeIntegrator integrator_type;           ///< Integrator type
 
@@ -104,24 +103,24 @@ class ChFluidDynamics : public ChFsiGeneral {
     /// Update activity of SPH particles.
     /// SPH particles which are in an active domain are set as active particles.
     /// For example, particles close to a rigid body.
-    virtual void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
-                                std::shared_ptr<SphMarkerDataD> sphMarkersD2,
-                                std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
-                                Real Time);
+    void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
+                        std::shared_ptr<SphMarkerDataD> sphMarkersD2,
+                        std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                        Real Time);
 
     /// Update SPH particles data.
     /// In an explicit formulation, the function relies on the explicit integration scheme.
-    virtual void UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, Real dT);
+    void UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, Real dT);
 
     /// Update SPH particles data.
     /// In an implicit formulation, the function relies on the implicit integration scheme.
-    virtual void UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMarkersD);
+    void UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
     /// The function applies periodic boundary to the normal SPH particles.
-    virtual void ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD);
+    void ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
     /// The function modify the velocity of BCE particles.
-    virtual void ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD);
+    void ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 };
 
 /// @} fsi_physics

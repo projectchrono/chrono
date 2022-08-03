@@ -8,6 +8,8 @@ try:
 except:
     pass
 try:
+    import os
+    @ADD_OCC_DLL@
     import _cascade
 except:
     pass
@@ -28,6 +30,8 @@ try:
 except:
     pass
 try:
+    import os
+    @ADD_CUDA_DLL@
     import _sensor
 except:
     pass

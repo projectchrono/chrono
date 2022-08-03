@@ -140,14 +140,14 @@ int main(int argc, char* argv[]) {
         time += dT;
 
         // Copy data from device to host
-        auto posRad = sysFSI.GetParticlePosOrProperties();
-        auto vel = sysFSI.GetParticleVel();
+        auto pos = sysFSI.GetParticlePositions();
+        auto vel = sysFSI.GetParticleVelocities();
 
         // Calculate the relative error of the solution
         double error = 0.0;
         double abs_val = 0.0;
         for (int i = 0; i < numPart; i++) {
-            double pos_Z = posRad[i].z();
+            double pos_Z = pos[i].z();
             double vel_X = vel[i].x();
             double vel_X_ana = PoiseuilleAnalytical(pos_Z, bzDim, time + 0.5, sysFSI);
             error = error + pow(vel_X - vel_X_ana, 2);

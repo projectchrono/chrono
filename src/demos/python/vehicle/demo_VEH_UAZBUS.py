@@ -136,7 +136,7 @@ vis.SetWindowSize(1280, 1024)
 vis.SetChaseCamera(trackPoint, 6.0, 0.5)
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-vis.AddTypicalLights()
+vis.AddLightDirectional()
 vis.AddSkyBox()
 vis.AttachVehicle(uaz.GetVehicle())
 

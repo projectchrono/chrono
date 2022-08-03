@@ -12,7 +12,7 @@
 // Author: Milad Rakhsha, Arman Pazouki, Wei Hu
 // =============================================================================
 //
-// Class for performing time integration in fluid system.//
+// Class for performing time integration in fluid system.
 // =============================================================================
 
 #include "chrono_fsi/physics/ChFluidDynamics.cuh"
@@ -57,52 +57,53 @@ __device__ void collideCellDensityReInit(Real& numerator,
 
 // -----------------------------------------------------------------------------
 // Kernel to apply periodic BC along x
-__global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD, uint* activityIdentifierD) {
+__global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, 
+                                             Real4* rhoPresMuD, 
+                                             uint* activityIdentifierD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers) {
+    if (index >= numObjectsD.numAllMarkers)
         return;
-    }
 
     uint activity = activityIdentifierD[index];
     if (activity == 0)
-        return;  // no need to do anything if it is not an active particle
+        return; // no need to do anything if it is not an active particle
 
     Real4 rhoPresMu = rhoPresMuD[index];
-    if (fabs(rhoPresMu.w) < .1) {
-        return;
-    }  // no need to do anything if it is a boundary particle
+    if (fabs(rhoPresMu.w) < .1)
+        return; // no need to do anything if it is a boundary particle
+
     Real3 posRad = mR3(posRadD[index]);
     Real h = posRadD[index].w;
 
     if (posRad.x > paramsD.cMax.x) {
         posRad.x -= (paramsD.cMax.x - paramsD.cMin.x);
         posRadD[index] = mR4(posRad, h);
-        if (rhoPresMu.w < -.1) {
+        if (rhoPresMu.w < -.1)
             rhoPresMuD[index].y += paramsD.deltaPress.x;
-        }
         return;
     }
     if (posRad.x < paramsD.cMin.x) {
         posRad.x += (paramsD.cMax.x - paramsD.cMin.x);
         posRadD[index] = mR4(posRad, h);
-        if (rhoPresMu.w < -.1) {
+        if (rhoPresMu.w < -.1)
             rhoPresMuD[index].y -= paramsD.deltaPress.x;
-        }
         return;
     }
 }
 
 // -----------------------------------------------------------------------------
 // Kernel to apply inlet/outlet BC along x
-__global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4* rhoPresMuD) {
+__global__ void ApplyInletBoundaryXKernel(Real4* posRadD, 
+                                          Real3* VelMassD, 
+                                          Real4* rhoPresMuD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers) {
+    if (index >= numObjectsD.numAllMarkers)
         return;
-    }
+
     Real4 rhoPresMu = rhoPresMuD[index];
-    if (rhoPresMu.w > 0.0) {
-        return;
-    }  // no need to do anything if it is a boundary particle
+    if (rhoPresMu.w > 0.0)
+        return; // no need to do anything if it is a boundary particle
+ 
     Real3 posRad = mR3(posRadD[index]);
     Real h = posRadD[index].w;
 
@@ -127,27 +128,27 @@ __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4
     if (posRad.x > -paramsD.x_in)
         rhoPresMuD[index].y = 0;
 
-    if (posRad.x < paramsD.x_in) {
+    if (posRad.x < paramsD.x_in)
         VelMassD[index] = mR3(paramsD.V_in.x, 0, 0);
-    }
 }
 
 // -----------------------------------------------------------------------------
 // Kernel to apply periodic BC along y
-__global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD, uint* activityIdentifierD) {
+__global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, 
+                                             Real4* rhoPresMuD, 
+                                             uint* activityIdentifierD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers) {
+    if (index >= numObjectsD.numAllMarkers)
         return;
-    }
 
     uint activity = activityIdentifierD[index];
     if (activity == 0)
-        return;  // no need to do anything if it is not an active particle
+        return; // no need to do anything if it is not an active particle
 
     Real4 rhoPresMu = rhoPresMuD[index];
-    if (fabs(rhoPresMu.w) < .1) {
-        return;
-    }  // no need to do anything if it is a boundary particle
+    if (fabs(rhoPresMu.w) < .1)
+        return; // no need to do anything if it is a boundary particle
+
     Real3 posRad = mR3(posRadD[index]);
     Real h = posRadD[index].w;
 
@@ -173,20 +174,21 @@ __global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD, 
 
 // -----------------------------------------------------------------------------
 // Kernel to apply periodic BC along z
-__global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD, uint* activityIdentifierD) {
+__global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, 
+                                             Real4* rhoPresMuD, 
+                                             uint* activityIdentifierD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers) {
+    if (index >= numObjectsD.numAllMarkers)
         return;
-    }
 
     uint activity = activityIdentifierD[index];
     if (activity == 0)
-        return;  // no need to do anything if it is not an active particle
+        return; // no need to do anything if it is not an active particle
 
     Real4 rhoPresMu = rhoPresMuD[index];
-    if (fabs(rhoPresMu.w) < .1) {
-        return;
-    }  // no need to do anything if it is a boundary particle
+    if (fabs(rhoPresMu.w) < .1)
+        return; // no need to do anything if it is a boundary particle
+
     Real3 posRad = mR3(posRadD[index]);
     Real h = posRadD[index].w;
 
@@ -212,36 +214,34 @@ __global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD, 
 
 // -----------------------------------------------------------------------------
 // Kernel to keep particle inside the simulation domain
-__global__ void ApplyOutOfBoundaryKernel(Real4* posRadD, Real4* rhoPresMuD, Real3* velMasD) {
+__global__ void ApplyOutOfBoundaryKernel(Real4* posRadD, 
+                                         Real4* rhoPresMuD, 
+                                         Real3* velMasD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers) {
+    if (index >= numObjectsD.numAllMarkers)
         return;
-    }
+
     Real4 rhoPresMu = rhoPresMuD[index];
-    if (fabs(rhoPresMu.w) < .1) {
-        return;
-    }  // no need to do anything if it is a boundary particle
+    if (fabs(rhoPresMu.w) < .1)
+        return; // no need to do anything if it is a boundary particle
+
     Real3 posRad = mR3(posRadD[index]);
     Real3 vel = mR3(velMasD[index]);
     Real h = posRadD[index].w;
-    if (posRad.x > 0.5 * paramsD.boxDimX) {
+    
+    if (posRad.x > 0.5 * paramsD.boxDimX)
         posRad.x = 0.5 * paramsD.boxDimX;
-    }
-    if (posRad.x < -0.5 * paramsD.boxDimX) {
+    if (posRad.x < -0.5 * paramsD.boxDimX)
         posRad.x = -0.5 * paramsD.boxDimX;
-    }
-    if (posRad.y > 0.5 * paramsD.boxDimY) {
+    if (posRad.y > 0.5 * paramsD.boxDimY)
         posRad.y = 0.5 * paramsD.boxDimY;
-    }
-    if (posRad.y < -0.5 * paramsD.boxDimY) {
+    if (posRad.y < -0.5 * paramsD.boxDimY)
         posRad.y = -0.5 * paramsD.boxDimY;
-    }
-    if (posRad.z > 1.0 * paramsD.boxDimZ) {
+    if (posRad.z > 1.0 * paramsD.boxDimZ)
         posRad.z = 1.0 * paramsD.boxDimZ;
-    }
-    if (posRad.z < -0.0 * paramsD.boxDimZ) {
+    if (posRad.z < -0.0 * paramsD.boxDimZ)
         posRad.z = -0.0 * paramsD.boxDimZ;
-    }
+
     posRadD[index] = mR4(posRad, h);
     velMasD[index] = mR3(vel);
     return;
@@ -418,9 +418,8 @@ __global__ void UpdateFluidD(Real4* posRadD,
 }
 
 //------------------------------------------------------------------------------
-__global__ void Update_Fluid_State(Real3* new_vel,  // input: sorted velocities,
-                                   Real3* vis_vel,  // input: sorted velocities,
-                                   Real4* posRad,   // input: sorted positions
+__global__ void Update_Fluid_State(Real3* new_vel,
+                                   Real4* posRad,
                                    Real3* velMas,
                                    Real4* rhoPreMu,
                                    int4 updatePortion,
@@ -437,18 +436,21 @@ __global__ void Update_Fluid_State(Real3* new_vel,  // input: sorted velocities,
     Real h = posRad[i_idx].w;
     posRad[i_idx] = mR4(newpos, h);
 
-    if (!(isfinite(posRad[i_idx].x) && isfinite(posRad[i_idx].y) && isfinite(posRad[i_idx].z))) {
-        printf("Error! particle %d position is NAN: thrown from ChFluidDynamics.cu, UpdateFluidDKernel  %f,%f,%f,%f\n",
-               i_idx, posRad[i_idx].x, posRad[i_idx].y, posRad[i_idx].z, posRad[i_idx].w);
+    if (!(isfinite(posRad[i_idx].x) && 
+        isfinite(posRad[i_idx].y) && isfinite(posRad[i_idx].z))) {
+        printf("Error! particle %d position is NAN: thrown from UpdateFluidDKernel  %f,%f,%f,%f\n",
+            i_idx, posRad[i_idx].x, posRad[i_idx].y, posRad[i_idx].z, posRad[i_idx].w);
     }
-    if (!(isfinite(rhoPreMu[i_idx].x) && isfinite(rhoPreMu[i_idx].y) && isfinite(rhoPreMu[i_idx].z))) {
-        printf("Error! particle %d rhoPreMu is NAN: thrown from ChFluidDynamics.cu, UpdateFluidDKernel ! %f,%f,%f,%f\n",
-               i_idx, rhoPreMu[i_idx].x, rhoPreMu[i_idx].y, rhoPreMu[i_idx].z, rhoPreMu[i_idx].w);
+    if (!(isfinite(rhoPreMu[i_idx].x) && 
+        isfinite(rhoPreMu[i_idx].y) && isfinite(rhoPreMu[i_idx].z))) {
+        printf("Error! particle %d rhoPreMu is NAN: thrown from UpdateFluidDKernel ! %f,%f,%f,%f\n",
+            i_idx, rhoPreMu[i_idx].x, rhoPreMu[i_idx].y, rhoPreMu[i_idx].z, rhoPreMu[i_idx].w);
     }
 
-    if (!(isfinite(velMas[i_idx].x) && isfinite(velMas[i_idx].y) && isfinite(velMas[i_idx].z))) {
-        printf("Error! particle %d velocity is NAN: thrown from ChFluidDynamics.cu, UpdateFluidDKernel !%f,%f,%f\n",
-               i_idx, velMas[i_idx].x, velMas[i_idx].y, velMas[i_idx].z);
+    if (!(isfinite(velMas[i_idx].x) && 
+        isfinite(velMas[i_idx].y) && isfinite(velMas[i_idx].z))) {
+        printf("Error! particle %d velocity is NAN: thrown from UpdateFluidDKernel !%f,%f,%f\n",
+            i_idx, velMas[i_idx].x, velMas[i_idx].y, velMas[i_idx].z);
     }
 }
 
@@ -464,17 +466,13 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
                                   uint* cellStart,
                                   uint* cellEnd,
                                   size_t numAllMarkers) {
-    uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numAllMarkers)
         return;
 
     // read particle data from sorted arrays
     Real3 posRadA = mR3(sortedPosRad[index]);
     Real4 rhoPreMuA = sortedRhoPreMu[index];
-
-    // If density initialization should only be applied to fluid particles
-    // if (rhoPreMuA.w > -.1)
-    //    return;
 
     // get address in grid
     int3 gridPos = calcGridPos(posRadA);
@@ -486,8 +484,8 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
         for (int y = -1; y <= 1; y++) {
             for (int x = -1; x <= 1; x++) {
                 int3 neighbourPos = gridPos + mI3(x, y, z);
-                collideCellDensityReInit(numerator, denominator, neighbourPos, index, posRadA, sortedPosRad,
-                                         sortedVelMas, sortedRhoPreMu, cellStart, cellEnd);
+                collideCellDensityReInit(numerator, denominator, neighbourPos, index, 
+                    posRadA, sortedPosRad, sortedVelMas, sortedRhoPreMu, cellStart, cellEnd);
             }
         }
     }
@@ -528,10 +526,13 @@ __global__ void UpdateActivityD(Real4* posRadD,
     for (uint num = 0; num < numRigidBodies; num++) {
         Real3 detPos = posRadA - posRigidBodiesD[num];
         Real3 Acdomain = paramsD.bodyActiveDomain;
-        Real3 ExAcdomain = paramsD.bodyActiveDomain + mR3(2 * RESOLUTION_LENGTH_MULT * paramsD.HSML);
-        if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
+        Real3 ExAcdomain = paramsD.bodyActiveDomain + 
+            mR3(2 * RESOLUTION_LENGTH_MULT * paramsD.HSML);
+        if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || 
+            abs(detPos.z) > Acdomain.z)
             isNotActive = isNotActive + 1;
-        if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
+        if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || 
+            abs(detPos.z) > ExAcdomain.z)
             isNotExtended = isNotExtended + 1;
     }
 
@@ -563,43 +564,43 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
     switch (integrator_type) {
         case TimeIntegrator::I2SPH:
             forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(
-                otherBceWorker, fsiSystem.sortedSphMarkersD, fsiSystem.markersProximityD, fsiSystem.fsiGeneralData,
-                paramsH, numObjectsH, verb);
+                otherBceWorker, fsiSystem.sortedSphMarkersD, fsiSystem.markersProximityD, 
+                fsiSystem.fsiGeneralData, paramsH, numObjectsH, verb);
             if (verbose) {
-                cout << "===============================================================================" << endl;
-                cout << "========================   Created an I2SPH framework   =======================" << endl;
-                cout << "===============================================================================" << endl;
+                cout << "============================================" << endl;
+                cout << "======   Created an I2SPH framework   ======" << endl;
+                cout << "============================================" << endl;
             }
             break;
 
         case TimeIntegrator::IISPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(otherBceWorker, fsiSystem.sortedSphMarkersD,
-                                                                     fsiSystem.markersProximityD,
-                                                                     fsiSystem.fsiGeneralData, paramsH, numObjectsH, verb);
+            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(
+                otherBceWorker, fsiSystem.sortedSphMarkersD, fsiSystem.markersProximityD,
+                fsiSystem.fsiGeneralData, paramsH, numObjectsH, verb);
             if (verbose) {
-                cout << "===============================================================================" << endl;
-                cout << "========================   Created an IISPH framework   =======================" << endl;
-                cout << "===============================================================================" << endl;
+                cout << "============================================" << endl;
+                cout << "======   Created an IISPH framework   ======" << endl;
+                cout << "============================================" << endl;
             }
             break;
 
         case TimeIntegrator::EXPLICITSPH:
             forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
-                otherBceWorker, fsiSystem.sortedSphMarkersD, fsiSystem.markersProximityD, fsiSystem.fsiGeneralData,
-                paramsH, numObjectsH, verb);
+                otherBceWorker, fsiSystem.sortedSphMarkersD, fsiSystem.markersProximityD, 
+                fsiSystem.fsiGeneralData, paramsH, numObjectsH, verb);
             if (verbose) {
-                cout << "===============================================================================" << endl;
-                cout << "=====================   Created an Explicit SPH framework   ===================" << endl;
-                cout << "===============================================================================" << endl;
+                cout << "============================================" << endl;
+                cout << "======   Created a WCSPH framework   =======" << endl;
+                cout << "============================================" << endl;
             }
             break;
 
         // Extend this function with your own linear solvers
         default:
             forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
-                otherBceWorker, fsiSystem.sortedSphMarkersD, fsiSystem.markersProximityD, fsiSystem.fsiGeneralData,
-                paramsH, numObjectsH, verb);
-            cout << "Selected integrator type not implemented, reverting back to EXPLICITSPH" << endl;
+                otherBceWorker, fsiSystem.sortedSphMarkersD, fsiSystem.markersProximityD, 
+                fsiSystem.fsiGeneralData, paramsH, numObjectsH, verb);
+            cout << "Selected integrator type not implemented, reverting back to WCSPH" << endl;
     }
 }
 
@@ -653,17 +654,18 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD
     uint numBlocks, numThreads;
     computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
     UpdateActivityD<<<numBlocks, numThreads>>>(
-        mR4CAST(sphMarkersD2->posRadD), mR3CAST(sphMarkersD1->velMasD), mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
-        U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD), U1CAST(fsiSystem.fsiGeneralData->extendedActivityIdD),
+        mR4CAST(sphMarkersD2->posRadD), mR3CAST(sphMarkersD1->velMasD), 
+        mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
+        U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD), 
+        U1CAST(fsiSystem.fsiGeneralData->extendedActivityIdD),
         updatePortion, numObjectsH->numRigidBodies, Time, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------
 
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-    if (*isErrorH == true) {
+    if (*isErrorH == true)
         throw std::runtime_error("Error! program crashed in UpdateActivityD!\n");
-    }
     cudaFree(isErrorD);
     free(isErrorH);
 }
@@ -683,19 +685,25 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, R
     uint numBlocks, numThreads;
     computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
     UpdateFluidD<<<numBlocks, numThreads>>>(
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
-        mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
-        mR3CAST(fsiSystem.fsiGeneralData->vel_XSPH_D), mR4CAST(fsiSystem.fsiGeneralData->derivVelRhoD_old),
-        mR3CAST(fsiSystem.fsiGeneralData->derivTauXxYyZzD), mR3CAST(fsiSystem.fsiGeneralData->derivTauXyXzYzD),
-        mR4CAST(fsiSystem.fsiGeneralData->sr_tau_I_mu_i), U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD),
-        U1CAST(fsiSystem.fsiGeneralData->freeSurfaceIdD), updatePortion, dT, isErrorD);
+        mR4CAST(sphMarkersD->posRadD), 
+        mR3CAST(sphMarkersD->velMasD), 
+        mR4CAST(sphMarkersD->rhoPresMuD), 
+        mR3CAST(sphMarkersD->tauXxYyZzD), 
+        mR3CAST(sphMarkersD->tauXyXzYzD), 
+        mR3CAST(fsiSystem.fsiGeneralData->vel_XSPH_D), 
+        mR4CAST(fsiSystem.fsiGeneralData->derivVelRhoD_old),
+        mR3CAST(fsiSystem.fsiGeneralData->derivTauXxYyZzD), 
+        mR3CAST(fsiSystem.fsiGeneralData->derivTauXyXzYzD),
+        mR4CAST(fsiSystem.fsiGeneralData->sr_tau_I_mu_i), 
+        U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD),
+        U1CAST(fsiSystem.fsiGeneralData->freeSurfaceIdD), 
+        updatePortion, dT, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-    if (*isErrorH == true) {
+    if (*isErrorH == true)
         throw std::runtime_error("Error! program crashed in UpdateFluidD!\n");
-    }
     cudaFree(isErrorD);
     free(isErrorH);
 }
@@ -709,7 +717,7 @@ void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMa
     int haveHelper = (numObjectsH->numHelperMarkers > 0) ? 1 : 0;
 
     int4 updatePortion = mI4(fsiSystem.fsiGeneralData->referenceArray[haveHelper].x,
-                             fsiSystem.fsiGeneralData->referenceArray[haveHelper + haveGhost].y, 0, 0);
+        fsiSystem.fsiGeneralData->referenceArray[haveHelper + haveGhost].y, 0, 0);
 
     cout << "time step in UpdateFluid_Implicit " << paramsH->dT << endl;
     bool *isErrorH, *isErrorD;
@@ -718,47 +726,41 @@ void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMa
     *isErrorH = false;
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
     Update_Fluid_State<<<numBlocks, numThreads>>>(
-        mR3CAST(fsiSystem.fsiGeneralData->vel_XSPH_D), mR3CAST(fsiSystem.fsiGeneralData->vis_vel_SPH_D),
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD), updatePortion,
+        mR3CAST(fsiSystem.fsiGeneralData->vel_XSPH_D), 
+        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), 
+        mR4CAST(sphMarkersD->rhoPresMuD), updatePortion,
         numObjectsH->numAllMarkers, paramsH->dT, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
 
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-    if (*isErrorH == true) {
+    if (*isErrorH == true)
         throw std::runtime_error("Error! program crashed in Update_Fluid_State!\n");
-    }
-    //------------------------------------------------------------------------
-
     cudaFree(isErrorD);
     free(isErrorH);
 }
 
 // -----------------------------------------------------------------------------
-/**
- * @brief ApplyBoundarySPH_Markers
- * @details
- * 		applies periodic boundary conditions in x, y, and z directions
- */
+// Apply periodic boundary conditions in x, y, and z directions
 void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     uint numBlocks, numThreads;
 
     computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
-    ApplyPeriodicBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
-                                                            mR4CAST(sphMarkersD->rhoPresMuD),
-                                                            U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD));
+    ApplyPeriodicBoundaryXKernel<<<numBlocks, numThreads>>>(
+        mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD),
+        U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
-                                                            mR4CAST(sphMarkersD->rhoPresMuD),
-                                                            U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD));
+    ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(
+        mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD),
+        U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
-                                                            mR4CAST(sphMarkersD->rhoPresMuD),
-                                                            U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD));
+    ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(
+        mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD),
+        U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
@@ -769,30 +771,28 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> s
 }
 
 // -----------------------------------------------------------------------------
-/**
- * @brief ApplyBoundarySPH_Markers
- * @details
- * 		applies periodic boundary conditions in y, and z. The inlet/outlet BC is applied in the x direction.
- * 		This functions needs to be tested.
- */
+// Apply periodic boundary conditions in y, and z. 
+// The inlet/outlet BC is applied in the x direction.
+// This functions needs to be tested.
 void ChFluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     uint numBlocks, numThreads;
     computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
-    ApplyInletBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
-                                                         mR4CAST(sphMarkersD->rhoPresMuD));
+    ApplyInletBoundaryXKernel<<<numBlocks, numThreads>>>(
+        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
+        mR4CAST(sphMarkersD->rhoPresMuD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
     // these are useful anyway for out of bound particles
-    ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
-                                                            mR4CAST(sphMarkersD->rhoPresMuD),
-                                                            U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD));
+    ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(
+        mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD),
+        U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
-                                                            mR4CAST(sphMarkersD->rhoPresMuD),
-                                                            U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD));
+    ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(
+        mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD),
+        U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 }
@@ -806,17 +806,23 @@ void ChFluidDynamics::DensityReinitialization() {
     thrust::fill(dummySortedRhoPreMu.begin(), dummySortedRhoPreMu.end(), mR4(0.0));
 
     ReCalcDensityD_F1<<<numBlocks, numThreads>>>(
-        mR4CAST(dummySortedRhoPreMu), mR4CAST(fsiSystem.sortedSphMarkersD->posRadD),
-        mR3CAST(fsiSystem.sortedSphMarkersD->velMasD), mR4CAST(fsiSystem.sortedSphMarkersD->rhoPresMuD),
-        U1CAST(fsiSystem.markersProximityD->gridMarkerIndexD), U1CAST(fsiSystem.markersProximityD->cellStartD),
-        U1CAST(fsiSystem.markersProximityD->cellEndD), numObjectsH->numAllMarkers);
+        mR4CAST(dummySortedRhoPreMu), 
+        mR4CAST(fsiSystem.sortedSphMarkersD->posRadD),
+        mR3CAST(fsiSystem.sortedSphMarkersD->velMasD), 
+        mR4CAST(fsiSystem.sortedSphMarkersD->rhoPresMuD),
+        U1CAST(fsiSystem.markersProximityD->gridMarkerIndexD), 
+        U1CAST(fsiSystem.markersProximityD->cellStartD),
+        U1CAST(fsiSystem.markersProximityD->cellEndD), 
+        numObjectsH->numAllMarkers);
 
     cudaDeviceSynchronize();
     cudaCheckError();
-    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(fsiSystem.sphMarkersD1->rhoPresMuD, dummySortedRhoPreMu,
-                                                    fsiSystem.markersProximityD->gridMarkerIndexD);
-    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(fsiSystem.sphMarkersD2->rhoPresMuD, dummySortedRhoPreMu,
-                                                    fsiSystem.markersProximityD->gridMarkerIndexD);
+    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(
+        fsiSystem.sphMarkersD1->rhoPresMuD, dummySortedRhoPreMu,
+        fsiSystem.markersProximityD->gridMarkerIndexD);
+    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(
+        fsiSystem.sphMarkersD2->rhoPresMuD, dummySortedRhoPreMu,
+        fsiSystem.markersProximityD->gridMarkerIndexD);
     dummySortedRhoPreMu.clear();
 }
 

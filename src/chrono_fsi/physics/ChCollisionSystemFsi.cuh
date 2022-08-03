@@ -37,7 +37,7 @@ class ChCollisionSystemFsi : public ChFsiGeneral {
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< Proximity information of the system
         std::shared_ptr<FsiGeneralData> otherFsiGeneralData,     ///< Pointer to the SPH general data
         std::shared_ptr<SimParams> otherParamsH,                 ///< Parameters of the simulation
-        std::shared_ptr<ChCounters> otherNumObjects         ///< Size of different objects in the system
+        std::shared_ptr<ChCounters> otherNumObjects              ///< Size of different objects in the system
     );
 
     /// Destructor of the ChCollisionSystemFsi class
@@ -55,7 +55,7 @@ class ChCollisionSystemFsi : public ChFsiGeneral {
     std::shared_ptr<ProximityDataD> markersProximityD;  ///< Proximity information of the system
     std::shared_ptr<FsiGeneralData> fsiGeneralData;     ///< Pointer to the SPH general data
     std::shared_ptr<SimParams> paramsH;                 ///< Parameters of the simulation
-    std::shared_ptr<ChCounters> numObjectsH;       ///< Size of different objects in the system
+    std::shared_ptr<ChCounters> numObjectsH;            ///< Size of different objects in the system
 
     void ResetCellSize(int s);
 

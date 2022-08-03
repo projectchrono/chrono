@@ -174,8 +174,40 @@ add_custom_command(TARGET ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_CORE_PY_FILE} ${CHPY_CORE_PYD_PATH}/${CHPY_PACKAGENAME})
 
+# Install .pyd binary module (.so on linux)
+install(TARGETS ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
+        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+
+# Install .py module wrapper
+install(FILES "${CHPY_CORE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+
+if (DBG_SCRIPT)
+  message("Module name:     ${CHPY_CORE}")
+  message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}")
+  message("PY file:         ${CHPY_CORE_PY_FILE}")
+  message("PYD file:        ${CHPY_CORE_PYD_FILE}")
+  message("PYD path:        ${CHPY_CORE_PYD_PATH}")
+endif()
+
+#-----------------------------------------------------------------------------
+# init.py
+#-----------------------------------------------------------------------------
+
 # Set default path for Chrono data files relative to python demos in source tree
 set(PYCHRONO_DATA_PATH "../../../../data" CACHE STRING "Path to Chrono data files (for Python demos)")
+
+# Prepare replacement variables for init.py
+set(ADD_CUDA_DLL "")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  if(ENABLE_MODULE_SENSOR)
+    set(ADD_CUDA_DLL "os.add_dll_directory('${CUDA_BINARY_DIR}')")
+  endif()
+  if(ENABLE_MODULE_CASCADE)
+    set(ADD_OCC_DLL "os.add_dll_directory('${OpenCASCADE_BINARY_DIR}')")
+  endif()
+endif()
 
 # Generate the __init__.py file using substitution variables and place it in a temporary place
 configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.in
@@ -186,30 +218,11 @@ add_custom_command(TARGET ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/chrono_python/__init__.py" ${CHPY_CORE_PYD_PATH}/${CHPY_PACKAGENAME})
 
-# Install .pyd binary module (.so on linux)
-install(TARGETS ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
-        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
-
-# Install .py module wrapper
-install(FILES "${CHPY_CORE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
-
 # Install __init__.py to signal the directory is a python package
 install(FILES "${PROJECT_BINARY_DIR}/chrono_python/__init__.py" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
 # Install demos
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/demos/python/" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}/demos")
-
-
-if (DBG_SCRIPT)
-  message("Module name:     ${CHPY_CORE}")
-  message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}")
-  message("PY file:         ${CHPY_CORE_PY_FILE}")
-  message("PYD file:        ${CHPY_CORE_PYD_FILE}")
-  message("PYD path:        ${CHPY_CORE_PYD_PATH}")
-endif()
-
 
 #-----------------------------------------------------------------------------
 # MODULE for the postprocess python wrapper.

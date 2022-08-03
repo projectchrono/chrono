@@ -19,8 +19,8 @@ import math
 """
 !!!! Set this path before running the demo!
 """
-chrono.SetChronoDataPath('../../../data/')
-veh.SetDataPath('../../../data/vehicle/')
+chrono.SetChronoDataPath(chrono.GetChronoDataPath())
+veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
 initLoc = chrono.ChVectorD(2, 2, 0.5)
@@ -48,7 +48,7 @@ terrainWidth = 200.0   # size in Y direction
 trackPoint = chrono.ChVectorD(0.0, 0.0, 0.2)
 
 # Contact method
-contact_method = chrono.ChMaterialSurface.NSC
+contact_method = chrono.ChContactMethod_NSC
 contact_vis = False
 
 # Simulation step sizes
@@ -88,15 +88,18 @@ my_rccar.SetWheelVisualizationType(wheel_vis_type)
 my_rccar.SetTireVisualizationType(tire_vis_type)
 
 # Create the terrain
+patch_mat = chrono.ChMaterialSurfaceNSC()
+patch_mat.SetFriction(0.9)
+patch_mat.SetRestitution(0.01)
 terrain = veh.RigidTerrain(my_rccar.GetSystem())
-patch = terrain.AddPatch(chrono.ChCoordsysD(chrono.ChVectorD(0, 0, terrainHeight - 5), chrono.QUNIT), chrono.ChVectorD(terrainLength, terrainWidth, 10))
+patch = terrain.AddPatch(patch_mat, 
+    chrono.ChCoordsysD(chrono.ChVectorD(0, 0, terrainHeight - 5), chrono.QUNIT), 
+    terrainLength, terrainWidth)
 
-patch.SetContactFrictionCoefficient(0.9)
-patch.SetContactRestitutionCoefficient(0.01)
-patch.SetContactMaterialProperties(2e7, 0.3)
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
 terrain.Initialize()
+
 # terrain = veh.RigidTerrain(my_rccar.GetSystem())
 # patch = terrain.AddPatch(chrono.CSYSNORM, chrono.GetChronoDataFile("sensor/textures/hallway.obj"), "mesh", 0.01, False)
 #
@@ -152,13 +155,12 @@ for i in range(8):
 
 factor = 2
 cam = sens.ChCameraSensor(
-    my_rccar.GetChassisBody(),                                                          # body lidar is attached to
+    my_rccar.GetChassisBody(),                                          # body lidar is attached to
     30,                                                                 # scanning rate in Hz
     chrono.ChFrameD(chrono.ChVectorD(0, 0, .5), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0))),  # offset pose
-    1920*factor,                                                               # number of horizontal samples
-    1080*factor,                                                                 # number of vertical channels
-    chrono.CH_C_PI / 4,                                                            # horizontal field of view
-    (720/1280)*chrono.CH_C_PI / 4.                                                        # vertical field of view
+    1920*factor,                                                        # number of horizontal samples
+    1080*factor,                                                        # number of vertical channels
+    chrono.CH_C_PI / 4                                                  # horizontal field of view
 )
 cam.SetName("Camera Sensor")
 # cam.FilterList().append(sens.ChFilterImgAlias(factor))
@@ -167,17 +169,16 @@ cam.SetName("Camera Sensor")
 manager.AddSensor(cam)
 
 cam2 = sens.ChCameraSensor(
-    my_rccar.GetChassisBody(),                                                          # body lidar is attached to
+    my_rccar.GetChassisBody(),                                          # body lidar is attached to
     30,                                                                 # scanning rate in Hz
     chrono.ChFrameD(chrono.ChVectorD(0, 0, 2), chrono.Q_from_AngAxis(chrono.CH_C_PI / 2, chrono.ChVectorD(0, 1, 0))),  # offset pose
     1920,                                                               # number of horizontal samples
-    1080,                                                                 # number of vertical channels
-    chrono.CH_C_PI / 4,                                                            # horizontal field of view
-    (720/1280)*chrono.CH_C_PI / 4.                                                        # vertical field of view
+    1080,                                                               # number of vertical channels
+    chrono.CH_C_PI / 4                                                  # horizontal field of view
 )
 cam2.SetName("Camera Sensor")
 # cam2.FilterList().append(sens.ChFilterVisualize("Birds Eye Camera"))
-cam2.FilterList().append(sens.ChFilterRGBA8Access())
+cam2.PushFilter(sens.ChFilterRGBA8Access())
 manager.AddSensor(cam2)
 
 # ---------------
@@ -185,7 +186,7 @@ manager.AddSensor(cam2)
 # ---------------
 
 # output vehicle mass
-print( "VEHICLE MASS: ",  my_rccar.GetVehicle().GetVehicleMass())
+print( "VEHICLE MASS: ",  my_rccar.GetVehicle().GetMass())
 
 # Number of simulation steps between miscellaneous events
 render_steps = math.ceil(render_step_size / step_size)

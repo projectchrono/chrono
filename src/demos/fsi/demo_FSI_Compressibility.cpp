@@ -182,8 +182,8 @@ int main(int argc, char* argv[]) {
 
         sysFSI.DoStepDynamics_FSI();
 
-        auto rhoPresMu = sysFSI.GetParticlePosOrProperties();
-        auto vel = sysFSI.GetParticleVel();
+        auto rhoPresMu = sysFSI.GetParticleFluidProperties();
+        auto vel = sysFSI.GetParticleVelocities();
 
         std::ofstream outf;
         std::string delim = ",";
