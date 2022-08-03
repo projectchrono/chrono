@@ -104,9 +104,9 @@ class ChFluidDynamics : public ChFsiGeneral {
     /// SPH particles which are in an active domain are set as active particles.
     /// For example, particles close to a rigid body.
     void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
-                                std::shared_ptr<SphMarkerDataD> sphMarkersD2,
-                                std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
-                                Real Time);
+                        std::shared_ptr<SphMarkerDataD> sphMarkersD2,
+                        std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                        Real Time);
 
     /// Update SPH particles data.
     /// In an explicit formulation, the function relies on the explicit integration scheme.

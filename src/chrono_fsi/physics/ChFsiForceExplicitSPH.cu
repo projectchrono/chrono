@@ -617,14 +617,20 @@ __global__ void calcKernelSupport(Real4* sortedPosRad,
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ __inline__ void modifyPressure(Real4& rhoPresMuB, const Real3& dist3Alpha) {
     // body force in x direction
-    rhoPresMuB.y = (dist3Alpha.x > 0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y - paramsD.deltaPress.x) : rhoPresMuB.y;
-    rhoPresMuB.y = (dist3Alpha.x < -0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y + paramsD.deltaPress.x) : rhoPresMuB.y;
+    rhoPresMuB.y = (dist3Alpha.x > 0.5 * paramsD.boxDims.x) ? 
+        (rhoPresMuB.y - paramsD.deltaPress.x) : rhoPresMuB.y;
+    rhoPresMuB.y = (dist3Alpha.x < -0.5 * paramsD.boxDims.x) ? 
+        (rhoPresMuB.y + paramsD.deltaPress.x) : rhoPresMuB.y;
     // body force in x direction
-    rhoPresMuB.y = (dist3Alpha.y > 0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y - paramsD.deltaPress.y) : rhoPresMuB.y;
-    rhoPresMuB.y = (dist3Alpha.y < -0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y + paramsD.deltaPress.y) : rhoPresMuB.y;
+    rhoPresMuB.y = (dist3Alpha.y > 0.5 * paramsD.boxDims.y) ? 
+        (rhoPresMuB.y - paramsD.deltaPress.y) : rhoPresMuB.y;
+    rhoPresMuB.y = (dist3Alpha.y < -0.5 * paramsD.boxDims.y) ? 
+        (rhoPresMuB.y + paramsD.deltaPress.y) : rhoPresMuB.y;
     // body force in x direction
-    rhoPresMuB.y = (dist3Alpha.z > 0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y - paramsD.deltaPress.z) : rhoPresMuB.y;
-    rhoPresMuB.y = (dist3Alpha.z < -0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y + paramsD.deltaPress.z) : rhoPresMuB.y;
+    rhoPresMuB.y = (dist3Alpha.z > 0.5 * paramsD.boxDims.z) ? 
+        (rhoPresMuB.y - paramsD.deltaPress.z) : rhoPresMuB.y;
+    rhoPresMuB.y = (dist3Alpha.z < -0.5 * paramsD.boxDims.z) ? 
+        (rhoPresMuB.y + paramsD.deltaPress.z) : rhoPresMuB.y;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1487,12 +1493,12 @@ __global__ void NS_SSR(uint* activityIdentifierD,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
-                               Real3* vel_XSPH_Sorted_D,  // output: new velocity
-                               Real4* sortedPosRad,       // input: sorted positions
-                               Real3* sortedVelMas,       // input: sorted velocities
+                               Real3* vel_XSPH_Sorted_D,
+                               Real4* sortedPosRad,
+                               Real3* sortedVelMas,
                                Real4* sortedRhoPreMu,
                                Real3* sortedXSPHandShift,
-                               uint* gridMarkerIndex,  // input: sorted particle indices
+                               uint* gridMarkerIndex,
                                uint* cellStart,
                                uint* cellEnd,
                                const size_t numFluidMarkers,
@@ -1553,7 +1559,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
 
     if (!(isfinite(vel_XSPH_Sorted_D[index].x) && 
         isfinite(vel_XSPH_Sorted_D[index].y) && isfinite(vel_XSPH_Sorted_D[index].z))) {
-        printf("Error! particle vXSPH is NAN: thrown from ChFsiForceExplicitSPH.cu, newVel_XSPH_D !\n");
+        printf("Error! particle vXSPH is NAN: thrown from ChFsiForceExplicitSPH.cu, CalcVel_XSPH_D !\n");
         *isErrorD = true;
     }
 }
@@ -1648,7 +1654,8 @@ void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMar
                                      std::shared_ptr<FsiMeshDataD> otherFsiMeshD) {
     sphMarkersD = otherSphMarkersD;
     fsiCollisionSystem->ArrangeData(sphMarkersD);
-    bceWorker->ModifyBceVelocityPressureStress(sphMarkersD, otherFsiBodiesD, otherFsiMeshD);
+    bceWorker->ModifyBceVelocityPressureStress(
+        sphMarkersD, otherFsiBodiesD, otherFsiMeshD);
     CollideWrapper();
     CalculateXSPH_velocity();
     // AddGravityToFluid();
