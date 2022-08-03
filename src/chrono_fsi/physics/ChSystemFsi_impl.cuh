@@ -317,6 +317,9 @@ class ChSystemFsi_impl : public ChFsiGeneral {
     /// Resize the simulation data based on the FSI system constructed.
     void ResizeData(size_t numRigidBodies, size_t numFlexBodies1D, size_t numFlexBodies2D, size_t numFlexNodes);
 
+    /// Extract forces applied on all SPH particles.
+    thrust::device_vector<Real4> GetParticleForces();
+
     /// Find indices of all SPH particles inside the specified OBB.
     thrust::device_vector<int> FindParticlesInBox(const Real3& hsize,
                                                   const Real3& pos,
@@ -331,6 +334,10 @@ class ChSystemFsi_impl : public ChFsiGeneral {
     /// Extract velocities of all SPH particles with indices in the provided array.
     /// The return value is a device thrust vector.
     thrust::device_vector<Real3> GetParticleVelocities(const thrust::device_vector<int>& indices);
+
+    /// Extract forces applied to all SPH particles with indices in the provided array.
+    /// The return value is a device thrust vector.
+    thrust::device_vector<Real4> GetParticleForces(const thrust::device_vector<int>& indices);
 
     std::shared_ptr<ChCounters> numObjects;  ///< Counters (SPH particles, BCE particles, bodies, etc)
 
