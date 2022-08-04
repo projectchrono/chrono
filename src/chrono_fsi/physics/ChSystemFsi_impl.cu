@@ -305,7 +305,7 @@ void ChronoMeshDataH::resize(size_t s) {
 
 //---------------------------------------------------------------------------------------
 
-ChSystemFsi_impl::ChSystemFsi_impl() {
+ChSystemFsi_impl::ChSystemFsi_impl(std::shared_ptr<SimParams> params) : paramsH(params) {
     numObjects = chrono_types::make_shared<ChCounters>();
     InitNumObjects();
     sphMarkersD1 = chrono_types::make_shared<SphMarkerDataD>();
@@ -550,7 +550,7 @@ thrust::device_vector<Real4> ChSystemFsi_impl::GetParticleForces() {
     thrust::copy_n(fsiGeneralData->derivVelRhoD.begin(), n, dvD.begin());
 
     // Average dvD = beta * derivVelRhoD + (1-beta) * derivVelRhoD_old
-    Real beta = paramsD.Beta;
+    Real beta = paramsH->Beta;
     thrust::transform(dvD.begin(), dvD.end(), fsiGeneralData->derivVelRhoD_old.begin(), dvD.begin(),
                       axpby_functor(beta, 1 - beta));
 

@@ -304,7 +304,7 @@ struct FsiGeneralData {
 /// @brief Data related function implementations for FSI system
 class ChSystemFsi_impl : public ChFsiGeneral {
   public:
-    ChSystemFsi_impl();
+    ChSystemFsi_impl(std::shared_ptr<SimParams> params);
     virtual ~ChSystemFsi_impl();
 
     /// Add an SPH particle given its position, physical properties, velocity, and stress
@@ -339,6 +339,7 @@ class ChSystemFsi_impl : public ChFsiGeneral {
     /// The return value is a device thrust vector.
     thrust::device_vector<Real4> GetParticleForces(const thrust::device_vector<int>& indices);
 
+    std::shared_ptr<SimParams> paramsH;      ///< Parameters of the simulation
     std::shared_ptr<ChCounters> numObjects;  ///< Counters (SPH particles, BCE particles, bodies, etc)
 
     std::shared_ptr<SphMarkerDataD> sphMarkersD1;       ///< Information of SPH particles at state 1 on device

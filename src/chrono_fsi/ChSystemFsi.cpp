@@ -61,8 +61,8 @@ ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
       m_integrate_SPH(true),
       m_time(0),
       m_write_mode(OutpuMode::NONE) {
-    m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>();
     m_paramsH = chrono_types::make_shared<SimParams>();
+    m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>(m_paramsH);
     InitParams();
     m_num_objectsH = m_sysFSI->numObjects;
 
