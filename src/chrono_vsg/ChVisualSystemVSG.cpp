@@ -182,9 +182,6 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_shapeBuilder = ShapeBuilder::create();
     m_shapeBuilder->m_options = m_options;
     m_shapeBuilder->m_sharedObjects = m_options->sharedObjects;
-    // init builder for particles
-    m_builder = vsg::Builder::create();
-    m_builder->options = m_options;
 }
 
 ChVisualSystemVSG::~ChVisualSystemVSG() {}
@@ -365,7 +362,6 @@ void ChVisualSystemVSG::Initialize() {
     // must be done after Viewer.assignRecordAndSubmitTasksAndPresentations();
     auto compileTraversal = vsg::CompileTraversal::create(*m_viewer);
     m_shapeBuilder->assignCompileTraversal(compileTraversal);
-    m_builder->assignCompileTraversal(compileTraversal);
 
     vsg::ref_ptr<vsg::ResourceHints> resourceHints;
     if (!resourceHints) {
@@ -431,7 +427,8 @@ void ChVisualSystemVSG::BindAll() {
             vsg::dvec3 scale(m_params->cogSymbolSize, m_params->cogSymbolSize, m_params->cogSymbolSize);
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) * vsg::scale(scale);
+                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                    vsg::scale(scale);
             m_cogScene->addChild(m_shapeBuilder->createCoGSymbol(body, transform));
         }
     }
@@ -600,24 +597,13 @@ void ChVisualSystemVSG::BindAll() {
             material = chrono_types::make_shared<ChVisualMaterial>();
             material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
             material->SetAmbientColor(ChColor(0.1, 0.1, 0.1));
-            vsg::GeometryInfo geomInfo;
-            geomInfo.dx.set(size[0], 0.0f, 0.0f);
-            geomInfo.dy.set(0.0f, size[0], 0.0f);
-            geomInfo.dz.set(0.0f, 0.0f, size[0]);
-            geomInfo.positions = vsg::vec3Array::create(numParticles);
-            auto colors = vsg::vec4Array::create(geomInfo.positions->size());
-            geomInfo.colors = colors;
-
-            vsg::StateInfo stateInfo;
-            stateInfo.instance_positions_vec3 = true;
-
             for (int i = 0; i < pcloud->GetNparticles(); i++) {
                 const auto& pos = pcloud->GetVisualModelFrame(i).GetPos();
-                geomInfo.positions->set(i, vsg::vec3(pos.x(), pos.y(), pos.z()));
-                colors->set(i, vsg::vec4(material->GetDiffuseColor().R, material->GetDiffuseColor().G,
-                                         material->GetDiffuseColor().B, material->GetOpacity()));
+                auto transform = vsg::MatrixTransform::create();
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) * vsg::scale(size[0], size[0], size[0]);
+                m_particleScene->addChild(
+                    m_shapeBuilder->createParticleShape(material, transform, m_draw_as_wireframe));
             }
-            m_particleScene->addChild(m_builder->createSphere(geomInfo, stateInfo));
         }
     }
     // loop through links in the system
@@ -707,7 +693,7 @@ void ChVisualSystemVSG::BindAll() {
 }
 
 void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
-    // update CoG symbols if needed
+    // generate CoG symbols if needed
     if (m_params->cogSymbolSize > 0.0f) {
         for (auto child : m_cogScene->children) {
             std::shared_ptr<ChBody> body;
@@ -721,7 +707,8 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
             auto rotAxis = body->GetRotAxis();
             vsg::dvec3 scale(m_params->cogSymbolSize, m_params->cogSymbolSize, m_params->cogSymbolSize);
             transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) * vsg::scale(scale);
+                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                    vsg::scale(scale);
         }
     }
     // update body visualization related graphic nodes
@@ -825,36 +812,21 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
         if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
             auto numParticles = pcloud->GetNparticles();
             std::vector<double> size = pcloud->GetCollisionModel()->GetShapeDimensions(0);
-            // find vertex index draw
-            struct MyVisitor : public vsg::ConstVisitor {
-                std::map<const char*, uint32_t> objectCounts;
-                int n_vid = 0;
-                int n_arr = 0;
-                vsg::ref_ptr<vsg::BufferInfo> bufferInfo;
-                void apply(const vsg::Object& object) override {
-                    ++objectCounts[object.className()];
-
-                    object.traverse(*this);
-                }
-                void apply(const vsg::Group& group) {
-                    group.traverse(*this);
-                }
-                void apply(const vsg::VertexIndexDraw& vid) override {
-                    n_vid++;
-                    n_arr = vid.arrays.size();
-                    if(n_arr == 5) {
-                        bufferInfo = vid.arrays.at(4);
-                    }
-                }
-            };
-            // explicitly create vistor and call accept on the scene
-            MyVisitor myVisitor;
-            m_particleScene->accept(myVisitor);
-            std::cout << "MyVisitor() object types s=" << myVisitor.objectCounts.size() << std::endl;
-            std::cout << "MyVisitor() vertex index draws n=" << myVisitor.n_vid << std::endl;
-            std::cout << "MyVisitor() vertex index arrays na=" << myVisitor.n_arr << std::endl;
-            for (const auto [className, count] : myVisitor.objectCounts) {
-                std::cout << "    " << className << " : " << count << std::endl;
+            bool childTest = numParticles == m_particleScene->children.size();
+            if (!childTest) {
+                GetLog() << "Caution: Ill Shaped Particle Scenegraph! Not Updated.\n";
+                GetLog() << "Found Particles = " << numParticles << "\n";
+                GetLog() << "Found Children  = " << m_particleScene->children.size() << "\n";
+                continue;
+            }
+            size_t idx = 0;
+            for (auto child : m_particleScene->children) {
+                vsg::ref_ptr<vsg::MatrixTransform> transform;
+                if (!child->getValue("TransformPtr", transform))
+                    continue;
+                const auto& pos = pcloud->GetVisualModelFrame(idx).GetPos();
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) * vsg::scale(size[0], size[0], size[0]);
+                idx++;
             }
         }
     }
