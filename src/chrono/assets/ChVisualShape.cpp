@@ -47,13 +47,10 @@ void ChVisualShape::SetColor(const ChColor& col) {
 
 ChColor ChVisualShape::GetColor() const {
     ChColor RGB;
-    float A;
     if (material_list.empty()) {
         RGB = ChVisualMaterial::Default()->GetDiffuseColor();
-        A = ChVisualMaterial::Default()->GetOpacity();
     } else {
         RGB = material_list[0]->GetDiffuseColor();
-        A = material_list[0]->GetOpacity();
     }
 
     return RGB;

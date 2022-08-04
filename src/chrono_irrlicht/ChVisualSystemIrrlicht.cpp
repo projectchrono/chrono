@@ -663,7 +663,6 @@ static void mflipSurfacesOnX(IMesh* mesh) {
     const u32 bcount = mesh->getMeshBufferCount();
     for (u32 b = 0; b < bcount; ++b) {
         IMeshBuffer* buffer = mesh->getMeshBuffer(b);
-        const u32 idxcnt = buffer->getIndexCount();
 
         const u32 vertcnt = buffer->getVertexCount();
         for (u32 i = 0; i < vertcnt; i++) {

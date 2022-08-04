@@ -1,58 +1,26 @@
 {
-  "Name":                           "M113 Double Idler Left",
-  "Type":                           "Idler",
-  "Template":                       "DoubleIdler",
+    "Name": "M113 Idler Left",
+    "Type": "Idler",
+    "Template": "TranslationalIdler",
 
-  "Wheel":
-  {
-      "Radius":                     0.255,
-      "Width":                      0.181,
-      "Gap":                        0.051,
-      "Mass":                       25.76,
-      "COM":                        [0, 0, 0],
-      "Inertia":                    [0.618, 1.12, 0.618]
-  },
+    "Carrier": {
+        "Mass": 10.0,
+        "COM": [ 0, -0.1, 0 ],
+        "Inertia": [ 0.04, 0.04, 0.04 ],
+        "Location Wheel": [ 0, 0, 0 ],
+        "Location Chassis": [ 0, -0.2, 0 ],
+        "Visualization Radius": 0.02,
+        "Pitch Angle": 0
+    },
 
-  "Carrier":
-  {
-      "Mass":                       10.0,
-      "COM":                        [0, -0.1, 0],
-      "Inertia":                    [0.04, 0.04, 0.04],
-      "Location Chassis":           [0, -0.2, 0],
-      "Visualization Radius":       0.02,
-      "Pitch Angle":                0
-  },
+    "Tensioner": {
+        "Location Carrier": [ 0, -0.2, 0 ],
+        "Location Chassis": [ 0.5, -0.2, 0 ],
+        "Preload": 2e4,
+        "Free Length": 0.75,
+        "Spring Coefficient": 1e6,
+        "Damping Coefficient": 1.4e4
+    },
 
-  "Tensioner":
-  {
-    "Location Carrier":             [0, -0.2, 0],
-    "Location Chassis":             [0.5, -0.2, 0],
-    "Preload":                      2e4,
-    "Free Length":                  0.75,
-    "Spring Coefficient":           1e6,
-    "Damping Coefficient":          1.4e4
-  },
-
-  "Contact Material":
-  {
-      "Coefficient of Friction":    0.4,
-      "Coefficient of Restitution": 0.75,
-
-      "Properties": {
-          "Young Modulus":          1e7,
-          "Poisson Ratio":          0.3
-      },
-
-      "Coefficients": {
-          "Normal Stiffness":       2e5,
-          "Normal Damping":         40.0,
-          "Tangential Stiffness":   2e5,
-          "Tangential Damping":     20.0
-      }
-  },
-
-  "Visualization":
-  {
-      "Mesh":              "M113/Idler_L.obj"
-  }
+    "Idler Wheel Input File": "M113/idler_wheel/M113_DoubleIdlerWheel_Left.json"
 }

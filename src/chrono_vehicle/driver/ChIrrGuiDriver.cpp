@@ -112,6 +112,9 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
                     m_time_shift = m_vsys.m_vehicle->GetSystem()->GetChTime();
                 }
                 return true;
+
+            default:
+                return false;
         }
     }
 
@@ -540,15 +543,16 @@ double ChIrrJoystickAxis::GetValue(const irr::SEvent::SJoystickEvent& joystickEv
     return value;
 }
 
-void ChIrrJoystickAxis::Read(rapidjson::Document& d, char* elementName, bool dbg_print) {
-    if (d.HasMember(elementName) && d[elementName].IsObject()) {
+void ChIrrJoystickAxis::Read(rapidjson::Document& d, const std::string& elementName, bool dbg_print) {
+    auto name = elementName.c_str();
+    if (d.HasMember(name) && d[name].IsObject()) {
         id = 0;  // default to first attached controller
-        name = d[elementName]["name"].GetString();
-        axis = (Axis)d[elementName]["axis"].GetInt();
-        min = d[elementName]["min"].GetDouble();
-        max = d[elementName]["max"].GetDouble();
-        scaled_min = d[elementName]["scaled_min"].GetDouble();
-        scaled_max = d[elementName]["scaled_max"].GetDouble();
+        name = d[name]["name"].GetString();
+        axis = (Axis)d[name]["axis"].GetInt();
+        min = d[name]["min"].GetDouble();
+        max = d[name]["max"].GetDouble();
+        scaled_min = d[name]["scaled_min"].GetDouble();
+        scaled_max = d[name]["scaled_max"].GetDouble();
         value = min;
     } else if (dbg_print) {
         GetLog() << "Expected a joystick axis definition for " << elementName << " but did not find one.\n";
@@ -570,11 +574,12 @@ bool ChIrrJoystickButton::IsPressed(const irr::SEvent::SJoystickEvent& joystickE
     return continuous ? buttonPressedCount > 0 : buttonPressedCount == 1;
 }
 
-void ChIrrJoystickButton::Read(rapidjson::Document& d, char* elementName, bool dbg_print) {
-    if (d.HasMember(elementName) && d[elementName].IsObject()) {
+void ChIrrJoystickButton::Read(rapidjson::Document& d, const std::string& elementName, bool dbg_print) {
+    auto name = elementName.c_str();
+    if (d.HasMember(name) && d[name].IsObject()) {
         id = 0;  // default to first attached controller
-        name = d[elementName]["name"].GetString();
-        button = d[elementName]["button"].GetInt();
+        name = d[name]["name"].GetString();
+        button = d[name]["button"].GetInt();
     } else if (dbg_print) {
         GetLog() << "Expected a joystick button definition for " << elementName << " but did not find one.\n";
     }

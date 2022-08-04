@@ -717,16 +717,16 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
 
         auto linact_L = chrono_types::make_shared<ChLinkLinActuator>();
         linact_L->SetNameString("L_rod_actuator");
-        linact_L->Set_dist_funct(func_L);
+        linact_L->SetActuatorFunction(func_L);
         linact_L->Initialize(m_vehicle->GetChassisBody(), suspension->GetSpindle(LEFT), false, pos_gL, pos_sL);
-        linact_L->Set_lin_offset(m_rod_length);
+        linact_L->SetDistanceOffset(m_rod_length);
         sys->AddLink(linact_L);
 
         auto linact_R = chrono_types::make_shared<ChLinkLinActuator>();
         linact_R->SetNameString("R_rod_actuator");
-        linact_R->Set_dist_funct(func_R);
+        linact_R->SetActuatorFunction(func_R);
         linact_R->Initialize(m_vehicle->GetChassisBody(), suspension->GetSpindle(RIGHT), false, pos_gR, pos_sR);
-        linact_R->Set_lin_offset(m_rod_length);
+        linact_R->SetDistanceOffset(m_rod_length);
         sys->AddLink(linact_R);
 
         // Create the two rod bodies (used only for visualization)
@@ -775,8 +775,8 @@ void ChSuspensionTestRigPushrod::UpdateActuators(std::vector<double> displ_left,
                                                  std::vector<double> displ_right,
                                                  std::vector<double> displ_speed_right) {
     for (int ia = 0; ia < m_naxles; ia++) {
-        auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_L[ia]->Get_dist_funct());
-        auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_R[ia]->Get_dist_funct());
+        auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_L[ia]->GetActuatorFunction());
+        auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_R[ia]->GetActuatorFunction());
         func_L->SetSetpointAndDerivatives(displ_left[ia], displ_speed_left[ia], 0.0);
         func_R->SetSetpointAndDerivatives(displ_right[ia], displ_speed_right[ia], 0.0);
 
@@ -789,8 +789,8 @@ void ChSuspensionTestRigPushrod::UpdateActuators(std::vector<double> displ_left,
 
 double ChSuspensionTestRigPushrod::GetActuatorDisp(int axle, VehicleSide side) {
     double time = m_vehicle->GetChTime();
-    return (side == LEFT) ? m_linact_L[axle]->Get_dist_funct()->Get_y(time)
-                          : m_linact_R[axle]->Get_dist_funct()->Get_y(time);
+    return (side == LEFT) ? m_linact_L[axle]->GetActuatorFunction()->Get_y(time)
+                          : m_linact_R[axle]->GetActuatorFunction()->Get_y(time);
 }
 
 double ChSuspensionTestRigPushrod::GetActuatorForce(int axle, VehicleSide side) {

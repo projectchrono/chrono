@@ -89,7 +89,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
     m_actuator = chrono_types::make_shared<ChLinkLinActuator>();
     m_actuator->SetNameString(m_name + "_actuator");
     m_actuator->Initialize(chassisBody, m_link, false, ChCoordsys<>(pt1, QUNIT), ChCoordsys<>(pt2, QUNIT));
-    m_actuator->Set_lin_offset(offset);
+    m_actuator->SetDistanceOffset(offset);
     sys->AddLink(m_actuator);
 }
 
@@ -100,7 +100,7 @@ void ChRackPinion::Synchronize(double time, const DriverInputs& driver_inputs) {
     double angle = driver_inputs.m_steering * GetMaxAngle();
     double displ = angle * GetPinionRadius();
 
-    if (auto fun = std::dynamic_pointer_cast<ChFunction_Const>(m_actuator->Get_dist_funct()))
+    if (auto fun = std::dynamic_pointer_cast<ChFunction_Const>(m_actuator->GetActuatorFunction()))
         fun->Set_yconst(displ);
 }
 

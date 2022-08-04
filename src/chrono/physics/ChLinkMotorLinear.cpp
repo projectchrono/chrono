@@ -80,6 +80,11 @@ void ChLinkMotorLinear::Update(double mytime, bool update_assets) {
     ChFrameMoving<> aframe2 = ChFrameMoving<>(this->frame2) >> (ChFrameMoving<>)(*this->Body2);
     ChFrameMoving<> aframe12;
     aframe2.TransformParentToLocal(aframe1, aframe12);
+
+    //// RADU TODO: revisit this.
+    //// This is incorrect for GuideConstraint::FREE
+    //// Should use something like sqrt(Vdot(relpos,relpos)), but taking into account sign?
+
     this->mpos = aframe12.GetPos().x();
     this->mpos_dt = aframe12.GetPos_dt().x();
     this->mpos_dtdt = aframe12.GetPos_dtdt().x();

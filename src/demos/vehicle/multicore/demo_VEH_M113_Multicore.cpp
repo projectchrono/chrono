@@ -376,7 +376,8 @@ int main(int argc, char* argv[]) {
     m113.SetChassisVisualizationType(VisualizationType::NONE);
     m113.SetSprocketVisualizationType(VisualizationType::MESH);
     m113.SetIdlerVisualizationType(VisualizationType::MESH);
-    m113.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetIdlerWheelVisualizationType(VisualizationType::MESH);
+    m113.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     m113.SetRoadWheelVisualizationType(VisualizationType::MESH);
     m113.SetTrackShoeVisualizationType(VisualizationType::MESH);
 

@@ -18,20 +18,10 @@
 
 #include <cmath>
 
-#include "chrono/assets/ChBoxShape.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 
-#include "chrono/motion_functions/ChFunction_Setpoint.h"
-
-#include "chrono/physics/ChLinkMotorRotationAngle.h"
-#include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/physics/ChLinkMotorRotationTorque.h"
-#include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChInertiaUtils.h"
 
 #include "chrono_models/robot/turtlebot/Turtlebot.h"
 

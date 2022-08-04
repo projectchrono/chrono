@@ -1,0 +1,7 @@
+{
+  "Name":                       "Marder Simple Driveline",
+  "Type":                       "TrackDriveline",
+  "Template":                   "SimpleTrackDriveline",
+
+  "Differential Max Bias":      1.0
+}

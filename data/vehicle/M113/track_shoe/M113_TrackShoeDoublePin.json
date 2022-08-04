@@ -3,7 +3,7 @@
     "Type": "TrackShoe",
     "Template": "TrackShoeDoublePin",
 
-    "Topology": "Two Connectors",
+    "Topology": "One Connector",
 
     "Shoe": {
         "Length": 0.0984,

@@ -47,7 +47,8 @@ def main():
     m113.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
     m113.SetSprocketVisualizationType(veh.VisualizationType_MESH);
     m113.SetIdlerVisualizationType(veh.VisualizationType_MESH);
-    m113.SetRoadWheelAssemblyVisualizationType(veh.VisualizationType_MESH);
+    m113.SetIdlerWheelVisualizationType(veh.VisualizationType_MESH);
+    m113.SetSuspensionVisualizationType(veh.VisualizationType_MESH);
     m113.SetRoadWheelVisualizationType(veh.VisualizationType_MESH);
     m113.SetTrackShoeVisualizationType(veh.VisualizationType_MESH);
 

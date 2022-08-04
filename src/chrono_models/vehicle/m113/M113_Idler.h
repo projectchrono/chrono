@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2022 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -23,7 +23,7 @@
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/idler/ChDoubleIdler.h"
+#include "chrono_vehicle/tracked_vehicle/idler/ChTranslationalIdler.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -34,25 +34,15 @@ namespace m113 {
 /// @addtogroup vehicle_models_m113
 /// @{
 
-/// Idler and tensioner model for the M113 vehicle (base class).
-class CH_MODELS_API M113_Idler : public ChDoubleIdler {
+/// Idler and tensioner model for the M113 vehicle.
+class CH_MODELS_API M113_Idler : public ChTranslationalIdler {
   public:
-    virtual ~M113_Idler() {}
+    M113_Idler(const std::string& name, VehicleSide side);
+    ~M113_Idler() {}
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the idler subsystem reference frame.
     virtual const ChVector<> GetLocation(PointId which) override;
-
-    /// Return the mass of the idler wheel body.
-    virtual double GetWheelMass() const override { return m_wheel_mass; }
-    /// Return the moments of inertia of the idler wheel body.
-    virtual const ChVector<>& GetWheelInertia() override { return m_wheel_inertia; }
-    /// Return the radius of the idler wheel.
-    virtual double GetWheelRadius() const override { return m_wheel_radius; }
-    /// Return the total width of the idler wheel.
-    virtual double GetWheelWidth() const override { return m_wheel_width; }
-    /// Return the gap width.
-    virtual double GetWheelGap() const override { return m_wheel_gap; }
 
     /// Return the mass of the carrier body.
     virtual double GetCarrierMass() const override { return m_carrier_mass; }
@@ -65,31 +55,17 @@ class CH_MODELS_API M113_Idler : public ChDoubleIdler {
     virtual double GetPrismaticPitchAngle() const override { return 0; }
 
     /// Return the functor object for spring force.
-    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetTensionerForceCallback() const override { return m_tensionerForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetTensionerForceCallback() const override {
+        return m_tensionerForceCB;
+    }
 
     /// Return the free length for the tensioner spring.
     virtual double GetTensionerFreeLength() const override { return m_tensioner_l0; }
 
-  protected:
-    M113_Idler(const std::string& name);
-
-    /// Create the contact material consistent with the specified contact method.
-    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
-
-    /// Add visualization assets for the idler subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
-    virtual VehicleSide GetVehicleSide() const = 0;
-
-    virtual std::string GetMeshFile() const = 0;
+  private:
+    VehicleSide m_side;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_tensionerForceCB;
-
-    static const double m_wheel_mass;
-    static const ChVector<> m_wheel_inertia;
-    static const double m_wheel_radius;
-    static const double m_wheel_width;
-    static const double m_wheel_gap;
 
     static const double m_carrier_mass;
     static const ChVector<> m_carrier_inertia;
@@ -99,34 +75,6 @@ class CH_MODELS_API M113_Idler : public ChDoubleIdler {
     static const double m_tensioner_k;
     static const double m_tensioner_c;
     static const double m_tensioner_f;
-};
-
-/// Idler and tensioner model for the M113 vehicle (left side).
-class CH_MODELS_API M113_IdlerLeft : public M113_Idler {
-  public:
-    M113_IdlerLeft() : M113_Idler("M113_IdlerLeft") {}
-    ~M113_IdlerLeft() {}
-
-    virtual VehicleSide GetVehicleSide() const override { return LEFT; }
-
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
-
-  private:
-    static const std::string m_meshFile;
-};
-
-/// Idler and tensioner model for the M113 vehicle (right side).
-class CH_MODELS_API M113_IdlerRight : public M113_Idler {
-  public:
-    M113_IdlerRight() : M113_Idler("M113_IdlerRight") {}
-    ~M113_IdlerRight() {}
-
-    virtual VehicleSide GetVehicleSide() const override { return RIGHT; }
-
-    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
-
-  private:
-    static const std::string m_meshFile;
 };
 
 /// @} vehicle_models_m113

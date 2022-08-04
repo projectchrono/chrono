@@ -23,31 +23,31 @@
   "Suspension Subsystems":
   [
     {
-        "Input File":         "M113/suspension/M113_LinearDamperSuspension_Left.json",
+        "Input File":         "M113/suspension/M113_TranslationalDamperSuspension_Left.json",
         "Has Shock":          true,
         "Location":           [-0.655, 0, -0.215]
     },
 
     {
-        "Input File":         "M113/suspension/M113_LinearDamperSuspension_Left.json",
+        "Input File":         "M113/suspension/M113_TranslationalDamperSuspension_Left.json",
         "Has Shock":          true,
         "Location":           [-1.322, 0, -0.215]
     },
 
     {
-        "Input File":         "M113/suspension/M113_LinearDamperSuspension_Left.json",
+        "Input File":         "M113/suspension/M113_TranslationalDamperSuspension_Left.json",
         "Has Shock":          false,
         "Location":           [-1.989, 0, -0.215]
     },
 
     {
-        "Input File":         "M113/suspension/M113_LinearDamperSuspension_Left.json",
+        "Input File":         "M113/suspension/M113_TranslationalDamperSuspension_Left.json",
         "Has Shock":          false,
         "Location":           [-2.656, 0, -0.215]
     },
 
     {
-        "Input File":         "M113/suspension/M113_LinearDamperSuspension_Left.json",
+        "Input File":         "M113/suspension/M113_TranslationalDamperSuspension_Left.json",
         "Has Shock":          true,
         "Location":           [-3.322, 0, -0.215]
     }

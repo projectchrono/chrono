@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // Base class for a track assembly which consists of one sprocket, one idler,
-// a collection of road wheel assemblies (suspensions), a collection of rollers,
-// and a collection of track shoes.
+// a collection of track suspensions, a collection of rollers, and a collection
+// of track shoes.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -29,8 +29,8 @@
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
-#include "chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
-#include "chrono_vehicle/tracked_vehicle/ChRoller.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 
 namespace chrono {
@@ -50,7 +50,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     VehicleSide GetVehicleSide() const { return m_side; }
 
     /// Get the number of suspensions.
-    size_t GetNumRoadWheelAssemblies() const { return m_suspensions.size(); }
+    size_t GetNumTrackSuspensions() const { return m_suspensions.size(); }
 
     /// Get the number of rollers.
     size_t GetNumRollers() const { return m_rollers.size(); }
@@ -64,20 +64,23 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Get a handle to the idler subsystem.
     std::shared_ptr<ChIdler> GetIdler() const { return m_idler; }
 
+    /// Get a handle to the idelr wheel subsystem.
+    std::shared_ptr<ChTrackWheel> GetIdlerWheel() const { return m_idler->GetIdlerWheel(); }
+
     /// Get a handle to the brake subsystem.
     std::shared_ptr<ChTrackBrake> GetBrake() const { return m_brake; }
 
     /// Get the list of suspension subsystems.
-    const ChRoadWheelAssemblyList& GetRoadWheelAssemblies() const { return m_suspensions; }
+    const ChTrackSuspensionList& GetTrackSuspensions() const { return m_suspensions; }
 
     /// Get a handle to the specified suspension subsystem.
-    std::shared_ptr<ChRoadWheelAssembly> GetRoadWheelAssembly(size_t id) const { return m_suspensions[id]; }
+    std::shared_ptr<ChTrackSuspension> GetTrackSuspension(size_t id) const { return m_suspensions[id]; }
 
     /// Get a handle to the specified roller subsystem.
-    std::shared_ptr<ChRoller> GetRoller(size_t id) const { return m_rollers[id]; }
+    std::shared_ptr<ChTrackWheel> GetRoller(size_t id) const { return m_rollers[id]; }
 
     /// Get a handle to the specified road wheel subsystem.
-    std::shared_ptr<ChRoadWheel> GetRoadWheel(size_t id) const { return m_suspensions[id]->GetRoadWheel(); }
+    std::shared_ptr<ChTrackWheel> GetRoadWheel(size_t id) const { return m_suspensions[id]->GetRoadWheel(); }
 
     /// Get a handle to the specified track shoe subsystem.
     virtual std::shared_ptr<ChTrackShoe> GetTrackShoe(size_t id) const = 0;
@@ -148,7 +151,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
 
     /// Return current suspension forces or torques, as appropriate (spring and shock) for the specified suspension.
     /// Different suspension types will load different quantities in the output struct.
-    ChRoadWheelAssembly::ForceTorque ReportSuspensionForce(size_t id) const;
+    ChTrackSuspension::ForceTorque ReportSuspensionForce(size_t id) const;
 
     /// Set visualization type for the sprocket subsystem.
     void SetSprocketVisualizationType(VisualizationType vis);
@@ -157,7 +160,10 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     void SetIdlerVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the suspension subsystems.
-    void SetRoadWheelAssemblyVisualizationType(VisualizationType vis);
+    void SetSuspensionVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the idler-wheel subsystems.
+    void SetIdlerWheelVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the road-wheel subsystems.
     void SetRoadWheelVisualizationType(VisualizationType vis);
@@ -212,11 +218,11 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     ChVector<> m_rel_loc;                   ///< assembly location relative to chassis
     std::shared_ptr<ChIdler> m_idler;       ///< idler (and tensioner) subsystem
     std::shared_ptr<ChTrackBrake> m_brake;  ///< sprocket brake
-    ChRoadWheelAssemblyList m_suspensions;  ///< road-wheel assemblies
-    ChRollerList m_rollers;                 ///< roller subsystems
+    ChTrackSuspensionList m_suspensions;  ///< road-wheel assemblies
+    ChTrackWheelList m_rollers;             ///< roller subsystems
 
     bool m_roadwheel_as_cylinder;
-    bool m_idler_as_cylinder; 
+    bool m_idler_as_cylinder;
     bool m_roller_as_cylinder;
 
     friend class ChTrackedVehicle;
