@@ -295,6 +295,8 @@ void ChVisualSystemVSG::Initialize() {
     m_scene->addChild(m_particleScene);
     m_scene->addChild(m_decoScene);
 
+    BindAll();
+
     // create the viewer and assign window(s) to it
     m_viewer = vsg::Viewer::create();
 
@@ -427,8 +429,7 @@ void ChVisualSystemVSG::BindAll() {
             vsg::dvec3 scale(m_params->cogSymbolSize, m_params->cogSymbolSize, m_params->cogSymbolSize);
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                    vsg::scale(scale);
+                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) * vsg::scale(scale);
             m_cogScene->addChild(m_shapeBuilder->createCoGSymbol(body, transform));
         }
     }
@@ -532,15 +533,22 @@ void ChVisualSystemVSG::BindAll() {
             } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
                 GetLog() << "... has a obj file shape\n";
                 string objFilename = obj->GetFilename();
+                auto grp = vsg::Group::create();
                 auto transform = vsg::MatrixTransform::create();
-                transform->setValue("ItemPtr", body);
-                transform->setValue("ShapeInstancePtr", shape_instance);
-                transform->setValue("TransformPtr", transform);
+                grp->setValue("ItemPtr", body);
+                grp->setValue("ShapeInstancePtr", shape_instance);
+                grp->setValue("TransformPtr", transform);
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
-                m_bodyScene->addChild(transform);
-                vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
-                m_loadThreads->add(LoadOperation::create(observer_viewer, transform, objFilename, m_options));
+                grp->addChild(transform);
+                // needed, when BindAll() is called after Initialization
+                // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
+                // m_loadThreads->add(LoadOperation::create(observer_viewer, transform, objFilename, m_options));
+                auto node = vsg::read_cast<vsg::Node>(objFilename, m_options);
+                if (node) {
+                    transform->addChild(node);
+                    m_bodyScene->addChild(grp);
+                }
             } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
                 GetLog() << "... has a line shape\n";
                 auto transform = vsg::MatrixTransform::create();
@@ -707,8 +715,7 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
             auto rotAxis = body->GetRotAxis();
             vsg::dvec3 scale(m_params->cogSymbolSize, m_params->cogSymbolSize, m_params->cogSymbolSize);
             transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                    vsg::scale(scale);
+                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) * vsg::scale(scale);
         }
     }
     // update body visualization related graphic nodes

@@ -247,7 +247,6 @@ int main(int argc, char* argv[]) {
     ChColor red(1.0,0.0,0.0);
     vis->SetDecoGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)), red);
     vis->Initialize();
-    vis->BindAll();
 
     // ------------------------------------------------------------------------------
     // Use various user supplied callbacks to override default Chrono implementations

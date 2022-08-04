@@ -159,11 +159,11 @@ int main(int argc, char* argv[]) {
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
     auto objmesh = chrono_types::make_shared<ChObjFileShape>();
-    // objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj")); since MacOS 12.5 extremely slow
-    // body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), Q_UNIT));
-    objmesh->SetFilename(GetChronoDataFile("vsg/models/forklift/body.vsgb"));  // converted with vsgconv
+    objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj")); //since MacOS 12.5 extremely slow
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), QUNIT));
+    //objmesh->SetFilename(GetChronoDataFile("vsg/models/forklift/body.vsgb"));  // converted with vsgconv
     // vsgconv changes orientation!
-    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), Q_from_AngAxis(-CH_C_PI_2, ChVector<>(1, 0, 0))));
+    //body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), Q_from_AngAxis(-CH_C_PI_2, ChVector<>(1, 0, 0))));
 
     // ==Asset== Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
@@ -254,7 +254,6 @@ int main(int argc, char* argv[]) {
     vis->SetDecoGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector<>(0, -0.49, 0), Q_from_AngX(CH_C_PI_2)),
                      ChColor(0.31f, 0.43f, 0.43f));
     vis->Initialize();
-    vis->BindAll();
 
     size_t numFrame = 0;
     while (vis->Run()) {

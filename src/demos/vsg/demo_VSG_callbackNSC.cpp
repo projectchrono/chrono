@@ -191,8 +191,6 @@ int main(int argc, char* argv[]) {
             ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
     */
     vis->Initialize();
-    vis->BindAll();
-
 
     // ---------------
     // Simulate sys

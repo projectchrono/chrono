@@ -137,7 +137,6 @@ int main(int argc, char* argv[]) {
     vis->SetLightDirection(1.5*CH_C_PI_2, CH_C_PI_4);
     vis->SetWireFrameMode(false);
     vis->Initialize();
-    vis->BindAll();
 
     size_t numFrame = 0;
     // Simulation loop

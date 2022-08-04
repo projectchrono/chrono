@@ -79,7 +79,6 @@ int main(int argc, char* argv[]) {
     vis->SetLightIntensity(1.0);
     vis->SetLightDirection(1.5*CH_C_PI_2, CH_C_PI_4);
     vis->Initialize();
-    vis->BindAll();
 
     // Simulation loop
     double timestep = 0.005;

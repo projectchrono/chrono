@@ -145,7 +145,6 @@ int main(int argc, char* argv[]) {
     vis->SetDecoGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector<>(0, 0.11, 0), Q_from_AngX(CH_C_PI_2)),
                      ChColor(0.11f, 0.11f, 0.11f));
     vis->Initialize();
-    vis->BindAll();
 
     // The soft-real-time cycle
     double time = 0.0;

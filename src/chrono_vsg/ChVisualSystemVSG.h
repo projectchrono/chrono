@@ -60,14 +60,16 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void ShowAllCoGs(double size);
     void SetGuiFontSize(float theSize = 20.f) { m_guiFontSize = theSize; }
     void SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
-    void BindAll() override;
-    void OnUpdate(ChSystem* sys) override;
 
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
         bool showGui = true;            // (don't) show the imgui menu, actually unused
         bool do_image_capture = false;  // mark image capturing as needed
         double cogSymbolSize = 0.0;
     };
+
+  protected:
+    void BindAll() override;
+    void OnUpdate(ChSystem* sys) override;
 
   private:
     vsg::ref_ptr<vsg::Viewer> m_viewer;

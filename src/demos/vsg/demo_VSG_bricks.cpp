@@ -187,7 +187,6 @@ int main(int argc, char* argv[]) {
     vis->SetLightDirection(1.5*CH_C_PI_2, CH_C_PI_4);
     vis->Initialize();
 
-    vis->BindAll();
     // Simulation loop
     while (vis->Run()) {
         vis->Render();
