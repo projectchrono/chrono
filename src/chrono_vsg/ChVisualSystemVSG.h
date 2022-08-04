@@ -113,7 +113,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_acimut = 0;
     //
     bool m_draw_as_wireframe = false;
-    vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
+    vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;  // used for built-in shapes
+    vsg::ref_ptr<vsg::Builder> m_builder;       // used for particle visualization
     //
     std::string m_imageFilename;
     // bool m_do_image_export = false;
