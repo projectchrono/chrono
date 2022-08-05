@@ -43,7 +43,6 @@ ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU)
     m_vsys->EnableStats(false);
 #else
     m_system = nullptr;
-    m_vsys = nullptr;
     std::cout << "\nWARNING! Chrono::OpenGL not available.  Visualization disabled!\n" << std::endl;
 #endif
 }
