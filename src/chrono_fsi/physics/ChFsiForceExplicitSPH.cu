@@ -827,7 +827,9 @@ __device__ inline Real4 DifVelocityRho(float G_i[9],
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__device__ inline Real4 DifVelocityRho_ElasticSPH(Real3 gradW,
+__device__ inline Real4 DifVelocityRho_ElasticSPH(Real W_ini_inv,
+                                                  Real W_AB,
+                                                  Real3 gradW,
                                                   Real3 dist3,
                                                   Real d,
                                                   Real invd,
@@ -899,6 +901,23 @@ __device__ inline Real4 DifVelocityRho_ElasticSPH(Real3 gradW,
     derivVy += derivM1 * gradW.y;
     derivVz += derivM1 * gradW.z;
     // }
+
+    // Artifical pressure to handle tensile instability issue.
+    // A complete artifical stress should be implemented in the future.
+    if (paramsD.Coh_coeff > 1e-5) {
+        Real Pa = -1.0 / 3.0 * (tauXxYyZz_A.x + tauXxYyZz_A.y + tauXxYyZz_A.z);
+        if (Pa < 0.0) {
+            Real Pb = -1.0 / 3.0 * (tauXxYyZz_B.x + tauXxYyZz_B.y + tauXxYyZz_B.z);
+            Real epsi = 0.5;
+            Real Ra = Pa * epsi * paramsD.invrho0 * paramsD.invrho0;
+            Real Rb = Pb * epsi * paramsD.invrho0 * paramsD.invrho0;
+            Real fAB = W_AB * W_ini_inv;
+            Real small_F = Mass * pow(fAB, 3.0) * (Ra + Rb);
+            derivVx += small_F * gradW.x;
+            derivVy += small_F * gradW.y;
+            derivVz += small_F * gradW.z;
+        }
+    }
 
     // TOTO: Damping force
     // if (1 == 0) {
@@ -1336,6 +1355,7 @@ __global__ void NS_SSR(uint* activityIdentifierD,
 
     Real3 inner_sum = mR3(0.0);
     Real sum_w_i = W3h(0.0, hA) * paramsD.volume0;
+    Real w_ini_inv = 1.0 / W3h(paramsD.INITSPACE, hA);
     int N_ = 1;
     int N_s = 0;
 
@@ -1393,6 +1413,7 @@ __global__ void NS_SSR(uint* activityIdentifierD,
             }
         }
         // Correct the kernel function gradient
+        Real w_AB = W3h(d, hA);
         Real3 gradW = GradWh(dist3, hA);
         if (paramsD.USE_Consistent_G) {
             Real3 gradW_new;
@@ -1402,7 +1423,7 @@ __global__ void NS_SSR(uint* activityIdentifierD,
             gradW = gradW_new;
         }
         // Calculate dv/dt
-        derivVelRho += DifVelocityRho_ElasticSPH(gradW, dist3, d, invd, 
+        derivVelRho += DifVelocityRho_ElasticSPH(w_ini_inv, w_AB, gradW, dist3, d, invd, 
             sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA, 
             rhoPresMuB, TauXxYyZzA, TauXyXzYzA, TauXxYyZzB, TauXyXzYzB);
         // Calculate dsigma/dt

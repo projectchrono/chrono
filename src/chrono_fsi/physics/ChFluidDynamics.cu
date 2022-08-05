@@ -345,10 +345,13 @@ __global__ void UpdateFluidD(Real4* posRadD,
                     updatedTauXyXzYz = updatedTauXyXzYz * coeff;
                 }
             }
-            // Set stress to zero if the pressure is smaller than a critical value
+            // Set stress to the critical value if the pressure is smaller than it 
             if (p_tr < P_cri) {
-                updatedTauXxYyZz = mR3(0.0);
-                updatedTauXyXzYz = mR3(0.0);
+                Real coeff = abs(P_cri / (p_tr + 1e-9));
+                updatedTauXxYyZz = updatedTauXxYyZz * coeff;
+                updatedTauXyXzYz = updatedTauXyXzYz * coeff;
+                // updatedTauXxYyZz = mR3(0.0);
+                // updatedTauXyXzYz = mR3(0.0);
                 p_tr = P_cri;
             }
             // Set stress to zero if the particle is close to free surface
