@@ -48,7 +48,9 @@ ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU)
 }
 
 ChGpuVisualization::~ChGpuVisualization() {
+#ifdef CHRONO_OPENGL
     delete m_vsys;
+#endif
     delete m_system;
 }
 
