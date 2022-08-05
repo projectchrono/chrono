@@ -55,8 +55,11 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                          std::shared_ptr<ChSurfaceShape> surface = nullptr);
 
     vsg::ref_ptr<vsg::Group> createParticleShape(std::shared_ptr<ChVisualMaterial> material,
-                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                 bool drawMode);
+            vsg::ref_ptr<vsg::MatrixTransform> transform,
+            bool drawMode);
+
+    vsg::ref_ptr<vsg::Group> createParticlePattern(std::shared_ptr<ChVisualMaterial> material,
+            bool drawMode);
 
     vsg::ref_ptr<vsg::Group> createLineShape(std::shared_ptr<ChPhysicsItem> physItem,
                                              ChVisualModel::ShapeInstance shapeInstance,

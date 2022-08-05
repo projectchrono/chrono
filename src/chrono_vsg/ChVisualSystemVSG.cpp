@@ -533,6 +533,8 @@ void ChVisualSystemVSG::BindAll() {
             } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
                 GetLog() << "... has a obj file shape\n";
                 string objFilename = obj->GetFilename();
+                size_t objHashValue = m_stringHash(objFilename);
+                GetLog() << "Hash: " << objHashValue << " | " << objFilename << "\n";
                 auto grp = vsg::Group::create();
                 auto transform = vsg::MatrixTransform::create();
                 grp->setValue("ItemPtr", body);
@@ -544,9 +546,19 @@ void ChVisualSystemVSG::BindAll() {
                 // needed, when BindAll() is called after Initialization
                 // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
                 // m_loadThreads->add(LoadOperation::create(observer_viewer, transform, objFilename, m_options));
-                auto node = vsg::read_cast<vsg::Node>(objFilename, m_options);
-                if (node) {
-                    transform->addChild(node);
+                map<size_t,vsg::ref_ptr<vsg::Node>>::iterator objIt;
+                objIt = m_objCache.find(objHashValue);
+                if(objIt == m_objCache.end()) {
+                    // GetLog() << "Cache empty or value not contained.\n";
+                    auto node = vsg::read_cast<vsg::Node>(objFilename, m_options);
+                    if(node) {
+                        transform->addChild(node);
+                        m_bodyScene->addChild(grp);
+                        m_objCache[objHashValue] = node;
+                    }
+                } else {
+                    // GetLog() << "value found in cache.\n";
+                    transform->addChild(m_objCache[objHashValue]);
                     m_bodyScene->addChild(grp);
                 }
             } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
@@ -599,18 +611,26 @@ void ChVisualSystemVSG::BindAll() {
             if (!pcloud->GetVisualModel())
                 continue;
             GetLog() << "Generating Particle Cloud....\n";
+            if(!m_particlePattern) {
+                std::shared_ptr<ChVisualMaterial> material;
+                material = chrono_types::make_shared<ChVisualMaterial>();
+                material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
+                material->SetAmbientColor(ChColor(0.1, 0.1, 0.1));
+                m_particlePattern = m_shapeBuilder->createParticlePattern(material, m_draw_as_wireframe);
+            }
             auto numParticles = pcloud->GetNparticles();
             std::vector<double> size = pcloud->GetCollisionModel()->GetShapeDimensions(0);
-            std::shared_ptr<ChVisualMaterial> material;
-            material = chrono_types::make_shared<ChVisualMaterial>();
-            material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
-            material->SetAmbientColor(ChColor(0.1, 0.1, 0.1));
             for (int i = 0; i < pcloud->GetNparticles(); i++) {
+                auto group = vsg::Group::create();
                 const auto& pos = pcloud->GetVisualModelFrame(i).GetPos();
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) * vsg::scale(size[0], size[0], size[0]);
-                m_particleScene->addChild(
-                    m_shapeBuilder->createParticleShape(material, transform, m_draw_as_wireframe));
+                transform->addChild(m_particlePattern);
+                group->setValue("TransformPtr", transform);
+                group->addChild(transform);
+                m_particleScene->addChild(group);
+                //m_particleScene->addChild(
+                //    m_shapeBuilder->createParticleShape(material, transform, m_draw_as_wireframe));
             }
         }
     }

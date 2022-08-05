@@ -72,6 +72,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void OnUpdate(ChSystem* sys) override;
 
   private:
+    std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
+    std::hash<std::string> m_stringHash;
     vsg::ref_ptr<vsg::Viewer> m_viewer;
     vsg::ref_ptr<vsg::Window> m_window;
     int m_windowWidth = 800;
@@ -101,6 +103,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Group> m_linkScene;
     vsg::ref_ptr<vsg::Group> m_particleScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
+    // cache for particle shape
+    vsg::ref_ptr<vsg::Group> m_particlePattern;
+    //
     std::string m_skyboxPath;
     bool m_useSkybox;
     //
