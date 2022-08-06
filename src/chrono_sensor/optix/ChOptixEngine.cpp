@@ -73,7 +73,7 @@ ChOptixEngine::~ChOptixEngine() {
     optixDeviceContextDestroy(m_context);
 }
 
-void ChOptixEngine::Initialize() {
+void ChOptixEngine::Initialize() { 
     cudaFree(0);
     OptixDeviceContext context;
     CUcontext cuCtx = 0;  // zero means take the current context, TODO: enable multigpu
