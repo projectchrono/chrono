@@ -131,15 +131,14 @@ void SynTrackedVehicleAgent::SetKey(AgentKey agent_key) {
 // ------------------------------------------------------------------------
 
 std::shared_ptr<ChTriangleMeshShape> SynTrackedVehicleAgent::CreateMeshZombieComponent(const std::string& filename) {
-    auto mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    if (!filename.empty())
-        mesh->LoadWavefrontMesh(vehicle::GetDataFile(filename), false, false);
-
     auto trimesh = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh->SetMesh(mesh);
-    trimesh->SetStatic(true);
-    trimesh->SetName(filesystem::path(filename).stem());
-
+    if (!filename.empty()) {
+        auto mesh =
+            geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(filename), false, false);
+        trimesh->SetMesh(mesh);
+        trimesh->SetMutable(false);
+        trimesh->SetName(filesystem::path(filename).stem());
+    }
     return trimesh;
 }
 
@@ -148,7 +147,7 @@ std::shared_ptr<ChBodyAuxRef> SynTrackedVehicleAgent::CreateChassisZombieBody(co
     auto trimesh = CreateMeshZombieComponent(filename);
 
     auto zombie_body = chrono_types::make_shared<ChBodyAuxRef>();
-    zombie_body->AddAsset(trimesh);
+    zombie_body->AddVisualShape(trimesh);
     zombie_body->SetCollide(false);
     zombie_body->SetBodyFixed(true);
     zombie_body->SetFrame_COG_to_REF(ChFrame<>({0, 0, -0.2}, {1, 0, 0, 0}));
@@ -162,7 +161,7 @@ void SynTrackedVehicleAgent::AddMeshToVector(std::shared_ptr<ChTriangleMeshShape
                                              ChSystem* system) {
     for (auto& ref : ref_list) {
         ref = chrono_types::make_shared<ChBodyAuxRef>();
-        ref->AddAsset(trimesh);
+        ref->AddVisualShape(trimesh);
         ref->SetCollide(false);
         ref->SetBodyFixed(true);
         system->Add(ref);
@@ -176,14 +175,14 @@ void SynTrackedVehicleAgent::AddMeshToVector(std::shared_ptr<ChTriangleMeshShape
     for (int i = 0; i < ref_list.size() / 2; i++) {
         auto& ref_left = ref_list[i];
         ref_left = chrono_types::make_shared<ChBodyAuxRef>();
-        ref_left->AddAsset(left);
+        ref_left->AddVisualShape(left);
         ref_left->SetCollide(false);
         ref_left->SetBodyFixed(true);
         system->Add(ref_left);
 
         auto& ref_right = ref_list[ref_list.size() - i - 1];
         ref_right = chrono_types::make_shared<ChBodyAuxRef>();
-        ref_right->AddAsset(right);
+        ref_right->AddVisualShape(right);
         ref_right->SetCollide(false);
         ref_right->SetBodyFixed(true);
         system->Add(ref_right);

@@ -74,8 +74,11 @@ class M113_ShockForce : public ChLinkTSDA::ForceFunctor {
 };
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-M113_Suspension::M113_Suspension(const std::string& name, VehicleSide side, int index, bool has_shock)
+M113_Suspension::M113_Suspension(const std::string& name,
+                                 VehicleSide side,
+                                 int index,
+                                 bool use_bushings,
+                                 bool has_shock)
     : ChLinearDamperRWAssembly(name, has_shock), m_side(side) {
     // Instantiate the force callback for the shock (damper).
     m_shock_forceCB = chrono_types::make_shared<M113_ShockForce>(m_shock_c);
@@ -88,11 +91,20 @@ M113_Suspension::M113_Suspension(const std::string& name, VehicleSide side, int 
         m_road_wheel = chrono_types::make_shared<M113_RoadWheelLeft>(index);
     else
         m_road_wheel = chrono_types::make_shared<M113_RoadWheelRight>(index);
+
+    // Create bushing data (if enabled)
+    if (use_bushings) {
+        m_bushing_data = chrono_types::make_shared<ChVehicleBushingData>();
+        m_bushing_data = chrono_types::make_shared<ChVehicleBushingData>();
+        m_bushing_data->K_lin = 35000000;
+        m_bushing_data->K_rot = 300;
+        m_bushing_data->D_lin = 100;
+        m_bushing_data->D_rot = 100;
+    }
 }
 
 M113_Suspension::~M113_Suspension() {}
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 const ChVector<> M113_Suspension::GetLocation(PointId which) {
     ChVector<> point;

@@ -16,7 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -68,7 +67,15 @@ const std::string M113_TrackShoeBandBushing::m_tread_meshName = "M113_Tread";
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_TrackShoeBandBushing::M113_TrackShoeBandBushing(const std::string& name) : ChTrackShoeBandBushing(name) {
-    SetBushingParameters(7e7, 500, 1e5, 0.05 * 7e7, 0.05 * 500, 0.05 * 1e5);
+    m_bushingData = chrono_types::make_shared<ChVehicleBushingData>();
+    m_bushingData->K_lin = 7e7;
+    m_bushingData->D_lin = 0.05 * 7e7;
+    m_bushingData->K_rot = 1e5;
+    m_bushingData->D_rot= 0.05 * 1e5;
+    m_bushingData->K_lin_dof = 0;
+    m_bushingData->D_lin_dof = 0;
+    m_bushingData->K_rot_dof = 500;
+    m_bushingData->D_rot_dof = 0.05 * 500;
 }
 
 void M113_TrackShoeBandBushing::CreateContactMaterials(ChContactMethod contact_method) {

@@ -19,10 +19,6 @@
 #ifndef CH_SUSPENSION_H
 #define CH_SUSPENSION_H
 
-#include <string>
-#include <vector>
-
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
 #include "chrono/assets/ChCylinderShape.h"
@@ -50,8 +46,6 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
         double shock_velocity;
     };
 
-    ChSuspension(const std::string& name);
-
     virtual ~ChSuspension();
 
     /// Specify whether or not this suspension can be steered.
@@ -60,9 +54,9 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Specify whether or not this is an independent suspension.
     virtual bool IsIndependent() const = 0;
 
-    /// Get the location of the suspension subsystem relative to the chassis reference frame.
+    /// Get the location of the suspension subsystem relative to the associated chassis reference frame.
     /// The suspension reference frame is always aligned with the chassis reference frame.
-    const ChVector<>& GetLocation() const { return m_location; }
+    const ChVector<>& GetRelPosition() const { return m_rel_loc; }
 
     /// Get a handle to the spindle body on the specified side.
     std::shared_ptr<ChBody> GetSpindle(VehicleSide side) const { return m_spindle[side]; }
@@ -142,12 +136,6 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// The default implementation returns a NULL pointer (indicating that a brake should connect to the chassis).
     virtual std::shared_ptr<ChBody> GetBrakeBody(VehicleSide side) const { return nullptr; }
 
-    /// Get the total mass of the suspension subsystem.
-    virtual double GetMass() const = 0;
-
-    /// Get the current global COM location of the suspension subsystem.
-    virtual ChVector<> GetCOMPos() const = 0;
-
     /// Get the wheel track for the suspension subsystem.
     virtual double GetTrack() = 0;
 
@@ -162,7 +150,10 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     void ApplyParkingBrake(bool brake);
 
   protected:
-    ChVector<> m_location;                               ///< location relative to chassis
+    /// Construct a suspension subsystem with given name.
+    ChSuspension(const std::string& name);
+
+    ChVector<> m_rel_loc;                                ///< location relative to chassis
     std::shared_ptr<ChBody> m_spindle[2];                ///< handles to spindle bodies
     std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors

@@ -29,10 +29,10 @@ namespace fmtv {
 
 // Static variables
 
-const double LMTV_ChassisRear::m_mass = 1938.333;
-const ChVector<> LMTV_ChassisRear::m_inertiaXX(2.4461e3, 2.4605e3, 3.2300e3);
-const ChVector<> LMTV_ChassisRear::m_inertiaXY(0, -0.1055e3, 0);
-const ChVector<> LMTV_ChassisRear::m_COM_loc(-3.1919, 0, 0.8404);
+const double LMTV_ChassisRear::m_body_mass = 1938.333;
+const ChVector<> LMTV_ChassisRear::m_body_inertiaXX(2.4461e3, 2.4605e3, 3.2300e3);
+const ChVector<> LMTV_ChassisRear::m_body_inertiaXY(0, -0.1055e3, 0);
+const ChVector<> LMTV_ChassisRear::m_body_COM_loc(-3.1919, 0, 0.8404);
 const ChVector<> LMTV_ChassisRear::m_connector_loc(-1.85, 0, 0.45);
 
 const double LMTV_ChassisConnector::m_torsion_stiffness = 7085;
@@ -41,16 +41,16 @@ const double LMTV_ChassisConnector::m_torsion_stiffness = 7085;
 
 LMTV_ChassisRear::LMTV_ChassisRear(const std::string& name, CollisionType chassis_collision_type)
     : ChRigidChassisRear(name) {
-    m_inertia(0, 0) = m_inertiaXX.x();
-    m_inertia(1, 1) = m_inertiaXX.y();
-    m_inertia(2, 2) = m_inertiaXX.z();
+    m_body_inertia(0, 0) = m_body_inertiaXX.x();
+    m_body_inertia(1, 1) = m_body_inertiaXX.y();
+    m_body_inertia(2, 2) = m_body_inertiaXX.z();
 
-    m_inertia(0, 1) = m_inertiaXY.x();
-    m_inertia(0, 2) = m_inertiaXY.y();
-    m_inertia(1, 2) = m_inertiaXY.z();
-    m_inertia(1, 0) = m_inertiaXY.x();
-    m_inertia(2, 0) = m_inertiaXY.y();
-    m_inertia(2, 1) = m_inertiaXY.z();
+    m_body_inertia(0, 1) = m_body_inertiaXY.x();
+    m_body_inertia(0, 2) = m_body_inertiaXY.y();
+    m_body_inertia(1, 2) = m_body_inertiaXY.z();
+    m_body_inertia(1, 0) = m_body_inertiaXY.x();
+    m_body_inertia(2, 0) = m_body_inertiaXY.y();
+    m_body_inertia(2, 1) = m_body_inertiaXY.z();
 
     //// TODO:
     //// A more appropriate contact shape from primitives

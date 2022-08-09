@@ -279,24 +279,20 @@ void Copter<nop>::AddVisualizationAssets(const std::string& chassismesh,
                                          const std::string& propellermesh,
                                          const ChFrame<>& cor_m1,
                                          const ChFrame<>& cor_m2) {
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(chassismesh, true, false);
-    trimesh->Transform(cor_m1.GetPos(), cor_m1.GetA());
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(chassismesh, true, true);
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
-    // trimesh_shape->SetName(m_mesh_name);
-    trimesh_shape->SetStatic(true);
-    chassis->AddAsset(trimesh_shape);
+    trimesh_shape->SetMutable(false);
+    trimesh_shape->SetColor(ChColor(0.2f, 0.32f, 0.48f));
+    chassis->AddVisualShape(trimesh_shape, cor_m1);
 
     for (auto propeller : props) {
-        auto prop_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        prop_trimesh->LoadWavefrontMesh(propellermesh, true, false);
-        prop_trimesh->Transform(cor_m2.GetPos(), cor_m2.GetA());
+        auto prop_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(propellermesh, true, true);
         auto trimesh_prop_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_prop_shape->SetMesh(prop_trimesh);
-        // trimesh_prop_shape->SetName(m_mesh_name);
-        trimesh_prop_shape->SetStatic(true);
-        propeller->AddAsset(trimesh_prop_shape);
+        trimesh_prop_shape->SetMutable(false);
+        trimesh_prop_shape->SetColor(ChColor(0.8f, 0.68f, 0.52f));
+        propeller->AddVisualShape(trimesh_prop_shape, cor_m2);
     }
 }
 

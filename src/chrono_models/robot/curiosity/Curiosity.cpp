@@ -21,7 +21,6 @@
 
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTexture.h"
@@ -204,26 +203,23 @@ void CuriosityPart::Construct(ChSystem* system) {
 
     // Add visualization shape
     if (m_visualize) {
-        std::string vis_mesh_file = "robot/curiosity/obj/" + m_mesh_name + ".obj";
-        auto trimesh_vis = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh_vis->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+        auto vis_mesh_file = GetChronoDataFile("robot/curiosity/obj/" + m_mesh_name + ".obj");
+        auto trimesh_vis = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);
         trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
         trimesh_vis->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh_vis);
         trimesh_shape->SetName(m_mesh_name);
-        trimesh_shape->SetStatic(true);
+        trimesh_shape->SetMutable(false);
 
-        m_body->AddAsset(trimesh_shape);
-        m_body->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color));
+        m_body->AddVisualShape(trimesh_shape);
     }
 
     // Add collision shape
     if (m_collide) {
-        std::string col_mesh_file = "robot/curiosity/col/" + m_mesh_name + ".obj";
-        auto trimesh_col = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh_col->LoadWavefrontMesh(GetChronoDataFile(col_mesh_file), false, false);
+        auto col_mesh_file = GetChronoDataFile("robot/curiosity/col/" + m_mesh_name + ".obj");
+        auto trimesh_col = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(col_mesh_file, false, false);
         trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
         trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
@@ -237,9 +233,8 @@ void CuriosityPart::Construct(ChSystem* system) {
 }
 
 void CuriosityPart::CalcMassProperties(double density) {
-    std::string mesh_filename = "robot/curiosity/col/" + m_mesh_name + ".obj";
-    auto trimesh_col = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh_col->LoadWavefrontMesh(GetChronoDataFile(mesh_filename), false, false);
+    auto mesh_filename = GetChronoDataFile("robot/curiosity/col/" + m_mesh_name + ".obj");
+    auto trimesh_col = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false, false);
     trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
     trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 

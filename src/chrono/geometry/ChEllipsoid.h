@@ -23,12 +23,8 @@ namespace geometry {
 /// An ellipsoid geometric object for collisions and such.
 class ChApi ChEllipsoid : public ChGeometry {
   public:
-    ChVector<> center;  ///< ellipsoid center
-    ChVector<> rad;     ///< ellipsoid semi-axes
-
-  public:
-    ChEllipsoid() : center(VNULL), rad(0) {}
-    ChEllipsoid(const ChVector<>& mc, const ChVector<>& mrad) : center(mc), rad(mrad) {}
+    ChEllipsoid() : rad(0) {}
+    ChEllipsoid(const ChVector<>& mc, const ChVector<>& mrad) : rad(mrad) {}
     ChEllipsoid(const ChEllipsoid& source);
     ~ChEllipsoid() {}
 
@@ -37,17 +33,14 @@ class ChApi ChEllipsoid : public ChGeometry {
 
     virtual GeometryType GetClassType() const override { return SPHERE; }
 
-    virtual void GetBoundingBox(double& xmin,
-                                double& xmax,
-                                double& ymin,
-                                double& ymax,
-                                double& zmin,
-                                double& zmax,
-                                ChMatrix33<>* Rot = NULL) const override;
+    /// Compute bounding box along the directions defined by the given rotation matrix.
+    /// Note: 'rot' currently ignored.
+    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
 
-    virtual ChVector<> Baricenter() const override { return center; }
+    /// Returns the radius of a bounding sphere for this geometry.
+    virtual double GetBoundingSphereRadius() const override;
 
-    virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
+    virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
@@ -57,6 +50,8 @@ class ChApi ChEllipsoid : public ChGeometry {
 
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    ChVector<> rad;  ///< ellipsoid semi-axes
 };
 
 }  // end namespace geometry

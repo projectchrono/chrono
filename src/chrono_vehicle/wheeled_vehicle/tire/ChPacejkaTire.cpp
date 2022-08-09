@@ -55,7 +55,7 @@ static double phiT_thresh = 99;
 // Constructors
 // -----------------------------------------------------------------------------
 ChPacejkaTire::ChPacejkaTire(const std::string& name, const std::string& pacTire_paramFile)
-    : ChTire(name),
+    : ChForceElementTire(name),
       m_paramFile(pacTire_paramFile),
       m_params_defined(false),
       m_use_transient_slip(true),
@@ -67,7 +67,7 @@ ChPacejkaTire::ChPacejkaTire(const std::string& name,
                              const std::string& pacTire_paramFile,
                              double Fz_override,
                              bool use_transient_slip)
-    : ChTire(name),
+    : ChForceElementTire(name),
       m_paramFile(pacTire_paramFile),
       m_params_defined(false),
       m_use_transient_slip(use_transient_slip),
@@ -190,28 +190,14 @@ void ChPacejkaTire::AddVisualizationAssets(VisualizationType vis) {
     m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
     m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
     m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
-    m_wheel->GetSpindle()->AddAsset(m_cyl_shape);
-
-    m_texture = chrono_types::make_shared<ChTexture>();
-    m_texture->SetTextureFilename(GetChronoDataFile("textures/greenwhite.png"));
-    m_wheel->GetSpindle()->AddAsset(m_texture);
+    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
+    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
 }
 
 void ChPacejkaTire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChPacejkaTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    {
-        auto it = std::find(assets.begin(), assets.end(), m_cyl_shape);
-        if (it != assets.end())
-            assets.erase(it);
-    }
-    {
-        auto it = std::find(assets.begin(), assets.end(), m_texture);
-        if (it != assets.end())
-            assets.erase(it);
-    }
+    // This is important for the ChTire object because a wheel may add its own assets to the same body (the spindle/wheel).
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
 }
 
 // -----------------------------------------------------------------------------

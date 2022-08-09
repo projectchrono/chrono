@@ -210,7 +210,9 @@ void mrole_VehicleFull::Initialize(const ChCoordsys<>& chassisPos, double chassi
     }
 
     m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
-    
+
+    // Invoke base class method
+    ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
 }
 
 // -----------------------------------------------------------------------------

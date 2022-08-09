@@ -43,11 +43,6 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChWheeledTrailer {
   public:
-    /// Construct a trailer system using the specified ChSystem.
-    ChWheeledTrailer(const std::string& name,  ///< [in] trailer system name
-                     ChSystem* system          ///< [in] containing mechanical system
-    );
-
     /// Destructor.
     virtual ~ChWheeledTrailer() {}
 
@@ -103,15 +98,22 @@ class CH_VEHICLE_API ChWheeledTrailer {
         ChTire::CollisionType tire_coll = ChTire::CollisionType::SINGLE_POINT);
 
     /// Update the state of this trailer at the current time.
-    /// The trailer system is provided the current braking input (between 0 and 1) and a reference to the terrain
-    /// system.
-    void Synchronize(double time, double braking, const ChTerrain& terrain);
+    /// The trailer system is provided the current driver inputs and a reference to the terrain system.
+    void Synchronize(double time,                        ///< [in] current time
+                     const DriverInputs& driver_inputs,  ///< [in] current driver inputs
+                     const ChTerrain& terrain            ///< [in] reference to the terrain system
+    );
 
     /// Advance the state of this trailer by the specified time step.
     /// This function advances the states of all associated tires.
     void Advance(double step);
 
   protected:
+    /// Construct a trailer system using the specified ChSystem.
+    ChWheeledTrailer(const std::string& name,  ///< [in] trailer system name
+                     ChSystem* system          ///< [in] containing mechanical system
+    );
+
     std::string m_name;  ///< trailer system name
 
     std::shared_ptr<ChChassisRear> m_chassis;              ///< trailer chassis

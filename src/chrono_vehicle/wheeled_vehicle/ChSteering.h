@@ -31,14 +31,10 @@ namespace vehicle {
 /// Base class for a steering subsystem.
 class CH_VEHICLE_API ChSteering : public ChPart {
   public:
-    ChSteering(const std::string& name  ///< [in] name of the subsystem
-               );
-
     virtual ~ChSteering();
 
-    /// Get the position (location and orientation) of the steering subsystem
-    ///  relative to the chassis reference frame.
-    const ChCoordsys<>& GetPosition() const { return m_position; }
+    /// Get the frame of the steering subsystem relative to the associated chassis reference frame.
+    const ChFrame<>& GetRelTransform() const { return m_rel_xform; }
 
     /// Get a handle to the main link of the steering subsystems.
     /// Return a handle to the body to which the tierods of a steerable
@@ -55,24 +51,20 @@ class CH_VEHICLE_API ChSteering : public ChPart {
                             ) = 0;
 
     /// Update the state of this steering subsystem at the current time.
-    /// The steering subsystem is provided the current steering driver input (a
-    /// value between -1 and +1).  Positive steering input indicates steering
-    /// to the left. This function is called during the vehicle update.
-    virtual void Synchronize(double time,     ///< [in] current time
-                             double steering  ///< [in] current steering input [-1,+1]
+    /// The steering subsystem is provided the current steering driver input (a value between -1 and +1).  Positive
+    /// steering input indicates steering to the left. This function is called during the vehicle update.
+    virtual void Synchronize(double time,                           ///< [in] current time
+                             const DriverInputs& driver_inputs  ///< [in] current driver inputs
                              ) = 0;
-
-    /// Get the total mass of the steering subsystem.
-    virtual double GetMass() const = 0;
-
-    /// Get the current global COM location of the steering subsystem.
-    virtual ChVector<> GetCOMPos() const = 0;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}
 
   protected:
-    ChCoordsys<> m_position;         ///< location and orientation relative to chassis
+    /// Construct a steering subsystem with given name.
+    ChSteering(const std::string& name);
+
+    ChFrame<> m_rel_xform;           ///< location and orientation relative to associated chassis
     std::shared_ptr<ChBody> m_link;  ///< handle to the main steering link
 };
 

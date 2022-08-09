@@ -198,8 +198,8 @@ void TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void TMeasyTire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChTMeasyTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace vehicle

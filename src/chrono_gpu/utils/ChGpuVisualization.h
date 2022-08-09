@@ -16,10 +16,16 @@
 
 #include <string>
 
+#include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChParticleCloud.h"
 
 #include "chrono_gpu/ChApiGpu.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
+
+#ifdef CHRONO_OPENGL
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#endif
 
 namespace chrono {
 namespace gpu {
@@ -45,24 +51,30 @@ class CH_GPU_API ChGpuVisualization {
     /// </summary>
     /// <param name="sysGPU">Associated Chrono::Gpu system</param>
     /// <param name="sys">Supplemental Chrono system containing visualization proxies</param>
-    ChGpuVisualization(ChSystemGpu* sysGPU, ChSystem* sys = nullptr);
+    ChGpuVisualization(ChSystemGpu* sysGPU);
 
     ~ChGpuVisualization();
 
     /// Set title of the visualization window (default: "").
-    void SetTitle(const std::string& title) { m_title = title; }
+    void SetTitle(const std::string& title);
+
+    /// Set window dimensions (default: 1280x720).
+    void SetSize(int width, int height);
 
     /// Set camera position and target (look at) point.
-    /// Must be called before Initialize().
     void SetCameraPosition(const ChVector<>& pos, const ChVector<>& target);
 
     /// Set camera up vector (default: Z).
-    /// Must be called before Initialize().
     void SetCameraUpVector(const ChVector<>& up);
 
     /// Set scale for camera movement increments (default: 0.1).
     /// Must be called before Initialize().
     void SetCameraMoveScale(float scale);
+
+    /// Attach a user-provided Chrono system for rendering.
+    /// By default, the GPU run-time visualization renders granular particles.
+    /// This function can be used to also render the mechanical system interacting with the granular system.
+    void AttachSystem(ChSystem* system) { m_user_system = system; }
 
     /// Add additional proxy body to supplemental system.
     /// Must be called before Initialize().
@@ -78,21 +90,19 @@ class CH_GPU_API ChGpuVisualization {
     /// simulation loop, can only be called after construction of the Gpu system was completed (i.e., the system was
     /// initialized). This funtion querries the positions of all particles in the Gpu system in order to update the
     /// positions of the proxy bodies.
+    /// Returns false if the visualization window was closed.
     /// If the Chrono::OpenGL module is not available, this function is no-op.
     bool Render();
 
   private:
     ChSystemGpu* m_systemGPU;  ///< associated Chrono::Gpu system
     ChSystem* m_system;        ///< supplemental Chrono system (holds proxy bodies)
-    bool m_owns_sys;           ///< flag indicating if the supplemental system was created automatically
+    ChSystem* m_user_system;   ///< optional user-provided system
+#ifdef CHRONO_OPENGL
+    opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
+#endif
 
     unsigned int m_part_start_index;  ///< start index of particles in m_system's body list
-
-    std::string m_title;      ///< visualization window title
-    ChVector<> m_cam_pos;     ///< current camera position
-    ChVector<> m_cam_target;  ///< current camera look at point
-    ChVector<> m_cam_up;      ///< camera up vector
-    float m_cam_scale;        ///< camera move increment scale
 };
 
 /// @} gpu_utils

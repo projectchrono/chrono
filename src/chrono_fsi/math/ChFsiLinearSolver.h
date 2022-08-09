@@ -26,7 +26,9 @@
 #include <typeinfo>
 #include "cublas_v2.h"
 #include "cusparse_v2.h"
-#include "custom_math.h"
+
+#include "chrono_fsi/math/custom_math.h"
+#include "chrono_fsi/ChDefinitionsFsi.h"
 
 namespace chrono {
 namespace fsi {
@@ -38,9 +40,6 @@ namespace fsi {
 /// Specific solution methods are implemented in derived classes.
 class ChFsiLinearSolver {
   public:
-    /// Solver type supported in ISPH.
-    enum class SolverType { BICGSTAB, GMRES, CR, CG, SAP };
-
     /// Constructor of the ChFsiLinearSolver class.
     ChFsiLinearSolver(SolverType msolver,
                       Real mrel_res = 1e-8,

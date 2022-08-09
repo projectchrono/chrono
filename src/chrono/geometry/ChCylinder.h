@@ -38,17 +38,10 @@ class ChApi ChCylinder : public ChGeometry {
 
     virtual GeometryType GetClassType() const override { return CYLINDER; }
 
-    virtual void GetBoundingBox(double& xmin,
-                                double& xmax,
-                                double& ymin,
-                                double& ymax,
-                                double& zmin,
-                                double& zmax,
-                                ChMatrix33<>* Rot = NULL) const override;
+    /// Compute bounding box along the directions defined by the given rotation matrix.
+    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
 
     virtual ChVector<> Baricenter() const override { return (p1 + p2) * 0.5; }
-
-    virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
 
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }

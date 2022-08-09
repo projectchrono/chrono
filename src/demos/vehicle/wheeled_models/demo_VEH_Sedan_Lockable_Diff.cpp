@@ -23,7 +23,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/sedan/Sedan.h"
 
@@ -85,8 +85,8 @@ int main(int argc, char* argv[]) {
     patch2_mat->SetYoungModulus(2e7f);
     patch2_mat->SetPoissonRatio(0.3f);
 
-    auto patch1 = terrain.AddPatch(patch1_mat, ChVector<>(0, -25, 0), ChVector<>(0, 0, 1), 100, 50);
-    auto patch2 = terrain.AddPatch(patch2_mat, ChVector<>(0, +25, 0), ChVector<>(0, 0, 1), 100, 50);
+    auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(0, -25, 0), QUNIT), 100, 50);
+    auto patch2 = terrain.AddPatch(patch2_mat, ChCoordsys<>(ChVector<>(0, +25, 0), QUNIT), 100, 50);
 
     patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch1->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 50);
@@ -97,11 +97,14 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), L"Sedan Demo Locked Diff");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.5), 4.0, 0.5);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Sedan Demo Locked Diff");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.5), 4.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vis->AttachVehicle(&my_sedan.GetVehicle());
 
     // Initialize output
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -111,19 +114,19 @@ int main(int argc, char* argv[]) {
     utils::CSV_writer wheelomega_csv("\t");
 
     // Simulation loop
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = my_sedan.GetSystem()->GetChTime();
 
-        if (time > 15 || my_sedan.GetVehicle().GetVehiclePos().x() > 49)
+        if (time > 15 || my_sedan.GetVehicle().GetPos().x() > 49)
             break;
 
         // Render scene
-        app.BeginScene();
-        app.DrawAll();
-        app.EndScene();
+        vis->BeginScene();
+        vis->Render();
+        vis->EndScene();
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs = {0, 0, 0};
+        DriverInputs driver_inputs = {0, 0, 0};
         if (time > 2)
             driver_inputs.m_throttle = 0.6;
         else if (time > 1)
@@ -137,12 +140,12 @@ int main(int argc, char* argv[]) {
         // Synchronize subsystems
         terrain.Synchronize(time);
         my_sedan.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("", driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         // Advance simulation for all subsystems
         terrain.Advance(step_size);
         my_sedan.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
     }
 
     wheelomega_csv.write_to_file(out_dir + "/FrontWheelOmega_" + std::to_string(lock_diff) + ".csv");

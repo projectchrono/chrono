@@ -27,7 +27,13 @@ We recommend using VS 2019 or newer.
 
 ## 2) Download and install the Eigen library
 
-Chrono now uses [Eigen3](http://eigen.tuxfamily.org/) for all of its internal dense linear algebra needs. Chrono requires Eigen version 3.3.0 or newer, but we strongly encourage using the **latest stable release, Eigen 3.4.0**. On the Mac you should install it via homebrew: <tt>brew install eigen</tt>.
+Chrono now uses [Eigen3](http://eigen.tuxfamily.org/) for all of its internal dense linear algebra needs. Chrono requires Eigen version 3.3.0 or newer, but we strongly encourage using the **latest stable release, Eigen 3.4.0**. On the Mac you should install it via homebrew: <tt>brew install eigen</tt>. Homebrew installs into /opt/homebrew since MacOS 12 Monterey and the new Apple Silicon (arm46, M1, M2...) hardware. If Eigen is not found automatically, you can search its folder with:<br>
+<tt>find /opt/homebrew -name Eigen</tt><br>
+The response is actually:<br>
+<tt>/opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3/unsupported/Eigen</tt><br>
+<tt>/opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3/Eigen</tt><br>
+<tt>/opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3/Eigen/Eigen</tt><br>
+The include path is then **/opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3**.
 
 <div class="ce-warning"> 
 Chrono has been tested most extensively with Eigen 3.3.9 and Eigen 3.4.0.<br>
@@ -49,7 +55,8 @@ Irrlicht 1.8.4 requires the June 2010 DirectX SDK.
 </div>
 
 <div class="ce-info">
-Release v.1.8.4 should work perfectly. MacOS users should use this, since previous releases showed some issues. The best way to install irrlicht on the Mac is: <tt>brew install irrlicht</tt>. Cmake can find irrlicht automatically then without any extra settings. Actually MacOS 11 (Big Sur) has been released by Apple. Chrono_opengl demos run well, but chrono_irrlicht demos have a scaling problem, but they work yet. We hope, this can be resolved soon.<br>
+Release v.1.8.4 should work perfectly. The best way to install irrlicht on the Mac is: <tt>brew install irrlicht</tt> (release v.1.8.5). On MacOS 12 (Monterey) you have to set IRRLICHT_ROOT to <tt>/opt/homebrew</tt>.<br>
+
 If you encounter any problem with version 1.8.4 please try to roll back to [release 1.8.2](http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.2.zip).<br>
 Release v.1.8.3 does not contain the precompiled 64bit DLL.<br>
 Release v.1.8.0 has issues with soft shadows.<br>
@@ -168,6 +175,8 @@ For MacOS/clang:
 - To build the Chrono libraries and demo executables, simply invoke <tt>make</tt> from the command line in that directory.
 
 - Optionally, type <tt>make install</tt> to install the Chrono libraries, data files, and demo executables in the directory specified during CMake configuration.
+
+- CMake can be configured to generate Xcode (<tt>cmake -G Xcode ....</tt>) configurations. You would normally use it with the Xcode IDE. The advantage is the possibilty to debug the code. Like in MS Visual Studio, you choose the build type from the IDE.
 
 <div class="ce-warning"> 
 **MacOS issues:** clang++ does not come with OpenMP support out of the box.

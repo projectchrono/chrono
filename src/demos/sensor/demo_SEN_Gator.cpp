@@ -26,7 +26,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/gator/Gator.h"
 #include "chrono_models/vehicle/gator/Gator_SimplePowertrain.h"
@@ -42,7 +42,6 @@
 #include "chrono_sensor/filters/ChFilterSave.h"
 #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
-#include "chrono_sensor/utils/ChVisualMaterialUtils.h"
 #include "chrono_sensor/sensors/ChGPSSensor.h"
 #include "chrono_sensor/sensors/ChIMUSensor.h"
 #include "chrono_sensor/sensors/ChNoiseModel.h"
@@ -213,7 +212,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
-            patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 100.0, 100.0);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, 100.0, 100.0);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
@@ -231,15 +230,13 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     auto ground_body = patch->GetGroundBody();
-    auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(ground_body->GetAssets()[0]);
-    //first blended material
+
     auto vis_mat1 = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat1->SetKdTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"));
     vis_mat1->SetWeightTexture(GetChronoDataFile("sensor/textures/weight1.png"));
     vis_mat1->SetSpecularColor({.0f, .0f, .0f});
     vis_mat1->SetRoughness(1.f);
     vis_mat1->SetUseSpecularWorkflow(false);
-    visual_asset->material_list.push_back(vis_mat1);
 
     auto vis_mat2 = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat2->SetKdTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"));
@@ -247,18 +244,46 @@ int main(int argc, char* argv[]) {
     vis_mat2->SetSpecularColor({.0f, .0f, .0f});
     vis_mat2->SetRoughness(1.f);
     vis_mat2->SetUseSpecularWorkflow(false);
-    visual_asset->material_list.push_back(vis_mat2);
+
+    auto visual_shape = ground_body->GetVisualModel()->GetShape(0);
+    visual_shape->SetMaterial(0,vis_mat1);
+    if(visual_shape->GetNumMaterials() >= 2){
+        visual_shape->SetMaterial(0,vis_mat2);
+    }
+    else{
+        visual_shape->AddMaterial(vis_mat2);
+    }
+
+    // auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(ground_body->GetAssets()[0]);
+    // //first blended material
+    // auto vis_mat1 = chrono_types::make_shared<ChVisualMaterial>();
+    // vis_mat1->SetKdTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"));
+    // vis_mat1->SetWeightTexture(GetChronoDataFile("sensor/textures/weight1.png"));
+    // vis_mat1->SetSpecularColor({.0f, .0f, .0f});
+    // vis_mat1->SetRoughness(1.f);
+    // vis_mat1->SetUseSpecularWorkflow(false);
+    // visual_asset->material_list.push_back(vis_mat1);
+
+    // auto vis_mat2 = chrono_types::make_shared<ChVisualMaterial>();
+    // vis_mat2->SetKdTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"));
+    // vis_mat2->SetWeightTexture(GetChronoDataFile("sensor/textures/weight2.png"));
+    // vis_mat2->SetSpecularColor({.0f, .0f, .0f});
+    // vis_mat2->SetRoughness(1.f);
+    // vis_mat2->SetUseSpecularWorkflow(false);
+    // visual_asset->material_list.push_back(vis_mat2);
 
     // -------------------------------------
     // Create the vehicle Irrlicht interface
     // -------------------------------------
 
-    ChWheeledVehicleIrrApp app(&gator.GetVehicle(), L"Gator Demo");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Gator Demo");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vis->AttachVehicle(&gator.GetVehicle());
 
     // -----------------
     // Initialize output
@@ -281,7 +306,7 @@ int main(int argc, char* argv[]) {
     // ------------------------
 
     // Create the interactive driver system
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
 
     // Set the time response for steering and throttle keyboard inputs.
     double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
@@ -467,7 +492,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // output vehicle mass
-    std::cout << "VEHICLE MASS: " << gator.GetTotalMass() << std::endl;
+    std::cout << "VEHICLE MASS: " << gator.GetVehicle().GetMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -476,11 +501,11 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    float orbit_radius = 15.f;
+    float orbit_radius = 10.f;
     float orbit_rate = 1;
 
     ChRealtimeStepTimer realtime_timer;
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = gator.GetSystem()->GetChTime();
 
         cam->SetOffsetPose(
@@ -491,9 +516,9 @@ int main(int argc, char* argv[]) {
 
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
 
             if (povray_output) {
                 char filename[100];
@@ -505,19 +530,19 @@ int main(int argc, char* argv[]) {
         }
 
         // Get driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
         gator.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         gator.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;

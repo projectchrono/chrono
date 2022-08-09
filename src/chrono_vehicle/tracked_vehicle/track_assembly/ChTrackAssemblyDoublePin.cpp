@@ -54,6 +54,9 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     size_t num_wheels = m_suspensions.size();
     size_t index = 0;
 
+    // Kinematic joints allowed only for one-pin track shoe topology
+    assert(m_bushing_data || m_shoes[0]->m_topology == DoublePinTrackShoeType::ONE_CONNECTOR);
+
     // Positions of sprocket, idler, and (front and rear) wheels (in chassis reference frame).
     ChVector<> sprocket_pos_3d = chassis->TransformPointParentToLocal(m_sprocket->GetGearBody()->GetPos());
     ChVector<> idler_pos_3d = chassis->TransformPointParentToLocal(m_idler->GetWheelBody()->GetPos());

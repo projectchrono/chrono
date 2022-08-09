@@ -26,7 +26,6 @@
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -107,7 +106,18 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material;
 
-  //private:
+    /// Return the tire mass.
+    virtual double GetTireMass() const = 0;
+
+    /// Return the tire moments of inertia (in the tire centroidal frame).
+    virtual ChVector<> GetTireInertia() const = 0;
+
+    virtual void InitializeInertiaProperties() override final;
+    virtual void UpdateInertiaProperties() override final;
+
+    virtual double GetAddedMass() const override final;
+    virtual ChVector<> GetAddedInertia() const override final;
+
     /// Get the tire force and moment.
     /// A ChRigidTire always returns zero force and moment since tire
     /// forces are automatically applied to the associated wheel through Chrono's
@@ -124,7 +134,6 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< contact mesh
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
-    std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset
 };
 
 /// @} vehicle_wheeled_tire

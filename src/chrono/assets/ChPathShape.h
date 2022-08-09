@@ -15,7 +15,7 @@
 #ifndef CHPATHSHAPE_H
 #define CHPATHSHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChLineArc.h"
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/geometry/ChLineSegment.h"
@@ -23,11 +23,11 @@
 namespace chrono {
 
 /// Class for referencing a ChLinePath that can be visualized in some way.
-class ChApi ChPathShape : public ChVisualization {
+class ChApi ChPathShape : public ChVisualShape {
   public:
     ChPathShape();
     ChPathShape(std::shared_ptr<geometry::ChLinePath>& mpath);
-    virtual ~ChPathShape() {}
+    ~ChPathShape() {}
 
     /// Access the underlying path geometry.
     std::shared_ptr<geometry::ChLinePath> GetPathGeometry() { return gpath; }
@@ -41,7 +41,7 @@ class ChApi ChPathShape : public ChVisualization {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-  protected:
+  private:
     std::shared_ptr<geometry::ChLinePath> gpath;  ///< underlying path geometry
     unsigned int npoints;                         ///< number of points evaluated when rendering
 };

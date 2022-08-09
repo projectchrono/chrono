@@ -157,6 +157,7 @@ void CRGTerrain::Initialize(const std::string& crg_file) {
     GenerateMesh();
     GenerateCurves();
 
+    m_ground->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
     if (m_use_vis_mesh) {
         SetupMeshGraphics();
     } else {
@@ -319,9 +320,8 @@ void CRGTerrain::GenerateCurves() {
 }
 
 void CRGTerrain::SetupLineGraphics() {
-    auto mfloorcolor = chrono_types::make_shared<ChColorAsset>();
-    mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
-    m_ground->AddAsset(mfloorcolor);
+    auto mat = chrono_types::make_shared<ChVisualMaterial>();
+    mat->SetDiffuseColor({0.3f, 0.3f, 0.6f});
 
     auto np = m_road_left->getNumPoints();
     unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
@@ -331,14 +331,16 @@ void CRGTerrain::SetupLineGraphics() {
     bezier_asset_left->SetLineGeometry(bezier_line_left);
     bezier_asset_left->SetNumRenderPoints(num_render_points);
     bezier_asset_left->SetName(m_curve_left_name);
-    m_ground->AddAsset(bezier_asset_left);
+    bezier_asset_left->AddMaterial(mat);
+    m_ground->AddVisualShape(bezier_asset_left);
 
     auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
     auto bezier_asset_right = chrono_types::make_shared<ChLineShape>();
     bezier_asset_right->SetLineGeometry(bezier_line_right);
     bezier_asset_right->SetNumRenderPoints(num_render_points);
     bezier_asset_right->SetName(m_curve_right_name);
-    m_ground->AddAsset(bezier_asset_right);
+    bezier_asset_right->AddMaterial(mat);
+    m_ground->AddVisualShape(bezier_asset_right);
 }
 
 void CRGTerrain::GenerateMesh() {
@@ -427,12 +429,9 @@ void CRGTerrain::SetupMeshGraphics() {
     auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
     vmesh->SetMesh(m_mesh);
     vmesh->SetName(m_mesh_name);
+    vmesh->SetColor(ChColor(0.6f, 0.6f, 0.8f));
 
-    auto vcolor = chrono_types::make_shared<ChColorAsset>();
-    vcolor->SetColor(ChColor(0.6f, 0.6f, 0.8f));
-
-    m_ground->AddAsset(vcolor);
-    m_ground->AddAsset(vmesh);
+    m_ground->AddVisualShape(vmesh);
 }
 
 void CRGTerrain::ExportMeshWavefront(const std::string& out_dir) {

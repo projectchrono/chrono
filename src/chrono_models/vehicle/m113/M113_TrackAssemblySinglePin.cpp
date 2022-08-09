@@ -53,7 +53,11 @@ const ChVector<> M113_TrackAssemblySinglePin::m_susp_locs_R[5] = {
 // Constructor for the M113 track assembly using single-pin track shoes.
 // Create the suspensions, idler, brake, sprocket, and track shoes.
 // -----------------------------------------------------------------------------
-M113_TrackAssemblySinglePin::M113_TrackAssemblySinglePin(VehicleSide side, BrakeType brake_type, bool add_RSDA)
+M113_TrackAssemblySinglePin::M113_TrackAssemblySinglePin(VehicleSide side,
+                                                         BrakeType brake_type,
+                                                         bool use_track_bushings,
+                                                         bool use_suspension_bushings,
+                                                         bool use_track_RSDA)
     : ChTrackAssemblySinglePin("", side) {
     size_t num_shoes = 0;
     std::string suspName("M113_Suspension");
@@ -80,24 +84,32 @@ M113_TrackAssemblySinglePin::M113_TrackAssemblySinglePin(VehicleSide side, Brake
     }
 
     m_suspensions.resize(5);
-    m_suspensions[0] = chrono_types::make_shared<M113_Suspension>(suspName + "0", side, 0, true);
-    m_suspensions[1] = chrono_types::make_shared<M113_Suspension>(suspName + "1", side, 1, true);
-    m_suspensions[2] = chrono_types::make_shared<M113_Suspension>(suspName + "2", side, 2, false);
-    m_suspensions[3] = chrono_types::make_shared<M113_Suspension>(suspName + "3", side, 3, false);
-    m_suspensions[4] = chrono_types::make_shared<M113_Suspension>(suspName + "4", side, 4, true);
+    m_suspensions[0] = chrono_types::make_shared<M113_Suspension>(suspName + "0", side, 0, use_suspension_bushings, true);
+    m_suspensions[1] = chrono_types::make_shared<M113_Suspension>(suspName + "1", side, 1, use_suspension_bushings, true);
+    m_suspensions[2] = chrono_types::make_shared<M113_Suspension>(suspName + "2", side, 2, use_suspension_bushings, false);
+    m_suspensions[3] = chrono_types::make_shared<M113_Suspension>(suspName + "3", side, 3, use_suspension_bushings, false);
+    m_suspensions[4] = chrono_types::make_shared<M113_Suspension>(suspName + "4", side, 4, use_suspension_bushings, true);
 
     for (size_t it = 0; it < num_shoes; it++) {
         m_shoes.push_back(chrono_types::make_shared<M113_TrackShoeSinglePin>(shoeName + std::to_string(it)));
     }
 
-    if (add_RSDA) {
+    if (use_track_bushings) {
+        m_bushing_data = chrono_types::make_shared<ChVehicleBushingData>();
+        m_bushing_data = chrono_types::make_shared<ChVehicleBushingData>();
+        m_bushing_data->K_lin = 35000000;
+        m_bushing_data->K_rot = 300;
+        m_bushing_data->D_lin = 100;
+        m_bushing_data->D_rot = 100;
+    }
+
+    if (use_track_RSDA) {
         double k = 1000;
         double c = 10;
         m_torque_funct = chrono_types::make_shared<ChTrackAssemblySegmented::TrackBendingFunctor>(k, c);
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 const ChVector<> M113_TrackAssemblySinglePin::GetSprocketLocation() const {
     return m_sprocket_loc;

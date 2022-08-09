@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChTimer.h"
 
 #include "chrono_opengl/core/ChApiOpenGL.h"
@@ -28,14 +27,15 @@
 #include "chrono_opengl/shapes/ChOpenGLText.h"
 #include "chrono_opengl/shapes/ChOpenGLOBJ.h"
 #include "chrono_opengl/UI/ChOpenGLContacts.h"
-#include "chrono_opengl/UI/ChOpenGLHUD.h"
+#include "chrono_opengl/UI/ChOpenGLStats.h"
 #include "chrono_opengl/UI/ChOpenGLGraphs.h"
 
-//#include "chrono_multicore/physics/ChSystemMulticore.h"
 #include <GLFW/glfw3.h>
 
 namespace chrono {
 namespace opengl {
+
+class ChVisualSystemOpenGL;
 
 /// @addtogroup opengl_module
 /// @{
@@ -45,22 +45,23 @@ enum RenderMode { POINTS, WIREFRAME, SOLID };
 /// OpenGL viewer, this class draws the system to the screen and handles input.
 class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   public:
-    ChOpenGLViewer(ChSystem* system);
+    ChOpenGLViewer(ChVisualSystemOpenGL* vis);
     ~ChOpenGLViewer();
-    void TakeDown();
     bool Initialize();
-    bool Update(double time_step);
-    void Render(bool render_hud);
-    void DrawObject(std::shared_ptr<ChBody> abody);
-    void DrawObject(std::shared_ptr<ChLinkBase> link);
-    void DisplayHUD(bool render_hud);
+    void TakeDown();
+    void Render(bool render_stats);
+    void DrawVisualModel(std::shared_ptr<ChPhysicsItem> item);
+    void RenderStats();
     void RenderContacts();
     void RenderAABB();
     void RenderGrid();
     void RenderFluid();
+    void RenderParticles();
     void RenderFEA();
     void RenderPlots();
     void HandleInput(unsigned char key, int x, int y);
+
+    ChVisualSystemOpenGL* m_vis;
 
     glm::ivec2 window_size;
     glm::ivec2 window_position;
@@ -69,8 +70,8 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     float window_aspect;
     int interval;
 
-    ChOpenGLCamera render_camera, ortho_camera;
-    ChSystem* physics_system;
+    ChOpenGLCamera render_camera;
+    ChOpenGLCamera ortho_camera;
 
     ChOpenGLShader main_shader;
     ChOpenGLShader cloud_shader;
@@ -86,6 +87,8 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     ChOpenGLCloud fluid;
     ChOpenGLWires grid;
 
+    ChOpenGLCloud particles;
+
     ChOpenGLWires mpm_grid;
     ChOpenGLCloud mpm_node;
 
@@ -95,7 +98,6 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     ChOpenGLWires line_path;
 
     ChOpenGLContacts contact_renderer;
-    ChOpenGLHUD HUD_renderer;
     ChOpenGLGraphs graph_renderer;
 
     std::vector<glm::vec3> cloud_data;
@@ -106,16 +108,14 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     std::vector<glm::vec3> mpm_grid_data;
     std::vector<glm::vec3> mpm_node_data;
     std::vector<glm::vec3> line_path_data;
+    std::vector<glm::vec3> particle_data;
 
-    int simulation_frame;    // The current frame number
-    double simulation_h;     // The simulation step size
-    double simulation_time;  // The current simulation time
-    bool pause_sim;
-    bool pause_vis;
-    bool single_step;
-    bool view_contacts, view_help, view_aabb, view_grid, view_info;
+    bool view_contacts, view_help, view_aabb, view_grid;
     bool use_vsync;
     RenderMode render_mode;
+
+    RenderMode particle_render_mode;
+    float particle_radius;
 
     ChTimer<> timer_render;
     ChTimer<> timer_text;

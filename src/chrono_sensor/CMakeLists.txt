@@ -45,11 +45,19 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET(GLFW_DLL  "" CACHE FILEPATH "The GLFW DLL")
 ENDIF()
 
-SET(CH_SENSOR_INCLUDES
+
+if(${OPENGL_FOUND} AND ${GLEW_FOUND} AND ${GLFW_FOUND})
+  SET(CH_SENSOR_INCLUDES
     ${CH_SENSOR_INCLUDES}
     ${GLFW_INCLUDE_DIR}
     ${GLEW_INCLUDE_DIR}
-)
+  )
+  #add the necessary opengl, glfw, glew libraries to link list
+  list(APPEND LIBRARIES ${GLFW_LIBRARY})
+  list(APPEND LIBRARIES ${GLEW_LIBRARY})
+  list(APPEND LIBRARIES ${OPENGL_LIBRARIES})
+endif()
+
 
 # ------------------------------------------------------------------------------
 # Find and set everything needed for OptiX
@@ -72,11 +80,6 @@ SET(CH_SENSOR_INCLUDES
 list(APPEND LIBRARIES ${CUDA_nppc_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_nppig_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_nppidei_LIBRARY})
-
-#add the necessary opengl, glfw, glew libraries to link list
-list(APPEND LIBRARIES ${GLFW_LIBRARY})
-list(APPEND LIBRARIES ${GLEW_LIBRARY})
-list(APPEND LIBRARIES ${OPENGL_LIBRARIES})
 
 set(CH_SENSOR_INCLUDES ${CH_SENSOR_INCLUDES} "${CUDA_TOOLKIT_ROOT_DIR}/include")
 list(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
@@ -399,14 +402,12 @@ ENDIF()
 # LIST THE UTILITY FILES THAT WILL BE EXPOSED TO THE USER
 #-----------------------------------------------------------------------------
 set(ChronoEngine_sensor_UTILS_SOURCES
-    utils/ChVisualMaterialUtils.cpp
     utils/ChUtilsJSON.cpp
     utils/ChGPSUtils.cpp
     utils/Kdtree.cpp
     utils/Dbscan.cpp
 )
 set(ChronoEngine_sensor_UTILS_HEADERS
-    utils/ChVisualMaterialUtils.h
   	utils/CudaMallocHelper.h
     utils/ChUtilsJSON.h
     utils/ChGPSUtils.h

@@ -24,7 +24,6 @@
 #include <vector>
 
 #include "chrono/core/ChStream.h"
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -41,7 +40,7 @@
 
 #ifdef CHRONO_IRRLICHT
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 // specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
 #endif
@@ -115,7 +114,7 @@ int main(int argc, char* argv[]) {
     auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
@@ -137,37 +136,16 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_IRRLICHT
 
-    ChWheeledVehicleIrrApp app(&vehicle, L"Generic Vehicle Demo");
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Generic Vehicle Demo");
+    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vis->AttachVehicle(&vehicle);
 
-    app.AddTypicalLights();
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
-
-    app.SetTimestep(step_size);
-
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-
-    /*
-    bool do_shadows = false; // shadow map is experimental
-    irr::scene::ILightSceneNode* mlight = 0;
-
-    if (do_shadows) {
-      mlight = application.AddLightWithShadow(
-        irr::core::vector3df(10.f, 30.f, 60.f),
-        irr::core::vector3df(0.f, 0.f, 0.f),
-        150, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
-    } else {
-      application.AddTypicalLights(
-        irr::core::vector3df(30.f, -30.f, 100.f),
-        irr::core::vector3df(30.f, 50.f, 100.f),
-        250, 130);
-    }
-
-    if (do_shadows)
-       application.AddShadowAll();
-    */
-
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
 
     // Set the time response for steering and throttle keyboard inputs.
     // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -201,8 +179,8 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_IRRLICHT
 
-    ChRealtimeStepTimer realtime_timer;
-    while (app.GetDevice()->run()) {
+    vehicle.EnableRealtime(true);
+    while (vis->Run()) {
         // Update the position of the shadow mapping so that it follows the car
         ////if (do_shadows) {
         ////  ChVector<> lightaim = vehicle.GetChassisPos();
@@ -215,9 +193,9 @@ int main(int argc, char* argv[]) {
         ////}
 
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        app.EndScene();
+        vis->BeginScene();
+        vis->Render();
+        vis->EndScene();
 
 #ifdef DEBUG_LOG
         // Number of simulation steps between two output frames
@@ -231,7 +209,7 @@ int main(int argc, char* argv[]) {
 #endif
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
@@ -239,19 +217,16 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         vehicle.Advance(step_size);
-        app.Advance(step_size);
+        vis->Advance(step_size);
 
         // Increment frame number
         step_number++;
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
     }
 
 #else
@@ -287,7 +262,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();

@@ -19,12 +19,10 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/AIDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/sedan/Sedan.h"
 #include "chrono_models/vehicle/sedan/Sedan_AIDriver.h"
@@ -65,18 +63,21 @@ int main(int argc, char* argv[]) {
     minfo.Y = 2e7f;
     auto patch_mat = minfo.CreateMaterial(ChContactMethod::SMC);
 
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 100.0, 100.0);
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 100.0, 100.0);
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
 
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), L"Sedan AI Demo");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("Sedan AI Demo");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vis->AttachVehicle(&my_sedan.GetVehicle());
 
     // Create the driver system
     // Option 1: use concrete driver class
@@ -87,16 +88,16 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // Simulation loop
-    ChRealtimeStepTimer realtime_timer;
+    my_sedan.GetVehicle().EnableRealtime(true);
     double step_size = 2e-3;
 
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         double time = my_sedan.GetSystem()->GetChTime();
 
         // Render scene
-        app.BeginScene();
-        app.DrawAll();
-        app.EndScene();
+        vis->BeginScene();
+        vis->Render();
+        vis->EndScene();
 
         // Mimic controls from an Autonomy Stack
         double long_acc;     // longitudinal acceleration [m/s2]
@@ -114,19 +115,16 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time, long_acc, wheel_angle, 0.0);
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
         terrain.Synchronize(time);
         my_sedan.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("", driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_sedan.Advance(step_size);
-        app.Advance(step_size);
-
-        // Spin in place for real time to catch up
-        realtime_timer.Spin(step_size);
+        vis->Advance(step_size);
     }
 
     return 0;

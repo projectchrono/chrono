@@ -77,6 +77,14 @@ void ChSystemGpu::SetBDCenter(const ChVector<float>& O) {
     m_sys->user_coord_O_Z = O.z();
 }
 
+void ChSystemGpu::SetParticleDensity(float density) {
+    m_sys->sphere_density_UU = density;
+}
+
+void ChSystemGpu::SetParticleRadius(float rad) {
+    m_sys->sphere_radius_UU = rad;
+}
+
 void ChSystemGpu::SetParticleFixed(const std::vector<bool>& fixed) {
     m_sys->user_sphere_fixed = fixed;
 }
@@ -489,6 +497,10 @@ double ChSystemGpu::GetMinParticleZ() const {
 
 unsigned int ChSystemGpu::GetNumParticleAboveZ(float ZValue) const {
     return m_sys->GetNumParticleAboveZ(ZValue);
+}
+
+unsigned int ChSystemGpu::GetNumParticleAboveX(float XValue) const {
+    return m_sys->GetNumParticleAboveX(XValue);
 }
 
 size_t ChSystemGpu::EstimateMemUsage() const {

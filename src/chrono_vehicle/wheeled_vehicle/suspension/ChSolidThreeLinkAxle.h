@@ -34,8 +34,6 @@
 
 #include <vector>
 
-#include "chrono/assets/ChColorAsset.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
@@ -92,12 +90,6 @@ class CH_VEHICLE_API ChSolidThreeLinkAxle : public ChSuspension {
     /// Remove visualization assets for the suspension subsystem.
     virtual void RemoveVisualizationAssets() override;
 
-    /// Get the total mass of the suspension subsystem.
-    virtual double GetMass() const override;
-
-    /// Get the current global COM location of the suspension subsystem.
-    virtual ChVector<> GetCOMPos() const override;
-
     /// Get the wheel track for the suspension subsystem.
     virtual double GetTrack() override;
 
@@ -147,6 +139,9 @@ class CH_VEHICLE_API ChSolidThreeLinkAxle : public ChSuspension {
         LINK_C,      ///< longitudinal link location on the chassis (two points)
         NUM_POINTS
     };
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.

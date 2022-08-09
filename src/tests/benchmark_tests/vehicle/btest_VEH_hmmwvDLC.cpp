@@ -26,7 +26,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
 using namespace chrono;
@@ -47,7 +47,7 @@ class HmmwvDlcTest : public utils::ChBenchmarkTest {
     void SimulateVis();
 
     double GetTime() const { return m_hmmwv->GetSystem()->GetChTime(); }
-    double GetLocation() const { return m_hmmwv->GetVehicle().GetVehiclePos().x(); }
+    double GetLocation() const { return m_hmmwv->GetVehicle().GetPos().x(); }
 
   private:
     HMMWV_Full* m_hmmwv;
@@ -87,7 +87,7 @@ HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_t
     patch_material->SetFriction(0.9f);
     patch_material->SetRestitution(0.01f);
     patch_material->SetYoungModulus(2e7f);
-    auto patch = m_terrain->AddPatch(patch_material, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 300, 20);
+    auto patch = m_terrain->AddPatch(patch_material, CSYSNORM, 300, 20);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 300, 20);
     m_terrain->Initialize();
@@ -113,7 +113,7 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::ExecuteStep() {
     double time = m_hmmwv->GetSystem()->GetChTime();
 
     // Driver inputs
-    ChDriver::Inputs driver_inputs = m_driver->GetInputs();
+    DriverInputs driver_inputs = m_driver->GetInputs();
 
     // Update modules (process inputs from other modules)
     m_driver->Synchronize(time);
@@ -129,33 +129,33 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::ExecuteStep() {
 template <typename EnumClass, EnumClass TIRE_MODEL>
 void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    ChWheeledVehicleIrrApp app(&m_hmmwv->GetVehicle(), L"HMMWV acceleration test");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->AttachVehicle(&m_hmmwv->GetVehicle());
+    vis->SetWindowTitle("HMMWV DLC");
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
 
     // Visualization of controller points (sentinel & target)
-    irr::scene::IMeshSceneNode* ballS = app.GetSceneManager()->addSphereSceneNode(0.1f);
-    irr::scene::IMeshSceneNode* ballT = app.GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
+    irr::scene::IMeshSceneNode* ballT = vis->GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
 
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
         const ChVector<>& pS = m_driver->GetSteeringController().GetSentinelLocation();
         const ChVector<>& pT = m_driver->GetSteeringController().GetTargetLocation();
         ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
         ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
 
-        ChDriver::Inputs driver_inputs = m_driver->GetInputs();
+        DriverInputs driver_inputs = m_driver->GetInputs();
 
-        app.BeginScene();
-        app.DrawAll();
+        vis->BeginScene();
+        vis->Render();
         ExecuteStep();
-        app.Synchronize("Acceleration test", driver_inputs);
-        app.Advance(m_step_veh);
-        app.EndScene();
+        vis->Synchronize("Acceleration test", driver_inputs);
+        vis->Advance(m_step_veh);
+        vis->EndScene();
     }
 
     std::cout << "Time: " << GetTime() << "  location: " << GetLocation() << std::endl;

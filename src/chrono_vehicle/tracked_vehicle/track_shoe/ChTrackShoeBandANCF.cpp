@@ -18,7 +18,6 @@
 // =============================================================================
 
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChGlobal.h"
@@ -37,14 +36,13 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAbase.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 using namespace chrono::fea;
 
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChTrackShoeBandANCF::ChTrackShoeBandANCF(const std::string& name, ElementType element_type)
     : ChTrackShoeBand(name), m_element_type(element_type) {}
@@ -60,7 +58,6 @@ ChTrackShoeBandANCF::~ChTrackShoeBandANCF() {
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandANCF::SetWebMesh(std::shared_ptr<fea::ChMesh> mesh) {
     m_web_mesh = mesh;
@@ -80,7 +77,6 @@ void ChTrackShoeBandANCF::SetWebMeshProperties(std::shared_ptr<fea::ChMaterialSh
     m_alpha = alpha;
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                      const ChVector<>& location,
@@ -255,7 +251,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                      const std::vector<ChCoordsys<>>& component_pos) {
     // Check the number of provided locations and orientations.
@@ -339,7 +334,31 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }  // end switch
 }
 
-// -----------------------------------------------------------------------------
+void ChTrackShoeBandANCF::InitializeInertiaProperties() {
+    m_mass = GetTreadMass() + GetWebMass();
+}
+
+void ChTrackShoeBandANCF::UpdateInertiaProperties() {
+    m_xform = m_shoe->GetFrame_REF_to_abs();
+
+    // Calculate web mesh inertia properties
+    double mesh_mass;
+    ChVector<> mesh_com;
+    ChMatrix33<> mesh_inertia;
+    m_web_mesh->ComputeMassProperties(mesh_mass, mesh_com, mesh_inertia);
+
+    // Calculate COM and inertia expressed in global frame
+    utils::CompositeInertia composite;
+    composite.AddComponent(m_shoe->GetFrame_COG_to_abs(), m_shoe->GetMass(), m_shoe->GetInertia());
+    composite.AddComponent(ChFrame<>(mesh_com, QUNIT), mesh_mass, mesh_inertia);
+
+    // Express COM and inertia in subsystem reference frame
+    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.coord.rot = QUNIT;
+
+    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+}
+
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
@@ -349,10 +368,9 @@ void ChTrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChTrackShoeBandANCF::RemoveVisualizationAssets() {
-    m_shoe->GetAssets().clear();
+    ChPart::RemoveVisualizationAssets(m_shoe);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
                                   ChTrackAssembly* assembly,
@@ -459,7 +477,10 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
     }  // end switch
 }
 
-// -----------------------------------------------------------------------------
+ChVector<> ChTrackShoeBandANCF::GetTension() const {
+    return m_connections[0]->Get_react_force();
+}
+
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandANCF::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

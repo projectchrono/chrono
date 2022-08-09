@@ -145,15 +145,32 @@ static __global__ void elementalZAboveValue(unsigned int* YorN,
                                             ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                             size_t nSpheres,
                                             ChSystemGpu_impl::GranParamsPtr gran_params,
-                                            float ZValue) {
+                                            float Value) {
     size_t mySphereID = (threadIdx.x + blockIdx.x * blockDim.x);
     if (mySphereID < nSpheres) {
-        int zPos_local = sphere_data->sphere_local_pos_Z[mySphereID];
+        int pos_local = sphere_data->sphere_local_pos_Z[mySphereID];
         int3 ownerSD_triplet = SDIDTriplet(sphere_data->sphere_owner_SDs[mySphereID], gran_params);
-        float z_UU = zPos_local * gran_params->LENGTH_UNIT;
-        z_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
-        z_UU += ((int64_t)ownerSD_triplet.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
-        YorN[mySphereID] = z_UU >= ZValue ? 1 : 0;
+        float pos_UU = pos_local * gran_params->LENGTH_UNIT;
+        pos_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
+        pos_UU += ((int64_t)ownerSD_triplet.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
+        YorN[mySphereID] = pos_UU >= Value ? 1 : 0;
+    }
+}
+
+/// A light-weight kernel that writes 0 or 1 depending on whether a particle's Z coord is higher than a given value
+static __global__ void elementalXAboveValue(unsigned int* YorN,
+                                            ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                            size_t nSpheres,
+                                            ChSystemGpu_impl::GranParamsPtr gran_params,
+                                            float Value) {
+    size_t mySphereID = (threadIdx.x + blockIdx.x * blockDim.x);
+    if (mySphereID < nSpheres) {
+        int pos_local = sphere_data->sphere_local_pos_X[mySphereID];
+        int3 ownerSD_triplet = SDIDTriplet(sphere_data->sphere_owner_SDs[mySphereID], gran_params);
+        float pos_UU = pos_local * gran_params->LENGTH_UNIT;
+        pos_UU += gran_params->BD_frame_X * gran_params->LENGTH_UNIT;
+        pos_UU += ((int64_t)ownerSD_triplet.x * gran_params->SD_size_X_SU) * gran_params->LENGTH_UNIT;
+        YorN[mySphereID] = pos_UU >= Value ? 1 : 0;
     }
 }
 

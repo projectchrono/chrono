@@ -40,8 +40,8 @@ class CH_MODELS_API Kraz_tractor_Wheel : public ChWheel {
     Kraz_tractor_Wheel(const std::string& name);
     ~Kraz_tractor_Wheel() {}
 
-    virtual double GetMass() const override { return m_mass; }
-    virtual chrono::ChVector<> GetInertia() const override { return m_inertia; }
+    virtual double GetWheelMass() const override { return m_mass; }
+    virtual const ChVector<>& GetWheelInertia() const override { return m_inertia; }
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
 

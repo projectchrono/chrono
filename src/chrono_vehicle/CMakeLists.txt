@@ -162,6 +162,8 @@ set(CV_BASE_FILES
     ChVehicle.cpp
     ChVehicleModelData.h
     ChVehicleModelData.cpp
+    ChVehicleVisualSystem.h
+    ChVehicleVisualSystem.cpp
     ChVehicleOutput.h
     ChWorldFrame.cpp
     ChWorldFrame.h
@@ -279,8 +281,8 @@ set(CV_UTILS_FILES
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_UTILS_FILES
-        utils/ChVehicleIrrApp.h
-        utils/ChVehicleIrrApp.cpp
+        utils/ChVehicleVisualSystemIrrlicht.h
+        utils/ChVehicleVisualSystemIrrlicht.cpp
     )
 else()
     set(CVIRR_UTILS_FILES "")
@@ -501,6 +503,8 @@ source_group("wheeled_vehicle\\test_rig" FILES ${CV_WV_TEST_RIG_FILES} ${CVIRR_W
 set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChRigidTire.h
     wheeled_vehicle/tire/ChRigidTire.cpp
+    wheeled_vehicle/tire/ChForceElementTire.h
+    wheeled_vehicle/tire/ChForceElementTire.cpp
     wheeled_vehicle/tire/ChPacejkaTire.h
     wheeled_vehicle/tire/ChPacejkaTire.cpp
     wheeled_vehicle/tire/ChPac02Tire.h
@@ -553,8 +557,8 @@ set(CV_WV_UTILS_FILES
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_WV_UTILS_FILES
-        wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h
-        wheeled_vehicle/utils/ChWheeledVehicleIrrApp.cpp
+        wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h
+        wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.cpp
     )
 else()
     set(CVIRR_WV_UTILS_FILES "")
@@ -768,10 +772,10 @@ set(CV_TV_UTILS_FILES
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_TV_UTILS_FILES
-        tracked_vehicle/utils/ChTrackedVehicleIrrApp.h
-        tracked_vehicle/utils/ChTrackedVehicleIrrApp.cpp
-        tracked_vehicle/utils/ChTrackTestRigIrrApp.h
-        tracked_vehicle/utils/ChTrackTestRigIrrApp.cpp
+        tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h
+        tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.cpp
+        tracked_vehicle/utils/ChTrackTestRigVisualSystemIrrlicht.h
+        tracked_vehicle/utils/ChTrackTestRigVisualSystemIrrlicht.cpp
     )
 else()
     set(CVIRR_TV_UTILS_FILES "")
@@ -960,6 +964,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${OPENCRG_DLL}"
             "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
+      install(FILES "${OPENCRG_DLL}" DESTINATION bin)
     endif()
 
 endif()

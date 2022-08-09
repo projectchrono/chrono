@@ -29,7 +29,7 @@ Look at the [API section](group__pardisoproject__module.html) of this module for
 
 ## Requirements
 
-A valid PardisoProject licence (free for academia) is required to run this module. The Pardiso solver can be downloaded from the [Pardiso Project](https://www.pardiso-project.org/) website. 
+A valid PardisoProject licence (free for academia) is required to run this module. The Pardiso solver can be downloaded from the [Pardiso Project](https://www.pardiso-project.org/) website. Pardiso is actually only available for Macs with Intel hardware, you cannot use it on Arm64 hardware. 
 
 ## Building instructions
 

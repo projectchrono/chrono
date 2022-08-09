@@ -23,9 +23,8 @@
     },
     {
       "Filter": "ChFilterCameraNoisePixDep",
-      "Gain": 0.0,
-      "Sigma Read": 0.02,
-      "Sigma ADC": 0.03
+      "Variance Slope": 0.02,
+      "Variance Intercept": 0.03
     },
     {
       "Filter": "ChFilterRGBA8Access"

@@ -46,9 +46,9 @@ class CH_VEHICLE_API ChDoubleIdler : public ChIdler {
     virtual GuidePinType GetType() const final override { return GuidePinType::CENTRAL_PIN; }
 
     /// Initialize this idler subsystem.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track                  ///< [in] containing track assembly
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
+                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track               ///< [in] containing track assembly
                             ) override;
 
     /// Add visualization assets for the idler subsystem.

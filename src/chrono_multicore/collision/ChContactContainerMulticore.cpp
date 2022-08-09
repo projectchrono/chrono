@@ -17,7 +17,7 @@
 //
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChParticleCloud.h"
 
 namespace chrono {
 

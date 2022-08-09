@@ -122,9 +122,9 @@ class ChApi ChLinkMarkers : public ChLink {
     /// (It is the coordinate system of the 'master' marker2 relative to Body2)
     virtual ChCoordsys<> GetLinkRelativeCoords() override { return marker2->GetCoord(); }
 
-    /// Get the master coordinate system for the assets (this will return the
-    /// absolute coordinate system of the 'master' marker2)
-    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) override { return marker2->GetAbsFrame(); }
+    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
+    /// For a ChLinkMarkers, this returns the absolute coordinate system of the 'master' marker2.
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return marker2->GetAbsFrame(); }
 
     //
     // UPDATING FUNCTIONS

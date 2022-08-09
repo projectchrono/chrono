@@ -31,10 +31,6 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChOpenGLWindow.h"
-#endif
-
 #include "chrono_thirdparty/filesystem/path.h"
 
 using std::cout;
@@ -89,10 +85,14 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length,
 
     // Set number of threads
     m_system->SetNumThreads(1);
+
+    // Create OpenGL visualization system
+#ifdef CHRONO_OPENGL
+    m_vsys = new opengl::ChVisualSystemOpenGL;
+#endif
 }
 
-ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method,
-                                                               const std::string& specfile)
+ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method, const std::string& specfile)
     : ChVehicleCosimTerrainNodeChrono(Type::RIGID, 0, 0, method) {
     // Create system and set default method-specific solver settings
     switch (m_method) {
@@ -127,10 +127,18 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
 
     // Read rigid terrain parameters from provided specfile
     SetFromSpecfile(specfile);
+
+    // Create OpenGL visualization system
+#ifdef CHRONO_OPENGL
+    m_vsys = new opengl::ChVisualSystemOpenGL;
+#endif
 }
 
 ChVehicleCosimTerrainNodeRigid::~ChVehicleCosimTerrainNodeRigid() {
     delete m_system;
+#ifdef CHRONO_OPENGL
+    delete m_vsys;
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -258,8 +266,8 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     int id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(GetChronoDataFile(b.m_mesh_filename), true, true);
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename),
+                                                                                  true, true);
         double mass;
         ChVector<> baricenter;
         ChMatrix33<> inertia;
@@ -284,9 +292,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
-        trimesh_shape->Pos = ChVector<>(0, 0, 0);
-        trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-        body->GetAssets().push_back(trimesh_shape);
+        body->AddVisualShape(trimesh_shape, ChFrame<>());
 
         m_system->AddBody(body);
     }
@@ -294,10 +300,14 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 #ifdef CHRONO_OPENGL
     // Create the visualization window
     if (m_render) {
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "Terrain Node (Rigid)", m_system);
-        gl_window.SetCamera(ChVector<>(0, -2, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
-        gl_window.SetRenderMode(opengl::SOLID);
+        m_vsys->AttachSystem(m_system);
+        m_vsys->SetWindowTitle("Terrain Node (Rigid)");
+        m_vsys->SetWindowSize(1280, 720);
+        m_vsys->SetRenderMode(opengl::SOLID);
+        m_vsys->Initialize();
+        m_vsys->SetCameraPosition(ChVector<>(0, -2, 1), ChVector<>(0, 0, 0));
+        m_vsys->SetCameraProperties(0.05f);
+        m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     }
 #endif
 
@@ -402,9 +412,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateWheelProxy(unsigned int i) {
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("wheel_" + std::to_string(i));
-    trimesh_shape->Pos = ChVector<>(0, 0, 0);
-    trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-    body->GetAssets().push_back(trimesh_shape);
+    body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     m_system->AddBody(body);
     m_proxies[i].push_back(ProxyBody(body, 0));
@@ -472,9 +480,8 @@ void ChVehicleCosimTerrainNodeRigid::OnAdvance(double step_size) {
 
 void ChVehicleCosimTerrainNodeRigid::Render(double time) {
 #ifdef CHRONO_OPENGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    if (gl_window.Active()) {
-        gl_window.Render();
+    if (m_vsys->Run()) {
+        m_vsys->Render();
     } else {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }

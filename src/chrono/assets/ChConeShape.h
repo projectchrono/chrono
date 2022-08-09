@@ -13,23 +13,20 @@
 #ifndef CHOBJCONESHAPE_H
 #define CHOBJCONESHAPE_H
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChCone.h"
 
 namespace chrono {
 
 /// Class for referencing a cone shape that can be visualized in some way.
-class ChApi ChConeShape : public ChVisualization {
-  protected:
-    geometry::ChCone gcone;
-
+class ChApi ChConeShape : public ChVisualShape {
   public:
-    ChConeShape() {}
-    ChConeShape(const geometry::ChCone& mcone) : gcone(mcone) {}
+    ChConeShape();
+    ChConeShape(const geometry::ChCone& cone);
 
-    virtual ~ChConeShape(){};
+    ~ChConeShape(){};
 
-    // Access the sphere geometry
+    // Access the cone geometry.
     geometry::ChCone& GetConeGeometry() { return gcone; }
 
     /// Method to allow serialization of transient data to archives.
@@ -37,6 +34,9 @@ class ChApi ChConeShape : public ChVisualization {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    geometry::ChCone gcone;
 };
 
 CH_CLASS_VERSION(ChConeShape, 0)

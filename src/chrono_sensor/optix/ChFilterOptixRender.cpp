@@ -78,7 +78,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
     m_optixSensor = pOptixSensor;
     // get the sensor reference frames
     ChFrame<double> f_offset = pOptixSensor->GetOffsetPose();
-    ChFrame<double> f_body = pOptixSensor->GetParent()->GetAssetsFrame();
+    ChFrame<double> f_body = pOptixSensor->GetParent()->GetVisualModelFrame();
     ChFrame<double> global_loc = f_body * f_offset;
 
     if (auto cam = std::dynamic_pointer_cast<ChCameraSensor>(pSensor)) {
@@ -206,9 +206,9 @@ CH_SENSOR_API std::shared_ptr<ChFilterVisualize> ChFilterOptixRender::FindOnlyVi
 CH_SENSOR_API ChOptixDenoiser::ChOptixDenoiser(OptixDeviceContext context) : m_cuda_stream(0) {
     // initialize the optix denoiser
     OptixDenoiserOptions options = {};
-    options.inputKind = OPTIX_DENOISER_INPUT_RGB_ALBEDO_NORMAL;
-    OPTIX_ERROR_CHECK(optixDenoiserCreate(context, &options, &m_denoiser));
-    OPTIX_ERROR_CHECK(optixDenoiserSetModel(m_denoiser, OPTIX_DENOISER_MODEL_KIND_LDR, nullptr, 0));
+    options.guideAlbedo = 1;
+    options.guideNormal = 1;
+    OPTIX_ERROR_CHECK(optixDenoiserCreate(context, OPTIX_DENOISER_MODEL_KIND_LDR, &options, &m_denoiser));
 }
 
 CH_SENSOR_API ChOptixDenoiser::~ChOptixDenoiser() {
@@ -272,16 +272,35 @@ CH_SENSOR_API void ChOptixDenoiser::Initialize(unsigned int w,
 
     OPTIX_ERROR_CHECK(
         optixDenoiserSetup(m_denoiser, m_cuda_stream, w, h, md_state, m_state_size, md_scratch, m_scratch_size));
-    m_params.denoiseAlpha = 0;
+    m_params.denoiseAlpha = OPTIX_DENOISER_ALPHA_MODE_COPY;
     m_params.hdrIntensity = 0;
     m_params.blendFactor = 0.f;
 }
 
 CH_SENSOR_API void ChOptixDenoiser::Execute() {
     // will not compute intensity since we are assuming we don't have HDR images
-    OPTIX_ERROR_CHECK(optixDenoiserInvoke(m_denoiser, m_cuda_stream, &m_params, md_state, m_state_size,
-                                          md_inputs.data(), static_cast<unsigned int>(md_inputs.size()), 0, 0,
-                                          &md_output, md_scratch, m_scratch_size));
+    OptixDenoiserLayer inLayer = {}; 
+    inLayer.input = *(md_inputs.data());
+    inLayer.previousOutput = md_output; //only in temporal mode
+    inLayer.output = md_output;
+
+    OptixDenoiserGuideLayer guideLayer =    {};
+    guideLayer.albedo = md_inputs[1];
+    guideLayer.normal = md_inputs[2];
+    
+    OPTIX_ERROR_CHECK(optixDenoiserInvoke(m_denoiser, //denoiser OK 
+                                          m_cuda_stream, //CUstream stream OK
+                                          &m_params,  ///OptixDenoiserParams* params OK
+                                          md_state, // denoiserState OK
+                                          m_state_size, //denoiserStateSizeInBytes OK
+                                          &guideLayer, //OptixDenoiserGuideLayer* guidelayer
+                                          &inLayer, //OptixeDenoiserLayer* layer
+                                          1, //uint num layers
+                                          0, //uint inputOffsetX
+                                          0,  //uint inputOffsetY
+                                          md_scratch, //CUdeviceptr scratch
+                                          m_scratch_size //scratchSizeInBytes
+                                          ));
 }
 
 }  // namespace sensor

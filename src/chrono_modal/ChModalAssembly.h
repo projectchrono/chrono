@@ -17,6 +17,7 @@
 
 #include "chrono_modal/ChApiModal.h"
 #include "chrono_modal/ChModalDamping.h"
+#include "chrono_modal/ChEigenvalueSolver.h"
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/solver/ChVariablesGeneric.h"
 #include <complex>
@@ -60,21 +61,24 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Compute the undamped modes for the current assembly. 
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies() etc.
     /// Usually done for the assembly in full mode, but can be done also SwitchModalReductionON()
-    bool ComputeModes(int nmodes); ///< the n. of lower modes to keep 
+    bool ComputeModes(const ChModalSolveUndamped& n_modes_settings); ///< int as n. of lower modes to keep, or a full ChModalSolveUndamped
 
     /// Compute the undamped modes from M and K matrices. Later you can fetch results via Get_modes_V() etc.
-    bool ComputeModesExternalData(ChSparseMatrix& mM, ChSparseMatrix& mK, ChSparseMatrix& full_Cq, int nmodes); ///< the n. of lower modes to keep 
+    bool ComputeModesExternalData(ChSparseMatrix& mM, ChSparseMatrix& mK, ChSparseMatrix& full_Cq, 
+        const ChModalSolveUndamped& n_modes_settings); ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
 
     /// Compute the damped modes for the entire assembly. 
     /// Expect complex eigenvalues/eigenvectors if damping is used. 
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies(), Get_modes_damping_ratios() etc.
-    /// Usually done for the assembly in full mode, but can be done also SwitchModalReductionON()
-    bool ComputeModesDamped(int nmodes); ///< the n. of lower modes to keep 
+    /// Usually done for the assembly in full mode, but can be done also after SwitchModalReductionON()
+    bool ComputeModesDamped(const ChModalSolveDamped& n_modes_settings); ///< int as the n. of lower modes to keep, or a full ChModalSolveDamped
 
     /// Perform modal reduction on this assembly, from the current "full" ("boundary"+"internal") assembly.
     /// - An undamped modal analysis will be done on the full assembly with  nodes. 
     /// - The "internal" nodes will be replaced by n_modes modal coordinates.
-    void SwitchModalReductionON(int n_modes, const ChModalDamping& damping_model = ChModalDampingNone());
+    void SwitchModalReductionON(
+        const ChModalSolveUndamped& n_modes_settings, ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
+        const ChModalDamping& damping_model = ChModalDampingNone());   ///< a damping model to use for the reduced model
 
     /// Perform modal reduction on this assembly that contains only the "boundary" nodes, whereas
     /// the "internal" nodes have been modeled only in an external FEA software with the 
@@ -85,7 +89,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// - in Chrono, only boundary nodes are added to a ChModalAssembly
     /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
     /// Note that the size of M (and K) must be at least > n_boundary_coords_w. 
-    void SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, int n_modes, const ChModalDamping& damping_model = ChModalDampingNone());
+    void SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, 
+        const ChModalSolveUndamped& n_modes_settings,  ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
+        const ChModalDamping& damping_model = ChModalDampingNone());    ///< a damping model to use for the reduced model
 
 
     /// For displaying modes, you can use the following function. It sets the state of this subassembly

@@ -23,7 +23,7 @@ import pychrono as chrono
 import pychrono.vehicle as veh
 import pychrono.irrlicht as irr
 
-#// =============================================================================
+# =============================================================================
 
 def main():
     #print("Copyright (c) 2017 projectchrono.org\nChrono version: ", CHRONO_VERSION , "\n\n")
@@ -48,18 +48,17 @@ def main():
     # Create the terrain with multiple patches
     terrain = veh.RigidTerrain(my_hmmwv.GetSystem())
 
-
     patch1_mat = chrono.ChMaterialSurfaceNSC()
     patch1_mat.SetFriction(0.9)
     patch1_mat.SetRestitution(0.01)
-    patch1 = terrain.AddPatch(patch1_mat, chrono.ChVectorD(-16, 0, 0), chrono.ChVectorD(0, 0, 1), 32, 20)
+    patch1 = terrain.AddPatch(patch1_mat, chrono.ChCoordsysD(chrono.ChVectorD(-16, 0, 0), chrono.QUNIT), 32, 20)
     patch1.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
     patch1.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 20, 20)
 
     patch2_mat = chrono.ChMaterialSurfaceNSC()
     patch2_mat.SetFriction(0.9)
     patch2_mat.SetRestitution(0.01)
-    patch2 = terrain.AddPatch(patch2_mat, chrono.ChVectorD(16, 0, 0.15), chrono.ChVectorD(0, 0, 1), 32, 30);
+    patch2 = terrain.AddPatch(patch2_mat, chrono.ChCoordsysD(chrono.ChVectorD(16, 0, 0.15), chrono.QUNIT), 32, 30);
     patch2.SetColor(chrono.ChColor(1.0, 0.5, 0.5))
     patch2.SetTexture(veh.GetDataFile("terrain/textures/concrete.jpg"), 20, 20)
 
@@ -78,30 +77,35 @@ def main():
                               veh.GetDataFile("terrain/height_maps/bump64.bmp"), 64.0, 64.0, 0.0, 3.0)
     patch4.SetTexture(veh.GetDataFile("terrain/textures/grass.jpg"), 6.0, 6.0)
 
+    terrain.Initialize()
+
     # Create the vehicle Irrlicht interface
-    app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV Rigid Terrain Demo')
-    app.AddTypicalLights()
-    app.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    app.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
-    app.SetTimestep(step_size)
-    app.AssetBindAll()
-    app.AssetUpdateAll()
+    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+    vis.SetWindowTitle('HMMWV Rigid Terrain Demo')
+    vis.SetWindowSize(1280, 1024)
+    vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
+    vis.Initialize()
+    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+    vis.AddTypicalLights()
+    vis.AddSkyBox()
+    vis.AttachVehicle(my_hmmwv.GetVehicle())
 
     # Create the interactive driver system
-    driver = veh.ChIrrGuiDriver(app)
+    driver = veh.ChIrrGuiDriver(vis)
     driver.SetSteeringDelta(0.02)
     driver.SetThrottleDelta(0.02)
     driver.SetBrakingDelta(0.06)
     driver.Initialize()
 
-    realtime_timer = chrono.ChRealtimeStepTimer()
-    while (app.GetDevice().run()):
+    my_hmmwv.GetVehicle().EnableRealtime(True)
+
+    while vis.Run() :
         time = my_hmmwv.GetSystem().GetChTime()
 
         # Draw scene
-        app.BeginScene()
-        app.DrawAll()
-        app.EndScene()
+        vis.BeginScene()
+        vis.Render()
+        vis.EndScene()
 
         # Get driver inputs
         driver_inputs = driver.GetInputs()
@@ -110,16 +114,13 @@ def main():
         driver.Synchronize(time)
         terrain.Synchronize(time)
         my_hmmwv.Synchronize(time, driver_inputs, terrain)
-        app.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+        vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)
         terrain.Advance(step_size)
         my_hmmwv.Advance(step_size)
-        app.Advance(step_size)
-
-        # Spin in place for real time to catch up
-        realtime_timer.Spin(step_size)
+        vis.Advance(step_size)
 
     return 0
 

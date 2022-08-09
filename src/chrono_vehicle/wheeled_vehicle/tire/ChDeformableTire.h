@@ -30,7 +30,7 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAbase.h"
-#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
@@ -82,7 +82,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     bool IsRimConnectionEnabled() const { return m_connection_enabled; }
 
     /// Get a handle to the mesh visualization.
-    fea::ChVisualizationFEAmesh* GetMeshVisualization() const { return m_visualization.get(); }
+    ChVisualShapeFEA* GetMeshVisualization() const { return m_visualization.get(); }
 
     /// Get the underlying FEA mesh.
     std::shared_ptr<fea::ChMesh> GetMesh() const { return m_mesh; }
@@ -102,13 +102,6 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     /// Get the rim radius (inner tire radius).
     virtual double GetRimRadius() const = 0;
-
-    /// Calculate and return the tire mass.
-    /// The return value is the mass of the underlying FEA mesh.
-    double GetTireMass() const;
-
-    /// Report the tire mass.
-    virtual double ReportMass() const override { return GetTireMass(); }
 
     /// Report the tire force and moment.
     /// This generalized force encapsulates the tire-terrain forces, as well as the weight
@@ -169,16 +162,19 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     double m_contact_node_radius;       ///< node radius (for node cloud contact surface)
     double m_contact_face_thickness;    ///< face thickness (for mesh contact surface)
 
-    std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;           ///< tire contact material
-    std::shared_ptr<fea::ChVisualizationFEAmesh> m_visualization;  ///< tire mesh visualization
+    std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;  ///< tire contact material
+    std::shared_ptr<ChVisualShapeFEA> m_visualization;    ///< tire mesh visualization
 
-  //private:
-    // The following two functions are marked as final.
-    // The mass properties of a deformable tire are implicitly included through
-    // the FEA mesh.  To prevent double counting the mass and inertia of a
-    // deformable tire, these functions must always return 0.
-    virtual double GetMass() const final { return 0; }
-    virtual ChVector<> GetInertia() const final { return ChVector<>(0, 0, 0); }
+    // The mass properties of a deformable tire are implicitly included through the FEA mesh.
+    // No mass and inertia are added to the associated spindle body.
+    virtual double GetAddedMass() const override final { return 0; }
+    virtual ChVector<> GetAddedInertia() const override final { return ChVector<>(0, 0, 0); }
+
+     /// Return the tire mass.
+    virtual void InitializeInertiaProperties() override final;
+
+    /// Return the tire moments of inertia (in the tire centroidal frame).
+    virtual void UpdateInertiaProperties() override final;
 
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;

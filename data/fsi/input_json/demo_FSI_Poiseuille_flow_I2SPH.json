@@ -1,30 +1,23 @@
 {
 
-  "Output Folder": "Poiseuille_flow_I2SPH",
-
-
   "Physical Properties of Fluid":
   {
     "Density":                1000,
     "Viscosity":              1.0,
-    "Body Force":             [0.01, 0.0,  0.0],
-    "Gravity":                [0.0, 0.0,  0.0],
-    "Surface Tension Kappa":   0.0,
-    "Characteristic Length":   1.0
+    "Body Force":             [0.01, 0.0, 0.0],
+    "Gravity":                [0.0, 0.0, 0.0]
   },
 
   "SPH Parameters":
   {
-    "Method":                         "I2SPH",//WCSPH, IISPH, I2SPHH
+    "Method":                         "I2SPH",
     "Kernel h":                       0.01,
     "Initial Spacing":                0.01,
-    "Epsilon":                        0.0001,
     "Maximum Velocity":               1.0,
     "XSPH Coefficient":               0.0,
     "Shifting Coefficient":           0.0,
     "Density Reinitialization":       0,
     "Conservative Discretization":    false
-
   },
 
   "Time Stepping":
@@ -33,9 +26,7 @@
     "CFL number":                    0.1,
     "Fluid time step":               0.002,
     "Solid time step":               0.002,
-    "Maximum time step":             0.002,
-    "End time":                      100,
-    "Write frame per second":        10
+    "Maximum time step":             0.002
   },
 
 
@@ -52,15 +43,5 @@
     "Verbose monitoring":       false,
     "Constraint Pressure":      true,
     "Average Pressure":         0.0
-  },
-
-  "Geometry Inf":
-  {
-    "BoxDimensionX":                0.2,
-    "BoxDimensionY":                0.1,
-    "BoxDimensionZ":                0.2,
-    "FluidDimensionX":              0.2,
-    "FluidDimensionY":              0.1,
-    "FluidDimensionZ":              0.2
   }
 }

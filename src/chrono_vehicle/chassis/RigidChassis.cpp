@@ -16,7 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChCompositeInertia.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/chassis/RigidChassis.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -67,9 +66,9 @@ void RigidChassis::Create(const rapidjson::Document& d) {
         composite.AddComponent(ChFrame<>(loc, rot), mass, inertia, is_void);
     }
 
-    m_mass = composite.GetMass();
-    m_inertia = composite.GetInertia();
-    m_COM_loc = composite.GetCOM();
+    m_body_mass = composite.GetMass();
+    m_body_inertia = composite.GetInertia();
+    m_body_COM_loc = composite.GetCOM();
 
     // Extract driver position
     m_driverCsys.pos = ReadVectorJSON(d["Driver Position"]["Location"]);
@@ -218,9 +217,9 @@ void RigidChassisRear::Create(const rapidjson::Document& d) {
         composite.AddComponent(ChFrame<>(loc, rot), mass, inertia, is_void);
     }
 
-    m_mass = composite.GetMass();
-    m_inertia = composite.GetInertia();
-    m_COM_loc = composite.GetCOM();
+    m_body_mass = composite.GetMass();
+    m_body_inertia = composite.GetInertia();
+    m_body_COM_loc = composite.GetCOM();
 
     // Extract location of connector to the front chassis
     assert(d.HasMember("Front Connector Location"));

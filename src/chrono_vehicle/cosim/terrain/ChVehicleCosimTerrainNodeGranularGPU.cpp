@@ -31,10 +31,6 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularGPU.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChOpenGLWindow.h"
-#endif
-
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -83,6 +79,11 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(doubl
 
     // Defer construction of the granular system to Construct
     m_systemGPU = nullptr;
+
+    // Create OpenGL visualization system
+#ifdef CHRONO_OPENGL
+    m_vsys = new opengl::ChVisualSystemOpenGL;
+#endif
 }
 
 ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(const std::string& specfile)
@@ -105,11 +106,19 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(const
 
     // Read GPU granular terrain parameters from provided specfile
     SetFromSpecfile(specfile);
+
+    // Create OpenGL visualization system
+#ifdef CHRONO_OPENGL
+    m_vsys = new opengl::ChVisualSystemOpenGL;
+#endif
 }
 
 ChVehicleCosimTerrainNodeGranularGPU ::~ChVehicleCosimTerrainNodeGranularGPU() {
     delete m_system;
     delete m_systemGPU;
+#ifdef CHRONO_OPENGL
+    delete m_vsys;
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -285,9 +294,9 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         std::vector<ChVector<float>> omg(m_num_particles);
         for (unsigned int i = 0; i < m_num_particles; i++) {
             std::getline(ifile, line);
-            std::istringstream iss(line);
+            std::istringstream iss1(line);
             unsigned int identifier;
-            iss >> identifier >> pos[i].x() >> pos[i].y() >> pos[i].z() >> vel[i].x() >> vel[i].y() >> vel[i].z() >>
+            iss1 >> identifier >> pos[i].x() >> pos[i].y() >> pos[i].z() >> vel[i].x() >> vel[i].y() >> vel[i].z() >>
                 omg[i].x() >> omg[i].y() >> omg[i].z();
             assert(identifier == i);
         }
@@ -361,7 +370,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
             body->SetBodyFixed(true);
             auto sph = chrono_types::make_shared<ChSphereShape>();
             sph->GetSphereGeometry().rad = m_radius_g;
-            body->AddAsset(sph);
+            body->AddVisualShape(sph);
             m_system->AddBody(body);
         }
     }
@@ -396,9 +405,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
-        trimesh_shape->Pos = ChVector<>(0, 0, 0);
-        trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-        body->GetAssets().push_back(trimesh_shape);
+        body->AddVisualShape(trimesh_shape, ChFrame<>());
 
         m_system->AddBody(body);   
 
@@ -409,10 +416,14 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 #ifdef CHRONO_OPENGL
     // Create the visualization window
     if (m_render) {
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "Terrain Node (GranularGPU)", m_system);
-        gl_window.SetCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
-        gl_window.SetRenderMode(opengl::WIREFRAME);
+        m_vsys->AttachSystem(m_system);
+        m_vsys->SetWindowTitle("Terrain Node (GranularGPU)");
+        m_vsys->SetWindowSize(1280, 720);
+        m_vsys->SetRenderMode(opengl::WIREFRAME);
+        m_vsys->Initialize();
+        m_vsys->SetCameraPosition(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+        m_vsys->SetCameraProperties(0.05f);
+        m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     }
 #endif
 
@@ -660,9 +671,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateWheelProxy(unsigned int i) {
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("wheel_" + std::to_string(i));
-    trimesh_shape->Pos = ChVector<>(0, 0, 0);
-    trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
-    body->GetAssets().push_back(trimesh_shape);
+    body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     // Add collision shape (only if obstacles are present)
     auto material_tire = m_mat_props[i].CreateMaterial(m_method);
@@ -730,18 +739,17 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnAdvance(double step_size) {
 
 void ChVehicleCosimTerrainNodeGranularGPU::Render(double time) {
 #ifdef CHRONO_OPENGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    if (gl_window.Active()) {
+    if (m_vsys->Run()) {
         UpdateVisualizationParticles();
         if (!m_proxies.empty()) {
             const auto& proxies = m_proxies[0];  // proxies for first tire
             if (!proxies.empty()) {
                 ChVector<> cam_point = proxies[0].m_body->GetPos();
                 ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
-                gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
+                m_vsys->SetCameraPosition(cam_loc, cam_point);
             }
         }
-        gl_window.Render();
+        m_vsys->Render();
     } else {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }

@@ -49,7 +49,6 @@
 #include "chrono/solver/ChSolver.h"
 #include "chrono_postprocess/ChPostProcessBase.h"
 #include "chrono_postprocess/ChPovRay.h"
-#include "chrono_postprocess/ChPovRayAssetCustom.h"
 #include "chrono_postprocess/ChGnuPlot.h"
 #include "Eigen/src/Core/util/Memory.h"
 
@@ -94,10 +93,9 @@ using namespace chrono::postprocess;
 // is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
 // tree must be promoted to %shared_ptr too).
 
-%shared_ptr(chrono::ChVisualization)
+%shared_ptr(chrono::ChVisualShape)
 %shared_ptr(chrono::postprocess::ChPostProcessBase)
 %shared_ptr(chrono::postprocess::ChPovRay)
-%shared_ptr(chrono::postprocess::ChPovRayAssetCustom)
 
 
 //
@@ -120,14 +118,13 @@ using namespace chrono::postprocess;
 
 //  core/  classes
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChAsset.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualization.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
 
 %include "ChPostProcessBase.i"
 %include "ChPovRay.i"
-%include "ChPovRayAssetCustom.i"
 %include "../../../chrono_postprocess/ChGnuPlot.h"
 
 
@@ -144,8 +141,6 @@ using namespace chrono::postprocess;
 // Later, in python, you can do the following:
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
-
-%DefSharedPtrDynamicDowncast2NS(chrono, chrono::postprocess, ChAsset,ChPovRayAssetCustom)
 
 
 //

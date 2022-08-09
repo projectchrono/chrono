@@ -106,7 +106,7 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
     // Create patch geometry (infer type based on existing keys)
     if (d["Geometry"].HasMember("Dimensions")) {
         auto size = ReadVectorJSON(d["Geometry"]["Dimensions"]);
-        patch = AddPatch(material, loc, ChMatrix33<>(rot).Get_A_Zaxis(), size.x(), size.y(), size.z());
+        patch = AddPatch(material, ChCoordsys<>(loc, rot), size.x(), size.y(), size.z());
     } else if (d["Geometry"].HasMember("Mesh Filename")) {
         std::string mesh_file = d["Geometry"]["Mesh Filename"].GetString();
         bool connected_mesh = true;
@@ -175,23 +175,16 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMaterialSurface> material,
-                                                            const ChVector<>& location,
-                                                            const ChVector<>& normal,
+                                                            const ChCoordsys<>& position,
                                                             double length,
                                                             double width,
                                                             double thickness,
                                                             bool tiled,
                                                             double max_tile_size,
                                                             bool visualization) {
-    ChVector<> up = normal.GetNormalized();
-    ChVector<> lateral = Vcross(up, ChWorldFrame::Forward());
-    lateral.Normalize();
-    ChVector<> forward = Vcross(lateral, up);
-    ChMatrix33<> rot;
-    rot.Set_A_axis(forward, lateral, up);
-
     auto patch = chrono_types::make_shared<BoxPatch>();
-    AddPatch(patch, ChCoordsys<>(location - 0.5 * thickness * up, rot.Get_A_quaternion()), material);
+    AddPatch(patch, position, material);
+    patch->m_visualize = visualization;
 
     // Create the collision model (one or more boxes) attached to the patch body
     patch->m_body->GetCollisionModel()->ClearModel();
@@ -202,30 +195,27 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         double sizeY1 = width / nY;
         for (int ix = 0; ix < nX; ix++) {
             for (int iy = 0; iy < nY; iy++) {
-                patch->m_body->GetCollisionModel()->AddBox(                                                 //
-                    material,                                                                               //
-                    0.5 * sizeX1, 0.5 * sizeY1, 0.5 * thickness,                                            //
-                    ChVector<>((sizeX1 - length) / 2 + ix * sizeX1, (sizeY1 - width) / 2 + iy * sizeY1, 0)  //
+                patch->m_body->GetCollisionModel()->AddBox(          //
+                    material,                                        //
+                    0.5 * sizeX1, 0.5 * sizeY1, 0.5 * thickness,     //
+                    ChVector<>((sizeX1 - length) / 2 + ix * sizeX1,  //
+                               (sizeY1 - width) / 2 + iy * sizeY1,   //
+                               -0.5 * thickness)                     //
                 );
             }
         }
     } else {
-        patch->m_body->GetCollisionModel()->AddBox(material, 0.5 * length, 0.5 * width, 0.5 * thickness);
+        patch->m_body->GetCollisionModel()->AddBox(material, 0.5 * length, 0.5 * width, 0.5 * thickness,
+                                                   ChVector<>(0, 0, -0.5 * thickness));
     }
     patch->m_body->GetCollisionModel()->BuildModel();
 
-    // Create visualization asset
-    if (visualization) {
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().SetLengths(ChVector<>(length, width, thickness));
-        box->Pos = VNULL;
-        patch->m_body->AddAsset(box);
-    }
-
-    patch->m_location = location;
-    patch->m_normal = up;
+    // Cache patch parameters
+    patch->m_location = position.pos;
+    patch->m_normal = position.rot.GetZaxis();
     patch->m_hlength = length / 2;
     patch->m_hwidth = width / 2; 
+    patch->m_hthickness = thickness / 2;
     patch->m_radius = ChVector<>(length, width, thickness).Length() / 2;
     patch->m_type = PatchType::BOX;
 
@@ -242,10 +232,10 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
                                                             bool visualization) {
     auto patch = chrono_types::make_shared<MeshPatch>();
     AddPatch(patch, position, material);
+    patch->m_visualize = visualization;
 
     // Load mesh from file
-    patch->m_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    patch->m_trimesh->LoadWavefrontMesh(mesh_file, true, true);
+    patch->m_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_file, true, true);
 
     // Create the collision model
     patch->m_body->GetCollisionModel()->ClearModel();
@@ -253,8 +243,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL,
                                                             ChMatrix33<>(1), sweep_sphere_radius);
     } else {
-        patch->m_trimesh_s = chrono_types::make_shared<geometry::ChTriangleMeshSoup>();
-        patch->m_trimesh_s->LoadWavefrontMesh(mesh_file);
+        patch->m_trimesh_s = geometry::ChTriangleMeshSoup::CreateFromWavefrontFile(mesh_file);
         patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh_s, true, false, VNULL,
                                                             ChMatrix33<>(1), sweep_sphere_radius);
     }
@@ -262,15 +251,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 
     auto mesh_name = filesystem::path(mesh_file).stem();
 
-    // Create the visualization asset.
-    if (visualization) {
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(patch->m_trimesh);
-        trimesh_shape->SetName(mesh_name);
-        trimesh_shape->SetStatic(true);
-        patch->m_body->AddAsset(trimesh_shape);
-    }
-
+    // Cache patch parameters
     patch->m_radius =
         std::max_element(patch->m_trimesh->getCoordsVertices().begin(),                                      //
                          patch->m_trimesh->getCoordsVertices().end(),                                        //
@@ -298,8 +279,9 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
                                                             bool visualization) {
     auto patch = chrono_types::make_shared<MeshPatch>();
     AddPatch(patch, position, material);
+    patch->m_visualize = visualization;
 
-    // Read the image file (request only 1 channel) and extract number of pixels.
+    // Read the image file (request only 1 channel) and extract number of pixels
     STB hmap;
     if (!hmap.ReadFromFile(heightmap_file, 1)) {
         throw ChException("Cannot open height map image file");
@@ -321,7 +303,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     unsigned int n_verts = nv_x * nv_y;
     unsigned int n_faces = 2 * (nv_x - 1) * (nv_y - 1);
 
-    // Resize mesh arrays.
+    // Resize mesh arrays
     patch->m_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     patch->m_trimesh->getCoordsVertices().resize(n_verts);
     patch->m_trimesh->getCoordsNormals().resize(n_verts);
@@ -356,9 +338,9 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
             // Initialize vertex normal to (0, 0, 0).
             normals[iv] = ChVector<>(0, 0, 0);
             // Assign color white to all vertices
-            patch->m_trimesh->getCoordsColors()[iv] = ChVector<float>(1, 1, 1);
+            patch->m_trimesh->getCoordsColors()[iv] = ChColor(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
-            patch->m_trimesh->getCoordsUV()[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
+            patch->m_trimesh->getCoordsUV()[iv] = ChVector2<>(ix * x_scale, iy * y_scale);
             ++iv;
         }
     }
@@ -379,7 +361,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         }
     }
 
-    // Calculate normals and then average the normals from all adjacent faces.
+    // Calculate normals and then average the normals from all adjacent faces
     for (it = 0; it < n_faces; ++it) {
         // Calculate the triangle normal as a normalized cross product.
         ChVector<> nrm = Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]],
@@ -395,12 +377,12 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         accumulators[idx_normals[it][2]] += 1;
     }
 
-    // Set the normals to the average values.
+    // Set the normals to the average values
     for (unsigned int in = 0; in < n_verts; ++in) {
         normals[in] = ChWorldFrame::FromISO(normals[in] / (double)accumulators[in]);
     }
 
-    // Create contact geometry.
+    // Create contact geometry
     patch->m_body->GetCollisionModel()->ClearModel();
     if (connected_mesh) {
         patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL,
@@ -420,15 +402,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 
     auto mesh_name = filesystem::path(heightmap_file).stem();
 
-    // Create the visualization asset.
-    if (visualization) {
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(patch->m_trimesh);
-        trimesh_shape->SetName(mesh_name);
-        trimesh_shape->SetStatic(true);
-        patch->m_body->AddAsset(trimesh_shape);
-    }
-
+    // Cache patch parameters
     patch->m_radius = ChVector<>(length, width, (hMax - hMin)).Length() / 2;
     patch->m_mesh_name = mesh_name;
     patch->m_type = PatchType::HEIGHT_MAP;
@@ -440,16 +414,16 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 // Functions to modify properties of a patch
 // -----------------------------------------------------------------------------
 
-void RigidTerrain::Patch::SetColor(const ChColor& color) {
-    auto acolor = chrono_types::make_shared<ChColorAsset>(color);
-    m_body->AddAsset(acolor);
+RigidTerrain::Patch::Patch() : m_friction(0.8f), m_visualize(true) {
+    m_vis_mat = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
 }
 
-void RigidTerrain::Patch::SetTexture(const std::string& tex_file, float tex_scale_x, float tex_scale_y) {
-    auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(tex_file);
-    texture->SetTextureScale(tex_scale_x, tex_scale_y);
-    m_body->AddAsset(texture);
+void RigidTerrain::Patch::SetColor(const ChColor& color) {
+    m_vis_mat->SetDiffuseColor({color.R, color.G, color.B});
+}
+
+void RigidTerrain::Patch::SetTexture(const std::string& filename, float scale_x, float scale_y) {
+    m_vis_mat->SetKdTexture(filename, scale_x, scale_y);
 }
 
 // -----------------------------------------------------------------------------
@@ -521,6 +495,9 @@ void RigidTerrain::Initialize() {
         return;
 
     for (auto& patch : m_patches) {
+        // Initialize the patch (create visualization)
+        patch->Initialize();
+
         // Add all patches to the same collision family
         // and disable collision with other collision models in this family.
         patch->m_body->GetCollisionModel()->SetFamily(m_collision_family);
@@ -539,6 +516,28 @@ void RigidTerrain::Initialize() {
     callback->m_friction_fun = m_friction_fun;
     m_contact_callback = callback;
     m_patches[0]->m_body->GetSystem()->GetContactContainer()->RegisterAddContactCallback(m_contact_callback);
+}
+
+void RigidTerrain::BoxPatch::Initialize() {
+    if (m_visualize) {
+        m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
+        auto box = chrono_types::make_shared<ChBoxShape>();
+        box->AddMaterial(m_vis_mat);
+        box->GetBoxGeometry().Size = ChVector<>(m_hlength, m_hwidth, m_hthickness);
+        m_body->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -m_hthickness)));
+    }
+}
+
+void RigidTerrain::MeshPatch::Initialize() {
+    if (m_visualize) {
+        m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->AddMaterial(m_vis_mat);
+        trimesh_shape->SetName(m_mesh_name);
+        trimesh_shape->SetMutable(false);
+        trimesh_shape->SetMesh(m_trimesh, true);
+        m_body->AddVisualShape(trimesh_shape);
+    }
 }
 
 // -----------------------------------------------------------------------------

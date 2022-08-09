@@ -43,8 +43,8 @@ TEST(ChRadarSensor, check_velocity) {
 //    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 //    // Create the system
 //    // -----------------
-//    ChSystemNSC mphysicalSystem;
-//    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -0));
+//    ChSystemNSC sys;
+//    sys.Set_G_acc(ChVector<>(0, 0, -0));
 //
 //    // ----------------------
 //    // color visual materials
@@ -65,29 +65,17 @@ TEST(ChRadarSensor, check_velocity) {
 //    floor->SetBodyFixed(true);
 //    //    floor->SetWvel_par(ChVector<>(-0.2,-0.4,-0.3));
 //    //    floor->SetPos_dt(ChVector<>(0.1, 0,0));
-//    mphysicalSystem.Add(floor);
-//    {
-//        auto asset = floor->GetAssets()[0];
-//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//            visual_asset->material_list.push_back(green);
-//        }
-//    }
+//    sys.Add(floor);
 //
 //    auto box_body = chrono_types::make_shared<ChBodyEasyBox>(5.5, 5.5, 5.5, 1000, true, false);
 //    box_body->SetPos({5, 0, 0});
 //    box_body->SetPos_dt({0.1, 0, 0});
-//    mphysicalSystem.Add(box_body);
-//    {
-//        auto asset = box_body->GetAssets()[0];
-//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//            visual_asset->material_list.push_back(red);
-//        }
-//    }
+//    sys.Add(box_body);
 //
 //    // -----------------------
 //    // Create a sensor manager
 //    // -----------------------
-//    auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
+//    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
 //    // -----------------------------------------------
 //    // Create a radar and add it to the sensor manager
 //    // -----------------------------------------------
@@ -112,7 +100,7 @@ TEST(ChRadarSensor, check_velocity) {
 //    while (ch_time < 1.0f) {
 //        manager->Update();
 //
-//        mphysicalSystem.DoStepDynamics(1e-3);
+//        sys.DoStepDynamics(1e-3);
 //
 //        //        UserRadarBufferPtr raw_data = radar->GetMostRecentBuffer<UserRadarBufferPtr>();
 //        UserRadarXYZBufferPtr raw_data = radar->GetMostRecentBuffer<UserRadarXYZBufferPtr>();
@@ -121,7 +109,7 @@ TEST(ChRadarSensor, check_velocity) {
 //        }
 //
 //        // Get the current time of the simulation
-//        ch_time = (float)mphysicalSystem.GetChTime();
+//        ch_time = (float)sys.GetChTime();
 //    }
 }
 

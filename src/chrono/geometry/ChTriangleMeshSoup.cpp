@@ -28,6 +28,13 @@ ChTriangleMeshSoup::ChTriangleMeshSoup(const ChTriangleMeshSoup& source) {
     m_triangles = source.m_triangles;
 }
 
+std::shared_ptr<ChTriangleMeshSoup> ChTriangleMeshSoup::CreateFromWavefrontFile(const std::string& filename) {
+    auto trimesh = chrono_types::make_shared<ChTriangleMeshSoup>();
+    if (!trimesh->LoadWavefrontMesh(filename))
+        return nullptr;
+    return trimesh;
+}
+
 bool ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
     std::vector<tinyobj::shape_t> shapes;
     tinyobj::attrib_t att;
@@ -35,7 +42,7 @@ bool ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
     std::string warn;
     std::string err;
 
-    bool success = LoadObj(&att, &shapes, &materials, &warn, &err, filename.c_str());
+    bool success = tinyobj::LoadObj(&att, &shapes, &materials, &warn, &err, filename.c_str());
     if (!success) {
         std::cerr << "Error loading OBJ file " << filename << std::endl;
         std::cerr << "   tiny_obj warning message: " << warn << std::endl;

@@ -18,16 +18,13 @@ MESSAGE(STATUS "==== Chrono Postprocess module ====")
 
 SET(ChronoEngine_POSTPROCESS_SOURCES 
     ChPovRay.cpp
-    ChPovRayAssetCustom.cpp
 )
 
 SET(ChronoEngine_POSTPROCESS_HEADERS
     ChApiPostProcess.h 
-    ChPovRay.h
-    ChPovRayAsset.h
-    ChPovRayAssetCustom.h
     ChPostProcessBase.h
     ChGnuPlot.h
+    ChPovRay.h
 )
 
 SOURCE_GROUP("" FILES 

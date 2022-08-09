@@ -23,13 +23,8 @@ namespace geometry {
 /// A capsule geometric object for collision and visualization.
 class ChApi ChCapsule : public ChGeometry {
   public:
-    ChVector<> center;  ///< capsule center
-    double rad;         ///< capsule radius
-    double hlen;        ///< capsule halflength
-
-  public:
-    ChCapsule() : center(VNULL), rad(0), hlen(0) {}
-    ChCapsule(const ChVector<>& mcenter, double mrad, double mhlen) : center(mcenter), rad(mrad), hlen(mhlen) {}
+    ChCapsule() : rad(0), hlen(0) {}
+    ChCapsule(const ChVector<>& mcenter, double mrad, double mhlen) : rad(mrad), hlen(mhlen) {}
     ChCapsule(const ChCapsule& source);
     ~ChCapsule() {}
 
@@ -38,17 +33,14 @@ class ChApi ChCapsule : public ChGeometry {
 
     virtual GeometryType GetClassType() const override { return CAPSULE; }
 
-    virtual void GetBoundingBox(double& xmin,
-                                double& xmax,
-                                double& ymin,
-                                double& ymax,
-                                double& zmin,
-                                double& zmax,
-                                ChMatrix33<>* Rot = NULL) const override;
+    /// Compute bounding box along the directions defined by the given rotation matrix.
+    /// Note: 'rot' currently ignored.
+    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
 
-    virtual ChVector<> Baricenter() const override { return center; }
+    /// Returns the radius of a bounding sphere for this geometry.
+    virtual double GetBoundingSphereRadius() const override;
 
-    virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
+    virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
@@ -58,6 +50,9 @@ class ChApi ChCapsule : public ChGeometry {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    double rad;   ///< capsule radius
+    double hlen;  ///< capsule halflength
 };
 
 }  // end namespace geometry

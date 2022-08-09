@@ -32,9 +32,6 @@ namespace vehicle {
 /// Base class for an anti-roll bar subsystem.
 class CH_VEHICLE_API ChAntirollBar : public ChPart {
   public:
-    ChAntirollBar(const std::string& name  ///< [in] name of the subsystem
-                  );
-
     virtual ~ChAntirollBar() {}
 
     /// Initialize this anti-roll bar subsystem.
@@ -47,14 +44,14 @@ class CH_VEHICLE_API ChAntirollBar : public ChPart {
                             const ChVector<>& location                 ///< [in] location relative to the chassis frame
                             ) = 0;
 
-    /// Get the total mass of the anti-roll bar subsystem.
-    virtual double GetMass() const = 0;
-
-    /// Get the current global COM location of the anti-roll bar subsystem.
-    virtual ChVector<> GetCOMPos() const = 0;
-
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}
+
+  protected:
+    /// Construct an anti-roll bar subsystem with given name.
+    ChAntirollBar(const std::string& name);
+
+    ChVector<> m_rel_loc;  ///< relative location of antiroll bar subsystem on chassis
 };
 
 /// Vector of handles to antirollbar subsystems.

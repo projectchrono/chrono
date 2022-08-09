@@ -63,8 +63,8 @@ void Generic_RigidMeshTire::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void Generic_RigidMeshTire::RemoveVisualizationAssets() {
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
     ChRigidTire::RemoveVisualizationAssets();
-    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace generic

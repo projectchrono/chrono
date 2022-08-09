@@ -25,7 +25,7 @@
 
 #include "chrono_synchrono/agent/SynSCMTerrainAgent.h"
 
-#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 using namespace chrono::vehicle;

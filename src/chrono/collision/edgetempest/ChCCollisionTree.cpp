@@ -79,20 +79,14 @@ int ChCollisionTree::AddGeometry(geometry::ChGeometry* mgeo) {
     return ChC_OK;
 }
 
-void ChCollisionTree::GetBoundingBox(double& xmin,
-                                     double& xmax,
-                                     double& ymin,
-                                     double& ymax,
-                                     double& zmin,
-                                     double& zmax,
-                                     ChMatrix33<>* Rot) {
-    xmin = ymin = zmin = +10e20;
-    xmax = ymax = zmax = -10e20;
+void ChCollisionTree::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) {
+    cmin = ChVector<>(+std::numeric_limits<double>::max());
+    cmax = ChVector<>(-std::numeric_limits<double>::max());
 
     std::vector<geometry::ChGeometry*>::iterator nit = geometries.begin();
     for (; nit != geometries.end(); ++nit) {
         if ((*nit)) {
-            (*nit)->InflateBoundingBox(xmin, xmax, ymin, ymax, zmin, zmax, Rot);
+            (*nit)->InflateBoundingBox(cmin, cmax, rot);
         }
     }
 }
@@ -100,20 +94,19 @@ void ChCollisionTree::GetBoundingBox(double& xmin,
 void ChCollisionTree::UpdateAbsoluteAABB(double envelope) {
     assert(m_body);
 
-    double xmin, xmax, ymin, ymax, zmin, zmax;
-
     m_absoluteAABB.init(this);
 
     static ChMatrix33<> at = m_body->GetA().transpose();
+    ChVector<> cmin;
+    ChVector<> cmax;
+    GetBoundingBox(cmin, cmax, at);
 
-    GetBoundingBox(xmin, xmax, ymin, ymax, zmin, zmax, &at);
-
-    m_absoluteAABB.m_beginX.m_value = xmin - envelope + m_body->GetPos().x();
-    m_absoluteAABB.m_endX.m_value = xmax + envelope + m_body->GetPos().x();
-    m_absoluteAABB.m_beginY.m_value = ymin - envelope + m_body->GetPos().y();
-    m_absoluteAABB.m_endY.m_value = ymax + envelope + m_body->GetPos().y();
-    m_absoluteAABB.m_beginZ.m_value = zmin - envelope + m_body->GetPos().z();
-    m_absoluteAABB.m_endZ.m_value = zmax + envelope + m_body->GetPos().z();
+    m_absoluteAABB.m_beginX.m_value = cmin.x() - envelope + m_body->GetPos().x();
+    m_absoluteAABB.m_endX.m_value = cmax.x() + envelope + m_body->GetPos().x();
+    m_absoluteAABB.m_beginY.m_value = cmin.y() - envelope + m_body->GetPos().y();
+    m_absoluteAABB.m_endY.m_value = cmax.y() + envelope + m_body->GetPos().y();
+    m_absoluteAABB.m_beginZ.m_value = cmin.z() - envelope + m_body->GetPos().z();
+    m_absoluteAABB.m_endZ.m_value = cmax.z() + envelope + m_body->GetPos().z();
 }
 
 }  // end namespace collision

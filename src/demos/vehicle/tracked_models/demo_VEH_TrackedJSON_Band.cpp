@@ -31,7 +31,7 @@
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -175,6 +175,7 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
+    terrain.Initialize();
 
     // ----------------------------
     // Create the powertrain system
@@ -188,20 +189,22 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChTrackedVehicleIrrApp app(&vehicle, L"JSON Band-Tracked Vehicle Demo");
-    app.AddTypicalLights();
-    app.SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
-    ////app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
-    app.SetChaseCameraMultipliers(1e-4, 10);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("JSON Band-Tracked Vehicle Demo");
+    vis->SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
+    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector<>(0, 2, 0));
+    vis->SetChaseCameraMultipliers(1e-4, 10);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vis->AttachVehicle(&vehicle);
 
     // ------------------------
     // Create the driver system
     // ------------------------
 
-    ChIrrGuiDriver driver(app);
+    ChIrrGuiDriver driver(*vis);
 
     // Set the time response for keyboard inputs.
     double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
@@ -333,7 +336,7 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     while (step_number < sim_steps) {
-        const ChVector<>& c_pos = vehicle.GetVehiclePos();
+        const ChVector<>& c_pos = vehicle.GetPos();
 
         // File output
         if (output) {
@@ -374,12 +377,12 @@ int main(int argc, char* argv[]) {
         }
 
 #ifdef USE_IRRLICHT
-        if (!app.GetDevice()->run())
+        if (!vis->Run())
             break;
 
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
+        vis->BeginScene();
+        vis->Render();
 #endif
 
         if (step_number % render_steps == 0) {
@@ -393,14 +396,14 @@ int main(int argc, char* argv[]) {
             if (img_output && step_number > 200) {
                 char filename[100];
                 sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-                app.WriteImageToFile(filename);
+                vis->WriteImageToFile(filename);
             }
 #endif
             render_frame++;
         }
 
         // Collect data from modules
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
         vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
@@ -410,7 +413,7 @@ int main(int argc, char* argv[]) {
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 #ifdef USE_IRRLICHT
-        app.Synchronize("", driver_inputs);
+        vis->Synchronize("", driver_inputs);
 #endif
 
         // Advance simulation for one timestep for all modules
@@ -418,7 +421,7 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         vehicle.Advance(step_size);
 #ifdef USE_IRRLICHT
-        app.Advance(step_size);
+        vis->Advance(step_size);
 #endif
 
         // Report if the chassis experienced a collision
@@ -440,7 +443,7 @@ int main(int argc, char* argv[]) {
         cout << endl;
 
 #ifdef USE_IRRLICHT
-        app.EndScene();
+        vis->EndScene();
 #endif
     }
 

@@ -52,7 +52,9 @@ const ChVector<> M113_TrackAssemblyBandANCF::m_susp_locs_R[5] = {  //
 // track shoes.
 // Create the suspensions, idler, brake, sprocket, and track shoes.
 // -----------------------------------------------------------------------------
-M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side, BrakeType brake_type)
+M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side,
+                                                       BrakeType brake_type,
+                                                       bool use_suspension_bushings)
     : ChTrackAssemblyBandANCF("", side) {
     size_t num_shoes = 0;
     std::string suspName("M113_Suspension");
@@ -79,11 +81,11 @@ M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side, BrakeTy
     }
 
     m_suspensions.resize(5);
-    m_suspensions[0] = chrono_types::make_shared<M113_Suspension>(suspName + "0", side, 0, true);
-    m_suspensions[1] = chrono_types::make_shared<M113_Suspension>(suspName + "1", side, 0, true);
-    m_suspensions[2] = chrono_types::make_shared<M113_Suspension>(suspName + "2", side, 2, false);
-    m_suspensions[3] = chrono_types::make_shared<M113_Suspension>(suspName + "3", side, 2, false);
-    m_suspensions[4] = chrono_types::make_shared<M113_Suspension>(suspName + "4", side, 0, true);
+    m_suspensions[0] = chrono_types::make_shared<M113_Suspension>(suspName + "0", side, 0, use_suspension_bushings, true);
+    m_suspensions[1] = chrono_types::make_shared<M113_Suspension>(suspName + "1", side, 0, use_suspension_bushings, true);
+    m_suspensions[2] = chrono_types::make_shared<M113_Suspension>(suspName + "2", side, 2, use_suspension_bushings, false);
+    m_suspensions[3] = chrono_types::make_shared<M113_Suspension>(suspName + "3", side, 2, use_suspension_bushings, false);
+    m_suspensions[4] = chrono_types::make_shared<M113_Suspension>(suspName + "4", side, 0, use_suspension_bushings, true);
 
     for (size_t it = 0; it < num_shoes; it++) {
         m_shoes.push_back(chrono_types::make_shared<M113_TrackShoeBandANCF>(shoeName + std::to_string(it)));
