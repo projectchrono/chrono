@@ -26,8 +26,7 @@
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-// #define USE_IRRLICHT
+    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
@@ -234,6 +233,9 @@ int main(int argc, char* argv[]) {
     hmmwv.SetTireStepSize(tire_step_size);
     hmmwv.Initialize();
 
+    if (tire_model == TireModelType::RIGID_MESH)
+        tire_vis_type = VisualizationType::MESH;
+
     hmmwv.SetChassisVisualizationType(chassis_vis_type);
     hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
     hmmwv.SetSteeringVisualizationType(steering_vis_type);
@@ -244,16 +246,26 @@ int main(int argc, char* argv[]) {
     RigidTerrain terrain(hmmwv.GetSystem());
 
     MaterialInfo minfo;
-    minfo.mu = 0.8f;
+    minfo.mu = 0.9f;
     minfo.cr = 0.01f;
     minfo.Y = 2e7f;
     auto patch_mat = minfo.CreateMaterial(contact_method);
 
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
-    patch->SetColor(ChColor(1, 1, 1));
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-
+    patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     terrain.Initialize();
+
+    if (patch->GetGroundBody()->GetVisualModel()) {
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+            GetChronoDataFile("models/trees/Tree.obj"), true, true);
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetName("Trees");
+        trimesh_shape->SetMutable(false);
+        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI_2)));
+    }
+
 
     // ------------------------
     // Create the driver system
@@ -319,22 +331,15 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
 
 #ifdef USE_IRRLICHT
-    ChWheeledVehicleIrrApp app(&hmmwv.GetVehicle(), L"External Driver Demo",
-                               irr::core::dimension2d<irr::u32>(800, 640));
-    app.SetHUDLocation(500, 20);
-    app.SetSkyBox();
-    app.AddTypicalLogo();
-    app.AddTypicalLights(irr::core::vector3df(-150.f, -150.f, 200.f), irr::core::vector3df(-150.f, 150.f, 200.f), 100,
-                         100);
-    app.AddTypicalLights(irr::core::vector3df(150.f, -150.f, 200.f), irr::core::vector3df(150.0f, 150.f, 200.f), 100,
-                         100);
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
-
-    app.SetTimestep(step_size);
-
-    // Finalize construction of visualization assets
-    app.AssetBindAll();
-    app.AssetUpdateAll();
+    // Create the vehicle Irrlicht interface
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("HMMWV Demo");
+    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
+    vis->Initialize();
+    vis->AddTypicalLights();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vis->AttachVehicle(&hmmwv.GetVehicle());
 #endif
 
     // -----------------
@@ -387,14 +392,14 @@ int main(int argc, char* argv[]) {
 
     ChRealtimeStepTimer realtime_timer;
 #ifdef USE_IRRLICHT
-    while (app.GetDevice()->run()) {
+    while (vis->Run()) {
 #else
     while (time < t_end) {
 #endif
         // Extract system state
         time = hmmwv.GetSystem()->GetChTime();
         ChVector<> acc_CG = hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
-        ChVector<> acc_driver = hmmwv.GetVehicle().GetVehiclePointAcceleration(driver_pos);
+        ChVector<> acc_driver = hmmwv.GetVehicle().GetPointAcceleration(driver_pos);
         double fwd_acc_CG = fwd_acc_GC_filter.Add(acc_CG.x());
         double lat_acc_CG = lat_acc_GC_filter.Add(acc_CG.y());
         double fwd_acc_driver = fwd_acc_driver_filter.Add(acc_driver.x());
@@ -405,14 +410,14 @@ int main(int argc, char* argv[]) {
             break;
 
         // Driver inputs
-        ChDriver::Inputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Output POV-Ray data
         if (sim_frame % render_steps == 0) {
 #ifdef USE_IRRLICHT
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
 
             if (povray_output) {
                 char filename[100];
@@ -423,7 +428,7 @@ int main(int argc, char* argv[]) {
 
             if (state_output) {
                 csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking;
-                csv << hmmwv.GetVehicle().GetVehicleSpeed();
+                csv << hmmwv.GetVehicle().GetSpeed();
                 csv << acc_CG.x() << fwd_acc_CG << acc_CG.y() << lat_acc_CG;
                 csv << acc_driver.x() << fwd_acc_driver << acc_driver.y() << lat_acc_driver;
                 csv << std::endl;
@@ -445,7 +450,7 @@ int main(int argc, char* argv[]) {
         terrain.Synchronize(time);
         hmmwv.Synchronize(time, driver_inputs, terrain);
 #ifdef USE_IRRLICHT
-        app.Synchronize("External Driver", driver_inputs);
+        vis->Synchronize("External Driver", driver_inputs);
 #endif
 
         // Advance simulation for one timestep for all modules
@@ -453,7 +458,7 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         hmmwv.Advance(step_size);
 #ifdef USE_IRRLICHT
-        app.Advance(step_size);
+        vis->Advance(step_size);
 #endif
 
 #ifdef CHRONO_SENSOR
