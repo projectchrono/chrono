@@ -25,6 +25,10 @@
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualModel.h"
 
+#include <vsgImGui/RenderImGui.h>
+#include <vsgImGui/SendEventsToImGui.h>
+#include <vsgImGui/imgui.h>
+
 #include "tools/createSkybox.h"
 #include "shapes/ShapeBuilder.h"
 
@@ -61,6 +65,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetGuiFontSize(float theSize = 20.f) { m_guiFontSize = theSize; }
     void SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
 
+    virtual void AttachGui();
+
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
         bool showGui = true;            // (don't) show the imgui menu, actually unused
         bool do_image_capture = false;  // mark image capturing as needed
@@ -70,6 +76,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
   protected:
     void BindAll() override;
     void OnUpdate(ChSystem* sys) override;
+    vsg::ref_ptr<vsgImGui::RenderImGui> m_renderGui;
 
   private:
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;

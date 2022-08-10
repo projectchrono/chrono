@@ -14,9 +14,6 @@
 // Radu Serban, Rainer Gericke
 // =============================================================================
 
-#include <vsgImGui/RenderImGui.h>
-#include <vsgImGui/SendEventsToImGui.h>
-#include <vsgImGui/imgui.h>
 #include "chrono_vsg/tools/createSkybox.h"
 #include "chrono_vsg/tools/createQuad.h"
 #include "chrono/assets/ChBoxShape.h"
@@ -182,6 +179,14 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_shapeBuilder = ShapeBuilder::create();
     m_shapeBuilder->m_options = m_options;
     m_shapeBuilder->m_sharedObjects = m_options->sharedObjects;
+    m_renderGui = nullptr;
+}
+
+void ChVisualSystemVSG::AttachGui() {
+    m_renderGui = vsgImGui::RenderImGui::create(m_window, GuiComponent(m_params, this));
+    if(!m_renderGui) {
+        GetLog() << "Could not create GUI!\n";
+    }
 }
 
 ChVisualSystemVSG::~ChVisualSystemVSG() {}
@@ -353,7 +358,10 @@ void ChVisualSystemVSG::Initialize() {
         }
     }
     // Create the ImGui node and add it to the renderGraph
-    renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, GuiComponent(m_params, this)));
+    AttachGui();
+    if(m_renderGui) {
+        renderGraph->addChild(m_renderGui);
+    }
 
     // Add the ImGui event handler first to handle events early
     m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
@@ -546,12 +554,12 @@ void ChVisualSystemVSG::BindAll() {
                 // needed, when BindAll() is called after Initialization
                 // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
                 // m_loadThreads->add(LoadOperation::create(observer_viewer, transform, objFilename, m_options));
-                map<size_t,vsg::ref_ptr<vsg::Node>>::iterator objIt;
+                map<size_t, vsg::ref_ptr<vsg::Node>>::iterator objIt;
                 objIt = m_objCache.find(objHashValue);
-                if(objIt == m_objCache.end()) {
+                if (objIt == m_objCache.end()) {
                     // GetLog() << "Cache empty or value not contained.\n";
                     auto node = vsg::read_cast<vsg::Node>(objFilename, m_options);
-                    if(node) {
+                    if (node) {
                         transform->addChild(node);
                         m_bodyScene->addChild(grp);
                         m_objCache[objHashValue] = node;
@@ -611,7 +619,7 @@ void ChVisualSystemVSG::BindAll() {
             if (!pcloud->GetVisualModel())
                 continue;
             GetLog() << "Generating Particle Cloud....\n";
-            if(!m_particlePattern) {
+            if (!m_particlePattern) {
                 std::shared_ptr<ChVisualMaterial> material;
                 material = chrono_types::make_shared<ChVisualMaterial>();
                 material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
@@ -629,8 +637,8 @@ void ChVisualSystemVSG::BindAll() {
                 group->setValue("TransformPtr", transform);
                 group->addChild(transform);
                 m_particleScene->addChild(group);
-                //m_particleScene->addChild(
-                //    m_shapeBuilder->createParticleShape(material, transform, m_draw_as_wireframe));
+                // m_particleScene->addChild(
+                //     m_shapeBuilder->createParticleShape(material, transform, m_draw_as_wireframe));
             }
         }
     }
