@@ -43,7 +43,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     ChVisualSystemVSG();
     ~ChVisualSystemVSG();
 
-    void Initialize();
+    virtual void Initialize();
     void Render();
     bool Run();
     // terminate

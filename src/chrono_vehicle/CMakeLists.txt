@@ -134,6 +134,19 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicle.h.in
 install(FILES "${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h"
         DESTINATION include/chrono_vehicle)
 
+if(ENABLE_MODULE_VSG)
+# Find the VSG library
+if (VULKAN_SDK)
+    set(ENV{VULKAN_SDK} ${VULKAN_SDK})
+endif()
+
+find_package(vsg REQUIRED)
+find_package(vsgImGui REQUIRED)
+find_package(vsgXchange REQUIRED)
+
+# set the use of C++17 here as VSG requires it
+set(CMAKE_CXX_STANDARD 17)
+endif()
 # ----------------------------------------------------------------------------
 # List the files in the ChronoEngine_vehicle library
 # ----------------------------------------------------------------------------
@@ -287,6 +300,15 @@ else()
 endif()
 source_group("utils" FILES ${CV_UTILS_FILES} ${CVIRR_UTILS_FILES})
 
+if(ENABLE_MODULE_VSG)
+    set(CVVSG_UTILS_FILES
+        utils/ChVehicleVisualSystemVSG.h
+        utils/ChVehicleVisualSystemVSG.cpp
+    )
+else()
+    set(CVVSG_UTILS_FILES "")
+endif()
+source_group("utils" FILES ${CV_UTILS_FILES} ${CVVSG_UTILS_FILES})
 
 set(CV_OUTPUT_FILES
     output/ChVehicleOutputASCII.h
@@ -563,6 +585,16 @@ else()
 endif()
 source_group("wheeled_vehicle\\utils" FILES ${CV_WV_UTILS_FILES} ${CVIRR_WV_UTILS_FILES})
 
+if(ENABLE_MODULE_VSG)
+    set(CVVSG_WV_UTILS_FILES
+        wheeled_vehicle/utils/ChWheeledVehicleVisualSystemVSG.h
+        wheeled_vehicle/utils/ChWheeledVehicleVisualSystemVSG.cpp
+    )
+else()
+    set(CVVSG_WV_UTILS_FILES "")
+endif()
+source_group("wheeled_vehicle\\utils" FILES ${CV_WV_UTILS_FILES} ${CVVSG_WV_UTILS_FILES})
+
 set(CV_WV_VEHICLE_FILES
     wheeled_vehicle/vehicle/WheeledTrailer.h
     wheeled_vehicle/vehicle/WheeledTrailer.cpp
@@ -780,6 +812,16 @@ else()
 endif()
 source_group("tracked_vehicle\\utils" FILES ${CV_TV_UTILS_FILES} ${CVIRR_TV_UTILS_FILES})
 
+if(ENABLE_MODULE_VSG)
+    set(CVVSG_TV_UTILS_FILES
+        tracked_vehicle/utils/ChTrackedVehicleVisualSystemVSG.h
+        tracked_vehicle/utils/ChTrackedVehicleVisualSystemVSG.cpp
+    )
+else()
+    set(CVVSG_TV_UTILS_FILES "")
+endif()
+source_group("tracked_vehicle\\utils" FILES ${CV_TV_UTILS_FILES} ${CVVSG_TV_UTILS_FILES})
+
 set(CV_TV_VEHICLE_FILES
     tracked_vehicle/vehicle/TrackedVehicle.h
     tracked_vehicle/vehicle/TrackedVehicle.cpp
@@ -916,6 +958,44 @@ target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_IGNORE_DEPR
 target_link_libraries(ChronoEngine_vehicle_irrlicht ${LIBRARIES})
 
 install(TARGETS ChronoEngine_vehicle_irrlicht
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+
+endif()
+
+#-------------------------------------------------------------------------------
+# Add the ChronoEngine_vehicle_vsg library
+#-------------------------------------------------------------------------------
+
+if(ENABLE_MODULE_VSG)
+
+set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+list(APPEND LIBRARIES ChronoEngine_vehicle)
+list(APPEND LIBRARIES ChronoEngine_vsg) 
+
+add_library(ChronoEngine_vehicle_vsg SHARED
+    ${CVVSG_UTILS_FILES}
+    ${CVVSG_WV_UTILS_FILES}
+    ${CVVSG_TV_UTILS_FILES}
+)
+
+set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES
+                      COMPILE_FLAGS "${CXX_FLAGS}"
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_API_COMPILE_VEHICLE")
+target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_IGNORE_DEPRECATED")
+
+target_link_libraries(ChronoEngine_vehicle_vsg 
+    ChronoEngine_vsg
+    ${LIBRARIES}
+    vsg::vsg
+    vsgImGui::vsgImGui
+    vsgXchange::vsgXchange  
+    )
+
+install(TARGETS ChronoEngine_vehicle_vsg
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
