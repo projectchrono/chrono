@@ -138,17 +138,15 @@ int main(int argc, char* argv[]) {
     vis->SetWireFrameMode(false);
     vis->Initialize();
 
-    size_t numFrame = 0;
     // Simulation loop
     double timestep = 0.005;
     while(vis->Run()) {
-        if(numFrame == 10) {
+        if(vis->GetFrameNumber() == 10) {
             std::string imageFileName = "image.png";
             vis->WriteImageToFile(imageFileName); // does not work with frame == 0!
         }
         sys.DoStepDynamics(timestep);
         vis->Render();
-        numFrame++;
     }
     return 0;
 }

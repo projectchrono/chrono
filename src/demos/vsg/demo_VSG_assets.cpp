@@ -274,14 +274,12 @@ int main(int argc, char* argv[]) {
                      ChColor(0.31f, 0.43f, 0.43f));
     vis->Initialize();
 
-    size_t numFrame = 0;
     while (vis->Run()) {
-        if (numFrame == 10) {
+        if (vis->GetFrameNumber() == 42) {
             vis->WriteImageToFile("newshot.png");  // does not work with frame == 0!
         }
         vis->Render();
         sys.DoStepDynamics(0.01);
-        numFrame++;
     }
     return 0;
 }

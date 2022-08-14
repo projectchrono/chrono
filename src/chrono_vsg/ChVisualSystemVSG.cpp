@@ -58,6 +58,9 @@ class GuiComponent {
             ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
             ImGui::Begin("App:");  // Create a window called "Hello, world!" and append into it.
 
+            ImGui::Text("Model Time %.4f s", m_appPtr->GetModelTime());
+            ImGui::Text("Wallclock Time %.2f s  RTF = %.1f", m_appPtr->GetWallclockTime(),m_appPtr->GetRealtimeFactor());
+
             if (ImGui::Button(
                     "Quit"))  // Buttons return true when clicked (most widgets return true when edited/activated)
                 m_appPtr->Quit();
@@ -156,6 +159,29 @@ struct LoadOperation : public vsg::Inherit<vsg::Operation, LoadOperation> {
     }
 };
 
+double ChVisualSystemVSG::GetModelTime() {
+    if (m_systems[0]) {
+        return m_systems[0]->GetChTime();
+    } else {
+        return 0.0;
+    }
+}
+
+double ChVisualSystemVSG::GetWallclockTime() {
+    if (GetModelTime() > 0.0)
+        return double(clock()) / double(CLOCKS_PER_SEC) - m_params->time_begin;
+    else
+        return 0.0;
+}
+
+double ChVisualSystemVSG::GetRealtimeFactor() {
+    if(GetWallclockTime() > 0.0) {
+        return GetModelTime()/GetWallclockTime();
+    } else {
+        return 0.0;
+    }
+}
+
 ChVisualSystemVSG::ChVisualSystemVSG() {
     m_windowTitle = string("Window Title");
     m_clearColor = ChColor(0.0, 0.0, 0.0);
@@ -184,7 +210,7 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
 
 void ChVisualSystemVSG::AttachGui() {
     m_renderGui = vsgImGui::RenderImGui::create(m_window, GuiComponent(m_params, this));
-    if(!m_renderGui) {
+    if (!m_renderGui) {
         GetLog() << "Could not create GUI!\n";
     }
 }
@@ -238,6 +264,10 @@ void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
 void ChVisualSystemVSG::SetLightDirection(double acimut, double elevation) {
     m_acimut = ChClamp(acimut, -CH_C_PI, CH_C_PI);
     m_elevation = ChClamp(elevation, 0.0, CH_C_PI_2);
+}
+
+size_t ChVisualSystemVSG::GetFrameNumber() {
+    return m_params->frame_number;
 }
 
 void ChVisualSystemVSG::Initialize() {
@@ -359,7 +389,7 @@ void ChVisualSystemVSG::Initialize() {
     }
     // Create the ImGui node and add it to the renderGraph
     AttachGui();
-    if(m_renderGui) {
+    if (m_renderGui) {
         renderGraph->addChild(m_renderGui);
     }
 
@@ -394,6 +424,8 @@ bool ChVisualSystemVSG::Run() {
 }
 
 void ChVisualSystemVSG::Render() {
+    if (m_params->frame_number == 0)
+        m_params->time_begin = double(clock()) / double(CLOCKS_PER_SEC);
     // pass any events into EventHandlers assigned to the Viewer
     m_viewer->handleEvents();
 
@@ -407,6 +439,7 @@ void ChVisualSystemVSG::Render() {
     }
 
     m_viewer->present();
+    m_params->frame_number++;
 }
 
 void ChVisualSystemVSG::WriteImageToFile(const string& filename) {

@@ -45,14 +45,12 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector<>(-2, 3, -4));
     vis->Initialize();
 
-    size_t numFrame = 0;
     while(vis->Run()) {
-        if(numFrame == 10) {
+        if(vis->GetFrameNumber() == 10) {
             std::string imageFileName = "picture.png"; // allowed formats png, bmp, jpg, tga
             vis->WriteImageToFile(imageFileName); // does not work with frame == 0!
         }
         vis->Render();
-        numFrame++;
     }
     return 0;
 }
