@@ -711,8 +711,11 @@ void ChSystemFsi::Initialize() {
         size_t numParticles = m_sysFSI->sphMarkersH->rhoPresMuH.size();
         for (int i = 0; i < numParticles; i++) {
             double z = m_sysFSI->sphMarkersH->posRadH[i].z;
-            m_sysFSI->sphMarkersH->rhoPresMuH[i].y =
-                -m_paramsH->rho0 * m_paramsH->gravity.z * m_paramsH->gravity.z * (z - m_paramsH->pressure_height);
+            double p = m_paramsH->rho0 * m_paramsH->gravity.z * (z - m_paramsH->pressure_height);
+            m_sysFSI->sphMarkersH->rhoPresMuH[i].y = p;
+            m_sysFSI->sphMarkersH->tauXxYyZzH[i].x = -p;
+            m_sysFSI->sphMarkersH->tauXxYyZzH[i].y = -p;
+            m_sysFSI->sphMarkersH->tauXxYyZzH[i].z = -p;
         }
     }
 
