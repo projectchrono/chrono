@@ -53,6 +53,11 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     /// Construct a vehicle Irrlicht visualization system
     ChVehicleVisualSystemVSG();
     virtual void Initialize() override;
+    virtual double GetVehicleSpeed() override;
+    virtual double GetEngineSpeed() override;
+    virtual double GetEngineTorque() override;
+    virtual int GetGear() override;
+    virtual int GetMaxGear() override;
 };
 
 // @} vehicle_utils

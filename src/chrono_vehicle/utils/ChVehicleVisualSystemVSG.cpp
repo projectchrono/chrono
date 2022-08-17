@@ -26,13 +26,52 @@ namespace chrono {
 namespace vehicle {
 
 ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() {
-
+    m_params->showVehicleState = true;
 }
 
 void ChVehicleVisualSystemVSG::Initialize() {
     ChVisualSystemVSG::Initialize();
 }
 
+double ChVehicleVisualSystemVSG::GetVehicleSpeed() {
+    if (m_vehicle) {
+        return m_vehicle->GetChassis()->GetSpeed();
+    } else {
+        return 0.0;
+    }
+}
+
+    double ChVehicleVisualSystemVSG::GetEngineSpeed() {
+        if (m_vehicle) {
+            return m_vehicle->GetPowertrain()->GetMotorSpeed() * 30.0 / CH_C_PI;
+        } else {
+            return 0.0;
+        }
+    }
+
+    double ChVehicleVisualSystemVSG::GetEngineTorque() {
+        if (m_vehicle) {
+            return m_vehicle->GetPowertrain()->GetMotorTorque();
+        } else {
+            return 0.0;
+        }
+    }
+
+    int ChVehicleVisualSystemVSG::GetGear() {
+        if (m_vehicle) {
+            return m_vehicle->GetPowertrain()->GetCurrentTransmissionGear();
+        } else {
+            return 0;
+        }
+    }
+
+    int ChVehicleVisualSystemVSG::GetMaxGear() {
+        if (m_vehicle) {
+            return 42;
+        } else {
+            return 0;
+        }
+    }
+
 }  // end namespace vehicle
 }  // end namespace chrono
-

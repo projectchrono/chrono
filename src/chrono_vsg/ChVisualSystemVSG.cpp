@@ -53,13 +53,82 @@ class GuiComponent {
         ImGuiIO& io = ImGui::GetIO();
         io.FontGlobalScale = _params->guiFontScale;
         */
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+        // 1. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         if (_params->showGui) {
+            char label[64];
             ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
             ImGui::Begin("App:");  // Create a window called "Hello, world!" and append into it.
 
-            ImGui::Text("Model Time %.4f s", m_appPtr->GetModelTime());
-            ImGui::Text("Wallclock Time %.2f s  RTF = %.1f", m_appPtr->GetWallclockTime(),m_appPtr->GetRealtimeFactor());
+            if(_params->showVehicleState) {
+                ImGui::BeginTable("VehTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                        ImVec2(0.0f, 0.0f));
+                ImGui::TableNextColumn();
+                ImGui::Text("Vehicle Speed:");
+                ImGui::TableNextColumn();
+                sprintf(label, "%.1f m/s", m_appPtr->GetVehicleSpeed());
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("Steering:");
+                ImGui::TableNextColumn();
+                sprintf(label, "%.2f", m_appPtr->GetSteering());
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("Throttle:");
+                ImGui::TableNextColumn();
+                sprintf(label, "%.2f", m_appPtr->GetThrottle());
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("Break:");
+                ImGui::TableNextColumn();
+                sprintf(label, "%.2f", m_appPtr->GetBreak());
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("Engine Speed:");
+                ImGui::TableNextColumn();
+                sprintf(label, "%.1f rpm", m_appPtr->GetEngineSpeed());
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("Engine Torque:");
+                ImGui::TableNextColumn();
+                sprintf(label, "%.1f Nm", m_appPtr->GetEngineTorque());
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("Gear:");
+                ImGui::TableNextColumn();
+                sprintf(label, "%d of %d", m_appPtr->GetGear(),m_appPtr->GetMaxGear());
+                ImGui::Text(label);
+
+                ImGui::EndTable();
+
+                ImGui::Spacing();
+            }
+            ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                              ImVec2(0.0f, 0.0f));
+            sprintf(label, "%.4f s", m_appPtr->GetModelTime());
+            ImGui::TableNextColumn();
+            ImGui::Text("Model Time:");
+            ImGui::TableNextColumn();
+            ImGui::Text(label);
+            ImGui::TableNextRow();
+            sprintf(label, "%.4f s", m_appPtr->GetWallclockTime());
+            ImGui::TableNextColumn();
+            ImGui::Text("Wall Clock Time:");
+            ImGui::TableNextColumn();
+            ImGui::Text(label);
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("Real Time Factor:");
+            ImGui::TableNextColumn();
+            sprintf(label, "%.2f", m_appPtr->GetRealtimeFactor());
+            ImGui::Text(label);
+            ImGui::EndTable();
+            ImGui::Spacing();
 
             if (ImGui::Button(
                     "Quit"))  // Buttons return true when clicked (most widgets return true when edited/activated)
@@ -175,8 +244,8 @@ double ChVisualSystemVSG::GetWallclockTime() {
 }
 
 double ChVisualSystemVSG::GetRealtimeFactor() {
-    if(GetWallclockTime() > 0.0) {
-        return GetModelTime()/GetWallclockTime();
+    if (GetWallclockTime() > 0.0) {
+        return GetModelTime() / GetWallclockTime();
     } else {
         return 0.0;
     }

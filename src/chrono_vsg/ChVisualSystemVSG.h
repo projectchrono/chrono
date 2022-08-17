@@ -69,6 +69,14 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     size_t GetFrameNumber();
     double GetWallclockTime();
     double GetRealtimeFactor();
+    virtual double GetVehicleSpeed() { return 0.0; }
+    virtual double GetEngineSpeed() { return 0.0; }
+    virtual double GetEngineTorque() { return 0.0; }
+    virtual double GetSteering() { return 0.0; }
+    virtual double GetThrottle() { return 0.0; }
+    virtual double GetBreak() { return 0.0; }
+    virtual int GetGear() { return 0; }
+    virtual int GetMaxGear() { return 0; }
 
     virtual void AttachGui();
 
@@ -78,18 +86,20 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
         double cogSymbolSize = 0.0;
         size_t frame_number = 0;        // updated in Run() loop
         double time_begin = 0.0;        // wallclock time at begin of Run() loop
+        bool showVehicleState = false;
     };
 
   protected:
     void BindAll() override;
     void OnUpdate(ChSystem* sys) override;
     vsg::ref_ptr<vsgImGui::RenderImGui> m_renderGui;
+    vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
+    vsg::ref_ptr<vsg::Window> m_window;
 
   private:
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
     std::hash<std::string> m_stringHash;
     vsg::ref_ptr<vsg::Viewer> m_viewer;
-    vsg::ref_ptr<vsg::Window> m_window;
     int m_windowWidth = 800;
     int m_windowHeight = 600;
     int m_windowX = 0;
@@ -98,7 +108,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     ChColor m_clearColor;
     //
     vsg::ref_ptr<vsg::Options> m_options;
-    vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
     int m_numThreads = 16;
     vsg::ref_ptr<vsg::OperationThreads> m_loadThreads;
     //

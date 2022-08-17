@@ -25,7 +25,6 @@ namespace chrono {
 
         /// Attach a vehicle to this Irrlicht vehicle visualization system.
         virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
-
     private:
         ChWheeledVehicle* m_wvehicle;
     };
