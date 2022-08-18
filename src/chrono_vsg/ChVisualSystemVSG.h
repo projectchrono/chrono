@@ -69,14 +69,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     size_t GetFrameNumber();
     double GetWallclockTime();
     double GetRealtimeFactor();
-    virtual double GetVehicleSpeed() { return 0.0; }
-    virtual double GetEngineSpeed() { return 0.0; }
-    virtual double GetEngineTorque() { return 0.0; }
-    virtual double GetSteering() { return 0.0; }
-    virtual double GetThrottle() { return 0.0; }
-    virtual double GetBreak() { return 0.0; }
-    virtual int GetGear() { return 0; }
-    virtual int GetMaxGear() { return 0; }
 
     virtual void AttachGui();
 
@@ -87,6 +79,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
         size_t frame_number = 0;        // updated in Run() loop
         double time_begin = 0.0;        // wallclock time at begin of Run() loop
         bool showVehicleState = false;
+        double vehicleSpeed = 0;
+        double steering = 0;
+        double throttle = 0;
+        double braking = 0;
     };
 
   protected:
@@ -95,6 +91,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsgImGui::RenderImGui> m_renderGui;
     vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
     vsg::ref_ptr<vsg::Window> m_window;
+    vsg::dvec3 m_vsg_cameraEye = vsg::dvec3(-10.0,0.0,0.0);
+    vsg::dvec3 m_vsg_cameraTarget = vsg::dvec3(0.0,0.0,0.0);
+    vsg::ref_ptr<vsg::LookAt> m_lookAt;
+    vsg::ref_ptr<vsg::Camera> m_vsg_camera;
 
   private:
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
@@ -134,8 +134,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //
     vsg::dvec3 m_cameraUpVector;
     bool m_yup;
-    vsg::dvec3 m_cameraEye;
-    vsg::dvec3 m_cameraTarget;
     double m_cameraAngleDeg = 30.0;
     //
     double m_lightIntensity = 1.0;

@@ -65,43 +65,25 @@ class GuiComponent {
                 ImGui::TableNextColumn();
                 ImGui::Text("Vehicle Speed:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.1f m/s", m_appPtr->GetVehicleSpeed());
+                sprintf(label, "%.1f m/s", _params->vehicleSpeed);
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Steering:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.2f", m_appPtr->GetSteering());
+                sprintf(label, "%.1f", _params->steering);
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Throttle:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.2f", m_appPtr->GetThrottle());
+                sprintf(label, "%.1f", _params->throttle);
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::Text("Break:");
+                ImGui::Text("Braking:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.2f", m_appPtr->GetBreak());
-                ImGui::Text(label);
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("Engine Speed:");
-                ImGui::TableNextColumn();
-                sprintf(label, "%.1f rpm", m_appPtr->GetEngineSpeed());
-                ImGui::Text(label);
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("Engine Torque:");
-                ImGui::TableNextColumn();
-                sprintf(label, "%.1f Nm", m_appPtr->GetEngineTorque());
-                ImGui::Text(label);
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("Gear:");
-                ImGui::TableNextColumn();
-                sprintf(label, "%d of %d", m_appPtr->GetGear(),m_appPtr->GetMaxGear());
+                sprintf(label, "%.1f", _params->braking);
                 ImGui::Text(label);
 
                 ImGui::EndTable();
@@ -244,8 +226,8 @@ double ChVisualSystemVSG::GetWallclockTime() {
 }
 
 double ChVisualSystemVSG::GetRealtimeFactor() {
-    if (GetWallclockTime() > 0.0) {
-        return GetModelTime() / GetWallclockTime();
+    if (GetModelTime() > 0.0) {
+        return GetWallclockTime() / GetModelTime();
     } else {
         return 0.0;
     }
@@ -313,8 +295,8 @@ void ChVisualSystemVSG::SetUseSkyBox(bool yesno) {
 }
 
 void ChVisualSystemVSG::AddCamera(const ChVector<>& pos, ChVector<> targ) {
-    m_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
-    m_cameraTarget = vsg::dvec3(targ.x(), targ.y(), targ.z());
+    m_vsg_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
+    m_vsg_cameraTarget = vsg::dvec3(targ.x(), targ.y(), targ.z());
 }
 
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
@@ -411,10 +393,9 @@ void ChVisualSystemVSG::Initialize() {
     }
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
     m_viewer->addWindow(m_window);
-    vsg::ref_ptr<vsg::LookAt> lookAt;
 
     // set up the camera
-    lookAt = vsg::LookAt::create(m_cameraEye, m_cameraTarget, m_cameraUpVector);
+    m_lookAt = vsg::LookAt::create(m_vsg_cameraEye, m_vsg_cameraTarget, m_cameraUpVector);
 
     double nearFarRatio = 0.001;
     auto perspective = vsg::Perspective::create(
@@ -422,7 +403,7 @@ void ChVisualSystemVSG::Initialize() {
         static_cast<double>(m_window->extent2D().width) / static_cast<double>(m_window->extent2D().height),
         nearFarRatio * radius, radius * 10.0);
 
-    auto camera = vsg::Camera::create(perspective, lookAt, vsg::ViewportState::create(m_window->extent2D()));
+    m_vsg_camera = vsg::Camera::create(perspective, m_lookAt, vsg::ViewportState::create(m_window->extent2D()));
 
     // add keyboard handler
     auto kbHandler = AppKeyboardHandler::create(m_viewer);
@@ -431,12 +412,12 @@ void ChVisualSystemVSG::Initialize() {
 
     m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
 
-    m_viewer->addEventHandler(vsg::Trackball::create(camera));
+    m_viewer->addEventHandler(vsg::Trackball::create(m_vsg_camera));
 
     // default sets automatic directional light
     // auto renderGraph = vsg::RenderGraph::create(m_window, m_view);
     // switches off automatic directional light setting
-    auto renderGraph = vsg::createRenderGraphForView(m_window, camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
+    auto renderGraph = vsg::createRenderGraphForView(m_window, m_vsg_camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
     auto commandGraph = vsg::CommandGraph::create(m_window, renderGraph);
 
     auto foundFontFile = vsg::findFile("vsg/fonts/Ubuntu_Mono/UbuntuMono-Regular.ttf", m_options);

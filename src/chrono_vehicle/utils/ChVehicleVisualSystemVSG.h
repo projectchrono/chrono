@@ -53,11 +53,12 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     /// Construct a vehicle Irrlicht visualization system
     ChVehicleVisualSystemVSG();
     virtual void Initialize() override;
-    virtual double GetVehicleSpeed() override;
-    virtual double GetEngineSpeed() override;
-    virtual double GetEngineTorque() override;
-    virtual int GetGear() override;
-    virtual int GetMaxGear() override;
+    /// Update information related to driver inputs.
+    virtual void Synchronize(const std::string& msg, const DriverInputs& driver_inputs) override;
+    /// Advance the dynamics of the chase camera.
+    /// The integration of the underlying ODEs is performed using as many steps as needed to advance
+    /// by the specified duration.
+    void Advance(double step);
 };
 
 // @} vehicle_utils

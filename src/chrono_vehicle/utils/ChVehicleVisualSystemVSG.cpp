@@ -33,45 +33,43 @@ void ChVehicleVisualSystemVSG::Initialize() {
     ChVisualSystemVSG::Initialize();
 }
 
-double ChVehicleVisualSystemVSG::GetVehicleSpeed() {
+void ChVehicleVisualSystemVSG::Synchronize(const std::string& msg, const DriverInputs& driver_inputs) {
+    ChVehicleVisualSystem::Synchronize(msg, driver_inputs);
     if (m_vehicle) {
-        return m_vehicle->GetChassis()->GetSpeed();
-    } else {
-        return 0.0;
+        m_params->vehicleSpeed = m_vehicle->GetSpeed();
+        m_params->steering = driver_inputs.m_steering;
+        m_params->throttle = driver_inputs.m_throttle;
+        m_params->braking = driver_inputs.m_braking;
     }
 }
 
-    double ChVehicleVisualSystemVSG::GetEngineSpeed() {
-        if (m_vehicle) {
-            return m_vehicle->GetPowertrain()->GetMotorSpeed() * 30.0 / CH_C_PI;
-        } else {
-            return 0.0;
-        }
+// -----------------------------------------------------------------------------
+// Advance the dynamics of the chase camera.
+// The integration of the underlying ODEs is performed using as many steps as
+// needed to advance by the specified duration.
+// -----------------------------------------------------------------------------
+void ChVehicleVisualSystemVSG::Advance(double step) {
+    // Update the ChChaseCamera: take as many integration steps as needed to
+    // exactly reach the value 'step'
+    double t = 0;
+    while (t < step) {
+        double h = std::min<>(m_stepsize, step - t);
+        m_camera->Update(h);
+        t += h;
     }
 
-    double ChVehicleVisualSystemVSG::GetEngineTorque() {
-        if (m_vehicle) {
-            return m_vehicle->GetPowertrain()->GetMotorTorque();
-        } else {
-            return 0.0;
-        }
-    }
+    // Update the Irrlicht camera
+    ChVector<> cam_pos = m_camera->GetCameraPos();
+    ChVector<> cam_target = m_camera->GetTargetPos();
 
-    int ChVehicleVisualSystemVSG::GetGear() {
-        if (m_vehicle) {
-            return m_vehicle->GetPowertrain()->GetCurrentTransmissionGear();
-        } else {
-            return 0;
-        }
-    }
-
-    int ChVehicleVisualSystemVSG::GetMaxGear() {
-        if (m_vehicle) {
-            return 42;
-        } else {
-            return 0;
-        }
-    }
+    // apply camera setting to VSG app
+    // GetActiveCamera()->setPosition(core::vector3dfCH(cam_pos));
+    // GetActiveCamera()->setTarget(core::vector3dfCH(cam_target));
+    m_vsg_cameraEye.set(cam_pos.x(), cam_pos.y(), cam_pos.z());
+    m_vsg_cameraTarget.set(cam_target.x(), cam_target.y(), cam_target.z());
+    m_lookAt->eye = m_vsg_cameraEye;
+    m_lookAt->center = m_vsg_cameraTarget;
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono

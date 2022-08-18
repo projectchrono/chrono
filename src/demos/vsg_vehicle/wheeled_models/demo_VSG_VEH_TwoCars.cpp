@@ -106,18 +106,21 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle Irrlicht interface (associated with 1st vehicle)
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-    vis->SetWindowTitle("Two cars demo");
+    vis->SetWindowTitle("VSG: Two cars demo");
     /*
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
     vis->SetChaseCameraState(utils::ChChaseCamera::Track);
     vis->SetChaseCameraPosition(ChVector<>(-15, 0, 2.0));
      */
-    vis->AddCamera(ChVector<>(-15, 0, 2.0));
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
+    vis->SetChaseCameraState(utils::ChChaseCamera::Track);
+    vis->SetChaseCameraPosition(ChVector<>(-15, 0, 2.0));
     vis->SetUseSkyBox(true);
     vis->AttachVehicle(&hmmwv_1.GetVehicle());
     vis->SetCameraAngleDeg(40);
     vis->SetLightIntensity(1.0);
     vis->SetLightDirection(1.5*CH_C_PI_2, CH_C_PI_4);
+
     vis->Initialize();
 
     // ---------------
@@ -140,7 +143,7 @@ int main(int argc, char* argv[]) {
         hmmwv_1.Synchronize(time, driver_inputs_1, terrain);
         hmmwv_2.Synchronize(time, driver_inputs_2, terrain);
         terrain.Synchronize(time);
-        //vis->Synchronize("", driver_inputs_1);
+        vis->Synchronize("Data", driver_inputs_1);
 
         // Advance simulation for one timestep for all modules.
         driver_1.Advance(step_size);
@@ -148,7 +151,7 @@ int main(int argc, char* argv[]) {
         hmmwv_1.Advance(step_size);
         hmmwv_2.Advance(step_size);
         terrain.Advance(step_size);
-        //vis->Advance(step_size);
+        vis->Advance(step_size);
 
         // Advance state of entire system (containing both vehicles)
         sys.DoStepDynamics(step_size);
