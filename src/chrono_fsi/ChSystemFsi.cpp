@@ -711,8 +711,11 @@ void ChSystemFsi::Initialize() {
         size_t numParticles = m_sysFSI->sphMarkersH->rhoPresMuH.size();
         for (int i = 0; i < numParticles; i++) {
             double z = m_sysFSI->sphMarkersH->posRadH[i].z;
-            m_sysFSI->sphMarkersH->rhoPresMuH[i].y =
-                -m_paramsH->rho0 * m_paramsH->gravity.z * m_paramsH->gravity.z * (z - m_paramsH->pressure_height);
+            double p = m_paramsH->rho0 * m_paramsH->gravity.z * (z - m_paramsH->pressure_height);
+            m_sysFSI->sphMarkersH->rhoPresMuH[i].y = p;
+            m_sysFSI->sphMarkersH->tauXxYyZzH[i].x = -p;
+            m_sysFSI->sphMarkersH->tauXxYyZzH[i].y = -p;
+            m_sysFSI->sphMarkersH->tauXxYyZzH[i].z = -p;
         }
     }
 
@@ -1165,6 +1168,7 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
     thrust::host_vector<Real4> posRadBCE;
     int numElems = my_mesh->GetNelements();
     std::vector<int> remove2D;
+    std::vector<int> remove2D_s;
     std::vector<int> remove1D;
 
     for (size_t i = 0; i < my_mesh->GetNnodes(); i++) {
@@ -1209,7 +1213,9 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
             if (auto thisShell =
                     std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(my_mesh->GetElement((unsigned int)i))) {
                 remove2D.resize(4);
+                remove2D_s.resize(4);
                 std::fill(remove2D.begin(), remove2D.begin() + 4, 0);
+                std::fill(remove2D_s.begin(), remove2D_s.begin() + 4, 0);
 
                 m_fsi_shells.push_back(thisShell);
                 // Look into the nodes of this element
@@ -1237,14 +1243,22 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                                         _2D_elementsNodes[neighborElement][jnode] &&
                                         thisNode != _2D_elementsNodes[i - Curr_size][inode] && i > neighborElement) {
                                     remove2D[inode] = 1;
+                                    if ( inode == j + 1 || j > inode + 1 ) {
+                                        remove2D_s[j] = 1;
+                                    }
+                                    else {
+                                        remove2D_s[inode] = 1;
+                                    }
+                                    
                                 }
                             }
                         }
                     }
                 }
+
                 if (add2DElem) {
                     utils::CreateBCE_On_ChElementShellANCF(posRadBCE, m_paramsH, thisShell, 
-                        remove2D, multiLayer, removeMiddleLayer, SIDE2D, kernel_h);
+                        remove2D, remove2D_s, multiLayer, removeMiddleLayer, SIDE2D, kernel_h);
                     CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell, kernel_h);
                 }
                 posRadBCE.clear();
@@ -1284,6 +1298,7 @@ void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShel
     thrust::host_vector<Real4> posRadBCE;
     int numShells = mesh->GetNelements();
     std::vector<int> remove;
+    std::vector<int> remove_s;
 
     for (size_t i = 0; i < NodeNeighborElement.size(); i++) {
         auto thisNode = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(mesh->GetNode((unsigned int)i));
@@ -1292,7 +1307,9 @@ void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShel
 
     for (size_t i = 0; i < numShells; i++) {
         remove.resize(4);
+        remove_s.resize(4);
         std::fill(remove.begin(), remove.begin() + 4, 0);
+        std::fill(remove_s.begin(), remove_s.begin() + 4, 0);
         auto thisShell = 
             std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(mesh->GetElement((unsigned int)i));
         m_fsi_shells.push_back(thisShell);
@@ -1319,13 +1336,19 @@ void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShel
                         if (elementsNodes[i][inode] - 1 == elementsNodes[neighborElement][jnode] - 1 &&
                             thisNode != elementsNodes[i][inode] - 1 && i > neighborElement) {
                             remove[inode] = 1;
+                            if ( inode == j + 1 || j > inode + 1 ) {
+                                        remove_s[j] = 1;
+                                    }
+                            else {
+                                remove_s[inode] = 1;
+                            }
                         }
                     }
                 }
             }
         }
         utils::CreateBCE_On_ChElementShellANCF(
-            posRadBCE, m_paramsH, thisShell, remove, multiLayer, removeMiddleLayer, SIDE);
+            posRadBCE, m_paramsH, thisShell, remove, remove_s, multiLayer, removeMiddleLayer, SIDE);
         CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell);
         posRadBCE.clear();
     }
@@ -1644,6 +1667,11 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(
     ChVector<> nCp = shell->GetNodeC()->GetPos();
     ChVector<> nDp = shell->GetNodeD()->GetPos();
 
+    ChVector<> nAdir = shell->GetNodeA()->GetD();
+    ChVector<> nBdir = shell->GetNodeB()->GetD();
+    ChVector<> nCdir = shell->GetNodeC()->GetD();
+    ChVector<> nDdir = shell->GetNodeD()->GetD();
+
     ChVector<> nAv = shell->GetNodeA()->GetPos_dt();
     ChVector<> nBv = shell->GetNodeB()->GetPos_dt();
     ChVector<> nCv = shell->GetNodeC()->GetPos_dt();
@@ -1657,10 +1685,8 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(
         ChVector<> pos_natural = pos_physical * physic_to_natural;
 
         shell->ShapeFunctions(N, pos_natural.x(), pos_natural.y(), pos_natural.z());
-        ChVector<> x_dir = (nBp - nAp + nCp - nDp);
-        ChVector<> y_dir = (nCp - nBp + nDp - nAp);
-        ChVector<> Normal;
-        Normal.Cross(x_dir, y_dir);
+
+        ChVector<> Normal= N(0) * nAdir + N(2) * nBdir + N(4) * nCdir + N(6) * nDdir;
         Normal.Normalize();
 
         ChVector<> Correct_Pos = N(0) * nAp + N(2) * nBp + N(4) * nCp + N(6) * nDp +

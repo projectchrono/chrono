@@ -37,14 +37,15 @@ bool output = true;
 double out_fps = 20;
 
 // Size of the box
-double bxDim = 1.0;
-double byDim = 1.0;
-double bzDim = 1.4;
+double smalldis = 1.0e-5;
+double bxDim = 1.0 + smalldis;
+double byDim = 1.0 + smalldis;
+double bzDim = 1.4 + smalldis;
 
 // Size of the fluid domain
 double fxDim = bxDim;
 double fyDim = byDim;
-double fzDim = 1.0;
+double fzDim = 1.0 + smalldis;
 
 // Final simulation time
 double t_end = 2.0;
@@ -166,6 +167,11 @@ int main(int argc, char* argv[]) {
     double dT = sysFSI.GetStepSize();
     unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
 
+    std::ofstream outf;
+    std::string delim = ",";
+    outf.open((out_dir + "/Analysis.txt"), std::ios::trunc);
+    outf << "Time" << delim << "Rho_fluid" << delim << "k_fluid" << std::endl;
+
     double time = 0;
     int current_step = 0;
 
@@ -185,12 +191,6 @@ int main(int argc, char* argv[]) {
         auto rhoPresMu = sysFSI.GetParticleFluidProperties();
         auto vel = sysFSI.GetParticleVelocities();
 
-        std::ofstream outf;
-        std::string delim = ",";
-        outf.open((out_dir + "/Analysis.txt"), std::ios::app);
-        if (current_step == 0)
-            outf << "Time" << delim << "Rho_fluid" << delim << "k_fluid" << std::endl;
-
         double KE = 0;
         double Rho = 0;
         for (int i = 0; i < numPart; i++) {
@@ -199,7 +199,6 @@ int main(int argc, char* argv[]) {
         }
 
         outf << time << delim << Rho / numPart << delim << sysFSI.GetParticleMass() * KE / numPart << std::endl;
-        outf.close();
 
         time += dT;
         current_step++;

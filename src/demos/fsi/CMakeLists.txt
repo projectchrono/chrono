@@ -12,7 +12,9 @@ SET(FSI_DEMOS
 )
 
 set(FSI_MKL_DEMOS
-    demo_FSI_Flexible_Elements
+    demo_FSI_Flexible_Flat_Plate
+    demo_FSI_Flexible_Toroidal_Tire
+    demo_FSI_Flexible_HMMWV_Tire
 )
 
 #--------------------------------------------------------------
