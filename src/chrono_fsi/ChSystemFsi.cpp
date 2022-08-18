@@ -1165,6 +1165,7 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
     thrust::host_vector<Real4> posRadBCE;
     int numElems = my_mesh->GetNelements();
     std::vector<int> remove2D;
+    std::vector<int> remove2D_s;
     std::vector<int> remove1D;
 
     for (size_t i = 0; i < my_mesh->GetNnodes(); i++) {
@@ -1209,7 +1210,9 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
             if (auto thisShell =
                     std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(my_mesh->GetElement((unsigned int)i))) {
                 remove2D.resize(4);
+                remove2D_s.resize(4);
                 std::fill(remove2D.begin(), remove2D.begin() + 4, 0);
+                std::fill(remove2D_s.begin(), remove2D_s.begin() + 4, 0);
 
                 m_fsi_shells.push_back(thisShell);
                 // Look into the nodes of this element
@@ -1237,14 +1240,22 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                                         _2D_elementsNodes[neighborElement][jnode] &&
                                         thisNode != _2D_elementsNodes[i - Curr_size][inode] && i > neighborElement) {
                                     remove2D[inode] = 1;
+                                    if ( inode == j + 1 || j > inode + 1 ) {
+                                        remove2D_s[j] = 1;
+                                    }
+                                    else {
+                                        remove2D_s[inode] = 1;
+                                    }
+                                    
                                 }
                             }
                         }
                     }
                 }
+
                 if (add2DElem) {
                     utils::CreateBCE_On_ChElementShellANCF(posRadBCE, m_paramsH, thisShell, 
-                        remove2D, multiLayer, removeMiddleLayer, SIDE2D, kernel_h);
+                        remove2D, remove2D_s, multiLayer, removeMiddleLayer, SIDE2D, kernel_h);
                     CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell, kernel_h);
                 }
                 posRadBCE.clear();
@@ -1284,6 +1295,7 @@ void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShel
     thrust::host_vector<Real4> posRadBCE;
     int numShells = mesh->GetNelements();
     std::vector<int> remove;
+    std::vector<int> remove_s;
 
     for (size_t i = 0; i < NodeNeighborElement.size(); i++) {
         auto thisNode = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(mesh->GetNode((unsigned int)i));
@@ -1292,7 +1304,9 @@ void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShel
 
     for (size_t i = 0; i < numShells; i++) {
         remove.resize(4);
+        remove_s.resize(4);
         std::fill(remove.begin(), remove.begin() + 4, 0);
+        std::fill(remove_s.begin(), remove_s.begin() + 4, 0);
         auto thisShell = 
             std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(mesh->GetElement((unsigned int)i));
         m_fsi_shells.push_back(thisShell);
@@ -1319,13 +1333,19 @@ void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShel
                         if (elementsNodes[i][inode] - 1 == elementsNodes[neighborElement][jnode] - 1 &&
                             thisNode != elementsNodes[i][inode] - 1 && i > neighborElement) {
                             remove[inode] = 1;
+                            if ( inode == j + 1 || j > inode + 1 ) {
+                                        remove_s[j] = 1;
+                                    }
+                            else {
+                                remove_s[inode] = 1;
+                            }
                         }
                     }
                 }
             }
         }
         utils::CreateBCE_On_ChElementShellANCF(
-            posRadBCE, m_paramsH, thisShell, remove, multiLayer, removeMiddleLayer, SIDE);
+            posRadBCE, m_paramsH, thisShell, remove, remove_s, multiLayer, removeMiddleLayer, SIDE);
         CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell);
         posRadBCE.clear();
     }

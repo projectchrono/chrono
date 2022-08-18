@@ -425,6 +425,7 @@ void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
                                      std::shared_ptr<SimParams> paramsH,
                                      std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
                                      std::vector<int> remove,
+                                     std::vector<int> remove_s,
                                      bool multiLayer,
                                      bool removeMiddleLayer,
                                      int SIDE,
@@ -447,11 +448,28 @@ void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
     if (nY > 0.5)
         nFY++;
 
-    Real initSpaceX = dx / nFX;
-    Real initSpaceY = dy / nFY;
+    Real initSpaceX;
+    Real initSpaceY;
+    int2 iBound;
+    int2 jBound;
 
-    int2 iBound = mI2(-nFX, nFX);
-    int2 jBound = mI2(-nFY, nFY);
+    if ( dx < nFX*initSpace0 ) {
+        iBound = mI2(-nFX*2, nFX*2);
+        initSpaceX = dx / nFX;
+        }
+    else {
+        iBound = mI2(-nFX*2-1, nFX*2+1);
+        initSpaceX = dx / ( 0.5 + nFX);
+        }
+    if ( dy < nFY*initSpace0 ) {
+        jBound = mI2(-nFY*2, nFY*2);
+        initSpaceY = dy / nFY;
+        }
+    else {
+        jBound = mI2(-nFY*2-1, nFY*2+1);
+        initSpaceY = dy / ( 0.5 + nFY);
+        }
+
     int2 kBound;
     // If multi-layer BCE is required
     if (SIDE > 0 && multiLayer)         // Do SIDE number layers in one side
@@ -470,17 +488,21 @@ void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
             paramsH->MULT_INITSPACE_Shells = 0.5;
             continue;
         }
-        for (int j = jBound.x; j <= jBound.y; j++) {
-            for (int i = iBound.x; i <= iBound.y; i++) {
-                Real3 relMarkerPos = mR3(i * initSpaceX, j * initSpaceY, k);
+        for (int j = jBound.x; j <= jBound.y; j=j+2) {
+            for (int i = iBound.x; i <= iBound.y; i=i+2) {
+                Real3 relMarkerPos = mR3(i * initSpaceX / 2.0 , j * initSpaceY / 2.0 , k);
 
                 // It has to skip puting BCE on the nodes if one of the following conditions is true
-                bool con1 = (remove[0] && remove[1] && j == jBound.x);
-                bool con2 = (remove[2] && remove[3] && j == jBound.y);
-                bool con3 = (remove[1] && remove[2] && i == iBound.y);
-                bool con4 = (remove[3] && remove[0] && i == iBound.x);
+                bool con1 = (remove_s[0] && j == jBound.x);
+                bool con2 = (remove_s[2] && j == jBound.y);
+                bool con3 = (remove_s[1] && i == iBound.y);
+                bool con4 = (remove_s[3] && i == iBound.x);
+                bool con5 = (remove[0] && remove[1] && (!remove_s[0]) && j == jBound.x && (i==iBound.x || i == iBound.y));
+                bool con6 = (remove[2] && remove[3] && (!remove_s[2]) && j == jBound.y && (i==iBound.x || i == iBound.y));
+                bool con7 = (remove[1] && remove[2] && (!remove_s[1]) && i == iBound.y && (j==jBound.x || j == jBound.y));
+                bool con8 = (remove[3] && remove[0] && (!remove_s[3]) && i == iBound.x && (j==jBound.x || j == jBound.y));
 
-                if (con1 || con2 || con3 || con4)
+                if (con1 || con2 || con3 || con4 || con5 || con6 || con7 || con8 )
                     continue;
 
                 posRadBCE.push_back(mR4(relMarkerPos, (kernel_h == 0) ? paramsH->HSML : kernel_h));
