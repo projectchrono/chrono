@@ -61,8 +61,8 @@ ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
       m_integrate_SPH(true),
       m_time(0),
       m_write_mode(OutpuMode::NONE) {
-    m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>();
     m_paramsH = chrono_types::make_shared<SimParams>();
+    m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>(m_paramsH);
     InitParams();
     m_num_objectsH = m_sysFSI->numObjects;
 
@@ -1664,6 +1664,11 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(
     ChVector<> nCp = shell->GetNodeC()->GetPos();
     ChVector<> nDp = shell->GetNodeD()->GetPos();
 
+    ChVector<> nAdir = shell->GetNodeA()->GetD();
+    ChVector<> nBdir = shell->GetNodeB()->GetD();
+    ChVector<> nCdir = shell->GetNodeC()->GetD();
+    ChVector<> nDdir = shell->GetNodeD()->GetD();
+
     ChVector<> nAv = shell->GetNodeA()->GetPos_dt();
     ChVector<> nBv = shell->GetNodeB()->GetPos_dt();
     ChVector<> nCv = shell->GetNodeC()->GetPos_dt();
@@ -1677,10 +1682,8 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(
         ChVector<> pos_natural = pos_physical * physic_to_natural;
 
         shell->ShapeFunctions(N, pos_natural.x(), pos_natural.y(), pos_natural.z());
-        ChVector<> x_dir = (nBp - nAp + nCp - nDp);
-        ChVector<> y_dir = (nCp - nBp + nDp - nAp);
-        ChVector<> Normal;
-        Normal.Cross(x_dir, y_dir);
+
+        ChVector<> Normal= N(0) * nAdir + N(2) * nBdir + N(4) * nCdir + N(6) * nDdir;
         Normal.Normalize();
 
         ChVector<> Correct_Pos = N(0) * nAp + N(2) * nBp + N(4) * nCp + N(6) * nDp +
