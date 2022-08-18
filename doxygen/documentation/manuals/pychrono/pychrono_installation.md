@@ -34,15 +34,15 @@ To install a PyChrono conda module, do the following:
 
    - Numpy package
    ```
-   conda install -c anaconda numpy
+   conda install -c conda-forge numpy
    ```
    - for run-time visualization, you need Irrlicht support:
    ```
    conda install -c conda-forge irrlicht
    ```
-   - for Cascade support (**Attention**: Chrono requires version 7.4 of OpenCascade.  Use the DLR-SC channel to install the appropriate version!)
+   - for Cascade support (**Attention**: Chrono requires version 7.4 of OpenCascade.)
    ``` 
-   conda install -c dlr-sc opencascade
+   conda install -c conda-forge pythonocc-core=7.4.1
    ```
 
 7. If you want the PyChrono package for the latest Chrono *release*, simply do
