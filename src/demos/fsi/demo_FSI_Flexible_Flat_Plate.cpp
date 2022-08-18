@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha
+// Author: Milad Rakhsha, Wei Hu
 // =============================================================================
 
 #include <assert.h>
@@ -46,7 +46,7 @@ using namespace chrono::collision;
 using namespace chrono::fsi;
 
 // Set the output directory
-const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Elements/";
+const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Flat_Plate/";
 std::string MESH_CONNECTIVITY = out_dir + "Flex_MESH.vtk";
 
 // Dimension of the domain
@@ -289,13 +289,13 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         // Geometry of the plate
         double plate_lenght_x = 0.02;
         double plate_lenght_y = byDim;
-        double plate_lenght_z = initSpace0 * 20;
+        double plate_lenght_z = initSpace0 * 40;
         ChVector<> center_plate(0.0, 0.0, plate_lenght_z / 2 + 1 * initSpace0);
 
         // Specification of the mesh
         int numDiv_x = 1;
         int numDiv_y = 5;
-        int numDiv_z = 10;
+        int numDiv_z = 20;
         int N_y = numDiv_y + 1;
         int N_z = numDiv_z + 1;
 
@@ -342,7 +342,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         // Create an isotropic material.
         // All layers for all elements share the same material.
         double rho = 8000;
-        double E = 5e7;
+        double E = 2e7;
         double nu = 0.3;
         auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
         // Create the elements
