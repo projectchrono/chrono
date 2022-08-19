@@ -350,10 +350,8 @@ int main(int argc, char* argv[]) {
     sys->AddBody(ground);
 
     // Create the granular material.
-    double vertical_offset = 0;
-
     if (terrain_type == GRANULAR_TERRAIN) {
-        vertical_offset = CreateParticles(sys);
+        CreateParticles(sys);
     }
 
     // --------------------------

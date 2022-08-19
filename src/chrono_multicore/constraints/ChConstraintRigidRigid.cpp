@@ -397,7 +397,6 @@ void ChConstraintRigidRigid::Build_E() {
 }
 
 void ChConstraintRigidRigid::Build_D() {
-    LOG(INFO) << "ChConstraintRigidRigid::Build_D";
     const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
     real3* norm = data_manager->cd_data->norm_rigid_rigid.data();
     vec2* ids = data_manager->cd_data->bids_rigid_rigid.data();
@@ -471,7 +470,6 @@ void ChConstraintRigidRigid::Build_D() {
 }
 
 void ChConstraintRigidRigid::GenerateSparsity() {
-    LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsity";
     const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
     SolverMode solver_mode = data_manager->settings.solver.solver_mode;
 

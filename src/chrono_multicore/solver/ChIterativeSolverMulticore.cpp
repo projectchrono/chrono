@@ -39,7 +39,6 @@ ChIterativeSolverMulticore::~ChIterativeSolverMulticore() {
 }
 
 void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
-    LOG(INFO) << "ChIterativeSolverMulticore::ComputeInvMassMatrix()";
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_motors = data_manager->num_motors;
@@ -127,7 +126,6 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
 }
 
 void ChIterativeSolverMulticore::ComputeMassMatrix() {
-    LOG(INFO) << "ChIterativeSolverMulticore::ComputeMassMatrix()";
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_motors = data_manager->num_motors;
@@ -209,7 +207,6 @@ void ChIterativeSolverMulticore::ComputeMassMatrix() {
 }
 
 void ChIterativeSolverMulticore::PerformStabilization() {
-    LOG(INFO) << "ChIterativeSolverMulticore::PerformStabilization";
     const DynamicVector<real>& R_full = data_manager->host_data.R_full;
     DynamicVector<real>& gamma = data_manager->host_data.gamma;
     uint num_unilaterals = data_manager->num_unilaterals;

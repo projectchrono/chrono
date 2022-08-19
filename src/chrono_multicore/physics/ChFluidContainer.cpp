@@ -405,15 +405,11 @@ void ChFluidContainer::Normalize_Density_Fluid() {
 }
 
 void ChFluidContainer::Build_D() {
-    LOG(INFO) << "ChFluidContainer::Build_D";
-
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
     BuildRigidFluidBoundary(contact_mu, num_fluid_bodies, body_offset, start_boundary, data_manager);
 
     if (data_manager->cd_data->num_fluid_contacts > 0) {
-        LOG(INFO) << "ChFluidContainer::Build_D Fluid";
-
         real h = kernel_radius;
         real eta = .01;
 
@@ -527,7 +523,6 @@ void ChFluidContainer::Project(real* gamma) {
 
 void ChFluidContainer::GenerateSparsity() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    LOG(INFO) << "ChFluidContainer::GenerateSparsity";
     AppendRigidFluidBoundary(contact_mu, num_fluid_bodies, body_offset, start_boundary, data_manager);
 
     if (data_manager->cd_data->num_fluid_contacts > 0) {
@@ -593,7 +588,6 @@ void ChFluidContainer::PreSolve() {
 }
 
 void ChFluidContainer::PostSolve() {
-    LOG(INFO) << "ChFluidContainer::PostSolve() ";
     if (num_fluid_bodies > 0) {
         if (enable_viscosity) {
             gamma_old.resize(num_fluid_bodies + num_fluid_bodies * 3);
@@ -608,7 +602,6 @@ void ChFluidContainer::PostSolve() {
     if (artificial_pressure == false) {
         return;
     }
-    LOG(INFO) << "ChFluidContainer::artificial_pressure() ";
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
     real h = kernel_radius;
     real k = artificial_pressure_k;
@@ -639,7 +632,6 @@ void ChFluidContainer::CalculateContactForces() {
     if (num_contacts <= 0) {
         return;
     }
-    LOG(INFO) << "ChFluidContainer::CalculateContactForces() ";
     DynamicVector<real>& gamma = data_manager->host_data.gamma;
     SubVectorType gamma_n = subvector(gamma, start_boundary, _num_rf_c_);
 

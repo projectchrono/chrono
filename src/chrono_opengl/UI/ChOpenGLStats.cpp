@@ -322,8 +322,6 @@ void ChOpenGLStatsDefault::GenerateCD(ChSystem& sys) {
     if (ChSystemMulticore* parallel_sys = dynamic_cast<ChSystemMulticore*>(&sys)) {
         vec3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
         real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size;
-        real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
-        real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
         sprintf(buffer, "COLLISION INFO");
         text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 16, screen.SX, screen.SY);
         sprintf(buffer, "DIMS  [%d,%d,%d]", bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);

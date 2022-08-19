@@ -274,9 +274,6 @@ void ChParticleContainer::Initialize() {
 
 void ChParticleContainer::Build_D() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-
-    LOG(INFO) << "ChParticleContainer::Build_D"
-              << " " << D_T.rows() << " " << D_T.columns();
     BuildRigidFluidBoundary(contact_mu, num_fluid_bodies, body_offset, start_boundary, data_manager);
 
     if (num_rigid_contacts > 0) {
@@ -307,8 +304,6 @@ void ChParticleContainer::Build_D() {
                 SetRow3Check(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_b * 3, W););
         }
     }
-
-    LOG(INFO) << "ChConstraintRigid3DOF::JACOBIAN OF RIGID";
 }
 
 void ChParticleContainer::Build_b() {
@@ -406,7 +401,6 @@ void ChParticleContainer::Project(real* gamma) {
 
 void ChParticleContainer::GenerateSparsity() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    LOG(INFO) << "ChParticleContainer::GenerateSparsity";
     AppendRigidFluidBoundary(contact_mu, num_fluid_bodies, body_offset, start_boundary, data_manager);
 
     if (num_rigid_contacts > 0) {
@@ -455,7 +449,6 @@ void ChParticleContainer::CalculateContactForces() {
     if (data_manager->cd_data->num_rigid_fluid_contacts <= 0) {
         return;
     }
-    LOG(INFO) << "ChParticleContainer::CalculateContactForces() ";
 
     DynamicVector<real>& gamma = data_manager->host_data.gamma;
     SubVectorType gamma_n = subvector(gamma, start_boundary, _num_rf_c_);
