@@ -1700,11 +1700,16 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(
         // Note that the fluid particles are removed differently
         bool addthis = true;
         for (size_t p = 0; p < m_sysFSI->sphMarkersH->posRadH.size() - 1; p++) {
-            if (length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - 
-                ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos)) < 1e-8 && 
-                m_sysFSI->sphMarkersH->rhoPresMuH[p].w != -1) {
-                addthis = false;
-                break;
+            // Only compare to rigid and flexible BCE particles added previously
+            if (m_sysFSI->sphMarkersH->rhoPresMuH[p].w > 0.5) {
+                double dis = length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - 
+                    ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos));
+                if (dis < 1e-8) {
+                    addthis = false;
+                    if (m_verbose)
+                        printf(" Already added a BCE particle here! Skip this one!\n");
+                    break;
+                }
             }
         }
 
