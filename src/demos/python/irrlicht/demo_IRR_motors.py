@@ -12,7 +12,7 @@
 # Authors: Simone Benatti
 # =============================================================================
 #
-#   Demo code about using motors to impose rotation or traslation between parts
+#  Demo code about using motors to impose rotation or translation between parts
 #
 # =============================================================================
 
