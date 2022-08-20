@@ -1063,8 +1063,7 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
     int3 gridPos = calcGridPos(posRadA);
     Real3 inner_sum = mR3(0.0);
     Real sum_w_i = W3h(0.0, sortedPosRad[index].w) * paramsD.volume0;
-    int N_ = 1;
-    int N_s = 0;
+
     for (int x = -1; x <= 1; x++) {
         for (int y = -1; y <= 1; y++) {
             for (int z = -1; z <= 1; z++) {
@@ -1119,27 +1118,8 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                         velzLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], 
                             velMasA.z, velMasB.z, rhoPresMuA, rhoPresMuB);
 
-                        if (d > paramsD.HSML * 1.0e-9 && sum_w_i < paramsD.C_Wi) {
+                        if (d > paramsD.HSML * 1.0e-9) 
                             sum_w_i = sum_w_i + W3h(d, sortedPosRad[index].w) * paramsD.volume0;
-                            N_ = N_ + 1;
-                        }
-
-                        // find particles that have contact with this particle
-                        if (N_s < 12 && d < 2.0 * radii) {
-                            Real Pen = (radii - d) * invRadii;
-                            Real3 r_0 = bs_vAdT * invd * dist3;
-                            Real3 r_s = r_0 * Pen;
-                            if (d < 1.0 * radii) {
-                                inner_sum += 3.0 * r_s;
-                                N_s = N_s + 1;
-                            } else if (d < 1.1 * radii) {
-                                inner_sum += 1.0 * r_s;
-                                N_s = N_s + 1;
-                            } else {
-                                inner_sum += 0.1 * 1.0 * (-r_0);
-                                N_s = N_s + 1;
-                            }
-                        }
                     }
                 }
             }
