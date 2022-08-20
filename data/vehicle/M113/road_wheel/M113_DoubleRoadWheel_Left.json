@@ -1,7 +1,7 @@
 {
   "Name":                           "M113 Double RoadWheel Left",
-  "Type":                           "RoadWheel",
-  "Template":                       "DoubleRoadWheel",
+  "Type":                           "TrackWheel",
+  "Template":                       "DoubleTrackWheel",
 
   "Wheel":
   {
@@ -32,6 +32,6 @@
 
   "Visualization":
   {
-      "Mesh":              "M113/Roller_L.obj"
+      "Mesh":              "M113/meshes/Roller_L.obj"
   }
 }

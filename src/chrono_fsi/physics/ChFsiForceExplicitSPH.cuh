@@ -36,7 +36,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
         std::shared_ptr<FsiGeneralData> otherFsiGeneralData,     ///< SPH general data
         std::shared_ptr<SimParams> otherParamsH,                 ///< simulation parameters on host
-        std::shared_ptr<ChCounters> otherNumObjects,        ///< counters
+        std::shared_ptr<ChCounters> otherNumObjects,             ///< size of different objects in the system
         bool verb                                                ///< verbose terminal output
     );
 
@@ -59,8 +59,9 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
     /// to regularize the particles velocity and reduce noise.
     void CalculateXSPH_velocity();
 
-    /// A wrapper around collide function, where calculates the force on particles, and copies the
-    /// sorted XSPH velocities to the original. The latter is needed later for position update.
+    /// A wrapper around collide function. 
+    /// Calculates the force on particles, and copies the sorted XSPH velocities to the original.
+    /// The latter is needed later for position update.
     void CollideWrapper();
 
     /// Function to add gravity force (acceleration) to other forces on SPH  particles.

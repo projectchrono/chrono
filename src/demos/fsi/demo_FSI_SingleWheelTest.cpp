@@ -249,8 +249,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     actuator->Initialize(ground, chassis, false, ChCoordsys<>(chassis->GetPos(), QUNIT),
                          ChCoordsys<>(chassis->GetPos() + ChVector<>(1, 0, 0), QUNIT));
     actuator->SetName("actuator");
-    actuator->Set_lin_offset(1);
-    actuator->Set_dist_funct(actuator_fun);
+    actuator->SetDistanceOffset(1);
+    actuator->SetActuatorFunction(actuator_fun);
     sysMBS.AddLink(actuator);
 
     // Connect the axle to the chassis through a vertical translational joint.

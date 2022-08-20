@@ -1,0 +1,61 @@
+{
+  "Name":                    "M113 Shafts Powertrain",
+  "Type":                    "Powertrain",
+  "Template":                "ShaftsPowertrain",
+
+  "Engine":
+  {
+    "Motor Block Inertia":   10.5,
+    "Crankshaft Inertia":    1.1,
+    "Torque Map":            [
+                                [ -100 , 407 ],
+                                [  500 , 610 ],
+                                [ 1000 , 610 ],
+                                [ 1500 , 603 ],
+                                [ 2000 , 590 ],
+                                [ 2500 , 556 ],
+                                [ 2800 , 536 ],
+                                [ 3000 , 515 ],
+                                [ 3200 ,-135 ]
+                             ],
+    "Losses Map":            [
+                                [  -50 ,  30 ],
+                                [    0 ,   0 ],
+                                [   50 , -30 ],
+                                [ 1000 , -50 ],
+                                [ 2000 , -70 ],
+                                [ 3000 , -90 ]
+                             ]
+  },
+
+  "Transmission":
+  {
+    "Input Shaft Inertia":   0.3,
+    "Output Shaft Inertia":  0.5,
+    "Reverse Gear Ratio":    -0.151,
+    "Forward Gear Ratios":   [ 0.240, 0.427, 0.685, 0.962 ],
+    "Upshift RPM":           1500,
+    "Downshift RPM":         1000,
+    "Shift Latency":         0.5
+  },
+
+  "Torque Converter":
+  {
+    "Capacity Factor Map":  [
+                              [ 0.00 , 7.00 ],
+                              [ 0.25 , 7.00 ],
+                              [ 0.50 , 7.00 ],
+                              [ 0.75 , 8.00 ],
+                              [ 0.90 , 9.00 ],
+                              [ 1.00 , 18.00 ]
+                            ],
+    "Torque Ratio Map":     [
+                              [ 0.00 , 2.00 ],
+                              [ 0.25 , 1.80 ],
+                              [ 0.50 , 1.50 ],
+                              [ 0.75 , 1.15 ],
+                              [ 0.90 , 1.00 ],
+                              [ 1.00 , 1.00 ]
+                            ]
+  }
+}

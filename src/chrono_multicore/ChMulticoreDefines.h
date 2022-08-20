@@ -28,21 +28,6 @@
     #define custom_vector std::vector
 #endif
 
-#if defined _MSC_VER
-class NullBuffer : public std::streambuf {
-  public:
-    int overflow(int c) { return c; }
-};
-static NullBuffer null_buffer;
-static std::ostream null_stream(&null_buffer);
-    #define LOG(X) null_stream
-#else
-    // Enable thread safe logging
-    #define ELPP_THREAD_SAFE
-    #include "chrono_thirdparty/easylogging/easylogging.h"
-    #define LOGGINGENABLED
-#endif
-
 namespace chrono {
 
 /// @addtogroup multicore_module

@@ -379,10 +379,6 @@ int main(int argc, char* argv[]) {
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
 #endif
 
-    // Debug log messages.
-    ////sys->SetLoggingLevel(LOG_INFO, true);
-    ////sys->SetLoggingLevel(LOG_TRACE, true);
-
     // Set number of threads.
     threads = std::min(threads, ChOMP::GetNumProcs());
     sys->SetNumThreads(threads);

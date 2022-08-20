@@ -176,9 +176,6 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     /// The initial number of threads is set to min_threads.
     void EnableThreadTuning(int min_threads, int max_threads);
 
-    // Based on the specified logging level and the state of that level, enable or disable logging level.
-    void SetLoggingLevel(LoggingLevel level, bool state = true);
-
     /// Calculate the (linearized) bilateral constraint violations.
     /// Return the maximum constraint violation.
     double CalculateConstraintViolation(std::vector<double>& cvec);

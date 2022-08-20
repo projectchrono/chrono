@@ -316,9 +316,13 @@ message(STATUS "Searching for CUDA...")
 find_package(CUDA QUIET)
 
 if(CUDA_FOUND)
+  set(CUDA_BINARY_DIR "${CUDA_TOOLKIT_ROOT_DIR}/bin")
+
   message(STATUS "  CUDA version:          ${CUDA_VERSION_STRING}")
   message(STATUS "  CUDA toolkit root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
+  message(STATUS "  CUDA binary dir:       ${CUDA_BINARY_DIR}")
   mark_as_advanced(FORCE CUDA_TOOLKIT_ROOT_DIR)
+
 else()
   message(STATUS "  CUDA not found (consider manually setting CUDA_TOOLKIT_ROOT_DIR)")
   mark_as_advanced(CLEAR CUDA_TOOLKIT_ROOT_DIR)

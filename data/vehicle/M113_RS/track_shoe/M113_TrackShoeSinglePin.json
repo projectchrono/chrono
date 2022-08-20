@@ -1,0 +1,205 @@
+{
+    "Name": "M113 SinglePin TrackShoe Left",
+    "Type": "TrackShoe",
+    "Template": "TrackShoeSinglePin",
+
+    "Shoe": {
+        "Height": 0.06,
+        "Pitch": 0.154,
+        "Mass": 18.02,
+        "Inertia": [ 0.22, 0.04, 0.25 ]
+    },
+
+    // Contact point on track shoe for detracking control
+    "Guide Pin Center": [ 0.045, 0, 0.0375 ],
+
+    "Contact": {
+        "Cylinder Material": {
+            // Material for sprocket contact surfaces
+            "Coefficient of Friction": 0.8,
+            "Coefficient of Restitution": 0.75,
+            "Properties": {
+                "Young Modulus": 1e9,
+                "Poisson Ratio": 0.3
+            },
+            "Coefficients": {
+                "Normal Stiffness": 2e5,
+                "Normal Damping": 40.0,
+                "Tangential Stiffness": 2e5,
+                "Tangential Damping": 20.0
+            }
+        },
+
+        "Shoe Materials": [
+            {
+                // Material 0: pad bottom (ground contact)
+                "Coefficient of Friction": 0.8,
+                "Coefficient of Restitution": 0.75,
+                "Properties": {
+                    "Young Modulus": 1e7,
+                    "Poisson Ratio": 0.3
+                },
+                "Coefficients": {
+                    "Normal Stiffness": 2e5,
+                    "Normal Damping": 40.0,
+                    "Tangential Stiffness": 2e5,
+                    "Tangential Damping": 20.0
+                }
+            },
+            {
+                // Material 1: pad top (wheel contact)
+                "Coefficient of Friction": 0.8,
+                "Coefficient of Restitution": 0.75,
+                "Properties": {
+                    "Young Modulus": 1e7,
+                    "Poisson Ratio": 0.3
+                },
+                "Coefficients": {
+                    "Normal Stiffness": 2e5,
+                    "Normal Damping": 40.0,
+                    "Tangential Stiffness": 2e5,
+                    "Tangential Damping": 20.0
+                }
+
+            },
+            {
+                // Material 2: guide pin (wheel contact)
+                "Coefficient of Friction": 0.8,
+                "Coefficient of Restitution": 0.75,
+                "Properties": {
+                    "Young Modulus": 1e7,
+                    "Poisson Ratio": 0.3
+                },
+                "Coefficients": {
+                    "Normal Stiffness": 2e5,
+                    "Normal Damping": 40.0,
+                    "Tangential Stiffness": 2e5,
+                    "Tangential Damping": 20.0
+                }
+            }
+        ],
+
+        "Cylinder Shape": {
+            "Radius": 0.015,
+            "Front Offset": 0.0535,
+            "Rear Offset": -0.061
+        },
+
+        "Shoe Shapes": [
+            {
+                // Collision box: pad bottom (ground contact)
+                "Type": "BOX",
+                "Location": [ 0, 0, -0.015 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Dimensions": [ 0.11, 0.19, 0.03 ],
+                "Material Index": 0
+            },
+            {
+                // Collision box: pad top (wheel contact)
+                "Type": "BOX",
+                "Location": [ 0, 0, 0.015 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Dimensions": [ 0.10, 0.18, 0.03 ],
+                "Material Index": 1
+            },
+            {
+                // Collision box: guide pin (wheel contact)
+                "Type": "BOX",
+                "Location": [ 0.045, 0, 0.0375 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Dimensions": [ 0.0284, 0.0114, 0.075 ],
+                "Material Index": 2
+            },
+            {
+                // Collision box: pad side outer (ground contact)
+                "Type": "BOX",
+                "Location": [ 0, 0.16245, 0 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Dimensions": [ 0.1315, 0.0542, 0.02 ],
+                "Material Index": 0
+            },
+            {
+                // Collision box: pad side inner (ground contact)
+                "Type": "BOX",
+                "Location": [ 0, -0.16245, 0 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Dimensions": [ 0.1315, 0.0542, 0.02 ],
+                "Material Index": 0
+            }
+        ]
+    },
+
+    "Visualization": {
+        "Primitives": [
+            // Visualization of the collision boxes
+            {
+                "Type": "BOX",
+                "Location": [ 0, 0, -0.015 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Dimensions": [ 0.11, 0.19, 0.03 ]
+            },
+            {
+                "Type": "BOX",
+                "Location": [ 0, 0, 0.015 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Dimensions": [ 0.10, 0.18, 0.03 ]
+            },
+            {
+                "Type": "BOX",
+                "Location": [ 0.045, 0, 0.0375 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Dimensions": [ 0.0284, 0.0114, 0.075 ]
+            },
+            {
+                "Type": "BOX",
+                "Location": [ 0, 0.16245, 0 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Dimensions": [ 0.1315, 0.0542, 0.02 ]
+            },
+            {
+                "Type": "BOX",
+                "Location": [ 0, -0.16245, 0 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Dimensions": [ 0.1315, 0.0542, 0.02 ]
+            },
+            // Visualization of the pin revolute joint
+            {
+                "Type": "CYLINDER",
+                "Location": [ 0.077, 0, 0 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Radius": 0.01,
+                "Length": 0.399
+            },
+            // Visualization of sprocket contact surfaces
+            {
+                "Type": "CYLINDER",
+                "Location": [ 0.0535, -0.095, 0 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Radius": 0.015,
+                "Length": 0.095
+            },
+            {
+                "Type": "CYLINDER",
+                "Location": [ 0.0535, 0.095, 0 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Radius": 0.015,
+                "Length": 0.095
+            },
+            {
+                "Type": "CYLINDER",
+                "Location": [ -0.061, -0.095, 0 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Radius": 0.015,
+                "Length": 0.095
+            },
+            {
+                "Type": "CYLINDER",
+                "Location": [ -0.061, 0.095, 0 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Radius": 0.015,
+                "Length": 0.095
+            }
+        ]
+
+    }
+}

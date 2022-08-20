@@ -147,8 +147,8 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     ChVector<> pt1 = ChVector<>(0, 0, 0);
     ChVector<> pt2 = axis;
     actuator->Initialize(ground, plate, false, ChCoordsys<>(pt1, rot), ChCoordsys<>(pt2, rot));
-    actuator->Set_lin_offset(1);
-    actuator->Set_dist_funct(actuator_fun);
+    actuator->SetDistanceOffset(1);
+    actuator->SetActuatorFunction(actuator_fun);
     sys->AddLink(actuator);
 }
 

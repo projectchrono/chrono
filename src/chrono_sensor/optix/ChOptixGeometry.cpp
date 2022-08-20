@@ -676,6 +676,8 @@ void ChOptixGeometry::RebuildRootStructure() {
                                       nullptr,  // emitted property list
                                       0         // num emitted properties
                                       ));
+
+    cudaDeviceSynchronize();
     // std::chrono::high_resolution_clock::time_point t4 = std::chrono::high_resolution_clock::now();
 
     // std::cout << "Rebuilt root acceleration structure, addr = " << m_root << std::endl;

@@ -1,0 +1,24 @@
+{
+    "Name": "M113 Idler Right",
+    "Type": "Idler",
+    "Template": "DistanceIdler",
+
+    "Carrier": {
+        "Mass": 10.0,
+        "COM": [ 0, 0.1, 0 ],
+        "Inertia": [ 0.04, 0.04, 0.04 ],
+        "Location Wheel": [ 0, 0, 0 ],
+        "Location Chassis": [ 0, 0.1, 0.1275 ],
+        "Visualization Radius": 0.02,
+        "Pitch Angle": 0
+    },
+
+    "Tensioner": {
+        "Location Carrier": [ 0.09, 0.1, -0.09 ],
+        "Location Arm": [ -0.22, 0.1, -0.1 ],
+        "Extension time": 0.3,
+        "Extension distance": 0.35
+    },
+
+    "Idler Wheel Input File": "M113_RS/idler_wheel/M113_DoubleIdlerWheel_Right.json"
+}

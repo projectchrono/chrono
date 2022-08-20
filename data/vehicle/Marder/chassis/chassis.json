@@ -1,0 +1,23 @@
+{
+    "Name": "Marder chassis",
+    "Type": "Chassis",
+    "Template": "RigidChassis",
+
+    "Components": [
+        {
+            "Centroidal Frame": {
+                "Location": [ -2.7958, 0, 0 ],
+                "Orientation": [ 1, 0, 0, 0 ]
+            },
+            "Mass": 25000,
+            "Moments of Inertia": [ 13653.38542, 98182.70833, 101954.4271 ],
+            "Products of Inertia": [ 0, 0, 0 ],
+            "Void": false
+        }
+    ],
+
+    "Driver Position": {
+        "Location": [ 0, 0.5, 0 ],
+        "Orientation": [ 1, 0, 0, 0 ]
+    }
+}

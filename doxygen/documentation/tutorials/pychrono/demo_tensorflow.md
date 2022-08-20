@@ -16,7 +16,7 @@ These environments provide an open-source alternative to MuJoCo environments.
 # 2- Tensorflow Demos
 We also provide 2 simple plug-and-play examples to kickstart you into DRL for robotic control. These demos only require Tensorflow and PyChrono to run; and are provided together with a standalon Proximal Policy optimization algorithm.
 
-[PYTHON CODES HERE](https://github.com/projectchrono/chrono/tree/develop/src/demos/python/chrono-tensorflow)
+[PYTHON CODES HERE](https://github.com/projectchrono/chrono/tree/main/src/demos/python/chrono-tensorflow)
 
 ### Requirements:
 In order to run these demos, you will need:

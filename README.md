@@ -1,7 +1,17 @@
+ATTENTION
+=========
+
+The structure of the Chrono git repository was changed as follows:
+
+- The main development branch is now called `main` (previously `develop`)
+- The `master` branch, now obsolete, was deleted
+- Releases are located in branches named `release/*.*` and have tags of the form `*.*.*`
+
+
 Project CHRONO
 ==============
 
-[![pipeline status](https://gitlab.com/uwsbel/chrono/badges/develop/pipeline.svg)](https://gitlab.com/uwsbel/chrono/commits/develop)
+[![pipeline status](https://gitlab.com/uwsbel/chrono/badges/main/pipeline.svg)](https://gitlab.com/uwsbel/chrono/commits/main)
 [![BSD License](http://www.projectchrono.org/assets/logos/chrono-bsd.svg)](https://projectchrono.org/license-chrono.txt)
 
 
@@ -25,7 +35,7 @@ Implemented almost entirely in C++, Chrono also provides Python and C# APIs. The
 ### Documentation
 
 - C++ API reference
-  - [Development branch](http://api.projectchrono.org/)
+  - [Main development branch](http://api.projectchrono.org/)
   - [Release 7.0.0](http://api.projectchrono.org/7.0.0/)
   - [Release 6.0.0](http://api.projectchrono.org/6.0.0/)
 - Python interface

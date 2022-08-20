@@ -130,7 +130,7 @@
     },
 
     "Visualization": {
-        "Mesh": "M113/TrackShoe.obj",
+        "Mesh": "M113/meshes/TrackShoe.obj",
 
         "Primitives": [
             // Visualization of the collision boxes

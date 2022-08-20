@@ -23,12 +23,13 @@
 
 #include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
 
-#include "chrono_vehicle/tracked_vehicle/idler/SingleIdler.h"
-#include "chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
+#include "chrono_vehicle/tracked_vehicle/idler/TranslationalIdler.h"
+//#include "chrono_vehicle/tracked_vehicle/idler/DistanceIdler.h"
 
-#include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperRWAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/TranslationalDamperSuspension.h"
 
-#include "chrono_vehicle/tracked_vehicle/roller/DoubleRoller.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/DoubleTrackWheel.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/SingleTrackWheel.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -41,7 +42,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblySinglePin::ReadSprocket(const std::string& filename, int output) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -69,7 +71,8 @@ void TrackAssemblySinglePin::ReadSprocket(const std::string& filename, int outpu
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblySinglePin::ReadTrackShoes(const std::string& filename, int num_shoes, int output) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -99,7 +102,8 @@ void TrackAssemblySinglePin::ReadTrackShoes(const std::string& filename, int num
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackAssemblySinglePin::TrackAssemblySinglePin(const std::string& filename) : ChTrackAssemblySinglePin("", LEFT) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -160,7 +164,11 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
     for (int i = 0; i < m_num_susp; i++) {
         std::string file_name = d["Suspension Subsystems"][i]["Input File"].GetString();
         bool has_shock = d["Suspension Subsystems"][i]["Has Shock"].GetBool();
-        m_suspensions[i] = ReadRoadWheelAssemblyJSON(vehicle::GetDataFile(file_name), has_shock);
+        bool lock_arm = false;
+        if (d["Suspension Subsystems"][i].HasMember("Lock Arm")) {
+            lock_arm = d["Suspension Subsystems"][i]["Lock Arm"].GetBool();
+        }
+        m_suspensions[i] = ReadTrackSuspensionJSON(vehicle::GetDataFile(file_name), has_shock, lock_arm);
         if (d["Suspension Subsystems"][i].HasMember("Output")) {
             m_suspensions[i]->SetOutput(d["Suspension Subsystems"][i]["Output"].GetBool());
         }
@@ -176,7 +184,7 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
         m_roller_locs.resize(m_num_rollers);
         for (int i = 0; i < m_num_rollers; i++) {
             std::string file_name = d["Rollers"][i]["Input File"].GetString();
-            m_rollers[i] = ReadRollerJSON(vehicle::GetDataFile(file_name));
+            m_rollers[i] = ReadTrackWheelJSON(vehicle::GetDataFile(file_name));
             if (d["Rollers"][i].HasMember("Output")) {
                 m_rollers[i]->SetOutput(d["Rollers"][i]["Output"].GetBool());
             }

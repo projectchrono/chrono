@@ -1,0 +1,32 @@
+{
+  "Name":                           "Marder Linear Damper Suspension Left",
+  "Type":                           "TrackSuspension",
+  "Template":                       "TranslationalDamperSuspension",
+
+  "Suspension Arm":
+  {
+      "Mass":                       75.26,
+      "COM":                        [0.2, -0.168, 0.0325],
+      "Inertia":                    [0.37, 0.77, 0.77],
+      "Location Chassis":           [0.4, -0.168, 0.065],
+      "Location Wheel":             [0, -0.168, 0],
+      "Radius":                     0.03
+  },
+
+  "Torsional Spring":
+  {
+      "Free Angle":                 0,
+      "Spring Constant":            84220.62422,
+      "Damping Coefficient":        5e2,
+      "Preload":                    -2.7e4
+  },
+
+  "Damper":
+  {
+      "Location Chassis":           [-0.128, -0.168, 0.542],
+      "Location Arm":               [-0.034, -0.168, 0.152],
+      "Damping Coefficient":        17771.53175
+  },
+
+  "Road Wheel Input File":          "Marder/road_wheel/doubleRoadWheel0.json"
+}

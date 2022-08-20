@@ -113,8 +113,6 @@ void ChSystemMulticoreNSC::CalculateContactForces() {
         return;
     }
 
-    LOG(INFO) << "ChSystemMulticoreNSC::CalculateContactForces() ";
-
     const SubMatrixType& D_u = blaze::submatrix(data_manager->host_data.D, 0, 0, num_rigid_dof, num_unilaterals);
     DynamicVector<real> gamma_u = blaze::subvector(data_manager->host_data.gamma, 0, num_unilaterals);
     Fc = D_u * gamma_u / data_manager->settings.step_size;

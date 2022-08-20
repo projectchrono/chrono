@@ -53,7 +53,7 @@ Debian distributions may need to install the package `cmake-curses-gui` along wi
 Download the Chrono SDK by performing a **clone** of the Git repository on your machine. `git clone -b master git@github.com:projectchrono/chrono.git` will create a copy of the Github repository in the current directory.
 
 <div class="ce-info">
-The `master` branch contains the various Chrono releases and contains the most stable code. If you are interested in using the latest features as they are developed and before the next official release, you can checkout the `develop` branch at any time after the initial cloning: <code>git checkout develop</code>.
+The `release` branches contain the various Chrono releases and contains the most stable code. If you are interested in using the latest features as they are developed and before the next official release, you can checkout the `main` branch at any time after the initial cloning: <code>git checkout main</code>.
 </div>
 
 ## 6) Run CMake

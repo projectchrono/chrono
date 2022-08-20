@@ -335,12 +335,12 @@ class MyEventReceiver : public IEventReceiver {
                     return true;
                 case irr::KEY_KEY_S:
                     if (auto mfun =
-                            std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_actuatorFork->Get_dist_funct()))
+                            std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_actuatorFork->GetActuatorFunction()))
                         mfun->Set_yconst(0.05 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_X:
                     if (auto mfun =
-                            std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_actuatorFork->Get_dist_funct()))
+                            std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_actuatorFork->GetActuatorFunction()))
                         mfun->Set_yconst(-0.05 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_D:

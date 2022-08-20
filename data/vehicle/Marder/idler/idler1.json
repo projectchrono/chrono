@@ -1,0 +1,28 @@
+{
+  "Name":                           "Marder Idler Right",
+  "Type":                           "Idler",
+  "Template":                       "TranslationalIdler",
+
+  "Carrier":
+  {
+      "Mass":                       10.0,
+      "COM":                        [0, 0.1, 0],
+      "Inertia":                    [0.04, 0.04, 0.04],
+      "Location Wheel":             [ 0, 0, 0 ],
+      "Location Chassis":           [0, 0.2, 0],
+      "Visualization Radius":       0.02,
+      "Pitch Angle":                0
+  },
+
+  "Tensioner":
+  {
+    "Location Carrier":             [0, 0.2, 0],
+    "Location Chassis":             [0.5, 0.2, 0],
+    "Preload":                      24525,
+    "Free Length":                  0.75,
+    "Spring Coefficient":           2e6,
+    "Damping Coefficient":          100000
+  },
+
+  "Idler Wheel Input File":         "Marder/idler_wheel/doubleIdlerWheel1.json"
+}

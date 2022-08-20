@@ -21,7 +21,7 @@ CH_FACTORY_REGISTER(ChLinkRSDA)
 
 // -----------------------------------------------------------------------------
 
-ChLinkRSDA::ChLinkRSDA() : m_turns(0), m_auto_rest_angle(true), m_torque(0), m_k(0), m_r(0), m_t(0) {}
+ChLinkRSDA::ChLinkRSDA() : m_turns(0), m_auto_rest_angle(true), m_rest_angle(0), m_torque(0), m_k(0), m_r(0), m_t(0) {}
 
 ChLinkRSDA::ChLinkRSDA(const ChLinkRSDA& other) : ChLink(other), m_turns(0), m_torque(0) {
     Body1 = other.Body1;

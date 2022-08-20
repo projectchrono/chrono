@@ -142,14 +142,10 @@ int main(int argc, char* argv[]) {
 
     sys.GetSettings()->collision.collision_envelope = (diameter * .05);
     sys.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
-    sys.SetLoggingLevel(LoggingLevel::LOG_TRACE, true);
-    sys.SetLoggingLevel(LoggingLevel::LOG_INFO, true);
 
     AddContainer(&sys);
 
-// Perform the simulation
-// ----------------------
-
+    // Perform the simulation
 #ifdef CHRONO_OPENGL
     opengl::ChVisualSystemOpenGL vis;
     vis.AttachSystem(&sys);

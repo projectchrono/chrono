@@ -43,7 +43,7 @@ const std::string M113_RoadWheelRight::m_meshFile = "M113/meshes/Roller_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_RoadWheel::M113_RoadWheel(const std::string& name) : ChDoubleRoadWheel(name) {}
+M113_RoadWheel::M113_RoadWheel(const std::string& name) : ChDoubleTrackWheel(name) {}
 
 void M113_RoadWheel::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
@@ -64,7 +64,7 @@ void M113_RoadWheel::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetMutable(false);
         m_wheel->AddVisualShape(trimesh_shape);
     } else {
-        ChDoubleRoadWheel::AddVisualizationAssets(vis);
+        ChDoubleTrackWheel::AddVisualizationAssets(vis);
     }
 }
 
