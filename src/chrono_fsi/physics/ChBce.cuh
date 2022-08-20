@@ -155,7 +155,7 @@ class ChBce : public ChFsiGeneral {
                                           const thrust::device_vector<uint>& cellEnd,
                                           const thrust::device_vector<uint>& mapOriginalToSorted,
                                           const thrust::device_vector<Real3>& bceAcc,
-                                          int3 updatePortion);
+                                          int4 updatePortion);
 };
 
 /// @} fsi_physics
