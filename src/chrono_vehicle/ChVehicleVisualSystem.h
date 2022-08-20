@@ -57,11 +57,6 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     /// Update information related to driver inputs.
     virtual void Synchronize(const std::string& msg, const DriverInputs& driver_inputs);
 
-    /// Advance the dynamics of the chase camera.
-    /// The integration of the underlying ODEs is performed using as many steps as needed to advance
-    /// by the specified duration.
-    void Advance(double step);
-
   protected:
     ChVehicle* m_vehicle;  ///< pointer to the associated vehicle system
 
