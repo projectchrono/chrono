@@ -27,12 +27,9 @@ __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
                                          Real* G_i,
                                          uint* cellStart,
                                          uint* cellEnd,
-                                         const size_t numFluidMarkers,
-                                         const size_t numBounMarkers,
-                                         const size_t numRigidMarkers,
                                          uint* indexOfIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numFluidMarkers + numRigidMarkers)
+    if (id >= numObjectsD.numAllMarkers - numObjectsD.numBoundaryMarkers)
         return;
 
     uint index = indexOfIndex[id];
@@ -108,12 +105,9 @@ __device__ __inline__ void calc_A_Matrix(Real4* sortedPosRad,
                                          Real* G_i,
                                          uint* cellStart,
                                          uint* cellEnd,
-                                         const size_t numFluidMarkers,
-                                         const size_t numBounMarkers,
-                                         const size_t numRigidMarkers,
                                          uint* indexOfIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numFluidMarkers + numRigidMarkers)
+    if (id >= numObjectsD.numAllMarkers - numObjectsD.numBoundaryMarkers)
         return;
 
     uint index = indexOfIndex[id];
@@ -193,12 +187,9 @@ __device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
                                          Real* G_i,
                                          uint* cellStart,
                                          uint* cellEnd,
-                                         const size_t numFluidMarkers,
-                                         const size_t numBounMarkers,
-                                         const size_t numRigidMarkers,
                                          uint* indexOfIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numFluidMarkers + numRigidMarkers)
+    if (id >= numObjectsD.numAllMarkers - numObjectsD.numBoundaryMarkers)
         return;
 
     uint index = indexOfIndex[id];
@@ -335,17 +326,14 @@ __device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void calIndexOfIndex(uint* indexOfIndex,
                                 uint* identityOfIndex,
-                                uint* gridMarkerIndex,
-                                const size_t numFluMarkers,
-                                const size_t numBouMarkers,
-                                const size_t numAllMarkers) {
+                                uint* gridMarkerIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numAllMarkers)
+    if (id >= numObjectsD.numAllMarkers)
         return;
 
     indexOfIndex[id] = id;
-    if (gridMarkerIndex[id] >= numFluMarkers && 
-        gridMarkerIndex[id] < numFluMarkers + numBouMarkers) {
+    if (gridMarkerIndex[id] >= numObjectsD.numFluidMarkers && 
+        gridMarkerIndex[id] < numObjectsD.numFluidMarkers + numObjectsD.numBoundaryMarkers) {
         identityOfIndex[id] = 1;
     } else {
         identityOfIndex[id] = 0;
@@ -365,19 +353,15 @@ __global__ void Shear_Stress_Rate(uint* indexOfIndex,
                                   Real3* sortedDerivTauXyXzYz,
                                   uint* gridMarkerIndex,
                                   uint* cellStart,
-                                  uint* cellEnd,
-                                  const size_t numFluidMarkers,
-                                  const size_t numBounMarkers,
-                                  const size_t numRigidMarkers) {
+                                  uint* cellEnd) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numFluidMarkers + numRigidMarkers)
+    if (id >= numObjectsD.numAllMarkers - numObjectsD.numBoundaryMarkers)
         return;
 
     uint index = indexOfIndex[id];
 
-    if (sortedRhoPreMu[index].w > -0.5) {
+    if (sortedRhoPreMu[index].w > -0.5)
         return;
-    }
 
     Real3 posRadA = mR3(sortedPosRad[index]);
     Real3 velMasA = sortedVelMas[index];
@@ -403,7 +387,7 @@ __global__ void Shear_Stress_Rate(uint* indexOfIndex,
 
     Real G_i[9] = {0.0};
     calc_G_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, G_i, cellStart, 
-        cellEnd, numFluidMarkers, numBounMarkers, numRigidMarkers, indexOfIndex);
+        cellEnd, indexOfIndex);
 
     // get address in grid
     int3 gridPos = calcGridPos(posRadA);
@@ -426,7 +410,7 @@ __global__ void Shear_Stress_Rate(uint* indexOfIndex,
                         if (rhoPresMuB.w > -0.5) {
                             int bceIndexB = gridMarkerIndex[j] - numObjectsD.numFluidMarkers;
                             if (!(bceIndexB >= 0 && bceIndexB < 
-                                numObjectsD.numBoundaryMarkers + numObjectsD.numRigidMarkers)) {
+                                numObjectsD.numBoundaryMarkers + numObjectsD.numRigidMarkers + numObjectsD.numFlexMarkers)) {
                                 printf("Error! bceIndex out of bound, collideCell !\n");
                             }
                             rhoPresMuB = rhoPreMu_ModifiedBCE[bceIndexB];
@@ -490,14 +474,10 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
                                Real4* sortedRhoPreMu_old,
                                uint* cellStart,
                                uint* cellEnd,
-                               const size_t numFluidMarkers,
-                               const size_t numBounMarkers,
-                               const size_t numRigidMarkers,
-                               const size_t numAllMarkers,
                                int density_reinit,
                                volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numAllMarkers)
+    if (index >= numObjectsD.numAllMarkers)
         return;
 
     if (sortedRhoPreMu[index].w > -0.5 && sortedRhoPreMu[index].w < 0.5)
@@ -564,13 +544,9 @@ __global__ void calcKernelSupport(Real4* sortedPosRad,
                                   Real3* sortedKernelSupport,
                                   uint* cellStart,
                                   uint* cellEnd,
-                                  const size_t numFluidMarkers,
-                                  const size_t numBounMarkers,
-                                  const size_t numRigidMarkers,
-                                  const size_t numAllMarkers,
                                   volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numAllMarkers)
+    if (index >= numObjectsD.numAllMarkers)
         return;
 
     Real h_i = sortedPosRad[index].w;
@@ -996,9 +972,9 @@ __device__ inline Real4 LaplacianOperator(float G_i[9],
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void EOS(Real4* sortedRhoPreMu, uint numAllMarkers, volatile bool* isErrorD) {
+__global__ void EOS(Real4* sortedRhoPreMu, volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numAllMarkers)
+    if (index >= numObjectsD.numAllMarkers)
         return;
     sortedRhoPreMu[index].y = Eos(sortedRhoPreMu[index].x, sortedRhoPreMu[index].w);
 }
@@ -1015,13 +991,9 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                               uint* gridMarkerIndex,
                               uint* cellStart,
                               uint* cellEnd,
-                              const size_t numFluidMarkers,
-                              const size_t numBounMarkers,
-                              const size_t numRigidMarkers,
-                              const size_t numAllMarkers,
                               volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numAllMarkers - numBounMarkers)
+    if (id >= numObjectsD.numAllMarkers - numObjectsD.numBoundaryMarkers)
         return;
 
     uint index = indexOfIndex[id];
@@ -1043,14 +1015,14 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
     Real L_i[9] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     if (paramsD.USE_Consistent_G)
         calc_G_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, G_i, cellStart, 
-            cellEnd, numFluidMarkers, numBounMarkers, numRigidMarkers, indexOfIndex);
+            cellEnd, indexOfIndex);
 
     if (paramsD.USE_Consistent_L) {
         Real A_i[27] = {0.0};
         calc_A_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, G_i, cellStart, 
-            cellEnd, numFluidMarkers, numBounMarkers, numRigidMarkers, indexOfIndex);
+            cellEnd, indexOfIndex);
         calc_L_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, L_i, G_i, cellStart, 
-            cellEnd, numFluidMarkers, numBounMarkers, numRigidMarkers, indexOfIndex);
+            cellEnd, indexOfIndex);
     }
     float Gi[9] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     float Li[9] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
@@ -1240,10 +1212,9 @@ __global__ void NS_SSR(uint* activityIdentifierD,
                        uint* cellEnd,
                        uint* mapOriginalToSorted,
                        uint* sortedFreeSurfaceIdD,
-                       const size_t numAllMarkers,
                        volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numAllMarkers)
+    if (id >= numObjectsD.numAllMarkers)
         return;
 
     // no need to do anything if it is not an active particle
@@ -1522,13 +1493,9 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
                                uint* gridMarkerIndex,
                                uint* cellStart,
                                uint* cellEnd,
-                               const size_t numFluidMarkers,
-                               const size_t numBounMarkers,
-                               const size_t numRigidMarkers,
-                               const size_t numAllMarkers,
                                volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numAllMarkers - numBounMarkers)
+    if (id >= numObjectsD.numAllMarkers - numObjectsD.numBoundaryMarkers)
         return;
 
     uint index = indexOfIndex[id];
@@ -1596,10 +1563,9 @@ __global__ void CopySortedToOriginal_D(Real4* sortedDerivVelRho,
                                        uint* activityIdentifierD,
                                        uint* mapOriginalToSorted,
                                        uint* originalFreeSurfaceId,
-                                       uint* sortedFreeSurfaceId,
-                                       const size_t numAllMarkers) {
+                                       uint* sortedFreeSurfaceId) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numAllMarkers)
+    if (id >= numObjectsD.numAllMarkers)
         return;
 
     // Check the activity of this particle
@@ -1623,10 +1589,9 @@ __global__ void CopySortedToOriginal_XSPH_D(Real3* sortedXSPH,
                                             Real3* originalXSPH,
                                             uint* gridMarkerIndex,
                                             uint* activityIdentifierD,
-                                            uint* mapOriginalToSorted,
-                                            const size_t numAllMarkers) {
+                                            uint* mapOriginalToSorted) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numAllMarkers)
+    if (id >= numObjectsD.numAllMarkers)
         return;
 
     // Check the activity of this particle
@@ -1710,9 +1675,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         calcKernelSupport<<<numBlocks, numThreads>>>(
             mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             mR3CAST(sortedKernelSupport), U1CAST(markersProximityD->cellStartD),
-            U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
-            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, 
-            numObjectsH->numAllMarkers, isErrorD);
+            U1CAST(markersProximityD->cellEndD), isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcKernelSupport");
     }
 
@@ -1723,9 +1686,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         calcRho_kernel<<<numBlocks, numThreads>>>(
             mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), 
             mR4CAST(rhoPresMuD_old), U1CAST(markersProximityD->cellStartD), 
-            U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
-            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, 
-            numObjectsH->numAllMarkers, density_initialization, isErrorD);
+            U1CAST(markersProximityD->cellEndD), density_initialization, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcRho_kernel");
         density_initialization = 0;
     }
@@ -1747,7 +1708,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
             mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD),
             U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
             U1CAST(markersProximityD->cellEndD), U1CAST(markersProximityD->mapOriginalToSorted),
-            U1CAST(sortedFreeSurfaceId), numObjectsH->numAllMarkers, isErrorD);
+            U1CAST(sortedFreeSurfaceId), isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Navier_Stokes and Shear_Stress_Rate");
     } else {  // For fluid
         *isErrorH = false;
@@ -1757,8 +1718,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         thrust::device_vector<uint> indexOfIndex(numObjectsH->numAllMarkers);
         thrust::device_vector<uint> identityOfIndex(numObjectsH->numAllMarkers);
         calIndexOfIndex<<<numBlocks, numThreads>>>(
-            U1CAST(indexOfIndex), U1CAST(identityOfIndex), U1CAST(markersProximityD->gridMarkerIndexD),
-            numObjectsH->numFluidMarkers, numObjectsH->numBoundaryMarkers, numObjectsH->numAllMarkers);
+            U1CAST(indexOfIndex), U1CAST(identityOfIndex), U1CAST(markersProximityD->gridMarkerIndexD));
         thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), 
             identityOfIndex.begin(), thrust::identity<int>());
 
@@ -1768,9 +1728,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
             mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(bceWorker->velMas_ModifiedBCE),
             mR4CAST(bceWorker->rhoPreMu_ModifiedBCE), U1CAST(markersProximityD->gridMarkerIndexD),
-            U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), 
-            numObjectsH->numFluidMarkers, numObjectsH->numBoundaryMarkers, 
-            numObjectsH->numRigidMarkers, numObjectsH->numAllMarkers, isErrorD);
+            U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Navier_Stokes");
     }
 
@@ -1781,7 +1739,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         mR4CAST(fsiGeneralData->derivVelRhoD_old), mR3CAST(fsiGeneralData->derivTauXxYyZzD),
         mR3CAST(fsiGeneralData->derivTauXyXzYzD), U1CAST(markersProximityD->gridMarkerIndexD),
         U1CAST(fsiGeneralData->activityIdentifierD), U1CAST(markersProximityD->mapOriginalToSorted),
-        U1CAST(fsiGeneralData->freeSurfaceIdD), U1CAST(sortedFreeSurfaceId), numObjectsH->numAllMarkers);
+        U1CAST(fsiGeneralData->freeSurfaceIdD), U1CAST(sortedFreeSurfaceId));
 
     sortedDerivVelRho.clear();
     sortedDerivTauXxYyZz.clear();
@@ -1820,8 +1778,7 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
             mR3CAST(sortedXSPHandShift), mR3CAST(fsiGeneralData->vel_XSPH_D),
             U1CAST(markersProximityD->gridMarkerIndexD), 
             U1CAST(fsiGeneralData->activityIdentifierD),
-            U1CAST(markersProximityD->mapOriginalToSorted), 
-            numObjectsH->numAllMarkers);
+            U1CAST(markersProximityD->mapOriginalToSorted));
     } else {
         uint numBlocks1, numThreads1;
         computeGridSize((int)numObjectsH->numAllMarkers - 
@@ -1834,10 +1791,7 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
         thrust::device_vector<uint> identityOfIndex(numObjectsH->numAllMarkers);
         calIndexOfIndex<<<numBlocks, numThreads>>>(
             U1CAST(indexOfIndex), U1CAST(identityOfIndex), 
-            U1CAST(markersProximityD->gridMarkerIndexD),
-            numObjectsH->numFluidMarkers, 
-            numObjectsH->numBoundaryMarkers, 
-            numObjectsH->numAllMarkers);
+            U1CAST(markersProximityD->gridMarkerIndexD));
         thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), 
             identityOfIndex.begin(), thrust::identity<int>());
 
@@ -1847,17 +1801,14 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
             mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedXSPHandShift),
             U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
-            U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers, 
-            numObjectsH->numBoundaryMarkers, numObjectsH->numRigidMarkers, 
-            numObjectsH->numAllMarkers, isErrorD);
+            U1CAST(markersProximityD->cellEndD), isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "CalcVel_XSPH_D");
 
         CopySortedToOriginal_XSPH_D<<<numBlocks, numThreads>>>(
             mR3CAST(vel_XSPH_Sorted_D), mR3CAST(fsiGeneralData->vel_XSPH_D),
             U1CAST(markersProximityD->gridMarkerIndexD), 
             U1CAST(fsiGeneralData->activityIdentifierD),
-            U1CAST(markersProximityD->mapOriginalToSorted), 
-            numObjectsH->numAllMarkers);
+            U1CAST(markersProximityD->mapOriginalToSorted));
     }
 
     if (density_initialization % paramsH->densityReinit == 0)
