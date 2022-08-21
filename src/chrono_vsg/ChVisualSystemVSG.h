@@ -76,8 +76,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
         bool showGui = true;            // (don't) show the imgui menu, actually unused
         bool do_image_capture = false;  // mark image capturing as needed
         double cogSymbolSize = 0.0;
-        size_t frame_number = 0;        // updated in Run() loop
-        double time_begin = 0.0;        // wallclock time at begin of Run() loop
+        size_t frame_number = 0;  // updated in Run() loop
+        double time_begin = 0.0;  // wallclock time at begin of Run() loop
         bool showVehicleState = false;
         double vehicleSpeed = 0;
         double steering = 0;
@@ -88,11 +88,18 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
   protected:
     void BindAll() override;
     void OnUpdate(ChSystem* sys) override;
+    // collect some often used calulations (not for Cylinders!)
+    void Point2PointHelperAbs(ChVector<>& P1,
+                              ChVector<>& P2,
+                              double& height,
+                              ChVector<>& pos,
+                              double& rotAngle,
+                              ChVector<>& rotAxis);
     vsg::ref_ptr<vsgImGui::RenderImGui> m_renderGui;
     vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
     vsg::ref_ptr<vsg::Window> m_window;
-    vsg::dvec3 m_vsg_cameraEye = vsg::dvec3(-10.0,0.0,0.0);
-    vsg::dvec3 m_vsg_cameraTarget = vsg::dvec3(0.0,0.0,0.0);
+    vsg::dvec3 m_vsg_cameraEye = vsg::dvec3(-10.0, 0.0, 0.0);
+    vsg::dvec3 m_vsg_cameraTarget = vsg::dvec3(0.0, 0.0, 0.0);
     vsg::ref_ptr<vsg::LookAt> m_lookAt;
     vsg::ref_ptr<vsg::Camera> m_vsg_camera;
 

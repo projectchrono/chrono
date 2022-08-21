@@ -59,9 +59,9 @@ class GuiComponent {
             ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
             ImGui::Begin("App:");  // Create a window called "Hello, world!" and append into it.
 
-            if(_params->showVehicleState) {
+            if (_params->showVehicleState) {
                 ImGui::BeginTable("VehTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                        ImVec2(0.0f, 0.0f));
+                                  ImVec2(0.0f, 0.0f));
                 ImGui::TableNextColumn();
                 ImGui::Text("Vehicle Speed:");
                 ImGui::TableNextColumn();
@@ -417,7 +417,8 @@ void ChVisualSystemVSG::Initialize() {
     // default sets automatic directional light
     // auto renderGraph = vsg::RenderGraph::create(m_window, m_view);
     // switches off automatic directional light setting
-    auto renderGraph = vsg::createRenderGraphForView(m_window, m_vsg_camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
+    auto renderGraph =
+        vsg::createRenderGraphForView(m_window, m_vsg_camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
     auto commandGraph = vsg::CommandGraph::create(m_window, renderGraph);
 
     auto foundFontFile = vsg::findFile("vsg/fonts/Ubuntu_Mono/UbuntuMono-Regular.ttf", m_options);
@@ -727,85 +728,82 @@ void ChVisualSystemVSG::BindAll() {
     }
     // loop through links in the system
     for (auto ilink : m_systems[0]->Get_linklist()) {
-        auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink);
-        if (!link)
-            continue;
-        if (!link->GetVisualModel())
-            continue;
-        for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
-            auto& shape = shape_instance.first;
-            if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
-                GetLog() << "Found line segment\n";
-                const auto& P1 = link->GetPoint1Abs();
-                const auto& P2 = link->GetPoint2Abs();
+        if (auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink)) {
+            for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
+                auto& shape = shape_instance.first;
+                if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
+                    GetLog() << "Found line segment\n";
+                    ChVector<> P1 = link->GetPoint1Abs();
+                    ChVector<> P2 = link->GetPoint2Abs();
+                    double rotAngle, height;
+                    ChVector<> rotAxis, pos;
+                    Point2PointHelperAbs(P1,P2, height, pos, rotAngle, rotAxis);
+                    std::shared_ptr<ChVisualMaterial> material;
+                    if (segshape->GetMaterials().empty()) {
+                        material = chrono_types::make_shared<ChVisualMaterial>();
+                        material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
+                        material->SetAmbientColor(ChColor(0.1, 0.1, 0.1));
+                    } else {
+                        material = segshape->GetMaterial(0);
+                    }
 
-                ChVector<> dir = P2 - P1;
-                double height = dir.Length();
-                dir.Normalize();
-                ChVector<> mx, my, mz;
-                dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-                ChMatrix33<> R_CS;
-                R_CS.Set_A_axis(mx, my, mz);
+                    auto transform = vsg::MatrixTransform::create();
+                    transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                        vsg::scale(0.0, height, 0.0);
+                    m_linkScene->addChild(
+                        m_shapeBuilder->createUnitSegment(ilink, shape_instance, material, transform));
+                } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
+                    GetLog() << "Found spring shape\n";
+                    double rad = sprshape->GetRadius();
+                    ChVector<> P1 = link->GetPoint1Abs();
+                    ChVector<> P2 = link->GetPoint2Abs();
+                    double rotAngle, height;
+                    ChVector<> rotAxis, pos;
+                    Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
+                    std::shared_ptr<ChVisualMaterial> material;
+                    if (sprshape->GetMaterials().empty()) {
+                        material = chrono_types::make_shared<ChVisualMaterial>();
+                        material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
+                        material->SetAmbientColor(ChColor(0.1, 0.1, 0.1));
+                    } else {
+                        material = sprshape->GetMaterial(0);
+                    }
 
-                auto t_CS = 0.5 * (P2 + P1);
-                ChFrame<> X_CS(t_CS, R_CS);
-
-                auto pos = X_CS.GetPos();
-                auto rot = X_CS.GetRot();
-                double rotAngle;
-                ChVector<> rotAxis;
-                rot.Q_to_AngAxis(rotAngle, rotAxis);
-                std::shared_ptr<ChVisualMaterial> material;
-                if (segshape->GetMaterials().empty()) {
-                    material = chrono_types::make_shared<ChVisualMaterial>();
-                    material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
-                    material->SetAmbientColor(ChColor(0.1, 0.1, 0.1));
-                } else {
-                    material = segshape->GetMaterial(0);
+                    auto transform = vsg::MatrixTransform::create();
+                    transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                        vsg::scale(rad, height, rad);
+                    m_linkScene->addChild(
+                        m_shapeBuilder->createSpringShape(ilink, shape_instance, material, transform, sprshape));
                 }
+            }
+        } else if (auto link = std::dynamic_pointer_cast<ChLinkDistance>(ilink)) {
+            for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
+                auto& shape = shape_instance.first;
+                if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
+                    GetLog() << "ChLinkDistance() Found line segment\n";
+                    ChVector<> P1 = link->GetEndPoint1Abs();
+                    ChVector<> P2 = link->GetEndPoint2Abs();
+                    double rotAngle, height;
+                    ChVector<> rotAxis, pos;
+                    Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
+                    std::shared_ptr<ChVisualMaterial> material;
+                    if (segshape->GetMaterials().empty()) {
+                        material = chrono_types::make_shared<ChVisualMaterial>();
+                        material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
+                        material->SetAmbientColor(ChColor(0.1, 0.1, 0.1));
+                    } else {
+                        material = segshape->GetMaterial(0);
+                    }
 
-                auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(0.0, height, 0.0);
-                m_linkScene->addChild(m_shapeBuilder->createUnitSegment(ilink, shape_instance, material, transform));
-            } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
-                GetLog() << "Found spring shape\n";
-                double rad = sprshape->GetRadius();
-                const auto& P1 = link->GetPoint1Abs();
-                const auto& P2 = link->GetPoint2Abs();
-
-                ChVector<> dir = P2 - P1;
-                double height = dir.Length();
-                dir.Normalize();
-                ChVector<> mx, my, mz;
-                dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-                ChMatrix33<> R_CS;
-                R_CS.Set_A_axis(mx, my, mz);
-
-                auto t_CS = 0.5 * (P2 + P1);
-                ChFrame<> X_CS(t_CS, R_CS);
-
-                auto pos = X_CS.GetPos();
-                auto rot = X_CS.GetRot();
-                double rotAngle;
-                ChVector<> rotAxis;
-                rot.Q_to_AngAxis(rotAngle, rotAxis);
-                std::shared_ptr<ChVisualMaterial> material;
-                if (sprshape->GetMaterials().empty()) {
-                    material = chrono_types::make_shared<ChVisualMaterial>();
-                    material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
-                    material->SetAmbientColor(ChColor(0.1, 0.1, 0.1));
-                } else {
-                    material = sprshape->GetMaterial(0);
+                    auto transform = vsg::MatrixTransform::create();
+                    transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                        vsg::scale(0.0, height, 0.0);
+                    m_linkScene->addChild(
+                        m_shapeBuilder->createUnitSegment(ilink, shape_instance, material, transform));
                 }
-
-                auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(rad, height, rad);
-                m_linkScene->addChild(
-                    m_shapeBuilder->createSpringShape(ilink, shape_instance, material, transform, sprshape));
             }
         }
     }
@@ -959,61 +957,68 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
             continue;
         if (!child->getValue("TransformPtr", transform))
             continue;
-        auto link = std::dynamic_pointer_cast<ChLinkTSDA>(item);
-        if (!link)
-            continue;
-        if (!link->GetVisualModel())
-            continue;
-        auto& shape = shapeInstance.first;
-        if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
-            const auto& P1 = link->GetPoint1Abs();
-            const auto& P2 = link->GetPoint2Abs();
-
-            ChVector<> dir = P2 - P1;
-            double height = dir.Length();
-            dir.Normalize();
-            ChVector<> mx, my, mz;
-            dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-            ChMatrix33<> R_CS;
-            R_CS.Set_A_axis(mx, my, mz);
-
-            auto t_CS = 0.5 * (P2 + P1);
-            ChFrame<> X_CS(t_CS, R_CS);
-
-            auto pos = X_CS.GetPos();
-            auto rot = X_CS.GetRot();
-            double rotAngle;
-            ChVector<> rotAxis;
-            rot.Q_to_AngAxis(rotAngle, rotAxis);
-            transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                vsg::scale(0.0, height, 0.0);
-        } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
-            double rad = sprshape->GetRadius();
-            const auto& P1 = link->GetPoint1Abs();
-            const auto& P2 = link->GetPoint2Abs();
-
-            ChVector<> dir = P2 - P1;
-            double height = dir.Length();
-            dir.Normalize();
-            ChVector<> mx, my, mz;
-            dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-            ChMatrix33<> R_CS;
-            R_CS.Set_A_axis(mx, my, mz);
-
-            auto t_CS = 0.5 * (P2 + P1);
-            ChFrame<> X_CS(t_CS, R_CS);
-
-            auto pos = X_CS.GetPos();
-            auto rot = X_CS.GetRot();
-            double rotAngle;
-            ChVector<> rotAxis;
-            rot.Q_to_AngAxis(rotAngle, rotAxis);
-            transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                vsg::scale(rad, height, rad);
+        if (auto link = std::dynamic_pointer_cast<ChLinkTSDA>(item)) {
+            if (!link->GetVisualModel())
+                continue;
+            auto& shape = shapeInstance.first;
+            if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
+                ChVector<> P1 = link->GetPoint1Abs();
+                ChVector<> P2 = link->GetPoint2Abs();
+                double rotAngle, height;
+                ChVector<> rotAxis, pos;
+                Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                    vsg::scale(0.0, height, 0.0);
+            } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
+                double rad = sprshape->GetRadius();
+                ChVector<> P1 = link->GetPoint1Abs();
+                ChVector<> P2 = link->GetPoint2Abs();
+                double rotAngle, height;
+                ChVector<> rotAxis, pos;
+                Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                    vsg::scale(rad, height, rad);
+            }
+        } else if (auto link = std::dynamic_pointer_cast<ChLinkDistance>(item)) {
+            if (!link->GetVisualModel())
+                continue;
+            auto& shape = shapeInstance.first;
+            if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
+                ChVector<> P1 = link->GetEndPoint1Abs();
+                ChVector<> P2 = link->GetEndPoint2Abs();
+                double rotAngle, height;
+                ChVector<> rotAxis, pos;
+                Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
+                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                                    vsg::scale(0.0, height, 0.0);
+            }
         }
     }
+}
+
+void ChVisualSystemVSG::Point2PointHelperAbs(ChVector<>& P1,
+                                             ChVector<>& P2,
+                                             double& height,
+                                             ChVector<>& pos,
+                                             double& rotAngle,
+                                             ChVector<>& rotAxis) {
+    ChVector<> dir = P2 - P1;
+    height = dir.Length();
+    dir.Normalize();
+    ChVector<> mx, my, mz;
+    dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
+    ChMatrix33<> R_CS;
+    R_CS.Set_A_axis(mx, my, mz);
+
+    auto t_CS = 0.5 * (P2 + P1);
+    ChFrame<> X_CS(t_CS, R_CS);
+
+    pos = X_CS.GetPos();
+    auto rot = X_CS.GetRot();
+    rot.Q_to_AngAxis(rotAngle, rotAxis);
 }
 
 void ChVisualSystemVSG::SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col) {
