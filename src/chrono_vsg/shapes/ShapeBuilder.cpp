@@ -14,6 +14,7 @@
 
 #include "ShapeBuilder.h"
 #include "GetBoxShapeData.h"
+#include "GetDiceShapeData.h"
 #include "GetSphereShapeData.h"
 #include "GetParticleShapeData.h"
 #include "GetCylinderShapeData.h"
@@ -120,6 +121,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
     switch (theShape) {
         case BOX_SHAPE:
             GetBoxShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case DICE_SHAPE:
+            GetDiceShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
             break;
         case SPHERE_SHAPE:
             GetSphereShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);

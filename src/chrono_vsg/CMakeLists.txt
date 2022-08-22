@@ -38,6 +38,8 @@ SET(CE_VSG_SHAPES_FILES
     shapes/GetConeShapeData.h
     shapes/GetCylinderShapeData.cpp
     shapes/GetCylinderShapeData.h
+    shapes/GetDiceShapeData.cpp
+    shapes/GetDiceShapeData.h
     shapes/GetSphereShapeData.cpp
     shapes/GetSphereShapeData.h
     shapes/GetParticleShapeData.cpp

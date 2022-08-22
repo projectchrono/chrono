@@ -555,14 +555,31 @@ void ChVisualSystemVSG::BindAll() {
                 continue;
             }
             if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
-                GetLog() << "... has a box shape\n";
+                // we have boxes and dices. Dices take cubetextures, boxes take 6 identical textures
+                // dirty trick: if a kd map is set and its name contains "cubetexture" we use dice,
+                // if not, we use box
+                bool isDice = false;
+                if (!material->GetKdTexture().empty()) {
+                    size_t found = material->GetKdTexture().find("cubetexture");
+                    if (found != string::npos) {
+                        isDice = true;
+                    }
+                }
+
                 ChVector<> scale = box->GetBoxGeometry().Size;
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, body, shape_instance,
-                                                                  material, transform, m_draw_as_wireframe));
+                if (isDice) {
+                    GetLog() << "... has a dice shape\n";
+                    m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::DICE_SHAPE, body, shape_instance,
+                                                                      material, transform, m_draw_as_wireframe));
+                } else {
+                    GetLog() << "... has a box shape\n";
+                    m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, body, shape_instance,
+                                                                      material, transform, m_draw_as_wireframe));
+                }
             } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
                 GetLog() << "... has a sphere shape\n";
                 ChVector<> scale = sphere->GetSphereGeometry().rad;
@@ -737,7 +754,7 @@ void ChVisualSystemVSG::BindAll() {
                     ChVector<> P2 = link->GetPoint2Abs();
                     double rotAngle, height;
                     ChVector<> rotAxis, pos;
-                    Point2PointHelperAbs(P1,P2, height, pos, rotAngle, rotAxis);
+                    Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
                     std::shared_ptr<ChVisualMaterial> material;
                     if (segshape->GetMaterials().empty()) {
                         material = chrono_types::make_shared<ChVisualMaterial>();
