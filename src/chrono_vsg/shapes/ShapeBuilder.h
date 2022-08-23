@@ -56,11 +56,10 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                          std::shared_ptr<ChSurfaceShape> surface = nullptr);
 
     vsg::ref_ptr<vsg::Group> createParticleShape(std::shared_ptr<ChVisualMaterial> material,
-            vsg::ref_ptr<vsg::MatrixTransform> transform,
-            bool drawMode);
+                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                 bool drawMode);
 
-    vsg::ref_ptr<vsg::Group> createParticlePattern(std::shared_ptr<ChVisualMaterial> material,
-            bool drawMode);
+    vsg::ref_ptr<vsg::Group> createParticlePattern(std::shared_ptr<ChVisualMaterial> material, bool drawMode);
 
     vsg::ref_ptr<vsg::Group> createLineShape(std::shared_ptr<ChPhysicsItem> physItem,
                                              ChVisualModel::ShapeInstance shapeInstance,
@@ -89,6 +88,11 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                              vsg::ref_ptr<vsg::MatrixTransform> transform);
 
     vsg::ref_ptr<vsg::Group> createDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
+
+    /// create a ShaderSet for Phong shaded rendering
+    vsg::ref_ptr<vsg::ShaderSet> createTilingPhongShaderSet(vsg::ref_ptr<const vsg::Options> options = {},
+                                                            float uScale = 1.0f,
+                                                            float vScale = 1.0f);
 
     /// assign compile traversal to enable compilation.
     void assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct);
