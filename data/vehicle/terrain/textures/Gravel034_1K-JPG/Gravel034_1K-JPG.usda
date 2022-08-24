@@ -1,0 +1,100 @@
+#usda 1.0
+(
+    customLayerData = {
+        string author = "ambientCG (ambientCG.com)"
+        string copyright = "CC0 1.0 Public Domain Dedication (https://creativecommons.org/publicdomain/zero/1.0/)"
+        string generator = "ambientCG USD Script v3 (build_usda_pbr_material.py)"
+        string title = "Gravel034 by ambientCG"
+        string url = "https://ambientcg.com/a/Gravel034"
+    }
+    defaultPrim = "ambientCG_Material_Gravel034_1K_JPG"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Material "ambientCG_Material_Gravel034_1K_JPG"
+{
+    token outputs:surface.connect = </ambientCG_Material_Gravel034_1K_JPG/PBRShader.outputs:surface>
+
+    def Shader "TextureCoordinateReader"
+    {
+        uniform token info:id = "UsdPrimvarReader_float2"
+        token inputs:varname = "st"
+        float2 outputs:result
+    }
+
+    def Shader "PBRShader"
+    {
+        uniform token info:id = "UsdPreviewSurface"
+        color3f inputs:diffuseColor.connect = </ambientCG_Material_Gravel034_1K_JPG/diffuseColor.outputs:rgb>
+        float inputs:displacement.connect = </ambientCG_Material_Gravel034_1K_JPG/displacement.outputs:r>
+        normal3f inputs:normal.connect = </ambientCG_Material_Gravel034_1K_JPG/normal.outputs:rgb>
+        float inputs:occlusion.connect = </ambientCG_Material_Gravel034_1K_JPG/occlusion.outputs:r>
+        float inputs:roughness.connect = </ambientCG_Material_Gravel034_1K_JPG/roughness.outputs:r>
+        int inputs:useSpecularWorkflow = 0
+        token outputs:surface
+    }
+
+    def Shader "displacement"
+    {
+        uniform token info:id = "UsdUVTexture"
+        float4 inputs:fallback = (0, 0, 0, 1)
+        asset inputs:file = @Gravel034_1K_Displacement.jpg@
+        token inputs:sourceColorSpace = "raw"
+        token inputs:st.connect = </ambientCG_Material_Gravel034_1K_JPG/TextureCoordinateReader.outputs:result>
+        token inputs:wrapS = "repeat"
+        token inputs:wrapT = "repeat"
+        float3 outputs:r
+    }
+
+    def Shader "roughness"
+    {
+        uniform token info:id = "UsdUVTexture"
+        float4 inputs:fallback = (0.5, 0.5, 0.5, 1)
+        asset inputs:file = @Gravel034_1K_Roughness.jpg@
+        token inputs:sourceColorSpace = "raw"
+        token inputs:st.connect = </ambientCG_Material_Gravel034_1K_JPG/TextureCoordinateReader.outputs:result>
+        token inputs:wrapS = "repeat"
+        token inputs:wrapT = "repeat"
+        float3 outputs:r
+    }
+
+    def Shader "occlusion"
+    {
+        uniform token info:id = "UsdUVTexture"
+        float4 inputs:fallback = (1, 1, 1, 1)
+        asset inputs:file = @Gravel034_1K_AmbientOcclusion.jpg@
+        token inputs:sourceColorSpace = "raw"
+        token inputs:st.connect = </ambientCG_Material_Gravel034_1K_JPG/TextureCoordinateReader.outputs:result>
+        token inputs:wrapS = "repeat"
+        token inputs:wrapT = "repeat"
+        float3 outputs:r
+    }
+
+    def Shader "diffuseColor"
+    {
+        uniform token info:id = "UsdUVTexture"
+        float4 inputs:fallback = (0.75, 0.75, 0.75, 1)
+        asset inputs:file = @Gravel034_1K_Color.jpg@
+        token inputs:sourceColorSpace = "sRGB"
+        token inputs:st.connect = </ambientCG_Material_Gravel034_1K_JPG/TextureCoordinateReader.outputs:result>
+        token inputs:wrapS = "repeat"
+        token inputs:wrapT = "repeat"
+        float3 outputs:rgb
+    }
+
+    def Shader "normal"
+    {
+        uniform token info:id = "UsdUVTexture"
+        float4 inputs:bias = (-1, -1, -1, 0)
+        float4 inputs:fallback = (0, 0, 1, 1)
+        asset inputs:file = @Gravel034_1K_NormalGL.jpg@
+        float4 inputs:scale = (2, 2, 2, 1)
+        token inputs:sourceColorSpace = "raw"
+        token inputs:st.connect = </ambientCG_Material_Gravel034_1K_JPG/TextureCoordinateReader.outputs:result>
+        token inputs:wrapS = "repeat"
+        token inputs:wrapT = "repeat"
+        float3 outputs:rgb
+    }
+}
+

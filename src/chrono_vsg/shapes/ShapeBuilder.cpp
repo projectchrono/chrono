@@ -97,6 +97,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
         }
         // enable texturing
         graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", textureData);
+        // vsg combines material color and texture color, better use only one of it
+        phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
     }
 
     // set transparency, if needed
@@ -1121,7 +1123,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createDecoGrid(double ustep,
 
 vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPhongShaderSet(vsg::ref_ptr<const vsg::Options> options,
                                                                       float uScale,
-
                                                                       float vScale) {
     if (options) {
         // check if a ShaderSet has already been assigned to the options object, if so return it
