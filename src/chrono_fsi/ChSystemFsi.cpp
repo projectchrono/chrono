@@ -1354,13 +1354,13 @@ void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShel
     }
 }
 
-void ChSystemFsi::CreateMeshPoints(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
+void ChSystemFsi::CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh, 
                                    double delta,
                                    std::vector<ChVector<>>& point_cloud) {
-    mesh->RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
+    mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
     ChVector<> minV;
     ChVector<> maxV;
-    mesh->GetBoundingBox(minV, maxV, ChMatrix33<>(1));
+    mesh.GetBoundingBox(minV, maxV, ChMatrix33<>(1));
 
     const double EPSI = 1e-6;
 
@@ -1375,11 +1375,11 @@ void ChSystemFsi::CreateMeshPoints(std::shared_ptr<geometry::ChTriangleMeshConne
                 ChVector<> ray_dir[2] = {ChVector<>(5, 0.5, 0.25), ChVector<>(-3, 0.7, 10)};
                 int intersectCounter[2] = {0, 0};
 
-                for (unsigned int i = 0; i < mesh->m_face_v_indices.size(); ++i) {
-                    auto& t_face = mesh->m_face_v_indices[i];
-                    auto& v1 = mesh->m_vertices[t_face.x()];
-                    auto& v2 = mesh->m_vertices[t_face.y()];
-                    auto& v3 = mesh->m_vertices[t_face.z()];
+                for (unsigned int i = 0; i < mesh.m_face_v_indices.size(); ++i) {
+                    auto& t_face = mesh.m_face_v_indices[i];
+                    auto& v1 = mesh.m_vertices[t_face.x()];
+                    auto& v2 = mesh.m_vertices[t_face.y()];
+                    auto& v3 = mesh.m_vertices[t_face.z()];
 
                     // Find vectors for two edges sharing V1
                     auto edge1 = v2 - v1;

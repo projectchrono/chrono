@@ -429,7 +429,7 @@ class CH_FSI_API ChSystemFsi {
                     const ChVector<>& hsize);
 
     /// Utility function for creating points filling a closed mesh.
-    static void CreateMeshPoints(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
+    static void CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
                                  double delta,
                                  std::vector<ChVector<>>& point_cloud);
 
