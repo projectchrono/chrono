@@ -45,6 +45,7 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
     } BasicShape;
     vsg::ref_ptr<vsg::Options> m_options;
     vsg::ref_ptr<vsg::SharedObjects> m_sharedObjects;
+    float m_maxAnisotropy = 0.0f;
 
     vsg::ref_ptr<vsg::Group> createShape(BasicShape theShape,
                                          std::shared_ptr<ChPhysicsItem> physItem,
@@ -89,10 +90,8 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
 
     vsg::ref_ptr<vsg::Group> createDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
 
-    /// create a ShaderSet for Phong shaded rendering
-    vsg::ref_ptr<vsg::ShaderSet> createTilingPhongShaderSet(vsg::ref_ptr<const vsg::Options> options = {},
-                                                            float uScale = 1.0f,
-                                                            float vScale = 1.0f);
+    /// create a ShaderSet for Phong shaded rendering with tiled textures
+    vsg::ref_ptr<vsg::ShaderSet> createTilingPhongShaderSet(vsg::ref_ptr<const vsg::Options> options = {});
 
     /// assign compile traversal to enable compilation.
     void assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct);

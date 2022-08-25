@@ -339,6 +339,10 @@ void ChVisualSystemVSG::Initialize() {
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     windowTraits->depthImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
+    // set up features
+    auto requestFeatures = windowTraits->deviceFeatures = vsg::DeviceFeatures::create();
+    requestFeatures->get().samplerAnisotropy = VK_TRUE;
+
     m_scene = vsg::Group::create();
 
     double radius = 50.0;
@@ -391,6 +395,8 @@ void ChVisualSystemVSG::Initialize() {
         std::cout << "Could not create window." << std::endl;
         return;
     }
+    auto& limits = m_window->getOrCreatePhysicalDevice()->getProperties().limits;   // VkPhysicalDeviceLimits
+    m_shapeBuilder->m_maxAnisotropy = limits.maxSamplerAnisotropy;
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
     m_viewer->addWindow(m_window);
 

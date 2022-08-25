@@ -22,6 +22,13 @@ layout(set = 0, binding = 4) uniform sampler2D emissiveMap;
 layout(set = 0, binding = 5) uniform sampler2D specularMap;
 #endif
 
+layout(set = 0, binding = 9) uniform TextureRepeat
+{
+    float uScale;
+    float vScale;
+    float wScale;
+} texrepeat;
+
 layout(set = 0, binding = 10) uniform MaterialData
 {
     vec4 ambientColor;
@@ -48,16 +55,13 @@ layout(location = 5) in vec3 viewDir;
 
 layout(location = 0) out vec4 outColor;
 
-layout(constant_id = 0) const float uScale = 1.0;
-layout(constant_id = 1) const float vScale = 10;
-
 // Find the normal for this fragment, pulling either from a predefined normal map
 // or from the interpolated mesh normal and tangent attributes.
 vec3 getNormal()
 {
 #ifdef VSG_NORMAL_MAP
     // Perturb normal, see http://www.thetenthplanet.de/archives/1180
-    vec3 tangentNormal = texture(normalMap, texCoord0).xyz * 2.0 - 1.0;
+    vec3 tangentNormal = texture(normalMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale)).xyz * 2.0 - 1.0;
 
     //tangentNormal *= vec3(2,2,1);
 
@@ -106,10 +110,10 @@ void main()
     vec4 diffuseColor = vertexColor * material.diffuseColor;
 #ifdef VSG_DIFFUSE_MAP
     #ifdef VSG_GREYSACLE_DIFFUSE_MAP
-        float v = texture(diffuseMap, vec2(texCoord0.s * uScale, texCoord0.t * vScale)).s;
+        float v = texture(diffuseMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale)).s;
         diffuseColor *= vec4(v, v, v, 1.0);
     #else
-        diffuseColor *= texture(diffuseMap, vec2(texCoord0.s * uScale, texCoord0.t * vScale));
+        diffuseColor *= texture(diffuseMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale));
     #endif
 #endif
 
@@ -126,15 +130,15 @@ void main()
     }
 
 #ifdef VSG_EMISSIVE_MAP
-    emissiveColor *= texture(emissiveMap, vec2(texCoord0.s * uScale, texCoord0.t * vScale));
+    emissiveColor *= texture(emissiveMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale));
 #endif
 
 #ifdef VSG_LIGHTMAP_MAP
-    ambientOcclusion *= texture(aoMap, vec2(texCoord0.s * uScale, texCoord0.t * vScale)).r;
+    ambientOcclusion *= texture(aoMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale)).r;
 #endif
 
 #ifdef VSG_SPECULAR_MAP
-    specularColor *= texture(specularMap, vec2(texCoord0.s * uScale, texCoord0.t * vScale));
+    specularColor *= texture(specularMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale));
 #endif
 
     vec3 nd = getNormal();

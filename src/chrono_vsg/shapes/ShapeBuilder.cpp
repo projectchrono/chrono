@@ -48,12 +48,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
 
     vsg::ref_ptr<vsg::ShaderSet> shaderSet;
 
-    if (theShape == BOX_SHAPE) {
-        shaderSet =
-            createTilingPhongShaderSet(m_options, material->GetKdTextureScale().x(), material->GetKdTextureScale().y());
-    } else {
-        shaderSet = vsg::createPhongShaderSet(m_options);
-    }
+    auto repeatValues = vsg::vec3Value::create();
+    repeatValues->set(vsg::vec3(material->GetKdTextureScale().x(), material->GetKdTextureScale().y(), 1.0f));
+    shaderSet = createTilingPhongShaderSet(m_options);
 
     auto rasterizationState = vsg::RasterizationState::create();
     if (drawMode) {
@@ -95,8 +92,14 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
         if (!textureData) {
             std::cout << "Could not read texture file : " << textureFile << std::endl;
         }
-        // enable texturing
-        graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", textureData);
+        // enable texturing with anisotrpy filtering
+        auto sampler = vsg::Sampler::create();
+        sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT; // default yet, just an example how to set
+        sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        sampler->anisotropyEnable = VK_TRUE;
+        sampler->maxAnisotropy = m_maxAnisotropy;
+        graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", textureData, sampler);
         // vsg combines material color and texture color, better use only one of it
         phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
     }
@@ -118,6 +121,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
     }
     colorBlendAttachments.push_back(colorBlendAttachment);
     graphicsPipelineConfig->colorBlendState = vsg::ColorBlendState::create(colorBlendAttachments);
+    graphicsPipelineConfig->assignUniform(descriptors, "texrepeat", repeatValues);
     graphicsPipelineConfig->assignUniform(descriptors, "material", phongMat);
 
     if (m_options->sharedObjects)
@@ -1121,9 +1125,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createDecoGrid(double ustep,
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPhongShaderSet(vsg::ref_ptr<const vsg::Options> options,
-                                                                      float uScale,
-                                                                      float vScale) {
+/// create a ShaderSet for Phong shaded rendering with tiled textures
+vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPhongShaderSet(vsg::ref_ptr<const vsg::Options> options) {
     if (options) {
         // check if a ShaderSet has already been assigned to the options object, if so return it
         if (auto itr = options->shaderSets.find("phong"); itr != options->shaderSets.end())
@@ -1131,12 +1134,11 @@ vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPhongShaderSet(vsg::ref_p
     }
 
     auto vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/vsg3d.vert", options);
-    // if (!vertexShader) vertexShader = assimp_vert(); // fallback to shaders/assimp_vert.cpp
+    // if (!vertexShader)
+    //     vertexShader = assimp_vert();  // fallback to shaders/assimp_vert.cpp
     auto fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/vsg3d_phong.frag", options);
-    fragmentShader->specializationConstants = {{0, vsg::floatValue::create(uScale)},
-                                               {1, vsg::floatValue::create(vScale)}};
-
-    // if (!fragmentShader) fragmentShader = assimp_phong_frag();
+    // if (!fragmentShader)
+    //     fragmentShader = assimp_phong_frag();
 
     auto shaderSet = vsg::ShaderSet::create(vsg::ShaderStages{vertexShader, fragmentShader});
 
@@ -1158,6 +1160,8 @@ vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPhongShaderSet(vsg::ref_p
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
     shaderSet->addUniformBinding("emissiveMap", "VSG_EMISSIVE_MAP", 0, 4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
+    shaderSet->addUniformBinding("texrepeat", "", 0, 9, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec3Value::create());
     shaderSet->addUniformBinding("material", "", 0, 10, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::PhongMaterialValue::create());
     shaderSet->addUniformBinding("lightData", "", 1, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
