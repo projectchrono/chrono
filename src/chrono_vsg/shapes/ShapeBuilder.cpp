@@ -91,17 +91,20 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
         auto textureData = vsg::read_cast<vsg::Data>(textureFile, m_options);
         if (!textureData) {
             std::cout << "Could not read texture file : " << textureFile << std::endl;
+        } else {
+            // enable texturing with anisotrpy filtering and mipmaps
+            auto sampler = vsg::Sampler::create();
+            sampler->maxLod =
+                static_cast<uint32_t>(std::floor(std::log2(std::max(textureData->width(), textureData->height())))) + 1;
+            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->anisotropyEnable = VK_TRUE;
+            sampler->maxAnisotropy = m_maxAnisotropy;
+            graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", textureData, sampler);
+            // vsg combines material color and texture color, better use only one of it
+            phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
         }
-        // enable texturing with anisotrpy filtering
-        auto sampler = vsg::Sampler::create();
-        sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT; // default yet, just an example how to set
-        sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        sampler->anisotropyEnable = VK_TRUE;
-        sampler->maxAnisotropy = m_maxAnisotropy;
-        graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", textureData, sampler);
-        // vsg combines material color and texture color, better use only one of it
-        phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
     }
 
     // set transparency, if needed

@@ -59,6 +59,11 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     /// The integration of the underlying ODEs is performed using as many steps as needed to advance
     /// by the specified duration.
     void Advance(double step);
+
+    virtual void increaseThrottle(){};
+    virtual void decreaseThrottle(){};
+    virtual void leftTurn(){};
+    virtual void rightTurn(){};
 };
 
 // @} vehicle_utils

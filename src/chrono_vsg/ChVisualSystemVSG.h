@@ -98,6 +98,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsgImGui::RenderImGui> m_renderGui;
     vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
     vsg::ref_ptr<vsg::Window> m_window;
+    vsg::ref_ptr<vsg::Viewer> m_viewer;
     vsg::dvec3 m_vsg_cameraEye = vsg::dvec3(-10.0, 0.0, 0.0);
     vsg::dvec3 m_vsg_cameraTarget = vsg::dvec3(0.0, 0.0, 0.0);
     vsg::ref_ptr<vsg::LookAt> m_lookAt;
@@ -106,7 +107,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
   private:
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
     std::hash<std::string> m_stringHash;
-    vsg::ref_ptr<vsg::Viewer> m_viewer;
     int m_windowWidth = 800;
     int m_windowHeight = 600;
     int m_windowX = 0;

@@ -25,12 +25,50 @@
 namespace chrono {
 namespace vehicle {
 
+class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHandler> {
+  public:
+    VehAppKeyboardHandler(vsg::Viewer* viewer) : m_viewer(viewer) {}
+
+    void SetParams(vsg::ref_ptr<ChVehicleVisualSystemVSG::StateParams> params, ChVehicleVisualSystemVSG* appPtr) {
+        _params = params;
+        m_appPtr = appPtr;
+    }
+
+    void apply(vsg::KeyPressEvent& keyPress) override {
+        if (keyPress.keyBase == 'w' || keyPress.keyModified == 'w') {
+            // terminate process
+            m_appPtr->increaseThrottle();
+        }
+        if (keyPress.keyBase == 's' || keyPress.keyModified == 's') {
+            // terminate process
+            m_appPtr->decreaseThrottle();
+        }
+        if (keyPress.keyBase == 'a' || keyPress.keyModified == 'a') {
+            // terminate process
+            m_appPtr->leftTurn();
+        }
+        if (keyPress.keyBase == 'd' || keyPress.keyModified == 'd') {
+            // terminate process
+            m_appPtr->rightTurn();
+        }
+    }
+
+  private:
+    vsg::observer_ptr<vsg::Viewer> m_viewer;
+    vsg::ref_ptr<ChVehicleVisualSystemVSG::StateParams> _params;
+    ChVehicleVisualSystemVSG* m_appPtr;
+};
+
 ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() {
     m_params->showVehicleState = true;
 }
 
 void ChVehicleVisualSystemVSG::Initialize() {
     ChVisualSystemVSG::Initialize();
+    // add keyboard handler
+    auto veh_kbHandler = VehAppKeyboardHandler::create(m_viewer);
+    veh_kbHandler->SetParams(m_params, this);
+    m_viewer->addEventHandler(veh_kbHandler);
 }
 
 void ChVehicleVisualSystemVSG::Synchronize(const std::string& msg, const DriverInputs& driver_inputs) {
