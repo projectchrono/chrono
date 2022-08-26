@@ -158,19 +158,18 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     ////sysFSI.AddBoxBCE(ground, pos_yn, QUNIT, size_XZ, 13);
 
     // Create the wheel -- always SECOND body in the system
-    auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
+    auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     double scale_ratio = 1.0;
-    mmesh->LoadWavefrontMesh(GetChronoDataFile(wheel_obj), false, true);
-    ////mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(body_rot));       // rotate the mesh if needed
-    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
-    mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
+    trimesh->LoadWavefrontMesh(GetChronoDataFile(wheel_obj), false, true);
+    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
+    trimesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
     // compute mass inertia from mesh
     double mmass;
     double mdensity = 1500.0;
     ChVector<> mcog;
     ChMatrix33<> minertia;
-    mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
+    trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_rot;
     ChVector<> principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
@@ -198,13 +197,13 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     wheel->SetBodyFixed(false);
     wheel->GetCollisionModel()->ClearModel();
-    wheel->GetCollisionModel()->AddTriangleMesh(mysurfmaterial, mmesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
+    wheel->GetCollisionModel()->AddTriangleMesh(mysurfmaterial, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
     wheel->GetCollisionModel()->BuildModel();
     wheel->SetCollide(false);
 
     // Add this body to the FSI system
     std::vector<ChVector<>> BCE_par_rock;
-    sysFSI.CreateMeshPoints(mmesh, iniSpacing, BCE_par_rock);
+    sysFSI.CreateMeshPoints(*trimesh, iniSpacing, BCE_par_rock);
     sysFSI.AddPointsBCE(wheel, BCE_par_rock, ChVector<>(0.0), QUNIT);
     sysFSI.AddFsiBody(wheel);
 
