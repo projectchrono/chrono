@@ -574,6 +574,7 @@ __global__ void UpdateFlexMarkersPositionVelocityAccD(Real4* posRadD,
                                                       uint4* ShellelementsNodes,
                                                       Real3* pos_fsi_fea_D,
                                                       Real3* vel_fsi_fea_D,
+                                                      Real3* dir_fsi_fea_D,
                                                       Real Spacing) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numFlexMarkers)
@@ -617,17 +618,22 @@ __global__ void UpdateFlexMarkersPositionVelocityAccD(Real4* posRadD,
         Real3 pos_fsi_fea_D_nC = pos_fsi_fea_D[shellNodes.z];
         Real3 pos_fsi_fea_D_nD = pos_fsi_fea_D[shellNodes.w];
 
+        Real3 dir_fsi_fea_D_nA = dir_fsi_fea_D[shellNodes.x];
+        Real3 dir_fsi_fea_D_nB = dir_fsi_fea_D[shellNodes.y];
+        Real3 dir_fsi_fea_D_nC = dir_fsi_fea_D[shellNodes.z];
+        Real3 dir_fsi_fea_D_nD = dir_fsi_fea_D[shellNodes.w];
+
         Real3 Shell_center = 0.25 * (pos_fsi_fea_D_nA + pos_fsi_fea_D_nB + pos_fsi_fea_D_nC + pos_fsi_fea_D_nD);
 
-        Real3 x_dir = (pos_fsi_fea_D_nB - pos_fsi_fea_D_nA) + (pos_fsi_fea_D_nC - pos_fsi_fea_D_nD);
+        // Real3 x_dir = (pos_fsi_fea_D_nB - pos_fsi_fea_D_nA) + (pos_fsi_fea_D_nC - pos_fsi_fea_D_nD);
 
-        Real3 n1 = normalize(cross(pos_fsi_fea_D_nB - pos_fsi_fea_D_nA, pos_fsi_fea_D_nC - pos_fsi_fea_D_nB));
-        Real3 n2 = normalize(cross(pos_fsi_fea_D_nC - pos_fsi_fea_D_nB, pos_fsi_fea_D_nD - pos_fsi_fea_D_nC));
-        Real3 n3 = normalize(cross(pos_fsi_fea_D_nD - pos_fsi_fea_D_nC, pos_fsi_fea_D_nA - pos_fsi_fea_D_nD));
-        Real3 n4 = normalize(cross(pos_fsi_fea_D_nA - pos_fsi_fea_D_nD, pos_fsi_fea_D_nB - pos_fsi_fea_D_nA));
-        Real3 Normal = normalize(n1 + n2 + n3 + n4);
-        Real3 y_dir = cross(Normal, x_dir);
-
+        // Real3 n1 = normalize(cross(pos_fsi_fea_D_nB - pos_fsi_fea_D_nA, pos_fsi_fea_D_nC - pos_fsi_fea_D_nB));
+        // Real3 n2 = normalize(cross(pos_fsi_fea_D_nC - pos_fsi_fea_D_nB, pos_fsi_fea_D_nD - pos_fsi_fea_D_nC));
+        // Real3 n3 = normalize(cross(pos_fsi_fea_D_nD - pos_fsi_fea_D_nC, pos_fsi_fea_D_nA - pos_fsi_fea_D_nD));
+        // Real3 n4 = normalize(cross(pos_fsi_fea_D_nA - pos_fsi_fea_D_nD, pos_fsi_fea_D_nB - pos_fsi_fea_D_nA));
+        // Real3 Normal = normalize(n1 + n2 + n3 + n4);
+        // Real3 y_dir = cross(Normal, x_dir);
+        // 
         Real Shell_x = 0.25 * length(pos_fsi_fea_D_nB - pos_fsi_fea_D_nA + pos_fsi_fea_D_nC - pos_fsi_fea_D_nD);
         Real Shell_y = 0.25 * length(pos_fsi_fea_D_nD - pos_fsi_fea_D_nA + pos_fsi_fea_D_nC - pos_fsi_fea_D_nB);
 
@@ -637,6 +643,9 @@ __global__ void UpdateFlexMarkersPositionVelocityAccD(Real4* posRadD,
         Real NB = N_shell.y;
         Real NC = N_shell.z;
         Real ND = N_shell.w;
+
+        Real3 Normal =normalize(NA * dir_fsi_fea_D_nA + NB * dir_fsi_fea_D_nB 
+                                + NC * dir_fsi_fea_D_nC + ND * dir_fsi_fea_D_nD);
 
         Real3 vel_fsi_fea_D_nA = vel_fsi_fea_D[shellNodes.x];
         Real3 vel_fsi_fea_D_nB = vel_fsi_fea_D[shellNodes.y];
@@ -1050,7 +1059,7 @@ void ChBce::UpdateFlexMarkersPositionVelocity(std::shared_ptr<SphMarkerDataD> sp
         mR4CAST(sphMarkersD->posRadD), mR3CAST(fsiGeneralData->FlexSPH_MeshPos_LRF_D), mR3CAST(sphMarkersD->velMasD),
         U1CAST(fsiGeneralData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
         U2CAST(fsiGeneralData->CableElementsNodes), U4CAST(fsiGeneralData->ShellElementsNodes),
-        mR3CAST(fsiMeshD->pos_fsi_fea_D), mR3CAST(fsiMeshD->vel_fsi_fea_D),
+        mR3CAST(fsiMeshD->pos_fsi_fea_D), mR3CAST(fsiMeshD->vel_fsi_fea_D), mR3CAST(fsiMeshD->dir_fsi_fea_D),
         paramsH->HSML * paramsH->MULT_INITSPACE_Shells);
 
     cudaDeviceSynchronize();

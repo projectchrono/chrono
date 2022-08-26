@@ -116,11 +116,13 @@ void FsiMeshDataH::resize(size_t s) {
     pos_fsi_fea_H.resize(s);
     vel_fsi_fea_H.resize(s);
     acc_fsi_fea_H.resize(s);
+    dir_fsi_fea_H.resize(s);
 }
 void FsiMeshDataD::resize(size_t s) {
     pos_fsi_fea_D.resize(s);
     vel_fsi_fea_D.resize(s);
     acc_fsi_fea_D.resize(s);
+    dir_fsi_fea_D.resize(s);
 }
 
 void FsiBodiesDataD::CopyFromH(const FsiBodiesDataH& other) {
@@ -168,6 +170,7 @@ void FsiMeshDataD::CopyFromH(const FsiMeshDataH& other) {
     thrust::copy(other.pos_fsi_fea_H.begin(), other.pos_fsi_fea_H.end(), pos_fsi_fea_D.begin());
     thrust::copy(other.vel_fsi_fea_H.begin(), other.vel_fsi_fea_H.end(), vel_fsi_fea_D.begin());
     thrust::copy(other.acc_fsi_fea_H.begin(), other.acc_fsi_fea_H.end(), acc_fsi_fea_D.begin());
+    thrust::copy(other.dir_fsi_fea_H.begin(), other.dir_fsi_fea_H.end(), dir_fsi_fea_D.begin());
 }
 
 FsiBodiesDataD& FsiBodiesDataD::operator=(const FsiBodiesDataD& other) {
@@ -227,6 +230,7 @@ FsiMeshDataD& FsiMeshDataD::operator=(const FsiMeshDataD& other) {
     thrust::copy(other.pos_fsi_fea_D.begin(), other.pos_fsi_fea_D.end(), pos_fsi_fea_D.begin());
     thrust::copy(other.vel_fsi_fea_D.begin(), other.vel_fsi_fea_D.end(), vel_fsi_fea_D.begin());
     thrust::copy(other.acc_fsi_fea_D.begin(), other.acc_fsi_fea_D.end(), acc_fsi_fea_D.begin());
+    thrust::copy(other.dir_fsi_fea_D.begin(), other.dir_fsi_fea_D.end(), dir_fsi_fea_D.begin());
     return *this;
 }
 
@@ -301,6 +305,7 @@ void ChronoMeshDataH::resize(size_t s) {
     posFlex_ChSystemH_H.resize(s);
     velFlex_ChSystemH_H.resize(s);
     accFlex_ChSystemH_H.resize(s);
+    dirFlex_ChSystemH_H.resize(s);
 }
 
 //---------------------------------------------------------------------------------------
