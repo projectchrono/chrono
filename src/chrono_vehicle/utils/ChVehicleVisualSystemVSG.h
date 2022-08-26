@@ -34,6 +34,7 @@
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 #include "chrono_vehicle/ChDriver.h"
+#include "chrono_vehicle/driver/ChVSGGuiDriver.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 
 namespace chrono {
@@ -59,11 +60,14 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     /// The integration of the underlying ODEs is performed using as many steps as needed to advance
     /// by the specified duration.
     void Advance(double step);
+    void AttachGuiDriver(ChVSGGuiDriver* guiDriver) { m_guiDriver = guiDriver; }
+    void increaseThrottle();
+    void decreaseThrottle();
+    void leftTurn();
+    void rightTurn();
 
-    virtual void increaseThrottle(){};
-    virtual void decreaseThrottle(){};
-    virtual void leftTurn(){};
-    virtual void rightTurn(){};
+protected:
+    ChVSGGuiDriver* m_guiDriver = nullptr;
 };
 
 // @} vehicle_utils

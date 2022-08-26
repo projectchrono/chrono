@@ -231,6 +231,16 @@ else()
 endif()
 source_group("driver" FILES ${CV_DRIVER_FILES} ${CVIRR_DRIVER_FILES})
 
+if(ENABLE_MODULE_VSG)
+    set(CVVSG_DRIVER_FILES
+        driver/ChVSGGuiDriver.h
+        driver/ChVSGGuiDriver.cpp
+    )
+else()
+    set(CVVSG_DRIVER_FILES "")
+endif()
+source_group("driver" FILES ${CV_DRIVER_FILES} ${CVVSG_DRIVER_FILES})
+
 set(CV_POVERTRAIN_FILES
     powertrain/ChSimplePowertrain.h
     powertrain/ChSimplePowertrain.cpp
@@ -963,6 +973,7 @@ list(APPEND LIBRARIES ChronoEngine_vehicle)
 list(APPEND LIBRARIES ChronoEngine_vsg) 
 
 add_library(ChronoEngine_vehicle_vsg SHARED
+    ${CVVSG_DRIVER_FILES}
     ${CVVSG_UTILS_FILES}
     ${CVVSG_WV_UTILS_FILES}
     ${CVVSG_TV_UTILS_FILES}

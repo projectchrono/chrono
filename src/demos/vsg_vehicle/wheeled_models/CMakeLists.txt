@@ -2,7 +2,8 @@
 # List of all OpenGL demos
 
 SET(DEMOS
-  demo_VSG_VEH_TwoCars
+  demo_vsg_VEH_CityBus
+  demo_vsg_VEH_TwoCars
 )
 
 set(CMAKE_CXX_STANDARD 17)

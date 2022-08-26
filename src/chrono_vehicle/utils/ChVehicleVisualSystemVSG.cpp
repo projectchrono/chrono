@@ -109,5 +109,29 @@ void ChVehicleVisualSystemVSG::Advance(double step) {
     m_lookAt->center = m_vsg_cameraTarget;
 }
 
+void ChVehicleVisualSystemVSG::increaseThrottle() {
+    if(m_guiDriver) {
+        m_guiDriver->IncreaseSpeed();
+    }
+}
+
+void ChVehicleVisualSystemVSG::decreaseThrottle() {
+    if(m_guiDriver) {
+        m_guiDriver->DecreaseSpeed();
+    }
+}
+
+void ChVehicleVisualSystemVSG::leftTurn() {
+    if(m_guiDriver) {
+        m_guiDriver->ChangeSteeringLeft();
+    }
+}
+
+void ChVehicleVisualSystemVSG::rightTurn() {
+    if(m_guiDriver) {
+        m_guiDriver->ChangeSteeringRight();
+    }
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono
