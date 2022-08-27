@@ -33,9 +33,7 @@ endif()
 
 #--------------------------------------------------------------
 
-message(STATUS)
-message(STATUS "==== Demo programs ====")
-message(STATUS)
+message(STATUS "\n==== Demo programs ====\n")
 
 option(BUILD_DEMOS_BASE "Build demo programs for base Chrono module" TRUE)
 mark_as_advanced(FORCE BUILD_DEMOS_BASE)

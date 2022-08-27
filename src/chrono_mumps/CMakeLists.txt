@@ -12,7 +12,7 @@ IF(NOT ENABLE_MODULE_MUMPS)
     RETURN()
 ENDIF()
 
-message(STATUS "==== Chrono Engine Mumps module ====")
+message(STATUS "\n==== Chrono Engine Mumps module ====\n")
 
 # Arithmetic configuration
 SET(MUMPS_ARITHMETIC "double" CACHE STRING "MUMPS arithmetic")

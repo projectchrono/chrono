@@ -11,7 +11,7 @@ if(NOT ENABLE_MODULE_DISTRIBUTED)
   return()
 endif()
 
-message(STATUS "==== Chrono Distributed module ====")
+message(STATUS "\n==== Chrono Distributed module ====\n")
 
 # Return now if MPI is not available
 if(NOT MPI_FOUND)

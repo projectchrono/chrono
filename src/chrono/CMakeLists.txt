@@ -4,7 +4,7 @@
 #
 #=============================================================================
 
-message(STATUS "==== Chrono Engine core module ====")
+message(STATUS "\n==== Chrono Engine core module ====\n")
 
 #-----------------------------------------------------------------------------
 # Double precision support for Bullet

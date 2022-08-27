@@ -12,7 +12,7 @@ if(NOT ENABLE_MODULE_PYTHON)
   return()
 endif()
 
-message(STATUS "==== Chrono Pyparser module ====")
+message(STATUS "\n==== Chrono Pyparser module ====\n")
 
 mark_as_advanced(CLEAR SWIG_EXECUTABLE)
 
