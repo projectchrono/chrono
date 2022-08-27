@@ -52,6 +52,7 @@ requirements:
     - numpy >=1.16
     - glew
     - glfw
+    - opencascade
 
 test:
   requires:

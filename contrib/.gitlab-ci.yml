@@ -3,6 +3,9 @@
 ## ProjectChrono Default CI Config ##
 #####################################
 
+#TODO: Move all clean-up operations to after_script sections
+# This will ensure that the clean-up happens even if the build/deployment fails
+
 # Option to disable CI builds for a particular branch
 #workflow:
 #  rules:
@@ -396,7 +399,7 @@ windows:vs2022:test:
   extends: .windows
   script:
   - cd build
-  - ctest --output-on-failure
+  - ctest --extra-verbose --output-on-failure
   dependencies: ["windows:vs2022:build"]
 
 windows:vs2019:build:
@@ -419,16 +422,14 @@ windows:vs2019:build:
     paths:
       - build/
 
-
 windows:vs2019:test:
   stage: test
   needs: ["windows:vs2019:build"]
   extends: .windows
   script:
   - cd build
-  - ctest --output-on-failure
+  - ctest --extra-verbose --output-on-failure
   dependencies: ["windows:vs2019:build"]
-
 
 windows:vs2019:deploy:
   stage: deploy
@@ -440,7 +441,7 @@ windows:vs2019:deploy:
     #- $libiomppth=Join-Path -Path $Env:CONDA_INSTALL_LOCN -ChildPath "\Library\lib\libiomp5md.lib"
     #- Invoke-WebRequest -Uri http://www.projectchrono.org/assets/downloads/libiomp5md.lib  -OutFile $libiomppth
     - mkdir ./logs
-    #- $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
+    - $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
     # this command is needed to get the git describe data needed by the numbering
     - git fetch --prune --unshallow
     # Uncomment the following lines to get a fresh install of Miniconda
@@ -457,24 +458,37 @@ windows:vs2019:deploy:
     #Activate conda environment
     - conda activate build-env
     #Conda install dependencies
-    - conda install --yes anaconda-client conda-build
-    #- conda install --yes -c intel mkl-devel
-    #- conda install --yes -c conda-forge glew glfw irrlicht swig=4.0.2  
-    #- conda install -c dlr-sc opencascade --yes
+    - conda install --yes anaconda-client
+    - conda install conda-build
+    - conda update conda --yes
+    - cd C:\Users\builder\miniconda3\pkgs\anaconda-client-1.10.0-py37*\Lib\site-packages\binstar_client\commands\
+    - $location=pwd
+    - cd $CI_PROJECT_DIR
+    # The anaconda upload script has a bug which does not allow it to print logs. The modified file fixes that
+    - mv -Force $CI_PROJECT_DIR\contrib\packaging-python\conda\upload.py $location\upload.py
+    - set REQUESTS_CA_BUNDLE=C:\users\builder\miniconda3\Lib\site-packages\certifi\cacert.pem
     - conda build purge-all timeout /t 240
+    # Building pyChrono for python v3.10
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.10 --no-remove-work-dir
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\envs\build-env\conda-bld\win-64\pychrono*.bz2 --force --label main >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
-    - conda build purge-all  timeout /t 240
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
+    - conda build purge-all timeout /t 240
+    # Building pyChrono for python v3.9
+    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.9 --no-remove-work-dir
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
+    - conda build purge-all timeout /t 240
+    # Building pyChrono for python v3.8
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.8 --no-remove-work-dir
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\envs\build-env\conda-bld\win-64\pychrono*.bz2 --force --label main  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
-    - conda build purge  timeout /t 240
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
+    - conda build purge timeout /t 240
+    # Building pyChrono for python v3.6
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.6 --no-remove-work-dir
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN"\envs\build-env\conda-bld\win-64\pychrono*.bz2 --force --label main  >> "$Env:LOG_DIR"\condauploadlog.txt 2>&1
-    - get-content outputfile.txt
-    - Copy-Item "./outputfile.txt" -Destination "./logs/"
-    #- Remove-Item $Env:CONDA_INSTALL_LOCN\conda-bld\*pychrono* -Recurse -Force
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
+  after_script:
+    # Get rid of the build environment
     - conda deactivate build-env
-    - rm -r C:\Users\builder\miniconda3\envs\build-env
+    - Remove-Item $Env:CONDA_INSTALL_LOCN\envs\build-env -Recurse -Force
+    # Get rid of the downloaded numpy package to prevent conflicts
+    - Remove-Item $Env:CONDA_ISNTALL_LOCN\pkgs\numpy* -Recurse -Force
 
   environment:
     name: pychrono-win64
@@ -484,8 +498,6 @@ windows:vs2019:deploy:
     expire_in: 60m
     paths:
       - ./logs/
-
-
 
 #----------------#
 # macOS Builders #
