@@ -880,7 +880,7 @@ __device__ inline Real4 DifVelocityRho_ElasticSPH(Real W_ini_inv,
 
     // Artifical pressure to handle tensile instability issue.
     // A complete artifical stress should be implemented in the future.
-    if (paramsD.Coh_coeff > 1e-5) {
+    /*if (paramsD.Coh_coeff > 1e-5) {
         Real Pa = -1.0 / 3.0 * (tauXxYyZz_A.x + tauXxYyZz_A.y + tauXxYyZz_A.z);
         if (Pa < 0.0) {
             Real Pb = -1.0 / 3.0 * (tauXxYyZz_B.x + tauXxYyZz_B.y + tauXxYyZz_B.z);
@@ -893,7 +893,7 @@ __device__ inline Real4 DifVelocityRho_ElasticSPH(Real W_ini_inv,
             derivVy += small_F * gradW.y;
             derivVz += small_F * gradW.z;
         }
-    }
+    }*/
 
     // TOTO: Damping force
     // if (1 == 0) {
@@ -1456,6 +1456,7 @@ __global__ void NS_SSR(uint* activityIdentifierD,
     if (rhoPresMuA.w > -1.5 && rhoPresMuA.w < -0.5) {
         Real3 totalFluidBodyForce3 = paramsD.bodyForce3 + paramsD.gravity;
         derivVelRho += mR4(totalFluidBodyForce3, 0.0);
+        derivVelRho.w = sum_w_i;
     }
 
     sortedDerivVelRho[index] = derivVelRho;
