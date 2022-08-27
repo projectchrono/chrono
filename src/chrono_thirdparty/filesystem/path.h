@@ -351,7 +351,10 @@ inline bool create_directory(const path& p) {
 #if defined(_WIN32)
     return CreateDirectoryW(p.wstr().c_str(), NULL) != 0;
 #else
-    return mkdir(p.str().c_str(), S_IRUSR | S_IWUSR | S_IXUSR) == 0;
+    auto old_umask = umask(0);
+    auto flag = mkdir(p.str().c_str(), 0777);
+    umask(old_umask);
+    return flag == 0;
 #endif
 }
 
