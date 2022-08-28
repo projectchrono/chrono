@@ -142,6 +142,9 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax = ChVector<>( 5 * bxDim,  byDim / 2.0 + initSpace0 / 2.0,  10 * bzDim );
     sysFSI.SetBoundaries(cMin, cMax);
 
+    // Set cohsion of the granular material
+    sysFSI.SetCohesionForce(2000.0);
+
     // Setup the output directory for FSI data
     sysFSI.SetOutputDirectory(out_dir);
 
@@ -388,12 +391,8 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         _2D_elementsNodes_mesh.resize(TotalNumElements);
         NodeNeighborElement_mesh.resize(TotalNumNodes);
 
-        // Element dimensions
+        // Element thickness
         double dz = m_thickness;
-        double dx = CH_C_2PI * (m_rim_radius + m_height) / (1 * m_div_circumference);
-        double dy = CH_C_PI * m_height / m_div_width;
-
-        std::cout << dx  << " dx dy: " << dy << std::endl;
 
         // Create the ANCF shell elements
         int num_elem = 0;
@@ -429,6 +428,12 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                 // Create the element and set its nodes.
                 auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
                 element->SetNodes(node0, node1, node2, node3);
+
+                // Element dimensions
+                double dx =
+                    0.5 * ((node1->GetPos() - node0->GetPos()).Length() + (node3->GetPos() - node2->GetPos()).Length());
+                double dy = 
+                    0.5 * ((node2->GetPos() - node1->GetPos()).Length() + (node3->GetPos() - node0->GetPos()).Length());
 
                 // Set element dimensions
                 element->SetDimensions(dx, dy);

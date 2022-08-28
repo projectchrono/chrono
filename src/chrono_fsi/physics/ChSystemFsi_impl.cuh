@@ -128,6 +128,7 @@ struct FsiMeshDataH {
     thrust::host_vector<Real3> pos_fsi_fea_H;  ///< Vector of the mesh position
     thrust::host_vector<Real3> vel_fsi_fea_H;  ///< Vector of the mesh velocity
     thrust::host_vector<Real3> acc_fsi_fea_H;  ///< Vector of the mesh acceleration
+    thrust::host_vector<Real3> dir_fsi_fea_H;  ///< Vector of the mesh direction
 
     // zipIterFlexH iterator();
     void resize(size_t s);
@@ -139,6 +140,7 @@ struct FsiMeshDataD {
     thrust::device_vector<Real3> pos_fsi_fea_D;  ///< Vector of the mesh position
     thrust::device_vector<Real3> vel_fsi_fea_D;  ///< Vector of the mesh velocity
     thrust::device_vector<Real3> acc_fsi_fea_D;  ///< Vector of the mesh acceleration
+    thrust::device_vector<Real3> dir_fsi_fea_D;  ///< Vector of the mesh direction
 
     // zipIterFlexD iterator();
     void CopyFromH(const FsiMeshDataH& other);
@@ -251,6 +253,7 @@ struct ChronoMeshDataH {
     thrust::host_vector<Real3> posFlex_ChSystemH_H;  ///< Vector of the mesh position
     thrust::host_vector<Real3> velFlex_ChSystemH_H;  ///< Vector of the mesh velocity
     thrust::host_vector<Real3> accFlex_ChSystemH_H;  ///< Vector of the mesh acceleration
+    thrust::host_vector<Real3> dirFlex_ChSystemH_H;  ///< Vector of the mesh direction
 
     void resize(size_t s);
 };

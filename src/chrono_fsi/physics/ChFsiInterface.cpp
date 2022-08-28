@@ -157,10 +157,11 @@ void ChFsiInterface::Copy_ChSystem_to_External() {
 
     int numNodes = m_fsi_mesh->GetNnodes();
     for (size_t i = 0; i < numNodes; i++) {
-        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_fsi_mesh->GetNode((unsigned int)i));
+        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
         m_flex_backup->posFlex_ChSystemH_H[i] = ChUtilsTypeConvert::ChVectorToReal3(node->GetPos());
         m_flex_backup->velFlex_ChSystemH_H[i] = ChUtilsTypeConvert::ChVectorToReal3(node->GetPos_dt());
         m_flex_backup->accFlex_ChSystemH_H[i] = ChUtilsTypeConvert::ChVectorToReal3(node->GetPos_dtdt());
+        m_flex_backup->dirFlex_ChSystemH_H[i] = ChUtilsTypeConvert::ChVectorToReal3(node->GetD());
     }
 }
 //------------------------------------------------------------------------------------
@@ -229,6 +230,7 @@ void ChFsiInterface::Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMe
         m_sysFSI.fsiMeshH->pos_fsi_fea_H[i] = ChUtilsTypeConvert::ChVectorToReal3(NodePtr->GetPos());
         m_sysFSI.fsiMeshH->vel_fsi_fea_H[i] = ChUtilsTypeConvert::ChVectorToReal3(NodePtr->GetPos_dt());
         m_sysFSI.fsiMeshH->acc_fsi_fea_H[i] = ChUtilsTypeConvert::ChVectorToReal3(NodePtr->GetPos_dtdt());
+        m_sysFSI.fsiMeshH->dir_fsi_fea_H[i] = ChUtilsTypeConvert::ChVectorToReal3(NodePtr->GetD());
     }
     FsiMeshD->CopyFromH(*m_sysFSI.fsiMeshH);
 }
