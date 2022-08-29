@@ -51,18 +51,44 @@ void ChVehicleVisualSystemVSG::Advance(double step) {
 
 void ChVehicleVisualSystemVSG::IncreaseVehicleSpeed() {
     GetLog() << "Speed+\n";
+    if (m_guiDriver) {
+        m_guiDriver->IncreaseThrottle();
+    }
 }
 
 void ChVehicleVisualSystemVSG::DecreaseVehicleSpeed() {
     GetLog() << "Speed-\n";
+    if (m_guiDriver) {
+        m_guiDriver->DecreaseThrottle();
+    }
 }
 
 void ChVehicleVisualSystemVSG::SteeringLeft() {
     GetLog() << "Left\n";
+    if (m_guiDriver) {
+        m_guiDriver->SteeringLeft();
+    }
 }
 
 void ChVehicleVisualSystemVSG::SteeringRight() {
     GetLog() << "Right\n";
+    if (m_guiDriver) {
+        m_guiDriver->SteeringRight();
+    }
+}
+
+void ChVehicleVisualSystemVSG::SteeringCenter() {
+    GetLog() << "Center\n";
+    if (m_guiDriver) {
+        m_guiDriver->SteeringCenter();
+    }
+}
+
+void ChVehicleVisualSystemVSG::ReleasePedals() {
+    GetLog() << "Release\n";
+    if (m_guiDriver) {
+        m_guiDriver->ReleasePedals();
+    }
 }
 
 }  // namespace vehicle

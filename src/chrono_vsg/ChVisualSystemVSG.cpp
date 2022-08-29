@@ -65,25 +65,25 @@ class GuiComponent {
                 ImGui::TableNextColumn();
                 ImGui::Text("Vehicle Speed:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.1f m/s", _params->vehicleSpeed);
+                sprintf(label, "%.3f m/s", _params->vehicleSpeed);
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Steering:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.1f", _params->steering);
+                sprintf(label, "%.3f", _params->steering);
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Throttle:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.1f", _params->throttle);
+                sprintf(label, "%.3f", _params->throttle);
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Braking:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.1f", _params->braking);
+                sprintf(label, "%.3f", _params->braking);
                 ImGui::Text(label);
 
                 ImGui::EndTable();
@@ -166,6 +166,14 @@ class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler>
             if (keyPress.keyBase == 'd' || keyPress.keyModified == 'd') {
                 // terminate process
                 m_appPtr->SteeringRight();
+            }
+            if (keyPress.keyBase == 'c' || keyPress.keyModified == 'c') {
+                // terminate process
+                m_appPtr->SteeringCenter();
+            }
+            if (keyPress.keyBase == 'r' || keyPress.keyModified == 'r') {
+                // terminate process
+                m_appPtr->ReleasePedals();
             }
         }
     }

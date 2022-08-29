@@ -34,16 +34,21 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     void Advance(double step);
 
     /// Update information related to driver inputs.
-    virtual void Synchronize(const std::string& msg, const DriverInputs& driver_inputs);
+    virtual void Synchronize(const std::string& msg, const DriverInputs& driver_inputs) override;
 
     virtual void IncreaseVehicleSpeed() override;
     virtual void DecreaseVehicleSpeed() override;
     virtual void SteeringLeft() override;
     virtual void SteeringRight() override;
+    virtual void SteeringCenter() override;
+    virtual void ReleasePedals() override;
 
 protected:
     ChVSGGuiDriver* m_guiDriver;
+
+    friend class ChVSGGuiDriver;
 };
+
 }  // namespace vehicle
 }  // namespace chrono
 #endif

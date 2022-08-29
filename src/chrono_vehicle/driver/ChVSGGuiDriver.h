@@ -57,7 +57,25 @@ class CH_VEHICLE_API ChVSGGuiDriver : public ChDriver {
     /// Set the input file for the underlying data driver.
     void SetInputDataFile(const std::string& filename);
 
-  protected:
+    /// Increase Throttle
+    void IncreaseThrottle();
+
+    /// Decrease Throttle
+    void DecreaseThrottle();
+
+    /// Steering Left
+    void SteeringLeft();
+
+    /// Steering Right
+    void SteeringRight();
+
+    /// Center Steering
+    void SteeringCenter();
+
+    /// Release Pedals
+    void ReleasePedals();
+
+protected:
     InputMode m_mode;  ///< current mode of the driver
 
     // Variables for mode=KEYBOARD

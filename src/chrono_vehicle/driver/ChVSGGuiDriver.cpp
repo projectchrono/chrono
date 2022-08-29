@@ -114,6 +114,34 @@ void ChVSGGuiDriver::SetInputDataFile(const std::string &filename) {
     m_data_driver = chrono_types::make_shared<ChDataDriver>(m_vehicle, filename, false);
 }
 
+void ChVSGGuiDriver::IncreaseThrottle() {
+    m_throttle_target = ChClamp(m_throttle_target + m_throttle_delta, 0.0, +1.0);
+    if (m_throttle_target > 0)
+        m_braking_target = ChClamp(m_braking_target - m_braking_delta * 3, 0.0, +1.0);
+}
+
+void ChVSGGuiDriver::DecreaseThrottle() {
+    m_throttle_target = ChClamp(m_throttle_target - m_throttle_delta * 3, 0.0, +1.0);
+    if (m_throttle_target <= 0)
+        m_braking_target = ChClamp(m_braking_target + m_braking_delta, 0.0, +1.0);
+}
+
+void ChVSGGuiDriver::SteeringLeft() {
+    m_steering_target = ChClamp(m_steering_target + m_steering_delta, -1.0, +1.0);
+}
+
+void ChVSGGuiDriver::SteeringRight() {
+    m_steering_target = ChClamp(m_steering_target - m_steering_delta, -1.0, +1.0);
+}
+
+void ChVSGGuiDriver::SteeringCenter() {
+    m_steering_target = 0.0;
+}
+
+void ChVSGGuiDriver::ReleasePedals() {
+    m_throttle_target = 0.0;
+    m_braking_target = 0.0;
+}
 
 }  // namespace vehicle
 }  // namespace chrono

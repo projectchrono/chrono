@@ -196,10 +196,10 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("City Bus Demo");
     vis->SetWindowSize(ChVector2<int>(800, 600));
     vis->SetWindowPosition(ChVector2<int>(100, 300));
-    vis->SetChaseCamera(trackPoint, 14.0, 0.5);
-    vis->SetChaseCameraState(utils::ChChaseCamera::Chase);
     vis->AttachVehicle(&my_bus.GetVehicle());
     vis->AttachGuiDriver(&driver);
+    vis->SetChaseCamera(trackPoint, 14.0, 0.5);
+    vis->SetChaseCameraState(utils::ChChaseCamera::Chase);
     vis->SetUseSkyBox(true);
     vis->SetCameraAngleDeg(40);
     vis->SetLightIntensity(1.0);
