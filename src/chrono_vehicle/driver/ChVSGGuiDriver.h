@@ -21,7 +21,7 @@ class CH_VEHICLE_API ChVSGGuiDriver : public ChDriver {
         KEYBOARD,  ///< driver inputs from keyboard
         DATAFILE   ///< driver inputs from data file
     };
-    ChVSGGuiDriver(ChVehicle& vehicle);
+    ChVSGGuiDriver(ChVehicle* vehicle);
     ~ChVSGGuiDriver();
     /// Initialize this driver system.
     virtual void Initialize() override;
@@ -58,11 +58,6 @@ class CH_VEHICLE_API ChVSGGuiDriver : public ChDriver {
     void SetInputDataFile(const std::string& filename);
 
   protected:
-    void IncreaseSpeed();
-    void DecreaseSpeed();
-    void ChangeSteeringLeft();
-    void ChangeSteeringRight();
-
     InputMode m_mode;  ///< current mode of the driver
 
     // Variables for mode=KEYBOARD

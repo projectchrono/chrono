@@ -1,34 +1,52 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
+//
+// Irrlicht-based visualization for wheeled vehicles.
+// This class extends ChVehicleVisualSystemIrrlicht.
+//
+// =============================================================================
+
 #ifndef CH_WHEELED_VEHICLE_VISUAL_SYSTEM_VSG_H
 #define CH_WHEELED_VEHICLE_VISUAL_SYSTEM_VSG_H
 
-#include <string>
-
-#include "chrono/physics/ChSystem.h"
-#include "chrono/utils/ChUtilsChaseCamera.h"
-
-#include "chrono_vsg/ChVisualSystemVSG.h"
 #include "chrono_vehicle/utils/ChVehicleVisualSystemVSG.h"
-
-#include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
-#include "chrono_vehicle/ChVehicleVisualSystem.h"
-#include "chrono_vehicle/ChDriver.h"
-#include "chrono_vehicle/ChConfigVehicle.h"
 
 namespace chrono {
-    namespace vehicle {
-    class CH_VEHICLE_API ChWheeledVehicleVisualSystemVSG : public ChVehicleVisualSystemVSG {
-        public:
-            ChWheeledVehicleVisualSystemVSG();
-            ~ChWheeledVehicleVisualSystemVSG() {};
+namespace vehicle {
 
-        /// Attach a vehicle to this Irrlicht vehicle visualization system.
-        virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
-    private:
-        ChWheeledVehicle* m_wvehicle;
-    };
-    }
-}
+/// @addtogroup vehicle_wheeled_utils
+/// @{
+
+/// Customized Chrono Irrlicht visualization system for wheeled vehicle simulation.
+class CH_VEHICLE_API ChWheeledVehicleVisualSystemVSG : public ChVehicleVisualSystemVSG {
+  public:
+    /// Construct a wheeled vehicle Irrlicht visualization.
+    ChWheeledVehicleVisualSystemVSG();
+
+    ~ChWheeledVehicleVisualSystemVSG() {}
+
+    /// Attach a vehicle to this VSG wheeled vehicle visualization system.
+    virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
+
+  private:
+    ChWheeledVehicle* m_wvehicle;
+};
+
+/// @} vehicle_wheeled_utils
+
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

@@ -72,6 +72,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     virtual void AttachGui();
 
+    virtual void IncreaseVehicleSpeed() {};
+    virtual void DecreaseVehicleSpeed() {};
+    virtual void SteeringLeft() {};
+    virtual void SteeringRight() {};
+
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
         bool showGui = true;            // (don't) show the imgui menu, actually unused
         bool do_image_capture = false;  // mark image capturing as needed
