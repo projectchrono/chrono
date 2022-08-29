@@ -69,7 +69,7 @@ class CH_FSI_API ChSystemFsi {
 
     /// Structure with elastic material properties.
     /// Used if solving an SPH continuum representation of granular dynamics.
-    struct ElasticMaterialProperties {
+    struct CH_FSI_API ElasticMaterialProperties {
         double Young_modulus;     ///< Young's modulus
         double Poisson_ratio;     ///< Poisson's ratio
         double stress;            ///< Artifical stress
