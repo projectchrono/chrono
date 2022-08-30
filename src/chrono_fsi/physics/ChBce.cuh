@@ -154,6 +154,7 @@ class ChBce : public ChFsiGeneral {
                                           const thrust::device_vector<uint>& cellStart,
                                           const thrust::device_vector<uint>& cellEnd,
                                           const thrust::device_vector<uint>& mapOriginalToSorted,
+                                          const thrust::device_vector<uint>& extendedActivityIdD,
                                           const thrust::device_vector<Real3>& bceAcc,
                                           int4 updatePortion);
 };

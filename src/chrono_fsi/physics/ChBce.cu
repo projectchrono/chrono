@@ -318,6 +318,7 @@ __global__ void BCE_VelocityPressureStress(Real3* velMas_ModifiedBCE,
                                            uint* cellStart,
                                            uint* cellEnd,
                                            uint* mapOriginalToSorted,
+                                           uint* extendedActivityIdD,
                                            Real3* bceAcc,
                                            int2 newPortion,
                                            volatile bool* isErrorD) {
@@ -326,8 +327,13 @@ __global__ void BCE_VelocityPressureStress(Real3* velMas_ModifiedBCE,
     if (index >= newPortion.y - newPortion.x)
         return;
 
-    uint bceIndex = index;
+    // no need to do anything if it is not an active particle
+    uint originalIndex = sphIndex;
+    uint activity = extendedActivityIdD[originalIndex];
+    if(activity == 0)
+        return; 
 
+    uint bceIndex = index;
     if (paramsD.bceTypeWall == BceVersion::ORIGINAL)
         bceIndex = index + numObjectsD.numBoundaryMarkers;
 
@@ -809,6 +815,7 @@ void ChBce::ReCalcVelocityPressureStress_BCE(thrust::device_vector<Real3>& velMa
                                              const thrust::device_vector<uint>& cellStart,
                                              const thrust::device_vector<uint>& cellEnd,
                                              const thrust::device_vector<uint>& mapOriginalToSorted,
+                                             const thrust::device_vector<uint>& extendedActivityIdD,
                                              const thrust::device_vector<Real3>& bceAcc,
                                              int4 updatePortion) {
     bool *isErrorH, *isErrorD;
@@ -832,7 +839,7 @@ void ChBce::ReCalcVelocityPressureStress_BCE(thrust::device_vector<Real3>& velMa
         mR3CAST(velMas_ModifiedBCE), mR4CAST(rhoPreMu_ModifiedBCE), mR3CAST(tauXxYyZz_ModifiedBCE),
         mR3CAST(tauXyXzYz_ModifiedBCE), mR4CAST(sortedPosRad), mR3CAST(sortedVelMas), mR4CAST(sortedRhoPreMu),
         mR3CAST(sortedTauXxYyZz), mR3CAST(sortedTauXyXzYz), U1CAST(cellStart), U1CAST(cellEnd),
-        U1CAST(mapOriginalToSorted), mR3CAST(bceAcc), newPortion, isErrorD);
+        U1CAST(mapOriginalToSorted), U1CAST(extendedActivityIdD), mR3CAST(bceAcc), newPortion, isErrorD);
 
     cudaDeviceSynchronize();
     cudaCheckError()
@@ -960,7 +967,8 @@ void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphM
                     velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, tauXxYyZz_ModifiedBCE, tauXyXzYz_ModifiedBCE,
                     sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, sortedSphMarkersD->rhoPresMuD,
                     sortedSphMarkersD->tauXxYyZzD, sortedSphMarkersD->tauXyXzYzD, markersProximityD->cellStartD,
-                    markersProximityD->cellEndD, markersProximityD->mapOriginalToSorted, bceAcc, updatePortion);
+                    markersProximityD->cellEndD, markersProximityD->mapOriginalToSorted, 
+                    fsiGeneralData->extendedActivityIdD, bceAcc, updatePortion);
             }
         }
         // ADAMI BC for both rigid/flexible body and fixed wall
@@ -969,7 +977,8 @@ void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphM
                 velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, tauXxYyZz_ModifiedBCE, tauXyXzYz_ModifiedBCE,
                 sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, sortedSphMarkersD->rhoPresMuD,
                 sortedSphMarkersD->tauXxYyZzD, sortedSphMarkersD->tauXyXzYzD, markersProximityD->cellStartD,
-                markersProximityD->cellEndD, markersProximityD->mapOriginalToSorted, bceAcc, updatePortion);
+                markersProximityD->cellEndD, markersProximityD->mapOriginalToSorted, 
+                fsiGeneralData->extendedActivityIdD, bceAcc, updatePortion);
         }
         bceAcc.clear();
     }
