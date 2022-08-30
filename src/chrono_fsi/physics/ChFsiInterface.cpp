@@ -63,8 +63,6 @@ ChFsiInterface::~ChFsiInterface() {}
 void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
     size_t numRigids = m_fsi_bodies.size();
     std::string delim = ",";
-    ChVector<> totalForce(0);
-    ChVector<> totalTorque(0);
 
     for (size_t i = 0; i < numRigids; i++) {
         ChVector<> mforce = ChUtilsTypeConvert::Real3ToChVector(
@@ -72,8 +70,6 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
         ChVector<> mtorque = ChUtilsTypeConvert::Real3ToChVector(
             ChUtilsDevice::FetchElement(m_sysFSI.fsiGeneralData->rigid_FSI_TorquesD, i));
 
-        totalForce += mforce;
-        totalTorque + mtorque;
         std::shared_ptr<ChBody> body = m_fsi_bodies[i];
 
         // note: when this FSI body goes back to Chrono system, the gravity
@@ -192,7 +188,7 @@ void ChFsiInterface::ResizeChronoBodiesData() {
 void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
     std::string delim = ",";
     size_t numNodes = m_fsi_nodes.size();
-    ChVector<> total_force(0, 0, 0);
+
     for (size_t i = 0; i < numNodes; i++) {
         ChVector<> mforce = ChUtilsTypeConvert::Real3ToChVector(
             ChUtilsDevice::FetchElement(m_sysFSI.fsiGeneralData->Flex_FSI_ForcesD, i));
