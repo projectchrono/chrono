@@ -116,6 +116,15 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax = ChVector<>( 5 * bxDim,  byDim / 2.0 + initSpace0 / 2.0,  5 * bzDim );
     sysFSI.SetBoundaries(cMin, cMax);
 
+    // Set SPH discretization type, consistent or inconsistent
+    sysFSI.SetDiscreType(false, false);
+
+    // Set wall boundary condition
+    sysFSI.SetWallBC(BceVersion::ADAMI);
+
+    // Set rigid body boundary condition
+    sysFSI.SetRigidBodyBC(BceVersion::ADAMI);
+
     // Setup the output directory for FSI data
     sysFSI.SetOutputDirectory(out_dir);
 

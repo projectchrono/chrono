@@ -1452,7 +1452,6 @@ __global__ void NS_SSR(uint* activityIdentifierD,
     if (rhoPresMuA.w > -1.5 && rhoPresMuA.w < -0.5) {
         Real3 totalFluidBodyForce3 = paramsD.bodyForce3 + paramsD.gravity;
         derivVelRho += mR4(totalFluidBodyForce3, 0.0);
-        derivVelRho.w = sum_w_i;
     }
 
     sortedDerivVelRho[index] = derivVelRho;

@@ -74,8 +74,8 @@ double total_mass = 105.22;
 double m_rim_radius = 0.35;
 double m_height = 0.195;
 double m_thickness = 0.014;
-int m_div_circumference = 60;
-int m_div_width = 12;
+int m_div_circumference = 30;
+int m_div_width = 6;
 double m_alpha = 0.15;
 
 // Initial Position of wheel
@@ -141,6 +141,15 @@ int main(int argc, char* argv[]) {
     ChVector<> cMin = ChVector<>(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim );
     ChVector<> cMax = ChVector<>( 5 * bxDim,  byDim / 2.0 + initSpace0 / 2.0,  10 * bzDim );
     sysFSI.SetBoundaries(cMin, cMax);
+
+    // Set SPH discretization type, consistent or inconsistent
+    sysFSI.SetDiscreType(false, false);
+
+    // Set wall boundary condition
+    sysFSI.SetWallBC(BceVersion::ADAMI);
+
+    // Set rigid body boundary condition
+    sysFSI.SetRigidBodyBC(BceVersion::ADAMI);
 
     // Set cohsion of the granular material
     sysFSI.SetCohesionForce(2000.0);
