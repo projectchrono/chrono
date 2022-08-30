@@ -849,7 +849,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
         local_off++;
     }
 
-    // ***TO DO***?: TRASFORMATION FROM delta COORDS TO LINK COORDS, if
+    // ***TO DO***?: TRANSFORMATION FROM delta COORDS TO LINK COORDS, if
     // non-default delta
     // if delta rotation?
 
