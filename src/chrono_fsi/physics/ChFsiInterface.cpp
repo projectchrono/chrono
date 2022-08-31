@@ -47,7 +47,7 @@ ChFsiInterface::ChFsiInterface(ChSystem& mbs,
     size_t numBodies = m_sysMBS.Get_bodylist().size();
     m_rigid_backup = chrono_types::make_shared<ChronoBodiesDataH>(numBodies);
     m_flex_backup = chrono_types::make_shared<ChronoMeshDataH>(0);
-    int numNodes = 0;
+    size_t numNodes = 0;
 
     if (m_sysMBS.Get_otherphysicslist().size())
         numNodes = std::dynamic_pointer_cast<fea::ChMesh>(m_sysMBS.Get_otherphysicslist().at(0))->GetNnodes();
@@ -108,13 +108,17 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
 //------------------------------------------------------------------------------------
 void ChFsiInterface::Copy_External_To_ChSystem() {
     size_t numBodies = m_sysMBS.Get_bodylist().size();
-    if (m_rigid_backup->pos_ChSystemH.size() != numBodies) {
+    size_t numNodes = m_fsi_mesh->GetNnodes();
+
+    if (m_rigid_backup->pos_ChSystemH.size() != numBodies || 
+        m_flex_backup->posFlex_ChSystemH_H.size() != numNodes) {
         throw std::runtime_error(
             "Size of the external data does not match the "
             "ChSystem; thrown from Copy_External_To_ChSystem "
             "!\n");
     }
 
+    // Copy data between ChSystem and FSI system for rigid bodies
     for (size_t i = 0; i < numBodies; i++) {
         auto mBody = m_sysMBS.Get_bodylist().at(i);
         mBody->SetPos(ChUtilsTypeConvert::Real3ToChVector(m_rigid_backup->pos_ChSystemH[i]));
@@ -123,22 +127,33 @@ void ChFsiInterface::Copy_External_To_ChSystem() {
 
         mBody->SetRot(ChUtilsTypeConvert::Real4ToChQuaternion(m_rigid_backup->quat_ChSystemH[i]));
         mBody->SetWvel_par(ChUtilsTypeConvert::Real3ToChVector(m_rigid_backup->omegaVelGRF_ChSystemH[i]));
-        ChVector<> acc = ChUtilsTypeConvert::Real3ToChVector(m_rigid_backup->omegaAccGRF_ChSystemH[i]);
-        mBody->SetWacc_par(acc);
+        mBody->SetWacc_par(ChUtilsTypeConvert::Real3ToChVector(m_rigid_backup->omegaAccGRF_ChSystemH[i]));
+    }
+
+    // Copy data between ChSystem and FSI system for flexible bodies
+    m_flex_backup->resize(numNodes);
+    for (size_t i = 0; i < numNodes; i++) {
+        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
+        node->SetPos(ChUtilsTypeConvert::Real3ToChVector(m_flex_backup->posFlex_ChSystemH_H[i]));
+        node->SetPos_dt(ChUtilsTypeConvert::Real3ToChVector(m_flex_backup->velFlex_ChSystemH_H[i]));
+        node->SetPos_dtdt(ChUtilsTypeConvert::Real3ToChVector(m_flex_backup->accFlex_ChSystemH_H[i]));
+        node->SetD(ChUtilsTypeConvert::Real3ToChVector(m_flex_backup->dirFlex_ChSystemH_H[i]));
     }
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::Copy_ChSystem_to_External() {
     size_t numBodies = m_sysMBS.Get_bodylist().size();
-    auto bodyList = m_sysMBS.Get_bodylist();
+    size_t numNodes = m_fsi_mesh->GetNnodes();
 
-    if (m_rigid_backup->pos_ChSystemH.size() != numBodies) {
+    if (m_rigid_backup->pos_ChSystemH.size() != numBodies || 
+        m_flex_backup->posFlex_ChSystemH_H.size() != numNodes) {
         throw std::runtime_error(
             "Size of the external data does not match the "
             "ChSystem; thrown from Copy_ChSystem_to_External "
             "!\n");
     }
 
+    // Copy data between ChSystem and FSI system for rigid bodies
     m_rigid_backup->resize(numBodies);
     for (size_t i = 0; i < numBodies; i++) {
         auto mBody = m_sysMBS.Get_bodylist().at(i);
@@ -151,7 +166,8 @@ void ChFsiInterface::Copy_ChSystem_to_External() {
         m_rigid_backup->omegaAccGRF_ChSystemH[i] = ChUtilsTypeConvert::ChVectorToReal3(mBody->GetWacc_par());
     }
 
-    int numNodes = m_fsi_mesh->GetNnodes();
+    // Copy data between ChSystem and FSI system for flexible bodies
+    m_flex_backup->resize(numNodes);
     for (size_t i = 0; i < numNodes; i++) {
         auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
         m_flex_backup->posFlex_ChSystemH_H[i] = ChUtilsTypeConvert::ChVectorToReal3(node->GetPos());
@@ -232,7 +248,7 @@ void ChFsiInterface::Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMe
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoFEANodesData() {
-    int numNodes = m_fsi_mesh->GetNnodes();
+    size_t numNodes = m_fsi_mesh->GetNnodes();
     m_flex_backup->resize(numNodes);
 }
 //------------------------------------------------------------------------------------
@@ -266,7 +282,7 @@ void ChFsiInterface::ResizeChronoCablesData(std::vector<std::vector<int>> CableE
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoShellsData(std::vector<std::vector<int>> ShellElementsNodesSTDVector) {
-    int numShells = 0;
+    size_t numShells = 0;
     for (unsigned int i = 0; i < m_fsi_mesh->GetNelements(); i++) {
         if (std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(m_fsi_mesh->GetElement(i)))
             numShells++;
