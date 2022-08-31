@@ -128,8 +128,6 @@ class ChBce : public ChFsiGeneral {
 
     /// Calculates the acceleration of the flexible BCE particles based on the information of the ChSystem.
     void CalcFlexBceAcceleration(thrust::device_vector<Real3>& bceAcc,                      ///< acceleration of BCE particles
-                                 const thrust::device_vector<Real3>& pos_fsi_fea_D,         ///< position of all FEM nodes
-                                 const thrust::device_vector<Real3>& vel_fsi_fea_D,         ///< velocity of all FEM nodes
                                  const thrust::device_vector<Real3>& acc_fsi_fea_D,         ///< acceleration of all FEM nodes
                                  const thrust::device_vector<Real3>& FlexSPH_MeshPos_LRF_D, ///< position of BCE in local reference of FEM element it is attached
                                  const thrust::device_vector<int2>& CableElementsNodes,     ///< node ID in a speficif cable element
