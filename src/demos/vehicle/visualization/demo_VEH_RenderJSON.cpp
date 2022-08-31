@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
     // Attach custom stats overlay
     auto my_stats = chrono_types::make_shared<JSONStats>();
     my_stats->json_file = setup.VehicleJSON();
-    vis.SetStatsRenderer(my_stats);
+    vis.AttachStatsRenderer(my_stats);
     vis.EnableStats(true);
 
     // Simulation loop
