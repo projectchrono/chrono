@@ -203,7 +203,7 @@ void ChVisualSystemIrrlicht::Initialize() {
 // -----------------------------------------------------------------------------
 
 bool ChVisualSystemIrrlicht::Run() {
-    assert(!m_systems.empty() && m_systems[0]->GetVisualSystem());
+    assert(!m_systems.empty());
     return m_device->run();
 }
 
@@ -487,7 +487,7 @@ void ChVisualSystemIrrlicht::ShowExplorer(bool val) {
 
 // Clean canvas at beginning of scene.
 void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor color) {
-    assert(!m_systems.empty() && m_systems[0]->GetVisualSystem());
+    assert(!m_systems.empty());
 
     utils::ChProfileManager::Reset();
     utils::ChProfileManager::Start_Profile("Irrlicht loop");
@@ -532,7 +532,7 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
 
 // Call this to end the scene draw at the end of each animation frame.
 void ChVisualSystemIrrlicht::EndScene() {
-    assert(!m_systems.empty() && m_systems[0]->GetVisualSystem());
+    assert(!m_systems.empty());
 
     utils::ChProfileManager::Stop_Profile();
 
@@ -542,7 +542,7 @@ void ChVisualSystemIrrlicht::EndScene() {
 }
 
 void ChVisualSystemIrrlicht::Render() {
-    assert(!m_systems.empty() && m_systems[0]->GetVisualSystem());
+    assert(!m_systems.empty());
 
     if (m_use_effects)
         m_effect_handler->update();  // draw 3D scene using Xeffects for shadow maps
@@ -663,7 +663,6 @@ static void mflipSurfacesOnX(IMesh* mesh) {
     const u32 bcount = mesh->getMeshBufferCount();
     for (u32 b = 0; b < bcount; ++b) {
         IMeshBuffer* buffer = mesh->getMeshBuffer(b);
-        const u32 idxcnt = buffer->getIndexCount();
 
         const u32 vertcnt = buffer->getVertexCount();
         for (u32 i = 0; i < vertcnt; i++) {

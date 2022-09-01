@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("Sedan Demo Locked Diff");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.5), 4.0, 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&my_sedan.GetVehicle());

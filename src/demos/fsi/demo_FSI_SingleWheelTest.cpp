@@ -109,7 +109,7 @@ void WriteWheelVTK(const std::string& filename,
         outf << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
     }
     outf << "CELL_TYPES " << nf << std::endl;
-    for (auto& f : mesh.getIndicesVertexes()) {
+    for (int i = 0; i < nf; i++) {
         outf << "5 " << std::endl;
     }
     outf.close();
@@ -249,8 +249,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     actuator->Initialize(ground, chassis, false, ChCoordsys<>(chassis->GetPos(), QUNIT),
                          ChCoordsys<>(chassis->GetPos() + ChVector<>(1, 0, 0), QUNIT));
     actuator->SetName("actuator");
-    actuator->Set_lin_offset(1);
-    actuator->Set_dist_funct(actuator_fun);
+    actuator->SetDistanceOffset(1);
+    actuator->SetActuatorFunction(actuator_fun);
     sysMBS.AddLink(actuator);
 
     // Connect the axle to the chassis through a vertical translational joint.
@@ -261,8 +261,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Connect the wheel to the axle through a engine joint.
     motor->SetName("engine_wheel_axle");
-    motor->Initialize(wheel, axle,
-                      ChFrame<>(wheel->GetPos(), chrono::Q_from_AngAxis(-CH_C_PI / 2.0, ChVector<>(1, 0, 0))));
+    motor->Initialize(wheel, axle, ChFrame<>(wheel->GetPos(), 
+        chrono::Q_from_AngAxis(-CH_C_PI / 2.0, ChVector<>(1, 0, 0))));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, wheel_AngVel));
     sysMBS.AddLink(motor);
 }
@@ -330,8 +330,8 @@ int main(int argc, char* argv[]) {
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
 
     // Set up the periodic boundary condition (if not, set relative larger values)
-    ChVector<> cMin(-bxDim / 2 * 10, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10 - 10 * iniSpacing);
-    ChVector<> cMax(bxDim / 2 * 10, byDim / 2 + 0.5 * iniSpacing, bzDim * 10 + 10 * iniSpacing);
+    ChVector<> cMin(-bxDim / 2 * 10, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10);
+    ChVector<> cMax(bxDim / 2 * 10, byDim / 2 + 0.5 * iniSpacing, bzDim * 10);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Initialize the SPH particles
@@ -351,15 +351,6 @@ int main(int argc, char* argv[]) {
     // Construction of the FSI system must be finalized before running
     sysFSI.Initialize();
 
-    // Set up integrator for the multi-body dynamics system
-    sysMBS.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sysMBS.GetTimestepper());
-    mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(1000);
-    mystepper->SetAbsTolerances(1e-6);
-    mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
-    mystepper->SetScaling(true);
-
     auto wheel = sysMBS.Get_bodylist()[1];
     ChVector<> force = actuator->Get_react_force();
     ChVector<> torque = motor->Get_react_torque();
@@ -374,9 +365,8 @@ int main(int argc, char* argv[]) {
 
     // Write the information into a txt file
     std::ofstream myFile;
-    if (output) {
+    if (output)
         myFile.open(out_dir + "/results.txt", std::ios::trunc);
-    }
 
     // Create a run-tme visualizer
     ChVisualizationFsi fsi_vis(&sysFSI);

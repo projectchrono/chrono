@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2022 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -21,6 +21,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
+#include "chrono_models/vehicle/m113/M113_IdlerWheel.h"
 #include "chrono_models/vehicle/m113/M113_Idler.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -32,12 +33,6 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_Idler::m_wheel_mass = 25.76;
-const ChVector<> M113_Idler::m_wheel_inertia(0.618, 1.12, 0.618);
-const double M113_Idler::m_wheel_radius = 0.255;
-const double M113_Idler::m_wheel_width = 0.181;
-const double M113_Idler::m_wheel_gap = 0.051;
-
 const double M113_Idler::m_carrier_mass = 10;
 const ChVector<> M113_Idler::m_carrier_inertia(0.04, 0.04, 0.04);
 const double M113_Idler::m_carrier_radius = 0.02;
@@ -46,9 +41,6 @@ const double M113_Idler::m_tensioner_l0 = 0.75;
 const double M113_Idler::m_tensioner_f = 2e4;
 const double M113_Idler::m_tensioner_k = 1e6;
 const double M113_Idler::m_tensioner_c = 1.4e4;
-
-const std::string M113_IdlerLeft::m_meshFile = "M113/meshes/Idler_L.obj";
-const std::string M113_IdlerRight::m_meshFile = "M113/meshes/Idler_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -70,42 +62,21 @@ class M113_TensionerForce : public ChLinkTSDA::ForceFunctor {
     double m_f;
 };
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-M113_Idler::M113_Idler(const std::string& name) : ChDoubleIdler(name) {
+M113_Idler::M113_Idler(const std::string& name, VehicleSide side) : ChTranslationalIdler(name), m_side(side) {
     m_tensionerForceCB = chrono_types::make_shared<M113_TensionerForce>(m_tensioner_k, m_tensioner_c, m_tensioner_f);
+
+    // Create the associated idler wheel.
+    if (side == LEFT)
+        m_idler_wheel = chrono_types::make_shared<M113_IdlerWheelLeft>();
+    else
+        m_idler_wheel = chrono_types::make_shared<M113_IdlerWheelRight>();
 }
 
-void M113_Idler::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
-    minfo.mu = 0.4f;
-    minfo.cr = 0.75f;
-    minfo.Y = 1e7f;
-    m_material = minfo.CreateMaterial(contact_method);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void M113_Idler::AddVisualizationAssets(VisualizationType vis) {
-    ChDoubleIdler::AddVisualizationAssets(vis);
-
-    if (vis == VisualizationType::MESH) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
-        trimesh_shape->SetMutable(false);
-        m_wheel->AddVisualShape(trimesh_shape);
-    }
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 const ChVector<> M113_Idler::GetLocation(PointId which) {
     ChVector<> point;
 
     switch (which) {
-        case WHEEL:
+        case CARRIER_WHEEL:
             point = ChVector<>(0, 0, 0);
             break;
         case CARRIER:
@@ -125,7 +96,7 @@ const ChVector<> M113_Idler::GetLocation(PointId which) {
             break;
     }
 
-    if (GetVehicleSide() == RIGHT)
+    if (m_side == RIGHT)
         point.y() *= -1;
 
     return point;

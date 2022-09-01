@@ -43,7 +43,7 @@ const std::string Marder_RoadWheelRight::m_meshFile = "Marder/Roller_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Marder_RoadWheel::Marder_RoadWheel(const std::string& name) : ChDoubleRoadWheel(name) {}
+Marder_RoadWheel::Marder_RoadWheel(const std::string& name) : ChDoubleTrackWheel(name) {}
 
 void Marder_RoadWheel::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
@@ -64,7 +64,7 @@ void Marder_RoadWheel::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetMutable(false);
         m_wheel->AddVisualShape(trimesh_shape);
     } else {
-        ChDoubleRoadWheel::AddVisualizationAssets(vis);
+        ChDoubleTrackWheel::AddVisualizationAssets(vis);
     }
 }
 

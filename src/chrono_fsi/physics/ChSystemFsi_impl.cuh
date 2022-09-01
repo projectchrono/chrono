@@ -150,7 +150,7 @@ struct FsiMeshDataD {
 struct FsiShellsDataH {
     thrust::host_vector<Real3> posFlex_fsiBodies_nA_H;  ///< Vector of the node A position
     thrust::host_vector<Real3> posFlex_fsiBodies_nB_H;  ///< Vector of the node B position
-    thrust::host_vector<Real3> posFlex_fsiBodies_nC_H;  ///< Vector of the node B position
+    thrust::host_vector<Real3> posFlex_fsiBodies_nC_H;  ///< Vector of the node C position
     thrust::host_vector<Real3> posFlex_fsiBodies_nD_H;  ///< Vector of the node D position
 
     thrust::host_vector<Real3> velFlex_fsiBodies_nA_H;  ///< Vector of the node A velocity
@@ -279,11 +279,11 @@ struct FsiGeneralData {
     thrust::device_vector<uint> activityIdentifierD;  ///< Identifies if a particle is an active particle or not
     thrust::device_vector<uint> extendedActivityIdD;  ///< Identifies if a particle is in an extended active domain
 
+    thrust::device_vector<uint> freeSurfaceIdD;  ///< Identifies if a particle is close to free surface
+
     // BCE
-    thrust::device_vector<Real3>
-        rigidSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a rigid body in a local
-    thrust::device_vector<Real3>
-        FlexSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a mesh in a local on device
+    thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a rigid body in a local
+    thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a mesh in a local on device
     thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;  ///< Position of a particle attached to a mesh in a local on host
 
     thrust::device_vector<uint> rigidIdentifierD;  ///< Identifies which rigid body a particle belongs to
@@ -304,7 +304,7 @@ struct FsiGeneralData {
 /// @brief Data related function implementations for FSI system
 class ChSystemFsi_impl : public ChFsiGeneral {
   public:
-    ChSystemFsi_impl();
+    ChSystemFsi_impl(std::shared_ptr<SimParams> params);
     virtual ~ChSystemFsi_impl();
 
     /// Add an SPH particle given its position, physical properties, velocity, and stress
@@ -316,6 +316,9 @@ class ChSystemFsi_impl : public ChFsiGeneral {
 
     /// Resize the simulation data based on the FSI system constructed.
     void ResizeData(size_t numRigidBodies, size_t numFlexBodies1D, size_t numFlexBodies2D, size_t numFlexNodes);
+
+    /// Extract forces applied on all SPH particles.
+    thrust::device_vector<Real4> GetParticleForces();
 
     /// Find indices of all SPH particles inside the specified OBB.
     thrust::device_vector<int> FindParticlesInBox(const Real3& hsize,
@@ -332,6 +335,11 @@ class ChSystemFsi_impl : public ChFsiGeneral {
     /// The return value is a device thrust vector.
     thrust::device_vector<Real3> GetParticleVelocities(const thrust::device_vector<int>& indices);
 
+    /// Extract forces applied to all SPH particles with indices in the provided array.
+    /// The return value is a device thrust vector.
+    thrust::device_vector<Real4> GetParticleForces(const thrust::device_vector<int>& indices);
+
+    std::shared_ptr<SimParams> paramsH;      ///< Parameters of the simulation
     std::shared_ptr<ChCounters> numObjects;  ///< Counters (SPH particles, BCE particles, bodies, etc)
 
     std::shared_ptr<SphMarkerDataD> sphMarkersD1;       ///< Information of SPH particles at state 1 on device

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2022 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,15 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for an idler subsystem.  An idler consists of the idler wheel and
-// a connecting body.  The idler wheel is connected through a revolute joint to
-// the connecting body which in turn is connected to the chassis through a
-// translational joint. A linear actuator acts as a tensioner.
-//
-// An idler subsystem is defined with respect to a frame centered at the origin
-// of the idler wheel, possibly pitched relative to the chassis reference frame.
-// The translational joint is aligned with the x axis of this reference frame,
-// while the axis of rotation of the revolute joint is aligned with its y axis.
+// Base class for an idler subsystem.  An idler consists of an idler wheel and
+// a tensioner mechanism with different topologies.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -33,6 +26,8 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
 
+#include "chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
+
 namespace chrono {
 namespace vehicle {
 
@@ -42,30 +37,24 @@ class ChTrackAssembly;
 /// @{
 
 /// Base class for an idler subsystem.
-/// An idler consists of the idler wheel and a connecting body.  The idler wheel is connected
-/// through a revolute joint to the connecting body which in turn is connected to the chassis
-/// through a translational joint. A linear actuator acts as a tensioner.
 class CH_VEHICLE_API ChIdler : public ChPart {
   public:
-    virtual ~ChIdler();
+    virtual ~ChIdler() {}
 
-    /// Return the type of track shoe consistent with this idler.
-    virtual GuidePinType GetType() const = 0;
+    /// Return the type of track shoe consistent with this road wheel.
+    GuidePinType GetType() const { return m_type; }
 
-    /// Get a handle to the road wheel body.
-    std::shared_ptr<ChBody> GetWheelBody() const { return m_wheel; }
+    /// Return the idler wheel subsystem.
+    std::shared_ptr<ChTrackWheel> GetIdlerWheel() const { return m_idler_wheel; }
 
-    /// Get a handle to the revolute joint.
-    std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
+    /// Return the body of the idler wheel.
+    std::shared_ptr<ChBody> GetWheelBody() const { return m_idler_wheel->GetBody(); }
 
-    /// Get the tensioner force element.
-    std::shared_ptr<ChLinkTSDA> GetTensioner() const { return m_tensioner; }
+    /// Return a handle to the carrier body to which the idler wheel is connected.
+    virtual std::shared_ptr<ChBody> GetCarrierBody() const = 0;
 
     /// Get the radius of the idler wheel.
-    virtual double GetWheelRadius() const = 0;
-
-    /// Turn on/off collision flag for the idler wheel.
-    void SetCollide(bool val) { m_wheel->SetCollide(val); }
+    double GetWheelRadius() const { return m_idler_wheel->GetRadius(); }
 
     /// Initialize this idler subsystem.
     /// The idler subsystem is initialized by attaching it to the specified chassis at the specified location (with
@@ -77,80 +66,23 @@ class CH_VEHICLE_API ChIdler : public ChPart {
                             ChTrackAssembly* track               ///< [in] containing track assembly
     );
 
-    /// Add visualization assets for the idler subsystem.
-    /// This default implementation adds assets to the carrier body.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
-    /// Remove visualization assets for the idler subsystem.
-    /// This default implementation removes the assets from the carrier body.
-    virtual void RemoveVisualizationAssets() override;
+    /// Enable/disable output for this subsystem.
+    /// This function overrides the output setting for all components of this suspension assembly.
+    virtual void SetOutput(bool state) override;
 
     /// Log current constraint violations.
-    void LogConstraintViolations();
+    virtual void LogConstraintViolations() = 0;
 
   protected:
-    /// Identifiers for the various hardpoints.
-    enum PointId {
-        WHEEL,            ///< idler wheel location
-        CARRIER,          ///< carrier location
-        CARRIER_CHASSIS,  ///< carrier, connection to chassis (translational)
-        TSDA_CARRIER,     ///< TSDA connection to carrier
-        TSDA_CHASSIS,     ///< TSDA connection to chassis
-        NUM_POINTS
-    };
-
     /// Construct an idler subsystem with given name.
     ChIdler(const std::string& name);
 
-    virtual void InitializeInertiaProperties() override;
-    virtual void UpdateInertiaProperties() override;
-
-    /// Return the location of the specified hardpoint.
-    /// The returned location must be expressed in the idler subsystem reference frame.
-    virtual const ChVector<> GetLocation(PointId which) = 0;
-
-    /// Return the mass of the idler wheel body.
-    virtual double GetWheelMass() const = 0;
-    /// Return the moments of inertia of the idler wheel body.
-    virtual const ChVector<>& GetWheelInertia() = 0;
-
-    /// Return the mass of the carrier body.
-    virtual double GetCarrierMass() const = 0;
-    /// Return the moments of inertia of the carrier body.
-    virtual const ChVector<>& GetCarrierInertia() = 0;
-    /// Return a visualization radius for the carrier body.
-    virtual double GetCarrierVisRadius() const = 0;
-
-    /// Return the pitch angle of the prismatic joint.
-    virtual double GetPrismaticPitchAngle() const = 0;
-
-    /// Return the functor object for spring force.
-    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetTensionerForceCallback() const = 0;
-
-    /// Return the free length for the tensioner spring.
-    virtual double GetTensionerFreeLength() const = 0;
-
-    /// Create the contact material consistent with the specified contact method.
-    virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
-
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-
-    virtual void Output(ChVehicleOutput& database) const override;
-
-    ChVector<> m_rel_loc;                              ///< idler subsystem location relative to chassis
-    std::shared_ptr<ChBody> m_wheel;                   ///< idler wheel body
-    std::shared_ptr<ChBody> m_carrier;                 ///< carrier body
-    std::shared_ptr<ChLinkLockRevolute> m_revolute;    ///< wheel-carrier revolute joint
-    std::shared_ptr<ChLinkLockPrismatic> m_prismatic;  ///< carrier-chassis translational joint
-    std::shared_ptr<ChLinkTSDA> m_tensioner;           ///< TSDA tensioner element
-    std::shared_ptr<ChMaterialSurface> m_material;     ///< contact material;
-    ChTrackAssembly* m_track;                          ///< containing track assembly
-
-  private:
-    // Points for carrier visualization
-    ChVector<> m_pW;
-    ChVector<> m_pC;
-    ChVector<> m_pT;
+    
+    GuidePinType m_type;                          ///< type of the track shoe matching this road wheel
+    ChVector<> m_rel_loc;                         ///< idler subsystem location relative to chassis
+    std::shared_ptr<ChTrackWheel> m_idler_wheel;  ///< idler-wheel subsystem
+    ChTrackAssembly* m_track;                    ///< containing track assembly
 
     friend class ChTrackAssembly;
 };

@@ -582,12 +582,10 @@ source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
 set(CV_TV_BASE_FILES
     tracked_vehicle/ChIdler.h
     tracked_vehicle/ChIdler.cpp
-    tracked_vehicle/ChRoadWheel.h 
-    tracked_vehicle/ChRoadWheel.cpp 
-    tracked_vehicle/ChRoadWheelAssembly.h
-    tracked_vehicle/ChRoadWheelAssembly.cpp
-    tracked_vehicle/ChRoller.h
-    tracked_vehicle/ChRoller.cpp
+    tracked_vehicle/ChTrackWheel.h 
+    tracked_vehicle/ChTrackWheel.cpp 
+    tracked_vehicle/ChTrackSuspension.h
+    tracked_vehicle/ChTrackSuspension.cpp
     tracked_vehicle/ChSprocket.h
     tracked_vehicle/ChSprocket.cpp
     tracked_vehicle/ChTrackAssembly.h
@@ -632,39 +630,30 @@ set(CV_TV_DRIVELINE_FILES
 source_group("tracked_vehicle\\driveline" FILES ${CV_TV_DRIVELINE_FILES})
 
 set(CV_TV_IDLER_FILES
-    tracked_vehicle/idler/ChSingleIdler.h
-    tracked_vehicle/idler/ChSingleIdler.cpp
-    tracked_vehicle/idler/ChDoubleIdler.h
-    tracked_vehicle/idler/ChDoubleIdler.cpp
+    tracked_vehicle/idler/ChTranslationalIdler.h
+    tracked_vehicle/idler/ChTranslationalIdler.cpp
+    tracked_vehicle/idler/ChDistanceIdler.h
+    tracked_vehicle/idler/ChDistanceIdler.cpp
 
-    tracked_vehicle/idler/SingleIdler.h
-    tracked_vehicle/idler/SingleIdler.cpp
-    tracked_vehicle/idler/DoubleIdler.h
-    tracked_vehicle/idler/DoubleIdler.cpp
+    tracked_vehicle/idler/TranslationalIdler.h
+    tracked_vehicle/idler/TranslationalIdler.cpp
+    tracked_vehicle/idler/DistanceIdler.h
+    tracked_vehicle/idler/DistanceIdler.cpp
 )
 source_group("tracked_vehicle\\idler" FILES ${CV_TV_IDLER_FILES})
 
-set(CV_TV_ROADWHEEL_FILES
-    tracked_vehicle/road_wheel/ChSingleRoadWheel.h
-    tracked_vehicle/road_wheel/ChSingleRoadWheel.cpp
-    tracked_vehicle/road_wheel/ChDoubleRoadWheel.h
-    tracked_vehicle/road_wheel/ChDoubleRoadWheel.cpp
+set(CV_TV_TRACKWHEEL_FILES
+    tracked_vehicle/track_wheel/ChSingleTrackWheel.h
+    tracked_vehicle/track_wheel/ChSingleTrackWheel.cpp
+    tracked_vehicle/track_wheel/ChDoubleTrackWheel.h
+    tracked_vehicle/track_wheel/ChDoubleTrackWheel.cpp
 
-    tracked_vehicle/road_wheel/SingleRoadWheel.h
-    tracked_vehicle/road_wheel/SingleRoadWheel.cpp
-    tracked_vehicle/road_wheel/DoubleRoadWheel.h
-    tracked_vehicle/road_wheel/DoubleRoadWheel.cpp
+    tracked_vehicle/track_wheel/SingleTrackWheel.h
+    tracked_vehicle/track_wheel/SingleTrackWheel.cpp
+    tracked_vehicle/track_wheel/DoubleTrackWheel.h
+    tracked_vehicle/track_wheel/DoubleTrackWheel.cpp
 )
-source_group("tracked_vehicle\\road_wheel" FILES ${CV_TV_ROADWHEEL_FILES})
-
-set(CV_TV_ROLLER_FILES
-    tracked_vehicle/roller/ChDoubleRoller.h
-    tracked_vehicle/roller/ChDoubleRoller.cpp
-
-    tracked_vehicle/roller/DoubleRoller.h
-    tracked_vehicle/roller/DoubleRoller.cpp
-)
-source_group("tracked_vehicle\\roller" FILES ${CV_TV_ROLLER_FILES})
+source_group("tracked_vehicle\\track_wheel" FILES ${CV_TV_TRACKWHEEL_FILES})
 
 set(CV_TV_SPROCKET_FILES
     tracked_vehicle/sprocket/ChSprocketSinglePin.h
@@ -684,15 +673,15 @@ set(CV_TV_SPROCKET_FILES
 source_group("tracked_vehicle\\sprocket" FILES ${CV_TV_SPROCKET_FILES})
 
 set(CV_TV_SUSPENSION_FILES
-    tracked_vehicle/suspension/ChLinearDamperRWAssembly.h
-    tracked_vehicle/suspension/ChLinearDamperRWAssembly.cpp
-    tracked_vehicle/suspension/ChRotationalDamperRWAssembly.h
-    tracked_vehicle/suspension/ChRotationalDamperRWAssembly.cpp
+    tracked_vehicle/suspension/ChTranslationalDamperSuspension.h
+    tracked_vehicle/suspension/ChTranslationalDamperSuspension.cpp
+    tracked_vehicle/suspension/ChRotationalDamperSuspension.h
+    tracked_vehicle/suspension/ChRotationalDamperSuspension.cpp
 
-    tracked_vehicle/suspension/LinearDamperRWAssembly.h
-    tracked_vehicle/suspension/LinearDamperRWAssembly.cpp
-    tracked_vehicle/suspension/RotationalDamperRWAssembly.h
-    tracked_vehicle/suspension/RotationalDamperRWAssembly.cpp
+    tracked_vehicle/suspension/TranslationalDamperSuspension.h
+    tracked_vehicle/suspension/TranslationalDamperSuspension.cpp
+    tracked_vehicle/suspension/RotationalDamperSuspension.h
+    tracked_vehicle/suspension/RotationalDamperSuspension.cpp
 )
 source_group("tracked_vehicle\\suspension" FILES ${CV_TV_SUSPENSION_FILES})
 
@@ -846,8 +835,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_BRAKE_FILES}
     ${CV_TV_DRIVELINE_FILES}
     ${CV_TV_IDLER_FILES}
-    ${CV_TV_ROADWHEEL_FILES}
-    ${CV_TV_ROLLER_FILES}
+    ${CV_TV_TRACKWHEEL_FILES}
     ${CV_TV_SPROCKET_FILES}
     ${CV_TV_SUSPENSION_FILES}
     ${CV_TV_TRACKSHOE_FILES}

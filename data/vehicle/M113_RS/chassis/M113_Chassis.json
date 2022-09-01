@@ -1,0 +1,78 @@
+{
+    "Name": "M113 chassis box",
+    "Type": "Chassis",
+    "Template": "RigidChassis",
+
+    "Components": [
+        {
+            "Centroidal Frame": {
+                "Location": [ 2.006, 0, 0.406 ],
+                "Orientation": [ 1, 0, 0, 0 ]
+            },
+            "Mass": 5489.24,
+            "Moments of Inertia": [ 1786.92, 10449.67, 10721.22 ],
+            "Products of Inertia": [ 0, 0, 0 ],
+            "Void": false
+        }
+    ],
+
+    "Driver Position": {
+        "Location": [ 0, 0.5, 1.2 ],
+        "Orientation": [ 1, 0, 0, 0 ]
+    },
+
+    "Contact": {
+        "Materials": [
+            {
+                "Coefficient of Friction": 0.7,
+                "Coefficient of Restitution": 0.1,
+
+                "Properties": {
+                    "Young Modulus": 1e7,
+                    "Poisson Ratio": 0.3
+                },
+
+                "Coefficients": {
+                    "Normal Stiffness": 2e5,
+                    "Normal Damping": 40.0,
+                    "Tangential Stiffness": 2e5,
+                    "Tangential Damping": 20.0
+                }
+            }
+        ],
+
+        "Shapes": [
+            {
+                "Type": "BOX",
+                "Location": [ 2.065, 0.0, -0.043 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Dimensions": [ 4.211, 1.7, 0.2 ],
+                "Material Index": 0
+            },
+            {
+                "Type": "BOX",
+                "Location": [ 4.17, 0.0, 0.134 ],
+                "Orientation": [ 0.8171, 0, -0.5765, 0 ],
+                "Dimensions": [ 0.516, 1.7, 0.2 ],
+                "Material Index": 0
+            }
+        ]
+    },
+
+    "Visualization": {
+        "Primitives": [
+            {
+                "Type": "BOX",
+                "Location": [ 2.065, 0.0, -0.043 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Dimensions": [ 4.211, 1.7, 0.2 ]
+            },
+            {
+                "Type": "BOX",
+                "Location": [ 4.17, 0.0, 0.134 ],
+                "Orientation": [ 0.8171, 0, -0.5765, 0 ],
+                "Dimensions": [ 0.516, 1.7, 0.2 ]
+            }
+        ]
+    }
+}

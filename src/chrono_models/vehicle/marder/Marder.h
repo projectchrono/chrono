@@ -80,9 +80,8 @@ class CH_MODELS_API Marder {
     void SetSprocketVisualizationType(VisualizationType vis) { m_vehicle->SetSprocketVisualizationType(vis); }
     void SetIdlerVisualizationType(VisualizationType vis) { m_vehicle->SetIdlerVisualizationType(vis); }
     void SetRollerVisualizationType(VisualizationType vis) { m_vehicle->SetRollerVisualizationType(vis); }
-    void SetRoadWheelAssemblyVisualizationType(VisualizationType vis) {
-        m_vehicle->SetRoadWheelAssemblyVisualizationType(vis);
-    }
+    void SetSuspensionVisualizationType(VisualizationType vis) { m_vehicle->SetSuspensionVisualizationType(vis); }
+    void SetIdlerWheelVisualizationType(VisualizationType vis) { m_vehicle->SetIdlerWheelVisualizationType(vis); }
     void SetRoadWheelVisualizationType(VisualizationType vis) { m_vehicle->SetRoadWheelVisualizationType(vis); }
     void SetTrackShoeVisualizationType(VisualizationType vis) { m_vehicle->SetTrackShoeVisualizationType(vis); }
 

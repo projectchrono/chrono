@@ -402,8 +402,8 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
                 model_obj[trimesh_shape->GetName()].push_back(model);
             }
         } else if (ChLineShape* line_shape = dynamic_cast<ChLineShape*>(shape.get())) {
-            std::shared_ptr<geometry::ChLine> mline;
-            mline = line_shape->GetLineGeometry();
+            auto mline = line_shape->GetLineGeometry();
+            auto npoints = line_shape->GetNumRenderPoints();
 
             double maxU = 1;
             if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(mline))
@@ -414,8 +414,10 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
             t2 = X_SA.TransformPointLocalToParent(t2);
             line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
 
-            for (unsigned int ig = 1; ig < maxU; ig++) {
-                mline->Evaluate(t2, (double)ig);
+            for (unsigned int ig = 1; ig < npoints; ig++) {
+                double mU = maxU * ((double)ig / (double)(npoints - 1));  // abscissa
+
+                mline->Evaluate(t2, mU);
                 t2 = X_SA.TransformPointLocalToParent(t2);
                 line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
                 line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));

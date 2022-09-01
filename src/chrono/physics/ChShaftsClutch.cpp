@@ -103,12 +103,7 @@ void ChShaftsClutch::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>
     if (!active)
         return;
 
-    // Might not be the best place to put this, but it works.
-    // Update the limits on lagrangian multipliers:
-    double dt = c;  // note: not always c=dt, this is true for euler implicit linearized and similar DVI timesteppers,
-                    // might be not the case in future
-    // double dt = system->GetStep(); // this could be another option.. but with variable-dt timesteppers it
-    // should go deeper..
+    double dt = system->GetStep(); //// TODO: check this if ever using variable-step integrators
     constraint.SetBoxedMinMax(dt * minT * modulation, dt * maxT * modulation);
 }
 

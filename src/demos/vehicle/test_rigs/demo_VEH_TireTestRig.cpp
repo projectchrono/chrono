@@ -125,7 +125,7 @@ int main() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddCamera(ChVector<>(0, 0, 6));
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
 
     auto camera = vis->GetActiveCamera();
     camera->setFOV(irr::core::PI / 4.5f);

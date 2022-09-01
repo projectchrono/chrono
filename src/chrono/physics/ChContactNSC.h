@@ -128,6 +128,11 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
     /// Set the contact friction coefficient
     virtual void SetFriction(double mf) { Nx.SetFrictionCoefficient(mf); }
 
+    /// Access the constraints
+    ChConstraint* GetConstraintNx() { return &Nx; }
+    ChConstraint* GetConstraintTu() { return &Tu; }
+    ChConstraint* GetConstraintTv() { return &Tv; }
+
     // UPDATING FUNCTIONS
 
     virtual void ContIntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override {

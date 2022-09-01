@@ -57,7 +57,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
 
     /// Get the number of suspensions in the specified track assembly.
-    size_t GetNumRoadWheelAssemblies(VehicleSide side) const { return m_tracks[side]->GetNumRoadWheelAssemblies(); }
+    size_t GetNumTrackSuspensions(VehicleSide side) const { return m_tracks[side]->GetNumTrackSuspensions(); }
 
     /// Get the number of shoes in the specified track assembly.
     size_t GetNumTrackShoes(VehicleSide side) const { return m_tracks[side]->GetNumTrackShoes(); }
@@ -87,7 +87,10 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     void SetIdlerVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the suspension subsystems.
-    void SetRoadWheelAssemblyVisualizationType(VisualizationType vis);
+    void SetSuspensionVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the idler wheel subsystem.
+    void SetIdlerWheelVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the road-wheel subsystems.
     void SetRoadWheelVisualizationType(VisualizationType vis);

@@ -140,9 +140,14 @@ void ChTrackedVehicle::SetIdlerVisualizationType(VisualizationType vis) {
     m_tracks[1]->SetIdlerVisualizationType(vis);
 }
 
-void ChTrackedVehicle::SetRoadWheelAssemblyVisualizationType(VisualizationType vis) {
-    m_tracks[0]->SetRoadWheelAssemblyVisualizationType(vis);
-    m_tracks[1]->SetRoadWheelAssemblyVisualizationType(vis);
+void ChTrackedVehicle::SetSuspensionVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetSuspensionVisualizationType(vis);
+    m_tracks[1]->SetSuspensionVisualizationType(vis);
+}
+
+void ChTrackedVehicle::SetIdlerWheelVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetIdlerWheelVisualizationType(vis);
+    m_tracks[1]->SetIdlerWheelVisualizationType(vis);
 }
 
 void ChTrackedVehicle::SetRoadWheelVisualizationType(VisualizationType vis) {
@@ -176,14 +181,14 @@ void ChTrackedVehicle::SetSprocketCollide(bool state) {
 }
 
 void ChTrackedVehicle::SetIdlerCollide(bool state) {
-    m_tracks[0]->GetIdler()->SetCollide(state);
-    m_tracks[1]->GetIdler()->SetCollide(state);
+    m_tracks[0]->GetIdlerWheel()->SetCollide(state);
+    m_tracks[1]->GetIdlerWheel()->SetCollide(state);
 }
 
 void ChTrackedVehicle::SetRoadWheelCollide(bool state) {
-    for (size_t i = 0; i < m_tracks[0]->GetNumRoadWheelAssemblies(); ++i)
+    for (size_t i = 0; i < m_tracks[0]->GetNumTrackSuspensions(); ++i)
         m_tracks[0]->GetRoadWheel(i)->SetCollide(state);
-    for (size_t i = 0; i < m_tracks[1]->GetNumRoadWheelAssemblies(); ++i)
+    for (size_t i = 0; i < m_tracks[1]->GetNumTrackSuspensions(); ++i)
         m_tracks[1]->GetRoadWheel(i)->SetCollide(state);
 }
 
@@ -210,17 +215,17 @@ void ChTrackedVehicle::SetCollide(int flags) {
     for (auto& c : m_chassis_rear)
         c->SetCollide((flags & static_cast<int>(TrackedCollisionFlag::CHASSIS)) != 0);
 
-    m_tracks[0]->GetIdler()->SetCollide((flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
-    m_tracks[1]->GetIdler()->SetCollide((flags & static_cast<int>(TrackedCollisionFlag::IDLER_RIGHT)) != 0);
+    m_tracks[0]->GetIdlerWheel()->SetCollide((flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
+    m_tracks[1]->GetIdlerWheel()->SetCollide((flags & static_cast<int>(TrackedCollisionFlag::IDLER_RIGHT)) != 0);
 
     m_tracks[0]->GetSprocket()->SetCollide((flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) != 0);
     m_tracks[1]->GetSprocket()->SetCollide((flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_RIGHT)) != 0);
 
     bool collide_wheelsL = (flags & static_cast<int>(TrackedCollisionFlag::WHEELS_LEFT)) != 0;
     bool collide_wheelsR = (flags & static_cast<int>(TrackedCollisionFlag::WHEELS_RIGHT)) != 0;
-    for (size_t i = 0; i < m_tracks[0]->GetNumRoadWheelAssemblies(); ++i)
+    for (size_t i = 0; i < m_tracks[0]->GetNumTrackSuspensions(); ++i)
         m_tracks[0]->GetRoadWheel(i)->SetCollide(collide_wheelsL);
-    for (size_t i = 0; i < m_tracks[1]->GetNumRoadWheelAssemblies(); ++i)
+    for (size_t i = 0; i < m_tracks[1]->GetNumTrackSuspensions(); ++i)
         m_tracks[1]->GetRoadWheel(i)->SetCollide(collide_wheelsR);
 
     bool collide_rollersL = (flags & static_cast<int>(TrackedCollisionFlag::ROLLERS_LEFT)) != 0;

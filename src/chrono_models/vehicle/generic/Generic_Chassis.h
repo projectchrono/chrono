@@ -40,7 +40,7 @@ class CH_MODELS_API Generic_Chassis : public ChRigidChassis {
     /// This is a coordinate system relative to the chassis reference frame.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
-    /// Add visualization of the road wheel.
+    /// Add visualization of the chassis.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   protected:

@@ -112,7 +112,8 @@ int main(int argc, char* argv[]) {
     m113.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     m113.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     m113.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
-    m113.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetIdlerWheelVisualizationType(VisualizationType::PRIMITIVES);
     m113.SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     m113.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
@@ -164,7 +165,7 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCameraPosition(ChVector<>(-3, 4, 1.5));
     vis->SetChaseCameraMultipliers(1e-4, 10);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&m113.GetVehicle());

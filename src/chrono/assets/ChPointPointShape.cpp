@@ -12,6 +12,7 @@
 
 #include "chrono/assets/ChPointPointShape.h"
 #include "chrono/physics/ChLinkMarkers.h"
+#include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChLinkRevoluteSpherical.h"
 #include "chrono/physics/ChLinkTSDA.h"
@@ -33,6 +34,10 @@ void ChPointPointShape::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
     } else if (auto link_tsda = dynamic_cast<ChLinkTSDA*>(updater)) {
         UpdateLineGeometry(frame.TransformPointParentToLocal(link_tsda->GetPoint1Abs()),
                            frame.TransformPointParentToLocal(link_tsda->GetPoint2Abs()));
+    } else if (auto link_mate = dynamic_cast<ChLinkMateGeneric*>(updater)) {
+        auto pt1 = link_mate->GetBody1()->TransformPointLocalToParent(link_mate->GetFrame1().GetPos());
+        auto pt2 = link_mate->GetBody2()->TransformPointLocalToParent(link_mate->GetFrame2().GetPos());
+        UpdateLineGeometry(frame.TransformPointParentToLocal(pt1), frame.TransformPointParentToLocal(pt2));
     } else if (auto link = dynamic_cast<ChLink*>(updater)) {
         UpdateLineGeometry(frame.TransformPointParentToLocal(link->GetBody1()->GetPos()),
                            frame.TransformPointParentToLocal(link->GetBody2()->GetPos()));

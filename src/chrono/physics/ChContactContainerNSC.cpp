@@ -441,6 +441,52 @@ void ChContactContainerNSC::ReportAllContacts(std::shared_ptr<ReportContactCallb
     _ReportAllContactsRolling(contactlist_6_6_rolling, callback.get());
 }
 
+
+template <class Tcont>
+void _ReportAllContactsNSC(std::list<Tcont*>& contactlist, ChContactContainerNSC::ReportContactCallbackNSC* mcallback) {
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    while (itercontact != contactlist.end()) {
+        bool proceed = mcallback->OnReportContact(
+            (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), (*itercontact)->GetContactPlane(),
+            (*itercontact)->GetContactDistance(), (*itercontact)->GetEffectiveCurvatureRadius(),
+            (*itercontact)->GetContactForce(), VNULL, (*itercontact)->GetObjA(), (*itercontact)->GetObjB(),
+            (*itercontact)->GetConstraintNx()->GetOffset());
+        if (!proceed)
+            break;
+        ++itercontact;
+    }
+}
+
+template <class Tcont>
+void _ReportAllContactsRollingNSC(std::list<Tcont*>& contactlist, ChContactContainerNSC::ReportContactCallbackNSC* mcallback) {
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    while (itercontact != contactlist.end()) {
+        bool proceed = mcallback->OnReportContact(
+            (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), (*itercontact)->GetContactPlane(),
+            (*itercontact)->GetContactDistance(), (*itercontact)->GetEffectiveCurvatureRadius(),
+            (*itercontact)->GetContactForce(), (*itercontact)->GetContactTorque(), (*itercontact)->GetObjA(),
+            (*itercontact)->GetObjB(),
+            (*itercontact)->GetConstraintNx()->GetOffset());
+        if (!proceed)
+            break;
+        ++itercontact;
+    }
+}
+
+void ChContactContainerNSC::ReportAllContactsNSC(std::shared_ptr<ReportContactCallbackNSC> callback) {
+    _ReportAllContactsNSC(contactlist_6_6, callback.get());
+    _ReportAllContactsNSC(contactlist_6_3, callback.get());
+    _ReportAllContactsNSC(contactlist_3_3, callback.get());
+    _ReportAllContactsNSC(contactlist_333_3, callback.get());
+    _ReportAllContactsNSC(contactlist_333_6, callback.get());
+    _ReportAllContactsNSC(contactlist_333_333, callback.get());
+    _ReportAllContactsNSC(contactlist_666_3, callback.get());
+    _ReportAllContactsNSC(contactlist_666_6, callback.get());
+    _ReportAllContactsNSC(contactlist_666_333, callback.get());
+    _ReportAllContactsNSC(contactlist_666_666, callback.get());
+    _ReportAllContactsRollingNSC(contactlist_6_6_rolling, callback.get());
+}
+
 ////////// STATE INTERFACE ////
 
 template <class Tcont>

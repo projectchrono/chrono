@@ -37,10 +37,6 @@
 
 using namespace chrono::collision;
 
-#ifdef LOGGINGENABLED
-INITIALIZE_EASYLOGGINGPP
-#endif
-
 namespace chrono {
 
 ChSystemMulticore::ChSystemMulticore() : ChSystem() {
@@ -76,12 +72,6 @@ ChSystemMulticore::ChSystemMulticore() : ChSystem() {
     data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_Setup");
     data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_Matrices");
     data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_Stab");
-
-#ifdef LOGGINGENABLED
-    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
-    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile, "false");
-    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "%datetime{%h:%m:%s:%g} %msg");
-#endif
 }
 
 ChSystemMulticore::ChSystemMulticore(const ChSystemMulticore& other) : ChSystem(other) {
@@ -113,7 +103,6 @@ ChBodyAuxRef* ChSystemMulticore::NewBodyAuxRef() {
 }
 
 bool ChSystemMulticore::Integrate_Y() {
-    LOG(INFO) << "ChSystemMulticore::Integrate_Y() Time: " << ch_time;
     // Store system data in the data manager
     data_manager->system_descriptor = this->descriptor;
     data_manager->body_list = &assembly.bodylist;
@@ -344,7 +333,6 @@ void ChSystemMulticore::ClearForceVariables() {
 // 8. Process bilateral constraints
 //
 void ChSystemMulticore::Update() {
-    LOG(INFO) << "ChSystemMulticore::Update()";
     // Clear the forces for all variables
     ClearForceVariables();
 
@@ -607,7 +595,6 @@ void ChSystemMulticore::UpdateBilaterals() {
 // override this function, but it should invoke this default implementation.
 //
 void ChSystemMulticore::Setup() {
-    LOG(INFO) << "ChSystemMulticore::Setup()";
     // Cache the integration step size and calculate the tolerance at impulse level.
     data_manager->settings.step_size = step;
     data_manager->settings.solver.tol_speed = step * data_manager->settings.solver.tolerance;
@@ -650,14 +637,9 @@ void ChSystemMulticore::RecomputeThreads() {
             old_timer = sum_of_elems / 10.0;
             current_threads += 2;
             omp_set_num_threads(current_threads);
-
-            LOG(TRACE) << "current threads increased to " << current_threads;
-
         } else {
             current_threads = data_manager->settings.max_threads;
             omp_set_num_threads(data_manager->settings.max_threads);
-
-            LOG(TRACE) << "current threads increased to " << current_threads;
         }
     } else if (frame_threads == 10 && detect_optimal_threads) {
         double current_timer = sum_of_elems / 10.0;
@@ -666,7 +648,6 @@ void ChSystemMulticore::RecomputeThreads() {
         if (old_timer < current_timer) {
             current_threads -= 2;
             omp_set_num_threads(current_threads);
-            LOG(TRACE) << "current threads reduced back to " << current_threads;
         }
     }
 
@@ -694,31 +675,6 @@ void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystemType type) {
             //// Error
             break;
     }
-}
-
-void ChSystemMulticore::SetLoggingLevel(LoggingLevel level, bool state) {
-#ifdef LOGGINGENABLED
-
-    std::string value = state ? "true" : "false";
-
-    switch (level) {
-        case LoggingLevel::LOG_NONE:
-            el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
-            break;
-        case LoggingLevel::LOG_INFO:
-            el::Loggers::reconfigureAllLoggers(el::Level::Info, el::ConfigurationType::ToStandardOutput, value);
-            break;
-        case LoggingLevel::LOG_TRACE:
-            el::Loggers::reconfigureAllLoggers(el::Level::Trace, el::ConfigurationType::ToStandardOutput, value);
-            break;
-        case LoggingLevel::LOG_WARNING:
-            el::Loggers::reconfigureAllLoggers(el::Level::Warning, el::ConfigurationType::ToStandardOutput, value);
-            break;
-        case LoggingLevel::LOG_ERROR:
-            el::Loggers::reconfigureAllLoggers(el::Level::Error, el::ConfigurationType::ToStandardOutput, value);
-            break;
-    }
-#endif
 }
 
 // Calculate the current body AABB (union of the AABB of their collision shapes).

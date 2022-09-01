@@ -4,12 +4,16 @@
 
 # List FSI demos that do not have other dependencies
 SET(FSI_DEMOS 
-demo_FSI_DamBreak
-demo_FSI_Compressibility
-demo_FSI_Poiseuille_flow
-demo_FSI_CylinderDrop
-demo_FSI_SingleWheelTest
-demo_FSI_Flexible_Elements
+    demo_FSI_DamBreak
+    demo_FSI_Compressibility
+    demo_FSI_Poiseuille_flow
+    demo_FSI_CylinderDrop
+    demo_FSI_SingleWheelTest
+)
+
+set(FSI_MKL_DEMOS
+    demo_FSI_Flexible_Flat_Plate
+    demo_FSI_Flexible_Toroidal_Tire
 )
 
 #--------------------------------------------------------------

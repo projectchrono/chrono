@@ -19,6 +19,7 @@
 #include "chrono_models/vehicle/marder/Marder_BrakeSimple.h"
 #include "chrono_models/vehicle/marder/Marder_BrakeShafts.h"
 #include "chrono_models/vehicle/marder/Marder_Idler.h"
+#include "chrono_models/vehicle/marder/Marder_IdlerWheel.h"
 #include "chrono_models/vehicle/marder/Marder_RoadWheel.h"
 #include "chrono_models/vehicle/marder/Marder_SupportRoller.h"
 #include "chrono_models/vehicle/marder/Marder_SprocketSinglePin.h"
@@ -69,8 +70,8 @@ Marder_TrackAssemblySinglePin::Marder_TrackAssemblySinglePin(VehicleSide side, B
     switch (side) {
         case LEFT:
             SetName("Marder_TrackAssemblyLeft");
-            m_idler = chrono_types::make_shared<Marder_IdlerLeft>();
-            m_brake = chrono_types::make_shared<Marder_BrakeSimple>("Marder_BrakeLeft");
+            m_idler = chrono_types::make_shared<Marder_Idler>("Marder_Idler_Left", side);
+            m_brake = chrono_types::make_shared<Marder_BrakeShafts>("Marder_BrakeLeft");
             m_sprocket = chrono_types::make_shared<Marder_SprocketSinglePinLeft>();
             num_shoes = 77;
             suspName += "Left_";
@@ -81,8 +82,8 @@ Marder_TrackAssemblySinglePin::Marder_TrackAssemblySinglePin(VehicleSide side, B
             break;
         case RIGHT:
             SetName("Marder_TrackAssemblyRight");
-            m_idler = chrono_types::make_shared<Marder_IdlerRight>();
-            m_brake = chrono_types::make_shared<Marder_BrakeSimple>("Marder_BrakeRight");
+            m_idler = chrono_types::make_shared<Marder_Idler>("Marder_Idler_Right", side);
+            m_brake = chrono_types::make_shared<Marder_BrakeShafts>("Marder_BrakeRight");
             m_sprocket = chrono_types::make_shared<Marder_SprocketSinglePinRight>();
             num_shoes = 78;
             suspName += "Right_";
@@ -106,7 +107,6 @@ Marder_TrackAssemblySinglePin::Marder_TrackAssemblySinglePin(VehicleSide side, B
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 const ChVector<> Marder_TrackAssemblySinglePin::GetSprocketLocation() const {
     return m_sprocket_loc;

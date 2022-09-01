@@ -180,6 +180,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_PID
     ChPathFollowerDriver driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed);
+    driver.SetColor(ChColor(0.0f, 0.0f, 0.8f));
     driver.GetSteeringController().SetLookAheadDistance(5);
     driver.GetSteeringController().SetGains(0.8, 0, 0);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
@@ -188,10 +189,11 @@ int main(int argc, char* argv[]) {
 #ifdef USE_XT
     ChPathFollowerDriverXT driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed,
                                   my_hmmwv.GetVehicle().GetMaxSteeringAngle());
-    driver_.GetSteeringController().SetLookAheadDistance(5);
-    driver_.GetSteeringController().SetGains(0.4, 1, 1, 1);
-    driver_.GetSpeedController().SetGains(0.4, 0, 0);
-    driver_.Initialize();
+    driver.SetColor(ChColor(0.0f, 0.0f, 0.8f));
+    driver.GetSteeringController().SetLookAheadDistance(5);
+    driver.GetSteeringController().SetGains(0.4, 1, 1, 1);
+    driver.GetSpeedController().SetGains(0.4, 0, 0);
+    driver.Initialize();
 #endif
 #ifdef USE_SR
     const double axle_space = 3.2;
@@ -199,6 +201,7 @@ int main(int argc, char* argv[]) {
     ChPathFollowerDriverSR driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed,
                                   my_hmmwv.GetVehicle().GetMaxSteeringAngle(), axle_space);
     // driver.GetSteeringController().SetLookAheadDistance(5);
+    driver.SetColor(ChColor(0.0f, 0.0f, 0.8f));
     driver.GetSteeringController().SetPreviewTime(0.7);
     driver.GetSteeringController().SetGains(0.1, 5);
     driver.GetSpeedController().SetGains(0.4, 0, 0);

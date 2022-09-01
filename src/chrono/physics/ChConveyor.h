@@ -189,6 +189,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
 
 CH_CLASS_VERSION(ChConveyor,0)
 
+
 }  // end namespace chrono
 
 #endif

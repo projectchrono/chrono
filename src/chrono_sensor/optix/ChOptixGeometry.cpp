@@ -554,7 +554,7 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
     accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;  // | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
     accel_options.operation = OPTIX_BUILD_OPERATION_BUILD;
-    accel_options.motionOptions.numKeys = 2;               //m_start_time default at start
+    accel_options.motionOptions.numKeys = 2;               // m_start_time default at start
     accel_options.motionOptions.timeBegin = m_start_time;  // default at start
     accel_options.motionOptions.timeEnd = m_end_time;      // default at start
     accel_options.motionOptions.flags = OPTIX_MOTION_FLAG_NONE;
@@ -575,7 +575,8 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
                              0.f, 1.f, 0.f, 0.f,  //
                              0.f, 0.f, 1.f, 0.f};
         m_instances[i].traversableHandle = m_motion_handles[i];
-        m_instances[i].flags = OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT;  // | OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM | OPTIX_INSTANCE_FLAG_FLIP_TRIANGLE_FACING;
+        m_instances[i].flags = OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT;  // | OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM |
+                                                                    // OPTIX_INSTANCE_FLAG_FLIP_TRIANGLE_FACING;
         // m_instances[i].flags = OPTIX_INSTANCE_FLAG_NONE;
         m_instances[i].instanceId = i;
         m_instances[i].sbtOffset = m_obj_mat_ids[i];
@@ -600,7 +601,7 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
 
 // rebuilding the structure without creating anything new
 void ChOptixGeometry::RebuildRootStructure() {
-    m_end_time = m_end_time > (m_start_time+1e-2)
+    m_end_time = m_end_time > (m_start_time + 1e-2)
                      ? m_end_time
                      : m_end_time + 1e-2;  // need to ensure start time is at least slightly after end time
 

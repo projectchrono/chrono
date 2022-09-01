@@ -24,7 +24,6 @@
 #include <vector>
 
 #include "chrono/core/ChStream.h"
-#include "chrono/physics/ChLinkDistance.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -140,7 +139,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("Generic Vehicle Demo");
     vis->SetChaseCamera(trackPoint, 6.0, 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&vehicle);

@@ -38,6 +38,6 @@
 
   "Visualization":
   {
-      "Mesh":              "M113/Sprocket_R.obj"
+      "Mesh":              "M113/meshes/Sprocket_R.obj"
   }
 }

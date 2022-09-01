@@ -239,10 +239,17 @@ class CH_FSI_API ChSystemFsi {
     double GetSimTime() const { return m_time; }
 
     /// Return the SPH particle positions.
-    std::vector<ChVector<>> GetParticlePosOrProperties();
+    std::vector<ChVector<>> GetParticlePositions();
 
     /// Return the SPH particle velocities.
-    std::vector<ChVector<>> GetParticleVel();
+    std::vector<ChVector<>> GetParticleVelocities();
+
+    /// Return the forces acting on SPH particles.
+    std::vector<ChVector<>> GetParticleForces();
+
+    /// Return the SPH particle fluid properties.
+    /// For each SPH particle, the 3-dimensional array contains density, pressure, and viscosity.
+    std::vector<ChVector<>> GetParticleFluidProperties();
 
     /// Get a reference to the FSI bodies.
     /// FSI bodies are the ones seen by the fluid dynamics system.
@@ -438,6 +445,10 @@ class CH_FSI_API ChSystemFsi {
     /// Extract velocities of all SPH particles with indices in the provided array.
     /// The return value is a device thrust vector.
     thrust::device_vector<Real3> GetParticleVelocities(const thrust::device_vector<int>& indices);
+
+    /// Extract forces applied to all SPH particles with indices in the provided array.
+    /// The return value is a device thrust vector.
+    thrust::device_vector<Real4> GetParticleForces(const thrust::device_vector<int>& indices);
 
   private:
     /// Initialize simulation parameters with default values.

@@ -62,10 +62,10 @@ ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const Real3& pos3) {
     return TransformBCEToCOG(body, pos);
 }
 
-
-
 // =============================================================================
-void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, std::shared_ptr<SimParams> paramsH) {
+void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, 
+                         Real rad, 
+                         std::shared_ptr<SimParams> paramsH) {
     Real spacing = paramsH->MULT_INITSPACE * paramsH->HSML;
 
     for (Real r = 0.5 * spacing; r < rad; r += spacing) {
@@ -75,7 +75,8 @@ void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, std::s
             int numTheta = (int)std::floor(2 * 3.1415 * r * sin(phi) / spacing);
             for (Real t = 0.0; t < numTheta; t++) {
                 Real teta = t * 2 * 3.1415 / numTheta;
-                Real3 BCE_Pos_local = mR3(r * sin(phi) * cos(teta), r * sin(phi) * sin(teta), r * cos(phi));
+                Real3 BCE_Pos_local = 
+                    mR3(r * sin(phi) * cos(teta), r * sin(phi) * sin(teta), r * cos(phi));
                 posRadBCE.push_back(mR4(BCE_Pos_local, spacing));
             }
         }
@@ -84,7 +85,9 @@ void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, std::s
     }
 }
 // =============================================================================
-void CreateBCE_On_surface_of_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, Real kernel_h) {
+void CreateBCE_On_surface_of_Sphere(thrust::host_vector<Real4>& posRadBCE, 
+                                    Real rad, 
+                                    Real kernel_h) {
     Real spacing = kernel_h;
     Real r = rad;
     int numphi = (int)std::floor(3.1415 * r / spacing);
@@ -94,7 +97,8 @@ void CreateBCE_On_surface_of_Sphere(thrust::host_vector<Real4>& posRadBCE, Real 
         int numTheta = (int)std::floor(2 * 3.1415 * r * sin(phi) / spacing);
         for (Real t = 0.0; t < numTheta; t++) {
             Real teta = t * 2 * 3.1415 / numTheta;
-            Real3 BCE_Pos_local = mR3(r * sin(phi) * cos(teta), r * sin(phi) * sin(teta), r * cos(phi));
+            Real3 BCE_Pos_local = 
+                mR3(r * sin(phi) * cos(teta), r * sin(phi) * sin(teta), r * cos(phi));
             posRadBCE.push_back(mR4(BCE_Pos_local, spacing));
         }
     }
@@ -223,10 +227,9 @@ void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
 
 // =============================================================================
 // note, the function in the current implementation creates boundary BCE (zero
-// velocity)
-// x=1, y=2, z =3; therefore 12 means creating markers on the top surface
-// parallel to xy plane,
-// similarly -12 means bottom face paralel to xy. similarly 13, -13, 23, -23
+// velocity). x=1, y=2, z =3; therefore 12 means creating markers on the top 
+// surface parallel to xy plane, similarly -12 means bottom face paralel to xy. 
+// similarly 13, -13, 23, -23.
 void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
                       const Real3& hsize,
                       int face,
@@ -286,7 +289,10 @@ void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
     }
 }
 // =============================================================================
-void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, std::string fileName, double scale, double hsml) {
+void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, 
+                      std::string fileName, 
+                      double scale, 
+                      double hsml) {
     std::string ddSt;
     char buff[256];
     int numBce = 0;
@@ -294,9 +300,9 @@ void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, std::string fileNam
     std::cout << "Reading BCE data from: " << fileName << " ...\n";
     std::ifstream inMarker;
     inMarker.open(fileName);
-    if (!inMarker) {
+    if (!inMarker)
         std::cerr << "   Error! Unable to open file: " << fileName << std::endl;
-    }
+
     getline(inMarker, ddSt);
     Real q[cols];
     while (getline(inMarker, ddSt)) {
@@ -338,9 +344,9 @@ void CreateBCE_On_shell(thrust::host_vector<Real4>& posRadBCE,
     int2 jBound = mI2(-nFY, nFY);
     int2 kBound;
     // If multi-layer BCE is required
-    if (SIDE > 0 && multiLayer)  // Do SIDE number layers in one side
+    if (SIDE > 0 && multiLayer)        // Do SIDE number layers in one side
         kBound = mI2(0, SIDE);
-    else if (SIDE < 0 && multiLayer)  // Do SIDE number layers in the other side
+    else if (SIDE < 0 && multiLayer)   // Do SIDE number layers in the other side
         kBound = mI2(SIDE, 0);
     else if (SIDE == 0 && multiLayer)  // Do 1 layer on each side. Note that there would be 3 layers in total
         kBound = mI2(-1, 1);           // The middle layer would be on the shell
@@ -394,7 +400,7 @@ void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
             continue;
 
         Real3 relMarkerPos;
-        double CONSTANT = 1.0;  // sqrt(2) / 2;
+        double CONSTANT = 1.0;
         if (multiLayer) {
             for (int j = 1; j <= SIDE; j++) {
                 relMarkerPos = mR3(i * initSpaceX, j * initSpaceZ, 0) * CONSTANT;
@@ -419,6 +425,7 @@ void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
                                      std::shared_ptr<SimParams> paramsH,
                                      std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
                                      std::vector<int> remove,
+                                     std::vector<int> remove_s,
                                      bool multiLayer,
                                      bool removeMiddleLayer,
                                      int SIDE,
@@ -431,7 +438,6 @@ void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
 
     double dx = shell->GetLengthX() / 2;
     double dy = shell->GetLengthY() / 2;
-    printf("CreateBCE_On_ChElementShellANCF: dx,dy=%f,%f\n", dx, dy);
 
     double nX = dx / initSpace0 - std::floor(dx / initSpace0);
     double nY = dy / initSpace0 - std::floor(dy / initSpace0);
@@ -442,42 +448,61 @@ void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
     if (nY > 0.5)
         nFY++;
 
-    Real initSpaceX = dx / nFX;
-    Real initSpaceY = dy / nFY;
+    Real initSpaceX;
+    Real initSpaceY;
+    int2 iBound;
+    int2 jBound;
 
-    int2 iBound = mI2(-nFX, nFX);
-    int2 jBound = mI2(-nFY, nFY);
+    if ( dx < nFX*initSpace0 ) {
+        iBound = mI2(-nFX*2, nFX*2);
+        initSpaceX = dx / nFX;
+        }
+    else {
+        iBound = mI2(-nFX*2-1, nFX*2+1);
+        initSpaceX = dx / ( 0.5 + nFX);
+        }
+    if ( dy < nFY*initSpace0 ) {
+        jBound = mI2(-nFY*2, nFY*2);
+        initSpaceY = dy / nFY;
+        }
+    else {
+        jBound = mI2(-nFY*2-1, nFY*2+1);
+        initSpaceY = dy / ( 0.5 + nFY);
+        }
+
     int2 kBound;
     // If multi-layer BCE is required
-    if (SIDE > 0 && multiLayer)  // Do SIDE number layers in one side
+    if (SIDE > 0 && multiLayer)         // Do SIDE number layers in one side
         kBound = mI2(0, SIDE);
-    else if (SIDE < 0 && multiLayer)  // Do SIDE number layers in the other side
+    else if (SIDE < 0 && multiLayer)    // Do SIDE number layers in the other side
         kBound = mI2(SIDE, 0);
-    else if (SIDE == 0 && multiLayer)  // Do 1 layer on each side. Note that there would be 3 layers in total
-        kBound = mI2(-1, 1);           // The middle layer would be on the shell
-    else                               // IF you do not want multi-layer just use one layer on the shell
-        kBound = mI2(0, 0);            // This will create some marker deficiency and reduce the accuracy but look nicer
+    else if (SIDE == 0 && multiLayer)   // Do 1 layer on each side. Note that there would be 3 layers in total
+        kBound = mI2(-1, 1);            // The middle layer would be on the shell
+    else                                // IF you do not want multi-layer just use one layer on the shell
+        kBound = mI2(0, 0);             // This will create some marker deficiency and reduce the accuracy but look nicer
 
     for (int k = kBound.x; k <= kBound.y; k++) {
-        for (int j = jBound.x; j <= jBound.y; j++) {
-            for (int i = iBound.x; i <= iBound.y; i++) {
-                Real3 relMarkerPos = mR3(i * initSpaceX, j * initSpaceY, k);
-                if (k == 0 && SIDE == 0 && multiLayer && removeMiddleLayer) {
-                    // skip the middle layer for this specific case
-                    printf(
-                        "---------------paramsH->MULT_INITSPACE_Shells was changed in CreateBCE_On_Mesh to 0.5. "
-                        "\n");
-                    paramsH->MULT_INITSPACE_Shells = 0.5;
-                    continue;
-                }
+        if (k == 0 && SIDE == 0 && multiLayer && removeMiddleLayer) {
+            // skip the middle layer for this specific case
+            // change value of paramsH->MULT_INITSPACE_Shells
+            paramsH->MULT_INITSPACE_Shells = 0.5;
+            continue;
+        }
+        for (int j = jBound.x; j <= jBound.y; j=j+2) {
+            for (int i = iBound.x; i <= iBound.y; i=i+2) {
+                Real3 relMarkerPos = mR3(i * initSpaceX / 2.0 , j * initSpaceY / 2.0 , k);
 
                 // It has to skip puting BCE on the nodes if one of the following conditions is true
-                bool con1 = (remove[0] && remove[1] && j == jBound.x);
-                bool con2 = (remove[2] && remove[3] && j == jBound.y);
-                bool con3 = (remove[1] && remove[2] && i == iBound.y);
-                bool con4 = (remove[3] && remove[0] && i == iBound.x);
+                bool con1 = (remove_s[0] && j == jBound.x);
+                bool con2 = (remove_s[2] && j == jBound.y);
+                bool con3 = (remove_s[1] && i == iBound.y);
+                bool con4 = (remove_s[3] && i == iBound.x);
+                bool con5 = (remove[0] && remove[1] && (!remove_s[0]) && j == jBound.x && (i==iBound.x || i == iBound.y));
+                bool con6 = (remove[2] && remove[3] && (!remove_s[2]) && j == jBound.y && (i==iBound.x || i == iBound.y));
+                bool con7 = (remove[1] && remove[2] && (!remove_s[1]) && i == iBound.y && (j==jBound.x || j == jBound.y));
+                bool con8 = (remove[3] && remove[0] && (!remove_s[3]) && i == iBound.x && (j==jBound.x || j == jBound.y));
 
-                if (con1 || con2 || con3 || con4)
+                if (con1 || con2 || con3 || con4 || con5 || con6 || con7 || con8 )
                     continue;
 
                 posRadBCE.push_back(mR4(relMarkerPos, (kernel_h == 0) ? paramsH->HSML : kernel_h));

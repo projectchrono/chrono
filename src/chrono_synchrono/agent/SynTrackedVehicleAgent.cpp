@@ -106,11 +106,11 @@ void SynTrackedVehicleAgent::Update() {
     idlers.emplace_back(right_assembly->GetIdler()->GetWheelBody()->GetFrame_REF_to_abs());
 
     std::vector<SynPose> road_wheels;
-    for (int i = 0; i < m_vehicle->GetTrackAssembly(LEFT)->GetNumRoadWheelAssemblies(); i++)
-        road_wheels.emplace_back(left_assembly->GetRoadWheel(i)->GetWheelBody()->GetFrame_REF_to_abs());
+    for (int i = 0; i < m_vehicle->GetTrackAssembly(LEFT)->GetNumTrackSuspensions(); i++)
+        road_wheels.emplace_back(left_assembly->GetRoadWheel(i)->GetBody()->GetFrame_REF_to_abs());
 
-    for (int i = 0; i < m_vehicle->GetTrackAssembly(RIGHT)->GetNumRoadWheelAssemblies(); i++)
-        road_wheels.emplace_back(right_assembly->GetRoadWheel(i)->GetWheelBody()->GetFrame_REF_to_abs());
+    for (int i = 0; i < m_vehicle->GetTrackAssembly(RIGHT)->GetNumTrackSuspensions(); i++)
+        road_wheels.emplace_back(right_assembly->GetRoadWheel(i)->GetBody()->GetFrame_REF_to_abs());
 
     auto time = m_vehicle->GetSystem()->GetChTime();
     m_state->SetState(time, chassis, track_shoes, sprockets, idlers, road_wheels);

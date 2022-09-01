@@ -22,7 +22,7 @@
 #include <string>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperRWAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/suspension/ChTranslationalDamperSuspension.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -33,8 +33,8 @@ namespace marder {
 /// @addtogroup vehicle_models_marder
 /// @{
 
-/// Linear-damper Marder suspension (road-wheel assembly).
-class CH_MODELS_API Marder_Suspension : public ChLinearDamperRWAssembly {
+/// Linear-damper Marder track suspension.
+class CH_MODELS_API Marder_Suspension : public ChTranslationalDamperSuspension {
   public:
     Marder_Suspension(const std::string& name, VehicleSide side, int index, bool has_shock);
     ~Marder_Suspension();
@@ -50,11 +50,12 @@ class CH_MODELS_API Marder_Suspension : public ChLinearDamperRWAssembly {
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
+    /// Return the free (rest) angle of the spring element.
+    virtual double GetSpringRestAngle() const override { return 0; }
     /// Return the functor object for the torsional spring torque.
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetSpringTorqueFunctor() const override {
         return m_spring_torqueCB;
     }
-
     /// Return the functor object for the translational shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetShockForceFunctor() const override { return m_shock_forceCB; }
 

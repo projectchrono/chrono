@@ -35,9 +35,9 @@ Chrono Reference Manual {#manual_root}
 	* [Collision families](@ref collision_families)
 	* [Collision materials](@ref collision_materials)
 
-* @subpage visualization_assets
-	* [ChAsset](@ref manual_ChAsset)
-	* [Visualization shapes](@ref manual_ChVisualization)
+* @subpage visualization_system
+	* [Visualization models](@ref manual_vismodel)
+	* [Visualization shapes](@ref manual_visshape)
 
 * @subpage links
 

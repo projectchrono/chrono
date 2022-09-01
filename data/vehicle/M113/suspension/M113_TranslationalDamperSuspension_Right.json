@@ -1,0 +1,32 @@
+{
+  "Name":                           "M113 Linear Damper Suspension Right",
+  "Type":                           "TrackSuspension",
+  "Template":                       "TranslationalDamperSuspension",
+
+  "Suspension Arm":
+  {
+      "Mass":                       75.26,
+      "COM":                        [0.144, 0.12, 0.067],
+      "Inertia":                    [0.37, 0.77, 0.77],
+      "Location Chassis":           [0.288, 0.12, 0.134],
+      "Location Wheel":             [0, 0.12, 0],
+      "Radius":                     0.03
+  },
+
+  "Torsional Spring":
+  {
+      "Free Angle":                 0,
+      "Spring Constant":            2.5e4,
+      "Damping Coefficient":        5e2,
+      "Preload":                    -1e4
+  },
+
+  "Damper":
+  {
+      "Location Chassis":           [-0.3, 0.12, 0.3],
+      "Location Arm":               [0.184, 0.12, -0.106],
+      "Damping Coefficient":        1e2
+  },
+
+  "Road Wheel Input File":          "M113/road_wheel/M113_DoubleRoadWheel_Right.json"
+}

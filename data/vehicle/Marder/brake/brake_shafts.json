@@ -1,0 +1,8 @@
+{
+  "Name":                       "Marder Shafts Brake",
+  "Type":                       "TrackBrake",
+  "Template":                   "TrackBrakeShafts",
+
+  "Maximum Torque":             30000,
+  "Shaft Inertia":              0.4
+}

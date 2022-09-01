@@ -45,6 +45,9 @@ class ChApi ChVisualModel {
     /// Add visual shapes for an FEA mesh to this model.
     void AddShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA);
 
+    /// Get the number of visual shapes in the model.
+    int GetNumShapes() const { return (int)m_shapes.size(); }
+
     /// Get the visual shapes in the model.
     const std::vector<ShapeInstance>& GetShapes() const { return m_shapes; }
 

@@ -1,0 +1,38 @@
+{
+  "Name":                           "Marder SinglePin Sprocket Right",
+  "Type":                           "Sprocket",
+  "Template":                       "SprocketSinglePin",
+
+  "Number Teeth":                   12,
+  "Gear Mass":                      27.68,
+  "Gear Inertia":                   [0.646, 0.883, 0.646],
+  "Axle Inertia":                   0.4,
+  "Gear Separation":                0.225,
+  "Lateral Backlash":               0.01,
+
+  "Profile": 
+  {
+      "Addenum Radius":             0.3,
+      "Arc Radius":                 0.07,
+      "Arc Centers Radius":         0.328414781,
+      "Assembly Radius":            0.275
+  },
+
+  "Contact Material":
+  {
+      "Coefficient of Friction":    0.4,
+      "Coefficient of Restitution": 0.75,
+
+      "Properties": {
+          "Young Modulus":          1e8,
+          "Poisson Ratio":          0.3
+      },
+
+      "Coefficients": {
+          "Normal Stiffness":       2e5,
+          "Normal Damping":         40.0,
+          "Tangential Stiffness":   2e5,
+          "Tangential Damping":     20.0
+      }
+  }
+}

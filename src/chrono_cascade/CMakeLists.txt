@@ -67,6 +67,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 message(STATUS "  OpenCASCADE include directory: ${OpenCASCADE_INCLUDE_DIR}")
+message(STATUS "  OpenCASCADE binary directory:  ${OpenCASCADE_BINARY_DIR}")
 message(STATUS "  OpenCASCADE library directory: ${OpenCASCADE_LIBRARY_DIR}")
 message(STATUS "  OpenCASCADE C flags:           ${OpenCASCADE_C_FLAGS}")
 message(STATUS "  OpenCASCADE C++ flags:         ${OpenCASCADE_CXX_FLAGS}")
@@ -76,6 +77,7 @@ message(STATUS "  OpenCASCADE libraries:         ${OpenCASCADE_LIBRARIES}")
 # Make variables visible also from outside this directory
 
 set(OpenCASCADE_INCLUDE_DIR "${OpenCASCADE_INCLUDE_DIR}" PARENT_SCOPE)
+set(OpenCASCADE_BINARY_DIR "${OpenCASCADE_BINARY_DIR}" PARENT_SCOPE)
 set(OpenCASCADE_CXX_FLAGS "${OpenCASCADE_CXX_FLAGS}" PARENT_SCOPE)
 set(OpenCASCADE_LINKER_FLAGS "${OpenCASCADE_LINKER_FLAGS}" PARENT_SCOPE)
 set(OpenCASCADE_LIBRARIES "${OpenCASCADE_LIBRARIES}" PARENT_SCOPE)

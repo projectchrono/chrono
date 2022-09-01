@@ -15,10 +15,12 @@ This module consists of *two* main sets of build targets:
   Currently, the PyChrono Python modules that are built are:
     - *pychrono*, which wraps most Chrono classes, equivalent to the chrono namespace
     - *pychrono.fea*, which wraps FEA classes, equivalent to the chrono::fea namespace.
-    - *pychrono.postprocess*, which wraps the POSTPROCESS module.
-    - *pychrono.irrlicht*, which wraps the IRRLICHT module.
+    - *pychrono.vehicle*, which wraps the Chrono::Vehicle classes in the chrono::vehicle namespace.
+    - *pychrono.sensor*, which wraps the Chrono::Sensor classes.
+    - *pychrono.postprocess*, which wraps the Chrono::Postprocess module.
+    - *pychrono.irrlicht*, which wraps the Chrono::Irrlicht module for run-time visualizatino.
     - *pychrono.pardisomkl*, which wraps the Pardiso MKL module (not available on the Mac).
-    - *pychrono.cascade*, which wraps the CASCADE module.
+    - *pychrono.cascade*, which wraps the Chrono::Cascade module.
 
 - A *PYPARSER module*, which is a C++ module for parsing / executing / interpreting 
   Python instructions from C++ programs.

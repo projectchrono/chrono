@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("MAN 5t Truck Demo");
     vis->SetChaseCamera(trackPoint, 10.0, 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&my_truck.GetVehicle());

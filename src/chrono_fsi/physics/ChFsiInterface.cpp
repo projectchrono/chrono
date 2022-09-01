@@ -245,7 +245,6 @@ void ChFsiInterface::ResizeChronoCablesData(std::vector<std::vector<int>> CableE
             numCables++;
     }
     if (m_verbose) {
-        printf("m_fsi_mesh.size.shell in ResizeChronoCablesData  %zd\n", numCables);
         printf("numCables in ResizeChronoCablesData  %zd\n", numCables);
         printf("CableElementsNodesSTDVector.size() in ResizeChronoCablesData  %zd\n",
                CableElementsNodesSTDVector.size());

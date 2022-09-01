@@ -19,17 +19,16 @@ using namespace chrono;
 #define xstr(s) str(s)
 #define str(s) #s
 
-#define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols)                                             \
-    {                                                                                        \
-        uint current = (uint)M.capacity();                                                         \
-        if (current > 0) {                                                                   \
-            clear(M);                                                                        \
-        }                                                                                    \
-        if (current < (unsigned)nnz) {                                                                 \
-            M.reserve(nnz * (size_t)1.1);                                                            \
-            LOG(INFO) << "Increase Capacity of: " << str(M) << " " << current << " " << nnz; \
-        }                                                                                    \
-        M.resize(rows, cols, false);                                                         \
+#define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols)   \
+    {                                              \
+        uint current = (uint)M.capacity();         \
+        if (current > 0) {                         \
+            clear(M);                              \
+        }                                          \
+        if (current < (unsigned)nnz) {             \
+            M.reserve(nnz * (size_t)1.1);          \
+        }                                          \
+        M.resize(rows, cols, false);               \
     }
 
 void ChIterativeSolverMulticoreNSC::RunTimeStep() {
@@ -53,7 +52,6 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
 
     // This is the total number of constraints
     data_manager->num_constraints = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof;
-    LOG(INFO) << "ChIterativeSolverMulticoreNSC::RunTimeStep S num_constraints: " << data_manager->num_constraints;
     // Generate the mass matrix and compute M_inv_k
     ComputeInvMassMatrix();
     // ComputeMassMatrix();
@@ -110,7 +108,6 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
         if (data_manager->settings.solver.max_iteration_normal > 0) {
             data_manager->settings.solver.local_solver_mode = SolverMode::NORMAL;
             SetR();
-            LOG(INFO) << "ChIterativeSolverMulticoreNSC::RunTimeStep - Solve Normal";
             data_manager->measures.solver.total_iteration +=
                 solver->Solve(ShurProductFull,                                     //
                               ProjectFull,                                         //
@@ -125,7 +122,6 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
         if (data_manager->settings.solver.max_iteration_sliding > 0) {
             data_manager->settings.solver.local_solver_mode = SolverMode::SLIDING;
             SetR();
-            LOG(INFO) << "ChIterativeSolverMulticoreNSC::RunTimeStep - Solve Sliding";
             data_manager->measures.solver.total_iteration +=
                 solver->Solve(ShurProductFull,                                      //
                               ProjectFull,                                          //
@@ -139,7 +135,6 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
         if (data_manager->settings.solver.max_iteration_spinning > 0) {
             data_manager->settings.solver.local_solver_mode = SolverMode::SPINNING;
             SetR();
-            LOG(INFO) << "ChIterativeSolverMulticoreNSC::RunTimeStep - Solve Spinning";
             data_manager->measures.solver.total_iteration +=
                 solver->Solve(ShurProductFull,                                       //
                               ProjectFull,                                           //
@@ -187,17 +182,9 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
                        i);
     }
     m_iterations = (int)data_manager->measures.solver.maxd_hist.size();
-
-    LOG(TRACE) << "ChIterativeSolverMulticoreNSC::RunTimeStep E solve: "
-               << data_manager->system_timer.GetTime("ChIterativeSolverMulticore_Solve")
-               << " shur: " << data_manager->system_timer.GetTime("ShurProduct")
-               //<< " residual: " << data_manager->measures.solver.residual
-               //<< " objective: " << data_manager->measures.solver.maxdeltalambda_hist.back()
-               << " iterations: " << m_iterations;
 }
 
 void ChIterativeSolverMulticoreNSC::ComputeD() {
-    LOG(INFO) << "ChIterativeSolverMulticoreNSC::ComputeD()";
     data_manager->system_timer.start("ChIterativeSolverMulticore_D");
     uint num_constraints = data_manager->num_constraints;
     if (num_constraints <= 0) {
@@ -261,10 +248,8 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     data_manager->bilateral->Build_D();
     data_manager->node_container->Build_D();
 
-    LOG(INFO) << "ChIterativeSolverMulticoreNSC::ComputeD - D = trans(D_T)";
     // using the .transpose(); function will do in place transpose and copy
     data_manager->host_data.D = trans(D_T);
-    LOG(INFO) << "ChIterativeSolverMulticoreNSC::ComputeD - M_inv * D";
 
     data_manager->host_data.M_invD = M_inv * data_manager->host_data.D;
 
@@ -272,7 +257,6 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
 }
 
 void ChIterativeSolverMulticoreNSC::ComputeE() {
-    LOG(INFO) << "ChIterativeSolverMulticoreNSC::ComputeE()";
     data_manager->system_timer.start("ChIterativeSolverMulticore_E");
     if (data_manager->num_constraints <= 0) {
         return;
@@ -289,7 +273,6 @@ void ChIterativeSolverMulticoreNSC::ComputeE() {
 }
 
 void ChIterativeSolverMulticoreNSC::ComputeR() {
-    LOG(INFO) << "ChIterativeSolverMulticoreNSC::ComputeR()";
     data_manager->system_timer.start("ChIterativeSolverMulticore_R");
     if (data_manager->num_constraints <= 0) {
         return;
@@ -320,7 +303,6 @@ void ChIterativeSolverMulticoreNSC::ComputeN() {
         return;
     }
 
-    LOG(INFO) << "ChIterativeSolverMulticoreNSC::ComputeN";
     data_manager->system_timer.start("ChIterativeSolverMulticore_N");
     const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     CompressedMatrix<real>& Nshur = data_manager->host_data.Nshur;
@@ -329,7 +311,6 @@ void ChIterativeSolverMulticoreNSC::ComputeN() {
 }
 
 void ChIterativeSolverMulticoreNSC::SetR() {
-    LOG(INFO) << "ChIterativeSolverMulticoreNSC::SetR()";
     if (data_manager->num_constraints <= 0) {
         return;
     }
@@ -382,7 +363,6 @@ void ChIterativeSolverMulticoreNSC::SetR() {
 }
 
 void ChIterativeSolverMulticoreNSC::ComputeImpulses() {
-    LOG(INFO) << "ChIterativeSolverMulticoreNSC::ComputeImpulses()";
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
     const DynamicVector<real>& gamma = data_manager->host_data.gamma;
 

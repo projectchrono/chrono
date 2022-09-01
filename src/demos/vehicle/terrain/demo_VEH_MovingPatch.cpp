@@ -200,7 +200,6 @@ int main(int argc, char* argv[]) {
         ////    std::cout << "   " << aabb_max.x << "  " << aabb_max.y << "  " << aabb_max.z << std::endl;
         ////}
 
-        ////opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         if (vis.Run()) {
             switch (cam_type) {
                 case FRONT: {

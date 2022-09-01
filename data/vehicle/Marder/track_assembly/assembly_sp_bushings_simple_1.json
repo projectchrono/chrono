@@ -1,0 +1,101 @@
+// Marder track assembly RIGHT
+// - single pin track shoes
+// - bushings between track shoes
+// - simple brake model
+{
+  "Name":                     "Marder SinglePin TrackAssembly Right",
+  "Type":                     "TrackAssembly",
+  "Template":                 "TrackAssemblySinglePin",
+
+  "Sprocket":
+  {
+      "Input File":           "Marder/sprocket/sprocketSingle1.json",
+      "Location":             [0, 0, 0]
+  },
+
+  "Brake":
+  {
+      "Input File":           "Marder/brake/brake_simple.json"
+  },
+
+  "Idler":
+  {
+      "Input File":           "Marder/idler/idler1.json",
+      "Location":             [-5.4, 0, -0.0647]
+  },
+
+  "Suspension Subsystems":
+  [
+    {
+        "Input File":         "Marder/suspension/translationalDamper1.json",
+        "Has Shock":          true,
+        "Location":           [-0.7458, 0, -0.3759]
+    },
+
+    {
+        "Input File":         "Marder/suspension/translationalDamper1.json",
+        "Has Shock":          true,
+        "Location":           [-1.5258, 0, -0.3759]
+    },
+
+    {
+        "Input File":         "Marder/suspension/translationalDamper1.json",
+        "Has Shock":          false,
+        "Location":           [-2.3058, 0, -0.3759]
+    },
+
+    {
+        "Input File":         "Marder/suspension/translationalDamper1.json",
+        "Has Shock":          false,
+        "Location":           [-3.0858, 0, -0.3759]
+    },
+
+    {
+        "Input File":         "Marder/suspension/translationalDamper1.json",
+        "Has Shock":          true,
+        "Location":           [-3.8658, 0, -0.3759]
+    },
+
+    {
+        "Input File":         "Marder/suspension/translationalDamper1.json",
+        "Has Shock":          true,
+        "Location":           [-4.6458, 0, -0.3759]
+    }
+  ],
+
+  "Rollers":
+  [
+	  {
+		  "Input File": "Marder/roller/roller.json",
+		  "Location": [-1.1358, 0, 0.1761]
+	  },
+
+	  {
+		  "Input File": "Marder/roller/roller.json",
+		  "Location": [-2.6958, 0, 0.1761]
+          },
+
+	  {
+		  "Input File": "Marder/roller/roller.json",
+		  "Location": [-4.2106, 0, 0.1761]
+          }
+  ],
+
+  "Track Shoes":
+  {
+      "Input File":           "Marder/track_shoe/singlePin.json",
+      "Number Shoes":         78,
+      "Bushing Data":         
+      {
+	      "Stiffness Linear": 30000000,
+	      "Damping Linear": 100,
+	      "Stiffness Rotational": 300,
+	      "Damping Rotational": 100
+      },
+      "RSDA Data":
+      {
+	      "Stiffness Rotational": 100,
+	      "Damping Rotational": 1
+      }
+  }
+ }
