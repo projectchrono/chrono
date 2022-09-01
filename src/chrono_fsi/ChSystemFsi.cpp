@@ -1272,26 +1272,6 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
 }
 
 void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& m_fsi_shells,
-                                  std::shared_ptr<fea::ChMesh> mesh,
-                                  bool multiLayer,
-                                  bool removeMiddleLayer,
-                                  int SIDE) {
-    thrust::host_vector<Real4> posRadBCE;
-    int numShells = mesh->GetNelements();
-    if (m_verbose)
-        cout << "number of shells to be meshed is " << numShells << endl;
-    for (size_t i = 0; i < numShells; i++) {
-        auto thisShell = 
-            std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(mesh->GetElement((unsigned int)i));
-        m_fsi_shells.push_back(thisShell);
-        utils::CreateBCE_On_shell(posRadBCE, m_paramsH, thisShell, multiLayer, removeMiddleLayer, SIDE);
-        CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell);
-
-        posRadBCE.clear();
-    }
-}
-
-void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& m_fsi_shells,
                                   std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& m_fsi_nodes,
                                   std::shared_ptr<fea::ChMesh> mesh,
                                   const std::vector<std::vector<int>>& elementsNodes,

@@ -389,13 +389,6 @@ class CH_FSI_API ChSystemFsi {
 
     /// Add BCE markers genetrated from ANCF shell elements.
     void AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& m_fsi_shells,
-                         std::shared_ptr<fea::ChMesh> mesh,
-                         bool multiLayer = true,
-                         bool removeMiddleLayer = false,
-                         int SIDE = -2);
-
-    /// Add BCE markers genetrated from shell elements.
-    void AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& m_fsi_shells,
                          std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& m_fsi_nodes,
                          std::shared_ptr<fea::ChMesh> mesh,
                          const std::vector<std::vector<int>>& elementsNodes,
