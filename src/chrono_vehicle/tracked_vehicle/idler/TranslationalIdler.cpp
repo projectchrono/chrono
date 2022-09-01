@@ -64,12 +64,12 @@ void TranslationalIdler::Create(const rapidjson::Document& d) {
         // Linear spring-damper
         double tensioner_k = d["Tensioner"]["Spring Coefficient"].GetDouble();
         double tensioner_c = d["Tensioner"]["Damping Coefficient"].GetDouble();
-        m_tensionerForceCB = chrono_types::make_shared<LinearSpringDamperActuatorForce>(tensioner_k, tensioner_c, tensioner_f);
+        m_tensionerForceCB = chrono_types::make_shared<LinearSpringDamperForce>(tensioner_k, tensioner_c, tensioner_f);
     } else if (d["Tensioner"].HasMember("Spring Curve Data")) {
         // Nonlinear (curves) spring-damper
         int num_pointsK = d["Tensioner"]["Spring Curve Data"].Size();
         int num_pointsC = d["Tensioner"]["Damper Curve Data"].Size();
-        auto tensionerForceCB = chrono_types::make_shared<MapSpringDamperActuatorForce>();
+        auto tensionerForceCB = chrono_types::make_shared<MapSpringDamperForce>(tensioner_f);
         for (int i = 0; i < num_pointsK; i++) {
             tensionerForceCB->add_pointK(d["Tensioner"]["Spring Curve Data"][i][0u].GetDouble(),
                                          d["Tensioner"]["Spring Curve Data"][i][1u].GetDouble());
@@ -78,7 +78,6 @@ void TranslationalIdler::Create(const rapidjson::Document& d) {
             tensionerForceCB->add_pointC(d["Tensioner"]["Damper Curve Data"][i][0u].GetDouble(),
                                          d["Tensioner"]["Damper Curve Data"][i][1u].GetDouble());
         }
-        tensionerForceCB->set_f(tensioner_f);
         m_tensionerForceCB = tensionerForceCB;
     }
 

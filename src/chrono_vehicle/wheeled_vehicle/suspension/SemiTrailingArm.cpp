@@ -46,8 +46,6 @@ SemiTrailingArm::SemiTrailingArm(const rapidjson::Document& d)
     Create(d);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 SemiTrailingArm::~SemiTrailingArm() {}
 
 // -----------------------------------------------------------------------------
@@ -91,17 +89,20 @@ void SemiTrailingArm::Create(const rapidjson::Document& d) {
     m_points[SPRING_C] = ReadVectorJSON(d["Spring"]["Location Chassis"]);
     m_points[SPRING_A] = ReadVectorJSON(d["Spring"]["Location Arm"]);
     m_springRestLength = d["Spring"]["Free Length"].GetDouble();
+    double preload = 0;
+    if (d["Spring"].HasMember("Preload"))
+        preload = d["Spring"]["Preload"].GetDouble();
 
     if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
         // Use bump stops
         if (d["Spring"].HasMember("Spring Coefficient")) {
             m_springForceCB = chrono_types::make_shared<LinearSpringBistopForce>(
                 d["Spring"]["Spring Coefficient"].GetDouble(), d["Spring"]["Minimum Length"].GetDouble(),
-                d["Spring"]["Maximum Length"].GetDouble());
+                d["Spring"]["Maximum Length"].GetDouble(), preload);
         } else if (d["Spring"].HasMember("Curve Data")) {
             int num_points = d["Spring"]["Curve Data"].Size();
             auto springForceCB = chrono_types::make_shared<MapSpringBistopForce>(
-                d["Spring"]["Minimum Length"].GetDouble(), d["Spring"]["Maximum Length"].GetDouble());
+                d["Spring"]["Minimum Length"].GetDouble(), d["Spring"]["Maximum Length"].GetDouble(), preload);
             for (int i = 0; i < num_points; i++) {
                 springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
                                          d["Spring"]["Curve Data"][i][1u].GetDouble());
@@ -112,10 +113,10 @@ void SemiTrailingArm::Create(const rapidjson::Document& d) {
         // No bump stops
         if (d["Spring"].HasMember("Spring Coefficient")) {
             m_springForceCB =
-                chrono_types::make_shared<LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble());
+                chrono_types::make_shared<LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble(), preload);
         } else if (d["Spring"].HasMember("Curve Data")) {
             int num_points = d["Spring"]["Curve Data"].Size();
-            auto springForceCB = chrono_types::make_shared<MapSpringForce>();
+            auto springForceCB = chrono_types::make_shared<MapSpringForce>(preload);
             for (int i = 0; i < num_points; i++) {
                 springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
                                          d["Spring"]["Curve Data"][i][1u].GetDouble());

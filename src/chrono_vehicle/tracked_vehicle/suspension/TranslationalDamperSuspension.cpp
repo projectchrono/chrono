@@ -27,8 +27,6 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 TranslationalDamperSuspension::TranslationalDamperSuspension(const std::string& filename, bool has_shock, bool lock_arm)
     : ChTranslationalDamperSuspension("", has_shock, lock_arm), m_spring_torqueCB(nullptr), m_shock_forceCB(nullptr) {
     Document d;
@@ -68,15 +66,16 @@ void TranslationalDamperSuspension::Create(const rapidjson::Document& d) {
     assert(d["Torsional Spring"].IsObject());
 
     m_spring_rest_angle = d["Torsional Spring"]["Free Angle"].GetDouble();
+    double preload = 0;
+    if (d["Torsional Spring"].HasMember("Preload"))
+        preload = d["Torsional Spring"]["Preload"].GetDouble();
 
     if (d["Torsional Spring"].HasMember("Spring Constant")) {
-        double torsion_k = d["Torsional Spring"]["Spring Constant"].GetDouble();
-        double torsion_t = d["Torsional Spring"]["Preload"].GetDouble();
-        m_spring_torqueCB =
-            chrono_types::make_shared<LinearSpringDamperActuatorTorque>(torsion_k, 0.0, torsion_t, m_spring_rest_angle);
+        m_spring_torqueCB = chrono_types::make_shared<LinearSpringTorque>(
+            d["Torsional Spring"]["Spring Constant"].GetDouble(), m_spring_rest_angle, preload);
     } else {
         int num_points = d["Torsional Spring"]["Curve Data"].Size();
-        auto springTorqueCB = chrono_types::make_shared<MapSpringTorque>();
+        auto springTorqueCB = chrono_types::make_shared<MapSpringTorque>(m_spring_rest_angle, preload);
         for (int i = 0; i < num_points; i++) {
             springTorqueCB->add_point(d["Torsional Spring"]["Curve Data"][i][0u].GetDouble(),
                                       d["Torsional Spring"]["Curve Data"][i][1u].GetDouble());

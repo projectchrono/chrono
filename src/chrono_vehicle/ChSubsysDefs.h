@@ -105,29 +105,30 @@ struct DriverInputs {
 /// Utility class for specifying a linear translational spring force.
 class LinearSpringForce : public ChLinkTSDA::ForceFunctor {
   public:
-    LinearSpringForce(double k) : m_k(k) {}
+    LinearSpringForce(double k, double preload = 0) : m_k(k), m_f(preload) {}
     virtual double evaluate(double time,
                             double rest_length,
                             double length,
                             double vel,
                             const ChLinkTSDA& link) override {
-        return -m_k * (length - rest_length);
+        return m_f - m_k * (length - rest_length);
     }
 
   private:
     double m_k;
+    double m_f;
 };
 
 /// Utility class for specifying a linear translational damper force.
 class LinearDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
-    LinearDamperForce(double c) : m_c(c) {}
+    LinearDamperForce(double c, double preload = 0) : m_c(c) {}
     virtual double evaluate(double time,
                             double rest_length,
                             double length,
                             double vel,
                             const ChLinkTSDA& link) override {
-        return -m_c * vel;
+        return m_c * vel;
     }
 
   private:
@@ -137,24 +138,7 @@ class LinearDamperForce : public ChLinkTSDA::ForceFunctor {
 /// Utility class for specifying a linear translational spring-damper force.
 class LinearSpringDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
-    LinearSpringDamperForce(double k, double c) : m_k(k), m_c(c) {}
-    virtual double evaluate(double time,
-                            double rest_length,
-                            double length,
-                            double vel,
-                            const ChLinkTSDA& link) override {
-        return -m_k * (length - rest_length) - m_c * vel;
-    }
-
-  private:
-    double m_k;
-    double m_c;
-};
-
-/// Utility class for specifying a linear translational spring-damper force with pre-tension.
-class LinearSpringDamperActuatorForce : public ChLinkTSDA::ForceFunctor {
-  public:
-    LinearSpringDamperActuatorForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
+    LinearSpringDamperForce(double k, double c, double preload = 0) : m_k(k), m_c(c), m_f(preload) {}
     virtual double evaluate(double time,
                             double rest_length,
                             double length,
@@ -172,8 +156,8 @@ class LinearSpringDamperActuatorForce : public ChLinkTSDA::ForceFunctor {
 /// Utility class for specifying a map translational spring force.
 class MapSpringForce : public ChLinkTSDA::ForceFunctor {
   public:
-    MapSpringForce() {}
-    MapSpringForce(const std::vector<std::pair<double, double>>& data) {
+    MapSpringForce(double preload = 0) : m_f(preload) {}
+    MapSpringForce(const std::vector<std::pair<double, double>>& data, double preload = 0) : m_f(preload) {
         for (unsigned int i = 0; i < data.size(); ++i) {
             m_map.AddPoint(data[i].first, data[i].second);
         }
@@ -184,24 +168,79 @@ class MapSpringForce : public ChLinkTSDA::ForceFunctor {
                             double length,
                             double vel,
                             const ChLinkTSDA& link) override {
-        return -m_map.Get_y(length - rest_length);
+        return m_f - m_map.Get_y(length - rest_length);
+    }
+
+  private:
+    ChFunction_Recorder m_map;
+    double m_f;
+};
+
+/// Utility class for specifying a map translational damper force.
+class MapDamperForce : public ChLinkTSDA::ForceFunctor {
+  public:
+    MapDamperForce() {}
+    MapDamperForce(const std::vector<std::pair<double, double>>& data) {
+        for (unsigned int i = 0; i < data.size(); ++i) {
+            m_map.AddPoint(data[i].first, data[i].second);
+        }
+    }
+    void add_point(double x, double y) { m_map.AddPoint(x, y); }
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override {
+        return -m_map.Get_y(vel);
     }
 
   private:
     ChFunction_Recorder m_map;
 };
 
+/// Utility class for specifying a map translational spring-damper force with pre-tension.
+class MapSpringDamperForce : public ChLinkTSDA::ForceFunctor {
+  public:
+    MapSpringDamperForce(double preload = 0) : m_f(preload) {}
+    MapSpringDamperForce(const std::vector<std::pair<double, double>>& dataK,
+                         const std::vector<std::pair<double, double>>& dataC,
+                         double preload = 0)
+        : m_f(preload) {
+        for (unsigned int i = 0; i < dataK.size(); ++i) {
+            m_mapK.AddPoint(dataK[i].first, dataK[i].second);
+        }
+        for (unsigned int i = 0; i < dataC.size(); ++i) {
+            m_mapC.AddPoint(dataC[i].first, dataC[i].second);
+        }
+    }
+    void add_pointK(double x, double y) { m_mapK.AddPoint(x, y); }
+    void add_pointC(double x, double y) { m_mapC.AddPoint(x, y); }
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override {
+        return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel);
+    }
+
+  private:
+    ChFunction_Recorder m_mapK;
+    ChFunction_Recorder m_mapC;
+    double m_f;
+};
+
 /// Utility class for specifying a map translational spring force with bump and rebound stop.
 class MapSpringBistopForce : public ChLinkTSDA::ForceFunctor {
   public:
-    MapSpringBistopForce(double spring_min_length, double spring_max_length)
-        : m_min_length(spring_min_length), m_max_length(spring_max_length) {
+    MapSpringBistopForce(double spring_min_length, double spring_max_length, double preload = 0)
+        : m_min_length(spring_min_length), m_max_length(spring_max_length), m_f(preload) {
         setup_stop_maps();
     }
     MapSpringBistopForce(const std::vector<std::pair<double, double>>& data,
                          double spring_min_length,
-                         double spring_max_length)
-        : m_min_length(spring_min_length), m_max_length(spring_max_length) {
+                         double spring_max_length,
+                         double preload = 0)
+        : m_min_length(spring_min_length), m_max_length(spring_max_length), m_f(preload) {
         setup_stop_maps();
         for (unsigned int i = 0; i < data.size(); ++i) {
             m_map.AddPoint(data[i].first, data[i].second);
@@ -224,7 +263,7 @@ class MapSpringBistopForce : public ChLinkTSDA::ForceFunctor {
             defl_rebound = length - m_max_length;
         }
 
-        return -m_map.Get_y(length - rest_length) + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
+        return m_f - m_map.Get_y(length - rest_length) + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
     }
 
   private:
@@ -258,14 +297,15 @@ class MapSpringBistopForce : public ChLinkTSDA::ForceFunctor {
     ChFunction_Recorder m_rebound;
     double m_min_length;
     double m_max_length;
+    double m_f;
 };
 
 /// Utility class for specifying a linear translational spring force with bump and rebound stop.
 class LinearSpringBistopForce : public ChLinkTSDA::ForceFunctor {
   public:
     /// Use default bump stop and rebound stop maps
-    LinearSpringBistopForce(double k, double min_length, double max_length)
-        : m_k(k), m_min_length(min_length), m_max_length(max_length) {
+    LinearSpringBistopForce(double k, double min_length, double max_length, double preload = 0)
+        : m_k(k), m_min_length(min_length), m_max_length(max_length), m_f(preload) {
         // From ADAMS/Car example
         m_bump.AddPoint(0.0, 0.0);
         m_bump.AddPoint(2.0e-3, 200.0);
@@ -297,9 +337,6 @@ class LinearSpringBistopForce : public ChLinkTSDA::ForceFunctor {
                             double length,
                             double vel,
                             const ChLinkTSDA& link) override {
-        double force = 0;
-
-        double defl_spring = rest_length - length;
         double defl_bump = 0.0;
         double defl_rebound = 0.0;
 
@@ -311,13 +348,12 @@ class LinearSpringBistopForce : public ChLinkTSDA::ForceFunctor {
             defl_rebound = length - m_max_length;
         }
 
-        force = defl_spring * m_k + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
-
-        return force;
+        return m_f - m_k * (length - rest_length) + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
     }
 
   private:
     double m_k;
+    double m_f;
     double m_min_length;
     double m_max_length;
 
@@ -369,69 +405,18 @@ class DegressiveDamperForce : public ChLinkTSDA::ForceFunctor {
     double m_degr_expansion;
 };
 
-/// Utility class for specifying a map translational damper force.
-class MapDamperForce : public ChLinkTSDA::ForceFunctor {
-  public:
-    MapDamperForce() {}
-    MapDamperForce(const std::vector<std::pair<double, double>>& data) {
-        for (unsigned int i = 0; i < data.size(); ++i) {
-            m_map.AddPoint(data[i].first, data[i].second);
-        }
-    }
-    void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double evaluate(double time,
-                            double rest_length,
-                            double length,
-                            double vel,
-                            const ChLinkTSDA& link) override {
-        return -m_map.Get_y(vel);
-    }
-
-  private:
-    ChFunction_Recorder m_map;
-};
-
-/// Utility class for specifying a map translational spring-damper force with pre-tension.
-class MapSpringDamperActuatorForce : public ChLinkTSDA::ForceFunctor {
-  public:
-    MapSpringDamperActuatorForce() {}
-    MapSpringDamperActuatorForce(const std::vector<std::pair<double, double>>& dataK,
-                                 const std::vector<std::pair<double, double>>& dataC,
-                                 double f) {
-        for (unsigned int i = 0; i < dataK.size(); ++i) {
-            m_mapK.AddPoint(dataK[i].first, dataK[i].second);
-        }
-        for (unsigned int i = 0; i < dataC.size(); ++i) {
-            m_mapC.AddPoint(dataC[i].first, dataC[i].second);
-        }
-    }
-    void add_pointK(double x, double y) { m_mapK.AddPoint(x, y); }
-    void add_pointC(double x, double y) { m_mapC.AddPoint(x, y); }
-    void set_f(double f) { m_f = f; }
-    virtual double evaluate(double time,
-                            double rest_length,
-                            double length,
-                            double vel,
-                            const ChLinkTSDA& link) override {
-        return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel);
-    }
-
-  private:
-    ChFunction_Recorder m_mapK;
-    ChFunction_Recorder m_mapC;
-    double m_f;
-};
-
 /// Utility class for specifying a linear rotational spring torque.
 class LinearSpringTorque : public ChLinkRSDA::TorqueFunctor {
   public:
-    LinearSpringTorque(double k, double rest_angle = 0) : m_k(k), m_rest_angle(rest_angle) {}
+    LinearSpringTorque(double k, double rest_angle = 0, double preload = 0)
+        : m_k(k), m_rest_angle(rest_angle), m_t(preload) {}
     virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
-        return -m_k * (angle - m_rest_angle);
+        return m_t - m_k * (angle - m_rest_angle);
     }
 
   private:
     double m_k;
+    double m_t;
     double m_rest_angle;
 };
 
@@ -450,22 +435,8 @@ class LinearDamperTorque : public ChLinkRSDA::TorqueFunctor {
 /// Utility class for specifying a linear rotational spring-damper torque.
 class LinearSpringDamperTorque : public ChLinkRSDA::TorqueFunctor {
   public:
-    LinearSpringDamperTorque(double k, double c, double rest_angle = 0) : m_k(k), m_c(c), m_rest_angle(rest_angle) {}
-    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
-        return -m_k * (angle - m_rest_angle) - m_c * vel;
-    }
-
-  private:
-    double m_k;
-    double m_c;
-    double m_rest_angle;
-};
-
-/// Utility class for specifying a linear rotational spring-damper torque with pre-tension.
-class LinearSpringDamperActuatorTorque : public ChLinkRSDA::TorqueFunctor {
-  public:
-    LinearSpringDamperActuatorTorque(double k, double c, double t, double rest_angle = 0)
-        : m_k(k), m_c(c), m_t(t), m_rest_angle(rest_angle) {}
+    LinearSpringDamperTorque(double k, double c, double rest_angle = 0, double preload = 0)
+        : m_k(k), m_c(c), m_rest_angle(rest_angle), m_t(preload) {}
     virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
         return m_t - m_k * (angle - m_rest_angle) - m_c * vel;
     }
@@ -480,21 +451,22 @@ class LinearSpringDamperActuatorTorque : public ChLinkRSDA::TorqueFunctor {
 /// Utility class for specifying a map rotational spring torque.
 class MapSpringTorque : public ChLinkRSDA::TorqueFunctor {
   public:
-    MapSpringTorque() {}
-    MapSpringTorque(const std::vector<std::pair<double, double>>& data, double rest_angle = 0)
-        : m_rest_angle(rest_angle) {
+    MapSpringTorque(double rest_angle = 0, double preload = 0) : m_rest_angle(rest_angle), m_t(preload) {}
+    MapSpringTorque(const std::vector<std::pair<double, double>>& data, double rest_angle = 0, double preload = 0)
+        : m_rest_angle(rest_angle), m_t(preload) {
         for (unsigned int i = 0; i < data.size(); ++i) {
             m_map.AddPoint(data[i].first, data[i].second);
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
     virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
-        return -m_map.Get_y(angle - m_rest_angle);
+        return m_t - m_map.Get_y(angle - m_rest_angle);
     }
 
   private:
     ChFunction_Recorder m_map;
     double m_rest_angle;
+    double m_t;
 };
 
 /// Utility class for specifying a map rotational damper torque.
