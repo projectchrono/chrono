@@ -713,9 +713,11 @@ void ChSystemFsi::Initialize() {
             double z = m_sysFSI->sphMarkersH->posRadH[i].z;
             double p = m_paramsH->rho0 * m_paramsH->gravity.z * (z - m_paramsH->pressure_height);
             m_sysFSI->sphMarkersH->rhoPresMuH[i].y = p;
-            m_sysFSI->sphMarkersH->tauXxYyZzH[i].x = -p;
-            m_sysFSI->sphMarkersH->tauXxYyZzH[i].y = -p;
-            m_sysFSI->sphMarkersH->tauXxYyZzH[i].z = -p;
+            if (m_paramsH->elastic_SPH) {
+                m_sysFSI->sphMarkersH->tauXxYyZzH[i].x = -p;
+                m_sysFSI->sphMarkersH->tauXxYyZzH[i].y = -p;
+                m_sysFSI->sphMarkersH->tauXxYyZzH[i].z = -p;
+            }
         }
     }
 
@@ -896,10 +898,12 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
                  m_sysFSI->sphMarkersD1->velMasD.begin());
     thrust::copy(m_sysFSI->sphMarkersD2->rhoPresMuD.begin(), m_sysFSI->sphMarkersD2->rhoPresMuD.end(),
                  m_sysFSI->sphMarkersD1->rhoPresMuD.begin());
-    thrust::copy(m_sysFSI->sphMarkersD2->tauXxYyZzD.begin(), m_sysFSI->sphMarkersD2->tauXxYyZzD.end(),
-                 m_sysFSI->sphMarkersD1->tauXxYyZzD.begin());
-    thrust::copy(m_sysFSI->sphMarkersD2->tauXyXzYzD.begin(), m_sysFSI->sphMarkersD2->tauXyXzYzD.end(),
-                 m_sysFSI->sphMarkersD1->tauXyXzYzD.begin());
+    if (m_paramsH->elastic_SPH) {
+        thrust::copy(m_sysFSI->sphMarkersD2->tauXxYyZzD.begin(), m_sysFSI->sphMarkersD2->tauXxYyZzD.end(),
+                     m_sysFSI->sphMarkersD1->tauXxYyZzD.begin());
+        thrust::copy(m_sysFSI->sphMarkersD2->tauXyXzYzD.begin(), m_sysFSI->sphMarkersD2->tauXyXzYzD.end(),
+                     m_sysFSI->sphMarkersD1->tauXyXzYzD.begin());
+    }
 }
 
 void ChSystemFsi::DoStepDynamics_FSI() {
