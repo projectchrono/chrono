@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo for wheeled vehicle cosimulation on SCM terrain. 
+// Demo for wheeled vehicle cosimulation on SCM terrain.
 // The vehicle (specified through a pair of JSON files, one for the vehicle
 // itself, the other for the powertrain) is co-simulated with an SCM terrain
 // node and a number of tire nodes equal to the number of wheels.
@@ -30,7 +30,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_vehicle/cosim/mbs/ChVehicleCosimVehicleNode.h"
+#include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 
@@ -158,16 +158,16 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Vehicle node] rank = " << rank << " running on: " << procname << endl;
 
-        ChVehicleCosimVehicleNode* vehicle;
+        ChVehicleCosimWheeledVehicleNode* vehicle;
         if (use_JSON_spec) {
-            vehicle =
-                new ChVehicleCosimVehicleNode(vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"),
-                                              vehicle::GetDataFile("hmmwv/powertrain/HMMWV_ShaftsPowertrain.json"));
+            vehicle = new ChVehicleCosimWheeledVehicleNode(
+                vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"),
+                vehicle::GetDataFile("hmmwv/powertrain/HMMWV_ShaftsPowertrain.json"));
         } else {
             auto feda_vehicle = chrono_types::make_shared<feda::FEDA_Vehicle>(nullptr, false, BrakeType::SIMPLE,
                                                                               CollisionType::NONE, 2, 1);
             auto feda_powertrain = chrono_types::make_shared<feda::FEDA_SimpleMapPowertrain>("Powertrain");
-            vehicle = new ChVehicleCosimVehicleNode(feda_vehicle, feda_powertrain);
+            vehicle = new ChVehicleCosimWheeledVehicleNode(feda_vehicle, feda_powertrain);
         }
 
         if (use_DBP_rig) {

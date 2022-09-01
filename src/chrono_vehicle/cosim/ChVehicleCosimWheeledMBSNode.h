@@ -37,7 +37,7 @@ namespace vehicle {
  *
  * This module defines concrete multibody system nodes:
  * - ChVehicleCosimRigNode wraps a single-wheel test rig.
- * - ChVehicleCosimVehicleNode wraps a Chrono::Vehicle wheeled vehicle defined through JSON specification files.
+ * - ChVehicleCosimWheeledVehicleNode wraps a Chrono::Vehicle wheeled vehicle defined through JSON specification files.
  * - ChVehicleCosimCuriosityNode wraps the Curiosity Mars rover model.
  * - ChVehicleCosimViperNode wraps the Viper lunar rover model.
  *
@@ -56,10 +56,10 @@ namespace vehicle {
 /// @addtogroup vehicle_cosim
 /// @{
 
-/// Base class for all MBS nodes.
-class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
+/// Base class for all MBS nodes with wheels.
+class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNode {
   public:
-    virtual ~ChVehicleCosimMBSNode();
+    virtual ~ChVehicleCosimWheeledMBSNode();
 
     /// Return the node type as NodeType::MBS.
     virtual NodeType GetNodeType() const override { return NodeType::MBS; }
@@ -106,7 +106,7 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
 
   protected:
     /// Construct a base class MBS node.
-    ChVehicleCosimMBSNode();
+    ChVehicleCosimWheeledMBSNode();
 
     /// Initialize the underlying MBS
     virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire

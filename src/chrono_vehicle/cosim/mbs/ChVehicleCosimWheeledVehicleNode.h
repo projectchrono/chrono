@@ -28,7 +28,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
-#include "chrono_vehicle/cosim/ChVehicleCosimMBSNode.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
 
 namespace chrono {
 namespace vehicle {
@@ -38,22 +38,22 @@ namespace vehicle {
 
 /// Wheeled vehicle co-simulation node.
 /// The vehicle system is co-simulated with tire nodes and a terrain node.
-class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
+class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWheeledMBSNode {
   public:
     /// Construct a wheeled vehicle node using the provided vehicle and powertrain JSON specification files.
-    ChVehicleCosimVehicleNode(const std::string& vehicle_json,    ///< vehicle JSON specification file
-                              const std::string& powertrain_json  ///< powertrain JSON specification file
+    ChVehicleCosimWheeledVehicleNode(const std::string& vehicle_json,    ///< vehicle JSON specification file
+                                     const std::string& powertrain_json  ///< powertrain JSON specification file
     );
 
     /// Construct a wheeled vehicle node using the provided vehicle and powertrain objects.
     /// Notes:
     /// - the provided vehicle system must be constructed with a null Chrono system.
     /// - the vehicle and powertrain system should not be initialized.
-    ChVehicleCosimVehicleNode(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< vehicle system
-                              std::shared_ptr<ChPowertrain> powertrain    ///< powertrain system
+    ChVehicleCosimWheeledVehicleNode(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< vehicle system
+                                     std::shared_ptr<ChPowertrain> powertrain    ///< powertrain system
     );
 
-    ~ChVehicleCosimVehicleNode();
+    ~ChVehicleCosimWheeledVehicleNode();
 
     /// Get the underlying vehicle system.
     std::shared_ptr<ChWheeledVehicle> GetVehicle() const { return m_vehicle; }

@@ -16,8 +16,8 @@ endif()
 set(CV_COSIM_FILES
     ChVehicleCosimBaseNode.h
     ChVehicleCosimBaseNode.cpp
-    ChVehicleCosimMBSNode.h
-    ChVehicleCosimMBSNode.cpp
+    ChVehicleCosimWheeledMBSNode.h
+    ChVehicleCosimWheeledMBSNode.cpp
     ChVehicleCosimTireNode.h
     ChVehicleCosimTireNode.cpp
     ChVehicleCosimTerrainNode.h
@@ -30,8 +30,8 @@ set(CV_COSIM_FILES
 set(CV_COSIM_MBS_FILES
     mbs/ChVehicleCosimRigNode.h
     mbs/ChVehicleCosimRigNode.cpp
-    mbs/ChVehicleCosimVehicleNode.h
-    mbs/ChVehicleCosimVehicleNode.cpp
+    mbs/ChVehicleCosimWheeledVehicleNode.h
+    mbs/ChVehicleCosimWheeledVehicleNode.cpp
     mbs/ChVehicleCosimViperNode.h
     mbs/ChVehicleCosimViperNode.cpp
     mbs/ChVehicleCosimCuriosityNode.h

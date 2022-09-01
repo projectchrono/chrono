@@ -45,8 +45,7 @@ namespace vehicle {
 
 // =============================================================================
 
-ChVehicleCosimRigNode::ChVehicleCosimRigNode()
-    : ChVehicleCosimMBSNode(), m_toe_angle(0), m_total_mass(0) {}
+ChVehicleCosimRigNode::ChVehicleCosimRigNode() : ChVehicleCosimWheeledMBSNode(), m_toe_angle(0), m_total_mass(0) {}
 
 ChVehicleCosimRigNode::~ChVehicleCosimRigNode() {}
 

@@ -37,7 +37,7 @@
     #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#include "chrono_vehicle/cosim/ChVehicleCosimMBSNode.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
 
 using std::cout;
 using std::endl;
@@ -46,7 +46,7 @@ namespace chrono {
 namespace vehicle {
 
 // Construction of the base MBS node
-ChVehicleCosimMBSNode::ChVehicleCosimMBSNode() : ChVehicleCosimBaseNode("MBS"), m_fix_chassis(false) {
+ChVehicleCosimWheeledMBSNode::ChVehicleCosimWheeledMBSNode() : ChVehicleCosimBaseNode("MBS"), m_fix_chassis(false) {
     // Default integrator and solver types
     m_int_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
@@ -59,17 +59,17 @@ ChVehicleCosimMBSNode::ChVehicleCosimMBSNode() : ChVehicleCosimBaseNode("MBS"), 
     m_system->SetNumThreads(1, 1, 1);
 }
 
-ChVehicleCosimMBSNode::~ChVehicleCosimMBSNode() {
+ChVehicleCosimWheeledMBSNode::~ChVehicleCosimWheeledMBSNode() {
     delete m_system;
 }
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimMBSNode::SetNumThreads(int num_threads) {
+void ChVehicleCosimWheeledMBSNode::SetNumThreads(int num_threads) {
     m_system->SetNumThreads(num_threads, 1, 1);
 }
 
-void ChVehicleCosimMBSNode::SetIntegratorType(ChTimestepper::Type int_type, ChSolver::Type slv_type) {
+void ChVehicleCosimWheeledMBSNode::SetIntegratorType(ChTimestepper::Type int_type, ChSolver::Type slv_type) {
     m_int_type = int_type;
     m_slv_type = slv_type;
 #ifndef CHRONO_PARDISO_MKL
@@ -84,11 +84,11 @@ void ChVehicleCosimMBSNode::SetIntegratorType(ChTimestepper::Type int_type, ChSo
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimMBSNode::AttachDrawbarPullRig(std::shared_ptr<ChVehicleCosimDBPRig> rig) {
+void ChVehicleCosimWheeledMBSNode::AttachDrawbarPullRig(std::shared_ptr<ChVehicleCosimDBPRig> rig) {
     m_DBP_rig = rig;
 }
 
-std::shared_ptr<ChVehicleCosimDBPRig> ChVehicleCosimMBSNode::GetDrawbarPullRig() const {
+std::shared_ptr<ChVehicleCosimDBPRig> ChVehicleCosimWheeledMBSNode::GetDrawbarPullRig() const {
     return m_DBP_rig;
 }
 
@@ -99,7 +99,7 @@ std::shared_ptr<ChVehicleCosimDBPRig> ChVehicleCosimMBSNode::GetDrawbarPullRig()
 // - construct and initialize MBS
 // - send load mass on each wheel
 // -----------------------------------------------------------------------------
-void ChVehicleCosimMBSNode::Initialize() {
+void ChVehicleCosimWheeledMBSNode::Initialize() {
     // Invoke the base class method to figure out distribution of node types
     ChVehicleCosimBaseNode::Initialize();
 
@@ -160,7 +160,7 @@ void ChVehicleCosimMBSNode::Initialize() {
 // -----------------------------------------------------------------------------
 // Complete setup of the underlying ChSystem based on any user-provided settings
 // -----------------------------------------------------------------------------
-void ChVehicleCosimMBSNode::InitializeSystem() {
+void ChVehicleCosimWheeledMBSNode::InitializeSystem() {
     // Change solver
     switch (m_slv_type) {
         case ChSolver::Type::PARDISO_MKL: {
@@ -236,7 +236,7 @@ void ChVehicleCosimMBSNode::InitializeSystem() {
 // - extract and send tire mesh vertex states
 // - receive and apply vertex contact forces
 // -----------------------------------------------------------------------------
-void ChVehicleCosimMBSNode::Synchronize(int step_number, double time) {
+void ChVehicleCosimWheeledMBSNode::Synchronize(int step_number, double time) {
     MPI_Status status;
 
     for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
@@ -267,7 +267,7 @@ void ChVehicleCosimMBSNode::Synchronize(int step_number, double time) {
 // -----------------------------------------------------------------------------
 // Advance simulation of the MBS node by the specified duration
 // -----------------------------------------------------------------------------
-void ChVehicleCosimMBSNode::Advance(double step_size) {
+void ChVehicleCosimWheeledMBSNode::Advance(double step_size) {
     m_timer.reset();
     m_timer.start();
     double t = 0;
@@ -285,7 +285,7 @@ void ChVehicleCosimMBSNode::Advance(double step_size) {
     m_cum_sim_time += m_timer();
 }
 
-void ChVehicleCosimMBSNode::OutputData(int frame) {
+void ChVehicleCosimWheeledMBSNode::OutputData(int frame) {
     double time = m_system->GetChTime();
 
     // If a DBP rig is attached, output its results
@@ -304,7 +304,7 @@ void ChVehicleCosimMBSNode::OutputData(int frame) {
     OnOutputData(frame);
 }
 
-void ChVehicleCosimMBSNode::OutputVisualizationData(int frame) {
+void ChVehicleCosimWheeledMBSNode::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
     utils::WriteVisualizationAssets(m_system, filename, true);
 }
