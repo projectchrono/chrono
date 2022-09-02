@@ -78,6 +78,9 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
     /// Get the angular speed of the specified sprocket.
     virtual double GetSprocketSpeed(VehicleSide side) const override;
 
+    /// Disconnect driveline from driven sprockets.
+    virtual void Disconnect() override;
+
   protected:
     /// Return the inertia of the driveshaft.
     virtual double GetDriveshaftInertia() const = 0;
