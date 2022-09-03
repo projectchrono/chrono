@@ -100,6 +100,7 @@ class CH_VEHICLE_API ChVehicleCosimDBPRig {
     double m_slip_filtered;                                  ///< current value of filtered slip
 
     friend class ChVehicleCosimWheeledMBSNode;
+    friend class ChVehicleCosimTrackedMBSNode;
 };
 
 /// Drawbar-pull rig mechanism with imposed slip.

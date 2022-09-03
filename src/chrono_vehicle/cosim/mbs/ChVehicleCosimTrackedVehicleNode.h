@@ -12,23 +12,23 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Wheeled vehicle system co-simulated with tire nodes and a terrain node.
+// Tracked vehicle system co-simulated with track nodes and a terrain node.
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
 //
 // =============================================================================
 
-#ifndef CH_VEHCOSIM_WHEELED_VEHICLE_NODE_H
-#define CH_VEHCOSIM_WHEELED_VEHICLE_NODE_H
+#ifndef CH_VEHCOSIM_TRACKED_VEHICLE_NODE_H
+#define CH_VEHCOSIM_TRACKED_VEHICLE_NODE_H
 
 #include "chrono_vehicle/ChPowertrain.h"
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/ChDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
-#include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimTrackedMBSNode.h"
 
 namespace chrono {
 namespace vehicle {
@@ -36,27 +36,27 @@ namespace vehicle {
 /// @addtogroup vehicle_cosim_mbs
 /// @{
 
-/// Wheeled vehicle co-simulation node.
-/// The vehicle system is co-simulated with tire nodes and a terrain node.
-class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWheeledMBSNode {
+/// Tracked vehicle co-simulation node.
+/// The vehicle system is co-simulated with track nodes and a terrain node.
+class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTrackedMBSNode {
   public:
-    /// Construct a wheeled vehicle node using the provided vehicle and powertrain JSON specification files.
-    ChVehicleCosimWheeledVehicleNode(const std::string& vehicle_json,    ///< vehicle JSON specification file
+    /// Construct a tracked vehicle node using the provided vehicle and powertrain JSON specification files.
+    ChVehicleCosimTrackedVehicleNode(const std::string& vehicle_json,    ///< vehicle JSON specification file
                                      const std::string& powertrain_json  ///< powertrain JSON specification file
     );
 
-    /// Construct a wheeled vehicle node using the provided vehicle and powertrain objects.
+    /// Construct a tracked vehicle node using the provided vehicle and powertrain objects.
     /// Notes:
     /// - the provided vehicle system must be constructed with a null Chrono system.
     /// - the vehicle and powertrain system should not be initialized.
-    ChVehicleCosimWheeledVehicleNode(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< vehicle system
+    ChVehicleCosimTrackedVehicleNode(std::shared_ptr<ChTrackedVehicle> vehicle,  ///< vehicle system
                                      std::shared_ptr<ChPowertrain> powertrain    ///< powertrain system
     );
 
-    ~ChVehicleCosimWheeledVehicleNode();
+    ~ChVehicleCosimTrackedVehicleNode();
 
     /// Get the underlying vehicle system.
-    std::shared_ptr<ChWheeledVehicle> GetVehicle() const { return m_vehicle; }
+    std::shared_ptr<ChTrackedVehicle> GetVehicle() const { return m_vehicle; }
 
     /// Get the underlying powertrain system.
     std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_powertrain; }
@@ -72,9 +72,8 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
 
   private:
     /// Initialize the vehicle MBS and any associated subsystems.
-    virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
-                               const ChVector2<>& terrain_size,           ///< terrain length x width
-                               double terrain_height                      ///< initial terrain height
+    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
+                               double terrain_height             ///< initial terrain height
                                ) override;
 
     // Output vehicle data.
@@ -83,20 +82,23 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
     /// Perform vehicle system synchronization before advancing the dynamics.
     virtual void PreAdvance() override;
 
-    /// Process the provided spindle force (received from the corresponding tire node).
-    virtual void ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) override;
+    /// Process the provided track shoe force (received from the corresponding track node).
+    virtual void ApplyTrackShoeForce(int track_id, int shoe_id, const TerrainForce& force) override;
 
-    /// Return the number of spindles in the vehicle system.
-    virtual int GetNumSpindles() const override;
+    /// Return the number of tracks in the vehicle system.
+    virtual int GetNumTracks() const override;
 
-    /// Return the i-th spindle body in the vehicle system.
-    virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const override;
+    /// Return the number of track shoes in the specified track subsystem.
+    virtual int GetNumTrackShoes(int track_id) const override;
+
+    /// Return the specified track shoe.
+    virtual std::shared_ptr<ChBody> GetTrackShoeBody(int track_id, int shoe_id) const override;
 
     /// Return the vertical mass load on the i-th spindle.
     virtual double GetSpindleLoad(unsigned int i) const override;
 
-    /// Get the body state of the spindle body to which the i-th wheel/tire is attached.
-    virtual BodyState GetSpindleState(unsigned int i) const override;
+    /// Get the body state of the specified track shoe body.
+    virtual BodyState GetTrackShoeState(int track_id, int shoe_id) const override;
 
     /// Get the "chassis" body.
     virtual std::shared_ptr<ChBody> GetChassisBody() const override;
@@ -129,16 +131,16 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
         TerrainForce m_force;
     };
 
-    std::shared_ptr<ChWheeledVehicle> m_vehicle;      ///< vehicle MBS
-    std::shared_ptr<ChPowertrain> m_powertrain;       ///< vehicle powertrain
-    std::shared_ptr<ChDriver> m_driver;               ///< vehicle driver
-    std::shared_ptr<ChTerrain> m_terrain;             ///< dummy terrain (for vehicle synchronization)
-    std::vector<std::shared_ptr<DummyTire>> m_tires;  ///< dummy tires (for applying spindle forces)
+    std::shared_ptr<ChTrackedVehicle> m_vehicle;  ///< vehicle MBS
+    std::shared_ptr<ChPowertrain> m_powertrain;   ///< vehicle powertrain
+    std::shared_ptr<ChDriver> m_driver;           ///< vehicle driver
 
     ChVector<> m_init_loc;  ///< initial vehicle location (relative to center of terrain top surface)
     double m_init_yaw;      ///< initial vehicle yaw
 
-    int m_num_spindles;                   ///< number of spindles/wheels of the wheeled vehicle
+    TerrainForces m_shoe_forces[2];  ///< terrain forces acting on track shoes
+
+    //// RADU TODO
     std::vector<double> m_spindle_loads;  ///< vertical loads on each spindle
 };
 

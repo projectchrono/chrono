@@ -18,6 +18,8 @@ set(CV_COSIM_FILES
     ChVehicleCosimBaseNode.cpp
     ChVehicleCosimWheeledMBSNode.h
     ChVehicleCosimWheeledMBSNode.cpp
+    ChVehicleCosimTrackedMBSNode.h
+    ChVehicleCosimTrackedMBSNode.cpp
     ChVehicleCosimTireNode.h
     ChVehicleCosimTireNode.cpp
     ChVehicleCosimTerrainNode.h
@@ -32,6 +34,8 @@ set(CV_COSIM_MBS_FILES
     mbs/ChVehicleCosimRigNode.cpp
     mbs/ChVehicleCosimWheeledVehicleNode.h
     mbs/ChVehicleCosimWheeledVehicleNode.cpp
+    mbs/ChVehicleCosimTrackedVehicleNode.h
+    mbs/ChVehicleCosimTrackedVehicleNode.cpp
     mbs/ChVehicleCosimViperNode.h
     mbs/ChVehicleCosimViperNode.cpp
     mbs/ChVehicleCosimCuriosityNode.h

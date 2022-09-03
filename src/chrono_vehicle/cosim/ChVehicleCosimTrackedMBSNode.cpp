@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Definition of the base vehicle co-simulation wheeled MBS NODE class.
+// Definition of the base vehicle co-simulation tracked MBS NODE class.
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -37,7 +37,7 @@
     #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimTrackedMBSNode.h"
 
 using std::cout;
 using std::endl;
@@ -45,8 +45,8 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
-// Construction of the base wheeled MBS node
-ChVehicleCosimWheeledMBSNode::ChVehicleCosimWheeledMBSNode() : ChVehicleCosimBaseNode("MBS"), m_fix_chassis(false) {
+// Construction of the base tracked MBS node
+ChVehicleCosimTrackedMBSNode::ChVehicleCosimTrackedMBSNode() : ChVehicleCosimBaseNode("MBS"), m_fix_chassis(false) {
     // Default integrator and solver types
     m_int_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
@@ -59,17 +59,17 @@ ChVehicleCosimWheeledMBSNode::ChVehicleCosimWheeledMBSNode() : ChVehicleCosimBas
     m_system->SetNumThreads(1, 1, 1);
 }
 
-ChVehicleCosimWheeledMBSNode::~ChVehicleCosimWheeledMBSNode() {
+ChVehicleCosimTrackedMBSNode::~ChVehicleCosimTrackedMBSNode() {
     delete m_system;
 }
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimWheeledMBSNode::SetNumThreads(int num_threads) {
+void ChVehicleCosimTrackedMBSNode::SetNumThreads(int num_threads) {
     m_system->SetNumThreads(num_threads, 1, 1);
 }
 
-void ChVehicleCosimWheeledMBSNode::SetIntegratorType(ChTimestepper::Type int_type, ChSolver::Type slv_type) {
+void ChVehicleCosimTrackedMBSNode::SetIntegratorType(ChTimestepper::Type int_type, ChSolver::Type slv_type) {
     m_int_type = int_type;
     m_slv_type = slv_type;
 #ifndef CHRONO_PARDISO_MKL
@@ -84,22 +84,22 @@ void ChVehicleCosimWheeledMBSNode::SetIntegratorType(ChTimestepper::Type int_typ
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimWheeledMBSNode::AttachDrawbarPullRig(std::shared_ptr<ChVehicleCosimDBPRig> rig) {
+void ChVehicleCosimTrackedMBSNode::AttachDrawbarPullRig(std::shared_ptr<ChVehicleCosimDBPRig> rig) {
     m_DBP_rig = rig;
 }
 
-std::shared_ptr<ChVehicleCosimDBPRig> ChVehicleCosimWheeledMBSNode::GetDrawbarPullRig() const {
+std::shared_ptr<ChVehicleCosimDBPRig> ChVehicleCosimTrackedMBSNode::GetDrawbarPullRig() const {
     return m_DBP_rig;
 }
 
 // -----------------------------------------------------------------------------
-// Initialization of the wheeled MBS node:
+// Initialization of the tracked MBS node:
 // - receive terrain height and dimensions
-// - receive tire mass and radius
+// - receive track shoe mass and size
 // - construct and initialize MBS
 // - send load mass on each wheel
 // -----------------------------------------------------------------------------
-void ChVehicleCosimWheeledMBSNode::Initialize() {
+void ChVehicleCosimTrackedMBSNode::Initialize() {
     // Invoke the base class method to figure out distribution of node types
     ChVehicleCosimBaseNode::Initialize();
 
@@ -121,6 +121,10 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
     double terrain_height = init_dim[0];
     ChVector2<> terrain_size(init_dim[1], init_dim[2]);
 
+
+    //// RADU TODO send track info here!!!
+
+    /*
     // For each TIRE, receive the tire mass and radius
     std::vector<ChVector<>> tire_info;
 
@@ -131,10 +135,12 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
     }
 
     // Let derived classes construct and initialize their multibody system
-    InitializeMBS(tire_info, terrain_size, terrain_height);
+    InitializeMBS(terrain_size, terrain_height);
     assert(GetNumSpindles() == (int)m_num_tire_nodes);
 
     GetChassisBody()->SetBodyFixed(m_fix_chassis);
+
+
 
     // For each tire:
     // - cache the spindle body
@@ -143,6 +149,8 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
         double load = GetSpindleLoad(i);
         MPI_Send(&load, 1, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD);
     }
+    
+
 
     // Initialize the DBP rig if one is attached
     if (m_DBP_rig) {
@@ -155,12 +163,13 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
 
         OnInitializeDBPRig(m_DBP_rig->GetMotorFunction());
     }
+    */
 }
 
 // -----------------------------------------------------------------------------
 // Complete setup of the underlying ChSystem based on any user-provided settings
 // -----------------------------------------------------------------------------
-void ChVehicleCosimWheeledMBSNode::InitializeSystem() {
+void ChVehicleCosimTrackedMBSNode::InitializeSystem() {
     // Change solver
     switch (m_slv_type) {
         case ChSolver::Type::PARDISO_MKL: {
@@ -236,38 +245,50 @@ void ChVehicleCosimWheeledMBSNode::InitializeSystem() {
 // - extract and send tire mesh vertex states
 // - receive and apply vertex contact forces
 // -----------------------------------------------------------------------------
-void ChVehicleCosimWheeledMBSNode::Synchronize(int step_number, double time) {
+void ChVehicleCosimTrackedMBSNode::Synchronize(int step_number, double time) {
     MPI_Status status;
 
-    for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
-        // Send wheel state to the tire node
-        BodyState state = GetSpindleState(i);
-        double state_data[] = {
-            state.pos.x(),     state.pos.y(),     state.pos.z(),                      //
-            state.rot.e0(),    state.rot.e1(),    state.rot.e2(),    state.rot.e3(),  //
-            state.lin_vel.x(), state.lin_vel.y(), state.lin_vel.z(),                  //
-            state.ang_vel.x(), state.ang_vel.y(), state.ang_vel.z()                   //
-        };
+    for (unsigned int i = 0; i < GetNumTracks(); i++) {
+        // Collect states of all track shoe bodies
+        std::vector<double> all_states;
+        int num_track_shoes = GetNumTrackShoes(i);
 
-        MPI_Send(state_data, 13, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD);
+        for (int j = 0; j < num_track_shoes; j++) {
+            BodyState state = GetTrackShoeState(i, j);
+            double state_data[] = {
+                state.pos.x(),     state.pos.y(),     state.pos.z(),                      //
+                state.rot.e0(),    state.rot.e1(),    state.rot.e2(),    state.rot.e3(),  //
+                state.lin_vel.x(), state.lin_vel.y(), state.lin_vel.z(),                  //
+                state.ang_vel.x(), state.ang_vel.y(), state.ang_vel.z()                   //
+            };
+            all_states.insert(all_states.end(), state_data, state_data + 13);
+        }
 
-        // Receive spindle force as applied to the center of the spindle/wheel.
-        // Note that we assume this is the resultant wrench at the wheel origin (expressed in absolute frame).
-        double force_data[6];
-        MPI_Recv(force_data, 6, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD, &status);
+        // Send track shoe states to the terrain node
+        MPI_Send(all_states.data(), 13 * num_track_shoes, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
 
-        TerrainForce spindle_force;
-        spindle_force.point = GetSpindleBody(i)->GetPos();
-        spindle_force.force = ChVector<>(force_data[0], force_data[1], force_data[2]);
-        spindle_force.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
-        ApplySpindleForce(i, spindle_force);
+        // Receive track shoe forces as applied to the center of the track shoe body.
+        // Note that we assume this is the resultant wrench at the track shoe origin (expressed in absolute frame).
+        std::vector<double> all_forces(6 * num_track_shoes);
+        MPI_Recv(all_forces.data(), 6 * num_track_shoes, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD,
+                 &status);
+
+        int start_idx = 0;
+        for (int j = 0; j < num_track_shoes; j++) {
+            TerrainForce force;
+            force.point = GetTrackShoeBody(i,j)->GetPos();
+            force.force = ChVector<>(all_forces[start_idx + 0], all_forces[start_idx + 1], all_forces[start_idx + 2]);
+            force.moment = ChVector<>(all_forces[start_idx + 3], all_forces[start_idx + 4], all_forces[start_idx + 5]);
+            ApplyTrackShoeForce(i, j, force);
+            start_idx += 6;
+        }
     }
 }
 
 // -----------------------------------------------------------------------------
 // Advance simulation of the MBS node by the specified duration
 // -----------------------------------------------------------------------------
-void ChVehicleCosimWheeledMBSNode::Advance(double step_size) {
+void ChVehicleCosimTrackedMBSNode::Advance(double step_size) {
     m_timer.reset();
     m_timer.start();
     double t = 0;
@@ -285,7 +306,7 @@ void ChVehicleCosimWheeledMBSNode::Advance(double step_size) {
     m_cum_sim_time += m_timer();
 }
 
-void ChVehicleCosimWheeledMBSNode::OutputData(int frame) {
+void ChVehicleCosimTrackedMBSNode::OutputData(int frame) {
     double time = m_system->GetChTime();
 
     // If a DBP rig is attached, output its results
@@ -304,7 +325,7 @@ void ChVehicleCosimWheeledMBSNode::OutputData(int frame) {
     OnOutputData(frame);
 }
 
-void ChVehicleCosimWheeledMBSNode::OutputVisualizationData(int frame) {
+void ChVehicleCosimTrackedMBSNode::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
     utils::WriteVisualizationAssets(m_system, filename, true);
 }

@@ -125,7 +125,7 @@ void ChVehicleCosimBaseNode::Initialize() {
     }
 
     if (m_verbose && m_rank == 0) {
-        cout << "Num nodes: " << size                        //
+        cout << "Num nodes: " << size                          //
              << "  MBS nodes: " << m_num_mbs_nodes             //
              << "  TERRAIN nodes: " << m_num_terrain_nodes     //
              << "  TIRE nodes: " << m_num_tire_nodes << endl;  //
@@ -139,6 +139,8 @@ void ChVehicleCosimBaseNode::Initialize() {
             cerr << "ERROR: More than one MBS node." << endl;
         err = true;
     }
+
+    //// RADU TODO Check consistency of MBS node with tire/track
 
     if (type_all[MBS_NODE_RANK] != 0) {
         if (m_rank == 0)

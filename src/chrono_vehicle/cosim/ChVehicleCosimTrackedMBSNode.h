@@ -12,15 +12,15 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Definition of the base vehicle co-simulation WHEELED MBS NODE class.
+// Definition of the base vehicle co-simulation TRACKED MBS NODE class.
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
 //
 // =============================================================================
 
-#ifndef CH_VEHCOSIM_WHEELED_MBS_NODE_H
-#define CH_VEHCOSIM_WHEELED_MBS_NODE_H
+#ifndef CH_VEHCOSIM_TRACKED_MBS_NODE_H
+#define CH_VEHCOSIM_TRACKED_MBS_NODE_H
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -33,33 +33,13 @@
 namespace chrono {
 namespace vehicle {
 
-/** @addtogroup vehicle_cosim_mbs
- *
- * This module defines concrete multibody system nodes:
- * - ChVehicleCosimRigNode wraps a single-wheel test rig.
- * - ChVehicleCosimWheeledVehicleNode wraps a Chrono::Vehicle wheeled vehicle defined through JSON specification files.
- * - ChVehicleCosimCuriosityNode wraps the Curiosity Mars rover model.
- * - ChVehicleCosimViperNode wraps the Viper lunar rover model.
- *
- * Additionally, this module provides various drawbar pull rigs which can be attached to any of the MBS nodes:
- * - ChVehicleCosimDBPRigImposedSlip allows imposing known (fixed) vehicle forward linear velocity and wheel angular velocity to maintain
- * a prescribed value of the longitudinal slip. The actuation specifies if the linear velocity or angular velocity is
- * considered as "base velocity", with the other one derived from the slip value. The DBP force is extracted as the
- * reaction force required to enforce the vehicle forward linear velocity (at steady state).  Each run of this
- * experiment produces one point on the slip-DBP curve.
- * - ChVehicleCosimDBPRigImposedAngVel enforces a prescribed wheel angular velocity. A linearly increasing resistive force is applied
- * against the forward motion of the vehicle and the experiment is ended when the vehicle stops. At each time, the
- * vehicle forward speed and resulting slip are calculated and stored together with the current resistive force (DBP).
- * This experiment produces the entire slip-DBP curve at once.
- */
-
 /// @addtogroup vehicle_cosim
 /// @{
 
-/// Base class for all MBS nodes with wheels.
-class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNode {
+/// Base class for all MBS nodes with tracks.
+class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNode {
   public:
-    virtual ~ChVehicleCosimWheeledMBSNode();
+    virtual ~ChVehicleCosimTrackedMBSNode();
 
     /// Return the node type as NodeType::MBS.
     virtual NodeType GetNodeType() const override { return NodeType::MBS; }
@@ -105,13 +85,12 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     virtual void OutputVisualizationData(int frame) override final;
 
   protected:
-    /// Construct a base class wheeled MBS node.
-    ChVehicleCosimWheeledMBSNode();
+    /// Construct a base class tracked MBS node.
+    ChVehicleCosimTrackedMBSNode();
 
     /// Initialize the underlying MBS
-    virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
-                               const ChVector2<>& terrain_size,           ///< terrain length x width
-                               double terrain_height                      ///< initial terrain height
+    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
+                               double terrain_height             ///< initial terrain height
                                ) = 0;
 
     /// Perform any required operations before advancing the state of the MBS.
@@ -126,31 +105,34 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     /// For example, output mechanism-specific data for post-procesing.
     virtual void OnOutputData(int frame) {}
 
-    /// Apply the provided force to the i-th spindle body.
-    /// This function is called during synchronization when the force is received from the corresponding tire node.
-    virtual void ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) = 0;
+    /// Apply the provided force to the specified track shoe body
+    /// This function is called during synchronization when the force is received from the corresponding track node.
+    virtual void ApplyTrackShoeForce(int track_id, int shoe_id, const TerrainForce& force) = 0;
 
-    /// Get the number of spindles/wheels defined by the underlying MBS.
+    /// Get the number of track subsystems defined by the underlying MBS.
     /// A co-simulation must have a matching number of TIRE nodes.
-    virtual int GetNumSpindles() const = 0;
+    virtual int GetNumTracks() const = 0;
 
-    /// Get the spindle body to which the i-th wheel/tire is attached.
-    virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const = 0;
+    /// Return the number of track shoes in the specified track subsystem.
+    virtual int GetNumTrackShoes(int track_id) const = 0;
+
+    /// Return the specified track shoe.
+    virtual std::shared_ptr<ChBody> GetTrackShoeBody(int track_id, int shoe_id) const = 0;
 
     /// Get the load weight on the i-th wheel/tire.
     /// Note: this must also include the mass of the tire itself.
     virtual double GetSpindleLoad(unsigned int i) const = 0;
 
-    /// Get the body state of the spindle body to which the i-th wheel/tire is attached.
-    virtual BodyState GetSpindleState(unsigned int i) const = 0;
+    /// Get the body state of the specified track shoe body.
+    virtual BodyState GetTrackShoeState(int track_id, int shoe_id) const = 0;
 
     /// Get the "chassis" body.
     /// Only used is a drawbar-pull rig is attached.
     virtual std::shared_ptr<ChBody> GetChassisBody() const = 0;
 
-    /// Impose spindle angular speed function.
+    /// Impose sprocket angular speed function.
     /// This function is called (during initialization, after the call to InitializeMBS) only if a drawbar-pull rig is
-    /// attached. A derived class must enforce the specified angular speed on all spindles and, if appropriate,
+    /// attached. A derived class must enforce the specified angular speed on all sprockets and, if appropriate,
     /// disconnect any other power transmission mechanism (such as a powertrain/driveline).
     virtual void OnInitializeDBPRig(std::shared_ptr<ChFunction> func) = 0;
 

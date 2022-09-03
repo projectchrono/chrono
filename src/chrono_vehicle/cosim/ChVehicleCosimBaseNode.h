@@ -90,24 +90,27 @@ CH_VEHICLE_API MPI_Comm GetTerrainIntracommunicator();
 /// Base class for a co-simulation node.
 class CH_VEHICLE_API ChVehicleCosimBaseNode {
   public:
+
+      //// RADU TODO Distinguish MBS_WHEELED from MBS_TRACKED
+
     /// Type of node participating in co-simulation
     enum class NodeType {
         MBS,      ///< node performing multibody dynamics (vehicle)
         TERRAIN,  ///< node performing terrain simulation
-        TIRE      ///< node performing tire simulation (if outside MBS)
+        TIRE      ///< node performing tire simulation
     };
 
     /// Type of the tire-terrain communication interface.
-    /// - A BODY interface assumes communication is done at the wheel spindle level.  At a synchronization time, the
-    /// terrain node receives the full state of the spindle body and must send forces acting on the spindle, for each
-    /// tire present in the simulation.  This type of interface should be used for a rigid tire or when the terrain node
-    /// also performs the dynamics of a flexible tire.
+    /// - A BODY interface assumes communication is done at the wheel spindle or track shoe level.  At a synchronization
+    /// time, the terrain node receives the full state of the spindle or track shoe body and must send forces acting on
+    /// that body, for each tire or track shoe present in the simulation.  This type of interface should be used for
+    /// track shoes, rigid tires, or when the terrain node also performs the dynamics of a flexible tire.
     /// - A MESH interface assumes communication is done at the tire mesh level. At a synchronization time, the terrain
     /// node receives the tire mesh vertex states (positions and velocities) are must send forces acting on vertices of
     /// the mesh, for each tire. This tire interface is typically used when flexible tires are simulated outside the
     /// terrain node (either on the multibody node or else on separate tire nodes).
     enum class InterfaceType {
-        BODY,  ///< exchange state and force for a single body (wheel spindle)
+        BODY,  ///< exchange state and force for a single body (wheel spindle or track shoe)
         MESH   ///< exchange state and force for a mesh (flexible tire mesh)
     };
 
