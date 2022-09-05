@@ -150,7 +150,7 @@ void ChFsiInterface::Copy_ChSystem_to_External() {
     }
 }
 //------------------------------------------------------------------------------------
-void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
+void ChFsiInterface::Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
     size_t num_fsiBodies_Rigids = m_fsi_bodies.size();
     for (size_t i = 0; i < num_fsiBodies_Rigids; i++) {
         std::shared_ptr<ChBody> bodyPtr = m_fsi_bodies[i];
@@ -185,7 +185,7 @@ void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
     }
 }
 //------------------------------------------------------------------------------------
-void ChFsiInterface::Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD) {
+void ChFsiInterface::Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD) {
     size_t num_fsiNodes_Felx = m_fsi_nodes.size();
 
     for (size_t i = 0; i < num_fsiNodes_Felx; i++) {

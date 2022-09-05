@@ -64,8 +64,8 @@ class ChFsiInterface : public ChFsiGeneral {
     /// Use the generalized coordinates of the ChSystem to set the configuration state in the FSI system.
     void Copy_ChSystem_to_External();
 
-    /// Copy the ChSystem rigid bodies from CPU to GPU.
-    void Copy_fsiBodies_ChSystem_to_FluidSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD);
+    /// Copy rigid bodies' information from ChSystem to FsiSystem, then to the GPU memory.
+    void Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD);
 
     /// Resize the number of ChSystem rigid bodies.
     void ResizeChronoBodiesData();
@@ -85,8 +85,8 @@ class ChFsiInterface : public ChFsiGeneral {
     /// Resize number of nodes used in the flexible elements
     void ResizeChronoFEANodesData();
 
-    /// Copy the nodes information in ChSystem from CPU to GPU.
-    void Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD);
+    /// Copy flexible nodes' information from ChSystem to FsiSystem, then to the GPU memory.
+    void Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD);
 
   private:
     ChSystem& m_sysMBS;          ///< Chrono multibody system
