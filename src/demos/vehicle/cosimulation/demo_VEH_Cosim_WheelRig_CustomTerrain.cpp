@@ -60,10 +60,10 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
     virtual double GetInitHeight() const override { return 0; }
 
     // Initialize this Chrono terrain node.
-    // Construct the terrain system, the tire material, and the proxy bodies.
-    // Use information from the following vectors (of size equal to the number of tires):
+    // Construct the terrain system, the contact material, and the proxy bodies.
+    // Use information from the following vectors (of size equal to the number of objects):
     // - radius for each tire (through m_tire_radius)
-    // - vertical load on each tire (through m_load_mass)
+    // - vertical load on each object (through m_load_mass)
     virtual void OnInitialize(unsigned int num_tires) override final;
 
     // Advance simulation.
@@ -72,11 +72,11 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
     // Render simulation.
     virtual void Render(double time) override;
 
-    // Update the state of the wheel proxy body for the i-th tire.
-    virtual void UpdateWheelProxy(unsigned int i, BodyState& spindle_state) override;
+    /// Update the state of the i-th proxy rigid.
+    virtual void UpdateRigidProxy(unsigned int i, BodyState& rigid_state) override;
 
-    // Collect cumulative contact force and torque on the wheel proxy body for the i-th tire.
-    virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
+    /// Collect cumulative contact force and torque on the i-th proxy rigid.
+    virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
   private:
     ChSystemSMC* m_system;                          // containing Chrono system
@@ -189,17 +189,17 @@ void MyTerrain::Render(double time) {
 #endif
 }
 
-void MyTerrain::UpdateWheelProxy(unsigned int i, BodyState& spindle_state) {
-    m_bodies[i]->SetPos(spindle_state.pos);
-    m_bodies[i]->SetPos_dt(spindle_state.lin_vel);
-    m_bodies[i]->SetRot(spindle_state.rot);
-    m_bodies[i]->SetWvel_par(spindle_state.ang_vel);
+void MyTerrain::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
+    m_bodies[i]->SetPos(rigid_state.pos);
+    m_bodies[i]->SetPos_dt(rigid_state.lin_vel);
+    m_bodies[i]->SetRot(rigid_state.rot);
+    m_bodies[i]->SetWvel_par(rigid_state.ang_vel);
 }
 
-void MyTerrain::GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) {
-    wheel_contact.point = ChVector<>(0, 0, 0);
-    wheel_contact.force = m_bodies[i]->GetContactForce();
-    wheel_contact.moment = m_bodies[i]->GetContactTorque();
+void MyTerrain::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
+    rigid_contact.point = ChVector<>(0, 0, 0);
+    rigid_contact.force = m_bodies[i]->GetContactForce();
+    rigid_contact.moment = m_bodies[i]->GetContactTorque();
 }
 
 // =============================================================================

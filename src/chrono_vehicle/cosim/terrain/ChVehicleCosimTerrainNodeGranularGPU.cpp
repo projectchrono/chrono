@@ -627,14 +627,14 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesInternal() {
 // Set composite material properties for external contacts (granular-tire)
 void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesExternal(unsigned int i) {
     auto material_terrain = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_terrain);
-    auto material_tire = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_mat_props[i].CreateMaterial(m_method));
+    auto material = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_mat_props[i].CreateMaterial(m_method));
 
     const auto& strategy = m_system->GetMaterialCompositionStrategy();
-    auto Kn = strategy.CombineStiffnessCoefficient(material_terrain->GetKn(), material_tire->GetKn());
-    auto Kt = strategy.CombineStiffnessCoefficient(material_terrain->GetKt(), material_tire->GetKt());
-    auto Gn = strategy.CombineDampingCoefficient(material_terrain->GetGn(), material_tire->GetGn());
-    auto Gt = strategy.CombineDampingCoefficient(material_terrain->GetGt(), material_tire->GetGt());
-    auto mu = strategy.CombineFriction(m_material_terrain->GetSfriction(), material_tire->GetSfriction());
+    auto Kn = strategy.CombineStiffnessCoefficient(material_terrain->GetKn(), material->GetKn());
+    auto Kt = strategy.CombineStiffnessCoefficient(material_terrain->GetKt(), material->GetKt());
+    auto Gn = strategy.CombineDampingCoefficient(material_terrain->GetGn(), material->GetGn());
+    auto Gt = strategy.CombineDampingCoefficient(material_terrain->GetGt(), material->GetGt());
+    auto mu = strategy.CombineFriction(m_material_terrain->GetSfriction(), material->GetSfriction());
 
     m_systemGPU->SetKn_SPH2MESH(Kn);
     m_systemGPU->SetGn_SPH2MESH(Gn);
@@ -649,7 +649,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesExternal(unsigned int
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularGPU::CreateWheelProxy(unsigned int i) {
+void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
     // Number of rigid obstacles
     auto num_obstacles = m_obstacles.size();
 
@@ -674,10 +674,10 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateWheelProxy(unsigned int i) {
     body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     // Add collision shape (only if obstacles are present)
-    auto material_tire = m_mat_props[i].CreateMaterial(m_method);
+    auto material = m_mat_props[i].CreateMaterial(m_method);
     if (num_obstacles > 0) {
         body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(material_tire, trimesh, false, false, ChVector<>(0),
+        body->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, ChVector<>(0),
                                                    ChMatrix33<>(1), m_radius_g);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
@@ -700,27 +700,27 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateWheelProxy(unsigned int i) {
     m_systemGPU->InitializeMeshes();
 }
 
-// Set state of wheel proxy body.
-void ChVehicleCosimTerrainNodeGranularGPU::UpdateWheelProxy(unsigned int i, BodyState& spindle_state) {
+// Set state of proxy rigid body.
+void ChVehicleCosimTerrainNodeGranularGPU::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto& proxies = m_proxies[i];  // proxies for the i-th tire
 
-    proxies[0].m_body->SetPos(spindle_state.pos);
-    proxies[0].m_body->SetPos_dt(spindle_state.lin_vel);
-    proxies[0].m_body->SetRot(spindle_state.rot);
-    proxies[0].m_body->SetWvel_par(spindle_state.ang_vel);
+    proxies[0].m_body->SetPos(rigid_state.pos);
+    proxies[0].m_body->SetPos_dt(rigid_state.lin_vel);
+    proxies[0].m_body->SetRot(rigid_state.rot);
+    proxies[0].m_body->SetWvel_par(rigid_state.ang_vel);
 
-    m_systemGPU->ApplyMeshMotion(i, spindle_state.pos, spindle_state.rot, spindle_state.lin_vel, spindle_state.ang_vel);
+    m_systemGPU->ApplyMeshMotion(i, rigid_state.pos, rigid_state.rot, rigid_state.lin_vel, rigid_state.ang_vel);
 }
 
-// Collect resultant contact force and torque on wheel proxy body.
-void ChVehicleCosimTerrainNodeGranularGPU::GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) {
+// Collect resultant contact force and torque on rigid proxy body.
+void ChVehicleCosimTerrainNodeGranularGPU::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
     ChVector<> force;
     ChVector<> torque;
     m_systemGPU->CollectMeshContactForces(i, force, torque);
 
-    wheel_contact.point = ChVector<>(0, 0, 0);
-    wheel_contact.force = force;
-    wheel_contact.moment = torque;
+    rigid_contact.point = ChVector<>(0, 0, 0);
+    rigid_contact.force = force;
+    rigid_contact.moment = torque;
 }
 
 // -----------------------------------------------------------------------------

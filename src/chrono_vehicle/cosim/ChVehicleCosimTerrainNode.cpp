@@ -82,8 +82,8 @@ void ChVehicleCosimTerrainNode::Initialize() {
     m_mesh_data.resize(m_num_tire_nodes);
     m_mesh_state.resize(m_num_tire_nodes);
     m_mesh_contact.resize(m_num_tire_nodes);
-    m_spindle_state.resize(m_num_tire_nodes);
-    m_wheel_contact.resize(m_num_tire_nodes);
+    m_rigid_state.resize(m_num_tire_nodes);
+    m_rigid_contact.resize(m_num_tire_nodes);
 
     if (m_rank == TERRAIN_NODE_RANK) {
         // -----------------------------------------
@@ -233,32 +233,32 @@ void ChVehicleCosimTerrainNode::Synchronize(int step_number, double time) {
 void ChVehicleCosimTerrainNode::SynchronizeBody(int step_number, double time) {
     for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
         if (m_rank == TERRAIN_NODE_RANK) {
-            // Receive spindle state data
+            // Receive rigid body state data
             MPI_Status status;
             double state_data[13];
             MPI_Recv(state_data, 13, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD, &status);
 
-            m_spindle_state[i].pos = ChVector<>(state_data[0], state_data[1], state_data[2]);
-            m_spindle_state[i].rot = ChQuaternion<>(state_data[3], state_data[4], state_data[5], state_data[6]);
-            m_spindle_state[i].lin_vel = ChVector<>(state_data[7], state_data[8], state_data[9]);
-            m_spindle_state[i].ang_vel = ChVector<>(state_data[10], state_data[11], state_data[12]);
+            m_rigid_state[i].pos = ChVector<>(state_data[0], state_data[1], state_data[2]);
+            m_rigid_state[i].rot = ChQuaternion<>(state_data[3], state_data[4], state_data[5], state_data[6]);
+            m_rigid_state[i].lin_vel = ChVector<>(state_data[7], state_data[8], state_data[9]);
+            m_rigid_state[i].ang_vel = ChVector<>(state_data[10], state_data[11], state_data[12]);
         }
 
-        // Set position, rotation, and velocities of wheel proxy body.
-        UpdateWheelProxy(i, m_spindle_state[i]);
+        // Set position, rotation, and velocities of proxy rigid body.
+        UpdateRigidProxy(i, m_rigid_state[i]);
 
-        // Collect contact force on wheel proxy and load in m_wheel_contact.
-        // It is assumed that this force is given at spindle center.
+        // Collect contact force on rigid proxy and load in m_rigid_contact.
+        // It is assumed that this force is given at body center.
         // Note that no force is collected at the first step.
         if (step_number > 0) {
-            GetForceWheelProxy(i, m_wheel_contact[i]);
+            GetForceRigidProxy(i, m_rigid_contact[i]);
         }
 
         if (m_rank == TERRAIN_NODE_RANK) {
             // Send wheel contact force.
-            double force_data[] = {m_wheel_contact[i].force.x(),  m_wheel_contact[i].force.y(),
-                                   m_wheel_contact[i].force.z(),  m_wheel_contact[i].moment.x(),
-                                   m_wheel_contact[i].moment.y(), m_wheel_contact[i].moment.z()};
+            double force_data[] = {m_rigid_contact[i].force.x(),  m_rigid_contact[i].force.y(),
+                                   m_rigid_contact[i].force.z(),  m_rigid_contact[i].moment.x(),
+                                   m_rigid_contact[i].moment.y(), m_rigid_contact[i].moment.z()};
             MPI_Send(force_data, 6, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD);
 
             if (m_verbose)
@@ -292,14 +292,14 @@ void ChVehicleCosimTerrainNode::SynchronizeMesh(int step_number, double time) {
         }
 
         // Set position, rotation, and velocity of proxy bodies.
-        UpdateMeshProxies(i, m_mesh_state[i]);
+        UpdateMeshProxy(i, m_mesh_state[i]);
 
         // Collect contact forces on subset of mesh vertices and load in m_mesh_contact.
         // Note that no forces are collected at the first step.
         if (step_number == 0)
             m_mesh_contact[i].nv = 0;
         else
-            GetForcesMeshProxies(i, m_mesh_contact[i]);
+            GetForceMeshProxy(i, m_mesh_contact[i]);
 
         if (m_rank == TERRAIN_NODE_RANK) {
             // Send vertex indices and forces.

@@ -289,7 +289,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     outf << "   depth = " << m_depth << endl;
 }
 
-void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
+// -----------------------------------------------------------------------------
+
+void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     // Number of rigid obstacles
     auto num_obstacles = m_obstacles.size();
 
@@ -315,10 +317,10 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
 
     // Add collision shape only if obstacles are present (for wheel-obstacle interactions)
     if (num_obstacles > 0) {
-        auto material_tire = m_mat_props[i].CreateMaterial(m_method);
+        auto material = m_mat_props[i].CreateMaterial(m_method);
 
         body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(material_tire, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
+        body->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
                                                    m_radius_g);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
@@ -338,30 +340,42 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
 }
 
 // Once all proxy bodies are created, complete construction of the underlying FSI system.
-void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_tires) {
-    ChVehicleCosimTerrainNodeChrono::OnInitialize(num_tires);
+void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects) {
+    ChVehicleCosimTerrainNodeChrono::OnInitialize(num_objects);
     m_systemFSI->Initialize();
 }
 
-// Set state of wheel proxy body.
-void ChVehicleCosimTerrainNodeGranularSPH::UpdateWheelProxy(unsigned int i, BodyState& spindle_state) {
-    auto& proxies = m_proxies[i];  // proxies for the i-th tire
+// Set state of proxy rigid body.
+void ChVehicleCosimTerrainNodeGranularSPH::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
+    auto& proxies = m_proxies[i];  // proxies for the i-th rigid
 
-    proxies[0].m_body->SetPos(spindle_state.pos);
-    proxies[0].m_body->SetPos_dt(spindle_state.lin_vel);
-    proxies[0].m_body->SetRot(spindle_state.rot);
-    proxies[0].m_body->SetWvel_par(spindle_state.ang_vel);
+    proxies[0].m_body->SetPos(rigid_state.pos);
+    proxies[0].m_body->SetPos_dt(rigid_state.lin_vel);
+    proxies[0].m_body->SetRot(rigid_state.rot);
+    proxies[0].m_body->SetWvel_par(rigid_state.ang_vel);
     proxies[0].m_body->SetWacc_par(ChVector<>(0.0, 0.0, 0.0));
 }
 
-// Collect resultant contact force and torque on wheel proxy body.
-void ChVehicleCosimTerrainNodeGranularSPH::GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) {
-    const auto& proxies = m_proxies[i];  // proxies for the i-th tire
+// Collect resultant contact force and torque on rigid proxy body.
+void ChVehicleCosimTerrainNodeGranularSPH::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
+    const auto& proxies = m_proxies[i];  // proxies for the i-th rigid
 
-    wheel_contact.point = ChVector<>(0, 0, 0);
-    wheel_contact.force = proxies[0].m_body->Get_accumulated_force();
-    wheel_contact.moment = proxies[0].m_body->Get_accumulated_torque();
+    rigid_contact.point = ChVector<>(0, 0, 0);
+    rigid_contact.force = proxies[0].m_body->Get_accumulated_force();
+    rigid_contact.moment = proxies[0].m_body->Get_accumulated_torque();
 }
+
+// -----------------------------------------------------------------------------
+
+void ChVehicleCosimTerrainNodeGranularSPH::CreateMeshProxy(unsigned int i) {
+    auto material = m_mat_props[i].CreateMaterial(m_method);
+
+
+}
+
+void ChVehicleCosimTerrainNodeGranularSPH::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {}
+
+void ChVehicleCosimTerrainNodeGranularSPH::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {}
 
 // -----------------------------------------------------------------------------
 
@@ -406,6 +420,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::OutputVisualizationData(int frame) {
             m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() >= body_id_obstacles; }, true);
     }
 }
+
+void ChVehicleCosimTerrainNodeGranularSPH::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {}
 
 }  // end namespace vehicle
 }  // end namespace chrono
