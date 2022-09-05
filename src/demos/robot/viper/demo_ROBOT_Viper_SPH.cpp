@@ -159,9 +159,6 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax(bxDim / 2 * 2, byDim / 2 * 2, bzDim * 10);
     sysFSI.SetBoundaries(cMin, cMax);
 
-    // Setup the output directory for FSI data
-    sysFSI.SetOutputDirectory(out_dir);
-
     // Set simulation data output length
     sysFSI.SetOutputLength(0);
 

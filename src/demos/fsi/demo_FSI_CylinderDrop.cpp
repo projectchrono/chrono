@@ -271,9 +271,6 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax(bxDim / 2 * 10, byDim / 2 * 10, bzDim * 10);
     sysFSI.SetBoundaries(cMin, cMax);
 
-    // Setup the output directory for FSI data
-    sysFSI.SetOutputDirectory(out_dir);
-
     // Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
 

@@ -93,8 +93,6 @@ class ChFsiInterface : public ChFsiGeneral {
     ChSystemFsi_impl& m_sysFSI;  ///< FSI system
 
     bool m_verbose;        ///< enable/disable m_verbose terminal output (default: true)
-    bool m_output_fsi;     ///< enable/disable output for each FSI body and node
-    std::string m_outdir;  ///< output directory
 
     std::shared_ptr<SimParams> m_paramsH;  ///< simulation parameters
 

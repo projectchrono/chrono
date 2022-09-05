@@ -679,22 +679,6 @@ void ChSystemFsi::SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::SetOutputDirectory(const std::string& output_dir) {
-    if (!filesystem::path(output_dir).exists() || !filesystem::path(output_dir).is_directory()) {
-        cerr << "The directory " << output_dir << " does not exist!  FSI output disabled" << endl;
-        return;
-    }
-    m_outdir = output_dir + "/fsi";
-    if (!filesystem::create_directory(filesystem::path(m_outdir))) {
-        cerr << "Error creating directory " << m_outdir << endl;
-        return;
-    }
-    m_fsi_interface->m_outdir = m_outdir;
-    m_fsi_interface->m_output_fsi = true;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-
 void ChSystemFsi::Initialize() {
     // Calculate the initial neighour particle number
     m_paramsH->markerMass = utils::massCalculator(m_paramsH->HSML, m_paramsH->INITSPACE, m_paramsH->rho0);

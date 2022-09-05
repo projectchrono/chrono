@@ -155,9 +155,6 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax = ChVector<>(bxDim / 2 + 10.0 * initSpace0, byDim / 2 + 1.0 * initSpace0 / 2.0, 2.0 * bzDim);
     sysFSI.SetBoundaries(cMin, cMax);
 
-    // Setup the output directory for FSI data
-    sysFSI.SetOutputDirectory(out_dir);
-
     // Create Fluid region and discretize with SPH particles
     ChVector<> boxCenter(-bxDim / 2 + fxDim / 2, 0.0, fzDim / 2);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);

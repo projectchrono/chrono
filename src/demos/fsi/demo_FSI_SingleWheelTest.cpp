@@ -345,9 +345,6 @@ int main(int argc, char* argv[]) {
     // Create Solid region and attach BCE SPH particles
     CreateSolidPhase(sysMBS, sysFSI);
 
-    /// Setup the output directory for FSI data
-    sysFSI.SetOutputDirectory(out_dir);
-
     // Set simulation data output length
     sysFSI.SetOutputLength(0);
 

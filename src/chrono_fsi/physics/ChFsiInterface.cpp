@@ -42,8 +42,7 @@ ChFsiInterface::ChFsiInterface(ChSystem& mbs,
       m_fsi_nodes(nodes),
       m_fsi_cables(cables),
       m_fsi_shells(shells),
-      m_verbose(true),
-      m_output_fsi(false) {
+      m_verbose(true) {
     size_t numBodies = m_sysMBS.Get_bodylist().size();
     m_rigid_backup = chrono_types::make_shared<ChronoBodiesDataH>(numBodies);
     m_flex_backup = chrono_types::make_shared<ChronoMeshDataH>(0);

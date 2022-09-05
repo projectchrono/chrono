@@ -158,9 +158,6 @@ int main(int argc, char* argv[]) {
     // Set cohsion of the granular material
     sysFSI.SetCohesionForce(2000.0);
 
-    // Setup the output directory for FSI data
-    sysFSI.SetOutputDirectory(out_dir);
-
     // Create SPH particles of fluid region
     chrono::utils::GridSampler<> sampler(initSpace0);
     ChVector<> boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2 + 1 * initSpace0);
