@@ -856,7 +856,6 @@ void ChSystemFsi::Initialize() {
 
     m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI->fsiBodiesD1);
     m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
-    m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
 
     // Construct midpoint rigid data
     m_sysFSI->fsiBodiesD2 = m_sysFSI->fsiBodiesD1;  
