@@ -1633,7 +1633,7 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(
             m_sysFSI->sphMarkersH->posRadH.push_back(
                 mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
             m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(
-                ChUtilsTypeConvert::ChVectorToReal3(pos_physical));
+                ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
             ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + ChVector<double>(1e-20);
             Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
             m_sysFSI->sphMarkersH->velMasH.push_back(v3);

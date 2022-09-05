@@ -582,8 +582,8 @@ __global__ void UpdateFlexMarkersPositionVelocityD(Real4* posRadD,
 
         Real h = posRadD[FlexMarkerIndex].w;
         Real3 tempPos = NA * pos_fsi_fea_D_nA + NB * pos_fsi_fea_D_nB +
-                        FlexSPH_MeshPos_LRF_D[index].y * y_dir * Spacing +
-                        FlexSPH_MeshPos_LRF_D[index].z * z_dir * Spacing;
+                        FlexSPH_MeshPos_LRF_D[index].y * y_dir +
+                        FlexSPH_MeshPos_LRF_D[index].z * z_dir ;
 
         posRadD[FlexMarkerIndex] = mR4(tempPos, h);
         velMasD[FlexMarkerIndex] = NA * vel_fsi_fea_D_nA + NB * vel_fsi_fea_D_nB;
