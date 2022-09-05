@@ -112,6 +112,10 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
         return 1;
     }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
+        return 1;
+    }
     if (!filesystem::create_directory(filesystem::path(out_dir + "/rover"))) {
         std::cerr << "Error creating directory " << out_dir + "/rover" << std::endl;
         return 1;
@@ -226,6 +230,7 @@ int main(int argc, char* argv[]) {
             ofile << time << "  " << body->GetPos() << "    " << body->GetPos_dt() << std::endl;
             if (current_step % output_steps == 0) {
                 sysFSI.PrintParticleToFile(out_dir + "/particles");
+                sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
                 SaveParaViewFiles(sysFSI, sysMBS, time);
             }
         }
