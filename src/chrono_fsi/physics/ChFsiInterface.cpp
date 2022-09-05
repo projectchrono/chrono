@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
 // =============================================================================
 //
 // Base class for processing the interface between Chrono and fsi modules
@@ -62,7 +62,6 @@ ChFsiInterface::~ChFsiInterface() {}
 //------------------------------------------------------------------------------------
 void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
     size_t numRigids = m_fsi_bodies.size();
-    std::string delim = ",";
 
     for (size_t i = 0; i < numRigids; i++) {
         ChVector<> mforce = ChUtilsTypeConvert::Real3ToChVector(
@@ -77,32 +76,6 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
         body->Empty_forces_accumulators();
         body->Accumulate_force(mforce, body->GetPos(), false);
         body->Accumulate_torque(mtorque, false);
-
-        // Output FSI information into csv files for each body.
-        // Enabled when an output directory is specified.
-        if (m_output_fsi) {
-            ChVector<> pos = body->GetPos();
-            ChVector<> vel = body->GetPos_dt();
-            ChQuaternion<> rot = body->GetRot();
-
-            std::string filename = m_outdir + "/FSI_body" + std::to_string(i) + ".csv";
-            std::ofstream file;
-            if (m_sysMBS.GetChTime() > 0)
-                file.open(filename, std::fstream::app);
-            else {
-                file.open(filename);
-                file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "q0" << delim << "q1"
-                     << delim << "q2" << delim << "q3" << delim << "Vx" << delim << "Vy" << delim << "Vz" << delim
-                     << "Fx" << delim << "Fy" << delim << "Fz" << delim << "Tx" << delim << "Ty" << delim << "Tz"
-                     << std::endl;
-            }
-
-            file << m_sysMBS.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z() << delim
-                 << rot.e0() << delim << rot.e1() << delim << rot.e2() << delim << rot.e3() << delim << vel.x() << delim
-                 << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y() << delim << mforce.z()
-                 << delim << mtorque.x() << delim << mtorque.y() << delim << mtorque.z() << std::endl;
-            file.close();
-        }
     }
 }
 //------------------------------------------------------------------------------------
@@ -202,7 +175,6 @@ void ChFsiInterface::ResizeChronoBodiesData() {
 //-----------------------Chrono FEA Specifics-----------------------------------------
 //------------------------------------------------------------------------------------
 void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
-    std::string delim = ",";
     size_t numNodes = m_fsi_nodes.size();
 
     for (size_t i = 0; i < numNodes; i++) {
@@ -210,27 +182,6 @@ void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
             ChUtilsDevice::FetchElement(m_sysFSI.fsiGeneralData->Flex_FSI_ForcesD, i));
         auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
         node->SetForce(mforce);
-
-        // Output FSI information into csv files for each node.
-        // Enabled when an output directory is specified.
-        if (m_output_fsi) {
-            ChVector<> pos = node->GetPos();
-            ChVector<> vel = node->GetPos_dt();
-            std::string filename = m_outdir + "/FSI_node" + std::to_string(i) + ".csv";
-            std::ofstream file;
-            if (m_sysMBS.GetChTime() > 0)
-                file.open(filename, std::fstream::app);
-            else {
-                file.open(filename);
-                file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "Vx" << delim << "Vy"
-                     << delim << "Vz" << delim << "Fx" << delim << "Fy" << delim << "Fz" << std::endl;
-            }
-
-            file << m_sysMBS.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z() << delim << vel.x()
-                 << delim << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y() << delim
-                 << mforce.z() << std::endl;
-            file.close();
-        }
     }
 }
 //------------------------------------------------------------------------------------
@@ -289,7 +240,7 @@ void ChFsiInterface::ResizeChronoShellsData(std::vector<std::vector<int>> ShellE
     }
 
     if (m_verbose) {
-        printf("numShells in ResizeChronoShellsData  %d\n", numShells);
+        printf("numShells in ResizeChronoShellsData  %ld\n", numShells);
         printf("ShellElementsNodesSTDVector.size() in ResizeChronoShellsData  %zd\n",
                ShellElementsNodesSTDVector.size());
     }

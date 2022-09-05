@@ -1007,10 +1007,23 @@ void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
 }
 
 void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
-    utils::PrintToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->sphMarkersD2->velMasD,
+    utils::PrintParticleToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->sphMarkersD2->velMasD,
         m_sysFSI->sphMarkersD2->rhoPresMuD, m_sysFSI->fsiGeneralData->sr_tau_I_mu_i,
         m_sysFSI->fsiGeneralData->referenceArray, m_sysFSI->fsiGeneralData->referenceArray_FEA, 
-        dir, m_paramsH, true);
+        dir, m_paramsH);
+}
+
+void ChSystemFsi::PrintFsiInfoToFile(const std::string& dir, double time) const {
+    utils::PrintFsiInfoToFile(
+        m_sysFSI->fsiBodiesD2->posRigid_fsiBodies_D,
+        m_sysFSI->fsiBodiesD2->velMassRigid_fsiBodies_D,
+        m_sysFSI->fsiBodiesD2->q_fsiBodies_D,
+        m_sysFSI->fsiMeshD->pos_fsi_fea_D,
+        m_sysFSI->fsiMeshD->vel_fsi_fea_D,
+        m_sysFSI->fsiGeneralData->rigid_FSI_ForcesD,
+        m_sysFSI->fsiGeneralData->rigid_FSI_TorquesD,
+        m_sysFSI->fsiGeneralData->Flex_FSI_ForcesD,
+        dir, time);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
