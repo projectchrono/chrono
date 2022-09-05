@@ -96,66 +96,18 @@ __device__ __inline__ void GetTriangleData(float3& normal,
     }
 }
 
-static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
-                                               //    const MaterialParameters& mat,
-                                               const MaterialRecordParameters* mat_params,
-                                               unsigned int& material_id,
-                                               const unsigned int& num_blended_materials,
-                                               const float3& world_normal,
-                                               const float2& uv,
-                                               const float3& tangent,
-                                               const float& ray_dist,
-                                               const float3& ray_orig,
-                                               const float3& ray_dir) {
-    float3 hit_point = ray_orig + ray_dir * ray_dist;
+//=============================
+// Calculating Refracted color
+//=============================
 
-    // if not blended materials, check for transparent cards and short circuit on the transparent texture
-    if (num_blended_materials == 1) {
-        const MaterialParameters& mat = params.material_pool[material_id];
+static __device__ __inline__ float3 CalculateRefractedColor(
+    PerRayData_camera* prd_camera,
+    const int& num_blended_materials,
+    unsigned int& material_id,
+    const float2& uv,
+    const float3& hit_point,
+    const float3& ray_dir){
 
-        float transparency = mat.transparency;
-        // figure out tranparency
-        if (mat.kd_tex) {
-            const float4 tex = tex2D<float4>(mat.kd_tex,uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
-            if (tex.w < 1e-6)
-                transparency = 0.f;  // to handle transparent card textures such as tree leaves
-        }
-
-        if (mat.opacity_tex) {
-            transparency = tex2D<float>(mat.opacity_tex,uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
-        }
-
-        // if this is perfectly transparent, we ignore it and trace the next ray (handles things like tree leaf cards)
-        if (transparency < 1e-6) {
-            if (prd_camera->depth + 1 < params.max_depth) {
-                PerRayData_camera prd_refraction = default_camera_prd();
-                prd_refraction.contrib_to_pixel = prd_camera->contrib_to_pixel;
-                prd_refraction.rng = prd_camera->rng;
-                prd_refraction.depth = prd_camera->depth + 1;
-                unsigned int opt1, opt2;
-                pointer_as_ints(&prd_refraction, opt1, opt2);
-                unsigned int raytype = (unsigned int)CAMERA_RAY_TYPE;
-                optixTrace(params.root, hit_point, ray_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
-                           OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
-                prd_camera->color = prd_refraction.color;
-                //account for fog
-                if (prd_camera->use_fog && params.fog_scattering > 0.f) {
-                    float blend_alpha = expf(-params.fog_scattering * ray_dist);
-                    prd_camera->color = blend_alpha * prd_camera->color + (1 - blend_alpha) * params.fog_color;
-                }
-
-                // For GI, harmless without GI
-                prd_camera->albedo = prd_refraction.albedo;
-                prd_camera->normal = prd_refraction.normal;
-            }
-            return;
-        }
-    }
-
-    // for each blended material accumulate transparency, and perform traversal
-    //=================
-    // Refracted color
-    //=================
     float accumulated_transparency = 0.f;
     {
         for (int b = 0; b < num_blended_materials; b++) {
@@ -196,10 +148,22 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
         }
     }
 
-    // for each light, traverse to light, and calculate each material's shading
-    //=================
-    // Surface reflection toward light sources
-    //=================
+    return refracted_color;
+}
+
+//=====================================================
+// Calculating Surface reflection toward light sources
+//=====================================================
+
+static __device__ __inline__ float3 CalculateReflectedColor(
+    PerRayData_camera* prd_camera,
+    const int& num_blended_materials,
+    unsigned int& material_id,
+    const float2& uv,
+    const float3& hit_point,
+    const float3& world_normal,
+    const float3& ray_dir){
+
     float NdV = Dot(world_normal, -ray_dir);
     float3 light_reflected_color = make_float3(0.0f);
     {
@@ -299,10 +263,22 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
         }
     }
 
-    //=================
-    // Ambient light
-    //=================
-    float3 ambient_light = make_float3(0.f);
+    return light_reflected_color;
+}
+
+//===========================
+// Calculating Ambient Light
+//===========================
+
+static __device__ __inline__ float3 CalculateAmbientLight(
+    PerRayData_camera* prd_camera,
+    const int& num_blended_materials,
+    unsigned int& material_id,
+    const float2& uv,
+    const float3& world_normal,
+    const float3& ray_dir){
+
+    float3 ambient_light = make_float3(0.0f);
     {
         if (!prd_camera->use_gi) {
             float NdV = Dot(world_normal, -ray_dir);
@@ -334,11 +310,24 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
         }
     }
 
-    // for each blended material accumulate reflection, and perform traversal
-    //=================
-    // If the surface is very smoooth, trace the reflected direction
-    // Do this reflection regardless of GI on or off.
-    //=================
+    return ambient_light;
+}
+
+//===============================================================
+// If the surface is very smoooth, trace the reflected direction
+// Do this reflection regardless of GI on or off.
+//===============================================================
+
+static __device__ __inline__ float3 CalculateContributionToPixel(
+    PerRayData_camera* prd_camera,
+    const int& num_blended_materials,
+    unsigned int& material_id,
+    const float2& uv,
+    const float3& world_normal,
+    const float3& ray_dir,
+    const float3& hit_point){
+    
+    float NdV = Dot(world_normal, -ray_dir);
     float3 next_contrib_to_pixel = make_float3(0.f);
     float3 next_dir = normalize(reflect(ray_dir, world_normal));
     {
@@ -419,11 +408,9 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
         }
     }
 
-    bool mirror_reflection = false;
     float3 mirror_reflection_color = make_float3(0.0);
     {
         if (luminance(next_contrib_to_pixel) > params.importance_cutoff && prd_camera->depth + 1 < params.max_depth) {
-            mirror_reflection = true;
             PerRayData_camera prd_reflection = default_camera_prd();
             prd_reflection.contrib_to_pixel = next_contrib_to_pixel;
 
@@ -440,105 +427,191 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
         }
     }
 
-    // send ray in random direction if global illumination enabled, calculate each materia's shading for a combined
-    // shading
+    return mirror_reflection_color;
+}
 
-    //=================
-    // Global illumination ray.
-    //=================
+//=================
+// Global illumination ray
+//=================
+
+static __device__ __inline__ float3 CalculateGIReflectionColor(
+    PerRayData_camera* prd_camera,
+    const int& num_blended_materials,
+    unsigned int& material_id,
+    const float2& uv,
+    const float3& world_normal,
+    const float3& ray_dir,
+    const float3& hit_point,
+    const float3& mirror_reflection_color){
+
+    float NdV = Dot(world_normal, -ray_dir);
     float3 gi_reflection_color = make_float3(0);
-    {
-        if (prd_camera->use_gi) {
-            // sample hemisphere for next ray when using global illumination
-            float z1 = curand_uniform(&prd_camera->rng);
-            float z2 = curand_uniform(&prd_camera->rng);
-            next_dir = sample_hemisphere_dir(z1, z2, world_normal);
 
-            float NdL = Dot(world_normal, next_dir);
-            float3 halfway = normalize(next_dir - ray_dir);
+    if (prd_camera->use_gi) {
+        // sample hemisphere for next ray when using global illumination
+        float z1 = curand_uniform(&prd_camera->rng);
+        float z2 = curand_uniform(&prd_camera->rng);
+        float3 next_dir = sample_hemisphere_dir(z1, z2, world_normal);
 
-            float NdH = Dot(world_normal, halfway);
-            float VdH = Dot(-ray_dir, halfway);  // Same as LdH
+        float NdL = Dot(world_normal, next_dir);
+        float3 halfway = normalize(next_dir - ray_dir);
 
-            float3 next_contrib_to_pixel = make_float3(0.f);
+        float NdH = Dot(world_normal, halfway);
+        float VdH = Dot(-ray_dir, halfway);  // Same as LdH
 
-            for (int b = 0; b < num_blended_materials; b++) {
-                const MaterialParameters& mat = params.material_pool[material_id + b];
-                float3 subsurface_albedo = mat.Kd;
-                if (mat.kd_tex) {
-                    const float4 tex = tex2D<float4>(mat.kd_tex, uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
-                    // transfer sRGB texture into linear color space.
-                    subsurface_albedo = Pow(make_float3(tex.x, tex.y, tex.z), 2.2);
-                }
-                float roughness = mat.roughness;
-                if (mat.roughness_tex) {
-                    roughness = tex2D<float>(mat.roughness_tex, uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
-                }
-                float metallic = mat.metallic;
-                if (mat.metallic_tex) {
-                    metallic = tex2D<float>(mat.metallic_tex, uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
-                }
-                float transparency = mat.transparency;
-                if (mat.opacity_tex) {  // override value with a texture if available
-                    transparency = tex2D<float>(mat.opacity_tex, uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
-                }
-                float mat_blend_weight = 1.f / num_blended_materials;
-                if (mat.weight_tex) {  // override blending with weight texture if available
-                    mat_blend_weight = tex2D<float>(mat.weight_tex, uv.x, uv.y);
-                }
+        float3 next_contrib_to_pixel = make_float3(0.f);
 
-                float3 F = make_float3(0.0f);
-                // === dielectric workflow
-                if (mat.use_specular_workflow) {
-                    float3 specular = mat.Ks;
-                    if (mat.ks_tex) {
-                        const float4 tex = tex2D<float4>(mat.ks_tex, uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
-                        specular = make_float3(tex.x, tex.y, tex.z);
-                    }
-                    float3 F0 = specular * 0.08f;
-                    F = fresnel_schlick(VdH, 5.f, F0, make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
-                } else {
-                    float3 default_dielectrics_F0 = make_float3(0.04f);
-                    F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
-                    subsurface_albedo = subsurface_albedo*(1 - metallic);  // since metals do not do subsurface reflection
-                }
-
-                float D = NormalDist(NdH, roughness);        // 1/pi omitted
-                float G = HammonSmith(NdV, NdL, roughness);  // 4  * NdV * NdL omitted
-                float3 f_ct = F * D * G;
-
-                // corrected for transparency, bounce contribution, and blend
-                float3 weight = transparency * prd_camera->contrib_to_pixel * mat_blend_weight;
-
-                // If mirror_reflection, then it will trace two rays. So each ray's contribution should be halfed
-                if (mirror_reflection) {
-                    weight = weight*.5f;
-                }
-                // Specular part
-                next_contrib_to_pixel += weight * f_ct * NdL;
-
-                // Diffuse part
-                F = clamp(F, make_float3(0), make_float3(1));
-                next_contrib_to_pixel += weight * (make_float3(1.f) - F) * subsurface_albedo * NdL;
+        for (int b = 0; b < num_blended_materials; b++) {
+            const MaterialParameters& mat = params.material_pool[material_id + b];
+            float3 subsurface_albedo = mat.Kd;
+            if (mat.kd_tex) {
+                const float4 tex = tex2D<float4>(mat.kd_tex, uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
+                // transfer sRGB texture into linear color space.
+                subsurface_albedo = Pow(make_float3(tex.x, tex.y, tex.z), 2.2);
+            }
+            float roughness = mat.roughness;
+            if (mat.roughness_tex) {
+                roughness = tex2D<float>(mat.roughness_tex, uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
+            }
+            float metallic = mat.metallic;
+            if (mat.metallic_tex) {
+                metallic = tex2D<float>(mat.metallic_tex, uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
+            }
+            float transparency = mat.transparency;
+            if (mat.opacity_tex) {  // override value with a texture if available
+                transparency = tex2D<float>(mat.opacity_tex, uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
+            }
+            float mat_blend_weight = 1.f / num_blended_materials;
+            if (mat.weight_tex) {  // override blending with weight texture if available
+                mat_blend_weight = tex2D<float>(mat.weight_tex, uv.x, uv.y);
             }
 
-            if (luminance(next_contrib_to_pixel) > params.importance_cutoff &&
-                prd_camera->depth + 1 < params.max_depth) {
-                PerRayData_camera prd_reflection = default_camera_prd();
-                prd_reflection.contrib_to_pixel = next_contrib_to_pixel;
-                prd_reflection.rng = prd_camera->rng;
-                prd_reflection.depth = prd_camera->depth + 1;
-                prd_reflection.use_gi = prd_camera->use_gi;
-                unsigned int opt1, opt2;
-                pointer_as_ints(&prd_reflection, opt1, opt2);
-                unsigned int raytype = (unsigned int)CAMERA_RAY_TYPE;
-                optixTrace(params.root, hit_point, next_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
-                           OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
-                gi_reflection_color = prd_reflection.color;  // accumulate indirect lighting color
+            float3 F = make_float3(0.0f);
+            // === dielectric workflow
+            if (mat.use_specular_workflow) {
+                float3 specular = mat.Ks;
+                if (mat.ks_tex) {
+                    const float4 tex = tex2D<float4>(mat.ks_tex, uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
+                    specular = make_float3(tex.x, tex.y, tex.z);
+                }
+                float3 F0 = specular * 0.08f;
+                F = fresnel_schlick(VdH, 5.f, F0, make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
+            } else {
+                float3 default_dielectrics_F0 = make_float3(0.04f);
+                F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
+                subsurface_albedo = subsurface_albedo*(1 - metallic);  // since metals do not do subsurface reflection
             }
+
+            float D = NormalDist(NdH, roughness);        // 1/pi omitted
+            float G = HammonSmith(NdV, NdL, roughness);  // 4  * NdV * NdL omitted
+            float3 f_ct = F * D * G;
+
+            // corrected for transparency, bounce contribution, and blend
+            float3 weight = transparency * prd_camera->contrib_to_pixel * mat_blend_weight;
+
+            // If mirror_reflection, then it will trace two rays. So each ray's contribution should be halfed
+            if ((mirror_reflection_color.x < 1e-6) && (mirror_reflection_color.y < 1e-6) && (mirror_reflection_color.z < 1e-6)) {
+                weight = weight*.5f;
+            }
+
+            // Specular part
+            next_contrib_to_pixel += weight * f_ct * NdL;
+
+            // Diffuse part
+            F = clamp(F, make_float3(0), make_float3(1));
+            next_contrib_to_pixel += weight * (make_float3(1.f) - F) * subsurface_albedo * NdL;
+        }
+
+        if (luminance(next_contrib_to_pixel) > params.importance_cutoff &&
+            prd_camera->depth + 1 < params.max_depth) {
+            PerRayData_camera prd_reflection = default_camera_prd();
+            prd_reflection.contrib_to_pixel = next_contrib_to_pixel;
+            prd_reflection.rng = prd_camera->rng;
+            prd_reflection.depth = prd_camera->depth + 1;
+            prd_reflection.use_gi = prd_camera->use_gi;
+            unsigned int opt1, opt2;
+            pointer_as_ints(&prd_reflection, opt1, opt2);
+            unsigned int raytype = (unsigned int)CAMERA_RAY_TYPE;
+            optixTrace(params.root, hit_point, next_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
+                        OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
+            gi_reflection_color = prd_reflection.color;  // accumulate indirect lighting color
         }
     }
 
+    return gi_reflection_color;
+}
+
+static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
+                                               const MaterialRecordParameters* mat_params,
+                                               unsigned int& material_id,
+                                               const unsigned int& num_blended_materials,
+                                               const float3& world_normal,
+                                               const float2& uv,
+                                               const float3& tangent,
+                                               const float& ray_dist,
+                                               const float3& ray_orig,
+                                               const float3& ray_dir) {
+    float3 hit_point = ray_orig + ray_dir * ray_dist;
+
+    // if not blended materials, check for transparent cards and short circuit on the transparent texture
+    if (num_blended_materials == 1) {
+        const MaterialParameters& mat = params.material_pool[material_id];
+
+        float transparency = mat.transparency;
+        // figure out tranparency
+        if (mat.kd_tex) {
+            const float4 tex = tex2D<float4>(mat.kd_tex,uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
+            if (tex.w < 1e-6)
+                transparency = 0.f;  // to handle transparent card textures such as tree leaves
+        }
+
+        if (mat.opacity_tex) {
+            transparency = tex2D<float>(mat.opacity_tex,uv.x*mat.tex_scale.x, uv.y*mat.tex_scale.y);
+        }
+
+        // if this is perfectly transparent, we ignore it and trace the next ray (handles things like tree leaf cards)
+        if (transparency < 1e-6) {
+            if (prd_camera->depth + 1 < params.max_depth) {
+                PerRayData_camera prd_refraction = default_camera_prd();
+                prd_refraction.contrib_to_pixel = prd_camera->contrib_to_pixel;
+                prd_refraction.rng = prd_camera->rng;
+                prd_refraction.depth = prd_camera->depth + 1;
+                unsigned int opt1, opt2;
+                pointer_as_ints(&prd_refraction, opt1, opt2);
+                unsigned int raytype = (unsigned int)CAMERA_RAY_TYPE;
+                optixTrace(params.root, hit_point, ray_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
+                           OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
+                prd_camera->color = prd_refraction.color;
+                //account for fog
+                if (prd_camera->use_fog && params.fog_scattering > 0.f) {
+                    float blend_alpha = expf(-params.fog_scattering * ray_dist);
+                    prd_camera->color = blend_alpha * prd_camera->color + (1 - blend_alpha) * params.fog_color;
+                }
+
+                // For GI, harmless without GI
+                prd_camera->albedo = prd_refraction.albedo;
+                prd_camera->normal = prd_refraction.normal;
+            }
+            return;
+        }
+    }
+
+    // for each blended material accumulate transparency, and perform traversal
+    float3 refracted_color = CalculateRefractedColor(prd_camera, num_blended_materials, material_id, uv, hit_point, ray_dir);
+
+    // for each light, traverse to light, and calculate each material's shading
+    float3 light_reflected_color = CalculateReflectedColor(prd_camera, num_blended_materials, material_id, uv, hit_point, world_normal, ray_dir);
+
+    // for each blended material, calculating total ambient light
+    float3 ambient_light = CalculateAmbientLight(prd_camera, num_blended_materials, material_id, uv, world_normal, ray_dir);
+
+    // for each blended material accumulate reflection, and perform traversal    
+    float3 next_dir = normalize(reflect(ray_dir, world_normal));
+    float3 mirror_reflection_color = CalculateContributionToPixel(prd_camera, num_blended_materials, material_id, uv, world_normal, ray_dir, hit_point);
+
+    // send ray in random direction if global illumination enabled, calculate each materia's shading for a combined shading
+    float3 gi_reflection_color = CalculateGIReflectionColor(prd_camera, num_blended_materials, material_id, uv, world_normal, ray_dir, hit_point, mirror_reflection_color);
+    
     //=================
     // Combine all traced colors together
     //=================
