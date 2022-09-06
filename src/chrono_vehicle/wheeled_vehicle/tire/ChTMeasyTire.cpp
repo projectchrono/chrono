@@ -356,8 +356,10 @@ void ChTMeasyTire::Advance(double step) {
     // Rolling Resistance, Ramp Like Signum inhibits 'switching' of My
     {
         // smoothing interval for My
-        const double vx_min = 0.125;
-        const double vx_max = 0.5;
+        // const double vx_min = 0.125; // change this to close to 0 and see what happens?
+
+        const double vx_min = 0.001; // change this to close to 0 and see what happens?
+        const double vx_max = 0.01;
 
         double Lrad = (m_unloaded_radius - m_data.depth);
         m_rolling_resistance = InterpL(Fz, m_TMeasyCoeff.rrcoeff_pn, m_TMeasyCoeff.rrcoeff_p2n);
@@ -482,6 +484,7 @@ void ChTMeasyTire::Advance(double step) {
     // Move the tire forces from the contact patch to the wheel center
     m_tireforce.moment +=
         Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
+
 }
 
 void ChTMeasyTire::tmxy_combined(double& f,
@@ -840,7 +843,9 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
 
     SetVerticalStiffness(CZ);
 
-    SetRollingResistanceCoefficients(0.015, 0.015);
+    // SetRollingResistanceCoefficients(0.015, 0.015);
+    SetRollingResistanceCoefficients(0.07, 0.07);
+
 
     SetDynamicRadiusCoefficients(0.375, 0.75);
 

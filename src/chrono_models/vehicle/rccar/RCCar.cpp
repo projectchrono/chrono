@@ -42,7 +42,9 @@ RCCar::RCCar()
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
-      m_apply_drag(false) {}
+      m_apply_drag(false),
+      m_stalling_torque(1),
+      m_voltage_ratio(1){}
 
 RCCar::RCCar(ChSystem* system)
     : m_system(system),
@@ -55,7 +57,9 @@ RCCar::RCCar(ChSystem* system)
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
-      m_apply_drag(false) {}
+      m_apply_drag(false),
+      m_stalling_torque(1),
+      m_voltage_ratio(1){}
 
 RCCar::~RCCar() {
     delete m_vehicle;
@@ -68,6 +72,15 @@ void RCCar::SetAerodynamicDrag(double Cd, double area, double air_density) {
     m_air_density = air_density;
 
     m_apply_drag = true;
+}
+
+/// parameters for tuning engine map
+void RCCar::SetMaxMotorVoltageRatio(double val){
+    m_voltage_ratio = val;
+}
+/// specify stall torque
+void RCCar::SetStallTorque(double val){
+    m_stalling_torque = val;
 }
 
 // -----------------------------------------------------------------------------
@@ -86,7 +99,10 @@ void RCCar::Initialize() {
 
     // Create and initialize the powertrain system
     auto powertrain = chrono_types::make_shared<RCCar_SimpleMapPowertrain>("Powertrain");
+    powertrain->SetMaxMotorVoltageRatio(m_voltage_ratio);
+    powertrain->SetStallTorque(m_stalling_torque);
     m_vehicle->InitializePowertrain(powertrain);
+
 
     // Create the tires and set parameters depending on type.
 
