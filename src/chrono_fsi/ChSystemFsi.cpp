@@ -1597,18 +1597,19 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(
             (Correct_Pos.z() < m_paramsH->cMin.z || Correct_Pos.z() > m_paramsH->cMax.z))
             continue;
 
+        // Note that the fluid particles are removed differently
         bool addthis = true;
-        for (int p = 0; p < m_sysFSI->sphMarkersH->posRadH.size() - 1; p++) {
-            if (length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - 
-                ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos)) < 1e-5 && 
-                m_sysFSI->sphMarkersH->rhoPresMuH[p].w != -1) {
-                addthis = false;
-                if (m_verbose) {
-                    printf("remove this particle %f,%f,%f because of its overlap with a particle at %f,%f,%f\n",
-                        m_sysFSI->sphMarkersH->posRadH[p].x, m_sysFSI->sphMarkersH->posRadH[p].y,
-                        m_sysFSI->sphMarkersH->posRadH[p].z, Correct_Pos.x(), Correct_Pos.y(), Correct_Pos.z());
+        for (size_t p = 0; p < m_sysFSI->sphMarkersH->posRadH.size() - 1; p++) {
+            // Only compare to rigid and flexible BCE particles added previously
+            if (m_sysFSI->sphMarkersH->rhoPresMuH[p].w > 0.5) {
+                double dis = length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - 
+                    ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos));
+                if (dis < 1e-8) {
+                    addthis = false;
+                    if (m_verbose)
+                        printf(" Already added a BCE particle here! Skip this one!\n");
+                    break;
                 }
-                break;
             }
         }
 
@@ -1708,7 +1709,6 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(
         }
     }
     m_fsi_shells_bce_num.push_back(posRadSizeModified);
-    m_sysFSI->sphMarkersH->rhoPresMuH.size();
 }
 
 void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPosBoundary(
