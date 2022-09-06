@@ -1545,18 +1545,9 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(
     int type = 2;
 
     fea::ChElementCableANCF::ShapeVector N;
+    fea::ChElementCableANCF::ShapeVector Nd;
+
     double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
-
-    ChVector<> Element_Axis = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).GetNormalized();
-    if (m_verbose)
-        printf(" Element_Axis= %f, %f, %f\n", Element_Axis.x(), Element_Axis.y(), Element_Axis.z());
-
-    ChVector<> Old_axis = ChVector<>(1, 0, 0);
-    ChQuaternion<double> Rotation = (Q_from_Vect_to_Vect(Old_axis, Element_Axis));
-    Rotation.Normalize();
-    ChVector<> new_y_axis = Rotation.Rotate(ChVector<>(0, 1, 0));
-    ChVector<> new_z_axis = Rotation.Rotate(ChVector<>(0, 0, 1));
-
     ChVector<> physic_to_natural(1 / dx, 1, 1);
 
     ChVector<> nAp = cable->GetNodeA()->GetPos();
@@ -1564,6 +1555,9 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(
 
     ChVector<> nAv = cable->GetNodeA()->GetPos_dt();
     ChVector<> nBv = cable->GetNodeB()->GetPos_dt();
+
+    ChVector<> nAdir = cable->GetNodeA()->GetD();
+    ChVector<> nBdir = cable->GetNodeB()->GetD();
 
     int posRadSizeModified = 0;
     if (m_verbose)
@@ -1573,24 +1567,19 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(
         ChVector<> pos_physical = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
         ChVector<> pos_natural = pos_physical * physic_to_natural;
 
+        cable->ShapeFunctionsDerivatives(Nd, pos_natural.x());
+        ChVector<> Element_Axis = Nd(0) * nAp + Nd(1) * nAdir + Nd(2) * nBp + Nd(3) * nBdir;
+        Element_Axis.Normalize();
+
+        ChVector<> Old_axis = ChVector<>(1, 0, 0);
+        ChQuaternion<double> Rotation = (Q_from_Vect_to_Vect(Old_axis, Element_Axis));
+        Rotation.Normalize();
+        ChVector<> new_y_axis = Rotation.Rotate(ChVector<>(0, 1, 0));
+        ChVector<> new_z_axis = Rotation.Rotate(ChVector<>(0, 0, 1));
+
         cable->ShapeFunctions(N, pos_natural.x());
-
-        Real2 NFSI = Cables_ShapeFunctions(pos_natural.x());
-        ChVector<> NFSI_Chvector = ChUtilsTypeConvert::Real2ToChVector(NFSI);
-
-        ChVector<> Correct_Pos = NFSI_Chvector.x() * nAp + NFSI_Chvector.y() * nBp + 
-            new_y_axis * pos_physical.y() + new_z_axis * pos_physical.z();
-
-        if (m_verbose) {
-            printf(" physic_to_natural is = (%f,%f,%f)\n", 
-                physic_to_natural.x(), physic_to_natural.y(), physic_to_natural.z());
-            printf(" pos_physical is = (%f,%f,%f)\n", 
-                pos_physical.x(), pos_physical.y(), pos_physical.z());
-            printf(" pos_natural is = (%f,%f,%f)\n ", 
-                pos_natural.x(), pos_natural.y(), pos_natural.z());
-            printf(" Correct_Pos is = (%f,%f,%f)\n\n\n ", 
-                Correct_Pos.x(), Correct_Pos.y(), Correct_Pos.z());
-        }
+        ChVector<> Correct_Pos = N(0) * nAp + N(1) * nAdir + N(2) * nBp + N(3) * nBdir +
+        new_y_axis * pos_physical.y() + new_z_axis * pos_physical.z();
 
         if ((Correct_Pos.x() < m_paramsH->cMin.x || Correct_Pos.x() > m_paramsH->cMax.x) ||
             (Correct_Pos.y() < m_paramsH->cMin.y || Correct_Pos.y() > m_paramsH->cMax.y) ||
