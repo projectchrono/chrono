@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
 
     // Start the simulation
     double dT = sysFSI.GetStepSize();
-    unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
+    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
 
     double time = 0;
     int current_step = 0;
