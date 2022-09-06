@@ -31,28 +31,38 @@ namespace rccar {
 
 const double rpm2rads = CH_C_PI / 30;
 
-const double Kv_rating = 1300;
-const double supply_voltage = 8.0;
-const double max_rpm = Kv_rating * supply_voltage;
-const double stall_torque = 1.0; // TODO, currently a guess
-
 RCCar_SimpleMapPowertrain::RCCar_SimpleMapPowertrain(const std::string& name) : ChSimpleMapPowertrain(name) {}
 
 double RCCar_SimpleMapPowertrain::GetMaxEngineSpeed() {
-    return max_rpm * rpm2rads;
+    return Kv_rating * supply_voltage * max_voltage_ratio * rpm2rads;
 }
 
+/// specify ratio of maximum engine voltage
+void RCCar_SimpleMapPowertrain::SetMaxMotorVoltageRatio(double maxVoltageRatio){
+    max_voltage_ratio = maxVoltageRatio;        
+}
+
+/// specify stall torque
+void RCCar_SimpleMapPowertrain::SetStallTorque(double stall_torque){
+    stallTorque = stall_torque;
+}
+
+
 void RCCar_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+    double max_rpm = Kv_rating * supply_voltage * max_voltage_ratio;
     // since this is a model of motor and ESC combination, we assume a linear relationship.
     // while brushless motors dont follow linear torque-speed relationship, most hobby electronic
     // speed controllers control the motor such that it approximately follows a linear relationship
-    mapF.AddPoint(0,stall_torque); //stall torque //TODO
+    mapF.AddPoint(0,stallTorque); //stall torque //TODO
     mapF.AddPoint(max_rpm * rpm2rads, 0);  // no load speed
 
     // N-m and rad/s
     map0.AddPoint(0, 0);
-    map0.AddPoint(.1 * max_rpm * rpm2rads, 0);
-    map0.AddPoint(max_rpm * rpm2rads, -stall_torque);  // TODO, currently a guess
+    // map0.AddPoint(.1 * max_rpm * rpm2rads, 0);
+    // map0.AddPoint(max_rpm * rpm2rads, -stallTorque);  // TODO, currently a guess
+    // map0.AddPoint(.1 * max_rpm * rpm2rads, 0);
+    map0.AddPoint(max_rpm * rpm2rads, 0);  // TODO, currently a guess
+
 }
 
 void RCCar_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
@@ -61,6 +71,8 @@ void RCCar_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& 
 }
 
 void RCCar_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
+    double max_rpm = Kv_rating * supply_voltage;
+
     shift_bands.push_back(std::pair<double, double>(0, 10 * max_rpm * rpm2rads)); //never shifts
 }
 

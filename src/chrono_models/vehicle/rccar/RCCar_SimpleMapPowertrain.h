@@ -45,6 +45,12 @@ class CH_MODELS_API RCCar_SimpleMapPowertrain : public chrono::vehicle::ChSimple
     /// Specify maximum engine speed.
     virtual double GetMaxEngineSpeed() override;
 
+    void SetMaxMotorVoltageRatio(double maxVoltage);
+
+    /// specify stall torque
+    void SetStallTorque(double stall_torque);
+
+
     /// Set the engine speed-torque maps.
     /// A concrete class must add the speed-torque points to the provided maps,
     /// using the ChFunction_Recorder::AddPoint() function.
@@ -61,6 +67,13 @@ class CH_MODELS_API RCCar_SimpleMapPowertrain : public chrono::vehicle::ChSimple
     virtual void SetShiftPoints(
         std::vector<std::pair<double, double>>& shift_bands  ///< [out] down-shift/up-shift points
         ) override;
+
+  private:
+    double max_voltage_ratio = 1.0f;
+    double Kv_rating = 1300;
+    double supply_voltage = 7.4;
+    double stallTorque = 0.7; // TODO, currently a guess
+
 };
 
 /// @} vehicle_models_rccar

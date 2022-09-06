@@ -20,9 +20,11 @@
 // =============================================================================
 
 #include "chrono/core/ChStream.h"
+#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
@@ -30,6 +32,7 @@
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/rccar/RCCar.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -41,16 +44,16 @@ using namespace chrono::vehicle::rccar;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 0.5);
+ChVector<> initLoc(0, 0, 0.13);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 enum DriverMode { DEFAULT, RECORD, PLAYBACK };
 DriverMode driver_mode = DEFAULT;
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
-VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
-VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType chassis_vis_type = VisualizationType::NONE;
+VisualizationType suspension_vis_type = VisualizationType::NONE;
+VisualizationType steering_vis_type = VisualizationType::NONE;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
@@ -77,10 +80,10 @@ double step_size = 1e-3;
 double tire_step_size = step_size;
 
 // Simulation end time
-double t_end = 1000;
+double t_end = 11;
 
 // Time interval between two render frames
-double render_step_size = 1.0 / 1;  // FPS = 50
+double render_step_size = 0.01;  // FPS = 50
 
 // Output directories
 const std::string out_dir = GetChronoOutputPath() + "RCCar";
@@ -97,6 +100,16 @@ bool povray_output = false;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
+    if (argc != 4){
+        std::cout << "useage: ./dART_calibration <0 - Acc, 1 - ramp steer, 2 - max steer, 3 - rr> <max voltage ratio> <stalling torque> " <<std::endl;
+
+        return -1;
+    }
+
+    int test_type = std::stoi(argv[1]);
+    double max_voltage_ratio = std::stof(argv[2]);
+    double stalling_torque = std::stof(argv[3]);
 
     // --------------
     // Create systems
@@ -132,7 +145,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
+            patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
@@ -149,15 +162,19 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize();
 
-    // Create the vehicle Irrlicht interface
+    bool useVis = false;
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("RCCar Demo");
-    vis->SetChaseCamera(trackPoint, 1.5, 0.05);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&my_rccar.GetVehicle());
+
+    // Create the vehicle Irrlicht interface
+    if (useVis){
+        vis->SetWindowTitle("RCCar Demo");
+        vis->SetChaseCamera(trackPoint, 1.5, 0.05);
+        vis->Initialize();
+        vis->AddTypicalLights();
+        vis->AddSkyBox();
+        vis->AddLogo();
+        my_rccar.GetVehicle().SetVisualSystem(vis);
+    }
 
     // -----------------
     // Initialize output
@@ -175,7 +192,26 @@ int main(int argc, char* argv[]) {
         terrain.ExportMeshPovray(out_dir);
     }
 
-    std::string driver_file = out_dir + "/driver_inputs.txt";
+    // std::string driver_file = out_dir + "/acc_test.txt";
+    std::string driver_file;
+    
+    switch (test_type){
+        case 0:
+            driver_file = out_dir + "/acc_test.txt";
+            break;
+        case 1:
+            driver_file = out_dir + "/ramp_steer.txt";
+            break;
+        case 2:
+            driver_file = out_dir + "/max_steer.txt";
+            break;
+        case 3:
+            driver_file = out_dir + "/rr_test.txt";
+            break;
+
+    }
+    std::cout << "driver input file name: " << driver_file << std::endl;
+
     utils::CSV_writer driver_csv(" ");
 
     // ------------------------
@@ -195,10 +231,10 @@ int main(int argc, char* argv[]) {
 
     // If in playback mode, attach the data file to the driver system and
     // force it to playback the driver inputs.
-    if (driver_mode == PLAYBACK) {
+    // if (driver_mode == PLAYBACK) {
         driver.SetInputDataFile(driver_file);
-        driver.SetInputMode(ChIrrGuiDriver::InputMode::DATAFILE);
-    }
+        driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
+    // }
 
     driver.Initialize();
 
@@ -227,10 +263,167 @@ int main(int argc, char* argv[]) {
         vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     }
 
-    my_rccar.GetVehicle().EnableRealtime(true);
+    ChRealtimeStepTimer realtime_timer;
+
+    
+    // Initilaizing the CSV writer to write the output file
+    utils::CSV_writer csv(",");
+    csv.stream().setf(std::ios::scientific | std::ios::showpos);
+    csv.stream().precision(6);
+
+    csv << "time";
+    csv << "Steering_input";
+    csv << "x";
+    csv << "y";
+    csv << "vx";
+    csv << "vy";
+    csv << "ax";
+    csv << "ay";
+    csv << "yaw";
+    csv << "roll";
+    csv << "yaw_rate";
+    csv << "roll_rate";
+    csv << "slip_angle";
+    csv << "long_slip";
+    csv << "toe_in_r";
+    csv << "toe_in_avg";
+    csv << "toe_in_l";
+    csv << "wlf";
+    csv << "wlr";
+    csv << "wrf";
+    csv << "wrr";
+    csv <<"tiredef_rf";
+    csv <<"tiredef_rr";
+    csv <<"tiredef_lf";
+    csv <<"tiredef_lr";
+    csv <<"sp_tor";
+    csv << std::endl;
+
+
     while (vis->Run()) {
+
         double time = my_rccar.GetSystem()->GetChTime();
-        std::cout << time << ", " << my_rccar.GetVehicle().GetSpeed() << std::endl;
+
+
+        // output data every 0.01 step
+        if (step_number % render_steps == 0){            
+            // std::cout << time << ", " << my_rccar.GetVehicle().GetSpeed() << ", ";
+            std::cout << time << ", ";
+
+            // Get the veclocities with respect to the local frame of reference
+            auto chassis_vel_abs = my_rccar.GetVehicle().GetPointVelocity(my_rccar.GetVehicle().GetCOMFrame().GetPos());
+            auto chassis_vel_veh = my_rccar.GetVehicle().GetTransform().TransformDirectionParentToLocal(chassis_vel_abs);
+
+            std::cout << chassis_vel_veh[0] << ", " << chassis_vel_veh[1];
+            std::cout << std::endl;
+
+
+            // Get the vehicle accelerations
+            auto chassis_acc_abs = my_rccar.GetVehicle().GetPointAcceleration(my_rccar.GetVehicle().GetChassis()->GetCOMFrame().GetPos());
+            auto chassis_acc_veh = my_rccar.GetVehicle().GetTransform().TransformDirectionParentToLocal(chassis_acc_abs);
+
+            // Orientation angles of the vehicle
+            // auto rot = vehicle.GetTransform().GetRot();
+            auto rot_v = my_rccar.GetVehicle().GetRot();
+            auto euler123 = rot_v.Q_to_Euler123();
+
+
+            // Get the Right wheel state
+            auto state = my_rccar.GetVehicle().GetWheel(0,VehicleSide {RIGHT})->GetState();
+            // Wheel normal (expressed in global frame)
+            ChVector<> wheel_normal = state.rot.GetYaxis();
+
+            // Terrain normal at wheel location (expressed in global frame)
+            ChVector<> Z_dir = terrain.GetNormal(state.pos);
+
+            // Longitudinal (heading) and lateral directions, in the terrain plane
+            ChVector<> X_dir = Vcross(wheel_normal, Z_dir);
+            X_dir.Normalize();
+            ChVector<> Y_dir = Vcross(Z_dir, X_dir);
+
+            // Tire reference coordinate system
+            ChMatrix33<> rot;
+            rot.Set_A_axis(X_dir, Y_dir, Z_dir);
+            ChCoordsys<> tire_csys(state.pos, rot.Get_A_quaternion());
+
+            // Express wheel normal in tire frame
+            ChVector<> n = tire_csys.TransformDirectionParentToLocal(wheel_normal);
+
+            // Wheel normal in the Vehicle frame
+            ChVector<> n_v = my_rccar.GetVehicle().GetTransform().TransformDirectionParentToLocal(wheel_normal);
+
+            // Toe-in
+            auto toe_in_r = std::atan2(n_v.x(),n_v.y());
+
+
+////////////////////////////////////////////////////////////////////////////////LEFT WHEEL - TOE-IN/////////////////////////////////////////////
+            // Same process for the left wheel
+            auto state_l = my_rccar.GetVehicle().GetWheel(0,VehicleSide {LEFT})->GetState();
+            // Wheel normal (expressed in global frame)
+            ChVector<> wheel_normal_l = state_l.rot.GetYaxis();
+            // Terrain normal at wheel location (expressed in global frame)
+            ChVector<> Z_dir_l = terrain.GetNormal(state_l.pos);
+
+            // Longitudinal (heading) and lateral directions, in the terrain plane
+            ChVector<> X_dir_l = Vcross(wheel_normal_l, Z_dir_l);
+            X_dir_l.Normalize();
+            ChVector<> Y_dir_l = Vcross(Z_dir_l, X_dir_l);
+
+            // Tire reference coordinate system
+            ChMatrix33<> rot_l;
+            rot.Set_A_axis(X_dir_l, Y_dir_l, Z_dir_l);
+            ChCoordsys<> tire_csys_l(state_l.pos, rot_l.Get_A_quaternion());
+
+            // Express wheel normal in tire frame
+            ChVector<> n_l = tire_csys_l.TransformDirectionParentToLocal(wheel_normal_l);
+
+            // Wheel normal in the Vehicle frame
+            ChVector<> n_v_l = my_rccar.GetVehicle().GetTransform().TransformDirectionParentToLocal(wheel_normal_l);
+
+
+            auto toe_in_l = std::atan2(n_v_l.x(),n_v_l.y());
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            // Slip angle just to check
+            double slip_angle = my_rccar.GetVehicle().GetTire(0, VehicleSide {RIGHT})->GetSlipAngle();
+            double long_slip = my_rccar.GetVehicle().GetTire(1, VehicleSide {RIGHT})->GetLongitudinalSlip();
+            auto omega = my_rccar.GetVehicle().GetChassisBody()->GetWvel_loc();            
+
+
+            csv << time;
+            csv << driver.GetSteering();
+            csv << my_rccar.GetVehicle().GetPos().x();
+            csv << my_rccar.GetVehicle().GetPos().y();
+            csv << chassis_vel_veh[0];
+            csv << chassis_vel_veh[1];
+            csv << chassis_acc_veh[0];
+            csv << chassis_acc_veh[1];
+            csv << euler123[2];
+            csv << euler123[0];
+
+
+            csv << omega[2];
+            csv << omega[0];
+            csv << slip_angle;
+            csv << long_slip;
+            csv << toe_in_r;
+            csv << (toe_in_l+toe_in_r)/2;
+            csv << toe_in_l;
+            csv << my_rccar.GetVehicle().GetSpindleAngVel(0,LEFT)[1];
+            csv << my_rccar.GetVehicle().GetSpindleAngVel(1,LEFT)[1];
+            csv << my_rccar.GetVehicle().GetSpindleAngVel(0,RIGHT)[1];
+            csv << my_rccar.GetVehicle().GetSpindleAngVel(1,RIGHT)[1];
+            csv << my_rccar.GetVehicle().GetTire(0,RIGHT)->GetDeflection();
+            csv << my_rccar.GetVehicle().GetTire(1,RIGHT)->GetDeflection();
+            csv << my_rccar.GetVehicle().GetTire(0,LEFT)->GetDeflection();
+            csv << my_rccar.GetVehicle().GetTire(1,LEFT)->GetDeflection();
+            csv << my_rccar.GetVehicle().GetDriveline()->GetSpindleTorque(0,VehicleSide {LEFT});
+            csv << std::endl;            
+
+        }
+
 
         // End simulation
         if (time >= t_end)
@@ -238,9 +431,9 @@ int main(int argc, char* argv[]) {
 
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0) {
-            vis->BeginScene();
-            vis->Render();
-            vis->EndScene();
+            // vis->BeginScene();
+            // vis->DrawAll();
+            // vis->EndScene();
 
             if (povray_output) {
                 char filename[100];
@@ -281,11 +474,20 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        // Spin in place for real time to catch up
+        realtime_timer.Spin(step_size);
     }
 
     if (driver_mode == RECORD) {
         driver_csv.write_to_file(driver_file);
     }
+
+    // csv.write_to_file("acc_test_output.csv");
+    std::string csv_output = driver_file + ".csv";
+    csv.write_to_file(csv_output);
+
+
 
     return 0;
 }

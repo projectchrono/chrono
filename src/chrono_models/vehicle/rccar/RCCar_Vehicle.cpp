@@ -75,8 +75,15 @@ void RCCar_Vehicle::Create(bool fixed, CollisionType chassis_collision_type) {
     m_steerings.resize(1);
     m_steerings[0] = chrono_types::make_shared<RCCar_PitmanArm>("Steering");
 
-    // Create the driveline
-    m_driveline = chrono_types::make_shared<RCCar_Driveline4WD>("Driveline");
+    switch(m_driveType){
+        default:
+        case DrivelineTypeWV::AWD:
+            m_driveline = chrono_types::make_shared<RCCar_Driveline4WD>("Driveline");
+            break;
+        case DrivelineTypeWV::SIMPLE:
+            m_driveline = chrono_types::make_shared<RCCar_SimpleDriveline>("Driveline");
+            break;
+    }    
 }
 
 RCCar_Vehicle::~RCCar_Vehicle() {}
@@ -102,7 +109,8 @@ void RCCar_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwd
                            m_omega[2], m_omega[3]);
 
     // Initialize the driveline subsystem (4WD)
-    std::vector<int> driven_susp_indexes = {0, 0};
+    // should this be 0 and 1?
+    std::vector<int> driven_susp_indexes = {0, 1};
     m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 
     // Invoke base class method

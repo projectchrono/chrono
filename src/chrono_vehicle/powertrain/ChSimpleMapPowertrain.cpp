@@ -69,6 +69,10 @@ void ChSimpleMapPowertrain::Synchronize(double time, const DriverInputs& driver_
     double zeroThrottleTorque = m_zero_throttle_map.Get_y(m_motor_speed);
     m_motor_torque = zeroThrottleTorque * (1 - throttle) + fullThrottleTorque * (throttle);
 
+    double resistance_k1 = 1e-4;
+    double initial_resistance = 0.02;
+    m_motor_torque = m_motor_torque - resistance_k1 * m_motor_speed - initial_resistance;
+
     // The torque at motor shaft
     m_shaft_torque = m_motor_torque / m_current_gear_ratio;
 }

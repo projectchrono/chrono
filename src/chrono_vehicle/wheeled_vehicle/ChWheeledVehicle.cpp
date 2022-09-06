@@ -71,8 +71,10 @@ void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_input
     }
 
     // Apply powertrain torque to the driveline's input shaft.
-    if (m_driveline)
+    if (m_driveline){
+        // std::cout << "powertrain torque: " << powertrain_torque << std::endl;
         m_driveline->Synchronize(time, driver_inputs, powertrain_torque);
+    }
 
     // Let the steering subsystems process the steering input.
     for (auto& steering : m_steerings) {
@@ -378,6 +380,7 @@ double ChWheeledVehicle::GetSpindleOmega(int axle, VehicleSide side) const {
 // minimum turning radius, the wheelbase, and the track of the front suspension.
 // -----------------------------------------------------------------------------
 double ChWheeledVehicle::GetMaxSteeringAngle() const {
+    double ans = std::asin(GetWheelbase() / (GetMinTurningRadius() - 0.5 * GetWheeltrack(0)));
     return std::asin(GetWheelbase() / (GetMinTurningRadius() - 0.5 * GetWheeltrack(0)));
 }
 

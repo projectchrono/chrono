@@ -84,6 +84,11 @@ class CH_MODELS_API RCCar {
     void SetWheelVisualizationType(VisualizationType vis) { m_vehicle->SetWheelVisualizationType(vis); }
     void SetTireVisualizationType(VisualizationType vis) { m_vehicle->SetTireVisualizationType(vis); }
 
+    /// parameters for tuning engine map
+    void SetMaxMotorVoltageRatio(double maxVoltageRatio);
+    /// specify stall torque
+    void SetStallTorque(double stall_torque);
+
     void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain);
     void Advance(double step);
 
@@ -112,6 +117,11 @@ class CH_MODELS_API RCCar {
     RCCar_Vehicle* m_vehicle;
 
     double m_tire_mass;
+
+    // parameter for stalling torque and voltage ratio to be calibrated
+    double m_stalling_torque;
+    double m_voltage_ratio;
+    
 };
 
 /// @} vehicle_models_rccar

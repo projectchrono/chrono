@@ -95,6 +95,10 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
         std::vector<std::pair<double, double>>& shift_bands  ///< [out] down-shift/up-shift points
         ) = 0;
 
+
+    /// Set resistance on the motor, only for RC car case that use electric motor
+
+
   private:
     /// Initialize the powertrain system.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis) override;

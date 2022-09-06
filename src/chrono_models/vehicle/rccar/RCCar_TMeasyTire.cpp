@@ -40,6 +40,9 @@ const ChVector<> RCCar_TMeasyTire::m_inertia(.0008, 0.001, .0008);
 // -----------------------------------------------------------------------------
 RCCar_TMeasyTire::RCCar_TMeasyTire(const std::string& name) : ChTMeasyTire(name) {
     SetTMeasyParams();
+    std::string filename = "tmeasy_tire_" + GetName() + ".txt";
+    ExportParameterFile(filename);
+    std::cout << "done writing tire parameter file!" << std::endl;
 }
 
 // -----------------------------------------------------------------------------
