@@ -150,32 +150,6 @@ class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler>
             // terminate process
             m_appPtr->Quit();
         }
-        if(_params->showVehicleState) {
-            if (keyPress.keyBase == 'a' || keyPress.keyModified == 'a') {
-                // terminate process
-                m_appPtr->SteeringLeft();
-            }
-            if (keyPress.keyBase == 'w' || keyPress.keyModified == 'w') {
-                // terminate process
-                m_appPtr->IncreaseVehicleSpeed();
-            }
-            if (keyPress.keyBase == 's' || keyPress.keyModified == 's') {
-                // terminate process
-                m_appPtr->DecreaseVehicleSpeed();
-            }
-            if (keyPress.keyBase == 'd' || keyPress.keyModified == 'd') {
-                // terminate process
-                m_appPtr->SteeringRight();
-            }
-            if (keyPress.keyBase == 'c' || keyPress.keyModified == 'c') {
-                // terminate process
-                m_appPtr->SteeringCenter();
-            }
-            if (keyPress.keyBase == 'r' || keyPress.keyModified == 'r') {
-                // terminate process
-                m_appPtr->ReleasePedals();
-            }
-        }
     }
 
   private:

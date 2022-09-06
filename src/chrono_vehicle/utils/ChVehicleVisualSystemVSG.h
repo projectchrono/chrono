@@ -23,6 +23,8 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     ChVehicleVisualSystemVSG();
     ~ChVehicleVisualSystemVSG();
 
+    virtual void Initialize() override;
+
     /// Attach a vehicle to this VSG vehicle visualization system.
     virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
 
@@ -36,12 +38,12 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     /// Update information related to driver inputs.
     virtual void Synchronize(const std::string& msg, const DriverInputs& driver_inputs) override;
 
-    virtual void IncreaseVehicleSpeed() override;
-    virtual void DecreaseVehicleSpeed() override;
-    virtual void SteeringLeft() override;
-    virtual void SteeringRight() override;
-    virtual void SteeringCenter() override;
-    virtual void ReleasePedals() override;
+    void IncreaseVehicleSpeed();
+    void DecreaseVehicleSpeed();
+    void SteeringLeft();
+    void SteeringRight();
+    void SteeringCenter();
+    void ReleasePedals();
 
 protected:
     ChVSGGuiDriver* m_guiDriver;
