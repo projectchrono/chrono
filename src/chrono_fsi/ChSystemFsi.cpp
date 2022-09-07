@@ -1559,6 +1559,9 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(
     ChVector<> nAdir = cable->GetNodeA()->GetD();
     ChVector<> nBdir = cable->GetNodeB()->GetD();
 
+    ChVector<> nAdirv = cable->GetNodeA()->GetD_dt();
+    ChVector<> nBdirv = cable->GetNodeB()->GetD_dt();
+
     int posRadSizeModified = 0;
     if (m_verbose)
         printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
@@ -1571,11 +1574,11 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(
         ChVector<> Element_Axis = Nd(0) * nAp + Nd(1) * nAdir + Nd(2) * nBp + Nd(3) * nBdir;
         Element_Axis.Normalize();
 
-        ChVector<> Old_axis = ChVector<>(1, 0, 0);
-        ChQuaternion<double> Rotation = (Q_from_Vect_to_Vect(Old_axis, Element_Axis));
-        Rotation.Normalize();
-        ChVector<> new_y_axis = Rotation.Rotate(ChVector<>(0, 1, 0));
-        ChVector<> new_z_axis = Rotation.Rotate(ChVector<>(0, 0, 1));
+        ChVector<> new_y_axis = ChVector<>(-Element_Axis.y(), Element_Axis.x(), 0) 
+                                + ChVector<>(-Element_Axis.z(), 0, Element_Axis.x()) 
+                                + ChVector<>(0, -Element_Axis.z(), Element_Axis.y());
+        new_y_axis.Normalize();
+        ChVector<> new_z_axis = Vcross(Element_Axis, new_y_axis);
 
         cable->ShapeFunctions(N, pos_natural.x());
         ChVector<> Correct_Pos = N(0) * nAp + N(1) * nAdir + N(2) * nBp + N(3) * nBdir +
@@ -1607,7 +1610,8 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(
                 mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
             m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(
                 ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
-            ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + ChVector<double>(1e-20);
+            ChVector<> Correct_Vel = N(0) * nAv + N(1) * nAdirv + N(2) * nBv + N(3) * nBdirv 
+                                    + ChVector<double>(1e-20);
             Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
             m_sysFSI->sphMarkersH->velMasH.push_back(v3);
             m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
