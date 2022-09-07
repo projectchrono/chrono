@@ -11,7 +11,7 @@ IF(NOT ENABLE_MODULE_FSI)
   return()
 ENDIF()
 
-message(STATUS "==== Chrono FSI module ====")
+message(STATUS "\n==== Chrono FSI module ====\n")
 
 # Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")

@@ -650,7 +650,8 @@ ChStreamFile::ChStreamFile(const char* filename, std::ios::openmode mmode) {
         file.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
         file.open(filename, mmode);
     } catch (const std::exception&) {
-        throw ChException("Cannot open stream");
+        std::string msg = "Cannot open stream " + std::string(filename); 
+        throw ChException(msg);
     };
     strncpy(name, filename, sizeof(name) - 1);
 }

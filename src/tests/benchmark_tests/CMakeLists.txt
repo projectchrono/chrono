@@ -1,6 +1,4 @@
-message(STATUS)
-message(STATUS "==== Benchmark programs ====")
-message(STATUS)
+message(STATUS "\n==== Benchmark programs ====\n")
 
 #--------------------------------------------------------------
 # Always use full RPATH (differentiating between the build and install trees)

@@ -10,7 +10,7 @@ if(NOT ENABLE_MODULE_PYTHON)
   return()
 endif()
 
-message(STATUS "==== Chrono Python module ====")
+message(STATUS "\n==== Chrono Python module ====\n")
 
 mark_as_advanced(CLEAR SWIG_EXECUTABLE)
 
@@ -39,7 +39,7 @@ endif()
 
 # UseSWIG honors SWIG_MODULE_NAME via -module flag.
 if(POLICY CMP0086)
-	cmake_policy(SET CMP0086 OLD)
+    cmake_policy(SET CMP0086 OLD)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -118,10 +118,56 @@ else()
 endif()
 
 #-----------------------------------------------------------------------------
+# Generate init.py
+#-----------------------------------------------------------------------------
+
+# Prepare replacement variables for init.py
+set(ADD_CUDA_DLL "")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  if(ENABLE_MODULE_SENSOR)
+    set(ADD_CUDA_DLL "os.add_dll_directory('${CUDA_BINARY_DIR}')")
+  endif()
+  if(ENABLE_MODULE_CASCADE)
+    set(ADD_OCC_DLL "os.add_dll_directory('${OpenCASCADE_BINARY_DIR}')")
+  endif()
+endif()
+
+# ---------- Pychrono in BUILD tree: use data/ in SOURCE tree
+
+# Path to Chrono data files (in SOURCE tree)
+set(PYC_DATA_PATH "${PROJECT_SOURCE_DIR}/data")
+
+# Generate the __init__.py file using substitution variables and place it in a temporary place
+configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.in
+               ${PROJECT_BINARY_DIR}/chrono_python/__init__.py)
+
+# ---------- Pychrono in INSTALL tree: use data/ in INSTALL tree (unless path explicitly provided)
+
+if(DEFINED PYCHRONO_DATA_PATH)
+  message(STATUS "User provided path to Chrono data files: ${PYCHRONO_DATA_PATH}")
+  set (PYC_DATA_PATH "${PYCHRONO_DATA_PATH}")
+else()
+  # Default path to Chrono data files (in INSTALL tree)
+  set(PYC_DATA_PATH "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}")
+endif()
+
+# Generate the __init__.py file using substitution variables and place it in a temporary place
+configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.in
+               ${PROJECT_BINARY_DIR}/chrono_python/__init__.py.install)
+
+#-----------------------------------------------------------------------------
+# Install demos
+#-----------------------------------------------------------------------------
+
+### TODO: install demos only for configured modules!!!
+
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/demos/python/" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}/demos")
+
+#-----------------------------------------------------------------------------
 # MODULE for the core wrapper, including most of the C::E
 #-----------------------------------------------------------------------------
 
-message(STATUS "...add Chrono::Python CORE module")
+message(STATUS "...add python CORE module")
 
 # Python module name
 set(CHPY_CORE core)
@@ -176,9 +222,9 @@ add_custom_command(TARGET ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
 
 # Install .pyd binary module (.so on linux)
 install(TARGETS ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
-        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
 
 # Install .py module wrapper
 install(FILES "${CHPY_CORE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
@@ -192,37 +238,22 @@ if (DBG_SCRIPT)
 endif()
 
 #-----------------------------------------------------------------------------
-# init.py
+# Relocate init.py
 #-----------------------------------------------------------------------------
 
-# Set default path for Chrono data files relative to python demos in source tree
-set(PYCHRONO_DATA_PATH "../../../../data" CACHE STRING "Path to Chrono data files (for Python demos)")
+# ---------- Pychrono in BUILD tree
 
-# Prepare replacement variables for init.py
-set(ADD_CUDA_DLL "")
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  if(ENABLE_MODULE_SENSOR)
-    set(ADD_CUDA_DLL "os.add_dll_directory('${CUDA_BINARY_DIR}')")
-  endif()
-  if(ENABLE_MODULE_CASCADE)
-    set(ADD_OCC_DLL "os.add_dll_directory('${OpenCASCADE_BINARY_DIR}')")
-  endif()
-endif()
-
-# Generate the __init__.py file using substitution variables and place it in a temporary place
-configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.in
-               ${PROJECT_BINARY_DIR}/chrono_python/__init__.py)
-
-# Copy the __init__.py file in the package
+# Copy the __init__.py (BUILD) file in the package
 add_custom_command(TARGET ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/chrono_python/__init__.py" ${CHPY_CORE_PYD_PATH}/${CHPY_PACKAGENAME})
 
-# Install __init__.py to signal the directory is a python package
-install(FILES "${PROJECT_BINARY_DIR}/chrono_python/__init__.py" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+# ---------- Pychrono in INSTALL tree
 
-# Install demos
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/demos/python/" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}/demos")
+# Install __init__.py (INSTALL) to signal the directory is a python package
+install(FILES "${PROJECT_BINARY_DIR}/chrono_python/__init__.py.install" 
+        DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}" 
+        RENAME __init__.py)
 
 #-----------------------------------------------------------------------------
 # MODULE for the postprocess python wrapper.
@@ -230,7 +261,7 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/demos/python/" DESTINATION "${CH_INST
 
 if(ENABLE_MODULE_POSTPROCESS)
 
-  message(STATUS "...add Chrono::Python POSTPROCESS module")
+  message(STATUS "...add python POSTPROCESS module")
 
   # Python module name
   set(CHPY_POSTPROCESS postprocess)
@@ -279,9 +310,9 @@ if(ENABLE_MODULE_POSTPROCESS)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS ${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME}
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-		  LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
   # Install .py module wrapper
   install(FILES "${CHPY_POSTPROCESS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
@@ -299,7 +330,7 @@ endif()
 # MODULE for the fea python wrapper.
 #-----------------------------------------------------------------------------
 
-  message(STATUS "...add Chrono::Python FEA module")
+  message(STATUS "...add python FEA module")
 
   # Python module name
   set(CHPY_FEA fea)
@@ -347,9 +378,9 @@ SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
   # Install .py module wrapper
   install(FILES "${CHPY_FEA_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
@@ -367,7 +398,7 @@ SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine)
 
 if(ENABLE_MODULE_IRRLICHT)
 
-  message(STATUS "...add Chrono::Python IRRLICHT module")
+  message(STATUS "...add python IRRLICHT module")
 
   # Python module name
   set(CHPY_IRRLICHT irrlicht)
@@ -419,9 +450,9 @@ if(ENABLE_MODULE_IRRLICHT)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS ${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME}
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
   # Install .py module wrapper
   install(FILES "${CHPY_IRRLICHT_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
@@ -493,9 +524,9 @@ if(ENABLE_MODULE_PARDISO_MKL)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS ${SWIG_MODULE_${CHPY_MKL}_REAL_NAME}
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-		  LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
   # Install .py module wrapper
   install(FILES "${CHPY_MKL_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
@@ -575,9 +606,9 @@ if(ENABLE_MODULE_CASCADE)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS ${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME}
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-		  LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
   # Install .py module wrapper
   install(FILES "${CHPY_CASCADE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
@@ -672,9 +703,9 @@ if(ENABLE_MODULE_VEHICLE)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS ${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME}
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-		  LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
   # Install .py module wrapper
   install(FILES "${CHPY_VEHICLE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
@@ -693,12 +724,12 @@ endif()
 #-----------------------------------------------------------------------------
 
 if(ENABLE_MODULE_SENSOR)
-  message(STATUS "...add Chrono::Python SENSOR module")
+  message(STATUS "...add python SENSOR module")
 
   set(NUMPY_INCLUDE_DIR "${NUMPY_INCLUDE_DIR}" CACHE PATH "")
 
   if(NUMPY_INCLUDE_DIR)
-      message(STATUS "NUMPY_INCLUDE_DIR:   ${NUMPY_INCLUDE_DIR}")
+      message(STATUS "   Numpy include directory: ${NUMPY_INCLUDE_DIR}")
   else()
       message("Warning: Numpy include add_subdirectory not set.  The PyChrono sensor module will not be built!")
   endif()
@@ -754,9 +785,9 @@ if(ENABLE_MODULE_SENSOR AND NUMPY_INCLUDE_DIR)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS ${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME}
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
   # Install .py module wrapper
   install(FILES "${CHPY_SENSOR_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
@@ -832,9 +863,9 @@ endif()
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS ${SWIG_MODULE_${CHPY_RS}_REAL_NAME}
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-      LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
   # Install .py module wrapper
   install(FILES "${CHPY_VEHICLE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 

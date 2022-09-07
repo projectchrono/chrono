@@ -6,10 +6,12 @@ echo $CI_PROJECT_DIR
 export NP_INCL=$(python $CI_PROJECT_DIR/contrib/packaging-python/conda/setvarnumpy.py )
 # in py <= 3.7, headers are in $PREFIX/include/python3.xm/, while since python 3.8 they are in $PREFIX/include/python3.8/ go figure.
 if [ "$PY3K" == "1" ] && [ "$PY_VER" != "3.8" ] ; then
-    MY_PY_VER="${PY_VER}m"
+    MY_PY_VER="${PY_VER}"
 else
     MY_PY_VER="${PY_VER}"
 fi
+
+echo Python version: $MY_PY_VER
 
 if [ `uname` == Darwin ]; then
     PY_LIB="libpython${MY_PY_VER}.dylib"

@@ -12,7 +12,7 @@ IF(NOT ENABLE_MODULE_MATLAB)
   RETURN()
 ENDIF()
 
-MESSAGE(STATUS "==== Chrono Matlab module ====")
+MESSAGE(STATUS "\n==== Chrono Matlab module ====\n")
 
 MARK_AS_ADVANCED(CLEAR MATLAB_SDK_ROOT)
 

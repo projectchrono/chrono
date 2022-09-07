@@ -11,9 +11,17 @@ REM set env variables needed by MKL
 set MKL_INTERFACE_LAYER = LP64
 set MKL_THREADING_LAYER = INTEL
 set CONFIGURATION=Release
+
+REM Renaming numpy conda package
+del *.tar.bz2
+powershell -ExecutionPolicy Bypass -File "%CI_PROJECT_DIR%\contrib\packaging-python\conda\script.ps1"
+
 REM Configure step
 
 REM THIS STATIC LIBRARY DOESN'T APPEAR ANYMORE, USE THE VERSION FROM THE INTEL oneAPI COMPILER SUITE -DIOMP5_LIBRARY="%PREFIX%"\Library\lib\libiomp5md.lib ^
+
+REM For chrono::sensor, we are using the machine's CUDA and optix installation since anaconda does not have the up-to-date packages we need
+REM Keep an eye on this in the future. Ideally, all packages we use to build pyChrono should come from anaconda
 
 mkdir cmake_began
 cmake -G "Visual Studio 17 2022" -T "v142" ^
@@ -30,6 +38,13 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DENABLE_MODULE_POSTPROCESS=ON ^
  -DENABLE_MODULE_VEHICLE=ON ^
  -DENABLE_MODULE_PYTHON=ON ^
+ -DENABLE_MODULE_SENSOR=ON ^
+ -DNUMPY_INCLUDE_DIR="C:/Users/builder/miniconda3/envs/build-env/pkgs/numpy-base/Lib/site-packages/numpy/core/include/" ^
+ -DOptiX_INSTALL_DIR="C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0" ^
+ -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7" ^
+ -DGLFW_DLL="C:/Users/builder/Documents/glfw-3.3.5/lib-vc2019/glfw3.dll" ^
+ -DGLFW_INCLUDE_DIR="C:/Users/builder/Documents/glfw-3.3.5/include" ^
+ -DGLFW_LIBRARY="C:/Users/builder/Documents/glfw-3.3.5/lib-vc2019/glfw3dll.lib" ^
  -DBUILD_DEMOS=OFF ^
  -DIRRLICHT_ROOT="%PREFIX%"/Library/include/irrlicht ^
  -DIRRLICHT_LIBRARY="%PREFIX%"/Library/lib/Irrlicht.lib ^
@@ -47,7 +62,7 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  .. >> "%LOG_DIR%"\cmakeconfiglog.txt 2>&1
 if errorlevel 1 exit 1
 mkdir cmake_ended
- 
+
 REM Build step 
 mkdir build_began
 cmake --build . --config Release >> "%LOG_DIR%"\cmakebuildlog.txt 2>&1

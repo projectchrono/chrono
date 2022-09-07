@@ -22,7 +22,7 @@ if(NOT ENABLE_MODULE_OPENGL)
   return()
 endif()
 
-message(STATUS "==== Chrono OpenGL module ====")
+message(STATUS "\n==== Chrono OpenGL module ====\n")
 
 # Show Chrono::OpenGL specific variables
 mark_as_advanced(CLEAR GLEW_INCLUDE_DIR)
