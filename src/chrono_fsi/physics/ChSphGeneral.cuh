@@ -370,9 +370,11 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
             x_dir = x_dir / length(x_dir);
             Real dx = dot(dist3, x_dir);
 
-            Real2 N_cable = Cables_ShapeFunctions(dx / Cable_x);
-            Real NA = N_cable.x;
-            Real NB = N_cable.y;
+            // Real2 N_cable = Cables_ShapeFunctions(dx / Cable_x);
+            // Real NA = N_cable.x;
+            // Real NB = N_cable.y;
+            Real NA = 1 - dx / Cable_x;
+            Real NB = dx / Cable_x;
 
             V_prescribed = NA * vel_fsi_fea_D_nA + NB * vel_fsi_fea_D_nB;
             myAcc = NA * acc_fsi_fea_D_nA + NB * acc_fsi_fea_D_nB;

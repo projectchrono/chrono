@@ -190,9 +190,11 @@ __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
     int numFlex1D = numObjectsD.numFlexBodies1D;
 
     if (FlexIndex < numFlex1D) {
-        Real2 N_cable = Cables_ShapeFunctions(FlexSPH_MeshPos_LRF_D[index].x);
-        Real NA = N_cable.x;
-        Real NB = N_cable.y;
+        // Real2 N_cable = Cables_ShapeFunctions(FlexSPH_MeshPos_LRF_D[index].x);
+        // Real NA = N_cable.x;
+        // Real NB = N_cable.y;
+        Real NA = 1 - FlexSPH_MeshPos_LRF_D[index].x;
+        Real NB = FlexSPH_MeshPos_LRF_D[index].x;
 
         int nA = CableElementsNodesD[FlexIndex].x;
         int nB = CableElementsNodesD[FlexIndex].y;
@@ -476,10 +478,11 @@ __global__ void CalcFlexBceAccelerationD(Real3* bceAcc,
     // BCE acc on cable elements
     if (FlexIndex < numFlex1D) {
         uint2 CableNodes = CableElementsNodesD[FlexIndex];
-        Real2 N_cable = Cables_ShapeFunctions(FlexSPH_MeshPos_LRF_D[bceIndex].x);
-
-        Real NA = N_cable.x;
-        Real NB = N_cable.y;
+        // Real2 N_cable = Cables_ShapeFunctions(FlexSPH_MeshPos_LRF_D[bceIndex].x);
+        // Real NA = N_cable.x;
+        // Real NB = N_cable.y;
+        Real NA = 1 - FlexSPH_MeshPos_LRF_D[bceIndex].x;
+        Real NB = FlexSPH_MeshPos_LRF_D[bceIndex].x;
 
         Real3 acc_fsi_fea_D_nA = acc_fsi_fea_D[CableNodes.x];
         Real3 acc_fsi_fea_D_nB = acc_fsi_fea_D[CableNodes.y];
@@ -565,23 +568,36 @@ __global__ void UpdateFlexMarkersPositionVelocityD(Real4* posRadD,
         Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[CableNodes.x];
         Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[CableNodes.y];
 
+        Real3 dir_fsi_fea_D_nA = dir_fsi_fea_D[CableNodes.x];
+        Real3 dir_fsi_fea_D_nB = dir_fsi_fea_D[CableNodes.y];
+
         //// TODO, the direction should be calculated based on node direction and shape function
-        Real3 x_dir = pos_fsi_fea_D_nB - pos_fsi_fea_D_nA;
-        x_dir = x_dir / length(x_dir);
+        // Real3 x_dir = pos_fsi_fea_D_nB - pos_fsi_fea_D_nA;
+        // x_dir = x_dir / length(x_dir);
+        Real l = length(pos_fsi_fea_D_nB - pos_fsi_fea_D_nA);
+
+        Real4 N_dir = Cables_ShapeFunctionsDerivatives(l, FlexSPH_MeshPos_LRF_D[index].x);
+
+        Real3 x_dir = normalize(N_dir.x * pos_fsi_fea_D_nA + N_dir.y * dir_fsi_fea_D_nA + 
+                        N_dir.z * pos_fsi_fea_D_nB + N_dir.w * dir_fsi_fea_D_nB);
+
         Real3 y_dir = mR3(-x_dir.y, x_dir.x, 0) + mR3(-x_dir.z, 0, x_dir.x) + mR3(0, -x_dir.z, x_dir.y);
         y_dir = y_dir / length(y_dir);
         Real3 z_dir = cross(x_dir, y_dir);
 
-        Real2 N_cable = Cables_ShapeFunctions(FlexSPH_MeshPos_LRF_D[index].x);
+        Real4 N_cable = Cables_ShapeFunctions(l, FlexSPH_MeshPos_LRF_D[index].x);
 
         Real NA = N_cable.x;
-        Real NB = N_cable.y;
+        Real NAdir = N_cable.y;
+        Real NB = N_cable.z;
+        Real NBdir = N_cable.w;
 
         Real3 vel_fsi_fea_D_nA = vel_fsi_fea_D[CableNodes.x];
         Real3 vel_fsi_fea_D_nB = vel_fsi_fea_D[CableNodes.y];
 
         Real h = posRadD[FlexMarkerIndex].w;
-        Real3 tempPos = NA * pos_fsi_fea_D_nA + NB * pos_fsi_fea_D_nB +
+        Real3 tempPos = NA * pos_fsi_fea_D_nA + NAdir * dir_fsi_fea_D_nA + 
+                        NB * pos_fsi_fea_D_nB + NBdir * dir_fsi_fea_D_nB +
                         FlexSPH_MeshPos_LRF_D[index].y * y_dir +
                         FlexSPH_MeshPos_LRF_D[index].z * z_dir ;
 
