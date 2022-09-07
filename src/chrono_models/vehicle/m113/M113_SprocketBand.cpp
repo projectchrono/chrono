@@ -46,6 +46,7 @@ const double M113_SprocketBand::m_gear_tip_width = 0.0128 * 1.04;
 const double M113_SprocketBand::m_gear_tooth_depth = 0.0387 * 1.04;
 const double M113_SprocketBand::m_gear_arc_radius = 0.0542 * 1.04;
 const double M113_SprocketBand::m_gear_RA = 0.2307 * 1.04;
+const double M113_SprocketBand::m_gear_RT = 0.22;
 
 const double M113_SprocketBand::m_lateral_backlash = 0.02;
 

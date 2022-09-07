@@ -45,6 +45,10 @@ class CH_VEHICLE_API SprocketBand : public ChSprocketBand {
     /// This quantity is used during the automatic track assembly.
     virtual double GetAssemblyRadius() const override { return m_gear_RA; }
 
+    /// Get the addendum radius.
+    /// This quantity is an average radius for sprocket-track engagement used to estimate longitudinal slip.
+    virtual double GetAddendumRadius() const override { return m_gear_RT; }
+
     /// Return the mass of the gear body.
     virtual double GetGearMass() const override { return m_gear_mass; }
     /// Return the moments of inertia of the gear body.
@@ -93,6 +97,7 @@ class CH_VEHICLE_API SprocketBand : public ChSprocketBand {
     double m_gear_tooth_depth;
     double m_gear_arc_radius;
     double m_gear_RA;
+    double m_gear_RT;
 
     double m_lateral_backlash;
 
