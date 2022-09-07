@@ -81,7 +81,7 @@ void RCCar_Vehicle::Create(bool fixed, CollisionType chassis_collision_type) {
             m_driveline = chrono_types::make_shared<RCCar_Driveline4WD>("Driveline");
             break;
         case DrivelineTypeWV::SIMPLE:
-            m_driveline = chrono_types::make_shared<RCCar_SimpleDriveline>("Driveline");
+            // m_driveline = chrono_types::make_shared<RCCar_SimpleDriveline>("Driveline");
             break;
     }    
 }

@@ -34,7 +34,7 @@
 #include "chrono_models/vehicle/rccar/RCCar_Chassis.h"
 #include "chrono_models/vehicle/rccar/RCCar_DoubleWishbone.h"
 #include "chrono_models/vehicle/rccar/RCCar_Driveline4WD.h"
-#include "chrono_models/vehicle/rccar/RCCar_SimpleDriveline.h"
+// #include "chrono_models/vehicle/rccar/RCCar_SimpleDriveline.h"
 #include "chrono_models/vehicle/rccar/RCCar_PitmanArm.h"
 #include "chrono_models/vehicle/rccar/RCCar_Wheel.h"
 
