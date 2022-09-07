@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Jayne Henry
+// Authors: Radu Serban, Jayne Henry, Luning Fang
 // =============================================================================
 //
 // Simple powertrain model for the RCCar vehicle.

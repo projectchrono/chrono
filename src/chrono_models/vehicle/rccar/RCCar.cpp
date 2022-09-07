@@ -44,7 +44,8 @@ RCCar::RCCar()
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false),
       m_stalling_torque(1),
-      m_voltage_ratio(1){}
+      m_voltage_ratio(1),
+      m_rolling_friction_coeff(0.05){}
 
 RCCar::RCCar(ChSystem* system)
     : m_system(system),
@@ -82,6 +83,16 @@ void RCCar::SetMaxMotorVoltageRatio(double val){
 void RCCar::SetStallTorque(double val){
     m_stalling_torque = val;
 }
+/// specify rolling resistance in tire model
+void RCCar::SetTireRollingResistance(double val){
+    m_rolling_friction_coeff = val;
+}
+
+void RCCar::SetMotorResistanceCoefficients(double c0, double c1){
+    m_motor_resistance_c0 = c0;
+    m_motor_resistance_c1 = c1;
+}
+
 
 // -----------------------------------------------------------------------------
 void RCCar::Initialize() {
@@ -101,6 +112,9 @@ void RCCar::Initialize() {
     auto powertrain = chrono_types::make_shared<RCCar_SimpleMapPowertrain>("Powertrain");
     powertrain->SetMaxMotorVoltageRatio(m_voltage_ratio);
     powertrain->SetStallTorque(m_stalling_torque);
+    powertrain->SetMotorResistanceCoefficients(m_motor_resistance_c0, m_motor_resistance_c1);
+
+
     m_vehicle->InitializePowertrain(powertrain);
 
 
@@ -118,6 +132,12 @@ void RCCar::Initialize() {
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+
+
+            tire_FL->SetRollingFrictionCoefficient(m_rolling_friction_coeff);
+            tire_FR->SetRollingFrictionCoefficient(m_rolling_friction_coeff);
+            tire_RL->SetRollingFrictionCoefficient(m_rolling_friction_coeff);
+            tire_RR->SetRollingFrictionCoefficient(m_rolling_friction_coeff);
 
             m_tire_mass = tire_FL->GetMass();
             break;

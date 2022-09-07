@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Mike Taylor, Asher Elmquist
+// Authors: Radu Serban, Mike Taylor, Asher Elmquist, Luning Fang
 // =============================================================================
 //
 // Simple powertrain model template.
@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 
 ChSimpleMapPowertrain::ChSimpleMapPowertrain(const std::string& name)
-    : ChPowertrain(name), m_motor_speed(0), m_motor_torque(0), m_shaft_torque(0) {}
+    : ChPowertrain(name), m_motor_speed(0), m_motor_torque(0), m_shaft_torque(0), m_motor_resistance_c0(0), m_motor_resistance_c1(0) {}
 
 void ChSimpleMapPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     ChPowertrain::Initialize(chassis);
@@ -69,10 +69,8 @@ void ChSimpleMapPowertrain::Synchronize(double time, const DriverInputs& driver_
     double zeroThrottleTorque = m_zero_throttle_map.Get_y(m_motor_speed);
     m_motor_torque = zeroThrottleTorque * (1 - throttle) + fullThrottleTorque * (throttle);
 
-    double resistance_k1 = 1e-4;
-    double initial_resistance = 0.02;
-    m_motor_torque = m_motor_torque - resistance_k1 * m_motor_speed - initial_resistance;
-
+    // apply resistance in motor, default is no resistance
+    m_motor_torque = m_motor_torque - m_motor_resistance_c1 * m_motor_speed - m_motor_resistance_c0;
     // The torque at motor shaft
     m_shaft_torque = m_motor_torque / m_current_gear_ratio;
 }

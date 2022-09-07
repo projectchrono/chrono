@@ -843,10 +843,7 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
 
     SetVerticalStiffness(CZ);
 
-    // SetRollingResistanceCoefficients(0.015, 0.015);
-    SetRollingResistanceCoefficients(0.07, 0.07);
-
-
+    SetRollingResistanceCoefficients(0.015, 0.015);
     SetDynamicRadiusCoefficients(0.375, 0.75);
 
     m_TMeasyCoeff.dz = DZ;

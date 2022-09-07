@@ -46,6 +46,7 @@ class CH_MODELS_API RCCar_TMeasyTire : public ChTMeasyTire {
     virtual void RemoveVisualizationAssets() override final;
 
     void GenerateCharacteristicPlots(const std::string& dirname);
+    void SetRollingFrictionCoefficient(const double mu_r);
 
   private:
     static const double m_mass;

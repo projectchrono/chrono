@@ -77,6 +77,9 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
     /// interface between the powertrain and vehicle co-simulation modules.
     virtual double GetOutputTorque() const override { return m_shaft_torque; }
 
+    /// set coefficients for motor resistance
+    void SetMotorResistanceCoefficients(double val1, double val2) {m_motor_resistance_c0 = val1; m_motor_resistance_c1 = val2;}
+ 
   protected:
     /// Specify maximum engine speed.
     virtual double GetMaxEngineSpeed() = 0;
@@ -96,7 +99,7 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
         ) = 0;
 
 
-    /// Set resistance on the motor, only for RC car case that use electric motor
+    /// Set resistance on the motor, default is zero resistance
 
 
   private:
@@ -122,6 +125,11 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
 
     ChFunction_Recorder m_zero_throttle_map;  ///< engine map at zero throttle
     ChFunction_Recorder m_full_throttle_map;  ///< engine map at full throttle
+
+    // coefficients for motor resistance, default setting: motor has no resistance
+    // resistance_torque = c0 + c1 * m_motor_speed
+    double m_motor_resistance_c0;
+    double m_motor_resistance_c1;
 };
 
 /// @} vehicle_powertrain
