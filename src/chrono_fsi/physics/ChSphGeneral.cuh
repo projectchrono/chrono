@@ -311,8 +311,8 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
                                    Real3* acc_fsi_fea_D,
                                    uint* FlexIdentifierD,
                                    const int numFlex1D,
-                                   uint2* CableElementsNodes,
-                                   uint4* ShellelementsNodes) {
+                                   uint2* CableElementsNodesD,
+                                   uint4* ShellElementsNodesD) {
     int Original_idx = gridMarkerIndexD[i_idx];
 
     // See if this belongs to a fixed boundary
@@ -352,8 +352,8 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
         int FlexIndex = FlexIdentifierD[Original_idx - updatePortion.z];
 
         if (FlexIndex < numFlex1D) {
-            int nA = CableElementsNodes[FlexIndex].x;
-            int nB = CableElementsNodes[FlexIndex].y;
+            int nA = CableElementsNodesD[FlexIndex].x;
+            int nB = CableElementsNodesD[FlexIndex].y;
 
             Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[nA];
             Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[nB];
@@ -379,10 +379,10 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
 
         }
         if (FlexIndex >= numFlex1D) {
-            int nA = ShellelementsNodes[FlexIndex - numFlex1D].x;
-            int nB = ShellelementsNodes[FlexIndex - numFlex1D].y;
-            int nC = ShellelementsNodes[FlexIndex - numFlex1D].z;
-            int nD = ShellelementsNodes[FlexIndex - numFlex1D].w;
+            int nA = ShellElementsNodesD[FlexIndex - numFlex1D].x;
+            int nB = ShellElementsNodesD[FlexIndex - numFlex1D].y;
+            int nC = ShellElementsNodesD[FlexIndex - numFlex1D].z;
+            int nD = ShellElementsNodesD[FlexIndex - numFlex1D].w;
 
             Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[nA];
             Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[nB];

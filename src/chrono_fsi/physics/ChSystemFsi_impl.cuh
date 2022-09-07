@@ -298,10 +298,10 @@ struct FsiGeneralData {
     thrust::device_vector<Real3> Flex_FSI_ForcesD;    ///< Vector of the surface-integrated force on FEA nodes
 
     thrust::host_vector<int2> CableElementsNodesH;   ///< Vector of the cable elements nodes on host
-    thrust::device_vector<int2> CableElementsNodes;  ///< Vector of the cable elements nodes on device
+    thrust::device_vector<int2> CableElementsNodesD;  ///< Vector of the cable elements nodes on device
 
     thrust::host_vector<int4> ShellElementsNodesH;   ///< Vector of the shell elements nodes on host
-    thrust::device_vector<int4> ShellElementsNodes;  ///< Vector of the shell elements nodes on device
+    thrust::device_vector<int4> ShellElementsNodesD;  ///< Vector of the shell elements nodes on device
 };
 
 /// @brief Data related function implementations for FSI system

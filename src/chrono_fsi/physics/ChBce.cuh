@@ -130,8 +130,8 @@ class ChBce : public ChFsiGeneral {
     void CalcFlexBceAcceleration(thrust::device_vector<Real3>& bceAcc,                      ///< acceleration of BCE particles
                                  const thrust::device_vector<Real3>& acc_fsi_fea_D,         ///< acceleration of all FEM nodes
                                  const thrust::device_vector<Real3>& FlexSPH_MeshPos_LRF_D, ///< position of BCE in local reference of FEM element it is attached
-                                 const thrust::device_vector<int2>& CableElementsNodes,     ///< node ID in a speficif cable element
-                                 const thrust::device_vector<int4>& ShellElementsNodes,     ///< node ID in a speficif shell element
+                                 const thrust::device_vector<int2>& CableElementsNodesD,     ///< node ID in a speficif cable element
+                                 const thrust::device_vector<int4>& ShellElementsNodesD,     ///< node ID in a speficif shell element
                                  const thrust::device_vector<uint>& FlexIdentifierD         ///< ID of the flexible body (cable or shell) a specific BCE is in
                                 );
 

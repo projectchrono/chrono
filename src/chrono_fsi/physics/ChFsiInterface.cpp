@@ -262,7 +262,7 @@ void ChFsiInterface::ResizeChronoShellsData(std::vector<std::vector<int>> ShellE
         m_sysFSI.fsiGeneralData->ShellElementsNodesH[i].w = ShellElementsNodesSTDVector[i][3];
     }
 
-    //  (*ShellelementsNodes).resize(numShells);
+    //  (*ShellElementsNodesD).resize(numShells);
     //  thrust::copy(ShellelementsNodes_H.begin(), ShellelementsNodes_H.end(), (*m_fea_shell_nodes).begin());
 }
 

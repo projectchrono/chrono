@@ -662,13 +662,13 @@ void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
 
 void ChSystemFsi::SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes) {
     m_fea_cable_nodes = elementsNodes;
-    size_t test = m_sysFSI->fsiGeneralData->CableElementsNodes.size();
+    size_t test = m_sysFSI->fsiGeneralData->CableElementsNodesH.size();
     std::cout << "Number of cable element nodes" << test << std::endl;
 }
 
 void ChSystemFsi::SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes) {
     m_fea_shell_nodes = elementsNodes;
-    size_t test = m_sysFSI->fsiGeneralData->ShellElementsNodes.size();
+    size_t test = m_sysFSI->fsiGeneralData->ShellElementsNodesH.size();
     std::cout << "Number of shell element nodes" << test << std::endl;
 }
 

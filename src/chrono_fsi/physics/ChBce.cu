@@ -60,8 +60,8 @@ __global__ void Populate_FlexSPH_MeshPos_LRF_D(Real3* FlexSPH_MeshPos_LRF_D,
                                                Real3* FlexSPH_MeshPos_LRF_H,
                                                Real4* posRadD,
                                                uint* FlexIdentifierD,
-                                               uint2* CableElementsNodes,
-                                               uint4* ShellElementsNodes,
+                                               uint2* CableElementsNodesD,
+                                               uint4* ShellElementsNodesD,
                                                Real3* pos_fsi_fea_D) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numFlexMarkers)
@@ -78,7 +78,7 @@ __global__ void Populate_FlexSPH_MeshPos_LRF_D(Real3* FlexSPH_MeshPos_LRF_D,
     Real Spacing = paramsD.HSML * paramsD.MULT_INITSPACE_Shells;
 
     if (FlexIndex < numFlex1D) {
-        uint2 cableNodes = CableElementsNodes[FlexIndex];
+        uint2 cableNodes = CableElementsNodesD[FlexIndex];
         Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[cableNodes.x];
         Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[cableNodes.y];
         Real3 dist3 = mR3(posRadD[FlexMarkerIndex]) - pos_fsi_fea_D_nA;
@@ -101,7 +101,7 @@ __global__ void Populate_FlexSPH_MeshPos_LRF_D(Real3* FlexSPH_MeshPos_LRF_D,
         FlexSPH_MeshPos_LRF_D[index] = mR3(dx / Cable_x, dy, dz);
     }
     if (FlexIndex >= numFlex1D) {
-        uint4 shellNodes = ShellElementsNodes[FlexIndex - numFlex1D];
+        uint4 shellNodes = ShellElementsNodesD[FlexIndex - numFlex1D];
         Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[shellNodes.x];
         Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[shellNodes.y];
         Real3 pos_fsi_fea_D_nC = pos_fsi_fea_D[shellNodes.z];
@@ -171,8 +171,8 @@ __global__ void Calc_Rigid_FSI_Forces_Torques_D(Real3* rigid_FSI_ForcesD,
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
                                       uint* FlexIdentifierD,
-                                      uint2* CableElementsNodes,
-                                      uint4* ShellElementsNodes,
+                                      uint2* CableElementsNodesD,
+                                      uint4* ShellElementsNodesD,
                                       Real4* derivVelRhoD,
                                       Real4* derivVelRhoD_old,
                                       Real3* pos_fsi_fea_D,
@@ -194,8 +194,8 @@ __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
         Real NA = N_cable.x;
         Real NB = N_cable.y;
 
-        int nA = CableElementsNodes[FlexIndex].x;
-        int nB = CableElementsNodes[FlexIndex].y;
+        int nA = CableElementsNodesD[FlexIndex].x;
+        int nB = CableElementsNodesD[FlexIndex].y;
 
         if (std::is_same<Real, double>::value) {
             atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].x), NA * derivVelRhoD[FlexMarkerIndex].x);
@@ -223,10 +223,10 @@ __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
         Real NC = N_shell.z;
         Real ND = N_shell.w;
 
-        int nA = ShellElementsNodes[FlexIndex - numFlex1D].x;
-        int nB = ShellElementsNodes[FlexIndex - numFlex1D].y;
-        int nC = ShellElementsNodes[FlexIndex - numFlex1D].z;
-        int nD = ShellElementsNodes[FlexIndex - numFlex1D].w;
+        int nA = ShellElementsNodesD[FlexIndex - numFlex1D].x;
+        int nB = ShellElementsNodesD[FlexIndex - numFlex1D].y;
+        int nC = ShellElementsNodesD[FlexIndex - numFlex1D].z;
+        int nD = ShellElementsNodesD[FlexIndex - numFlex1D].w;
 
         if (std::is_same<Real, double>::value) {
             atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].x), NA * derivVelRhoD[FlexMarkerIndex].x);
@@ -462,8 +462,8 @@ __global__ void CalcRigidBceAccelerationD(Real3* bceAcc,
 __global__ void CalcFlexBceAccelerationD(Real3* bceAcc,
                                          Real3* acc_fsi_fea_D,
                                          Real3* FlexSPH_MeshPos_LRF_D,
-                                         uint2* CableElementsNodes,
-                                         uint4* ShellelementsNodes,
+                                         uint2* CableElementsNodesD,
+                                         uint4* ShellElementsNodesD,
                                          const uint* FlexIdentifierD) {
     uint bceIndex = blockIdx.x * blockDim.x + threadIdx.x;
     if (bceIndex >= numObjectsD.numFlexMarkers)
@@ -475,7 +475,7 @@ __global__ void CalcFlexBceAccelerationD(Real3* bceAcc,
 
     // BCE acc on cable elements
     if (FlexIndex < numFlex1D) {
-        uint2 CableNodes = CableElementsNodes[FlexIndex];
+        uint2 CableNodes = CableElementsNodesD[FlexIndex];
         Real2 N_cable = Cables_ShapeFunctions(FlexSPH_MeshPos_LRF_D[bceIndex].x);
 
         Real NA = N_cable.x;
@@ -488,7 +488,7 @@ __global__ void CalcFlexBceAccelerationD(Real3* bceAcc,
     }
     // BCE acc on shell elements
     if (FlexIndex >= numFlex1D && FlexIndex < numFlex2D) {
-        uint4 shellNodes = ShellelementsNodes[FlexIndex - numFlex1D];
+        uint4 shellNodes = ShellElementsNodesD[FlexIndex - numFlex1D];
         Real4 N_shell = Shells_ShapeFunctions(FlexSPH_MeshPos_LRF_D[bceIndex].x, FlexSPH_MeshPos_LRF_D[bceIndex].y);
 
         Real NA = N_shell.x;
@@ -545,8 +545,8 @@ __global__ void UpdateFlexMarkersPositionVelocityD(Real4* posRadD,
                                                    Real3* FlexSPH_MeshPos_LRF_D,
                                                    Real3* velMasD,
                                                    const uint* FlexIdentifierD,
-                                                   uint2* CableElementsNodes,
-                                                   uint4* ShellelementsNodes,
+                                                   uint2* CableElementsNodesD,
+                                                   uint4* ShellElementsNodesD,
                                                    Real3* pos_fsi_fea_D,
                                                    Real3* vel_fsi_fea_D,
                                                    Real3* dir_fsi_fea_D) {
@@ -561,7 +561,7 @@ __global__ void UpdateFlexMarkersPositionVelocityD(Real4* posRadD,
     Real Spacing = paramsD.HSML * paramsD.MULT_INITSPACE_Shells;
 
     if (FlexIndex < numFlex1D) {
-        uint2 CableNodes = CableElementsNodes[FlexIndex];
+        uint2 CableNodes = CableElementsNodesD[FlexIndex];
         Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[CableNodes.x];
         Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[CableNodes.y];
 
@@ -590,7 +590,7 @@ __global__ void UpdateFlexMarkersPositionVelocityD(Real4* posRadD,
     }
 
     if (FlexIndex >= numFlex1D) {
-        uint4 shellNodes = ShellelementsNodes[FlexIndex - numFlex1D];
+        uint4 shellNodes = ShellElementsNodesD[FlexIndex - numFlex1D];
         Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[shellNodes.x];
         Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[shellNodes.y];
         Real3 pos_fsi_fea_D_nC = pos_fsi_fea_D[shellNodes.z];
@@ -752,7 +752,7 @@ void ChBce::Populate_FlexSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMark
     Populate_FlexSPH_MeshPos_LRF_D<<<nBlocks, nThreads>>>(
         mR3CAST(fsiGeneralData->FlexSPH_MeshPos_LRF_D), mR3CAST(FlexSPH_MeshPos_LRF_H), 
         mR4CAST(sphMarkersD->posRadD), U1CAST(fsiGeneralData->FlexIdentifierD), 
-        U2CAST(fsiGeneralData->CableElementsNodes), U4CAST(fsiGeneralData->ShellElementsNodes), 
+        U2CAST(fsiGeneralData->CableElementsNodesD), U4CAST(fsiGeneralData->ShellElementsNodesD), 
         mR3CAST(fsiMeshD->pos_fsi_fea_D));
 
     cudaDeviceSynchronize();
@@ -832,8 +832,8 @@ void ChBce::CalcRigidBceAcceleration(thrust::device_vector<Real3>& bceAcc,
 void ChBce::CalcFlexBceAcceleration(thrust::device_vector<Real3>& bceAcc,
                                     const thrust::device_vector<Real3>& acc_fsi_fea_D,
                                     const thrust::device_vector<Real3>& FlexSPH_MeshPos_LRF_D,
-                                    const thrust::device_vector<int2>& CableElementsNodes,
-                                    const thrust::device_vector<int4>& ShellElementsNodes,
+                                    const thrust::device_vector<int2>& CableElementsNodesD,
+                                    const thrust::device_vector<int4>& ShellElementsNodesD,
                                     const thrust::device_vector<uint>& FlexIdentifierD) {
     // thread per particle
     uint numThreads, numBlocks;
@@ -841,7 +841,7 @@ void ChBce::CalcFlexBceAcceleration(thrust::device_vector<Real3>& bceAcc,
 
     CalcFlexBceAccelerationD<<<numBlocks, numThreads>>>(
         mR3CAST(bceAcc), mR3CAST(acc_fsi_fea_D), mR3CAST(FlexSPH_MeshPos_LRF_D),
-        U2CAST(CableElementsNodes), U4CAST(ShellElementsNodes), U1CAST(FlexIdentifierD));
+        U2CAST(CableElementsNodesD), U4CAST(ShellElementsNodesD), U1CAST(FlexIdentifierD));
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -895,8 +895,8 @@ void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphM
         // Acceleration of flexible BCE particles
         if (numObjectsH->numFlexMarkers > 0) {
             CalcFlexBceAcceleration(bceAcc, fsiMeshD->acc_fsi_fea_D,
-                fsiGeneralData->FlexSPH_MeshPos_LRF_D, fsiGeneralData->CableElementsNodes,
-                fsiGeneralData->ShellElementsNodes, fsiGeneralData->FlexIdentifierD);
+                fsiGeneralData->FlexSPH_MeshPos_LRF_D, fsiGeneralData->CableElementsNodesD,
+                fsiGeneralData->ShellElementsNodesD, fsiGeneralData->FlexIdentifierD);
         }
         // ADAMI BC for rigid/flexible body, ORIGINAL BC for fixed wall
         if (paramsH->bceTypeWall == BceVersion::ORIGINAL) {
@@ -977,7 +977,7 @@ void ChBce::Flex_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared
 
     Calc_Flex_FSI_ForcesD<<<nBlocks, nThreads>>>(
         mR3CAST(fsiGeneralData->FlexSPH_MeshPos_LRF_D), U1CAST(fsiGeneralData->FlexIdentifierD),
-        U2CAST(fsiGeneralData->CableElementsNodes), U4CAST(fsiGeneralData->ShellElementsNodes),
+        U2CAST(fsiGeneralData->CableElementsNodesD), U4CAST(fsiGeneralData->ShellElementsNodesD),
         mR4CAST(fsiGeneralData->derivVelRhoD), mR4CAST(fsiGeneralData->derivVelRhoD_old), 
         mR3CAST(fsiMeshD->pos_fsi_fea_D), mR3CAST(fsiGeneralData->Flex_FSI_ForcesD));
 
@@ -1014,7 +1014,7 @@ void ChBce::UpdateFlexMarkersPositionVelocity(std::shared_ptr<SphMarkerDataD> sp
     UpdateFlexMarkersPositionVelocityD<<<nBlocks, nThreads>>>(
         mR4CAST(sphMarkersD->posRadD), mR3CAST(fsiGeneralData->FlexSPH_MeshPos_LRF_D), 
         mR3CAST(sphMarkersD->velMasD), U1CAST(fsiGeneralData->FlexIdentifierD), 
-        U2CAST(fsiGeneralData->CableElementsNodes), U4CAST(fsiGeneralData->ShellElementsNodes), 
+        U2CAST(fsiGeneralData->CableElementsNodesD), U4CAST(fsiGeneralData->ShellElementsNodesD), 
         mR3CAST(fsiMeshD->pos_fsi_fea_D), mR3CAST(fsiMeshD->vel_fsi_fea_D), mR3CAST(fsiMeshD->dir_fsi_fea_D));
 
     cudaDeviceSynchronize();
