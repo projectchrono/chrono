@@ -61,8 +61,8 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
   public:
     virtual ~ChVehicleCosimWheeledMBSNode();
 
-    /// Return the node type as NodeType::MBS.
-    virtual NodeType GetNodeType() const override { return NodeType::MBS; }
+    /// Return the node type as NodeType::MBS_WHEELED.
+    virtual NodeType GetNodeType() const override { return NodeType::MBS_WHEELED; }
 
     /// Set the number of OpenMP threads used in Chrono simulation (default: 1).
     void SetNumThreads(int num_threads);

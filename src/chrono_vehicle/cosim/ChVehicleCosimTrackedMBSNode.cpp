@@ -103,6 +103,12 @@ void ChVehicleCosimTrackedMBSNode::Initialize() {
     // Invoke the base class method to figure out distribution of node types
     ChVehicleCosimBaseNode::Initialize();
 
+    // There should be no TIRE nodes.
+    if (m_num_tire_nodes > 0) {
+        std::cerr << "Error: a tracked vehicle co-simulation should involve no TIRE nodes." << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+
     // Complete setup of the underlying ChSystem
     InitializeSystem();
 
@@ -114,48 +120,35 @@ void ChVehicleCosimTrackedMBSNode::Initialize() {
 
     if (m_verbose) {
         cout << "[MBS node    ] Received initial terrain height = " << init_dim[0] << endl;
-        cout << "[MBS node    ] Received terrain length    =  " << init_dim[1] << endl;
-        cout << "[MBS node    ] Received terrain width    =  " << init_dim[2] << endl;
+        cout << "[MBS node    ] Received terrain length =  " << init_dim[1] << endl;
+        cout << "[MBS node    ] Received terrain width =  " << init_dim[2] << endl;
     }
 
     double terrain_height = init_dim[0];
     ChVector2<> terrain_size(init_dim[1], init_dim[2]);
 
-
-    //// RADU TODO send track info here!!!
-
-    /*
-    // For each TIRE, receive the tire mass and radius
-    std::vector<ChVector<>> tire_info;
-
-    for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
-        double tmp[3];
-        MPI_Recv(tmp, 3, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
-        tire_info.push_back(ChVector<>(tmp[0], tmp[1], tmp[2]));
-    }
-
     // Let derived classes construct and initialize their multibody system
     InitializeMBS(terrain_size, terrain_height);
-    assert(GetNumSpindles() == (int)m_num_tire_nodes);
+    auto num_track_shoes = GetNumTrackShoes();
 
     GetChassisBody()->SetBodyFixed(m_fix_chassis);
 
+    // Send to TERRAIN node the number of interacting objects (here, number of track shoes)
+    MPI_Send(&num_track_shoes, 1, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
+    // Send the object representation (primitives) and the communication interface type (rigid body) to the TERRAIN node
+    char comm_type[] = {0, 0};
+    MPI_Send(comm_type, 2, MPI_CHAR, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
-    // For each tire:
-    // - cache the spindle body
-    // - get the load on the wheel and send to TIRE node
-    for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
-        double load = GetSpindleLoad(i);
-        MPI_Send(&load, 1, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD);
-    }
-    
+    ////
+    //// RADU TODO send track shoe info to TERRAIN node here!!!
+    ////
 
 
     // Initialize the DBP rig if one is attached
     if (m_DBP_rig) {
         m_DBP_rig->m_verbose = m_verbose;
-        m_DBP_rig->Initialize(GetChassisBody(), tire_info, m_step_size);
+        m_DBP_rig->Initialize(GetChassisBody(), GetSprocketAddendumRadius(), m_step_size);
 
         m_DBP_outf.open(m_node_out_dir + "/DBP.dat", std::ios::out);
         m_DBP_outf.precision(7);
@@ -163,7 +156,6 @@ void ChVehicleCosimTrackedMBSNode::Initialize() {
 
         OnInitializeDBPRig(m_DBP_rig->GetMotorFunction());
     }
-    */
 }
 
 // -----------------------------------------------------------------------------
@@ -242,7 +234,7 @@ void ChVehicleCosimTrackedMBSNode::InitializeSystem() {
 
 // -----------------------------------------------------------------------------
 // Synchronization of the MBS node:
-// - extract and send tire mesh vertex states
+// - extract and send track shoe states
 // - receive and apply vertex contact forces
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTrackedMBSNode::Synchronize(int step_number, double time) {

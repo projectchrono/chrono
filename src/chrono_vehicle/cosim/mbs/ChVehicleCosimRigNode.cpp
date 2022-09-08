@@ -76,8 +76,8 @@ void ChVehicleCosimRigNode::InitializeMBS(const std::vector<ChVector<>>& tire_in
 
     if (m_verbose) {
         cout << "[Rig node    ] total mass = " << m_total_mass << endl;
-        cout << "[Rig node    ] tire mass  = " << tire_mass << endl;
-        cout << "[Rig node    ] body mass  = " << body_mass << endl;
+        cout << "[Rig node    ] tire mass = " << tire_mass << endl;
+        cout << "[Rig node    ] body mass = " << body_mass << endl;
     }
 
     // Construct the mechanical system

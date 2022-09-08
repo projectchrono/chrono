@@ -113,13 +113,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual double GetInitHeight() const = 0;
 
     /// Perform any additional operations after the initial data exchange with the MBS node, including creating any
-    /// required proxies for the specified number of objects. A derived class has access to the following vectors (of
-    /// size equal to the number of objects):
-    /// - radius for each tire (through m_tire_radius)
-    /// - width for each tire (through m_tire_width)
-    /// - mesh information for each object (through m_mesh_data)
-    /// - contact material for each object (through m_mat_props)
-    /// - vertical load on each object (through m_load_mass)
+    /// required proxies for the specified number of objects. A derived class has access to the following vectors,
+    /// each of size m_num_shapes:
+    /// - m_object_dims: shape dimensions
+    /// - m_mesh_data: mesh information for each shape
+    /// - m_mat_props: contact material for each shape
+    /// - m_load_mass: vertical load on each object
     virtual void OnInitialize(unsigned int num_objects) = 0;
 
     /// Perform any additional operations after the data exchange and synchronization with the MBS node. A derived class
@@ -178,26 +177,32 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
     // Communication data
 
-    InterfaceType m_interface_type;  ///< type of communication interface
+    bool m_wheeled;                  ///< comm node (true: TIRE nodes, false: tracked MBS node)
+    ObjectType m_object_type;        ///< object representation (primitive or mesh)
+    InterfaceType m_interface_type;  ///< communication interface (body or mesh)
+    int m_num_shapes;                ///< number of unique object geometries
+    int m_num_objects;               ///< number of interacting objects
 
-    std::vector<double> m_tire_radius;      ///< tire radius
-    std::vector<double> m_tire_width;       ///< tire width
-    std::vector<double> m_load_mass;        ///< vertical load on body
+    std::vector<ChVector<>> m_shape_dims;   ///< object dimensions
     std::vector<MaterialInfo> m_mat_props;  ///< contact material properties
     std::vector<MeshData> m_mesh_data;      ///< mesh data
-    std::vector<MeshState> m_mesh_state;    ///< mesh state (used for MESH communication)
-    std::vector<BodyState> m_rigid_state;   ///< rigid state (used for BODY communication interface)
+    std::vector<double> m_load_mass;        ///< vertical load on body
+
+    std::vector<MeshState> m_mesh_state;        ///< mesh state (used for MESH communication)
+    std::vector<BodyState> m_rigid_state;       ///< rigid state (used for BODY communication interface)
+    std::vector<MeshContact> m_mesh_contact;    ///< mesh contact forces (used for MESH communication interface)
+    std::vector<TerrainForce> m_rigid_contact;  ///< rigid contact force (used for BODY communication interface)
 
   private:
+    void InitializeTireData(int i);
+    void InitializeTrackData(int i);
+
     void SynchronizeBody(int step_number, double time);
     void SynchronizeMesh(int step_number, double time);
 
     /// Print vertex and face connectivity data for the i-th object, as received at synchronization.
-    /// Invoked only when using the MESH communicatin interface.
-    void PrintMeshUpdateData(unsigned int i);
-
-    std::vector<MeshContact> m_mesh_contact;    ///< mesh contact forces (used for MESH communication interface)
-    std::vector<TerrainForce> m_rigid_contact;  ///< rigid contact force (used for BODY communication interface)
+    /// Invoked only when using the MESH communication interface.
+    void PrintMeshUpdateData(int i);
 };
 
 /// @} vehicle_cosim

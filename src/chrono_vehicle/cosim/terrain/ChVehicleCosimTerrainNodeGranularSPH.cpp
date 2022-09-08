@@ -391,7 +391,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnAdvance(double step_size) {
 void ChVehicleCosimTerrainNodeGranularSPH::Render(double time) {
 #ifdef CHRONO_OPENGL
     if (m_vsys->Run()) {
-        const auto& proxies = m_proxies[0];  // proxies for first tire
+        const auto& proxies = m_proxies[0];  // proxies for first object
         ChVector<> cam_point = proxies[0].m_body->GetPos();
         ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
         m_vsys->SetCameraPosition(cam_loc, cam_point);

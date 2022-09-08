@@ -26,7 +26,6 @@
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTrackedMBSNode.h"
 
@@ -91,6 +90,9 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     /// Return the number of track shoes in the specified track subsystem.
     virtual int GetNumTrackShoes(int track_id) const override;
 
+    /// Return the total number of track shoes (in all track subsystems).
+    virtual int GetNumTrackShoes() const override;
+
     /// Return the specified track shoe.
     virtual std::shared_ptr<ChBody> GetTrackShoeBody(int track_id, int shoe_id) const override;
 
@@ -103,34 +105,15 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     /// Get the "chassis" body.
     virtual std::shared_ptr<ChBody> GetChassisBody() const override;
 
+    /// Get the sprocket addendum radius (for slip calculation).
+    virtual double GetSprocketAddendumRadius() const override;
+
     /// Impose spindle angular speed as dictated by an attached DBP rig.
     virtual void OnInitializeDBPRig(std::shared_ptr<ChFunction> func) override;
 
     void WriteBodyInformation(utils::CSV_writer& csv);
 
   private:
-    /// ChTire subsystem, needed to pass the terrain contact forces back to the vehicle wheels.
-    class DummyTire : public ChTire {
-      public:
-        DummyTire(int index, double mass, double radius, double width)
-            : ChTire("dummy_tire"), m_index(index), m_mass(mass), m_radius(radius), m_width(width) {}
-        virtual std::string GetTemplateName() const override { return "dummy_tire"; }
-        virtual double GetRadius() const override { return m_radius; }
-        virtual double GetWidth() const override { return m_width; }
-        virtual double GetAddedMass() const override { return m_mass; }
-        virtual ChVector<> GetAddedInertia() const override { return ChVector<>(0.1, 0.1, 0.1); }
-        virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_force; }
-        virtual TerrainForce GetTireForce() const { return m_force; }
-        virtual void InitializeInertiaProperties() override {}
-        virtual void UpdateInertiaProperties() override {}
-
-        int m_index;
-        double m_mass;
-        double m_radius;
-        double m_width;
-        TerrainForce m_force;
-    };
-
     std::shared_ptr<ChTrackedVehicle> m_vehicle;  ///< vehicle MBS
     std::shared_ptr<ChPowertrain> m_powertrain;   ///< vehicle powertrain
     std::shared_ptr<ChDriver> m_driver;           ///< vehicle driver

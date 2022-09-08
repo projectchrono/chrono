@@ -775,7 +775,7 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalculatePackingDensity(double& dep
 // Create bodies with triangular contact geometry as proxies for the mesh faces.
 // Used for flexible bodies.
 // Assign to each body an identifier equal to the index of its corresponding mesh face.
-// Maintain a list of all bodies associated with the tire.
+// Maintain a list of all bodies associated with the object.
 // Add all proxy bodies to the same collision family and disable collision between any
 // two members of this family.
 void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
@@ -885,7 +885,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
         // Update triangle contact shape (expressed in local frame) by writting directly
         // into the Chrono::Multicore data structures.
         // ATTENTION: It is assumed that no other triangle contact shapes have been added
-        // to the system BEFORE those corresponding to the tire mesh faces!
+        // to the system BEFORE those corresponding to the object mesh faces!
         shape_data[3 * it + 0] = real3(pA.x() - pos.x(), pA.y() - pos.y(), pA.z() - pos.z());
         shape_data[3 * it + 1] = real3(pB.x() - pos.x(), pB.y() - pos.y(), pB.z() - pos.z());
         shape_data[3 * it + 2] = real3(pC.x() - pos.x(), pC.y() - pos.y(), pC.z() - pos.z());
@@ -932,7 +932,7 @@ ChVector<> ChVehicleCosimTerrainNodeGranularOMP::CalcBarycentricCoords(const ChV
 // Collect contact forces on the (face) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
 void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
-    const auto& proxies = m_proxies[i];  // proxies for the i-th tire
+    const auto& proxies = m_proxies[i];  // proxies for the i-th object
 
     // Maintain an unordered map of vertex indices and associated contact forces.
     std::unordered_map<int, ChVector<>> my_map;
@@ -1077,14 +1077,14 @@ void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned i
             [](const ProxyBody& a, const ProxyBody& b) { return a.m_body->GetPos().z() < b.m_body->GetPos().z(); });
         const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
         double height = (*lowest).m_body->GetPos().z();
-        cout << "[Terrain node] tire: " << i << "  lowest proxy:  index = " << (*lowest).m_index
+        cout << "[Terrain node] object: " << i << "  lowest proxy:  index = " << (*lowest).m_index
              << "  height = " << height << "  velocity = " << vel.x() << "  " << vel.y() << "  " << vel.z() << endl;
     }
 
     {
         auto lowest = std::min_element(mesh_state.vpos.begin(), mesh_state.vpos.end(),
                                        [](const ChVector<>& a, const ChVector<>& b) { return a.z() < b.z(); });
-        cout << "[Terrain node] tire: " << i << "  lowest vertex:  height = " << (*lowest).z() << endl;
+        cout << "[Terrain node] object: " << i << "  lowest vertex:  height = " << (*lowest).z() << endl;
     }
 }
 

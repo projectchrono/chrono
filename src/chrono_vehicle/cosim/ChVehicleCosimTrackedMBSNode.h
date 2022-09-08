@@ -41,8 +41,8 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
   public:
     virtual ~ChVehicleCosimTrackedMBSNode();
 
-    /// Return the node type as NodeType::MBS.
-    virtual NodeType GetNodeType() const override { return NodeType::MBS; }
+    /// Return the node type as NodeType::MBS_TRACKED.
+    virtual NodeType GetNodeType() const override { return NodeType::MBS_TRACKED; }
 
     /// Set the number of OpenMP threads used in Chrono simulation (default: 1).
     void SetNumThreads(int num_threads);
@@ -110,17 +110,19 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
     virtual void ApplyTrackShoeForce(int track_id, int shoe_id, const TerrainForce& force) = 0;
 
     /// Get the number of track subsystems defined by the underlying MBS.
-    /// A co-simulation must have a matching number of TIRE nodes.
     virtual int GetNumTracks() const = 0;
 
     /// Return the number of track shoes in the specified track subsystem.
     virtual int GetNumTrackShoes(int track_id) const = 0;
 
+    /// Return the total number of track shoes (in all track subsystems).
+    virtual int GetNumTrackShoes() const = 0;
+
     /// Return the specified track shoe.
     virtual std::shared_ptr<ChBody> GetTrackShoeBody(int track_id, int shoe_id) const = 0;
 
-    /// Get the load weight on the i-th wheel/tire.
-    /// Note: this must also include the mass of the tire itself.
+    /// Get the load weight on the i-th track shoe.
+    /// Note: this must also include the mass of the track shoe itself.
     virtual double GetSpindleLoad(unsigned int i) const = 0;
 
     /// Get the body state of the specified track shoe body.
@@ -129,6 +131,9 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
     /// Get the "chassis" body.
     /// Only used is a drawbar-pull rig is attached.
     virtual std::shared_ptr<ChBody> GetChassisBody() const = 0;
+
+    /// Get the sprocket addendum radius (for slip calculation).
+    virtual double GetSprocketAddendumRadius() const = 0;
 
     /// Impose sprocket angular speed function.
     /// This function is called (during initialization, after the call to InitializeMBS) only if a drawbar-pull rig is

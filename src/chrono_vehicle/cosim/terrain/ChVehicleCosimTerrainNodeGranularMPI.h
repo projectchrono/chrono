@@ -106,7 +106,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularMPI : public ChVehicleCosi
     double CalculatePackingDensity(double& depth);
 
   private:
-    /// Additional data for tire proxy bodies
+    /// Additional data for object proxy bodies
     struct TireData {
         std::vector<uint> m_gids;              ///< global indices of proxy bodies
         std::unordered_map<uint, uint> m_map;  ///< map from global ID to triangle index
@@ -125,7 +125,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularMPI : public ChVehicleCosi
 
     double m_hthick;                    ///< container wall half-thickness
     double m_radius_p;                  ///< radius for a proxy body
-    std::vector<TireData> m_tire_data;  ///< data for the vehicle tire proxies
+    std::vector<TireData> m_tire_data;  ///< data for the object (tires or track shoes) proxies
 
     utils::SamplingType m_sampling_type;  ///< sampling method for generation of particles
     double m_init_depth;                  ///< height of granular maerial initialization volume

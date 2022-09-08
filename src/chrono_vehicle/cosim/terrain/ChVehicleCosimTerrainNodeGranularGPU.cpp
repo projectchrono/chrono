@@ -265,7 +265,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 
     // Set composite material properties for internal contacts.
     // Defer setting composite material properties for external contacts until creation of proxies (when we have
-    // received tire material)
+    // received object material)
     SetMatPropertiesInternal();
 
     // Set integration step-size
@@ -624,7 +624,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesInternal() {
     m_systemGPU->SetAdhesionRatio_SPH2WALL(0);
 }
 
-// Set composite material properties for external contacts (granular-tire)
+// Set composite material properties for external contacts (granular-object)
 void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesExternal(unsigned int i) {
     auto material_terrain = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_terrain);
     auto material = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_mat_props[i].CreateMaterial(m_method));
@@ -690,7 +690,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
     // Set mesh for granular system
     auto imesh = m_systemGPU->AddMesh(trimesh, (float)m_load_mass[i]);
     if (imesh != i + num_obstacles) {
-        throw ChException("Error adding GPU mesh for tire " + std::to_string(i));
+        throw ChException("Error adding GPU mesh for object " + std::to_string(i));
     }
 
     // Set composite material properties for external contacts
@@ -702,7 +702,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
 
 // Set state of proxy rigid body.
 void ChVehicleCosimTerrainNodeGranularGPU::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
-    auto& proxies = m_proxies[i];  // proxies for the i-th tire
+    auto& proxies = m_proxies[i];  // proxies for the i-th object
 
     proxies[0].m_body->SetPos(rigid_state.pos);
     proxies[0].m_body->SetPos_dt(rigid_state.lin_vel);
@@ -742,7 +742,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Render(double time) {
     if (m_vsys->Run()) {
         UpdateVisualizationParticles();
         if (!m_proxies.empty()) {
-            const auto& proxies = m_proxies[0];  // proxies for first tire
+            const auto& proxies = m_proxies[0];  // proxies for first object
             if (!proxies.empty()) {
                 ChVector<> cam_point = proxies[0].m_body->GetPos();
                 ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);

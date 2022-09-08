@@ -273,7 +273,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
 // Create bodies with triangular contact geometry as proxies for the mesh faces.
 // Used for flexible bodies.
 // Assign to each body an identifier equal to the index of its corresponding mesh face.
-// Maintain a list of all bodies associated with the tire.
+// Maintain a list of all bodies associated with the object.
 // Add all proxy bodies to the same collision family and disable collision between any
 // two members of this family.
 void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
@@ -322,8 +322,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
     m_proxies[i].push_back(ProxyBody(body, 0));
 
     // Add corresponding moving patch to SCM terrain
-    m_terrain->AddMovingPatch(body, ChVector<>(0, 0, 0),
-                              ChVector<>(2 * m_tire_radius[i], m_tire_width[i], 2 * m_tire_radius[i]));
+    m_terrain->AddMovingPatch(body, ChVector<>(0, 0, 0), m_shape_dims[i]);
 
 #ifdef CHRONO_IRRLICHT
     // Bind Irrlicht assets

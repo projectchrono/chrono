@@ -353,7 +353,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 // Create bodies with spherical contact geometry as proxies for the mesh vertices.
 // Used for flexible bodies.
 // Assign to each body an identifier equal to the index of its corresponding mesh vertex.
-// Maintain a list of all bodies associated with the tire.
+// Maintain a list of all bodies associated with the object.
 // Add all proxy bodies to the same collision family and disable collision between any
 // two members of this family.
 void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
@@ -421,7 +421,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
 // Set position and velocity of proxy bodies based on mesh vertices.
 // Set orientation to identity and angular velocity to zero.
 void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {
-    auto& proxies = m_proxies[i];  // proxies for the i-th tire
+    auto& proxies = m_proxies[i];  // proxies for the i-th object
 
     for (unsigned int iv = 0; iv < m_mesh_data[i].nv; iv++) {
         proxies[iv].m_body->SetPos(mesh_state.vpos[iv]);
@@ -503,7 +503,7 @@ void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesUpdateData(unsigned int i, 
         [](const ProxyBody& a, const ProxyBody& b) { return a.m_body->GetPos().z() < b.m_body->GetPos().z(); });
     const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
     double height = (*lowest).m_body->GetPos().z();
-    cout << "[Terrain node] tire: " << i << "  lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
+    cout << "[Terrain node] object: " << i << "  lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
          << "  velocity = " << vel.x() << "  " << vel.y() << "  " << vel.z() << endl;
 }
 

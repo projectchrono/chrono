@@ -134,6 +134,11 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     mat_proxy->SetGt(4e1f);
 
     // Create the proxy bodies with cylindrical shapes
+    double tire_radius = m_shape_dims[0].x() / 2;
+    double tire_width = m_shape_dims[0].y();
+
+    ////std::cout << "Radius: " << tire_radius << "  Width: " << tire_width << std::endl;
+
     m_bodies.resize(num_tires);
     for (unsigned int i = 0; i < num_tires; i++) {
         m_bodies[i] = chrono_types::make_shared<ChBody>();
@@ -142,7 +147,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
         m_bodies[i]->SetCollide(true);
 
         m_bodies[i]->GetCollisionModel()->ClearModel();
-        utils::AddCylinderGeometry(m_bodies[i].get(), mat_proxy, m_tire_radius[0], m_tire_width[0] / 2);
+        utils::AddCylinderGeometry(m_bodies[i].get(), mat_proxy, tire_radius, tire_width / 2);
         m_bodies[i]->GetCollisionModel()->BuildModel();
 
         m_system->AddBody(m_bodies[i]);

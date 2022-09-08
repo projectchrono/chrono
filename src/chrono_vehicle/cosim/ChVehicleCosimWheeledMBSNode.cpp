@@ -113,9 +113,9 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
     MPI_Recv(init_dim, 3, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
     if (m_verbose) {
-        cout << "[MBS node    ] Received initial terrain height = " << init_dim[0] << endl;
-        cout << "[MBS node    ] Received terrain length    =  " << init_dim[1] << endl;
-        cout << "[MBS node    ] Received terrain width    =  " << init_dim[2] << endl;
+        cout << "[MBS node    ] Recv: initial terrain height = " << init_dim[0] << endl;
+        cout << "[MBS node    ] Recv: terrain length =  " << init_dim[1] << endl;
+        cout << "[MBS node    ] Recv: terrain width =  " << init_dim[2] << endl;
     }
 
     double terrain_height = init_dim[0];
@@ -132,9 +132,19 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
 
     // Let derived classes construct and initialize their multibody system
     InitializeMBS(tire_info, terrain_size, terrain_height);
-    assert(GetNumSpindles() == (int)m_num_tire_nodes);
+    auto num_spindles = GetNumSpindles();
+
+    // There must be a number of TIRE nodes equal to the number of spindles.
+    if (m_num_tire_nodes != num_spindles) {
+        std::cerr << "Error: number of TIRE nodes (" << m_num_tire_nodes << ") different from number of spindles ("
+                  << num_spindles << ")." << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
 
     GetChassisBody()->SetBodyFixed(m_fix_chassis);
+
+    // Send to TERRAIN node the number of interacting objects (here, number of spindles)
+    MPI_Send(&num_spindles, 1, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
     // For each tire:
     // - cache the spindle body
@@ -147,7 +157,7 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
     // Initialize the DBP rig if one is attached
     if (m_DBP_rig) {
         m_DBP_rig->m_verbose = m_verbose;
-        m_DBP_rig->Initialize(GetChassisBody(), tire_info, m_step_size);
+        m_DBP_rig->Initialize(GetChassisBody(), tire_info[0].y(), m_step_size);
 
         m_DBP_outf.open(m_node_out_dir + "/DBP.dat", std::ios::out);
         m_DBP_outf.precision(7);

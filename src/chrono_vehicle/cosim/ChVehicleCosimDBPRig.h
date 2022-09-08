@@ -78,8 +78,8 @@ class CH_VEHICLE_API ChVehicleCosimDBPRig {
     ChVehicleCosimDBPRig();
 
     /// Initialize the rig mechanism, by attaching it to the specified chassis body.
-    virtual void InitializeRig(std::shared_ptr<ChBody> chassis,          ///< associated chassis body
-                               const std::vector<ChVector<>>& tire_info  ///< mass, radius, width for each tire
+    virtual void InitializeRig(std::shared_ptr<ChBody> chassis,  ///< associated chassis body
+                               double wheel_radius               ///< radius (tire or sprocket)
                                ) = 0;
 
     /// Return a function to specify spindle angular speed.
@@ -89,7 +89,7 @@ class CH_VEHICLE_API ChVehicleCosimDBPRig {
     double m_delay_time;  ///< initialization (ramping up) time
 
   private:
-    void Initialize(std::shared_ptr<ChBody> chassis, const std::vector<ChVector<>>& tire_info, double step_size);
+    void Initialize(std::shared_ptr<ChBody> chassis, double wheel_radius, double step_size);
     void OnAdvance(double step_size);
 
     std::unique_ptr<utils::ChRunningAverage> m_dbp_filter;   ///< running average filter for DBP
@@ -154,7 +154,7 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedSlip : public ChVehicleCosimDBPR
     void SetRampingIntervals(double delay, double ramp_time);
 
   private:
-    virtual void InitializeRig(std::shared_ptr<ChBody> chassis, const std::vector<ChVector<>>& tire_info) override;
+    virtual void InitializeRig(std::shared_ptr<ChBody> chassis, double wheel_radius) override;
     virtual std::shared_ptr<ChFunction> GetMotorFunction() const override;
 
     ActuationType m_act_type;  ///< actuation type
@@ -204,7 +204,7 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedAngVel : public ChVehicleCosimDB
     void SetRampingIntervals(double delay, double ramp_time);
 
   private:
-    virtual void InitializeRig(std::shared_ptr<ChBody> chassis, const std::vector<ChVector<>>& tire_info) override;
+    virtual void InitializeRig(std::shared_ptr<ChBody> chassis, double wheel_radius) override;
     virtual std::shared_ptr<ChFunction> GetMotorFunction() const override;
 
     std::shared_ptr<ChBody> m_carrier;             ///< rig carrier body

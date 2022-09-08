@@ -59,7 +59,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     /// Set the material properties for terrain.
     /// The type of material must be consistent with the contact method (SMC or NSC)
     /// specified at construction. These parameters characterize the material for the container and
-    /// (if applicable) the granular material.  Tire contact material is received from the rig node.
+    /// (if applicable) the granular material.  Object contact material is received from the rig node.
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat);
 
     /// Specify whether contact coefficients are based on material properties (default: true).
@@ -71,8 +71,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     void SetContactForceModel(ChSystemSMC::ContactForceModel model);
 
     /// Set proxy contact radius (default: 0.01).
-    /// When using a rigid tire mesh, this is a "thickness" for the collision mesh (a non-zero value can improve
-    /// robustness of the collision detection algorithm).  When using a flexible tire, this is the radius of the proxy
+    /// When using a rigid object mesh, this is a "thickness" for the collision mesh (a non-zero value can improve
+    /// robustness of the collision detection algorithm).  When using a flexible object, this is the radius of the proxy
     /// spheres attached to each FEA mesh node.
     void SetProxyContactRadius(double radius) { m_radius_p = radius; }
 

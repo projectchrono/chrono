@@ -24,6 +24,11 @@
 //
 // =============================================================================
 
+
+//// RADU TODO
+//// Fix scattering of data across all terrain nodes!!!
+
+
 #include <algorithm>
 #include <cmath>
 #include <set>
@@ -539,15 +544,15 @@ void ChVehicleCosimTerrainNodeGranularMPI::ScatterInitData(unsigned int i) {
     auto root = m_system->GetMasterRank();
     auto comm = m_system->GetCommunicator();
 
-    double tire_info[2];
+    double shape_dims[3];
     if (m_rank == TERRAIN_NODE_RANK) {
-        tire_info[0] = m_tire_radius[i];
-        tire_info[1] = m_tire_width[i];
+        shape_dims[0] = m_shape_dims[i].x();
+        shape_dims[1] = m_shape_dims[i].y();
+        shape_dims[2] = m_shape_dims[i].z();
     }
-    MPI_Bcast(tire_info, 2, MPI_DOUBLE, root, comm);
+    MPI_Bcast(shape_dims, 2, MPI_DOUBLE, root, comm);
     if (m_rank != TERRAIN_NODE_RANK) {
-        m_tire_radius[i] = tire_info[0];
-        m_tire_width[i] = tire_info[1];
+        m_shape_dims[i] = ChVector<>(shape_dims[0], shape_dims[1], shape_dims[2]);
     }
 
     unsigned int surf_props[3];

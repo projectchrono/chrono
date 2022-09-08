@@ -202,10 +202,12 @@ void ChVehicleCosimTireNode::Initialize() {
     m_spindle->SetMass(spindle_mass);
     m_spindle->SetInertiaXX(spindle_inertia);
 
-    // Send the expected communication interface type to the TERRAIN node (only tire 0 does this)
+    // Send the object representation and expected communication interface type to the TERRAIN node (only tire 0 does this)
     if (m_index == 0) {
-        char interface_type = (GetInterfaceType() == InterfaceType::BODY) ? 0 : 1;
-        MPI_Send(&interface_type, 1, MPI_CHAR, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+        char comm_type[2];
+        comm_type[0] = 1;  // mesh representation
+        comm_type[1] = (GetInterfaceType() == InterfaceType::BODY) ? 0 : 1;
+        MPI_Send(comm_type, 2, MPI_CHAR, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     }
 
     // Send tire info (mass, radius, width), then mesh info, tire load, and contact material to TERRAIN node
@@ -214,7 +216,7 @@ void ChVehicleCosimTireNode::Initialize() {
     unsigned int surf_props[] = {m_mesh_data.nv, m_mesh_data.nn, m_mesh_data.nt};
     MPI_Send(surf_props, 3, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     if (m_verbose)
-        cout << "[Tire node   ] vertices = " << surf_props[0] << "  triangles = " << surf_props[2] << endl;
+        cout << "[Tire node   ] Send: vertices = " << surf_props[0] << "  triangles = " << surf_props[2] << endl;
 
     double* vert_data = new double[3 * m_mesh_data.nv + 3 * m_mesh_data.nn];
     int* tri_data = new int[3 * m_mesh_data.nt + 3 * m_mesh_data.nt];
@@ -247,7 +249,7 @@ void ChVehicleCosimTireNode::Initialize() {
                           m_contact_mat->GetKt(),           m_contact_mat->GetGt()};
     MPI_Send(mat_props, 8, MPI_FLOAT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     if (m_verbose)
-        cout << "[Tire node   ] friction = " << mat_props[0] << endl;
+        cout << "[Tire node   ] Send: friction = " << mat_props[0] << endl;
 }
 
 void ChVehicleCosimTireNode::InitializeSystem() {

@@ -64,7 +64,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
     /// Set the material properties for terrain.
     /// These parameters characterize the material for the container and the granular material.
-    /// Tire contact material is received from the rig node.
+    /// Object contact material is received from the rig node.
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceSMC>& mat);
 
     /// Set the normal contact force model (default: Hertz).
@@ -174,8 +174,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     /// Set composite material properties for internal granular system contacts.
     void SetMatPropertiesInternal();
 
-    /// Set composite material properties for granular-tire contacts
-    /// (can be invoked only once tire material was received).
+    /// Set composite material properties for granular-object contacts
+    /// (can be invoked only once object material was received).
     void SetMatPropertiesExternal(unsigned int i);
 
     /// Update position of visualization shapes for granular material.

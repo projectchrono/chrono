@@ -119,6 +119,10 @@ int ChVehicleCosimTrackedVehicleNode::GetNumTrackShoes(int track_id) const {
     return m_vehicle->GetNumTrackShoes(track_id == 0 ? VehicleSide::LEFT : VehicleSide::RIGHT);
 }
 
+int ChVehicleCosimTrackedVehicleNode::GetNumTrackShoes() const {
+    return GetNumTrackShoes(VehicleSide::LEFT) + GetNumTrackShoes(VehicleSide::RIGHT);
+}
+
 std::shared_ptr<ChBody> ChVehicleCosimTrackedVehicleNode::GetTrackShoeBody(int track_id, int shoe_id) const {
     return m_vehicle->GetTrackShoe(track_id == 0 ? VehicleSide::LEFT : VehicleSide::RIGHT, shoe_id)->GetShoeBody();
 }
@@ -133,6 +137,10 @@ BodyState ChVehicleCosimTrackedVehicleNode::GetTrackShoeState(int track_id, int 
 
 std::shared_ptr<ChBody> ChVehicleCosimTrackedVehicleNode::GetChassisBody() const {
     return m_vehicle->GetChassisBody();
+}
+
+double ChVehicleCosimTrackedVehicleNode::GetSprocketAddendumRadius() const {
+    return m_vehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetAddendumRadius();
 }
 
 void ChVehicleCosimTrackedVehicleNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> func) {

@@ -82,7 +82,8 @@ ChVehicleCosimBaseNode::ChVehicleCosimBaseNode(const std::string& name)
       m_step_size(1e-4),
       m_cum_sim_time(0),
       m_verbose(true),
-      m_num_mbs_nodes(0),
+      m_num_wheeled_mbs_nodes(0),
+      m_num_tracked_mbs_nodes(0),
       m_num_terrain_nodes(0),
       m_num_tire_nodes(0),
       m_rank(-1) {
@@ -96,14 +97,17 @@ void ChVehicleCosimBaseNode::Initialize() {
     // Gather node types from all ranks
     int type = -1;
     switch (GetNodeType()) {
-        case NodeType::MBS:
+        case NodeType::MBS_WHEELED:
             type = 0;
             break;
-        case NodeType::TERRAIN:
+        case NodeType::MBS_TRACKED:
             type = 1;
             break;
-        case NodeType::TIRE:
+        case NodeType::TERRAIN:
             type = 2;
+            break;
+        case NodeType::TIRE:
+            type = 3;
             break;
     }
     int* type_all = new int[size];
@@ -113,49 +117,57 @@ void ChVehicleCosimBaseNode::Initialize() {
     for (int i = 0; i < size; i++) {
         switch (type_all[i]) {
             case 0:
-                m_num_mbs_nodes++;
+                m_num_wheeled_mbs_nodes++;
                 break;
             case 1:
-                m_num_terrain_nodes++;
+                m_num_tracked_mbs_nodes++;
                 break;
             case 2:
+                m_num_terrain_nodes++;
+                break;
+            case 3:
                 m_num_tire_nodes++;
                 break;
         }
     }
 
     if (m_verbose && m_rank == 0) {
-        cout << "Num nodes: " << size                          //
-             << "  MBS nodes: " << m_num_mbs_nodes             //
-             << "  TERRAIN nodes: " << m_num_terrain_nodes     //
-             << "  TIRE nodes: " << m_num_tire_nodes << endl;  //
+        cout << "Num nodes: " << size                               //
+             << "  WHEELED MBS nodes: " << m_num_wheeled_mbs_nodes  //
+             << "  TRACKED MBS nodes: " << m_num_tracked_mbs_nodes  //
+             << "  TERRAIN nodes: " << m_num_terrain_nodes          //
+             << "  TIRE nodes: " << m_num_tire_nodes << endl;       //
     }
 
     // Error checks
     bool err = false;
 
-    if (m_num_mbs_nodes != 1) {
+    if (m_num_wheeled_mbs_nodes + m_num_tracked_mbs_nodes != 1) {
         if (m_rank == 0)
-            cerr << "ERROR: More than one MBS node." << endl;
+            cerr << "Error: Exactly one MBS node must be present." << endl;
         err = true;
     }
 
-    //// RADU TODO Check consistency of MBS node with tire/track
+    if (m_num_tracked_mbs_nodes == 1 && m_num_tire_nodes > 0) {
+        if (m_rank == 0)
+            cerr << "Error: Tire nodes cannot be present for a tracked MBS simulation." << endl;
+        err = true;
+    }
 
-    if (type_all[MBS_NODE_RANK] != 0) {
+    if (type_all[MBS_NODE_RANK] != 0 && type_all[MBS_NODE_RANK] != 1) {
         if (m_rank == 0)
             cerr << "Error: rank " << MBS_NODE_RANK << " is not running an MBS node." << endl;
         err = true;
     }
 
-    if (type_all[TERRAIN_NODE_RANK] != 1) {
+    if (type_all[TERRAIN_NODE_RANK] != 2) {
         if (m_rank == 0)
             cerr << "Error: rank " << TERRAIN_NODE_RANK << " is not running a TERRAIN node." << endl;
         err = true;
     }
 
     for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
-        if (type_all[TIRE_NODE_RANK(i)] != 2) {
+        if (type_all[TIRE_NODE_RANK(i)] != 3) {
             if (m_rank == 0)
                 cerr << "Error: rank " << TIRE_NODE_RANK(i) << " is not running a TIRE node." << endl;
             err = true;
@@ -219,8 +231,10 @@ bool ChVehicleCosimBaseNode::IsCosimNode() const {
 
 std::string ChVehicleCosimBaseNode::GetNodeTypeString() const {
     switch (GetNodeType()) {
-        case NodeType::MBS:
-            return "MBS";
+        case NodeType::MBS_WHEELED:
+            return "MBS wheeled";
+        case NodeType::MBS_TRACKED:
+            return "MBS tracked";
         case NodeType::TIRE:
             return "Tire";
         case NodeType::TERRAIN:
