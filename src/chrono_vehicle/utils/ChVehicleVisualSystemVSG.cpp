@@ -11,7 +11,70 @@ class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHa
         _params = params;
         m_appPtr = appPtr;
     }
+#ifdef WIN32
+    void apply(vsg::KeyPressEvent& keyPress) override {
+        // keyboard events for camara steering
+        switch (keyPress.keyModified) {
+            case vsg::KEY_Down:
+                m_appPtr->CameraZoom(1);
+                return;
+            case vsg::KEY_Up:
+                m_appPtr->CameraZoom(-1);
+                return;
+            case vsg::KEY_Left:
+                m_appPtr->CameraTurn(-1);
+                return;
+            case vsg::KEY_Right:  // not recognized on the Mac
+            case 94:              // Mac hack
+                m_appPtr->CameraTurn(1);
+                return;
+            case vsg::KEY_Next:
+                m_appPtr->CameraRaise(-1);
+                return;
+            case vsg::KEY_Prior:
+                m_appPtr->CameraRaise(1);
+                return;
+            case vsg::KEY_a:
+                m_appPtr->SteeringLeft();
+                return;
+            case vsg::KEY_d:
+                m_appPtr->SteeringRight();
+                return;
+            case vsg::KEY_c:
+                m_appPtr->SteeringCenter();
+                return;
+            case vsg::KEY_w:
+                m_appPtr->IncreaseVehicleSpeed();
+                return;
+            case vsg::KEY_s:
+                m_appPtr->DecreaseVehicleSpeed();
+                return;
+            case vsg::KEY_r:
+                m_appPtr->ReleasePedals();
+                return;
+        }
+        switch (keyPress.keyBase) {
+            case vsg::KEY_a:
+                m_appPtr->SteeringLeft();
+                return;
+            case vsg::KEY_d:
+                m_appPtr->SteeringRight();
+                return;
+            case vsg::KEY_c:
+                m_appPtr->SteeringCenter();
+                return;
+            case vsg::KEY_w:
+                m_appPtr->IncreaseVehicleSpeed();
+                return;
+            case vsg::KEY_s:
+                m_appPtr->DecreaseVehicleSpeed();
+                return;
+            case vsg::KEY_r:
+                m_appPtr->ReleasePedals();
+                return;
+        }
 
+#else
     void apply(vsg::KeyPressEvent& keyPress) override {
         // keyboard events for camara steering
         switch(keyPress.keyBase) {
@@ -53,6 +116,7 @@ class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHa
                 m_appPtr->ReleasePedals();
                 return;
         }
+#endif
     }
 
   private:
