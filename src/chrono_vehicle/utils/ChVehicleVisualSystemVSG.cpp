@@ -13,30 +13,46 @@ class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHa
     }
 
     void apply(vsg::KeyPressEvent& keyPress) override {
-            if (keyPress.keyBase == 'a' || keyPress.keyModified == 'a') {
-                // terminate process
+        // keyboard events for camara steering
+        switch(keyPress.keyBase) {
+            case vsg::KEY_Down:
+                m_appPtr->CameraZoom(1);
+                return;
+            case vsg::KEY_Up:
+                m_appPtr->CameraZoom(-1);
+                return;
+            case vsg::KEY_Left:
+                m_appPtr->CameraTurn(-1);
+                return;
+            case vsg::KEY_Right: // not recognized on the Mac
+            case 94: // Mac hack
+                m_appPtr->CameraTurn(1);
+                return;
+            case vsg::KEY_Next:
+                m_appPtr->CameraRaise(-1);
+                return;
+            case vsg::KEY_Prior:
+                m_appPtr->CameraRaise(1);
+                return;
+            case vsg::KEY_a:
                 m_appPtr->SteeringLeft();
-            }
-            if (keyPress.keyBase == 'w' || keyPress.keyModified == 'w') {
-                // terminate process
-                m_appPtr->IncreaseVehicleSpeed();
-            }
-            if (keyPress.keyBase == 's' || keyPress.keyModified == 's') {
-                // terminate process
-                m_appPtr->DecreaseVehicleSpeed();
-            }
-            if (keyPress.keyBase == 'd' || keyPress.keyModified == 'd') {
-                // terminate process
+                return;
+            case vsg::KEY_d:
                 m_appPtr->SteeringRight();
-            }
-            if (keyPress.keyBase == 'c' || keyPress.keyModified == 'c') {
-                // terminate process
+                return;
+            case vsg::KEY_c:
                 m_appPtr->SteeringCenter();
-            }
-            if (keyPress.keyBase == 'r' || keyPress.keyModified == 'r') {
-                // terminate process
+                return;
+            case vsg::KEY_w:
+                m_appPtr->IncreaseVehicleSpeed();
+                return;
+            case vsg::KEY_s:
+                m_appPtr->DecreaseVehicleSpeed();
+                return;
+            case vsg::KEY_r:
                 m_appPtr->ReleasePedals();
-            }
+                return;
+        }
     }
 
   private:
@@ -101,46 +117,63 @@ void ChVehicleVisualSystemVSG::Advance(double step) {
 }
 
 void ChVehicleVisualSystemVSG::IncreaseVehicleSpeed() {
-    //GetLog() << "Speed+\n";
+    // GetLog() << "Speed+\n";
     if (m_guiDriver) {
         m_guiDriver->IncreaseThrottle();
     }
 }
 
 void ChVehicleVisualSystemVSG::DecreaseVehicleSpeed() {
-    //GetLog() << "Speed-\n";
+    // GetLog() << "Speed-\n";
     if (m_guiDriver) {
         m_guiDriver->DecreaseThrottle();
     }
 }
 
 void ChVehicleVisualSystemVSG::SteeringLeft() {
-    //GetLog() << "Left\n";
+    // GetLog() << "Left\n";
     if (m_guiDriver) {
         m_guiDriver->SteeringLeft();
     }
 }
 
 void ChVehicleVisualSystemVSG::SteeringRight() {
-    //GetLog() << "Right\n";
+    // GetLog() << "Right\n";
     if (m_guiDriver) {
         m_guiDriver->SteeringRight();
     }
 }
 
 void ChVehicleVisualSystemVSG::SteeringCenter() {
-    //GetLog() << "Center\n";
+    // GetLog() << "Center\n";
     if (m_guiDriver) {
         m_guiDriver->SteeringCenter();
     }
 }
 
 void ChVehicleVisualSystemVSG::ReleasePedals() {
-    //GetLog() << "Release\n";
+    // GetLog() << "Release\n";
     if (m_guiDriver) {
         m_guiDriver->ReleasePedals();
     }
 }
 
+void ChVehicleVisualSystemVSG::CameraZoom(int how) {
+    if (m_vehicle) {
+        m_camera->Zoom(how);
+    }
+}
+
+void ChVehicleVisualSystemVSG::CameraTurn(int how) {
+    if (m_vehicle) {
+        m_camera->Turn(how);
+    }
+}
+
+void ChVehicleVisualSystemVSG::CameraRaise(int how) {
+    if (m_vehicle) {
+        m_camera->Raise(how);
+    }
+}
 }  // namespace vehicle
 }  // namespace chrono

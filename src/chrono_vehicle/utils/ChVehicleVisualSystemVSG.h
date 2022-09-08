@@ -45,6 +45,10 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     void SteeringCenter();
     void ReleasePedals();
 
+    void CameraZoom(int how);
+    void CameraTurn(int how);
+    void CameraRaise(int how);
+
 protected:
     ChVSGGuiDriver* m_guiDriver;
 
