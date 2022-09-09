@@ -52,6 +52,24 @@ class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHa
             case vsg::KEY_r:
                 m_appPtr->ReleasePedals();
                 return;
+            case vsg::KEY_1:
+                m_appPtr->CameraState(utils::ChChaseCamera::Chase);
+                return;
+            case vsg::KEY_2:
+                m_appPtr->CameraState(utils::ChChaseCamera::Follow);
+                return;
+            case vsg::KEY_3:
+                m_appPtr->CameraState(utils::ChChaseCamera::Track);
+                return;
+            case vsg::KEY_4:
+                m_appPtr->CameraState(utils::ChChaseCamera::Inside);
+                return;
+            case vsg::KEY_5:
+                m_appPtr->CameraState(utils::ChChaseCamera::Free);
+                return;
+            case vsg::KEY_V:
+                m_appPtr->LogContraintViolations();
+                return;
         }
         switch (keyPress.keyBase) {
             case vsg::KEY_a:
@@ -73,11 +91,10 @@ class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHa
                 m_appPtr->ReleasePedals();
                 return;
         }
-
 #else
     void apply(vsg::KeyPressEvent& keyPress) override {
         // keyboard events for camara steering
-        switch(keyPress.keyBase) {
+        switch (keyPress.keyBase) {
             case vsg::KEY_Down:
                 m_appPtr->CameraZoom(1);
                 return;
@@ -87,8 +104,10 @@ class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHa
             case vsg::KEY_Left:
                 m_appPtr->CameraTurn(-1);
                 return;
-            case vsg::KEY_Right: // not recognized on the Mac
-            case 94: // Mac hack
+            case vsg::KEY_Right:  // not recognized on the Mac
+#ifdef __APPLE__
+            case 94:              // Mac hack
+#endif
                 m_appPtr->CameraTurn(1);
                 return;
             case vsg::KEY_Next:
@@ -114,6 +133,24 @@ class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHa
                 return;
             case vsg::KEY_r:
                 m_appPtr->ReleasePedals();
+                return;
+            case vsg::KEY_1:
+                m_appPtr->CameraState(utils::ChChaseCamera::Chase);
+                return;
+            case vsg::KEY_2:
+                m_appPtr->CameraState(utils::ChChaseCamera::Follow);
+                return;
+            case vsg::KEY_3:
+                m_appPtr->CameraState(utils::ChChaseCamera::Track);
+                return;
+            case vsg::KEY_4:
+                m_appPtr->CameraState(utils::ChChaseCamera::Inside);
+                return;
+            case vsg::KEY_5:
+                m_appPtr->CameraState(utils::ChChaseCamera::Free);
+                return;
+            case vsg::KEY_V:
+                m_appPtr->LogContraintViolations();
                 return;
         }
 #endif
@@ -239,5 +276,14 @@ void ChVehicleVisualSystemVSG::CameraRaise(int how) {
         m_camera->Raise(how);
     }
 }
+
+void ChVehicleVisualSystemVSG::CameraState(utils::ChChaseCamera::State state) {
+    m_camera->SetState(state);
+}
+
+void ChVehicleVisualSystemVSG::LogContraintViolations() {
+    m_vehicle->LogConstraintViolations();
+}
+
 }  // namespace vehicle
 }  // namespace chrono

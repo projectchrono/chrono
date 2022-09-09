@@ -48,6 +48,9 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     void CameraZoom(int how);
     void CameraTurn(int how);
     void CameraRaise(int how);
+    void CameraState(utils::ChChaseCamera::State state);
+
+    void LogContraintViolations();
 
 protected:
     ChVSGGuiDriver* m_guiDriver;
