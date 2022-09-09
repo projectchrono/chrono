@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     ChSystemFsi sysFSI(sysMBS);
 
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Elements_Explicit.json");
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Toroidal_Tire_Granular.json");
     if (argc == 1) {
         std::cout << "Use the default JSON file" << std::endl;
     } else if (argc == 2) {
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
         std::string my_inputJson = std::string(argv[1]);
         inputJson = my_inputJson;
     } else {
-        std::cout << "usage: ./demo_FSI_Flexible_Elements <json_file>" << std::endl;
+        std::cout << "usage: ./demo_FSI_Flexible_Toroidal_Tire_Granular <json_file>" << std::endl;
         return 1;
     }
     sysFSI.ReadParametersFromFile(inputJson);
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     // Create a run-tme visualizer
     ChVisualizationFsi fsi_vis(&sysFSI);
     if (render) {
-        fsi_vis.SetTitle("Chrono::FSI flexible element demo");
+        fsi_vis.SetTitle("Chrono::FSI Flexible Toroidal Tire Demo");
         fsi_vis.SetCameraPosition(ChVector<>(bxDim / 8, -3, 0.25), ChVector<>(bxDim / 8, 0.0, 0.25));
         fsi_vis.SetCameraMoveScale(1.0f);
         fsi_vis.EnableBoundaryMarkers(false);
