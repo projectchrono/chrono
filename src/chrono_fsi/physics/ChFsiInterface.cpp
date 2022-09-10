@@ -202,7 +202,7 @@ void ChFsiInterface::ResizeChronoFEANodesData() {
     m_flex_backup->resize(numNodes);
 }
 //------------------------------------------------------------------------------------
-void ChFsiInterface::ResizeChronoCablesData(std::vector<std::vector<int>> CableElementsNodesSTDVector) {
+void ChFsiInterface::ResizeChronoCablesData(const std::vector<std::vector<int>>& CableElementsNodesSTDVector) {
     size_t numCables = 0;
     for (size_t i = 0; i < m_fsi_mesh->GetNelements(); i++) {
         if (std::dynamic_pointer_cast<fea::ChElementCableANCF>(m_fsi_mesh->GetElement((unsigned int)i)))
@@ -231,7 +231,7 @@ void ChFsiInterface::ResizeChronoCablesData(std::vector<std::vector<int>> CableE
     }
 }
 //------------------------------------------------------------------------------------
-void ChFsiInterface::ResizeChronoShellsData(std::vector<std::vector<int>> ShellElementsNodesSTDVector) {
+void ChFsiInterface::ResizeChronoShellsData(const std::vector<std::vector<int>>& ShellElementsNodesSTDVector) {
     size_t numShells = 0;
     for (unsigned int i = 0; i < m_fsi_mesh->GetNelements(); i++) {
         if (std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(m_fsi_mesh->GetElement(i)))
@@ -239,7 +239,7 @@ void ChFsiInterface::ResizeChronoShellsData(std::vector<std::vector<int>> ShellE
     }
 
     if (m_verbose) {
-        printf("numShells in ResizeChronoShellsData  %ld\n", numShells);
+        printf("numShells in ResizeChronoShellsData  %zd\n", numShells);
         printf("ShellElementsNodesSTDVector.size() in ResizeChronoShellsData  %zd\n",
                ShellElementsNodesSTDVector.size());
     }

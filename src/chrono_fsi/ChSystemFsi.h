@@ -233,17 +233,17 @@ class CH_FSI_API ChSystemFsi {
     double GetSimTime() const { return m_time; }
 
     /// Return the SPH particle positions.
-    std::vector<ChVector<>> GetParticlePositions();
+    std::vector<ChVector<>> GetParticlePositions() const;
 
     /// Return the SPH particle velocities.
-    std::vector<ChVector<>> GetParticleVelocities();
+    std::vector<ChVector<>> GetParticleVelocities() const;
 
     /// Return the forces acting on SPH particles.
-    std::vector<ChVector<>> GetParticleForces();
+    std::vector<ChVector<>> GetParticleForces() const;
 
     /// Return the SPH particle fluid properties.
     /// For each SPH particle, the 3-dimensional array contains density, pressure, and viscosity.
-    std::vector<ChVector<>> GetParticleFluidProperties();
+    std::vector<ChVector<>> GetParticleFluidProperties() const;
 
     /// Get a reference to the FSI bodies.
     /// FSI bodies are the ones seen by the fluid dynamics system.
@@ -268,10 +268,10 @@ class CH_FSI_API ChSystemFsi {
     void AddFsiBody(std::shared_ptr<ChBody> mbody) { m_fsi_bodies.push_back(mbody); }
 
     /// Set number of nodes in FEA cable elements in the FSI system.
-    void SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes);
+    void SetCableElementsNodes(const std::vector<std::vector<int>>& elementsNodes);
 
     /// Set number of nodes in FEA shell elements in the FSI system.
-    void SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes);
+    void SetShellElementsNodes(const std::vector<std::vector<int>>& elementsNodes);
 
     /// Set the FSI mesh for flexible elements.
     void SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh);
@@ -501,7 +501,7 @@ class CH_FSI_API ChSystemFsi {
     std::vector<int> m_fsi_shells_bce_num;  ///< number of BCE particles of each fsi shell
 
     bool m_is_initialized;  ///< set to true once the Initialize function is called
-    bool m_integrate_SPH;  ///< set to true if needs to integrate the fsi solver
+    bool m_integrate_SPH;   ///< set to true if needs to integrate the fsi solver
     double m_time;          ///< current real time of the simulation
 
     friend class ChVisualizationFsi;

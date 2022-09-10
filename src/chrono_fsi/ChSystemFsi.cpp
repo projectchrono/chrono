@@ -660,13 +660,13 @@ void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes) {
+void ChSystemFsi::SetCableElementsNodes(const std::vector<std::vector<int>>& elementsNodes) {
     m_fea_cable_nodes = elementsNodes;
     size_t test = m_sysFSI->fsiGeneralData->CableElementsNodesH.size();
     std::cout << "Number of cable element nodes" << test << std::endl;
 }
 
-void ChSystemFsi::SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes) {
+void ChSystemFsi::SetShellElementsNodes(const std::vector<std::vector<int>>& elementsNodes) {
     m_fea_shell_nodes = elementsNodes;
     size_t test = m_sysFSI->fsiGeneralData->ShellElementsNodesH.size();
     std::cout << "Number of shell element nodes" << test << std::endl;
@@ -1789,7 +1789,7 @@ size_t ChSystemFsi::GetNumBoundaryMarkers() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-std::vector<ChVector<>> ChSystemFsi::GetParticlePositions() {
+std::vector<ChVector<>> ChSystemFsi::GetParticlePositions() const {
     thrust::host_vector<Real4> posRadH = m_sysFSI->sphMarkersD2->posRadD;
     std::vector<ChVector<>> pos;
     for (size_t i = 0; i < posRadH.size(); i++) {
@@ -1798,7 +1798,7 @@ std::vector<ChVector<>> ChSystemFsi::GetParticlePositions() {
     return pos;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleFluidProperties() {
+std::vector<ChVector<>> ChSystemFsi::GetParticleFluidProperties() const {
     thrust::host_vector<Real4> rhoPresMuH = m_sysFSI->sphMarkersD2->rhoPresMuD;
     std::vector<ChVector<>> props;
     for (size_t i = 0; i < rhoPresMuH.size(); i++) {
@@ -1807,7 +1807,7 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleFluidProperties() {
     return props;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleVelocities() {
+std::vector<ChVector<>> ChSystemFsi::GetParticleVelocities() const {
     thrust::host_vector<Real3> velH = m_sysFSI->sphMarkersD2->velMasD;
     std::vector<ChVector<>> vel;
     for (size_t i = 0; i < velH.size(); i++) {
@@ -1816,7 +1816,7 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleVelocities() {
     return vel;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleForces() {
+std::vector<ChVector<>> ChSystemFsi::GetParticleForces() const {
     thrust::host_vector<Real4> dvH = m_sysFSI->GetParticleForces();
     std::vector<ChVector<>> dv;
     for (size_t i = 0; i < dvH.size(); i++) {

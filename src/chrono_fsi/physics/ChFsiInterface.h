@@ -77,10 +77,10 @@ class ChFsiInterface : public ChFsiGeneral {
     void Add_Flex_Forces_To_ChSystem();
 
     /// Resize number of cable elements used in the flexible elements
-    void ResizeChronoCablesData(std::vector<std::vector<int>> CableElementsNodesSTDVector);
+    void ResizeChronoCablesData(const std::vector<std::vector<int>>& CableElementsNodesSTDVector);
 
     /// Resize number of shell elements used in the flexible elements
-    void ResizeChronoShellsData(std::vector<std::vector<int>> ShellElementsNodesSTDVector);
+    void ResizeChronoShellsData(const std::vector<std::vector<int>>& ShellElementsNodesSTDVector);
 
     /// Resize number of nodes used in the flexible elements
     void ResizeChronoFEANodesData();
@@ -92,7 +92,7 @@ class ChFsiInterface : public ChFsiGeneral {
     ChSystem& m_sysMBS;          ///< Chrono multibody system
     ChSystemFsi_impl& m_sysFSI;  ///< FSI system
 
-    bool m_verbose;        ///< enable/disable m_verbose terminal output (default: true)
+    bool m_verbose;  ///< enable/disable m_verbose terminal output (default: true)
 
     std::shared_ptr<SimParams> m_paramsH;  ///< simulation parameters
 
