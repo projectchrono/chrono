@@ -288,13 +288,13 @@ void ChBuilderCableANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,              //
     }
 }
 
-void ChBuilderCableANCF::BuildBeam_FSI(std::shared_ptr<ChMesh> mesh,  // mesh to store the resulting elements
-                                       std::shared_ptr<ChBeamSectionCable> sect,  // section material for beam elements
-                                       const int N,                               // number of elements in the segment
-                                       const ChVector<> A,                        // starting point
-                                       const ChVector<> B,                        // ending point
-                                       std::vector<std::vector<int>>& nodes,      // node indices for all elements
-                                       std::vector<std::vector<int>>& node_nbrs  // neighbor node indices (connectivity)
+void ChBuilderCableANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,              // mesh to store the resulting elements
+                                   std::shared_ptr<ChBeamSectionCable> sect,  // section material for beam elements
+                                   const int N,                               // number of elements in the segment
+                                   const ChVector<> A,                        // starting point
+                                   const ChVector<> B,                        // ending point
+                                   std::vector<std::vector<int>>& nodes,      // node indices for all elements
+                                   std::vector<std::vector<int>>& node_nbrs   // neighbor node indices (connectivity)
 ) {
     beam_elems.clear();
     beam_nodes.clear();

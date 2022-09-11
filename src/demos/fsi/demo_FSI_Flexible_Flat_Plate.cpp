@@ -279,13 +279,14 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
         ChBuilderCableANCF builder;
         double loc_x = -0.3;
-        builder.BuildBeam_FSI(
-            my_mesh,         // the mesh where to put the created nodes and elements
-            msection_cable,  // the ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
-            15,              // the number of ChElementBeamANCF_3333 to create
-            ChVector<>(loc_x, 0.0, initSpace0 * 15),  // the 'A' point in space (beginning of beam)
-            ChVector<>(loc_x, 0.0, initSpace0),  // the 'B' point in space (end of beam) _1D__2D_elementsNodes_mesh,
-            _1D_elementsNodes_mesh, NodeNeighborElement_mesh);
+        builder.BuildBeam(my_mesh,                                  // FEA mesh with nodes and elements
+                          msection_cable,                           // section material for cable elements
+                          15,                                       // number of elements in the segment
+                          ChVector<>(loc_x, 0.0, initSpace0 * 15),  // beam start point
+                          ChVector<>(loc_x, 0.0, initSpace0),       // beam end point
+                          _1D_elementsNodes_mesh,                   // node indices
+                          NodeNeighborElement_mesh                  // neighbor node indices
+        ); 
 
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(builder.GetLastBeamNodes().back());
         auto pos_const = chrono_types::make_shared<ChLinkPointFrame>();

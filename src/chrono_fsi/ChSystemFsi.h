@@ -385,16 +385,6 @@ class CH_FSI_API ChSystemFsi {
                        int SIDE,
                        int SIZE2D);
 
-    /// Add BCE markers genetrated from ANCF shell elements.
-    void AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& m_fsi_shells,
-                         std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& m_fsi_nodes,
-                         std::shared_ptr<fea::ChMesh> mesh,
-                         const std::vector<std::vector<int>>& elementsNodes,
-                         const std::vector<std::vector<int>>& NodeNeighborElement,
-                         bool multiLayer = true,
-                         bool removeMiddleLayer = false,
-                         int SIDE = -2);
-
     /// Create and add to the FSI system a rigid body with spherical shape.
     /// BCE markers are created in the entire spherical volume using the current spacing value.
     void AddSphereBody(std::shared_ptr<ChMaterialSurface> mat_prop,
