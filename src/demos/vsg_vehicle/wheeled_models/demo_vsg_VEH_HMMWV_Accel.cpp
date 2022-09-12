@@ -122,12 +122,12 @@ int main(int argc, char* argv[]) {
     my_hmmwv.Initialize();
 
     // Set subsystem visualization mode
-    my_hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    my_hmmwv.SetChassisVisualizationType(VisualizationType::MESH);
     my_hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     my_hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
+    my_hmmwv.SetWheelVisualizationType(VisualizationType::MESH);
     my_hmmwv.SetTireVisualizationType(tire_model == TireModelType::RIGID_MESH ? VisualizationType::MESH
-            : VisualizationType::PRIMITIVES);
+            : VisualizationType::MESH);
 
     // Create the terrain
     std::shared_ptr<ChTerrain> terrain;

@@ -395,7 +395,7 @@ void ChVisualSystemVSG::Initialize() {
         std::cout << "Could not create window." << std::endl;
         return;
     }
-    auto& limits = m_window->getOrCreatePhysicalDevice()->getProperties().limits;   // VkPhysicalDeviceLimits
+    auto& limits = m_window->getOrCreatePhysicalDevice()->getProperties().limits;  // VkPhysicalDeviceLimits
     m_shapeBuilder->m_maxAnisotropy = limits.maxSamplerAnisotropy;
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
     m_viewer->addWindow(m_window);
@@ -627,15 +627,26 @@ void ChVisualSystemVSG::BindAll() {
                 m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, body, shape_instance,
                                                                   material, transform, m_draw_as_wireframe));
             } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
-                GetLog() << "... has a triangle mesh shape\n";
+                // GetLog() << "... has a triangle mesh shape\n";
                 ChVector<> scale = trimesh->GetScale();
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
+                /*
                 m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::TRIANGLE_MESH_SHAPE, body,
                                                                   shape_instance, material, transform,
                                                                   m_draw_as_wireframe, trimesh));
+                                                                  */
+                if (trimesh->GetNumMaterials() > 0) {
+                    GetLog() << "... has a triangle mesh shape with material(s)\n";
+                    m_bodyScene->addChild(m_shapeBuilder->createTrimeshMatShape(body, shape_instance, transform,
+                                                                                m_draw_as_wireframe, trimesh));
+                } else {
+                    GetLog() << "... has a triangle mesh shape with color(s)\n";
+                    m_bodyScene->addChild(m_shapeBuilder->createTrimeshColShape(body, shape_instance, transform,
+                                                                                m_draw_as_wireframe, trimesh));
+                }
             } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
                 GetLog() << "... has a surface mesh shape\n";
                 auto transform = vsg::MatrixTransform::create();
