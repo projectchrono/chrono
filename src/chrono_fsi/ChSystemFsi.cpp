@@ -1758,6 +1758,15 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleForces() const {
     return dv;
 }
 
+std::vector<ChVector<>> ChSystemFsi::GetParticleAccelerations() const {
+    thrust::host_vector<Real4> accH = m_sysFSI->GetParticleAccelerations();
+    std::vector<ChVector<>> acc;
+    for (size_t i = 0; i < accH.size(); i++) {
+        acc.push_back(ChUtilsTypeConvert::Real4ToChVector(accH[i]));
+    }
+    return acc;
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 
 thrust::device_vector<int> ChSystemFsi::FindParticlesInBox(const ChFrame<>& frame, const ChVector<>& size) {
@@ -1785,6 +1794,10 @@ thrust::device_vector<Real3> ChSystemFsi::GetParticleVelocities(const thrust::de
 
 thrust::device_vector<Real4> ChSystemFsi::GetParticleForces(const thrust::device_vector<int>& indices) {
     return m_sysFSI->GetParticleForces(indices);
+}
+
+thrust::device_vector<Real4> ChSystemFsi::GetParticleAccelerations(const thrust::device_vector<int>& indices) {
+    return m_sysFSI->GetParticleAccelerations(indices);
 }
 
 }  // end namespace fsi

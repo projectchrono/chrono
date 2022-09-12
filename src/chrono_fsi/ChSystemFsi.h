@@ -241,6 +241,9 @@ class CH_FSI_API ChSystemFsi {
     /// Return the forces acting on SPH particles.
     std::vector<ChVector<>> GetParticleForces() const;
 
+    /// Return the accelerations of SPH particles.
+    std::vector<ChVector<>> GetParticleAccelerations() const;
+
     /// Return the SPH particle fluid properties.
     /// For each SPH particle, the 3-dimensional array contains density, pressure, and viscosity.
     std::vector<ChVector<>> GetParticleFluidProperties() const;
@@ -430,6 +433,10 @@ class CH_FSI_API ChSystemFsi {
     /// Extract forces applied to all SPH particles with indices in the provided array.
     /// The return value is a device thrust vector.
     thrust::device_vector<Real4> GetParticleForces(const thrust::device_vector<int>& indices);
+
+    /// Extract accelerations of all SPH particles with indices in the provided array.
+    /// The return value is a device thrust vector.
+    thrust::device_vector<Real4> GetParticleAccelerations(const thrust::device_vector<int>& indices);
 
   private:
     /// Initialize simulation parameters with default values.

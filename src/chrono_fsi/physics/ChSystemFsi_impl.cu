@@ -562,6 +562,21 @@ thrust::device_vector<Real4> ChSystemFsi_impl::GetParticleForces() {
     return dvD;
 }
 
+thrust::device_vector<Real4> ChSystemFsi_impl::GetParticleAccelerations() {
+    const auto n = numObjects->numFluidMarkers;
+
+    // Copy data for SPH particles only
+    thrust::device_vector<Real4> accD(n);
+    thrust::copy_n(fsiGeneralData->derivVelRhoD.begin(), n, accD.begin());
+
+    // Average accD = beta * derivVelRhoD + (1-beta) * derivVelRhoD_old
+    Real beta = paramsH->Beta / paramsH->markerMass;
+    thrust::transform(accD.begin(), accD.end(), fsiGeneralData->derivVelRhoD_old.begin(), accD.begin(),
+                      axpby_functor(beta , 1 - beta));
+
+    return accD;
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 
 struct in_box {
@@ -686,6 +701,25 @@ thrust::device_vector<Real4> ChSystemFsi_impl::GetParticleForces(const thrust::d
     forces.resize(num_active);
 
     return forces;
+}
+
+thrust::device_vector<Real4> ChSystemFsi_impl::GetParticleAccelerations(const thrust::device_vector<int>& indices) {
+    auto allacc = GetParticleAccelerations(indices);
+
+    thrust::device_vector<Real4> acc(allacc.size());
+
+    auto end = thrust::gather(thrust::device,                   // execution policy
+                              indices.begin(), indices.end(),   // range of gather locations
+                              allacc.begin(),                   // beginning of source
+                              acc.begin()                       // beginning of destination
+    );
+
+    // Trim the output vector of particle positions
+    size_t num_active = (size_t)(end - acc.begin());
+    assert(num_active == indices.size());
+    acc.resize(num_active);
+
+    return acc;
 }
 
 }  // end namespace fsi
