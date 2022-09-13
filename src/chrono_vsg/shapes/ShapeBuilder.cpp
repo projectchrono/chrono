@@ -293,7 +293,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(std::shared_ptr<ChP
         for (size_t imat = 0; imat < nmaterials; imat++) {
             auto count = std::count(m_indices.begin(), m_indices.end(), imat);
             nfaces_per_buffer.push_back(count);
-            GetLog() << "Material#" << imat << " has " << nfaces_per_buffer.back() << " faces.\n";
         }
     }
 
@@ -423,7 +422,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(std::shared_ptr<ChP
         vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nVert);
         vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nVert);
         vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nVert);
-        vsg::ref_ptr<vsg::ushortArray> vsg_indices = vsg::ushortArray::create(nVert);
+        vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(nVert);
         for (size_t k = 0; k < nVert; k++) {
             vsg_vertices->set(k, vsg::vec3(tmp_vertices[k].x(), tmp_vertices[k].y(), tmp_vertices[k].z()));
             vsg_normals->set(k, vsg::vec3(tmp_normals[k].x(), tmp_normals[k].y(), tmp_normals[k].z()));

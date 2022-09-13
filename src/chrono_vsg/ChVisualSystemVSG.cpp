@@ -418,7 +418,8 @@ void ChVisualSystemVSG::Initialize() {
 
     m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
 
-    m_viewer->addEventHandler(vsg::Trackball::create(m_vsg_camera));
+    if(!m_params->showVehicleState)
+        m_viewer->addEventHandler(vsg::Trackball::create(m_vsg_camera));
 
     // default sets automatic directional light
     // auto renderGraph = vsg::RenderGraph::create(m_window, m_view);
