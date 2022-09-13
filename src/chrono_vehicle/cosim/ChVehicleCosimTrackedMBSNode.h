@@ -93,6 +93,9 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
                                double terrain_height             ///< initial terrain height
                                ) = 0;
 
+    /// Return terrain contact geometry and material information for one track shoe.
+    virtual ChVehicleGeometry GetTrackShoeContactGeometry() const = 0;
+
     /// Perform any required operations before advancing the state of the MBS.
     /// This function is called before every integration step.
     virtual void PreAdvance() {}

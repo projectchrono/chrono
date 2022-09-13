@@ -138,9 +138,7 @@ void ChVehicleCosimTerrainNode::Initialize() {
             }
         } else {
             // Get track geometry data from tracked MBS node
-            for (int i = 0; i < m_num_objects; i++) {
-                InitializeTrackData(i);
-            }
+            InitializeTrackData();
         }
     }
 
@@ -240,8 +238,26 @@ void ChVehicleCosimTerrainNode::InitializeTireData(int i) {
 
 //// RADU TODO
 //// Currently, hard-coded for primitive track shoe shape only
-void ChVehicleCosimTerrainNode::InitializeTrackData(int i) {
+void ChVehicleCosimTerrainNode::InitializeTrackData() {
+    MPI_Status status;
     //
+
+    // Track shoe contact material properties
+
+    float props[8];
+    MPI_Recv(props, 8, MPI_FLOAT, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+
+    m_mat_props[0].mu = props[0];
+    m_mat_props[0].cr = props[1];
+    m_mat_props[0].Y = props[2];
+    m_mat_props[0].nu = props[3];
+    m_mat_props[0].kn = props[4];
+    m_mat_props[0].gn = props[5];
+    m_mat_props[0].kt = props[6];
+    m_mat_props[0].gt = props[7];
+
+    if (m_verbose)
+        cout << "[Terrain node] Recv:  friction = " << props[0] << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -255,10 +271,16 @@ void ChVehicleCosimTerrainNode::InitializeTrackData(int i) {
 void ChVehicleCosimTerrainNode::Synchronize(int step_number, double time) {
     switch (m_interface_type) {
         case InterfaceType::BODY:
-            SynchronizeBody(step_number, time);
+            if (m_wheeled)
+                SynchronizeWheeledBody(step_number, time);
+            else
+                SynchronizeTrackedBody(step_number, time);
             break;
         case InterfaceType::MESH:
-            SynchronizeMesh(step_number, time);
+            if (m_wheeled)
+                SynchronizeWheeledMesh(step_number, time);
+            else
+                SynchronizeTrackedMesh(step_number, time);
             break;
     }
 
@@ -266,10 +288,10 @@ void ChVehicleCosimTerrainNode::Synchronize(int step_number, double time) {
     OnSynchronize(step_number, time);
 }
 
-void ChVehicleCosimTerrainNode::SynchronizeBody(int step_number, double time) {
+void ChVehicleCosimTerrainNode::SynchronizeWheeledBody(int step_number, double time) {
     for (int i = 0; i < m_num_objects; i++) {
         if (m_rank == TERRAIN_NODE_RANK) {
-            // Receive rigid body state data
+            // Receive rigid body state data for this tire
             MPI_Status status;
             double state_data[13];
             MPI_Recv(state_data, 13, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD, &status);
@@ -280,7 +302,7 @@ void ChVehicleCosimTerrainNode::SynchronizeBody(int step_number, double time) {
             m_rigid_state[i].ang_vel = ChVector<>(state_data[10], state_data[11], state_data[12]);
         }
 
-        // Set position, rotation, and velocities of proxy rigid body.
+        // Set position, rotation, and velocities of proxy rigid body
         UpdateRigidProxy(i, m_rigid_state[i]);
 
         // Collect contact force on rigid proxy and load in m_rigid_contact.
@@ -291,7 +313,7 @@ void ChVehicleCosimTerrainNode::SynchronizeBody(int step_number, double time) {
         }
 
         if (m_rank == TERRAIN_NODE_RANK) {
-            // Send wheel contact force.
+            // Send wheel contact force
             double force_data[] = {m_rigid_contact[i].force.x(),  m_rigid_contact[i].force.y(),
                                    m_rigid_contact[i].force.z(),  m_rigid_contact[i].moment.x(),
                                    m_rigid_contact[i].moment.y(), m_rigid_contact[i].moment.z()};
@@ -303,7 +325,64 @@ void ChVehicleCosimTerrainNode::SynchronizeBody(int step_number, double time) {
     }
 }
 
-void ChVehicleCosimTerrainNode::SynchronizeMesh(int step_number, double time) {
+void ChVehicleCosimTerrainNode::SynchronizeTrackedBody(int step_number, double time) {
+    std::vector<double> all_states(13 * m_num_objects);
+    std::vector<double> all_forces(6 * m_num_objects);
+    int start_idx;
+
+    // Receive rigid body data for all track shoes
+    if (m_rank == TERRAIN_NODE_RANK) {
+        MPI_Status status;
+        MPI_Recv(all_states.data(), 13, MPI_DOUBLE, MBS_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+
+        // Unpack rigid body data
+        start_idx = 0;
+        for (int i = 0; i < m_num_objects; i++) {
+            m_rigid_state[i].pos =
+                ChVector<>(all_states[start_idx + 0], all_states[start_idx + 1], all_states[start_idx + 2]);
+            m_rigid_state[i].rot = ChQuaternion<>(all_states[start_idx + 3], all_states[start_idx + 4],
+                                                  all_states[start_idx + 5], all_states[start_idx + 6]);
+            m_rigid_state[i].lin_vel =
+                ChVector<>(all_states[start_idx + 7], all_states[start_idx + 8], all_states[start_idx + 9]);
+            m_rigid_state[i].ang_vel =
+                ChVector<>(all_states[start_idx + 10], all_states[start_idx + 11], all_states[start_idx + 12]);
+            start_idx += 13;
+        }
+    }
+
+    // Set position, rotation, and velocities of proxy rigid body.
+    // Collect contact force on rigid proxy and load in m_rigid_contact.
+    // It is assumed that this force is given at body center.
+    // Note that no force is collected at the first step.
+    for (int i = 0; i < m_num_objects; i++) {
+        UpdateRigidProxy(i, m_rigid_state[i]);
+        if (step_number > 0) {
+            GetForceRigidProxy(i, m_rigid_contact[i]);
+        }
+    }
+
+    // Send contact forces for all track shoes
+    if (m_rank == TERRAIN_NODE_RANK) {
+        // Pack contact forces
+        start_idx = 0;
+        for (int i = 0; i < m_num_objects; i++) {
+            all_forces[start_idx + 0] = m_rigid_contact[i].force.x();
+            all_forces[start_idx + 1] = m_rigid_contact[i].force.y();
+            all_forces[start_idx + 2] = m_rigid_contact[i].force.z();
+            all_forces[start_idx + 3] = m_rigid_contact[i].moment.x();
+            all_forces[start_idx + 4] = m_rigid_contact[i].moment.y();
+            all_forces[start_idx + 5] = m_rigid_contact[i].moment.z();
+            start_idx += 6;
+        }
+
+        MPI_Send(all_forces.data(), 6 * m_num_objects, MPI_DOUBLE, MBS_NODE_RANK, step_number, MPI_COMM_WORLD);
+
+        if (m_verbose)
+            cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts() << endl;
+    }
+}
+
+void ChVehicleCosimTerrainNode::SynchronizeWheeledMesh(int step_number, double time) {
     for (int i = 0; i < m_num_objects; i++) {
         if (m_rank == TERRAIN_NODE_RANK) {
             // Receive mesh state data
@@ -356,6 +435,10 @@ void ChVehicleCosimTerrainNode::SynchronizeMesh(int step_number, double time) {
                      << "  vertices in contact: " << m_mesh_contact[i].nv << endl;
         }
     }
+}
+
+void ChVehicleCosimTerrainNode::SynchronizeTrackedMesh(int step_number, double time) {
+    //// RADU TODO
 }
 
 // -----------------------------------------------------------------------------

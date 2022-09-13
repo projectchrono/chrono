@@ -29,6 +29,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSegmented.h"
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimTrackedVehicleNode.h"
 
@@ -111,6 +112,15 @@ void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2<>& terrain_
 }
 
 // -----------------------------------------------------------------------------
+
+ChVehicleGeometry ChVehicleCosimTrackedVehicleNode::GetTrackShoeContactGeometry() const {
+    ChVehicleGeometry geometry;
+    m_vehicle->GetTrackShoe(VehicleSide::LEFT, 0)->GetGroundContactGeometry(geometry);
+    return geometry;
+}
+
+// -----------------------------------------------------------------------------
+
 int ChVehicleCosimTrackedVehicleNode::GetNumTracks() const {
     return 2;
 }

@@ -75,7 +75,10 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
                                double terrain_height             ///< initial terrain height
                                ) override;
 
-    // Output vehicle data.
+    /// Return terrain contact geometry and material information for one track shoe.
+    virtual ChVehicleGeometry GetTrackShoeContactGeometry() const override;
+
+    /// Output vehicle data.
     virtual void OnOutputData(int frame) override;
 
     /// Perform vehicle system synchronization before advancing the dynamics.

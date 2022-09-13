@@ -133,7 +133,7 @@ void ChVehicleCosimTrackedMBSNode::Initialize() {
 
     GetChassisBody()->SetBodyFixed(m_fix_chassis);
 
-    // Send to TERRAIN node the number of interacting objects (here, number of track shoes)
+    // Send to TERRAIN node the number of interacting objects (here, total number of track shoes)
     MPI_Send(&num_track_shoes, 1, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
     // Send the object representation (primitives) and the communication interface type (rigid body) to the TERRAIN node
@@ -144,6 +144,20 @@ void ChVehicleCosimTrackedMBSNode::Initialize() {
     //// RADU TODO send track shoe info to TERRAIN node here!!!
     ////
 
+    ChVehicleGeometry geom = GetTrackShoeContactGeometry();
+
+    // Send track shoe bounding box
+
+    // Send contact material data
+    /*
+    float mat_props[8] = {m_contact_mat->GetKfriction(),    m_contact_mat->GetRestitution(),
+                          m_contact_mat->GetYoungModulus(), m_contact_mat->GetPoissonRatio(),
+                          m_contact_mat->GetKn(),           m_contact_mat->GetGn(),
+                          m_contact_mat->GetKt(),           m_contact_mat->GetGt()};
+    MPI_Send(mat_props, 8, MPI_FLOAT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+    if (m_verbose)
+        cout << "[MBS node    ] Send: friction = " << mat_props[0] << endl;
+    */
 
     // Initialize the DBP rig if one is attached
     if (m_DBP_rig) {
@@ -238,37 +252,47 @@ void ChVehicleCosimTrackedMBSNode::InitializeSystem() {
 // - receive and apply vertex contact forces
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTrackedMBSNode::Synchronize(int step_number, double time) {
-    MPI_Status status;
+    int num_shoes = GetNumTrackShoes();
+    std::vector<double> all_states(13 * num_shoes);
+    std::vector<double> all_forces(6 * num_shoes);
+    int start_idx;
 
-    for (unsigned int i = 0; i < GetNumTracks(); i++) {
-        // Collect states of all track shoe bodies
-        std::vector<double> all_states;
-        int num_track_shoes = GetNumTrackShoes(i);
-
-        for (int j = 0; j < num_track_shoes; j++) {
+    // Pack states of all track shoe bodies
+    start_idx = 0;
+    for (int i = 0; i < GetNumTracks(); i++) {
+        for (int j = 0; j < GetNumTrackShoes(i); j++) {
             BodyState state = GetTrackShoeState(i, j);
-            double state_data[] = {
-                state.pos.x(),     state.pos.y(),     state.pos.z(),                      //
-                state.rot.e0(),    state.rot.e1(),    state.rot.e2(),    state.rot.e3(),  //
-                state.lin_vel.x(), state.lin_vel.y(), state.lin_vel.z(),                  //
-                state.ang_vel.x(), state.ang_vel.y(), state.ang_vel.z()                   //
-            };
-            all_states.insert(all_states.end(), state_data, state_data + 13);
+            all_states[start_idx + 0] = state.pos.x();
+            all_states[start_idx + 1] = state.pos.y();
+            all_states[start_idx + 2] = state.pos.z();
+            all_states[start_idx + 3] = state.rot.e0();
+            all_states[start_idx + 4] = state.rot.e1();
+            all_states[start_idx + 5] = state.rot.e2();
+            all_states[start_idx + 6] = state.rot.e3();
+            all_states[start_idx + 7] = state.lin_vel.x();
+            all_states[start_idx + 8] = state.lin_vel.y();
+            all_states[start_idx + 9] = state.lin_vel.z();
+            all_states[start_idx + 10] = state.ang_vel.x();
+            all_states[start_idx + 11] = state.ang_vel.y();
+            all_states[start_idx + 12] = state.ang_vel.z();
+            start_idx += 13;
         }
+    }
 
-        // Send track shoe states to the terrain node
-        MPI_Send(all_states.data(), 13 * num_track_shoes, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
+    // Send track shoe states to the terrain node
+    MPI_Send(all_states.data(), 13 * num_shoes, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
 
-        // Receive track shoe forces as applied to the center of the track shoe body.
-        // Note that we assume this is the resultant wrench at the track shoe origin (expressed in absolute frame).
-        std::vector<double> all_forces(6 * num_track_shoes);
-        MPI_Recv(all_forces.data(), 6 * num_track_shoes, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD,
-                 &status);
+    // Receive track shoe forces as applied to the center of the track shoe body.
+    // Note that we assume this is the resultant wrench at the track shoe origin (expressed in absolute frame).
+    MPI_Status status;
+    MPI_Recv(all_forces.data(), 6 * num_shoes, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
-        int start_idx = 0;
-        for (int j = 0; j < num_track_shoes; j++) {
+    // Apply track shoe forces on each individual track shoe body
+    start_idx = 0;
+    for (int i = 0; i < GetNumTracks(); i++) {
+        for (int j = 0; j < GetNumTrackShoes(i); j++) {
             TerrainForce force;
-            force.point = GetTrackShoeBody(i,j)->GetPos();
+            force.point = GetTrackShoeBody(i, j)->GetPos();
             force.force = ChVector<>(all_forces[start_idx + 0], all_forces[start_idx + 1], all_forces[start_idx + 2]);
             force.moment = ChVector<>(all_forces[start_idx + 3], all_forces[start_idx + 4], all_forces[start_idx + 5]);
             ApplyTrackShoeForce(i, j, force);

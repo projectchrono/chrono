@@ -195,10 +195,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
   private:
     void InitializeTireData(int i);
-    void InitializeTrackData(int i);
+    void InitializeTrackData();
 
-    void SynchronizeBody(int step_number, double time);
-    void SynchronizeMesh(int step_number, double time);
+    void SynchronizeWheeledBody(int step_number, double time);
+    void SynchronizeTrackedBody(int step_number, double time);
+    void SynchronizeWheeledMesh(int step_number, double time);
+    void SynchronizeTrackedMesh(int step_number, double time);
 
     /// Print vertex and face connectivity data for the i-th object, as received at synchronization.
     /// Invoked only when using the MESH communication interface.
