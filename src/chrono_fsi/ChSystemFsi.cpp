@@ -1099,6 +1099,20 @@ void ChSystemFsi::AddCylinderBCE(std::shared_ptr<ChBody> body,
     posRadBCE.clear();
 }
 
+void ChSystemFsi::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
+                                        const ChVector<>& relPos,
+                                        const ChQuaternion<>& relRot,
+                                        double rad_in,
+                                        double rad_out,
+                                        double height,
+                                        double kernel_h,
+                                        bool cartesian) {
+    thrust::host_vector<Real4> posRadBCE;
+    utils::CreateBCE_On_Cylinder_Annulus(posRadBCE, rad_in, rad_out, height, m_paramsH, kernel_h, cartesian);
+    CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot);
+    posRadBCE.clear();
+}
+
 void ChSystemFsi::AddCylinderSurfaceBCE(std::shared_ptr<ChBody> body,
                                         const ChVector<>& relPos,
                                         const ChQuaternion<>& relRot,
