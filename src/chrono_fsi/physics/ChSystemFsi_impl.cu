@@ -524,13 +524,13 @@ void ChSystemFsi_impl::ResizeData(size_t numRigidBodies,
     fsiGeneralData->FlexSPH_MeshPos_LRF_D.resize(numObjects->numFlexMarkers);
     fsiGeneralData->FlexSPH_MeshPos_LRF_H.resize(numObjects->numFlexMarkers);
 
-    fsiGeneralData->CableElementsNodes.resize(fsiGeneralData->CableElementsNodesH.size());
-    fsiGeneralData->ShellElementsNodes.resize(fsiGeneralData->ShellElementsNodesH.size());
+    fsiGeneralData->CableElementsNodesD.resize(fsiGeneralData->CableElementsNodesH.size());
+    fsiGeneralData->ShellElementsNodesD.resize(fsiGeneralData->ShellElementsNodesH.size());
 
     thrust::copy(fsiGeneralData->CableElementsNodesH.begin(), fsiGeneralData->CableElementsNodesH.end(),
-                 fsiGeneralData->CableElementsNodes.begin());
+                 fsiGeneralData->CableElementsNodesD.begin());
     thrust::copy(fsiGeneralData->ShellElementsNodesH.begin(), fsiGeneralData->ShellElementsNodesH.end(),
-                 fsiGeneralData->ShellElementsNodes.begin());
+                 fsiGeneralData->ShellElementsNodesD.begin());
 
     fsiMeshD->resize(numObjects->numFlexNodes);
     fsiMeshH->resize(numObjects->numFlexNodes);
@@ -560,6 +560,21 @@ thrust::device_vector<Real4> ChSystemFsi_impl::GetParticleForces() {
                       axpby_functor(beta, 1 - beta));
 
     return dvD;
+}
+
+thrust::device_vector<Real4> ChSystemFsi_impl::GetParticleAccelerations() {
+    const auto n = numObjects->numFluidMarkers;
+
+    // Copy data for SPH particles only
+    thrust::device_vector<Real4> accD(n);
+    thrust::copy_n(fsiGeneralData->derivVelRhoD.begin(), n, accD.begin());
+
+    // Average accD = beta * derivVelRhoD + (1-beta) * derivVelRhoD_old
+    Real beta = paramsH->Beta / paramsH->markerMass;
+    thrust::transform(accD.begin(), accD.end(), fsiGeneralData->derivVelRhoD_old.begin(), accD.begin(),
+                      axpby_functor(beta , 1 - beta));
+
+    return accD;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -686,6 +701,25 @@ thrust::device_vector<Real4> ChSystemFsi_impl::GetParticleForces(const thrust::d
     forces.resize(num_active);
 
     return forces;
+}
+
+thrust::device_vector<Real4> ChSystemFsi_impl::GetParticleAccelerations(const thrust::device_vector<int>& indices) {
+    auto allacc = GetParticleAccelerations();
+
+    thrust::device_vector<Real4> acc(allacc.size());
+
+    auto end = thrust::gather(thrust::device,                   // execution policy
+                              indices.begin(), indices.end(),   // range of gather locations
+                              allacc.begin(),                   // beginning of source
+                              acc.begin()                       // beginning of destination
+    );
+
+    // Trim the output vector of particle positions
+    size_t num_active = (size_t)(end - acc.begin());
+    assert(num_active == indices.size());
+    acc.resize(num_active);
+
+    return acc;
 }
 
 }  // end namespace fsi

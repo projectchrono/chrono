@@ -94,25 +94,25 @@ class ChApi ChBuilderCableANCF {
     std::vector<std::shared_ptr<ChNodeFEAxyzD>> beam_nodes;
 
   public:
-    /// Adds beam FEM elements to the mesh to create a segment beam from point A to point B, using ChElementCableANCF
+    /// Adds cable FEM elements to the mesh to create a segment beam from point A to point B, using ChElementCableANCF
     /// type elements. Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
-                   std::shared_ptr<ChBeamSectionCable> sect,  ///< section material for beam elements
+                   std::shared_ptr<ChBeamSectionCable> sect,  ///< section material for cable elements
                    const int N,                               ///< number of elements in the segment
                    const ChVector<> A,                        ///< starting point
                    const ChVector<> B                         ///< ending point
     );
 
-    /// Adds beam FEM elements to the mesh to create a segment beam from point A to point B, using ChElementCableANCF
-    /// type elements. Before running, each time resets lists of beam_elems and beam_nodes. Also fills out the necessary
-    /// connectivity information required by ChFsiSystem.
-    void BuildBeam_FSI(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
-                       std::shared_ptr<ChBeamSectionCable> sect,  ///< section material for beam elements
-                       const int N,                               ///< number of elements in the segment
-                       const ChVector<> A,                        ///< starting point
-                       const ChVector<> B,                        ///< ending point
-                       std::vector<std::vector<int>>& nodes,      ///< node indices for all elements
-                       std::vector<std::vector<int>>& node_nbrs   ///< neighbor node indices (connectivity)
+    /// Adds cable FEM elements to the mesh to create a segment beam from point A to point B, using ChElementCableANCF
+    /// type elements. Before running, each time resets lists of beam_elems and beam_nodes. This version also returns
+    /// connectivity information.
+    void BuildBeam(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
+                   std::shared_ptr<ChBeamSectionCable> sect,  ///< section material for cable elements
+                   const int N,                               ///< number of elements in the segment
+                   const ChVector<> A,                        ///< starting point
+                   const ChVector<> B,                        ///< ending point
+                   std::vector<std::vector<int>>& nodes,      ///< node indices for all elements
+                   std::vector<std::vector<int>>& node_nbrs   ///< neighbor node indices (connectivity)
     );
 
     /// Access the list of elements used by the last built beam.

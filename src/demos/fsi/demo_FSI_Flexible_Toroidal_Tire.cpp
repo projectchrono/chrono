@@ -74,8 +74,8 @@ double total_mass = 105.22;
 double m_rim_radius = 0.35;
 double m_height = 0.195;
 double m_thickness = 0.014;
-int m_div_circumference = 60;
-int m_div_width = 12;
+int m_div_circumference = 30;
+int m_div_width = 6;
 double m_alpha = 0.15;
 
 // Initial Position of wheel
@@ -112,6 +112,10 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
         return 1;
     }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
+        return 1;
+    }
     if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
         std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
         return 1;
@@ -122,7 +126,7 @@ int main(int argc, char* argv[]) {
     ChSystemFsi sysFSI(sysMBS);
 
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Elements_Explicit.json");
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Toroidal_Tire_Granular.json");
     if (argc == 1) {
         std::cout << "Use the default JSON file" << std::endl;
     } else if (argc == 2) {
@@ -130,7 +134,7 @@ int main(int argc, char* argv[]) {
         std::string my_inputJson = std::string(argv[1]);
         inputJson = my_inputJson;
     } else {
-        std::cout << "usage: ./demo_FSI_Flexible_Elements <json_file>" << std::endl;
+        std::cout << "usage: ./demo_FSI_Flexible_Toroidal_Tire_Granular <json_file>" << std::endl;
         return 1;
     }
     sysFSI.ReadParametersFromFile(inputJson);
@@ -142,11 +146,17 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax = ChVector<>( 5 * bxDim,  byDim / 2.0 + initSpace0 / 2.0,  10 * bzDim );
     sysFSI.SetBoundaries(cMin, cMax);
 
+    // Set SPH discretization type, consistent or inconsistent
+    sysFSI.SetDiscreType(false, false);
+
+    // Set wall boundary condition
+    sysFSI.SetWallBC(BceVersion::ADAMI);
+
+    // Set rigid body boundary condition
+    sysFSI.SetRigidBodyBC(BceVersion::ADAMI);
+
     // Set cohsion of the granular material
     sysFSI.SetCohesionForce(2000.0);
-
-    // Setup the output directory for FSI data
-    sysFSI.SetOutputDirectory(out_dir);
 
     // Create SPH particles of fluid region
     chrono::utils::GridSampler<> sampler(initSpace0);
@@ -166,7 +176,7 @@ int main(int argc, char* argv[]) {
     // Create a run-tme visualizer
     ChVisualizationFsi fsi_vis(&sysFSI);
     if (render) {
-        fsi_vis.SetTitle("Chrono::FSI flexible element demo");
+        fsi_vis.SetTitle("Chrono::FSI Flexible Toroidal Tire Demo");
         fsi_vis.SetCameraPosition(ChVector<>(bxDim / 8, -3, 0.25), ChVector<>(bxDim / 8, 0.0, 0.25));
         fsi_vis.SetCameraMoveScale(1.0f);
         fsi_vis.EnableBoundaryMarkers(false);
@@ -191,8 +201,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     double dT = sysFSI.GetStepSize();
 
-    unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
-    unsigned int render_steps = (unsigned int)(1 / (render_fps * dT));
+    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
+    unsigned int render_steps = (unsigned int)round(1 / (render_fps * dT));
 
     double time = 0.0;
     int current_step = 0;
@@ -205,6 +215,7 @@ int main(int argc, char* argv[]) {
         if (output && current_step % output_steps == 0) {
             std::cout << "-------- Output" << std::endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
+            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/flex_body." + std::to_string(counter++) + ".vtk";
             fea::ChMeshExporter::writeFrame(my_mesh, (char*)filename.c_str(), MESH_CONNECTIVITY);

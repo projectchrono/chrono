@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
 // =============================================================================
 //
 // Base class for processing the interface between Chrono and fsi modules
@@ -42,12 +42,11 @@ ChFsiInterface::ChFsiInterface(ChSystem& mbs,
       m_fsi_nodes(nodes),
       m_fsi_cables(cables),
       m_fsi_shells(shells),
-      m_verbose(true),
-      m_output_fsi(false) {
+      m_verbose(true) {
     size_t numBodies = m_sysMBS.Get_bodylist().size();
     m_rigid_backup = chrono_types::make_shared<ChronoBodiesDataH>(numBodies);
     m_flex_backup = chrono_types::make_shared<ChronoMeshDataH>(0);
-    int numNodes = 0;
+    size_t numNodes = 0;
 
     if (m_sysMBS.Get_otherphysicslist().size())
         numNodes = std::dynamic_pointer_cast<fea::ChMesh>(m_sysMBS.Get_otherphysicslist().at(0))->GetNnodes();
@@ -62,9 +61,6 @@ ChFsiInterface::~ChFsiInterface() {}
 //------------------------------------------------------------------------------------
 void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
     size_t numRigids = m_fsi_bodies.size();
-    std::string delim = ",";
-    ChVector<> totalForce(0);
-    ChVector<> totalTorque(0);
 
     for (size_t i = 0; i < numRigids; i++) {
         ChVector<> mforce = ChUtilsTypeConvert::Real3ToChVector(
@@ -72,8 +68,6 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
         ChVector<> mtorque = ChUtilsTypeConvert::Real3ToChVector(
             ChUtilsDevice::FetchElement(m_sysFSI.fsiGeneralData->rigid_FSI_TorquesD, i));
 
-        totalForce += mforce;
-        totalTorque + mtorque;
         std::shared_ptr<ChBody> body = m_fsi_bodies[i];
 
         // note: when this FSI body goes back to Chrono system, the gravity
@@ -81,44 +75,22 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
         body->Empty_forces_accumulators();
         body->Accumulate_force(mforce, body->GetPos(), false);
         body->Accumulate_torque(mtorque, false);
-
-        // Output FSI information into csv files for each body.
-        // Enabled when an output directory is specified.
-        if (m_output_fsi) {
-            ChVector<> pos = body->GetPos();
-            ChVector<> vel = body->GetPos_dt();
-            ChQuaternion<> rot = body->GetRot();
-
-            std::string filename = m_outdir + "/FSI_body" + std::to_string(i) + ".csv";
-            std::ofstream file;
-            if (m_sysMBS.GetChTime() > 0)
-                file.open(filename, std::fstream::app);
-            else {
-                file.open(filename);
-                file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "q0" << delim << "q1"
-                     << delim << "q2" << delim << "q3" << delim << "Vx" << delim << "Vy" << delim << "Vz" << delim
-                     << "Fx" << delim << "Fy" << delim << "Fz" << delim << "Tx" << delim << "Ty" << delim << "Tz"
-                     << std::endl;
-            }
-
-            file << m_sysMBS.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z() << delim
-                 << rot.e0() << delim << rot.e1() << delim << rot.e2() << delim << rot.e3() << delim << vel.x() << delim
-                 << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y() << delim << mforce.z()
-                 << delim << mtorque.x() << delim << mtorque.y() << delim << mtorque.z() << std::endl;
-            file.close();
-        }
     }
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::Copy_External_To_ChSystem() {
     size_t numBodies = m_sysMBS.Get_bodylist().size();
-    if (m_rigid_backup->pos_ChSystemH.size() != numBodies) {
+    size_t numNodes = m_fsi_mesh->GetNnodes();
+
+    if (m_rigid_backup->pos_ChSystemH.size() != numBodies || 
+        m_flex_backup->posFlex_ChSystemH_H.size() != numNodes) {
         throw std::runtime_error(
             "Size of the external data does not match the "
             "ChSystem; thrown from Copy_External_To_ChSystem "
             "!\n");
     }
 
+    // Copy data between ChSystem and FSI system for rigid bodies
     for (size_t i = 0; i < numBodies; i++) {
         auto mBody = m_sysMBS.Get_bodylist().at(i);
         mBody->SetPos(ChUtilsTypeConvert::Real3ToChVector(m_rigid_backup->pos_ChSystemH[i]));
@@ -127,22 +99,33 @@ void ChFsiInterface::Copy_External_To_ChSystem() {
 
         mBody->SetRot(ChUtilsTypeConvert::Real4ToChQuaternion(m_rigid_backup->quat_ChSystemH[i]));
         mBody->SetWvel_par(ChUtilsTypeConvert::Real3ToChVector(m_rigid_backup->omegaVelGRF_ChSystemH[i]));
-        ChVector<> acc = ChUtilsTypeConvert::Real3ToChVector(m_rigid_backup->omegaAccGRF_ChSystemH[i]);
-        mBody->SetWacc_par(acc);
+        mBody->SetWacc_par(ChUtilsTypeConvert::Real3ToChVector(m_rigid_backup->omegaAccGRF_ChSystemH[i]));
+    }
+
+    // Copy data between ChSystem and FSI system for flexible bodies
+    m_flex_backup->resize(numNodes);
+    for (size_t i = 0; i < numNodes; i++) {
+        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
+        node->SetPos(ChUtilsTypeConvert::Real3ToChVector(m_flex_backup->posFlex_ChSystemH_H[i]));
+        node->SetPos_dt(ChUtilsTypeConvert::Real3ToChVector(m_flex_backup->velFlex_ChSystemH_H[i]));
+        node->SetPos_dtdt(ChUtilsTypeConvert::Real3ToChVector(m_flex_backup->accFlex_ChSystemH_H[i]));
+        node->SetD(ChUtilsTypeConvert::Real3ToChVector(m_flex_backup->dirFlex_ChSystemH_H[i]));
     }
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::Copy_ChSystem_to_External() {
     size_t numBodies = m_sysMBS.Get_bodylist().size();
-    auto bodyList = m_sysMBS.Get_bodylist();
+    size_t numNodes = m_fsi_mesh->GetNnodes();
 
-    if (m_rigid_backup->pos_ChSystemH.size() != numBodies) {
+    if (m_rigid_backup->pos_ChSystemH.size() != numBodies || 
+        m_flex_backup->posFlex_ChSystemH_H.size() != numNodes) {
         throw std::runtime_error(
             "Size of the external data does not match the "
             "ChSystem; thrown from Copy_ChSystem_to_External "
             "!\n");
     }
 
+    // Copy data between ChSystem and FSI system for rigid bodies
     m_rigid_backup->resize(numBodies);
     for (size_t i = 0; i < numBodies; i++) {
         auto mBody = m_sysMBS.Get_bodylist().at(i);
@@ -155,7 +138,8 @@ void ChFsiInterface::Copy_ChSystem_to_External() {
         m_rigid_backup->omegaAccGRF_ChSystemH[i] = ChUtilsTypeConvert::ChVectorToReal3(mBody->GetWacc_par());
     }
 
-    int numNodes = m_fsi_mesh->GetNnodes();
+    // Copy data between ChSystem and FSI system for flexible bodies
+    m_flex_backup->resize(numNodes);
     for (size_t i = 0; i < numNodes; i++) {
         auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
         m_flex_backup->posFlex_ChSystemH_H[i] = ChUtilsTypeConvert::ChVectorToReal3(node->GetPos());
@@ -165,7 +149,7 @@ void ChFsiInterface::Copy_ChSystem_to_External() {
     }
 }
 //------------------------------------------------------------------------------------
-void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
+void ChFsiInterface::Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
     size_t num_fsiBodies_Rigids = m_fsi_bodies.size();
     for (size_t i = 0; i < num_fsiBodies_Rigids; i++) {
         std::shared_ptr<ChBody> bodyPtr = m_fsi_bodies[i];
@@ -190,39 +174,17 @@ void ChFsiInterface::ResizeChronoBodiesData() {
 //-----------------------Chrono FEA Specifics-----------------------------------------
 //------------------------------------------------------------------------------------
 void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
-    std::string delim = ",";
     size_t numNodes = m_fsi_nodes.size();
-    ChVector<> total_force(0, 0, 0);
+
     for (size_t i = 0; i < numNodes; i++) {
         ChVector<> mforce = ChUtilsTypeConvert::Real3ToChVector(
             ChUtilsDevice::FetchElement(m_sysFSI.fsiGeneralData->Flex_FSI_ForcesD, i));
         auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
         node->SetForce(mforce);
-
-        // Output FSI information into csv files for each node.
-        // Enabled when an output directory is specified.
-        if (m_output_fsi) {
-            ChVector<> pos = node->GetPos();
-            ChVector<> vel = node->GetPos_dt();
-            std::string filename = m_outdir + "/FSI_node" + std::to_string(i) + ".csv";
-            std::ofstream file;
-            if (m_sysMBS.GetChTime() > 0)
-                file.open(filename, std::fstream::app);
-            else {
-                file.open(filename);
-                file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "Vx" << delim << "Vy"
-                     << delim << "Vz" << delim << "Fx" << delim << "Fy" << delim << "Fz" << std::endl;
-            }
-
-            file << m_sysMBS.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z() << delim << vel.x()
-                 << delim << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y() << delim
-                 << mforce.z() << std::endl;
-            file.close();
-        }
     }
 }
 //------------------------------------------------------------------------------------
-void ChFsiInterface::Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD) {
+void ChFsiInterface::Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD) {
     size_t num_fsiNodes_Felx = m_fsi_nodes.size();
 
     for (size_t i = 0; i < num_fsiNodes_Felx; i++) {
@@ -236,11 +198,11 @@ void ChFsiInterface::Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMe
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoFEANodesData() {
-    int numNodes = m_fsi_mesh->GetNnodes();
+    size_t numNodes = m_fsi_mesh->GetNnodes();
     m_flex_backup->resize(numNodes);
 }
 //------------------------------------------------------------------------------------
-void ChFsiInterface::ResizeChronoCablesData(std::vector<std::vector<int>> CableElementsNodesSTDVector) {
+void ChFsiInterface::ResizeChronoCablesData(const std::vector<std::vector<int>>& CableElementsNodesSTDVector) {
     size_t numCables = 0;
     for (size_t i = 0; i < m_fsi_mesh->GetNelements(); i++) {
         if (std::dynamic_pointer_cast<fea::ChElementCableANCF>(m_fsi_mesh->GetElement((unsigned int)i)))
@@ -269,15 +231,15 @@ void ChFsiInterface::ResizeChronoCablesData(std::vector<std::vector<int>> CableE
     }
 }
 //------------------------------------------------------------------------------------
-void ChFsiInterface::ResizeChronoShellsData(std::vector<std::vector<int>> ShellElementsNodesSTDVector) {
-    int numShells = 0;
+void ChFsiInterface::ResizeChronoShellsData(const std::vector<std::vector<int>>& ShellElementsNodesSTDVector) {
+    size_t numShells = 0;
     for (unsigned int i = 0; i < m_fsi_mesh->GetNelements(); i++) {
         if (std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(m_fsi_mesh->GetElement(i)))
             numShells++;
     }
 
     if (m_verbose) {
-        printf("numShells in ResizeChronoShellsData  %d\n", numShells);
+        printf("numShells in ResizeChronoShellsData  %zd\n", numShells);
         printf("ShellElementsNodesSTDVector.size() in ResizeChronoShellsData  %zd\n",
                ShellElementsNodesSTDVector.size());
     }
@@ -300,7 +262,7 @@ void ChFsiInterface::ResizeChronoShellsData(std::vector<std::vector<int>> ShellE
         m_sysFSI.fsiGeneralData->ShellElementsNodesH[i].w = ShellElementsNodesSTDVector[i][3];
     }
 
-    //  (*ShellelementsNodes).resize(numShells);
+    //  (*ShellElementsNodesD).resize(numShells);
     //  thrust::copy(ShellelementsNodes_H.begin(), ShellelementsNodes_H.end(), (*m_fea_shell_nodes).begin());
 }
 

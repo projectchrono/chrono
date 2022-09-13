@@ -1053,11 +1053,8 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
     Real4 velyLap = mR4(0.0);
     Real4 velzLap = mR4(0.0);
 
-    Real radii = paramsD.INITSPACE * 1.241;
-    Real invRadii = 1.0 / 1.241 * paramsD.INV_INIT;
     Real vA = length(velMasA);
     Real vAdT = vA * paramsD.dT;
-    Real bs_vAdT = paramsD.beta_shifting * vAdT;
 
     // get address in grid
     int3 gridPos = calcGridPos(posRadA);
@@ -1084,7 +1081,6 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                         if (rhoPresMuA.w > -0.5 && rhoPresMuB.w > -0.5)   
                             continue;
                         Real d = length(dist3);
-                        Real invd = 1.0 / d;
                         // modifyPressure(rhoPresMuB, dist3Alpha);
                         // if (!(isfinite(rhoPresMuB.x) && isfinite(rhoPresMuB.y) && isfinite(rhoPresMuB.z))) {
                         //     printf("Error! particle rhoPresMuB is NAN: thrown from modifyPressure !\n");
@@ -1456,7 +1452,6 @@ __global__ void NS_SSR(uint* activityIdentifierD,
     if (rhoPresMuA.w > -1.5 && rhoPresMuA.w < -0.5) {
         Real3 totalFluidBodyForce3 = paramsD.bodyForce3 + paramsD.gravity;
         derivVelRho += mR4(totalFluidBodyForce3, 0.0);
-        derivVelRho.w = sum_w_i;
     }
 
     sortedDerivVelRho[index] = derivVelRho;

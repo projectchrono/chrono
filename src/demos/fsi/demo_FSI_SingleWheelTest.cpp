@@ -278,6 +278,10 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
         return 1;
     }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
+        return 1;
+    }
     if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
         std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
         return 1;
@@ -341,9 +345,6 @@ int main(int argc, char* argv[]) {
     // Create Solid region and attach BCE SPH particles
     CreateSolidPhase(sysMBS, sysFSI);
 
-    /// Setup the output directory for FSI data
-    sysFSI.SetOutputDirectory(out_dir);
-
     // Set simulation data output length
     sysFSI.SetOutputLength(0);
 
@@ -378,8 +379,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Start the simulation
-    unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
-    unsigned int render_steps = (unsigned int)(1 / (render_fps * dT));
+    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
+    unsigned int render_steps = (unsigned int)round(1 / (render_fps * dT));
 
     double time = 0.0;
     int current_step = 0;
@@ -413,6 +414,7 @@ int main(int argc, char* argv[]) {
         if (output && current_step % output_steps == 0) {
             std::cout << "-------- Output" << std::endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
+            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/wheel." + std::to_string(counter++) + ".vtk";
             WriteWheelVTK(filename, wheel_mesh, wheel->GetFrame_REF_to_abs());

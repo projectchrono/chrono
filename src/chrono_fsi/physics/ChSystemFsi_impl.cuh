@@ -297,11 +297,11 @@ struct FsiGeneralData {
     thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< Vector of the surface-integrated torques to rigid bodies
     thrust::device_vector<Real3> Flex_FSI_ForcesD;    ///< Vector of the surface-integrated force on FEA nodes
 
-    thrust::host_vector<int2> CableElementsNodesH;   ///< Vector of the cable elements dodes on host
-    thrust::device_vector<int2> CableElementsNodes;  ///< Vector of the cable elements dodes on device
+    thrust::host_vector<int2> CableElementsNodesH;   ///< Vector of the cable elements nodes on host
+    thrust::device_vector<int2> CableElementsNodesD;  ///< Vector of the cable elements nodes on device
 
-    thrust::host_vector<int4> ShellElementsNodesH;   ///< Vector of the shell elements dodes on host
-    thrust::device_vector<int4> ShellElementsNodes;  ///< Vector of the shell elements dodes on device
+    thrust::host_vector<int4> ShellElementsNodesH;   ///< Vector of the shell elements nodes on host
+    thrust::device_vector<int4> ShellElementsNodesD;  ///< Vector of the shell elements nodes on device
 };
 
 /// @brief Data related function implementations for FSI system
@@ -323,6 +323,9 @@ class ChSystemFsi_impl : public ChFsiGeneral {
     /// Extract forces applied on all SPH particles.
     thrust::device_vector<Real4> GetParticleForces();
 
+    /// Extract accelerations of all SPH particles.
+    thrust::device_vector<Real4> GetParticleAccelerations();
+
     /// Find indices of all SPH particles inside the specified OBB.
     thrust::device_vector<int> FindParticlesInBox(const Real3& hsize,
                                                   const Real3& pos,
@@ -341,6 +344,10 @@ class ChSystemFsi_impl : public ChFsiGeneral {
     /// Extract forces applied to all SPH particles with indices in the provided array.
     /// The return value is a device thrust vector.
     thrust::device_vector<Real4> GetParticleForces(const thrust::device_vector<int>& indices);
+
+    /// Extract accelerations of all SPH particles with indices in the provided array.
+    /// The return value is a device thrust vector.
+    thrust::device_vector<Real4> GetParticleAccelerations(const thrust::device_vector<int>& indices);
 
     std::shared_ptr<SimParams> paramsH;      ///< Parameters of the simulation
     std::shared_ptr<ChCounters> numObjects;  ///< Counters (SPH particles, BCE particles, bodies, etc)

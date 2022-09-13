@@ -440,7 +440,6 @@ __global__ void Update_Fluid_State(Real3* new_vel,
                                    Real3* velMas,
                                    Real4* rhoPreMu,
                                    int4 updatePortion,
-                                   const size_t numAllMarkers,
                                    double dT,
                                    volatile bool* isErrorD) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -481,10 +480,9 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
                                   Real4* sortedRhoPreMu,
                                   uint* gridMarkerIndex,
                                   uint* cellStart,
-                                  uint* cellEnd,
-                                  size_t numAllMarkers) {
+                                  uint* cellEnd) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numAllMarkers)
+    if (index >= numObjectsD.numAllMarkers)
         return;
 
     // read particle data from sorted arrays
@@ -517,10 +515,10 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
 __global__ void UpdateActivityD(Real4* posRadD,
                                 Real3* velMasD,
                                 Real3* posRigidBodiesD,
+                                Real3* pos_fsi_fea_D,
                                 uint* activityIdentifierD,
                                 uint* extendedActivityIdD,
                                 int2 updatePortion,
-                                size_t numRigidBodies,
                                 Real Time,
                                 volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -536,15 +534,31 @@ __global__ void UpdateActivityD(Real4* posRadD,
     if (Time < paramsD.settlingTime)
         return;
 
+    size_t numRigidBodies = numObjectsD.numRigidBodies;
+    size_t numFlexNodes = numObjectsD.numFlexNodes;
+    size_t numTotal = numRigidBodies + numFlexNodes;
+
     // Check the activity of this particle
     uint isNotActive = 0;
     uint isNotExtended = 0;
+
+    Real3 Acdomain = paramsD.bodyActiveDomain;
+    Real3 ExAcdomain = paramsD.bodyActiveDomain + 
+        mR3(2 * RESOLUTION_LENGTH_MULT * paramsD.HSML);
+
     Real3 posRadA = mR3(posRadD[index]);
     for (uint num = 0; num < numRigidBodies; num++) {
         Real3 detPos = posRadA - posRigidBodiesD[num];
-        Real3 Acdomain = paramsD.bodyActiveDomain;
-        Real3 ExAcdomain = paramsD.bodyActiveDomain + 
-            mR3(2 * RESOLUTION_LENGTH_MULT * paramsD.HSML);
+        if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || 
+            abs(detPos.z) > Acdomain.z)
+            isNotActive = isNotActive + 1;
+        if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || 
+            abs(detPos.z) > ExAcdomain.z)
+            isNotExtended = isNotExtended + 1;
+    }
+
+    for (uint num = 0; num < numFlexNodes; num++) {
+        Real3 detPos = posRadA - pos_fsi_fea_D[num];
         if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || 
             abs(detPos.z) > Acdomain.z)
             isNotActive = isNotActive + 1;
@@ -554,11 +568,11 @@ __global__ void UpdateActivityD(Real4* posRadD,
     }
 
     // Set the particle as an inactive particle if needed
-    if (isNotActive == numRigidBodies && numRigidBodies > 0) {
+    if (isNotActive == numTotal && numTotal > 0) {
         activityIdentifierD[index] = 0;
         velMasD[index] = mR3(0.0);
     }
-    if (isNotExtended == numRigidBodies && numRigidBodies > 0)
+    if (isNotExtended == numTotal && numTotal > 0)
         extendedActivityIdD[index] = 0;
 
     return;
@@ -640,7 +654,7 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                    Real dT,
                                    Real Time) {
     if (GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
-        this->UpdateActivity(sphMarkersD1, sphMarkersD2, fsiBodiesD, Time);
+        this->UpdateActivity(sphMarkersD1, sphMarkersD2, fsiBodiesD, fsiMeshD, Time);
         forceSystem->ForceSPH(sphMarkersD2, fsiBodiesD, fsiMeshD);
     } else
         forceSystem->ForceSPH(sphMarkersD1, fsiBodiesD, fsiMeshD);
@@ -657,6 +671,7 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
 void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                                      std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                      std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                                     std::shared_ptr<FsiMeshDataD> fsiMeshD,
                                      Real Time) {
     // Update portion of the SPH particles (should be all particles here)
     int2 updatePortion = mI2(0, (int)numObjectsH->numAllMarkers);
@@ -673,9 +688,10 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD
     UpdateActivityD<<<numBlocks, numThreads>>>(
         mR4CAST(sphMarkersD2->posRadD), mR3CAST(sphMarkersD1->velMasD), 
         mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
+        mR3CAST(fsiMeshD->pos_fsi_fea_D),
         U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD), 
         U1CAST(fsiSystem.fsiGeneralData->extendedActivityIdD),
-        updatePortion, numObjectsH->numRigidBodies, Time, isErrorD);
+        updatePortion, Time, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------
@@ -745,8 +761,7 @@ void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMa
     Update_Fluid_State<<<numBlocks, numThreads>>>(
         mR3CAST(fsiSystem.fsiGeneralData->vel_XSPH_D), 
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), 
-        mR4CAST(sphMarkersD->rhoPresMuD), updatePortion,
-        numObjectsH->numAllMarkers, paramsH->dT, isErrorD);
+        mR4CAST(sphMarkersD->rhoPresMuD), updatePortion, paramsH->dT, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
 
@@ -829,8 +844,7 @@ void ChFluidDynamics::DensityReinitialization() {
         mR4CAST(fsiSystem.sortedSphMarkersD->rhoPresMuD),
         U1CAST(fsiSystem.markersProximityD->gridMarkerIndexD), 
         U1CAST(fsiSystem.markersProximityD->cellStartD),
-        U1CAST(fsiSystem.markersProximityD->cellEndD), 
-        numObjectsH->numAllMarkers);
+        U1CAST(fsiSystem.markersProximityD->cellEndD));
 
     cudaDeviceSynchronize();
     cudaCheckError();

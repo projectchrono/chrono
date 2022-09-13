@@ -64,8 +64,8 @@ class ChFsiInterface : public ChFsiGeneral {
     /// Use the generalized coordinates of the ChSystem to set the configuration state in the FSI system.
     void Copy_ChSystem_to_External();
 
-    /// Copy the ChSystem rigid bodies from CPU to GPU.
-    void Copy_fsiBodies_ChSystem_to_FluidSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD);
+    /// Copy rigid bodies' information from ChSystem to FsiSystem, then to the GPU memory.
+    void Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD);
 
     /// Resize the number of ChSystem rigid bodies.
     void ResizeChronoBodiesData();
@@ -77,24 +77,22 @@ class ChFsiInterface : public ChFsiGeneral {
     void Add_Flex_Forces_To_ChSystem();
 
     /// Resize number of cable elements used in the flexible elements
-    void ResizeChronoCablesData(std::vector<std::vector<int>> CableElementsNodesSTDVector);
+    void ResizeChronoCablesData(const std::vector<std::vector<int>>& CableElementsNodesSTDVector);
 
     /// Resize number of shell elements used in the flexible elements
-    void ResizeChronoShellsData(std::vector<std::vector<int>> ShellElementsNodesSTDVector);
+    void ResizeChronoShellsData(const std::vector<std::vector<int>>& ShellElementsNodesSTDVector);
 
     /// Resize number of nodes used in the flexible elements
     void ResizeChronoFEANodesData();
 
-    /// Copy the nodes information in ChSystem from CPU to GPU.
-    void Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD);
+    /// Copy flexible nodes' information from ChSystem to FsiSystem, then to the GPU memory.
+    void Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD);
 
   private:
     ChSystem& m_sysMBS;          ///< Chrono multibody system
     ChSystemFsi_impl& m_sysFSI;  ///< FSI system
 
-    bool m_verbose;        ///< enable/disable m_verbose terminal output (default: true)
-    bool m_output_fsi;     ///< enable/disable output for each FSI body and node
-    std::string m_outdir;  ///< output directory
+    bool m_verbose;  ///< enable/disable m_verbose terminal output (default: true)
 
     std::shared_ptr<SimParams> m_paramsH;  ///< simulation parameters
 

@@ -660,37 +660,21 @@ void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes) {
+void ChSystemFsi::SetCableElementsNodes(const std::vector<std::vector<int>>& elementsNodes) {
     m_fea_cable_nodes = elementsNodes;
-    size_t test = m_sysFSI->fsiGeneralData->CableElementsNodes.size();
+    size_t test = m_sysFSI->fsiGeneralData->CableElementsNodesH.size();
     std::cout << "Number of cable element nodes" << test << std::endl;
 }
 
-void ChSystemFsi::SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes) {
+void ChSystemFsi::SetShellElementsNodes(const std::vector<std::vector<int>>& elementsNodes) {
     m_fea_shell_nodes = elementsNodes;
-    size_t test = m_sysFSI->fsiGeneralData->ShellElementsNodes.size();
+    size_t test = m_sysFSI->fsiGeneralData->ShellElementsNodesH.size();
     std::cout << "Number of shell element nodes" << test << std::endl;
 }
 
 void ChSystemFsi::SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) {
     m_fsi_mesh = other_fsi_mesh;
     m_fsi_interface->SetFsiMesh(other_fsi_mesh);
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-
-void ChSystemFsi::SetOutputDirectory(const std::string& output_dir) {
-    if (!filesystem::path(output_dir).exists() || !filesystem::path(output_dir).is_directory()) {
-        cerr << "The directory " << output_dir << " does not exist!  FSI output disabled" << endl;
-        return;
-    }
-    m_outdir = output_dir + "/fsi";
-    if (!filesystem::create_directory(filesystem::path(m_outdir))) {
-        cerr << "Error creating directory " << m_outdir << endl;
-        return;
-    }
-    m_fsi_interface->m_outdir = m_outdir;
-    m_fsi_interface->m_output_fsi = true;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -713,9 +697,11 @@ void ChSystemFsi::Initialize() {
             double z = m_sysFSI->sphMarkersH->posRadH[i].z;
             double p = m_paramsH->rho0 * m_paramsH->gravity.z * (z - m_paramsH->pressure_height);
             m_sysFSI->sphMarkersH->rhoPresMuH[i].y = p;
-            m_sysFSI->sphMarkersH->tauXxYyZzH[i].x = -p;
-            m_sysFSI->sphMarkersH->tauXxYyZzH[i].y = -p;
-            m_sysFSI->sphMarkersH->tauXxYyZzH[i].z = -p;
+            if (m_paramsH->elastic_SPH) {
+                m_sysFSI->sphMarkersH->tauXxYyZzH[i].x = -p;
+                m_sysFSI->sphMarkersH->tauXxYyZzH[i].y = -p;
+                m_sysFSI->sphMarkersH->tauXxYyZzH[i].z = -p;
+            }
         }
     }
 
@@ -852,9 +838,8 @@ void ChSystemFsi::Initialize() {
         }
     }
 
-    m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI->fsiBodiesD1);
-    m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
-    m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
+    m_fsi_interface->Copy_FsiBodies_ChSystem_to_FsiSystem(m_sysFSI->fsiBodiesD1);
+    m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshD);
 
     // Construct midpoint rigid data
     m_sysFSI->fsiBodiesD2 = m_sysFSI->fsiBodiesD1;  
@@ -896,10 +881,12 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
                  m_sysFSI->sphMarkersD1->velMasD.begin());
     thrust::copy(m_sysFSI->sphMarkersD2->rhoPresMuD.begin(), m_sysFSI->sphMarkersD2->rhoPresMuD.end(),
                  m_sysFSI->sphMarkersD1->rhoPresMuD.begin());
-    thrust::copy(m_sysFSI->sphMarkersD2->tauXxYyZzD.begin(), m_sysFSI->sphMarkersD2->tauXxYyZzD.end(),
-                 m_sysFSI->sphMarkersD1->tauXxYyZzD.begin());
-    thrust::copy(m_sysFSI->sphMarkersD2->tauXyXzYzD.begin(), m_sysFSI->sphMarkersD2->tauXyXzYzD.end(),
-                 m_sysFSI->sphMarkersD1->tauXyXzYzD.begin());
+    if (m_paramsH->elastic_SPH) {
+        thrust::copy(m_sysFSI->sphMarkersD2->tauXxYyZzD.begin(), m_sysFSI->sphMarkersD2->tauXxYyZzD.end(),
+                     m_sysFSI->sphMarkersD1->tauXxYyZzD.begin());
+        thrust::copy(m_sysFSI->sphMarkersD2->tauXyXzYzD.begin(), m_sysFSI->sphMarkersD2->tauXyXzYzD.end(),
+                     m_sysFSI->sphMarkersD1->tauXyXzYzD.begin());
+    }
 }
 
 void ChSystemFsi::DoStepDynamics_FSI() {
@@ -938,10 +925,10 @@ void ChSystemFsi::DoStepDynamics_FSI() {
             m_sysMBS.DoStepDynamics(m_paramsH->dT / sync);
         }
 
-        m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI->fsiBodiesD2);
+        m_fsi_interface->Copy_FsiBodies_ChSystem_to_FsiSystem(m_sysFSI->fsiBodiesD2);
         m_bce_manager->UpdateRigidMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
 
-        m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
+        m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshD);
         m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
     } else {
         // A different coupling scheme is used for implicit SPH formulations
@@ -971,10 +958,10 @@ void ChSystemFsi::DoStepDynamics_FSI() {
             m_sysMBS.DoStepDynamics(m_paramsH->dT / sync);
         }
 
-        m_fsi_interface->Copy_fsiBodies_ChSystem_to_FluidSystem(m_sysFSI->fsiBodiesD2);
+        m_fsi_interface->Copy_FsiBodies_ChSystem_to_FsiSystem(m_sysFSI->fsiBodiesD2);
         m_bce_manager->UpdateRigidMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
 
-        m_fsi_interface->Copy_fsiNodes_ChSystem_to_FluidSystem(m_sysFSI->fsiMeshD);
+        m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshD);
         m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
     }
 }
@@ -1003,10 +990,23 @@ void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
 }
 
 void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
-    utils::PrintToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->sphMarkersD2->velMasD,
+    utils::PrintParticleToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->sphMarkersD2->velMasD,
         m_sysFSI->sphMarkersD2->rhoPresMuD, m_sysFSI->fsiGeneralData->sr_tau_I_mu_i,
         m_sysFSI->fsiGeneralData->referenceArray, m_sysFSI->fsiGeneralData->referenceArray_FEA, 
-        dir, m_paramsH, true);
+        dir, m_paramsH);
+}
+
+void ChSystemFsi::PrintFsiInfoToFile(const std::string& dir, double time) const {
+    utils::PrintFsiInfoToFile(
+        m_sysFSI->fsiBodiesD2->posRigid_fsiBodies_D,
+        m_sysFSI->fsiBodiesD2->velMassRigid_fsiBodies_D,
+        m_sysFSI->fsiBodiesD2->q_fsiBodies_D,
+        m_sysFSI->fsiMeshD->pos_fsi_fea_D,
+        m_sysFSI->fsiMeshD->vel_fsi_fea_D,
+        m_sysFSI->fsiGeneralData->rigid_FSI_ForcesD,
+        m_sysFSI->fsiGeneralData->rigid_FSI_TorquesD,
+        m_sysFSI->fsiGeneralData->Flex_FSI_ForcesD,
+        dir, time);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1267,93 +1267,6 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
     }
 }
 
-void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& m_fsi_shells,
-                                  std::shared_ptr<fea::ChMesh> mesh,
-                                  bool multiLayer,
-                                  bool removeMiddleLayer,
-                                  int SIDE) {
-    thrust::host_vector<Real4> posRadBCE;
-    int numShells = mesh->GetNelements();
-    if (m_verbose)
-        cout << "number of shells to be meshed is " << numShells << endl;
-    for (size_t i = 0; i < numShells; i++) {
-        auto thisShell = 
-            std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(mesh->GetElement((unsigned int)i));
-        m_fsi_shells.push_back(thisShell);
-        utils::CreateBCE_On_shell(posRadBCE, m_paramsH, thisShell, multiLayer, removeMiddleLayer, SIDE);
-        CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell);
-
-        posRadBCE.clear();
-    }
-}
-
-void ChSystemFsi::AddANCFshellBCE(std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& m_fsi_shells,
-                                  std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& m_fsi_nodes,
-                                  std::shared_ptr<fea::ChMesh> mesh,
-                                  const std::vector<std::vector<int>>& elementsNodes,
-                                  const std::vector<std::vector<int>>& NodeNeighborElement,
-                                  bool multiLayer,
-                                  bool removeMiddleLayer,
-                                  int SIDE) {
-    thrust::host_vector<Real4> posRadBCE;
-    int numShells = mesh->GetNelements();
-    std::vector<int> remove;
-    std::vector<int> remove_s;
-
-    for (size_t i = 0; i < NodeNeighborElement.size(); i++) {
-        auto thisNode = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(mesh->GetNode((unsigned int)i));
-        m_fsi_nodes.push_back(thisNode);
-    }
-
-    for (size_t i = 0; i < numShells; i++) {
-        remove.resize(4);
-        remove_s.resize(4);
-        std::fill(remove.begin(), remove.begin() + 4, 0);
-        std::fill(remove_s.begin(), remove_s.begin() + 4, 0);
-        auto thisShell = 
-            std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(mesh->GetElement((unsigned int)i));
-        m_fsi_shells.push_back(thisShell);
-        // Look into the nodes of this element
-        size_t myNumNodes = (elementsNodes[i].size() > 4) ? 4 : elementsNodes[i].size();
-
-        for (size_t j = 0; j < myNumNodes; j++) {
-            int thisNode = elementsNodes[i][j] - 1;
-            // Look into the elements attached to thisNode
-            for (size_t k = 0; k < NodeNeighborElement[thisNode].size(); k++) {
-                // If this neighbor element has more than one common node with the previous
-                // node this means that we must not add BCEs to this edge anymore. Because
-                // that edge has already been given BCE particles.
-                // The kth element of this node:
-                int neighborElement = NodeNeighborElement[thisNode][k];
-                if (neighborElement >= i)
-                    continue;
-
-                size_t JNumNodes =
-                    (elementsNodes[neighborElement].size() > 4) ? 4 : elementsNodes[neighborElement].size();
-
-                for (size_t inode = 0; inode < myNumNodes; inode++) {
-                    for (int jnode = 0; jnode < JNumNodes; jnode++) {
-                        if (elementsNodes[i][inode] - 1 == elementsNodes[neighborElement][jnode] - 1 &&
-                            thisNode != elementsNodes[i][inode] - 1 && i > neighborElement) {
-                            remove[inode] = 1;
-                            if ( inode == j + 1 || j > inode + 1 ) {
-                                        remove_s[j] = 1;
-                                    }
-                            else {
-                                remove_s[inode] = 1;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        utils::CreateBCE_On_ChElementShellANCF(
-            posRadBCE, m_paramsH, thisShell, remove, remove_s, multiLayer, removeMiddleLayer, SIDE);
-        CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell);
-        posRadBCE.clear();
-    }
-}
-
 void ChSystemFsi::CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh, 
                                    double delta,
                                    std::vector<ChVector<>>& point_cloud) {
@@ -1565,18 +1478,9 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(
     int type = 2;
 
     fea::ChElementCableANCF::ShapeVector N;
+    fea::ChElementCableANCF::ShapeVector Nd;
+
     double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
-
-    ChVector<> Element_Axis = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).GetNormalized();
-    if (m_verbose)
-        printf(" Element_Axis= %f, %f, %f\n", Element_Axis.x(), Element_Axis.y(), Element_Axis.z());
-
-    ChVector<> Old_axis = ChVector<>(1, 0, 0);
-    ChQuaternion<double> Rotation = (Q_from_Vect_to_Vect(Old_axis, Element_Axis));
-    Rotation.Normalize();
-    ChVector<> new_y_axis = Rotation.Rotate(ChVector<>(0, 1, 0));
-    ChVector<> new_z_axis = Rotation.Rotate(ChVector<>(0, 0, 1));
-
     ChVector<> physic_to_natural(1 / dx, 1, 1);
 
     ChVector<> nAp = cable->GetNodeA()->GetPos();
@@ -1584,6 +1488,12 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(
 
     ChVector<> nAv = cable->GetNodeA()->GetPos_dt();
     ChVector<> nBv = cable->GetNodeB()->GetPos_dt();
+
+    ChVector<> nAdir = cable->GetNodeA()->GetD();
+    ChVector<> nBdir = cable->GetNodeB()->GetD();
+
+    ChVector<> nAdirv = cable->GetNodeA()->GetD_dt();
+    ChVector<> nBdirv = cable->GetNodeB()->GetD_dt();
 
     int posRadSizeModified = 0;
     if (m_verbose)
@@ -1593,42 +1503,38 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(
         ChVector<> pos_physical = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
         ChVector<> pos_natural = pos_physical * physic_to_natural;
 
+        cable->ShapeFunctionsDerivatives(Nd, pos_natural.x());
+        ChVector<> Element_Axis = Nd(0) * nAp + Nd(1) * nAdir + Nd(2) * nBp + Nd(3) * nBdir;
+        Element_Axis.Normalize();
+
+        ChVector<> new_y_axis = ChVector<>(-Element_Axis.y(), Element_Axis.x(), 0) 
+                                + ChVector<>(-Element_Axis.z(), 0, Element_Axis.x()) 
+                                + ChVector<>(0, -Element_Axis.z(), Element_Axis.y());
+        new_y_axis.Normalize();
+        ChVector<> new_z_axis = Vcross(Element_Axis, new_y_axis);
+
         cable->ShapeFunctions(N, pos_natural.x());
-
-        Real2 NFSI = Cables_ShapeFunctions(pos_natural.x());
-        ChVector<> NFSI_Chvector = ChUtilsTypeConvert::Real2ToChVector(NFSI);
-
-        ChVector<> Correct_Pos = NFSI_Chvector.x() * nAp + NFSI_Chvector.y() * nBp + 
-            new_y_axis * pos_physical.y() + new_z_axis * pos_physical.z();
-
-        if (m_verbose) {
-            printf(" physic_to_natural is = (%f,%f,%f)\n", 
-                physic_to_natural.x(), physic_to_natural.y(), physic_to_natural.z());
-            printf(" pos_physical is = (%f,%f,%f)\n", 
-                pos_physical.x(), pos_physical.y(), pos_physical.z());
-            printf(" pos_natural is = (%f,%f,%f)\n ", 
-                pos_natural.x(), pos_natural.y(), pos_natural.z());
-            printf(" Correct_Pos is = (%f,%f,%f)\n\n\n ", 
-                Correct_Pos.x(), Correct_Pos.y(), Correct_Pos.z());
-        }
+        ChVector<> Correct_Pos = N(0) * nAp + N(1) * nAdir + N(2) * nBp + N(3) * nBdir +
+        new_y_axis * pos_physical.y() + new_z_axis * pos_physical.z();
 
         if ((Correct_Pos.x() < m_paramsH->cMin.x || Correct_Pos.x() > m_paramsH->cMax.x) ||
             (Correct_Pos.y() < m_paramsH->cMin.y || Correct_Pos.y() > m_paramsH->cMax.y) ||
             (Correct_Pos.z() < m_paramsH->cMin.z || Correct_Pos.z() > m_paramsH->cMax.z))
             continue;
 
+        // Note that the fluid particles are removed differently
         bool addthis = true;
-        for (int p = 0; p < m_sysFSI->sphMarkersH->posRadH.size() - 1; p++) {
-            if (length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - 
-                ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos)) < 1e-5 && 
-                m_sysFSI->sphMarkersH->rhoPresMuH[p].w != -1) {
-                addthis = false;
-                if (m_verbose) {
-                    printf("remove this particle %f,%f,%f because of its overlap with a particle at %f,%f,%f\n",
-                        m_sysFSI->sphMarkersH->posRadH[p].x, m_sysFSI->sphMarkersH->posRadH[p].y,
-                        m_sysFSI->sphMarkersH->posRadH[p].z, Correct_Pos.x(), Correct_Pos.y(), Correct_Pos.z());
+        for (size_t p = 0; p < m_sysFSI->sphMarkersH->posRadH.size() - 1; p++) {
+            // Only compare to rigid and flexible BCE particles added previously
+            if (m_sysFSI->sphMarkersH->rhoPresMuH[p].w > 0.5) {
+                double dis = length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - 
+                    ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos));
+                if (dis < 1e-8) {
+                    addthis = false;
+                    if (m_verbose)
+                        printf(" Already added a BCE particle here! Skip this one!\n");
+                    break;
                 }
-                break;
             }
         }
 
@@ -1636,8 +1542,9 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(
             m_sysFSI->sphMarkersH->posRadH.push_back(
                 mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
             m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(
-                ChUtilsTypeConvert::ChVectorToReal3(pos_physical));
-            ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + ChVector<double>(1e-20);
+                ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
+            ChVector<> Correct_Vel = N(0) * nAv + N(1) * nAdirv + N(2) * nBv + N(3) * nBdirv 
+                                    + ChVector<double>(1e-20);
             Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
             m_sysFSI->sphMarkersH->velMasH.push_back(v3);
             m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
@@ -1728,7 +1635,6 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(
         }
     }
     m_fsi_shells_bce_num.push_back(posRadSizeModified);
-    m_sysFSI->sphMarkersH->rhoPresMuH.size();
 }
 
 void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPosBoundary(
@@ -1816,7 +1722,7 @@ size_t ChSystemFsi::GetNumBoundaryMarkers() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-std::vector<ChVector<>> ChSystemFsi::GetParticlePositions() {
+std::vector<ChVector<>> ChSystemFsi::GetParticlePositions() const {
     thrust::host_vector<Real4> posRadH = m_sysFSI->sphMarkersD2->posRadD;
     std::vector<ChVector<>> pos;
     for (size_t i = 0; i < posRadH.size(); i++) {
@@ -1825,7 +1731,7 @@ std::vector<ChVector<>> ChSystemFsi::GetParticlePositions() {
     return pos;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleFluidProperties() {
+std::vector<ChVector<>> ChSystemFsi::GetParticleFluidProperties() const {
     thrust::host_vector<Real4> rhoPresMuH = m_sysFSI->sphMarkersD2->rhoPresMuD;
     std::vector<ChVector<>> props;
     for (size_t i = 0; i < rhoPresMuH.size(); i++) {
@@ -1834,7 +1740,7 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleFluidProperties() {
     return props;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleVelocities() {
+std::vector<ChVector<>> ChSystemFsi::GetParticleVelocities() const {
     thrust::host_vector<Real3> velH = m_sysFSI->sphMarkersD2->velMasD;
     std::vector<ChVector<>> vel;
     for (size_t i = 0; i < velH.size(); i++) {
@@ -1843,13 +1749,22 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleVelocities() {
     return vel;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleForces() {
+std::vector<ChVector<>> ChSystemFsi::GetParticleForces() const {
     thrust::host_vector<Real4> dvH = m_sysFSI->GetParticleForces();
     std::vector<ChVector<>> dv;
     for (size_t i = 0; i < dvH.size(); i++) {
         dv.push_back(ChUtilsTypeConvert::Real4ToChVector(dvH[i]));
     }
     return dv;
+}
+
+std::vector<ChVector<>> ChSystemFsi::GetParticleAccelerations() const {
+    thrust::host_vector<Real4> accH = m_sysFSI->GetParticleAccelerations();
+    std::vector<ChVector<>> acc;
+    for (size_t i = 0; i < accH.size(); i++) {
+        acc.push_back(ChUtilsTypeConvert::Real4ToChVector(accH[i]));
+    }
+    return acc;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1879,6 +1794,10 @@ thrust::device_vector<Real3> ChSystemFsi::GetParticleVelocities(const thrust::de
 
 thrust::device_vector<Real4> ChSystemFsi::GetParticleForces(const thrust::device_vector<int>& indices) {
     return m_sysFSI->GetParticleForces(indices);
+}
+
+thrust::device_vector<Real4> ChSystemFsi::GetParticleAccelerations(const thrust::device_vector<int>& indices) {
+    return m_sysFSI->GetParticleAccelerations(indices);
 }
 
 }  // end namespace fsi
