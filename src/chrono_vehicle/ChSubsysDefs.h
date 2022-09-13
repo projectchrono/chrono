@@ -751,6 +751,9 @@ class CH_VEHICLE_API ChVehicleGeometry {
 
     /// Create collision shapes for the specified body.
     void AddCollisionShapes(std::shared_ptr<ChBody> body, int collision_family);
+
+    /// Calculate axis-aligned bounding box of all collision shapes.
+    void CalculateAABB(ChVector<>& amin, ChVector<>& amax);
 };
 
 /// @} vehicle

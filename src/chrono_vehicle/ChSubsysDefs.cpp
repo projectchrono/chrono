@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <limits>
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
@@ -154,6 +156,62 @@ void ChVehicleGeometry::AddCollisionShapes(std::shared_ptr<ChBody> body, int col
     }
 
     body->GetCollisionModel()->BuildModel();
+}
+
+void ChVehicleGeometry::CalculateAABB(ChVector<>& amin, ChVector<>& amax) {
+    amin = ChVector<>(+std::numeric_limits<double>::max());
+    amax = ChVector<>(-std::numeric_limits<double>::max());
+
+    for (const auto& box : m_coll_boxes) {
+        ChMatrix33<> A(box.m_rot);
+        A.cwiseAbs();
+        auto tmp = A * box.m_dims;
+        auto bmin = box.m_pos - tmp;
+        auto bmax = box.m_pos + tmp;
+
+        amin = Vmin(amin, bmin);
+        amax = Vmax(amax, bmax);
+    }
+
+    for (const auto& sph : m_coll_spheres) {
+        amin = Vmin(amin, sph.m_pos - sph.m_radius);
+        amax = Vmin(amax, sph.m_pos + sph.m_radius);
+    }
+
+    for (const auto& cyl : m_coll_cylinders) {
+        auto axis = cyl.m_rot.GetYaxis();
+        auto p1 = cyl.m_pos - (cyl.m_length/2) * axis;
+        auto p2 = cyl.m_pos + (cyl.m_length/2) * axis;
+        auto e2 = ChVector<>(1.0) - axis * axis;
+        ChVector<> e(std::sqrt(e2.x()), std::sqrt(e2.y()), std::sqrt(e2.z()));
+        auto bmin = p1 - cyl.m_radius * e; 
+        auto bmax = p2 + cyl.m_radius * e; 
+
+        amin = Vmin(amin, bmin);
+        amax = Vmax(amax, bmax);
+    }
+
+    for (const auto& hulls_group : m_coll_hulls) {
+        geometry::ChTriangleMeshConnected trimesh;
+        trimesh.LoadWavefrontMesh(hulls_group.m_filename, false, false);
+        ChVector<> mmin;
+        ChVector<> mmax;
+        trimesh.GetBoundingBox(mmin, mmax, ChMatrix33<>(1));
+
+        amin = Vmin(amin, mmin);
+        amax = Vmax(amax, mmax);
+    }
+
+    for (const auto& mesh : m_coll_meshes) {
+        geometry::ChTriangleMeshConnected trimesh;
+        trimesh.LoadWavefrontMesh(mesh.m_filename, false, false);
+        ChVector<> mmin;
+        ChVector<> mmax;
+        trimesh.GetBoundingBox(mmin, mmax, ChMatrix33<>(1));
+
+        amin = Vmin(amin, mmin);
+        amax = Vmax(amax, mmax);
+    }
 }
 
 }  // end namespace vehicle
