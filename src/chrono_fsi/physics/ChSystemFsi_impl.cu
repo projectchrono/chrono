@@ -704,7 +704,7 @@ thrust::device_vector<Real4> ChSystemFsi_impl::GetParticleForces(const thrust::d
 }
 
 thrust::device_vector<Real4> ChSystemFsi_impl::GetParticleAccelerations(const thrust::device_vector<int>& indices) {
-    auto allacc = GetParticleAccelerations(indices);
+    auto allacc = GetParticleAccelerations();
 
     thrust::device_vector<Real4> acc(allacc.size());
 
