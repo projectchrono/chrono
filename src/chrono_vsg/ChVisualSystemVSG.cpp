@@ -257,6 +257,14 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_shapeBuilder->m_options = m_options;
     m_shapeBuilder->m_sharedObjects = m_options->sharedObjects;
     m_renderGui = nullptr;
+    // make some default settings
+    SetWindowTitle("VSG: Vehicle Demo");
+    SetWindowSize(ChVector2<int>(800, 600));
+    SetWindowPosition(ChVector2<int>(50, 50));
+    SetUseSkyBox(true);
+    SetCameraAngleDeg(40);
+    SetLightIntensity(1.0);
+    SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
 }
 
 void ChVisualSystemVSG::AttachGui() {
@@ -338,10 +346,6 @@ void ChVisualSystemVSG::Initialize() {
     windowTraits->swapchainPreferences.imageUsage =
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     windowTraits->depthImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-
-    // set up features
-    auto requestFeatures = windowTraits->deviceFeatures = vsg::DeviceFeatures::create();
-    requestFeatures->get().samplerAnisotropy = VK_TRUE;
 
     m_scene = vsg::Group::create();
 

@@ -426,7 +426,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(std::shared_ptr<ChP
         for (size_t k = 0; k < nVert; k++) {
             vsg_vertices->set(k, vsg::vec3(tmp_vertices[k].x(), tmp_vertices[k].y(), tmp_vertices[k].z()));
             vsg_normals->set(k, vsg::vec3(tmp_normals[k].x(), tmp_normals[k].y(), tmp_normals[k].z()));
-            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), tmp_texcoords[k].y()));
+            // seems to work with v-coordinate flipped on VSG
+            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1.0f-tmp_texcoords[k].y()));
             vsg_indices->set(k, k);
         }
         auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
@@ -499,7 +500,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(std::shared_ptr<ChP
             m_options->sharedObjects->share(stateGroup);
         }
         transform->addChild(stateGroup);
-
     }  // imat
 
     if (m_options->sharedObjects) {
