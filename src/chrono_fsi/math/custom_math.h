@@ -1599,15 +1599,24 @@ __host__ __device__ inline Real3 sgn(Real3 a) {
     return make_Real3(sgn(a.x), sgn(a.y), sgn(a.z));
 }
 
-__host__ __device__ inline Real2 Cables_ShapeFunctions(Real xi) {
-    //	Real NA = 1 - 3 * square(xi) + 2 * cube(xi);
-    //	Real NB = 3 * square(xi) - 2 * cube(xi);
+__host__ __device__ inline Real4 Cables_ShapeFunctions(Real l, Real xi) {
+        Real N1 = 1 - 3 * square(xi) + 2 * cube(xi);
+        Real N2 = l * (xi - 2 * square(xi) + cube(xi));
+    	Real N3 = 3 * square(xi) - 2 * cube(xi);
+        Real N4 = l * (-square(xi) + cube(xi));
 
-    Real NA = 1 - xi;
-    Real NB = xi;
-
-    return make_Real2(NA, NB);
+    return make_Real4(N1, N2, N3, N4);
 }
+
+__host__ __device__ inline Real4 Cables_ShapeFunctionsDerivatives(Real l, Real xi) {
+    	Real N1 = (6 * square(xi) - 6 * xi)/l;
+        Real N2 = 1.0 - 4.0 * xi + 3 * square(xi);
+    	Real N3 = -(6.0 * square(xi) - 6 * xi) / l;
+        Real N4 = -2.0 * xi + 3 * square(xi);
+
+    return make_Real4(N1, N2, N3, N4);
+}
+
 __host__ __device__ inline Real4 Shells_ShapeFunctions(Real x, Real y) {
     Real NA = 0.25 * (1.0 - x) * (1.0 - y);
     Real NB = 0.25 * (1.0 + x) * (1.0 - y);

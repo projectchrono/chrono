@@ -316,59 +316,8 @@ void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE,
     }
 
     std::cout << "Loaded " << numBce << " BCE data from: " << fileName << std::endl;
-}
-
-void CreateBCE_On_shell(thrust::host_vector<Real4>& posRadBCE,
-                        std::shared_ptr<SimParams> paramsH,
-                        std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
-                        bool multiLayer,
-                        bool removeMiddleLayer,
-                        int SIDE) {
-    Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-    double dx = shell->GetLengthX() / 2 - initSpace0 / 2;
-    double dy = shell->GetLengthY() / 2 - initSpace0 / 2;
-
-    double nX = dx / initSpace0 - std::floor(dx / initSpace0);
-    double nY = dy / initSpace0 - std::floor(dy / initSpace0);
-    int nFX = (int)std::floor(dx / initSpace0);
-    int nFY = (int)std::floor(dy / initSpace0);
-    if (nX > 0.5)
-        nFX++;
-    if (nY > 0.5)
-        nFY++;
-
-    Real initSpaceX = dx / nFX;
-    Real initSpaceY = dy / nFY;
-
-    int2 iBound = mI2(-nFX, nFX);
-    int2 jBound = mI2(-nFY, nFY);
-    int2 kBound;
-    // If multi-layer BCE is required
-    if (SIDE > 0 && multiLayer)        // Do SIDE number layers in one side
-        kBound = mI2(0, SIDE);
-    else if (SIDE < 0 && multiLayer)   // Do SIDE number layers in the other side
-        kBound = mI2(SIDE, 0);
-    else if (SIDE == 0 && multiLayer)  // Do 1 layer on each side. Note that there would be 3 layers in total
-        kBound = mI2(-1, 1);           // The middle layer would be on the shell
-    else                               // IF you do not want multi-layer just use one layer on the shell
-        kBound = mI2(0, 0);            // This will create some marker deficiency and reduce the accuracy but look nicer
-
-    for (int i = iBound.x; i <= iBound.y; i++) {
-        for (int j = jBound.x; j <= jBound.y; j++) {
-            for (int k = kBound.x; k <= kBound.y; k++) {
-                Real3 relMarkerPos = mR3(i * initSpaceX, j * initSpaceY, k);
-
-                if (k == 0 && SIDE == 0 && multiLayer && removeMiddleLayer) {
-                    // skip the middle layer for this specific case
-                    paramsH->MULT_INITSPACE_Shells = 0.5;
-                    continue;
-                }
-
-                posRadBCE.push_back(mR4(relMarkerPos, initSpace0));
-            }
-        }
-    }
-}  // =============================================================================
+}  
+// =============================================================================
 void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
                                      std::shared_ptr<SimParams> paramsH,
                                      std::shared_ptr<chrono::fea::ChElementCableANCF> cable,

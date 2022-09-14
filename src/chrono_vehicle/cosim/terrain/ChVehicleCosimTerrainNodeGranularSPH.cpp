@@ -256,7 +256,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
         // Create BCE markers associated with trimesh
         std::vector<ChVector<>> point_cloud;
-        m_systemFSI->CreateMeshPoints(trimesh, (double)initSpace0, point_cloud);
+        m_systemFSI->CreateMeshPoints(*trimesh, (double)initSpace0, point_cloud);
         m_systemFSI->AddPointsBCE(body, point_cloud, VNULL, QUNIT);
     }
 
@@ -333,7 +333,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
 
     // Create BCE markers associated with trimesh
     std::vector<ChVector<>> point_cloud;
-    m_systemFSI->CreateMeshPoints(trimesh, (double)m_systemFSI->GetInitialSpacing(), point_cloud);
+    m_systemFSI->CreateMeshPoints(*trimesh, (double)m_systemFSI->GetInitialSpacing(), point_cloud);
     m_systemFSI->AddPointsBCE(body, point_cloud, VNULL, QUNIT);
 }
 

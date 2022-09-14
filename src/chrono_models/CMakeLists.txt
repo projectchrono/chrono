@@ -1,4 +1,4 @@
-message(STATUS "==== Chrono models ====")
+message(STATUS "\n==== Chrono models ====\n")
 
 add_subdirectory(robot)
 

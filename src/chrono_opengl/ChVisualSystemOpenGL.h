@@ -47,6 +47,16 @@ class CH_OPENGL_API ChOpenGLEventCB {
     virtual bool CallbackMousePos(GLFWwindow* window, double x, double y) = 0;
 };
 
+/// Base class for a particle rendering discriminator.
+class CH_OPENGL_API ChOpenGLParticleCB {
+  public:
+    virtual ~ChOpenGLParticleCB() {}
+
+    /// Callback for selecting particles to be rendered.
+    /// Return 'true' to render the particle at the specified location.
+    virtual bool Render(const ChVector<>& pos) const = 0;
+};
+
 /// OpenGL-based Chrono run-time visualization system.
 class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
   public:
@@ -83,9 +93,9 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     /// ChVisualSystemOpenGL allows simultaneous rendering of multiple Chrono systems.
     virtual void AttachSystem(ChSystem* sys) override;
 
-    /// Set a user-defined text renderer for stats overlay.
+    /// Attach a user-defined text renderer for stats overlay.
     /// This overwrites the default stats overlay renderer.
-    void SetStatsRenderer(std::shared_ptr<ChOpenGLStats> renderer);
+    void AttachStatsRenderer(std::shared_ptr<ChOpenGLStats> renderer);
 
     /// Enable/disable stats overlay display (default: true).
     void EnableStats(bool state) { render_stats = state; }
@@ -94,7 +104,7 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     /// This creates the Irrlicht device using the current values for the optional device parameters.
     virtual void Initialize();
 
-    /// Set camera positino and look-at point.
+    /// Set camera position and look-at point.
     /// The camera rotation/pan is controlled by mouse left and right buttons, the zoom is controlled by mouse wheel or
     /// rmb+lmb+mouse, the position can be changed also with keyboard up/down/left/right arrows, the height can be
     /// changed with keyboard 'PgUp' and 'PgDn' keys. Optional parameters are position and target.
@@ -102,6 +112,9 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
 
     /// Attach a custom event receiver to the application.
     void AddUserEventReceiver(ChOpenGLEventCB* receiver) { user_receivers.push_back(receiver); }
+
+    /// Attach a custom particle rendering selector.
+    void AttachParticleSelector(std::shared_ptr<ChOpenGLParticleCB> selector) { particle_selector = selector; }
 
     /// Process all visual assets in the associated ChSystem.
     /// This function is called by default by Initialize(), but can also be called later if further modifications to
@@ -189,6 +202,7 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
 
     bool render_stats;
     std::vector<ChOpenGLEventCB*> user_receivers;
+    std::shared_ptr<ChOpenGLParticleCB> particle_selector;
 
 #ifdef CHRONO_MULTICORE
     std::vector<ChSystemMulticore*> m_systems_mcore;

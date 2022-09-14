@@ -15,7 +15,7 @@ if(NOT ENABLE_MODULE_VEHICLE)
    return()
 endif()
 
-message(STATUS "==== Chrono Vehicle module ====")
+message(STATUS "\n==== Chrono Vehicle module ====\n")
 
 mark_as_advanced(CLEAR ENABLE_OPENCRG)
 mark_as_advanced(CLEAR ENABLE_IRRKLANG)

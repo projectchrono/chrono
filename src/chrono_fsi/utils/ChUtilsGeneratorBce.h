@@ -88,15 +88,7 @@ void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
 /// Load BCE particles from a file.
 void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, std::string fileName, double scale = 1, double hsml = 1);
 
-/// Create BCE particles from a shell element.
-void CreateBCE_On_shell(thrust::host_vector<Real4>& posRadBCE,
-                        std::shared_ptr<SimParams> paramsH,
-                        std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
-                        bool multiLayer = true,
-                        bool removeMiddleLayer = false,
-                        int SIDE = -2);
-
-/// Create BCE particles from a cable element.
+/// Create BCE particles from an ANCF cable element.
 void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
                                      std::shared_ptr<SimParams> paramsH,
                                      std::shared_ptr<chrono::fea::ChElementCableANCF> cable,
@@ -105,7 +97,7 @@ void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
                                      bool removeMiddleLayer = false,
                                      int SIDE = 1);
 
-/// Create BCE particles from a shell element.
+/// Create BCE particles from an ANCF shell element.
 void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
                                      std::shared_ptr<SimParams> paramsH,
                                      std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,

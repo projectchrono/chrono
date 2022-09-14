@@ -47,4 +47,4 @@ except:
 #   import pychrono.core	
 from .core import *
 
-SetChronoDataPath('@PYCHRONO_DATA_PATH@/')
+SetChronoDataPath('@PYC_DATA_PATH@/')

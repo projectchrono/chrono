@@ -12,7 +12,7 @@ if(NOT ENABLE_MODULE_CASCADE)
   return()
 endif()
 
-message(STATUS "==== Chrono Cascade module ====")
+message(STATUS "\n==== Chrono Cascade module ====\n")
 
 mark_as_advanced(CLEAR OpenCASCADE_DIR)
 

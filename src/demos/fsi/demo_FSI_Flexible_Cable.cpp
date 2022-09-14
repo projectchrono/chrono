@@ -30,7 +30,8 @@
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/ChVisualizationFsi.h"
 
-#include "chrono/fea/ChElementShellANCF_3423.h"
+#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -44,7 +45,7 @@ using namespace chrono::collision;
 using namespace chrono::fsi;
 
 // Set the output directory
-const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Flat_Plate/";
+const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Cable/";
 std::string MESH_CONNECTIVITY = out_dir + "Flex_MESH.vtk";
 
 // Dimension of the domain
@@ -57,6 +58,16 @@ double bzDim = 2.0 + smalldis;
 double fxDim = 1.0 + smalldis;
 double fyDim = 0.2 + smalldis;
 double fzDim = 1.0 + smalldis;
+
+// Dimension of the cable
+double length_cable = 0.8 + smalldis;
+double loc_x = -0.3;
+int num_cable_element = 15;
+
+// Material Properties
+double E = 8e9;
+double rho = 8000;
+double BeamRaleyghDamping = 0.02;
 
 // Output frequency
 bool output = true;
@@ -97,7 +108,7 @@ int main(int argc, char* argv[]) {
     ChSystemFsi sysFSI(sysMBS);
 
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Flat_Plate_Explicit.json");
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Cable_Granular.json");
     if (argc == 1) {
         std::cout << "Use the default JSON file" << std::endl;
     } else if (argc == 2) {
@@ -105,7 +116,7 @@ int main(int argc, char* argv[]) {
         std::string my_inputJson = std::string(argv[1]);
         inputJson = my_inputJson;
     } else {
-        std::cout << "usage: ./demo_FSI_Flexible_Flat_Plate_Explicit <json_file>" << std::endl;
+        std::cout << "usage: ./demo_FSI_Flexible_Cable_Granular <json_file>" << std::endl;
         return 1;
     }
     sysFSI.ReadParametersFromFile(inputJson);
@@ -262,121 +273,46 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // ******************************* Flexible bodies ***********************************
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
-    std::vector<std::vector<int>> _2D_elementsNodes_mesh;
-    // Geometry of the plate
-    double plate_lenght_x = 0.02;
-    double plate_lenght_y = byDim;
-    double plate_lenght_z = initSpace0 * 40;
-    ChVector<> center_plate(0.0, 0.0, plate_lenght_z / 2 + 1 * initSpace0);
+    std::vector<std::vector<int>> _1D_elementsNodes_mesh;
+    /*================== Cable Elements =================*/
+    auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
+    msection_cable->SetDiameter(initSpace0);
+    msection_cable->SetYoungModulus(E);
+    msection_cable->SetDensity(rho);
+    msection_cable->SetBeamRaleyghDamping(BeamRaleyghDamping);
 
-    // Specification of the mesh
-    int numDiv_x = 1;
-    int numDiv_y = 5;
-    int numDiv_z = 20;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
+    ChBuilderCableANCF builder;
+    builder.BuildBeam(my_mesh,                                  // FEA mesh with nodes and elements
+                      msection_cable,                           // section material for cable elements
+                      num_cable_element,                        // number of elements in the segment
+                      ChVector<>(loc_x, 0.0, length_cable),     // beam start point
+                      ChVector<>(loc_x, 0.0, initSpace0),       // beam end point
+                      _1D_elementsNodes_mesh,                   // node indices
+                      NodeNeighborElement_mesh                  // neighbor node indices
+    ); 
 
-    // Number of elements in the z direction is considered as 1
-    int TotalNumElements = numDiv_y * numDiv_z;
-    int TotalNumNodes = (numDiv_y + 1) * (numDiv_z + 1);
+    auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(builder.GetLastBeamNodes().back());
+    auto pos_const = chrono_types::make_shared<ChLinkPointFrame>();
+    pos_const->Initialize(node, ground);
+    sysMBS.Add(pos_const);
 
-    // For uniform mesh
-    double dx = plate_lenght_x / numDiv_x;
-    double dy = plate_lenght_y / numDiv_y;
-    double dz = plate_lenght_z / numDiv_z;
-
-    _2D_elementsNodes_mesh.resize(TotalNumElements);
-    NodeNeighborElement_mesh.resize(TotalNumNodes);
-
-    // Create and add the nodes
-    for (int k = 0; k < N_z; k++) {
-        for (int j = 0; j < N_y; j++) {
-            double loc_x = center_plate.x();
-            double loc_y = j * dy - plate_lenght_y / 2 + center_plate.y();
-            double loc_z = k * dz - plate_lenght_z / 2 + center_plate.z();
-            // Node direction
-            double dir_x = 1;
-            double dir_y = 0;
-            double dir_z = 0;
-
-            // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(
-                ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
-
-            node->SetMass(0);
-            // Fix nodes connected to the ground
-            if (k == 0)
-                node->SetFixed(true);
-
-            // Add node to mesh
-            my_mesh->AddNode(node);
-        }
-    }
-    // Get a handle to the tip node.
-    auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes - 1));
-
-    // Create an isotropic material.
-    // All layers for all elements share the same material.
-    double rho = 8000;
-    double E = 2e7;
-    double nu = 0.3;
-    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
-    // Create the elements
-
-    int num_elem = 0;
-    for (int k = 0; k < numDiv_z; k++) {
-        for (int j = 0; j < numDiv_y; j++) {
-            int node0 = (j + 0) + N_y * (k + 0);
-            int node1 = (j + 1) + N_y * (k + 0);
-            int node2 = (j + 1) + N_y * (k + 1);
-            int node3 = (j + 0) + N_y * (k + 1);
-
-            _2D_elementsNodes_mesh[num_elem].push_back(node0);
-            _2D_elementsNodes_mesh[num_elem].push_back(node1);
-            _2D_elementsNodes_mesh[num_elem].push_back(node2);
-            _2D_elementsNodes_mesh[num_elem].push_back(node3);
-            NodeNeighborElement_mesh[node0].push_back(num_elem);
-            NodeNeighborElement_mesh[node1].push_back(num_elem);
-            NodeNeighborElement_mesh[node2].push_back(num_elem);
-            NodeNeighborElement_mesh[node3].push_back(num_elem);
-
-            // Create the element and set its nodes.
-            auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
-            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
-                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
-                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
-                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3)));
-
-            // Set element dimensions
-            element->SetDimensions(dy, dz);
-
-            // Add a single layers with a fiber angle of 0 degrees.
-            element->AddLayer(dx, 0 * CH_C_DEG_TO_RAD, mat);
-
-            // Set structural damping for this element
-            element->SetAlphaDamp(0.05);
-
-            // Add element to mesh
-            my_mesh->AddElement(element);
-            ChVector<> center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() +
-                                        element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
-            std::cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y()
-                        << " " << center.z() << std::endl;
-            num_elem++;
-        }
-    }
+    auto dir_const = chrono_types::make_shared<ChLinkDirFrame>();
+    dir_const->Initialize(node, ground);
+    dir_const->SetDirectionInAbsoluteCoords(node->D);
+    sysMBS.Add(dir_const);
+    
     // Add the mesh to the system
     sysMBS.Add(my_mesh);
 
     // fluid representation of flexible bodies
     bool multilayer = true;
     bool removeMiddleLayer = true;
-    std::vector<std::vector<int>> _1D_elementsNodes_mesh;
-
+    std::vector<std::vector<int>> _2D_elementsNodes_mesh;
+    
     sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, _1D_elementsNodes_mesh, 
-        _2D_elementsNodes_mesh, false, true, multilayer, removeMiddleLayer, 0, 0);
+        _2D_elementsNodes_mesh, true, false, multilayer, removeMiddleLayer, 1, 0);
 
-    sysFSI.SetShellElementsNodes(_2D_elementsNodes_mesh);
+    sysFSI.SetCableElementsNodes(_1D_elementsNodes_mesh);
 
     sysFSI.SetFsiMesh(my_mesh);
     fea::ChMeshExporter::writeMesh(my_mesh, MESH_CONNECTIVITY);
