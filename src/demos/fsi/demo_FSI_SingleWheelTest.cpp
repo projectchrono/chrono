@@ -158,19 +158,18 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     ////sysFSI.AddBoxBCE(ground, pos_yn, QUNIT, size_XZ, 13);
 
     // Create the wheel -- always SECOND body in the system
-    auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
+    auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     double scale_ratio = 1.0;
-    mmesh->LoadWavefrontMesh(GetChronoDataFile(wheel_obj), false, true);
-    ////mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(body_rot));       // rotate the mesh if needed
-    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
-    mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
+    trimesh->LoadWavefrontMesh(GetChronoDataFile(wheel_obj), false, true);
+    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
+    trimesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
     // compute mass inertia from mesh
     double mmass;
     double mdensity = 1500.0;
     ChVector<> mcog;
     ChMatrix33<> minertia;
-    mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
+    trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_rot;
     ChVector<> principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
@@ -198,13 +197,13 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     wheel->SetBodyFixed(false);
     wheel->GetCollisionModel()->ClearModel();
-    wheel->GetCollisionModel()->AddTriangleMesh(mysurfmaterial, mmesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
+    wheel->GetCollisionModel()->AddTriangleMesh(mysurfmaterial, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
     wheel->GetCollisionModel()->BuildModel();
     wheel->SetCollide(false);
 
     // Add this body to the FSI system
     std::vector<ChVector<>> BCE_par_rock;
-    sysFSI.CreateMeshPoints(mmesh, iniSpacing, BCE_par_rock);
+    sysFSI.CreateMeshPoints(*trimesh, iniSpacing, BCE_par_rock);
     sysFSI.AddPointsBCE(wheel, BCE_par_rock, ChVector<>(0.0), QUNIT);
     sysFSI.AddFsiBody(wheel);
 
@@ -279,6 +278,10 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
         return 1;
     }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
+        return 1;
+    }
     if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
         std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
         return 1;
@@ -342,9 +345,6 @@ int main(int argc, char* argv[]) {
     // Create Solid region and attach BCE SPH particles
     CreateSolidPhase(sysMBS, sysFSI);
 
-    /// Setup the output directory for FSI data
-    sysFSI.SetOutputDirectory(out_dir);
-
     // Set simulation data output length
     sysFSI.SetOutputLength(0);
 
@@ -379,8 +379,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Start the simulation
-    unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
-    unsigned int render_steps = (unsigned int)(1 / (render_fps * dT));
+    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
+    unsigned int render_steps = (unsigned int)round(1 / (render_fps * dT));
 
     double time = 0.0;
     int current_step = 0;
@@ -414,6 +414,7 @@ int main(int argc, char* argv[]) {
         if (output && current_step % output_steps == 0) {
             std::cout << "-------- Output" << std::endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
+            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/wheel." + std::to_string(counter++) + ".vtk";
             WriteWheelVTK(filename, wheel_mesh, wheel->GetFrame_REF_to_abs());

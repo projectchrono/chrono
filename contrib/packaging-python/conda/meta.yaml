@@ -13,8 +13,6 @@ build:
     - CC
     - CXX
     - CI_PROJECT_DIR
-    #- VS_VERSION=16.0
-    #- VS_YEAR=2019
 
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
   binary_relocation: true
@@ -25,8 +23,6 @@ build:
 
 requirements:
   build:
-    #- {{ compiler('c')}} # [not win]
-    #- {{ compiler('cxx') }} # [not win]
     - python
     - cmake >=3.10          # [not win]
     - ninja   # [linux or osx]
@@ -45,13 +41,14 @@ requirements:
     - glew
     - glfw
     - eigen >=3.3.7
-    
+
   run:
     - python
     - mkl
     - numpy >=1.16
     - glew
     - glfw
+    - opencascade
 
 test:
   requires:

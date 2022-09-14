@@ -10,7 +10,7 @@ IF(NOT ENABLE_MODULE_SENSOR)
   return()
 ENDIF()
 
-message(STATUS "==== Chrono Sensor module ====")
+message(STATUS "\n==== Chrono Sensor module ====\n")
 
 # Return now if CUDA is not available
 if(NOT CUDA_FOUND)

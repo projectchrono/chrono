@@ -12,7 +12,7 @@ if(NOT ENABLE_MODULE_CSHARP)
   return()
 endif()
 
-message(STATUS "==== Chrono CSharp module ====")
+message(STATUS "\n==== Chrono CSharp module ====\n")
 
 cmake_minimum_required(VERSION 3.8.0)
 mark_as_advanced(CLEAR SWIG_EXECUTABLE)
@@ -78,7 +78,7 @@ endif()
 # Wrapper for CORE Chrono module
 #-----------------------------------------------------------------------------
 
-message(STATUS "...add Chrono::CSharp CORE module")
+message(STATUS "...add CSharp CORE module")
 
 # Set module name.
 set(MODULE_CORE ChronoEngine_csharp_core)
@@ -124,7 +124,7 @@ message(STATUS "SWIG_REAL_NAME:  ${SWIG_MODULE_${MODULE_CORE}_REAL_NAME}")
 
 if(ENABLE_MODULE_VEHICLE)
 
-  message(STATUS "...add Chrono::CSharp VEHICLE module")
+  message(STATUS "...add CSharp VEHICLE module")
   
   # Set module name.
   set(MODULE_VEHICLE ChronoEngine_csharp_vehicle)

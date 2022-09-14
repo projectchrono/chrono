@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 //
-//   Demo code about using motors to impose rotation or traslation between parts
+//  Demo code about using motors to impose rotation or translation between parts
 //
 // =============================================================================
 
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
 
     // Create a ChFunction to be used for the ChLinkMotorRotationSpeed
     auto mwspeed =
-        chrono_types::make_shared<ChFunction_Const>(CH_C_PI_2);  // constant angular speed, in [rad/s], 1PI/s =180°/s
+        chrono_types::make_shared<ChFunction_Const>(CH_C_PI_2);  // constant angular speed, in [rad/s], 1PI/s =180Â°/s
     // Let the motor use this motion function:
     rotmotor1->SetSpeedFunction(mwspeed);
 

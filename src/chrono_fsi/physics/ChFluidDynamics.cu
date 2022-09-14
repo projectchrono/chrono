@@ -303,29 +303,37 @@ __global__ void UpdateFluidD(Real4* posRadD,
             updatedTauXxYyZz.y += p_tr;
             updatedTauXxYyZz.z += p_tr;
 
+            Real tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + 
+                square(updatedTauXxYyZz.z) + 2.0 * square(updatedTauXyXzYz.x) + 
+                2.0 * square(updatedTauXyXzYz.y) + 2.0 * square(updatedTauXyXzYz.z);
+            Real tau_n = square(tauXxYyZz.x) + square(tauXxYyZz.y) + square(tauXxYyZz.z) +
+                2.0 * square(tauXyXzYz.x) + 2.0 * square(tauXyXzYz.y) + 2.0 * square(tauXyXzYz.z);
+            tau_tr = sqrt(0.5 * tau_tr);
+            tau_n = sqrt(0.5 * tau_n);
+            Real Chi = abs(tau_tr - tau_n) * paramsD.INV_G_shear / dT;
+            // should use the positive magnitude according to "A
+            // constitutive law for dense granular flows" Nature 2006
+            Real mu_s = paramsD.mu_fric_s;
+            Real mu_2 = paramsD.mu_fric_2;
+            // Real s_0 = mu_s * p_tr;
+            // Real s_2 = mu_2 * p_tr;
+            // Real xi = 1.1;
+            Real dia = paramsD.ave_diam;
+            Real I0 = paramsD.mu_I0;  // xi*dia*sqrt(rhoPresMu.x);//
+            Real I = Chi * dia * sqrt( paramsD.rho0 / ( p_tr + 1.0e9 ) );
+
             Real coh = paramsD.Coh_coeff;
+            // Real Chi_cri = 0.1;
+            // if (Chi < Chi_cri){
+            //     coh = paramsD.Coh_coeff * (1.0 - sin(-1.57 + 3.14 * (Chi / Chi_cri))) / 2.0;
+            //     // coh = paramsD.Coh_coeff * (1.0 - I / I_cri);
+            // } else {
+            //     coh = 0.0;
+            // }
             Real inv_mus = 1.0 / paramsD.mu_fric_s;
-            Real P_cri = - coh * inv_mus;
-            if (p_tr > P_cri) {
-                Real tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + 
-                    square(updatedTauXxYyZz.z) + 2.0 * square(updatedTauXyXzYz.x) + 
-                    2.0 * square(updatedTauXyXzYz.y) + 2.0 * square(updatedTauXyXzYz.z);
-                Real tau_n = square(tauXxYyZz.x) + square(tauXxYyZz.y) + square(tauXxYyZz.z) +
-                    2.0 * square(tauXyXzYz.x) + 2.0 * square(tauXyXzYz.y) + 2.0 * square(tauXyXzYz.z);
-                tau_tr = sqrt(0.5 * tau_tr);
-                tau_n = sqrt(0.5 * tau_n);
-                Real Chi = abs(tau_tr - tau_n) * paramsD.INV_G_shear / dT;
-                // should use the positive magnitude according to "A
-                // constitutive law for dense granular flows" Nature 2006
-                Real mu_s = paramsD.mu_fric_s;
-                Real mu_2 = paramsD.mu_fric_2;
-                // Real s_0 = mu_s * p_tr;
-                // Real s_2 = mu_2 * p_tr;
-                // Real xi = 1.1;
-                Real dia = paramsD.ave_diam;
-                Real I0 = paramsD.mu_I0;  // xi*dia*sqrt(rhoPresMu.x);//
-                Real I = Chi * dia * sqrt(paramsD.rho0 / p_tr);
-                Real mu = mu_s + (mu_2 - mu_s) * (I + 1.0E-9) / (I0 + I + 1.0E-9);
+            Real p_cri = - coh * inv_mus;
+            if (p_tr > p_cri) {
+                Real mu = mu_s + (mu_2 - mu_s) * (I + 1.0e-9) / (I0 + I + 1.0e-9);
                 // Real G0 = paramsD.G_shear;
                 // Real alpha = xi*G0*I0*(dT)*sqrt(p_tr);
                 // Real B0 = s_2 + tau_tr + alpha;
@@ -345,14 +353,20 @@ __global__ void UpdateFluidD(Real4* posRadD,
                     updatedTauXyXzYz = updatedTauXyXzYz * coeff;
                 }
             }
-            // Set stress to the critical value if the pressure is smaller than it 
-            if (p_tr < P_cri) {
-                Real coeff = abs(P_cri / (p_tr + 1e-9));
-                updatedTauXxYyZz = updatedTauXxYyZz * coeff;
-                updatedTauXyXzYz = updatedTauXyXzYz * coeff;
-                // updatedTauXxYyZz = mR3(0.0);
-                // updatedTauXyXzYz = mR3(0.0);
-                p_tr = P_cri;
+            // Set stress to zero if the pressure is smaller than the threshold
+            if (p_tr < p_cri) {
+                updatedTauXxYyZz = mR3(0.0);
+                updatedTauXyXzYz = mR3(0.0);
+                p_tr = 0.0;
+                // Real coeff = abs(p_cri / (p_tr + 1e-9));
+                // if (p_tr < 2.0 * p_cri){
+                //     coeff = 0.0;
+                // } else {
+                //     coeff = abs(1.0 - (p_tr - p_cri) / p_cri);
+                // }
+                // updatedTauXxYyZz = updatedTauXxYyZz * coeff;
+                // updatedTauXyXzYz = updatedTauXyXzYz * coeff;
+                // p_tr = p_cri * coeff;
             }
             // Set stress to zero if the particle is close to free surface
             if (freeSurfaceIdD[index] == 1) {
@@ -426,7 +440,6 @@ __global__ void Update_Fluid_State(Real3* new_vel,
                                    Real3* velMas,
                                    Real4* rhoPreMu,
                                    int4 updatePortion,
-                                   const size_t numAllMarkers,
                                    double dT,
                                    volatile bool* isErrorD) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -467,10 +480,9 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
                                   Real4* sortedRhoPreMu,
                                   uint* gridMarkerIndex,
                                   uint* cellStart,
-                                  uint* cellEnd,
-                                  size_t numAllMarkers) {
+                                  uint* cellEnd) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numAllMarkers)
+    if (index >= numObjectsD.numAllMarkers)
         return;
 
     // read particle data from sorted arrays
@@ -503,10 +515,10 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
 __global__ void UpdateActivityD(Real4* posRadD,
                                 Real3* velMasD,
                                 Real3* posRigidBodiesD,
+                                Real3* pos_fsi_fea_D,
                                 uint* activityIdentifierD,
                                 uint* extendedActivityIdD,
                                 int2 updatePortion,
-                                size_t numRigidBodies,
                                 Real Time,
                                 volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -522,15 +534,31 @@ __global__ void UpdateActivityD(Real4* posRadD,
     if (Time < paramsD.settlingTime)
         return;
 
+    size_t numRigidBodies = numObjectsD.numRigidBodies;
+    size_t numFlexNodes = numObjectsD.numFlexNodes;
+    size_t numTotal = numRigidBodies + numFlexNodes;
+
     // Check the activity of this particle
     uint isNotActive = 0;
     uint isNotExtended = 0;
+
+    Real3 Acdomain = paramsD.bodyActiveDomain;
+    Real3 ExAcdomain = paramsD.bodyActiveDomain + 
+        mR3(2 * RESOLUTION_LENGTH_MULT * paramsD.HSML);
+
     Real3 posRadA = mR3(posRadD[index]);
     for (uint num = 0; num < numRigidBodies; num++) {
         Real3 detPos = posRadA - posRigidBodiesD[num];
-        Real3 Acdomain = paramsD.bodyActiveDomain;
-        Real3 ExAcdomain = paramsD.bodyActiveDomain + 
-            mR3(2 * RESOLUTION_LENGTH_MULT * paramsD.HSML);
+        if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || 
+            abs(detPos.z) > Acdomain.z)
+            isNotActive = isNotActive + 1;
+        if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || 
+            abs(detPos.z) > ExAcdomain.z)
+            isNotExtended = isNotExtended + 1;
+    }
+
+    for (uint num = 0; num < numFlexNodes; num++) {
+        Real3 detPos = posRadA - pos_fsi_fea_D[num];
         if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || 
             abs(detPos.z) > Acdomain.z)
             isNotActive = isNotActive + 1;
@@ -540,11 +568,11 @@ __global__ void UpdateActivityD(Real4* posRadD,
     }
 
     // Set the particle as an inactive particle if needed
-    if (isNotActive == numRigidBodies && numRigidBodies > 0) {
+    if (isNotActive == numTotal && numTotal > 0) {
         activityIdentifierD[index] = 0;
         velMasD[index] = mR3(0.0);
     }
-    if (isNotExtended == numRigidBodies && numRigidBodies > 0)
+    if (isNotExtended == numTotal && numTotal > 0)
         extendedActivityIdD[index] = 0;
 
     return;
@@ -626,7 +654,7 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                    Real dT,
                                    Real Time) {
     if (GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
-        this->UpdateActivity(sphMarkersD1, sphMarkersD2, fsiBodiesD, Time);
+        this->UpdateActivity(sphMarkersD1, sphMarkersD2, fsiBodiesD, fsiMeshD, Time);
         forceSystem->ForceSPH(sphMarkersD2, fsiBodiesD, fsiMeshD);
     } else
         forceSystem->ForceSPH(sphMarkersD1, fsiBodiesD, fsiMeshD);
@@ -643,6 +671,7 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
 void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                                      std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                      std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                                     std::shared_ptr<FsiMeshDataD> fsiMeshD,
                                      Real Time) {
     // Update portion of the SPH particles (should be all particles here)
     int2 updatePortion = mI2(0, (int)numObjectsH->numAllMarkers);
@@ -659,9 +688,10 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD
     UpdateActivityD<<<numBlocks, numThreads>>>(
         mR4CAST(sphMarkersD2->posRadD), mR3CAST(sphMarkersD1->velMasD), 
         mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
+        mR3CAST(fsiMeshD->pos_fsi_fea_D),
         U1CAST(fsiSystem.fsiGeneralData->activityIdentifierD), 
         U1CAST(fsiSystem.fsiGeneralData->extendedActivityIdD),
-        updatePortion, numObjectsH->numRigidBodies, Time, isErrorD);
+        updatePortion, Time, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------
@@ -731,8 +761,7 @@ void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMa
     Update_Fluid_State<<<numBlocks, numThreads>>>(
         mR3CAST(fsiSystem.fsiGeneralData->vel_XSPH_D), 
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), 
-        mR4CAST(sphMarkersD->rhoPresMuD), updatePortion,
-        numObjectsH->numAllMarkers, paramsH->dT, isErrorD);
+        mR4CAST(sphMarkersD->rhoPresMuD), updatePortion, paramsH->dT, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
 
@@ -815,8 +844,7 @@ void ChFluidDynamics::DensityReinitialization() {
         mR4CAST(fsiSystem.sortedSphMarkersD->rhoPresMuD),
         U1CAST(fsiSystem.markersProximityD->gridMarkerIndexD), 
         U1CAST(fsiSystem.markersProximityD->cellStartD),
-        U1CAST(fsiSystem.markersProximityD->cellEndD), 
-        numObjectsH->numAllMarkers);
+        U1CAST(fsiSystem.markersProximityD->cellEndD));
 
     cudaDeviceSynchronize();
     cudaCheckError();

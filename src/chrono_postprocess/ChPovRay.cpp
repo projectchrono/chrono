@@ -253,6 +253,9 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     // Rough way to load the template head file in the string buffer
     if (template_filename != "") {
+
+        std::cout << "USE TEMPLATE FILE: " << template_filename << std::endl;
+
         ChStreamInAsciiFile templatefile(template_filename.c_str());
         std::string buffer_template;
         while (!templatefile.End_of_stream()) {

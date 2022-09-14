@@ -3,7 +3,7 @@ Lidar Sensor Model {#lidar_sensor}
 
 \tableofcontents
 
-In chrono:sensor:ChLidarSensor, the synthetic data is generated via GPU-based ray-tracing. By leveraging hardware acclereated support and the headless rendering capablities provided by NVIDIA Optix Library. For each lidar beam, a group of rays are traced that sample that lidar beam. The number of samples, along with beam divergence angle, are set by the user. The entire frame/scan of the lidar is processed in a single render step. To account for the time difference of rays across the scan, keyframes and motion blur techniques are used. With these keyframes, each beam in the scan traces the scene at a specific time, reproducing the motion of objects and the lidar. The intensity returned by the lidar beams is based on diffuse reflectance.
+In chrono:sensor:ChLidarSensor, the synthetic data is generated via GPU-based ray-tracing. By leveraging hardware accelerated support and the headless rendering capabilities provided by NVIDIA Optix Library. For each lidar beam, a group of rays are traced that sample that lidar beam. The number of samples, along with beam divergence angle, are set by the user. The entire frame/scan of the lidar is processed in a single render step. To account for the time difference of rays across the scan, keyframes and motion blur techniques are used. With these keyframes, each beam in the scan traces the scene at a specific time, reproducing the motion of objects and the lidar. The intensity returned by the lidar beams is based on diffuse reflectance.
 
 #### Creating a Lidar
 ~~~{.cpp}

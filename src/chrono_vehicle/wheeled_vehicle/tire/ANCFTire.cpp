@@ -223,7 +223,8 @@ void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) 
             // Element dimensions
             double len_circumference =
                 0.5 * ((node1->GetPos() - node0->GetPos()).Length() + (node3->GetPos() - node2->GetPos()).Length());
-            double len_width = (node2->GetPos() - node0->GetPos()).Length();
+            double len_width = 
+                0.5 * ((node2->GetPos() - node1->GetPos()).Length() + (node3->GetPos() - node0->GetPos()).Length());
 
             element->SetDimensions(len_circumference, len_width);
 

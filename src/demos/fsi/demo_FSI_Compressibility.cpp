@@ -139,9 +139,6 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax = ChVector<>(bxDim / 2, byDim / 2, bzDim) + ChVector<>(initSpace0 * 10);
     sysFSI.SetBoundaries(cMin, cMax);
 
-    // Setup the output directory for FSI data
-    sysFSI.SetOutputDirectory(out_dir);
-
     // Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
 
@@ -165,7 +162,7 @@ int main(int argc, char* argv[]) {
 
     // Start the simulation
     double dT = sysFSI.GetStepSize();
-    unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
+    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
 
     std::ofstream outf;
     std::string delim = ",";

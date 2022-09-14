@@ -122,9 +122,6 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax = ChVector<>(bxDim / 2 + initSpace0 / 2, byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
     sysFSI.SetBoundaries(cMin, cMax);
 
-    // Setup the output directory for FSI data
-    sysFSI.SetOutputDirectory(out_dir);
-
     // Create Fluid region and discretize with SPH particles
     ChVector<> boxCenter(0.0, 0.0, bzDim / 2);
     ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
@@ -147,7 +144,7 @@ int main(int argc, char* argv[]) {
 
     // Start the simulation
     double dT = sysFSI.GetStepSize();
-    unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
+    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
 
     double time = 0;
     int current_step = 0;

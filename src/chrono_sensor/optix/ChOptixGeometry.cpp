@@ -602,9 +602,10 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
 // rebuilding the structure without creating anything new
 void ChOptixGeometry::RebuildRootStructure() {
     
-    // std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
-    // double max_pos_diff = 0;
-    // double pos_diff_threshold = 1.0;
+    m_end_time = m_end_time > (m_start_time+1e-2)
+                     ? m_end_time
+                     : m_end_time + 1e-2;  // need to ensure start time is at least slightly after end time
+
     for (int i = 0; i < m_motion_transforms.size(); i++) {
         // update the motion transforms
         const ChFrame<double> f_start = m_obj_body_frames_start[i] * m_obj_asset_frames[i];
