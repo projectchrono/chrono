@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <vector>
+
 #include "gtest/gtest.h"
 
 #include "chrono/core/ChLog.h"
@@ -27,9 +29,13 @@ using namespace sensor;
 #define GPS_TEST_EPSILLON 1e-9
 
 TEST(ChGPSSensor, gps_conversion) {
+    std::cout << "Start GPS unit test" << std::endl;
+
     // create some test coordinates are reference locations for representative coverage of the globe
     std::vector<ChVector<double>> test_coords = {{0, 0, 0}, {-100, -100, -100}, {100, 100, 100}};
     std::vector<ChVector<double>> test_refs = {{0, 0, 0}, {-75, 70, 500}, {20, -60, -200}};
+
+    std::cout << "Testing " << test_coords.size() << " coord sets" << std::endl;
 
     // make sure every pair of coordinate-reference locations is handled by the conversion in an invertible way
     for (int i = 0; i < test_coords.size(); i++) {
@@ -42,9 +48,11 @@ TEST(ChGPSSensor, gps_conversion) {
             GPS2Cartesian(coord_copy, ref);
 
             // make sure our conversions are inverses
-            ASSERT_LT(abs(coord_copy.x() - coord_const.x()), GPS_TEST_EPSILLON);
-            ASSERT_LT(abs(coord_copy.y() - coord_const.y()), GPS_TEST_EPSILLON);
-            ASSERT_LT(abs(coord_copy.z() - coord_const.z()), GPS_TEST_EPSILLON);
+            ASSERT_LT(std::abs(coord_copy.x() - coord_const.x()), GPS_TEST_EPSILLON);
+            ASSERT_LT(std::abs(coord_copy.y() - coord_const.y()), GPS_TEST_EPSILLON);
+            ASSERT_LT(std::abs(coord_copy.z() - coord_const.z()), GPS_TEST_EPSILLON);
         }
     }
+
+    std::cout << "Done GPS unit test" << std::endl;
 }

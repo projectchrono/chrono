@@ -1,6 +1,9 @@
+# PyChrono local build.
 # The following imports add the binaries to the modules.
-# Since SWIG 4 import style (from . import _<modulename>) pyd/so files in the PYTHONPATH dir cannot be found
-# and have to be added to the package
+# Since SWIG 4 import style (from . import _<modulename>) pyd/so files
+# in the PYTHONPATH dir cannot be found and have to be added to the package.
+
+import os
 
 try:
     import _core
@@ -8,7 +11,6 @@ try:
 except:
     pass
 try:
-    import os
     @ADD_OCC_DLL@
     import _cascade
 except:
@@ -30,9 +32,9 @@ try:
 except:
     pass
 try:
-    import os
     @ADD_CUDA_DLL@
     import _sensor
+    _sensor.SetSensorShaderDir('@PYC_SHADER_PATH@')
 except:
     pass
 try:
@@ -47,4 +49,4 @@ except:
 #   import pychrono.core	
 from .core import *
 
-SetChronoDataPath('@PYC_DATA_PATH@/')
+SetChronoDataPath('@PYC_DATA_PATH@')
