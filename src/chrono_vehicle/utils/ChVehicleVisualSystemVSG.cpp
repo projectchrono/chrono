@@ -105,9 +105,9 @@ class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHa
                 m_appPtr->CameraTurn(-1);
                 return;
             case vsg::KEY_Right:  // not recognized on the Mac
-#ifdef __APPLE__
+    #ifdef __APPLE__
             case 94:              // Mac hack
-#endif
+    #endif
                 m_appPtr->CameraTurn(1);
                 return;
             case vsg::KEY_Next:
@@ -136,18 +136,23 @@ class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHa
                 return;
             case vsg::KEY_1:
                 m_appPtr->CameraState(utils::ChChaseCamera::Chase);
+                _params->camera_mode = "Chase";
                 return;
             case vsg::KEY_2:
                 m_appPtr->CameraState(utils::ChChaseCamera::Follow);
+                _params->camera_mode = "Follow";
                 return;
             case vsg::KEY_3:
                 m_appPtr->CameraState(utils::ChChaseCamera::Track);
+                _params->camera_mode = "Track";
                 return;
             case vsg::KEY_4:
                 m_appPtr->CameraState(utils::ChChaseCamera::Inside);
+                _params->camera_mode = "Inside";
                 return;
             case vsg::KEY_5:
                 m_appPtr->CameraState(utils::ChChaseCamera::Free);
+                _params->camera_mode = "Free";
                 return;
             case vsg::KEY_V:
                 m_appPtr->LogContraintViolations();
@@ -174,6 +179,7 @@ void ChVehicleVisualSystemVSG::Initialize() {
     auto veh_kbHandler = VehAppKeyboardHandler::create(m_viewer);
     veh_kbHandler->SetParams(m_params, this);
     m_viewer->addEventHandler(veh_kbHandler);
+    CameraState(utils::ChChaseCamera::State::Chase);
 }
 
 void ChVehicleVisualSystemVSG::AttachVehicle(vehicle::ChVehicle* vehicle) {
@@ -190,11 +196,65 @@ void ChVehicleVisualSystemVSG::Synchronize(const std::string& msg, const DriverI
         m_params->steering = driver_inputs.m_steering;
         m_params->throttle = driver_inputs.m_throttle;
         m_params->braking = driver_inputs.m_braking;
+        m_params->input_mode = msg;
     } else {
         m_params->vehicleSpeed = 0.0;
         m_params->steering = 0.0;
         m_params->throttle = 0.0;
         m_params->braking = 0.0;
+        m_params->input_mode = "n. a.";
+    }
+}
+
+int ChVehicleVisualSystemVSG::GetGearPosition() {
+    if (!m_vehicle)
+        return 0;
+    if (!m_vehicle->GetPowertrain())
+        return 0;
+    return m_vehicle->GetPowertrain()->GetCurrentTransmissionGear();
+}
+
+double ChVehicleVisualSystemVSG::GetEngineSpeedRPM() {
+    if (!m_vehicle)
+        return 0.0;
+    if (!m_vehicle->GetPowertrain())
+        return 0.0;
+    return m_vehicle->GetPowertrain()->GetMotorSpeed() * 30.0 / CH_C_PI;
+}
+
+double ChVehicleVisualSystemVSG::GetEngineTorque() {
+    if (!m_vehicle)
+        return 0.0;
+    if (!m_vehicle->GetPowertrain())
+        return 0.0;
+    return m_vehicle->GetPowertrain()->GetMotorTorque();
+}
+
+char ChVehicleVisualSystemVSG::GetTransmissionMode() {
+    if (!m_vehicle)
+        return '?';
+    if (!m_vehicle->GetPowertrain())
+        return '?';
+    switch (m_vehicle->GetPowertrain()->GetTransmissionMode()) {
+        case ChPowertrain::TransmissionMode::AUTOMATIC:
+            return 'A';
+        case ChPowertrain::TransmissionMode::MANUAL:
+            return 'M';
+    }
+}
+
+char ChVehicleVisualSystemVSG::GetDriveMode() {
+    if (!m_vehicle)
+        return '?';
+    if (!m_vehicle->GetPowertrain())
+        return '?';
+    switch (m_vehicle->GetPowertrain()->GetDriveMode()) {
+        case ChPowertrain::DriveMode::FORWARD:
+            return 'F';
+        case ChPowertrain::DriveMode::NEUTRAL:
+            return 'N';
+        case ChPowertrain::DriveMode::REVERSE:
+            return 'R';
     }
 }
 
@@ -279,6 +339,23 @@ void ChVehicleVisualSystemVSG::CameraRaise(int how) {
 
 void ChVehicleVisualSystemVSG::CameraState(utils::ChChaseCamera::State state) {
     m_camera->SetState(state);
+    switch (state) {
+        case utils::ChChaseCamera::State::Chase:
+            m_params->camera_mode = "Chase";
+            break;
+        case utils::ChChaseCamera::State::Follow:
+            m_params->camera_mode = "Follow";
+            break;
+        case utils::ChChaseCamera::State::Track:
+            m_params->camera_mode = "Track";
+            break;
+        case utils::ChChaseCamera::State::Inside:
+            m_params->camera_mode = "Inside";
+            break;
+        case utils::ChChaseCamera::State::Free:
+            m_params->camera_mode = "Free";
+            break;
+    }
 }
 
 void ChVehicleVisualSystemVSG::LogContraintViolations() {

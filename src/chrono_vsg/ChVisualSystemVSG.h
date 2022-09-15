@@ -69,7 +69,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     size_t GetFrameNumber();
     double GetWallclockTime();
     double GetRealtimeFactor();
-
+    virtual int GetGearPosition() { return 0; }
+    virtual double GetEngineSpeedRPM() { return 0.0; }
+    virtual double GetEngineTorque() { return 0.0; }
+    virtual char GetTransmissionMode() { return '?'; }
+    virtual char GetDriveMode() { return '?'; }
     virtual void AttachGui();
 
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
@@ -83,6 +87,13 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
         double steering = 0;
         double throttle = 0;
         double braking = 0;
+        std::string camera_mode = "VSG";
+        std::string input_mode = "";
+        int gear_position = 0;
+        double engine_rpm = 0.0;
+        double engine_torque = 0.0;
+        char transmission_mode = '?';
+        char drive_mode = '?';
     };
 
   protected:

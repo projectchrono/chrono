@@ -60,8 +60,22 @@ class GuiComponent {
             ImGui::Begin("App:");  // Create a window called "Hello, world!" and append into it.
 
             if (_params->showVehicleState) {
+                ImGui::BeginTable("CamTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                                  ImVec2(0.0f, 0.0f));
+                ImGui::TableNextColumn();
+                ImGui::Text("Camera State:");
+                ImGui::TableNextColumn();
+                ImGui::Text(_params->camera_mode.c_str());
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("Input Node:");
+                ImGui::TableNextColumn();
+                ImGui::Text(_params->input_mode.c_str());
+                ImGui::EndTable();
+                ImGui::Spacing();
                 ImGui::BeginTable("VehTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                                   ImVec2(0.0f, 0.0f));
+                ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Vehicle Speed:");
                 ImGui::TableNextColumn();
@@ -85,9 +99,43 @@ class GuiComponent {
                 ImGui::TableNextColumn();
                 sprintf(label, "%.3f", _params->braking);
                 ImGui::Text(label);
-
                 ImGui::EndTable();
-
+                ImGui::Spacing();
+                ImGui::BeginTable("PowerTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                                  ImVec2(0.0f, 0.0f));
+                ImGui::TableNextColumn();
+                ImGui::Text("Engine Speed:");
+                ImGui::TableNextColumn();
+                sprintf(label, "%.1lf RPM", m_appPtr->GetEngineSpeedRPM());
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("Engine Torque:");
+                ImGui::TableNextColumn();
+                sprintf(label, "%.1lf Nm", m_appPtr->GetEngineTorque());
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                switch (m_appPtr->GetDriveMode()) {
+                    case 'F':
+                        sprintf(label, "[%c] Gear forward:", m_appPtr->GetTransmissionMode());
+                        break;
+                    case 'N':
+                        sprintf(label, "[%c] Gear neutral:", m_appPtr->GetTransmissionMode());
+                        break;
+                    case 'R':
+                        sprintf(label, "[%c] Gear reverse:", m_appPtr->GetTransmissionMode());
+                        break;
+                    default:
+                        sprintf(label, "[%c] Gear ?:", m_appPtr->GetTransmissionMode());
+                        break;
+                }
+                ImGui::Text(label);
+                ImGui::TableNextColumn();
+                sprintf(label, "%d", m_appPtr->GetGearPosition());
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::EndTable();
                 ImGui::Spacing();
             }
             ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
@@ -422,7 +470,7 @@ void ChVisualSystemVSG::Initialize() {
 
     m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
 
-    if(!m_params->showVehicleState)
+    if (!m_params->showVehicleState)
         m_viewer->addEventHandler(vsg::Trackball::create(m_vsg_camera));
 
     // default sets automatic directional light

@@ -52,6 +52,12 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
 
     void LogContraintViolations();
 
+    virtual int GetGearPosition() override;
+    virtual double GetEngineSpeedRPM() override;
+    virtual double GetEngineTorque() override;
+    virtual char GetTransmissionMode() override;
+    virtual char GetDriveMode() override;
+
 protected:
     ChVSGGuiDriver* m_guiDriver;
 
