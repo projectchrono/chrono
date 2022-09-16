@@ -51,7 +51,7 @@
 				"ENABLE_MODULE_GPU": "ON",
 				"CMAKE_CXX_FLAGS": "-fdiagnostics-color=always",
 				"ENABLE_MODULE_SENSOR": "ON",
-				"OptiX_INSTALL_DIR": "/opt/optix/7.2.0"
+				"OptiX_INSTALL_DIR": "/opt/optix/7.5.0"
 			}
 		},
 		{
@@ -118,9 +118,9 @@
 			"cacheVariables": {
 				"ENABLE_MODULE_GPU": "ON",
 				"ENABLE_MODULE_FSI": "OFF",
-				"ENABLE_MODULE_SENSOR": "ON",
+				"ENABLE_MODULE_SENSOR": "OFF",
 				"DNUMPY_INCLUDE_DIR": "C:/Users/builder/miniconda3/envs/build-env/",
-				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0",
+				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.5.0",
 				"CUDA_TOOLKIT_ROOT_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7",
 				"THRUST_INCLUDE_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7/include"
 			}
@@ -140,8 +140,8 @@
 				"ENABLE_MODULE_GPU": "OFF",
 				"ENABLE_MODULE_MULTICORE": "OFF",
 				"ENABLE_MODULE_FSI": "OFF",
-				"ENABLE_MODULE_SENSOR": "ON",
-				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0",
+				"ENABLE_MODULE_SENSOR": "OFF",
+				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.5.0",
 				"CUDA_TOOLKIT_ROOT_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7",
 				"THRUST_INCLUDE_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7/include"
 			}

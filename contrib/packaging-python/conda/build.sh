@@ -55,7 +55,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DMKL_INCLUDE_DIR=$BUILD_PREFIX/include \
  -DMKL_RT_LIBRARY=$BUILD_PREFIX/lib/libmkl_rt.so \
  -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 \
- -DOptiX_INSTALL_DIR=/opt/optix/7.2.0 \
+ -DOptiX_INSTALL_DIR=/opt/optix/7.5.0 \
  -DNUMPY_INCLUDE_DIR=$NP_INCL \
  ./..
 

@@ -254,7 +254,7 @@ linux:ubuntu2004:build:
         -DCMAKE_VERBOSE_MAKEFILE=TRUE
         -DENABLE_MODULE_SENSOR=TRUE
         -DBUILD_TESTING_SENSOR=TRUE
-        -DOptiX_INSTALL_DIR=/opt/optix/7.2.0
+        -DOptiX_INSTALL_DIR=/opt/optix/7.5.0
     - ninja -j 8
   artifacts:
     expire_in: 60m
