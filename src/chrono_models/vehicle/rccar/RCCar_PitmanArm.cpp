@@ -39,7 +39,7 @@ const double RCCar_PitmanArm::m_steeringLinkRadius = 0.005;
 const double RCCar_PitmanArm::m_pitmanArmRadius = 0.005;
 
 //const double RCCar_PitmanArm::m_maxAngle = 0.523599;  // original one 
-const double RCCar_PitmanArm::m_maxAngle = 0.5; 
+const double RCCar_PitmanArm::m_maxAngle = 0.512; 
 
 const ChVector<> RCCar_PitmanArm::m_steeringLinkInertiaMoments(0.00000560, 0.00000021, 0.00000569);
 const ChVector<> RCCar_PitmanArm::m_steeringLinkInertiaProducts(0.0, 0.00000002, 0.0);
