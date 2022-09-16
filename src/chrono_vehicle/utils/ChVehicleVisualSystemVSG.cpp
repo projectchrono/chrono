@@ -180,6 +180,14 @@ void ChVehicleVisualSystemVSG::Initialize() {
     veh_kbHandler->SetParams(m_params, this);
     m_viewer->addEventHandler(veh_kbHandler);
     CameraState(utils::ChChaseCamera::State::Chase);
+    if (!m_vehicle)
+        return;
+    if (!m_vehicle->GetPowertrain())
+        return;
+    auto spt = std::dynamic_pointer_cast<ChShaftsPowertrain>(m_vehicle->GetPowertrain());
+    if (spt) {
+        m_params->show_converter_data = true;
+    }
 }
 
 void ChVehicleVisualSystemVSG::AttachVehicle(vehicle::ChVehicle* vehicle) {
@@ -334,6 +342,54 @@ void ChVehicleVisualSystemVSG::CameraTurn(int how) {
 void ChVehicleVisualSystemVSG::CameraRaise(int how) {
     if (m_vehicle) {
         m_camera->Raise(how);
+    }
+}
+
+double ChVehicleVisualSystemVSG::GetTconvSlip() {
+    if (!m_vehicle)
+        return 0.0;
+    if (!m_vehicle->GetPowertrain())
+        return 0.0;
+    if (m_params->show_converter_data) {
+        return m_vehicle->GetPowertrain()->GetTorqueConverterSlippage();
+    } else {
+        return 0.0;
+    }
+}
+
+double ChVehicleVisualSystemVSG::GetTconvTorqueInput() {
+    if (!m_vehicle)
+        return 0.0;
+    if (!m_vehicle->GetPowertrain())
+        return 0.0;
+    if (m_params->show_converter_data) {
+        return m_vehicle->GetPowertrain()->GetTorqueConverterInputTorque();
+    } else {
+        return 0.0;
+    }
+}
+
+double ChVehicleVisualSystemVSG::GetTconvTorqueOutput() {
+    if (!m_vehicle)
+        return 0.0;
+    if (!m_vehicle->GetPowertrain())
+        return 0.0;
+    if (m_params->show_converter_data) {
+        return m_vehicle->GetPowertrain()->GetTorqueConverterOutputTorque();
+    } else {
+        return 0.0;
+    }
+}
+
+double ChVehicleVisualSystemVSG::GetTconvSpeedOutput() {
+    if (!m_vehicle)
+        return 0.0;
+    if (!m_vehicle->GetPowertrain())
+        return 0.0;
+    if (m_params->show_converter_data) {
+        return m_vehicle->GetPowertrain()->GetTorqueConverterOutputSpeed()*30.0/CH_C_PI;
+    } else {
+        return 0.0;
     }
 }
 

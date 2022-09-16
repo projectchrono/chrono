@@ -74,6 +74,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     virtual double GetEngineTorque() { return 0.0; }
     virtual char GetTransmissionMode() { return '?'; }
     virtual char GetDriveMode() { return '?'; }
+    virtual double GetTconvSlip() { return 0.0; }
+    virtual double GetTconvTorqueInput() { return 0.0; }
+    virtual double GetTconvTorqueOutput() { return 0.0; }
+    virtual double GetTconvSpeedOutput() { return 0.0; }
+    virtual int GetNumDrivenAxles() { return 0; }
+    virtual double GetTireTorque(int axle, int side) { return 0.0; }
     virtual void AttachGui();
 
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
@@ -94,6 +100,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
         double engine_torque = 0.0;
         char transmission_mode = '?';
         char drive_mode = '?';
+        bool show_converter_data = false;
     };
 
   protected:

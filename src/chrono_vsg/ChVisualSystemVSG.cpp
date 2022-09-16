@@ -137,6 +137,74 @@ class GuiComponent {
                 ImGui::TableNextRow();
                 ImGui::EndTable();
                 ImGui::Spacing();
+                if(_params->show_converter_data) {
+                    ImGui::BeginTable("ConvTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                            ImVec2(0.0f, 0.0f));
+                    ImGui::TableNextColumn();
+                    ImGui::Text("T.conv.slip:");
+                    ImGui::TableNextColumn();
+                    sprintf(label, "%.2f", m_appPtr->GetTconvSlip());
+                    ImGui::Text(label);
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("T.conv.torque.in:");
+                    ImGui::TableNextColumn();
+                    sprintf(label, "%.1f Nm", m_appPtr->GetTconvTorqueInput());
+                    ImGui::Text(label);
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("T.conv.torque.out:");
+                    ImGui::TableNextColumn();
+                    sprintf(label, "%.1f Nm", m_appPtr->GetTconvTorqueOutput());
+                    ImGui::Text(label);
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("T.conv.speed.out:");
+                    ImGui::TableNextColumn();
+                    sprintf(label, "%.1f RPM", m_appPtr->GetTconvSpeedOutput());
+                    ImGui::Text(label);
+                    ImGui::TableNextRow();
+                    ImGui::EndTable();
+                    ImGui::Spacing();
+                }
+                if(m_appPtr->GetNumDrivenAxles() > 0) {
+                    ImGui::BeginTable("TireTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                            ImVec2(0.0f, 0.0f));
+                    ImGui::TableNextColumn();
+                    sprintf(label, "Torques wheel L: %+.1f Nm", m_appPtr->GetTireTorque(0, 0));
+                    ImGui::Text(label);
+                    ImGui::TableNextColumn();
+                    sprintf(label, " wheel R: %+.1f Nm", m_appPtr->GetTireTorque(0, 1));
+                    ImGui::Text(label);
+                    ImGui::TableNextRow();
+                    if(m_appPtr->GetNumDrivenAxles() >= 2) {
+                        ImGui::TableNextColumn();
+                        sprintf(label, "Torques wheel L: %+.1f Nm", m_appPtr->GetTireTorque(1, 0));
+                        ImGui::Text(label);
+                        ImGui::TableNextColumn();
+                        sprintf(label, " wheel R: %+.1f Nm", m_appPtr->GetTireTorque(1, 1));
+                        ImGui::Text(label);
+                        ImGui::TableNextRow();
+                    }
+                    if(m_appPtr->GetNumDrivenAxles() >= 4) {
+                        ImGui::TableNextColumn();
+                        sprintf(label, "Torques wheel L: %+.1f Nm", m_appPtr->GetTireTorque(2, 0));
+                        ImGui::Text(label);
+                        ImGui::TableNextColumn();
+                        sprintf(label, " wheel R: %+.1f Nm", m_appPtr->GetTireTorque(2, 1));
+                        ImGui::Text(label);
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        sprintf(label, "Torques wheel L: %+.1f Nm", m_appPtr->GetTireTorque(3, 0));
+                        ImGui::Text(label);
+                        ImGui::TableNextColumn();
+                        sprintf(label, " wheel R: %+.1f Nm", m_appPtr->GetTireTorque(3, 1));
+                        ImGui::Text(label);
+                        ImGui::TableNextRow();
+                    }
+                    ImGui::EndTable();
+                    ImGui::Spacing();
+                }
             }
             ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f));

@@ -14,6 +14,7 @@
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/driver/ChVSGGuiDriver.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
+#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
 
 namespace chrono {
 namespace vehicle {
@@ -57,6 +58,10 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     virtual double GetEngineTorque() override;
     virtual char GetTransmissionMode() override;
     virtual char GetDriveMode() override;
+    virtual double GetTconvSlip() override;
+    virtual double GetTconvTorqueInput() override;
+    virtual double GetTconvTorqueOutput() override;
+    virtual double GetTconvSpeedOutput() override;
 
 protected:
     ChVSGGuiDriver* m_guiDriver;

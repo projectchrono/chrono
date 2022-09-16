@@ -34,7 +34,51 @@ void ChWheeledVehicleVisualSystemVSG::AttachVehicle(ChVehicle* vehicle) {
     ChVehicleVisualSystemVSG::AttachVehicle(vehicle);
     m_wvehicle = dynamic_cast<ChWheeledVehicle*>(m_vehicle);
     assert(m_wvehicle);
+    if (!m_wvehicle)
+        return;
+    if (auto driveline2 = std::dynamic_pointer_cast<ChShaftsDriveline2WD>(m_wvehicle->GetDriveline())) {
+        m_drivenAxles = 1;
+    } else if (auto driveline4 = std::dynamic_pointer_cast<ChShaftsDriveline4WD>(m_wvehicle->GetDriveline())) {
+        m_drivenAxles = 2;
+    } else if (auto driveline8 = std::dynamic_pointer_cast<ChShaftsDriveline8WD>(m_wvehicle->GetDriveline())) {
+        m_drivenAxles = 4;
+    }
 }
 
+double ChWheeledVehicleVisualSystemVSG::GetTireTorque(int draxle, int side) {
+    if (!m_wvehicle)
+        return 0.0;
+    if (auto driveline2 = std::dynamic_pointer_cast<ChShaftsDriveline2WD>(m_wvehicle->GetDriveline())) {
+        double torque;
+        int axle = driveline2->GetDrivenAxleIndexes()[0];
+        if (side == 0)
+            torque = driveline2->GetSpindleTorque(axle, LEFT);
+        else
+            torque = driveline2->GetSpindleTorque(axle, RIGHT);
+        return torque;
+    } else if (auto driveline4 = std::dynamic_pointer_cast<ChShaftsDriveline4WD>(m_wvehicle->GetDriveline())) {
+        double torque;
+        int axle = driveline4->GetDrivenAxleIndexes()[draxle];
+        if (side == 0)
+            torque = driveline4->GetSpindleTorque(axle, LEFT);
+        else
+            torque = driveline4->GetSpindleTorque(axle, RIGHT);
+        return torque;
+    }
+    if (auto driveline8 = std::dynamic_pointer_cast<ChShaftsDriveline8WD>(m_wvehicle->GetDriveline())) {
+        double torque;
+        int axle = driveline8->GetDrivenAxleIndexes()[draxle];
+        if (side == 0)
+            torque = driveline8->GetSpindleTorque(axle, LEFT);
+        else
+            torque = driveline8->GetSpindleTorque(axle, RIGHT);
+        return torque;
+    } else {
+        return 0.0;
+    }
+}
+int ChWheeledVehicleVisualSystemVSG::GetNumDrivenAxles() {
+    return m_drivenAxles;
+}
 }  // end namespace vehicle
 }  // end namespace chrono
