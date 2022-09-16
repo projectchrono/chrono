@@ -62,7 +62,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetLightDirection(double acimut, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
     void ShowAllCoGs(double size);
-    void SetGuiFontSize(float theSize = 20.f) { m_guiFontSize = theSize; }
+    void SetGuiFontSize(float theSize);
     void SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
 
     double GetModelTime();
@@ -170,7 +170,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //
     std::string m_imageFilename;
     // bool m_do_image_export = false;
-    float m_guiFontSize = 25.0f;
+    float m_guiFontSize = 20.0f;
 };
 }  // namespace vsg3d
 }  // namespace chrono

@@ -137,9 +137,9 @@ class GuiComponent {
                 ImGui::TableNextRow();
                 ImGui::EndTable();
                 ImGui::Spacing();
-                if(_params->show_converter_data) {
+                if (_params->show_converter_data) {
                     ImGui::BeginTable("ConvTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                            ImVec2(0.0f, 0.0f));
+                                      ImVec2(0.0f, 0.0f));
                     ImGui::TableNextColumn();
                     ImGui::Text("T.conv.slip:");
                     ImGui::TableNextColumn();
@@ -167,9 +167,9 @@ class GuiComponent {
                     ImGui::EndTable();
                     ImGui::Spacing();
                 }
-                if(m_appPtr->GetNumDrivenAxles() > 0) {
+                if (m_appPtr->GetNumDrivenAxles() > 0) {
                     ImGui::BeginTable("TireTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                            ImVec2(0.0f, 0.0f));
+                                      ImVec2(0.0f, 0.0f));
                     ImGui::TableNextColumn();
                     sprintf(label, "Torques wheel L: %+.1f Nm", m_appPtr->GetTireTorque(0, 0));
                     ImGui::Text(label);
@@ -177,7 +177,7 @@ class GuiComponent {
                     sprintf(label, " wheel R: %+.1f Nm", m_appPtr->GetTireTorque(0, 1));
                     ImGui::Text(label);
                     ImGui::TableNextRow();
-                    if(m_appPtr->GetNumDrivenAxles() >= 2) {
+                    if (m_appPtr->GetNumDrivenAxles() >= 2) {
                         ImGui::TableNextColumn();
                         sprintf(label, "Torques wheel L: %+.1f Nm", m_appPtr->GetTireTorque(1, 0));
                         ImGui::Text(label);
@@ -186,7 +186,7 @@ class GuiComponent {
                         ImGui::Text(label);
                         ImGui::TableNextRow();
                     }
-                    if(m_appPtr->GetNumDrivenAxles() >= 4) {
+                    if (m_appPtr->GetNumDrivenAxles() >= 4) {
                         ImGui::TableNextColumn();
                         sprintf(label, "Torques wheel L: %+.1f Nm", m_appPtr->GetTireTorque(2, 0));
                         ImGui::Text(label);
@@ -381,6 +381,11 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     SetCameraAngleDeg(40);
     SetLightIntensity(1.0);
     SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+#ifdef __APPLE__
+    SetGuiFontSize(20.0);
+#else
+    SetGuiFontSize(10.0);
+#endif
 }
 
 void ChVisualSystemVSG::AttachGui() {
@@ -394,6 +399,10 @@ ChVisualSystemVSG::~ChVisualSystemVSG() {}
 
 void ChVisualSystemVSG::Quit() {
     m_viewer->close();
+}
+
+void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
+    m_guiFontSize = theSize;
 }
 
 void ChVisualSystemVSG::SetWindowSize(ChVector2<int> size) {
