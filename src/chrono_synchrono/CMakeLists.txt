@@ -10,7 +10,7 @@ IF(NOT ENABLE_MODULE_SYNCHRONO)
   return()
 ENDIF()
 
-message(STATUS "==== SynChrono module ====")
+message(STATUS "\n==== SynChrono module ====\n")
 
 # Return now if MPI is not available
 if(NOT MPI_FOUND)

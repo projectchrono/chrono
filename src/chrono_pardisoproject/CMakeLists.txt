@@ -10,7 +10,7 @@ if(NOT ENABLE_MODULE_PARDISO_PROJECT)
     return()
 endif()
 
-message(STATUS "==== Chrono PardisoProject module ====")
+message(STATUS "\n==== Chrono PardisoProject module ====\n")
 
 # ------------------------------------------------------------------------------
 # Dependencies for Chrono PardisoProject module

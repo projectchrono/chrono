@@ -154,8 +154,8 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
                                  Real3* acc_fsi_fea_D,
                                  uint* FlexIdentifierD,
                                  size_t numFlex1D,
-                                 uint2* CableElementsNodes,
-                                 uint4* ShellelementsNodes,
+                                 uint2* CableElementsNodesD,
+                                 uint4* ShellElementsNodesD,
 
                                  int4 updatePortion,
                                  uint* gridMarkerIndexD,
@@ -295,7 +295,7 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
         BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD,
                     rigidSPH_MeshPos_LRF_D, posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D,
                     accRigid_fsiBodies_D, omegaAccLRF_fsiBodies_D, rigidIdentifierD, pos_fsi_fea_D, vel_fsi_fea_D,
-                    acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodes, ShellelementsNodes);
+                    acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodesD, ShellElementsNodesD);
 
         if (den < EPSILON) {
             A_Matrix[csrStartIdx] = 1.0;
@@ -346,8 +346,8 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
                                   Real3* acc_fsi_fea_D,
                                   uint* FlexIdentifierD,
                                   size_t numFlex1D,
-                                  uint2* CableElementsNodes,
-                                  uint4* ShellelementsNodes,
+                                  uint2* CableElementsNodesD,
+                                  uint4* ShellElementsNodesD,
 
                                   int4 updatePortion,
                                   uint* gridMarkerIndexD,
@@ -457,7 +457,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
         BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD,
                     rigidSPH_MeshPos_LRF_D, posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D,
                     accRigid_fsiBodies_D, omegaAccLRF_fsiBodies_D, rigidIdentifierD, pos_fsi_fea_D, vel_fsi_fea_D,
-                    acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodes, ShellelementsNodes);
+                    acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodesD, ShellElementsNodesD);
         Real pRHS = 0.0;
         Real den = 0.0;
 
@@ -1017,8 +1017,8 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         mR3CAST(otherFsiMeshD->pos_fsi_fea_D), mR3CAST(otherFsiMeshD->vel_fsi_fea_D),
         mR3CAST(otherFsiMeshD->acc_fsi_fea_D), U1CAST(fsiGeneralData->FlexIdentifierD),
 
-        numObjectsH->numFlexBodies1D, U2CAST(fsiGeneralData->CableElementsNodes),
-        U4CAST(fsiGeneralData->ShellElementsNodes), updatePortion, U1CAST(markersProximityD->gridMarkerIndexD),
+        numObjectsH->numFlexBodies1D, U2CAST(fsiGeneralData->CableElementsNodesD),
+        U4CAST(fsiGeneralData->ShellElementsNodesD), updatePortion, U1CAST(markersProximityD->gridMarkerIndexD),
         numAllMarkers, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "V_star_Predictor");
 
@@ -1092,8 +1092,8 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         mR3CAST(otherFsiMeshD->pos_fsi_fea_D), mR3CAST(otherFsiMeshD->vel_fsi_fea_D),
         mR3CAST(otherFsiMeshD->acc_fsi_fea_D), U1CAST(fsiGeneralData->FlexIdentifierD),
 
-        numObjectsH->numFlexBodies1D, U2CAST(fsiGeneralData->CableElementsNodes),
-        U4CAST(fsiGeneralData->ShellElementsNodes), updatePortion, U1CAST(markersProximityD->gridMarkerIndexD),
+        numObjectsH->numFlexBodies1D, U2CAST(fsiGeneralData->CableElementsNodesD),
+        U4CAST(fsiGeneralData->ShellElementsNodesD), updatePortion, U1CAST(markersProximityD->gridMarkerIndexD),
         numAllMarkers, numObjectsH->numFluidMarkers, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Pressure_Equation");
 

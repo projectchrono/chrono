@@ -13,8 +13,6 @@ build:
     - CC
     - CXX
     - CI_PROJECT_DIR
-    #- VS_VERSION=16.0
-    #- VS_YEAR=2019
 
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
   binary_relocation: true
@@ -25,33 +23,32 @@ build:
 
 requirements:
   build:
-    #- {{ compiler('c')}} # [not win]
-    #- {{ compiler('cxx') }} # [not win]
     - python
     - cmake >=3.10          # [not win]
     - ninja   # [linux or osx]
     - pip     # [linux]
     - jinja2  # [linux]
-    - llvm-openmp   # [linux]
+    - llvm-openmp   # [linux and osx]
     - libglvnd-glx-cos7-x86_64 # [linux]
     - swig >=4.0.0
-    - mkl
-    - mkl-devel
+    - mkl   # [osx and not arm64]
+    - mkl-devel   # [osx and not arm64]
     - freeglut # [linux]
     - libxxf86vm-devel-cos7-x86_64 # [linux]
     - irrlicht
-    - opencascade
+    - opencascade   # [osx and not arm64]
     - numpy >=1.16
     - glew
     - glfw
     - eigen >=3.3.7
-    
+
   run:
     - python
     - mkl
     - numpy >=1.16
     - glew
     - glfw
+    - opencascade
 
 test:
   requires:

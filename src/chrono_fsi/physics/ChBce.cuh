@@ -123,22 +123,16 @@ class ChBce : public ChFsiGeneral {
                                   const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,///< angular velocity of rigid bodies in local reference frame
                                   const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,///< angular acceleration of rigid bodies in local reference frame
                                   const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D, ///< position of BCE in local reference of rigid body it is attached
-                                  const thrust::device_vector<uint>& rigidIdentifierD,        ///< ID of the rigid body a specific BCE is in
-                                  int numRigidMarkers  ///< number of BCE particles on rigid bodies
+                                  const thrust::device_vector<uint>& rigidIdentifierD         ///< ID of the rigid body a specific BCE is in
                                 );
 
     /// Calculates the acceleration of the flexible BCE particles based on the information of the ChSystem.
     void CalcFlexBceAcceleration(thrust::device_vector<Real3>& bceAcc,                      ///< acceleration of BCE particles
-                                 const thrust::device_vector<Real3>& pos_fsi_fea_D,         ///< position of all FEM nodes
-                                 const thrust::device_vector<Real3>& vel_fsi_fea_D,         ///< velocity of all FEM nodes
                                  const thrust::device_vector<Real3>& acc_fsi_fea_D,         ///< acceleration of all FEM nodes
                                  const thrust::device_vector<Real3>& FlexSPH_MeshPos_LRF_D, ///< position of BCE in local reference of FEM element it is attached
-                                 const thrust::device_vector<int2>& CableElementsNodes,     ///< node ID in a speficif cable element
-                                 const thrust::device_vector<int4>& ShellElementsNodes,     ///< node ID in a speficif shell element
-                                 const thrust::device_vector<uint>& FlexIdentifierD,        ///< ID of the flexible body (cable or shell) a specific BCE is in
-                                 int numFlexMarkers,    ///< number of BCE particles on flexible bodies
-                                 int numFlexBodies1D,   ///< number of cable elements
-                                 int numFlexBodies2D    ///< number of shell elements
+                                 const thrust::device_vector<int2>& CableElementsNodesD,     ///< node ID in a speficif cable element
+                                 const thrust::device_vector<int4>& ShellElementsNodesD,     ///< node ID in a speficif shell element
+                                 const thrust::device_vector<uint>& FlexIdentifierD         ///< ID of the flexible body (cable or shell) a specific BCE is in
                                 );
 
     /// Calculates pressure and velocity of the BCE particles.
@@ -154,6 +148,7 @@ class ChBce : public ChFsiGeneral {
                                           const thrust::device_vector<uint>& cellStart,
                                           const thrust::device_vector<uint>& cellEnd,
                                           const thrust::device_vector<uint>& mapOriginalToSorted,
+                                          const thrust::device_vector<uint>& extendedActivityIdD,
                                           const thrust::device_vector<Real3>& bceAcc,
                                           int4 updatePortion);
 };

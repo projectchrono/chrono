@@ -12,7 +12,7 @@ IF(NOT ENABLE_MODULE_MODAL)
 	RETURN()
 ENDIF()
 
-MESSAGE(STATUS "==== Chrono Modal module ====")
+MESSAGE(STATUS "\n==== Chrono Modal module ====\n")
 
 MARK_AS_ADVANCED(CLEAR SPECTRA_INCLUDE_DIR)
 

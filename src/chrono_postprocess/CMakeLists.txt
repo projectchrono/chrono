@@ -11,7 +11,7 @@ IF(NOT ENABLE_MODULE_POSTPROCESS)
 	RETURN()
 ENDIF()
 
-MESSAGE(STATUS "==== Chrono Postprocess module ====")
+MESSAGE(STATUS "\n==== Chrono Postprocess module ====\n")
 
 #-----------------------------------------------------------------------------
 # LIST THE FILES THAT MAKE THE POSTPROCESS LIBRARY

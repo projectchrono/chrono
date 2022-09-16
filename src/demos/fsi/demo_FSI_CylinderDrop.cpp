@@ -239,6 +239,10 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
         return 1;
     }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
+        return 1;
+    }
     if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
         std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
         return 1;
@@ -266,9 +270,6 @@ int main(int argc, char* argv[]) {
     ChVector<> cMin(-bxDim / 2 * 10, -byDim / 2 * 10, -bzDim * 10);
     ChVector<> cMax(bxDim / 2 * 10, byDim / 2 * 10, bzDim * 10);
     sysFSI.SetBoundaries(cMin, cMax);
-
-    // Setup the output directory for FSI data
-    sysFSI.SetOutputDirectory(out_dir);
 
     // Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
@@ -316,8 +317,8 @@ int main(int argc, char* argv[]) {
 
     // Start the simulation
     double dT = sysFSI.GetStepSize();
-    unsigned int output_steps = (unsigned int)(1 / (out_fps * dT));
-    unsigned int render_steps = (unsigned int)(1 / (render_fps * dT));
+    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
+    unsigned int render_steps = (unsigned int)round(1 / (render_fps * dT));
 
     double time = 0.0;
     int current_step = 0;
@@ -332,6 +333,7 @@ int main(int argc, char* argv[]) {
         if (output && current_step % output_steps == 0) {
             std::cout << "-------- Output" << std::endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
+            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/cylinder." + std::to_string(counter++) + ".vtk";
             WriteCylinderVTK(filename, cyl_radius, cyl_length, sysFSI.GetFsiBodies()[0]->GetFrame_REF_to_abs(), 100);
