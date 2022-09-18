@@ -9,6 +9,6 @@ ENDIF()
 
 MESSAGE(STATUS "Demo programs for VSG VEHICLE module...")
 
-#add_subdirectory(tracked_models)
+add_subdirectory(tracked_models)
 add_subdirectory(wheeled_models)
 #add_subdirectory(test_rigs)

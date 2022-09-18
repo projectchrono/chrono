@@ -1,0 +1,36 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
+//
+// Irrlicht-based visualization for wheeled vehicles.
+// This class extends ChVehicleVisualSystemIrrlicht.
+//
+// =============================================================================
+
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemVSG.h"
+
+namespace chrono {
+namespace vehicle {
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChTrackedVehicleVisualSystemVSG::ChTrackedVehicleVisualSystemVSG() : ChVehicleVisualSystemVSG(), m_tvehicle(nullptr) {}
+
+void ChTrackedVehicleVisualSystemVSG::AttachVehicle(ChVehicle* vehicle) {
+    ChVehicleVisualSystemVSG::AttachVehicle(vehicle);
+    m_tvehicle = dynamic_cast<ChTrackedVehicle*>(m_vehicle);
+    assert(m_tvehicle);
+}
+
+}  // end namespace vehicle
+}  // end namespace chrono
