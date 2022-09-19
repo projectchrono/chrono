@@ -657,11 +657,10 @@ int main(int argc, char* argv[]) {
 
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
     vis->SetWindowTitle("M113 Vehicle Demo");
-    vis->SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector<>(0, 0, 0), 7.0, 0.5);
     vis->AttachVehicle(&m113.GetVehicle());
     if(driver_mode == DriverMode::KEYBOARD) {
-        GetLog() << "Cannot actually handle gui driver! Input will be ignored.\n";
-        // ? vis->AttachGuiDriver(driver);
+        vis->AttachGuiDriver((ChVSGGuiDriver*)driver.get());
     }
     vis->Initialize();
 
