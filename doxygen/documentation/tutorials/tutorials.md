@@ -26,6 +26,10 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Examples using run-time visualization with the Irrlicht module.
 
+-   @subpage tutorial_table_of_content_chrono_mbs
+
+    Examples of MBS dynamics in Chrono.
+
 -   @subpage tutorial_table_of_content_chrono_fea
 
     Examples of FEA in Chrono.
