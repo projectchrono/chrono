@@ -91,7 +91,7 @@ ChContactMaterialData::ChContactMaterialData(float mu_,
                                              float gt_)
     : mu(mu_), cr(cr_), Y(Y_), nu(nu_), kn(kn_), gn(gn_), kt(kt_), gt(gt_) {}
 
-std::shared_ptr<ChMaterialSurface> ChContactMaterialData::CreateMaterial(ChContactMethod contact_method) {
+std::shared_ptr<ChMaterialSurface> ChContactMaterialData::CreateMaterial(ChContactMethod contact_method) const {
     switch (contact_method) {
         case ChContactMethod::NSC: {
             auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();

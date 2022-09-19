@@ -723,13 +723,13 @@ class CH_VEHICLE_API ChVehicleGeometry {
         int m_matID;             ///< index in contact material list
     };
 
-    bool m_has_collision;                                         ///< true if body has a collision model
-    std::vector<std::shared_ptr<ChMaterialSurface>> m_materials;  ///< list of contact materials
-    std::vector<BoxShape> m_coll_boxes;                           ///< list of collision boxes
-    std::vector<SphereShape> m_coll_spheres;                      ///< list of collision spheres
-    std::vector<CylinderShape> m_coll_cylinders;                  ///< list of collision cylinders
-    std::vector<ConvexHullsShape> m_coll_hulls;                   ///< list of collision convex hulls
-    std::vector<TrimeshShape> m_coll_meshes;                      ///< list of collision trimeshes
+    bool m_has_collision;                            ///< true if body has a collision model
+    std::vector<ChContactMaterialData> m_materials;  ///< list of contact materials
+    std::vector<BoxShape> m_coll_boxes;              ///< list of collision boxes
+    std::vector<SphereShape> m_coll_spheres;         ///< list of collision spheres
+    std::vector<CylinderShape> m_coll_cylinders;     ///< list of collision cylinders
+    std::vector<ConvexHullsShape> m_coll_hulls;      ///< list of collision convex hulls
+    std::vector<TrimeshShape> m_coll_meshes;         ///< list of collision trimeshes
 
     bool m_has_primitives;                       ///< true if the body uses visualization primitives
     std::vector<BoxShape> m_vis_boxes;           ///< list of visualization boxes
@@ -750,7 +750,7 @@ class CH_VEHICLE_API ChVehicleGeometry {
     void AddVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis);
 
     /// Create collision shapes for the specified body.
-    void AddCollisionShapes(std::shared_ptr<ChBody> body, int collision_family);
+    void AddCollisionShapes(std::shared_ptr<ChBody> body, int collision_family, ChContactMethod contact_method);
 
     /// Calculate axis-aligned bounding box of all collision shapes.
     void CalculateAABB(ChVector<>& amin, ChVector<>& amax);

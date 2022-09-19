@@ -107,10 +107,6 @@ class CH_MODELS_API M113_TrackShoeBandANCF : public ChTrackShoeBandANCF {
     virtual const std::string& GetTreadVisualizationMeshName() const override { return m_tread_meshName; }
 
   private:
-    /// Create the 4 contact materials, consistent with the specified contact method, for interactionss with the
-    /// sprocket, wheels, and ground.
-    virtual void CreateContactMaterials(ChContactMethod contact_method) override;
-
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 

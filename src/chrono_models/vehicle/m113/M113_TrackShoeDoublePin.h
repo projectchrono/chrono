@@ -71,9 +71,6 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     virtual double GetConnectorWidth() const override { return m_connector_width; }
 
   private:
-    /// Create the contact materials.
-    void CreateContactMaterials(ChContactMethod contact_method) override;
-
     static const double m_shoe_mass;
     static const ChVector<> m_shoe_inertia;
     static const double m_shoe_length;

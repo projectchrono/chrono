@@ -69,9 +69,6 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
-    /// Create the contact materials.
-    void CreateContactMaterials(ChContactMethod contact_method) override;
-
     double m_shoe_mass;
     ChVector<> m_shoe_inertia;
     double m_shoe_length;
@@ -85,9 +82,6 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     double m_connector_width;
 
     ChVector<> m_pin_center;
-
-    std::vector<ChContactMaterialData> m_shoe_mat_info;
-    ChContactMaterialData m_cyl_mat_info;
 };
 
 /// @} vehicle_tracked_shoe

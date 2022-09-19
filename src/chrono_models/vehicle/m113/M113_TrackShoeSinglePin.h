@@ -65,9 +65,6 @@ class CH_MODELS_API M113_TrackShoeSinglePin : public ChTrackShoeSinglePin {
     virtual ChVector<> GetLateralContactPoint() const override { return m_pin_center; }
 
   private:
-    /// Create the contact materials.
-    void CreateContactMaterials(ChContactMethod contact_method) override;
-
     static const double m_shoe_height;
     static const double m_shoe_pitch;
     static const double m_shoe_mass;

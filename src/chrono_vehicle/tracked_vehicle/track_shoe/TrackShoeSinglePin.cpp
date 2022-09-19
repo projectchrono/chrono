@@ -68,13 +68,13 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     assert(d["Contact"]["Shoe Materials"].IsArray());
     assert(d["Contact"]["Shoe Shapes"].IsArray());
 
-    // Read contact material information (defer creating the materials until CreateContactMaterials)
-    m_cyl_mat_info = ReadMaterialInfoJSON(d["Contact"]["Cylinder Material"]);
+    // Read contact material information
+    m_shoe_sprk_minfo = ReadMaterialInfoJSON(d["Contact"]["Cylinder Material"]);
 
     int num_mats = d["Contact"]["Shoe Materials"].Size();
     for (int i = 0; i < num_mats; i++) {
         ChContactMaterialData minfo = ReadMaterialInfoJSON(d["Contact"]["Shoe Materials"][i]);
-        m_shoe_mat_info.push_back(minfo);
+        m_geometry.m_materials.push_back(minfo);
     }
 
     // Read geometric collison data
@@ -160,14 +160,6 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
             m_geometry.m_vis_cylinders.push_back(cyl);
         }
         m_geometry.m_has_primitives = true;
-    }
-}
-
-void TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_method) {
-    m_shoe_sprk_material = m_cyl_mat_info.CreateMaterial(contact_method);
-
-    for (auto minfo : m_shoe_mat_info) {
-        m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
     }
 }
 

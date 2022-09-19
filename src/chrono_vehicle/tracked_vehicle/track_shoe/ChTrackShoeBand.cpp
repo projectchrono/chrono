@@ -109,9 +109,10 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetCollide(true);
     chassis->GetSystem()->AddBody(m_shoe);
 
-    // Add contact geometry for the tread body
-    CreateContactMaterials(chassis->GetSystem()->GetContactMethod());
-    AddShoeContact();
+    // Add contact geometry for the tread body and create material for the teeth (sprocket contact)
+    auto contact_method = chassis->GetSystem()->GetContactMethod();
+    AddShoeContact(contact_method);
+    m_tooth_material = m_tooth_matinfo.CreateMaterial(contact_method);
 }
 
 double ChTrackShoeBand::GetPitch() const {
@@ -123,7 +124,12 @@ ChVector<> ChTrackShoeBand::GetLateralContactPoint() const {
 }
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeBand::AddShoeContact() {
+void ChTrackShoeBand::AddShoeContact(ChContactMethod contact_method) {
+    // Create contact materials
+    auto pad_material = m_pad_matinfo.CreateMaterial(contact_method);
+    auto body_material = m_body_matinfo.CreateMaterial(contact_method);
+    auto guide_material = m_guide_matinfo.CreateMaterial(contact_method);
+
     m_shoe->GetCollisionModel()->ClearModel();
 
     m_shoe->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
@@ -132,17 +138,17 @@ void ChTrackShoeBand::AddShoeContact() {
     // Guide pin
     ChVector<> g_hdims = GetGuideBoxDimensions() / 2;
     ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + g_hdims.z());
-    m_shoe->GetCollisionModel()->AddBox(m_guide_material, g_hdims.x(), g_hdims.y(), g_hdims.z(), g_loc);
+    m_shoe->GetCollisionModel()->AddBox(guide_material, g_hdims.x(), g_hdims.y(), g_hdims.z(), g_loc);
 
     // Main box
     ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
     ChVector<> b_loc(0, 0, 0);
-    m_shoe->GetCollisionModel()->AddBox(m_body_material, b_hdims.x(), b_hdims.y(), b_hdims.z(), b_loc);
+    m_shoe->GetCollisionModel()->AddBox(body_material, b_hdims.x(), b_hdims.y(), b_hdims.z(), b_loc);
 
     // Pad box
     ChVector<> t_hdims(GetTreadLength() / 2, GetBeltWidth() / 2, GetTreadThickness() / 2);
     ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
-    m_shoe->GetCollisionModel()->AddBox(m_pad_material, t_hdims.x(), t_hdims.y(), t_hdims.z(), t_loc);
+    m_shoe->GetCollisionModel()->AddBox(pad_material, t_hdims.x(), t_hdims.y(), t_hdims.z(), t_loc);
 
     m_shoe->GetCollisionModel()->BuildModel();
 }

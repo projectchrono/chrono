@@ -47,8 +47,7 @@ void ChRigidChassis::Initialize(ChSystem* system,
     // NOTE: setting the collision family is deferred to the containing vehicle system
     // (which can also disable contact between the chassis and certain vehicle subsystems).
     if (m_geometry.m_has_collision) {
-        CreateContactMaterials(system->GetContactMethod());
-        m_geometry.AddCollisionShapes(m_body, collision_family);
+        m_geometry.AddCollisionShapes(m_body, collision_family, system->GetContactMethod());
     }
 }
 
@@ -98,8 +97,7 @@ void ChRigidChassisRear::Initialize(std::shared_ptr<ChChassis> chassis,
     // NOTE: setting the collision family is deferred to the containing vehicle system
     // (which can also disable contact between the chassis and certain vehicle subsystems).
     if (m_geometry.m_has_collision) {
-        CreateContactMaterials(m_body->GetSystem()->GetContactMethod());
-        m_geometry.AddCollisionShapes(m_body, collision_family);
+        m_geometry.AddCollisionShapes(m_body, collision_family, m_body->GetSystem()->GetContactMethod());
     }
 }
 

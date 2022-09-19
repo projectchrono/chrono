@@ -102,7 +102,7 @@ class ChApi ChContactMaterialData {
     ChContactMaterialData(float mu, float cr, float Y, float nu, float kn, float gn, float kt, float gt);
 
     /// Construct a contact material, consistent with the specified method, using the current data.
-    std::shared_ptr<ChMaterialSurface> CreateMaterial(ChContactMethod contact_method);
+    std::shared_ptr<ChMaterialSurface> CreateMaterial(ChContactMethod contact_method) const;
 };
 
 /// Base class for composite material for a contact pair.
