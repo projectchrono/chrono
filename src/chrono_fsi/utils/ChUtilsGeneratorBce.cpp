@@ -139,6 +139,44 @@ void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
     }
 }
 // =============================================================================
+void CreateBCE_On_Cylinder_Annulus(thrust::host_vector<Real4>& posRadBCE,
+                                   Real rad_in,
+                                   Real rad_out,
+                                   Real cyl_h,
+                                   std::shared_ptr<SimParams> paramsH,
+                                   Real kernel_h,
+                                   bool cartesian) {
+    Real spacing = kernel_h * paramsH->MULT_INITSPACE;
+    int num_layers = (int)std::floor(1.00001 * cyl_h / spacing) + 1;
+
+    for (size_t si = 0; si < num_layers; si++) {
+        Real s = -0.5 * cyl_h + spacing * si;
+        if (cartesian)
+            for (Real x = -rad_out; x <= rad_out; x += spacing) {
+                for (Real y = -rad_out; y <= rad_out; y += spacing) {
+                    Real xxyy = x * x + y * y;
+                    if ( xxyy <= rad_out * rad_out && xxyy > rad_in * rad_in)
+                        posRadBCE.push_back(mR4(x, s, y, kernel_h));
+                }
+            }
+        else {
+            Real3 centerPointLF = mR3(0, s, 0);
+            int numr = (int)std::floor(1.00001 * rad_out / spacing);
+            for (size_t ir = 0; ir < numr; ir++) {
+                Real r = 0.5 * spacing + ir * spacing;
+                if (r >= rad_in){
+                    int numTheta = (int)std::floor(2 * 3.1415 * r / spacing);
+                    for (size_t t = 0; t < numTheta; t++) {
+                        Real teta = t * 2 * 3.1415 / numTheta;
+                        Real3 BCE_Pos_local = mR3(r * cos(teta), 0, r * sin(teta)) + centerPointLF;
+                        posRadBCE.push_back(mR4(BCE_Pos_local, kernel_h));
+                    }                    
+                }
+            }
+        }
+    }
+}
+// =============================================================================
 void CreateBCE_On_Cone(thrust::host_vector<Real4>& posRadBCE,
                        Real cone_rad,
                        Real cone_h,

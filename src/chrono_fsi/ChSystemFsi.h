@@ -344,6 +344,16 @@ class CH_FSI_API ChSystemFsi {
                         double kernel_h,
                         bool cartesian = true);
 
+    /// Add BCE markers in a cylinder annulus of given dimensions and at given position associated with the specified body.
+    void AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
+                               const ChVector<>& relPos,
+                               const ChQuaternion<>& relRot,
+                               double rad_in,
+                               double rad_out,
+                               double height,
+                               double kernel_h,
+                               bool cartesian = true);
+
     /// Add BCE markers on a cylindrical surface of given dimensions and at given position associated with the specified
     /// body.
     void AddCylinderSurfaceBCE(std::shared_ptr<ChBody> body,
