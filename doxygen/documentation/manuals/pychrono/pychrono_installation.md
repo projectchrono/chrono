@@ -20,27 +20,26 @@ To install a PyChrono conda module, do the following:
    conda config --add channels https://conda.anaconda.org/intel
 ```   
 
-4. Decide which version of the Chrono code (latest release or latest code) you want and for which Python version.  See the full list of available modules on the [PyChrono Anaconda Repository](https://anaconda.org/projectchrono/pychrono/files)
+3. Decide which version of the Chrono code (latest release or latest code) you want and for which Python version.  See the full list of available modules on the [PyChrono Anaconda Repository](https://anaconda.org/projectchrono/pychrono/files)
 
-5. We recommend you use a dedicated conda environment (for example `chrono`) and install the desired Python distribution and PyChrono module there.
+4. We recommend you use a dedicated conda environment (e.g., `chrono`) and install the desired Python distribution and PyChrono module there.
 
-   For example, to create a `chrono` environment with Python 3.10, use:
-
+   For example, to create a `chrono` environment with Python 3.9, use:
 ```
-   conda create -n chrono python=3.10
+   conda create -n chrono python=3.9
 ```   
 
-6. Install the necessary dependencies (all as conda packages):
+5. Install the necessary dependencies (**Attention**: Install the dependencies *before* installing the PyChrono conda package!)
 
-   - Numpy package
+   - Numpy package:
    ```
    conda install -c conda-forge numpy
    ```
-   - for run-time visualization, you need Irrlicht support:
+   - for run-time visualization with Irrlicht:
    ```
    conda install -c conda-forge irrlicht
    ```
-   - for Cascade support (**Attention**: Chrono requires version 7.4 of OpenCascade.)
+   - for Cascade support (**Attention**: Chrono requires version 7.4 of OpenCascade):
    ``` 
    conda install -c conda-forge pythonocc-core=7.4.1
    ```
@@ -56,24 +55,25 @@ To install a PyChrono conda module, do the following:
      ```
 
 
-7. If you want the PyChrono package for the latest Chrono *release*, simply do
+6. If you want the PyChrono package for the latest Chrono *code*, simply do
 ```
    conda install -c projectchrono pychrono
 ```
    To install a specific PyChrono module (release or development code, for a given opperating system, and built with a given Python version), download the corresponding tarball from the [PyChrono Anaconda Repository](https://anaconda.org/projectchrono/pychrono/files) and then install it from the local file; for example:
 ```
-   conda install pychrono-7.0.0-py39_1822.tar.bz2
+   conda install <pychrono_package>.tar.bz2
 ```    
 
-<div class="ce-info">
-The Conda installer takes care of installing all dependencies in your Python environment, it is shipped
-with Anaconda by default. 
+<div class="ce-warning">
+If you are interested in using the Chrono::Cascade module through PyChrono, note that the conda [pythonocc-core](https://anaconda.org/conda-forge/pythonocc-core/files) package is **not** available for Python 3.10.  Use verion 3.9 or earlier.
 </div>
 
 <div class="ce-warning">
-Note that by default  Conda installs the 'main' packages from the Anaconda repository, that may be lagging behind. 
-If you want to install the latest development PyChrono, go to the [Anaconda package repository](https://anaconda.org/projectchrono/pychrono/install)
-and pick the one that you need, or do **conda install -c projectchrono/label/main pychrono**
+Note that by default  Conda installs the 'main' packages from the Anaconda repository, which correspond to the latest Chrono code (in the *main* branch of the Chrono GitHub repository). 
+If you want to install a particular release of PyChrono, go to the [Anaconda package repository](https://anaconda.org/projectchrono/pychrono/install)
+and pick the one that you need. <br>
+   PyChrono packages corresponding to code in the *main* git branch have label 'main'.<br>
+   PyChrono packages corresponding to a Chrono release have label 'release'.
 </div>
 
 ![Anaconda-Server Badge](https://anaconda.org/projectchrono/pychrono/badges/latest_release_date.svg)
