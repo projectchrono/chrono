@@ -136,10 +136,10 @@ class CH_VEHICLE_API TrackShoeBandBushing : public ChTrackShoeBandBushing {
 
     std::shared_ptr<ChVehicleBushingData> m_bushingData;  ///< bushing parameters
 
-    MaterialInfo m_pad_mat_info;
-    MaterialInfo m_body_mat_info;
-    MaterialInfo m_guide_mat_info;
-    MaterialInfo m_tooth_mat_info;
+    ChContactMaterialData m_pad_mat_info;
+    ChContactMaterialData m_body_mat_info;
+    ChContactMaterialData m_guide_mat_info;
+    ChContactMaterialData m_tooth_mat_info;
 };
 
 /// @} vehicle_tracked_shoe

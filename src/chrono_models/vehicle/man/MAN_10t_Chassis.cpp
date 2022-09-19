@@ -81,7 +81,7 @@ MAN_10t_Chassis::MAN_10t_Chassis(const std::string& name, bool fixed, CollisionT
 void MAN_10t_Chassis::CreateContactMaterials(ChContactMethod contact_method) {
     // Create the contact materials.
     // In this model, we use a single material with default properties.
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
 }
 

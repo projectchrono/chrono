@@ -92,7 +92,7 @@ MTV_ChassisRear::MTV_ChassisRear(const std::string& name, CollisionType chassis_
 
 void MTV_ChassisRear::CreateContactMaterials(ChContactMethod contact_method) {
     // This model uses a single material with default properties.
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
 }
 

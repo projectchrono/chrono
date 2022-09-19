@@ -53,7 +53,7 @@ my_hmmwv.SetWheelVisualizationType(veh.VisualizationType_NONE)
 my_hmmwv.SetTireVisualizationType(veh.VisualizationType_PRIMITIVES)
 
 # Create the terrain
-minfo = veh.MaterialInfo()
+minfo = veh.ChContactMaterialData()
 minfo.mu = 0.8
 minfo.cr = 0.01
 minfo.Y = 2e7

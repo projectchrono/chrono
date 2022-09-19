@@ -142,10 +142,10 @@ class CH_VEHICLE_API TrackShoeBandANCF : public ChTrackShoeBandANCF {
     std::string m_meshFile;        // name of OBJ file with tread visualization mesh
     std::string m_tread_meshName;  // name for procedurally-generated tread visualization mesh
 
-    MaterialInfo m_pad_mat_info;
-    MaterialInfo m_body_mat_info;
-    MaterialInfo m_guide_mat_info;
-    MaterialInfo m_tooth_mat_info;
+    ChContactMaterialData m_pad_mat_info;
+    ChContactMaterialData m_body_mat_info;
+    ChContactMaterialData m_guide_mat_info;
+    ChContactMaterialData m_tooth_mat_info;
 };
 
 /// @} vehicle_tracked_shoe

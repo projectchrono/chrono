@@ -96,7 +96,7 @@ Marder_TrackShoeSinglePin::Marder_TrackShoeSinglePin(const std::string& name) : 
 void Marder_TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_method) {
     // Material for cylindrical surfaces (sprocket contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e8f;
@@ -105,7 +105,7 @@ void Marder_TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_m
 
     // Material 0: pad bottom (ground contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e7f;
@@ -114,7 +114,7 @@ void Marder_TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_m
 
     // Material 1: pad top (wheel contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e7f;
@@ -123,7 +123,7 @@ void Marder_TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_m
 
     // Material 2: guide pin (wheel contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e7f;

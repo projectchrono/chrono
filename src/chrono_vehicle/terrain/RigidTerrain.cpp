@@ -100,7 +100,7 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
 
     // Create a default material (consistent with containing system) and overwrite properties
     assert(d.HasMember("Contact Material"));
-    MaterialInfo minfo = ReadMaterialInfoJSON(d["Contact Material"]);
+    ChContactMaterialData minfo = ReadMaterialInfoJSON(d["Contact Material"]);
     auto material = minfo.CreateMaterial(m_system->GetContactMethod());
 
     // Create patch geometry (infer type based on existing keys)

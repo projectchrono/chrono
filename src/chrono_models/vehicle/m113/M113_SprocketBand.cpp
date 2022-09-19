@@ -58,7 +58,7 @@ const std::string M113_SprocketBandRight::m_meshFile = "M113/meshes/Sprocket2_R.
 M113_SprocketBand::M113_SprocketBand(const std::string& name) : ChSprocketBand(name) {}
 
 void M113_SprocketBand::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.4f;
     minfo.cr = 0.75f;
     minfo.Y = 1e9f;

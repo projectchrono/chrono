@@ -107,7 +107,7 @@ M113_Chassis::M113_Chassis(const std::string& name, bool fixed, CollisionType ch
 void M113_Chassis::CreateContactMaterials(ChContactMethod contact_method) {
     // Create the contact materials.
     // In this model, we use a single material with default properties.
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
 }
 

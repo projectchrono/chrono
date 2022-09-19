@@ -93,7 +93,7 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
 
     int num_mats = d["Contact"]["Shoe Materials"].Size();
     for (int i = 0; i < num_mats; i++) {
-        MaterialInfo minfo = ReadMaterialInfoJSON(d["Contact"]["Shoe Materials"][i]);
+        ChContactMaterialData minfo = ReadMaterialInfoJSON(d["Contact"]["Shoe Materials"][i]);
         m_shoe_mat_info.push_back(minfo);
     }
 

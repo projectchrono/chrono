@@ -58,7 +58,7 @@ class CH_VEHICLE_API RigidChassis : public ChRigidChassis {
     ChVector<> m_connector_rear_loc;  ///< location of connector to a potential rear chassis
     ChCoordsys<> m_driverCsys;        ///< driver position and orientation relative to chassis
 
-    std::vector<MaterialInfo> m_mat_info;
+    std::vector<ChContactMaterialData> m_mat_info;
 };
 
 /// Vehicle rigid rear chassis model constructed with data from file (JSON format).
@@ -88,7 +88,7 @@ class CH_VEHICLE_API RigidChassisRear : public ChRigidChassisRear {
     ChVector<> m_connector_front_loc;  ///< location of connector to the front chassis
     ChVector<> m_connector_rear_loc;   ///< location of connector to a potential rear chassis
 
-    std::vector<MaterialInfo> m_mat_info;
+    std::vector<ChContactMaterialData> m_mat_info;
 };
 
 /// @} vehicle

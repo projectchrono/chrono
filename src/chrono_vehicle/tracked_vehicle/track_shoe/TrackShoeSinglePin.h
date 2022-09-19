@@ -78,8 +78,8 @@ class CH_VEHICLE_API TrackShoeSinglePin : public ChTrackShoeSinglePin {
 
     ChVector<> m_pin_center;
 
-    std::vector<MaterialInfo> m_shoe_mat_info;
-    MaterialInfo m_cyl_mat_info;
+    std::vector<ChContactMaterialData> m_shoe_mat_info;
+    ChContactMaterialData m_cyl_mat_info;
 };
 
 /// @} vehicle_tracked_shoe

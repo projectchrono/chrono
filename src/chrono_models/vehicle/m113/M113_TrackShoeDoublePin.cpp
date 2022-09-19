@@ -84,7 +84,7 @@ M113_TrackShoeDoublePin::M113_TrackShoeDoublePin(const std::string& name, Double
 void M113_TrackShoeDoublePin::CreateContactMaterials(ChContactMethod contact_method) {
     // Material for connectors (sprocket contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e9f;
@@ -93,7 +93,7 @@ void M113_TrackShoeDoublePin::CreateContactMaterials(ChContactMethod contact_met
 
     // Material 0: pad bottom (ground contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e7f;
@@ -102,7 +102,7 @@ void M113_TrackShoeDoublePin::CreateContactMaterials(ChContactMethod contact_met
 
     // Material 1: pad top (wheel contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e7f;
@@ -111,7 +111,7 @@ void M113_TrackShoeDoublePin::CreateContactMaterials(ChContactMethod contact_met
 
     // Material 2: guide pin (wheel contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e7f;

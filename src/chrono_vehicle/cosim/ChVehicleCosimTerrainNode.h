@@ -184,7 +184,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     int m_num_objects;               ///< number of interacting objects
 
     std::vector<ChVector<>> m_shape_dims;   ///< object dimensions
-    std::vector<MaterialInfo> m_mat_props;  ///< contact material properties
+    std::vector<ChContactMaterialData> m_mat_props;  ///< contact material properties
     std::vector<MeshData> m_mesh_data;      ///< mesh data
     std::vector<double> m_load_mass;        ///< vertical load on body
 

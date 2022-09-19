@@ -84,7 +84,7 @@ FMTV_ChassisFront::FMTV_ChassisFront(const std::string& name, bool fixed, Collis
 
 void FMTV_ChassisFront::CreateContactMaterials(ChContactMethod contact_method) {
     // This model uses a single material with default properties.
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
 }
 

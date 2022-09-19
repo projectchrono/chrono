@@ -91,7 +91,7 @@ void RigidChassis::Create(const rapidjson::Document& d) {
         int num_mats = d["Contact"]["Materials"].Size();
 
         for (int i = 0; i < num_mats; i++) {
-            MaterialInfo minfo = ReadMaterialInfoJSON(d["Contact"]["Materials"][i]);
+            ChContactMaterialData minfo = ReadMaterialInfoJSON(d["Contact"]["Materials"][i]);
             m_mat_info.push_back(minfo);
         }
 
@@ -242,7 +242,7 @@ void RigidChassisRear::Create(const rapidjson::Document& d) {
         int num_mats = d["Contact"]["Materials"].Size();
 
         for (int i = 0; i < num_mats; i++) {
-            MaterialInfo minfo = ReadMaterialInfoJSON(d["Contact"]["Materials"][i]);
+            ChContactMaterialData minfo = ReadMaterialInfoJSON(d["Contact"]["Materials"][i]);
             m_mat_info.push_back(minfo);
         }
 

@@ -73,7 +73,7 @@ M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name) : ChTrac
 void M113_TrackShoeBandANCF::CreateContactMaterials(ChContactMethod contact_method) {
     // Pad material (ground contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e7f;
@@ -82,7 +82,7 @@ void M113_TrackShoeBandANCF::CreateContactMaterials(ChContactMethod contact_meth
 
     // Body material (wheel contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e7f;
@@ -94,7 +94,7 @@ void M113_TrackShoeBandANCF::CreateContactMaterials(ChContactMethod contact_meth
 
     // Tooth material (sprocket contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e9f;

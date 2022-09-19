@@ -117,7 +117,7 @@ M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side,
 }
 
 void M113_TrackAssemblyBandANCF::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.8f;
     minfo.cr = 0.1f;
     minfo.Y = 1e7f;

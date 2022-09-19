@@ -59,7 +59,7 @@ class CH_VEHICLE_API DoubleTrackWheel : public ChDoubleTrackWheel {
     bool m_has_mesh;
     std::string m_meshFile;
 
-    MaterialInfo m_mat_info;
+    ChContactMaterialData m_mat_info;
 };
 
 /// @} vehicle_tracked_suspension

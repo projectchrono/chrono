@@ -81,7 +81,7 @@ M113_TrackShoeBandBushing::M113_TrackShoeBandBushing(const std::string& name) : 
 void M113_TrackShoeBandBushing::CreateContactMaterials(ChContactMethod contact_method) {
     // Pad material (ground contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e7f;
@@ -90,7 +90,7 @@ void M113_TrackShoeBandBushing::CreateContactMaterials(ChContactMethod contact_m
 
     // Body material (wheel contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e7f;
@@ -102,7 +102,7 @@ void M113_TrackShoeBandBushing::CreateContactMaterials(ChContactMethod contact_m
 
     // Tooth material (sprocket contact)
     {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e9f;

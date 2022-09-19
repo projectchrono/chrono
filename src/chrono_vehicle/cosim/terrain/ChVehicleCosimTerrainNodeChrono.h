@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
         ChQuaternion<> m_init_rot;    ///< initial orientation of obstacle
         ChVector<> m_oobb_center;     ///< center of bounding box
         ChVector<> m_oobb_dims;       ///< dimensions of bounding box
-        MaterialInfo m_contact_mat;   ///< contact material parameters
+        ChContactMaterialData m_contact_mat;   ///< contact material parameters
     };
 
     virtual ~ChVehicleCosimTerrainNodeChrono() {}
