@@ -1749,15 +1749,6 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleVelocities() const {
     return vel;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleForces() const {
-    thrust::host_vector<Real4> dvH = m_sysFSI->GetParticleForces();
-    std::vector<ChVector<>> dv;
-    for (size_t i = 0; i < dvH.size(); i++) {
-        dv.push_back(ChUtilsTypeConvert::Real4ToChVector(dvH[i]));
-    }
-    return dv;
-}
-
 std::vector<ChVector<>> ChSystemFsi::GetParticleAccelerations() const {
     thrust::host_vector<Real4> accH = m_sysFSI->GetParticleAccelerations();
     std::vector<ChVector<>> acc;
@@ -1765,6 +1756,15 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleAccelerations() const {
         acc.push_back(ChUtilsTypeConvert::Real4ToChVector(accH[i]));
     }
     return acc;
+}
+
+std::vector<ChVector<>> ChSystemFsi::GetParticleForces() const {
+    thrust::host_vector<Real4> frcH = m_sysFSI->GetParticleForces();
+    std::vector<ChVector<>> frc;
+    for (size_t i = 0; i < frcH.size(); i++) {
+        frc.push_back(ChUtilsTypeConvert::Real4ToChVector(frcH[i]));
+    }
+    return frc;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
