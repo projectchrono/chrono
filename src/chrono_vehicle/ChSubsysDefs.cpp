@@ -165,7 +165,7 @@ void ChVehicleGeometry::CalculateAABB(ChVector<>& amin, ChVector<>& amax) {
     for (const auto& box : m_coll_boxes) {
         ChMatrix33<> A(box.m_rot);
         A.cwiseAbs();
-        auto tmp = A * box.m_dims;
+        auto tmp = A * (box.m_dims / 2);
         auto bmin = box.m_pos - tmp;
         auto bmax = box.m_pos + tmp;
 
@@ -180,12 +180,12 @@ void ChVehicleGeometry::CalculateAABB(ChVector<>& amin, ChVector<>& amax) {
 
     for (const auto& cyl : m_coll_cylinders) {
         auto axis = cyl.m_rot.GetYaxis();
-        auto p1 = cyl.m_pos - (cyl.m_length/2) * axis;
-        auto p2 = cyl.m_pos + (cyl.m_length/2) * axis;
+        auto p1 = cyl.m_pos - (cyl.m_length / 2) * axis;
+        auto p2 = cyl.m_pos + (cyl.m_length / 2) * axis;
         auto e2 = ChVector<>(1.0) - axis * axis;
         ChVector<> e(std::sqrt(e2.x()), std::sqrt(e2.y()), std::sqrt(e2.z()));
-        auto bmin = p1 - cyl.m_radius * e; 
-        auto bmax = p2 + cyl.m_radius * e; 
+        auto bmin = p1 - cyl.m_radius * e;
+        auto bmax = p2 + cyl.m_radius * e;
 
         amin = Vmin(amin, bmin);
         amax = Vmax(amax, bmax);
