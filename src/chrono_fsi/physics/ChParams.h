@@ -155,10 +155,8 @@ struct SimParams {
     bool Pressure_Constraint;  ///< Whether the singularity of the pressure equation should be fixed
     SolverType LinearSolver;   ///< Type of the linear solver
 
-    Real
-        Alpha;  ///< Poisson Pressure Equation source term constant. This is used for controlling the noise in the FS
-                ///< forces, F_new=beta*F_old+(1-beta)*F_t beta=1 highly damped force, beta=0 : no modificaiton to force
-    Real Beta;  ///< moving exponential weighted average coefficient
+    Real Alpha;  ///< Poisson Pressure Equation source term constant. Used to control the noise in the FS forces
+    Real Beta;   ///< Moving exponential weighted average coefficient. 1: highly damped force; 0: no force modification
 
     Real LinearSolver_Abs_Tol;  ///< Poisson Pressure Equation residual
     Real LinearSolver_Rel_Tol;  ///< Poisson Pressure Equation Absolute residual

@@ -1,4 +1,4 @@
-Tracked vehicle example (demo_IRR_tracks.cpp)  {#tutorial_demo_tracks}
+Tracked vehicle example (demo_MBS_tracks.cpp)  {#tutorial_demo_tracks}
 ==========================
 
 Simulate a simplified vehicle with tracks, 
@@ -10,5 +10,5 @@ This tutorial shows how to:
 - make custom compound collision shapes.
 - load a non-concave collision mesh that is decomposed in convex parts  
  
-\include demo_IRR_tracks.cpp
+\include demo_MBS_tracks.cpp
 

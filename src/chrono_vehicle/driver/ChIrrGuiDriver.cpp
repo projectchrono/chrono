@@ -544,15 +544,15 @@ double ChIrrJoystickAxis::GetValue(const irr::SEvent::SJoystickEvent& joystickEv
 }
 
 void ChIrrJoystickAxis::Read(rapidjson::Document& d, const std::string& elementName, bool dbg_print) {
-    auto name = elementName.c_str();
-    if (d.HasMember(name) && d[name].IsObject()) {
-        id = 0;  // default to first attached controller
-        name = d[name]["name"].GetString();
-        axis = (Axis)d[name]["axis"].GetInt();
-        min = d[name]["min"].GetDouble();
-        max = d[name]["max"].GetDouble();
-        scaled_min = d[name]["scaled_min"].GetDouble();
-        scaled_max = d[name]["scaled_max"].GetDouble();
+    auto element = elementName.c_str();
+    if (d.HasMember(element) && d[element].IsObject()) {
+        name = d[element]["name"].GetString();
+        id = 0; // default to first attached controller
+        axis = (Axis)d[element]["axis"].GetInt();
+        min = d[element]["min"].GetDouble();
+        max = d[element]["max"].GetDouble();
+        scaled_min = d[element]["scaled_min"].GetDouble();
+        scaled_max = d[element]["scaled_max"].GetDouble();
         value = min;
     } else if (dbg_print) {
         GetLog() << "Expected a joystick axis definition for " << elementName << " but did not find one.\n";
@@ -575,11 +575,11 @@ bool ChIrrJoystickButton::IsPressed(const irr::SEvent::SJoystickEvent& joystickE
 }
 
 void ChIrrJoystickButton::Read(rapidjson::Document& d, const std::string& elementName, bool dbg_print) {
-    auto name = elementName.c_str();
-    if (d.HasMember(name) && d[name].IsObject()) {
-        id = 0;  // default to first attached controller
-        name = d[name]["name"].GetString();
-        button = d[name]["button"].GetInt();
+    auto element = elementName.c_str();
+    if (d.HasMember(element) && d[element].IsObject()) {
+        id = 0; // default to first attached controller
+        name = d[element]["name"].GetString();
+        button = d[element]["button"].GetInt();
     } else if (dbg_print) {
         GetLog() << "Expected a joystick button definition for " << elementName << " but did not find one.\n";
     }

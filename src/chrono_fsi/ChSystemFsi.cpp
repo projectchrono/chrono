@@ -1099,6 +1099,20 @@ void ChSystemFsi::AddCylinderBCE(std::shared_ptr<ChBody> body,
     posRadBCE.clear();
 }
 
+void ChSystemFsi::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
+                                        const ChVector<>& relPos,
+                                        const ChQuaternion<>& relRot,
+                                        double rad_in,
+                                        double rad_out,
+                                        double height,
+                                        double kernel_h,
+                                        bool cartesian) {
+    thrust::host_vector<Real4> posRadBCE;
+    utils::CreateBCE_On_Cylinder_Annulus(posRadBCE, rad_in, rad_out, height, m_paramsH, kernel_h, cartesian);
+    CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot);
+    posRadBCE.clear();
+}
+
 void ChSystemFsi::AddCylinderSurfaceBCE(std::shared_ptr<ChBody> body,
                                         const ChVector<>& relPos,
                                         const ChQuaternion<>& relRot,
@@ -1749,15 +1763,6 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleVelocities() const {
     return vel;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleForces() const {
-    thrust::host_vector<Real4> dvH = m_sysFSI->GetParticleForces();
-    std::vector<ChVector<>> dv;
-    for (size_t i = 0; i < dvH.size(); i++) {
-        dv.push_back(ChUtilsTypeConvert::Real4ToChVector(dvH[i]));
-    }
-    return dv;
-}
-
 std::vector<ChVector<>> ChSystemFsi::GetParticleAccelerations() const {
     thrust::host_vector<Real4> accH = m_sysFSI->GetParticleAccelerations();
     std::vector<ChVector<>> acc;
@@ -1765,6 +1770,15 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleAccelerations() const {
         acc.push_back(ChUtilsTypeConvert::Real4ToChVector(accH[i]));
     }
     return acc;
+}
+
+std::vector<ChVector<>> ChSystemFsi::GetParticleForces() const {
+    thrust::host_vector<Real4> frcH = m_sysFSI->GetParticleForces();
+    std::vector<ChVector<>> frc;
+    for (size_t i = 0; i < frcH.size(); i++) {
+        frc.push_back(ChUtilsTypeConvert::Real4ToChVector(frcH[i]));
+    }
+    return frc;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

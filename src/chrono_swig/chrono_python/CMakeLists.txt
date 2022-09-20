@@ -17,9 +17,26 @@ mark_as_advanced(CLEAR SWIG_EXECUTABLE)
 # Python package name
 set(CHPY_PACKAGENAME pychrono)
 
-if(DEFINED CH_INSTALL_PYTHON_PACKAGE)
-  message(STATUS "Override the CH_INSTALL_PYTHON with CH_INSTALL_PYTHON_PACKAGE")
-  set (CH_INSTALL_PYTHON "${CH_INSTALL_PYTHON_PACKAGE}")
+
+if(DEFINED CH_CONDA_INSTALL)
+
+  message(STATUS "Configure Pychrono for Conda packaging")
+
+  if (NOT DEFINED CH_INSTALL_PYTHON_PACKAGE)
+    message(FATAL_ERROR "Installation directory not specified. Set CH_INSTALL_PYTHON_PACKAGE")
+  else()
+    message(STATUS "Override the CH_INSTALL_PYTHON with CH_INSTALL_PYTHON_PACKAGE")
+    set (CH_INSTALL_PYTHON "${CH_INSTALL_PYTHON_PACKAGE}")
+  endif()
+
+  if (NOT DEFINED CH_PYCHRONO_DATA_PATH)
+    message(FATAL_ERROR "Relative path to Chrono data/ directory not specified. Set CH_PYCHRONO_DATA_PATH")
+  endif()
+
+  if (NOT DEFINED CH_PYCHRONO_SHADER_PATH)
+    message(FATAL_ERROR "Relative path to Chrono::Sensor shaders/ directory not specified. Set CH_PYCHRONO_SHADER_PATH")
+  endif()
+
 endif()
 
 #-----------------------------------------------------------------------------
@@ -46,7 +63,7 @@ endif()
 # Enable debugging CMake output
 #-----------------------------------------------------------------------------
 
-set(DBG_SCRIPT false)
+set(DBG_SCRIPT true)
 
 #-----------------------------------------------------------------------------
 # Find PYTHON
@@ -132,28 +149,41 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   endif()
 endif()
 
-# ---------- Pychrono in BUILD tree: use data/ in SOURCE tree
+# ---------- Pychrono in BUILD tree
 
-# Path to Chrono data files (in SOURCE tree)
-set(PYC_DATA_PATH "${PROJECT_SOURCE_DIR}/data")
+# Path to Chrono data/ directory (in SOURCE tree)
+set(PYC_DATA_PATH "${PROJECT_SOURCE_DIR}/data/")
+
+# Path to Chrono::Sensor shaders/ directory (in SOURCE tree)
+set(PYC_SHADER_PATH "${PROJECT_SOURCE_DIR}/src/chrono_sensor/optix/shaders/")
 
 # Generate the __init__.py file using substitution variables and place it in a temporary place
-configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.in
+configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.local.in
                ${PROJECT_BINARY_DIR}/chrono_python/__init__.py)
 
-# ---------- Pychrono in INSTALL tree: use data/ in INSTALL tree (unless path explicitly provided)
+# ---------- Pychrono in INSTALL tree
 
-if(DEFINED PYCHRONO_DATA_PATH)
-  message(STATUS "User provided path to Chrono data files: ${PYCHRONO_DATA_PATH}")
-  set (PYC_DATA_PATH "${PYCHRONO_DATA_PATH}")
+if (CH_CONDA_INSTALL)
+  # Use specified path to Chrono data/ directory (CH_PYCHRONO_DATA_PATH) *relative* to __init__.py
+  set(PYC_DATA_PATH "${CH_PYCHRONO_DATA_PATH}")
+
+  # Use specified path to Chrono::Sensor shaders/ directory (CH_PYCHRONO_SHADER_PATH) *relative* to __init__.py
+  set(PYC_SHADER_PATH "${CH_PYCHRONO_SHADER_PATH}") 
+
+  # Generate the __init__.py file using substitution variables and place it in a temporary place 
+  configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.conda.in
+                 ${PROJECT_BINARY_DIR}/chrono_python/__init__.py.install)
 else()
-  # Default path to Chrono data files (in INSTALL tree)
-  set(PYC_DATA_PATH "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}")
-endif()
+  # Default path to Chrono data/ directory (in INSTALL tree)
+  set(PYC_DATA_PATH "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")
 
-# Generate the __init__.py file using substitution variables and place it in a temporary place
-configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.in
-               ${PROJECT_BINARY_DIR}/chrono_python/__init__.py.install)
+  # Default path to Chrono::Sensor shaders/ directory (in INSTALL tree)
+  set(PYC_SHADER_PATH "${CMAKE_INSTALL_PREFIX}/include/chrono_sensor/optix/shaders/")
+
+  # Generate the __init__.py file using substitution variables and place it in a temporary place
+  configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.local.in
+                 ${PROJECT_BINARY_DIR}/chrono_python/__init__.py.install)
+endif()
 
 #-----------------------------------------------------------------------------
 # Install demos

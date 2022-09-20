@@ -28,15 +28,15 @@ requirements:
     - ninja   # [linux or osx]
     - pip     # [linux]
     - jinja2  # [linux]
-    - llvm-openmp   # [linux]
+    - llvm-openmp   # [linux and osx]
     - libglvnd-glx-cos7-x86_64 # [linux]
     - swig >=4.0.0
-    - mkl
-    - mkl-devel
+    - mkl   # [osx and not arm64]
+    - mkl-devel   # [osx and not arm64]
     - freeglut # [linux]
     - libxxf86vm-devel-cos7-x86_64 # [linux]
     - irrlicht
-    - opencascade
+    - opencascade   # [osx and not arm64]
     - numpy >=1.16
     - glew
     - glfw

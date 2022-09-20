@@ -145,6 +145,7 @@ if(USE_CUDA_NVRTC)
       ${OptiX_INCLUDE}/optixu
       ${CUDA_INCLUDE_DIRS}
       ${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders
+      ${CMAKE_INSTALL_PREFIX}/include
       ${CMAKE_SOURCE_DIR}/src CACHE STRING "NVRTC include dirs as list." FORCE)
     mark_as_advanced(CUDA_NVRTC_INCLUDE_DIRS)
 
@@ -556,7 +557,8 @@ install(FILES ${ChronoEngine_sensor_CUDA_HEADERS}
       DESTINATION include/chrono_sensor/cuda)
 install(FILES ${ChronoEngine_sensor_SCENE_HEADERS}
       DESTINATION include/chrono_sensor/optix/scene)
-
+install(FILES ${ChronoEngine_sensor_RT_HEADERS}
+      DESTINATION include/chrono_sensor/optix/shaders)
 
 IF(NOT USE_CUDA_NVRTC)
   install(FILES ${generated_rt_files}
