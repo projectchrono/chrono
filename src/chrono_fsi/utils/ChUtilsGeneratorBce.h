@@ -64,6 +64,15 @@ void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
                            Real kernel_h,
                            bool cartesian = true);
 
+/// Create BCE particles from a cylinder annulus.
+void CreateBCE_On_Cylinder_Annulus(thrust::host_vector<Real4>& posRadBCE,
+                                   Real rad_in,
+                                   Real rad_out,
+                                   Real cyl_h,
+                                   std::shared_ptr<SimParams> paramsH,
+                                   Real kernel_h,
+                                   bool cartesian = true);
+
 /// Create BCE particles from a cone.
 void CreateBCE_On_Cone(thrust::host_vector<Real4>& posRadBCE,
                        Real cone_rad,
