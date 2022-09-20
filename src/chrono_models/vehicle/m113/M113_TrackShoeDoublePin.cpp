@@ -97,12 +97,16 @@ M113_TrackShoeDoublePin::M113_TrackShoeDoublePin(const std::string& name, Double
     // Collision box: guide pin (wheel contact)
     ChVehicleGeometry::BoxShape box_guide(ChVector<>(0.045, 0, 0.0375), QUNIT, ChVector<>(0.0284, 0.0114, 0.075), 2);
 
+    m_geometry.m_has_collision = true;
     m_geometry.m_coll_boxes.push_back(box_bottom);
     m_geometry.m_coll_boxes.push_back(box_top);
     m_geometry.m_coll_boxes.push_back(box_guide);
 
-    m_geometry.m_has_primitives = true;
+    m_ground_geometry.m_has_collision = true;
+    m_ground_geometry.m_materials = m_geometry.m_materials;
+    m_ground_geometry.m_coll_boxes.push_back(box_bottom);
 
+    m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box_bottom);
     m_geometry.m_vis_boxes.push_back(box_top);
     m_geometry.m_vis_boxes.push_back(box_guide);

@@ -97,14 +97,20 @@ Marder_TrackShoeSinglePin::Marder_TrackShoeSinglePin(const std::string& name) : 
     // Collision box: pad side inner (ground contact)
     ChVehicleGeometry::BoxShape box_side_inner(ChVector<>(0, -0.43 / 2, 0), QUNIT, ChVector<>(0.1315, 0.0542, 0.02), 0);
 
+    m_geometry.m_has_collision = true;
     m_geometry.m_coll_boxes.push_back(box_bottom);
     m_geometry.m_coll_boxes.push_back(box_top);
     m_geometry.m_coll_boxes.push_back(box_guide);
     m_geometry.m_coll_boxes.push_back(box_side_outer);
     m_geometry.m_coll_boxes.push_back(box_side_inner);
 
-    m_geometry.m_has_primitives = true;
+    m_ground_geometry.m_has_collision = true;
+    m_ground_geometry.m_materials = m_geometry.m_materials;
+    m_ground_geometry.m_coll_boxes.push_back(box_bottom);
+    m_ground_geometry.m_coll_boxes.push_back(box_side_outer);
+    m_ground_geometry.m_coll_boxes.push_back(box_side_inner);    
 
+    m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box_bottom);
     m_geometry.m_vis_boxes.push_back(box_top);
     m_geometry.m_vis_boxes.push_back(box_guide);

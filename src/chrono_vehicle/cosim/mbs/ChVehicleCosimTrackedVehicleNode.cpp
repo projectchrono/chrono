@@ -114,9 +114,7 @@ void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2<>& terrain_
 // -----------------------------------------------------------------------------
 
 ChVehicleGeometry ChVehicleCosimTrackedVehicleNode::GetTrackShoeContactGeometry() const {
-    ChVehicleGeometry geometry;
-    m_vehicle->GetTrackShoe(VehicleSide::LEFT, 0)->GetGroundContactGeometry(geometry);
-    return geometry;
+    return m_vehicle->GetTrackShoe(VehicleSide::LEFT, 0)->GetGroundContactGeometry();
 }
 
 // -----------------------------------------------------------------------------

@@ -68,10 +68,7 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     virtual ChVector<> GetLateralContactPoint() const = 0;
 
     /// Return contact geometry and material for interaction with terrain.
-    virtual void GetGroundContactGeometry(ChVehicleGeometry& geometry) const {
-        std::cout << "ERROR: GetGroundContactGeometry not implemented\n\n\n" << std::endl;
-        throw ChException("GetGroundContactGeometry not implemented");
-    }
+    virtual ChVehicleGeometry GetGroundContactGeometry() const { return ChVehicleGeometry(); }
 
     /// Turn on/off collision flag for the shoe body.
     void SetCollide(bool val) { m_shoe->SetCollide(val); }

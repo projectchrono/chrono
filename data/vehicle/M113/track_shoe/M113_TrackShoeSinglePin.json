@@ -89,6 +89,7 @@
             {
                 // Collision box: pad bottom (ground contact)
                 "Type": "BOX",
+                "Ground Contact": true,
                 "Location": [ 0, 0, -0.015 ],
                 "Orientation": [ 1, 0, 0, 0 ],
                 "Dimensions": [ 0.11, 0.19, 0.03 ],
@@ -113,6 +114,7 @@
             {
                 // Collision box: pad side outer (ground contact)
                 "Type": "BOX",
+                "Ground Contact": true,
                 "Location": [ 0, 0.16245, 0 ],
                 "Orientation": [ 1, 0, 0, 0 ],
                 "Dimensions": [ 0.1315, 0.0542, 0.02 ],
@@ -121,6 +123,7 @@
             {
                 // Collision box: pad side inner (ground contact)
                 "Type": "BOX",
+                "Ground Contact": true,
                 "Location": [ 0, -0.16245, 0 ],
                 "Orientation": [ 1, 0, 0, 0 ],
                 "Dimensions": [ 0.1315, 0.0542, 0.02 ],
