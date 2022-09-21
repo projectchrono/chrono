@@ -84,25 +84,26 @@ if(MUMPS_USE_MPI)
     set(MUMPS_MPI_INCLUDE_DIRS "${MPI_CXX_INCLUDE_PATH}")
 	set(MUMPS_MPI_LIBRARIES "${MPI_CXX_LIBRARIES}")
 else()
-	# TODO: have they to be included?
-	find_path(MUMPS_MPI_INCLUDE_DIRS
+	if(MUMPS_IS_SHARED_LIB)
+	  find_path(MUMPS_MPI_INCLUDE_DIRS
 				mpi.h
 				PATHS ${MUMPS_ROOT}
 				PATH_SUFFIXES "include" "libseq" "libseqmpi" "libseq/include" "libseqmpi/include"
 				NO_DEFAULT_PATH
-			    NO_SYSTEM_ENVIRONMENT_PATH
-	)
-	
+			    NO_SYSTEM_ENVIRONMENT_PATH)
+	else()
+      set(MUMPS_MPI_INCLUDE_DIRS "")
+	endif()
+
 	find_library(MUMPS_MPI_LIBRARIES
 				NAMES libmpiseq libmpiseq.a
 				PATHS ${MUMPS_ROOT}
 				PATH_SUFFIXES "libseq" "libseqmpi" "lib" "lib64"
 				NO_DEFAULT_PATH
-			    NO_SYSTEM_ENVIRONMENT_PATH
-	)
+			    NO_SYSTEM_ENVIRONMENT_PATH)
 endif()
 
-if(MUMPS_MPI_INCLUDE_DIRS AND (MUMPS_IS_SHARED_LIB OR MUMPS_MPI_LIBRARIES))
+if((MUMPS_IS_SHARED_LIB AND MUMPS_MPI_INCLUDE_DIRS) OR MUMPS_MPI_LIBRARIES)
 	set(MUMPS_MPI_FOUND TRUE)
 endif()
 

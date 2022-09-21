@@ -36,14 +36,14 @@ endif()
 option(MUMPS_IS_SHARED_LIB "Link Mumps as shared library (only lib<arithmetic>mumps will be needed then)" ON)
 
 unset(MUMPS_FOUND)
-message(STATUS "Find MUMPS...")
+message(STATUS "Searching for MUMPS...")
 
 find_package(Mumps REQUIRED)
 
-message(STATUS "MUMPS_INCLUDE_DIRS:      ${MUMPS_INCLUDE_DIRS}")
-message(STATUS "MUMPS_LIBRARIES:         ${MUMPS_LIBRARIES}")
-message(STATUS "MUMPS_CXX_COMPILE_FLAGS: ${MUMPS_CXX_COMPILE_FLAGS}")
-message(STATUS "MUMPS_CXX_LINK_FLAGS:    ${MUMPS_CXX_LINK_FLAGS}")
+message(STATUS "  MUMPS_INCLUDE_DIRS:      ${MUMPS_INCLUDE_DIRS}")
+message(STATUS "  MUMPS_LIBRARIES:         ${MUMPS_LIBRARIES}")
+message(STATUS "  MUMPS_CXX_COMPILE_FLAGS: ${MUMPS_CXX_COMPILE_FLAGS}")
+message(STATUS "  MUMPS_CXX_LINK_FLAGS:    ${MUMPS_CXX_LINK_FLAGS}")
 
 # ------------------------------------------------------------------------------
 # Find BLAS
@@ -86,17 +86,18 @@ set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${INTEL_LIBRARIES_DIRS})
 
 unset(BLAS_FOUND)
 unset(BLAS_LIBRARIES)
-message(STATUS "")
-message(STATUS "Find BLAS...")
+message(STATUS "Searching for BLAS...")
 
 find_package(BLAS)
 
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH_BKP}) # restore original CMAKE_LIBRARY_PATH
 
 if (NOT BLAS_FOUND)
-	message("BLAS not found. Set BLAS_LIBRARIES manually")
+	message("  BLAS not found. Set BLAS_LIBRARIES manually")
 	set(BLAS_LIBRARIES "" CACHE PATH "Locate BLAS library directory")
 	return()
+else()
+    message(STATUS "  BLAS_LIBRARIES: ${BLAS_LIBRARIES}")	
 endif()
 
 string(FIND BLAS_VENDOR "Intel" USING_INTEL)
@@ -125,8 +126,7 @@ set(CH_MUMPS_INCLUDES "${MUMPS_INCLUDE_DIRS}")
 list(APPEND CH_MUMPS_LIBRARIES ${MUMPS_LIBRARIES})
 list(APPEND CH_MUMPS_LIBRARIES ${BLAS_LIBRARIES})
 if(MUMPS_FORTRAN_LIB)
-   # /opt/homebrew/Cellar/gcc/12.2.0/lib/gcc/current/libgfortran.dylib
-    list(APPEND CH_MUMPS_LIBRARIES ${MUMPS_FORTRAN_LIBS})
+    list(APPEND CH_MUMPS_LIBRARIES ${MUMPS_FORTRAN_LIB})
 endif()
 
 set(CH_MUMPS_LIBRARIES ${CH_MUMPS_LIBRARIES} PARENT_SCOPE)
