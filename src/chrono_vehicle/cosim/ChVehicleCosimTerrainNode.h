@@ -115,10 +115,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Perform any additional operations after the initial data exchange with the MBS node, including creating any
     /// required proxies for the specified number of objects. A derived class has access to the following vectors,
     /// each of size m_num_shapes:
-    /// - m_object_dims: shape dimensions
-    /// - m_mesh_data: mesh information for each shape
-    /// - m_mat_props: contact material for each shape
+    /// - m_aabb: collision model bounding box
     /// - m_load_mass: vertical load on each object
+    /// - m_geometry: collision geometry and contact material for each object
     virtual void OnInitialize(unsigned int num_objects) = 0;
 
     /// Perform any additional operations after the data exchange and synchronization with the MBS node. A derived class
@@ -182,12 +181,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     InterfaceType m_interface_type;  ///< communication interface (body or mesh)
     int m_num_objects;               ///< number of interacting objects
 
-    std::vector<ChVehicleGeometry::AABB> m_aabb;  ///< AABB of collision models
+    std::vector<ChVehicleGeometry::AABB> m_aabb;  ///< AABB of collision models for interacting objects
     std::vector<ChVehicleGeometry> m_geometry;    ///< contact geometry and materials for interacting objects
-    std::vector<double> m_load_mass;              ///< vertical load on interacting bodies
-
-    std::vector<ChContactMaterialData> m_mat_props;  ///< contact material properties
-    std::vector<MeshData> m_mesh_data;               ///< mesh data
+    std::vector<double> m_load_mass;              ///< vertical load on interacting objects
+    std::vector<int> m_obj_map;                   ///< mapping from interacting object to shape 
 
     std::vector<MeshState> m_mesh_state;        ///< mesh state (used for MESH communication)
     std::vector<BodyState> m_rigid_state;       ///< rigid state (used for BODY communication interface)

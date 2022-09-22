@@ -779,12 +779,19 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalculatePackingDensity(double& dep
 // Add all proxy bodies to the same collision family and disable collision between any
 // two members of this family.
 void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
-    //// RADU TODO:  better approximation of mass / inertia?
-    double mass_p = m_load_mass[i] / m_mesh_data[i].nt;
-    ChVector<> inertia_p = 1e-3 * mass_p * ChVector<>(0.1, 0.1, 0.1);
-    auto material = m_mat_props[i].CreateMaterial(m_method);
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
 
-    for (unsigned int it = 0; it < m_mesh_data[i].nt; it++) {
+    //// RADU TODO: for now assume there is one and only one mesh defined!
+    auto nt = m_geometry[i_shape].m_coll_meshes[0].m_trimesh->getNumTriangles();
+    auto i_mat = m_geometry[i_shape].m_coll_meshes[0].m_matID;
+    auto material = m_geometry[i_shape].m_materials[i_mat].CreateMaterial(m_method);
+
+    //// RADU TODO:  better approximation of mass / inertia?
+    double mass_p = m_load_mass[i_shape] / nt;
+    ChVector<> inertia_p = 1e-3 * mass_p * ChVector<>(0.1, 0.1, 0.1);
+
+    for (unsigned int it = 0; it < nt; it++) {
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         body->SetIdentifier(it);
         body->SetMass(mass_p);
@@ -810,7 +817,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
-    auto material = m_mat_props[i].CreateMaterial(m_method);
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
 
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
     body->SetIdentifier(0);
@@ -819,26 +827,15 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     body->SetBodyFixed(m_fixed_proxies);
     body->SetCollide(true);
 
-    // Create collision mesh
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->getCoordsVertices() = m_mesh_data[i].verts;
-    trimesh->getCoordsNormals() = m_mesh_data[i].norms;
-    trimesh->getIndicesVertexes() = m_mesh_data[i].idx_verts;
-    trimesh->getIndicesNormals() = m_mesh_data[i].idx_norms;
+    // Create visualization assets (use collision shapes)
+    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
 
-    // Set collision shape
-    body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                               m_radius_p);
+    // Create collision shapes
+    for (auto& mesh : m_geometry[i_shape].m_coll_meshes)
+        mesh.m_radius = m_radius_p;
+    m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
     body->GetCollisionModel()->SetFamily(1);
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
-    body->GetCollisionModel()->BuildModel();
-
-    // Set visualization asset
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName("wheel_" + std::to_string(i));
-    body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     m_system->AddBody(body);
     m_proxies[i].push_back(ProxyBody(body, 0));
@@ -851,16 +848,24 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
 //    - linear and angular velocity: consistent with vertex velocities
 //    - contact shape: redefined to match vertex locations
 void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
+
+    //// RADU TODO: for now assume there is one and only one mesh defined!
+    const auto& trimesh = m_geometry[i_shape].m_coll_meshes[0].m_trimesh;
+    const auto& idx_verts = trimesh->getIndicesVertexes();
+    int nt = trimesh->getNumTriangles();
+
     auto& proxies = m_proxies[i];  // proxies for the i-th mesh
 
     // shape_data contains all triangle vertex locations, in groups of three real3, one group for each triangle.
     auto& shape_data = m_system->data_manager->cd_data->shape_data.triangle_rigid;
 
-    for (unsigned int it = 0; it < m_mesh_data[i].nt; it++) {
+    for (unsigned int it = 0; it < nt; it++) {
         // Vertex locations (expressed in global frame)
-        const ChVector<>& pA = mesh_state.vpos[m_mesh_data[i].idx_verts[it].x()];
-        const ChVector<>& pB = mesh_state.vpos[m_mesh_data[i].idx_verts[it].y()];
-        const ChVector<>& pC = mesh_state.vpos[m_mesh_data[i].idx_verts[it].z()];
+        const ChVector<>& pA = mesh_state.vpos[idx_verts[it].x()];
+        const ChVector<>& pB = mesh_state.vpos[idx_verts[it].y()];
+        const ChVector<>& pC = mesh_state.vpos[idx_verts[it].z()];
 
         // Position and orientation of proxy body
         ChVector<> pos = (pA + pB + pC) / 3;
@@ -872,9 +877,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
         // body reference frame, the linear velocity is the average of the 3 vertex velocities.
         // This leaves a 9x3 linear system for the angular velocity which should be solved in a
         // least-square sense:   Ax = b   =>  (A'A)x = A'b
-        const ChVector<>& vA = mesh_state.vvel[m_mesh_data[i].idx_verts[it].x()];
-        const ChVector<>& vB = mesh_state.vvel[m_mesh_data[i].idx_verts[it].y()];
-        const ChVector<>& vC = mesh_state.vvel[m_mesh_data[i].idx_verts[it].z()];
+        const ChVector<>& vA = mesh_state.vvel[idx_verts[it].x()];
+        const ChVector<>& vB = mesh_state.vvel[idx_verts[it].y()];
+        const ChVector<>& vC = mesh_state.vvel[idx_verts[it].z()];
 
         ChVector<> vel = (vA + vB + vC) / 3;
         proxies[it].m_body->SetPos_dt(vel);
@@ -932,12 +937,20 @@ ChVector<> ChVehicleCosimTerrainNodeGranularOMP::CalcBarycentricCoords(const ChV
 // Collect contact forces on the (face) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
 void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
+
+    //// RADU TODO: for now assume there is one and only one mesh defined!
+    const auto& trimesh = m_geometry[i_shape].m_coll_meshes[0].m_trimesh;
+    const auto& idx_verts = trimesh->getIndicesVertexes();
+    int nt = trimesh->getNumTriangles();
+
     const auto& proxies = m_proxies[i];  // proxies for the i-th object
 
     // Maintain an unordered map of vertex indices and associated contact forces.
     std::unordered_map<int, ChVector<>> my_map;
 
-    for (unsigned int it = 0; it < m_mesh_data[i].nt; it++) {
+    for (unsigned int it = 0; it < nt; it++) {
         // Get cumulative contact force at triangle centroid.
         // Do nothing if zero force.
         real3 rforce = m_system->GetBodyContactForce(proxies[it].m_body);
@@ -950,25 +963,25 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
 
         // For each vertex of the triangle, if it appears in the map, increment
         // the total contact force. Otherwise, insert a new entry in the map.
-        auto v1 = my_map.find(m_mesh_data[i].idx_verts[it].x());
+        auto v1 = my_map.find(idx_verts[it].x());
         if (v1 != my_map.end()) {
             v1->second += force;
         } else {
-            my_map[m_mesh_data[i].idx_verts[it].x()] = force;
+            my_map[idx_verts[it].x()] = force;
         }
 
-        auto v2 = my_map.find(m_mesh_data[i].idx_verts[it].y());
+        auto v2 = my_map.find(idx_verts[it].y());
         if (v2 != my_map.end()) {
             v2->second += force;
         } else {
-            my_map[m_mesh_data[i].idx_verts[it].y()] = force;
+            my_map[idx_verts[it].y()] = force;
         }
 
-        auto v3 = my_map.find(m_mesh_data[i].idx_verts[it].z());
+        auto v3 = my_map.find(idx_verts[it].z());
         if (v3 != my_map.end()) {
             v3->second += force;
         } else {
-            my_map[m_mesh_data[i].idx_verts[it].z()] = force;
+            my_map[idx_verts[it].z()] = force;
         }
     }
 

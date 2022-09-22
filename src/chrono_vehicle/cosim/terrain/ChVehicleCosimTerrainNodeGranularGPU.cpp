@@ -625,9 +625,14 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesInternal() {
 }
 
 // Set composite material properties for external contacts (granular-object)
-void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesExternal(unsigned int i) {
+void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesExternal(unsigned int i_shape) {
+    //// RADU TODO
+    //// Chrono::GPU is currently limited to a single material for an interacting object?!?
+    //// For now, use the first one only
+    auto mat_props = m_geometry[i_shape].m_materials[0];
+
     auto material_terrain = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_terrain);
-    auto material = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_mat_props[i].CreateMaterial(m_method));
+    auto material = std::static_pointer_cast<ChMaterialSurfaceSMC>(mat_props.CreateMaterial(m_method));
 
     const auto& strategy = m_system->GetMaterialCompositionStrategy();
     auto Kn = strategy.CombineStiffnessCoefficient(material_terrain->GetKn(), material->GetKn());
@@ -660,41 +665,35 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
     body->SetBodyFixed(m_fixed_proxies);
     body->SetCollide(true);
 
-    // Create collision mesh
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->getCoordsVertices() = m_mesh_data[i].verts;
-    trimesh->getCoordsNormals() = m_mesh_data[i].norms;
-    trimesh->getIndicesVertexes() = m_mesh_data[i].idx_verts;
-    trimesh->getIndicesNormals() = m_mesh_data[i].idx_norms;
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
 
-    // Set visualization asset
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName("wheel_" + std::to_string(i));
-    body->AddVisualShape(trimesh_shape, ChFrame<>());
+    // Create visualization asset (use collision shapes)
+    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
 
-    // Add collision shape (only if obstacles are present)
-    auto material = m_mat_props[i].CreateMaterial(m_method);
+    // Create collision shapes (only if obstacles are present)
     if (num_obstacles > 0) {
-        body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, ChVector<>(0),
-                                                   ChMatrix33<>(1), m_radius_g);
+        for (auto& mesh : m_geometry[i_shape].m_coll_meshes)
+            mesh.m_radius = m_radius_g;
+        m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
-        body->GetCollisionModel()->BuildModel();
     }
 
     m_system->AddBody(body);
     m_proxies[i].push_back(ProxyBody(body, 0));
-
+    
     // Set mesh for granular system
-    auto imesh = m_systemGPU->AddMesh(trimesh, (float)m_load_mass[i]);
-    if (imesh != i + num_obstacles) {
-        throw ChException("Error adding GPU mesh for object " + std::to_string(i));
+    //// RADU TODO: what about other collision primitives?!?
+    for (auto& mesh : m_geometry[i_shape].m_coll_meshes) {
+        auto imesh = m_systemGPU->AddMesh(mesh.m_trimesh, (float)m_load_mass[i]);
+        if (imesh != i + num_obstacles) {
+            throw ChException("Error adding GPU mesh for object " + std::to_string(i));
+        }
     }
 
     // Set composite material properties for external contacts
-    SetMatPropertiesExternal(i);
+    SetMatPropertiesExternal(i_shape);
 
     // Complete construction of the granular system
     m_systemGPU->InitializeMeshes();

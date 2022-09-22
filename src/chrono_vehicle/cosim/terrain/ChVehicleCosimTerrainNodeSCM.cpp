@@ -288,7 +288,8 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
 }
 
 void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
-    auto material = m_mat_props[i].CreateMaterial(m_method);
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
 
     // Create wheel proxy body
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
@@ -298,30 +299,21 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
     body->SetBodyFixed(false);  // Cannot fix the proxies with SCM
     body->SetCollide(true);
 
-    // Create collision mesh
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->getCoordsVertices() = m_mesh_data[i].verts;
-    trimesh->getCoordsNormals() = m_mesh_data[i].norms;
-    trimesh->getIndicesVertexes() = m_mesh_data[i].idx_verts;
-    trimesh->getIndicesNormals() = m_mesh_data[i].idx_norms;
+    // Create visualization asset (use collision shapes)
+    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
 
-    // Set collision shape
-    body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                               m_radius_p);
+    // Create collision shapes
+    for (auto& mesh : m_geometry[i_shape].m_coll_meshes)
+        mesh.m_radius = m_radius_p;
+    m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
     body->GetCollisionModel()->SetFamily(1);
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
-    body->GetCollisionModel()->BuildModel();
-
-    // Set visualization asset
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(trimesh);
-    body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     m_system->AddBody(body);
     m_proxies[i].push_back(ProxyBody(body, 0));
 
     // Add corresponding moving patch to SCM terrain
+    //// RADU TODO: this may be overkill for tracked vehicles!
     m_terrain->AddMovingPatch(body, m_aabb[i].m_center, m_aabb[i].m_dims);
 
 #ifdef CHRONO_IRRLICHT

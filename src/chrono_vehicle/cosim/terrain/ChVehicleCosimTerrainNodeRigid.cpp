@@ -357,11 +357,18 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 // Add all proxy bodies to the same collision family and disable collision between any
 // two members of this family.
 void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
-    double mass_p = m_load_mass[i] / m_mesh_data[i].nv;
-    ChVector<> inertia_p = 0.4 * mass_p * m_radius_p * m_radius_p * ChVector<>(1, 1, 1);
-    auto material = m_mat_props[i].CreateMaterial(m_method);
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
 
-    for (unsigned int iv = 0; iv < m_mesh_data[i].nv; iv++) {
+    //// RADU TODO: for now assume there is one and only one mesh defined!
+    auto nv = m_geometry[i_shape].m_coll_meshes[0].m_trimesh->getNumVertices();
+    auto i_mat = m_geometry[i_shape].m_coll_meshes[0].m_matID;
+    auto material = m_geometry[i_shape].m_materials[i_mat].CreateMaterial(m_method);
+
+    double mass_p = m_load_mass[i_shape] / nv;
+    ChVector<> inertia_p = 0.4 * mass_p * m_radius_p * m_radius_p * ChVector<>(1, 1, 1);
+
+    for (unsigned int iv = 0; iv < nv; iv++) {
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         body->SetIdentifier(iv);
         body->SetMass(mass_p);
@@ -382,7 +389,8 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
 }
 
 void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
-    auto material = m_mat_props[i].CreateMaterial(m_method);
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
 
     // Create wheel proxy body
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
@@ -393,26 +401,15 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
     body->SetBodyFixed(m_fixed_proxies);
     body->SetCollide(true);
 
-    // Create collision mesh
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->getCoordsVertices() = m_mesh_data[i].verts;
-    trimesh->getCoordsNormals() = m_mesh_data[i].norms;
-    trimesh->getIndicesVertexes() = m_mesh_data[i].idx_verts;
-    trimesh->getIndicesNormals() = m_mesh_data[i].idx_norms;
+    // Create visualization assets (use collision shapes)
+    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
 
-    // Set collision shape
-    body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                               m_radius_p);
+    // Create collision shapes
+    for (auto& mesh : m_geometry[i_shape].m_coll_meshes)
+        mesh.m_radius = m_radius_p;
+    m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
     body->GetCollisionModel()->SetFamily(1);
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
-    body->GetCollisionModel()->BuildModel();
-
-    // Set visualization asset
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName("wheel_" + std::to_string(i));
-    body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     m_system->AddBody(body);
     m_proxies[i].push_back(ProxyBody(body, 0));
@@ -423,7 +420,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
 void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {
     auto& proxies = m_proxies[i];  // proxies for the i-th object
 
-    for (unsigned int iv = 0; iv < m_mesh_data[i].nv; iv++) {
+    for (size_t iv = 0; iv < proxies.size(); iv++) {
         proxies[iv].m_body->SetPos(mesh_state.vpos[iv]);
         proxies[iv].m_body->SetPos_dt(mesh_state.vvel[iv]);
         proxies[iv].m_body->SetRot(ChQuaternion<>(1, 0, 0, 0));
@@ -449,7 +446,7 @@ void ChVehicleCosimTerrainNodeRigid::GetForceMeshProxy(unsigned int i, MeshConta
     const auto& proxies = m_proxies[i];  // proxies for the i-th mesh
 
     mesh_contact.nv = 0;
-    for (unsigned int iv = 0; iv < m_mesh_data[i].nv; iv++) {
+    for (size_t iv = 0; iv < proxies.size(); iv++) {
         ChVector<> force = proxies[iv].m_body->GetContactForce();
         if (force.Length() > 1e-15) {
             mesh_contact.vforce.push_back(force);

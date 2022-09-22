@@ -176,7 +176,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
     /// Set composite material properties for granular-object contacts
     /// (can be invoked only once object material was received).
-    void SetMatPropertiesExternal(unsigned int i);
+    void SetMatPropertiesExternal(unsigned int i_shape);
 
     /// Update position of visualization shapes for granular material.
     /// Note that this requires memory transfer from GPU.

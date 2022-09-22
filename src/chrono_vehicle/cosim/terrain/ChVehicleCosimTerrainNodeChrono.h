@@ -131,11 +131,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     virtual void Construct() = 0;
 
     /// Create the i-th proxy rigid.
-    /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
+    /// Use information in the m_geometry struct (collision geometry expressed in local frame).
     virtual void CreateRigidProxy(unsigned int i) = 0;
 
     /// Create the i-th proxy mesh.
-    /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
+    /// Use information in the m_geometry struct (collision geometry expressed in local frame).
     virtual void CreateMeshProxy(unsigned int i) {
         if (SupportsMeshInterface()) {
             throw ChException("Current terrain type does not support the MESH communication interface!");

@@ -302,29 +302,19 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     body->SetBodyFixed(true);  // proxy body always fixed
     body->SetCollide(false);
 
-    // Create collision mesh
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->getCoordsVertices() = m_mesh_data[i].verts;
-    trimesh->getCoordsNormals() = m_mesh_data[i].norms;
-    trimesh->getIndicesVertexes() = m_mesh_data[i].idx_verts;
-    trimesh->getIndicesNormals() = m_mesh_data[i].idx_norms;
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
 
-    // Set visualization asset
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName("wheel_" + std::to_string(i));
-    body->AddVisualShape(trimesh_shape, ChFrame<>());
+    // Create visualization asset (use collision shapes)
+    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
 
-    // Add collision shape only if obstacles are present (for wheel-obstacle interactions)
+    // Create collision shapes (only if obstacles are present)
     if (num_obstacles > 0) {
-        auto material = m_mat_props[i].CreateMaterial(m_method);
-
-        body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                                   m_radius_g);
+        for (auto& mesh : m_geometry[i_shape].m_coll_meshes)
+            mesh.m_radius = m_radius_g;
+        m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
-        body->GetCollisionModel()->BuildModel();
     }
 
     m_system->AddBody(body);
@@ -333,10 +323,29 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     // Add this body to the FSI system
     m_systemFSI->AddFsiBody(body);
 
-    // Create BCE markers associated with trimesh
-    std::vector<ChVector<>> point_cloud;
-    m_systemFSI->CreateMeshPoints(*trimesh, (double)m_systemFSI->GetInitialSpacing(), point_cloud);
-    m_systemFSI->AddPointsBCE(body, point_cloud, VNULL, QUNIT);
+    // Create BCE markers associated with collision shapes
+    for (const auto& box : m_geometry[i_shape].m_coll_boxes) {
+        //// RADU TODO: we need a function to create BCE for the entire box!!!
+        ////            right now, it only does it on one face!
+        m_systemFSI->AddBoxBCE(body, box.m_pos, box.m_rot, box.m_dims);
+    }
+    for (const auto& sphere : m_geometry[i_shape].m_coll_spheres) {
+        //// RADU TODO: why do I need an orientation for a sphere?!?!
+        m_systemFSI->AddSphereBCE(body, sphere.m_pos, QUNIT, sphere.m_radius);
+    }
+    for (const auto& cyl : m_geometry[i_shape].m_coll_cylinders) {
+        //// RADU TODO: why do I need to pass in the kernel length?!?
+        ////            the separation should be taken from the FSI systems
+        m_systemFSI->AddCylinderBCE(body, cyl.m_pos, cyl.m_rot, cyl.m_radius, cyl.m_length,
+                                    m_systemFSI->GetKernelLength(), false);
+    }
+    for (const auto& mesh : m_geometry[i_shape].m_coll_meshes) {
+        //// RADU TODO: why do I need to pass in the initial spacing?!?
+        ////            the separation should be taken from the FSI systems
+        std::vector<ChVector<>> point_cloud;
+        m_systemFSI->CreateMeshPoints(*mesh.m_trimesh, (double)m_systemFSI->GetInitialSpacing(), point_cloud);
+        m_systemFSI->AddPointsBCE(body, point_cloud, VNULL, QUNIT);
+    }
 }
 
 // Once all proxy bodies are created, complete construction of the underlying FSI system.
@@ -368,7 +377,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::GetForceRigidProxy(unsigned int i, Te
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularSPH::CreateMeshProxy(unsigned int i) {
-    auto material = m_mat_props[i].CreateMaterial(m_method);
 
 
 }
