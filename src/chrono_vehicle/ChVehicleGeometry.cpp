@@ -76,13 +76,43 @@ ChVehicleGeometry::TrimeshShape::TrimeshShape(const ChVector<>& pos,
                                               int matID)
     : m_trimesh(trimesh), m_radius(radius), m_pos(pos), m_matID(matID) {}
 
-void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis) {
+void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis, bool visualize_collision) {
     if (vis == VisualizationType::NONE)
         return;
 
     if (!body->GetVisualModel()) {
         auto model = chrono_types::make_shared<ChVisualModel>();
         body->AddVisualModel(model);
+    }
+
+    if (visualize_collision) {
+        for (auto& sphere : m_coll_spheres) {
+            auto sphere_shape = chrono_types::make_shared<ChSphereShape>();
+            sphere_shape->GetSphereGeometry().rad = sphere.m_radius;
+            body->AddVisualShape(sphere_shape, ChFrame<>(sphere.m_pos));
+        }
+
+        for (auto& box : m_coll_boxes) {
+            auto box_shape = chrono_types::make_shared<ChBoxShape>();
+            box_shape->GetBoxGeometry().SetLengths(box.m_dims);
+            body->AddVisualShape(box_shape, ChFrame<>(box.m_pos, box.m_rot));
+        }
+
+        for (auto& cyl : m_coll_cylinders) {
+            auto cyl_shape = chrono_types::make_shared<ChCylinderShape>();
+            cyl_shape->GetCylinderGeometry().rad = cyl.m_radius;
+            cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, cyl.m_length / 2, 0);
+            cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -cyl.m_length / 2, 0);
+            body->AddVisualShape(cyl_shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
+        }
+
+        for (auto& mesh : m_coll_meshes) {
+            auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+            trimesh_shape->SetMesh(mesh.m_trimesh);
+            body->AddVisualShape(trimesh_shape, ChFrame<>());
+        }
+
+        return;
     }
 
     if (vis == VisualizationType::MESH && m_has_obj) {

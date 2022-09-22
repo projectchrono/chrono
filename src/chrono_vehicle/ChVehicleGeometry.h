@@ -128,7 +128,9 @@ class CH_VEHICLE_API ChVehicleGeometry {
     std::string m_vis_mesh_file;  ///< name of Wavefront OBJ file with visualization mesh
 
     /// Create visualization assets for the specified body.
-    void CreateVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis);
+    void CreateVisualizationAssets(std::shared_ptr<ChBody> body,
+                                   VisualizationType vis,
+                                   bool visualize_collision = false);
 
     /// Create collision shapes for the specified body.
     void CreateCollisionShapes(std::shared_ptr<ChBody> body, int collision_family, ChContactMethod contact_method);
