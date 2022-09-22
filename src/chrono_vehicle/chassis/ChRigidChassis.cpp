@@ -47,7 +47,7 @@ void ChRigidChassis::Initialize(ChSystem* system,
     // NOTE: setting the collision family is deferred to the containing vehicle system
     // (which can also disable contact between the chassis and certain vehicle subsystems).
     if (m_geometry.m_has_collision) {
-        m_geometry.AddCollisionShapes(m_body, collision_family, system->GetContactMethod());
+        m_geometry.CreateCollisionShapes(m_body, collision_family, system->GetContactMethod());
     }
 }
 
@@ -55,7 +55,7 @@ void ChRigidChassis::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_geometry.AddVisualizationAssets(m_body, vis);
+    m_geometry.CreateVisualizationAssets(m_body, vis);
 }
 
 void ChRigidChassis::RemoveVisualizationAssets() {
@@ -97,7 +97,7 @@ void ChRigidChassisRear::Initialize(std::shared_ptr<ChChassis> chassis,
     // NOTE: setting the collision family is deferred to the containing vehicle system
     // (which can also disable contact between the chassis and certain vehicle subsystems).
     if (m_geometry.m_has_collision) {
-        m_geometry.AddCollisionShapes(m_body, collision_family, m_body->GetSystem()->GetContactMethod());
+        m_geometry.CreateCollisionShapes(m_body, collision_family, m_body->GetSystem()->GetContactMethod());
     }
 }
 
@@ -105,7 +105,7 @@ void ChRigidChassisRear::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_geometry.AddVisualizationAssets(m_body, vis);
+    m_geometry.CreateVisualizationAssets(m_body, vis);
 }
 
 void ChRigidChassisRear::RemoveVisualizationAssets() {

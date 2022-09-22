@@ -22,14 +22,8 @@
 #include <string>
 #include <vector>
 
-#include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChVector.h"
-#include "chrono/core/ChFrame.h"
-#include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChMaterialSurface.h"
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkTSDA.h"
-#include "chrono/assets/ChColor.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -103,16 +97,14 @@ struct DriverInputs {
 // -----------------------------------------------------------------------------
 
 /// Utility class for specifying a linear translational spring force.
-class LinearSpringForce : public ChLinkTSDA::ForceFunctor {
+class CH_VEHICLE_API LinearSpringForce : public ChLinkTSDA::ForceFunctor {
   public:
-    LinearSpringForce(double k, double preload = 0) : m_k(k), m_f(preload) {}
+    LinearSpringForce(double k, double preload = 0);
     virtual double evaluate(double time,
                             double rest_length,
                             double length,
                             double vel,
-                            const ChLinkTSDA& link) override {
-        return m_f - m_k * (length - rest_length);
-    }
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_k;
@@ -120,32 +112,28 @@ class LinearSpringForce : public ChLinkTSDA::ForceFunctor {
 };
 
 /// Utility class for specifying a linear translational damper force.
-class LinearDamperForce : public ChLinkTSDA::ForceFunctor {
+class CH_VEHICLE_API LinearDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
-    LinearDamperForce(double c, double preload = 0) : m_c(c) {}
+    LinearDamperForce(double c, double preload = 0);
     virtual double evaluate(double time,
                             double rest_length,
                             double length,
                             double vel,
-                            const ChLinkTSDA& link) override {
-        return m_c * vel;
-    }
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_c;
 };
 
 /// Utility class for specifying a linear translational spring-damper force.
-class LinearSpringDamperForce : public ChLinkTSDA::ForceFunctor {
+class CH_VEHICLE_API LinearSpringDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
-    LinearSpringDamperForce(double k, double c, double preload = 0) : m_k(k), m_c(c), m_f(preload) {}
+    LinearSpringDamperForce(double k, double c, double preload = 0);
     virtual double evaluate(double time,
                             double rest_length,
                             double length,
                             double vel,
-                            const ChLinkTSDA& link) override {
-        return m_f - m_k * (length - rest_length) - m_c * vel;
-    }
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_k;
@@ -154,22 +142,16 @@ class LinearSpringDamperForce : public ChLinkTSDA::ForceFunctor {
 };
 
 /// Utility class for specifying a map translational spring force.
-class MapSpringForce : public ChLinkTSDA::ForceFunctor {
+class CH_VEHICLE_API MapSpringForce : public ChLinkTSDA::ForceFunctor {
   public:
-    MapSpringForce(double preload = 0) : m_f(preload) {}
-    MapSpringForce(const std::vector<std::pair<double, double>>& data, double preload = 0) : m_f(preload) {
-        for (unsigned int i = 0; i < data.size(); ++i) {
-            m_map.AddPoint(data[i].first, data[i].second);
-        }
-    }
-    void add_point(double x, double y) { m_map.AddPoint(x, y); }
+    MapSpringForce(double preload = 0);
+    MapSpringForce(const std::vector<std::pair<double, double>>& data, double preload = 0);
+    void add_point(double x, double y);
     virtual double evaluate(double time,
                             double rest_length,
                             double length,
                             double vel,
-                            const ChLinkTSDA& link) override {
-        return m_f - m_map.Get_y(length - rest_length);
-    }
+                            const ChLinkTSDA& link) override;
 
   private:
     ChFunction_Recorder m_map;
@@ -177,51 +159,35 @@ class MapSpringForce : public ChLinkTSDA::ForceFunctor {
 };
 
 /// Utility class for specifying a map translational damper force.
-class MapDamperForce : public ChLinkTSDA::ForceFunctor {
+class CH_VEHICLE_API MapDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
-    MapDamperForce() {}
-    MapDamperForce(const std::vector<std::pair<double, double>>& data) {
-        for (unsigned int i = 0; i < data.size(); ++i) {
-            m_map.AddPoint(data[i].first, data[i].second);
-        }
-    }
-    void add_point(double x, double y) { m_map.AddPoint(x, y); }
+    MapDamperForce();
+    MapDamperForce(const std::vector<std::pair<double, double>>& data);
+    void add_point(double x, double y);
     virtual double evaluate(double time,
                             double rest_length,
                             double length,
                             double vel,
-                            const ChLinkTSDA& link) override {
-        return -m_map.Get_y(vel);
-    }
+                            const ChLinkTSDA& link) override;
 
   private:
     ChFunction_Recorder m_map;
 };
 
 /// Utility class for specifying a map translational spring-damper force with pre-tension.
-class MapSpringDamperForce : public ChLinkTSDA::ForceFunctor {
+class CH_VEHICLE_API MapSpringDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
-    MapSpringDamperForce(double preload = 0) : m_f(preload) {}
+    MapSpringDamperForce(double preload = 0);
     MapSpringDamperForce(const std::vector<std::pair<double, double>>& dataK,
                          const std::vector<std::pair<double, double>>& dataC,
-                         double preload = 0)
-        : m_f(preload) {
-        for (unsigned int i = 0; i < dataK.size(); ++i) {
-            m_mapK.AddPoint(dataK[i].first, dataK[i].second);
-        }
-        for (unsigned int i = 0; i < dataC.size(); ++i) {
-            m_mapC.AddPoint(dataC[i].first, dataC[i].second);
-        }
-    }
-    void add_pointK(double x, double y) { m_mapK.AddPoint(x, y); }
-    void add_pointC(double x, double y) { m_mapC.AddPoint(x, y); }
+                         double preload = 0);
+    void add_pointK(double x, double y);
+    void add_pointC(double x, double y);
     virtual double evaluate(double time,
                             double rest_length,
                             double length,
                             double vel,
-                            const ChLinkTSDA& link) override {
-        return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel);
-    }
+                            const ChLinkTSDA& link) override;
 
   private:
     ChFunction_Recorder m_mapK;
@@ -230,68 +196,22 @@ class MapSpringDamperForce : public ChLinkTSDA::ForceFunctor {
 };
 
 /// Utility class for specifying a map translational spring force with bump and rebound stop.
-class MapSpringBistopForce : public ChLinkTSDA::ForceFunctor {
+class CH_VEHICLE_API MapSpringBistopForce : public ChLinkTSDA::ForceFunctor {
   public:
-    MapSpringBistopForce(double spring_min_length, double spring_max_length, double preload = 0)
-        : m_min_length(spring_min_length), m_max_length(spring_max_length), m_f(preload) {
-        setup_stop_maps();
-    }
+    MapSpringBistopForce(double spring_min_length, double spring_max_length, double preload = 0);
     MapSpringBistopForce(const std::vector<std::pair<double, double>>& data,
                          double spring_min_length,
                          double spring_max_length,
-                         double preload = 0)
-        : m_min_length(spring_min_length), m_max_length(spring_max_length), m_f(preload) {
-        setup_stop_maps();
-        for (unsigned int i = 0; i < data.size(); ++i) {
-            m_map.AddPoint(data[i].first, data[i].second);
-        }
-    }
-    void add_point(double x, double y) { m_map.AddPoint(x, y); }
+                         double preload = 0);
+    void add_point(double x, double y);
     virtual double evaluate(double time,
                             double rest_length,
                             double length,
                             double vel,
-                            const ChLinkTSDA& link) override {
-        double defl_bump = 0.0;
-        double defl_rebound = 0.0;
-
-        if (length < m_min_length) {
-            defl_bump = m_min_length - length;
-        }
-
-        if (length > m_max_length) {
-            defl_rebound = length - m_max_length;
-        }
-
-        return m_f - m_map.Get_y(length - rest_length) + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
-    }
+                            const ChLinkTSDA& link) override;
 
   private:
-    void setup_stop_maps() {
-        m_bump.AddPoint(0.0, 0.0);
-        m_bump.AddPoint(2.0e-3, 200.0);
-        m_bump.AddPoint(4.0e-3, 400.0);
-        m_bump.AddPoint(6.0e-3, 600.0);
-        m_bump.AddPoint(8.0e-3, 800.0);
-        m_bump.AddPoint(10.0e-3, 1000.0);
-        m_bump.AddPoint(20.0e-3, 2500.0);
-        m_bump.AddPoint(30.0e-3, 4500.0);
-        m_bump.AddPoint(40.0e-3, 7500.0);
-        m_bump.AddPoint(50.0e-3, 12500.0);
-        m_bump.AddPoint(60.0e-3, 125000.0);
-
-        m_rebound.AddPoint(0.0, 0.0);
-        m_rebound.AddPoint(2.0e-3, 200.0);
-        m_rebound.AddPoint(4.0e-3, 400.0);
-        m_rebound.AddPoint(6.0e-3, 600.0);
-        m_rebound.AddPoint(8.0e-3, 800.0);
-        m_rebound.AddPoint(10.0e-3, 1000.0);
-        m_rebound.AddPoint(20.0e-3, 2500.0);
-        m_rebound.AddPoint(30.0e-3, 4500.0);
-        m_rebound.AddPoint(40.0e-3, 7500.0);
-        m_rebound.AddPoint(50.0e-3, 12500.0);
-        m_rebound.AddPoint(60.0e-3, 125000.0);
-    }
+    void setup_stop_maps();
     ChFunction_Recorder m_map;
     ChFunction_Recorder m_bump;
     ChFunction_Recorder m_rebound;
@@ -301,55 +221,16 @@ class MapSpringBistopForce : public ChLinkTSDA::ForceFunctor {
 };
 
 /// Utility class for specifying a linear translational spring force with bump and rebound stop.
-class LinearSpringBistopForce : public ChLinkTSDA::ForceFunctor {
+class CH_VEHICLE_API LinearSpringBistopForce : public ChLinkTSDA::ForceFunctor {
   public:
     /// Use default bump stop and rebound stop maps
-    LinearSpringBistopForce(double k, double min_length, double max_length, double preload = 0)
-        : m_k(k), m_min_length(min_length), m_max_length(max_length), m_f(preload) {
-        // From ADAMS/Car example
-        m_bump.AddPoint(0.0, 0.0);
-        m_bump.AddPoint(2.0e-3, 200.0);
-        m_bump.AddPoint(4.0e-3, 400.0);
-        m_bump.AddPoint(6.0e-3, 600.0);
-        m_bump.AddPoint(8.0e-3, 800.0);
-        m_bump.AddPoint(10.0e-3, 1000.0);
-        m_bump.AddPoint(20.0e-3, 2500.0);
-        m_bump.AddPoint(30.0e-3, 4500.0);
-        m_bump.AddPoint(40.0e-3, 7500.0);
-        m_bump.AddPoint(50.0e-3, 12500.0);
-        m_bump.AddPoint(60.0e-3, 125000.0);
-
-        m_rebound.AddPoint(0.0, 0.0);
-        m_rebound.AddPoint(2.0e-3, 200.0);
-        m_rebound.AddPoint(4.0e-3, 400.0);
-        m_rebound.AddPoint(6.0e-3, 600.0);
-        m_rebound.AddPoint(8.0e-3, 800.0);
-        m_rebound.AddPoint(10.0e-3, 1000.0);
-        m_rebound.AddPoint(20.0e-3, 2500.0);
-        m_rebound.AddPoint(30.0e-3, 4500.0);
-        m_rebound.AddPoint(40.0e-3, 7500.0);
-        m_rebound.AddPoint(50.0e-3, 12500.0);
-        m_rebound.AddPoint(60.0e-3, 125000.0);
-    }
+    LinearSpringBistopForce(double k, double min_length, double max_length, double preload = 0);
 
     virtual double evaluate(double time,
                             double rest_length,
                             double length,
                             double vel,
-                            const ChLinkTSDA& link) override {
-        double defl_bump = 0.0;
-        double defl_rebound = 0.0;
-
-        if (length < m_min_length) {
-            defl_bump = m_min_length - length;
-        }
-
-        if (length > m_max_length) {
-            defl_rebound = length - m_max_length;
-        }
-
-        return m_f - m_k * (length - rest_length) + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
-    }
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_k;
@@ -362,41 +243,25 @@ class LinearSpringBistopForce : public ChLinkTSDA::ForceFunctor {
 };
 
 /// Utility class for specifying a degressive translational damper force.
-class DegressiveDamperForce : public ChLinkTSDA::ForceFunctor {
+class CH_VEHICLE_API DegressiveDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     /// Fallback to LinearDamperForce
-    DegressiveDamperForce(double c_compression)
-        : m_c_compression(c_compression), m_c_expansion(c_compression), m_degr_compression(0), m_degr_expansion(0) {}
+    DegressiveDamperForce(double c_compression);
 
     /// Fallback to LinearDamperForce with different compression and expansion bins
-    DegressiveDamperForce(double c_compression, double c_expansion)
-        : m_c_compression(c_compression), m_c_expansion(c_expansion), m_degr_compression(0), m_degr_expansion(0) {}
+    DegressiveDamperForce(double c_compression, double c_expansion);
 
     /// Different compression and expansion degressivity, same damper coefficient at origin
-    DegressiveDamperForce(double c_compression, double degr_compression, double degr_expansion)
-        : m_c_compression(c_compression),
-          m_c_expansion(c_compression),
-          m_degr_compression(degr_compression),
-          m_degr_expansion(degr_expansion) {}
+    DegressiveDamperForce(double c_compression, double degr_compression, double degr_expansion);
 
     /// Full parametrization
-    DegressiveDamperForce(double c_compression, double degr_compression, double c_expansion, double degr_expansion)
-        : m_c_compression(c_compression),
-          m_c_expansion(c_expansion),
-          m_degr_compression(degr_compression),
-          m_degr_expansion(degr_expansion) {}
+    DegressiveDamperForce(double c_compression, double degr_compression, double c_expansion, double degr_expansion);
 
     virtual double evaluate(double time,
                             double rest_length,
                             double length,
                             double vel,
-                            const ChLinkTSDA& link) override {
-        if (vel >= 0) {
-            return -m_c_expansion * vel / (1.0 + m_degr_expansion * vel);
-        } else {
-            return -m_c_compression * vel / (1.0 - m_degr_compression * vel);
-        }
-    }
+                            const ChLinkTSDA& link) override;
 
   private:
     double m_c_compression;
@@ -406,13 +271,10 @@ class DegressiveDamperForce : public ChLinkTSDA::ForceFunctor {
 };
 
 /// Utility class for specifying a linear rotational spring torque.
-class LinearSpringTorque : public ChLinkRSDA::TorqueFunctor {
+class CH_VEHICLE_API LinearSpringTorque : public ChLinkRSDA::TorqueFunctor {
   public:
-    LinearSpringTorque(double k, double rest_angle = 0, double preload = 0)
-        : m_k(k), m_rest_angle(rest_angle), m_t(preload) {}
-    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
-        return m_t - m_k * (angle - m_rest_angle);
-    }
+    LinearSpringTorque(double k, double rest_angle = 0, double preload = 0);
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
 
   private:
     double m_k;
@@ -421,25 +283,20 @@ class LinearSpringTorque : public ChLinkRSDA::TorqueFunctor {
 };
 
 /// Utility class for specifying a linear rotational damper torque.
-class LinearDamperTorque : public ChLinkRSDA::TorqueFunctor {
+class CH_VEHICLE_API LinearDamperTorque : public ChLinkRSDA::TorqueFunctor {
   public:
-    LinearDamperTorque(double c) : m_c(c) {}
-    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
-        return -m_c * vel;
-    }
+    LinearDamperTorque(double c);
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
 
   private:
     double m_c;
 };
 
 /// Utility class for specifying a linear rotational spring-damper torque.
-class LinearSpringDamperTorque : public ChLinkRSDA::TorqueFunctor {
+class CH_VEHICLE_API LinearSpringDamperTorque : public ChLinkRSDA::TorqueFunctor {
   public:
-    LinearSpringDamperTorque(double k, double c, double rest_angle = 0, double preload = 0)
-        : m_k(k), m_c(c), m_rest_angle(rest_angle), m_t(preload) {}
-    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
-        return m_t - m_k * (angle - m_rest_angle) - m_c * vel;
-    }
+    LinearSpringDamperTorque(double k, double c, double rest_angle = 0, double preload = 0);
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
 
   private:
     double m_k;
@@ -449,19 +306,12 @@ class LinearSpringDamperTorque : public ChLinkRSDA::TorqueFunctor {
 };
 
 /// Utility class for specifying a map rotational spring torque.
-class MapSpringTorque : public ChLinkRSDA::TorqueFunctor {
+class CH_VEHICLE_API MapSpringTorque : public ChLinkRSDA::TorqueFunctor {
   public:
-    MapSpringTorque(double rest_angle = 0, double preload = 0) : m_rest_angle(rest_angle), m_t(preload) {}
-    MapSpringTorque(const std::vector<std::pair<double, double>>& data, double rest_angle = 0, double preload = 0)
-        : m_rest_angle(rest_angle), m_t(preload) {
-        for (unsigned int i = 0; i < data.size(); ++i) {
-            m_map.AddPoint(data[i].first, data[i].second);
-        }
-    }
-    void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
-        return m_t - m_map.Get_y(angle - m_rest_angle);
-    }
+    MapSpringTorque(double rest_angle = 0, double preload = 0);
+    MapSpringTorque(const std::vector<std::pair<double, double>>& data, double rest_angle = 0, double preload = 0);
+    void add_point(double x, double y);
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
 
   private:
     ChFunction_Recorder m_map;
@@ -470,18 +320,12 @@ class MapSpringTorque : public ChLinkRSDA::TorqueFunctor {
 };
 
 /// Utility class for specifying a map rotational damper torque.
-class MapDamperTorque : public ChLinkRSDA::TorqueFunctor {
+class CH_VEHICLE_API MapDamperTorque : public ChLinkRSDA::TorqueFunctor {
   public:
-    MapDamperTorque() {}
-    MapDamperTorque(const std::vector<std::pair<double, double>>& data) {
-        for (unsigned int i = 0; i < data.size(); ++i) {
-            m_map.AddPoint(data[i].first, data[i].second);
-        }
-    }
-    void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
-        return -m_map.Get_y(vel);
-    }
+    MapDamperTorque();
+    MapDamperTorque(const std::vector<std::pair<double, double>>& data);
+    void add_point(double x, double y);
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
 
   private:
     ChFunction_Recorder m_map;
@@ -653,107 +497,6 @@ enum BodyID {
     WHEEL_BODY = -99993,
     ROLER_BODY = -99994,
     SHOE_BODY = -99995
-};
-
-// -----------------------------------------------------------------------------
-// Class defining geometry (visualization and collision) and contact materials.
-// -----------------------------------------------------------------------------
-
-/// Utility class defining geometry (visualization and collision) and contact materials for a rigid vehicle body.
-/// Holds vectors of primitive shapes (any one of which may be empty) and a list of contact materials.
-/// Each shape defines its position and orientation relative to the parent body, geometric dimensions, and an index into
-/// the list of contact materials.
-class CH_VEHICLE_API ChVehicleGeometry {
-  public:
-    ChVehicleGeometry();
-
-    /// Box shape for visualization and/or collision.
-    struct BoxShape {
-        BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1)
-            : m_pos(pos), m_rot(rot), m_dims(dims), m_matID(matID) {}
-        ChVector<> m_pos;      ///< position relative to body
-        ChQuaternion<> m_rot;  ///< orientation relative to body
-        ChVector<> m_dims;     ///< box dimensions
-        int m_matID;           ///< index in contact material list
-    };
-
-    /// Sphere shape for visualization and/or collision.
-    struct SphereShape {
-        SphereShape(const ChVector<>& pos, double radius, int matID = -1)
-            : m_pos(pos), m_radius(radius), m_matID(matID) {}
-        ChVector<> m_pos;  ///< position relative to body
-        double m_radius;   ///< sphere radius
-        int m_matID;       ///< index in contact material list
-    };
-
-    /// Cylinder shape for visualization and/or collision.
-    struct CylinderShape {
-        CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1)
-            : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length), m_matID(matID) {}
-        ChVector<> m_pos;      ///< position relative to body
-        ChQuaternion<> m_rot;  ///< orientation relative to body
-        double m_radius;       ///< cylinder radius
-        double m_length;       ///< cylinder length
-        int m_matID;           ///< index in contact material list
-    };
-
-    /// Line shape for visualization.
-    struct LineShape {
-        LineShape(const ChVector<>& pos, const ChQuaternion<>& rot, std::shared_ptr<geometry::ChLine> line)
-            : m_pos(pos), m_rot(rot), m_line(line) {}
-        ChVector<> m_pos;                          ///< position relative to body
-        ChQuaternion<> m_rot;                      ///< orientation relative to body
-        std::shared_ptr<geometry::ChLine> m_line;  ///< line data
-    };
-
-    /// Convex hulls shape for collision.
-    struct ConvexHullsShape {
-        ConvexHullsShape(const std::string& filename, int matID = -1) : m_filename(filename), m_matID(matID) {}
-        std::string m_filename;  ///< name of Wavefront OBJ file
-        int m_matID;             ///< index in contact material list
-    };
-
-    /// Tri-mesh shape for collision.
-    struct TrimeshShape {
-        TrimeshShape(const ChVector<>& pos, const std::string& filename, double radius, int matID = -1)
-            : m_filename(filename), m_radius(radius), m_pos(pos), m_matID(matID) {}
-        std::string m_filename;  ///< name of Wavefront OBJ file
-        double m_radius;         ///< radius of sweeping sphere
-        ChVector<> m_pos;        ///< position relative to body
-        int m_matID;             ///< index in contact material list
-    };
-
-    bool m_has_collision;                            ///< true if body has a collision model
-    std::vector<ChContactMaterialData> m_materials;  ///< list of contact materials
-    std::vector<BoxShape> m_coll_boxes;              ///< list of collision boxes
-    std::vector<SphereShape> m_coll_spheres;         ///< list of collision spheres
-    std::vector<CylinderShape> m_coll_cylinders;     ///< list of collision cylinders
-    std::vector<ConvexHullsShape> m_coll_hulls;      ///< list of collision convex hulls
-    std::vector<TrimeshShape> m_coll_meshes;         ///< list of collision trimeshes
-
-    bool m_has_primitives;                       ///< true if the body uses visualization primitives
-    std::vector<BoxShape> m_vis_boxes;           ///< list of visualization boxes
-    std::vector<SphereShape> m_vis_spheres;      ///< list of visualization spheres
-    std::vector<CylinderShape> m_vis_cylinders;  ///< list of visualization cylinders
-    std::vector<LineShape> m_vis_lines;          ///< list of visualization lines
-
-    bool m_has_colors;          ///< true if primitive colors were provided
-    ChColor m_color_boxes;      ///< visualization color
-    ChColor m_color_spheres;    ///< visualization color
-    ChColor m_color_cylinders;  ///< visualization color
-
-    bool m_has_obj;               ///< true if the body uses visualization from an OBJ
-    bool m_has_mesh;              ///< true if the body uses a visualization mesh
-    std::string m_vis_mesh_file;  ///< name of Wavefront OBJ file with visualizaiton mesh
-
-    /// Create visualization assets for the specified body.
-    void AddVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis);
-
-    /// Create collision shapes for the specified body.
-    void AddCollisionShapes(std::shared_ptr<ChBody> body, int collision_family, ChContactMethod contact_method);
-
-    /// Calculate axis-aligned bounding box of all collision shapes.
-    void CalculateAABB(ChVector<>& amin, ChVector<>& amax);
 };
 
 /// @} vehicle

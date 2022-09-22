@@ -133,7 +133,7 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     // Add contact geometry on shoe body
-    m_geometry.AddCollisionShapes(m_shoe, TrackedCollisionFamily::SHOES, sys->GetContactMethod());
+    m_geometry.CreateCollisionShapes(m_shoe, TrackedCollisionFamily::SHOES, sys->GetContactMethod());
     m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
 }
 

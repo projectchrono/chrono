@@ -36,6 +36,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChVehicleGeometry.h"
 #include "chrono_vehicle/ChVehicleJoint.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
 

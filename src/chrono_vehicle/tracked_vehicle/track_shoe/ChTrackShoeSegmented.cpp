@@ -51,7 +51,7 @@ void ChTrackShoeSegmented::AddVisualizationAssets(VisualizationType vis) {
         m_geometry.m_has_colors = true;
     }
 
-    m_geometry.AddVisualizationAssets(m_shoe, vis);
+    m_geometry.CreateVisualizationAssets(m_shoe, vis);
 }
 
 void ChTrackShoeSegmented::RemoveVisualizationAssets() {
