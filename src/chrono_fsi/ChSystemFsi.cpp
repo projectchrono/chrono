@@ -898,7 +898,10 @@ void ChSystemFsi::DoStepDynamics_FSI() {
     if (m_fluid_dynamics->GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
         // The following is used to execute the Explicit WCSPH
         CopyDeviceDataToHalfStep();
+        thrust::copy(m_sysFSI->fsiGeneralData->derivVelRhoD.begin(), m_sysFSI->fsiGeneralData->derivVelRhoD.end(),
+            m_sysFSI->fsiGeneralData->derivVelRhoD_old.begin());
         ChUtilsDevice::FillMyThrust4(m_sysFSI->fsiGeneralData->derivVelRhoD, mR4(0));
+        
         if (m_integrate_SPH){
             m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD1,
                 m_sysFSI->fsiBodiesD2, m_sysFSI->fsiMeshD, 0.5 * m_paramsH->dT, m_time);

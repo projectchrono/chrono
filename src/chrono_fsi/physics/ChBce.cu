@@ -145,21 +145,20 @@ __global__ void Calc_Rigid_FSI_Forces_Torques_D(Real3* rigid_FSI_ForcesD,
 
     int RigidIndex = rigidIdentifierD[index];
     uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
-    derivVelRhoD[rigidMarkerIndex] =
-        (derivVelRhoD[rigidMarkerIndex] * paramsD.Beta + derivVelRhoD_old[rigidMarkerIndex] * (1 - paramsD.Beta)) *
-        paramsD.markerMass;
+    Real3 Force = (mR3(derivVelRhoD[rigidMarkerIndex]) * paramsD.Beta + 
+        mR3(derivVelRhoD_old[rigidMarkerIndex]) * (1 - paramsD.Beta)) * paramsD.markerMass;
 
     if (std::is_same<Real, double>::value) {
-        atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].x), derivVelRhoD[rigidMarkerIndex].x);
-        atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].y), derivVelRhoD[rigidMarkerIndex].y);
+        atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].x), Force.x);
+        atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].y), Force.y);
         atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].z), derivVelRhoD[rigidMarkerIndex].z);
     } else {
-        atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].x), derivVelRhoD[rigidMarkerIndex].x);
-        atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].y), derivVelRhoD[rigidMarkerIndex].y);
-        atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].z), derivVelRhoD[rigidMarkerIndex].z);
+        atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].x), Force.x);
+        atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].y), Force.y);
+        atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].z), Force.z);
     }
     Real3 dist3 = Distance(mR3(posRadD[rigidMarkerIndex]), posRigidD[RigidIndex]);
-    Real3 mtorque = cross(dist3, mR3(derivVelRhoD[rigidMarkerIndex]));
+    Real3 mtorque = cross(dist3, Force);
 
     if (std::is_same<Real, double>::value) {
         atomicAdd_double((double*)&(rigid_FSI_TorquesD[RigidIndex].x), mtorque.x);
@@ -187,9 +186,8 @@ __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
 
     int FlexIndex = FlexIdentifierD[index];
     uint FlexMarkerIndex = index + numObjectsD.startFlexMarkers;
-    derivVelRhoD[FlexMarkerIndex] =
-        (derivVelRhoD[FlexMarkerIndex] * paramsD.Beta + derivVelRhoD_old[FlexMarkerIndex] * (1 - paramsD.Beta)) *
-        paramsD.markerMass;
+    Real3 Force = (mR3(derivVelRhoD[FlexMarkerIndex]) * paramsD.Beta + 
+        mR3(derivVelRhoD_old[FlexMarkerIndex]) * (1 - paramsD.Beta)) * paramsD.markerMass;
 
     int numFlex1D = numObjectsD.numFlexBodies1D;
 
@@ -204,21 +202,21 @@ __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
         int nB = CableElementsNodesD[FlexIndex].y;
 
         if (std::is_same<Real, double>::value) {
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].x), NA * derivVelRhoD[FlexMarkerIndex].x);
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].y), NA * derivVelRhoD[FlexMarkerIndex].y);
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].z), NA * derivVelRhoD[FlexMarkerIndex].z);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].x), NA * Force.x);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].y), NA * Force.y);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].z), NA * Force.z);
 
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nB].x), NB * derivVelRhoD[FlexMarkerIndex].x);
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nB].y), NB * derivVelRhoD[FlexMarkerIndex].y);
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nB].z), NB * derivVelRhoD[FlexMarkerIndex].z);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nB].x), NB * Force.x);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nB].y), NB * Force.y);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nB].z), NB * Force.z);
         } else {
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nA].x), NA * derivVelRhoD[FlexMarkerIndex].x);
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nA].y), NA * derivVelRhoD[FlexMarkerIndex].y);
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nA].z), NA * derivVelRhoD[FlexMarkerIndex].z);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nA].x), NA * Force.x);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nA].y), NA * Force.y);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nA].z), NA * Force.z);
 
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nB].x), NB * derivVelRhoD[FlexMarkerIndex].x);
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nB].y), NB * derivVelRhoD[FlexMarkerIndex].y);
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nB].z), NB * derivVelRhoD[FlexMarkerIndex].z);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nB].x), NB * Force.x);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nB].y), NB * Force.y);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nB].z), NB * Force.z);
         }
     }
     if (FlexIndex >= numFlex1D) {
@@ -235,37 +233,37 @@ __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
         int nD = ShellElementsNodesD[FlexIndex - numFlex1D].w;
 
         if (std::is_same<Real, double>::value) {
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].x), NA * derivVelRhoD[FlexMarkerIndex].x);
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].y), NA * derivVelRhoD[FlexMarkerIndex].y);
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].z), NA * derivVelRhoD[FlexMarkerIndex].z);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].x), NA * Force.x);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].y), NA * Force.y);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].z), NA * Force.z);
 
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nB].x), NB * derivVelRhoD[FlexMarkerIndex].x);
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nB].y), NB * derivVelRhoD[FlexMarkerIndex].y);
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nB].z), NB * derivVelRhoD[FlexMarkerIndex].z);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nB].x), NB * Force.x);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nB].y), NB * Force.y);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nB].z), NB * Force.z);
 
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nC].x), NC * derivVelRhoD[FlexMarkerIndex].x);
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nC].y), NC * derivVelRhoD[FlexMarkerIndex].y);
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nC].z), NC * derivVelRhoD[FlexMarkerIndex].z);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nC].x), NC * Force.x);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nC].y), NC * Force.y);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nC].z), NC * Force.z);
 
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nD].x), ND * derivVelRhoD[FlexMarkerIndex].x);
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nD].y), ND * derivVelRhoD[FlexMarkerIndex].y);
-            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nD].z), ND * derivVelRhoD[FlexMarkerIndex].z);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nD].x), ND * Force.x);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nD].y), ND * Force.y);
+            atomicAdd_double((double*)&(Flex_FSI_ForcesD[nD].z), ND * Force.z);
         } else {
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nA].x), NA * derivVelRhoD[FlexMarkerIndex].x);
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nA].y), NA * derivVelRhoD[FlexMarkerIndex].y);
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nA].z), NA * derivVelRhoD[FlexMarkerIndex].z);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nA].x), NA * Force.x);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nA].y), NA * Force.y);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nA].z), NA * Force.z);
 
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nB].x), NB * derivVelRhoD[FlexMarkerIndex].x);
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nB].y), NB * derivVelRhoD[FlexMarkerIndex].y);
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nB].z), NB * derivVelRhoD[FlexMarkerIndex].z);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nB].x), NB * Force.x);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nB].y), NB * Force.y);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nB].z), NB * Force.z);
 
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nC].x), NC * derivVelRhoD[FlexMarkerIndex].x);
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nC].y), NC * derivVelRhoD[FlexMarkerIndex].y);
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nC].z), NC * derivVelRhoD[FlexMarkerIndex].z);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nC].x), NC * Force.x);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nC].y), NC * Force.y);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nC].z), NC * Force.z);
 
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nD].x), ND * derivVelRhoD[FlexMarkerIndex].x);
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nD].y), ND * derivVelRhoD[FlexMarkerIndex].y);
-            atomicAdd((float*)&(Flex_FSI_ForcesD[nD].z), ND * derivVelRhoD[FlexMarkerIndex].z);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nD].x), ND * Force.x);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nD].y), ND * Force.y);
+            atomicAdd((float*)&(Flex_FSI_ForcesD[nD].z), ND * Force.z);
         }
     }
 }
