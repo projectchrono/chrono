@@ -76,53 +76,6 @@ linux:arch-gcc:test:
   - ninja test
   dependencies: ["linux:arch-gcc:build"]
 
-
-linux:doxygen:deploy:
-  tags:
-  - linux
-  image:
-    name: archlinux:base-devel
-    entrypoint: ["/usr/bin/bash", "-c"]
-  stage: deploy
-  before_script:
-#    - pacman -Syyu --noconfirm base-devel git python python-pip doxygen graphviz openssh rsync clang
-    - pacman -Sy --noconfirm base-devel git python python-pip graphviz openssh rsync wget
-    - wget https://downloads.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
-    - tar -xf doxygen-1.8.16.linux.bin.tar.gz
-    - mkdir -p ~/.ssh
-    - chmod 0700 ~/.ssh
-# This private key is only useable from specific IPs, so it should be okay to
-# be included here.
-    - cp $API_PRIVATE_KEY ~/.ssh/id_ed25519
-    - chmod 0600 ~/.ssh/id_ed25519
-# Remove any duplicate host key entries, if necessary
-    - if test -f ~/.ssh/known_hosts; then ssh-keygen -R $API_REINDEX_ENDPOINT; fi
-# Cache a verified host pubkey from file to avoid MITM attacks
-    - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/known_hosts
-  script:
-    - export PATH="$PWD/doxygen-1.8.16/bin:$PATH"
-    - cd doxygen
-    - doxygen Doxyfile
-    # - doxygen Doxyfile_Generate_Search_Index
-    - rsync -ra /tmp/chrono_doxygen/html/* $API_HTML_ENDPOINT
-    - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
-    - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
-  needs:
-    - job: linux:arch-gcc:test
-      artifacts: false
-#    - job: macos-intel:monterey:test
-#      artifacts: false
-    - job: macos-apple:monterey:test
-      artifacts: false
-    - job: windows:vs2022:test
-      artifacts: false
-  environment:
-    name: doxygen
-    url: http://api.projectchrono.org/
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'
-      when: always
-
 linux:arch-llvm:build:
   stage: build
   extends: .archlinux
@@ -166,7 +119,7 @@ linux:arch-llvm:test:
   tags:
     - linux
   image:
-    name: nvidia/cuda:11.3.1-devel-ubuntu20.04
+    name: nvidia/cuda:11.6.0-devel-ubuntu20.04
   before_script:
     - uname -a
     - export DEBIAN_FRONTEND=noninteractive
@@ -227,6 +180,51 @@ linux:arch-llvm:test:
     name: pychrono-ubuntu2004
     url: https://anaconda.org/projectchrono/pychrono
 
+linux:doxygen:deploy:
+  tags:
+  - linux
+  image:
+    name: ubuntu:focal
+    entrypoint: ["/usr/bin/bash", "-c"]
+  stage: deploy
+  before_script:
+    - apt-get update; apt-get install -y git python python3-pip graphviz rsync wget
+    #- pacman -Sy --noconfirm base-devel git python python-pip graphviz openssh rsync wget
+    - wget https://downloads.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
+    - tar -xf doxygen-1.8.16.linux.bin.tar.gz
+    - mkdir -p ~/.ssh
+    - chmod 0700 ~/.ssh
+# This private key is only useable from specific IPs, so it should be okay to
+# be included here.
+    - cp $API_PRIVATE_KEY ~/.ssh/id_ed25519
+    - chmod 0600 ~/.ssh/id_ed25519
+# Remove any duplicate host key entries, if necessary
+    - if test -f ~/.ssh/known_hosts; then ssh-keygen -R $API_REINDEX_ENDPOINT; fi
+# Cache a verified host pubkey from file to avoid MITM attacks
+    - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/known_hosts
+  script:
+    - export PATH="$PWD/doxygen-1.8.16/bin:$PATH"
+    - cd doxygen
+    - doxygen Doxyfile
+    # - doxygen Doxyfile_Generate_Search_Index
+    - rsync -ra /tmp/chrono_doxygen/html/* $API_HTML_ENDPOINT
+    - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
+    - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
+  needs:
+    - job: linux:arch-gcc:test
+      artifacts: false
+#    - job: macos-intel:monterey:test
+#      artifacts: false
+    - job: macos-apple:monterey:test
+      artifacts: false
+    - job: windows:vs2022:test
+      artifacts: false
+  environment:
+    name: doxygen
+    url: http://api.projectchrono.org/
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main"'
+      when: always
 
 #----------------#
 # Ubuntu Builder #
