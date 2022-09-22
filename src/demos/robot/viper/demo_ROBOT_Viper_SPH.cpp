@@ -31,23 +31,30 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-/// Chrono namespaces
+// Chrono namespaces
 using namespace chrono;
 using namespace chrono::fsi;
 using namespace chrono::geometry;
 using namespace chrono::viper;
 
-/// output directories and settings
+// output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_Viper/";
-bool save_obj = false;  // if true, save as Wavefront OBJ; if false, save as VTK
 
-/// Dimension of the space domain
+// if true, save as Wavefront OBJ; if false, save as VTK
+bool save_obj = false;  
+
+// Physical properties of terrain particles
+double iniSpacing = 0.01;
+double kernelLength = 0.01;
+double density = 1700.0;
+
+// Dimension of the space domain
 double bxDim = 4.0;
 double byDim = 2.0;
 double bzDim = 0.1;
 
 // Rover initial location
-ChVector<> init_loc(-1, 0, 0.4);
+ChVector<> init_loc(-bxDim / 2.0 + 1.0, 0, bzDim + 0.3);
 
 // Simulation time and stepsize
 double total_time = 20.0;
@@ -63,6 +70,12 @@ float render_fps = 100;
 
 // Pointer to store the VIPER instance
 std::shared_ptr<Viper> rover;
+
+// Define Viper rover wheel type
+ViperWheelType wheel_type = ViperWheelType::RealWheel;
+
+// Use below mesh file if the wheel type is real VIPER wheel
+std::string wheel_obj = "robot/viper/obj/viper_wheel.obj";
 
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
@@ -137,26 +150,36 @@ int main(int argc, char* argv[]) {
         std::cout << "usage: ./demo_ROBOT_Viper_SPH <json_file>" << std::endl;
         return 1;
     }
-
     sysFSI.ReadParametersFromFile(inputJson);
 
+    // Set the initial particle spacing
+    sysFSI.SetInitialSpacing(iniSpacing);
+
+    // Set the SPH kernel length
+    sysFSI.SetKernelLength(kernelLength);
+
+    // Set the terrain density
+    sysFSI.SetDensity(density);
+
+    // Set the simulation stepsize
     sysFSI.SetStepSize(dT);
 
+    // Set the simulation domain size
     sysFSI.SetContainerDim(ChVector<>(bxDim, byDim, bzDim));
 
     // Set SPH discretization type, consistent or inconsistent
     sysFSI.SetDiscreType(false, false);
 
     // Set wall boundary condition
-    sysFSI.SetWallBC(BceVersion::ORIGINAL);
+    sysFSI.SetWallBC(BceVersion::ADAMI);
 
     // Setup the solver based on the input value of the prameters
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
 
     // Set the periodic boundary condition
     double initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> cMin(-bxDim / 2 * 2, -byDim / 2 * 2, -bzDim * 10);
-    ChVector<> cMax(bxDim / 2 * 2, byDim / 2 * 2, bzDim * 10);
+    ChVector<> cMin(-bxDim / 2 * 2, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10);
+    ChVector<> cMax(bxDim / 2 * 2, byDim / 2  + 0.5 * iniSpacing, bzDim * 20);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Set simulation data output length
@@ -285,14 +308,24 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
     sysFSI.AddBoxBCE(box, pos_zn, QUNIT, size_XY, 12);
     sysFSI.AddBoxBCE(box, pos_xp, QUNIT, size_YZ, 23);
     sysFSI.AddBoxBCE(box, pos_xn, QUNIT, size_YZ, 23);
-    sysFSI.AddBoxBCE(box, pos_yp, QUNIT, size_XZ, 13);
-    sysFSI.AddBoxBCE(box, pos_yn, QUNIT, size_XZ, 13);
+    // sysFSI.AddBoxBCE(box, pos_yp, QUNIT, size_XZ, 13);
+    // sysFSI.AddBoxBCE(box, pos_yn, QUNIT, size_XZ, 13);
 
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
-    rover = chrono_types::make_shared<Viper>(&sysMBS);
+    rover = chrono_types::make_shared<Viper>(&sysMBS, wheel_type);
     rover->SetDriver(driver);
     rover->SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
     rover->Initialize(ChFrame<>(init_loc, QUNIT));
+
+    // Create the wheel's BCE particles
+    auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
+    double scale_ratio = 1.0;
+    trimesh->LoadWavefrontMesh(GetChronoDataFile(wheel_obj), false, true);
+    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
+    trimesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
+
+    std::vector<ChVector<>> BCE_wheel;
+    sysFSI.CreateMeshPoints(*trimesh, initSpace0, BCE_wheel);
 
     // Add BCE particles and mesh of wheels to the system
     for (int i = 0; i < 4; i++) {
@@ -311,11 +344,10 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
         }
 
         sysFSI.AddFsiBody(wheel_body);
-        std::string BCE_path = GetChronoDataFile("fsi/demo_BCE/BCE_viperWheel.txt");
         if (i == 0 || i == 2) {
-            sysFSI.AddFileBCE(wheel_body, BCE_path, ChVector<>(0), Q_from_AngZ(CH_C_PI), 1.0, true);
+            sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChVector<>(0.0), Q_from_AngZ(CH_C_PI));
         } else {
-            sysFSI.AddFileBCE(wheel_body, BCE_path, ChVector<>(0), QUNIT, 1.0, true);
+            sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChVector<>(0.0), QUNIT);
         }
     }
 }
@@ -400,7 +432,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         }
 
         auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-        std::string obj_path = GetChronoDataFile("robot/viper/obj/viper_wheel.obj");
+        std::string obj_path = GetChronoDataFile(wheel_obj);
         double scale_ratio = 1.0;
         mmesh->LoadWavefrontMesh(obj_path, false, true);
         mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
