@@ -180,13 +180,14 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     bool m_wheeled;                  ///< comm node (true: TIRE nodes, false: tracked MBS node)
     ObjectType m_object_type;        ///< object representation (primitive or mesh)
     InterfaceType m_interface_type;  ///< communication interface (body or mesh)
-    int m_num_shapes;                ///< number of unique object geometries
     int m_num_objects;               ///< number of interacting objects
 
-    std::vector<ChVector<>> m_shape_dims;   ///< object dimensions
+    std::vector<ChVehicleGeometry::AABB> m_aabb;  ///< AABB of collision models
+    std::vector<ChVehicleGeometry> m_geometry;    ///< contact geometry and materials for interacting objects
+    std::vector<double> m_load_mass;              ///< vertical load on interacting bodies
+
     std::vector<ChContactMaterialData> m_mat_props;  ///< contact material properties
-    std::vector<MeshData> m_mesh_data;      ///< mesh data
-    std::vector<double> m_load_mass;        ///< vertical load on body
+    std::vector<MeshData> m_mesh_data;               ///< mesh data
 
     std::vector<MeshState> m_mesh_state;        ///< mesh state (used for MESH communication)
     std::vector<BodyState> m_rigid_state;       ///< rigid state (used for BODY communication interface)
@@ -194,7 +195,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     std::vector<TerrainForce> m_rigid_contact;  ///< rigid contact force (used for BODY communication interface)
 
   private:
-    void InitializeTireData(int i);
+    void InitializeTireData();
     void InitializeTrackData();
 
     void SynchronizeWheeledBody(int step_number, double time);

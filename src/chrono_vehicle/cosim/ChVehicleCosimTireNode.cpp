@@ -241,8 +241,6 @@ void ChVehicleCosimTireNode::Initialize() {
     MPI_Send(vert_data, 3 * m_mesh_data.nv + 3 * m_mesh_data.nn, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     MPI_Send(tri_data, 3 * m_mesh_data.nt + 3 * m_mesh_data.nt, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
-    MPI_Send(&load_mass, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-
     float mat_props[8] = {m_contact_mat->GetKfriction(),    m_contact_mat->GetRestitution(),
                           m_contact_mat->GetYoungModulus(), m_contact_mat->GetPoissonRatio(),
                           m_contact_mat->GetKn(),           m_contact_mat->GetGn(),
@@ -250,6 +248,10 @@ void ChVehicleCosimTireNode::Initialize() {
     MPI_Send(mat_props, 8, MPI_FLOAT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     if (m_verbose)
         cout << "[Tire node   ] Send: friction = " << mat_props[0] << endl;
+
+    MPI_Send(&load_mass, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+    if (m_verbose)
+        cout << "[Tire node   ] Send: load mass = " << load_mass << endl;
 }
 
 void ChVehicleCosimTireNode::InitializeSystem() {

@@ -26,6 +26,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChVehicleGeometry.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimBaseNode.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimDBPRig.h"

@@ -322,7 +322,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
     m_proxies[i].push_back(ProxyBody(body, 0));
 
     // Add corresponding moving patch to SCM terrain
-    m_terrain->AddMovingPatch(body, ChVector<>(0, 0, 0), m_shape_dims[i]);
+    m_terrain->AddMovingPatch(body, m_aabb[i].m_center, m_aabb[i].m_dims);
 
 #ifdef CHRONO_IRRLICHT
     // Bind Irrlicht assets
