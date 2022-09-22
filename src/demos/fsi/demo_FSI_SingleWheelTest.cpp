@@ -59,7 +59,7 @@ double total_mass = 105.22;
 std::string wheel_obj = "vehicle/hmmwv/hmmwv_tire_coarse_closed.obj";
 
 // Initial Position of wheel
-ChVector<> wheel_IniPos(-bxDim / 2 + wheel_radius, 0.0, 0.0);
+ChVector<> wheel_IniPos(-bxDim / 2 + wheel_radius, 0.0, wheel_radius + bzDim + iniSpacing);
 ChVector<> wheel_IniVel(0.0, 0.0, 0.0);
 
 // Simulation time and stepsize
@@ -164,9 +164,9 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
-    // compute mass inertia from mesh
+    // Compute mass inertia from mesh
     double mmass;
-    double mdensity = 1500.0;
+    double mdensity = density;
     ChVector<> mcog;
     ChMatrix33<> minertia;
     trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
@@ -175,11 +175,9 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
     mcog = ChVector<>(0.0, 0.0, 0.0);
 
-    // set the abs orientation, position and velocity
+    // Set the abs orientation, position and velocity
     auto wheel = chrono_types::make_shared<ChBodyAuxRef>();
-    ChQuaternion<> Body_rot = Q_from_Euler123(ChVector<double>(0, 0, 0));
-    ChVector<> Body_pos = wheel_IniPos + ChVector<>(0, 0, wheel_radius + bzDim);
-    ChVector<> Body_vel = wheel_IniVel;
+    ChQuaternion<> wheel_Rot = Q_from_Euler123(ChVector<double>(0, 0, 0));
 
     // Set the COG coordinates to barycenter, without displacing the REF reference.
     // Make the COG frame a principal frame.
@@ -188,11 +186,11 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set inertia
     wheel->SetMass(total_mass * 1.0 / 2.0);
     wheel->SetInertiaXX(mdensity * principal_I);
-    wheel->SetPos_dt(Body_vel);
+    wheel->SetPos_dt(wheel_IniVel);
     wheel->SetWvel_loc(ChVector<>(0.0, 0.0, 0.0));  // set an initial anular velocity (rad/s)
 
     // Set the absolute position of the body:
-    wheel->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(Body_pos), ChQuaternion<>(Body_rot)));
+    wheel->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(wheel_IniPos), ChQuaternion<>(wheel_Rot)));
     sysMBS.AddBody(wheel);
 
     wheel->SetBodyFixed(false);
@@ -202,16 +200,13 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     wheel->SetCollide(false);
 
     // Add this body to the FSI system
-    std::vector<ChVector<>> BCE_par_rock;
-    sysFSI.CreateMeshPoints(*trimesh, iniSpacing, BCE_par_rock);
-    sysFSI.AddPointsBCE(wheel, BCE_par_rock, ChVector<>(0.0), QUNIT);
+    std::vector<ChVector<>> BCE_wheel;
+    sysFSI.CreateMeshPoints(*trimesh, iniSpacing, BCE_wheel);
+    sysFSI.AddPointsBCE(wheel, BCE_wheel, ChVector<>(0.0), QUNIT);
     sysFSI.AddFsiBody(wheel);
 
     // Create the chassis -- always THIRD body in the system
-    // Initially, the chassis is fixed to ground.
-    // It is released after the settling phase.
     auto chassis = chrono_types::make_shared<ChBody>();
-    // chassis->SetIdentifier(Id_chassis);
     chassis->SetMass(total_mass * 1.0 / 2.0);
     chassis->SetPos(wheel->GetPos());
     chassis->SetCollide(false);
@@ -225,11 +220,11 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Create the axle -- always FOURTH body in the system
     auto axle = chrono_types::make_shared<ChBody>();
-    // axle->SetIdentifier(Id_axle);
     axle->SetMass(total_mass * 1.0 / 2.0);
     axle->SetPos(wheel->GetPos());
     axle->SetCollide(false);
     axle->SetBodyFixed(false);
+
     // Add geometry of the axle.
     axle->GetCollisionModel()->ClearModel();
     chrono::utils::AddSphereGeometry(axle.get(), mysurfmaterial, 0.5, ChVector<>(0, 0, 0));
@@ -310,8 +305,16 @@ int main(int argc, char* argv[]) {
 
     sysFSI.ReadParametersFromFile(inputJson);
 
+    // Set the initial particle spacing
     sysFSI.SetInitialSpacing(iniSpacing);
+
+    // Set the SPH kernel length
     sysFSI.SetKernelLength(kernelLength);
+
+    // Set the terrain density
+    sysFSI.SetDensity(density);
+
+    // Set the simulation stepsize
     sysFSI.SetStepSize(dT);
 
     // Set the terrain container size
@@ -321,10 +324,10 @@ int main(int argc, char* argv[]) {
     sysFSI.SetDiscreType(false, false);
 
     // Set wall boundary condition
-    sysFSI.SetWallBC(BceVersion::ORIGINAL);
+    sysFSI.SetWallBC(BceVersion::ADAMI);
 
     // Set rigid body boundary condition
-    sysFSI.SetRigidBodyBC(BceVersion::ORIGINAL);
+    sysFSI.SetRigidBodyBC(BceVersion::ADAMI);
 
     // Set cohsion of the granular material
     sysFSI.SetCohesionForce(1.0e2);
@@ -365,8 +368,11 @@ int main(int argc, char* argv[]) {
 
     // Write the information into a txt file
     std::ofstream myFile;
-    if (output)
+    std::ofstream myDBP_Torque;
+    if (output) {
         myFile.open(out_dir + "/results.txt", std::ios::trunc);
+        myDBP_Torque.open(out_dir + "/DBP_Torque.txt", std::ios::trunc);
+    }
 
     // Create a run-tme visualizer
     ChVisualizationFsi fsi_vis(&sysFSI);
@@ -409,6 +415,7 @@ int main(int argc, char* argv[]) {
                    << w_vel.y() << "\t" << w_vel.z() << "\t" << angvel.x() << "\t" << angvel.y() << "\t" << angvel.z()
                    << "\t" << force.x() << "\t" << force.y() << "\t" << force.z() << "\t" << torque.x() << "\t"
                    << torque.y() << "\t" << torque.z() << "\n";
+            myDBP_Torque << time << "\t" << force.x() << "\t" << torque.z() << "\n";
         }
 
         if (output && current_step % output_steps == 0) {
@@ -434,8 +441,10 @@ int main(int argc, char* argv[]) {
     timer.stop();
     std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
 
-    if (output)
+    if (output) {
         myFile.close();
+        myDBP_Torque.close();
+    }
 
     return 0;
 }
