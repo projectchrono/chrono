@@ -96,38 +96,35 @@ void ChVehicleCosimTerrainNode::Initialize() {
         MPI_Status status;
         MPI_Recv(&m_num_objects, 1, MPI_INT, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
-        // 3. Resize arrays for co-simulation data exchange (one per interacting object)
+        // 3. Receive expected communication interface type
 
-        m_obj_map.resize(m_num_objects);
-
-        m_mesh_state.resize(m_num_objects);
-        m_mesh_contact.resize(m_num_objects);
-        m_rigid_state.resize(m_num_objects);
-        m_rigid_contact.resize(m_num_objects);
-
-        // 4. Receive object representation and interface type
-
-        char comm_type[2];
+        char comm_type;
         if (m_wheeled) {
             // Receive from 1st TIRE node
-            MPI_Recv(comm_type, 2, MPI_CHAR, TIRE_NODE_RANK(0), 0, MPI_COMM_WORLD, &status);
+            MPI_Recv(&comm_type, 1, MPI_CHAR, TIRE_NODE_RANK(0), 0, MPI_COMM_WORLD, &status);
         } else {
             // Receive from the tracked MBS node
-            MPI_Recv(comm_type, 2, MPI_CHAR, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+            MPI_Recv(&comm_type, 1, MPI_CHAR, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
         }
-        m_object_type = (comm_type[0] == 0) ? ObjectType::PRIMITIVE : ObjectType::MESH;
-        m_interface_type = (comm_type[1] == 0) ? InterfaceType::BODY : InterfaceType::MESH;
+        m_interface_type = (comm_type == 0) ? InterfaceType::BODY : InterfaceType::MESH;
 
         if (m_interface_type == InterfaceType::MESH && !SupportsMeshInterface()) {
             cout << "ERROR: terrain system does not support the MESH interface type!" << endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
 
-        if (m_interface_type == InterfaceType::MESH && m_object_type != ObjectType::MESH) {
-            //// RADU TODO
-        }
+        // 4. Resize arrays for co-simulation data exchange (one per interacting object)
 
-        // 5. Receive object information
+        m_obj_map.resize(m_num_objects);
+
+        if (m_interface_type == InterfaceType::MESH) {
+            m_mesh_state.resize(m_num_objects);
+            m_mesh_contact.resize(m_num_objects);
+        }
+        m_rigid_state.resize(m_num_objects);
+        m_rigid_contact.resize(m_num_objects);
+
+        // 5. Receive object information (geometry, contact materials, load mass)
 
         if (m_wheeled) {
             // Get tire geometry data from TIRE nodes
@@ -142,170 +139,76 @@ void ChVehicleCosimTerrainNode::Initialize() {
     OnInitialize(m_num_objects);
 }
 
-//// RADU TODO
-//// Currently, hard-coded for tire data represented as mesh.
 void ChVehicleCosimTerrainNode::InitializeTireData() {
+    MPI_Status status;
+
     // Resize arrays with geometric object information (one per tire)
     m_aabb.resize(m_num_objects);
     m_geometry.resize(m_num_objects);
     m_load_mass.resize(m_num_objects);
 
-    // Set mapping from objects to shapes
+    // Set mapping from objects to shapes (each tire has its own geometry)
     for (int i = 0; i < m_num_objects; i++)
         m_obj_map[i] = i;
 
     // Exchange data with each TIRE node
-    MPI_Status status;
     for (int i = 0; i < m_num_objects; i++) {
-        // Tire mass, radius, width
-        double tire_info[3];
-        MPI_Recv(tire_info, 3, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
-        m_aabb[i] = ChVehicleGeometry::AABB(ChVector<>(0), ChVector<>(2 * tire_info[1], tire_info[2], 2 * tire_info[1]));
+        // Receive tire geometry
+        RecvGeometry(m_geometry[i], TIRE_NODE_RANK(i));
 
-        // Tire collision mesh
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        auto& vertices = trimesh->getCoordsVertices();
-        auto& normals = trimesh->getCoordsNormals();
-        auto& idx_vertices = trimesh->getIndicesVertexes();
-        auto& idx_normals = trimesh->getIndicesNormals();
-
-        // Tire contact surface specification
-        unsigned int surf_props[3];
-        MPI_Recv(surf_props, 3, MPI_UNSIGNED, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
-        int nv = surf_props[0];
-        int nn = surf_props[1];
-        int nt = surf_props[2];
-
-        trimesh->getCoordsVertices().resize(nv);
-        trimesh->getCoordsNormals().resize(nn);
-        trimesh->getIndicesVertexes().resize(nt);
-        trimesh->getIndicesNormals().resize(nt);
-
-        m_mesh_state[i].vpos.resize(nv);
-        m_mesh_state[i].vvel.resize(nv);
-
-        // Tire mesh vertices & normals and triangle indices
-        double* vert_data = new double[3 * nv + 3 * nn];
-        int* tri_data = new int[3 * nt + 3 * nt];
-        MPI_Recv(vert_data, 3 * nv + 3 * nn, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
-        MPI_Recv(tri_data, 3 * nt + 3 * nt, MPI_INT, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
-
-        for (unsigned int iv = 0; iv < nv; iv++) {
-            vertices[iv].x() = vert_data[3 * iv + 0];
-            vertices[iv].y() = vert_data[3 * iv + 1];
-            vertices[iv].z() = vert_data[3 * iv + 2];
-        }
-        for (unsigned int in = 0; in < nn; in++) {
-            normals[in].x() = vert_data[3 * nv + 3 * in + 0];
-            normals[in].y() = vert_data[3 * nv + 3 * in + 1];
-            normals[in].z() = vert_data[3 * nv + 3 * in + 2];
-        }
-        for (unsigned int it = 0; it < nt; it++) {
-            idx_vertices[it].x() = tri_data[6 * it + 0];
-            idx_vertices[it].y() = tri_data[6 * it + 1];
-            idx_vertices[it].z() = tri_data[6 * it + 2];
-            idx_normals[it].x() = tri_data[6 * it + 3];
-            idx_normals[it].y() = tri_data[6 * it + 4];
-            idx_normals[it].z() = tri_data[6 * it + 5];
+        // If using MESH interface, there must be one and exactly one mesh
+        if (m_interface_type == InterfaceType::MESH && m_geometry[i].m_coll_meshes.size() != 1) {
+            cout << "ERROR: using MESH interface, but tire geometry does not include a mesh!" << endl;
+            MPI_Abort(MPI_COMM_WORLD, 1);       
         }
 
-        delete[] vert_data;
-        delete[] tri_data;
+        // Set size of collision model for this tire
+        m_aabb[i] = m_geometry[0].CalculateAABB();
 
-        if (m_verbose)
-            cout << "[Terrain node] Recv: " << surf_props[0] << " vertices and " << surf_props[2] << " triangles"
-                 << endl;
+        // Resize mesh state vectors (if used)
+        if (m_interface_type == InterfaceType::MESH) {
+            int nv = m_geometry[i].m_coll_meshes[0].m_trimesh->getNumVertices();
+            m_mesh_state[i].vpos.resize(nv);
+            m_mesh_state[i].vvel.resize(nv);
+        }
 
-        // Tire contact material properties
-        float props[8];
-        MPI_Recv(props, 8, MPI_FLOAT, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
-        if (m_verbose)
-            cout << "[Terrain node] Recv:  friction = " << props[0] << endl;
-
-        // Load trimesh and contact material in geometry object
-        m_geometry[i].m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(ChVector<>(0), trimesh, 0.0, 0));
-        m_geometry[i].m_materials.push_back(
-            ChContactMaterialData(props[0], props[1], props[2], props[3], props[4], props[5], props[6], props[7]));
-
-        // Load mass
+        // Receive load mass
         MPI_Recv(&m_load_mass[i], 1, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
         if (m_verbose)
             cout << "[Terrain node] Recv:  load_mass = " << m_load_mass[i] << endl;
     }
 }
 
-//// RADU TODO
-//// Currently, hard-coded for primitive track shoe shape only
 void ChVehicleCosimTerrainNode::InitializeTrackData() {
+    MPI_Status status;
+
     // Resize arrays with geometric object information (same for all track shoes)
     m_aabb.resize(1);
     m_geometry.resize(1);
     m_load_mass.resize(1);
 
-    // Set mapping from objects to shapes
+    // Set mapping from objects to shapes (all track shoes use the same geometry)
     for (int i = 0; i < m_num_objects; i++)
         m_obj_map[i] = 0;
 
-    // Exchange data with the tracked MBS node
-    MPI_Status status;
+    // Receive track shoe geometry from the tracked MBS node
+    RecvGeometry(m_geometry[0], MBS_NODE_RANK);
 
-    // Receive information on number of contact materials and collision shapes of each type
-    int dims[6];
-    MPI_Recv(dims, 6, MPI_INT, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-    int num_materials = dims[0];
-    int num_boxes = dims[1];
-    int num_spheres = dims[2];
-    int num_cylinders = dims[3];
-    int num_hulls = dims[4];
-    int num_meshes = dims[5];
-
-    // Receive contact materials
-    for (int i = 0; i < num_materials; i++) {
-        float props[8];
-        MPI_Recv(props, 8, MPI_FLOAT, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-        m_geometry[0].m_materials.push_back(
-            ChContactMaterialData(props[0], props[1], props[2], props[3], props[4], props[5], props[6], props[7]));
-    }
-
-    // Receive shape geometry
-    for (int i = 0; i < num_boxes; i++) {
-        double data[11];
-        MPI_Recv(data, 11, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-        m_geometry[0].m_coll_boxes.push_back(                                                //
-            ChVehicleGeometry::BoxShape(ChVector<>(data[0], data[1], data[2]),               //
-                                        ChQuaternion<>(data[3], data[4], data[5], data[6]),  //
-                                        ChVector<>(data[7], data[8], data[9]),               //
-                                        static_cast<int>(data[10]))                          //
-        );
-    }
-    for (int i = 0; i < num_spheres; i++) {
-        double data[5];
-        MPI_Recv(data, 5, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-        m_geometry[0].m_coll_spheres.push_back(                                    //
-            ChVehicleGeometry::SphereShape(ChVector<>(data[0], data[1], data[2]),  //
-                                           data[3],                                //
-                                           static_cast<int>(data[4]))              //
-        );
-    }
-    for (int i = 0; i < num_cylinders; i++) {
-        double data[10];
-        MPI_Recv(data, 10, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-        m_geometry[0].m_coll_cylinders.push_back(                                                 //
-            ChVehicleGeometry::CylinderShape(ChVector<>(data[0], data[1], data[2]),               //
-                                             ChQuaternion<>(data[3], data[4], data[5], data[6]),  //
-                                             data[7], data[8],                                    //
-                                             static_cast<int>(data[9]))                           //
-        );
-    }
-    for (int i = 0; i < num_hulls; i++) {
-        //// RADU TODO
-    }
-    for (int i = 0; i < num_meshes; i++) {
-        //// RADU TODO
+    // If using MESH interface, there must be one and exactly one mesh
+    if (m_interface_type == InterfaceType::MESH && m_geometry[0].m_coll_meshes.size() != 1) {
+        cout << "ERROR: using MESH interface, but shoe geometry does not include a mesh!" << endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
     // Set size of collision model for each track shoe    
     m_aabb[0] = m_geometry[0].CalculateAABB();
+
+    // Resize mesh state vectors (if used)
+    if (m_interface_type == InterfaceType::MESH) {
+        int nv = m_geometry[0].m_coll_meshes[0].m_trimesh->getNumVertices();
+        m_mesh_state[0].vpos.resize(nv);
+        m_mesh_state[0].vvel.resize(nv);
+    }
 
     // Receive mass of a track shoe
     MPI_Recv(&m_load_mass[0], 1, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);

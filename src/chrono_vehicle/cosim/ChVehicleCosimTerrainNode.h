@@ -177,7 +177,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     // Communication data
 
     bool m_wheeled;                  ///< comm node (true: TIRE nodes, false: tracked MBS node)
-    ObjectType m_object_type;        ///< object representation (primitive or mesh)
     InterfaceType m_interface_type;  ///< communication interface (body or mesh)
     int m_num_objects;               ///< number of interacting objects
 

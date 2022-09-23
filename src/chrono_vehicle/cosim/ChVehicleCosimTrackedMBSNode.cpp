@@ -136,56 +136,16 @@ void ChVehicleCosimTrackedMBSNode::Initialize() {
     // Send to TERRAIN node the number of interacting objects (here, total number of track shoes)
     MPI_Send(&num_track_shoes, 1, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
-    // Send the object representation (primitives) and the communication interface type (rigid body) to the TERRAIN node
-    char comm_type[] = {0, 0};
-    MPI_Send(comm_type, 2, MPI_CHAR, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+    // Send the communication interface type (rigid body) to the TERRAIN node
+    char comm_type = 0;
+    MPI_Send(&comm_type, 1, MPI_CHAR, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
-    ChVehicleGeometry geom = GetTrackShoeContactGeometry();
+    // Send geometry for one track shoe
+    SendGeometry(GetTrackShoeContactGeometry(), TERRAIN_NODE_RANK);
 
-    // Send information on number of contact materials and collision shapes of each type
-    int dims[] = {geom.m_materials.size(),      geom.m_coll_boxes.size(), geom.m_coll_spheres.size(),
-                  geom.m_coll_cylinders.size(), geom.m_coll_hulls.size(), geom.m_coll_meshes.size()};
-    MPI_Send(dims, 6, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-
-    // Send contact materials
-    for (const auto& mat : geom.m_materials) {
-        float props[] = {mat.mu, mat.cr, mat.Y, mat.nu, mat.kn, mat.gn, mat.kt, mat.gt}; 
-        MPI_Send(props, 8, MPI_FLOAT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-    }
-
-    // Send shape geometry
-    for (const auto& box : geom.m_coll_boxes) {
-        double data[] = {
-            box.m_pos.x(),  box.m_pos.y(),  box.m_pos.z(),                   //
-            box.m_rot.e0(), box.m_rot.e1(), box.m_rot.e2(), box.m_rot.e3(),  //
-            box.m_dims.x(), box.m_dims.y(), box.m_dims.z(),                  //
-            box.m_matID                                                      //
-        };
-        MPI_Send(data, 11, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-    }
-    for (const auto& sph : geom.m_coll_spheres) {
-        double data[] = {
-            sph.m_pos.x(), sph.m_pos.y(), sph.m_pos.z(),  //
-            sph.m_radius,                                 //
-            sph.m_matID                                   //
-        };
-        MPI_Send(data, 5, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-    }
-    for (const auto& cyl : geom.m_coll_cylinders) {
-        double data[] = {
-            cyl.m_pos.x(),  cyl.m_pos.y(),  cyl.m_pos.z(),                   //
-            cyl.m_rot.e0(), cyl.m_rot.e1(), cyl.m_rot.e2(), cyl.m_rot.e3(),  //
-            cyl.m_radius,   cyl.m_length,                                    //
-            cyl.m_matID                                                      //
-        };
-        MPI_Send(data, 10, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-    }
-    for (const auto& box : geom.m_coll_hulls) {
-        //// RADU TODO
-    }
-    for (const auto& box : geom.m_coll_meshes) {
-        //// RADU TODO
-    }
+    // Send mass of one track shoe
+    double mass = GetTrackShoeMass();
+    MPI_Send(&mass, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
     // Initialize the DBP rig if one is attached
     if (m_DBP_rig) {

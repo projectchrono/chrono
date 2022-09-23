@@ -66,21 +66,25 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
 
     // Set mesh data (initial configuration, vertex positions in local frame)
     //// TODO: vertex normals?
-    m_mesh_data.nv = contact_surface->GetNumVertices();
-    m_mesh_data.nn = contact_surface->GetNumVertices();
-    m_mesh_data.nt = contact_surface->GetNumTriangles();
-    std::vector<ChVector<>> vvel;
-    m_mesh_data.verts.resize(m_mesh_data.nv);
-    m_mesh_data.norms.resize(m_mesh_data.nn);
-    m_contact_load->OutputSimpleMesh(m_mesh_data.verts, vvel, m_mesh_data.idx_verts);
-    m_mesh_data.idx_norms = m_mesh_data.idx_verts;
-    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
-        m_mesh_data.verts[iv] = m_spindle->TransformPointParentToLocal(m_mesh_data.verts[iv]);
-        m_mesh_data.norms[iv] = ChVector<>(0, 0, 1);  //// TODO
-    }
+    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    auto& verts = trimesh->getCoordsVertices();
+    auto& norms = trimesh->getCoordsNormals();
+    auto& idx_verts = trimesh->getIndicesVertexes();
+    auto& idx_norms = trimesh->getIndicesNormals();
 
-    // Tire contact material
-    m_contact_mat = m_tire->GetContactMaterial();
+    std::vector<ChVector<>> vvel;
+    m_contact_load->OutputSimpleMesh(verts, vvel, idx_verts);
+
+    //// RADU TODO
+    std::copy(idx_verts.begin(), idx_verts.end(), std::back_inserter(idx_norms));
+    idx_norms.resize(idx_verts.size(), ChVector<>(0,0,1));
+
+    // Tire geometry and contact material
+    auto cmat = m_tire->GetContactMaterial();
+    m_geometry.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(VNULL, trimesh, 0.0, 0));
+    m_geometry.m_materials.push_back(ChContactMaterialData(cmat->GetKfriction(), cmat->GetRestitution(),
+                                                           cmat->GetYoungModulus(), cmat->GetPoissonRatio(),
+                                                           cmat->GetKn(), cmat->GetGn(), cmat->GetKt(), cmat->GetGt()));
 
     // Preprocess the tire mesh and store neighbor element information for each vertex
     // and vertex indices for each element. This data is used in output.

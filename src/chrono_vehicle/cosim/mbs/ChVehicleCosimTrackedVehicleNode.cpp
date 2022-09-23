@@ -104,8 +104,6 @@ void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2<>& terrain_
     // Initialize powertrain
     m_vehicle->InitializePowertrain(m_powertrain);
 
-    //// RADU TODO Loads?!?!
-
     // Size vectors of track shoe forces
     m_shoe_forces[0].resize(m_vehicle->GetNumTrackShoes(VehicleSide::LEFT));
     m_shoe_forces[1].resize(m_vehicle->GetNumTrackShoes(VehicleSide::RIGHT));
@@ -115,6 +113,10 @@ void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2<>& terrain_
 
 ChVehicleGeometry ChVehicleCosimTrackedVehicleNode::GetTrackShoeContactGeometry() const {
     return m_vehicle->GetTrackShoe(VehicleSide::LEFT, 0)->GetGroundContactGeometry();
+}
+
+double ChVehicleCosimTrackedVehicleNode::GetTrackShoeMass() const {
+    return m_vehicle->GetTrackShoe(VehicleSide::LEFT, 0)->GetMass();
 }
 
 // -----------------------------------------------------------------------------
@@ -133,10 +135,6 @@ int ChVehicleCosimTrackedVehicleNode::GetNumTrackShoes() const {
 
 std::shared_ptr<ChBody> ChVehicleCosimTrackedVehicleNode::GetTrackShoeBody(int track_id, int shoe_id) const {
     return m_vehicle->GetTrackShoe(track_id == 0 ? VehicleSide::LEFT : VehicleSide::RIGHT, shoe_id)->GetShoeBody();
-}
-
-double ChVehicleCosimTrackedVehicleNode::GetSpindleLoad(unsigned int i) const {
-    return m_spindle_loads[i];
 }
 
 BodyState ChVehicleCosimTrackedVehicleNode::GetTrackShoeState(int track_id, int shoe_id) const {

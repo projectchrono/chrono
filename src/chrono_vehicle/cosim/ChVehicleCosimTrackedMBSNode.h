@@ -97,6 +97,9 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
     /// Return terrain contact geometry and material information for one track shoe.
     virtual ChVehicleGeometry GetTrackShoeContactGeometry() const = 0;
 
+    /// Return mass of one track shoe.
+    virtual double GetTrackShoeMass() const = 0;
+
     /// Perform any required operations before advancing the state of the MBS.
     /// This function is called before every integration step.
     virtual void PreAdvance() {}
@@ -124,10 +127,6 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
 
     /// Return the specified track shoe.
     virtual std::shared_ptr<ChBody> GetTrackShoeBody(int track_id, int shoe_id) const = 0;
-
-    /// Get the load weight on the i-th track shoe.
-    /// Note: this must also include the mass of the track shoe itself.
-    virtual double GetSpindleLoad(unsigned int i) const = 0;
 
     /// Get the body state of the specified track shoe body.
     virtual BodyState GetTrackShoeState(int track_id, int shoe_id) const = 0;

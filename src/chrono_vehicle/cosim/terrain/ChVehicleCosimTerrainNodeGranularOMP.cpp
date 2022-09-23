@@ -782,7 +782,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
 
-    //// RADU TODO: for now assume there is one and only one mesh defined!
+    // Note: it is assumed that there is one and only one mesh defined!
     auto nt = m_geometry[i_shape].m_coll_meshes[0].m_trimesh->getNumTriangles();
     auto i_mat = m_geometry[i_shape].m_coll_meshes[0].m_matID;
     auto material = m_geometry[i_shape].m_materials[i_mat].CreateMaterial(m_method);
@@ -851,7 +851,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
 
-    //// RADU TODO: for now assume there is one and only one mesh defined!
+    // Note: it is assumed that there is one and only one mesh defined!
     const auto& trimesh = m_geometry[i_shape].m_coll_meshes[0].m_trimesh;
     const auto& idx_verts = trimesh->getIndicesVertexes();
     int nt = trimesh->getNumTriangles();
@@ -940,7 +940,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
 
-    //// RADU TODO: for now assume there is one and only one mesh defined!
+    // Note: it is assumed that there is one and only one mesh defined!
     const auto& trimesh = m_geometry[i_shape].m_coll_meshes[0].m_trimesh;
     const auto& idx_verts = trimesh->getIndicesVertexes();
     int nt = trimesh->getNumTriangles();

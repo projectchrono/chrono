@@ -78,6 +78,9 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     /// Return terrain contact geometry and material information for one track shoe.
     virtual ChVehicleGeometry GetTrackShoeContactGeometry() const override;
 
+    /// Return mass of one track shoe.
+    virtual double GetTrackShoeMass() const override;
+
     /// Output vehicle data.
     virtual void OnOutputData(int frame) override;
 
@@ -98,9 +101,6 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
 
     /// Return the specified track shoe.
     virtual std::shared_ptr<ChBody> GetTrackShoeBody(int track_id, int shoe_id) const override;
-
-    /// Return the vertical mass load on the i-th spindle.
-    virtual double GetSpindleLoad(unsigned int i) const override;
 
     /// Get the body state of the specified track shoe body.
     virtual BodyState GetTrackShoeState(int track_id, int shoe_id) const override;
@@ -125,9 +125,6 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     double m_init_yaw;      ///< initial vehicle yaw
 
     TerrainForces m_shoe_forces[2];  ///< terrain forces acting on track shoes
-
-    //// RADU TODO
-    std::vector<double> m_spindle_loads;  ///< vertical loads on each spindle
 };
 
 /// @} vehicle_cosim_mbs

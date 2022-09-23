@@ -360,7 +360,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
 
-    //// RADU TODO: for now assume there is one and only one mesh defined!
+    // Note: it is assumed that there is one and only one mesh defined!
     auto nv = m_geometry[i_shape].m_coll_meshes[0].m_trimesh->getNumVertices();
     auto i_mat = m_geometry[i_shape].m_coll_meshes[0].m_matID;
     auto material = m_geometry[i_shape].m_materials[i_mat].CreateMaterial(m_method);
