@@ -1,4 +1,4 @@
-Pendulum example (demo_IRR_pendulum.cpp)  {#tutorial_demo_pendulum}
+Pendulum example (demo_MBS_pendulum.cpp)  {#tutorial_demo_pendulum}
 ==========================
 
 
@@ -16,5 +16,5 @@ This tutorial shows how to:
  (the horizontal sliding joints between pendula and truss) 
  
  
-\include demo_IRR_pendulum.cpp
+\include demo_MBS_pendulum.cpp
 

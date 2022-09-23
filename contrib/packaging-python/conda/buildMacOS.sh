@@ -3,12 +3,7 @@ mkdir -p ./build
 cd ./build
 
 # in py <= 3.7, headers are in $PREFIX/include/python3.xm/, while since python 3.8 they are in $PREFIX/include/python3.8/ go figure.
-if [ "$PY3K" == "1" ] && [ "$PY_VER" != "3.8" ] ; then
-
-    MY_PY_VER="${PY_VER}m"
-else
-    MY_PY_VER="${PY_VER}"
-fi
+MY_PY_VER="${PY_VER}"
 
 if [ `uname` == Darwin ]; then
     PY_LIB="libpython${MY_PY_VER}.dylib"
@@ -33,6 +28,7 @@ CONFIGURATION=Release
 export PARDISO_MKL_ENABLE="OFF"
 if [`uname -m` == x86_64]; then
     PARDISO_MKL_ENABLE="ON"
+fi
 
 # Configure step
 cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
@@ -68,6 +64,3 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
 cmake --build . --config "$CONFIGURATION"
 
 cmake --build . --config "$CONFIGURATION" --target install
-
-
-

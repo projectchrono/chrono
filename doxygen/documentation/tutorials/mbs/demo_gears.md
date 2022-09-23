@@ -1,4 +1,4 @@
-Gear constraint example (demo_IRR_gears.cpp)  {#tutorial_demo_gears}
+Gear constraint example (demo_MBS_gears.cpp)  {#tutorial_demo_gears}
 ==========================
 
 Create a transmission made of pulleys, 
@@ -15,5 +15,5 @@ This tutorial shows how to:
 - create a motor between two parts.  
  
  
-\include demo_IRR_gears.cpp
+\include demo_MBS_gears.cpp
 

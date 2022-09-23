@@ -1,11 +1,10 @@
-Forklift example (demo_IRR_forklift.cpp)  {#tutorial_demo_forklift}
+Forklift example (demo_MBS_forklift.cpp)  {#tutorial_demo_forklift}
 ==========================
 
 Advanced tutorial. 
 
 Create a forklift and control it using the keyboard. 
-The forklift collides with a pallet, that can be moved with the
-fork.
+The forklift collides with a pallet, that can be moved with the fork.
 
 Learn about:
 
@@ -14,5 +13,5 @@ Learn about:
 - how to create some constraints, including a simplified motor
 - how to load .OBJ meshes for visualization etc.
 
-\include demo_IRR_forklift.cpp
+\include demo_MBS_forklift.cpp
 
