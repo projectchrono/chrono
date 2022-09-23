@@ -94,9 +94,6 @@ void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
                       int face,
                       std::shared_ptr<SimParams> paramsH);
 
-/// Load BCE particles from a file.
-void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, std::string fileName, double scale = 1, double hsml = 1);
-
 /// Create BCE particles from an ANCF cable element.
 void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
                                      std::shared_ptr<SimParams> paramsH,

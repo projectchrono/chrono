@@ -326,35 +326,7 @@ void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
         }
     }
 }
-// =============================================================================
-void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, 
-                      std::string fileName, 
-                      double scale, 
-                      double hsml) {
-    std::string ddSt;
-    char buff[256];
-    int numBce = 0;
-    const int cols = 3;
-    std::cout << "Reading BCE data from: " << fileName << " ...\n";
-    std::ifstream inMarker;
-    inMarker.open(fileName);
-    if (!inMarker)
-        std::cerr << "   Error! Unable to open file: " << fileName << std::endl;
 
-    getline(inMarker, ddSt);
-    Real q[cols];
-    while (getline(inMarker, ddSt)) {
-        std::stringstream linestream(ddSt);
-        for (size_t i = 0; i < cols; i++) {
-            linestream.getline(buff, 500, ',');
-            q[i] = atof(buff);
-        }
-        posRadBCE.push_back(mR4(q[0] * scale, q[1] * scale, q[2] * scale, hsml));
-        numBce++;
-    }
-
-    std::cout << "Loaded " << numBce << " BCE data from: " << fileName << std::endl;
-}  
 // =============================================================================
 void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
                                      std::shared_ptr<SimParams> paramsH,

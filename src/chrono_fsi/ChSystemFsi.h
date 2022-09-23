@@ -377,14 +377,6 @@ class CH_FSI_API ChSystemFsi {
                       const ChVector<>& collisionShapeRelativePos,
                       const ChQuaternion<>& collisionShapeRelativeRot);
 
-    /// Add BCE markers read from the specified file andd associate them with the given body.
-    void AddFileBCE(std::shared_ptr<ChBody> body,
-                    const std::string& dataPath,
-                    const ChVector<>& collisionShapeRelativePos,
-                    const ChQuaternion<>& collisionShapeRelativeRot,
-                    double scale,
-                    bool isSolid = true);
-
     /// Add BCE markers from mesh.
     void AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                        const std::vector<std::vector<int>>& NodeNeighborElement,

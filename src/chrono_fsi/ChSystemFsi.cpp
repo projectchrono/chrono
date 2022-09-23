@@ -1151,20 +1151,6 @@ void ChSystemFsi::AddPointsBCE(std::shared_ptr<ChBody> body,
         posRadBCE, body, collisionShapeRelativePos, collisionShapeRelativeRot);
 }
 
-void ChSystemFsi::AddFileBCE(std::shared_ptr<ChBody> body,
-                             const std::string& dataPath,
-                             const ChVector<>& collisionShapeRelativePos,
-                             const ChQuaternion<>& collisionShapeRelativeRot,
-                             double scale,
-                             bool isSolid)  // true means moving body, false means fixed boundary
-{
-    thrust::host_vector<Real4> posRadBCE;
-    utils::LoadBCE_fromFile(posRadBCE, dataPath, scale, m_paramsH->HSML);
-    CreateBceGlobalMarkersFromBceLocalPos(
-        posRadBCE, body, collisionShapeRelativePos, collisionShapeRelativeRot, isSolid);
-    posRadBCE.clear();
-}
-
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
