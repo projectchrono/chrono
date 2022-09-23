@@ -25,6 +25,7 @@ set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/../chrono_thirdparty
 # Make CH_INCLUDES visible in parent scope
 set(CH_INCLUDES "${CH_INCLUDES}" PARENT_SCOPE)
 
+message(STATUS "Chrono includes: ${CH_INCLUDES}")
 include_directories(${CH_INCLUDES})
 
 #-----------------------------------------------------------------------------
@@ -683,7 +684,6 @@ if (THRUST_FOUND)
         multicore_math/utility.h
         multicore_math/vec3.cpp
         )
-
     source_group(multicore_math FILES ${ChronoEngine_MulticoreMath_SOURCES})
 elseif()
     set(ChronoEngine_MulticoreMath_SOURCES "")
@@ -729,6 +729,8 @@ if (THRUST_FOUND)
        collision/ChCollisionModelChrono.h
        collision/ChCollisionSystemChrono.h
        )
+
+   message(STATUS "Adding internal multicore collision detection library.")       
 endif()
 
 source_group(collision FILES
@@ -1284,6 +1286,7 @@ set(ChronoEngine_utils_HEADERS
 
 if(BUILD_BENCHMARKING)
     set(ChronoEngine_utils_HEADERS ${ChronoEngine_utils_HEADERS} utils/ChBenchmark.h)
+    message("Adding Chrono utilities for benchmarking.")
 endif()
 
 source_group(utils FILES
