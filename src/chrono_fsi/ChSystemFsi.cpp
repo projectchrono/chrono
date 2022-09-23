@@ -1018,10 +1018,10 @@ void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
                                  double rho0,
                                  double pres0,
                                  double mu0,
-                                 double h,
                                  const ChVector<>& velocity,
                                  const ChVector<>& tauXxYyZz,
                                  const ChVector<>& tauXyXzYz) {
+    Real h = m_paramsH->HSML;
     m_sysFSI->AddSPHParticle(ChUtilsTypeConvert::ChVectorToReal4(point, h), mR4(rho0, pres0, mu0, -1),
                              ChUtilsTypeConvert::ChVectorToReal3(velocity),
                              ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
@@ -1032,22 +1032,19 @@ void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
                                  const ChVector<>& velocity,
                                  const ChVector<>& tauXxYyZz,
                                  const ChVector<>& tauXyXzYz) {
-    AddSPHParticle(point, m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, 
-        m_paramsH->HSML, velocity, tauXxYyZz, tauXyXzYz);
+    AddSPHParticle(point, m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, velocity, tauXxYyZz, tauXyXzYz);
 }
 
-void ChSystemFsi::AddBoxSPH(double initSpace,
-                            double kernelLength,
-                            const ChVector<>& boxCenter,
+void ChSystemFsi::AddBoxSPH(const ChVector<>& boxCenter,
                             const ChVector<>& boxHalfDim) {
     // Use a chrono sampler to create a bucket of points
-    chrono::utils::GridSampler<> sampler(initSpace);
+    chrono::utils::GridSampler<> sampler(m_paramsH->INITSPACE);
     std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add fluid particles from the sampler points to the FSI system
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
-        AddSPHParticle(points[i], m_paramsH->rho0, 0, m_paramsH->mu0, kernelLength,
+        AddSPHParticle(points[i], m_paramsH->rho0, 0, m_paramsH->mu0,
                        ChVector<>(0),   // initial velocity
                        ChVector<>(0),   // tauxxyyzz
                        ChVector<>(0));  // tauxyxzyz

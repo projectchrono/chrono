@@ -182,9 +182,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         fsi::Real pre_ini = m_systemFSI->GetDensity() * abs(m_gacc) * (-points[i].z() + m_depth);
         fsi::Real rho_ini =
             m_systemFSI->GetDensity() + pre_ini / (m_systemFSI->GetSoundSpeed() * m_systemFSI->GetSoundSpeed());
-        m_systemFSI->AddSPHParticle(points[i], rho_ini, 0.0, m_systemFSI->GetViscosity(),
-                                    m_systemFSI->GetKernelLength(), ChVector<>(1e-10), ChVector<>(-pre_ini),
-                                    ChVector<>(1e-10));
+        m_systemFSI->AddSPHParticle(points[i], rho_ini, 0.0, m_systemFSI->GetViscosity(), ChVector<>(1e-10),
+                                    ChVector<>(-pre_ini), ChVector<>(1e-10));
     }
 
     // Create a body for the fluid container body

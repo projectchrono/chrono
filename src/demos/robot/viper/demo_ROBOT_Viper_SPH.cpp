@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
         double pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + bzDim);
-        sysFSI.AddSPHParticle(points[i], sysFSI.GetDensity(), 0, sysFSI.GetViscosity(), sysFSI.GetKernelLength(),
+        sysFSI.AddSPHParticle(points[i], sysFSI.GetDensity(), 0, sysFSI.GetViscosity(),
                               ChVector<>(0),         // initial velocity
                               ChVector<>(-pre_ini),  // tauxxyyzz
                               ChVector<>(0)          // tauxyxzyz

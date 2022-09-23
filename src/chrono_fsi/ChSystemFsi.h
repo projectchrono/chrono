@@ -299,7 +299,6 @@ class CH_FSI_API ChSystemFsi {
                         double rho0,
                         double pres0,
                         double mu0,
-                        double h,
                         const ChVector<>& velocity = ChVector<>(0),
                         const ChVector<>& tauXxYyZz = ChVector<>(0),
                         const ChVector<>& tauXyXzYz = ChVector<>(0));
@@ -311,8 +310,8 @@ class CH_FSI_API ChSystemFsi {
                         const ChVector<>& tauXyXzYz = ChVector<>(0));
 
     /// Create SPH particles in the specified box volume.
-    /// The SPH particles are created on a uniform grid with given spacing.
-    void AddBoxSPH(double initSpace, double kernelLength, const ChVector<>& boxCenter, const ChVector<>& boxHalfDim);
+    /// The SPH particles are created on a uniform grid with resolution equal to the FSI initial separation.
+    void AddBoxSPH(const ChVector<>& boxCenter, const ChVector<>& boxHalfDim);
 
     /// Add BCE markers in a box of given dimensions and at given position associated with the specified body.
     void AddBoxBCE(std::shared_ptr<ChBody> body,

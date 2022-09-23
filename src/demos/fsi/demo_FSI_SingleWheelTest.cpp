@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
     // Initialize the SPH particles
     ChVector<> boxCenter(0.0, 0.0, bzDim / 2);
     ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
-    sysFSI.AddBoxSPH(iniSpacing, kernelLength, boxCenter, boxHalfDim);
+    sysFSI.AddBoxSPH(boxCenter, boxHalfDim);
 
     // Create Solid region and attach BCE SPH particles
     CreateSolidPhase(sysMBS, sysFSI);
