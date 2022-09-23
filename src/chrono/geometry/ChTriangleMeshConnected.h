@@ -86,6 +86,9 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// Get the number of vertices in this mesh.
     int getNumVertices() const { return (int)m_vertices.size(); }
 
+    /// Get the number of normals in this mesh.
+    int getNumNormals() const { return (int)m_normals.size(); }
+
     /// Get the number of triangles already added to this mesh.
     virtual int getNumTriangles() const override { return (int)m_face_v_indices.size(); }
 
