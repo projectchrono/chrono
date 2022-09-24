@@ -211,7 +211,7 @@ linux:doxygen:deploy:
     - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
     - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
   needs:
-    - job: linux:arch-gcc:test
+#    - job: linux:arch-gcc:test
       artifacts: false
 #    - job: macos-intel:monterey:test
 #      artifacts: false
