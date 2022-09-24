@@ -327,13 +327,6 @@ class CH_FSI_API ChSystemFsi {
                       const ChQuaternion<>& relRot,
                       double radius);
 
-    /// Add BCE markers on a spherical surface of given radius associated with the specified body.
-    void AddSphereSurfaceBCE(std::shared_ptr<ChBody> body,
-                             const ChVector<>& relPos,
-                             const ChQuaternion<>& relRot,
-                             double radius,
-                             double kernel_h);
-
     /// Add BCE markers in a cylinder of given dimensions and at given position associated with the specified body.
     void AddCylinderBCE(std::shared_ptr<ChBody> body,
                         const ChVector<>& relPos,
@@ -458,14 +451,6 @@ class CH_FSI_API ChSystemFsi {
     void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::host_vector<Real4>& posRadBCE,
                                                          std::shared_ptr<fea::ChElementShellANCF_3423> shell,
                                                          double kernel_h = 0);
-
-    /// Create BCE particles from the local position on a boundary.
-    void CreateBceGlobalMarkersFromBceLocalPosBoundary(const thrust::host_vector<Real4>& posRadBCE,
-                                                       std::shared_ptr<ChBody> body,
-                                                       const ChVector<>& collisionShapeRelativePos,
-                                                       const ChQuaternion<>& collisionShapeRelativeRot,
-                                                       bool isSolid = false,
-                                                       bool add_to_previous = true);
 
     /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
     void CopyDeviceDataToHalfStep();

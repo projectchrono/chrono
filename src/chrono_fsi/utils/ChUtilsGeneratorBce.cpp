@@ -84,25 +84,7 @@ void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE,
         posRadBCE.push_back(mR4(0, 0, -r, spacing));
     }
 }
-// =============================================================================
-void CreateBCE_On_surface_of_Sphere(thrust::host_vector<Real4>& posRadBCE, 
-                                    Real rad, 
-                                    Real kernel_h) {
-    Real spacing = kernel_h;
-    Real r = rad;
-    int numphi = (int)std::floor(3.1415 * r / spacing);
 
-    for (size_t p = 0; p < numphi; p++) {
-        Real phi = p * 3.1415 / numphi;
-        int numTheta = (int)std::floor(2 * 3.1415 * r * sin(phi) / spacing);
-        for (Real t = 0.0; t < numTheta; t++) {
-            Real teta = t * 2 * 3.1415 / numTheta;
-            Real3 BCE_Pos_local = 
-                mR3(r * sin(phi) * cos(teta), r * sin(phi) * sin(teta), r * cos(phi));
-            posRadBCE.push_back(mR4(BCE_Pos_local, spacing));
-        }
-    }
-}
 // =============================================================================
 void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
                            Real cyl_rad,
