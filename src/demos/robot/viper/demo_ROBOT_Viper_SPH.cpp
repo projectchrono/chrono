@@ -345,9 +345,9 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
 
         sysFSI.AddFsiBody(wheel_body);
         if (i == 0 || i == 2) {
-            sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChVector<>(0.0), Q_from_AngZ(CH_C_PI));
+            sysFSI.AddPointsBCE(wheel_body, BCE_wheel, VNULL, Q_from_AngZ(CH_C_PI));
         } else {
-            sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChVector<>(0.0), QUNIT);
+            sysFSI.AddPointsBCE(wheel_body, BCE_wheel, VNULL, QUNIT);
         }
     }
 }

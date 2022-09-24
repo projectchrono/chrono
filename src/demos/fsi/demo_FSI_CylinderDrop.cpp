@@ -224,8 +224,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysFSI.AddFsiBody(cylinder);
 
     // Add BCE particles attached on the cylinder into FSI system
-    sysFSI.AddCylinderBCE(cylinder, ChVector<>(0), ChQuaternion<>(1, 0, 0, 0), cyl_radius, cyl_length + initSpace0,
-                          sysFSI.GetKernelLength(), false);
+    sysFSI.AddCylinderBCE(cylinder, VNULL, QUNIT, cyl_radius, cyl_length + initSpace0, false);
 }
 
 // =============================================================================

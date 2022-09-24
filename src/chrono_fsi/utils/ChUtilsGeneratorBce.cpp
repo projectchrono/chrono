@@ -65,8 +65,9 @@ ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const Real3& pos3) {
 // =============================================================================
 void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, 
                          Real rad, 
-                         std::shared_ptr<SimParams> paramsH) {
-    Real spacing = paramsH->MULT_INITSPACE * paramsH->HSML;
+                         const SimParams& paramsH) {
+    Real kernel_h = paramsH.HSML;
+    Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
 
     for (Real r = 0.5 * spacing; r < rad; r += spacing) {
         int numphi = (int)std::floor(3.1415 * r / spacing);
@@ -77,37 +78,37 @@ void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE,
                 Real teta = t * 2 * 3.1415 / numTheta;
                 Real3 BCE_Pos_local = 
                     mR3(r * sin(phi) * cos(teta), r * sin(phi) * sin(teta), r * cos(phi));
-                posRadBCE.push_back(mR4(BCE_Pos_local, spacing));
+                posRadBCE.push_back(mR4(BCE_Pos_local, kernel_h));
             }
         }
-        posRadBCE.push_back(mR4(0, 0, r, spacing));
-        posRadBCE.push_back(mR4(0, 0, -r, spacing));
+        posRadBCE.push_back(mR4(0, 0, r, kernel_h));
+        posRadBCE.push_back(mR4(0, 0, -r, kernel_h));
     }
 }
 
 // =============================================================================
 void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
-                           Real cyl_rad,
-                           Real cyl_h,
-                           std::shared_ptr<SimParams> paramsH,
-                           Real kernel_h,
+                           Real rad,
+                           Real height,
+                           const SimParams& paramsH,
                            bool cartesian) {
-    Real spacing = kernel_h * paramsH->MULT_INITSPACE;
-    int num_layers = (int)std::floor(1.00001 * cyl_h / spacing) + 1;
+    Real kernel_h = paramsH.HSML;
+    Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
+    int num_layers = (int)std::floor(1.00001 * height / spacing) + 1;
 
     for (size_t si = 0; si < num_layers; si++) {
-        Real s = -0.5 * cyl_h + spacing * si;
+        Real s = -0.5 * height + spacing * si;
         if (cartesian)
-            for (Real x = -cyl_rad; x <= cyl_rad; x += spacing) {
-                for (Real y = -cyl_rad; y <= cyl_rad; y += spacing) {
-                    if (x * x + y * y <= cyl_rad * cyl_rad)
+            for (Real x = -rad; x <= rad; x += spacing) {
+                for (Real y = -rad; y <= rad; y += spacing) {
+                    if (x * x + y * y <= rad * rad)
                         posRadBCE.push_back(mR4(x, s, y, kernel_h));
                 }
             }
         else {
             Real3 centerPointLF = mR3(0, s, 0);
             posRadBCE.push_back(mR4(0, s, 0, kernel_h));
-            int numr = (int)std::floor(1.00001 * cyl_rad / spacing);
+            int numr = (int)std::floor(1.00001 * rad / spacing);
             for (size_t ir = 0; ir < numr; ir++) {
                 Real r = 0.5 * spacing + ir * spacing;
                 int numTheta = (int)std::floor(2 * 3.1415 * r / spacing);
@@ -120,19 +121,48 @@ void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
         }
     }
 }
+
+// =============================================================================
+void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
+                                      thrust::host_vector<Real3>& normals,
+                                      Real rad,
+                                      Real height,
+                                      const SimParams& paramsH) {
+    Real kernel_h = paramsH.HSML;
+    Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
+    int num_layers = (int)std::floor(height / spacing);
+
+    for (size_t si = 0; si < num_layers; si++) {
+        Real s = -0.5 * height + (height / num_layers) * si;
+        Real3 centerPointLF = mR3(0, s, 0);
+        Real numr = std::floor(rad / spacing);
+        for (size_t ir = 1; ir < numr; ir++) {
+            Real r = spacing + ir * rad / numr;
+            int numTheta = (int)std::floor(2 * 3.1415 * r / spacing);
+            for (size_t t = 0; t < numTheta; t++) {
+                Real teta = t * 2 * 3.1415 / numTheta;
+                Real3 BCE_Pos_local = mR3(r * cos(teta), 0, r * sin(teta)) + centerPointLF;
+                if (ir == numr - 1) {
+                    posRadBCE.push_back(mR4(BCE_Pos_local, kernel_h));
+                }
+            }
+        }
+    }
+}
+
 // =============================================================================
 void CreateBCE_On_Cylinder_Annulus(thrust::host_vector<Real4>& posRadBCE,
                                    Real rad_in,
                                    Real rad_out,
-                                   Real cyl_h,
-                                   std::shared_ptr<SimParams> paramsH,
-                                   Real kernel_h,
+                                   Real height,
+                                   const SimParams& paramsH,
                                    bool cartesian) {
-    Real spacing = kernel_h * paramsH->MULT_INITSPACE;
-    int num_layers = (int)std::floor(1.00001 * cyl_h / spacing) + 1;
+    Real kernel_h = paramsH.HSML;
+    Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
+    int num_layers = (int)std::floor(1.00001 * height / spacing) + 1;
 
     for (size_t si = 0; si < num_layers; si++) {
-        Real s = -0.5 * cyl_h + spacing * si;
+        Real s = -0.5 * height + spacing * si;
         if (cartesian)
             for (Real x = -rad_out; x <= rad_out; x += spacing) {
                 for (Real y = -rad_out; y <= rad_out; y += spacing) {
@@ -158,35 +188,36 @@ void CreateBCE_On_Cylinder_Annulus(thrust::host_vector<Real4>& posRadBCE,
         }
     }
 }
+
 // =============================================================================
 void CreateBCE_On_Cone(thrust::host_vector<Real4>& posRadBCE,
-                       Real cone_rad,
-                       Real cone_h,
-                       std::shared_ptr<SimParams> paramsH,
-                       Real kernel_h,
+                       Real rad,
+                       Real height,
+                       const SimParams& paramsH,
                        bool cartesian) {
-    Real spacing = kernel_h * paramsH->MULT_INITSPACE;
-    int num_layers = (int)std::floor(cone_h / spacing);
+    Real kernel_h = paramsH.HSML;
+    Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
+    int num_layers = (int)std::floor(height / spacing);
 
     for (size_t si = 0; si < num_layers; si++) {
-        Real s = -0.5 * cone_h + spacing / 2 + (cone_h / num_layers) * si;
-        Real cone_h0 = spacing / 2 + (cone_h / num_layers) * si;
-        Real cone_r0 = cone_h0 / cone_h * cone_rad;
+        Real s = -0.5 * height + spacing / 2 + (height / num_layers) * si;
+        Real h0 = spacing / 2 + (height / num_layers) * si;
+        Real r0 = h0 / height * rad;
         // if (cartesian)
-        //     for (Real x = -cyl_rad; x <= cyl_rad; x += spacing) {
-        //         for (Real y = -cyl_rad; y <= cyl_rad; y += spacing) {
-        //             if (x * x + y * y <= cyl_rad * cyl_rad)
+        //     for (Real x = -rad; x <= rad; x += spacing) {
+        //         for (Real y = -rad; y <= rad; y += spacing) {
+        //             if (x * x + y * y <= rad * rad)
         //                 posRadBCE.push_back(mR4(x, s, y, kernel_h));
         //         }
         //     }
         // else {
         Real3 centerPointLF = mR3(0, 0, s);
         posRadBCE.push_back(mR4(0, 0, s, kernel_h));
-        Real numr = std::floor(cone_r0 / spacing) + 2;
-        // Real spacing_r = cone_r0 / numr;
+        Real numr = std::floor(r0 / spacing) + 2;
+        // Real spacing_r = r0 / numr;
         if (si > 0) {
             for (size_t ir = 1; ir < numr; ir++) {
-                Real r = cone_r0 - 0.5 * spacing - (ir - 1) * spacing;
+                Real r = r0 - 0.5 * spacing - (ir - 1) * spacing;
                 if (r > 0.1 * spacing) {
                     int numTheta = (int)std::floor(2 * 3.1415 * r / spacing) + 2;
                     Real det_Theta = 2 * 3.1415 / numTheta;
@@ -198,50 +229,6 @@ void CreateBCE_On_Cone(thrust::host_vector<Real4>& posRadBCE,
                 }
             }
         }
-        // if create a cylinder at the end of the cone, set as 1==1, otherwise 1==0
-        if (1 == 0) {
-            Real cone_r1 = 0.5 * cone_rad;
-            Real3 centerPointLF_1 = mR3(0, 0, s + cone_h);
-            Real numr1 = std::floor(cone_r1 / spacing) + 2;
-            Real spacing_r = cone_r1 / numr1;
-            // if (si > 0) {
-            for (size_t ir = 1; ir < numr1; ir++) {
-                Real r = ir * spacing_r;
-                int numTheta = (int)std::floor(2 * 3.1415 * r / spacing) + 2;
-                Real det_Theta = 2 * 3.1415 / numTheta;
-                for (size_t t = 0; t < numTheta; t++) {
-                    Real teta = t * det_Theta + 0.0 * (ir - 1) * det_Theta;
-                    Real3 BCE_Pos_local = mR3(r * cos(teta), r * sin(teta), 0.0) + centerPointLF_1;
-                    posRadBCE.push_back(mR4(BCE_Pos_local, kernel_h));
-                }
-            }
-            // }
-        }
-    }
-}
-// =============================================================================
-void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
-                                      thrust::host_vector<Real3>& normals,
-                                      Real cyl_rad,
-                                      Real cyl_h,
-                                      Real spacing) {
-    int num_layers = (int)std::floor(cyl_h / spacing);
-
-    for (size_t si = 0; si < num_layers; si++) {
-        Real s = -0.5 * cyl_h + (cyl_h / num_layers) * si;
-        Real3 centerPointLF = mR3(0, s, 0);
-        Real numr = std::floor(cyl_rad / spacing);
-        for (size_t ir = 1; ir < numr; ir++) {
-            Real r = spacing + ir * cyl_rad / numr;
-            int numTheta = (int)std::floor(2 * 3.1415 * r / spacing);
-            for (size_t t = 0; t < numTheta; t++) {
-                Real teta = t * 2 * 3.1415 / numTheta;
-                Real3 BCE_Pos_local = mR3(r * cos(teta), 0, r * sin(teta)) + centerPointLF;
-                if ( ir == numr - 1) {
-                    posRadBCE.push_back(mR4(BCE_Pos_local, spacing));
-                }
-            }
-        }
     }
 }
 
@@ -250,14 +237,14 @@ void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
 // velocity). x=1, y=2, z =3; therefore 12 means creating markers on the top 
 // surface parallel to xy plane, similarly -12 means bottom face paralel to xy. 
 // similarly 13, -13, 23, -23.
-void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
-                      const Real3& hsize,
-                      int face,
-                      std::shared_ptr<SimParams> paramsH) {
-    Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-    int nFX = (int)round(hsize.x / initSpace0);
-    int nFY = (int)round(hsize.y / initSpace0);
-    int nFZ = (int)round(hsize.z / initSpace0);
+void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE, const Real3& hsize, int face, const SimParams& paramsH) {
+    Real kernel_h = paramsH.HSML;
+    Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
+    int num_bndry_layers = paramsH.NUM_BOUNDARY_LAYERS;
+
+    int nFX = (int)round(hsize.x / spacing);
+    int nFY = (int)round(hsize.y / spacing);
+    int nFZ = (int)round(hsize.z / spacing);
 
     Real initSpaceX = hsize.x / nFX;
     Real initSpaceY = hsize.y / nFY;
@@ -269,22 +256,22 @@ void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
     
     switch (face) {
         case 12:
-            kBound = mI2(nFZ - paramsH->NUM_BOUNDARY_LAYERS + 1, nFZ);
+            kBound = mI2(nFZ - num_bndry_layers + 1, nFZ);
             break;
         case -12:
-            kBound = mI2(-nFZ, -nFZ + paramsH->NUM_BOUNDARY_LAYERS - 1);
+            kBound = mI2(-nFZ, -nFZ + num_bndry_layers - 1);
             break;
         case 13:
-            jBound = mI2(nFY - paramsH->NUM_BOUNDARY_LAYERS + 1, nFY);
+            jBound = mI2(nFY - num_bndry_layers + 1, nFY);
             break;
         case -13:
-            jBound = mI2(-nFY, -nFY + paramsH->NUM_BOUNDARY_LAYERS - 1);
+            jBound = mI2(-nFY, -nFY + num_bndry_layers - 1);
             break;
         case 23:
-            iBound = mI2(nFX - paramsH->NUM_BOUNDARY_LAYERS + 1, nFX);
+            iBound = mI2(nFX - num_bndry_layers + 1, nFX);
             break;
         case -23:
-            iBound = mI2(-nFX, -nFX + paramsH->NUM_BOUNDARY_LAYERS - 1);
+            iBound = mI2(-nFX, -nFX + num_bndry_layers - 1);
             break;
         case 123:
             break;
@@ -298,30 +285,31 @@ void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
             for (int k = kBound.x; k <= kBound.y; k++) {
                 Real3 relMarkerPos = mR3(i * initSpaceX, j * initSpaceY, k * initSpaceZ);
 
-                if ((relMarkerPos.x < paramsH->cMin.x || relMarkerPos.x > paramsH->cMax.x) ||
-                    (relMarkerPos.y < paramsH->cMin.y || relMarkerPos.y > paramsH->cMax.y) ||
-                    (relMarkerPos.z < paramsH->cMin.z || relMarkerPos.z > paramsH->cMax.z)) {
+                if ((relMarkerPos.x < paramsH.cMin.x || relMarkerPos.x > paramsH.cMax.x) ||
+                    (relMarkerPos.y < paramsH.cMin.y || relMarkerPos.y > paramsH.cMax.y) ||
+                    (relMarkerPos.z < paramsH.cMin.z || relMarkerPos.z > paramsH.cMax.z)) {
                     continue;
                 }
-                posRadBCE.push_back(mR4(relMarkerPos, paramsH->HSML));
+                posRadBCE.push_back(mR4(relMarkerPos, kernel_h));
             }
         }
     }
 }
 
 // =============================================================================
-void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
-                                     std::shared_ptr<SimParams> paramsH,
-                                     std::shared_ptr<chrono::fea::ChElementCableANCF> cable,
-                                     std::vector<int> remove,
-                                     bool multiLayer,
-                                     bool removeMiddleLayer,
-                                     int SIDE) {
-    Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+void CreateBCE_cableFEM(thrust::host_vector<Real4>& posRadBCE,
+                        std::shared_ptr<chrono::fea::ChElementCableANCF> cable,
+                        std::vector<int> remove,
+                        bool multiLayer,
+                        bool removeMiddleLayer,
+                        int SIDE,
+                        const SimParams& paramsH) {
+    Real kernel_h = paramsH.HSML;
+    Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
 
     double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
-    double nX = dx / initSpace0 - std::floor(dx / initSpace0);
-    int nFX = (int)std::floor(dx / initSpace0);
+    double nX = dx / spacing - std::floor(dx / spacing);
+    int nFX = (int)std::floor(dx / spacing);
     if (nX > 0.5)
         nFX++;
 
@@ -331,7 +319,7 @@ void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
     else
         initSpaceX = dx;
 
-    Real initSpaceZ = initSpace0;
+    Real initSpaceZ = spacing;
     int2 iBound = mI2(0, nFX);
 
     for (int i = iBound.x; i <= iBound.y; i++) {
@@ -345,45 +333,42 @@ void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
         if (multiLayer) {
             for (int j = 1; j <= SIDE; j++) {
                 relMarkerPos = mR3(i * initSpaceX, j * initSpaceZ, 0) * CONSTANT;
-                posRadBCE.push_back(mR4(relMarkerPos, initSpace0));
+                posRadBCE.push_back(mR4(relMarkerPos, kernel_h));
                 relMarkerPos = mR3(i * initSpaceX, -j * initSpaceZ, 0) * CONSTANT;
-                posRadBCE.push_back(mR4(relMarkerPos, initSpace0));
+                posRadBCE.push_back(mR4(relMarkerPos, kernel_h));
                 relMarkerPos = mR3(i * initSpaceX, 0, j * initSpaceZ) * CONSTANT;
-                posRadBCE.push_back(mR4(relMarkerPos, initSpace0));
+                posRadBCE.push_back(mR4(relMarkerPos, kernel_h));
                 relMarkerPos = mR3(i * initSpaceX, 0, -j * initSpaceZ) * CONSTANT;
-                posRadBCE.push_back(mR4(relMarkerPos, initSpace0));
+                posRadBCE.push_back(mR4(relMarkerPos, kernel_h));
             }
         }
 
         if (!removeMiddleLayer) {
             relMarkerPos = mR3(i * initSpaceX, 0, 0);
-            posRadBCE.push_back(mR4(relMarkerPos, initSpace0));
+            posRadBCE.push_back(mR4(relMarkerPos, kernel_h));
         }
     }
 }
+
 // =============================================================================
-void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
-                                     std::shared_ptr<SimParams> paramsH,
-                                     std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
-                                     std::vector<int> remove,
-                                     std::vector<int> remove_s,
-                                     bool multiLayer,
-                                     bool removeMiddleLayer,
-                                     int SIDE,
-                                     double kernel_h) {
-    Real initSpace0;
-    if (kernel_h == 0)
-        initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-    else
-        initSpace0 = paramsH->MULT_INITSPACE * kernel_h;
+void CreateBCE_shellFEM(thrust::host_vector<Real4>& posRadBCE,
+                        std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
+                        std::vector<int> remove,
+                        std::vector<int> remove_s,
+                        bool multiLayer,
+                        bool removeMiddleLayer,
+                        int SIDE,
+                        const SimParams& paramsH) {
+    Real kernel_h = paramsH.HSML;
+    Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
 
     double dx = shell->GetLengthX() / 2;
     double dy = shell->GetLengthY() / 2;
 
-    double nX = dx / initSpace0 - std::floor(dx / initSpace0);
-    double nY = dy / initSpace0 - std::floor(dy / initSpace0);
-    int nFX = (int)std::floor(dx / initSpace0);
-    int nFY = (int)std::floor(dy / initSpace0);
+    double nX = dx / spacing - std::floor(dx / spacing);
+    double nY = dy / spacing - std::floor(dy / spacing);
+    int nFX = (int)std::floor(dx / spacing);
+    int nFY = (int)std::floor(dy / spacing);
     if (nX > 0.5)
         nFX++;
     if (nY > 0.5)
@@ -394,22 +379,21 @@ void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
     int2 iBound;
     int2 jBound;
 
-    if ( dx < nFX*initSpace0 ) {
-        iBound = mI2(-nFX*2, nFX*2);
+    if (dx < nFX * spacing) {
+        iBound = mI2(-nFX * 2, nFX * 2);
         initSpaceX = dx / nFX;
-        }
-    else {
-        iBound = mI2(-nFX*2-1, nFX*2+1);
-        initSpaceX = dx / ( 0.5 + nFX);
-        }
-    if ( dy < nFY*initSpace0 ) {
-        jBound = mI2(-nFY*2, nFY*2);
+    } else {
+        iBound = mI2(-nFX * 2 - 1, nFX * 2 + 1);
+        initSpaceX = dx / (0.5 + nFX);
+    }
+
+    if (dy < nFY * spacing) {
+        jBound = mI2(-nFY * 2, nFY * 2);
         initSpaceY = dy / nFY;
-        }
-    else {
-        jBound = mI2(-nFY*2-1, nFY*2+1);
-        initSpaceY = dy / ( 0.5 + nFY);
-        }
+    } else {
+        jBound = mI2(-nFY * 2 - 1, nFY * 2 + 1);
+        initSpaceY = dy / (0.5 + nFY);
+    }
 
     int2 kBound;
     // If multi-layer BCE is required
@@ -423,12 +407,14 @@ void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
         kBound = mI2(0, 0);             // This will create some marker deficiency and reduce the accuracy but look nicer
 
     for (int k = kBound.x; k <= kBound.y; k++) {
-        if (k == 0 && SIDE == 0 && multiLayer && removeMiddleLayer) {
-            // skip the middle layer for this specific case
-            // change value of paramsH->MULT_INITSPACE_Shells
-            paramsH->MULT_INITSPACE_Shells = 0.5;
-            continue;
-        }
+        //// RADU TODO
+        ////    There should be no side-effect in this function!!!!!
+        ////if (k == 0 && SIDE == 0 && multiLayer && removeMiddleLayer) {
+        ////    // skip the middle layer for this specific case
+        ////    // change value of paramsH->MULT_INITSPACE_Shells
+        ////    paramsH.MULT_INITSPACE_Shells = 0.5;
+        ////    continue;
+        ////}
         for (int j = jBound.x; j <= jBound.y; j=j+2) {
             for (int i = iBound.x; i <= iBound.y; i=i+2) {
                 Real3 relMarkerPos = mR3(i * initSpaceX / 2.0 , j * initSpaceY / 2.0 , k);
@@ -446,7 +432,7 @@ void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
                 if (con1 || con2 || con3 || con4 || con5 || con6 || con7 || con8 )
                     continue;
 
-                posRadBCE.push_back(mR4(relMarkerPos, (kernel_h == 0) ? paramsH->HSML : kernel_h));
+                posRadBCE.push_back(mR4(relMarkerPos, kernel_h));
             }
         }
     }

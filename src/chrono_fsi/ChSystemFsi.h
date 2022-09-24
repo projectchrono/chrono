@@ -333,17 +333,16 @@ class CH_FSI_API ChSystemFsi {
                         const ChQuaternion<>& relRot,
                         double radius,
                         double height,
-                        double kernel_h,
                         bool cartesian = true);
 
-    /// Add BCE markers in a cylinder annulus of given dimensions and at given position associated with the specified body.
+    /// Add BCE markers in a cylinder annulus of given dimensions and at given position associated with the specified
+    /// body.
     void AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
                                const ChVector<>& relPos,
                                const ChQuaternion<>& relRot,
                                double rad_in,
                                double rad_out,
                                double height,
-                               double kernel_h,
                                bool cartesian = true);
 
     /// Add BCE markers on a cylindrical surface of given dimensions and at given position associated with the specified
@@ -352,8 +351,7 @@ class CH_FSI_API ChSystemFsi {
                                const ChVector<>& relPos,
                                const ChQuaternion<>& relRot,
                                double radius,
-                               double height,
-                               double kernel_h);
+                               double height);
 
     /// Add BCE markers in a cone of given dimensions and at given position associated with the specified body.
     void AddConeBCE(std::shared_ptr<ChBody> body,
@@ -361,14 +359,13 @@ class CH_FSI_API ChSystemFsi {
                     const ChQuaternion<>& relRot,
                     double radius,
                     double height,
-                    double kernel_h,
                     bool cartesian = true);
 
     /// Add BCE markers from a set of points and associate them with the given body.
     void AddPointsBCE(std::shared_ptr<ChBody> body,
                       const std::vector<ChVector<>>& points,
-                      const ChVector<>& collisionShapeRelativePos,
-                      const ChQuaternion<>& collisionShapeRelativeRot);
+                      const ChVector<>& relPos,
+                      const ChQuaternion<>& relRot);
 
     /// Add BCE markers from mesh.
     void AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
@@ -449,8 +446,7 @@ class CH_FSI_API ChSystemFsi {
                                                          std::shared_ptr<fea::ChElementCableANCF> cable);
 
     void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::host_vector<Real4>& posRadBCE,
-                                                         std::shared_ptr<fea::ChElementShellANCF_3423> shell,
-                                                         double kernel_h = 0);
+                                                         std::shared_ptr<fea::ChElementShellANCF_3423> shell);
 
     /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
     void CopyDeviceDataToHalfStep();

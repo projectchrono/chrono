@@ -1053,7 +1053,7 @@ void ChSystemFsi::AddBoxBCE(std::shared_ptr<ChBody> body,
                             int plane,
                             bool isSolid) {
     thrust::host_vector<Real4> posRadBCE;
-    utils::CreateBCE_On_Box(posRadBCE, ChUtilsTypeConvert::ChVectorToReal3(size), plane, m_paramsH);
+    utils::CreateBCE_On_Box(posRadBCE, ChUtilsTypeConvert::ChVectorToReal3(size), plane, *m_paramsH);
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot, isSolid, false, false);
     posRadBCE.clear();
 }
@@ -1063,7 +1063,7 @@ void ChSystemFsi::AddSphereBCE(std::shared_ptr<ChBody> body,
                                const ChQuaternion<>& relRot,
                                double radius) {
     thrust::host_vector<Real4> posRadBCE;
-    utils::CreateBCE_On_Sphere(posRadBCE, radius, m_paramsH);
+    utils::CreateBCE_On_Sphere(posRadBCE, radius, *m_paramsH);
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body);
     posRadBCE.clear();
 }
@@ -1073,10 +1073,9 @@ void ChSystemFsi::AddCylinderBCE(std::shared_ptr<ChBody> body,
                                  const ChQuaternion<>& relRot,
                                  double radius,
                                  double height,
-                                 double kernel_h,
                                  bool cartesian) {
     thrust::host_vector<Real4> posRadBCE;
-    utils::CreateBCE_On_Cylinder(posRadBCE, radius, height, m_paramsH, kernel_h, cartesian);
+    utils::CreateBCE_On_Cylinder(posRadBCE, radius, height, *m_paramsH, cartesian);
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot);
     posRadBCE.clear();
 }
@@ -1087,10 +1086,9 @@ void ChSystemFsi::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
                                         double rad_in,
                                         double rad_out,
                                         double height,
-                                        double kernel_h,
                                         bool cartesian) {
     thrust::host_vector<Real4> posRadBCE;
-    utils::CreateBCE_On_Cylinder_Annulus(posRadBCE, rad_in, rad_out, height, m_paramsH, kernel_h, cartesian);
+    utils::CreateBCE_On_Cylinder_Annulus(posRadBCE, rad_in, rad_out, height, *m_paramsH, cartesian);
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot);
     posRadBCE.clear();
 }
@@ -1099,11 +1097,10 @@ void ChSystemFsi::AddCylinderSurfaceBCE(std::shared_ptr<ChBody> body,
                                         const ChVector<>& relPos,
                                         const ChQuaternion<>& relRot,
                                         double radius,
-                                        double height,
-                                        double kernel_h) {
+                                        double height) {
     thrust::host_vector<Real4> posRadBCE;
     thrust::host_vector<Real3> normals;
-    utils::CreateBCE_On_surface_of_Cylinder(posRadBCE, normals, (Real)radius, (Real)height, (Real)kernel_h);
+    utils::CreateBCE_On_surface_of_Cylinder(posRadBCE, normals, (Real)radius, (Real)height, *m_paramsH);
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot, false, true);
     posRadBCE.clear();
     normals.clear();
@@ -1114,22 +1111,55 @@ void ChSystemFsi::AddConeBCE(std::shared_ptr<ChBody> body,
                              const ChQuaternion<>& relRot,
                              double radius,
                              double height,
-                             double kernel_h,
                              bool cartesian) {
     thrust::host_vector<Real4> posRadBCE;
-    utils::CreateBCE_On_Cone(posRadBCE, radius, height, m_paramsH, kernel_h, cartesian);
+    utils::CreateBCE_On_Cone(posRadBCE, radius, height, *m_paramsH, cartesian);
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot);
     posRadBCE.clear();
 }
 
 void ChSystemFsi::AddPointsBCE(std::shared_ptr<ChBody> body,
                                const std::vector<chrono::ChVector<>>& points,
-                               const ChVector<>& collisionShapeRelativePos,
-                               const ChQuaternion<>& collisionShapeRelativeRot) {
+                               const ChVector<>& relPos,
+                               const ChQuaternion<>& relRot) {
     thrust::host_vector<Real4> posRadBCE;
-    for (auto& p : points)
+    for (const auto& p : points)
         posRadBCE.push_back(mR4(p.x(), p.y(), p.z(), m_paramsH->HSML));
-    CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, collisionShapeRelativePos, collisionShapeRelativeRot);
+    CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot);
+}
+
+void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vector<Real4>& posRadBCE,
+                                                        std::shared_ptr<ChBody> body,
+                                                        const ChVector<>& collisionShapeRelativePos,
+                                                        const ChQuaternion<>& collisionShapeRelativeRot,
+                                                        bool isSolid,
+                                                        bool add_to_fluid_helpers,
+                                                        bool add_to_previous_object) {
+    int type = 0;
+    if (isSolid)
+        type = 1;
+    if (add_to_fluid_helpers)
+        type = -3;
+
+    for (size_t i = 0; i < posRadBCE.size(); i++) {
+        ChVector<> posLoc_collisionShape = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
+        ChVector<> posLoc_body = ChTransform<>::TransformLocalToParent(posLoc_collisionShape, collisionShapeRelativePos,
+                                                                       collisionShapeRelativeRot);
+        ChVector<> posLoc_COG = utils::TransformBCEToCOG(body, posLoc_body);
+        ChVector<> posGlob = ChTransform<>::TransformLocalToParent(posLoc_COG, body->GetPos(), body->GetRot());
+        m_sysFSI->sphMarkersH->posRadH.push_back(mR4(ChUtilsTypeConvert::ChVectorToReal3(posGlob), posRadBCE[i].w));
+
+        ChVector<> vAbs = body->PointSpeedLocalToParent(posLoc_COG);
+        Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(vAbs);
+        m_sysFSI->sphMarkersH->velMasH.push_back(v3);
+        m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
+            mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, (double)type));
+        m_sysFSI->sphMarkersH->tauXxYyZzH.push_back(mR3(0.0));
+        m_sysFSI->sphMarkersH->tauXyXzYzH.push_back(mR3(0.0));
+    }
+
+    if (isSolid)
+        m_fsi_bodies_bce_num.push_back((int)posRadBCE.size());
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1144,8 +1174,6 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                                 bool removeMiddleLayer,
                                 int SIDE,
                                 int SIDE2D) {
-    double kernel_h = 0;
-
     thrust::host_vector<Real4> posRadBCE;
     int numElems = my_mesh->GetNelements();
     std::vector<int> remove2D;
@@ -1180,8 +1208,8 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                 }
 
                 if (add1DElem) {
-                    utils::CreateBCE_On_ChElementCableANCF(posRadBCE, m_paramsH, thisCable, remove1D, multiLayer,
-                                                           removeMiddleLayer, SIDE);
+                    utils::CreateBCE_cableFEM(posRadBCE, thisCable, remove1D, multiLayer, removeMiddleLayer, SIDE,
+                                              *m_paramsH);
                     CreateBceGlobalMarkersFromBceLocalPos_CableANCF(posRadBCE, thisCable);
                 }
                 posRadBCE.clear();
@@ -1237,15 +1265,175 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                 }
 
                 if (add2DElem) {
-                    utils::CreateBCE_On_ChElementShellANCF(posRadBCE, m_paramsH, thisShell, remove2D, remove2D_s,
-                                                           multiLayer, removeMiddleLayer, SIDE2D, kernel_h);
-                    CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell, kernel_h);
+                    utils::CreateBCE_shellFEM(posRadBCE, thisShell, remove2D, remove2D_s, multiLayer, removeMiddleLayer,
+                                              SIDE2D, *m_paramsH);
+                    CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(posRadBCE, thisShell);
                 }
                 posRadBCE.clear();
             }
         }
     }
 }
+
+void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::host_vector<Real4>& posRadBCE,
+                                                                  std::shared_ptr<fea::ChElementCableANCF> cable) {
+    int type = 2;
+
+    fea::ChElementCableANCF::ShapeVector N;
+    fea::ChElementCableANCF::ShapeVector Nd;
+
+    double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
+    ChVector<> physic_to_natural(1 / dx, 1, 1);
+
+    ChVector<> nAp = cable->GetNodeA()->GetPos();
+    ChVector<> nBp = cable->GetNodeB()->GetPos();
+
+    ChVector<> nAv = cable->GetNodeA()->GetPos_dt();
+    ChVector<> nBv = cable->GetNodeB()->GetPos_dt();
+
+    ChVector<> nAdir = cable->GetNodeA()->GetD();
+    ChVector<> nBdir = cable->GetNodeB()->GetD();
+
+    ChVector<> nAdirv = cable->GetNodeA()->GetD_dt();
+    ChVector<> nBdirv = cable->GetNodeB()->GetD_dt();
+
+    int posRadSizeModified = 0;
+    if (m_verbose)
+        printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
+
+    for (size_t i = 0; i < posRadBCE.size(); i++) {
+        ChVector<> pos_physical = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
+        ChVector<> pos_natural = pos_physical * physic_to_natural;
+
+        cable->ShapeFunctionsDerivatives(Nd, pos_natural.x());
+        ChVector<> Element_Axis = Nd(0) * nAp + Nd(1) * nAdir + Nd(2) * nBp + Nd(3) * nBdir;
+        Element_Axis.Normalize();
+
+        ChVector<> new_y_axis = ChVector<>(-Element_Axis.y(), Element_Axis.x(), 0) +
+                                ChVector<>(-Element_Axis.z(), 0, Element_Axis.x()) +
+                                ChVector<>(0, -Element_Axis.z(), Element_Axis.y());
+        new_y_axis.Normalize();
+        ChVector<> new_z_axis = Vcross(Element_Axis, new_y_axis);
+
+        cable->ShapeFunctions(N, pos_natural.x());
+        ChVector<> Correct_Pos = N(0) * nAp + N(1) * nAdir + N(2) * nBp + N(3) * nBdir + new_y_axis * pos_physical.y() +
+                                 new_z_axis * pos_physical.z();
+
+        if ((Correct_Pos.x() < m_paramsH->cMin.x || Correct_Pos.x() > m_paramsH->cMax.x) ||
+            (Correct_Pos.y() < m_paramsH->cMin.y || Correct_Pos.y() > m_paramsH->cMax.y) ||
+            (Correct_Pos.z() < m_paramsH->cMin.z || Correct_Pos.z() > m_paramsH->cMax.z))
+            continue;
+
+        // Note that the fluid particles are removed differently
+        bool addthis = true;
+        for (size_t p = 0; p < m_sysFSI->sphMarkersH->posRadH.size() - 1; p++) {
+            // Only compare to rigid and flexible BCE particles added previously
+            if (m_sysFSI->sphMarkersH->rhoPresMuH[p].w > 0.5) {
+                double dis =
+                    length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos));
+                if (dis < 1e-8) {
+                    addthis = false;
+                    if (m_verbose)
+                        printf(" Already added a BCE particle here! Skip this one!\n");
+                    break;
+                }
+            }
+        }
+
+        if (addthis) {
+            m_sysFSI->sphMarkersH->posRadH.push_back(
+                mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
+            m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
+            ChVector<> Correct_Vel = N(0) * nAv + N(1) * nAdirv + N(2) * nBv + N(3) * nBdirv + ChVector<double>(1e-20);
+            Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
+            m_sysFSI->sphMarkersH->velMasH.push_back(v3);
+            m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
+                mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
+            posRadSizeModified++;
+        }
+    }
+    m_fsi_cables_bce_num.push_back(posRadSizeModified);
+}
+
+void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::host_vector<Real4>& posRadBCE,
+                                                                  std::shared_ptr<fea::ChElementShellANCF_3423> shell) {
+    int type = 3;
+    fea::ChElementShellANCF_3423::ShapeVector N;
+    int posRadSizeModified = 0;
+
+    double my_h = m_paramsH->HSML;
+
+    Real dx = shell->GetLengthX();
+    Real dy = shell->GetLengthY();
+    ChVector<> physic_to_natural(2 / dx, 2 / dy, 1);
+    ChVector<> nAp = shell->GetNodeA()->GetPos();
+    ChVector<> nBp = shell->GetNodeB()->GetPos();
+    ChVector<> nCp = shell->GetNodeC()->GetPos();
+    ChVector<> nDp = shell->GetNodeD()->GetPos();
+
+    ChVector<> nAdir = shell->GetNodeA()->GetD();
+    ChVector<> nBdir = shell->GetNodeB()->GetD();
+    ChVector<> nCdir = shell->GetNodeC()->GetD();
+    ChVector<> nDdir = shell->GetNodeD()->GetD();
+
+    ChVector<> nAv = shell->GetNodeA()->GetPos_dt();
+    ChVector<> nBv = shell->GetNodeB()->GetPos_dt();
+    ChVector<> nCv = shell->GetNodeC()->GetPos_dt();
+    ChVector<> nDv = shell->GetNodeD()->GetPos_dt();
+
+    if (m_verbose)
+        printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
+
+    for (size_t i = 0; i < posRadBCE.size(); i++) {
+        ChVector<> pos_physical = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
+        ChVector<> pos_natural = pos_physical * physic_to_natural;
+
+        shell->ShapeFunctions(N, pos_natural.x(), pos_natural.y(), pos_natural.z());
+
+        ChVector<> Normal = N(0) * nAdir + N(2) * nBdir + N(4) * nCdir + N(6) * nDdir;
+        Normal.Normalize();
+
+        ChVector<> Correct_Pos = N(0) * nAp + N(2) * nBp + N(4) * nCp + N(6) * nDp +
+                                 Normal * pos_physical.z() * my_h * m_paramsH->MULT_INITSPACE_Shells;
+
+        if ((Correct_Pos.x() < m_paramsH->cMin.x || Correct_Pos.x() > m_paramsH->cMax.x) ||
+            (Correct_Pos.y() < m_paramsH->cMin.y || Correct_Pos.y() > m_paramsH->cMax.y) ||
+            (Correct_Pos.z() < m_paramsH->cMin.z || Correct_Pos.z() > m_paramsH->cMax.z))
+            continue;
+
+        // Note that the fluid particles are removed differently
+        bool addthis = true;
+        for (size_t p = 0; p < m_sysFSI->sphMarkersH->posRadH.size() - 1; p++) {
+            // Only compare to rigid and flexible BCE particles added previously
+            if (m_sysFSI->sphMarkersH->rhoPresMuH[p].w > 0.5) {
+                double dis =
+                    length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos));
+                if (dis < 1e-8) {
+                    addthis = false;
+                    if (m_verbose)
+                        printf(" Already added a BCE particle here! Skip this one!\n");
+                    break;
+                }
+            }
+        }
+
+        if (addthis) {
+            m_sysFSI->sphMarkersH->posRadH.push_back(
+                mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
+            m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
+
+            ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + N(4) * nCv + N(6) * nDv;
+            Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
+            m_sysFSI->sphMarkersH->velMasH.push_back(v3);
+            m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
+                mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
+            posRadSizeModified++;
+        }
+    }
+    m_fsi_shells_bce_num.push_back(posRadSizeModified);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
                                    double delta,
@@ -1410,200 +1598,6 @@ void ChSystemFsi::AddBoxBody(std::shared_ptr<ChMaterialSurface> mat_prop,
 
     m_fsi_bodies.push_back(body);
     AddBoxBCE(body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), hsize);
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-
-void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vector<Real4>& posRadBCE,
-                                                        std::shared_ptr<ChBody> body,
-                                                        const ChVector<>& collisionShapeRelativePos,
-                                                        const ChQuaternion<>& collisionShapeRelativeRot,
-                                                        bool isSolid,
-                                                        bool add_to_fluid_helpers,
-                                                        bool add_to_previous_object) {
-    int type = 0;
-    if (isSolid)
-        type = 1;
-    if (add_to_fluid_helpers)
-        type = -3;
-
-    for (size_t i = 0; i < posRadBCE.size(); i++) {
-        ChVector<> posLoc_collisionShape = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
-        ChVector<> posLoc_body = ChTransform<>::TransformLocalToParent(posLoc_collisionShape, collisionShapeRelativePos,
-                                                                       collisionShapeRelativeRot);
-        ChVector<> posLoc_COG = utils::TransformBCEToCOG(body, posLoc_body);
-        ChVector<> posGlob = ChTransform<>::TransformLocalToParent(posLoc_COG, body->GetPos(), body->GetRot());
-        m_sysFSI->sphMarkersH->posRadH.push_back(mR4(ChUtilsTypeConvert::ChVectorToReal3(posGlob), posRadBCE[i].w));
-
-        ChVector<> vAbs = body->PointSpeedLocalToParent(posLoc_COG);
-        Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(vAbs);
-        m_sysFSI->sphMarkersH->velMasH.push_back(v3);
-        m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
-            mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, (double)type));
-        m_sysFSI->sphMarkersH->tauXxYyZzH.push_back(mR3(0.0));
-        m_sysFSI->sphMarkersH->tauXyXzYzH.push_back(mR3(0.0));
-    }
-    if (isSolid)
-        m_fsi_bodies_bce_num.push_back((int)posRadBCE.size());
-}
-
-void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::host_vector<Real4>& posRadBCE,
-                                                                  std::shared_ptr<fea::ChElementCableANCF> cable) {
-    int type = 2;
-
-    fea::ChElementCableANCF::ShapeVector N;
-    fea::ChElementCableANCF::ShapeVector Nd;
-
-    double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
-    ChVector<> physic_to_natural(1 / dx, 1, 1);
-
-    ChVector<> nAp = cable->GetNodeA()->GetPos();
-    ChVector<> nBp = cable->GetNodeB()->GetPos();
-
-    ChVector<> nAv = cable->GetNodeA()->GetPos_dt();
-    ChVector<> nBv = cable->GetNodeB()->GetPos_dt();
-
-    ChVector<> nAdir = cable->GetNodeA()->GetD();
-    ChVector<> nBdir = cable->GetNodeB()->GetD();
-
-    ChVector<> nAdirv = cable->GetNodeA()->GetD_dt();
-    ChVector<> nBdirv = cable->GetNodeB()->GetD_dt();
-
-    int posRadSizeModified = 0;
-    if (m_verbose)
-        printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
-
-    for (size_t i = 0; i < posRadBCE.size(); i++) {
-        ChVector<> pos_physical = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
-        ChVector<> pos_natural = pos_physical * physic_to_natural;
-
-        cable->ShapeFunctionsDerivatives(Nd, pos_natural.x());
-        ChVector<> Element_Axis = Nd(0) * nAp + Nd(1) * nAdir + Nd(2) * nBp + Nd(3) * nBdir;
-        Element_Axis.Normalize();
-
-        ChVector<> new_y_axis = ChVector<>(-Element_Axis.y(), Element_Axis.x(), 0) +
-                                ChVector<>(-Element_Axis.z(), 0, Element_Axis.x()) +
-                                ChVector<>(0, -Element_Axis.z(), Element_Axis.y());
-        new_y_axis.Normalize();
-        ChVector<> new_z_axis = Vcross(Element_Axis, new_y_axis);
-
-        cable->ShapeFunctions(N, pos_natural.x());
-        ChVector<> Correct_Pos = N(0) * nAp + N(1) * nAdir + N(2) * nBp + N(3) * nBdir + new_y_axis * pos_physical.y() +
-                                 new_z_axis * pos_physical.z();
-
-        if ((Correct_Pos.x() < m_paramsH->cMin.x || Correct_Pos.x() > m_paramsH->cMax.x) ||
-            (Correct_Pos.y() < m_paramsH->cMin.y || Correct_Pos.y() > m_paramsH->cMax.y) ||
-            (Correct_Pos.z() < m_paramsH->cMin.z || Correct_Pos.z() > m_paramsH->cMax.z))
-            continue;
-
-        // Note that the fluid particles are removed differently
-        bool addthis = true;
-        for (size_t p = 0; p < m_sysFSI->sphMarkersH->posRadH.size() - 1; p++) {
-            // Only compare to rigid and flexible BCE particles added previously
-            if (m_sysFSI->sphMarkersH->rhoPresMuH[p].w > 0.5) {
-                double dis =
-                    length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos));
-                if (dis < 1e-8) {
-                    addthis = false;
-                    if (m_verbose)
-                        printf(" Already added a BCE particle here! Skip this one!\n");
-                    break;
-                }
-            }
-        }
-
-        if (addthis) {
-            m_sysFSI->sphMarkersH->posRadH.push_back(
-                mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
-            m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
-            ChVector<> Correct_Vel = N(0) * nAv + N(1) * nAdirv + N(2) * nBv + N(3) * nBdirv + ChVector<double>(1e-20);
-            Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
-            m_sysFSI->sphMarkersH->velMasH.push_back(v3);
-            m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
-                mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
-            posRadSizeModified++;
-        }
-    }
-    m_fsi_cables_bce_num.push_back(posRadSizeModified);
-}
-
-void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::host_vector<Real4>& posRadBCE,
-                                                                  std::shared_ptr<fea::ChElementShellANCF_3423> shell,
-                                                                  double kernel_h) {
-    int type = 3;
-    fea::ChElementShellANCF_3423::ShapeVector N;
-    int posRadSizeModified = 0;
-
-    double my_h = (kernel_h == 0) ? m_paramsH->HSML : kernel_h;
-
-    Real dx = shell->GetLengthX();
-    Real dy = shell->GetLengthY();
-    ChVector<> physic_to_natural(2 / dx, 2 / dy, 1);
-    ChVector<> nAp = shell->GetNodeA()->GetPos();
-    ChVector<> nBp = shell->GetNodeB()->GetPos();
-    ChVector<> nCp = shell->GetNodeC()->GetPos();
-    ChVector<> nDp = shell->GetNodeD()->GetPos();
-
-    ChVector<> nAdir = shell->GetNodeA()->GetD();
-    ChVector<> nBdir = shell->GetNodeB()->GetD();
-    ChVector<> nCdir = shell->GetNodeC()->GetD();
-    ChVector<> nDdir = shell->GetNodeD()->GetD();
-
-    ChVector<> nAv = shell->GetNodeA()->GetPos_dt();
-    ChVector<> nBv = shell->GetNodeB()->GetPos_dt();
-    ChVector<> nCv = shell->GetNodeC()->GetPos_dt();
-    ChVector<> nDv = shell->GetNodeD()->GetPos_dt();
-
-    if (m_verbose)
-        printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
-
-    for (size_t i = 0; i < posRadBCE.size(); i++) {
-        ChVector<> pos_physical = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
-        ChVector<> pos_natural = pos_physical * physic_to_natural;
-
-        shell->ShapeFunctions(N, pos_natural.x(), pos_natural.y(), pos_natural.z());
-
-        ChVector<> Normal = N(0) * nAdir + N(2) * nBdir + N(4) * nCdir + N(6) * nDdir;
-        Normal.Normalize();
-
-        ChVector<> Correct_Pos = N(0) * nAp + N(2) * nBp + N(4) * nCp + N(6) * nDp +
-                                 Normal * pos_physical.z() * my_h * m_paramsH->MULT_INITSPACE_Shells;
-
-        if ((Correct_Pos.x() < m_paramsH->cMin.x || Correct_Pos.x() > m_paramsH->cMax.x) ||
-            (Correct_Pos.y() < m_paramsH->cMin.y || Correct_Pos.y() > m_paramsH->cMax.y) ||
-            (Correct_Pos.z() < m_paramsH->cMin.z || Correct_Pos.z() > m_paramsH->cMax.z))
-            continue;
-
-        // Note that the fluid particles are removed differently
-        bool addthis = true;
-        for (size_t p = 0; p < m_sysFSI->sphMarkersH->posRadH.size() - 1; p++) {
-            // Only compare to rigid and flexible BCE particles added previously
-            if (m_sysFSI->sphMarkersH->rhoPresMuH[p].w > 0.5) {
-                double dis =
-                    length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos));
-                if (dis < 1e-8) {
-                    addthis = false;
-                    if (m_verbose)
-                        printf(" Already added a BCE particle here! Skip this one!\n");
-                    break;
-                }
-            }
-        }
-
-        if (addthis) {
-            m_sysFSI->sphMarkersH->posRadH.push_back(
-                mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
-            m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
-
-            ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + N(4) * nCv + N(6) * nDv;
-            Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
-            m_sysFSI->sphMarkersH->velMasH.push_back(v3);
-            m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
-                mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
-            posRadSizeModified++;
-        }
-    }
-    m_fsi_shells_bce_num.push_back(posRadSizeModified);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

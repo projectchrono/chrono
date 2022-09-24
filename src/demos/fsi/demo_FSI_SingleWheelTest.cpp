@@ -202,7 +202,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Add this body to the FSI system
     std::vector<ChVector<>> BCE_wheel;
     sysFSI.CreateMeshPoints(*trimesh, iniSpacing, BCE_wheel);
-    sysFSI.AddPointsBCE(wheel, BCE_wheel, ChVector<>(0.0), QUNIT);
+    sysFSI.AddPointsBCE(wheel, BCE_wheel, VNULL, QUNIT);
     sysFSI.AddFsiBody(wheel);
 
     // Create the chassis -- always THIRD body in the system
