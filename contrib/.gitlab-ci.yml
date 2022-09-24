@@ -212,7 +212,7 @@ linux:doxygen:deploy:
     - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
   needs:
 #    - job: linux:arch-gcc:test
-      artifacts: false
+#      artifacts: false
 #    - job: macos-intel:monterey:test
 #      artifacts: false
     - job: macos-apple:monterey:test
