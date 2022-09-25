@@ -185,7 +185,6 @@ linux:doxygen:deploy:
   - linux
   image:
     name: ubuntu:focal
-    entrypoint: ["/usr/bin/bash", "-c"]
   stage: deploy
   before_script:
     - apt-get update; apt-get install -y git python python3-pip graphviz rsync wget
