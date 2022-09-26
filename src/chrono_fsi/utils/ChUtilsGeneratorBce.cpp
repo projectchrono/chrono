@@ -34,6 +34,8 @@ namespace chrono {
 namespace fsi {
 namespace utils {
 
+const Real pi = (Real)(CH_C_PI);
+
 // =============================================================================
 
 // TransformToCOG
@@ -63,6 +65,7 @@ ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const Real3& pos3) {
 }
 
 // =============================================================================
+
 void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, 
                          Real rad, 
                          const SimParams& paramsH) {
@@ -70,12 +73,12 @@ void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE,
     Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
 
     for (Real r = 0.5 * spacing; r < rad; r += spacing) {
-        int numphi = (int)std::floor(3.1415 * r / spacing);
+        int numphi = (int)std::floor(pi * r / spacing);
         for (size_t p = 0; p < numphi; p++) {
-            Real phi = p * 3.1415 / numphi;
-            int numTheta = (int)std::floor(2 * 3.1415 * r * sin(phi) / spacing);
+            Real phi = p * pi / numphi;
+            int numTheta = (int)std::floor(2 * pi * r * sin(phi) / spacing);
             for (Real t = 0.0; t < numTheta; t++) {
-                Real teta = t * 2 * 3.1415 / numTheta;
+                Real teta = t * 2 * pi / numTheta;
                 Real3 BCE_Pos_local = 
                     mR3(r * sin(phi) * cos(teta), r * sin(phi) * sin(teta), r * cos(phi));
                 posRadBCE.push_back(mR4(BCE_Pos_local, kernel_h));
@@ -111,38 +114,10 @@ void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
             int numr = (int)std::floor(1.00001 * rad / spacing);
             for (size_t ir = 0; ir < numr; ir++) {
                 Real r = 0.5 * spacing + ir * spacing;
-                int numTheta = (int)std::floor(2 * 3.1415 * r / spacing);
+                int numTheta = (int)std::floor(2 * pi * r / spacing);
                 for (size_t t = 0; t < numTheta; t++) {
-                    Real teta = t * 2 * 3.1415 / numTheta;
+                    Real teta = t * 2 * pi / numTheta;
                     Real3 BCE_Pos_local = mR3(r * cos(teta), 0, r * sin(teta)) + centerPointLF;
-                    posRadBCE.push_back(mR4(BCE_Pos_local, kernel_h));
-                }
-            }
-        }
-    }
-}
-
-// =============================================================================
-void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
-                                      thrust::host_vector<Real3>& normals,
-                                      Real rad,
-                                      Real height,
-                                      const SimParams& paramsH) {
-    Real kernel_h = paramsH.HSML;
-    Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
-    int num_layers = (int)std::floor(height / spacing);
-
-    for (size_t si = 0; si < num_layers; si++) {
-        Real s = -0.5 * height + (height / num_layers) * si;
-        Real3 centerPointLF = mR3(0, s, 0);
-        Real numr = std::floor(rad / spacing);
-        for (size_t ir = 1; ir < numr; ir++) {
-            Real r = spacing + ir * rad / numr;
-            int numTheta = (int)std::floor(2 * 3.1415 * r / spacing);
-            for (size_t t = 0; t < numTheta; t++) {
-                Real teta = t * 2 * 3.1415 / numTheta;
-                Real3 BCE_Pos_local = mR3(r * cos(teta), 0, r * sin(teta)) + centerPointLF;
-                if (ir == numr - 1) {
                     posRadBCE.push_back(mR4(BCE_Pos_local, kernel_h));
                 }
             }
@@ -177,9 +152,9 @@ void CreateBCE_On_Cylinder_Annulus(thrust::host_vector<Real4>& posRadBCE,
             for (size_t ir = 0; ir < numr; ir++) {
                 Real r = 0.5 * spacing + ir * spacing;
                 if (r >= rad_in){
-                    int numTheta = (int)std::floor(2 * 3.1415 * r / spacing);
+                    int numTheta = (int)std::floor(2 * pi * r / spacing);
                     for (size_t t = 0; t < numTheta; t++) {
-                        Real teta = t * 2 * 3.1415 / numTheta;
+                        Real teta = t * 2 * pi / numTheta;
                         Real3 BCE_Pos_local = mR3(r * cos(teta), 0, r * sin(teta)) + centerPointLF;
                         posRadBCE.push_back(mR4(BCE_Pos_local, kernel_h));
                     }                    
@@ -219,8 +194,8 @@ void CreateBCE_On_Cone(thrust::host_vector<Real4>& posRadBCE,
             for (size_t ir = 1; ir < numr; ir++) {
                 Real r = r0 - 0.5 * spacing - (ir - 1) * spacing;
                 if (r > 0.1 * spacing) {
-                    int numTheta = (int)std::floor(2 * 3.1415 * r / spacing) + 2;
-                    Real det_Theta = 2 * 3.1415 / numTheta;
+                    int numTheta = (int)std::floor(2 * pi * r / spacing) + 2;
+                    Real det_Theta = 2 * pi / numTheta;
                     for (size_t t = 0; t < numTheta; t++) {
                         Real teta = t * det_Theta + 0.0 * (ir - 1) * det_Theta;
                         Real3 BCE_Pos_local = mR3(r * cos(teta), r * sin(teta), 0.0) + centerPointLF;

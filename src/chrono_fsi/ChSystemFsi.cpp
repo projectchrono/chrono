@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/core/ChTypes.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
@@ -1046,6 +1048,425 @@ void ChSystemFsi::AddBoxSPH(const ChVector<>& boxCenter, const ChVector<>& boxHa
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
+void ChSystemFsi::AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2<> size) {
+    thrust::host_vector<Real4> bce;
+    CreateBCE_wall(mR2(size.x(), size.y()), bce);
+    AddBCE(body, bce, frame, false, false, false);
+}
+
+void ChSystemFsi::AddBoxBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector<>& size, bool solid) {
+    thrust::host_vector<Real4> bce;
+    CreateBCE_box(ChUtilsTypeConvert::ChVectorToReal3(size), solid, bce);
+    AddBCE(body, bce, frame, solid, false, false);
+}
+
+void ChSystemFsi::AddSphereBCE(std::shared_ptr<ChBody> body,
+                               const ChFrame<>& frame,
+                               double radius,
+                               bool solid,
+                               bool polar) {
+    thrust::host_vector<Real4> bce;
+    CreateBCE_sphere(radius, solid, polar, bce);
+    AddBCE(body, bce, frame, solid, false, false);
+}
+
+void ChSystemFsi::AddCylinderBCE(std::shared_ptr<ChBody> body,
+                                 const ChFrame<>& frame,
+                                 double radius,
+                                 double height,
+                                 bool capped,
+                                 bool solid,
+                                 bool polar) {
+    thrust::host_vector<Real4> bce;
+    CreateBCE_cylinder(radius, height, capped, solid, polar, bce);
+    AddBCE(body, bce, frame, solid, false, false);
+}
+
+void ChSystemFsi::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
+                                        const ChFrame<>& frame,
+                                        double radius_inner,
+                                        double radius_outer,
+                                        double height,
+                                        bool polar) {
+    thrust::host_vector<Real4> bce;
+    CreateBCE_cylinder_annulus(radius_inner, radius_outer, height, polar, bce);
+    AddBCE(body, bce, frame, true, false, false);
+}
+
+void ChSystemFsi::AddConeBCE(std::shared_ptr<ChBody> body,
+                             const ChFrame<>& frame,
+                             double radius,
+                             double height,
+                             bool capped,
+                             bool solid,
+                             bool polar) {
+    thrust::host_vector<Real4> bce;
+    CreateBCE_cone(radius, height, capped, solid, polar, bce);
+    AddBCE(body, bce, frame, solid, false, false);
+}
+
+void ChSystemFsi::AddPointsBCE(std::shared_ptr<ChBody> body,
+                               const std::vector<ChVector<>>& points,
+                               const ChFrame<>& frame,
+                               bool solid) {
+    thrust::host_vector<Real4> bce;
+    for (const auto& p : points)
+        bce.push_back(mR4(p.x(), p.y(), p.z(), m_paramsH->HSML));
+    AddBCE(body, bce, frame, solid, false, false);
+}
+
+
+const Real pi = (Real)(CH_C_PI);
+
+void ChSystemFsi::CreateBCE_wall(const Real2& size, thrust::host_vector<Real4>& bce) {
+    Real kernel_h = m_paramsH->HSML;
+    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
+    int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
+
+    // Calculate actual spacing in x-y directions
+    Real2 hsize = size / 2;
+    int2 np = {(int)std::round(hsize.x / spacing), (int)std::round(hsize.y / spacing)};
+    Real2 delta = {hsize.x / np.x, hsize.y / np.y};
+
+    for (int il = 0; il < num_layers; il++) {
+        for (int ix = -np.x; ix <= np.x; ix++) {
+            for (int iy = -np.y; iy <= np.y; iy++) {
+                bce.push_back(mR4(ix * delta.x, iy * delta.y, il * spacing, kernel_h));
+            }
+        }
+    }
+}
+
+void ChSystemFsi::CreateBCE_box(const Real3& size, bool solid, thrust::host_vector<Real4>& bce) {
+    Real kernel_h = m_paramsH->HSML;
+    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
+    int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
+
+    // Calculate actual spacing in all 3 directions
+    Real3 hsize = size / 2;
+    int3 np = {(int)std::round(hsize.x / spacing), (int)std::round(hsize.y / spacing),
+               (int)std::round(hsize.z / spacing)};
+    Real3 delta = {hsize.x / np.x, hsize.y / np.y, hsize.z / np.z};
+
+    // Inflate box if boundary
+    if (!solid) {
+        np += num_layers - 1;
+        hsize = hsize + (num_layers - 1) * delta;
+    }
+
+    for (int il = 0; il < num_layers; il++) {
+        // faces in Z direction
+        for (int ix = -np.x; ix <= np.x; ix++) {
+            for (int iy = -np.y; iy <= np.y; iy++) {
+                bce.push_back(mR4(ix * delta.x, iy * delta.y, -hsize.z + il * delta.z, kernel_h));
+                bce.push_back(mR4(ix * delta.x, iy * delta.y, +hsize.z - il * delta.z, kernel_h));
+            }
+        }
+
+        // faces in Y direction
+        for (int ix = -np.x; ix <= np.x; ix++) {
+            for (int iz = -np.z + num_layers; iz <= np.z - num_layers; iz++) {
+                bce.push_back(mR4(ix * delta.x, -hsize.y + il * delta.y, iz * delta.z, kernel_h));
+                bce.push_back(mR4(ix * delta.x, +hsize.y - il * delta.y, iz * delta.z, kernel_h));
+            }
+        }
+
+        // faces in X direction
+        for (int iy = -np.y + num_layers; iy <= np.y - num_layers; iy++) {
+            for (int iz = -np.z + num_layers; iz <= np.z - num_layers; iz++) {
+                bce.push_back(mR4(-hsize.x + il * delta.x, iy * delta.y, iz * delta.z, kernel_h));
+                bce.push_back(mR4(+hsize.x - il * delta.x, iy * delta.y, iz * delta.z, kernel_h));
+            }
+        }
+    }
+}
+
+void ChSystemFsi::CreateBCE_sphere(Real rad, bool solid, bool polar, thrust::host_vector<Real4>& bce) {
+    Real kernel_h = m_paramsH->HSML;
+    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
+    int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
+
+    // Use polar coordinates
+    if (polar) {
+        Real rad_out = solid ? rad : rad + num_layers * spacing;
+        Real rad_in = rad_out - num_layers * spacing;
+        int np_r = (int)std::round((rad - rad_in) / spacing);
+        Real delta_r = (rad_out - rad_in) / np_r;
+
+        for (int ir = 0; ir <= np_r; ir++) {
+            Real r = rad_in + ir * delta_r;
+            int np_phi = (int)std::round(pi * r / spacing);
+            Real delta_phi = pi / np_phi;
+            for (int ip = 0; ip < np_phi; ip++) {
+                Real phi = ip * delta_phi;
+                Real cphi = std::cos(phi);
+                Real sphi = std::sin(phi);
+                Real x = r * sphi;
+                Real y = r * sphi;
+                Real z = r * cphi;
+                int np_th = (int)std::round(2 * pi * r * sphi / spacing);
+                Real delta_th = (np_th > 0) ? (2 * pi) / np_th : 1;
+                for (int it = 0; it < np_th; it++) {
+                    Real theta = it * delta_th;
+                    bce.push_back(mR4(x * std::cos(theta), y * std::sin(theta), z, kernel_h));
+                }
+            }
+        }
+        return;
+    }
+
+    // Use a regular grid and accept/reject points
+    int np = (int)std::round(rad / spacing);
+    Real delta = rad / np;
+    if (!solid) {
+        np += num_layers;
+        rad += num_layers * delta;
+    }
+
+    for (int iz = 0; iz <= np; iz++) {
+        Real z = iz * delta;
+        Real rz_max = std::sqrt(rad * rad - z * z);
+        Real rz_min = std::max(rz_max - num_layers * delta, 0.0);
+        if (iz >= np - num_layers)
+            rz_min = 0;
+        Real rz_min2 = rz_min * rz_min;
+        Real rz_max2 = rz_max * rz_max;
+        int nq = (int)std::round(rz_max / spacing);
+        for (int ix = -nq; ix <= nq; ix++) {
+            Real x = ix * delta;
+            for (int iy = -nq; iy <= nq; iy++) {
+                Real y = iy * delta;
+                Real r2 = x * x + y * y;
+                if (r2 >= rz_min2 && r2 <= rz_max2) {
+                    bce.push_back(mR4(x, y, +z, kernel_h));
+                    bce.push_back(mR4(x, y, -z, kernel_h));
+                }
+            }
+        }
+    }
+}
+
+void ChSystemFsi::CreateBCE_cylinder(Real rad,
+                                     Real height,
+                                     bool capped,
+                                     bool solid,
+                                     bool polar,
+                                     thrust::host_vector<Real4>& bce) {
+    Real kernel_h = m_paramsH->HSML;
+    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
+    int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
+
+    // Calculate actual spacing
+    double hheight = height / 2;
+    int np_h = (int)std::round(hheight / spacing);
+    Real delta_h = hheight / np_h;
+
+    // Inflate cylinder if boundary
+    if (!solid && capped) {
+        np_h += num_layers;
+        hheight += num_layers * delta_h;
+    }
+
+    // Use polar coordinates
+    if (polar) {
+        Real rad_out = solid ? rad : rad + num_layers * spacing;
+        Real rad_in = rad_out - num_layers * spacing;
+        int np_r = (int)std::round((rad_out - rad_in) / spacing);
+        Real delta_r = (rad_out - rad_in) / np_r;
+        for (int ir = 0; ir <= np_r; ir++) {
+            Real r = rad_in + ir * delta_r;
+            int np_th = (int)std::round(2 * pi * r / spacing);
+            Real delta_th = (2 * pi) / np_th;
+            for (int it = 0; it < np_th; it++) {
+                Real theta = it * delta_th;
+                Real x = r * cos(theta);
+                Real y = r * sin(theta);
+                for (int iz = -np_h; iz <= np_h; iz++) {
+                    Real z = iz * delta_h;
+                    bce.push_back(mR4(x, y, z, kernel_h));
+                }
+            }
+        }
+
+        if (capped) {
+            //// RADU TODO
+        }
+
+        return;
+    }
+
+    // Use a regular grid and accept/reject points
+    int np_r = (int)std::round(rad / spacing);
+    Real delta_r = rad / np_r;
+    if (!solid) {
+        np_r += num_layers;
+        rad += num_layers * delta_r;
+    }
+
+    Real r_min = std::max(rad - num_layers * delta_r, 0.0);
+    Real r_min2 = r_min * r_min;
+    Real r_max2 = rad * rad;
+    for (int ix = -np_r; ix <= np_r; ix++) {
+        Real x = ix * delta_r;
+        for (int iy = -np_r; iy <= np_r; iy++) {
+            Real y = iy * delta_r;
+            Real r2 = x * x + y * y;
+            if (r2 >= r_min2 && r2 <= r_max2) {
+                for (int iz = -np_h; iz <= np_h; iz++) {
+                    Real z = iz * delta_h;
+                    bce.push_back(mR4(x, y, z, kernel_h));
+                }
+            }
+
+            if (capped) {
+                //// RADU TODO
+            }
+        }
+    }
+}
+
+void ChSystemFsi::CreateBCE_cylinder_annulus(Real rad_in,
+                                             Real rad_out,
+                                             Real height,
+                                             bool polar,
+                                             thrust::host_vector<Real4>& bce) {
+    Real kernel_h = m_paramsH->HSML;
+    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
+
+    // Calculate actual spacing
+    double hheight = height / 2;
+    int np_h = (int)std::round(hheight / spacing);
+    Real delta_h = hheight / np_h;
+
+    // Use polar coordinates
+    if (polar) {
+        int np_r = (int)std::round((rad_out - rad_in) / spacing);
+        Real delta_r = (rad_out - rad_in) / np_r;
+        for (int ir = 0; ir <= np_r; ir++) {
+            Real r = rad_in + ir * delta_r;
+            int np_th = (int)std::round(2 * pi * r / spacing);
+            Real delta_th = (2 * pi) / np_th;
+            for (int it = 0; it < np_th; it++) {
+                Real theta = it * delta_th;
+                Real x = r * cos(theta);
+                Real y = r * sin(theta);
+                for (int iz = -np_h; iz <= np_h; iz++) {
+                    Real z = iz * delta_h;
+                    bce.push_back(mR4(x, y, z, kernel_h));
+                }
+            }
+        }
+        return;
+    }
+
+    // Use a regular grid and accept/reject points
+    int np_r = (int)std::round(rad_out / spacing);
+    Real delta_r = rad_out / np_r;
+
+    Real r_in2 = rad_in * rad_in;
+    Real r_out2 = rad_out * rad_out;
+    for (int ix = -np_r; ix <= np_r; ix++) {
+        Real x = ix * delta_r;
+        for (int iy = -np_r; iy <= np_r; iy++) {
+            Real y = iy * delta_r;
+            Real r2 = x * x + y * y;
+            if (r2 >= r_in2 && r2 <= r_out2) {
+                for (int iz = -np_h; iz <= np_h; iz++) {
+                    Real z = iz * delta_h;
+                    bce.push_back(mR4(x, y, z, kernel_h));
+                }
+            }
+        }
+    }
+}
+
+void ChSystemFsi::CreateBCE_cone(Real rad,
+                                 Real height,
+                                 bool capped,
+                                 bool solid,
+                                 bool polar,
+                                 thrust::host_vector<Real4>& bce) {
+    Real kernel_h = m_paramsH->HSML;
+    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
+    int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
+
+    // Calculate actual spacing
+    int np_h = (int)std::round(height / spacing);
+    Real delta_h = height / np_h;
+
+    // Inflate cone if boundary
+    if (!solid) {
+        np_h += num_layers;
+        height += num_layers * delta_h;
+        if (capped) {
+            np_h += num_layers;
+            height += num_layers * delta_h;        
+        }
+    }
+
+    // Use polar coordinates
+    if (polar) {
+        for (int iz = 0; iz < np_h; iz++) {
+            Real z = iz * delta_h;
+            Real rz = rad * (height - z) / height;
+            Real rad_out = solid ? rz : rz + num_layers * spacing;
+            Real rad_in = std::max(rad_out - num_layers * spacing, 0.0);
+            if (iz >= np_h - num_layers)
+                rad_in = 0;
+            int np_r = (int)std::round((rad_out - rad_in) / spacing);
+            Real delta_r = (rad_out - rad_in) / np_r;
+            for (int ir = 0; ir <= np_r; ir++) {
+                Real r = rad_in + ir * delta_r;
+                int np_th = (int)std::round(2 * pi * r / spacing);
+                Real delta_th = (2 * pi) / np_th;
+                for (int it = 0; it < np_th; it++) {
+                    Real theta = it * delta_th;
+                    Real x = r * cos(theta);
+                    Real y = r * sin(theta);
+                    bce.push_back(mR4(x, y, z, kernel_h));
+                }
+            }
+        }
+
+        bce.push_back(mR4(0.0, 0.0, height, kernel_h));
+
+        if (capped) {
+            //// RADU TODO
+        }
+
+        return;
+    }
+
+    // Use a regular grid and accept/reject points
+    int np_r = (int)std::round(rad / spacing);
+    Real delta_r = rad / np_r;
+
+    for (int iz = 0; iz <= np_h; iz++) {
+        Real z = iz * delta_h;
+        Real rz = rad * (height - z) / height;
+        Real rad_out = solid ? rz : rz + num_layers * spacing;
+        Real rad_in = std::max(rad_out - num_layers * spacing, 0.0);
+        Real r_out2 = rad_out * rad_out;
+        Real r_in2 = rad_in * rad_in;
+        for (int ix = -np_r; ix <= np_r; ix++) {
+            Real x = ix * delta_r;
+            for (int iy = -np_r; iy <= np_r; iy++) {
+                Real y = iy * delta_r;
+                Real r2 = x * x + y * y;
+                if (r2 >= r_in2 && r2 <= r_out2) {
+                    bce.push_back(mR4(x, y, z, kernel_h));
+                }
+            }
+
+            if (capped) {
+                //// RADU TODO
+            }
+        }
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::AddBoxBCE(std::shared_ptr<ChBody> body,
                             const ChVector<>& relPos,
                             const ChQuaternion<>& relRot,
@@ -1093,19 +1514,6 @@ void ChSystemFsi::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
     posRadBCE.clear();
 }
 
-void ChSystemFsi::AddCylinderSurfaceBCE(std::shared_ptr<ChBody> body,
-                                        const ChVector<>& relPos,
-                                        const ChQuaternion<>& relRot,
-                                        double radius,
-                                        double height) {
-    thrust::host_vector<Real4> posRadBCE;
-    thrust::host_vector<Real3> normals;
-    utils::CreateBCE_On_surface_of_Cylinder(posRadBCE, normals, (Real)radius, (Real)height, *m_paramsH);
-    CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot, false, true);
-    posRadBCE.clear();
-    normals.clear();
-}
-
 void ChSystemFsi::AddConeBCE(std::shared_ptr<ChBody> body,
                              const ChVector<>& relPos,
                              const ChQuaternion<>& relRot,
@@ -1128,10 +1536,47 @@ void ChSystemFsi::AddPointsBCE(std::shared_ptr<ChBody> body,
     CreateBceGlobalMarkersFromBceLocalPos(posRadBCE, body, relPos, relRot);
 }
 
+
+
+void ChSystemFsi::AddBCE(std::shared_ptr<ChBody> body,
+                         const thrust::host_vector<Real4>& bce,
+                         const ChFrame<>& rel_frame,
+                         bool solid,
+                         bool add_to_fluid_helpers,
+                         bool add_to_previous) {
+    // Set BCE marker type
+    int type = 0;
+    if (solid)
+        type = 1;
+    if (add_to_fluid_helpers)
+        type = -3;
+
+    for (const auto& p : bce) {
+        auto pos_shape = ChUtilsTypeConvert::Real4ToChVector(p);
+        auto pos_body = rel_frame.TransformPointLocalToParent(pos_shape);
+        auto pos_abs = body->GetFrame_REF_to_abs().TransformPointLocalToParent(pos_body);
+        auto vel_abs = body->GetFrame_REF_to_abs().PointSpeedLocalToParent(pos_body);
+
+        m_sysFSI->sphMarkersH->posRadH.push_back(mR4(ChUtilsTypeConvert::ChVectorToReal3(pos_abs), p.w));
+        m_sysFSI->sphMarkersH->velMasH.push_back(ChUtilsTypeConvert::ChVectorToReal3(vel_abs));
+
+        m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
+            mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, (double)type));
+        m_sysFSI->sphMarkersH->tauXxYyZzH.push_back(mR3(0.0));
+        m_sysFSI->sphMarkersH->tauXyXzYzH.push_back(mR3(0.0));
+    }
+
+    if (solid)
+        m_fsi_bodies_bce_num.push_back((int)bce.size());
+}
+
+
+
+
 void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vector<Real4>& posRadBCE,
                                                         std::shared_ptr<ChBody> body,
-                                                        const ChVector<>& collisionShapeRelativePos,
-                                                        const ChQuaternion<>& collisionShapeRelativeRot,
+                                                        const ChVector<>& relPos,
+                                                        const ChQuaternion<>& relRot,
                                                         bool isSolid,
                                                         bool add_to_fluid_helpers,
                                                         bool add_to_previous_object) {
@@ -1143,13 +1588,25 @@ void ChSystemFsi::CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vecto
 
     for (size_t i = 0; i < posRadBCE.size(); i++) {
         ChVector<> posLoc_collisionShape = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
-        ChVector<> posLoc_body = ChTransform<>::TransformLocalToParent(posLoc_collisionShape, collisionShapeRelativePos,
-                                                                       collisionShapeRelativeRot);
+        ChVector<> posLoc_body = ChTransform<>::TransformLocalToParent(posLoc_collisionShape, relPos, relRot);
         ChVector<> posLoc_COG = utils::TransformBCEToCOG(body, posLoc_body);
         ChVector<> posGlob = ChTransform<>::TransformLocalToParent(posLoc_COG, body->GetPos(), body->GetRot());
+
+        ChFrame<> frame(relPos, relRot);
+        auto pos_body = frame.TransformPointLocalToParent(posLoc_collisionShape);
+        auto pos_abs = body->GetFrame_REF_to_abs().TransformPointLocalToParent(pos_body);
+
+        assert((pos_abs - posGlob).Length() < 1e-6);
+
+
         m_sysFSI->sphMarkersH->posRadH.push_back(mR4(ChUtilsTypeConvert::ChVectorToReal3(posGlob), posRadBCE[i].w));
 
         ChVector<> vAbs = body->PointSpeedLocalToParent(posLoc_COG);
+
+
+        auto vel_abs = body->GetFrame_REF_to_abs().PointSpeedLocalToParent(pos_body);
+        assert((vel_abs - vAbs).Length() < 1e-6);
+
         Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(vAbs);
         m_sysFSI->sphMarkersH->velMasH.push_back(v3);
         m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
@@ -1543,8 +2000,8 @@ void ChSystemFsi::AddSphereBody(std::shared_ptr<ChMaterialSurface> mat_prop,
     chrono::utils::AddSphereGeometry(body.get(), mat_prop, radius);
     body->GetCollisionModel()->BuildModel();
     m_sysMBS.AddBody(body);
-    m_fsi_bodies.push_back(body);
 
+    m_fsi_bodies.push_back(body);
     AddSphereBCE(body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), radius);
 }
 
