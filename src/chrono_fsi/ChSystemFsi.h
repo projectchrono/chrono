@@ -337,7 +337,11 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created inside the sphere if solid=true, and outside the sphere otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using spherical coordinates (default), or else on a uniform Cartesian grid.
-    void AddSphereBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, double radius, bool solid, bool polar = true);
+    void AddSphereBCE(std::shared_ptr<ChBody> body,
+                      const ChFrame<>& frame,
+                      double radius,
+                      bool solid,
+                      bool polar = true);
 
     /// Add BCE markers for a cylinder of specified radius and height and associate them with the given body.
     /// The cylinder is assumed centered at the origin of the provided frame and aligned with its Z axis.
@@ -384,58 +388,8 @@ class CH_FSI_API ChSystemFsi {
                       const ChFrame<>& frame,
                       bool solid);
 
-
-
-
-    /// Add BCE markers in a box of given dimensions and at given position associated with the specified body.
-    void AddBoxBCE(std::shared_ptr<ChBody> body,
-                   const ChVector<>& relPos,
-                   const ChQuaternion<>& relRot,
-                   const ChVector<>& size,
-                   int plane = 12,
-                   bool isSolid = false);
-
-    /// Add BCE markers in a sphere of given radius associated with the specified body.
-    void AddSphereBCE(std::shared_ptr<ChBody> body,
-                      const ChVector<>& relPos,
-                      const ChQuaternion<>& relRot,
-                      double radius);
-
-    /// Add BCE markers in a cylinder of given dimensions and at given position associated with the specified body.
-    void AddCylinderBCE(std::shared_ptr<ChBody> body,
-                        const ChVector<>& relPos,
-                        const ChQuaternion<>& relRot,
-                        double radius,
-                        double height,
-                        bool cartesian = true);
-
-    /// Add BCE markers in a cylinder annulus of given dimensions and at given position associated with the specified
-    /// body.
-    void AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
-                               const ChVector<>& relPos,
-                               const ChQuaternion<>& relRot,
-                               double rad_in,
-                               double rad_out,
-                               double height,
-                               bool cartesian = true);
-
-    /// Add BCE markers in a cone of given dimensions and at given position associated with the specified body.
-    void AddConeBCE(std::shared_ptr<ChBody> body,
-                    const ChVector<>& relPos,
-                    const ChQuaternion<>& relRot,
-                    double radius,
-                    double height,
-                    bool cartesian = true);
-
-    /// Add BCE markers from a set of points and associate them with the given body.
-    void AddPointsBCE(std::shared_ptr<ChBody> body,
-                      const std::vector<ChVector<>>& points,
-                      const ChVector<>& relPos,
-                      const ChQuaternion<>& relRot);
-
-
-
     /// Add BCE markers from mesh.
+    //// RADU TODO
     void AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                        const std::vector<std::vector<int>>& NodeNeighborElement,
                        const std::vector<std::vector<int>>& _1D_elementsNodes,
@@ -512,13 +466,10 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created inside the sphere if solid=true, and outside the sphere otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using spherical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_sphere(Real rad,
-                          bool solid,
-                          bool polar,
-                          thrust::host_vector<Real4>& bce);
+    void CreateBCE_sphere(Real rad, bool solid, bool polar, thrust::host_vector<Real4>& bce);
 
     /// Create BCE markers for a cylinder of specified radius and height.
-    /// The cylinder is assumed centered at the origin and aligned with the Z axis. 
+    /// The cylinder is assumed centered at the origin and aligned with the Z axis.
     /// The end-caps are created if capped = true, otherwise the cylinder is open.
     /// BCE markers are created inside the cylinder if solid=true, and outside the cylinder otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
@@ -531,8 +482,8 @@ class CH_FSI_API ChSystemFsi {
                             thrust::host_vector<Real4>& bce);
 
     /// Create BCE particles for a cylindrical annulus of specified radii and height.
-    /// The cylinder annulus is assumed centered at the origin and aligned with the Z axis. 
-    /// BCE markers are created in a number of layers corresponding to system parameters. 
+    /// The cylinder annulus is assumed centered at the origin and aligned with the Z axis.
+    /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
     void CreateBCE_cylinder_annulus(Real rad_in,
                                     Real rad_out,
@@ -546,12 +497,26 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created inside the cone if solid=true, and outside the cone otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_cone(Real rad,
-                        Real height,
-                        bool capped,
-                        bool solid,
-                        bool polar,
-                        thrust::host_vector<Real4>& bce);
+    void CreateBCE_cone(Real rad, Real height, bool capped, bool solid, bool polar, thrust::host_vector<Real4>& bce);
+
+    /// Create BCE particles from a cable element.
+    //// RADU TODO
+    void CreateBCE_cable(thrust::host_vector<Real4>& posRadBCE,
+                         std::shared_ptr<chrono::fea::ChElementCableANCF> cable,
+                         std::vector<int> remove,
+                         bool multiLayer,
+                         bool removeMiddleLayer,
+                         int SIDE);
+
+    /// Create BCE particles from a shell element.
+    //// RADU TODO
+    void CreateBCE_shell(thrust::host_vector<Real4>& posRadBCE,
+                         std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
+                         std::vector<int> remove,
+                         std::vector<int> remove_s,
+                         bool multiLayer,
+                         bool removeMiddleLayer,
+                         int SIDE);
 
     /// Utility function for creating points filling a closed mesh.
     //// RADU TODO eliminate delta (use initspacing)
@@ -572,20 +537,9 @@ class CH_FSI_API ChSystemFsi {
                 bool add_to_fluid_helpers,
                 bool add_to_previous);
 
-    /// Create BCE particles from the local position on a body.
-    void CreateBceGlobalMarkersFromBceLocalPos(const thrust::host_vector<Real4>& posRadBCE,
-                                               std::shared_ptr<ChBody> body,
-                                               const ChVector<>& relPos = ChVector<>(0),
-                                               const ChQuaternion<>& relRot = QUNIT,
-                                               bool isSolid = true,
-                                               bool add_to_fluid_helpers = false,
-                                               bool add_to_previous_object = false);
+    void AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE, std::shared_ptr<fea::ChElementCableANCF> cable);
 
-    void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(const thrust::host_vector<Real4>& posRadBCE,
-                                                         std::shared_ptr<fea::ChElementCableANCF> cable);
-
-    void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(const thrust::host_vector<Real4>& posRadBCE,
-                                                         std::shared_ptr<fea::ChElementShellANCF_3423> shell);
+    void AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE, std::shared_ptr<fea::ChElementShellANCF_3423> shell);
 
     /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
     void CopyDeviceDataToHalfStep();

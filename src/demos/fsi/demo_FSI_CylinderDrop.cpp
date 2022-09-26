@@ -185,12 +185,12 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.AddBody(box);
 
     // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddBoxBCE(box, pos_zp, QUNIT, size_XY, 12);
-    sysFSI.AddBoxBCE(box, pos_zn, QUNIT, size_XY, 12);
-    sysFSI.AddBoxBCE(box, pos_xp, QUNIT, size_YZ, 23);
-    sysFSI.AddBoxBCE(box, pos_xn, QUNIT, size_YZ, 23);
-    sysFSI.AddBoxBCE(box, pos_yp, QUNIT, size_XZ, 13);
-    sysFSI.AddBoxBCE(box, pos_yn, QUNIT, size_XZ, 13);
+    sysFSI.AddWallBCE(box, ChFrame<>(pos_zn, QUNIT), {size_XY.x(), size_XY.y()});
+    sysFSI.AddWallBCE(box, ChFrame<>(pos_zp, Q_from_AngX(+CH_C_PI)), {size_XY.x(), size_XY.y()});
+    sysFSI.AddWallBCE(box, ChFrame<>(pos_xn, Q_from_AngY(+CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
+    sysFSI.AddWallBCE(box, ChFrame<>(pos_xp, Q_from_AngY(-CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
+    sysFSI.AddWallBCE(box, ChFrame<>(pos_yn, Q_from_AngX(-CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
+    sysFSI.AddWallBCE(box, ChFrame<>(pos_yp, Q_from_AngX(+CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
 
     // Create a falling cylinder
     auto cylinder = chrono_types::make_shared<ChBody>();
@@ -201,7 +201,6 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     double mass = density * volume;
     ChVector<> cyl_pos = ChVector<>(0, 0, bzDim + cyl_radius + 2 * initSpace0);
     ChVector<> cyl_vel = ChVector<>(0.0, 0.0, 0.0);
-    ChQuaternion<> cyl_rot = QUNIT;
     ChVector<> gyration = chrono::utils::CalcCylinderGyration(cyl_radius, cyl_length / 2).diagonal();
     cylinder->SetPos(cyl_pos);
     cylinder->SetPos_dt(cyl_vel);
@@ -213,8 +212,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     cylinder->SetBodyFixed(false);
     cylinder->GetCollisionModel()->ClearModel();
     cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
-    chrono::utils::AddCylinderGeometry(cylinder.get(), mysurfmaterial, cyl_radius, cyl_length,
-                                       ChVector<>(0.0, 0.0, 0.0), cyl_rot);
+    chrono::utils::AddCylinderGeometry(cylinder.get(), mysurfmaterial, cyl_radius, cyl_length, VNULL, QUNIT);
     cylinder->GetCollisionModel()->BuildModel();
 
     // Add this body to chrono system
@@ -224,7 +222,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysFSI.AddFsiBody(cylinder);
 
     // Add BCE particles attached on the cylinder into FSI system
-    sysFSI.AddCylinderBCE(cylinder, VNULL, QUNIT, cyl_radius, cyl_length + initSpace0, false);
+    sysFSI.AddCylinderBCE(cylinder, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)), cyl_radius, cyl_length, false, true);
 }
 
 // =============================================================================

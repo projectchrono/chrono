@@ -66,7 +66,7 @@ int num_cable_element = 15;
 
 // Material Properties
 double E = 8e9;
-double rho = 8000;
+double density = 8000;
 double BeamRaleyghDamping = 0.02;
 
 // Output frequency
@@ -263,12 +263,12 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.AddBody(ground);
 
     // Fluid representation of walls
-    sysFSI.AddBoxBCE(ground, pos_zn, QUNIT, size_XY, 12);
-    // sysFSI.AddBoxBCE(ground, pos_zp, QUNIT, size_XY, 12);
-    sysFSI.AddBoxBCE(ground, pos_xp, QUNIT, size_YZ, 23);
-    sysFSI.AddBoxBCE(ground, pos_xn, QUNIT, size_YZ, 23);
-    // sysFSI.AddBoxBCE(ground, pos_yp, QUNIT, size_XZ, 13);
-    // sysFSI.AddBoxBCE(ground, pos_yn, QUNIT, size_XZ, 13);
+    sysFSI.AddWallBCE(ground, ChFrame<>(pos_zn, QUNIT), {size_XY.x(), size_XY.y()});
+    ////sysFSI.AddWallBCE(ground, ChFrame<>(pos_zp, Q_from_AngX(+CH_C_PI)), {size_XY.x(), size_XY.y()});
+    sysFSI.AddWallBCE(ground, ChFrame<>(pos_xn, Q_from_AngY(+CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
+    sysFSI.AddWallBCE(ground, ChFrame<>(pos_xp, Q_from_AngY(-CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
+    ////sysFSI.AddWallBCE(ground, ChFrame<>(pos_yn, Q_from_AngX(-CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
+    ////sysFSI.AddWallBCE(ground, ChFrame<>(pos_yp, Q_from_AngX(+CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
 
     // ******************************* Flexible bodies ***********************************
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
@@ -278,7 +278,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
     msection_cable->SetDiameter(initSpace0);
     msection_cable->SetYoungModulus(E);
-    msection_cable->SetDensity(rho);
+    msection_cable->SetDensity(density);
     msection_cable->SetBeamRaleyghDamping(BeamRaleyghDamping);
 
     ChBuilderCableANCF builder;

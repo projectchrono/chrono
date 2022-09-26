@@ -210,11 +210,11 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     ChVector<> pos_yn(0, -m_hdimY - 3 * initSpace0, 1.25 * m_depth / 2 + 0 * initSpace0);
 
     // Add BCE particles attached on the walls into FSI system
-    m_systemFSI->AddBoxBCE(container, pos_zn, chrono::QUNIT, size_XY, 12);
-    m_systemFSI->AddBoxBCE(container, pos_xp, chrono::QUNIT, size_YZ, 23);
-    m_systemFSI->AddBoxBCE(container, pos_xn, chrono::QUNIT, size_YZ, 23);
-    m_systemFSI->AddBoxBCE(container, pos_yp, chrono::QUNIT, size_XZ, 13);
-    m_systemFSI->AddBoxBCE(container, pos_yn, chrono::QUNIT, size_XZ, 13);
+    m_systemFSI->AddWallBCE(container, ChFrame<>(pos_zn, QUNIT), {size_XY.x(), size_XY.y()});
+    m_systemFSI->AddWallBCE(container, ChFrame<>(pos_xn, Q_from_AngY(+CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
+    m_systemFSI->AddWallBCE(container, ChFrame<>(pos_xp, Q_from_AngY(-CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
+    m_systemFSI->AddWallBCE(container, ChFrame<>(pos_yn, Q_from_AngX(-CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
+    m_systemFSI->AddWallBCE(container, ChFrame<>(pos_yp, Q_from_AngX(+CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
 
     // Add all rigid obstacles
     int id = body_id_obstacles;
@@ -256,7 +256,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         // Create BCE markers associated with trimesh
         std::vector<ChVector<>> point_cloud;
         m_systemFSI->CreateMeshPoints(*trimesh, (double)initSpace0, point_cloud);
-        m_systemFSI->AddPointsBCE(body, point_cloud, VNULL, QUNIT);
+        m_systemFSI->AddPointsBCE(body, point_cloud, ChFrame<>(), true);
     }
 
 #ifdef CHRONO_OPENGL
@@ -333,7 +333,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
     // Create BCE markers associated with trimesh
     std::vector<ChVector<>> point_cloud;
     m_systemFSI->CreateMeshPoints(*trimesh, (double)m_systemFSI->GetInitialSpacing(), point_cloud);
-    m_systemFSI->AddPointsBCE(body, point_cloud, VNULL, QUNIT);
+    m_systemFSI->AddPointsBCE(body, point_cloud, ChFrame<>(), true);
 }
 
 // Once all proxy bodies are created, complete construction of the underlying FSI system.

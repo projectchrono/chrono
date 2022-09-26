@@ -85,18 +85,18 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Size and position of the bottom and top walls
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> sizeWall(bxDim / 2, byDim / 2, 2 * initSpace0);
-    ChVector<> posBottom(0, 0, -3 * initSpace0);
-    ChVector<> posTop(0, 0, bzDim + 1 * initSpace0);
+    ChVector<> size_XY(bxDim / 2, byDim / 2, 2 * initSpace0);
+    ChVector<> pos_zn(0, 0, -3 * initSpace0);
+    ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
 
     // Add a geometry to the body and set the collision model
-    chrono::utils::AddBoxGeometry(body.get(), mysurfmaterial, sizeWall, posBottom, QUNIT, true);
+    chrono::utils::AddBoxGeometry(body.get(), mysurfmaterial, size_XY, pos_zn, QUNIT, true);
     body->GetCollisionModel()->BuildModel();
     sysMBS.AddBody(body);
 
     // Add BCE particles to the bottom and top wall boundary
-    sysFSI.AddBoxBCE(body, posTop, QUNIT, sizeWall, 12);
-    sysFSI.AddBoxBCE(body, posBottom, QUNIT, sizeWall, 12);
+    sysFSI.AddWallBCE(body, ChFrame<>(pos_zn, QUNIT), {size_XY.x(), size_XY.y()});
+    sysFSI.AddWallBCE(body, ChFrame<>(pos_zp, Q_from_AngX(+CH_C_PI)), {size_XY.x(), size_XY.y()});
 }
 
 // ===============================

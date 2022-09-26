@@ -99,23 +99,26 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XY, pos_zn, QUNIT, true);
     chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xp, QUNIT, true);
     chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xn, QUNIT, true);
+    
     // You may uncomment the following lines to have side walls as well.
     // To show the use of Periodic boundary condition, these walls are not added
     // To this end, cMin and cMax were set up appropriately
     ////chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yp, QUNIT, true);
     ////chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yn, QUNIT, true);
+
     ground->GetCollisionModel()->BuildModel();
     sysMBS.AddBody(ground);
 
     // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddBoxBCE(ground, pos_zn, QUNIT, size_XY, 12);
-    sysFSI.AddBoxBCE(ground, pos_zp, QUNIT, size_XY, 12);
-    sysFSI.AddBoxBCE(ground, pos_xp, QUNIT, size_YZ, 23);
-    sysFSI.AddBoxBCE(ground, pos_xn, QUNIT, size_YZ, 23);
+    sysFSI.AddWallBCE(ground, ChFrame<>(pos_zn, QUNIT), {size_XY.x(), size_XY.y()});
+    sysFSI.AddWallBCE(ground, ChFrame<>(pos_zp, Q_from_AngX(+CH_C_PI)), {size_XY.x(), size_XY.y()});
+    sysFSI.AddWallBCE(ground, ChFrame<>(pos_xn, Q_from_AngY(+CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
+    sysFSI.AddWallBCE(ground, ChFrame<>(pos_xp, Q_from_AngY(-CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
+
     // If you uncommented the above lines that add the side walls, you should uncomment the following two lines as
     // well. This is necessary in order to populate the walls with BCE markers for the fluid simulation
-    ////sysFSI.AddBoxBce(ground, pos_yp, QUNIT, size_XZ, 13);
-    ////sysFSI.AddBoxBce(ground, pos_yn, QUNIT, size_XZ, 13);
+    ////sysFSI.AddWallBCE(ground, ChFrame<>(pos_yn, Q_from_AngX(-CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
+    ////sysFSI.AddWallBCE(ground, ChFrame<>(pos_yp, Q_from_AngX(+CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
 }
 
 // =============================================================================

@@ -150,12 +150,12 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     ChVector<> pos_yn(0, -byDim / 2 - 3 * iniSpacing, bzDim / 2 + 0 * iniSpacing);
 
     // Add BCE particles attached on the walls into FSI system
-    // sysFSI.AddBoxBCE(ground, pos_zp, QUNIT, size_XY, 12);
-    sysFSI.AddBoxBCE(ground, pos_zn, QUNIT, size_XY, 12);
-    sysFSI.AddBoxBCE(ground, pos_xp, QUNIT, size_YZ, 23);
-    sysFSI.AddBoxBCE(ground, pos_xn, QUNIT, size_YZ, 23);
-    ////sysFSI.AddBoxBCE(ground, pos_yp, QUNIT, size_XZ, 13);
-    ////sysFSI.AddBoxBCE(ground, pos_yn, QUNIT, size_XZ, 13);
+    sysFSI.AddWallBCE(ground, ChFrame<>(pos_zn, QUNIT), {size_XY.x(), size_XY.y()});
+    ////sysFSI.AddWallBCE(ground, ChFrame<>(pos_zp, Q_from_AngX(+CH_C_PI)), {size_XY.x(), size_XY.y()});
+    sysFSI.AddWallBCE(ground, ChFrame<>(pos_xn, Q_from_AngY(+CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
+    sysFSI.AddWallBCE(ground, ChFrame<>(pos_xp, Q_from_AngY(-CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
+    ////sysFSI.AddWallBCE(ground, ChFrame<>(pos_yn, Q_from_AngX(-CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
+    ////sysFSI.AddWallBCE(ground, ChFrame<>(pos_yp, Q_from_AngX(+CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
 
     // Create the wheel -- always SECOND body in the system
     auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
@@ -202,7 +202,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Add this body to the FSI system
     std::vector<ChVector<>> BCE_wheel;
     sysFSI.CreateMeshPoints(*trimesh, iniSpacing, BCE_wheel);
-    sysFSI.AddPointsBCE(wheel, BCE_wheel, VNULL, QUNIT);
+    sysFSI.AddPointsBCE(wheel, BCE_wheel, ChFrame<>(), true);
     sysFSI.AddFsiBody(wheel);
 
     // Create the chassis -- always THIRD body in the system

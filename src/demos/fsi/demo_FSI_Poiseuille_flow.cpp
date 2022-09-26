@@ -68,21 +68,20 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     auto initSpace0 = sysFSI.GetInitialSpacing();
 
     // Bottom and top wall - size and position
-    ChVector<> sizeBottom(bxDim / 2, byDim / 2 + 0 * initSpace0, 2 * initSpace0);
-    ChVector<> sizeTop = sizeBottom;
-    ChVector<> posBottom(0, 0, -3 * initSpace0);
-    ChVector<> posTop(0, 0, bzDim + 1 * initSpace0);
+    ChVector<> size_XY(bxDim / 2, byDim / 2 + 0 * initSpace0, 2 * initSpace0);
+    ChVector<> pos_zn(0, 0, -3 * initSpace0);
+    ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
 
     // Add the walls into chrono system
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, sizeBottom, posBottom, QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, sizeTop, posTop, QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XY, pos_zn, QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XY, pos_zp, QUNIT, true);
 
     ground->GetCollisionModel()->BuildModel();
     sysMBS.AddBody(ground);
 
     // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddBoxBCE(ground, posBottom, QUNIT, sizeBottom);
-    sysFSI.AddBoxBCE(ground, posTop, QUNIT, sizeBottom);
+    sysFSI.AddWallBCE(ground, ChFrame<>(pos_zn, QUNIT), {size_XY.x(), size_XY.y()});
+    sysFSI.AddWallBCE(ground, ChFrame<>(pos_zp, Q_from_AngX(+CH_C_PI)), {size_XY.x(), size_XY.y()});
 }
 
 // =============================================================================
