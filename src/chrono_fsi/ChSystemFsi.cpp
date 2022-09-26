@@ -525,13 +525,13 @@ void ChSystemFsi::SetContainerDim(const ChVector<>& boxDim) {
 }
 
 void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax) {
-    m_paramsH->cMin = ChUtilsTypeConvert::ChVectorToReal3(cMin);
-    m_paramsH->cMax = ChUtilsTypeConvert::ChVectorToReal3(cMax);
+    m_paramsH->cMin = utils::ToReal3(cMin);
+    m_paramsH->cMax = utils::ToReal3(cMax);
     m_paramsH->use_default_limits = false;
 }
 
 void ChSystemFsi::SetActiveDomain(const ChVector<>& boxDim) {
-    m_paramsH->bodyActiveDomain = ChUtilsTypeConvert::ChVectorToReal3(boxDim);
+    m_paramsH->bodyActiveDomain = utils::ToReal3(boxDim);
 }
 
 void ChSystemFsi::SetNumBoundaryLayers(int num_layers) {
@@ -1017,10 +1017,10 @@ void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
                                  const ChVector<>& tauXxYyZz,
                                  const ChVector<>& tauXyXzYz) {
     Real h = m_paramsH->HSML;
-    m_sysFSI->AddSPHParticle(ChUtilsTypeConvert::ChVectorToReal4(point, h), mR4(rho0, pres0, mu0, -1),
-                             ChUtilsTypeConvert::ChVectorToReal3(velocity),
-                             ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
-                             ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
+    m_sysFSI->AddSPHParticle(utils::ToReal4(point, h), mR4(rho0, pres0, mu0, -1),
+                             utils::ToReal3(velocity),
+                             utils::ToReal3(tauXxYyZz),
+                             utils::ToReal3(tauXyXzYz));
 }
 
 void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
@@ -1055,7 +1055,7 @@ void ChSystemFsi::AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& fram
 
 void ChSystemFsi::AddBoxBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector<>& size, bool solid) {
     thrust::host_vector<Real4> bce;
-    CreateBCE_box(ChUtilsTypeConvert::ChVectorToReal3(size), solid, bce);
+    CreateBCE_box(utils::ToReal3(size), solid, bce);
     AddBCE(body, bce, frame, solid, false, false);
 }
 
@@ -1735,13 +1735,13 @@ void ChSystemFsi::AddBCE(std::shared_ptr<ChBody> body,
         type = -3;
 
     for (const auto& p : bce) {
-        auto pos_shape = ChUtilsTypeConvert::Real4ToChVector(p);
+        auto pos_shape = utils::ToChVector(p);
         auto pos_body = rel_frame.TransformPointLocalToParent(pos_shape);
         auto pos_abs = body->GetFrame_REF_to_abs().TransformPointLocalToParent(pos_body);
         auto vel_abs = body->GetFrame_REF_to_abs().PointSpeedLocalToParent(pos_body);
 
-        m_sysFSI->sphMarkersH->posRadH.push_back(mR4(ChUtilsTypeConvert::ChVectorToReal3(pos_abs), p.w));
-        m_sysFSI->sphMarkersH->velMasH.push_back(ChUtilsTypeConvert::ChVectorToReal3(vel_abs));
+        m_sysFSI->sphMarkersH->posRadH.push_back(mR4(utils::ToReal3(pos_abs), p.w));
+        m_sysFSI->sphMarkersH->velMasH.push_back(utils::ToReal3(vel_abs));
 
         m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
             mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, (double)type));
@@ -1781,7 +1781,7 @@ void ChSystemFsi::AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE,
         printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
 
     for (size_t i = 0; i < posRadBCE.size(); i++) {
-        ChVector<> pos_physical = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
+        ChVector<> pos_physical = utils::ToChVector(mR3(posRadBCE[i]));
         ChVector<> pos_natural = pos_physical * physic_to_natural;
 
         cable->ShapeFunctionsDerivatives(Nd, pos_natural.x());
@@ -1809,7 +1809,7 @@ void ChSystemFsi::AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE,
             // Only compare to rigid and flexible BCE particles added previously
             if (m_sysFSI->sphMarkersH->rhoPresMuH[p].w > 0.5) {
                 double dis =
-                    length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos));
+                    length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - utils::ToReal3(Correct_Pos));
                 if (dis < 1e-8) {
                     addthis = false;
                     if (m_verbose)
@@ -1821,10 +1821,10 @@ void ChSystemFsi::AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE,
 
         if (addthis) {
             m_sysFSI->sphMarkersH->posRadH.push_back(
-                mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
-            m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
+                mR4(utils::ToReal3(Correct_Pos), posRadBCE[i].w));
+            m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(utils::ToReal3(pos_natural));
             ChVector<> Correct_Vel = N(0) * nAv + N(1) * nAdirv + N(2) * nBv + N(3) * nBdirv + ChVector<double>(1e-20);
-            Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
+            Real3 v3 = utils::ToReal3(Correct_Vel);
             m_sysFSI->sphMarkersH->velMasH.push_back(v3);
             m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
                 mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
@@ -1865,7 +1865,7 @@ void ChSystemFsi::AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE,
         printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
 
     for (size_t i = 0; i < posRadBCE.size(); i++) {
-        ChVector<> pos_physical = ChUtilsTypeConvert::Real3ToChVector(mR3(posRadBCE[i]));
+        ChVector<> pos_physical = utils::ToChVector(mR3(posRadBCE[i]));
         ChVector<> pos_natural = pos_physical * physic_to_natural;
 
         shell->ShapeFunctions(N, pos_natural.x(), pos_natural.y(), pos_natural.z());
@@ -1887,7 +1887,7 @@ void ChSystemFsi::AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE,
             // Only compare to rigid and flexible BCE particles added previously
             if (m_sysFSI->sphMarkersH->rhoPresMuH[p].w > 0.5) {
                 double dis =
-                    length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos));
+                    length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - utils::ToReal3(Correct_Pos));
                 if (dis < 1e-8) {
                     addthis = false;
                     if (m_verbose)
@@ -1899,11 +1899,11 @@ void ChSystemFsi::AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE,
 
         if (addthis) {
             m_sysFSI->sphMarkersH->posRadH.push_back(
-                mR4(ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos), posRadBCE[i].w));
-            m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(ChUtilsTypeConvert::ChVectorToReal3(pos_natural));
+                mR4(utils::ToReal3(Correct_Pos), posRadBCE[i].w));
+            m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(utils::ToReal3(pos_natural));
 
             ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + N(4) * nCv + N(6) * nDv;
-            Real3 v3 = ChUtilsTypeConvert::ChVectorToReal3(Correct_Vel);
+            Real3 v3 = utils::ToReal3(Correct_Vel);
             m_sysFSI->sphMarkersH->velMasH.push_back(v3);
             m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
                 mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
@@ -2155,7 +2155,7 @@ std::vector<ChVector<>> ChSystemFsi::GetParticlePositions() const {
     thrust::host_vector<Real4> posRadH = m_sysFSI->sphMarkersD2->posRadD;
     std::vector<ChVector<>> pos;
     for (size_t i = 0; i < posRadH.size(); i++) {
-        pos.push_back(ChUtilsTypeConvert::Real4ToChVector(posRadH[i]));
+        pos.push_back(utils::ToChVector(posRadH[i]));
     }
     return pos;
 }
@@ -2164,7 +2164,7 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleFluidProperties() const {
     thrust::host_vector<Real4> rhoPresMuH = m_sysFSI->sphMarkersD2->rhoPresMuD;
     std::vector<ChVector<>> props;
     for (size_t i = 0; i < rhoPresMuH.size(); i++) {
-        props.push_back(ChUtilsTypeConvert::Real4ToChVector(rhoPresMuH[i]));
+        props.push_back(utils::ToChVector(rhoPresMuH[i]));
     }
     return props;
 }
@@ -2173,7 +2173,7 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleVelocities() const {
     thrust::host_vector<Real3> velH = m_sysFSI->sphMarkersD2->velMasD;
     std::vector<ChVector<>> vel;
     for (size_t i = 0; i < velH.size(); i++) {
-        vel.push_back(ChUtilsTypeConvert::Real3ToChVector(velH[i]));
+        vel.push_back(utils::ToChVector(velH[i]));
     }
     return vel;
 }
@@ -2182,7 +2182,7 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleAccelerations() const {
     thrust::host_vector<Real4> accH = m_sysFSI->GetParticleAccelerations();
     std::vector<ChVector<>> acc;
     for (size_t i = 0; i < accH.size(); i++) {
-        acc.push_back(ChUtilsTypeConvert::Real4ToChVector(accH[i]));
+        acc.push_back(utils::ToChVector(accH[i]));
     }
     return acc;
 }
@@ -2191,7 +2191,7 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleForces() const {
     thrust::host_vector<Real4> frcH = m_sysFSI->GetParticleForces();
     std::vector<ChVector<>> frc;
     for (size_t i = 0; i < frcH.size(); i++) {
-        frc.push_back(ChUtilsTypeConvert::Real4ToChVector(frcH[i]));
+        frc.push_back(utils::ToChVector(frcH[i]));
     }
     return frc;
 }

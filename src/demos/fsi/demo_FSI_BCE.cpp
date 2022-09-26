@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     ChVector<> box_size(0.2, 0.4, 0.6);
 
     bce.clear();
-    sysFSI.CreateBCE_box(ChUtilsTypeConvert::ChVectorToReal3(box_size), true, bce);
+    sysFSI.CreateBCE_box(fsi::utils::ToReal3(box_size), true, bce);
     std::cout << "box solid nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/box_solid.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     sysFSI.AddBoxBCE(body, frame, box_size, true);
 
     bce.clear();
-    sysFSI.CreateBCE_box(ChUtilsTypeConvert::ChVectorToReal3(box_size), false, bce);
+    sysFSI.CreateBCE_box(fsi::utils::ToReal3(box_size), false, bce);
     std::cout << "box bndry nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/box_bndry.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
