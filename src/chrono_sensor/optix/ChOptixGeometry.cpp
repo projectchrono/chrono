@@ -651,12 +651,6 @@ void ChOptixGeometry::RebuildRootStructure() {
                                       nullptr,  // emitted property list
                                       0         // num emitted properties
                                       ));
-<<<<<<< HEAD
-
-    cudaDeviceSynchronize();
-    // std::chrono::high_resolution_clock::time_point t4 = std::chrono::high_resolution_clock::now();
-=======
->>>>>>> feature/ros_bridge
 
     cudaDeviceSynchronize();
 }
