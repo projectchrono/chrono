@@ -630,46 +630,46 @@ int main(int argc, char* argv[]) {
     try {       
         
 		
-        {
-            //
-            // Example: SERIALIZE TO ASCII DUMP (useful for debugging etc.):
-            //
-
-            std::string asciifile = out_dir + "/foo_archive.txt";
-            ChStreamOutAsciiFile mfileo(asciifile.c_str());
-
-            // Create an ASCII archive object, for dumping C++ objects into a readable file
-            ChArchiveAsciiDump marchiveout(mfileo);
-        
-            my_serialization_example(marchiveout);
-        }
-
-
-        {
-            //
-            // Example: SERIALIZE TO/FROM BINARY:
-            //
-
-            {
-                std::string binfile = out_dir + "/foo_archive.dat";
-                ChStreamOutBinaryFile mfileo(binfile.c_str());
-                
-				// Use a binary archive object to serialize C++ objects into the binary file
-                ChArchiveOutBinary marchiveout(mfileo);
-
-                my_serialization_example(marchiveout);
-            }
-
-            {
-                std::string binfile = out_dir + "/foo_archive.dat";
-                ChStreamInBinaryFile mfilei(binfile.c_str());
-                
-				// Use a binary archive object to deserialize C++ objects from the binary file
-                ChArchiveInBinary marchivein(mfilei);
-
-                my_deserialization_example(marchivein);
-            }
-        }
+        // {
+        //     //
+        //     // Example: SERIALIZE TO ASCII DUMP (useful for debugging etc.):
+        //     //
+        //
+        //     std::string asciifile = out_dir + "/foo_archive.txt";
+        //     ChStreamOutAsciiFile mfileo(asciifile.c_str());
+        //
+        //     // Create an ASCII archive object, for dumping C++ objects into a readable file
+        //     ChArchiveAsciiDump marchiveout(mfileo);
+        //
+        //     my_serialization_example(marchiveout);
+        // }
+        //
+        //
+        // {
+        //     //
+        //     // Example: SERIALIZE TO/FROM BINARY:
+        //     //
+        //
+        //     {
+        //         std::string binfile = out_dir + "/foo_archive.dat";
+        //         ChStreamOutBinaryFile mfileo(binfile.c_str());
+        //         
+				// // Use a binary archive object to serialize C++ objects into the binary file
+        //         ChArchiveOutBinary marchiveout(mfileo);
+        //
+        //         my_serialization_example(marchiveout);
+        //     }
+        //
+        //     {
+        //         std::string binfile = out_dir + "/foo_archive.dat";
+        //         ChStreamInBinaryFile mfilei(binfile.c_str());
+        //         
+				// // Use a binary archive object to deserialize C++ objects from the binary file
+        //         ChArchiveInBinary marchivein(mfilei);
+        //
+        //         my_deserialization_example(marchivein);
+        //     }
+        // }
 
 
         {
@@ -701,31 +701,31 @@ int main(int argc, char* argv[]) {
         }
 
 
-		{
-			//
-			// Example: SERIALIZE TO/FROM XML
-			//
-			{
-				std::string xmlfile = out_dir + "/foo_archive.xml";
-				ChStreamOutAsciiFile mfileo(xmlfile.c_str());
-
-				// Use a XML archive object to serialize C++ objects into the file
-				ChArchiveOutXML marchiveout(mfileo);
-
-				my_serialization_example(marchiveout);
-			}
-
-			{
-				std::string xmlfile = out_dir + "/foo_archive.xml";
-				ChStreamInAsciiFile mfilei(xmlfile.c_str());
-
-				// Use a XML archive object to deserialize C++ objects from the file
-				ChArchiveInXML marchivein(mfilei);
-
-				my_deserialization_example(marchivein);
-			}
-
-		}
+		// {
+		// 	//
+		// 	// Example: SERIALIZE TO/FROM XML
+		// 	//
+		// 	{
+		// 		std::string xmlfile = out_dir + "/foo_archive.xml";
+		// 		ChStreamOutAsciiFile mfileo(xmlfile.c_str());
+    //
+		// 		// Use a XML archive object to serialize C++ objects into the file
+		// 		ChArchiveOutXML marchiveout(mfileo);
+    //
+		// 		my_serialization_example(marchiveout);
+		// 	}
+    //
+		// 	{
+		// 		std::string xmlfile = out_dir + "/foo_archive.xml";
+		// 		ChStreamInAsciiFile mfilei(xmlfile.c_str());
+    //
+		// 		// Use a XML archive object to deserialize C++ objects from the file
+		// 		ChArchiveInXML marchivein(mfilei);
+    //
+		// 		my_deserialization_example(marchivein);
+		// 	}
+    //
+		// }
 
 
         GetLog() << "Serialization test ended with success.\n\n";

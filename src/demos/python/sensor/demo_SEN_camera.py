@@ -84,7 +84,7 @@ def main():
     if noise_model == "CONST_NORMAL":
         cam.PushFilter(sens.ChFilterCameraNoiseConstNormal(0.0, 0.02))
     elif noise_model == "PIXEL_DEPENDENT":
-        cam.PushFilter(sens.ChFilterCameraNoisePixDep(0, 0.02, 0.03))
+        cam.PushFilter(sens.ChFilterCameraNoisePixDep(0.02, 0.03))
     elif noise_model == "NONE":
         # Don't add any noise models
         pass

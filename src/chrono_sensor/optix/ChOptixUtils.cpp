@@ -122,7 +122,6 @@ void GetShaderFromFile(OptixDeviceContext context,
 
 #else
     std::string ptx_file = SensorConfig::SENSOR_SHADER_DIR + SensorConfig::ptx_pre + file_name + SensorConfig::ptx_suff;
-    std::cout <<"Loading PTX: "<<ptx_file<<std::endl;
     std::string ptx;
     std::ifstream f(ptx_file.c_str());
     if (f.good()) {

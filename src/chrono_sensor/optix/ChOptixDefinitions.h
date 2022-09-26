@@ -42,6 +42,13 @@ enum RayType {
     SEGMENTATION_RAY_TYPE = 4  /// semantic camera rays
 };
 
+/// The type of lens model that camera can use for rendering
+enum CameraLensModelType {
+    PINHOLE,   ///< traditional computer graphics ideal camera model.
+    FOV_LENS,  ///< Wide angle lens model based on single spherical lens.
+    RADIAL     ///< Wide angle lens model based on polynomial fit
+};
+
 /// Packed parameters of a point light
 struct PointLight {
     float3 pos;       ///< the light's global position
@@ -69,12 +76,29 @@ struct MissParameters {
     CameraMissParameters camera_miss;
 };
 
+/// Inverse lens param for modeling polynomial forward model
+struct LensParams{
+    float a0;
+    float a1;
+    float a2;
+    float a3;
+    float a4;
+    float a5;
+    float a6;
+    float a7;
+    float a8;
+};
+
 /// The parameters needed to define a camera
 struct CameraParameters {
-    float hFOV;            ///< horizontal field of view
-    float gamma;           ///< camera's gamma value
-    half4* frame_buffer;   ///< buffer of camera pixels
-    bool use_gi;           ///< whether to use global illumination
+    float hFOV;                        ///< horizontal field of view
+    CameraLensModelType lens_model;    ///< lens model to use
+    LensParams lens_parameters;            ///< lens fitting parameters (if applicable)
+    unsigned int super_sample_factor;  ///< number of samples per pixel in each dimension
+    float gamma;                       ///< camera's gamma value
+    bool use_gi;                       ///< whether to use global illumination
+    bool use_fog;                      ///< whether to use the scene fog model
+    half4* frame_buffer;               ///< buffer of camera pixels
     half4* albedo_buffer;  ///< the material color of the first hit. Only initialized if using global illumination
     half4* normal_buffer;  ///< The screen-space normal of the first hit. Only initialized if using global illumination
                            ///< (screenspace normal)
@@ -83,9 +107,11 @@ struct CameraParameters {
 
 /// Parameters need to define a camera that generates semantic segmentation data
 struct SemanticCameraParameters {
-    float hFOV;                 ///< horizontal field of view
-    ushort2* frame_buffer;      ///< buffer of class and instance ids
-    curandState_t* rng_buffer;  ///< only initialized if using global illumination
+    float hFOV;                      ///< horizontal field of view
+    CameraLensModelType lens_model;  ///< lens model to use
+    LensParams lens_parameters;          ///< lens fitting parameters (if applicable)
+    ushort2* frame_buffer;           ///< buffer of class and instance ids
+    curandState_t* rng_buffer;       ///< only initialized if using global illumination
 };
 
 /// The shape of a lidar beam
@@ -173,9 +199,11 @@ struct MaterialParameters {      // pad to align 16 (swig doesn't support explic
     cudaTextureObject_t metallic_tex;   ///< a metalic color texture // size 8
     cudaTextureObject_t roughness_tex;  ///< a roughness texture // size 8
     cudaTextureObject_t opacity_tex;    ///< an opacity texture // size 8
+    cudaTextureObject_t weight_tex;     ///< a weight texture for blended textures // size 8
+    float2 tex_scale;                   ///< texture scaling
     unsigned short int class_id;        ///< a class id of an object // size 2
     unsigned short int instance_id;     ///< an instance id of an object // size 2
-    // float3 pad;                      // padding to ensure 16 byte alignment
+    // float2 pad;                      // padding to ensure 16 byte alignment
 };
 
 /// Parameters associated with the entire optix scene
@@ -183,6 +211,8 @@ struct ContextParameters {
     PointLight* lights;                 ///< device pointer to set of point lights in the scene
     int num_lights;                     ///< the number of point lights in the scene
     float3 ambient_light_color;         ///< the ambient light color and intensity
+    float3 fog_color;                   ///< color of fog in the scene
+    float fog_scattering;               ///< scattering coefficient of fog in the scene
     int max_depth;                      ///< maximum traversable depth
     float scene_epsilon;                ///< an epsilon value used for detecting self intersections
     float importance_cutoff;            ///< mimumum value before killing rays
@@ -191,13 +221,15 @@ struct ContextParameters {
     MeshParameters* mesh_pool;          ///< device pointer to list of meshes for instancing
 };
 
-/// Parameters associated with a single object in the scnee
+/// Parameters associated with a single object in the scene. Padding added during record creation
 struct MaterialRecordParameters {
-    unsigned int material_pool_id;
-    unsigned int mesh_pool_id;
-    float3 translational_velocity;
-    float3 angular_velocity;
-    float objectId;
+    unsigned int material_pool_id;       ///< material id of first material to be
+    unsigned int num_blended_materials;  ///< number of blended materials on this object (can use a weight file per
+                                         ///< material to blend)
+    unsigned int mesh_pool_id;           ///< mesh id of object
+    float3 translational_velocity;       ///< translational velocity of object, used for radars
+    float3 angular_velocity;             ///< angular velocity of object, used for radar
+    float objectId;                      ///< object id, used for tracking and clustering in radar
 };
 
 /// Data associated with a single camera ray
@@ -209,6 +241,7 @@ struct PerRayData_camera {
     bool use_gi;              ///< whether global illumination is on
     float3 albedo;            ///< the albed of the first hit
     float3 normal;            ///< the global normal of the first hit
+    bool use_fog;             ///< whether to use fog on this prd
 };
 
 /// Data associated with a single segmentation camera ray
@@ -226,11 +259,11 @@ struct PerRayData_shadow {
 
 /// Data associated with a single lidar ray
 struct PerRayData_lidar {
-    float range; ///< the distance to the first hit
-    float intensity; ///< the intensity of the first hit
+    float range;      ///< the distance to the first hit
+    float intensity;  ///< the intensity of the first hit
 };
 
-///Data associated with a single radar ray
+/// Data associated with a single radar ray
 struct PerRayData_radar {
     float range;
     float rcs;

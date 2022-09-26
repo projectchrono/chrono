@@ -20,6 +20,7 @@ set(TESTS
     btest_SEN_lidar_spin
     btest_SEN_cornell_box
     btest_SEN_vis_materials
+    btest_SEN_camera_lens
     )
 
 # ------------------------------------------------------------------------------

@@ -73,7 +73,7 @@ ChOptixEngine::~ChOptixEngine() {
     optixDeviceContextDestroy(m_context);
 }
 
-void ChOptixEngine::Initialize() {
+void ChOptixEngine::Initialize() { 
     cudaFree(0);
     OptixDeviceContext context;
     CUcontext cuCtx = 0;  // zero means take the current context, TODO: enable multigpu
@@ -184,11 +184,8 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
             // do this once per sensor because we don't know if they will be updated at the same time
             m_geometry->UpdateBodyTransformsStart((float)m_system->GetChTime(),
                                                   (float)m_system->GetChTime() + sensor->GetCollectionWindow());
-            // std::cout << "Loaded a set of body start transforms time=" << m_system->GetChTime() << std::endl;
-
             m_cameraStartFrames[i] = sensor->GetParent()->GetVisualModelFrame();
             m_cameraStartFrames_set[i] = true;
-            // std::cout << "Set camera " << i << " start frame at time=" << m_system->GetChTime() << std::endl;
         }
     }
 
@@ -211,23 +208,15 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
             // m_sceneThread.cv.wait(lck);  // wait for the scene thread to tell us it is done
             cudaDeviceSynchronize();  // TODO: do we need to synchronize here?
 
-            // std::cout << "Starting optix scene update\n";
             // update the scene for the optix context
-            UpdateCameraTransforms();
+            UpdateCameraTransforms(to_be_updated, scene);
 
             m_geometry->UpdateBodyTransformsEnd((float)m_system->GetChTime());
 
-            // std::cout<<"Num render threads: "<<m_renderThreads.size()<<std::endl;
             // m_renderThreads
-            // cudaDeviceSynchronize();
             UpdateSceneDescription(scene);
             UpdateDeformableMeshes();
-            // UpdateDynamicMeshes();
-            // std::cout << "Updated optix scene\n";
-            // std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-            // std::chrono::duration<double> wall_time =
-            //     std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-            // std::cout << "Synchronizing scene time: " << wall_time.count() << std::endl;
+
             float t = (float)m_system->GetChTime();
             // push the sensors that need updating to the render queue
             for (auto i : to_be_updated) {
@@ -237,17 +226,9 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
                 m_renderThreads[i].done =
                     false;  // this render thread must not be done now given we have prepped some data for it
             }
-            // for (int i = 0; i < to_be_updated.size(); i++) {
-            //     m_renderQueue.push_back(m_assignedSensor[to_be_updated[i]]);
-            //     m_assignedSensor[to_be_updated[i]]->IncrementNumLaunches();
-            //     m_assignedRenderers[to_be_updated[i]]->m_time_stamp = t;
-            // }
         }
-        // m_mainLock.unlock();
         // we only notify the worker thread when there is a sensor to launch and filters to process
-        // std::cout << "== Preprocessing complete, notifying scene thread" << std::endl;
-        m_sceneThread.done = false;  // tell the thread it is not done
-        // std::cout << "Telling the scene thread it is not done" << std::endl;
+        m_sceneThread.done = false;     // tell the thread it is not done
         m_sceneThread.start = true;     // tell the thread it should start
         m_sceneThread.cv.notify_all();  // tell the scene thread it should proceed
     }
@@ -442,7 +423,7 @@ void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
     if (box_shape->GetNumMaterials() == 0) {
         mat_id = m_pipeline->GetBoxMaterial();
     } else {
-        mat_id = m_pipeline->GetBoxMaterial(box_shape->GetMaterial(0));
+        mat_id = m_pipeline->GetBoxMaterial(box_shape->GetMaterials());
     }
     m_geometry->AddBox(body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
@@ -458,7 +439,7 @@ void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
     if (sphere_shape->GetNumMaterials() == 0) {
         mat_id = m_pipeline->GetSphereMaterial();
     } else {
-        mat_id = m_pipeline->GetSphereMaterial(sphere_shape->GetMaterial(0));
+        mat_id = m_pipeline->GetSphereMaterial(sphere_shape->GetMaterials());
     }
     m_geometry->AddSphere(body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
@@ -479,7 +460,7 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
     if (cyl_shape->GetNumMaterials() == 0) {
         mat_id = m_pipeline->GetCylinderMaterial();
     } else {
-        mat_id = m_pipeline->GetCylinderMaterial(cyl_shape->GetMaterial(0));
+        mat_id = m_pipeline->GetCylinderMaterial(cyl_shape->GetMaterials());
     }
     m_geometry->AddCylinder(body, cyl_frame, size, mat_id);
     m_pipeline->AddBody(body);
@@ -643,10 +624,20 @@ void ChOptixEngine::ConstructScene() {
     cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
 }
 
-void ChOptixEngine::UpdateCameraTransforms() {
-    // go through all of the bodies
-    for (int i = 0; i < m_assignedSensor.size(); i++) {
-        auto sensor = m_assignedSensor[i];
+void ChOptixEngine::UpdateCameraTransforms(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene) {
+    // go through the sensors to be updated and see if we need to move the scene origin
+    for (unsigned int i = 0; i < to_be_updated.size(); i++) {
+        int id = to_be_updated[i];
+        ChFrame<double> f_offset = m_assignedSensor[id]->GetOffsetPose();
+        ChFrame<double> f_body_0 = m_cameraStartFrames[id];
+        ChFrame<double> global_loc_0 = f_body_0 * f_offset;
+        scene->UpdateOriginOffset(global_loc_0.GetPos());
+    }
+
+    // go through all the sensors to be updated
+    for (unsigned int i = 0; i < to_be_updated.size(); i++) {
+        int id = to_be_updated[i];
+        auto sensor = m_assignedSensor[id];
 
         // update radar velocity
         if (auto radar = std::dynamic_pointer_cast<ChRadarSensor>(sensor)) {
@@ -655,9 +646,9 @@ void ChOptixEngine::UpdateCameraTransforms() {
             auto ang_vel = radar->GetAngularVelocity() % r;
             auto vel_abs =
                 radar->GetOffsetPose().TransformDirectionLocalToParent(ang_vel) + radar->GetTranslationalVelocity();
-            m_assignedRenderers[i]->m_raygen_record->data.specific.radar.velocity.x = vel_abs.x();
-            m_assignedRenderers[i]->m_raygen_record->data.specific.radar.velocity.y = vel_abs.y();
-            m_assignedRenderers[i]->m_raygen_record->data.specific.radar.velocity.z = vel_abs.z();
+            m_assignedRenderers[id]->m_raygen_record->data.specific.radar.velocity.x = vel_abs.x();
+            m_assignedRenderers[id]->m_raygen_record->data.specific.radar.velocity.y = vel_abs.y();
+            m_assignedRenderers[id]->m_raygen_record->data.specific.radar.velocity.z = vel_abs.z();
             m_pipeline->UpdateObjectVelocity();
         }
 
@@ -667,20 +658,23 @@ void ChOptixEngine::UpdateCameraTransforms() {
         ChFrame<double> f_body_1 = sensor->GetParent()->GetVisualModelFrame();
         ChFrame<double> global_loc_0 = f_body_0 * f_offset;
         ChFrame<double> global_loc_1 = f_body_1 * f_offset;
-        m_assignedRenderers[i]->m_raygen_record->data.t0 =
+
+        ChVector<float> pos_0 = global_loc_0.GetPos() - scene->GetOriginOffset();
+        ChVector<float> pos_1 = global_loc_1.GetPos() - scene->GetOriginOffset();
+
+        m_assignedRenderers[id]->m_raygen_record->data.t0 =
             (float)(m_system->GetChTime() - sensor->GetCollectionWindow());
-        m_assignedRenderers[i]->m_raygen_record->data.t1 = (float)(m_system->GetChTime());
-        m_assignedRenderers[i]->m_raygen_record->data.pos0 = make_float3(
-            (float)global_loc_0.GetPos().x(), (float)global_loc_0.GetPos().y(), (float)global_loc_0.GetPos().z());
-        m_assignedRenderers[i]->m_raygen_record->data.rot0 =
+        m_assignedRenderers[id]->m_raygen_record->data.t1 = (float)(m_system->GetChTime());
+        m_assignedRenderers[id]->m_raygen_record->data.pos0 = make_float3(pos_0.x(), pos_0.y(), pos_0.z());
+        m_assignedRenderers[id]->m_raygen_record->data.rot0 =
             make_float4((float)global_loc_0.GetRot().e0(), (float)global_loc_0.GetRot().e1(),
                         (float)global_loc_0.GetRot().e2(), (float)global_loc_0.GetRot().e3());
-        m_assignedRenderers[i]->m_raygen_record->data.pos1 = make_float3(
-            (float)global_loc_1.GetPos().x(), (float)global_loc_1.GetPos().y(), (float)global_loc_1.GetPos().z());
-        m_assignedRenderers[i]->m_raygen_record->data.rot1 =
+        m_assignedRenderers[id]->m_raygen_record->data.pos1 = make_float3(pos_1.x(), pos_1.y(), pos_1.z());
+        m_assignedRenderers[id]->m_raygen_record->data.rot1 =
             make_float4((float)global_loc_1.GetRot().e0(), (float)global_loc_1.GetRot().e1(),
                         (float)global_loc_1.GetRot().e2(), (float)global_loc_1.GetRot().e3());
-        m_assignedRenderers[i]->m_time_stamp = (float)m_system->GetChTime();
+        m_assignedRenderers[id]->m_time_stamp = (float)m_system->GetChTime();
+
     }
 }
 
@@ -696,11 +690,14 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
         m_pipeline->UpdateBackground(scene->GetBackground());
 
         m_params.scene_epsilon = scene->GetSceneEpsilon();
+        m_params.fog_color = {scene->GetFogColor().x(), scene->GetFogColor().y(), scene->GetFogColor().z()};
+        m_params.fog_scattering = scene->GetFogScattering();
+
         cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
         scene->ResetBackgroundChanged();
     }
 
-    if (scene->GetLightsChanged()) {
+    if (scene->GetLightsChanged() || scene->GetOriginChanged()) {
         std::vector<PointLight> l = scene->GetPointLights();
         if (l.size() != m_params.num_lights) {  // need new memory in this case
             if (m_params.lights)
@@ -709,13 +706,21 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
             cudaMalloc(reinterpret_cast<void**>(&m_params.lights), l.size() * sizeof(PointLight));
         }
 
+        for (unsigned int i = 0; i < l.size(); i++) {
+            l[i].pos = make_float3(l[i].pos.x - scene->GetOriginOffset().x(), l[i].pos.y - scene->GetOriginOffset().y(),
+                                   l[i].pos.z - scene->GetOriginOffset().z());
+        }
+
         cudaMemcpy(reinterpret_cast<void*>(m_params.lights), l.data(), l.size() * sizeof(PointLight),
                    cudaMemcpyHostToDevice);
         m_params.num_lights = static_cast<int>(l.size());
         m_params.ambient_light_color = {scene->GetAmbientLight().x(), scene->GetAmbientLight().y(),
                                         scene->GetAmbientLight().z()};
         cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
+
+        m_geometry->SetOriginOffset(scene->GetOriginOffset());
         scene->ResetLightsChanged();
+        scene->ResetOriginChanged();
     }
 }
 }  // namespace sensor

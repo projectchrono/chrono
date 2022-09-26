@@ -14,20 +14,19 @@
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-#include "chrono_cosimulation/ChSocket.h"
-#include "chrono_cosimulation/ChExceptionSocket.h"
+#include "chrono/utils/ChSocket.h"
 
 namespace chrono {
-namespace cosimul {
+namespace utils {
 
-const int MSG_HEADER_LEN = 6;
+const int MSG_HEADER_LEN = sizeof(uint64_t);
 
 ChSocket::ChSocket(int pNumber) {
     portNumber = pNumber;
     blocking = 1;
 
     try {
-        if ((socketId = (int)socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        if ((socketId = (int)::socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
             std::string errorMsg = "";
@@ -910,13 +909,13 @@ void ChSocketTCP::connectToServer(std::string& serverNameOrAddr, hostType hType)
        when this method is called, a client socket has been built already,
        so we have the socketId and portNumber ready.
 
-       a ChHostInfo instance is created, no matter how the server's name is
+       a ChSocketHostInfo instance is created, no matter how the server's name is
        given (such as www.yuchen.net) or the server's address is given (such
-       as 169.56.32.35), we can use this ChHostInfo instance to get the
+       as 169.56.32.35), we can use this ChSocketHostInfo instance to get the
        IP address of the server
     */
 
-    ChHostInfo serverInfo(serverNameOrAddr, hType);
+    ChSocketHostInfo serverInfo(serverNameOrAddr, hType);
 
     // Store the IP address and socket port number
     struct sockaddr_in serverAddress;
@@ -982,7 +981,7 @@ ChSocketTCP* ChSocketTCP::acceptClient(std::string& clientHost) {
 
     // Get the host name given the address
     char* sAddress = inet_ntoa((struct in_addr)clientAddress.sin_addr);
-    ChHostInfo clientInfo(std::string(sAddress), ADDRESS);
+    ChSocketHostInfo clientInfo(std::string(sAddress), ADDRESS);
     char* hostName = clientInfo.getHostName();
     clientHost += std::string(hostName);
 
@@ -1065,8 +1064,9 @@ int ChSocketTCP::sendMessage(std::string& message) {
     */
 
     char msgLength[MSG_HEADER_LEN + 1];
-    sprintf(msgLength, "%6d", static_cast<int>(message.size()));
-    std::string sendMsg = std::string(msgLength);
+    std::string fmt = "%" + std::to_string(MSG_HEADER_LEN) + "ld";
+    sprintf(msgLength, fmt.c_str(), static_cast<uint64_t>(message.size()));
+    std::string sendMsg(msgLength);
     sendMsg += message;
 
     // Sends the message to the connected host
@@ -1230,35 +1230,33 @@ int ChSocketTCP::XPrecieveMessage(std::string& message) {
 #endif
 
 int ChSocketTCP::receiveMessage(std::string& message) {
-    int numBytes;  // The number of bytes received
-
 #ifdef WINDOWS_XP
     return XPrecieveMessage(message);
 #endif
 
-    // retrieve the length of the message received
+    int64_t numBytes = 0;       // Number of received bytes on the last recv
+    int64_t expectedBytes = 0;  // Number of total bytes expected
+    int64_t receivedBytes = 0;  // Accumulated number of bytes received thus far
 
-    char msgLength[MSG_HEADER_LEN + 1];
-    memset(msgLength, 0, sizeof(msgLength));
     try {
-        numBytes = recv(socketId, msgLength, MSG_HEADER_LEN, 0);
+        // Receive the header
+        char header[MSG_HEADER_LEN + 1];
+        numBytes = recv(socketId, header, MSG_HEADER_LEN, 0);
         if (numBytes == -1) {
             ChExceptionSocket* unixSocketRecvException = new ChExceptionSocket(0, "unix: error calling recv()");
             throw unixSocketRecvException;
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
-        exit(1);
-    }
+        expectedBytes = atoll(header);
+        message.resize(expectedBytes);
 
-    // receive the real message
+        while (receivedBytes < expectedBytes) {
+            numBytes = recv(socketId, (char*)(message.c_str()) + receivedBytes, expectedBytes, 0);
+            if (numBytes == -1) {
+                ChExceptionSocket* unixSocketRecvException = new ChExceptionSocket(0, "unix: error calling recv()");
+                throw unixSocketRecvException;
+            }
 
-    try {
-        numBytes = recv(socketId, (char*)(message.c_str()), atoi(msgLength), 0);
-        if (numBytes == -1) {
-            ChExceptionSocket* unixSocketRecvException = new ChExceptionSocket(0, "unix: error calling recv()");
-            throw unixSocketRecvException;
+            receivedBytes += numBytes;
         }
     } catch (ChExceptionSocket* excp) {
         excp->response();
@@ -1324,5 +1322,200 @@ int ChSocketTCP::ReceiveBuffer(std::vector<char>& dest_buf, int bsize) {
     return receivedBytes;
 }
 
-}  // end namespace cosimul
+// -----------------
+// ChSocketFramework
+// -----------------
+
+ChSocketFramework::ChSocketFramework() {
+#ifdef WINDOWS_XP
+
+    // Initialize the winsock library
+    WSADATA wsaData;
+
+    if (WSAStartup(0x101, &wsaData)) {
+        throw ChExceptionSocket(0, "Error: calling WSAStartup()");
+    }
+
+#endif
+}
+
+ChSocketFramework::~ChSocketFramework() {
+#ifdef WINDOWS_XP
+    WSACleanup();
+#endif
+}
+
+// ----------------
+// ChSocketHostInfo
+// ----------------
+
+ChSocketHostInfo::ChSocketHostInfo() {
+#ifdef UNIX
+    openHostDb();
+// winLog<<"UNIX version ChSocketHostInfo() is called...\n";
+#endif
+
+#ifdef WINDOWS_XP
+
+    char sName[HOST_NAME_LENGTH + 1];
+    memset(sName, 0, sizeof(sName));
+    gethostname(sName, HOST_NAME_LENGTH);
+
+    try {
+        hostPtr = gethostbyname(sName);
+        if (hostPtr == NULL) {
+            int errorCode;
+            std::string errorMsg = "";
+            detectErrorGethostbyname(&errorCode, errorMsg);
+            ChExceptionSocket* gethostbynameException = new ChExceptionSocket(errorCode, errorMsg);
+            throw gethostbynameException;
+        }
+    } catch (ChExceptionSocket* excp) {
+        excp->response();
+        exit(1);
+    }
+
+#endif
+}
+
+ChSocketHostInfo::ChSocketHostInfo(const std::string& hostName, hostType type) {
+#ifdef UNIX
+    searchHostDB = 0;
+#endif
+
+    try {
+        if (type == NAME) {
+            // Retrieve host by name
+            hostPtr = gethostbyname(hostName.c_str());
+
+            if (hostPtr == NULL) {
+#ifdef WINDOWS_XP
+                int errorCode;
+                std::string errorMsg = "";
+                detectErrorGethostbyname(&errorCode, errorMsg);
+                ChExceptionSocket* gethostbynameException = new ChExceptionSocket(errorCode, errorMsg);
+                throw gethostbynameException;
+#endif
+
+#ifdef UNIX
+                ChExceptionSocket* gethostbynameException =
+                    new ChExceptionSocket(0, "unix: error getting host by name");
+                throw gethostbynameException;
+#endif
+            }
+        } else if (type == ADDRESS) {
+            // Retrieve host by address
+            unsigned long netAddr = inet_addr(hostName.c_str());
+            if (netAddr == -1) {
+                ChExceptionSocket* inet_addrException = new ChExceptionSocket(0, "Error calling inet_addr()");
+                throw inet_addrException;
+            }
+
+            hostPtr = gethostbyaddr((char*)&netAddr, sizeof(netAddr), AF_INET);
+            if (hostPtr == NULL) {
+#ifdef WINDOWS_XP
+                int errorCode;
+                std::string errorMsg = "";
+                detectErrorGethostbyaddr(&errorCode, errorMsg);
+                ChExceptionSocket* gethostbyaddrException = new ChExceptionSocket(errorCode, errorMsg);
+                throw gethostbyaddrException;
+#endif
+
+#ifdef UNIX
+                ChExceptionSocket* gethostbynameException =
+                    new ChExceptionSocket(0, "unix: error getting host by name");
+                throw gethostbynameException;
+#endif
+            }
+        } else {
+            ChExceptionSocket* unknownTypeException =
+                new ChExceptionSocket(0, "unknown host type: host name/address has to be given ");
+            throw unknownTypeException;
+        }
+    } catch (ChExceptionSocket* excp) {
+        excp->response();
+        exit(1);
+    }
+}
+
+char* ChSocketHostInfo::getHostIPAddress() {
+    struct in_addr* addr_ptr;
+    // the first address in the list of host addresses
+    addr_ptr = (struct in_addr*)*hostPtr->h_addr_list;
+    // changed the address format to the Internet address in standard dot notation
+    return inet_ntoa(*addr_ptr);
+}
+
+#ifdef WINDOWS_XP
+void ChSocketHostInfo::detectErrorGethostbyname(int* errCode, std::string& errorMsg) {
+    *errCode = WSAGetLastError();
+
+    if (*errCode == WSANOTINITIALISED)
+        errorMsg.append("need to call WSAStartup to initialize socket system on Window system.");
+    else if (*errCode == WSAENETDOWN)
+        errorMsg.append("The network subsystem has failed.");
+    else if (*errCode == WSAHOST_NOT_FOUND)
+        errorMsg.append("Authoritative Answer Host not found.");
+    else if (*errCode == WSATRY_AGAIN)
+        errorMsg.append("Non-Authoritative Host not found, or server failure.");
+    else if (*errCode == WSANO_RECOVERY)
+        errorMsg.append("Nonrecoverable error occurred.");
+    else if (*errCode == WSANO_DATA)
+        errorMsg.append("Valid name, no data record of requested type.");
+    else if (*errCode == WSAEINPROGRESS)
+        errorMsg.append(
+            "A blocking Windows Sockets 1.1 call is in progress, or the service provider is still processing a "
+            "callback function.");
+    else if (*errCode == WSAEFAULT)
+        errorMsg.append("The name parameter is not a valid part of the user address space.");
+    else if (*errCode == WSAEINTR)
+        errorMsg.append("A blocking Windows Socket 1.1 call was canceled through WSACancelBlockingCall.");
+}
+#endif
+
+#ifdef WINDOWS_XP
+void ChSocketHostInfo::detectErrorGethostbyaddr(int* errCode, std::string& errorMsg) {
+    *errCode = WSAGetLastError();
+
+    if (*errCode == WSANOTINITIALISED)
+        errorMsg.append("A successful WSAStartup must occur before using this function.");
+    if (*errCode == WSAENETDOWN)
+        errorMsg.append("The network subsystem has failed.");
+    if (*errCode == WSAHOST_NOT_FOUND)
+        errorMsg.append("Authoritative Answer Host not found.");
+    if (*errCode == WSATRY_AGAIN)
+        errorMsg.append("Non-Authoritative Host not found, or server failed.");
+    if (*errCode == WSANO_RECOVERY)
+        errorMsg.append("Nonrecoverable error occurred.");
+    if (*errCode == WSANO_DATA)
+        errorMsg.append("Valid name, no data record of requested type.");
+    if (*errCode == WSAEINPROGRESS)
+        errorMsg.append(
+            "A blocking Windows Sockets 1.1 call is in progress, or the service provider is still processing a "
+            "callback function.");
+    if (*errCode == WSAEAFNOSUPPORT)
+        errorMsg.append("The type specified is not supported by the Windows Sockets implementation.");
+    if (*errCode == WSAEFAULT)
+        errorMsg.append(
+            "The addr parameter is not a valid part of the user address space, or the len parameter is too small.");
+    if (*errCode == WSAEINTR)
+        errorMsg.append("A blocking Windows Socket 1.1 call was canceled through WSACancelBlockingCall.");
+}
+#endif
+
+#ifdef UNIX
+char ChSocketHostInfo::getNextHost() {
+    // winLog<<"UNIX getNextHost() is called...\n";
+    // Get the next host from the database
+    if (searchHostDB == 1) {
+        if ((hostPtr = gethostent()) == NULL)
+            return 0;
+        else
+            return 1;
+    }
+    return 0;
+}
+#endif
+
+}  // namespace utils
 }  // end namespace chrono

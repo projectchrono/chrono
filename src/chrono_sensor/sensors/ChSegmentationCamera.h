@@ -58,9 +58,20 @@ class CH_SENSOR_API ChSegmentationCamera : public ChOptixSensor {
     /// @return An enum specifying which lens model is being used. (0: PINHOLE, 1: SPHERICAL)
     CameraLensModelType GetLensModelType() const { return m_lens_model_type; }
 
+    /// returns the lens model parameters
+    /// @return LensParams of lens parameters. Will default to zeros for any terms not used. These are coverted for the inverse model
+    LensParams GetLensParameters() const { return m_lens_parameters; }
+
+    /// Sets the parameters for a radial lens distortion model
+    /// Parameters should be given for the forward model
+    /// The backward distortion model will the used and calculated from the forward parameters given
+    /// @param params the set of 3 radial parameters (k1,k2,k3)
+    void SetRadialLensParameters(ChVector<float> params);
+
   private:
     float m_hFOV;                           ///< the horizontal field of view of the sensor
     CameraLensModelType m_lens_model_type;  ///< lens model used by the camera
+    LensParams m_lens_parameters;      ///< lens parameters when applicable
 };
 
 /// @} sensor_sensors

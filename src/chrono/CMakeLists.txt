@@ -86,7 +86,7 @@ set(ChronoEngine_core_HEADERS
     core/ChGlobal.h
     core/ChFx.h
     core/ChTypes.h
-    core/ChTensors.h
+	core/ChTensors.h
     )
 
 source_group(core FILES
@@ -236,7 +236,7 @@ set(ChronoEngine_physics_links_SOURCES
     physics/ChLinkMotorLinearSpeed.cpp
     physics/ChLinkMotorLinearForce.cpp
     physics/ChLinkMotorLinearDriveline.cpp
-    physics/ChLinkMotionImposed.cpp
+	physics/ChLinkMotionImposed.cpp
 )
 
 set(ChronoEngine_physics_links_HEADERS
@@ -277,7 +277,7 @@ set(ChronoEngine_physics_links_HEADERS
     physics/ChLinkMotorLinearSpeed.h
     physics/ChLinkMotorLinearForce.h
     physics/ChLinkMotorLinearDriveline.h
-    physics/ChLinkMotionImposed.h
+	physics/ChLinkMotionImposed.h
 )
 
 source_group(physics\\links FILES
@@ -1263,6 +1263,7 @@ set(ChronoEngine_utils_SOURCES
     utils/ChParserAdams.cpp
     utils/ChAdamsTokenizer.yy.cpp
     utils/ChConvexHull.cpp
+    utils/ChSocket.cpp
     )
 
 set(ChronoEngine_utils_HEADERS
@@ -1280,6 +1281,7 @@ set(ChronoEngine_utils_HEADERS
     utils/ChParserOpenSim.h
     utils/ChParserAdams.h
     utils/ChConvexHull.h
+    utils/ChSocket.h
 )
 
 if(BUILD_BENCHMARKING)
@@ -1378,7 +1380,7 @@ endif()
 # Add the ChronoEngine library to the project
 add_library(ChronoEngine SHARED ${ChronoEngine_FILES})
 
-target_link_libraries(ChronoEngine ${OPENMP_LIBRARIES})
+target_link_libraries(ChronoEngine ${OPENMP_LIBRARIES} ${CH_SOCKET_LIB})
 if (UNIX)
   target_link_libraries(ChronoEngine pthread)
 endif()

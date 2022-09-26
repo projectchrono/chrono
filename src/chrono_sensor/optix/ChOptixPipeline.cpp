@@ -93,22 +93,22 @@ void ChOptixPipeline::Cleanup() {
     }
     // === optix program groups ===
     // raygen groups
-    if (m_camera_pinhole_raygen_group) {
-        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_camera_pinhole_raygen_group));
-        m_camera_pinhole_raygen_group = 0;
+    if (m_camera_raygen_group) {
+        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_camera_raygen_group));
+        m_camera_raygen_group = 0;
     }
-    if (m_camera_fov_lens_raygen_group) {
-        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_camera_fov_lens_raygen_group));
-        m_camera_fov_lens_raygen_group = 0;
+    // if (m_camera_fov_lens_raygen_group) {
+    //     OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_camera_fov_lens_raygen_group));
+    //     m_camera_fov_lens_raygen_group = 0;
+    // }
+    if (m_segmentation_raygen_group) {
+        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_segmentation_raygen_group));
+        m_segmentation_raygen_group = 0;
     }
-    if (m_segmentation_pinhole_raygen_group) {
-        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_segmentation_pinhole_raygen_group));
-        m_segmentation_pinhole_raygen_group = 0;
-    }
-    if (m_segmentation_fov_lens_raygen_group) {
-        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_segmentation_fov_lens_raygen_group));
-        m_segmentation_fov_lens_raygen_group = 0;
-    }
+    // if (m_segmentation_fov_lens_raygen_group) {
+    //     OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_segmentation_fov_lens_raygen_group));
+    //     m_segmentation_fov_lens_raygen_group = 0;
+    // }
     if (m_lidar_single_raygen_group) {
         OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_lidar_single_raygen_group));
         m_lidar_single_raygen_group = 0;
@@ -320,17 +320,17 @@ void ChOptixPipeline::AssembleBaseProgramGroups() {
     CreateOptixProgramGroup(m_miss_group, OPTIX_PROGRAM_GROUP_KIND_MISS, nullptr, nullptr, m_miss_module,
                             "__miss__shader");
     // camera pinhole raygen
-    CreateOptixProgramGroup(m_camera_pinhole_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
-                            m_camera_raygen_module, "__raygen__camera_pinhole");
-    // camera fov lens raygen
-    CreateOptixProgramGroup(m_camera_fov_lens_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
-                            m_camera_raygen_module, "__raygen__camera_fov_lens");
+    CreateOptixProgramGroup(m_camera_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_camera_raygen_module, "__raygen__camera");
+    // // camera fov lens raygen
+    // CreateOptixProgramGroup(m_camera_fov_lens_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+    //                         m_camera_raygen_module, "__raygen__camera_fov_lens");
     // segmentation pinhole raygen
-    CreateOptixProgramGroup(m_segmentation_pinhole_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
-                            m_camera_raygen_module, "__raygen__segmentation_pinhole");
-    // segmentation fov lens raygen
-    CreateOptixProgramGroup(m_segmentation_fov_lens_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
-                            m_camera_raygen_module, "__raygen__segmentation_fov_lens");
+    CreateOptixProgramGroup(m_segmentation_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_camera_raygen_module, "__raygen__segmentation");
+    // // segmentation fov lens raygen
+    // CreateOptixProgramGroup(m_segmentation_fov_lens_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+    //                         m_camera_raygen_module, "__raygen__segmentation_fov_lens");
     // lidar single raygen
     CreateOptixProgramGroup(m_lidar_single_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
                             m_lidar_raygen_module, "__raygen__lidar_single");
@@ -410,41 +410,47 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
 
     // add raygen program group first
     switch (type) {
-        case PipelineType::CAMERA_PINHOLE: {
-            program_groups.push_back(m_camera_pinhole_raygen_group);
-            OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_camera_pinhole_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.camera.hFOV = 3.14f / 4;   // default value
-            raygen_record->data.specific.camera.frame_buffer = {};  // default value
-            raygen_record->data.specific.camera.use_gi = false;     // default value
-            raygen_record->data.specific.camera.gamma = 2.2f;       // default value
+        case PipelineType::CAMERA: {
+            program_groups.push_back(m_camera_raygen_group);
+            OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_camera_raygen_group, raygen_record.get()));
+            raygen_record->data.specific.camera.hFOV = 3.14f / 4;      // default value
+            raygen_record->data.specific.camera.frame_buffer = {};     // default value
+            raygen_record->data.specific.camera.use_gi = false;        // default value
+            raygen_record->data.specific.camera.use_fog = true;        // default value
+            raygen_record->data.specific.camera.gamma = 2.2f;          // default value
+            raygen_record->data.specific.camera.lens_model = PINHOLE;  // default value
+            raygen_record->data.specific.camera.lens_parameters = {};
             break;
         }
 
-        case PipelineType::CAMERA_FOV_LENS: {
-            program_groups.push_back(m_camera_fov_lens_raygen_group);
-            OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_camera_fov_lens_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.camera.hFOV = 3.14f / 4;   // default value
-            raygen_record->data.specific.camera.frame_buffer = {};  // default value
-            raygen_record->data.specific.camera.use_gi = false;     // default value
-            raygen_record->data.specific.camera.gamma = 2.2f;       // default value
-            break;
-        }
+            // case PipelineType::CAMERA_FOV_LENS: {
+            //     program_groups.push_back(m_camera_fov_lens_raygen_group);
+            //     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_camera_fov_lens_raygen_group, raygen_record.get()));
+            //     raygen_record->data.specific.camera.hFOV = 3.14f / 4;   // default value
+            //     raygen_record->data.specific.camera.frame_buffer = {};  // default value
+            //     raygen_record->data.specific.camera.use_gi = false;     // default value
+            //     raygen_record->data.specific.camera.use_fog = true;     // default value
+            //     raygen_record->data.specific.camera.gamma = 2.2f;        // default value
+            //     break;
+            // }
 
-        case PipelineType::SEGMENTATION_PINHOLE: {
-            program_groups.push_back(m_segmentation_pinhole_raygen_group);
-            OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segmentation_pinhole_raygen_group, raygen_record.get()));
+        case PipelineType::SEGMENTATION: {
+            program_groups.push_back(m_segmentation_raygen_group);
+            OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segmentation_raygen_group, raygen_record.get()));
             raygen_record->data.specific.segmentation.hFOV = 3.14f / 4;   // default value
             raygen_record->data.specific.segmentation.frame_buffer = {};  // default value
+            raygen_record->data.specific.segmentation.lens_model = PINHOLE;     // default value
+            raygen_record->data.specific.segmentation.lens_parameters = {};
             break;
         }
 
-        case PipelineType::SEGMENTATION_FOV_LENS: {
-            program_groups.push_back(m_segmentation_fov_lens_raygen_group);
-            OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segmentation_fov_lens_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.segmentation.hFOV = 3.14f / 4;   // default value
-            raygen_record->data.specific.segmentation.frame_buffer = {};  // default value
-            break;
-        }
+            // case PipelineType::SEGMENTATION_FOV_LENS: {
+            //     program_groups.push_back(m_segmentation_fov_lens_raygen_group);
+            //     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segmentation_fov_lens_raygen_group,
+            //     raygen_record.get())); raygen_record->data.specific.segmentation.hFOV = 3.14f / 4;   // default value
+            //     raygen_record->data.specific.segmentation.frame_buffer = {};  // default value
+            //     break;
+            // }
 
         case PipelineType::LIDAR_SINGLE: {
             program_groups.push_back(m_lidar_single_raygen_group);
@@ -531,7 +537,8 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
 
     // set the shader program record - same for all pipelines
     b->hitgroupRecordBase = md_material_records;
-    b->hitgroupRecordCount = static_cast<unsigned int>(m_material_records.size());  // we are pushing one back for each object
+    b->hitgroupRecordCount =
+        static_cast<unsigned int>(m_material_records.size());  // we are pushing one back for each object
     b->hitgroupRecordStrideInBytes = static_cast<uint32_t>(sizeof(Record<MaterialRecordParameters>));
     m_sbts.push_back(b);
 }
@@ -639,8 +646,11 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
         material.metallic_tex = 0;         // explicitely null as default
         material.roughness_tex = 0;        // explicitely null as default
         material.opacity_tex = 0;          // explicitely null as default
+        material.weight_tex = 0;
         material.class_id = mat->GetClassID();
         material.instance_id = mat->GetInstanceID();
+
+        material.tex_scale = {mat->GetKdTextureScale().x(), mat->GetKdTextureScale().y()};
 
         // normal texture
         if (mat->GetNormalMapTexture() != "") {
@@ -672,6 +682,12 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             cudaArray_t d_img_array;
             CreateDeviceTexture(material.opacity_tex, d_img_array, mat->GetOpacityTexture());
         }
+        // weight texture
+        if (mat->GetWeightTexture() != "") {
+            cudaArray_t d_img_array;
+            CreateDeviceTexture(material.weight_tex, d_img_array, mat->GetWeightTexture());
+        }
+
         m_material_pool.push_back(material);
         return static_cast<unsigned int>(m_material_pool.size() - 1);
 
@@ -694,9 +710,11 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.roughness_tex = 0;
             material.metallic_tex = 0;
             material.opacity_tex = 0;
+            material.weight_tex = 0;
             material.use_specular_workflow = 0;
             material.class_id = 0;
             material.instance_id = 0;
+            material.tex_scale = {1.f, 1.f};
 
             m_material_pool.push_back(material);
             m_default_material_id = static_cast<unsigned int>(m_material_pool.size() - 1);
@@ -707,10 +725,18 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
     }
 }
 
-unsigned int ChOptixPipeline::GetBoxMaterial(std::shared_ptr<ChVisualMaterial> mat) {
+unsigned int ChOptixPipeline::GetBoxMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list) {
     unsigned int material_id;
-    if (mat) {
-        material_id = GetMaterial(mat);
+    // if (mat) {
+    //     material_id = GetMaterial(mat);
+    // } else {
+    //     material_id = GetMaterial();
+    // }
+    if (mat_list.size() > 0) {
+        material_id = GetMaterial(mat_list[0]);
+        for (int i = 1; i < mat_list.size(); i++) {
+            GetMaterial(mat_list[i]);
+        }
     } else {
         material_id = GetMaterial();
     }
@@ -718,15 +744,24 @@ unsigned int ChOptixPipeline::GetBoxMaterial(std::shared_ptr<ChVisualMaterial> m
     Record<MaterialRecordParameters> mat_record;
     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_hit_box_group, &mat_record));
     mat_record.data.material_pool_id = material_id;
+    mat_record.data.num_blended_materials = mat_list.size();
     m_material_records.push_back(mat_record);
 
     return static_cast<unsigned int>(m_material_records.size() - 1);
 }
 
-unsigned int ChOptixPipeline::GetSphereMaterial(std::shared_ptr<ChVisualMaterial> mat) {
+unsigned int ChOptixPipeline::GetSphereMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list) {
     unsigned int material_id;
-    if (mat) {
-        material_id = GetMaterial(mat);
+    // if (mat) {
+    //     material_id = GetMaterial(mat);
+    // } else {
+    //     material_id = GetMaterial();
+    // }
+    if (mat_list.size() > 0) {
+        material_id = GetMaterial(mat_list[0]);
+        for (int i = 1; i < mat_list.size(); i++) {
+            GetMaterial(mat_list[i]);
+        }
     } else {
         material_id = GetMaterial();
     }
@@ -734,15 +769,24 @@ unsigned int ChOptixPipeline::GetSphereMaterial(std::shared_ptr<ChVisualMaterial
     Record<MaterialRecordParameters> mat_record;
     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_hit_sphere_group, &mat_record));
     mat_record.data.material_pool_id = material_id;
+    mat_record.data.num_blended_materials = mat_list.size();
     m_material_records.push_back(mat_record);
 
     return static_cast<unsigned int>(m_material_records.size() - 1);
 }
 
-unsigned int ChOptixPipeline::GetCylinderMaterial(std::shared_ptr<ChVisualMaterial> mat) {
+unsigned int ChOptixPipeline::GetCylinderMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list) {
     unsigned int material_id;
-    if (mat) {
-        material_id = GetMaterial(mat);
+    // if (mat) {
+    //     material_id = GetMaterial(mat);
+    // } else {
+    //     material_id = GetMaterial();
+    // }
+    if (mat_list.size() > 0) {
+        material_id = GetMaterial(mat_list[0]);
+        for (int i = 1; i < mat_list.size(); i++) {
+            GetMaterial(mat_list[i]);
+        }
     } else {
         material_id = GetMaterial();
     }
@@ -750,6 +794,7 @@ unsigned int ChOptixPipeline::GetCylinderMaterial(std::shared_ptr<ChVisualMateri
     Record<MaterialRecordParameters> mat_record;
     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_hit_cyl_group, &mat_record));
     mat_record.data.material_pool_id = material_id;
+    mat_record.data.num_blended_materials = 1;  // TODO: change mat to list
     m_material_records.push_back(mat_record);
 
     return static_cast<unsigned int>(m_material_records.size() - 1);
@@ -920,6 +965,15 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
     Record<MaterialRecordParameters> mat_record;
     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_hit_mesh_group, &mat_record));
     mat_record.data.material_pool_id = material_id;
+    // assume that if meshes have weight map, materials should be blended
+    // if materials should be blended, all materials will have weight map
+    mat_record.data.num_blended_materials = 1;
+    if (mat_list.size() > 0 && mat_list[0]->GetWeightTexture() != "") {
+        mat_record.data.num_blended_materials = mat_list.size();
+    } else {
+        mat_record.data.num_blended_materials = 1;
+    }
+
     mat_record.data.mesh_pool_id = mesh_id;
     m_material_records.push_back(mat_record);
 

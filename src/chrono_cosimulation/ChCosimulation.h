@@ -15,8 +15,9 @@
 #ifndef CHCOSIMULATION_H
 #define CHCOSIMULATION_H
 
-#include "chrono_cosimulation/ChSocket.h"
-#include "chrono_cosimulation/ChSocketFramework.h"
+#include "chrono_cosimulation/ChApiCosimulation.h"
+
+#include "chrono/utils/ChSocket.h"
 
 #include "chrono/core/ChMatrix.h"
 
@@ -38,9 +39,9 @@ namespace cosimul {
 class ChApiCosimulation ChCosimulation {
   public:
     /// Create a co-simulation interface.
-    ChCosimulation(ChSocketFramework& mframework,  ///< socket framework
-                   int n_in_values,                ///< number of scalar variables to receive each timestep
-                   int n_out_values                ///< number of scalar variables to send each timestep
+    ChCosimulation(utils::ChSocketFramework& mframework,  ///< socket framework
+                   int n_in_values,                       ///< number of scalar variables to receive each timestep
+                   int n_out_values                       ///< number of scalar variables to send each timestep
     );
 
     ~ChCosimulation();
@@ -63,8 +64,8 @@ class ChApiCosimulation ChCosimulation {
     bool ReceiveData(double& mtime, ChVectorRef mdata);
 
   private:
-    ChSocketTCP* myServer;
-    ChSocketTCP* myClient;
+    chrono::utils::ChSocketTCP* myServer;
+    chrono::utils::ChSocketTCP* myClient;
     int nport;
 
     int in_n;

@@ -254,7 +254,6 @@ linux:ubuntu2004:build:
         -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
         -DCMAKE_VERBOSE_MAKEFILE=TRUE
         -DENABLE_MODULE_SENSOR=TRUE
-        -DBUILD_TESTING_SENSOR=FALSE
         -DOptiX_INSTALL_DIR=/opt/optix/7.2.0
     - ninja -j 8
   artifacts:

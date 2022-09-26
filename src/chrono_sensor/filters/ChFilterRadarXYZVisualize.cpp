@@ -50,9 +50,14 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Initialize(std::shared_ptr<ChSenso
     m_host_buffer->Buffer = std::move(b);
     m_host_buffer->Width = m_buffer_in->Width;
     m_host_buffer->Height = m_buffer_in->Height;
+
+#ifndef USE_SENSOR_GLFW
+    std::cerr << "WARNING: Chrono::SENSOR not built with GLFW support. Will proceed with no window.\n";
+#endif
 }
 
 CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
+#ifdef USE_SENSOR_GLFW
     if (!m_window && !m_window_disabled) {
         CreateGlfwWindow(Name());
         float hfov = m_radar->GetHFOV();
@@ -130,6 +135,7 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
         glfwSwapBuffers(m_window.get());
         glfwPollEvents();
     }
+#endif
 }
 }  // namespace sensor
 }  // namespace chrono

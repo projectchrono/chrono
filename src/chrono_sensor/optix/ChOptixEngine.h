@@ -116,8 +116,10 @@ class CH_SENSOR_API ChOptixEngine {
         std::shared_ptr<ChOptixSensor> sensor);  ///< render processing function for rendering in separate threads
     void SceneProcess(RenderThread& tself);  ///< scene processing function for building the scene in separate thread
 
-    void UpdateCameraTransforms();  ///< updates all of the camera position and orientations
-    void UpdateDeformableMeshes();  ///< updates the dynamic meshes in the scene
+    void UpdateCameraTransforms(
+        std::vector<int>& to_be_updated,
+        std::shared_ptr<ChScene> scene);  ///< updates all of the camera position and orientations
+    void UpdateDeformableMeshes();        ///< updates the dynamic meshes in the scene
     void UpdateSceneDescription(
         std::shared_ptr<ChScene> scene);  ///< updates the scene characteristics such as lights, background, etc
 
@@ -164,7 +166,6 @@ class CH_SENSOR_API ChOptixEngine {
     std::shared_ptr<ChOptixGeometry> m_geometry;  // manager of all geometry in the scene
     std::shared_ptr<ChOptixPipeline> m_pipeline;  // manager of all geometry in the scene
 
-    // optix::Group m_root;                                           ///< root node of the optix scene
     std::vector<std::shared_ptr<ChOptixSensor>> m_assignedSensor;  ///< list of sensor this engine is responsible for
     std::vector<std::shared_ptr<ChFilterOptixRender>>
         m_assignedRenderers;  ///< list of sensor this engine is responsible for

@@ -50,6 +50,7 @@ class ChApi ChVisualMaterial {
     void SetMetallicTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
     void SetRoughnessTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
     void SetOpacityTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
+    void SetWeightTexture(std::string filename) { weight_texture = filename; };
 
     void SetFresnelExp(float exp);
     void SetFresnelMax(float max);
@@ -76,6 +77,7 @@ class ChApi ChVisualMaterial {
     const std::string& GetMetallicTexture() const { return metallic_texture.GetFilename(); }
     const std::string& GetRoughnessTexture() const { return roughness_texture.GetFilename(); }
     const std::string& GetOpacityTexture() const { return opacity_texture.GetFilename(); }
+    const std::string& GetWeightTexture() { return weight_texture.GetFilename(); };
 
     const ChVector2<float>& GetKdTextureScale() const { return kd_texture.GetScale(); }
     const ChVector2<float>& GetKsTextureScale() const { return ks_texture.GetScale(); }
@@ -120,6 +122,7 @@ class ChApi ChVisualMaterial {
     ChTexture metallic_texture;   ///< metallic texture map
     ChTexture roughness_texture;  ///< roughness texture map
     ChTexture opacity_texture;    ///< opacity texture map
+    ChTexture weight_texture;     ///< weight texture map
 
     unsigned short int class_id;
     unsigned short int instance_id;

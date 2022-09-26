@@ -31,16 +31,12 @@ CH_SENSOR_API ChSegmentationCamera::ChSegmentationCamera(std::shared_ptr<chrono:
                                                          unsigned int h,                  // image height
                                                          float hFOV,                      // horizontal field of view
                                                          CameraLensModelType lens_model)  // lens model to use
-    : m_hFOV(hFOV), m_lens_model_type(lens_model), ChOptixSensor(parent, updateRate, offsetPose, w, h) {
-    // set the program to match the model requested
-    switch (lens_model) {
-        case CameraLensModelType::FOV_LENS:
-            m_pipeline_type = PipelineType::SEGMENTATION_FOV_LENS;
-            break;
-        default:  // default to CameraLensModelType::PINHOLE
-            m_pipeline_type = PipelineType::SEGMENTATION_PINHOLE;
-            break;
-    }
+    : m_hFOV(hFOV),
+      m_lens_model_type(lens_model),
+      m_lens_parameters({}),
+      ChOptixSensor(parent, updateRate, offsetPose, w, h) {
+    // set the pipeline for this
+    m_pipeline_type = PipelineType::SEGMENTATION;
 
     SetCollectionWindow(0.f);
     SetLag(1.f / updateRate);
@@ -50,6 +46,19 @@ CH_SENSOR_API ChSegmentationCamera::ChSegmentationCamera(std::shared_ptr<chrono:
 // Destructor
 // -----------------------------------------------------------------------------
 CH_SENSOR_API ChSegmentationCamera::~ChSegmentationCamera() {}
+
+void ChSegmentationCamera::SetRadialLensParameters(ChVector<float> params) {
+    // Drap, P., & Lefèvre, J. (2016). 
+    // An Exact Formula for Calculating Inverse Radial Lens Distortions. 
+    // Sensors (Basel, Switzerland), 16(6), 807. https://doi.org/10.3390/s16060807
+    // float a1_2 = params.x();
+    // float b1 = -params.x();
+    // float b2 = 3.f * params.x() * params.x() - params.y();
+    // float b3 = 8.f * params.x() * params.y() - 12.f * a1_2 * params.x() - params.z();
+    // float b4 = 55 * a1_2 * a1_2 + 10*params.x()*params.z() - 55*a1_2*params.z() + 5*params.y()*params.y();
+    // m_lens_parameters = {b1, b2, b3, b4};
+    m_lens_parameters = ChCameraSensor::CalcInvRadialModel(params);
+}
 
 }  // namespace sensor
 }  // namespace chrono

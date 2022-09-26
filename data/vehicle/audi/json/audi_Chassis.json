@@ -7,10 +7,10 @@
   [
    {
      "Centroidal Frame":    {
-                              "Location":    [0, 0, 0.7],
+                              "Location":    [0, 0, 0.55],
                               "Orientation": [1, 0, 0, 0]
                             },
-     "Mass":                1250,
+     "Mass":                1550,
      "Moments of Inertia":  [222.8, 944.1, 1053.5],
      "Products of Inertia": [0, 0, 0],
      "Void":                false
@@ -24,37 +24,6 @@
   },
 
   "Rear Connector Location": [-2.5, 0, -0.1],
-
-  "Contact": {
-    "Materials": [
-        {
-            "Coefficient of Friction": 0.7,
-            "Coefficient of Restitution": 0.1,
-
-            "Properties": {
-                "Young Modulus": 1e7,
-                "Poisson Ratio": 0.3
-            },
-
-            "Coefficients": {
-                "Normal Stiffness": 2e5,
-                "Normal Damping": 40.0,
-                "Tangential Stiffness": 2e5,
-                "Tangential Damping": 20.0
-            }
-        }
-    ],
-
-    "Shapes": [
-        {
-            "Type": "MESH",
-            "Filename": "audi/audi_chassis_col.obj",
-            "Location": [0, 0.0, 0.0],
-            "Contact Radius": 0.0,
-            "Material Index": 0
-        }
-    ]
-  },
 
   "Visualization":
   {

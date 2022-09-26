@@ -88,9 +88,25 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         bufferOut->Buffer = std::move(b);
         m_raygen_record->data.specific.camera.hFOV = cam->GetHFOV();
         m_raygen_record->data.specific.camera.gamma = cam->GetGamma();
+        m_raygen_record->data.specific.camera.super_sample_factor = cam->GetSampleFactor();
         m_raygen_record->data.specific.camera.frame_buffer = reinterpret_cast<half4*>(bufferOut->Buffer.get());
         m_raygen_record->data.specific.camera.use_gi = cam->GetUseGI();
+        m_raygen_record->data.specific.camera.use_fog = cam->GetUseFog();
+        m_raygen_record->data.specific.camera.lens_model = cam->GetLensModelType();
+        m_raygen_record->data.specific.camera.lens_parameters = cam->GetLensParameters();
+            // make_float3(cam->GetLensParameters().x(), cam->GetLensParameters().y()], cam->GetLensParameters().z());
         m_bufferOut = bufferOut;
+
+        if (cam->GetUseGI() || cam->GetCollectionWindow() > 0.f) {
+            // initialize rng buffer for ray bounces or motion blur
+            m_rng = std::shared_ptr<curandState_t>(
+                cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
+                cudaFreeHelper<curandState_t>);
+
+            init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+                          m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
+            m_raygen_record->data.specific.camera.rng_buffer = m_rng.get();
+        }
 
         if (cam->GetUseGI() && m_denoiser) {
             half4* frame_buffer = cudaMallocHelper<half4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
@@ -103,14 +119,6 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
 
             m_denoiser->Initialize(cam->GetWidth(), cam->GetHeight(), cam->GetCudaStream(), frame_buffer, albedo_buffer,
                                    normal_buffer, reinterpret_cast<half4*>(bufferOut->Buffer.get()));
-
-            // initialize rng buffer for ray bounces
-            m_rng = std::shared_ptr<curandState_t>(
-                cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
-                cudaFreeHelper<curandState_t>);
-            init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
-                          m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
-            m_raygen_record->data.specific.camera.rng_buffer = m_rng.get();
         }
 
     } else if (auto segmenter = std::dynamic_pointer_cast<ChSegmentationCamera>(pSensor)) {
@@ -120,6 +128,21 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         bufferOut->Buffer = std::move(b);
         m_raygen_record->data.specific.segmentation.hFOV = segmenter->GetHFOV();
         m_raygen_record->data.specific.segmentation.frame_buffer = reinterpret_cast<ushort2*>(bufferOut->Buffer.get());
+        m_raygen_record->data.specific.segmentation.lens_model = segmenter->GetLensModelType();
+        m_raygen_record->data.specific.camera.lens_parameters = segmenter->GetLensParameters();
+            // make_float3(cam->GetLensParameters().x(), cam->GetLensParameters().y()], cam->GetLensParameters().z());
+
+        if (segmenter->GetCollectionWindow() > 0.f) {
+            // initialize rng buffer for ray bounces or motion blur
+            m_rng = std::shared_ptr<curandState_t>(
+                cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
+                cudaFreeHelper<curandState_t>);
+
+            init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+                          m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
+            m_raygen_record->data.specific.segmentation.rng_buffer = m_rng.get();
+        }
+
         m_bufferOut = bufferOut;
     } else if (auto lidar = std::dynamic_pointer_cast<ChLidarSensor>(pSensor)) {
         auto bufferOut = chrono_types::make_shared<SensorDeviceDIBuffer>();
@@ -183,9 +206,9 @@ CH_SENSOR_API std::shared_ptr<ChFilterVisualize> ChFilterOptixRender::FindOnlyVi
 CH_SENSOR_API ChOptixDenoiser::ChOptixDenoiser(OptixDeviceContext context) : m_cuda_stream(0) {
     // initialize the optix denoiser
     OptixDenoiserOptions options = {};
-    options.inputKind = OPTIX_DENOISER_INPUT_RGB_ALBEDO_NORMAL;
-    OPTIX_ERROR_CHECK(optixDenoiserCreate(context, &options, &m_denoiser));
-    OPTIX_ERROR_CHECK(optixDenoiserSetModel(m_denoiser, OPTIX_DENOISER_MODEL_KIND_LDR, nullptr, 0));
+    options.guideAlbedo = 1;
+    options.guideNormal = 1;
+    OPTIX_ERROR_CHECK(optixDenoiserCreate(context, OPTIX_DENOISER_MODEL_KIND_LDR, &options, &m_denoiser));
 }
 
 CH_SENSOR_API ChOptixDenoiser::~ChOptixDenoiser() {
@@ -249,16 +272,35 @@ CH_SENSOR_API void ChOptixDenoiser::Initialize(unsigned int w,
 
     OPTIX_ERROR_CHECK(
         optixDenoiserSetup(m_denoiser, m_cuda_stream, w, h, md_state, m_state_size, md_scratch, m_scratch_size));
-    m_params.denoiseAlpha = 0;
+    m_params.denoiseAlpha = OPTIX_DENOISER_ALPHA_MODE_COPY;
     m_params.hdrIntensity = 0;
     m_params.blendFactor = 0.f;
 }
 
 CH_SENSOR_API void ChOptixDenoiser::Execute() {
     // will not compute intensity since we are assuming we don't have HDR images
-    OPTIX_ERROR_CHECK(optixDenoiserInvoke(m_denoiser, m_cuda_stream, &m_params, md_state, m_state_size,
-                                          md_inputs.data(), static_cast<unsigned int>(md_inputs.size()), 0, 0,
-                                          &md_output, md_scratch, m_scratch_size));
+    OptixDenoiserLayer inLayer = {}; 
+    inLayer.input = *(md_inputs.data());
+    inLayer.previousOutput = md_output; //only in temporal mode
+    inLayer.output = md_output;
+
+    OptixDenoiserGuideLayer guideLayer =    {};
+    guideLayer.albedo = md_inputs[1];
+    guideLayer.normal = md_inputs[2];
+    
+    OPTIX_ERROR_CHECK(optixDenoiserInvoke(m_denoiser, //denoiser OK 
+                                          m_cuda_stream, //CUstream stream OK
+                                          &m_params,  ///OptixDenoiserParams* params OK
+                                          md_state, // denoiserState OK
+                                          m_state_size, //denoiserStateSizeInBytes OK
+                                          &guideLayer, //OptixDenoiserGuideLayer* guidelayer
+                                          &inLayer, //OptixeDenoiserLayer* layer
+                                          1, //uint num layers
+                                          0, //uint inputOffsetX
+                                          0,  //uint inputOffsetY
+                                          md_scratch, //CUdeviceptr scratch
+                                          m_scratch_size //scratchSizeInBytes
+                                          ));
 }
 
 }  // namespace sensor
