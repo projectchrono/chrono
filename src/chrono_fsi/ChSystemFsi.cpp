@@ -1336,7 +1336,7 @@ void ChSystemFsi::CreateBCE_sphere(Real rad, bool solid, bool polar, thrust::hos
     for (int iz = 0; iz <= np; iz++) {
         Real z = iz * delta;
         Real rz_max = std::sqrt(rad * rad - z * z);
-        Real rz_min = std::max(rz_max - num_layers * delta, 0.0);
+        Real rz_min = std::max(rz_max - num_layers * delta, Real(0.0));
         if (iz >= np - num_layers)
             rz_min = 0;
         Real rz_min2 = rz_min * rz_min;
@@ -1413,7 +1413,7 @@ void ChSystemFsi::CreateBCE_cylinder(Real rad,
         rad += num_layers * delta_r;
     }
 
-    Real r_min = std::max(rad - num_layers * delta_r, 0.0);
+    Real r_min = std::max(rad - num_layers * delta_r, Real(0.0));
     Real r_min2 = r_min * r_min;
     Real r_max2 = rad * rad;
     for (int ix = -np_r; ix <= np_r; ix++) {
@@ -1520,7 +1520,7 @@ void ChSystemFsi::CreateBCE_cone(Real rad,
             Real z = iz * delta_h;
             Real rz = rad * (height - z) / height;
             Real rad_out = solid ? rz : rz + num_layers * spacing;
-            Real rad_in = std::max(rad_out - num_layers * spacing, 0.0);
+            Real rad_in = std::max(rad_out - num_layers * spacing, Real(0.0));
             if (iz >= np_h - num_layers)
                 rad_in = 0;
             int np_r = (int)std::round((rad_out - rad_in) / spacing);
@@ -1555,7 +1555,7 @@ void ChSystemFsi::CreateBCE_cone(Real rad,
         Real z = iz * delta_h;
         Real rz = rad * (height - z) / height;
         Real rad_out = solid ? rz : rz + num_layers * spacing;
-        Real rad_in = std::max(rad_out - num_layers * spacing, 0.0);
+        Real rad_in = std::max(rad_out - num_layers * spacing, Real(0.0));
         Real r_out2 = rad_out * rad_out;
         Real r_in2 = rad_in * rad_in;
         for (int ix = -np_r; ix <= np_r; ix++) {
