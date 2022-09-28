@@ -95,8 +95,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.AddBody(body);
 
     // Add BCE particles to the bottom and top wall boundary
-    sysFSI.AddWallBCE(body, ChFrame<>(pos_zn, QUNIT), {size_XY.x(), size_XY.y()});
-    sysFSI.AddWallBCE(body, ChFrame<>(pos_zp, Q_from_AngX(+CH_C_PI)), {size_XY.x(), size_XY.y()});
+    sysFSI.AddContainerBCE(body, ChFrame<>(), ChVector<>(bxDim, byDim, bzDim), ChVector<int>(0, 0, 2));
 }
 
 // ===============================

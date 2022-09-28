@@ -195,26 +195,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     container->SetCollide(false);
 
     // Create the geometry of the boundaries
-    // Bottom wall - size and position
-    ChVector<> size_XY(m_hdimX + 3 * initSpace0, m_hdimY + 3 * initSpace0, 2 * initSpace0);
-    ChVector<> pos_zn(0, 0, -3 * initSpace0);
-
-    // Left and right walls - size and position
-    ChVector<> size_YZ(2 * initSpace0, m_hdimY + 3 * initSpace0, 1.25 * m_depth / 2);
-    ChVector<> pos_xp(m_hdimX + initSpace0, 0.0, 1.25 * m_depth / 2 + 0 * initSpace0);
-    ChVector<> pos_xn(-m_hdimX - 3 * initSpace0, 0.0, 1.25 * m_depth / 2 + 0 * initSpace0);
-
-    // Front and back walls - size and position
-    ChVector<> size_XZ(m_hdimX, 2 * initSpace0, 1.25 * m_depth / 2);
-    ChVector<> pos_yp(0, m_hdimY + initSpace0, 1.25 * m_depth / 2 + 0 * initSpace0);
-    ChVector<> pos_yn(0, -m_hdimY - 3 * initSpace0, 1.25 * m_depth / 2 + 0 * initSpace0);
-
-    // Add BCE particles attached on the walls into FSI system
-    m_systemFSI->AddWallBCE(container, ChFrame<>(pos_zn, QUNIT), {size_XY.x(), size_XY.y()});
-    m_systemFSI->AddWallBCE(container, ChFrame<>(pos_xn, Q_from_AngY(+CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
-    m_systemFSI->AddWallBCE(container, ChFrame<>(pos_xp, Q_from_AngY(-CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
-    m_systemFSI->AddWallBCE(container, ChFrame<>(pos_yn, Q_from_AngX(-CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
-    m_systemFSI->AddWallBCE(container, ChFrame<>(pos_yp, Q_from_AngX(+CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
+    m_systemFSI->AddContainerBCE(container, ChFrame<>(), ChVector<>(2 * m_hdimX, 2 * m_hdimY, 1.25 * m_depth),
+                                 ChVector<int>(2, 2, -1));
 
     // Add all rigid obstacles
     int id = body_id_obstacles;

@@ -1053,6 +1053,43 @@ void ChSystemFsi::AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& fram
     AddBCE(body, bce, frame, false, false, false);
 }
 
+void ChSystemFsi::AddContainerBCE(std::shared_ptr<ChBody> body,
+                                  const ChFrame<>& frame,
+                                  const ChVector<>& size,
+                                  const ChVector<int> faces) {
+    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
+    Real buffer = 2 * m_paramsH->NUM_BOUNDARY_LAYERS * spacing;
+
+    // Wall center positions
+    ChVector<> zn(0, 0, -spacing);
+    ChVector<> zp(0, 0, size.z() + spacing);
+    ChVector<> xn(-size.x() / 2 - spacing, 0, size.z() / 2);
+    ChVector<> xp(+size.x() / 2 + spacing, 0, size.z() / 2);
+    ChVector<> yn(0, -size.y() / 2 - spacing, size.z() / 2);
+    ChVector<> yp(0, +size.y() / 2 + spacing, size.z() / 2);
+
+    // Z- wall
+    if (faces.z() == -1 || faces.z() == 2)
+        AddWallBCE(body, frame * ChFrame<>(zn, QUNIT), {size.x(), size.y()});
+    // Z+ wall
+    if (faces.z() == +1 || faces.z() == 2)
+        AddWallBCE(body, frame * ChFrame<>(zp, Q_from_AngX(CH_C_PI)), {size.x(), size.y()});
+
+    // X- wall
+    if (faces.x() == -1 || faces.x() == 2)
+        AddWallBCE(body, frame * ChFrame<>(xn, Q_from_AngY(+CH_C_PI_2)), {size.z() + buffer, size.y()});
+    // X+ wall
+    if (faces.x() == +1 || faces.x() == 2)
+        AddWallBCE(body, frame * ChFrame<>(xp, Q_from_AngY(-CH_C_PI_2)), {size.z() + buffer, size.y()});
+
+    // Y- wall
+    if (faces.y() == -1 || faces.y() == 2)
+        AddWallBCE(body, frame * ChFrame<>(yn, Q_from_AngX(-CH_C_PI_2)), {size.x() + buffer, size.z() + buffer});
+    // Y+ wall
+    if (faces.y() == +1 || faces.y() == 2)
+        AddWallBCE(body, frame * ChFrame<>(yp, Q_from_AngX(+CH_C_PI_2)), {size.x() + buffer, size.z() + buffer});
+}
+
 void ChSystemFsi::AddBoxBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector<>& size, bool solid) {
     thrust::host_vector<Real4> bce;
     CreateBCE_box(utils::ToReal3(size), solid, bce);
@@ -1241,7 +1278,7 @@ void ChSystemFsi::CreateBCE_wall(const Real2& size, thrust::host_vector<Real4>& 
     for (int il = 0; il < num_layers; il++) {
         for (int ix = -np.x; ix <= np.x; ix++) {
             for (int iy = -np.y; iy <= np.y; iy++) {
-                bce.push_back(mR4(ix * delta.x, iy * delta.y, il * spacing, kernel_h));
+                bce.push_back(mR4(ix * delta.x, iy * delta.y, -il * spacing, kernel_h));
             }
         }
     }

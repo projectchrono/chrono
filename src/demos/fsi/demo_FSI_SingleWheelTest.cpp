@@ -22,7 +22,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/utils/ChUtilsGeometry.h"
@@ -120,42 +120,27 @@ void WriteWheelVTK(const std::string& filename,
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    // Set common material Properties
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-    mysurfmaterial->SetYoungModulus(1e8);
-    mysurfmaterial->SetFriction(0.9f);
-    mysurfmaterial->SetRestitution(0.4f);
-    mysurfmaterial->SetAdhesion(0);
-
+    // Common contact material
+    auto cmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    cmaterial->SetYoungModulus(1e8);
+    cmaterial->SetFriction(0.9f);
+    cmaterial->SetRestitution(0.4f);
+    cmaterial->SetAdhesion(0);
+    
     // Create a container -- always FIRST body in the system
-    auto ground = chrono_types::make_shared<ChBodyEasyBox>(100, 100, 0.02, 1000, false, true, mysurfmaterial);
-    ground->SetPos(ChVector<>(0.0, 0.0, 0.0));
-    ground->SetCollide(true);
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     sysMBS.AddBody(ground);
 
-    // Bottom wall
-    ChVector<> size_XY(bxDim / 2 + 3 * iniSpacing, byDim / 2 + 0 * iniSpacing, 2 * iniSpacing);
-    ChVector<> pos_zn(0, 0, -3 * iniSpacing);
-    ChVector<> pos_zp(0, 0, bzDim + 2 * iniSpacing);
-
-    // Left and right Wall
-    ChVector<> size_YZ(2 * iniSpacing, byDim / 2 + 0 * iniSpacing, bzDim / 2);
-    ChVector<> pos_xp(bxDim / 2 + iniSpacing, 0.0, bzDim / 2 + 0 * iniSpacing);
-    ChVector<> pos_xn(-bxDim / 2 - 3 * iniSpacing, 0.0, bzDim / 2 + 0 * iniSpacing);
-
-    // Front and back Wall
-    ChVector<> size_XZ(bxDim / 2 + 3 * iniSpacing, 2 * iniSpacing, bzDim / 2);
-    ChVector<> pos_yp(0, byDim / 2 + iniSpacing, bzDim / 2 + 0 * iniSpacing);
-    ChVector<> pos_yn(0, -byDim / 2 - 3 * iniSpacing, bzDim / 2 + 0 * iniSpacing);
+    ground->GetCollisionModel()->ClearModel();
+    chrono::utils::AddBoxContainer(ground, cmaterial, ChFrame<>(), ChVector<>(bxDim, byDim, bzDim), 0.1,
+                                   ChVector<int>(0, 0, -1), false);
+    ground->GetCollisionModel()->BuildModel();
+    ground->SetCollide(true);
 
     // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddWallBCE(ground, ChFrame<>(pos_zn, QUNIT), {size_XY.x(), size_XY.y()});
-    ////sysFSI.AddWallBCE(ground, ChFrame<>(pos_zp, Q_from_AngX(+CH_C_PI)), {size_XY.x(), size_XY.y()});
-    sysFSI.AddWallBCE(ground, ChFrame<>(pos_xn, Q_from_AngY(+CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
-    sysFSI.AddWallBCE(ground, ChFrame<>(pos_xp, Q_from_AngY(-CH_C_PI_2)), {size_YZ.y(), size_YZ.z()});
-    ////sysFSI.AddWallBCE(ground, ChFrame<>(pos_yn, Q_from_AngX(-CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
-    ////sysFSI.AddWallBCE(ground, ChFrame<>(pos_yp, Q_from_AngX(+CH_C_PI_2)), {size_XZ.x(), size_XZ.z()});
+    sysFSI.AddContainerBCE(ground, ChFrame<>(), ChVector<>(bxDim, byDim, 2 * bzDim), ChVector<int>(2, 0, -1));
 
     // Create the wheel -- always SECOND body in the system
     auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
@@ -195,7 +180,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     wheel->SetBodyFixed(false);
     wheel->GetCollisionModel()->ClearModel();
-    wheel->GetCollisionModel()->AddTriangleMesh(mysurfmaterial, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
+    wheel->GetCollisionModel()->AddTriangleMesh(cmaterial, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
     wheel->GetCollisionModel()->BuildModel();
     wheel->SetCollide(false);
 
@@ -214,7 +199,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Add geometry of the chassis.
     chassis->GetCollisionModel()->ClearModel();
-    chrono::utils::AddBoxGeometry(chassis.get(), mysurfmaterial, ChVector<>(0.1, 0.1, 0.1), ChVector<>(0, 0, 0));
+    chrono::utils::AddBoxGeometry(chassis.get(), cmaterial, ChVector<>(0.1, 0.1, 0.1), ChVector<>(0, 0, 0));
     chassis->GetCollisionModel()->BuildModel();
     sysMBS.AddBody(chassis);
 
@@ -227,7 +212,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Add geometry of the axle.
     axle->GetCollisionModel()->ClearModel();
-    chrono::utils::AddSphereGeometry(axle.get(), mysurfmaterial, 0.5, ChVector<>(0, 0, 0));
+    chrono::utils::AddSphereGeometry(axle.get(), cmaterial, 0.5, ChVector<>(0, 0, 0));
     axle->GetCollisionModel()->BuildModel();
     sysMBS.AddBody(axle);
 
@@ -379,8 +364,8 @@ int main(int argc, char* argv[]) {
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI single wheel demo");
         fsi_vis.SetCameraPosition(ChVector<>(0, -5 * byDim, 5 * bzDim), ChVector<>(0, 0, 0));
-        fsi_vis.SetCameraMoveScale(1.0f);
-        fsi_vis.EnableBoundaryMarkers(false);
+        fsi_vis.SetCameraMoveScale(0.05f);
+        fsi_vis.EnableBoundaryMarkers(true);
         fsi_vis.Initialize();
     }
 
