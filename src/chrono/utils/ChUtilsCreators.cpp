@@ -635,29 +635,29 @@ void AddBoxContainer(std::shared_ptr<ChBody> body,
     }
     // Z+ wall
     if (faces.z() == +1 || faces.z() == 2) {
-        auto f = frame * ChFrame<>(zp, Q_from_AngX(CH_C_PI));
+        auto f = frame * ChFrame<>(zp, QUNIT);
         AddBoxGeometry(body.get(), material, hsizeZ, f.GetPos(), f.GetRot(), visualization, vis_material);
     }
 
     // X- wall
     if (faces.x() == -1 || faces.x() == 2) {
-        auto f = frame * ChFrame<>(xn, Q_from_AngY(+CH_C_PI_2));
+        auto f = frame * ChFrame<>(xn, QUNIT);
         AddBoxGeometry(body.get(), material, hsizeX, f.GetPos(), f.GetRot(), visualization, vis_material);
     }
     // X+ wall
     if (faces.x() == +1 || faces.x() == 2) {
-        auto f = frame * ChFrame<>(xp, Q_from_AngY(-CH_C_PI_2));
+        auto f = frame * ChFrame<>(xp, QUNIT);
         AddBoxGeometry(body.get(), material, hsizeX, f.GetPos(), f.GetRot(), visualization, vis_material);
     }
 
     // Y- wall
     if (faces.y() == -1 || faces.y() == 2) {
-        auto f = frame * ChFrame<>(yn, Q_from_AngX(-CH_C_PI_2));
+        auto f = frame * ChFrame<>(yn, QUNIT);
         AddBoxGeometry(body.get(), material, hsizeY, f.GetPos(), f.GetRot(), visualization, vis_material);
     }
     // Y+ wall
     if (faces.y() == +1 || faces.y() == 2) {
-        auto f = frame * ChFrame<>(yp, Q_from_AngX(+CH_C_PI_2));
+        auto f = frame * ChFrame<>(yp, QUNIT);
         AddBoxGeometry(body.get(), material, hsizeY, f.GetPos(), f.GetRot(), visualization, vis_material);
     }
 }
