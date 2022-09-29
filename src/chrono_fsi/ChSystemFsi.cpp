@@ -1110,11 +1110,11 @@ void ChSystemFsi::AddCylinderBCE(std::shared_ptr<ChBody> body,
                                  const ChFrame<>& frame,
                                  double radius,
                                  double height,
-                                 bool capped,
                                  bool solid,
+                                 bool capped,
                                  bool polar) {
     thrust::host_vector<Real4> bce;
-    CreateBCE_cylinder(radius, height, capped, solid, polar, bce);
+    CreateBCE_cylinder(radius, height, solid, capped, polar, bce);
     AddBCE(body, bce, frame, solid, false, false);
 }
 
@@ -1133,11 +1133,11 @@ void ChSystemFsi::AddConeBCE(std::shared_ptr<ChBody> body,
                              const ChFrame<>& frame,
                              double radius,
                              double height,
-                             bool capped,
                              bool solid,
+                             bool capped,
                              bool polar) {
     thrust::host_vector<Real4> bce;
-    CreateBCE_cone(radius, height, capped, solid, polar, bce);
+    CreateBCE_cone(radius, height, solid, capped, polar, bce);
     AddBCE(body, bce, frame, solid, false, false);
 }
 
@@ -1395,8 +1395,8 @@ void ChSystemFsi::CreateBCE_sphere(Real rad, bool solid, bool polar, thrust::hos
 
 void ChSystemFsi::CreateBCE_cylinder(Real rad,
                                      Real height,
-                                     bool capped,
                                      bool solid,
+                                     bool capped,
                                      bool polar,
                                      thrust::host_vector<Real4>& bce) {
     Real kernel_h = m_paramsH->HSML;
@@ -1416,14 +1416,15 @@ void ChSystemFsi::CreateBCE_cylinder(Real rad,
 
     // Use polar coordinates
     if (polar) {
-        Real rad_out = solid ? rad : rad + num_layers * spacing;
-        Real rad_in = rad_out - num_layers * spacing;
-        int np_r = (int)std::round((rad_out - rad_in) / spacing);
-        Real delta_r = (rad_out - rad_in) / np_r;
+        Real rad_max = solid ? rad : rad + num_layers * spacing;
+        Real rad_min = rad_max - num_layers * spacing;
+        int np_r = (int)std::round((rad_max - rad_min) / spacing);
+        Real delta_r = (rad_max - rad_min) / np_r;
+
         for (int ir = 0; ir <= np_r; ir++) {
-            Real r = rad_in + ir * delta_r;
+            Real r = rad_min + ir * delta_r;
             int np_th = (int)std::round(2 * pi * r / spacing);
-            Real delta_th = (2 * pi) / np_th;
+            Real delta_th = (np_th > 0) ? (2 * pi) / np_th : 1;
             for (int it = 0; it < np_th; it++) {
                 Real theta = it * delta_th;
                 Real x = r * cos(theta);
@@ -1436,7 +1437,25 @@ void ChSystemFsi::CreateBCE_cylinder(Real rad,
         }
 
         if (capped) {
-            //// RADU TODO
+            rad_max = rad_min - delta_r;
+            np_r = (int)std::round(rad_max / spacing);
+            delta_r = rad_max / np_r;
+
+            for (int ir = 0; ir <= np_r; ir++) {
+                Real r = rad_max - ir * delta_r;
+                int np_th = std::max((int)std::round(2 * pi * r / spacing), 1);
+                Real delta_th = (2 * pi) / np_th;
+                for (int it = 0; it < np_th; it++) {
+                    Real theta = it * delta_th;
+                    Real x = r * cos(theta);
+                    Real y = r * sin(theta);
+                    for (int iz = 0; iz <= num_layers; iz++) {
+                        Real z = hheight - iz * delta_h;
+                        bce.push_back(mR4(x, y, -z, kernel_h));
+                        bce.push_back(mR4(x, y, +z, kernel_h));
+                    }
+                }
+            }
         }
 
         return;
@@ -1450,9 +1469,10 @@ void ChSystemFsi::CreateBCE_cylinder(Real rad,
         rad += num_layers * delta_r;
     }
 
-    Real r_min = std::max(rad - num_layers * delta_r, Real(0.0));
-    Real r_min2 = r_min * r_min;
-    Real r_max2 = rad * rad;
+    Real rad_max = rad;
+    Real rad_min = std::max(rad - num_layers * delta_r, Real(0.0));
+    Real r_max2 = rad_max * rad_max;
+    Real r_min2 = rad_min * rad_min;
     for (int ix = -np_r; ix <= np_r; ix++) {
         Real x = ix * delta_r;
         for (int iy = -np_r; iy <= np_r; iy++) {
@@ -1464,9 +1484,12 @@ void ChSystemFsi::CreateBCE_cylinder(Real rad,
                     bce.push_back(mR4(x, y, z, kernel_h));
                 }
             }
-
-            if (capped) {
-                //// RADU TODO
+            if (capped && r2 < r_min2) {
+                for (int iz = 0; iz <= num_layers; iz++) {
+                    Real z = hheight - iz * delta_h;
+                    bce.push_back(mR4(x, y, -z, kernel_h));
+                    bce.push_back(mR4(x, y, +z, kernel_h));              
+                }                
             }
         }
     }
@@ -1529,8 +1552,8 @@ void ChSystemFsi::CreateBCE_cylinder_annulus(Real rad_in,
 
 void ChSystemFsi::CreateBCE_cone(Real rad,
                                  Real height,
-                                 bool capped,
                                  bool solid,
+                                 bool capped,
                                  bool polar,
                                  thrust::host_vector<Real4>& bce) {
     Real kernel_h = m_paramsH->HSML;

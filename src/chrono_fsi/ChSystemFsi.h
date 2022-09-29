@@ -365,8 +365,8 @@ class CH_FSI_API ChSystemFsi {
                         const ChFrame<>& frame,
                         double radius,
                         double height,
-                        bool capped,
                         bool solid,
+                        bool capped = true,
                         bool polar = true);
 
     /// Add BCE markers for a cylindrical annulus of specified radii and height and associate them with the given body.
@@ -390,8 +390,8 @@ class CH_FSI_API ChSystemFsi {
                     const ChFrame<>& frame,
                     double radius,
                     double height,
-                    bool capped,
                     bool solid,
+                    bool capped = true,
                     bool polar = true);
 
     /// Add BCE markers from a set of points and associate them with the given body.
@@ -489,8 +489,8 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
     void CreateBCE_cylinder(Real rad,
                             Real height,
-                            bool capped,
                             bool solid,
+                            bool capped,
                             bool polar,
                             thrust::host_vector<Real4>& bce);
 
@@ -510,7 +510,7 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created inside the cone if solid=true, and outside the cone otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_cone(Real rad, Real height, bool capped, bool solid, bool polar, thrust::host_vector<Real4>& bce);
+    void CreateBCE_cone(Real rad, Real height, bool solid, bool capped, bool polar, thrust::host_vector<Real4>& bce);
 
     /// Create BCE particles from a cable element.
     //// RADU TODO
