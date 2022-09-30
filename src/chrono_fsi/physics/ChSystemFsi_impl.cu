@@ -550,7 +550,7 @@ thrust::device_vector<Real4> ChSystemFsi_impl::GetParticleAccelerations() {
 
     // Copy data for SPH particles only
     thrust::device_vector<Real4> accD(n);
-    thrust::copy_n(fsiGeneralData->derivVelRhoD_old.begin(), n, accD.begin());
+    thrust::copy_n(fsiGeneralData->derivVelRhoD.begin(), n, accD.begin());
 
     return accD;
 }

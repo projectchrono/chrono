@@ -9,6 +9,7 @@ SET(FSI_DEMOS
     demo_FSI_Poiseuille_flow
     demo_FSI_CylinderDrop
     demo_FSI_SingleWheelTest
+    demo_FSI_BCE
 )
 
 set(FSI_MKL_DEMOS

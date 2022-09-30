@@ -210,6 +210,23 @@ ChApi void AddTorusGeometry(ChBody* body,
                             bool visualization = true,
                             std::shared_ptr<ChVisualMaterial> vis_material = ChVisualMaterial::Default());
 
+/// Add collision shapes representing a box container of specified dimensions to the given body.
+/// The center of the container bottom face is at the origin of the given frame and the the container is aligned
+/// with the frame axes. The container walls are constructed with specified thickness
+/// 
+/// The 'faces' input vector specifies which faces of the container are to be created: for each
+/// direction, a value of -1 indicates the face in the negative direction, a value of +1 indicates the face in the
+/// positive direction, and a value of 2 indicates both faces. Setting a value of 0 does not create container faces
+/// in that direction.
+ChApi void AddBoxContainer(std::shared_ptr<ChBody> body,
+                           std::shared_ptr<ChMaterialSurface> material,
+                           const ChFrame<>& frame,
+                           const ChVector<>& size,
+                           double thickness,
+                           const ChVector<int> faces,
+                           bool visualization = true,
+                           std::shared_ptr<ChVisualMaterial> vis_material = ChVisualMaterial::Default());
+
 /// Create a fixed body with contact and asset geometry representing a box with 5 walls (no top).
 ChApi std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
                                                  int id,
