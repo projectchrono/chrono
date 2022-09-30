@@ -20,7 +20,6 @@
 #include "GetCylinderShapeData.h"
 #include "GetCapsuleShapeData.h"
 #include "GetConeShapeData.h"
-#include "GetTriangleMeshShapeData.h"
 #include "GetSurfaceShapeData.h"
 
 #include "chrono_vsg/resources/lineShader_vert.h"
@@ -38,7 +37,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
                                                    std::shared_ptr<ChVisualMaterial> material,
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool drawMode,
-                                                   std::shared_ptr<ChTriangleMeshShape> tms,
                                                    std::shared_ptr<ChSurfaceShape> surface) {
     auto scenegraph = vsg::Group::create();
     // store some information for easier update
@@ -59,14 +57,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
     shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
     auto graphicsPipelineConfig = vsg::GraphicsPipelineConfig::create(shaderSet);
     auto& defines = graphicsPipelineConfig->shaderHints->defines;
-
-    if (theShape == TRIANGLE_MESH_SHAPE) {
-        // two-sided polygons? -> cannot be used together with transparency!
-        if (!tms->IsBackfaceCull() && material->GetOpacity() == 1.0) {
-            graphicsPipelineConfig->rasterizationState->cullMode = VK_CULL_MODE_NONE;
-            defines.push_back("VSG_TWO_SIDED_LIGHTING");
-        }
-    }
 
     // set up graphics pipeline
     vsg::Descriptors descriptors;
@@ -151,9 +141,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
             break;
         case CONE_SHAPE:
             GetConeShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
-            break;
-        case TRIANGLE_MESH_SHAPE:
-            GetTriangleMeshShapeData(tms, vertices, normals, texcoords, indices, boundingSphereRadius);
             break;
         case SURFACE_SHAPE:
             GetSurfaceShapeData(surface, vertices, normals, texcoords, indices, boundingSphereRadius);

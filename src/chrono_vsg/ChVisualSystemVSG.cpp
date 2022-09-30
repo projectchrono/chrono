@@ -763,11 +763,6 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                /*
-                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::TRIANGLE_MESH_SHAPE, body,
-                                                                  shape_instance, material, transform,
-                                                                  m_draw_as_wireframe, trimesh));
-                                                                  */
                 if (trimesh->GetNumMaterials() > 0) {
                     GetLog() << "... has a triangle mesh shape with material(s)\n";
                     m_bodyScene->addChild(m_shapeBuilder->createTrimeshMatShape(body, shape_instance, transform,
@@ -784,8 +779,7 @@ void ChVisualSystemVSG::BindAll() {
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(1.0, 1.0, 1.0);
                 m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::SURFACE_SHAPE, body, shape_instance,
-                                                                  material, transform, m_draw_as_wireframe, nullptr,
-                                                                  surface));
+                                                                  material, transform, m_draw_as_wireframe, surface));
             } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
                 GetLog() << "... has a obj file shape\n";
                 string objFilename = obj->GetFilename();

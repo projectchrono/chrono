@@ -40,7 +40,6 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
         CYLINDER_SHAPE,
         CAPSULE_SHAPE,
         CONE_SHAPE,
-        TRIANGLE_MESH_SHAPE,
         SURFACE_SHAPE
     } BasicShape;
     vsg::ref_ptr<vsg::Options> m_options;
@@ -53,7 +52,6 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                          std::shared_ptr<ChVisualMaterial> material,
                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
                                          bool drawMode,
-                                         std::shared_ptr<ChTriangleMeshShape> tms = nullptr,
                                          std::shared_ptr<ChSurfaceShape> surface = nullptr);
 
     vsg::ref_ptr<vsg::Group> createTrimeshColShape(std::shared_ptr<ChPhysicsItem> physItem,
