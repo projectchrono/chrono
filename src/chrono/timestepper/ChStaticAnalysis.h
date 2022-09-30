@@ -179,6 +179,77 @@ class ChApi ChStaticNonLinearRheonomicAnalysis : public ChStaticAnalysis {
 };
 
 
+/// Nonlinear static analysis where the user can define external load(s) that 
+/// will be incremented gradually during the solution process. This improves the
+/// convergence respect to ChStaticNonlinear, where all the loads (both internal and external)
+/// are automatically scaled with a simplified prcedure. 
+/// It is based on an outer iteration (incrementing external load) and inner iteration (for Newton iteration).
+/// A callback will be invoked when the loads must be scaled.
+
+class ChApi ChStaticNonLinearIncremental : public ChStaticAnalysis {
+  public:
+    ChStaticNonLinearIncremental(ChIntegrableIIorder& integrable);
+    ~ChStaticNonLinearIncremental() {}
+
+    /// Performs the static analysis, doing a non-linear solve.
+    virtual void StaticAnalysis() override;
+
+    /// Enable/disable verbose output (default: false)
+    void SetVerbose(bool verbose) { m_verbose = verbose; }
+
+    /// Set the max number of inner iterations for the Newton Raphson procedure (default: 5),
+    /// where these iterations are preformed at each external load scaling step.
+    void SetMaxIterationsNewton(int max_newton_iters);
+
+    /// Set the number of outer iterations that will increment the external load in stepwise manner. (default: 6)
+    /// If =1 it uses immediately the final external load, so it boils down to a classic Newton Raphson iteration.
+    void SetIncrementalSteps(int incr_steps);
+
+    /// Set stopping criteria based on WRMS norm of correction and the specified relative and absolute tolerances.
+    /// This is the default, with reltol = 1e-4, abstol = 1e-8.
+    /// The Newton Raphson procedure is stopped if the WRMS norm of the correction vector (based on the current state)
+    /// is less than 1.
+    void SetCorrectionTolerance(double reltol, double abstol);
+
+    /// Set stopping criteria based on norm of residual and the specified tolerance.
+    /// The Newton Raphson is stopped when the infinity norm of the residual is below the tolerance.
+    void SetResidualTolerance(double tol);
+
+    /// Get the max number of iterations for the Newton Raphson procedure.
+    int GetMaxIterations() const { return max_newton_iters; }
+
+    /// Set the number of steps that, for the first iterations, make the residual grow linearly.
+    int GetIncrementalSteps() const { return m_incremental_steps; }
+
+    /// Class to be used as a callback interface for updating the system at each step of load increment.
+    /// If the user defined loads via ChLoad objects, for example, or via mynode->SetForce(), then in this
+    /// callback all these external loads must be updated as final load multiplied by "load_scaling".
+    class ChApi LoadIncrementCallback {
+      public:
+        virtual ~LoadIncrementCallback() {}
+
+        /// Perform updates on the model. This is called before each load scaling. Must be implemented by child class.
+        virtual void OnLoadScaling(  const double load_scaling, ///< ranging from 0 to 1
+                                        const int iteration_n,  ///< actual number of outer iteration
+                                        ChStaticNonLinearIncremental* analysis     ///< back-pointer to this analysis
+                                  ) = 0;
+    };
+
+    ///  Set the callback to be called at each iteration.
+    void SetLoadIncrementCallback(std::shared_ptr<LoadIncrementCallback> my_callback) { this->load_increment_callback = my_callback; }
+
+  private:
+    bool m_verbose;
+    int max_newton_iters;
+    int m_incremental_steps;
+    bool m_use_correction_test;
+    double m_reltol;
+    double m_abstol;
+    std::shared_ptr<LoadIncrementCallback> load_increment_callback;
+};
+
+
+
 
 
 

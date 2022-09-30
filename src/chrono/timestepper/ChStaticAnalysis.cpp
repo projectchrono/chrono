@@ -575,4 +575,181 @@ void ChStaticNonLinearRheonomicAnalysis::SetIncrementalSteps(int incr_steps) {
 
 
 
+// -----------------------------------------------------------------------------
+
+ChStaticNonLinearIncremental::ChStaticNonLinearIncremental(ChIntegrableIIorder& integrable)
+    : ChStaticAnalysis(integrable),
+      max_newton_iters(5),
+      m_incremental_steps(6),
+      m_use_correction_test(true),
+      m_reltol(1e-4),
+      m_abstol(1e-8),
+      m_verbose(false) {}
+
+void ChStaticNonLinearIncremental::StaticAnalysis() {
+    ChIntegrableIIorder* integrable = static_cast<ChIntegrableIIorder*>(m_integrable);
+
+    if (m_verbose) {
+        GetLog() << "\nNonlinear statics with incremental external load\n";
+        GetLog() << "   max Newton iterations per load step:     " << max_newton_iters << "\n";
+        GetLog() << "   external load incremental steps:  " << m_incremental_steps << "\n";
+        if (m_use_correction_test) {
+            GetLog() << "   stopping test:      correction\n";
+            GetLog() << "      relative tol:    " << m_reltol << "\n";
+            GetLog() << "      absolute tol:    " << m_abstol << "\n";
+        } else {
+            GetLog() << "   stopping test:      residual\n";
+            GetLog() << "      tolerance:       " << m_abstol << "\n";
+        }
+        GetLog() << "\n";
+    }
+
+    // Set up main vectors
+    double T;
+    ChStateDelta V(integrable);
+    X.resize(integrable->GetNcoords_x());
+    V.resize(integrable->GetNcoords_v());
+    integrable->StateGather(X, V, T);  // state <- system
+
+    // Set speed to zero
+    V.setZero(integrable->GetNcoords_v(), integrable);
+    integrable->StateScatter(X, V, T, true);  // state -> system
+
+    // Set up auxiliary vectors
+    ChState Xnew;
+    ChStateDelta Dx;
+    ChVectorDynamic<> R;
+    ChVectorDynamic<> Qc;
+    Xnew.setZero(integrable->GetNcoords_x(), integrable);
+    Dx.setZero(integrable->GetNcoords_v(), integrable);
+    R.setZero(integrable->GetNcoords_v());
+    Qc.setZero(integrable->GetNconstr());
+    L.setZero(integrable->GetNconstr());
+
+    // Outer loop: increment the external load(s)
+    // by invoking the callback. 
+
+    for (int j = 0; j < this->m_incremental_steps; ++j) {
+
+        // The scaling factor for the external load (A simple linear scaling... it could be be improved).
+        // Note on formula: have it ending with 1.0. If m_incremental_steps =1, do just one iteration with scaling =1.0.
+        double cfactor = ((double)j + 1.0) / m_incremental_steps;
+
+        // SCALE THE EXTERNAL LOADS!
+        // This MUST be implemented by the user via a callback, becauses it is the only way we have to 
+        // scale the external forces F_ext. The user must know the final F_ext, then updating data such as scale*F_ext is set in objects.
+        // Then, after the callback is executed, as soon as we call integrable->LoadResidual_F(R, 1.0); 
+        // we'll get that    R = F_in + scaled_F_ext.
+
+        if (!this->load_increment_callback && m_verbose) 
+            GetLog() << "Warning! Load callback not defined. Create one and use SetLoadIncrementCallback(...).\n";
+        
+        this->load_increment_callback->OnLoadScaling(cfactor, j, this);
+
+        if (m_verbose) {
+            GetLog() << "--- Nonlinear statics outer iteration " << j << ", load scaling: " << cfactor << "\n";
+        }
+
+        // Inner loop: use Newton Raphson iteration, solving for the increments
+        //      [ - dF/dx    Cq' ] [ Dx  ] = [ F_in + scaled_F_ext ]
+        //      [ Cq         0   ] [ L   ] = [-C                   ]
+
+        for (int i = 0; i < max_newton_iters; ++i) {
+
+            integrable->StateScatter(X, V, T, true);  // state -> system
+            R.setZero();
+            Qc.setZero();
+            integrable->LoadResidual_F(R, 1.0);   // here fetches forces F from the system (where F = F_in + scaled_F_ext )  
+            integrable->LoadConstraint_C(Qc, 1.0);
+
+            if (!m_use_correction_test) {
+                // Evaluate residual norms
+                double R_norm = R.lpNorm<Eigen::Infinity>();
+                double Qc_norm = Qc.lpNorm<Eigen::Infinity>();
+
+                if (m_verbose) {
+                    GetLog() << "---   Nonlinear statics Newton iteration " << i << "  |R|_inf = " << R_norm
+                        << "  |Qc|_inf = " << Qc_norm << "\n";
+                }
+
+                // Stopping test
+                if ((R_norm < m_abstol) && (Qc_norm < m_abstol)) {
+                    if (m_verbose) {
+                        GetLog() << "+++   Newton procedure converged in " << i + 1 << " iterations.\n\n";
+                    }
+                    break;
+                }
+            }
+
+            // Solve linear system for correction
+            integrable->StateSolveCorrection(  //
+                Dx, L, R, Qc,                  //
+                0,                             // factor for  M
+                0,                             // factor for  dF/dv
+                -1.0,                          // factor for  dF/dx (the stiffness matrix)
+                X, V, T,                       // not needed here
+                false,                         // do not scatter Xnew Vnew T+dt before computing correction
+                false,                         // full update? (not used, since no scatter)
+                true                           // force a call to the solver's Setup() function
+            );
+
+            Xnew = X + Dx;
+
+            if (m_use_correction_test) {
+                // Calculate actual correction in X
+                ChState correction = Xnew - X;
+
+                // Evaluate weights and correction WRMS norm
+                ChVectorDynamic<> ewt = (m_reltol * Xnew.cwiseAbs() + m_abstol).cwiseInverse();
+                double Dx_norm = correction.wrmsNorm(ewt);
+
+                if (m_verbose) {
+                    GetLog() << "---  Nonlinear statics iteration " << i << "  |Dx|_wrms = " << Dx_norm << "\n";
+                }
+
+                // Stopping test
+                if (Dx_norm < 1) {
+                    if (m_verbose) {
+                        double R_norm = R.lpNorm<Eigen::Infinity>();
+                        double Qc_norm = Qc.lpNorm<Eigen::Infinity>();
+                        GetLog() << "+++  Newton procedure converged in " << i + 1 << " iterations.\n";
+                        GetLog() << "     |R|_inf = " << R_norm << "  |Qc|_inf = " << Qc_norm << "\n\n";
+                    }
+                    X = Xnew;
+                    break;
+                }
+            }
+
+            X = Xnew;
+
+        } // end inner loop for Newton iteration
+
+    } // end outer loop incrementing external loads
+
+    integrable->StateScatter(X, V, T, true);     // state -> system
+    integrable->StateScatterReactions(L);  // -> system auxiliary data
+}
+
+void ChStaticNonLinearIncremental::SetCorrectionTolerance(double reltol, double abstol) {
+    m_use_correction_test = true;
+    m_reltol = reltol;
+    m_abstol = abstol;
+}
+
+void ChStaticNonLinearIncremental::SetResidualTolerance(double tol) {
+    m_use_correction_test = false;
+    m_abstol = tol;
+}
+
+void ChStaticNonLinearIncremental::SetMaxIterationsNewton(int max_iters) {
+    max_newton_iters = max_iters;
+}
+
+void ChStaticNonLinearIncremental::SetIncrementalSteps(int incr_steps) {
+    m_incremental_steps = incr_steps;
+}
+
+
+
+
 }  // end namespace chrono
