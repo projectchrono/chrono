@@ -63,9 +63,9 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
     size_t numRigids = m_fsi_bodies.size();
 
     for (size_t i = 0; i < numRigids; i++) {
-        ChVector<> mforce = ChUtilsTypeConvert::Real3ToChVector(
+        ChVector<> mforce = utils::ToChVector(
             ChUtilsDevice::FetchElement(m_sysFSI.fsiGeneralData->rigid_FSI_ForcesD, i));
-        ChVector<> mtorque = ChUtilsTypeConvert::Real3ToChVector(
+        ChVector<> mtorque = utils::ToChVector(
             ChUtilsDevice::FetchElement(m_sysFSI.fsiGeneralData->rigid_FSI_TorquesD, i));
 
         std::shared_ptr<ChBody> body = m_fsi_bodies[i];
@@ -93,23 +93,23 @@ void ChFsiInterface::Copy_External_To_ChSystem() {
     // Copy data between ChSystem and FSI system for rigid bodies
     for (size_t i = 0; i < numBodies; i++) {
         auto mBody = m_sysMBS.Get_bodylist().at(i);
-        mBody->SetPos(ChUtilsTypeConvert::Real3ToChVector(m_rigid_backup->pos_ChSystemH[i]));
-        mBody->SetPos_dt(ChUtilsTypeConvert::Real3ToChVector(m_rigid_backup->vel_ChSystemH[i]));
-        mBody->SetPos_dtdt(ChUtilsTypeConvert::Real3ToChVector(m_rigid_backup->acc_ChSystemH[i]));
+        mBody->SetPos(utils::ToChVector(m_rigid_backup->pos_ChSystemH[i]));
+        mBody->SetPos_dt(utils::ToChVector(m_rigid_backup->vel_ChSystemH[i]));
+        mBody->SetPos_dtdt(utils::ToChVector(m_rigid_backup->acc_ChSystemH[i]));
 
-        mBody->SetRot(ChUtilsTypeConvert::Real4ToChQuaternion(m_rigid_backup->quat_ChSystemH[i]));
-        mBody->SetWvel_par(ChUtilsTypeConvert::Real3ToChVector(m_rigid_backup->omegaVelGRF_ChSystemH[i]));
-        mBody->SetWacc_par(ChUtilsTypeConvert::Real3ToChVector(m_rigid_backup->omegaAccGRF_ChSystemH[i]));
+        mBody->SetRot(utils::ToChQuaternion(m_rigid_backup->quat_ChSystemH[i]));
+        mBody->SetWvel_par(utils::ToChVector(m_rigid_backup->omegaVelGRF_ChSystemH[i]));
+        mBody->SetWacc_par(utils::ToChVector(m_rigid_backup->omegaAccGRF_ChSystemH[i]));
     }
 
     // Copy data between ChSystem and FSI system for flexible bodies
     m_flex_backup->resize(numNodes);
     for (size_t i = 0; i < numNodes; i++) {
         auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
-        node->SetPos(ChUtilsTypeConvert::Real3ToChVector(m_flex_backup->posFlex_ChSystemH_H[i]));
-        node->SetPos_dt(ChUtilsTypeConvert::Real3ToChVector(m_flex_backup->velFlex_ChSystemH_H[i]));
-        node->SetPos_dtdt(ChUtilsTypeConvert::Real3ToChVector(m_flex_backup->accFlex_ChSystemH_H[i]));
-        node->SetD(ChUtilsTypeConvert::Real3ToChVector(m_flex_backup->dirFlex_ChSystemH_H[i]));
+        node->SetPos(utils::ToChVector(m_flex_backup->posFlex_ChSystemH_H[i]));
+        node->SetPos_dt(utils::ToChVector(m_flex_backup->velFlex_ChSystemH_H[i]));
+        node->SetPos_dtdt(utils::ToChVector(m_flex_backup->accFlex_ChSystemH_H[i]));
+        node->SetD(utils::ToChVector(m_flex_backup->dirFlex_ChSystemH_H[i]));
     }
 }
 //------------------------------------------------------------------------------------
@@ -129,23 +129,23 @@ void ChFsiInterface::Copy_ChSystem_to_External() {
     m_rigid_backup->resize(numBodies);
     for (size_t i = 0; i < numBodies; i++) {
         auto mBody = m_sysMBS.Get_bodylist().at(i);
-        m_rigid_backup->pos_ChSystemH[i] = ChUtilsTypeConvert::ChVectorToReal3(mBody->GetPos());
-        m_rigid_backup->vel_ChSystemH[i] = ChUtilsTypeConvert::ChVectorToReal3(mBody->GetPos_dt());
-        m_rigid_backup->acc_ChSystemH[i] = ChUtilsTypeConvert::ChVectorToReal3(mBody->GetPos_dtdt());
+        m_rigid_backup->pos_ChSystemH[i] = utils::ToReal3(mBody->GetPos());
+        m_rigid_backup->vel_ChSystemH[i] = utils::ToReal3(mBody->GetPos_dt());
+        m_rigid_backup->acc_ChSystemH[i] = utils::ToReal3(mBody->GetPos_dtdt());
 
-        m_rigid_backup->quat_ChSystemH[i] = ChUtilsTypeConvert::ChQuaternionToReal4(mBody->GetRot());
-        m_rigid_backup->omegaVelGRF_ChSystemH[i] = ChUtilsTypeConvert::ChVectorToReal3(mBody->GetWvel_par());
-        m_rigid_backup->omegaAccGRF_ChSystemH[i] = ChUtilsTypeConvert::ChVectorToReal3(mBody->GetWacc_par());
+        m_rigid_backup->quat_ChSystemH[i] = utils::ToReal4(mBody->GetRot());
+        m_rigid_backup->omegaVelGRF_ChSystemH[i] = utils::ToReal3(mBody->GetWvel_par());
+        m_rigid_backup->omegaAccGRF_ChSystemH[i] = utils::ToReal3(mBody->GetWacc_par());
     }
 
     // Copy data between ChSystem and FSI system for flexible bodies
     m_flex_backup->resize(numNodes);
     for (size_t i = 0; i < numNodes; i++) {
         auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
-        m_flex_backup->posFlex_ChSystemH_H[i] = ChUtilsTypeConvert::ChVectorToReal3(node->GetPos());
-        m_flex_backup->velFlex_ChSystemH_H[i] = ChUtilsTypeConvert::ChVectorToReal3(node->GetPos_dt());
-        m_flex_backup->accFlex_ChSystemH_H[i] = ChUtilsTypeConvert::ChVectorToReal3(node->GetPos_dtdt());
-        m_flex_backup->dirFlex_ChSystemH_H[i] = ChUtilsTypeConvert::ChVectorToReal3(node->GetD());
+        m_flex_backup->posFlex_ChSystemH_H[i] = utils::ToReal3(node->GetPos());
+        m_flex_backup->velFlex_ChSystemH_H[i] = utils::ToReal3(node->GetPos_dt());
+        m_flex_backup->accFlex_ChSystemH_H[i] = utils::ToReal3(node->GetPos_dtdt());
+        m_flex_backup->dirFlex_ChSystemH_H[i] = utils::ToReal3(node->GetD());
     }
 }
 //------------------------------------------------------------------------------------
@@ -153,13 +153,13 @@ void ChFsiInterface::Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBod
     size_t num_fsiBodies_Rigids = m_fsi_bodies.size();
     for (size_t i = 0; i < num_fsiBodies_Rigids; i++) {
         std::shared_ptr<ChBody> bodyPtr = m_fsi_bodies[i];
-        m_sysFSI.fsiBodiesH->posRigid_fsiBodies_H[i] = ChUtilsTypeConvert::ChVectorToReal3(bodyPtr->GetPos());
+        m_sysFSI.fsiBodiesH->posRigid_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetPos());
         m_sysFSI.fsiBodiesH->velMassRigid_fsiBodies_H[i] =
-            ChUtilsTypeConvert::ChVectorToReal4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
-        m_sysFSI.fsiBodiesH->accRigid_fsiBodies_H[i] = ChUtilsTypeConvert::ChVectorToReal3(bodyPtr->GetPos_dtdt());
-        m_sysFSI.fsiBodiesH->q_fsiBodies_H[i] = ChUtilsTypeConvert::ChQuaternionToReal4(bodyPtr->GetRot());
-        m_sysFSI.fsiBodiesH->omegaVelLRF_fsiBodies_H[i] = ChUtilsTypeConvert::ChVectorToReal3(bodyPtr->GetWvel_loc());
-        m_sysFSI.fsiBodiesH->omegaAccLRF_fsiBodies_H[i] = ChUtilsTypeConvert::ChVectorToReal3(bodyPtr->GetWacc_loc());
+            utils::ToReal4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
+        m_sysFSI.fsiBodiesH->accRigid_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetPos_dtdt());
+        m_sysFSI.fsiBodiesH->q_fsiBodies_H[i] = utils::ToReal4(bodyPtr->GetRot());
+        m_sysFSI.fsiBodiesH->omegaVelLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetWvel_loc());
+        m_sysFSI.fsiBodiesH->omegaAccLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetWacc_loc());
     }
     fsiBodiesD->CopyFromH(*m_sysFSI.fsiBodiesH);
 }
@@ -177,7 +177,7 @@ void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
     size_t numNodes = m_fsi_nodes.size();
 
     for (size_t i = 0; i < numNodes; i++) {
-        ChVector<> mforce = ChUtilsTypeConvert::Real3ToChVector(
+        ChVector<> mforce = utils::ToChVector(
             ChUtilsDevice::FetchElement(m_sysFSI.fsiGeneralData->Flex_FSI_ForcesD, i));
         auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
         node->SetForce(mforce);
@@ -189,10 +189,10 @@ void ChFsiInterface::Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMesh
 
     for (size_t i = 0; i < num_fsiNodes_Felx; i++) {
         auto NodePtr = m_fsi_nodes[i];
-        m_sysFSI.fsiMeshH->pos_fsi_fea_H[i] = ChUtilsTypeConvert::ChVectorToReal3(NodePtr->GetPos());
-        m_sysFSI.fsiMeshH->vel_fsi_fea_H[i] = ChUtilsTypeConvert::ChVectorToReal3(NodePtr->GetPos_dt());
-        m_sysFSI.fsiMeshH->acc_fsi_fea_H[i] = ChUtilsTypeConvert::ChVectorToReal3(NodePtr->GetPos_dtdt());
-        m_sysFSI.fsiMeshH->dir_fsi_fea_H[i] = ChUtilsTypeConvert::ChVectorToReal3(NodePtr->GetD());
+        m_sysFSI.fsiMeshH->pos_fsi_fea_H[i] = utils::ToReal3(NodePtr->GetPos());
+        m_sysFSI.fsiMeshH->vel_fsi_fea_H[i] = utils::ToReal3(NodePtr->GetPos_dt());
+        m_sysFSI.fsiMeshH->acc_fsi_fea_H[i] = utils::ToReal3(NodePtr->GetPos_dtdt());
+        m_sysFSI.fsiMeshH->dir_fsi_fea_H[i] = utils::ToReal3(NodePtr->GetD());
     }
     FsiMeshD->CopyFromH(*m_sysFSI.fsiMeshH);
 }

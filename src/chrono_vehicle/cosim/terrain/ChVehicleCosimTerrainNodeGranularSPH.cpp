@@ -182,9 +182,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         fsi::Real pre_ini = m_systemFSI->GetDensity() * abs(m_gacc) * (-points[i].z() + m_depth);
         fsi::Real rho_ini =
             m_systemFSI->GetDensity() + pre_ini / (m_systemFSI->GetSoundSpeed() * m_systemFSI->GetSoundSpeed());
-        m_systemFSI->AddSPHParticle(points[i], rho_ini, 0.0, m_systemFSI->GetViscosity(),
-                                    m_systemFSI->GetKernelLength(), ChVector<>(1e-10), ChVector<>(-pre_ini),
-                                    ChVector<>(1e-10));
+        m_systemFSI->AddSPHParticle(points[i], rho_ini, 0.0, m_systemFSI->GetViscosity(), ChVector<>(1e-10),
+                                    ChVector<>(-pre_ini), ChVector<>(1e-10));
     }
 
     // Create a body for the fluid container body
@@ -196,26 +195,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     container->SetCollide(false);
 
     // Create the geometry of the boundaries
-    // Bottom wall - size and position
-    ChVector<> size_XY(m_hdimX + 3 * initSpace0, m_hdimY + 3 * initSpace0, 2 * initSpace0);
-    ChVector<> pos_zn(0, 0, -3 * initSpace0);
-
-    // Left and right walls - size and position
-    ChVector<> size_YZ(2 * initSpace0, m_hdimY + 3 * initSpace0, 1.25 * m_depth / 2);
-    ChVector<> pos_xp(m_hdimX + initSpace0, 0.0, 1.25 * m_depth / 2 + 0 * initSpace0);
-    ChVector<> pos_xn(-m_hdimX - 3 * initSpace0, 0.0, 1.25 * m_depth / 2 + 0 * initSpace0);
-
-    // Front and back walls - size and position
-    ChVector<> size_XZ(m_hdimX, 2 * initSpace0, 1.25 * m_depth / 2);
-    ChVector<> pos_yp(0, m_hdimY + initSpace0, 1.25 * m_depth / 2 + 0 * initSpace0);
-    ChVector<> pos_yn(0, -m_hdimY - 3 * initSpace0, 1.25 * m_depth / 2 + 0 * initSpace0);
-
-    // Add BCE particles attached on the walls into FSI system
-    m_systemFSI->AddBoxBCE(container, pos_zn, chrono::QUNIT, size_XY, 12);
-    m_systemFSI->AddBoxBCE(container, pos_xp, chrono::QUNIT, size_YZ, 23);
-    m_systemFSI->AddBoxBCE(container, pos_xn, chrono::QUNIT, size_YZ, 23);
-    m_systemFSI->AddBoxBCE(container, pos_yp, chrono::QUNIT, size_XZ, 13);
-    m_systemFSI->AddBoxBCE(container, pos_yn, chrono::QUNIT, size_XZ, 13);
+    m_systemFSI->AddContainerBCE(container, ChFrame<>(), ChVector<>(2 * m_hdimX, 2 * m_hdimY, 1.25 * m_depth),
+                                 ChVector<int>(2, 2, -1));
 
     // Add all rigid obstacles
     int id = body_id_obstacles;
@@ -257,7 +238,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         // Create BCE markers associated with trimesh
         std::vector<ChVector<>> point_cloud;
         m_systemFSI->CreateMeshPoints(*trimesh, (double)initSpace0, point_cloud);
-        m_systemFSI->AddPointsBCE(body, point_cloud, VNULL, QUNIT);
+        m_systemFSI->AddPointsBCE(body, point_cloud, ChFrame<>(), true);
     }
 
 #ifdef CHRONO_OPENGL
@@ -325,26 +306,18 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
 
     // Create BCE markers associated with collision shapes
     for (const auto& box : m_geometry[i_shape].m_coll_boxes) {
-        //// RADU TODO: we need a function to create BCE for the entire box!!!
-        ////            right now, it only does it on one face!
-        m_systemFSI->AddBoxBCE(body, box.m_pos, box.m_rot, box.m_dims);
+        m_systemFSI->AddBoxBCE(body, ChFrame<>(box.m_pos, box.m_rot), box.m_dims, true);
     }
     for (const auto& sphere : m_geometry[i_shape].m_coll_spheres) {
-        //// RADU TODO: why do I need an orientation for a sphere?!?!
-        m_systemFSI->AddSphereBCE(body, sphere.m_pos, QUNIT, sphere.m_radius);
+        m_systemFSI->AddSphereBCE(body, ChFrame<>(sphere.m_pos, QUNIT), sphere.m_radius, true);
     }
     for (const auto& cyl : m_geometry[i_shape].m_coll_cylinders) {
-        //// RADU TODO: why do I need to pass in the kernel length?!?
-        ////            the separation should be taken from the FSI systems
-        m_systemFSI->AddCylinderBCE(body, cyl.m_pos, cyl.m_rot, cyl.m_radius, cyl.m_length,
-                                    m_systemFSI->GetKernelLength(), false);
+        m_systemFSI->AddCylinderBCE(body, ChFrame<>(cyl.m_pos, cyl.m_rot), cyl.m_radius, cyl.m_length, true);
     }
     for (const auto& mesh : m_geometry[i_shape].m_coll_meshes) {
-        //// RADU TODO: why do I need to pass in the initial spacing?!?
-        ////            the separation should be taken from the FSI systems
         std::vector<ChVector<>> point_cloud;
         m_systemFSI->CreateMeshPoints(*mesh.m_trimesh, (double)m_systemFSI->GetInitialSpacing(), point_cloud);
-        m_systemFSI->AddPointsBCE(body, point_cloud, VNULL, QUNIT);
+        m_systemFSI->AddPointsBCE(body, point_cloud, ChFrame<>(VNULL, QUNIT), true);
     }
 }
 
