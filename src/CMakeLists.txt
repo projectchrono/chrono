@@ -962,7 +962,7 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CH_CONFIG_INSTALL_PATH "cmake")
 else()
-    set(CH_CONFIG_INSTALL_PATH "lib/cmake")
+    set(CH_CONFIG_INSTALL_PATH "lib/cmake/Chrono")
 endif()
 
 install(FILES "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake.install"
