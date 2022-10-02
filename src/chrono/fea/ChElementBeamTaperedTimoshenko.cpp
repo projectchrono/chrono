@@ -337,6 +337,8 @@ void ChElementBeamTaperedTimoshenko::GetField_dtdt(ChVectorDynamic<>& mD_dtdt) {
 }
 
 void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
+    T.setZero(this->GetNdofs(), this->GetNdofs());
+
     double alpha1 = this->tapered_section->GetSectionA()->GetSectionRotation();
     double Cy1 = this->tapered_section->GetSectionA()->GetCentroidY();
     double Cz1 = this->tapered_section->GetSectionA()->GetCentroidZ();
@@ -519,6 +521,8 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrixAtPoint(ChMatrixDynam
 void ChElementBeamTaperedTimoshenko::ComputeStiffnessMatrix() {
     assert(tapered_section);
 
+    Km.setZero(this->GetNdofs(), this->GetNdofs());
+
     double L = this->length;
     double LL = L * L;
     double LLL = LL * L;
@@ -582,6 +586,8 @@ void ChElementBeamTaperedTimoshenko::ComputeStiffnessMatrix() {
 
 void ChElementBeamTaperedTimoshenko::ComputeDampingMatrix() {
     assert(tapered_section);
+
+    Rm.setZero(this->GetNdofs(), this->GetNdofs());
 
     double L = this->length;
     double LL = L * L;
@@ -679,6 +685,8 @@ void ChElementBeamTaperedTimoshenko::ComputeDampingMatrix() {
 
 void ChElementBeamTaperedTimoshenko::ComputeGeometricStiffnessMatrix() {
     assert(tapered_section);
+
+    Kg.setZero(this->GetNdofs(), this->GetNdofs());
 
     // Compute the local geometric stiffness matrix Kg without the P multiplication term, that is Kg*(1/P),
     // so that it is a constant matrix for performance reasons.

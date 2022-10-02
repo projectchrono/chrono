@@ -64,7 +64,6 @@ linux:arch-gcc:build:
     paths:
     - build/
 
-
 linux:arch-gcc:test:
   stage: test
   needs: ["linux:arch-gcc:build"]
@@ -75,53 +74,6 @@ linux:arch-gcc:test:
   - export CTEST_OUTPUT_ON_FAILURE=1
   - ninja test
   dependencies: ["linux:arch-gcc:build"]
-
-
-linux:doxygen:deploy:
-  tags:
-  - linux
-  image:
-    name: archlinux:base-devel
-    entrypoint: ["/usr/bin/bash", "-c"]
-  stage: deploy
-  before_script:
-#    - pacman -Syyu --noconfirm base-devel git python python-pip doxygen graphviz openssh rsync clang
-    - pacman -Sy --noconfirm base-devel git python python-pip graphviz openssh rsync wget
-    - wget https://downloads.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
-    - tar -xf doxygen-1.8.16.linux.bin.tar.gz
-    - mkdir -p ~/.ssh
-    - chmod 0700 ~/.ssh
-# This private key is only useable from specific IPs, so it should be okay to
-# be included here.
-    - cp $API_PRIVATE_KEY ~/.ssh/id_ed25519
-    - chmod 0600 ~/.ssh/id_ed25519
-# Remove any duplicate host key entries, if necessary
-    - if test -f ~/.ssh/known_hosts; then ssh-keygen -R $API_REINDEX_ENDPOINT; fi
-# Cache a verified host pubkey from file to avoid MITM attacks
-    - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/known_hosts
-  script:
-    - export PATH="$PWD/doxygen-1.8.16/bin:$PATH"
-    - cd doxygen
-    - doxygen Doxyfile
-    # - doxygen Doxyfile_Generate_Search_Index
-    - rsync -ra /tmp/chrono_doxygen/html/* $API_HTML_ENDPOINT
-    - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
-    - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
-  needs:
-    - job: linux:arch-gcc:test
-      artifacts: false
-#    - job: macos-intel:monterey:test
-#      artifacts: false
-    - job: macos-apple:monterey:test
-      artifacts: false
-    - job: windows:vs2022:test
-      artifacts: false
-  environment:
-    name: doxygen
-    url: http://api.projectchrono.org/
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'
-      when: always
 
 linux:arch-llvm:build:
   stage: build
@@ -227,6 +179,52 @@ linux:arch-llvm:test:
     name: pychrono-ubuntu2004
     url: https://anaconda.org/projectchrono/pychrono
 
+linux:doxygen:deploy:
+  tags:
+  - linux
+  image:
+    name: ubuntu:focal
+  stage: deploy
+  before_script:
+    - TZ=America/Chicago
+    - ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone  
+    - apt-get update; apt-get install -y git python python3-pip graphviz rsync wget
+    #- pacman -Sy --noconfirm base-devel git python python-pip graphviz openssh rsync wget
+    - wget https://downloads.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
+    - tar -xf doxygen-1.8.16.linux.bin.tar.gz
+    - mkdir -p ~/.ssh
+    - chmod 0700 ~/.ssh
+# This private key is only useable from specific IPs, so it should be okay to
+# be included here.
+    - cp $API_PRIVATE_KEY ~/.ssh/id_ed25519
+    - chmod 0600 ~/.ssh/id_ed25519
+# Remove any duplicate host key entries, if necessary
+    - if test -f ~/.ssh/known_hosts; then ssh-keygen -R $API_REINDEX_ENDPOINT; fi
+# Cache a verified host pubkey from file to avoid MITM attacks
+    - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/known_hosts
+  script:
+    - export PATH="$PWD/doxygen-1.8.16/bin:$PATH"
+    - cd doxygen
+    - doxygen Doxyfile
+    # - doxygen Doxyfile_Generate_Search_Index
+    - rsync -ra /tmp/chrono_doxygen/html/* $API_HTML_ENDPOINT
+    - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
+    - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
+  needs:
+#    - job: linux:arch-gcc:test
+#      artifacts: false
+#    - job: macos-intel:monterey:test
+#      artifacts: false
+    - job: macos-apple:monterey:test
+      artifacts: false
+    - job: windows:vs2022:test
+      artifacts: false
+  environment:
+    name: doxygen
+    url: http://api.projectchrono.org/
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main"'
+      when: always
 
 #----------------#
 # Ubuntu Builder #
@@ -243,8 +241,9 @@ linux:ubuntu2004:build:
         -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE
         -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE
         -DENABLE_MODULE_MULTICORE=TRUE -DENABLE_MODULE_OPENGL=TRUE
-        -DENABLE_MODULE_SYNCHRONO=TRUE -DENABLE_MODULE_CSHARP=TRUE
-        -DENABLE_MODULE_GPU=TRUE -DENABLE_MODULE_DISTRIBUTED=TRUE
+        -DENABLE_MODULE_FSI=TRUE -DENABLE_MODULE_SYNCHRONO=TRUE
+        -DENABLE_MODULE_CSHARP=TRUE -DENABLE_MODULE_GPU=TRUE 
+        -DENABLE_MODULE_DISTRIBUTED=TRUE
         -DENABLE_HDF5=TRUE
         -DCMAKE_C_COMPILER=/usr/bin/gcc
         -DCMAKE_CXX_COMPILER=/usr/bin/g++
@@ -645,6 +644,8 @@ macos-apple:monterey:test:
 
 .macos-deploy-base:
   extends: .macos
+  tags:
+    - intel
   before_script:
     - export CONDA_NPY=19
     - brew install wget
@@ -668,81 +669,40 @@ macos-apple:monterey:test:
     - clang --version
     # conda build uses "build.sh" for both Linux and MacOS. Since we do things differently, we do the following workaround
     - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
-    # same goes for the post install script: we don't want it to operate on MacOS bs it wouldn't find any sensor.py (not enabled in macos)
-    - rm ./contrib/packaging-python/conda/post-link.sh
     - conda install -c conda-forge llvm-openmp --yes
   environment:
     name: pychrono-macos
     url: https://anaconda.org/projectchrono/pychrono
 
-macos-intel:monterey:macos-deploy-python3.6:
-  stage: deploy
-  needs: []
-  extends: .macos-deploy-base
-  script:
-    - echo "Build PyChrono 3.6 and deploy via Anaconda..."
-    - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c intel -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.6
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
-  when: manual
-  tags:
-    - macos
-    - monterey
-    - intel
-
-macos-intel:monterey:macos-deploy-python3.7:
-  stage: deploy
-  needs: []
-  extends: .macos-deploy-base
-  script:
-    - echo "Build PyChrono 3.7 and deploy via Anaconda..."
-    - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c intel -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.7
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
-  when: manual
-  tags:
-    - macos
-    - monterey
-    - intel
-macos-intel:monterey:macos-deploy-python3.8:
+macos:macos-deploy-python3.8:
   stage: deploy
   needs: []
   extends: .macos-deploy-base
   script:
     - echo "Build PyChrono 3.8 and deploy via Anaconda..."
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c intel -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.8
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l main --force
   when: manual
-  tags:
-    - macos
-    - monterey
-    - intel
-
-macos-apple:monterey:macos-deploy-python3.9:
+macos:macos-deploy-python3.9:
   stage: deploy
   needs: []
   extends: .macos-deploy-base
   script:
-    - echo "Build PyChrono 3.6 and deploy via Anaconda..."
+    - echo "Build PyChrono 3.9 and deploy via Anaconda..."
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c intel -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.9
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.9
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l main --force
   when: manual
-  tags:
-    - macos
-    - monterey
-    - apple
-
-macos-apple:monterey:macos-deploy-python3.10:
+macos:macos-deploy-python3.10:
   stage: deploy
   needs: []
   extends: .macos-deploy-base
   script:
-    - echo "Build PyChrono 3.7 and deploy via Anaconda..."
+    - echo "Build PyChrono 3.10 and deploy via Anaconda..."
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c intel -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.10
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.10
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l main --force
   when: manual
   tags:
     - macos

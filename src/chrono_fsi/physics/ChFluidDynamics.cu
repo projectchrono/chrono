@@ -724,7 +724,7 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, R
         mR3CAST(sphMarkersD->tauXxYyZzD), 
         mR3CAST(sphMarkersD->tauXyXzYzD), 
         mR3CAST(fsiSystem.fsiGeneralData->vel_XSPH_D), 
-        mR4CAST(fsiSystem.fsiGeneralData->derivVelRhoD_old),
+        mR4CAST(fsiSystem.fsiGeneralData->derivVelRhoD),
         mR3CAST(fsiSystem.fsiGeneralData->derivTauXxYyZzD), 
         mR3CAST(fsiSystem.fsiGeneralData->derivTauXyXzYzD),
         mR4CAST(fsiSystem.fsiGeneralData->sr_tau_I_mu_i), 

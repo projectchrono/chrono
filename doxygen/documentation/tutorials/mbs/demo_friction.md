@@ -1,4 +1,4 @@
-Rolling and spinning friction example (demo_IRR_friction.cpp)  {#tutorial_demo_friction}
+Rolling and spinning friction example (demo_MBS_friction.cpp)  {#tutorial_demo_friction}
 ==========================
 
 A benchmark that show the feature of spinning friction 
@@ -12,5 +12,5 @@ This tutorial shows how to:
 - enable rolling and spinning friction.
 - impose initial velocity and angular velocity to objects.  
  
-\include demo_IRR_friction.cpp
+\include demo_MBS_friction.cpp
 

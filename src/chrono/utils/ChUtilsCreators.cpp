@@ -603,6 +603,67 @@ void AddTorusGeometry(ChBody* body,
 }
 
 // -----------------------------------------------------------------------------
+
+void AddBoxContainer(std::shared_ptr<ChBody> body,
+                     std::shared_ptr<ChMaterialSurface> material,
+                     const ChFrame<>& frame,
+                     const ChVector<>& size,
+                     double thickness,
+                     const ChVector<int> faces,
+                     bool visualization,
+                     std::shared_ptr<ChVisualMaterial> vis_material) {
+    ChVector<> hsize = size / 2;
+    double ht = thickness / 2;
+
+    // Wall center positions
+    ChVector<> zn(0, 0, -ht);
+    ChVector<> zp(0, 0, size.z() + ht);
+    ChVector<> xn(-hsize.x() - ht, 0, hsize.z());
+    ChVector<> xp(+hsize.x() + ht, 0, hsize.z());
+    ChVector<> yn(0, -hsize.y() - ht, hsize.z());
+    ChVector<> yp(0, +hsize.y() + ht, hsize.z());
+
+    // Wall dimensions
+    ChVector<> hsizeX(ht, hsize.y(), hsize.z());
+    ChVector<> hsizeY(hsize.x(), ht, hsize.z());
+    ChVector<> hsizeZ(hsize.x(), hsize.y(), ht);
+
+    // Z- wall
+    if (faces.z() == -1 || faces.z() == 2) {
+        auto f = frame * ChFrame<>(zn, QUNIT);
+        AddBoxGeometry(body.get(), material, hsizeZ, f.GetPos(), f.GetRot(), visualization, vis_material);
+    }
+    // Z+ wall
+    if (faces.z() == +1 || faces.z() == 2) {
+        auto f = frame * ChFrame<>(zp, QUNIT);
+        AddBoxGeometry(body.get(), material, hsizeZ, f.GetPos(), f.GetRot(), visualization, vis_material);
+    }
+
+    // X- wall
+    if (faces.x() == -1 || faces.x() == 2) {
+        auto f = frame * ChFrame<>(xn, QUNIT);
+        AddBoxGeometry(body.get(), material, hsizeX, f.GetPos(), f.GetRot(), visualization, vis_material);
+    }
+    // X+ wall
+    if (faces.x() == +1 || faces.x() == 2) {
+        auto f = frame * ChFrame<>(xp, QUNIT);
+        AddBoxGeometry(body.get(), material, hsizeX, f.GetPos(), f.GetRot(), visualization, vis_material);
+    }
+
+    // Y- wall
+    if (faces.y() == -1 || faces.y() == 2) {
+        auto f = frame * ChFrame<>(yn, QUNIT);
+        AddBoxGeometry(body.get(), material, hsizeY, f.GetPos(), f.GetRot(), visualization, vis_material);
+    }
+    // Y+ wall
+    if (faces.y() == +1 || faces.y() == 2) {
+        auto f = frame * ChFrame<>(yp, QUNIT);
+        AddBoxGeometry(body.get(), material, hsizeY, f.GetPos(), f.GetRot(), visualization, vis_material);
+    }
+}
+
+
+// -----------------------------------------------------------------------------
 // CreateBoxContainer
 //
 // Create a fixed body with contact and asset geometry representing a box with 5

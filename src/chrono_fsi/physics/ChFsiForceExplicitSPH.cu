@@ -1712,7 +1712,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     // This is faster than using thrust::sort_by_key()
     CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
         mR4CAST(sortedDerivVelRho), mR3CAST(sortedDerivTauXxYyZz), mR3CAST(sortedDerivTauXyXzYz),
-        mR4CAST(fsiGeneralData->derivVelRhoD_old), mR3CAST(fsiGeneralData->derivTauXxYyZzD),
+        mR4CAST(fsiGeneralData->derivVelRhoD), mR3CAST(fsiGeneralData->derivTauXxYyZzD),
         mR3CAST(fsiGeneralData->derivTauXyXzYzD), U1CAST(markersProximityD->gridMarkerIndexD),
         U1CAST(fsiGeneralData->activityIdentifierD), U1CAST(markersProximityD->mapOriginalToSorted),
         U1CAST(fsiGeneralData->freeSurfaceIdD), U1CAST(sortedFreeSurfaceId));
@@ -1803,9 +1803,9 @@ void ChFsiForceExplicitSPH::AddGravityToFluid() {
     thrust::device_vector<Real4> bodyForceD(numObjectsH->numAllMarkers);
     thrust::fill(bodyForceD.begin(), bodyForceD.end(), mR4(totalFluidBodyForce3));
     thrust::transform(
-        fsiGeneralData->derivVelRhoD_old.begin() + fsiGeneralData->referenceArray[0].x,
-        fsiGeneralData->derivVelRhoD_old.begin() + fsiGeneralData->referenceArray[0].y, bodyForceD.begin(),
-        fsiGeneralData->derivVelRhoD_old.begin() + fsiGeneralData->referenceArray[0].x, thrust::plus<Real4>());
+        fsiGeneralData->derivVelRhoD.begin() + fsiGeneralData->referenceArray[0].x,
+        fsiGeneralData->derivVelRhoD.begin() + fsiGeneralData->referenceArray[0].y, bodyForceD.begin(),
+        fsiGeneralData->derivVelRhoD.begin() + fsiGeneralData->referenceArray[0].x, thrust::plus<Real4>());
     bodyForceD.clear();
 }
 

@@ -155,14 +155,12 @@ set(ChronoEngine_FSI_MATH_FILES
 source_group(math FILES ${ChronoEngine_FSI_MATH_FILES})
 
 set(ChronoEngine_FSI_UTILS_FILES
-    utils/ChUtilsGeneratorBce.h
     utils/ChUtilsGeneratorFluid.h
     utils/ChUtilsPrintStruct.h
     utils/ChUtilsPrintSph.cuh
     utils/ChUtilsDevice.cuh
     utils/ChUtilsTypeConvert.h
 
-    utils/ChUtilsGeneratorBce.cpp
     utils/ChUtilsGeneratorFluid.cpp
     utils/ChUtilsPrintSph.cu
     utils/ChUtilsDevice.cu

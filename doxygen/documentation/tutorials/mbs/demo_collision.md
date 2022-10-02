@@ -1,4 +1,4 @@
-Collision example (demo_IRR_collisionNSC.cpp)  {#tutorial_demo_collision}
+Collision example (demo_MBS_collisionNSC.cpp)  {#tutorial_demo_collision}
 ==========================
 
 An introductory tutorial about collisions using Non-Smooth Contacts (NSC).
@@ -16,5 +16,5 @@ Learn about:
 - create a motor between two parts.
 
 
-\include demo_IRR_collisionNSC.cpp
+\include demo_MBS_collisionNSC.cpp
 
