@@ -1,22 +1,22 @@
 {
-  "Name": "suv",
+  "Name": "SUV",
   "Type": "Vehicle",
   "Template": "WheeledVehicle",
 
   "Vehicle": {
-    "Input File": "Nissan_Patrol/suv_Vehicle.json",
+    "Input File": "vehicle/Nissan_Patrol/json/suv_Vehicle.json",
     "Chassis Visualization Type": "Mesh",
-    "Suspension Visualization Type": "None",
-    "Steering Visualization Type": "None",
+    "Suspension Visualization Type": "Primitives",
+    "Steering Visualization Type": "Primitives",
     "Wheel Visualization Type": "Mesh"
   },
 
   "Powertrain": {
-    "Input File": "Nissan_Patrol/json/suv_SimpleMapPowertrain.json"
+    "Input File": "vehicle/Nissan_Patrol/json/suv_SimplePowertrain.json"
   },
 
   "Tire": {
-    "Input File": "Nissan_Patrol/json/suv_TMeasyTire.json",
+    "Input File": "vehicle/Nissan_Patrol/json/suv_TMeasy_converted.json",
     "Visualization Type": "Mesh"
   },
 
