@@ -214,7 +214,7 @@ void ChVehicleCosimTireNode::Initialize() {
     // Send load on this tire
     MPI_Send(&load_mass, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     if (m_verbose)
-        cout << "[Tire node   ] Send: load mass = " << load_mass << endl;
+        cout << "[Tire node " << m_index << " ] Send: load mass = " << load_mass << endl;
 }
 
 void ChVehicleCosimTireNode::InitializeSystem() {
@@ -319,6 +319,8 @@ void ChVehicleCosimTireNode::SynchronizeBody(int step_number, double time) {
 
     // Send spindle state data to Terrain node
     MPI_Send(state_data, 13, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
+    if (m_verbose)
+        cout << "[Tire node " << m_index << " ] Send: spindle position = " << spindle_state.pos << endl;
 
     // Receive spindle force from TERRAIN NODE and send to MBS node
     double force_data[6];
@@ -327,6 +329,9 @@ void ChVehicleCosimTireNode::SynchronizeBody(int step_number, double time) {
     TerrainForce spindle_force;
     spindle_force.force = ChVector<>(force_data[0], force_data[1], force_data[2]);
     spindle_force.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
+
+    if (m_verbose)
+        cout << "[Tire node " << m_index << " ] Recv: spindle force = " << spindle_force.force << endl;
 
     // Pass it to derived class
     ApplySpindleForce(spindle_force);
@@ -390,7 +395,8 @@ void ChVehicleCosimTireNode::SynchronizeMesh(int step_number, double time) {
     }
 
     if (m_verbose)
-        cout << "[Tire node   ] step number: " << step_number << "  vertices in contact: " << mesh_contact.nv << endl;
+        cout << "[Tire node " << m_index << " ] step number: " << step_number
+             << "  vertices in contact: " << mesh_contact.nv << endl;
 
     // Pass the mesh contact forces to the derived class
     ApplyMeshForces(mesh_contact);

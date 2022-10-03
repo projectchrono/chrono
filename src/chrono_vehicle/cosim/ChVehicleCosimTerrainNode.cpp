@@ -256,6 +256,9 @@ void ChVehicleCosimTerrainNode::SynchronizeWheeledBody(int step_number, double t
             m_rigid_state[i].rot = ChQuaternion<>(state_data[3], state_data[4], state_data[5], state_data[6]);
             m_rigid_state[i].lin_vel = ChVector<>(state_data[7], state_data[8], state_data[9]);
             m_rigid_state[i].ang_vel = ChVector<>(state_data[10], state_data[11], state_data[12]);
+
+            if (m_verbose)
+                cout << "[Terrain node] Recv: spindle position (" << i << ") = " << m_rigid_state[i].pos << endl;
         }
 
         // Set position, rotation, and velocities of proxy rigid body
@@ -276,8 +279,12 @@ void ChVehicleCosimTerrainNode::SynchronizeWheeledBody(int step_number, double t
             MPI_Send(force_data, 6, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD);
 
             if (m_verbose)
-                cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts() << endl;
+                cout << "[Terrain node] Send: spindle force (" << i << ") = " << m_rigid_contact[i].force << endl;
         }
+    }
+
+    if (m_rank == TERRAIN_NODE_RANK && m_verbose) {
+        cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts() << endl;
     }
 }
 

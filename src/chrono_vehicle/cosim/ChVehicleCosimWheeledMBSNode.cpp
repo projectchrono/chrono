@@ -261,6 +261,9 @@ void ChVehicleCosimWheeledMBSNode::Synchronize(int step_number, double time) {
 
         MPI_Send(state_data, 13, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD);
 
+        if (m_verbose)
+            cout << "[MBS node    ] Send: spindle position (" << i << ") = " << state.pos << endl;
+
         // Receive spindle force as applied to the center of the spindle/wheel.
         // Note that we assume this is the resultant wrench at the wheel origin (expressed in absolute frame).
         double force_data[6];
@@ -271,6 +274,9 @@ void ChVehicleCosimWheeledMBSNode::Synchronize(int step_number, double time) {
         spindle_force.force = ChVector<>(force_data[0], force_data[1], force_data[2]);
         spindle_force.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
         ApplySpindleForce(i, spindle_force);
+
+        if (m_verbose)
+            cout << "[MBS node    ] Recv: spindle force (" << i << ") = " << spindle_force.force << endl;
     }
 }
 
