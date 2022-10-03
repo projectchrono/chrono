@@ -62,60 +62,15 @@ float render_fps = 100;
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    // Set common material Properties
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-    mysurfmaterial->SetYoungModulus(6e4);
-    mysurfmaterial->SetFriction(0.3f);
-    mysurfmaterial->SetRestitution(0.2f);
-    mysurfmaterial->SetAdhesion(0);
-
     // General setting of ground body
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
-    ground->SetCollide(true);
-    ground->GetCollisionModel()->ClearModel();
-
-    // Create the geometry of the boundaries
-    auto initSpace0 = sysFSI.GetInitialSpacing();
-
-    // Bottom and top wall - size and position
-    ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 0 * initSpace0, 2 * initSpace0);
-    ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
-    ChVector<> pos_zn(0, 0, -3 * initSpace0);
-
-    // Left and right wall - size and position
-    ChVector<> size_YZ(2 * initSpace0, byDim / 2 + 0 * initSpace0, bzDim / 2);
-    ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
-    ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
-
-    // Front and back wall - size and position
-    ChVector<> size_XZ(bxDim / 2, 2 * initSpace0, bzDim / 2);
-    ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 0 * initSpace0);
-    ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
-
-    // Add the walls into chrono system
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XY, pos_zp, QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XY, pos_zn, QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xp, QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xn, QUNIT, true);
-    // You may uncomment the following lines to have side walls as well.
-    // To show the use of Periodic boundary condition, these walls are not added
-    // To this end, cMin and cMax were set up appropriately
-    ////chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yp, QUNIT, true);
-    ////chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yn, QUNIT, true);
-    ground->GetCollisionModel()->BuildModel();
+    ground->SetCollide(false);
     sysMBS.AddBody(ground);
 
     // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddBoxBCE(ground, pos_zn, QUNIT, size_XY, 12);
-    sysFSI.AddBoxBCE(ground, pos_zp, QUNIT, size_XY, 12);
-    sysFSI.AddBoxBCE(ground, pos_xp, QUNIT, size_YZ, 23);
-    sysFSI.AddBoxBCE(ground, pos_xn, QUNIT, size_YZ, 23);
-    // If you uncommented the above lines that add the side walls, you should uncomment the following two lines as
-    // well. This is necessary in order to populate the walls with BCE markers for the fluid simulation
-    ////sysFSI.AddBoxBce(ground, pos_yp, QUNIT, size_XZ, 13);
-    ////sysFSI.AddBoxBce(ground, pos_yn, QUNIT, size_XZ, 13);
+    sysFSI.AddContainerBCE(ground, ChFrame<>(), ChVector<>(bxDim, byDim, bzDim), ChVector<int>(2, 0, 2));
 }
 
 // =============================================================================

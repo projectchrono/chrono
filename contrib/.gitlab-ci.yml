@@ -64,7 +64,6 @@ linux:arch-gcc:build:
     paths:
     - build/
 
-
 linux:arch-gcc:test:
   stage: test
   needs: ["linux:arch-gcc:build"]
@@ -185,9 +184,10 @@ linux:doxygen:deploy:
   - linux
   image:
     name: ubuntu:focal
-    entrypoint: ["/usr/bin/bash", "-c"]
   stage: deploy
   before_script:
+    - TZ=America/Chicago
+    - ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone  
     - apt-get update; apt-get install -y git python python3-pip graphviz rsync wget
     #- pacman -Sy --noconfirm base-devel git python python-pip graphviz openssh rsync wget
     - wget https://downloads.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.linux.bin.tar.gz
@@ -211,8 +211,8 @@ linux:doxygen:deploy:
     - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
     - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
   needs:
-    - job: linux:arch-gcc:test
-      artifacts: false
+#    - job: linux:arch-gcc:test
+#      artifacts: false
 #    - job: macos-intel:monterey:test
 #      artifacts: false
     - job: macos-apple:monterey:test

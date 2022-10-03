@@ -212,52 +212,17 @@ int main(int argc, char* argv[]) {
 void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.Set_G_acc(ChVector<>(0, 0, 0));
     sysFSI.Set_G_acc(ChVector<>(0, 0, -9.81));
-    
-    // Set common material Properties
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-    mysurfmaterial->SetYoungModulus(6e4);
-    mysurfmaterial->SetFriction(0.3f);
-    mysurfmaterial->SetRestitution(0.2f);
-    mysurfmaterial->SetAdhesion(0);
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
-    ground->SetCollide(true);
-
-    ground->GetCollisionModel()->ClearModel();
-    auto initSpace0 = sysFSI.GetInitialSpacing();
-
-    // Bottom and top wall
-    ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
-    ChVector<> pos_zp(0, 0, bzDim + 2 * initSpace0);
-    ChVector<> pos_zn(0, 0, -2 * initSpace0);
-
-    // left and right Wall
-    ChVector<> size_YZ(2 * initSpace0, byDim / 2 + 3 * initSpace0, bzDim / 2);
-    ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 1 * initSpace0);
-    ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 1 * initSpace0);
-
-    // Front and back Wall
-    ChVector<> size_XZ(bxDim / 2, 2 * initSpace0, bzDim / 2);
-    ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 1 * initSpace0);
-    ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 1 * initSpace0);
-
-    // MBD representation of walls
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XY, pos_zn, QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xp, QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xn, QUNIT, true);
-    // chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yp, QUNIT, true);
-    // chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yn, QUNIT, true);
+    ground->SetCollide(false);
     sysMBS.AddBody(ground);
 
     // Fluid representation of walls
-    sysFSI.AddBoxBCE(ground, pos_zn, QUNIT, size_XY, 12);
-    // sysFSI.AddBoxBCE(ground, pos_zp, QUNIT, size_XY, 12);
-    sysFSI.AddBoxBCE(ground, pos_xp, QUNIT, size_YZ, 23);
-    sysFSI.AddBoxBCE(ground, pos_xn, QUNIT, size_YZ, 23);
-    // sysFSI.AddBoxBCE(ground, pos_yp, QUNIT, size_XZ, 13);
-    // sysFSI.AddBoxBCE(ground, pos_yn, QUNIT, size_XZ, 13);
+    sysFSI.AddContainerBCE(ground, ChFrame<>(), ChVector<>(bxDim, byDim, bzDim), ChVector<int>(2, 0, -1));
+
+    auto initSpace0 = sysFSI.GetInitialSpacing();
 
     // ******************************* Flexible bodies ***********************************
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
