@@ -67,7 +67,7 @@ ChVehicleGeometry::TrimeshShape::TrimeshShape(const ChVector<>& pos,
                                               double radius,
                                               int matID)
     : m_radius(radius), m_pos(pos), m_matID(matID) {
-    m_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, false);
+    m_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(filename), true, false);
 }
 
 ChVehicleGeometry::TrimeshShape::TrimeshShape(const ChVector<>& pos,
@@ -196,30 +196,27 @@ void ChVehicleGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
     body->GetCollisionModel()->SetFamily(collision_family);
 
     for (auto& sphere : m_coll_spheres) {
-        assert(m_materials[sphere.m_matID] &&
-               m_materials[sphere.m_matID]->GetContactMethod() == body->GetSystem()->GetContactMethod());
+        assert(materials[sphere.m_matID]);
         body->GetCollisionModel()->AddSphere(materials[sphere.m_matID], sphere.m_radius, sphere.m_pos);
     }
     for (auto& box : m_coll_boxes) {
-        assert(m_materials[box.m_matID] &&
-               m_materials[box.m_matID]->GetContactMethod() == body->GetSystem()->GetContactMethod());
+        assert(materials[box.m_matID]);
         ChVector<> hdims = box.m_dims / 2;
         body->GetCollisionModel()->AddBox(materials[box.m_matID], hdims.x(), hdims.y(), hdims.z(), box.m_pos,
                                           box.m_rot);
     }
     for (auto& cyl : m_coll_cylinders) {
-        assert(m_materials[cyl.m_matID] &&
-               m_materials[cyl.m_matID]->GetContactMethod() == body->GetSystem()->GetContactMethod());
+        assert(materials[cyl.m_matID]);
         body->GetCollisionModel()->AddCylinder(materials[cyl.m_matID], cyl.m_radius, cyl.m_radius, cyl.m_length / 2,
                                                cyl.m_pos, cyl.m_rot);
     }
     for (auto& hulls_group : m_coll_hulls) {
-        assert(m_materials[hulls_group.m_matID] &&
-               m_materials[hulls_group.m_matID]->GetContactMethod() == body->GetSystem()->GetContactMethod());
+        assert(materials[hulls_group.m_matID]);
         for (const auto& hull : hulls_group.m_hulls)
             body->GetCollisionModel()->AddConvexHull(materials[hulls_group.m_matID], hull);
     }
     for (auto& mesh : m_coll_meshes) {
+        assert(materials[mesh.m_matID]);
         // Hack: explicitly offset vertices
         for (auto& v : mesh.m_trimesh->m_vertices)
             v += mesh.m_pos;
