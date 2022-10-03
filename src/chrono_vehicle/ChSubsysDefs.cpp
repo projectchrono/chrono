@@ -34,7 +34,7 @@ double LinearSpringForce::evaluate(double time, double rest_length, double lengt
 LinearDamperForce::LinearDamperForce(double c, double preload) : m_c(c) {}
 
 double LinearDamperForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
-    return m_c * vel;
+    return -m_c * vel;
 }
 
 // -----------------------------------------------------------------------------
