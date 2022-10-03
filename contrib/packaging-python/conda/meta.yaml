@@ -31,13 +31,13 @@ requirements:
     - llvm-openmp   # [linux and osx]
     - libglvnd-glx-cos7-x86_64 # [linux]
     - swig >=4.0.0
-    - mkl   # [osx and not arm64]
-    - mkl-devel   # [osx and not arm64]
+    - mkl
+    - mkl-devel
     - freeglut # [linux]
     - libxxf86vm-devel-cos7-x86_64 # [linux]
     - irrlicht
-    - opencascade   # [osx and not arm64]
-    - numpy >=1.16
+    - opencascade 
+    - numpy >=1.17
     - glew
     - glfw
     - eigen >=3.3.7
@@ -45,10 +45,10 @@ requirements:
   run:
     - python
     - mkl
-    - numpy >=1.16
+    - numpy >=1.17
     - glew
     - glfw
-    - opencascade
+    - pythonocc-core ==7.4.1
 
 test:
   requires:
