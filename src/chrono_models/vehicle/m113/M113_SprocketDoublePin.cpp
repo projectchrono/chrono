@@ -74,6 +74,8 @@ void M113_SprocketDoublePin::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
         trimesh_shape->SetMutable(false);
+        std::vector<geometry::ChTriangleMeshConnected> meshes = {*trimesh};
+        geometry::ChTriangleMeshConnected::WriteWavefront("mySprocket.obj", meshes);
         m_gear->AddVisualShape(trimesh_shape);
     } else {
         ChSprocket::AddVisualizationAssets(vis);

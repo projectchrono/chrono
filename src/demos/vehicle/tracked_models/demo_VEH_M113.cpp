@@ -375,7 +375,7 @@ int main(int argc, char* argv[]) {
     VisualizationType track_vis =
         (shoe_type == TrackShoeType::SINGLE_PIN) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
     m113.SetChassisVisualizationType(VisualizationType::NONE);
-    m113.SetSprocketVisualizationType(track_vis);
+    m113.SetSprocketVisualizationType(VisualizationType::MESH);
     m113.SetIdlerVisualizationType(track_vis);
     m113.SetSuspensionVisualizationType(track_vis);
     m113.SetIdlerWheelVisualizationType(track_vis);

@@ -1060,12 +1060,16 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createLineShape(std::shared_ptr<ChPhysics
 
     // calculate vertices
     int numPoints = ls->GetNumRenderPoints();
+    double maxU = 1;
+    if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(ls->GetLineGeometry()))
+        maxU = mline_path->GetPathDuration();
     assert(numPoints > 2);
-    double ustep = 1.0 / double(numPoints - 1);
+    //double ustep = 1.0 / double(numPoints - 1);
     auto vertices = vsg::vec3Array::create(numPoints);
     auto colors = vsg::vec3Array::create(numPoints);
     for (int i = 0; i < numPoints; i++) {
-        double u = ustep * (double(i));
+        //double u = ustep * (double(i));
+        double u = maxU * ((double)i / (double)(numPoints - 1));  // abscissa
         ChVector<> pos;
         ls->GetLineGeometry()->Evaluate(pos, u);
         vertices->set(i, vsg::vec3(pos.x(), pos.y(), pos.z()));

@@ -26,6 +26,7 @@
 #include "chrono/assets/ChVisualModel.h"
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/assets/ChLineShape.h"
+#include "chrono/geometry/ChLinePath.h"
 #include "chrono/assets/ChSurfaceShape.h"
 #include "chrono/assets/ChPointPointShape.h"
 
