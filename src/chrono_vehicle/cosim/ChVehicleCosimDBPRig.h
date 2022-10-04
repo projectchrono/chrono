@@ -144,7 +144,7 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedSlip : public ChVehicleCosimDBPR
     virtual double GetLinVel() const override { return m_lin_vel; }
 
     /// Return current wheel angular speed.
-    virtual double GetAngVel() const { return m_ang_vel; }
+    virtual double GetAngVel() const override { return m_ang_vel; }
 
     /// Return current raw drawbar-pull value.
     virtual double GetDBP() const override;
@@ -194,7 +194,7 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedAngVel : public ChVehicleCosimDB
     virtual double GetLinVel() const override;
 
     /// Return current wheel angular speed.
-    virtual double GetAngVel() const { return m_ang_vel; }
+    virtual double GetAngVel() const override { return m_ang_vel; }
 
     /// Return current raw drawbar-pull value.
     virtual double GetDBP() const override;

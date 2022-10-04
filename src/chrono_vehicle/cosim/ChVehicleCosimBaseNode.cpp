@@ -246,8 +246,14 @@ std::string ChVehicleCosimBaseNode::GetNodeTypeString() const {
 
 void ChVehicleCosimBaseNode::SendGeometry(const ChVehicleGeometry& geom, int dest) const {
     // Send information on number of contact materials and collision shapes of each type
-    int dims[] = {geom.m_materials.size(),      geom.m_coll_boxes.size(), geom.m_coll_spheres.size(),
-                  geom.m_coll_cylinders.size(), geom.m_coll_hulls.size(), geom.m_coll_meshes.size()};
+    int dims[] = {
+        static_cast<int>(geom.m_materials.size()),       //
+        static_cast<int>(geom.m_coll_boxes.size()),      //
+        static_cast<int>(geom.m_coll_spheres.size()),    //
+        static_cast<int>(geom.m_coll_cylinders.size()),  //
+        static_cast<int>(geom.m_coll_hulls.size()),      //
+        static_cast<int>(geom.m_coll_meshes.size())      //
+    };
     MPI_Send(dims, 6, MPI_INT, dest, 0, MPI_COMM_WORLD);
 
     // Send contact materials
@@ -259,29 +265,44 @@ void ChVehicleCosimBaseNode::SendGeometry(const ChVehicleGeometry& geom, int des
     // Send shape geometry
     for (const auto& box : geom.m_coll_boxes) {
         double data[] = {
-            box.m_pos.x(),  box.m_pos.y(),  box.m_pos.z(),                   //
-            box.m_rot.e0(), box.m_rot.e1(), box.m_rot.e2(), box.m_rot.e3(),  //
-            box.m_dims.x(), box.m_dims.y(), box.m_dims.z(),                  //
-            box.m_matID                                                      //
+            box.m_pos.x(),                    //
+            box.m_pos.y(),                    //
+            box.m_pos.z(),                    //
+            box.m_rot.e0(),                   //
+            box.m_rot.e1(),                   //
+            box.m_rot.e2(),                   //
+            box.m_rot.e3(),                   //
+            box.m_dims.x(),                   //
+            box.m_dims.y(),                   //
+            box.m_dims.z(),                   //
+            static_cast<double>(box.m_matID)  //
         };
         MPI_Send(data, 11, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
     }
 
     for (const auto& sph : geom.m_coll_spheres) {
         double data[] = {
-            sph.m_pos.x(), sph.m_pos.y(), sph.m_pos.z(),  //
-            sph.m_radius,                                 //
-            sph.m_matID                                   //
+            sph.m_pos.x(),                    //
+            sph.m_pos.y(),                    //
+            sph.m_pos.z(),                    //
+            sph.m_radius,                     //
+            static_cast<double>(sph.m_matID)  //
         };
         MPI_Send(data, 5, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
     }
 
     for (const auto& cyl : geom.m_coll_cylinders) {
         double data[] = {
-            cyl.m_pos.x(),  cyl.m_pos.y(),  cyl.m_pos.z(),                   //
-            cyl.m_rot.e0(), cyl.m_rot.e1(), cyl.m_rot.e2(), cyl.m_rot.e3(),  //
-            cyl.m_radius,   cyl.m_length,                                    //
-            cyl.m_matID                                                      //
+            cyl.m_pos.x(),                    //
+            cyl.m_pos.y(),                    //
+            cyl.m_pos.z(),                    //
+            cyl.m_rot.e0(),                   //
+            cyl.m_rot.e1(),                   //
+            cyl.m_rot.e2(),                   //
+            cyl.m_rot.e3(),                   //
+            cyl.m_radius,                     //
+            cyl.m_length,                     //
+            static_cast<double>(cyl.m_matID)  //
         };
         MPI_Send(data, 10, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
     }
@@ -303,8 +324,8 @@ void ChVehicleCosimBaseNode::SendGeometry(const ChVehicleGeometry& geom, int des
         int nn = trimesh->getNumNormals();
         int nt = trimesh->getNumTriangles();
 
-        unsigned int surf_props[] = {nv, nn, nt, mesh.m_matID};
-        MPI_Send(surf_props, 4, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+        int surf_props[] = {nv, nn, nt, mesh.m_matID};
+        MPI_Send(surf_props, 4, MPI_INT, dest, 0, MPI_COMM_WORLD);
         if (m_verbose)
             cout << "[" << GetNodeTypeString() << "] Send: vertices = " << surf_props[0]
                  << "  triangles = " << surf_props[2] << endl;
@@ -403,8 +424,8 @@ void ChVehicleCosimBaseNode::RecvGeometry(ChVehicleGeometry& geom, int source) c
         auto& idx_vertices = trimesh->getIndicesVertexes();
         auto& idx_normals = trimesh->getIndicesNormals();
 
-        unsigned int surf_props[4];
-        MPI_Recv(surf_props, 4, MPI_UNSIGNED, source, 0, MPI_COMM_WORLD, &status);
+        int surf_props[4];
+        MPI_Recv(surf_props, 4, MPI_INT, source, 0, MPI_COMM_WORLD, &status);
         int nv = surf_props[0];
         int nn = surf_props[1];
         int nt = surf_props[2];
