@@ -121,7 +121,7 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
         virtual double GetAddedMass() const override { return m_mass; }
         virtual ChVector<> GetAddedInertia() const override { return ChVector<>(0.1, 0.1, 0.1); }
         virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_force; }
-        virtual TerrainForce GetTireForce() const { return m_force; }
+        virtual TerrainForce GetTireForce() const override { return m_force; }
         virtual void InitializeInertiaProperties() override {}
         virtual void UpdateInertiaProperties() override {}
 

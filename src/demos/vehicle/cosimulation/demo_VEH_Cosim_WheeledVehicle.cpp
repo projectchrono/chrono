@@ -148,10 +148,9 @@ int main(int argc, char** argv) {
     int output_steps = (int)std::ceil(1 / (output_fps * step_size));
 
     // Initialize co-simulation framework (specify 4 tire nodes).
-    //// TODO
     cosim::InitializeFramework(4);
 
-    // Create the node (a rig node or a terrain node, depending on rank).
+    // Create the node (vehicle, terrain, or tire node, depending on rank).
     ChVehicleCosimBaseNode* node = nullptr;
 
     if (rank == MBS_NODE_RANK) {

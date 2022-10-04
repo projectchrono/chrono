@@ -68,9 +68,9 @@ class HMMWV_STR_Setup : public STR_Setup {
     virtual std::string DataDriverFile() const override { return "hmmwv/suspensionTest/ST_inputs.dat"; }
     virtual std::vector<int> TestAxles() const override { return {0}; }
     virtual std::vector<int> TestSubchassis() const override { return {}; }
-    virtual std::vector<int> TestSteerings() const { return {0}; }
+    virtual std::vector<int> TestSteerings() const override { return {0}; }
     virtual double InitRideHeight() const override { return 0.5; }
-    virtual double PostLimit() const { return 0.15; }
+    virtual double PostLimit() const override { return 0.15; }
     virtual double CameraDistance() const override { return 2.0; }
 };
 
@@ -82,9 +82,9 @@ class MTV_STR_Setup : public STR_Setup {
     virtual std::string DataDriverFile() const override { return "mtv/suspensionTest/ST_inputs.dat"; }
     virtual std::vector<int> TestAxles() const override { return {1, 2}; }
     virtual std::vector<int> TestSubchassis() const override { return {0}; }
-    virtual std::vector<int> TestSteerings() const { return {}; }
+    virtual std::vector<int> TestSteerings() const override { return {}; }
     virtual double InitRideHeight() const override { return 0.55; }
-    virtual double PostLimit() const { return 0.15; }
+    virtual double PostLimit() const override { return 0.15; }
     virtual double CameraDistance() const override { return 4.0; }
 };
 
@@ -96,9 +96,9 @@ class Generic_STR_Setup : public STR_Setup {
     virtual std::string DataDriverFile() const override { return "generic/suspensionTest/ST_inputs.dat"; }
     virtual std::vector<int> TestAxles() const override { return {0}; }
     virtual std::vector<int> TestSubchassis() const override { return {}; }
-    virtual std::vector<int> TestSteerings() const { return {0}; }
+    virtual std::vector<int> TestSteerings() const override { return {0}; }
     virtual double InitRideHeight() const override { return 0.55; }
-    virtual double PostLimit() const { return 0.07; }
+    virtual double PostLimit() const override { return 0.07; }
     virtual double CameraDistance() const override { return 2.0; }
 };
 
