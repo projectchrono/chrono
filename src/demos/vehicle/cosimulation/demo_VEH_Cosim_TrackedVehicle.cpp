@@ -12,10 +12,9 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo for wheeled vehicle cosimulation on SCM terrain.
+// Demo for tracked vehicle cosimulation on SCM terrain.
 // The vehicle (specified through a pair of JSON files, one for the vehicle
-// itself, the other for the powertrain) is co-simulated with an SCM terrain
-// node and a number of tire nodes equal to the number of wheels.
+// itself, the other for the powertrain) is co-simulated with an SCM terrain.
 //
 // Global reference frame: Z up, X towards the front, and Y pointing to the left
 //
@@ -30,12 +29,11 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
-#include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
+#include "chrono_vehicle/cosim/mbs/ChVehicleCosimTrackedVehicleNode.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 
-#include "chrono_models/vehicle/feda/FEDA_Vehicle.h"
-#include "chrono_models/vehicle/feda/FEDA_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/m113/M113_Vehicle.h"
+#include "chrono_models/vehicle/m113/M113_ShaftsPowertrain.h"
 
 using std::cout;
 using std::cin;
@@ -62,15 +60,20 @@ class MyDriver : public ChDriver {
         if (eff_time < 0)
             return;
 
-        if (eff_time > 0.2)
-            m_throttle = 0.7;
-        else
-            m_throttle = 3.5 * eff_time;
+        double Ts = 4;
+        double Te = 8;
 
-        if (eff_time < 2)
-            m_steering = 0;
+        if (eff_time > 0.2)
+            m_throttle = 0.8;
         else
-            m_steering = 0.6 * std::sin(CH_C_2PI * (eff_time - 2) / 6);
+            m_throttle = 4 * eff_time;
+
+        if (eff_time < Ts)
+            m_steering = 0;
+        else if (eff_time > Te)
+            m_steering = 1;
+        else
+            m_steering = 0.5 + 0.5 * std::sin(CH_C_PI * (eff_time - Ts) / (Te - Ts) - CH_C_PI_2);
     }
 
   private:
@@ -100,24 +103,24 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    if (num_procs != 6) {
+    if (num_procs != 2) {
         if (rank == 0)
-            std::cout << "\n\n4-wheel vehicle cosimulation code must be run on exactly 6 ranks!\n\n" << std::endl;
+            std::cout << "\n\nTracked vehicle cosimulation code must be run on exactly 2 ranks!\n\n" << std::endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
 
     // Simulation parameters
-    double step_size = 1e-3;
-    double sim_time = 20;
+    double step_size = 5e-4;
+    double sim_time = 14;
     double output_fps = 100;
     double render_fps = 100;
     bool render = true;
     std::string suffix = "";
     bool verbose = true;
 
-    // If use_JSON_spec=true, use a HMMWV model specified through JSON files.
-    // If use_JSON_spec=false, use a FEDA model from the Chrono::Vehicle model library
+    // If use_JSON_spec=true, use an M113 model specified through JSON files.
+    // If use_JSON_spec=false, use an M113 model from the Chrono::Vehicle model library
     bool use_JSON_spec = true;
 
     // If use_DBP_rig=true, attach a drawbar pull rig to the vehicle
@@ -125,15 +128,15 @@ int main(int argc, char** argv) {
 
     double terrain_length = 40;
     double terrain_width = 20;
-    ChVector<> init_loc(-15, -8, 0.5);
+    ChVector<> init_loc(-15, -8, 0.9);
     if (use_DBP_rig) {
         terrain_length = 20;
         terrain_width = 5;
-        init_loc = ChVector<>(-5, 0, 0.5);
+        init_loc = ChVector<>(-5, 0, 0.9);
     }
 
     // Prepare output directory.
-    std::string out_dir = GetChronoOutputPath() + "WHEELED_VEHICLE_COSIM";
+    std::string out_dir = GetChronoOutputPath() + "TRACKED_VEHICLE_COSIM";
     if (rank == 0) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             cout << "Error creating directory " << out_dir << endl;
@@ -158,16 +161,17 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Vehicle node] rank = " << rank << " running on: " << procname << endl;
 
-        ChVehicleCosimWheeledVehicleNode* vehicle;
+        ChVehicleCosimTrackedVehicleNode* vehicle;
         if (use_JSON_spec) {
-            vehicle = new ChVehicleCosimWheeledVehicleNode(
-                vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"),
-                vehicle::GetDataFile("hmmwv/powertrain/HMMWV_ShaftsPowertrain.json"));
+            vehicle = new ChVehicleCosimTrackedVehicleNode(
+                vehicle::GetDataFile("M113/vehicle/M113_Vehicle_SinglePin.json"),
+                vehicle::GetDataFile("M113/powertrain/M113_ShaftsPowertrain.json"));
         } else {
-            auto feda_vehicle = chrono_types::make_shared<feda::FEDA_Vehicle>(nullptr, false, BrakeType::SIMPLE,
-                                                                              CollisionType::NONE, 2, 1);
-            auto feda_powertrain = chrono_types::make_shared<feda::FEDA_SimpleMapPowertrain>("Powertrain");
-            vehicle = new ChVehicleCosimWheeledVehicleNode(feda_vehicle, feda_powertrain);
+            auto m113_vehicle = chrono_types::make_shared<m113::M113_Vehicle>(
+                false, TrackShoeType::SINGLE_PIN, DoublePinTrackShoeType::ONE_CONNECTOR,
+                DrivelineTypeTV::BDS, BrakeType::SIMPLE, false, false, false, nullptr);
+            auto m113_powertrain = chrono_types::make_shared<m113::M113_ShaftsPowertrain>("Powertrain");
+            vehicle = new ChVehicleCosimTrackedVehicleNode(m113_vehicle, m113_powertrain);
         }
 
         if (use_DBP_rig) {
@@ -179,6 +183,7 @@ int main(int argc, char** argv) {
         }
 
         auto driver = chrono_types::make_shared<MyDriver>(*vehicle->GetVehicle(), 0.5);
+        ////vehicle->SetChassisFixed(true);
         vehicle->SetDriver(driver);
         vehicle->SetVerbose(verbose);
         vehicle->SetInitialLocation(init_loc);
@@ -195,7 +200,7 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
 
-        auto terrain = new ChVehicleCosimTerrainNodeSCM(vehicle::GetDataFile("cosim/terrain/scm_soft.json"));
+        auto terrain = new ChVehicleCosimTerrainNodeSCM(vehicle::GetDataFile("cosim/terrain/scm_hard.json"));
         terrain->SetDimensions(terrain_length, terrain_width);
         terrain->SetVerbose(verbose);
         terrain->SetStepSize(step_size);
@@ -207,18 +212,6 @@ int main(int argc, char** argv) {
 
         node = terrain;
 
-    } else {
-        if (verbose)
-            cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
-
-        auto tire = new ChVehicleCosimTireNodeRigid(rank - 2);
-        tire->SetTireFromSpecfile(vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json"));
-        tire->SetVerbose(verbose);
-        tire->SetStepSize(step_size);
-        tire->SetNumThreads(1);
-        tire->SetOutDir(out_dir, suffix);
-
-        node = tire;
     }
 
     // Initialize systems
@@ -233,7 +226,7 @@ int main(int argc, char** argv) {
         double time = is * step_size;
 
         if (verbose && rank == 0)
-            cout << is << " ---------------------------- " << endl;
+            cout << is << "  " << time << " ---------------------------- " << endl;
         MPI_Barrier(MPI_COMM_WORLD);
 
         node->Synchronize(is, time);
