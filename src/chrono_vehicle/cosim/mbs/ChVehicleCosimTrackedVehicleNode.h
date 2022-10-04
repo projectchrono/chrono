@@ -69,6 +69,9 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     /// Attach a vehicle driver system.
     void SetDriver(std::shared_ptr<ChDriver> driver) { m_driver = driver; }
 
+    /// Fix vehicle chassis to ground.
+    void SetChassisFixed(bool val) { m_chassis_fixed = val; }
+
   private:
     /// Initialize the vehicle MBS and any associated subsystems.
     virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
@@ -123,6 +126,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
 
     ChVector<> m_init_loc;  ///< initial vehicle location (relative to center of terrain top surface)
     double m_init_yaw;      ///< initial vehicle yaw
+    bool m_chassis_fixed;   ///< fix chassis to ground
 
     TerrainForces m_shoe_forces[2];  ///< terrain forces acting on track shoes
 };

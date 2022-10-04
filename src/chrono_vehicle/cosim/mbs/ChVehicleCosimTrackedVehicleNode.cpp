@@ -63,14 +63,14 @@ class TrackedVehicleDBPDriver : public ChDriver {
 
 ChVehicleCosimTrackedVehicleNode::ChVehicleCosimTrackedVehicleNode(const std::string& vehicle_json,
                                                                    const std::string& powertrain_json)
-    : ChVehicleCosimTrackedMBSNode(), m_init_yaw(0) {
+    : ChVehicleCosimTrackedMBSNode(), m_init_yaw(0), m_chassis_fixed(false) {
     m_vehicle = chrono_types::make_shared<TrackedVehicle>(m_system, vehicle_json);
     m_powertrain = ReadPowertrainJSON(powertrain_json);
 }
 
 ChVehicleCosimTrackedVehicleNode::ChVehicleCosimTrackedVehicleNode(std::shared_ptr<ChTrackedVehicle> vehicle,
                                                                    std::shared_ptr<ChPowertrain> powertrain)
-    : ChVehicleCosimTrackedMBSNode(), m_init_yaw(0) {
+    : ChVehicleCosimTrackedMBSNode(), m_init_yaw(0), m_chassis_fixed(false) {
     // Ensure the vehicle system has a null ChSystem
     if (vehicle->GetSystem())
         return;
@@ -92,6 +92,7 @@ void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2<>& terrain_
     ChCoordsys<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
 
     m_vehicle->Initialize(init_pos);
+    m_vehicle->GetChassis()->SetFixed(m_chassis_fixed);    
     m_vehicle->SetChassisVisualizationType(VisualizationType::MESH);
     m_vehicle->SetSprocketVisualizationType(VisualizationType::MESH);
     m_vehicle->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
