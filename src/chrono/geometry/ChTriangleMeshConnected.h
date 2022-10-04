@@ -71,7 +71,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     bool LoadWavefrontMesh(const std::string& filename, bool load_normals = true, bool load_uv = false);
 
     /// Write the specified meshes in a Wavefront .obj file
-    static void WriteWavefront(const std::string& filename, std::vector<ChTriangleMeshConnected>& meshes);
+    static void WriteWavefront(const std::string& filename, const std::vector<ChTriangleMeshConnected>& meshes);
 
     /// Utility function for merging multiple meshes.
     static ChTriangleMeshConnected Merge(std::vector<ChTriangleMeshConnected>& meshes);

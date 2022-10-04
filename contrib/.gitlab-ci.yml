@@ -18,9 +18,11 @@ stages:
   - test
   - deploy
 
+
 #---------------------#
 # Arch Linux Builders #
 #---------------------#
+
 
 .archlinux:
   tags:
@@ -40,6 +42,7 @@ stages:
   - git submodule init
   - git submodule update
   - mkdir -p build
+
 # Make flatbuffers
 #  - cd src/chrono_thirdparty/flatbuffers
 #  - cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release .
@@ -139,46 +142,6 @@ linux:arch-llvm:test:
     - ninja -j 8
     - cd $CI_PROJECT_DIR
 
-.ubuntu-deploy-base:
-  extends: .ubuntu
-  before_script:
-    # this script overwrites the default ubuntu script to include conda preparations
-    - uname -a
-    - export DEBIAN_FRONTEND=noninteractive
-    - apt-get update; apt-get -y install wget python git
-        cmake ninja-build build-essential libboost-dev swig libeigen3-dev
-        libglfw3-dev libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
-        libxxf86vm-dev python3 python3-dev libhdf5-dev
-    - ldconfig
-    - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz
-    - tar -xf blaze-3.8.tar.gz
-    - cp blaze-3.8/blaze -r /usr/local/include
-    - git submodule init
-    - git submodule update
-    - echo "Build PyChrono and deploy via Anaconda..."
-    # this command is needed to get the git describe data needed by the numbering
-    - git fetch --prune --unshallow
-    - export CONDA_NPY=19
-    - wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-    - bash Miniconda3-latest-Linux-x86_64.sh -b
-    - export PATH=$HOME/miniconda3/bin:$PATH
-    #- conda update --yes conda
-    #- conda install --yes pip jinja2
-    #- conda install -c conda-forge gxx_linux-64 gcc_linux-64 llvm-openmp libglvnd-glx-cos7-x86_64
-    - conda config --set show_channel_urls true
-    - conda install conda-build anaconda-client conda-verify --yes
-    - conda update conda --yes
-    - rm -rf /root/miniconda3/lib/libgomp.so.1
-    - conda config --add channels https://conda.anaconda.org/conda-forge
-    - conda config --add channels https://conda.anaconda.org/intel
-    - conda config --add channels https://conda.anaconda.org/dlr-sc
-    #- conda install --yes conda-build anaconda-client
-    #- conda install -c dlr-sc opencascade --yes
-    #- conda install -c intel mkl-devel --yes
-  environment:
-    name: pychrono-ubuntu2004
-    url: https://anaconda.org/projectchrono/pychrono
-
 linux:doxygen:deploy:
   tags:
   - linux
@@ -211,10 +174,10 @@ linux:doxygen:deploy:
     - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
     - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
   needs:
-#    - job: linux:arch-gcc:test
-#      artifacts: false
-#    - job: macos-intel:monterey:test
-#      artifacts: false
+    - job: linux:arch-gcc:test
+      artifacts: false
+    - job: macos-intel:monterey:test
+      artifacts: false
     - job: macos-apple:monterey:test
       artifacts: false
     - job: windows:vs2022:test
@@ -225,10 +188,6 @@ linux:doxygen:deploy:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "main"'
       when: always
-
-#----------------#
-# Ubuntu Builder #
-#----------------#
 
 # Ubuntu 20.04 doesn't have a sufficiently new CMake for presets, so we rely on manual configuration
 linux:ubuntu2004:build:
@@ -260,7 +219,6 @@ linux:ubuntu2004:build:
     paths:
       - build/
 
-
 linux:ubuntu2004:test:
   stage: test
   needs: ["linux:ubuntu2004:build"]
@@ -271,6 +229,39 @@ linux:ubuntu2004:test:
     - export CTEST_OUTPUT_ON_FAILURE=1
     - ninja test
   dependencies: ["linux:ubuntu2004:build"]
+
+.ubuntu-deploy-base:
+  extends: .ubuntu
+  before_script:
+    # this script overwrites the default ubuntu script to include conda preparations
+    - uname -a
+    - export DEBIAN_FRONTEND=noninteractive
+    - apt-get update; apt-get -y install wget python git
+        cmake ninja-build build-essential libboost-dev swig libeigen3-dev
+        libglfw3-dev libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
+        libxxf86vm-dev python3 python3-dev libhdf5-dev
+    - ldconfig
+    - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz
+    - tar -xf blaze-3.8.tar.gz
+    - cp blaze-3.8/blaze -r /usr/local/include
+    - git submodule init
+    - git submodule update
+    - echo "Build PyChrono and deploy via Anaconda..."
+    # this command is needed to get the git describe data needed by the numbering
+    - git fetch --prune --unshallow
+    - export CONDA_NPY=19
+    - wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+    - bash Miniconda3-latest-Linux-x86_64.sh -b
+    - export PATH=$HOME/miniconda3/bin:$PATH
+    - conda config --set show_channel_urls true
+    - conda install conda-build anaconda-client conda-verify --yes
+    - conda update conda --yes
+    - conda config --add channels https://conda.anaconda.org/conda-forge
+    - conda config --add channels https://conda.anaconda.org/intel
+    - conda config --add channels https://conda.anaconda.org/dlr-sc
+  environment:
+    name: pychrono-ubuntu2004
+    url: https://anaconda.org/projectchrono/pychrono
 
 linux:ubuntu2004:deploy-python3.8:
   stage: deploy
@@ -429,27 +420,21 @@ windows:vs2019:test:
   tags:
     - windows11
   before_script:
-    # Extending .windows did not work, since GitLab currently does not execute two before_scripts in order
-    # Therefore, that chain of commands has been copied here
     - '& "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1"'
     - $env:CONDA_INSTALL_LOCN="C:\Users\builder\miniconda3"
     - echo $CI_PROJECT_DIR
     - git submodule init
     - git submodule update
-    # get libiomp5md.lib
-    #- $libiomppth=Join-Path -Path $Env:CONDA_INSTALL_LOCN -ChildPath "\Library\lib\libiomp5md.lib"
-    #- Invoke-WebRequest -Uri http://www.projectchrono.org/assets/downloads/libiomp5md.lib  -OutFile $libiomppth
+    # Logs directory to store all logs instead of outputting them to screen
     - mkdir ./logs
     - $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
     # this command is needed to get the git describe data needed by the numbering
     - git fetch --prune --unshallow
     # Uncomment the following lines to get a fresh install of Miniconda
-    #- $Env:CONDA_INSTALL_LOCN= "C:\Users\builder\Miniconda3"
     #- Invoke-WebRequest -Uri https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe  -OutFile ./Miniconda3-latest-Windows-x86_64.exe >temp.txt
     #- Start-Process -Wait  "Miniconda3-latest-Windows-x86_64.exe" -ArgumentList "/InstallationType=JustMe /RegisterPython=0 /S /D=$env:CONDA_INSTALL_LOCN"
     # Initializing the PowerShell would require to restart it. Since it isn't possible, we use the cmd instead.
     #- Start-Process "cmd.exe" "/c .\contrib\packaging-python\gitlab\build_pychrono.bat >outputfile.txt" -Wait
-    # Attempt to write code from build_pychrono.bat in CI for better debugging
     #Run conda-hook
     - '& "C:\Users\builder\miniconda3\shell\condabin\conda-hook.ps1"'
     #Create conda environment and download dependencies
@@ -460,11 +445,11 @@ windows:vs2019:test:
     - conda install --yes anaconda-client
     - conda install conda-build
     - conda update conda --yes
-    - cd C:\Users\builder\miniconda3\pkgs\anaconda-client-1.10.0-py37*\Lib\site-packages\binstar_client\commands\
-    - $location=pwd
-    - cd $CI_PROJECT_DIR
+    #- cd C:\Users\builder\miniconda3\pkgs\anaconda-client-1.10.0-py37*\Lib\site-packages\binstar_client\commands\
+    #- $location=pwd
+    #- cd $CI_PROJECT_DIR
     # The anaconda upload script has a bug which does not allow it to print logs. The modified file fixes that
-    - mv -Force $CI_PROJECT_DIR\contrib\packaging-python\conda\upload.py $location\upload.py
+    #- mv -Force $CI_PROJECT_DIR\contrib\packaging-python\conda\upload.py $location\upload.py
     - set REQUESTS_CA_BUNDLE=C:\users\builder\miniconda3\Lib\site-packages\certifi\cacert.pem
     - conda build purge-all timeout /t 240
   environment:
