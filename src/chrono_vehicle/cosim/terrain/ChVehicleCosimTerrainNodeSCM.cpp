@@ -294,7 +294,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
     // Create wheel proxy body
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
     body->SetIdentifier(0);
-    body->SetMass(m_load_mass[i]);
+    body->SetMass(m_load_mass[i_shape]);
     ////body->SetInertiaXX();   //// TODO
     body->SetBodyFixed(false);  // Cannot fix the proxies with SCM
     body->SetCollide(true);
@@ -314,7 +314,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
 
     // Add corresponding moving patch to SCM terrain
     //// RADU TODO: this may be overkill for tracked vehicles!
-    m_terrain->AddMovingPatch(body, m_aabb[i].m_center, m_aabb[i].m_dims);
+    m_terrain->AddMovingPatch(body, m_aabb[i_shape].m_center, m_aabb[i_shape].m_dims);
 
 #ifdef CHRONO_IRRLICHT
     // Bind Irrlicht assets
