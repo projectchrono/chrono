@@ -296,7 +296,7 @@ void ChVehicleCosimTerrainNode::SynchronizeTrackedBody(int step_number, double t
     // Receive rigid body data for all track shoes
     if (m_rank == TERRAIN_NODE_RANK) {
         MPI_Status status;
-        MPI_Recv(all_states.data(), 13, MPI_DOUBLE, MBS_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+        MPI_Recv(all_states.data(), 13 * m_num_objects, MPI_DOUBLE, MBS_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
         // Unpack rigid body data
         start_idx = 0;
