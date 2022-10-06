@@ -274,7 +274,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->Render();
         sys.DoStepDynamics(1e-3);
-
+        vis->UpdateFromMBS();
         // Process contacts
         std::cout << sys.GetChTime() << "  " << sys.GetNcontacts() << std::endl;
         sys.GetContactContainer()->ReportAllContacts(creporter);

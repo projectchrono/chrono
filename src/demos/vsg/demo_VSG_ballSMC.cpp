@@ -158,6 +158,7 @@ int main(int argc, char* argv[]) {
             time += time_step;
         }
         out_time += out_step;
+        vis->UpdateFromMBS();
     }
 
     return 0;

@@ -238,28 +238,31 @@ int main(int argc, char* argv[]) {
 
         vis->Render();
 
-        // Driver inputs
-        DriverInputs driver_inputs = driver.GetInputs();
+        for(size_t k=0; k<20; k++) {
+            // Driver inputs
+            DriverInputs driver_inputs = driver.GetInputs();
 
-        if (done) {
-            driver_inputs.m_throttle = 0.1;
-            driver_inputs.m_braking = 0.8;
+            if (done) {
+                driver_inputs.m_throttle = 0.1;
+                driver_inputs.m_braking = 0.8;
+            }
+
+            // Update modules (process inputs from other modules)
+            driver.Synchronize(time);
+            terrain->Synchronize(time);
+            my_hmmwv.Synchronize(time, driver_inputs, *terrain);
+            vis->Synchronize("Acceleration test", driver_inputs);
+
+            // Advance simulation for one timestep for all modules
+            driver.Advance(step_size);
+            terrain->Advance(step_size);
+            my_hmmwv.Advance(step_size);
+            vis->Advance(step_size);
+            // Increment frame number
+            step_number++;
         }
+        vis->UpdateFromMBS();
 
-        // Update modules (process inputs from other modules)
-        driver.Synchronize(time);
-        terrain->Synchronize(time);
-        my_hmmwv.Synchronize(time, driver_inputs, *terrain);
-        vis->Synchronize("Acceleration test", driver_inputs);
-
-        // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
-        terrain->Advance(step_size);
-        my_hmmwv.Advance(step_size);
-        vis->Advance(step_size);
-
-        // Increment frame number
-        step_number++;
 
     }
 

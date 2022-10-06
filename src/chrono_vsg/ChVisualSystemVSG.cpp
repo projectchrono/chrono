@@ -967,7 +967,7 @@ void ChVisualSystemVSG::BindAll() {
     }
 }
 
-void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
+void ChVisualSystemVSG::UpdateFromMBS() {
     // generate CoG symbols if needed
     if (m_params->cogSymbolSize > 0.0f) {
         for (auto child : m_cogScene->children) {
@@ -982,7 +982,7 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
             auto rotAxis = body->GetRotAxis();
             vsg::dvec3 scale(m_params->cogSymbolSize, m_params->cogSymbolSize, m_params->cogSymbolSize);
             transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) * vsg::scale(scale);
+                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) * vsg::scale(scale);
         }
     }
     // update body visualization related graphic nodes
@@ -1011,7 +1011,7 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
         vsg::dvec3 rotax(axis.x(), axis.y(), axis.z());
         if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
             vsg::dvec3 size(box->GetBoxGeometry().GetSize().x(), box->GetBoxGeometry().GetSize().y(),
-                            box->GetBoxGeometry().GetSize().z());
+                    box->GetBoxGeometry().GetSize().z());
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
         } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
             double radius = sphere->GetSphereGeometry().rad;
@@ -1048,7 +1048,7 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
             double height = capsule->GetCapsuleGeometry().hlen;
             ChVector<> scale(rad, height, rad);
             transform->matrix =
-                vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(scale.x(), scale.y(), scale.z());
+                    vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(scale.x(), scale.y(), scale.z());
         } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
             GetLog() << "... has a obj file shape\n";
             string objFilename = obj->GetFilename();
@@ -1077,8 +1077,8 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
             rot.Q_to_AngAxis(rotAngle, rotAxis);
 
             transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                vsg::scale(rad, height, rad);
+                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                    vsg::scale(rad, height, rad);
         }
     }
     // Update particles
@@ -1126,8 +1126,8 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
                 ChVector<> rotAxis, pos;
                 Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(0.0, height, 0.0);
+                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                        vsg::scale(0.0, height, 0.0);
             } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
                 double rad = sprshape->GetRadius();
                 ChVector<> P1 = link->GetPoint1Abs();
@@ -1136,8 +1136,8 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
                 ChVector<> rotAxis, pos;
                 Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(rad, height, rad);
+                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                        vsg::scale(rad, height, rad);
             }
         } else if (auto link = std::dynamic_pointer_cast<ChLinkDistance>(item)) {
             if (!link->GetVisualModel())
@@ -1150,8 +1150,8 @@ void ChVisualSystemVSG::OnUpdate(ChSystem* sys) {
                 ChVector<> rotAxis, pos;
                 Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(0.0, height, 0.0);
+                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                        vsg::scale(0.0, height, 0.0);
             }
         }
     }

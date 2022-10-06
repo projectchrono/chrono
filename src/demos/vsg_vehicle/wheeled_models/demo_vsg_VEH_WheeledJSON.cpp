@@ -331,25 +331,28 @@ int main(int argc, char* argv[]) {
         // Render scene
         vis->Render();
 
-        // Get driver inputs
-        DriverInputs driver_inputs = driver.GetInputs();
+        for(size_t k=0; k<20; k++) {
+            // Get driver inputs
+            DriverInputs driver_inputs = driver.GetInputs();
 
-        // Update modules (process inputs from other modules)
-        double time = vehicle.GetSystem()->GetChTime();
-        driver.Synchronize(time);
-        vehicle.Synchronize(time, driver_inputs, terrain);
-        if (add_trailer)
-            trailer->Synchronize(time, driver_inputs, terrain);
-        terrain.Synchronize(time);
-        vis->Synchronize(vehicle_model.ModelName(), driver_inputs);
+            // Update modules (process inputs from other modules)
+            double time = vehicle.GetSystem()->GetChTime();
+            driver.Synchronize(time);
+            vehicle.Synchronize(time, driver_inputs, terrain);
+            if (add_trailer)
+                trailer->Synchronize(time, driver_inputs, terrain);
+            terrain.Synchronize(time);
+            vis->Synchronize(vehicle_model.ModelName(), driver_inputs);
 
-        // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
-        vehicle.Advance(step_size);
-        if (add_trailer)
-            trailer->Advance(step_size);
-        terrain.Advance(step_size);
-        vis->Advance(step_size);
+            // Advance simulation for one timestep for all modules
+            driver.Advance(step_size);
+            vehicle.Advance(step_size);
+            if (add_trailer)
+                trailer->Advance(step_size);
+            terrain.Advance(step_size);
+            vis->Advance(step_size);
+        }
+        vis->UpdateFromMBS();
     }
 
     return 0;

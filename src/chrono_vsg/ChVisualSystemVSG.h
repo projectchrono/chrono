@@ -64,7 +64,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void ShowAllCoGs(double size);
     void SetGuiFontSize(float theSize);
     void SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
-
+    void UpdateFromMBS();
     double GetModelTime();
     size_t GetFrameNumber();
     double GetWallclockTime();
@@ -105,7 +105,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
   protected:
     void BindAll() override;
-    void OnUpdate(ChSystem* sys) override;
     // collect some often used calulations (not for Cylinders!)
     void Point2PointHelperAbs(ChVector<>& P1,
                               ChVector<>& P2,

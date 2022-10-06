@@ -124,7 +124,7 @@ bool verbose_solver = false;
 bool verbose_integrator = false;
 
 // Time interval between two render frames
-double render_step_size = 1.0 / 120;  // FPS = 120
+double render_step_size = 1.0 / 120.0;  // FPS = 120
 
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 0.0);
@@ -723,23 +723,26 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        // Collect output data from modules
-        DriverInputs driver_inputs = driver->GetInputs();
-        vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
-        vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
+        for(size_t k = 0; k<render_steps; k++) {
+            // Collect output data from modules
+            DriverInputs driver_inputs = driver->GetInputs();
+            vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
+            vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
-        // Update modules (process inputs from other modules)
-        double time = vehicle.GetChTime();
-        driver->Synchronize(time);
-        terrain.Synchronize(time);
-        m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
-        vis->Synchronize("", driver_inputs);
+            // Update modules (process inputs from other modules)
+            double time = vehicle.GetChTime();
+            driver->Synchronize(time);
+            terrain.Synchronize(time);
+            m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+            vis->Synchronize("", driver_inputs);
 
-        // Advance simulation for one timestep for all modules
-        driver->Advance(step_size);
-        terrain.Advance(step_size);
-        m113.Advance(step_size);
-        vis->Advance(step_size);
+            // Advance simulation for one timestep for all modules
+            driver->Advance(step_size);
+            terrain.Advance(step_size);
+            m113.Advance(step_size);
+            vis->Advance(step_size);
+        }
+        vis->UpdateFromMBS();
 
         ////ReportTiming(*m113.GetSystem());
 
@@ -756,7 +759,7 @@ int main(int argc, char* argv[]) {
         // Increment frame number
         step_number++;
     }
-
+    GetLog() << "Skipped frames = " << render_steps << "\n";
     vehicle.WriteContacts(out_dir + "/M113_contacts.out");
 
     return 0;

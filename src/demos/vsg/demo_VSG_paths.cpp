@@ -163,6 +163,7 @@ int main(int argc, char* argv[]) {
         vis->Render();
 
         sys.DoStepDynamics(timestep);
+        vis->UpdateFromMBS();
         realtime_timer.Spin(timestep);
     }
 

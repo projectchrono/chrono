@@ -135,8 +135,8 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                    128, 128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+                                     128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
@@ -170,7 +170,6 @@ int main(int argc, char* argv[]) {
     }
 
     driver.Initialize();
-
 
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
@@ -221,11 +220,13 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     if (contact_vis) {
-        //vis->SetSymbolScale(1e-4);
-        //vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
+        // vis->SetSymbolScale(1e-4);
+        // vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     }
 
     while (vis->Run()) {
+        vis->Render();
+
         double time = vis->GetModelTime();
 
         // End simulation
@@ -247,28 +248,27 @@ int main(int argc, char* argv[]) {
             driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking
                        << std::endl;
         }
+        for(size_t k=0; k<render_steps; k++) {
+            // Update modules (process inputs from other modules)
+            driver.Synchronize(time);
+            terrain.Synchronize(time);
+            my_bus.Synchronize(time, driver_inputs, terrain);
+            vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
-        // Update modules (process inputs from other modules)
-        driver.Synchronize(time);
-        terrain.Synchronize(time);
-        my_bus.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
-
-        // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
-        terrain.Advance(step_size);
-        my_bus.Advance(step_size);
-        vis->Advance(step_size);
-
-        // Increment frame number
-        step_number = vis->GetFrameNumber();
-        vis->Render();
+            // Advance simulation for one timestep for all modules
+            driver.Advance(step_size);
+            terrain.Advance(step_size);
+            my_bus.Advance(step_size);
+            vis->Advance(step_size);
+            // Increment frame number
+            step_number++;
+        }
+        vis->UpdateFromMBS();
     }
 
     if (driver_mode == RECORD) {
         driver_csv.write_to_file(driver_file);
     }
-
+    GetLog() << "RenderSteps = " << render_steps << "\n";
     return 0;
 }
-
