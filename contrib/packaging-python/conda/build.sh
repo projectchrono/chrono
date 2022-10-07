@@ -4,19 +4,14 @@ mkdir ./build
 cd ./build
 echo $CI_PROJECT_DIR
 export NP_INCL=$(python $CI_PROJECT_DIR/contrib/packaging-python/conda/setvarnumpy.py )
-# in py <= 3.7, headers are in $PREFIX/include/python3.xm/, while since python 3.8 they are in $PREFIX/include/python3.8/ go figure.
-if [ "$PY3K" == "1" ] && [ "$PY_VER" != "3.8" ] ; then
-    MY_PY_VER="${PY_VER}"
-else
-    MY_PY_VER="${PY_VER}"
-fi
 
-echo Python version: $MY_PY_VER
+# Python libraries are different file types for MacOS and linux
+# TODO: Check if this is needed since MacOS has its own deployment script
 
 if [ `uname` == Darwin ]; then
-    PY_LIB="libpython${MY_PY_VER}.dylib"
+    PY_LIB="libpython${PY_VER}.dylib"
 else
-    PY_LIB="libpython${MY_PY_VER}.so"
+    PY_LIB="libpython${PY_VER}.so"
 fi
 
 # set MKL vars
@@ -32,7 +27,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCH_PYCHRONO_DATA_PATH=../../../../share/chrono/data \
  -DCH_PYCHRONO_SHADER_PATH=../../../../lib/sensor_ptx \
  -DPYTHON_EXECUTABLE:FILEPATH=$PYTHON \
- -DPYTHON_INCLUDE_DIR:PATH=$PREFIX/include/python$MY_PY_VER \
+ -DPYTHON_INCLUDE_DIR:PATH=$PREFIX/include/python${PY_VER} \
  -DPYTHON_LIBRARY:FILEPATH=$PREFIX/lib/${PY_LIB} \
  -DCMAKE_BUILD_TYPE=$CONFIGURATION \
  -DENABLE_MODULE_IRRLICHT=ON \

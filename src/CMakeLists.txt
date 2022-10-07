@@ -479,7 +479,7 @@ elseif(MSVC)
     add_compile_options(/wd26812)  # use of unscoped enums
 else()
     message(STATUS "Warning level set to -Wall")
-    add_compile_options(-Wall)
+    add_compile_options(-Wint-in-bool-context)
     add_compile_options(-Wno-sign-compare)
     add_compile_options(-Wno-reorder)
     add_compile_options(-Wno-unused-function)
