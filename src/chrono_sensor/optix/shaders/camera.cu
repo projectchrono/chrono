@@ -62,11 +62,8 @@ extern "C" __global__ void __raygen__camera() {
         float2 d_normalized = d / focal;
         float rd = sqrtf(d_normalized.x * d_normalized.x + d_normalized.y * d_normalized.y);
         float ru = tanf(rd * camera.hFOV) / (2 * tanf(camera.hFOV / 2.0));
-        float ru_max = tanf(camera.hFOV) / (2 * tanf(camera.hFOV / 2.0));
-        // d.x = d.x * (ru / ru_max) / rd;
-        // d.y = d.y * (ru / ru_max) / rd;
-        d.x = d.x * (ru / rd);
-        d.y = d.y * (ru / rd);
+        d = d_normalized * (ru / rd) * focal;
+
     } else if (camera.lens_model == RADIAL) {
         float focal = 1.f / tanf(camera.hFOV / 2.0);
         float recip_focal = tanf(camera.hFOV / 2.0);
