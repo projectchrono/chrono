@@ -183,7 +183,6 @@ int main(int argc, char* argv[]) {
         vis->Render();
 
         sys.DoStepDynamics(1e-3);
-        vis->UpdateFromMBS();
 
         if (log_info && sys.GetChTime() > 1.0) {
             // Note that GetPos() and similar functions will return information for

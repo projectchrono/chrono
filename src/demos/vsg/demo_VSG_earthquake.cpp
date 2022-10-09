@@ -145,7 +145,6 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->Render();
         sys.DoStepDynamics(0.01);
-        vis->UpdateFromMBS();
     }
 
     return 0;

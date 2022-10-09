@@ -146,7 +146,6 @@ int main(int argc, char* argv[]) {
             vis->WriteImageToFile(imageFileName); // does not work with frame == 0!
         }
         sys.DoStepDynamics(timestep);
-        vis->UpdateFromMBS();
         vis->Render();
     }
     return 0;

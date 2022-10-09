@@ -225,8 +225,6 @@ int main(int argc, char* argv[]) {
     }
 
     while (vis->Run()) {
-        vis->Render();
-
         double time = vis->GetModelTime();
 
         // End simulation
@@ -248,27 +246,29 @@ int main(int argc, char* argv[]) {
             driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking
                        << std::endl;
         }
-        for(size_t k=0; k<render_steps; k++) {
-            // Update modules (process inputs from other modules)
-            driver.Synchronize(time);
-            terrain.Synchronize(time);
-            my_bus.Synchronize(time, driver_inputs, terrain);
-            vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        // for(size_t k=0; k<render_steps; k++) {
+        //  Update modules (process inputs from other modules)
+        driver.Synchronize(time);
+        terrain.Synchronize(time);
+        my_bus.Synchronize(time, driver_inputs, terrain);
+        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
-            // Advance simulation for one timestep for all modules
-            driver.Advance(step_size);
-            terrain.Advance(step_size);
-            my_bus.Advance(step_size);
-            vis->Advance(step_size);
-            // Increment frame number
-            step_number++;
+        // Advance simulation for one timestep for all modules
+        driver.Advance(step_size);
+        terrain.Advance(step_size);
+        my_bus.Advance(step_size);
+        vis->Advance(step_size);
+
+        if (step_number % render_steps == 0) {
+            vis->Render();
+            //vis->UpdateFromMBS();
+            render_frame++;
         }
-        vis->UpdateFromMBS();
+        step_number++;
     }
 
     if (driver_mode == RECORD) {
         driver_csv.write_to_file(driver_file);
     }
-    GetLog() << "RenderSteps = " << render_steps << "\n";
     return 0;
 }

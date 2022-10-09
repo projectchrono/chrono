@@ -122,37 +122,38 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-
+    size_t step_number = 0;
     while (vis->Run()) {
         double time = sys.GetChTime();
 
-        // Render scene
-        vis->Render();
+        // Driver inputs
+        DriverInputs driver_inputs_1 = driver_1.GetInputs();
+        DriverInputs driver_inputs_2 = driver_2.GetInputs();
 
-        for(size_t k=0; k<20; k++) {
-            // Driver inputs
-            DriverInputs driver_inputs_1 = driver_1.GetInputs();
-            DriverInputs driver_inputs_2 = driver_2.GetInputs();
+        // Update modules (process inputs from other modules)
+        driver_1.Synchronize(time);
+        driver_2.Synchronize(time);
+        hmmwv_1.Synchronize(time, driver_inputs_1, terrain);
+        hmmwv_2.Synchronize(time, driver_inputs_2, terrain);
+        terrain.Synchronize(time);
+        vis->Synchronize("", driver_inputs_1);
 
-            // Update modules (process inputs from other modules)
-            driver_1.Synchronize(time);
-            driver_2.Synchronize(time);
-            hmmwv_1.Synchronize(time, driver_inputs_1, terrain);
-            hmmwv_2.Synchronize(time, driver_inputs_2, terrain);
-            terrain.Synchronize(time);
-            vis->Synchronize("", driver_inputs_1);
+        // Advance simulation for one timestep for all modules.
+        driver_1.Advance(step_size);
+        driver_2.Advance(step_size);
+        hmmwv_1.Advance(step_size);
+        hmmwv_2.Advance(step_size);
+        terrain.Advance(step_size);
+        vis->Advance(step_size);
 
-            // Advance simulation for one timestep for all modules.
-            driver_1.Advance(step_size);
-            driver_2.Advance(step_size);
-            hmmwv_1.Advance(step_size);
-            hmmwv_2.Advance(step_size);
-            terrain.Advance(step_size);
-            vis->Advance(step_size);
+        if (step_number % 10 == 0) {
+            // Render scene
+            vis->Render();
         }
         // Advance state of entire system (containing both vehicles)
         sys.DoStepDynamics(step_size);
-        vis->UpdateFromMBS();
+        // Increment frame number
+        step_number++;
     }
 
     return 0;

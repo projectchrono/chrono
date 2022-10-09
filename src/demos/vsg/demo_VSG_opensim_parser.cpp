@@ -114,7 +114,6 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->Render();
         sys.DoStepDynamics(timestep);
-        vis->UpdateFromMBS();
         realtime_timer.Spin(timestep);
     }
     return 0;

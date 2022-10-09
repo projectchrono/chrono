@@ -47,7 +47,7 @@ using namespace chrono::vehicle;
 //    MTV
 
 class Vehicle_Model {
-public:
+  public:
     virtual std::string ModelName() const = 0;
     virtual std::string VehicleJSON() const = 0;
     virtual std::string TireJSON() const = 0;
@@ -56,7 +56,7 @@ public:
 };
 
 class HMMWV_Model : public Vehicle_Model {
-public:
+  public:
     virtual std::string ModelName() const override { return "HMMWV"; }
     virtual std::string VehicleJSON() const override {
         return "hmmwv/vehicle/HMMWV_Vehicle.json";
@@ -79,7 +79,7 @@ public:
 };
 
 class Sedan_Model : public Vehicle_Model {
-public:
+  public:
     virtual std::string ModelName() const override { return "Sedan"; }
     virtual std::string VehicleJSON() const override { return "sedan/vehicle/Sedan_Vehicle.json"; }
     virtual std::string TireJSON() const override {
@@ -92,7 +92,7 @@ public:
 };
 
 class UAZ_Model : public Vehicle_Model {
-public:
+  public:
     virtual std::string ModelName() const override { return "UAZ"; }
     virtual std::string VehicleJSON() const override {
         ////return "uaz/vehicle/UAZBUS_Vehicle.json";
@@ -108,11 +108,9 @@ public:
 };
 
 class VW_Microbus_Model : public Vehicle_Model {
-public:
+  public:
     virtual std::string ModelName() const override { return "VW_Microbus"; }
-    virtual std::string VehicleJSON() const override {
-        return "VW_microbus/json/van_Vehicle.json";
-    }
+    virtual std::string VehicleJSON() const override { return "VW_microbus/json/van_Vehicle.json"; }
     virtual std::string TireJSON() const override {
         ////return "VW_microbus/json/van_Pac02Tire.json";
         return "VW_microbus/json/van_TMeasyTire.json";
@@ -122,7 +120,7 @@ public:
 };
 
 class CityBus_Model : public Vehicle_Model {
-public:
+  public:
     virtual std::string ModelName() const override { return "CityBus"; }
     virtual std::string VehicleJSON() const override { return "citybus/vehicle/CityBus_Vehicle.json"; }
     virtual std::string TireJSON() const override {
@@ -137,7 +135,7 @@ public:
 };
 
 class MAN_Model : public Vehicle_Model {
-public:
+  public:
     virtual std::string ModelName() const override { return "MAN"; }
     virtual std::string VehicleJSON() const override {
         ////return "MAN_Kat1/vehicle/MAN_5t_Vehicle_4WD.json";
@@ -153,7 +151,7 @@ public:
 };
 
 class MTV_Model : public Vehicle_Model {
-public:
+  public:
     virtual std::string ModelName() const override { return "MTV"; }
     virtual std::string VehicleJSON() const override { return "mtv/vehicle/MTV_Vehicle_WalkingBeam.json"; }
     virtual std::string TireJSON() const override { return "mtv/tire/FMTV_TMeasyTire.json"; }
@@ -167,14 +165,14 @@ public:
 //    Ultra_Tow 40in x 48 in
 
 class Trailer_Model {
-public:
+  public:
     virtual std::string ModelName() const = 0;
     virtual std::string TrailerJSON() const = 0;
     virtual std::string TireJSON() const = 0;
 };
 
 class UT_Model : public Trailer_Model {
-public:
+  public:
     virtual std::string ModelName() const override { return "Ultra-Tow"; }
     virtual std::string TrailerJSON() const override { return "ultra_tow/UT_Trailer.json"; }
     virtual std::string TireJSON() const override {
@@ -248,8 +246,7 @@ int main(int argc, char* argv[]) {
     // Create the trailer system (build into same ChSystem)
     std::shared_ptr<WheeledTrailer> trailer;
     if (add_trailer) {
-        trailer = chrono_types::make_shared<WheeledTrailer>(system,
-                vehicle::GetDataFile(trailer_model.TrailerJSON()));
+        trailer = chrono_types::make_shared<WheeledTrailer>(system, vehicle::GetDataFile(trailer_model.TrailerJSON()));
         trailer->Initialize(vehicle.GetChassis());
         trailer->SetChassisVisualizationType(VisualizationType::PRIMITIVES);
         trailer->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
@@ -267,7 +264,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the interactive driver
-    ChVSGGuiDriver driver((ChVehicle*) &vehicle);
+    ChVSGGuiDriver driver((ChVehicle*)&vehicle);
     driver.SetSteeringDelta(0.02);
     driver.SetThrottleDelta(0.02);
     driver.SetBrakingDelta(0.06);
@@ -286,7 +283,6 @@ int main(int argc, char* argv[]) {
     vis->SetLightIntensity(1.0);
     vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
     vis->Initialize();
-
 
     // Initialize output directories
     std::string veh_dir = out_dir + "/" + vehicle_model.ModelName();
@@ -326,35 +322,35 @@ int main(int argc, char* argv[]) {
     }
 
     // Simulation loop
+    size_t frame_number = 0;
     vehicle.EnableRealtime(true);
     while (vis->Run()) {
-        // Render scene
-        vis->Render();
+        // Get driver inputs
+        DriverInputs driver_inputs = driver.GetInputs();
 
-        for(size_t k=0; k<20; k++) {
-            // Get driver inputs
-            DriverInputs driver_inputs = driver.GetInputs();
+        // Update modules (process inputs from other modules)
+        double time = vehicle.GetSystem()->GetChTime();
+        driver.Synchronize(time);
+        vehicle.Synchronize(time, driver_inputs, terrain);
+        if (add_trailer)
+            trailer->Synchronize(time, driver_inputs, terrain);
+        terrain.Synchronize(time);
+        vis->Synchronize(vehicle_model.ModelName(), driver_inputs);
 
-            // Update modules (process inputs from other modules)
-            double time = vehicle.GetSystem()->GetChTime();
-            driver.Synchronize(time);
-            vehicle.Synchronize(time, driver_inputs, terrain);
-            if (add_trailer)
-                trailer->Synchronize(time, driver_inputs, terrain);
-            terrain.Synchronize(time);
-            vis->Synchronize(vehicle_model.ModelName(), driver_inputs);
+        // Advance simulation for one timestep for all modules
+        driver.Advance(step_size);
+        vehicle.Advance(step_size);
+        if (add_trailer)
+            trailer->Advance(step_size);
+        terrain.Advance(step_size);
+        vis->Advance(step_size);
 
-            // Advance simulation for one timestep for all modules
-            driver.Advance(step_size);
-            vehicle.Advance(step_size);
-            if (add_trailer)
-                trailer->Advance(step_size);
-            terrain.Advance(step_size);
-            vis->Advance(step_size);
+        if (frame_number % 20 == 0) {
+            // Render scene
+            vis->Render();
         }
-        vis->UpdateFromMBS();
+        frame_number++;
     }
 
     return 0;
 }
-

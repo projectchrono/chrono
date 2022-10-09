@@ -639,12 +639,19 @@ void ChVisualSystemVSG::Initialize() {
 }
 
 bool ChVisualSystemVSG::Run() {
-    return m_viewer->advanceToNextFrame();
+    return m_viewer->active();
 }
 
 void ChVisualSystemVSG::Render() {
     if (m_params->frame_number == 0)
         m_params->time_begin = double(clock()) / double(CLOCKS_PER_SEC);
+
+    UpdateFromMBS();
+
+    if(!m_viewer->advanceToNextFrame()) {
+        return;
+    }
+
     // pass any events into EventHandlers assigned to the Viewer
     m_viewer->handleEvents();
 

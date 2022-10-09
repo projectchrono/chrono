@@ -236,9 +236,6 @@ int main(int argc, char* argv[]) {
         if (time >= 100)
             break;
 
-        vis->Render();
-
-        for(size_t k=0; k<20; k++) {
             // Driver inputs
             DriverInputs driver_inputs = driver.GetInputs();
 
@@ -258,10 +255,13 @@ int main(int argc, char* argv[]) {
             terrain->Advance(step_size);
             my_hmmwv.Advance(step_size);
             vis->Advance(step_size);
+
+            if(step_number % 20 == 0) {
+                vis->Render();
+            }
             // Increment frame number
             step_number++;
-        }
-        vis->UpdateFromMBS();
+
 
 
     }

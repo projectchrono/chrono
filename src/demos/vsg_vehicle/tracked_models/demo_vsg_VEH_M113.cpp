@@ -41,11 +41,11 @@
 #include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #ifdef CHRONO_MUMPS
-#include "chrono_mumps/ChSolverMumps.h"
+    #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -152,7 +152,7 @@ void SelectSolver(ChSystem& sys, ChSolver::Type& solver_type, ChTimestepper::Typ
     if (sys.GetContactMethod() == ChContactMethod::NSC) {
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
         if (solver_type != ChSolver::Type::BARZILAIBORWEIN && solver_type != ChSolver::Type::APGD &&
-                solver_type != ChSolver::Type::PSOR && solver_type != ChSolver::Type::PSSOR) {
+            solver_type != ChSolver::Type::PSOR && solver_type != ChSolver::Type::PSSOR) {
             solver_type = ChSolver::Type::BARZILAIBORWEIN;
         }
     }
@@ -299,7 +299,7 @@ bool ReportTrackFailure(ChTrackedVehicle& veh, double threshold = 1e-2) {
         for (int j = 1; j < nshoes; j++) {
             auto shoe2 = track->GetTrackShoe(j % (nshoes - 1)).get();
             auto dir = shoe2->GetShoeBody()->TransformDirectionParentToLocal(shoe2->GetTransform().GetPos() -
-                    shoe1->GetTransform().GetPos());
+                                                                             shoe1->GetTransform().GetPos());
             if (std::abs(dir.y()) > threshold) {
                 std::cout << "...Track " << i << " broken between shoes " << j - 1 << " and " << j << std::endl;
                 std::cout << "time " << veh.GetChTime() << std::endl;
@@ -376,7 +376,7 @@ int main(int argc, char* argv[]) {
 
     // Set visualization type for vehicle components.
     VisualizationType track_vis =
-            (shoe_type == TrackShoeType::SINGLE_PIN) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
+        (shoe_type == TrackShoeType::SINGLE_PIN) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
     m113.SetChassisVisualizationType(VisualizationType::NONE);
     m113.SetSprocketVisualizationType(track_vis);
     m113.SetIdlerVisualizationType(track_vis);
@@ -390,7 +390,8 @@ int main(int argc, char* argv[]) {
 
     // Change (SMC) contact force model
     ////if (contact_method == ChContactMethod::SMC) {
-    ////    static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
+    ////
+    ///static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     ////}
 
     // --------------------------------------------------
@@ -435,37 +436,37 @@ int main(int argc, char* argv[]) {
     // idlers and/or road wheels and/or ground.
     // This particular implementation uses a simple SMC-like contact force (normal only).
     class MyCustomContact : public ChTrackCustomContact {
-    public:
+      public:
         virtual bool OverridesIdlerContact() const override { return false; }
         virtual bool OverridesWheelContact() const override { return true; }
         virtual bool OverridesGroundContact() const override { return false; }
 
         virtual void ComputeIdlerContactForce(const collision::ChCollisionInfo& cinfo,
-                std::shared_ptr<ChBody> wheelBody,
-                std::shared_ptr<ChBody> shoeBody,
-                ChVector<>& forceShoe) override {
+                                              std::shared_ptr<ChBody> wheelBody,
+                                              std::shared_ptr<ChBody> shoeBody,
+                                              ChVector<>& forceShoe) override {
             ComputeContactForce(cinfo, wheelBody, shoeBody, forceShoe);
         };
 
         virtual void ComputeWheelContactForce(const collision::ChCollisionInfo& cinfo,
-                std::shared_ptr<ChBody> wheelBody,
-                std::shared_ptr<ChBody> shoeBody,
-                ChVector<>& forceShoe) override {
+                                              std::shared_ptr<ChBody> wheelBody,
+                                              std::shared_ptr<ChBody> shoeBody,
+                                              ChVector<>& forceShoe) override {
             ComputeContactForce(cinfo, wheelBody, shoeBody, forceShoe);
         };
 
         virtual void ComputeGroundContactForce(const collision::ChCollisionInfo& cinfo,
-                std::shared_ptr<ChBody> groundBody,
-                std::shared_ptr<ChBody> shoeBody,
-                ChVector<>& forceShoe) override {
+                                               std::shared_ptr<ChBody> groundBody,
+                                               std::shared_ptr<ChBody> shoeBody,
+                                               ChVector<>& forceShoe) override {
             ComputeContactForce(cinfo, groundBody, shoeBody, forceShoe);
         };
 
-    private:
+      private:
         void ComputeContactForce(const collision::ChCollisionInfo& cinfo,
-                std::shared_ptr<ChBody> other,
-                std::shared_ptr<ChBody> shoe,
-                ChVector<>& forceShoe) {
+                                 std::shared_ptr<ChBody> other,
+                                 std::shared_ptr<ChBody> shoe,
+                                 ChVector<>& forceShoe) {
             ////std::cout << other->GetName() << " " << shoe->GetName() << std::endl;
 
             if (cinfo.distance >= 0) {
@@ -493,7 +494,7 @@ int main(int argc, char* argv[]) {
 
             double eff_radius = 0.1;
             double eff_mass = objA->GetContactableMass() * objB->GetContactableMass() /
-                    (objA->GetContactableMass() + objB->GetContactableMass());
+                              (objA->GetContactableMass() + objB->GetContactableMass());
             double Sn = 2 * mat.E_eff * std::sqrt(eff_radius * delta);
             double loge = std::log(mat.cr_eff);
             double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
@@ -531,7 +532,6 @@ int main(int argc, char* argv[]) {
     ////AddFixedObstacles(m113.GetSystem());
     ////AddFallingObjects(m113.GetSystem());
 
-
     // ------------------------
     // Create the driver system
     // ------------------------
@@ -556,7 +556,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case DriverMode::PATH: {
-            auto endLoc = initLoc + initRot.Rotate(ChVector<>(terrainLength,0,0));
+            auto endLoc = initLoc + initRot.Rotate(ChVector<>(terrainLength, 0, 0));
             auto path = chrono::vehicle::StraightLinePath(initLoc, endLoc, 50);
             auto path_driver = std::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
             path_driver->GetSteeringController().SetLookAheadDistance(5.0);
@@ -572,7 +572,6 @@ int main(int argc, char* argv[]) {
     std::cout << "Driveline type:  " << vehicle.GetDriveline()->GetTemplateName() << std::endl;
     std::cout << "Powertrain type: " << m113.GetPowertrain()->GetTemplateName() << std::endl;
     std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
-
 
     // -----------------
     // Initialize output
@@ -659,14 +658,12 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("M113 Vehicle Demo");
     vis->SetChaseCamera(ChVector<>(0, 0, 0), 7.0, 0.5);
     vis->AttachVehicle(&m113.GetVehicle());
-    if(driver_mode == DriverMode::KEYBOARD) {
+    if (driver_mode == DriverMode::KEYBOARD) {
         vis->AttachGuiDriver((ChVSGGuiDriver*)driver.get());
     }
     vis->Initialize();
 
     while (vis->Run()) {
-        // Render scene
-        vis->Render();
         // Debugging output
         if (dbg_output) {
             auto track_L = vehicle.GetTrackAssembly(LEFT);
@@ -709,6 +706,8 @@ int main(int argc, char* argv[]) {
         }
 
         if (step_number % render_steps == 0) {
+            // Render scene
+            vis->Render();
 
             if (povray_output) {
                 char filename[100];
@@ -723,26 +722,23 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        for(size_t k = 0; k<render_steps; k++) {
-            // Collect output data from modules
-            DriverInputs driver_inputs = driver->GetInputs();
-            vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
-            vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
+        // Collect output data from modules
+        DriverInputs driver_inputs = driver->GetInputs();
+        vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
+        vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
-            // Update modules (process inputs from other modules)
-            double time = vehicle.GetChTime();
-            driver->Synchronize(time);
-            terrain.Synchronize(time);
-            m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
-            vis->Synchronize("", driver_inputs);
+        // Update modules (process inputs from other modules)
+        double time = vehicle.GetChTime();
+        driver->Synchronize(time);
+        terrain.Synchronize(time);
+        m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        vis->Synchronize("", driver_inputs);
 
-            // Advance simulation for one timestep for all modules
-            driver->Advance(step_size);
-            terrain.Advance(step_size);
-            m113.Advance(step_size);
-            vis->Advance(step_size);
-        }
-        vis->UpdateFromMBS();
+        // Advance simulation for one timestep for all modules
+        driver->Advance(step_size);
+        terrain.Advance(step_size);
+        m113.Advance(step_size);
+        vis->Advance(step_size);
 
         ////ReportTiming(*m113.GetSystem());
 
