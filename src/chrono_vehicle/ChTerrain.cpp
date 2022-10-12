@@ -22,7 +22,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChTerrain::ChTerrain() : m_friction_fun(nullptr) {}
+ChTerrain::ChTerrain() {}
 
 double ChTerrain::GetHeight(const ChVector<>& loc) const {
     return 0;
