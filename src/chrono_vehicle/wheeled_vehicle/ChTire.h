@@ -176,7 +176,8 @@ class CH_VEHICLE_API ChTire : public ChPart {
         const ChVector<>& disc_normal,  ///< [in] disc normal, expressed in the global frame
         double disc_radius,             ///< [in] disc radius
         ChCoordsys<>& contact,          ///< [out] contact coordinate system (relative to the global frame)
-        double& depth                   ///< [out] penetration depth (positive if contact occurred)
+        double& depth,                  ///< [out] penetration depth (positive if contact occurred)
+        float& mu                       ///< [out] coefficient of friction at contact
     );
 
     /// Perform disc-terrain collision detection considering the curvature of the road
@@ -199,7 +200,8 @@ class CH_VEHICLE_API ChTire : public ChPart {
         double width,                   ///< [in] tire width
         ChCoordsys<>& contact,          ///< [out] contact coordinate system (relative to the global frame)
         double& depth,                  ///< [out] penetration depth (positive if contact occurred)
-        double& camber_angle            ///< [out] tire camber angle
+        double& camber_angle,           ///< [out] tire camber angle
+        float& mu                       ///< [out] coefficient of friction at contact
     );
 
     /// Collsion algorithm based on a paper of J. Shane Sui and John A. Hirshey II:
@@ -211,7 +213,8 @@ class CH_VEHICLE_API ChTire : public ChPart {
         double disc_radius,                  ///< [in] disc radius
         const ChFunction_Recorder& areaDep,  ///< [in] lookup table to calculate depth from intersection area
         ChCoordsys<>& contact,               ///< [out] contact coordinate system (relative to the global frame)
-        double& depth                        ///< [out] penetration depth (positive if contact occurred)
+        double& depth,                       ///< [out] penetration depth (positive if contact occurred)
+        float& mu                            ///< [out] coefficient of friction at contact
     );
 
     /// Utility function to construct a loopkup table for penetration depth as function of intersection area,

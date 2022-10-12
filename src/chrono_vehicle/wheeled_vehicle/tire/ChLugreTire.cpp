@@ -108,6 +108,7 @@ void ChLugreTire::Synchronize(double time,
     // Loop over all discs, check contact with terrain, accumulate normal tire
     // forces, and cache data that only depends on wheel state.
     double depth;
+    float mu;
 
     for (int id = 0; id < GetNumDiscs(); id++) {
         // Calculate center of disk (expressed in global frame)
@@ -115,7 +116,7 @@ void ChLugreTire::Synchronize(double time,
 
         // Check contact with terrain and calculate contact points.
         m_data[id].in_contact =
-            DiscTerrainCollision(terrain, disc_center, disc_normal, disc_radius, m_data[id].frame, depth);
+            DiscTerrainCollision(terrain, disc_center, disc_normal, disc_radius, m_data[id].frame, depth, mu);
         if (!m_data[id].in_contact)
             continue;
 
