@@ -173,6 +173,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// See UseLocationDependentFriction.
     virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
 
+    /// Get all terrain characteristics at the point below the specified location.
+    virtual void GetProperties(const ChVector<>& loc, double& height, ChVector<>& normal, float& friction) const;
+
     /// Export all patch meshes as macros in PovRay include files.
     void ExportMeshPovray(const std::string& out_dir, bool smoothed = false);
 

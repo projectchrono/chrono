@@ -54,6 +54,9 @@ class CH_VEHICLE_API ChTerrain {
     /// with other objects (including tire models that do not explicitly use it).
     virtual float GetCoefficientFriction(const ChVector<>& loc) const;
 
+    /// Get all terrain characteristics at the point below the specified location.
+    virtual void GetProperties(const ChVector<>& loc, double& height, ChVector<>& normal, float& friction) const;
+
     /// Class to be used as a functor interface for location-dependent coefficient of friction.
     class CH_VEHICLE_API FrictionFunctor {
       public:

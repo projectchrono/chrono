@@ -505,7 +505,7 @@ double GranularTerrain::GetHeight(const ChVector<>& loc) const {
     return highest + m_radius;
 }
 
-    ChVector<> GranularTerrain::GetNormal(const ChVector<>& loc) const {
+ChVector<> GranularTerrain::GetNormal(const ChVector<>& loc) const {
     return ChWorldFrame::Vertical();
 }
 

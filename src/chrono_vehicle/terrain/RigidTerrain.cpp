@@ -578,6 +578,19 @@ float RigidTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
     return hit ? friction : 0.8f;
 }
 
+void RigidTerrain::GetProperties(const ChVector<>& loc, double& height, ChVector<>& normal, float& friction) const {
+    bool hit = FindPoint(loc, height, normal, friction);
+
+    if (!hit) {
+        height = 0;
+        normal = ChWorldFrame::Vertical();
+        friction = 0.8f;
+    }
+
+    if (m_friction_fun)
+        friction = (*m_friction_fun)(loc);
+}
+
 bool RigidTerrain::FindPoint(const ChVector<> loc, double& height, ChVector<>& normal, float& friction) const {
     bool hit = false;
     height = std::numeric_limits<double>::lowest();
