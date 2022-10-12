@@ -422,28 +422,29 @@ void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
     // Check contact with terrain, using a disc of radius R0.
     ChCoordsys<> contact_frame;
 
-    m_mu = terrain.GetCoefficientFriction(m_tireState.pos);
-
     double depth;
     double dum_cam;
+    float mu;
     switch (m_collision_type) {
         case CollisionType::SINGLE_POINT:
             m_in_contact =
-                DiscTerrainCollision(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0, contact_frame, depth);
+                DiscTerrainCollision(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0, contact_frame, depth, mu);
             break;
         case CollisionType::FOUR_POINTS:
             m_in_contact = DiscTerrainCollision4pt(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
-                                                   m_params->dimension.width, contact_frame, depth, dum_cam);
+                                                   m_params->dimension.width, contact_frame, depth, dum_cam, mu);
             break;
         case CollisionType::ENVELOPE:
             m_in_contact = DiscTerrainCollisionEnvelope(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
-                                                        m_areaDep, contact_frame, depth);
+                                                        m_areaDep, contact_frame, depth, mu);
             break;
         default:
             m_in_contact = false;
             depth = 0;
             break;
     }
+    ChClampValue(mu, 0.1f, 1.0f);
+    m_mu = mu;
 
     // set the depth if there is contact with terrain
     m_depth = (m_in_contact) ? depth : 0;

@@ -486,7 +486,7 @@ class RTContactCallback : public ChContactContainer::AddContactCallback {
         }
     }
 
-    ChTerrain::FrictionFunctor* m_friction_fun;
+    std::shared_ptr<ChTerrain::FrictionFunctor> m_friction_fun;
     RigidTerrain* m_terrain;
 };
 
@@ -546,6 +546,9 @@ void RigidTerrain::MeshPatch::Initialize() {
 // This is done by casting vertical rays into each patch collision model.
 // -----------------------------------------------------------------------------
 double RigidTerrain::GetHeight(const ChVector<>& loc) const {
+    if (m_height_fun)
+        return (*m_height_fun)(loc);
+
     double height;
     ChVector<> normal;
     float friction;
@@ -556,6 +559,9 @@ double RigidTerrain::GetHeight(const ChVector<>& loc) const {
 }
 
 ChVector<> RigidTerrain::GetNormal(const ChVector<>& loc) const {
+    if (m_normal_fun)
+        return (*m_normal_fun)(loc);
+
     double height;
     ChVector<> normal;
     float friction;
@@ -576,6 +582,31 @@ float RigidTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
     bool hit = FindPoint(loc, height, normal, friction);
 
     return hit ? friction : 0.8f;
+}
+
+void RigidTerrain::GetProperties(const ChVector<>& loc, double& height, ChVector<>& normal, float& friction) const {
+    if (m_height_fun && m_normal_fun && m_friction_fun) {
+        height = (*m_height_fun)(loc);
+        normal = (*m_normal_fun)(loc);
+        friction = (*m_friction_fun)(loc);
+        return;
+    }
+
+    bool hit = FindPoint(loc, height, normal, friction);
+    if (!hit) {
+        height = 0;
+        normal = ChWorldFrame::Vertical();
+        friction = 0.8f;
+    }
+
+    if (m_height_fun)
+        height = (*m_height_fun)(loc);
+
+    if (m_normal_fun)
+        normal = (*m_normal_fun)(loc);
+
+    if (m_friction_fun)
+        friction = (*m_friction_fun)(loc);
 }
 
 bool RigidTerrain::FindPoint(const ChVector<> loc, double& height, ChVector<>& normal, float& friction) const {

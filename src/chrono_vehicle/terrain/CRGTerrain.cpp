@@ -165,10 +165,6 @@ void CRGTerrain::Initialize(const std::string& crg_file) {
     }
 }
 
-float CRGTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
-    return m_friction_fun ? (*m_friction_fun)(loc) : m_friction;
-}
-
 double CRGTerrain::GetStartHeading() {
     double phi, curv;
 
@@ -241,6 +237,10 @@ ChVector<> CRGTerrain::GetNormal(const ChVector<>& loc) const {
     normal.Normalize();
 
     return normal;
+}
+
+float CRGTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+    return m_friction_fun ? (*m_friction_fun)(loc) : m_friction;
 }
 
 std::shared_ptr<ChBezierCurve> CRGTerrain::GetRoadCenterLine() {

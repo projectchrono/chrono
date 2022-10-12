@@ -138,17 +138,20 @@ bool ChTire::DiscTerrainCollision(
     const ChVector<>& disc_normal,  // [in] disc normal, expressed in the global frame
     double disc_radius,             // [in] disc radius
     ChCoordsys<>& contact,          // [out] contact coordinate system (relative to the global frame)
-    double& depth)                  // [out] penetration depth (positive if contact occurred)
-{
-    // Find terrain height below disc center. There is no contact if the disc
-    // center is below the terrain or farther away by more than its radius.
-    double hc = terrain.GetHeight(disc_center);
+    double& depth,                  // [out] penetration depth (positive if contact occurred)
+    float& mu                       // [out] coefficient of friction at contact
+) {
+    // Find terrain height, normal, and friction below disc center.
+    double hc;
+    ChVector<> nhelp;
+    terrain.GetProperties(disc_center, hc, nhelp, mu);
+
+    // No contact if the disccenter is below the terrain or farther away by more than its radius.
     double disc_height = ChWorldFrame::Height(disc_center);
     if (disc_height <= hc || disc_height >= hc + disc_radius)
         return false;
 
     // Find the lowest point on the disc. There is no contact if the disc is (almost) horizontal.
-    ChVector<> nhelp = terrain.GetNormal(disc_center);
     ChVector<> dir1 = Vcross(disc_normal, nhelp);
     double sinTilt2 = dir1.Length2();
 
@@ -158,15 +161,18 @@ bool ChTire::DiscTerrainCollision(
     // Contact point (lowest point on disc).
     ChVector<> ptD = disc_center + disc_radius * Vcross(disc_normal, dir1 / sqrt(sinTilt2));
 
-    // Find terrain height at lowest point. No contact if lowest point is above the terrain.
-    double hp = terrain.GetHeight(ptD);
+    // Find terrain height and normal at lowest point.
+    double hp;
+    ChVector<> normal;
+    terrain.GetProperties(ptD, hp, normal, mu);
+
+    // No contact if lowest point is above the terrain.
     double ptD_height = ChWorldFrame::Height(ptD);
     if (ptD_height > hp)
         return false;
 
     // Approximate the terrain with a plane. Define the projection of the lowest
     // point onto this plane as the contact point on the terrain.
-    ChVector<> normal = terrain.GetNormal(ptD);
     ChVector<> longitudinal = Vcross(disc_normal, normal);
     longitudinal.Normalize();
     ChVector<> lateral = Vcross(normal, longitudinal);
@@ -190,20 +196,23 @@ bool ChTire::DiscTerrainCollision4pt(
     double width,                   // [in] tire width
     ChCoordsys<>& contact,          // [out] contact coordinate system (relative to the global frame)
     double& depth,                  // [out] penetration depth (positive if contact occurred),
-    double& camber_angle)           // [out] camber angle
-{
+    double& camber_angle,           // [out] camber angle
+    float& mu                       // [out] coefficient of friction at contact
+) {
     double dx = 0.1 * disc_radius;
     double dy = 0.3 * width;
 
-    // Find terrain height below disc center. There is no contact if the disc
-    // center is below the terrain or farther away by more than its radius.
-    double hc = terrain.GetHeight(disc_center);
+    // Find terrain height, normal, and friction below disc center.
+    double hc;
+    ChVector<> nhelp;
+    terrain.GetProperties(disc_center, hc, nhelp, mu);
+
+    // No contact if the disc center is below the terrain or farther away by more than its radius.
     double disc_height = ChWorldFrame::Height(disc_center);
     if (disc_height <= hc || disc_height >= hc + disc_radius)
         return false;
 
-    // Find the lowest point on the disc. There is no contact if the disc is (almost) horizontal.
-    ChVector<> nhelp = terrain.GetNormal(disc_center);
+    // Find the lowest point on the disc. No contact if the disc is (almost) horizontal.
     ChVector<> dir1 = Vcross(disc_normal, nhelp);
     double sinTilt2 = dir1.Length2();
 
@@ -290,7 +299,8 @@ bool ChTire::DiscTerrainCollisionEnvelope(
     double disc_radius,                  // [in] disc radius
     const ChFunction_Recorder& areaDep,  // [in] lookup table to calculate depth from intersection area
     ChCoordsys<>& contact,               // [out] contact coordinate system (relative to the global frame)
-    double& depth                        // [out] penetration depth (positive if contact occurred)
+    double& depth,                       // [out] penetration depth (positive if contact occurred)
+    float& mu                            // [out] coefficient of friction at contact
 ) {
     // Approximate the terrain with a plane. Define the projection of the lowest
     // point onto this plane as the contact point on the terrain. We don't know
@@ -319,12 +329,11 @@ bool ChTire::DiscTerrainCollisionEnvelope(
         return false;
     }
 
-    // calculate equivalent depth from A
+    // Calculate equivalent depth from A
     depth = areaDep.Get_y(A);
 
     // Find the lowest point on the disc. There is no contact if the disc is (almost) horizontal.
-    ChVector<> nhelp = terrain.GetNormal(disc_center);
-    ChVector<> dir1 = Vcross(disc_normal, nhelp);
+    ChVector<> dir1 = Vcross(disc_normal, normal);
     double sinTilt2 = dir1.Length2();
 
     if (sinTilt2 < 1e-3)
@@ -333,8 +342,7 @@ bool ChTire::DiscTerrainCollisionEnvelope(
     // Contact point (lowest point on disc).
     ChVector<> ptD = disc_center + (disc_radius - depth) * Vcross(disc_normal, dir1 / sqrt(sinTilt2));
 
-    // Find terrain height at lowest point. No contact if lowest point is above
-    // the terrain.
+    // Find terrain height at lowest point. No contact if lowest point is above the terrain.
 
     normal = terrain.GetNormal(ptD);
     longitudinal = Vcross(disc_normal, normal);
