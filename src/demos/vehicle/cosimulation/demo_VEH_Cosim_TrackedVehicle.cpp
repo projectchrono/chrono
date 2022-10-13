@@ -29,11 +29,23 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_vehicle/cosim/mbs/ChVehicleCosimTrackedVehicleNode.h"
-#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
-
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 #include "chrono_models/vehicle/m113/M113_ShaftsPowertrain.h"
+
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
+
+#include "chrono_vehicle/cosim/mbs/ChVehicleCosimTrackedVehicleNode.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
+#ifdef CHRONO_MULTICORE
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
+#endif
+#ifdef CHRONO_FSI
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
+#endif
+#ifdef CHRONO_GPU
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularGPU.h"
+#endif
 
 using std::cout;
 using std::cin;
@@ -41,6 +53,11 @@ using std::endl;
 
 using namespace chrono;
 using namespace chrono::vehicle;
+
+// =============================================================================
+
+// Forward declarations
+bool GetProblemSpecs(int argc, char** argv, int rank, std::string& terrain_specfile, bool& verbose);
 
 // =============================================================================
 
@@ -111,6 +128,7 @@ int main(int argc, char** argv) {
     }
 
     // Simulation parameters
+    std::string terrain_specfile;
     double step_size = 5e-4;
     double sim_time = 14;
     double output_fps = 100;
@@ -118,6 +136,18 @@ int main(int argc, char** argv) {
     bool render = true;
     std::string suffix = "";
     bool verbose = true;
+
+    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, verbose)) {
+        MPI_Finalize();
+        return 1;
+    }
+
+    // Peek in spec file and extract terrain type
+    auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(terrain_specfile);
+    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::UNKNOWN) {
+        MPI_Finalize();
+        return 1;
+    }
 
     // If use_JSON_spec=true, use an M113 model specified through JSON files.
     // If use_JSON_spec=false, use an M113 model from the Chrono::Vehicle model library
@@ -199,18 +229,39 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
 
-        auto terrain = new ChVehicleCosimTerrainNodeSCM(vehicle::GetDataFile("cosim/terrain/scm_hard.json"));
-        terrain->SetDimensions(terrain_length, terrain_width);
-        terrain->SetVerbose(verbose);
-        terrain->SetStepSize(step_size);
-        terrain->SetNumThreads(2);
-        terrain->SetOutDir(out_dir, suffix);
-        terrain->EnableRuntimeVisualization(render, render_fps);
-        if (verbose)
-            cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+        switch (terrain_type) {
+            case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
+#ifdef CHRONO_MULTICORE
+                auto method = ChContactMethod::SMC;
+                auto terrain = new ChVehicleCosimTerrainNodeRigid(method, terrain_specfile);
+                terrain->SetDimensions(terrain_length, terrain_width);
+                terrain->SetVerbose(verbose);
+                terrain->SetStepSize(step_size);
+                terrain->SetOutDir(out_dir, suffix);
+                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (verbose)
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-        node = terrain;
+                node = terrain;
+#endif
+                break;
+            }
 
+            case ChVehicleCosimTerrainNodeChrono::Type::SCM: {
+                auto terrain = new ChVehicleCosimTerrainNodeSCM(vehicle::GetDataFile("cosim/terrain/scm_hard.json"));
+                terrain->SetDimensions(terrain_length, terrain_width);
+                terrain->SetVerbose(verbose);
+                terrain->SetStepSize(step_size);
+                terrain->SetNumThreads(2);
+                terrain->SetOutDir(out_dir, suffix);
+                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (verbose)
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+
+                node = terrain;
+                break;
+            }
+        }
     }
 
     // Initialize systems
@@ -245,4 +296,31 @@ int main(int argc, char** argv) {
     delete node;
     MPI_Finalize();
     return 0;
+}
+
+bool GetProblemSpecs(int argc, char** argv, int rank, std::string& terrain_specfile, bool& verbose) {
+    ChCLI cli(argv[0], "Tracked vehicle co-simulation (run on 2 MPI ranks)");
+
+    cli.AddOption<std::string>("", "terrain_specfile", "Terrain specification file [JSON format]");
+    cli.AddOption<bool>("", "quiet", "Disable verbose messages");
+
+    if (!cli.Parse(argc, argv)) {
+        if (rank == 0)
+            cli.Help();
+        return false;
+    }
+
+    try {
+        terrain_specfile = cli.Get("terrain_specfile").as<std::string>();
+    } catch (std::domain_error&) {
+        if (rank == 0) {
+            cout << "\nERROR: Missing terrain specification file!\n\n" << endl;
+            cli.Help();
+        }
+        return false;
+    }
+
+    verbose = !cli.GetAsType<bool>("quiet");
+
+    return true;
 }
