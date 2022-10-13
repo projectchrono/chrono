@@ -5,8 +5,15 @@ SET(DEMOS
   demo_vsg_VEH_CityBus
   demo_vsg_VEH_HMMWV_Accel
   demo_vsg_VEH_TwoCars
+  demo_vsg_VEH_RigidTerrain
   demo_vsg_VEH_WheeledJSON
 )
+
+if(HAVE_OPENCRG)
+    set(DEMOS ${DEMOS}
+        demo_vsg_VEH_CRGTerrain
+    )
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 

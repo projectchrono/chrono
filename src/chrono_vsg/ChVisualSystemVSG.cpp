@@ -171,34 +171,34 @@ class GuiComponent {
                     ImGui::BeginTable("TireTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                                       ImVec2(0.0f, 0.0f));
                     ImGui::TableNextColumn();
-                    sprintf(label, "Torques wheel L: %+.1f Nm", m_appPtr->GetTireTorque(0, 0));
+                    sprintf(label, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(0, 0));
                     ImGui::Text(label);
                     ImGui::TableNextColumn();
-                    sprintf(label, " wheel R: %+.1f Nm", m_appPtr->GetTireTorque(0, 1));
+                    sprintf(label, " R: %+5.1f Nm", m_appPtr->GetTireTorque(0, 1));
                     ImGui::Text(label);
                     ImGui::TableNextRow();
                     if (m_appPtr->GetNumDrivenAxles() >= 2) {
                         ImGui::TableNextColumn();
-                        sprintf(label, "Torques wheel L: %+.1f Nm", m_appPtr->GetTireTorque(1, 0));
+                        sprintf(label, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(1, 0));
                         ImGui::Text(label);
                         ImGui::TableNextColumn();
-                        sprintf(label, " wheel R: %+.1f Nm", m_appPtr->GetTireTorque(1, 1));
+                        sprintf(label, " wheel R: %+5.1f Nm", m_appPtr->GetTireTorque(1, 1));
                         ImGui::Text(label);
                         ImGui::TableNextRow();
                     }
                     if (m_appPtr->GetNumDrivenAxles() >= 4) {
                         ImGui::TableNextColumn();
-                        sprintf(label, "Torques wheel L: %+.1f Nm", m_appPtr->GetTireTorque(2, 0));
+                        sprintf(label, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(2, 0));
                         ImGui::Text(label);
                         ImGui::TableNextColumn();
-                        sprintf(label, " wheel R: %+.1f Nm", m_appPtr->GetTireTorque(2, 1));
+                        sprintf(label, " R: %+5.1f Nm", m_appPtr->GetTireTorque(2, 1));
                         ImGui::Text(label);
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
-                        sprintf(label, "Torques wheel L: %+.1f Nm", m_appPtr->GetTireTorque(3, 0));
+                        sprintf(label, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(3, 0));
                         ImGui::Text(label);
                         ImGui::TableNextColumn();
-                        sprintf(label, " wheel R: %+.1f Nm", m_appPtr->GetTireTorque(3, 1));
+                        sprintf(label, " R: %+5.1f Nm", m_appPtr->GetTireTorque(3, 1));
                         ImGui::Text(label);
                         ImGui::TableNextRow();
                     }
