@@ -91,30 +91,30 @@ void ChPac89Tire::Synchronize(double time,
     WheelState wheel_state = m_wheel->GetState();
     CalculateKinematics(time, wheel_state, terrain);
 
-    // Get mu at wheel location
-    m_mu = terrain.GetCoefficientFriction(wheel_state.pos);
-
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
     ChVector<> disc_normal = A.Get_A_Yaxis();
 
-    double dum_cam;
-
     // Assuming the tire is a disc, check contact with terrain
+    double dum_cam;
+    float mu;
     switch (m_collision_type) {
         case ChTire::CollisionType::SINGLE_POINT:
             m_data.in_contact = DiscTerrainCollision(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
-                                                     m_data.frame, m_data.depth);
+                                                     m_data.frame, m_data.depth, mu);
             break;
         case ChTire::CollisionType::FOUR_POINTS:
             m_data.in_contact = DiscTerrainCollision4pt(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
-                                                        m_width, m_data.frame, m_data.depth, dum_cam);
+                                                        m_width, m_data.frame, m_data.depth, dum_cam, mu);
             break;
         case ChTire::CollisionType::ENVELOPE:
             m_data.in_contact = DiscTerrainCollisionEnvelope(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
-                                                             m_areaDep, m_data.frame, m_data.depth);
+                                                             m_areaDep, m_data.frame, m_data.depth, mu);
             break;
     }
+    ChClampValue(mu, 0.1f, 1.0f);
+    m_mu = mu;
+
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
         ChVector<> vel = wheel_state.lin_vel;
