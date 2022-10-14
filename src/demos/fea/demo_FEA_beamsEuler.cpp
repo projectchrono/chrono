@@ -63,8 +63,8 @@ int main(int argc, char* argv[]) {
     // msection->SetSectionRotation(45*CH_C_RAD_TO_DEG);
 
     // These are for the external loads (define here to help using ChStaticNonLinearIncremental later)
-    ChVector<> F_node_1(4,  2, 0);
-    ChVector<> F_node_2(0, -1, 0);
+    ChVector<> F_node_1(9,  2, 0);
+    ChVector<> F_node_2(0, -2, 0);
     std::shared_ptr<ChNodeFEAxyzrot> loaded_node_1;
     std::shared_ptr<ChNodeFEAxyzrot> loaded_node_2;
 
@@ -231,8 +231,12 @@ int main(int argc, char* argv[]) {
         GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
         sys.DoStaticLinear();
     }
+    if (false) {
+        GetLog() << "BEAM RESULTS (NON-LINEAR STATIC ANALYSIS, basic) \n\n";
+        sys.DoStaticNonlinear(20);
+    }
     if (true) {
-        GetLog() << "BEAM RESULTS (NON-LINEAR STATIC ANALYSIS) \n\n";
+        GetLog() << "BEAM RESULTS (NON-LINEAR STATIC INCREMENTAL ANALYSIS) \n\n";
 
         // Instead of using sys.DoStaticNonLinear(), which is quite basic, we will
         // use ChStaticNonLinearIncremental. 
@@ -269,9 +273,11 @@ int main(int argc, char* argv[]) {
         auto static_analysis  = chrono_types::make_shared<ChStaticNonLinearIncremental>(sys);
         static_analysis->SetLoadIncrementCallback(my_load_callback);
         static_analysis->SetVerbose(true);
-        static_analysis->SetIncrementalSteps(4);
-        static_analysis->SetMaxIterationsNewton(5);
-
+        static_analysis->SetIncrementalSteps(8);     // outer loop. More steps helps the inner Newton loop that will need less iterations, but maybe slower.
+        static_analysis->SetMaxIterationsNewton(20); // inner loop (Newton iterations). In good situations should converge with 5-20 iterations.
+        static_analysis->SetAdaptiveNewtonON(1, 1.0);// check Newton monotonicity after 1 step, reduce stepsize if not met.
+        static_analysis->SetNewtonDamping(0.75);     // slower than default 1.0, but avoids the risk of using too much the adaptive Newton stepsize 
+        static_analysis->SetResidualTolerance(1e-7);
         // Do the nonlinear statics.
         sys.DoStaticAnalysis(static_analysis);
 
