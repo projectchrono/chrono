@@ -584,7 +584,12 @@ ChStaticNonLinearIncremental::ChStaticNonLinearIncremental(ChIntegrableIIorder& 
       m_use_correction_test(true),
       m_reltol(1e-4),
       m_abstol(1e-8),
-      m_verbose(false) {}
+      m_verbose(false),
+      m_adaptive_newton(true),
+      m_adaptive_newton_tolerance(1.0),
+      m_adaptive_newton_delay(1),
+      m_newton_damping_factor(1.0)
+    {}
 
 void ChStaticNonLinearIncremental::StaticAnalysis() {
     ChIntegrableIIorder* integrable = static_cast<ChIntegrableIIorder*>(m_integrable);
@@ -593,6 +598,11 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
         GetLog() << "\nNonlinear statics with incremental external load\n";
         GetLog() << "   max Newton iterations per load step:     " << max_newton_iters << "\n";
         GetLog() << "   external load incremental steps:  " << m_incremental_steps << "\n";
+        if (m_adaptive_newton) {
+            GetLog() << "   using adaptive step for Newton iteration: \n";
+            GetLog() << "      step shrinking tolerance:    " << m_adaptive_newton_tolerance << "\n";
+            GetLog() << "      policy delayeyd for first steps:    " << m_adaptive_newton_delay << "\n";
+        }
         if (m_use_correction_test) {
             GetLog() << "   stopping test:      correction\n";
             GetLog() << "      relative tol:    " << m_reltol << "\n";
@@ -620,11 +630,13 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
     ChStateDelta Dx;
     ChVectorDynamic<> R;
     ChVectorDynamic<> Qc;
+    ChVectorDynamic<> Dl;
     Xnew.setZero(integrable->GetNcoords_x(), integrable);
     Dx.setZero(integrable->GetNcoords_v(), integrable);
     R.setZero(integrable->GetNcoords_v());
     Qc.setZero(integrable->GetNconstr());
     L.setZero(integrable->GetNconstr());
+    Dl.setZero(integrable->GetNconstr());
 
     // Outer loop: increment the external load(s)
     // by invoking the callback. 
@@ -647,30 +659,62 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
         this->load_increment_callback->OnLoadScaling(cfactor, j, this);
 
         if (m_verbose) {
-            GetLog() << "--- Nonlinear statics outer iteration " << j << ", load scaling: " << cfactor << "\n";
+            GetLog() << "--- Nonlinear statics, outer iteration " << j << ", load scaling: " << cfactor << "\n";
         }
 
         // Inner loop: use Newton Raphson iteration, solving for the increments
-        //      [ - dF/dx    Cq' ] [ Dx  ] = [ F_in + scaled_F_ext ]
-        //      [ Cq         0   ] [ L   ] = [-C                   ]
+        //      [ - dF/dx    Cq' ] [ Dx  ] = [ F_in + scaled_F_ext + Cq'*L]
+        //      [ Cq         0   ] [ Dl  ] = [-C                          ]
+
+        double step_factor = m_newton_damping_factor; // factor for NR step advancement (line search). When 1.0, original NR.
+        double R_norm_old = 0;
 
         for (int i = 0; i < max_newton_iters; ++i) {
 
             integrable->StateScatter(X, V, T, true);  // state -> system
             R.setZero();
             Qc.setZero();
-            integrable->LoadResidual_F(R, 1.0);   // here fetches forces F from the system (where F = F_in + scaled_F_ext )  
-            integrable->LoadConstraint_C(Qc, 1.0);
+            integrable->LoadResidual_F(R, 1.0);      // put the F term in RHS  (where F = F_in + scaled_F_ext )  
+            integrable->LoadResidual_CqL(R, L, 1.0); // put the Cq*L term in RHS
+            integrable->LoadConstraint_C(Qc, 1.0);   // put the C term in RHS
+
+            // Evaluate residual norms
+            double R_norm = R.lpNorm<Eigen::Infinity>();
+            double Qc_norm = Qc.lpNorm<Eigen::Infinity>();
+
+            if (m_verbose) {
+                GetLog() << "---   inner Newton iteration " << i << ",  |R|_inf = " << R_norm << "  |Qc|_inf = " << Qc_norm << " step_factor=" << step_factor << "\n";
+            }
+
+            // Basic line search for mitigating the issue of not converging residual.
+            // Policy: just roll back half step in case of not-decreasing residual:
+            if (true) {
+                if ((i > m_adaptive_newton_delay) && (R_norm > m_adaptive_newton_tolerance * R_norm_old)) {
+                    // a) Rewind state to previous one with this trick, reusing last Dx and last factor:
+                    Xnew = X + (Dx * -step_factor);
+                    L -= (Dl * step_factor);
+                    // b) Reduce the step factor:
+                    step_factor *= 0.5;
+                    // c) Advance by the reduced Dx:
+                    X = Xnew + (Dx * step_factor);
+                    L += (Dl * step_factor);
+                    // some debug message
+                    if (m_verbose) {
+                        GetLog() << "---     >>> |R| old=" << R_norm_old << ", |R|=" << R_norm << ". Diverges! Repeat w/smaller step factor: " << step_factor << "\n";
+                    }
+                    // d) repeat the for loop, skipping the rest:
+                    continue;
+                }
+
+                // if things goes well, increase Dx factor at each iteration until factor is maximum again
+                step_factor *= 2.0;
+                if (step_factor > m_newton_damping_factor)
+                    step_factor = m_newton_damping_factor;
+            }
+
+            R_norm_old = R_norm;
 
             if (!m_use_correction_test) {
-                // Evaluate residual norms
-                double R_norm = R.lpNorm<Eigen::Infinity>();
-                double Qc_norm = Qc.lpNorm<Eigen::Infinity>();
-
-                if (m_verbose) {
-                    GetLog() << "---   Nonlinear statics Newton iteration " << i << "  |R|_inf = " << R_norm
-                        << "  |Qc|_inf = " << Qc_norm << "\n";
-                }
 
                 // Stopping test
                 if ((R_norm < m_abstol) && (Qc_norm < m_abstol)) {
@@ -683,7 +727,7 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
 
             // Solve linear system for correction
             integrable->StateSolveCorrection(  //
-                Dx, L, R, Qc,                  //
+                Dx, Dl, R, Qc,                 //
                 0,                             // factor for  M
                 0,                             // factor for  dF/dv
                 -1.0,                          // factor for  dF/dx (the stiffness matrix)
@@ -693,7 +737,9 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
                 true                           // force a call to the solver's Setup() function
             );
 
-            Xnew = X + Dx;
+            // Increment state (and constraint reactions)
+            Xnew = X +  (Dx * step_factor);
+            L += (Dl * step_factor);
 
             if (m_use_correction_test) {
                 // Calculate actual correction in X
@@ -703,17 +749,15 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
                 ChVectorDynamic<> ewt = (m_reltol * Xnew.cwiseAbs() + m_abstol).cwiseInverse();
                 double Dx_norm = correction.wrmsNorm(ewt);
 
-                if (m_verbose) {
+                /*if (m_verbose) {
                     GetLog() << "---  Nonlinear statics iteration " << i << "  |Dx|_wrms = " << Dx_norm << "\n";
-                }
+                }*/
 
                 // Stopping test
                 if (Dx_norm < 1) {
                     if (m_verbose) {
-                        double R_norm = R.lpNorm<Eigen::Infinity>();
-                        double Qc_norm = Qc.lpNorm<Eigen::Infinity>();
                         GetLog() << "+++  Newton procedure converged in " << i + 1 << " iterations.\n";
-                        GetLog() << "     |R|_inf = " << R_norm << "  |Qc|_inf = " << Qc_norm << "\n\n";
+                        GetLog() << "     |R|_inf = " << R_norm << "  |Qc|_inf = " << Qc_norm << " |Dx|_wrms = " << Dx_norm << "\n\n";
                     }
                     X = Xnew;
                     break;
@@ -749,7 +793,18 @@ void ChStaticNonLinearIncremental::SetIncrementalSteps(int incr_steps) {
     m_incremental_steps = incr_steps;
 }
 
+void ChStaticNonLinearIncremental::SetAdaptiveNewtonON( int initial_delay, double growth_tolerance) {
+    m_adaptive_newton = true;
+    m_adaptive_newton_delay = initial_delay;
+    m_adaptive_newton_tolerance = growth_tolerance;
+}
+void ChStaticNonLinearIncremental::SetAdaptiveNewtonOFF() {
+    m_adaptive_newton = false;
+}
 
+void ChStaticNonLinearIncremental::SetNewtonDamping(double damping_factor) {
+    m_newton_damping_factor = damping_factor;
+}
 
 
 }  // end namespace chrono

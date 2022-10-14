@@ -218,8 +218,26 @@ class ChApi ChStaticNonLinearIncremental : public ChStaticAnalysis {
     /// Get the max number of iterations for the Newton Raphson procedure.
     int GetMaxIterations() const { return max_newton_iters; }
 
-    /// Set the number of steps that, for the first iterations, make the residual grow linearly.
+    /// Set the number of steps for the outer iteration (the one that makes the external load grow).
     int GetIncrementalSteps() const { return m_incremental_steps; }
+
+    /// Enable the adaptive size in the inner Newton loop.
+    /// If the residual grows more than "growth_tolerance" during the Newton iteration, 
+    /// step is cancelled and half step is halved, until condition is met. 
+    /// It can mitigate problems of divergence, but reducing the steps can lead to slow
+    /// performance where in some lucky cases one could have just tolerated zigzag non-monotonic 
+    /// residuals (yet converging in the long run). 
+    /// Parameter growth_tolerance is 1.0 by default. Sometimes it could be >1 to tolerate also small oscillations.
+    /// If this is not working, try also increasing the steps of the outer loop (incremental steps) and/or use Newton damping.
+    void SetAdaptiveNewtonON(int initial_delay, ///< adaptive step policy applied only after n-th Newton steps (sometimes better 1 than 0)
+                            double growth_tolerance); ///< shrink step only if new_residual bigger than growth_tolerance * old_residual.
+    void SetAdaptiveNewtonOFF();
+
+    /// Set damping of the Newton iteration. Default is 1.0. 
+    /// Using lower values (ex. 0.7) slows the convergence but can fix issues, for example when you see that the 
+    /// residual has a highly oscillatory behavior.
+    void SetNewtonDamping(double damping_factor); ///< default is 1.0 (regular undamped Newton). 
+
 
     /// Class to be used as a callback interface for updating the system at each step of load increment.
     /// If the user defined loads via ChLoad objects, for example, or via mynode->SetForce(), then in this
@@ -243,6 +261,10 @@ class ChApi ChStaticNonLinearIncremental : public ChStaticAnalysis {
     int max_newton_iters;
     int m_incremental_steps;
     bool m_use_correction_test;
+    bool  m_adaptive_newton;
+    float m_adaptive_newton_tolerance;
+    int   m_adaptive_newton_delay;
+    double m_newton_damping_factor;
     double m_reltol;
     double m_abstol;
     std::shared_ptr<LoadIncrementCallback> load_increment_callback;
