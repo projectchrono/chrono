@@ -48,12 +48,10 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
     float m_maxAnisotropy = 0.0f;
 
     vsg::ref_ptr<vsg::Group> createShape(BasicShape theShape,
-                                         std::shared_ptr<ChPhysicsItem> physItem,
-                                         ChVisualModel::ShapeInstance shapeInstance,
-                                         std::shared_ptr<ChVisualMaterial> material,
-                                         vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                         bool drawMode,
-                                         std::shared_ptr<ChSurfaceShape> surface = nullptr);
+            std::shared_ptr<ChVisualMaterial> material,
+            vsg::ref_ptr<vsg::MatrixTransform> transform,
+            bool drawMode,
+            std::shared_ptr<ChSurfaceShape> surface = nullptr);
 
     vsg::ref_ptr<vsg::Group> createTrimeshColShape(std::shared_ptr<ChPhysicsItem> physItem,
                                                    ChVisualModel::ShapeInstance shapeInstance,
@@ -66,10 +64,6 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool drawMode,
                                                    std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
-
-    vsg::ref_ptr<vsg::Group> createParticleShape(std::shared_ptr<ChVisualMaterial> material,
-                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                 bool drawMode);
 
     vsg::ref_ptr<vsg::Group> createParticlePattern(std::shared_ptr<ChVisualMaterial> material, bool drawMode);
 
@@ -99,7 +93,16 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
     vsg::ref_ptr<vsg::Group> createCoGSymbol(std::shared_ptr<ChBody> body,
                                              vsg::ref_ptr<vsg::MatrixTransform> transform);
 
+    vsg::ref_ptr<vsg::Group> createMovingSystemSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform);
+
+    vsg::ref_ptr<vsg::Group> createMovingTargetSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform);
+
     vsg::ref_ptr<vsg::Group> createDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
+
+    // set mbs->vsg mapping info to the root group node
+    static void SetMBSInfo(vsg::ref_ptr<vsg::Group> group,
+                    std::shared_ptr<ChPhysicsItem> physItem,
+                    ChVisualModel::ShapeInstance shapeInstance);
 
     /// create a ShaderSet for Phong shaded rendering with tiled textures
     vsg::ref_ptr<vsg::ShaderSet> createTilingPhongShaderSet(vsg::ref_ptr<const vsg::Options> options = {});

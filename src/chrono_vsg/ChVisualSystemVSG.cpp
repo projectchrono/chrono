@@ -362,6 +362,7 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_linkScene = vsg::Group::create();
     m_particleScene = vsg::Group::create();
     m_decoScene = vsg::Group::create();
+    m_symbolScene = vsg::Group::create();
     // set up defaults and read command line arguments to override them
     m_options = vsg::Options::create();
     m_options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
@@ -513,6 +514,7 @@ void ChVisualSystemVSG::Initialize() {
     m_scene->addChild(m_linkScene);
     m_scene->addChild(m_particleScene);
     m_scene->addChild(m_decoScene);
+    m_scene->addChild(m_symbolScene);
 
     BindAll();
 
@@ -554,7 +556,7 @@ void ChVisualSystemVSG::Initialize() {
     }
     GetLog() << "* Vulkan Version: " << VK_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE) << "."
              << VK_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE) << "." << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE)
-              << "\n";
+             << "\n";
     GetLog() << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << "\n";
     GetLog() << "****************************************************\n";
     m_shapeBuilder->m_maxAnisotropy = limits.maxSamplerAnisotropy;
@@ -585,6 +587,7 @@ void ChVisualSystemVSG::Initialize() {
     // default sets automatic directional light
     // auto renderGraph = vsg::RenderGraph::create(m_window, m_view);
     // switches off automatic directional light setting
+
     auto renderGraph =
         vsg::createRenderGraphForView(m_window, m_vsg_camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
     auto commandGraph = vsg::CommandGraph::create(m_window, renderGraph);
@@ -648,7 +651,7 @@ void ChVisualSystemVSG::Render() {
 
     UpdateFromMBS();
 
-    if(!m_viewer->advanceToNextFrame()) {
+    if (!m_viewer->advanceToNextFrame()) {
         return;
     }
 
@@ -748,12 +751,16 @@ void ChVisualSystemVSG::BindAll() {
                                     vsg::scale(scale.x(), scale.y(), scale.z());
                 if (isDice) {
                     GetLog() << "... has a dice shape\n";
-                    m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::DICE_SHAPE, body, shape_instance,
-                                                                      material, transform, m_draw_as_wireframe));
+                    auto tmpGroup =
+                        m_shapeBuilder->createShape(ShapeBuilder::DICE_SHAPE, material, transform, m_draw_as_wireframe);
+                    ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
+                    m_bodyScene->addChild(tmpGroup);
                 } else {
                     GetLog() << "... has a box shape\n";
-                    m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, body, shape_instance,
-                                                                      material, transform, m_draw_as_wireframe));
+                    auto tmpGroup =
+                        m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, material, transform, m_draw_as_wireframe);
+                    ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
+                    m_bodyScene->addChild(tmpGroup);
                 }
             } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
                 GetLog() << "... has a sphere shape\n";
@@ -762,8 +769,10 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, body, shape_instance,
-                                                                  material, transform, m_draw_as_wireframe));
+                auto tmpGroup =
+                    m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+                ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
+                m_bodyScene->addChild(tmpGroup);
             } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
                 GetLog() << "... has a ellipsoid shape\n";
                 ChVector<> scale = ellipsoid->GetEllipsoidGeometry().rad;
@@ -771,8 +780,10 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, body, shape_instance,
-                                                                  material, transform, m_draw_as_wireframe));
+                auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE,
+                        material, transform, m_draw_as_wireframe);
+                ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
+                m_bodyScene->addChild(tmpGroup);
             } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
                 GetLog() << "... has a capsule shape\n";
                 double rad = capsule->GetCapsuleGeometry().rad;
@@ -782,8 +793,10 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, body, shape_instance,
-                                                                  material, transform, m_draw_as_wireframe));
+                auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE,
+                        material, transform, m_draw_as_wireframe);
+                ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
+                m_bodyScene->addChild(tmpGroup);
             } else if (auto barrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
                 GetLog() << "... has a barrel shape (to do)\n";
             } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
@@ -793,8 +806,10 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(rad.x(), rad.y(), rad.z());
-                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, body, shape_instance,
-                                                                  material, transform, m_draw_as_wireframe));
+                auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE,
+                        material, transform, m_draw_as_wireframe);
+                ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
+                m_bodyScene->addChild(tmpGroup);
             } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
                 // GetLog() << "... has a triangle mesh shape\n";
                 ChVector<> scale = trimesh->GetScale();
@@ -817,8 +832,10 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(1.0, 1.0, 1.0);
-                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::SURFACE_SHAPE, body, shape_instance,
-                                                                  material, transform, m_draw_as_wireframe, surface));
+                auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::SURFACE_SHAPE,
+                        material, transform, m_draw_as_wireframe, surface);
+                ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
+                m_bodyScene->addChild(tmpGroup);
             } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
                 GetLog() << "... has a obj file shape\n";
                 string objFilename = obj->GetFilename();
@@ -890,8 +907,10 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(rad, height, rad);
-                m_bodyScene->addChild(m_shapeBuilder->createShape(ShapeBuilder::CYLINDER_SHAPE, body, shape_instance,
-                                                                  material, transform, m_draw_as_wireframe));
+                auto tmpGroup =
+                    m_shapeBuilder->createShape(ShapeBuilder::CYLINDER_SHAPE, material, transform, m_draw_as_wireframe);
+                ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
+                m_bodyScene->addChild(tmpGroup);
             }
         }
     }
@@ -1221,6 +1240,143 @@ void ChVisualSystemVSG::Point2PointHelperAbs(ChVector<>& P1,
 void ChVisualSystemVSG::SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col) {
     m_decoScene->addChild(m_shapeBuilder->createDecoGrid(ustep, vstep, nu, nv, pos, col));
 }
+
+void ChVisualSystemVSG::SetSystemSymbol(double size) {
+    m_system_symbol_size = vsg::dvec3(size, size, size);
+
+    // Is the symbol already present?
+    vsg::ref_ptr<vsg::MatrixTransform> transform;
+    bool found = false;
+    for (auto child : m_symbolScene->children) {
+        char sType = ' ';
+        if (!child->getValue("SymbolType", sType))
+            continue;
+        if (!child->getValue("TransformPtr", transform))
+            continue;
+        if (sType != 'G')
+            continue;
+        // we only set the size
+        transform->matrix = vsg::translate(m_system_symbol_position) * vsg::scale(m_system_symbol_size);
+        found = true;
+    }
+    if (found)
+        return;
+
+    // Symbol is not found, build it
+    transform = vsg::MatrixTransform::create();
+    transform->matrix = vsg::translate(m_system_symbol_position) * vsg::scale(m_system_symbol_size);
+
+    m_symbolScene->addChild(m_shapeBuilder->createMovingSystemSymbol(transform));
+}
+
+void ChVisualSystemVSG::SetSystemSymbolPosition(ChVector<> pos) {
+    m_system_symbol_position = vsg::dvec3(pos.x(), pos.y(), pos.z());
+    for (auto child : m_symbolScene->children) {
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        char sType = ' ';
+        if (!child->getValue("SymbolType", sType))
+            continue;
+        if (!child->getValue("TransformPtr", transform))
+            continue;
+        if (sType != 'G')
+            continue;
+        transform->matrix = vsg::translate(m_system_symbol_position) * vsg::scale(m_system_symbol_size);
+    }
+}
+
+    void ChVisualSystemVSG::SetTargetSymbol(double size, ChColor col) {
+        m_target_symbol_size = vsg::dvec3(size, size, size);
+
+        // Is the symbol already present?
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        bool found = false;
+        for (auto child : m_symbolScene->children) {
+            char sType = ' ';
+            if (!child->getValue("SymbolType", sType))
+                continue;
+            if (!child->getValue("TransformPtr", transform))
+                continue;
+            if (sType != 'T')
+                continue;
+            // we only set the size
+            transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
+            found = true;
+        }
+        if (found)
+            return;
+
+        // Symbol is not found, build it
+        transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
+
+        auto material = chrono_types::make_shared<ChVisualMaterial>();
+        material->SetEmissiveColor(col);
+        auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+        tmpGroup->setValue("SymbolType", 'T');
+        m_symbolScene->addChild(tmpGroup);
+    }
+
+    void ChVisualSystemVSG::SetTargetSymbolPosition(ChVector<> pos) {
+        m_target_symbol_position = vsg::dvec3(pos.x(), pos.y(), pos.z());
+        for (auto child : m_symbolScene->children) {
+            vsg::ref_ptr<vsg::MatrixTransform> transform;
+            char sType = ' ';
+            if (!child->getValue("SymbolType", sType))
+                continue;
+            if (!child->getValue("TransformPtr", transform))
+                continue;
+            if (sType != 'T')
+                continue;
+            transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
+        }
+    }
+
+    void ChVisualSystemVSG::SetSentinelSymbol(double size, ChColor col) {
+        m_sentinel_symbol_size = vsg::dvec3(size, size, size);
+
+        // Is the symbol already present?
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        bool found = false;
+        for (auto child : m_symbolScene->children) {
+            char sType = ' ';
+            if (!child->getValue("SymbolType", sType))
+                continue;
+            if (!child->getValue("TransformPtr", transform))
+                continue;
+            if (sType != 'S')
+                continue;
+            // we only set the size
+            transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
+            found = true;
+        }
+        if (found)
+            return;
+
+        // Symbol is not found, build it
+        transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
+
+        auto material = chrono_types::make_shared<ChVisualMaterial>();
+        material->SetEmissiveColor(col);
+        auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+        tmpGroup->setValue("SymbolType", 'S');
+        m_symbolScene->addChild(tmpGroup);
+    }
+
+    void ChVisualSystemVSG::SetSentinelSymbolPosition(ChVector<> pos) {
+        m_sentinel_symbol_position = vsg::dvec3(pos.x(), pos.y(), pos.z());
+        for (auto child : m_symbolScene->children) {
+            vsg::ref_ptr<vsg::MatrixTransform> transform;
+            char sType = ' ';
+            if (!child->getValue("SymbolType", sType))
+                continue;
+            if (!child->getValue("TransformPtr", transform))
+                continue;
+            if (sType != 'S')
+                continue;
+            transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
+        }
+    }
 
 }  // namespace vsg3d
 }  // namespace chrono

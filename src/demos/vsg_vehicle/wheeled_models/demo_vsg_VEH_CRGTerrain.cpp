@@ -93,7 +93,7 @@ DriverModelType DriverModelFromString(const std::string& str) {
     if (str == "XT")
         return DriverModelType::XT;
     std::cerr << "String \"" + str +
-            "\" does not represent a valid DriverModelType (HUMAN/PID/SR/XT) - returned DriverModelType::HUMAN"
+                     "\" does not represent a valid DriverModelType (HUMAN/PID/SR/XT) - returned DriverModelType::HUMAN"
               << std::endl;
     return DriverModelType::HUMAN;
 }
@@ -102,19 +102,19 @@ DriverModelType DriverModelFromString(const std::string& str) {
 
 // Wrapper around a driver system of specified type
 class MyDriver {
-public:
+  public:
     MyDriver(DriverModelType type,
-            ChWheeledVehicle& vehicle,
-            std::shared_ptr<ChBezierCurve> path,
-            double road_width,
-            bool path_is_closed)
-            : m_type(type), m_steering_controller(nullptr) {
+             ChWheeledVehicle& vehicle,
+             std::shared_ptr<ChBezierCurve> path,
+             double road_width,
+             bool path_is_closed)
+        : m_type(type), m_steering_controller(nullptr) {
         switch (type) {
             case DriverModelType::PID: {
                 m_driver_type = "PID";
 
                 auto driverPID = chrono_types::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed,
-                        path_is_closed);
+                                                                                 path_is_closed);
                 driverPID->GetSteeringController().SetLookAheadDistance(5);
                 driverPID->GetSteeringController().SetGains(0.5, 0, 0);
                 driverPID->GetSpeedController().SetGains(0.4, 0, 0);
@@ -127,7 +127,7 @@ public:
                 m_driver_type = "STANLEY";
 
                 auto driverStanley = chrono_types::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path",
-                        target_speed, path_is_closed);
+                                                                                     target_speed, path_is_closed);
                 driverStanley->GetSteeringController().SetLookAheadDistance(5.0);
                 driverStanley->GetSteeringController().SetGains(0.5, 0.0, 0.0);
                 driverStanley->GetSpeedController().SetGains(0.4, 0, 0);
@@ -140,7 +140,7 @@ public:
                 m_driver_type = "XT";
 
                 auto driverXT = chrono_types::make_shared<ChPathFollowerDriverXT>(
-                        vehicle, path, "my_path", target_speed, path_is_closed, vehicle.GetMaxSteeringAngle());
+                    vehicle, path, "my_path", target_speed, path_is_closed, vehicle.GetMaxSteeringAngle());
                 driverXT->GetSteeringController().SetLookAheadDistance(5);
                 driverXT->GetSteeringController().SetGains(0.4, 1, 1, 1);
                 driverXT->GetSpeedController().SetGains(0.4, 0, 0);
@@ -153,7 +153,7 @@ public:
                 m_driver_type = "SR";
 
                 auto driverSR = chrono_types::make_shared<ChPathFollowerDriverSR>(
-                        vehicle, path, "my_path", target_speed, path_is_closed, vehicle.GetMaxSteeringAngle(), 3.2);
+                    vehicle, path, "my_path", target_speed, path_is_closed, vehicle.GetMaxSteeringAngle(), 3.2);
                 driverSR->GetSteeringController().SetGains(0.1, 5);
                 driverSR->GetSteeringController().SetPreviewTime(0.5);
                 driverSR->GetSpeedController().SetGains(0.4, 0, 0);
@@ -171,7 +171,7 @@ public:
                 ////    path_is_closed, road_width, vehicle.GetMaxSteeringAngle(), 3.2);
 
                 auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(
-                        vehicle, path, "my_path", path_is_closed, road_width, vehicle.GetMaxSteeringAngle(), 3.2);
+                    vehicle, path, "my_path", path_is_closed, road_width, vehicle.GetMaxSteeringAngle(), 3.2);
                 driverHUMAN->SetPreviewTime(0.5);
                 driverHUMAN->SetLateralGains(0.1, 2);
                 driverHUMAN->SetLongitudinalGains(0.1, 0.1, 0.2);
@@ -218,7 +218,7 @@ public:
         std::cout << "Minimum Lateral Acc. = " << driverHUMAN->GetMinLatAcc() << " m^2/s" << std::endl;
     }
 
-private:
+  private:
     DriverModelType m_type;
     std::string m_driver_type;
     std::shared_ptr<ChDriver> m_driver;
@@ -334,15 +334,17 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("OpenCRG Steering");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->AttachVehicle(&my_hmmwv.GetVehicle());
+    vis->SetSystemSymbol(1.0);
+    vis->SetTargetSymbol(0.1, ChColor(1.0, 0.0, 0.0));
+    vis->SetSentinelSymbol(0.1, ChColor(0.0, 1.0, 0.0));
     vis->Initialize();
-
     /*
     // Visualization of controller points (sentinel & target)
     irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
     irr::scene::IMeshSceneNode* ballT = vis->GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
-*/
+    */
     // ----------------
     // Output directory
     // ----------------
@@ -373,15 +375,18 @@ int main(int argc, char* argv[]) {
         DriverInputs driver_inputs = driver.GetInputs();
 
         // Update sentinel and target location markers for the path-follower controller.
-        //ballS->setPosition(irr::core::vector3dfCH(driver.GetSentinelLocation()));
-        //ballT->setPosition(irr::core::vector3dfCH(driver.GetTargetLocation()));
+        // ballS->setPosition(irr::core::vector3dfCH(driver.GetSentinelLocation()));
+        // ballT->setPosition(irr::core::vector3dfCH(driver.GetTargetLocation()));
+        vis->SetSystemSymbolPosition(driver.GetSentinelLocation());
+        vis->SetTargetSymbolPosition(driver.GetTargetLocation());
+        vis->SetSentinelSymbolPosition(driver.GetSentinelLocation());
 
         // Render scene and output images
         vis->BeginScene();
         vis->Render();
 
         // Draw the world reference frame at the sentinel location
-        //vis->RenderFrame(ChFrame<>(driver.GetSentinelLocation()));
+        // vis->RenderFrame(ChFrame<>(driver.GetSentinelLocation()));
 
         if (output_images && sim_frame % render_steps == 0) {
             char filename[200];

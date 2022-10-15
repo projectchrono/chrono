@@ -64,6 +64,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void ShowAllCoGs(double size);
     void SetGuiFontSize(float theSize);
     void SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
+    void SetSystemSymbol(double size);
+    void SetSystemSymbolPosition(ChVector<> pos);
+    void SetTargetSymbol(double size, ChColor col);
+    void SetTargetSymbolPosition(ChVector<> pos);
+    void SetSentinelSymbol(double size, ChColor col);
+    void SetSentinelSymbolPosition(ChVector<> pos);
     void BeginScene() {};
     void EndScene() {};
     double GetModelTime();
@@ -122,6 +128,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::dvec3 m_vsg_cameraTarget = vsg::dvec3(0.0, 0.0, 0.0);
     vsg::ref_ptr<vsg::LookAt> m_lookAt;
     vsg::ref_ptr<vsg::Camera> m_vsg_camera;
+    vsg::dvec3 m_system_symbol_position = vsg::dvec3(0.0,0.0,0.0);
+    vsg::dvec3 m_system_symbol_size = vsg::dvec3(1.0,1.0,1.0);
+    vsg::dvec3 m_target_symbol_position = vsg::dvec3(0.0,0.0,0.0);
+    vsg::dvec3 m_target_symbol_size = vsg::dvec3(1.0,1.0,1.0);
+    vsg::dvec3 m_sentinel_symbol_position = vsg::dvec3(0.0,0.0,0.0);
+    vsg::dvec3 m_sentinel_symbol_size = vsg::dvec3(1.0,1.0,1.0);
 
   private:
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
@@ -146,12 +158,15 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //                            +- m_particleScene
     //                            |
     //                            +- m_decoScene
+    //                            |
+    //                            +- m_symbolScene
     vsg::ref_ptr<vsg::Group> m_scene;
     vsg::ref_ptr<vsg::Group> m_bodyScene;
     vsg::ref_ptr<vsg::Group> m_cogScene;
     vsg::ref_ptr<vsg::Group> m_linkScene;
     vsg::ref_ptr<vsg::Group> m_particleScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
+    vsg::ref_ptr<vsg::Group> m_symbolScene;
     // cache for particle shape
     vsg::ref_ptr<vsg::Group> m_particlePattern;
     //
