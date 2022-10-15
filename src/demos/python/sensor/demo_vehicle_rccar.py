@@ -73,10 +73,16 @@ render_step_size = 1.0 / 50  # FPS = 50
 my_rccar = veh.RCCar()
 my_rccar.SetContactMethod(contact_method)
 my_rccar.SetChassisCollisionType(chassis_collision_type)
-my_rccar.SetChassisFixed(True)
+my_rccar.SetChassisFixed(False)
 my_rccar.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
 my_rccar.SetTireType(tire_model)
 my_rccar.SetTireStepSize(tire_step_size)
+my_rccar.SetMaxMotorVoltageRatio(0.16)
+my_rccar.SetStallTorque(0.3)
+my_rccar.SetTireRollingResistance(0.06)
+my_rccar.SetMotorResistanceCoefficients(0.02, 1e-4)
+
+
 my_rccar.Initialize()
 
 tire_vis_type = veh.VisualizationType_PRIMITIVES  # : VisualizationType::PRIMITIVES
@@ -100,48 +106,29 @@ patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
 terrain.Initialize()
 
-# terrain = veh.RigidTerrain(my_rccar.GetSystem())
-# patch = terrain.AddPatch(chrono.CSYSNORM, chrono.GetChronoDataFile("sensor/textures/hallway.obj"), "mesh", 0.01, False)
-#
-# vis_mesh = chrono.ChTriangleMeshConnected()
-# vis_mesh.LoadWavefrontMesh(chrono.GetChronoDataFile("sensor/textures/hallway.obj"), True, True)
-#
-# trimesh_shape = chrono.ChTriangleMeshShape()
-# trimesh_shape.SetMesh(vis_mesh)
-# trimesh_shape.SetName("mesh_name")
-# trimesh_shape.SetMutable(False)
-#
-# patch.GetGroundBody().AddVisualShape(trimesh_shape)
-#
-# patch.SetContactFrictionCoefficient(0.9)
-# patch.SetContactRestitutionCoefficient(0.01)
-# patch.SetContactMaterialProperties(2e7, 0.3)
-# # patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
-#
-# terrain.Initialize()
 
+# -------------------------------------
 # Create the vehicle Irrlicht interface
-#vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-#vis.SetWindowTitle('RCcar')
-#vis.SetWindowSize(1280, 1024)
-#vis.SetChaseCamera(trackPoint, 1.5, 0.5)
-#vis.Initialize()
-#vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-#vis.AddTypicalLights()
-#vis.AttachVehicle(my_rccar.GetVehicle())
-
-
 # Create the driver system
-# driver = veh.ChIrrGuiDriver(vis)
-driver = veh.ChDriver(my_rccar.GetVehicle())
+# -------------------------------------
 
-# Set the time response for steering and throttle keyboard inputs.
-steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
-throttle_time = 1.0  # time to go from 0 to +1
-braking_time = 0.3   # time to go from 0 to +1
-# driver.SetSteeringDelta(render_step_size / steering_time)
-# driver.SetThrottleDelta(render_step_size / throttle_time)
-# driver.SetBrakingDelta(render_step_size / braking_time)
+vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
+vis.SetWindowTitle('dart')
+vis.SetWindowSize(1280, 1024)
+vis.SetChaseCamera(trackPoint, 6.0, 0.5)
+vis.Initialize()
+vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLightDirectional()
+vis.AddSkyBox()
+vis.AttachVehicle(my_rccar.GetVehicle())
+
+
+driver_data = veh.vector_Entry([veh.DataDriverEntry(0.0, 0.0, 0.0, 0.0), 
+                                veh.DataDriverEntry(0.1, 1.0, 0.0, 0.0),
+                                veh.DataDriverEntry(0.5, 1.0, 0.7, 0.0),
+                                 ])
+driver = veh.ChDataDriver(my_rccar.GetVehicle(), driver_data)
+driver.Initialize()
 
 driver.Initialize()
 
@@ -197,9 +184,6 @@ step_number = 0
 render_frame = 0
 
 while True :
-    print('test')
-    # if not vis.Run():
-    #     break
     time = my_rccar.GetSystem().GetChTime()
 
     # End simulation
@@ -207,11 +191,11 @@ while True :
         break
 
     # Render scene and output POV-Ray data
-    # if (step_number % render_steps == 0) :
-    #     vis.BeginScene()
-    #     vis.Render()
-    #     vis.EndScene()
-    #     render_frame += 1
+    if (step_number % render_steps == 0) :
+        vis.BeginScene()
+        vis.Render()
+        vis.EndScene()
+        render_frame += 1
 
     # Get driver inputs
     driver_inputs = driver.GetInputs()
