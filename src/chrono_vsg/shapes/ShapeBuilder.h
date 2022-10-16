@@ -48,20 +48,16 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
     float m_maxAnisotropy = 0.0f;
 
     vsg::ref_ptr<vsg::Group> createShape(BasicShape theShape,
-            std::shared_ptr<ChVisualMaterial> material,
-            vsg::ref_ptr<vsg::MatrixTransform> transform,
-            bool drawMode,
-            std::shared_ptr<ChSurfaceShape> surface = nullptr);
+                                         std::shared_ptr<ChVisualMaterial> material,
+                                         vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                         bool drawMode,
+                                         std::shared_ptr<ChSurfaceShape> surface = nullptr);
 
-    vsg::ref_ptr<vsg::Group> createTrimeshColShape(std::shared_ptr<ChPhysicsItem> physItem,
-                                                   ChVisualModel::ShapeInstance shapeInstance,
-                                                   vsg::ref_ptr<vsg::MatrixTransform> transform,
+    vsg::ref_ptr<vsg::Group> createTrimeshColShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool drawMode,
                                                    std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
 
-    vsg::ref_ptr<vsg::Group> createTrimeshMatShape(std::shared_ptr<ChPhysicsItem> physItem,
-                                                   ChVisualModel::ShapeInstance shapeInstance,
-                                                   vsg::ref_ptr<vsg::MatrixTransform> transform,
+    vsg::ref_ptr<vsg::Group> createTrimeshMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool drawMode,
                                                    std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
 
@@ -101,8 +97,8 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
 
     // set mbs->vsg mapping info to the root group node
     static void SetMBSInfo(vsg::ref_ptr<vsg::Group> group,
-                    std::shared_ptr<ChPhysicsItem> physItem,
-                    ChVisualModel::ShapeInstance shapeInstance);
+                           std::shared_ptr<ChPhysicsItem> physItem,
+                           ChVisualModel::ShapeInstance shapeInstance);
 
     /// create a ShaderSet for Phong shaded rendering with tiled textures
     vsg::ref_ptr<vsg::ShaderSet> createTilingPhongShaderSet(vsg::ref_ptr<const vsg::Options> options = {});

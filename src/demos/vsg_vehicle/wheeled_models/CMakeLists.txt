@@ -4,6 +4,7 @@
 SET(DEMOS
   demo_vsg_VEH_CityBus
   demo_vsg_VEH_HMMWV_Accel
+  demo_vsg_VEH_HMMWV_dlc
   demo_vsg_VEH_TwoCars
   demo_vsg_VEH_RigidTerrain
   demo_vsg_VEH_WheeledJSON

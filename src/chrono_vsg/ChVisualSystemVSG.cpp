@@ -819,12 +819,16 @@ void ChVisualSystemVSG::BindAll() {
                                     vsg::scale(scale.x(), scale.y(), scale.z());
                 if (trimesh->GetNumMaterials() > 0) {
                     GetLog() << "... has a triangle mesh shape with material(s)\n";
-                    m_bodyScene->addChild(m_shapeBuilder->createTrimeshMatShape(body, shape_instance, transform,
-                                                                                m_draw_as_wireframe, trimesh));
+                    auto tmpGroup = m_shapeBuilder->createTrimeshMatShape(transform,
+                            m_draw_as_wireframe, trimesh);
+                    ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
+                    m_bodyScene->addChild(tmpGroup);
                 } else {
                     GetLog() << "... has a triangle mesh shape with color(s)\n";
-                    m_bodyScene->addChild(m_shapeBuilder->createTrimeshColShape(body, shape_instance, transform,
-                                                                                m_draw_as_wireframe, trimesh));
+                    auto tmpGroup = m_shapeBuilder->createTrimeshColShape(transform,
+                            m_draw_as_wireframe, trimesh);
+                    ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
+                    m_bodyScene->addChild(tmpGroup);
                 }
             } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
                 GetLog() << "... has a surface mesh shape\n";
@@ -1239,6 +1243,40 @@ void ChVisualSystemVSG::Point2PointHelperAbs(ChVector<>& P1,
 
 void ChVisualSystemVSG::SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col) {
     m_decoScene->addChild(m_shapeBuilder->createDecoGrid(ustep, vstep, nu, nv, pos, col));
+}
+
+void ChVisualSystemVSG::SetDecoObject(std::string objFileName, ChCoordsys<> csys, ChVector<> scale, ChColor col) {
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(objFileName,true,true);
+    if(trimesh == nullptr) {
+        GetLog() <<  "Couldn't read file " << objFileName << "\n";;
+        return;
+    } else {
+        GetLog() << "Read file " << objFileName << "\n";
+    }
+    ChVector<> pos = csys.pos;
+    ChQuaternion<> quat = csys.rot;
+    ChVector<> rotAxis;
+    double rotAngle;
+    quat.Q_to_AngAxis(rotAngle, rotAxis);
+    auto transform = vsg::MatrixTransform::create();
+    transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+            vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+            vsg::scale(scale.x(), scale.y(), scale.z());
+    auto tms = chrono_types::make_shared<ChTriangleMeshShape>();
+    tms->SetMesh(trimesh, true);
+    if(tms->GetNumMaterials() > 0) {
+        GetLog() << "... with mat\n";
+        for(int i=0; i<tms->GetNumMaterials(); i++) {
+            tms->GetMaterial(i)->SetDiffuseColor(col);
+            tms->GetMaterial(i)->SetAmbientColor(ChColor(0.2, 0.2, 0.2));
+        }
+        auto tmpGroup = m_shapeBuilder->createTrimeshMatShape(transform, m_draw_as_wireframe, tms);
+        m_decoScene->addChild(tmpGroup);
+    } else {
+        auto tmpGroup = m_shapeBuilder->createTrimeshColShape(transform, m_draw_as_wireframe, tms);
+        GetLog() << "... with col\n";
+        m_decoScene->addChild(tmpGroup);
+    }
 }
 
 void ChVisualSystemVSG::SetSystemSymbol(double size) {

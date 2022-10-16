@@ -224,15 +224,11 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(std::shared_ptr<ChPhysicsItem> physItem,
-                                                             ChVisualModel::ShapeInstance shapeInstance,
-                                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                              bool drawMode,
                                                              std::shared_ptr<ChTriangleMeshShape> tms) {
     auto scenegraph = vsg::Group::create();
     // store some information for easier update
-    scenegraph->setValue("ItemPtr", physItem);
-    scenegraph->setValue("ShapeInstancePtr", shapeInstance);
     scenegraph->setValue("TransformPtr", transform);
 
     const auto& mesh = tms->GetMesh();
@@ -431,15 +427,11 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(std::shared_ptr<ChP
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(std::shared_ptr<ChPhysicsItem> physItem,
-                                                             ChVisualModel::ShapeInstance shapeInstance,
-                                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                              bool drawMode,
                                                              std::shared_ptr<ChTriangleMeshShape> tms) {
     auto scenegraph = vsg::Group::create();
     // store some information for easier update
-    scenegraph->setValue("ItemPtr", physItem);
-    scenegraph->setValue("ShapeInstancePtr", shapeInstance);
     scenegraph->setValue("TransformPtr", transform);
 
     // set up model transformation node
