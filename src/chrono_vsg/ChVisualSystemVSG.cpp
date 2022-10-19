@@ -206,6 +206,32 @@ class GuiComponent {
                     ImGui::Spacing();
                 }
             }
+            if (_params->showTrackedVehicleState) {
+                ImGui::BeginTable("TrackDriveTable", 3, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                                  ImVec2(0.0f, 0.0f));
+                ImGui::TableNextColumn();
+                sprintf(label, "Sprocket Torque");
+                ImGui::Text(label);
+                ImGui::TableNextColumn();
+                sprintf(label, "L: %+5.1f Nm", m_appPtr->GetSprocketTorque(0));
+                ImGui::Text(label);
+                ImGui::TableNextColumn();
+                sprintf(label, " R: %+5.1f Nm", m_appPtr->GetSprocketTorque(1));
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                sprintf(label, "Sprocket Speed");
+                ImGui::Text(label);
+                ImGui::TableNextColumn();
+                sprintf(label, "L: %+5.1f RPM", m_appPtr->GetSprocketSpeed(0));
+                ImGui::Text(label);
+                ImGui::TableNextColumn();
+                sprintf(label, " R: %+5.1f RPM", m_appPtr->GetSprocketSpeed(1));
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::EndTable();
+                ImGui::Spacing();
+            }
             ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f));
             sprintf(label, "%.4f s", m_appPtr->GetModelTime());
@@ -228,9 +254,11 @@ class GuiComponent {
             ImGui::EndTable();
             ImGui::Spacing();
 
-            if (ImGui::Button(
-                    "Quit"))  // Buttons return true when clicked (most widgets return true when edited/activated)
-                m_appPtr->Quit();
+            /* Example for an interactive element, better use the escape key, as it is more reactive with high MBS load
+                        if (ImGui::Button(
+                                "Quit"))  // Buttons return true when clicked (most widgets return true when
+               edited/activated) m_appPtr->Quit();
+            */
 
             ImGui::End();
             visibleComponents = true;
@@ -780,8 +808,8 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE,
-                        material, transform, m_draw_as_wireframe);
+                auto tmpGroup =
+                    m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
@@ -793,8 +821,8 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE,
-                        material, transform, m_draw_as_wireframe);
+                auto tmpGroup =
+                    m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, m_draw_as_wireframe);
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto barrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
@@ -806,8 +834,8 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(rad.x(), rad.y(), rad.z());
-                auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE,
-                        material, transform, m_draw_as_wireframe);
+                auto tmpGroup =
+                    m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, material, transform, m_draw_as_wireframe);
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
@@ -819,14 +847,12 @@ void ChVisualSystemVSG::BindAll() {
                                     vsg::scale(scale.x(), scale.y(), scale.z());
                 if (trimesh->GetNumMaterials() > 0) {
                     GetLog() << "... has a triangle mesh shape with material(s)\n";
-                    auto tmpGroup = m_shapeBuilder->createTrimeshMatShape(transform,
-                            m_draw_as_wireframe, trimesh);
+                    auto tmpGroup = m_shapeBuilder->createTrimeshMatShape(transform, m_draw_as_wireframe, trimesh);
                     ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                     m_bodyScene->addChild(tmpGroup);
                 } else {
                     GetLog() << "... has a triangle mesh shape with color(s)\n";
-                    auto tmpGroup = m_shapeBuilder->createTrimeshColShape(transform,
-                            m_draw_as_wireframe, trimesh);
+                    auto tmpGroup = m_shapeBuilder->createTrimeshColShape(transform, m_draw_as_wireframe, trimesh);
                     ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                     m_bodyScene->addChild(tmpGroup);
                 }
@@ -836,8 +862,8 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(1.0, 1.0, 1.0);
-                auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::SURFACE_SHAPE,
-                        material, transform, m_draw_as_wireframe, surface);
+                auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::SURFACE_SHAPE, material, transform,
+                                                            m_draw_as_wireframe, surface);
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
@@ -1246,9 +1272,10 @@ void ChVisualSystemVSG::SetDecoGrid(double ustep, double vstep, int nu, int nv, 
 }
 
 void ChVisualSystemVSG::SetDecoObject(std::string objFileName, ChCoordsys<> csys, ChVector<> scale, ChColor col) {
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(objFileName,true,true);
-    if(trimesh == nullptr) {
-        GetLog() <<  "Couldn't read file " << objFileName << "\n";;
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(objFileName, true, true);
+    if (trimesh == nullptr) {
+        GetLog() << "Couldn't read file " << objFileName << "\n";
+        ;
         return;
     } else {
         GetLog() << "Read file " << objFileName << "\n";
@@ -1260,13 +1287,13 @@ void ChVisualSystemVSG::SetDecoObject(std::string objFileName, ChCoordsys<> csys
     quat.Q_to_AngAxis(rotAngle, rotAxis);
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-            vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-            vsg::scale(scale.x(), scale.y(), scale.z());
+                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                        vsg::scale(scale.x(), scale.y(), scale.z());
     auto tms = chrono_types::make_shared<ChTriangleMeshShape>();
     tms->SetMesh(trimesh, true);
-    if(tms->GetNumMaterials() > 0) {
+    if (tms->GetNumMaterials() > 0) {
         GetLog() << "... with mat\n";
-        for(int i=0; i<tms->GetNumMaterials(); i++) {
+        for (int i = 0; i < tms->GetNumMaterials(); i++) {
             tms->GetMaterial(i)->SetDiffuseColor(col);
             tms->GetMaterial(i)->SetAmbientColor(ChColor(0.2, 0.2, 0.2));
         }
@@ -1321,100 +1348,6 @@ void ChVisualSystemVSG::SetSystemSymbolPosition(ChVector<> pos) {
         transform->matrix = vsg::translate(m_system_symbol_position) * vsg::scale(m_system_symbol_size);
     }
 }
-
-    void ChVisualSystemVSG::SetTargetSymbol(double size, ChColor col) {
-        m_target_symbol_size = vsg::dvec3(size, size, size);
-
-        // Is the symbol already present?
-        vsg::ref_ptr<vsg::MatrixTransform> transform;
-        bool found = false;
-        for (auto child : m_symbolScene->children) {
-            char sType = ' ';
-            if (!child->getValue("SymbolType", sType))
-                continue;
-            if (!child->getValue("TransformPtr", transform))
-                continue;
-            if (sType != 'T')
-                continue;
-            // we only set the size
-            transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
-            found = true;
-        }
-        if (found)
-            return;
-
-        // Symbol is not found, build it
-        transform = vsg::MatrixTransform::create();
-        transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
-
-        auto material = chrono_types::make_shared<ChVisualMaterial>();
-        material->SetEmissiveColor(col);
-        auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
-        tmpGroup->setValue("SymbolType", 'T');
-        m_symbolScene->addChild(tmpGroup);
-    }
-
-    void ChVisualSystemVSG::SetTargetSymbolPosition(ChVector<> pos) {
-        m_target_symbol_position = vsg::dvec3(pos.x(), pos.y(), pos.z());
-        for (auto child : m_symbolScene->children) {
-            vsg::ref_ptr<vsg::MatrixTransform> transform;
-            char sType = ' ';
-            if (!child->getValue("SymbolType", sType))
-                continue;
-            if (!child->getValue("TransformPtr", transform))
-                continue;
-            if (sType != 'T')
-                continue;
-            transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
-        }
-    }
-
-    void ChVisualSystemVSG::SetSentinelSymbol(double size, ChColor col) {
-        m_sentinel_symbol_size = vsg::dvec3(size, size, size);
-
-        // Is the symbol already present?
-        vsg::ref_ptr<vsg::MatrixTransform> transform;
-        bool found = false;
-        for (auto child : m_symbolScene->children) {
-            char sType = ' ';
-            if (!child->getValue("SymbolType", sType))
-                continue;
-            if (!child->getValue("TransformPtr", transform))
-                continue;
-            if (sType != 'S')
-                continue;
-            // we only set the size
-            transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
-            found = true;
-        }
-        if (found)
-            return;
-
-        // Symbol is not found, build it
-        transform = vsg::MatrixTransform::create();
-        transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
-
-        auto material = chrono_types::make_shared<ChVisualMaterial>();
-        material->SetEmissiveColor(col);
-        auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
-        tmpGroup->setValue("SymbolType", 'S');
-        m_symbolScene->addChild(tmpGroup);
-    }
-
-    void ChVisualSystemVSG::SetSentinelSymbolPosition(ChVector<> pos) {
-        m_sentinel_symbol_position = vsg::dvec3(pos.x(), pos.y(), pos.z());
-        for (auto child : m_symbolScene->children) {
-            vsg::ref_ptr<vsg::MatrixTransform> transform;
-            char sType = ' ';
-            if (!child->getValue("SymbolType", sType))
-                continue;
-            if (!child->getValue("TransformPtr", transform))
-                continue;
-            if (sType != 'S')
-                continue;
-            transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
-        }
-    }
 
 }  // namespace vsg3d
 }  // namespace chrono

@@ -40,7 +40,10 @@ class CH_VEHICLE_API ChTrackedVehicleVisualSystemVSG : public ChVehicleVisualSys
     /// Attach a vehicle to this VSG wheeled vehicle visualization system.
     virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
 
-  private:
+    virtual double GetSprocketTorque(int side) override;
+    virtual double GetSprocketSpeed(int side) override;
+
+private:
     ChTrackedVehicle* m_tvehicle;
     int m_drivenAxles = 0;
 };

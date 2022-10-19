@@ -67,10 +67,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetDecoObject(std::string objFileName, ChCoordsys<> pos, ChVector<> size={1,1,1}, ChColor col={1,1,1});
     void SetSystemSymbol(double size);
     void SetSystemSymbolPosition(ChVector<> pos);
-    void SetTargetSymbol(double size, ChColor col);
-    void SetTargetSymbolPosition(ChVector<> pos);
-    void SetSentinelSymbol(double size, ChColor col);
-    void SetSentinelSymbolPosition(ChVector<> pos);
     void BeginScene() {};
     void EndScene() {};
     double GetModelTime();
@@ -88,6 +84,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     virtual double GetTconvSpeedOutput() { return 0.0; }
     virtual int GetNumDrivenAxles() { return 0; }
     virtual double GetTireTorque(int axle, int side) { return 0.0; }
+    virtual double GetSprocketTorque(int side) { return 0.0; }
+    virtual double GetSprocketSpeed(int side) { return 0.0; }
     virtual void AttachGui();
 
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
@@ -97,6 +95,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
         size_t frame_number = 0;  // updated in Run() loop
         double time_begin = 0.0;  // wallclock time at begin of Run() loop
         bool showVehicleState = false;
+        bool showTrackedVehicleState = false;
         double vehicleSpeed = 0;
         double steering = 0;
         double throttle = 0;
@@ -131,24 +130,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Camera> m_vsg_camera;
     vsg::dvec3 m_system_symbol_position = vsg::dvec3(0.0,0.0,0.0);
     vsg::dvec3 m_system_symbol_size = vsg::dvec3(1.0,1.0,1.0);
-    vsg::dvec3 m_target_symbol_position = vsg::dvec3(0.0,0.0,0.0);
-    vsg::dvec3 m_target_symbol_size = vsg::dvec3(1.0,1.0,1.0);
-    vsg::dvec3 m_sentinel_symbol_position = vsg::dvec3(0.0,0.0,0.0);
-    vsg::dvec3 m_sentinel_symbol_size = vsg::dvec3(1.0,1.0,1.0);
-
-  private:
-    std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
-    std::hash<std::string> m_stringHash;
-    int m_windowWidth = 800;
-    int m_windowHeight = 600;
-    int m_windowX = 0;
-    int m_windowY = 0;
-    std::string m_windowTitle;
-    ChColor m_clearColor;
-    //
-    vsg::ref_ptr<vsg::Options> m_options;
-    int m_numThreads = 16;
-    vsg::ref_ptr<vsg::OperationThreads> m_loadThreads;
     //
     //  m_scene +- skybox, lights +- m_bodyScene
     //                            |
@@ -168,6 +149,23 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Group> m_particleScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
     vsg::ref_ptr<vsg::Group> m_symbolScene;
+    vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
+    //
+    bool m_draw_as_wireframe = false;
+
+  private:
+    std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
+    std::hash<std::string> m_stringHash;
+    int m_windowWidth = 800;
+    int m_windowHeight = 600;
+    int m_windowX = 0;
+    int m_windowY = 0;
+    std::string m_windowTitle;
+    ChColor m_clearColor;
+    //
+    vsg::ref_ptr<vsg::Options> m_options;
+    int m_numThreads = 16;
+    vsg::ref_ptr<vsg::OperationThreads> m_loadThreads;
     // cache for particle shape
     vsg::ref_ptr<vsg::Group> m_particlePattern;
     //
@@ -181,9 +179,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_lightIntensity = 1.0;
     double m_elevation = 0;
     double m_acimut = 0;
-    //
-    bool m_draw_as_wireframe = false;
-    vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
     //
     std::string m_imageFilename;
     // bool m_do_image_export = false;

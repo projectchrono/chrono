@@ -39,6 +39,11 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     /// Update information related to driver inputs.
     virtual void Synchronize(const std::string& msg, const DriverInputs& driver_inputs) override;
 
+    void SetTargetSymbol(double size, ChColor col);
+    void SetTargetSymbolPosition(ChVector<> pos);
+    void SetSentinelSymbol(double size, ChColor col);
+    void SetSentinelSymbolPosition(ChVector<> pos);
+
     void IncreaseVehicleSpeed();
     void DecreaseVehicleSpeed();
     void SteeringLeft();
@@ -65,6 +70,11 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
 
 protected:
     ChVSGGuiDriver* m_guiDriver;
+
+    vsg::dvec3 m_target_symbol_position = vsg::dvec3(0.0,0.0,0.0);
+    vsg::dvec3 m_target_symbol_size = vsg::dvec3(1.0,1.0,1.0);
+    vsg::dvec3 m_sentinel_symbol_position = vsg::dvec3(0.0,0.0,0.0);
+    vsg::dvec3 m_sentinel_symbol_size = vsg::dvec3(1.0,1.0,1.0);
 
     friend class ChVSGGuiDriver;
 };

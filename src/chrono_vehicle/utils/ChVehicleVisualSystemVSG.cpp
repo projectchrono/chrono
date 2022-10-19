@@ -418,5 +418,101 @@ void ChVehicleVisualSystemVSG::LogContraintViolations() {
     m_vehicle->LogConstraintViolations();
 }
 
+
+    void ChVehicleVisualSystemVSG::SetTargetSymbol(double size, ChColor col) {
+        m_target_symbol_size = vsg::dvec3(size, size, size);
+
+        // Is the symbol already present?
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        bool found = false;
+        for (auto child : m_symbolScene->children) {
+            char sType = ' ';
+            if (!child->getValue("SymbolType", sType))
+                continue;
+            if (!child->getValue("TransformPtr", transform))
+                continue;
+            if (sType != 'T')
+                continue;
+            // we only set the size
+            transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
+            found = true;
+        }
+        if (found)
+            return;
+
+        // Symbol is not found, build it
+        transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
+
+        auto material = chrono_types::make_shared<ChVisualMaterial>();
+        material->SetEmissiveColor(col);
+        auto tmpGroup = m_shapeBuilder->createShape(vsg3d::ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+        tmpGroup->setValue("SymbolType", 'T');
+        m_symbolScene->addChild(tmpGroup);
+    }
+
+    void ChVehicleVisualSystemVSG::SetTargetSymbolPosition(ChVector<> pos) {
+        m_target_symbol_position = vsg::dvec3(pos.x(), pos.y(), pos.z());
+        for (auto child : m_symbolScene->children) {
+            vsg::ref_ptr<vsg::MatrixTransform> transform;
+            char sType = ' ';
+            if (!child->getValue("SymbolType", sType))
+                continue;
+            if (!child->getValue("TransformPtr", transform))
+                continue;
+            if (sType != 'T')
+                continue;
+            transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
+        }
+    }
+
+    void ChVehicleVisualSystemVSG::SetSentinelSymbol(double size, ChColor col) {
+        m_sentinel_symbol_size = vsg::dvec3(size, size, size);
+
+        // Is the symbol already present?
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        bool found = false;
+        for (auto child : m_symbolScene->children) {
+            char sType = ' ';
+            if (!child->getValue("SymbolType", sType))
+                continue;
+            if (!child->getValue("TransformPtr", transform))
+                continue;
+            if (sType != 'S')
+                continue;
+            // we only set the size
+            transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
+            found = true;
+        }
+        if (found)
+            return;
+
+        // Symbol is not found, build it
+        transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
+
+        auto material = chrono_types::make_shared<ChVisualMaterial>();
+        material->SetEmissiveColor(col);
+        auto tmpGroup = m_shapeBuilder->createShape(vsg3d::ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+        tmpGroup->setValue("SymbolType", 'S');
+        m_symbolScene->addChild(tmpGroup);
+    }
+
+    void ChVehicleVisualSystemVSG::SetSentinelSymbolPosition(ChVector<> pos) {
+        m_sentinel_symbol_position = vsg::dvec3(pos.x(), pos.y(), pos.z());
+        for (auto child : m_symbolScene->children) {
+            vsg::ref_ptr<vsg::MatrixTransform> transform;
+            char sType = ' ';
+            if (!child->getValue("SymbolType", sType))
+                continue;
+            if (!child->getValue("TransformPtr", transform))
+                continue;
+            if (sType != 'S')
+                continue;
+            transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
+        }
+    }
+
+
 }  // namespace vehicle
 }  // namespace chrono
