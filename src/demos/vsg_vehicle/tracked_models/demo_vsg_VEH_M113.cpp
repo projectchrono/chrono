@@ -661,6 +661,7 @@ int main(int argc, char* argv[]) {
     if (driver_mode == DriverMode::KEYBOARD) {
         vis->AttachGuiDriver((ChVSGGuiDriver*)driver.get());
     }
+    //vis->ShowAllCoGs(0.3);
     vis->Initialize();
 
     while (vis->Run()) {

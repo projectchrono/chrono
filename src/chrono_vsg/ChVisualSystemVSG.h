@@ -50,7 +50,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void Quit();
     void WriteImageToFile(const std::string& filename) override;
     void SetWindowSize(ChVector2<int> size);
+    void SetWindowSize(int width, int height);
     void SetWindowPosition(ChVector2<int> pos);
+    void SetWindowPosition(int from_left, int from_top);
     void SetWindowTitle(std::string title);
     void SetClearColor(ChColor color);
     void SetUseSkyBox(bool yesno);
@@ -120,6 +122,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
                               ChVector<>& pos,
                               double& rotAngle,
                               ChVector<>& rotAxis);
+    bool m_initialized = false;
     vsg::ref_ptr<vsgImGui::RenderImGui> m_renderGui;
     vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
     vsg::ref_ptr<vsg::Window> m_window;

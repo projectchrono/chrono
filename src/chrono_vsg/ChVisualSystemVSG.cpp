@@ -431,37 +431,95 @@ void ChVisualSystemVSG::Quit() {
 }
 
 void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
     m_guiFontSize = theSize;
 }
 
 void ChVisualSystemVSG::SetWindowSize(ChVector2<int> size) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
     m_windowWidth = size[0];
     m_windowHeight = size[1];
 }
 
+void ChVisualSystemVSG::SetWindowSize(int width, int height) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
+    m_windowWidth = width;
+    m_windowHeight = height;
+}
+
 void ChVisualSystemVSG::SetWindowPosition(ChVector2<int> pos) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
     m_windowX = pos[0];
     m_windowY = pos[1];
 }
 
+void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
+    m_windowX = from_left;
+    m_windowY = from_top;
+}
+
 void ChVisualSystemVSG::SetWindowTitle(std::string title) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
     m_windowTitle = title;
 }
 
 void ChVisualSystemVSG::SetClearColor(ChColor color) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
     m_clearColor = color;
 }
 
 void ChVisualSystemVSG::SetUseSkyBox(bool yesno) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
     m_useSkybox = yesno;
 }
 
 void ChVisualSystemVSG::AddCamera(const ChVector<>& pos, ChVector<> targ) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
     m_vsg_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
     m_vsg_cameraTarget = vsg::dvec3(targ.x(), targ.y(), targ.z());
 }
 
+void ChVisualSystemVSG::ShowAllCoGs(double size) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
+    m_params->cogSymbolSize = size;
+}
+
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
     switch (upDir) {
         case CameraVerticalDir::Y:
             m_cameraUpVector = vsg::dvec3(0, 1, 0);
@@ -475,6 +533,10 @@ void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
 }
 
 void ChVisualSystemVSG::SetLightDirection(double acimut, double elevation) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
     m_acimut = ChClamp(acimut, -CH_C_PI, CH_C_PI);
     m_elevation = ChClamp(elevation, 0.0, CH_C_PI_2);
 }
@@ -667,6 +729,8 @@ void ChVisualSystemVSG::Initialize() {
 
     // prepare reading 3d files
     m_loadThreads = vsg::OperationThreads::create(m_numThreads, m_viewer->status);
+
+    m_initialized = true;
 }
 
 bool ChVisualSystemVSG::Run() {
@@ -702,10 +766,6 @@ void ChVisualSystemVSG::Render() {
 void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
     m_imageFilename = filename;
     m_params->do_image_capture = true;
-}
-
-void ChVisualSystemVSG::ShowAllCoGs(double size) {
-    m_params->cogSymbolSize = size;
 }
 
 void ChVisualSystemVSG::BindAll() {
@@ -753,7 +813,7 @@ void ChVisualSystemVSG::BindAll() {
             if (shape->GetMaterials().empty()) {
                 material = chrono_types::make_shared<ChVisualMaterial>();
                 material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
-                material->SetAmbientColor(ChColor(0.1, 0.1, 0.1));
+                material->SetAmbientColor(ChColor(1.0, 1.0, 1.0));
             } else {
                 material = shape->GetMaterial(0);
             }

@@ -62,8 +62,11 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
     float alpha = material->GetOpacity();
     phongMat->value().diffuse.set(material->GetDiffuseColor().R, material->GetDiffuseColor().G,
                                   material->GetDiffuseColor().B, alpha);
-    phongMat->value().ambient.set(material->GetAmbientColor().R, material->GetAmbientColor().G,
-                                  material->GetAmbientColor().B, alpha);
+    /*
+        phongMat->value().ambient.set(material->GetAmbientColor().R, material->GetAmbientColor().G,
+                material->GetAmbientColor().B, alpha);
+    */
+    phongMat->value().ambient.set(1.0, 1.0, 1.0, alpha); // ambient intensity set by ambient light source!
     phongMat->value().specular.set(material->GetSpecularColor().R, material->GetSpecularColor().G,
                                    material->GetSpecularColor().B, alpha);
     phongMat->value().emissive.set(material->GetEmissiveColor().R, material->GetEmissiveColor().G,
