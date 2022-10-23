@@ -57,7 +57,13 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 // Forward declarations
-bool GetProblemSpecs(int argc, char** argv, int rank, std::string& terrain_specfile, bool& verbose);
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     int rank,
+                     std::string& terrain_specfile,
+                     double& length,
+                     double& width,
+                     bool& verbose);
 
 // =============================================================================
 
@@ -137,18 +143,6 @@ int main(int argc, char** argv) {
     std::string suffix = "";
     bool verbose = true;
 
-    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, verbose)) {
-        MPI_Finalize();
-        return 1;
-    }
-
-    // Peek in spec file and extract terrain type
-    auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(terrain_specfile);
-    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::UNKNOWN) {
-        MPI_Finalize();
-        return 1;
-    }
-
     // If use_JSON_spec=true, use an M113 model specified through JSON files.
     // If use_JSON_spec=false, use an M113 model from the Chrono::Vehicle model library
     bool use_JSON_spec = true;
@@ -158,11 +152,26 @@ int main(int argc, char** argv) {
 
     double terrain_length = 40;
     double terrain_width = 20;
-    ChVector<> init_loc(-15, -8, 0.9);
+
+    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, terrain_length, terrain_width, verbose)) {
+        MPI_Finalize();
+        return 1;
+    }
+
+    ChVector<> init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, 0.9);
+
+    // Overwrite terrain patch size if using a DBP rig
     if (use_DBP_rig) {
         terrain_length = 20;
         terrain_width = 5;
         init_loc = ChVector<>(-5, 0, 0.9);
+    }
+
+    // Peek in spec file and extract terrain type
+    auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(terrain_specfile);
+    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::UNKNOWN) {
+        MPI_Finalize();
+        return 1;
     }
 
     // Prepare output directory.
@@ -197,8 +206,8 @@ int main(int argc, char** argv) {
                 vehicle::GetDataFile("M113/powertrain/M113_ShaftsPowertrain.json"));
         } else {
             auto m113_vehicle = chrono_types::make_shared<m113::M113_Vehicle>(
-                false, TrackShoeType::SINGLE_PIN, DoublePinTrackShoeType::ONE_CONNECTOR,
-                DrivelineTypeTV::BDS, BrakeType::SIMPLE, false, false, false, nullptr);
+                false, TrackShoeType::SINGLE_PIN, DoublePinTrackShoeType::ONE_CONNECTOR, DrivelineTypeTV::BDS,
+                BrakeType::SIMPLE, false, false, false, nullptr);
             auto m113_powertrain = chrono_types::make_shared<m113::M113_ShaftsPowertrain>("Powertrain");
             vehicle = new ChVehicleCosimTrackedVehicleNode(m113_vehicle, m113_powertrain);
         }
@@ -298,10 +307,19 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-bool GetProblemSpecs(int argc, char** argv, int rank, std::string& terrain_specfile, bool& verbose) {
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     int rank,
+                     std::string& terrain_specfile,
+                     double& length,
+                     double& width,
+                     bool& verbose) {
     ChCLI cli(argv[0], "Tracked vehicle co-simulation (run on 2 MPI ranks)");
 
     cli.AddOption<std::string>("", "terrain_specfile", "Terrain specification file [JSON format]");
+    cli.AddOption<double>("", "terrain_length", "Terrain length [m]", std::to_string(length));
+    cli.AddOption<double>("", "terrain_width", "Terrain width [m]", std::to_string(width));
+
     cli.AddOption<bool>("", "quiet", "Disable verbose messages");
 
     if (!cli.Parse(argc, argv)) {
@@ -319,6 +337,9 @@ bool GetProblemSpecs(int argc, char** argv, int rank, std::string& terrain_specf
         }
         return false;
     }
+
+    length = cli.GetAsType<double>("terrain_length");
+    width = cli.GetAsType<double>("terrain_width");
 
     verbose = !cli.GetAsType<bool>("quiet");
 
