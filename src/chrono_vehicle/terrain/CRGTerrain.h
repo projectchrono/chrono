@@ -115,6 +115,8 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     /// This is the (x,y,z) road location at CRG parameters u=v=0.
     ChCoordsys<> GetStartPosition();
 
+    void SetRoadsidePosts(double dist = 80.0);
+
     /// Export road mesh to Wavefront file.
     void ExportMeshWavefront(const std::string& out_dir);
 

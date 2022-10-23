@@ -280,6 +280,7 @@ int main(int argc, char* argv[]) {
     terrain.UseMeshVisualization(useMesh);
     terrain.SetContactFrictionCoefficient(0.8f);
     terrain.Initialize(crg_road_file);
+    terrain.SetRoadsidePosts(75.0);
 
     // ------------------
     // Create the vehicle

@@ -63,7 +63,7 @@ enum class DriverModelType {
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Road visualization (mesh or boundary lines)
-bool useMesh = false;
+bool useMesh = true;
 
 // Desired vehicle speed (m/s)
 double target_speed = 12;
@@ -281,6 +281,7 @@ int main(int argc, char* argv[]) {
     terrain.UseMeshVisualization(useMesh);
     terrain.SetContactFrictionCoefficient(0.8f);
     terrain.Initialize(crg_road_file);
+    terrain.SetRoadsidePosts(75.0);
 
     // ------------------
     // Create the vehicle

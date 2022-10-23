@@ -46,6 +46,8 @@
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
 
+#include "chrono/assets/ChCylinderShape.h"
+
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
 
@@ -156,12 +158,47 @@ void CRGTerrain::Initialize(const std::string& crg_file) {
 
     GenerateMesh();
     GenerateCurves();
-
     m_ground->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
     if (m_use_vis_mesh) {
         SetupMeshGraphics();
     } else {
         SetupLineGraphics();
+    }
+}
+
+void CRGTerrain::SetRoadsidePosts(double dist) {
+    double ustep = ChClamp(dist, 10.0, 100.0);
+    int nu = GetLength()/ustep;
+    double vl = GetWidth() / 2.0 + 0.1, vr = -GetWidth() / 2.0 - 0.1;
+    for(int iu=0; iu<nu; iu++) {
+        double u = ustep*double(iu);
+        double xl, yl, zl;
+        double xr, yr, zr;
+        if (crgEvaluv2xy(m_cpId, u, vl, &xl, &yl) != 1) {
+            GetLog() << "could not get xl,yl in " << __func__ << "\n";
+        }
+        if (crgEvaluv2xy(m_cpId, u, vr, &xr, &yr) != 1) {
+            GetLog() << "could not get r,yr in " << __func__ << "\n";
+        }
+        if (crgEvaluv2z(m_cpId, u, vl, &zl) != 1) {
+            GetLog() << "could not get zl in " << __func__ << "\n";
+        }
+        if (crgEvaluv2z(m_cpId, u, vr, &zr) != 1) {
+            GetLog() << "could not get zr in " << __func__ << "\n";
+        }
+        geometry::ChCylinder cyl;
+        cyl.p1 = ChVector<>(0, 0, 0);
+        if(iu == 0)
+            cyl.p2 = ChVector<>(0, 0, 2.0);
+        else
+            cyl.p2 = ChVector<>(0, 0, 1.0);
+        cyl.rad = 0.07;
+        auto shape_l = chrono_types::make_shared<ChCylinderShape>(cyl);
+        ChFrame<> frame_l(ChVector<>(xl, yl, zl), QUNIT);
+        m_ground->AddVisualShape(shape_l, frame_l);
+        auto shape_r = chrono_types::make_shared<ChCylinderShape>(cyl);
+        ChFrame<> frame_r(ChVector<>(xr, yr, zr), QUNIT);
+        m_ground->AddVisualShape(shape_r, frame_r);
     }
 }
 
