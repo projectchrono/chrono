@@ -115,7 +115,9 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     /// This is the (x,y,z) road location at CRG parameters u=v=0.
     ChCoordsys<> GetStartPosition();
 
-    void SetRoadsidePosts(double dist = 80.0);
+    void SetRoadsidePostDistance(double dist) { m_post_distance = ChClamp(dist, 0.0, 100.0); };
+
+    void SetRoadTextureFile(std::string texFile);
 
     /// Export road mesh to Wavefront file.
     void ExportMeshWavefront(const std::string& out_dir);
@@ -133,6 +135,11 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     void SetupMeshGraphics();
     void GenerateMesh();
     void GenerateCurves();
+    void SetRoadsidePosts();
+
+    double m_post_distance; // 0 means no posts
+    std::string m_texture_filename;
+    bool m_use_texture; // if set, use a textured mesh
 
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     bool m_use_vis_mesh;               ///< mesh or boundary visual asset?
