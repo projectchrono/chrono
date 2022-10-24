@@ -31,17 +31,13 @@ ChFsiInterface::ChFsiInterface(ChSystem& mbs,
                                std::shared_ptr<SimParams> params,
                                std::shared_ptr<fea::ChMesh>& mesh,
                                std::vector<std::shared_ptr<ChBody>>& bodies,
-                               std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& nodes,
-                               std::vector<std::shared_ptr<fea::ChElementCableANCF>>& cables,
-                               std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& shells)
+                               std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& nodes)
     : m_sysMBS(mbs),
       m_sysFSI(fsi),
       m_paramsH(params),
       m_fsi_mesh(mesh),
       m_fsi_bodies(bodies),
       m_fsi_nodes(nodes),
-      m_fsi_cables(cables),
-      m_fsi_shells(shells),
       m_verbose(true) {
     size_t numBodies = m_sysMBS.Get_bodylist().size();
     m_rigid_backup = chrono_types::make_shared<ChronoBodiesDataH>(numBodies);

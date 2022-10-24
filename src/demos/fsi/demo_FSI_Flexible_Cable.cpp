@@ -124,8 +124,8 @@ int main(int argc, char* argv[]) {
     sysFSI.SetContainerDim(ChVector<>(bxDim, byDim, bzDim));
 
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> cMin = ChVector<>(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim );
-    ChVector<> cMax = ChVector<>( 5 * bxDim,  byDim / 2.0 + initSpace0 / 2.0,  5 * bzDim );
+    ChVector<> cMin = ChVector<>(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim);
+    ChVector<> cMax = ChVector<>(5 * bxDim, byDim / 2.0 + initSpace0 / 2.0, 5 * bzDim);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Set SPH discretization type, consistent or inconsistent
@@ -162,20 +162,20 @@ int main(int argc, char* argv[]) {
         fsi_vis.Initialize();
     }
 
-    // Set MBS solver
-    #ifdef CHRONO_PARDISO_MKL
-        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-        mkl_solver->LockSparsityPattern(true);
-        sysMBS.SetSolver(mkl_solver);
-    #else
-        auto solver = chrono_types::make_shared<ChSolverMINRES>();
-        sysMBS.SetSolver(solver);
-        solver->SetMaxIterations(2000);
-        solver->SetTolerance(1e-10);
-        solver->EnableDiagonalPreconditioner(true);
-        solver->SetVerbose(false);
-        sysMBS.SetSolverForceTolerance(1e-10);
-    #endif
+// Set MBS solver
+#ifdef CHRONO_PARDISO_MKL
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+    mkl_solver->LockSparsityPattern(true);
+    sysMBS.SetSolver(mkl_solver);
+#else
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    sysMBS.SetSolver(solver);
+    solver->SetMaxIterations(2000);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
+    sysMBS.SetSolverForceTolerance(1e-10);
+#endif
 
     // Simulation loop
     double dT = sysFSI.GetStepSize();
@@ -218,12 +218,12 @@ int main(int argc, char* argv[]) {
 }
 
 //--------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid/flexible bodies, and if 
+// Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
 void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.Set_G_acc(ChVector<>(0, 0, 0));
     sysFSI.Set_G_acc(ChVector<>(0, 0, -9.81));
-    
+
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
@@ -247,14 +247,14 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     msection_cable->SetBeamRaleyghDamping(BeamRaleyghDamping);
 
     ChBuilderCableANCF builder;
-    builder.BuildBeam(my_mesh,                                  // FEA mesh with nodes and elements
-                      msection_cable,                           // section material for cable elements
-                      num_cable_element,                        // number of elements in the segment
-                      ChVector<>(loc_x, 0.0, length_cable),     // beam start point
-                      ChVector<>(loc_x, 0.0, initSpace0),       // beam end point
-                      _1D_elementsNodes_mesh,                   // node indices
-                      NodeNeighborElement_mesh                  // neighbor node indices
-    ); 
+    builder.BuildBeam(my_mesh,                               // FEA mesh with nodes and elements
+                      msection_cable,                        // section material for cable elements
+                      num_cable_element,                     // number of elements in the segment
+                      ChVector<>(loc_x, 0.0, length_cable),  // beam start point
+                      ChVector<>(loc_x, 0.0, initSpace0),    // beam end point
+                      _1D_elementsNodes_mesh,                // node indices
+                      NodeNeighborElement_mesh               // neighbor node indices
+    );
 
     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(builder.GetLastBeamNodes().back());
     auto pos_const = chrono_types::make_shared<ChLinkPointFrame>();
@@ -265,20 +265,16 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     dir_const->Initialize(node, ground);
     dir_const->SetDirectionInAbsoluteCoords(node->D);
     sysMBS.Add(dir_const);
-    
+
     // Add the mesh to the system
     sysMBS.Add(my_mesh);
 
     // fluid representation of flexible bodies
     bool multilayer = true;
     bool removeMiddleLayer = true;
-    std::vector<std::vector<int>> _2D_elementsNodes_mesh;
-    
-    sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, _1D_elementsNodes_mesh, 
-        _2D_elementsNodes_mesh, true, false, multilayer, removeMiddleLayer, 1, 0);
+    sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, _1D_elementsNodes_mesh, std::vector<std::vector<int>>(),
+                         true, false, multilayer, removeMiddleLayer, 1, 0);
 
-    sysFSI.SetCableElementsNodes(_1D_elementsNodes_mesh);
-
-    sysFSI.SetFsiMesh(my_mesh);
+    sysFSI.AddFsiMesh(my_mesh, _1D_elementsNodes_mesh, std::vector<std::vector<int>>());
     fea::ChMeshExporter::writeMesh(my_mesh, MESH_CONNECTIVITY);
 }

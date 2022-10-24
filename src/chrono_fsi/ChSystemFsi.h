@@ -270,17 +270,13 @@ class CH_FSI_API ChSystemFsi {
     /// FSI ChNodeFEAxyzD are the ones seen by the fluid dynamics system.
     std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& GetFsiNodes() { return m_fsi_nodes; }
 
-    /// Add FSI body to the FsiSystem.
-    void AddFsiBody(std::shared_ptr<ChBody> mbody) { m_fsi_bodies.push_back(mbody); }
+    /// Add a rigid body to the FsiSystem.
+    void AddFsiBody(std::shared_ptr<ChBody> body);
 
-    /// Set number of nodes in FEA cable elements in the FSI system.
-    void SetCableElementsNodes(const std::vector<std::vector<int>>& elementsNodes);
-
-    /// Set number of nodes in FEA shell elements in the FSI system.
-    void SetShellElementsNodes(const std::vector<std::vector<int>>& elementsNodes);
-
-    /// Set the FSI mesh for flexible elements.
-    void SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh);
+    /// Add an FEA mesh to the FSI system.
+    void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
+                    const std::vector<std::vector<int>>& beam_elements,
+                    std::vector<std::vector<int>>& shell_elements);
 
     /// Complete construction of the FSI system (fluid and BDE objects).
     /// Use parameters read from JSON file and/or specified through various Set functions.

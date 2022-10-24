@@ -47,9 +47,7 @@ class ChFsiInterface : public ChFsiGeneral {
                    std::shared_ptr<SimParams> params,
                    std::shared_ptr<fea::ChMesh>& mesh,
                    std::vector<std::shared_ptr<ChBody>>& bodies,
-                   std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& nodes,
-                   std::vector<std::shared_ptr<fea::ChElementCableANCF>>& cables,
-                   std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& shells);
+                   std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& nodes);
 
     /// Destructor of the FSI interface class.
     ~ChFsiInterface();
@@ -102,8 +100,6 @@ class ChFsiInterface : public ChFsiGeneral {
     std::shared_ptr<fea::ChMesh>& m_fsi_mesh;
     std::vector<std::shared_ptr<ChBody>>& m_fsi_bodies;                        ///< bodies handled by the FSI system
     std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& m_fsi_nodes;             ///< FEA nodes available in FSI system
-    std::vector<std::shared_ptr<fea::ChElementCableANCF>>& m_fsi_cables;       ///< FEA cable elements in FSI system
-    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& m_fsi_shells;  ///< FEA shell elements in FSI system
 
     friend class ChSystemFsi;
 };

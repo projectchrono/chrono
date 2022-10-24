@@ -77,7 +77,7 @@ ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
     m_fsi_cables_bce_num.resize(0);
     m_fsi_interface = chrono_types::make_unique<ChFsiInterface>(m_sysMBS, *m_sysFSI,    //
                                                                 m_paramsH, m_fsi_mesh,  //
-                                                                m_fsi_bodies, m_fsi_nodes, m_fsi_cables, m_fsi_shells);
+                                                                m_fsi_bodies, m_fsi_nodes);
 }
 
 ChSystemFsi::~ChSystemFsi() {}
@@ -661,21 +661,18 @@ void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::SetCableElementsNodes(const std::vector<std::vector<int>>& elementsNodes) {
-    m_fea_cable_nodes = elementsNodes;
-    size_t test = m_sysFSI->fsiGeneralData->CableElementsNodesH.size();
-    std::cout << "Number of cable element nodes" << test << std::endl;
+void ChSystemFsi::AddFsiBody(std::shared_ptr<ChBody> body) {
+    m_fsi_bodies.push_back(body);
 }
 
-void ChSystemFsi::SetShellElementsNodes(const std::vector<std::vector<int>>& elementsNodes) {
-    m_fea_shell_nodes = elementsNodes;
-    size_t test = m_sysFSI->fsiGeneralData->ShellElementsNodesH.size();
-    std::cout << "Number of shell element nodes" << test << std::endl;
-}
+void ChSystemFsi::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
+                             const std::vector<std::vector<int>>& beam_elements,
+                             std::vector<std::vector<int>>& shell_elements) {
+    m_fsi_mesh = mesh;
+    m_fsi_interface->SetFsiMesh(mesh);
 
-void ChSystemFsi::SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) {
-    m_fsi_mesh = other_fsi_mesh;
-    m_fsi_interface->SetFsiMesh(other_fsi_mesh);
+    m_fea_cable_nodes = beam_elements;
+    m_fea_shell_nodes = shell_elements;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1263,7 +1260,7 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-const Real pi = (Real)(CH_C_PI);
+const Real pi = Real(CH_C_PI);
 
 void ChSystemFsi::CreateBCE_wall(const Real2& size, thrust::host_vector<Real4>& bce) {
     Real kernel_h = m_paramsH->HSML;
