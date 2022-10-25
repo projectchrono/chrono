@@ -55,8 +55,8 @@ using std::endl;
 namespace chrono {
 namespace fsi {
 
-ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
-    : m_sysMBS(other_physicalSystem),
+ChSystemFsi::ChSystemFsi(ChSystem& sysMBS)
+    : m_sysMBS(sysMBS),
       m_verbose(true),
       m_is_initialized(false),
       m_integrate_SPH(true),
@@ -67,17 +67,10 @@ ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem)
     InitParams();
     m_num_objectsH = m_sysFSI->numObjects;
 
-    m_fsi_mesh = chrono_types::make_shared<fea::ChMesh>();
-    m_fsi_bodies.resize(0);
-    m_fsi_shells.resize(0);
-    m_fsi_cables.resize(0);
-    m_fsi_nodes.resize(0);
-    m_fsi_bodies_bce_num.resize(0);
-    m_fsi_shells_bce_num.resize(0);
-    m_fsi_cables_bce_num.resize(0);
-    m_fsi_interface = chrono_types::make_unique<ChFsiInterface>(m_sysMBS, *m_sysFSI,    //
-                                                                m_paramsH, m_fsi_mesh,  //
-                                                                m_fsi_bodies, m_fsi_nodes);
+    m_num_cable_elements = 0;
+    m_num_shell_elements = 0;
+
+    m_fsi_interface = chrono_types::make_unique<ChFsiInterface>(m_sysMBS, *m_sysFSI, m_paramsH);
 }
 
 ChSystemFsi::~ChSystemFsi() {}
@@ -662,14 +655,13 @@ void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::AddFsiBody(std::shared_ptr<ChBody> body) {
-    m_fsi_bodies.push_back(body);
+    m_fsi_interface->m_fsi_bodies.push_back(body);
 }
 
 void ChSystemFsi::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
                              const std::vector<std::vector<int>>& beam_elements,
                              std::vector<std::vector<int>>& shell_elements) {
-    m_fsi_mesh = mesh;
-    m_fsi_interface->SetFsiMesh(mesh);
+    m_fsi_interface->m_fsi_mesh = mesh;
 
     m_fea_cable_nodes = beam_elements;
     m_fea_shell_nodes = shell_elements;
@@ -803,8 +795,8 @@ void ChSystemFsi::Initialize() {
     m_fsi_interface->ResizeChronoFEANodesData();
 
     // This also sets the referenceArray and counts numbers of various objects
-    m_sysFSI->ResizeData(m_fsi_bodies.size(), m_fsi_cables.size(), m_fsi_shells.size(),
-                         (size_t)m_fsi_mesh->GetNnodes());
+    m_sysFSI->ResizeData(m_fsi_interface->m_fsi_bodies.size(), m_num_cable_elements, m_num_shell_elements,
+                         (size_t)m_fsi_interface->m_fsi_mesh->GetNnodes());
 
     if (m_verbose) {
         cout << "Counters" << endl;
@@ -963,17 +955,6 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshD);
         m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
     }
-}
-
-void ChSystemFsi::DoStepDynamics_ChronoRK2() {
-    m_fsi_interface->Copy_ChSystem_to_External();
-    m_time += 0.5 * m_paramsH->dT;
-
-    m_sysMBS.DoStepDynamics(0.5 * m_paramsH->dT);
-    m_time -= 0.5 * m_paramsH->dT;
-    m_fsi_interface->Copy_External_To_ChSystem();
-    m_time += m_paramsH->dT;
-    m_sysMBS.DoStepDynamics(1.0 * m_paramsH->dT);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1166,8 +1147,8 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
     std::vector<int> remove1D;
 
     for (size_t i = 0; i < my_mesh->GetNnodes(); i++) {
-        auto thisNode = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(my_mesh->GetNode((unsigned int)i));
-        m_fsi_nodes.push_back(thisNode);
+        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(my_mesh->GetNode((unsigned int)i));
+        m_fsi_interface->m_fsi_nodes.push_back(node);
     }
 
     for (size_t i = 0; i < numElems; i++) {
@@ -1175,9 +1156,10 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
         if (_1D_elementsNodes.size() > 0) {
             if (auto thisCable =
                     std::dynamic_pointer_cast<fea::ChElementCableANCF>(my_mesh->GetElement((unsigned int)i))) {
+                m_num_cable_elements++;
+
                 remove1D.resize(2);
                 std::fill(remove1D.begin(), remove1D.end(), 0);
-                m_fsi_cables.push_back(thisCable);
 
                 size_t myNumNodes = (_1D_elementsNodes[i].size() > 2) ? 2 : _1D_elementsNodes[i].size();
                 for (size_t j = 0; j < myNumNodes; j++) {
@@ -1205,12 +1187,13 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
         if (_2D_elementsNodes.size() > 0) {
             if (auto thisShell =
                     std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(my_mesh->GetElement((unsigned int)i))) {
+                m_num_shell_elements++;
+
                 remove2D.resize(4);
                 remove2D_s.resize(4);
                 std::fill(remove2D.begin(), remove2D.begin() + 4, 0);
                 std::fill(remove2D_s.begin(), remove2D_s.begin() + 4, 0);
 
-                m_fsi_shells.push_back(thisShell);
                 // Look into the nodes of this element
                 size_t myNumNodes =
                     (_2D_elementsNodes[i - Curr_size].size() > 4) ? 4 : _2D_elementsNodes[i - Curr_size].size();
@@ -2082,7 +2065,7 @@ void ChSystemFsi::AddSphereBody(std::shared_ptr<ChMaterialSurface> mat_prop,
     m_sysMBS.AddBody(body);
 
     AddSphereBCE(body, ChFrame<>(VNULL, QUNIT), radius, true, true);
-    m_fsi_bodies.push_back(body);
+    m_fsi_interface->m_fsi_bodies.push_back(body);
 }
 
 void ChSystemFsi::AddCylinderBody(std::shared_ptr<ChMaterialSurface> mat_prop,
@@ -2108,7 +2091,7 @@ void ChSystemFsi::AddCylinderBody(std::shared_ptr<ChMaterialSurface> mat_prop,
     m_sysMBS.AddBody(body);
 
     AddCylinderBCE(body, ChFrame<>(VNULL, QUNIT), radius, length, true, true, true);
-    m_fsi_bodies.push_back(body);
+    m_fsi_interface->m_fsi_bodies.push_back(body);
 }
 
 void ChSystemFsi::AddBoxBody(std::shared_ptr<ChMaterialSurface> mat_prop,
@@ -2132,7 +2115,7 @@ void ChSystemFsi::AddBoxBody(std::shared_ptr<ChMaterialSurface> mat_prop,
     body->GetCollisionModel()->BuildModel();
     m_sysMBS.AddBody(body);
 
-    m_fsi_bodies.push_back(body);
+    m_fsi_interface->m_fsi_bodies.push_back(body);
     AddBoxBCE(body, ChFrame<>(VNULL, QUNIT), hsize, true);
 }
 
@@ -2204,6 +2187,20 @@ size_t ChSystemFsi::GetNumFlexBodyMarkers() const {
 
 size_t ChSystemFsi::GetNumBoundaryMarkers() const {
     return m_sysFSI->numObjects->numBoundaryMarkers;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+std::vector<std::shared_ptr<ChBody>>& ChSystemFsi::GetFsiBodies() const {
+    return m_fsi_interface->m_fsi_bodies;
+}
+
+std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& ChSystemFsi::GetFsiNodes() const {
+    return m_fsi_interface->m_fsi_nodes;
+}
+
+std::shared_ptr<fea::ChMesh> ChSystemFsi::GetFsiMesh() const {
+    return m_fsi_interface->m_fsi_mesh;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

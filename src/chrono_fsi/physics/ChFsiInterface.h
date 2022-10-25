@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu, Radu Serban
 // =============================================================================
 //
 // Base class for processing the interface between Chrono and FSI modules
@@ -44,10 +44,7 @@ class ChFsiInterface : public ChFsiGeneral {
     /// Constructor of the FSI interface class.
     ChFsiInterface(ChSystem& mbs,
                    ChSystemFsi_impl& fsi,
-                   std::shared_ptr<SimParams> params,
-                   std::shared_ptr<fea::ChMesh>& mesh,
-                   std::vector<std::shared_ptr<ChBody>>& bodies,
-                   std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& nodes);
+                   std::shared_ptr<SimParams> params);
 
     /// Destructor of the FSI interface class.
     ~ChFsiInterface();
@@ -55,9 +52,6 @@ class ChFsiInterface : public ChFsiGeneral {
     /// Read the surface-integrated pressure and viscous forces form the fluid/granular dynamics system,
     /// and add these forces and torques as external forces to the ChSystem rigid bodies.
     void Add_Rigid_ForceTorques_To_ChSystem();
-
-    /// Use an external configuration to set the generalized coordinates of the ChSystem.
-    void Copy_External_To_ChSystem();
 
     /// Use the generalized coordinates of the ChSystem to set the configuration state in the FSI system.
     void Copy_ChSystem_to_External();
@@ -67,9 +61,6 @@ class ChFsiInterface : public ChFsiGeneral {
 
     /// Resize the number of ChSystem rigid bodies.
     void ResizeChronoBodiesData();
-
-    /// Set the FSI mesh for flexible elements.
-    void SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) { m_fsi_mesh = other_fsi_mesh; };
 
     /// Add forces and torques as external forces to the ChSystem flexible bodies.
     void Add_Flex_Forces_To_ChSystem();
@@ -97,9 +88,9 @@ class ChFsiInterface : public ChFsiGeneral {
     std::shared_ptr<ChronoBodiesDataH> m_rigid_backup;  ///< backup for the Chrono system state
     std::shared_ptr<ChronoMeshDataH> m_flex_backup;     ///< backup for the Chrono system state
 
-    std::shared_ptr<fea::ChMesh>& m_fsi_mesh;
-    std::vector<std::shared_ptr<ChBody>>& m_fsi_bodies;                        ///< bodies handled by the FSI system
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& m_fsi_nodes;             ///< FEA nodes available in FSI system
+    std::shared_ptr<fea::ChMesh> m_fsi_mesh;
+    std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;                        ///< bodies handled by the FSI system
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> m_fsi_nodes;             ///< FEA nodes available in FSI system
 
     friend class ChSystemFsi;
 };

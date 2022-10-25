@@ -18,10 +18,6 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 
-#ifdef CHRONO_PARDISO_MKL
-    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#endif
-
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
@@ -34,6 +30,10 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
+
+#ifdef CHRONO_PARDISO_MKL
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 

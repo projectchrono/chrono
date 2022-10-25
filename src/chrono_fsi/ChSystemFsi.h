@@ -88,7 +88,7 @@ class CH_FSI_API ChSystemFsi {
     };
 
     /// Constructor for FSI system.
-    ChSystemFsi(ChSystem& other_physicalSystem);
+    ChSystemFsi(ChSystem& sysMBS);
 
     /// Destructor for the FSI system.
     ~ChSystemFsi();
@@ -97,9 +97,6 @@ class CH_FSI_API ChSystemFsi {
     /// It uses a Runge-Kutta 2nd order algorithm to update both the fluid and multibody system dynamics. The midpoint
     /// data of MBS is needed for fluid dynamics update.
     void DoStepDynamics_FSI();
-
-    /// Function to integrate the multibody system dynamics based on Runge-Kutta 2nd-order integration scheme.
-    void DoStepDynamics_ChronoRK2();
 
     /// Enable/disable m_verbose terminal output.
     void SetVerbose(bool m_verbose);
@@ -253,22 +250,14 @@ class CH_FSI_API ChSystemFsi {
 
     /// Get a reference to the FSI bodies.
     /// FSI bodies are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<ChBody>>& GetFsiBodies() { return m_fsi_bodies; }
+    std::vector<std::shared_ptr<ChBody>>& GetFsiBodies() const;
 
     /// Return the FSI mesh for flexible elements.
-    std::shared_ptr<fea::ChMesh> GetFsiMesh() { return m_fsi_mesh; }
-
-    /// Get a reference to the FSI ChElementCableANCF.
-    /// FSI ChElementCableANCF are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<fea::ChElementCableANCF>>& GetFsiCables() { return m_fsi_cables; }
-
-    /// Get a reference to the FSI ChElementShellANCF_3423.
-    /// FSI ChElementShellANCF_3423 are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& GetFsiShells() { return m_fsi_shells; }
+    std::shared_ptr<fea::ChMesh> GetFsiMesh() const;
 
     /// Get a reference to the FSI ChNodeFEAxyzD.
     /// FSI ChNodeFEAxyzD are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& GetFsiNodes() { return m_fsi_nodes; }
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& GetFsiNodes() const;
 
     /// Add a rigid body to the FsiSystem.
     void AddFsiBody(std::shared_ptr<ChBody> body);
@@ -562,12 +551,6 @@ class CH_FSI_API ChSystemFsi {
     std::string m_outdir;    ///< output directory
     OutpuMode m_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
 
-    std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;                        ///< vector of a pointers to FSI bodies
-    std::vector<std::shared_ptr<fea::ChElementCableANCF>> m_fsi_cables;       ///< vector of cable ANCF elements
-    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>> m_fsi_shells;  ///< vector of shell ANCF elements
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> m_fsi_nodes;             ///< vector of FEA nodes
-    std::shared_ptr<fea::ChMesh> m_fsi_mesh;                                  ///< FEA mesh
-
     std::unique_ptr<ChSystemFsi_impl> m_sysFSI;         ///< underlying system implementation
     std::unique_ptr<ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
     std::unique_ptr<ChFsiInterface> m_fsi_interface;    ///< FSI interface system
@@ -576,6 +559,9 @@ class CH_FSI_API ChSystemFsi {
     std::shared_ptr<ChCounters> m_num_objectsH;       ///< number of objects, fluid, bce, and boundary markers
     std::vector<std::vector<int>> m_fea_shell_nodes;  ///< indices of nodes of each shell element
     std::vector<std::vector<int>> m_fea_cable_nodes;  ///< indices of nodes of each cable element
+    
+    size_t m_num_cable_elements;
+    size_t m_num_shell_elements;
 
     std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles of each fsi body
     std::vector<int> m_fsi_cables_bce_num;  ///< number of BCE particles of each fsi cable
