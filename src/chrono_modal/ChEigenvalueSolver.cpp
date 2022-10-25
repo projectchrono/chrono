@@ -509,9 +509,6 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 	ChVectorDynamic<double>& damping_ratio,		///< output vector with n damping rations r=damping/critical_damping.
 	ChEigenvalueSolverSettings settings) const
 {
-	//*****WARNING*****  THIS SHOULD NOT BE USED: KrylovSchurGEigsShiftInvert NOT YET WORKING FOR COMPLEX Re Im EIGENVALUES!
-	throw (ChException("SOLVER ChQuadraticEigenvalueSolverKrylovSchur NOT YET WORKING. TO BE COMPLETED."));
-
 	// Generate the A and B in state space
 	int n_vars   = M.rows();
 	int n_constr = Cq.rows();
@@ -520,6 +517,7 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 	// In fact here we create a temporary couple of _dense_ matrices Ad and Bd, just to exploit the easy << operator, 
 	// then later copied to sparse matrices A and B. But sparse matrices A and B should be used from the beginning 
 	// to avoid the dense Ad and Bd!!! (This is not done right now just because Eigen does not offer easy block-initialization for sparse matrices).
+	// Hint: few lines above I implemented a sparse_assembly_2x2symm() helper function to do exactly this, so we need a sparse_assembly_3x3()...
 	ChMatrixDynamic<> Ad(2 * n_vars + n_constr, 2 * n_vars + n_constr);
 	ChMatrixDynamic<> Bd(2 * n_vars + n_constr, 2 * n_vars + n_constr);
 	ChMatrixDynamic<> Md = M;
@@ -541,68 +539,73 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 		  Eigen::MatrixXd::Zero    (n_vars,  n_vars), Md                                    , Eigen::MatrixXd::Zero(n_vars,   n_constr),
 		  Eigen::MatrixXd::Zero    (n_constr,n_vars), Eigen::MatrixXd::Zero(n_constr,n_vars), Eigen::MatrixXd::Zero(n_constr, n_constr);
 
-	Eigen::SparseMatrix<double> A(2 * n_vars + n_constr, 2 * n_vars + n_constr);
-	Eigen::SparseMatrix<double> B(2 * n_vars + n_constr, 2 * n_vars + n_constr);
-	A = Ad.sparseView();
-	B = Bd.sparseView();
+	Eigen::SparseMatrix<double> As(2 * n_vars + n_constr, 2 * n_vars + n_constr);
+	Eigen::SparseMatrix<double> Bs(2 * n_vars + n_constr, 2 * n_vars + n_constr);
+	As = Ad.sparseView();
+	Bs = Bd.sparseView();
 
 	int n_computed_eigs = 2 * settings.n_modes;
 	int m = 2 * n_computed_eigs >= 30 ? 2 * n_computed_eigs : 30;  // minimum subspace size   //**TO DO*** make parametric
 	if (m > 2*n_vars + n_constr)
 		m = 2*n_vars + n_constr;
-	
-	// Construct matrix operation objects using the wrapper classes
-	//using OpType = SymShiftInvert<double, Eigen::Sparse, Eigen::Sparse>;
-    //using BOpType = SparseSymMatProd<double>;
-	using OpType = SymShiftInvert<double, Eigen::Sparse, Eigen::Sparse>;
-    using BOpType = SparseSymMatProd<double>;
-    OpType op(A, B);
-    BOpType Bop(B);
 
-	// The complex Krylov-Schur solver, using the shift and invert mode:
-	KrylovSchurGEigsShiftInvert<OpType, BOpType> eigen_solver(op, Bop, n_computed_eigs, m, settings.sigma);   //***TODO**** wait that SPECTRA will have KrylovSchur implemented for the COMPLEX case
+	// Setup the Krylov Schur solver:
+	ChVectorDynamic<std::complex<double>> eigen_values;
+	ChMatrixDynamic<std::complex<double>> eigen_vectors;
+	ChVectorDynamic<std::complex<double>> v1;
+	v1.setRandom(Ad.cols()); // note: to make deterministic may be preceded by something like  std::srand((unsigned int)1234567);
 	
-	eigen_solver.init();
+	// because we need *complex* shift for focusing on some frequency, and settings.sigma is real, as in undamped case, so we do: 
+	std::complex<double> complex_sigma(0, settings.sigma);
 
-	int nconv = eigen_solver.compute(SortRule::LargestMagn, settings.max_iterations, settings.tolerance);
-    int niter = eigen_solver.num_iterations();
-    int nops  = eigen_solver.num_operations();
+	// Setup the callback for matrix * vector
+	callback_Ax_sparse_complexshiftinvert Ax_function3(
+		As, 
+		Bs, 
+		complex_sigma, 
+		this->linear_solver);
+
+	bool isC, flag;
+	int nconv, niter;
+	ChKrylovSchurEig eigen_solver(
+							eigen_vectors,   ///< output matrix with eigenvectors as columns, will be resized 
+							eigen_values, ///< output vector with eigenvalues (real part not zero if some damping), will be resized 
+							isC,									///< 0 = k-th eigenvalue is real, 1= k-th and k-th+1 are complex conjugate pairs
+							flag,									///< 0 = has converged, 1 = hasn't converged 
+							nconv,									///< number of converged eigenvalues
+							niter,									///< number of used iterations
+							&Ax_function3,						///< callback for A*v
+							v1,								///< initial approx of eigenvector, or random
+							Ad.cols(),						///< size of A
+							n_computed_eigs,				///< number of needed eigenvalues
+							m,								///< Krylov restart threshold (largest dimension of krylov subspace)
+							settings.max_iterations,		///< max iteration number
+							settings.tolerance				///< tolerance
+						);
+
 
 	if (settings.verbose) {
-		if (eigen_solver.info() != CompInfo::Successful)
+		if (flag==1)
 		{
-			GetLog() << "KrylovSchurGEigsShiftInvert FAILED. \n";
-			if (eigen_solver.info() == CompInfo::NotComputed) GetLog() << " Error: not computed. \n";
-			if (eigen_solver.info() == CompInfo::NotConverging) GetLog() << " Error: not converging. \n";
-			if (eigen_solver.info() == CompInfo::NumericalIssue) GetLog() << " Error: numerical issue. \n";
+			GetLog() << "KrylovSchurEig FAILED. \n";
+			GetLog() << " shift   = (" << complex_sigma.real() << "," << complex_sigma.imag() << ")\n";
 			GetLog() << " nconv = " << nconv << "\n";
-			GetLog() << " niter = " << niter << "\n";
-			GetLog() << " nops  = " << nops  << "\n";
-			
+			GetLog() << " niter = " << niter << "\n";	
 			return false;
 		}
 		else
 		{
-			GetLog() << "KrylovSchurGEigsShiftInvert successfull. \n";
+			GetLog() << "KrylovSchurEig successfull. \n";
+			GetLog() << " shift   = (" << complex_sigma.real() << "," << complex_sigma.imag() << ")\n";
 			GetLog() << " nconv   = " << nconv << "\n";
 			GetLog() << " niter   = " << niter << "\n";
-			GetLog() << " nops    = " << nops  << "\n";
-			GetLog() << " n_modes = " << settings.n_modes  << "\n";
-			GetLog() << " n_eigs  = " << settings.n_modes*2 << "\n";
-			GetLog() << " n_vars  = " << n_vars << "\n";
-			GetLog() << " n_constr= " << n_constr << "\n";
 		}
 	}
-	Eigen::VectorXcd eigen_values = eigen_solver.eigenvalues();
-	Eigen::MatrixXcd eigen_vectors = eigen_solver.eigenvectors();
  
-	// ***HACK***
-	// Correct eigenvals for shift-invert because KrylovSchurGEigsShiftInvert does not take care of it.
-	// This should be automatically done by KrylovSchurGEigsShiftInvert::sort_ritz_pairs() at the end of compute(), 
-	// but at the moment such sort_ritz_pairs() is not called by the base KrylovSchurGEigsBase, differently from SymGEigsShiftSolver, for example.
+	// Restore eigenvals, trasform back  from  shift-inverted problem to original problem:
 	for (int i = 0; i < eigen_values.rows() ; ++i)
 	{
-        eigen_values(i) = (1.0 / eigen_values(i)) + settings.sigma;
+        eigen_values(i) = (1.0 / eigen_values(i)) + complex_sigma;
 	}
 
     class eig_vect_and_val
@@ -620,12 +623,18 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 	for (int i = 0; i < eigen_values.size(); i++) {
         eig_vect_and_val vec_and_val{ eigen_vectors.col(i), eigen_values(i) };
         all_eigen_values_and_vectors.push_back(vec_and_val);
-		GetLog() << " Eig " << i << "= " << eigen_values(i).real() << "  " << eigen_values(i).imag() 
-			<< "   freq= " << (1.0/CH_C_2PI)*std::abs(eigen_values(i)) << "\n";
 	}
 
 	// sort
-	//std::sort(all_eigen_values_and_vectors.begin(), all_eigen_values_and_vectors.end());   // sort by imaginary part
+	std::sort(all_eigen_values_and_vectors.begin(), all_eigen_values_and_vectors.end());   // sort by imaginary part
+
+	if (settings.verbose)
+		for (int i = 0; i < all_eigen_values_and_vectors.size(); i++) {
+			GetLog() << "   sorted Eig " << i << "= " 
+				<< all_eigen_values_and_vectors[i].eigen_val.real() << "  " 
+				<< all_eigen_values_and_vectors[i].eigen_val.imag() 
+				<< "   freq= " << (1.0/CH_C_2PI)*std::abs(all_eigen_values_and_vectors[i].eigen_val) << "\n";
+		}
 
 	// organize and return results
 	int middle_number = (int)(all_eigen_values_and_vectors.size() / 2);  // The eigenvalues ​​filtered out are conjugate complex roots, just take half
@@ -637,8 +646,7 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 	damping_ratio.setZero(settings.n_modes);
 
     for (int i = 0; i < settings.n_modes; i++) {
-        //int i_half = middle_number + i; // because the n.of eigenvalues is double (conjugate pairs), so just use the 2nd half after sorting
-		int i_half = i;
+        int i_half = middle_number + i; // because the n.of eigenvalues is double (conjugate pairs), so just use the 2nd half after sorting
 
         V.col(i) = all_eigen_values_and_vectors.at(i_half).eigen_vect.head(n_vars);  // store only displacement part of eigenvector, no speed part, no constraint part
         V.col(i).normalize(); // check if necessary or already normalized
