@@ -5,6 +5,9 @@
 
     "Vehicle-Frame Inertia": false,
 
+    "Camber Angle": 0,
+    "Toe Angle": 0,
+
     "Spindle": {
         "Mass": 14.705,
         "COM": [ -0.040, 0.910, -0.026 ],

@@ -3,6 +3,9 @@
   "Type":                       "Suspension",
   "Template":                   "DoubleWishboneReduced",
 
+  "Camber Angle":               0,
+  "Toe Angle":                  0,
+
   "Spindle" :
   {
     "Mass":                     15.91,
