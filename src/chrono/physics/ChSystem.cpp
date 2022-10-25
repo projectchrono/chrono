@@ -55,8 +55,6 @@ ChSystem::ChSystem()
       ndoc_w_D(0),
       ch_time(0),
       step(0.04),
-      step_min(0.002),
-      step_max(0.04),
       tol_force(-1),
       maxiter(6),
       use_sleeping(false),
@@ -102,8 +100,6 @@ ChSystem::ChSystem(const ChSystem& other) {
     nsysvars_w = other.nsysvars_w;
     ch_time = other.ch_time;
     step = other.step;
-    step_min = other.step_min;
-    step_max = other.step_max;
     stepcount = other.stepcount;
     solvecount = other.solvecount;
     setupcount = other.setupcount;
@@ -2019,8 +2015,6 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(G_acc);
     marchive << CHNVP(ch_time);
     marchive << CHNVP(step);
-    marchive << CHNVP(step_min);
-    marchive << CHNVP(step_max);
     marchive << CHNVP(stepcount);
     marchive << CHNVP(write_matrix);
 
@@ -2056,8 +2050,6 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(G_acc);
     marchive >> CHNVP(ch_time);
     marchive >> CHNVP(step);
-    marchive >> CHNVP(step_min);
-    marchive >> CHNVP(step_max);
     marchive >> CHNVP(stepcount);
     marchive >> CHNVP(write_matrix);
 
