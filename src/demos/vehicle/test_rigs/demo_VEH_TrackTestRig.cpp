@@ -17,10 +17,6 @@
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/solver/ChIterativeSolverVI.h"
-#include "chrono/solver/ChDirectSolverLS.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
@@ -33,13 +29,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#ifdef CHRONO_PARDISO_MKL
-    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#endif
-
-#ifdef CHRONO_MUMPS
-    #include "chrono_mumps/ChSolverMumps.h"
-#endif
+#include "demos/vehicle/SetChronoSolver.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -113,115 +103,6 @@ double out_step_size = 1e-2;
 // Test detracking
 bool detracking_control = true;
 bool apply_detracking_force = false;
-
-// =============================================================================
-
-void SelectSolver(ChSystem& sys, ChSolver::Type& solver_type, ChTimestepper::Type& integrator_type) {
-    // For NSC systems, use implicit linearized Euler and an iterative VI solver
-    if (sys.GetContactMethod() == ChContactMethod::NSC) {
-        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-        if (solver_type != ChSolver::Type::BARZILAIBORWEIN && solver_type != ChSolver::Type::APGD &&
-            solver_type != ChSolver::Type::PSOR && solver_type != ChSolver::Type::PSSOR) {
-            solver_type = ChSolver::Type::BARZILAIBORWEIN;
-        }
-    }
-
-    // If none of the direct sparse solver modules is enabled, default to SPARSE_QR
-    if (solver_type == ChSolver::Type::PARDISO_MKL) {
-#ifndef CHRONO_PARDISO_MKL
-        solver_type = ChSolver::Type::SPARSE_QR;
-#endif
-    } else if (solver_type == ChSolver::Type::PARDISO_PROJECT) {
-#ifndef CHRONO_PARDISOPROJECT
-        solver_type = ChSolver::Type::SPARSE_QR;
-#endif
-    } else if (solver_type == ChSolver::Type::MUMPS) {
-#ifndef CHRONO_MUMPS
-        solver_type = ChSolver::Type::SPARSE_QR;
-#endif
-    }
-
-    if (solver_type == ChSolver::Type::PARDISO_MKL) {
-#ifdef CHRONO_PARDISO_MKL
-        auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-        solver->LockSparsityPattern(true);
-        sys.SetSolver(solver);
-#endif
-    } else if (solver_type == ChSolver::Type::PARDISO_PROJECT) {
-#ifdef CHRONO_PARDISOPROJECT
-        auto solver = chrono_types::make_shared<ChSolverPardisoProject>();
-        solver->LockSparsityPattern(true);
-        sys->SetSolver(solver);
-#endif
-    } else if (solver_type == ChSolver::Type::MUMPS) {
-#ifdef CHRONO_MUMPS
-        auto solver = chrono_types::make_shared<ChSolverMumps>();
-        solver->LockSparsityPattern(true);
-        solver->EnableNullPivotDetection(true);
-        solver->GetMumpsEngine().SetICNTL(14, 50);
-        sys.SetSolver(solver);
-#endif
-    } else {
-        sys.SetSolverType(solver_type);
-        switch (solver_type) {
-            case ChSolver::Type::SPARSE_LU:
-            case ChSolver::Type::SPARSE_QR: {
-                auto solver = std::static_pointer_cast<ChDirectSolverLS>(sys.GetSolver());
-                solver->LockSparsityPattern(false);
-                solver->UseSparsityPatternLearner(false);
-                break;
-            }
-            case ChSolver::Type::BARZILAIBORWEIN:
-            case ChSolver::Type::APGD:
-            case ChSolver::Type::PSOR: {
-                auto solver = std::static_pointer_cast<ChIterativeSolverVI>(sys.GetSolver());
-                solver->SetMaxIterations(100);
-                solver->SetOmega(0.8);
-                solver->SetSharpnessLambda(1.0);
-
-                ////sys.SetMaxPenetrationRecoverySpeed(1.5);
-                ////sys.SetMinBounceSpeed(2.0);
-                break;
-            }
-            case ChSolver::Type::BICGSTAB:
-            case ChSolver::Type::MINRES:
-            case ChSolver::Type::GMRES: {
-                auto solver = std::static_pointer_cast<ChIterativeSolverLS>(sys.GetSolver());
-                solver->SetMaxIterations(200);
-                solver->SetTolerance(1e-10);
-                solver->EnableDiagonalPreconditioner(true);
-                break;
-            }
-            default:
-                break;
-        }
-    }
-
-    sys.SetTimestepperType(integrator_type);
-    switch (integrator_type) {
-        case ChTimestepper::Type::HHT: {
-            auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
-            integrator->SetAlpha(-0.2);
-            integrator->SetMaxiters(50);
-            integrator->SetAbsTolerances(1e-4, 1e2);
-            integrator->SetMode(ChTimestepperHHT::ACCELERATION);
-            integrator->SetStepControl(false);
-            integrator->SetModifiedNewton(false);
-            integrator->SetScaling(false);
-            break;
-        }
-        case ChTimestepper::Type::EULER_IMPLICIT: {
-            auto integrator = std::static_pointer_cast<ChTimestepperEulerImplicit>(sys.GetTimestepper());
-            integrator->SetMaxiters(50);
-            integrator->SetAbsTolerances(1e-4, 1e2);
-            break;
-        }
-        default:
-        case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
-        case ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
-            break;
-    }
-}
 
 // =============================================================================
 
@@ -374,7 +255,7 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    SelectSolver(*rig->GetSystem(), slvr_type, intgr_type);
+    SetChronoSolver(*rig->GetSystem(), slvr_type, intgr_type);
     rig->GetSystem()->GetSolver()->SetVerbose(verbose_solver);
     rig->GetSystem()->GetTimestepper()->SetVerbose(verbose_integrator);
 
