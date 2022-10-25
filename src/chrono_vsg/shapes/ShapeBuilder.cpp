@@ -488,7 +488,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(vsg::ref_ptr<vsg::M
         // two-sided polygons? -> cannot be used together with transparency!
         if (!tms->IsBackfaceCull() && chronoMat->GetOpacity() == 1.0) {
             graphicsPipelineConfig->rasterizationState->cullMode = VK_CULL_MODE_NONE;
-            defines.push_back("VSG_TWO_SIDED_LIGHTING");
+            defines.insert("VSG_TWO_SIDED_LIGHTING");
         }
 
         // set up graphics pipeline
