@@ -676,8 +676,8 @@ int ChModalSolveDamped::Solve(
 	for (int i = 0; i < this->freq_spans.size(); ++i) {
 
 		int nmodes_goal_i = this->freq_spans[i].nmodes;
-		double sigma_i = -pow(this->freq_spans[i].freq * CH_C_2PI, 2); // sigma for shift&invert, as lowest eigenvalue, from Hz info
-		//***TODO*** for the damped case, the sigma_i should be a *complex* shift, as w are on the imaginary axis.
+		double sigma_i = (this->freq_spans[i].freq * CH_C_2PI); // sigma for shift&invert, as lowest eigenvalue, from Hz info
+		// Note, for the damped case, the sigma_i assumed as a *complex* shift, as w are on the imaginary axis.
 
 		ChMatrixDynamic<std::complex<double>> V_i;
 		ChVectorDynamic<std::complex<double>> eig_i;
