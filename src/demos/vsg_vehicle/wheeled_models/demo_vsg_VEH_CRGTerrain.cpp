@@ -385,7 +385,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene and output images
         vis->BeginScene();
-        if(sim_frame % 10 == 0)
+        //if(sim_frame % 10 == 0)
             vis->Render();
         vis->EndScene();
 

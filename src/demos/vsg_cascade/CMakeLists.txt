@@ -1,20 +1,13 @@
+#
+include_directories(${OpenCASCADE_INCLUDE_DIR})
+
 #--------------------------------------------------------------
 # List of all VSG demos
 
 SET(DEMOS
-  demo_VSG_adams_parser
-  demo_VSG_assets
-  demo_VSG_aux_ref
-  demo_VSG_ballSMC
-  demo_VSG_bricks
-  demo_VSG_callbackNSC
-  demo_VSG_callbackSMC
-  demo_VSG_friction
-  demo_VSG_earthquake
-  demo_VSG_lab
-  demo_VSG_paths
-  demo_VSG_opensim_parser
-  demo_VSG_spring
+  demo_VSG_CAS_robot
+  demo_VSG_CAS_profile
+  demo_VSG_CAS_stepfile
 )
 
 set(CMAKE_CXX_STANDARD 17)
@@ -54,8 +47,9 @@ FOREACH(PROGRAM ${DEMOS})
   SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
   TARGET_LINK_LIBRARIES(${PROGRAM}
     ChronoEngine
+    ChronoEngine_cascade
     ChronoEngine_vsg)
-  ADD_DEPENDENCIES (${PROGRAM} ChronoEngine ChronoEngine_vsg)
+  ADD_DEPENDENCIES (${PROGRAM} ChronoEngine ChronoEngine_cascade ChronoEngine_vsg)
 
   INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 ENDFOREACH()

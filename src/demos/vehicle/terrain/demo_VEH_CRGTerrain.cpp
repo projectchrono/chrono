@@ -62,7 +62,7 @@ enum class DriverModelType {
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Road visualization (mesh or boundary lines)
-bool useMesh = true;
+bool useMesh = false;
 
 // Desired vehicle speed (m/s)
 double target_speed = 12;
