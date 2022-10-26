@@ -3,6 +3,9 @@
   "Type":                           "Suspension",
   "Template":                       "MultiLink",
 
+  "Camber Angle":                   0,
+  "Toe Angle":                      0,
+
   "Spindle" :
   {
     "Mass":                         1.103,

@@ -3,6 +3,9 @@
   "Type":                       "Suspension",
   "Template":                   "ThreeLinkIRS",
 
+  "Camber Angle":               0,
+  "Toe Angle":                  0,
+
   "Spindle" :
   {
     "Mass":                     1.0,
