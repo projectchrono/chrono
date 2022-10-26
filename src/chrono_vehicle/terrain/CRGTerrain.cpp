@@ -496,14 +496,19 @@ void CRGTerrain::SetupMeshGraphics() {
         auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
         vmesh->SetMesh(m_mesh);
         vmesh->SetName(m_mesh_name);
-        vmesh->SetColor(ChColor(1.0f, 1.0f, 1.0f));
-        vmesh->SetTexture(m_texture_filename, GetLength()/GetWidth(), 1.0);
+        auto material = chrono_types::make_shared<ChVisualMaterial>();
+        material->SetDiffuseColor(ChColor(1.0f, 1.0f, 1.0f));
+        material->SetAmbientColor(ChColor(1.0f, 1.0f, 1.0f));
+        material->SetEmissiveColor(ChColor(0.1f, 0.1f, 0.1f));
+        material->SetKdTexture(m_texture_filename, 0.5*GetLength()/GetWidth(), 1.0);
+        vmesh->SetMaterial(0, material);
         m_ground->AddVisualShape(vmesh);
+        GetLog() << "Texture?\n";
     } else {
         auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
         vmesh->SetMesh(m_mesh);
         vmesh->SetName(m_mesh_name);
-        vmesh->SetColor(ChColor(0.6f, 0.6f, 0.8f));
+        vmesh->SetColor(ChColor(1.0f, 1.0f, 1.0f));
 
         m_ground->AddVisualShape(vmesh);
     }

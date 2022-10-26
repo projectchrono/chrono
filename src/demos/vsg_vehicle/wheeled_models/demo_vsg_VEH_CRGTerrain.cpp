@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
     CRGTerrain terrain(&sys);
     terrain.UseMeshVisualization(useMesh);
     terrain.SetContactFrictionCoefficient(0.8f);
-    terrain.SetRoadsidePostDistance(100.0);
+    terrain.SetRoadsidePostDistance(50.0);
     terrain.SetRoadTextureFile("textures/concrete.jpg");
     terrain.Initialize(crg_road_file);
 
