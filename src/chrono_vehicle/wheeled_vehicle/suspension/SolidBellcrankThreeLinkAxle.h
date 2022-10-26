@@ -39,6 +39,9 @@ class CH_VEHICLE_API SolidBellcrankThreeLinkAxle : public ChSolidBellcrankThreeL
     ~SolidBellcrankThreeLinkAxle();
 
   protected:
+    virtual double getCamberAngle() const override { return m_camber_angle; }
+    virtual double getToeAngle() const override { return m_toe_angle; }
+
     /// Return the center of mass of the axle tube.
     virtual const ChVector<> getAxleTubeCOM() const override { return m_axleTubeCOM; }
 
@@ -110,6 +113,9 @@ class CH_VEHICLE_API SolidBellcrankThreeLinkAxle : public ChSolidBellcrankThreeL
 
     ////double m_damperDegressivityCompression;
     ////double m_damperDegressivityExpansion;
+
+    double m_camber_angle;
+    double m_toe_angle;
 
     double m_spindleMass;
     double m_axleTubeMass;

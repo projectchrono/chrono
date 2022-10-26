@@ -118,11 +118,15 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     ChVector<> w;
     ChMatrix33<> rot;
 
+    // Spindle orientation (based on camber and toe angles)
+    double sign = (side == LEFT) ? -1 : +1;
+    auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
+
     // Create and initialize the spindle body
     m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
-    m_spindle[side]->SetRot(chassisRot);
+    m_spindle[side]->SetRot(spindleRot);
     m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
@@ -159,7 +163,7 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_upright[side],
-                                 ChCoordsys<>(points[SPINDLE], chassisRot * Q_from_AngX(CH_C_PI_2)));
+                                 ChCoordsys<>(points[SPINDLE], spindleRot * Q_from_AngX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the revolute joint between chassis and CA
