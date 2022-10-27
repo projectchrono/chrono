@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2022 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -14,15 +14,14 @@
 //
 // Terrain defined by an OpenCRG file (http://opencrg.org)
 //
-// OpenCRG® is managed by
+// OpenCRG® (up to v1.1.2) was managed by
 //	VIRES Simulationstechnologie GmbH
-//	Grassinger Strasse 8
-//	83043 Bad Aibling
-//	Germany
-//	p: +49.8061.939093-0
-//	f: +49.8061.939093-13
-//	e: opencrg@opencrg.org
 //
+// OpenCRG® (>= v1.2) is now managed by
+// ASAM e.V.
+// https://www.asam.net/standards/detail/opencrg/
+//
+// v1.1.2 is still available. Both versions work with chrono.
 // =============================================================================
 //
 // Limits:	Options and modifiers are ignored
@@ -207,9 +206,11 @@ void CRGTerrain::SetRoadsidePosts() {
         cyl.rad = 0.07;
         auto shape_l = chrono_types::make_shared<ChCylinderShape>(cyl);
         ChFrame<> frame_l(ChVector<>(xl, yl, zl), QUNIT);
+        shape_l->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
         m_ground->AddVisualShape(shape_l, frame_l);
         auto shape_r = chrono_types::make_shared<ChCylinderShape>(cyl);
         ChFrame<> frame_r(ChVector<>(xr, yr, zr), QUNIT);
+        shape_r->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
         m_ground->AddVisualShape(shape_r, frame_r);
     }
 }

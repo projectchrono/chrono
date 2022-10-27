@@ -1,0 +1,98 @@
+#usda 1.0
+(
+    customLayerData = {
+        string author = "ambientCG (ambientCG.com)"
+        string copyright = "CC0 1.0 Public Domain Dedication (https://creativecommons.org/publicdomain/zero/1.0/)"
+        string generator = "ambientCG USD Script (v2)"
+        string title = "Grass004 by ambientCG"
+        string url = "https://ambientcg.com/a/Grass004"
+    }
+    defaultPrim = "ambientCG_Grass004_1K_JPG"
+)
+
+def Material "ambientCG_Grass004_1K_JPG"
+{
+    token outputs:surface.connect = </ambientCG_Grass004_1K_JPG/PBRShader.outputs:surface>
+
+    def Shader "TextureCoordinateReader"
+    {
+        uniform token info:id = "UsdPrimvarReader_float2"
+        token inputs:varname = "st"
+        float2 outputs:result
+    }
+
+    def Shader "PBRShader"
+    {
+        uniform token info:id = "UsdPreviewSurface"
+        color3f inputs:diffuseColor.connect = </ambientCG_Grass004_1K_JPG/diffuseColor.outputs:rgb>
+        float inputs:displacement.connect = </ambientCG_Grass004_1K_JPG/displacement.outputs:r>
+        normal3f inputs:normal.connect = </ambientCG_Grass004_1K_JPG/normal.outputs:rgb>
+        float inputs:occlusion.connect = </ambientCG_Grass004_1K_JPG/occlusion.outputs:r>
+        float inputs:roughness.connect = </ambientCG_Grass004_1K_JPG/roughness.outputs:r>
+        int inputs:useSpecularWorkflow = 0
+        token outputs:surface
+    }
+
+    def Shader "diffuseColor"
+    {
+        uniform token info:id = "UsdUVTexture"
+        float4 inputs:fallback = (0.8, 0.8, 0.8, 1)
+        asset inputs:file = @Grass004_1K_Color.jpg@
+        float2 inputs:st.connect = </ambientCG_Grass004_1K_JPG/TextureCoordinateReader.outputs:result>
+        token inputs:sourceColorSpace = "sRGB"
+        token inputs:wrapS = "repeat"
+        token inputs:wrapT = "repeat"
+        float3 outputs:rgb
+    }
+
+    def Shader "occlusion"
+    {
+        uniform token info:id = "UsdUVTexture"
+        float4 inputs:fallback = (1, 1, 1, 1)
+        asset inputs:file = @Grass004_1K_AmbientOcclusion.jpg@
+        float2 inputs:st.connect = </ambientCG_Grass004_1K_JPG/TextureCoordinateReader.outputs:result>
+        token inputs:sourceColorSpace = "raw"
+        token inputs:wrapS = "repeat"
+        token inputs:wrapT = "repeat"
+        float outputs:r
+    }
+
+    def Shader "displacement"
+    {
+        uniform token info:id = "UsdUVTexture"
+        float4 inputs:fallback = (0.5, 0.5, 0.5, 1)
+        asset inputs:file = @Grass004_1K_Displacement.jpg@
+        float2 inputs:st.connect = </ambientCG_Grass004_1K_JPG/TextureCoordinateReader.outputs:result>
+        token inputs:sourceColorSpace = "raw"
+        token inputs:wrapS = "repeat"
+        token inputs:wrapT = "repeat"
+        float outputs:r
+    }
+
+    def Shader "roughness"
+    {
+        uniform token info:id = "UsdUVTexture"
+        float4 inputs:fallback = (1, 1, 1, 1)
+        asset inputs:file = @Grass004_1K_Roughness.jpg@
+        float2 inputs:st.connect = </ambientCG_Grass004_1K_JPG/TextureCoordinateReader.outputs:result>
+        token inputs:sourceColorSpace = "raw"
+        token inputs:wrapS = "repeat"
+        token inputs:wrapT = "repeat"
+        float outputs:r
+    }
+
+    def Shader "normal"
+    {
+        uniform token info:id = "UsdUVTexture"
+        float4 inputs:fallback = (0, 0, 1, 1)
+        asset inputs:file = @Grass004_1K_NormalGL.jpg@
+        float2 inputs:st.connect = </ambientCG_Grass004_1K_JPG/TextureCoordinateReader.outputs:result>
+        float4 inputs:bias = (-1, -1, -1, 0)
+        float4 inputs:scale = (2, 2, 2, 1)
+        token inputs:sourceColorSpace = "raw"
+        token inputs:wrapS = "repeat"
+        token inputs:wrapT = "repeat"
+        float3 outputs:rgb
+    }
+}
+

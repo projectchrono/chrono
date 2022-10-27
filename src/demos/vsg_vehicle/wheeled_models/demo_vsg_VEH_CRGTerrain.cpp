@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2022 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -281,7 +281,14 @@ int main(int argc, char* argv[]) {
     terrain.UseMeshVisualization(useMesh);
     terrain.SetContactFrictionCoefficient(0.8f);
     terrain.SetRoadsidePostDistance(50.0);
-    terrain.SetRoadTextureFile("textures/concrete.jpg");
+    // bright concrete
+    terrain.SetRoadTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_Color.jpg");
+    // dark conkrete
+    //terrain.SetRoadTextureFile("vehicle/terrain/textures/Concrete037_1K-JPG/Concrete037_1K_Color.jpg");
+    // gravel
+    //terrain.SetRoadTextureFile("vehicle/terrain/textures/Gravel034_1K-JPG/Gravel034_1K_Color.jpg");
+    // grass
+    // terrain.SetRoadTextureFile("vehicle/terrain/textures/Grass004_1K-JPG/Grass004_1K_Color.jpg");
     terrain.Initialize(crg_road_file);
 
     // ------------------
@@ -385,7 +392,7 @@ int main(int argc, char* argv[]) {
 
         // Render scene and output images
         vis->BeginScene();
-        //if(sim_frame % 10 == 0)
+        if(sim_frame % 10 == 0)
             vis->Render();
         vis->EndScene();
 
