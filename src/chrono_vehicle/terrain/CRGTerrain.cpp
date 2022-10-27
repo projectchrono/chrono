@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2022 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -14,15 +14,14 @@
 //
 // Terrain defined by an OpenCRG file (http://opencrg.org)
 //
-// OpenCRG® is managed by
+// OpenCRG® (up to v1.1.2) was managed by
 //	VIRES Simulationstechnologie GmbH
-//	Grassinger Strasse 8
-//	83043 Bad Aibling
-//	Germany
-//	p: +49.8061.939093-0
-//	f: +49.8061.939093-13
-//	e: opencrg@opencrg.org
 //
+// OpenCRG® (>= v1.2) is now managed by
+// ASAM e.V.
+// https://www.asam.net/standards/detail/opencrg/
+//
+// v1.1.2 is still available. Both versions work with chrono.
 // =============================================================================
 //
 // Limits:	Options and modifiers are ignored
@@ -46,6 +45,8 @@
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
 
+#include "chrono/assets/ChCylinderShape.h"
+
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
 
@@ -59,7 +60,7 @@ namespace chrono {
 namespace vehicle {
 
 CRGTerrain::CRGTerrain(ChSystem* system)
-    : m_use_vis_mesh(true), m_friction(0.8f), m_dataSetId(0), m_cpId(0), m_isClosed(false) {
+    : m_use_vis_mesh(true), m_use_texture(false), m_post_distance(0.0), m_friction(0.8f), m_dataSetId(0), m_cpId(0), m_isClosed(false) {
     m_ground = std::shared_ptr<ChBody>(system->NewBody());
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector<>(0, 0, 0));
@@ -81,6 +82,15 @@ void CRGTerrain::EnableVerbose(bool val) {
         crgMsgSetLevel(dCrgMsgLevelInfo);
     else
         crgMsgSetLevel(dCrgMsgLevelNone);
+}
+
+void CRGTerrain::SetRoadTextureFile(std::string texFile) {
+    m_texture_filename = GetChronoDataFile(texFile);
+    filesystem::path path(m_texture_filename);
+    if(path.is_file() && path.exists()) {
+        m_use_texture = true;
+        GetLog() << "Texture file " << m_texture_filename << " can be used.\n";
+    }
 }
 
 void CRGTerrain::Initialize(const std::string& crg_file) {
@@ -156,12 +166,52 @@ void CRGTerrain::Initialize(const std::string& crg_file) {
 
     GenerateMesh();
     GenerateCurves();
-
     m_ground->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
     if (m_use_vis_mesh) {
         SetupMeshGraphics();
     } else {
         SetupLineGraphics();
+    }
+    SetRoadsidePosts();
+}
+
+void CRGTerrain::SetRoadsidePosts() {
+    if (m_post_distance < 10.0)
+        return;
+    double ustep = m_post_distance;
+    int nu = GetLength() / ustep;
+    double vl = GetWidth() / 2.0 + 0.1, vr = -GetWidth() / 2.0 - 0.1;
+    for (int iu = 0; iu < nu; iu++) {
+        double u = ustep * double(iu);
+        double xl, yl, zl;
+        double xr, yr, zr;
+        if (crgEvaluv2xy(m_cpId, u, vl, &xl, &yl) != 1) {
+            GetLog() << "could not get xl,yl in " << __func__ << "\n";
+        }
+        if (crgEvaluv2xy(m_cpId, u, vr, &xr, &yr) != 1) {
+            GetLog() << "could not get r,yr in " << __func__ << "\n";
+        }
+        if (crgEvaluv2z(m_cpId, u, vl, &zl) != 1) {
+            GetLog() << "could not get zl in " << __func__ << "\n";
+        }
+        if (crgEvaluv2z(m_cpId, u, vr, &zr) != 1) {
+            GetLog() << "could not get zr in " << __func__ << "\n";
+        }
+        geometry::ChCylinder cyl;
+        cyl.p1 = ChVector<>(0, 0, 0);
+        if (iu == 0)
+            cyl.p2 = ChVector<>(0, 0, 2.0);
+        else
+            cyl.p2 = ChVector<>(0, 0, 1.0);
+        cyl.rad = 0.07;
+        auto shape_l = chrono_types::make_shared<ChCylinderShape>(cyl);
+        ChFrame<> frame_l(ChVector<>(xl, yl, zl), QUNIT);
+        shape_l->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
+        m_ground->AddVisualShape(shape_l, frame_l);
+        auto shape_r = chrono_types::make_shared<ChCylinderShape>(cyl);
+        ChFrame<> frame_r(ChVector<>(xr, yr, zr), QUNIT);
+        shape_r->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
+        m_ground->AddVisualShape(shape_r, frame_r);
     }
 }
 
@@ -347,20 +397,25 @@ void CRGTerrain::GenerateMesh() {
     m_mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     auto& coords = m_mesh->getCoordsVertices();
     auto& indices = m_mesh->getIndicesVertexes();
+    auto& coords_uv = m_mesh->getCoordsUV();
+    auto& indices_uv = m_mesh->getIndicesUV();
 
     int nu = static_cast<int>((m_uend - m_ubeg) / m_uinc) + 1;
     int nv;
 
     std::vector<double> x0, y0, z0;
+    std::vector<double> tu0, tv0;
     // Define the vertices
     if (m_v.size() == 5) {
         // v is nonequidistant, we use m_v[]
         nv = static_cast<int>(m_v.size());
         for (auto i = 0; i < nu; i++) {
             double u = m_ubeg + m_uinc * double(i);
+            double tu = (u-m_ubeg)/(m_uend-m_ubeg);
             for (auto j = 0; j < nv; j++) {
                 double x, y, z, v;
                 v = m_v[j];
+                double tv = (v-m_vbeg)/(m_vend-m_vbeg);
                 int uv_ok = crgEvaluv2xy(m_cpId, u, v, &x, &y);
                 if (uv_ok != 1) {
                     GetLog() << "main: error during uv -> xy coordinate transformation in crg file\n";
@@ -375,11 +430,15 @@ void CRGTerrain::GenerateMesh() {
                     x0.push_back(x);
                     y0.push_back(y);
                     z0.push_back(z);
+                    tu0.push_back(tu);
+                    tv0.push_back(tv);
                 }
                 if (i == nu - 1 && m_isClosed) {
                     coords.push_back(ChWorldFrame::FromISO(ChVector<>(x0[j], y0[j], z0[j])));
+                    coords_uv.push_back(ChVector2<>(tu0[j],tv0[j]));
                 } else {
                     coords.push_back(ChWorldFrame::FromISO(ChVector<>(x, y, z)));
+                    coords_uv.push_back(ChVector2<>(tu,tv));
                 }
             }
         }
@@ -388,8 +447,10 @@ void CRGTerrain::GenerateMesh() {
         nv = static_cast<int>((m_vend - m_vbeg) / m_vinc) + 1;
         for (auto i = 0; i < nu; i++) {
             double u = m_ubeg + m_uinc * double(i);
+            double tu = (u-m_ubeg)/(m_uend-m_ubeg);
             for (auto j = 0; j < nv; j++) {
                 double v = m_vbeg + m_vinc * double(j);
+                double tv = (v-m_vbeg)/(m_vend-m_vbeg);
                 double x, y, z;
                 int uv_ok = crgEvaluv2xy(m_cpId, u, v, &x, &y);
                 if (uv_ok != 1) {
@@ -405,11 +466,15 @@ void CRGTerrain::GenerateMesh() {
                     x0.push_back(x);
                     y0.push_back(y);
                     z0.push_back(z);
+                    tu0.push_back(tu);
+                    tv0.push_back(tv);
                 }
                 if (i == nu - 1 && m_isClosed) {
                     coords.push_back(ChWorldFrame::FromISO(ChVector<>(x0[j], y0[j], z0[j])));
+                    coords_uv.push_back(ChVector2<>(tu0[j],tv0[j]));
                 } else {
                     coords.push_back(ChWorldFrame::FromISO(ChVector<>(x, y, z)));
+                    coords_uv.push_back(ChVector2<>(tu,tv));
                 }
             }
         }
@@ -421,17 +486,33 @@ void CRGTerrain::GenerateMesh() {
         for (int j = 0; j < nv - 1; j++) {
             indices.push_back(ChVector<int>(j + ofs, j + nv + ofs, j + 1 + ofs));
             indices.push_back(ChVector<int>(j + 1 + ofs, j + nv + ofs, j + 1 + nv + ofs));
+            indices_uv.push_back(ChVector<int>(j + ofs, j + nv + ofs, j + 1 + ofs));
+            indices_uv.push_back(ChVector<int>(j + 1 + ofs, j + nv + ofs, j + 1 + nv + ofs));
         }
     }
 }
 
 void CRGTerrain::SetupMeshGraphics() {
-    auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
-    vmesh->SetMesh(m_mesh);
-    vmesh->SetName(m_mesh_name);
-    vmesh->SetColor(ChColor(0.6f, 0.6f, 0.8f));
+    if(m_use_texture) {
+        auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        vmesh->SetMesh(m_mesh);
+        vmesh->SetName(m_mesh_name);
+        auto material = chrono_types::make_shared<ChVisualMaterial>();
+        material->SetDiffuseColor(ChColor(1.0f, 1.0f, 1.0f));
+        material->SetAmbientColor(ChColor(1.0f, 1.0f, 1.0f));
+        material->SetEmissiveColor(ChColor(0.1f, 0.1f, 0.1f));
+        material->SetKdTexture(m_texture_filename, 0.5*GetLength()/GetWidth(), 1.0);
+        vmesh->SetMaterial(0, material);
+        m_ground->AddVisualShape(vmesh);
+        GetLog() << "Texture?\n";
+    } else {
+        auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        vmesh->SetMesh(m_mesh);
+        vmesh->SetName(m_mesh_name);
+        vmesh->SetColor(ChColor(1.0f, 1.0f, 1.0f));
 
-    m_ground->AddVisualShape(vmesh);
+        m_ground->AddVisualShape(vmesh);
+    }
 }
 
 void CRGTerrain::ExportMeshWavefront(const std::string& out_dir) {
