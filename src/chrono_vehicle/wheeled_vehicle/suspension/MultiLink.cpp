@@ -57,13 +57,13 @@ void MultiLink::Create(const rapidjson::Document& d) {
     // Invoke base class method.
     ChPart::Create(d);
 
-    if (d.HasMember("Camber Angle"))
-        m_camber_angle = d["Camber Angle"].GetDouble();
+    if (d.HasMember("Camber Angle (deg)"))
+        m_camber_angle = d["Camber Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
     else
         m_camber_angle = 0;
 
-    if (d.HasMember("Toe Angle"))
-        m_toe_angle = d["Toe Angle"].GetDouble();
+    if (d.HasMember("Toe Angle (deg)"))
+        m_toe_angle = d["Toe Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
     else
         m_toe_angle = 0;
 
