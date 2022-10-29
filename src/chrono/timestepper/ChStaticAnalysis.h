@@ -228,16 +228,19 @@ class ChApi ChStaticNonLinearIncremental : public ChStaticAnalysis {
     /// performance where in some lucky cases one could have just tolerated zigzag non-monotonic 
     /// residuals (yet converging in the long run). 
     /// Parameter growth_tolerance is 1.0 by default. Sometimes it could be >1 to tolerate also small oscillations.
-    /// If this is not working, try also increasing the steps of the outer loop (incremental steps) and/or use Newton damping.
-    void SetAdaptiveNewtonON(int initial_delay, ///< adaptive step policy applied only after n-th Newton steps (sometimes better 1 than 0)
-                            double growth_tolerance); ///< shrink step only if new_residual bigger than growth_tolerance * old_residual.
+    /// If this is not working, try also increasing the steps of the outer loop (incremental steps) and/or use Newton
+    /// damping.
+    void SetAdaptiveNewtonON(
+        int initial_delay,  ///< adaptive step policy applied only after n-th Newton steps (sometimes better 1 than 0)
+        double growth_tolerance  ///< shrink step only if new_residual bigger than growth_tolerance * old_residual.
+    );
     void SetAdaptiveNewtonOFF();
 
-    /// Set damping of the Newton iteration. Default is 1.0. 
-    /// Using lower values (ex. 0.7) slows the convergence but can fix issues, for example when you see that the 
+    /// Set damping of the Newton iteration. Default is 1.0.
+    /// Using lower values (ex. 0.7) slows the convergence but can fix issues, for example when you see that the
     /// residual has a highly oscillatory behavior.
-    void SetNewtonDamping(double damping_factor); ///< default is 1.0 (regular undamped Newton). 
-
+    void SetNewtonDamping(double damping_factor  ///< default is 1.0 (regular undamped Newton).
+    );
 
     /// Class to be used as a callback interface for updating the system at each step of load increment.
     /// If the user defined loads via ChLoad objects, for example, or via mynode->SetForce(), then in this
@@ -247,10 +250,10 @@ class ChApi ChStaticNonLinearIncremental : public ChStaticAnalysis {
         virtual ~LoadIncrementCallback() {}
 
         /// Perform updates on the model. This is called before each load scaling. Must be implemented by child class.
-        virtual void OnLoadScaling(  const double load_scaling, ///< ranging from 0 to 1
-                                        const int iteration_n,  ///< actual number of outer iteration
-                                        ChStaticNonLinearIncremental* analysis     ///< back-pointer to this analysis
-                                  ) = 0;
+        virtual void OnLoadScaling(const double load_scaling,              ///< ranging from 0 to 1
+                                   const int iteration_n,                  ///< actual number of outer iteration
+                                   ChStaticNonLinearIncremental* analysis  ///< back-pointer to this analysis
+                                   ) = 0;
     };
 
     ///  Set the callback to be called at each iteration.

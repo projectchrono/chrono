@@ -24,6 +24,7 @@
 
 namespace chrono {
 
+/// Wrapper for cxxopts.
 class ChCLI {
   public:
     /// Constructor
