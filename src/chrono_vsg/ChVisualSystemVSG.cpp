@@ -254,11 +254,28 @@ class GuiComponent {
             ImGui::EndTable();
             ImGui::Spacing();
 
+            // Plotter?
+            if (_params->show_data_chart1 && _params->x1_data.size() > 2) {
+                if (ImPlot::BeginPlot(_params->c1_title.c_str())) {
+                    ImPlot::SetupAxes(_params->x1_label.c_str(), _params->y1_label.c_str(), 0, 0);
+                    ImPlot::PlotLine("", _params->x1_data.data(), _params->y1_data.data(), _params->x1_data.size());
+                    ImPlot::EndPlot();
+                }
+            }
+            if (_params->show_data_chart2 && _params->x2_data.size() > 2) {
+                if (ImPlot::BeginPlot(_params->c2_title.c_str())) {
+                    ImPlot::SetupAxes(_params->x2_label.c_str(), _params->y2_label.c_str(), 0, 0);
+                    ImPlot::PlotLine("", _params->x2_data.data(), _params->y2_data.data(), _params->x2_data.size());
+                    ImPlot::EndPlot();
+                }
+            }
+
             /* Example for an interactive element, better use the escape key, as it is more reactive with high MBS load
-                        if (ImGui::Button(
-                                "Quit"))  // Buttons return true when clicked (most widgets return true when
-               edited/activated) m_appPtr->Quit();
+                        if (ImGui::Button("Quit"))  // Buttons return true when clicked (most widgets return true whenedited/activated)
+                            m_appPtr->Quit();
             */
+            if (ImGui::Button("Quit"))  // Buttons return true when clicked (most widgets return true whenedited/activated)
+                m_appPtr->Quit();
 
             ImGui::End();
             visibleComponents = true;
@@ -682,14 +699,15 @@ void ChVisualSystemVSG::Initialize() {
         vsg::createRenderGraphForView(m_window, m_vsg_camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
     auto commandGraph = vsg::CommandGraph::create(m_window, renderGraph);
 
+    // initialize ImGui
+    ImGui::CreateContext();
+    ImPlot::CreateContext();
     auto foundFontFile = vsg::findFile("vsg/fonts/Ubuntu_Mono/UbuntuMono-Regular.ttf", m_options);
     if (foundFontFile) {
         GetLog() << "Font file found = " << foundFontFile.string() << "\n";
         // convert native filename to UTF8 string that is compatible with ImuGUi.
         std::string c_fontFile = foundFontFile.string();
 
-        // initialize ImGui
-        ImGui::CreateContext();
         // read the font via ImGui, which will then be current when vsgImGui::RenderImGui initializes the rest of
         // ImGui/Vulkan below
         ImGuiIO& io = ImGui::GetIO();
@@ -1406,6 +1424,78 @@ void ChVisualSystemVSG::SetSystemSymbolPosition(ChVector<> pos) {
         if (sType != 'G')
             continue;
         transform->matrix = vsg::translate(m_system_symbol_position) * vsg::scale(m_system_symbol_size);
+    }
+}
+
+void ChVisualSystemVSG::ShowGuiChart1(bool showChart1) {
+    m_params->show_data_chart1 = showChart1;
+}
+
+void ChVisualSystemVSG::ShowGuiChart2(bool showChart2) {
+    m_params->show_data_chart2 = showChart2;
+}
+
+void ChVisualSystemVSG::SetChart1Labels(std::string title, std::string xlabel, std::string ylabel) {
+    m_params->c1_title = title;
+    m_params->x1_label = xlabel;
+    m_params->y1_label = ylabel;
+}
+
+void ChVisualSystemVSG::SetChart2Labels(std::string title, std::string xlabel, std::string ylabel) {
+    m_params->c2_title = title;
+    m_params->x2_label = xlabel;
+    m_params->y2_label = ylabel;
+}
+
+void ChVisualSystemVSG::UpdateChart1(std::shared_ptr<ChFunction_Repeat> fRep) {
+    if(fRep == nullptr) {
+        GetLog() << "No data for chart1 in function " << __func__ << "\n";
+        return ;
+    }
+    double xmin, xmax;
+    fRep->Estimate_x_range(xmin, xmax);
+    double ymin, ymax;
+    fRep->Estimate_y_range(xmin, xmax, ymin, ymax, 0);
+    if(xmin >= xmax || ymin >= ymax) {
+        GetLog() << "Nonsense data for chart1 in function " << __func__ << "\n";
+        return ;
+    }
+    size_t npoints = 100;
+    if(m_params->x1_data.size() != npoints) {
+        m_params->x1_data.resize(npoints);
+        m_params->y1_data.resize(npoints);
+    }
+    float step = (xmax-xmin)/float(npoints-1);
+    for(int i=0; i<npoints; i++) {
+        float x = xmin + step*float(i);
+        m_params->x1_data[i] = x;
+        m_params->y1_data[i] = fRep->Get_y(x);
+    }
+}
+
+void ChVisualSystemVSG::UpdateChart2(std::shared_ptr<ChFunction_Repeat> fRep) {
+    if(fRep == nullptr) {
+        GetLog() << "No data for chart2 in function " << __func__ << "\n";
+        return;
+    }
+    double xmin, xmax;
+    fRep->Estimate_x_range(xmin, xmax);
+    double ymin, ymax;
+    fRep->Estimate_y_range(xmin, xmax, ymin, ymax, 0);
+    if(xmin >= xmax || ymin >= ymax) {
+        GetLog() << "Nonsense data for chart1 in function " << __func__ << "\n";
+        return ;
+    }
+    size_t npoints = 100;
+    if(m_params->x2_data.size() != npoints) {
+        m_params->x2_data.resize(npoints);
+        m_params->y2_data.resize(npoints);
+    }
+    float step = (xmax-xmin)/float(npoints-1);
+    for(int i=0; i<npoints; i++) {
+        float x = xmin + step*float(i);
+        m_params->x2_data[i] = x;
+        m_params->y2_data[i] = fRep->Get_y(x);
     }
 }
 

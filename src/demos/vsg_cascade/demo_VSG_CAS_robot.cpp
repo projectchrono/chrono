@@ -387,12 +387,16 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
-    vis->SetWindowSize(800, 600);
+    vis->SetWindowSize(1000, 800);
     vis->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
     vis->SetWindowTitle("Load a robot model from STEP file");
-    vis->AddCamera(ChVector<>(0.2, 1.6, 3.5), ChVector<>(0, 1, 0));
+    vis->AddCamera(ChVector<>(2.2, 1.6, 2.5), ChVector<>(0, 1, 0));
     vis->Initialize();
 
+    vis->ShowGuiChart1(true);
+    vis->SetChart1Labels("Move Z", "time(s)", "Z(m)");
+    vis->ShowGuiChart2(true);
+    vis->SetChart2Labels("Move Y", "time(s)", "Y(m)");
     // Modify the settings of the solver.
     // By default, the solver might not have sufficient precision to keep the
     // robot joints 'mounted'. Expecially, the SOR, SSOR and other fixed point methods
@@ -419,15 +423,21 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
     double time_step = 0.01;
 
+    size_t frame_number = 0;
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
         //tools::drawChFunction(vis.get(), motlaw_z, 0, 10, -0.9, 0.2, 10, 400, 300, 80);
         //tools::drawChFunction(vis.get(), motlaw_y, 0, 10, -0.9, 0.2, 10, 500, 300, 80);
         vis->EndScene();
-
+        if(frame_number == 100) {
+            vis->WriteImageToFile("ImPlot_Example.png");
+        }
         sys.DoStepDynamics(time_step);
+        vis->UpdateChart1(motlaw_z);
+        vis->UpdateChart2(motlaw_y);
         realtime_timer.Spin(time_step);
+        frame_number++;
     }
 
     return 0;
