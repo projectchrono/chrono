@@ -13,3 +13,7 @@
 [submodule "src/chrono_thirdparty/cub"]
 	path = src/chrono_thirdparty/cub
 	url = https://github.com/NVIDIA/cub.git
+[submodule "src/chrono_thirdparty/DEM-Engine"]
+	path = src/chrono_thirdparty/DEM-Engine
+	url = https://github.com/projectchrono/DEM-Engine
+	branch = main

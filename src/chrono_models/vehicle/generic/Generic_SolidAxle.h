@@ -43,6 +43,9 @@ class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
     Generic_SolidAxle(const std::string& name);
     ~Generic_SolidAxle();
 
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
+
     virtual double getAxleTubeMass() const override { return m_axleTubeMass; }
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getULMass() const override { return m_ULMass; }

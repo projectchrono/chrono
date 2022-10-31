@@ -47,7 +47,7 @@
   ],
 
   "Wheelbase": 3.75,
-  "Maximum Steering Angle": 25,
+  "Maximum Steering Angle (deg)": 25,
 
   "Driveline": {
     "Input File": "generic/driveline/Driveline4WD.json",

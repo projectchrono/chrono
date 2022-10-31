@@ -44,6 +44,9 @@ class CH_MODELS_API HMMWV_DoubleWishboneReducedFront : public ChDoubleWishboneRe
     HMMWV_DoubleWishboneReducedFront(const std::string& name);
     ~HMMWV_DoubleWishboneReducedFront();
 
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
+
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUprightMass() const override { return m_uprightMass; }
 
@@ -89,6 +92,9 @@ class CH_MODELS_API HMMWV_DoubleWishboneReducedRear : public ChDoubleWishboneRed
   public:
     HMMWV_DoubleWishboneReducedRear(const std::string& name);
     ~HMMWV_DoubleWishboneReducedRear();
+
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUprightMass() const override { return m_uprightMass; }

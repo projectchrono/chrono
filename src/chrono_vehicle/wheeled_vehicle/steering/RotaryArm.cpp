@@ -51,7 +51,7 @@ void RotaryArm::Create(const rapidjson::Document& d) {
     m_points[ARM_C] = ReadVectorJSON(d["Pitman Arm"]["Point of Rotation"]);
     m_points[ARM_L] = ReadVectorJSON(d["Pitman Arm"]["Point to Draglink"]);
     m_dirs[REV_AXIS] = ReadVectorJSON(d["Pitman Arm"]["Axis of Rotation"]);
-    m_maxAngle = d["Pitman Arm"]["Maximum Angle Degrees"].GetDouble() * CH_C_PI / 180.0;
+    m_maxAngle = d["Pitman Arm"]["Maximum Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
 }
 
 }  // end namespace vehicle

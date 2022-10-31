@@ -37,6 +37,9 @@ class CH_VEHICLE_API DoubleWishboneReduced : public ChDoubleWishboneReduced {
     DoubleWishboneReduced(const rapidjson::Document& d);
     ~DoubleWishboneReduced();
 
+    virtual double getCamberAngle() const override { return m_camber_angle; }
+    virtual double getToeAngle() const override { return m_toe_angle; }
+
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUprightMass() const override { return m_uprightMass; }
 
@@ -60,6 +63,9 @@ class CH_VEHICLE_API DoubleWishboneReduced : public ChDoubleWishboneReduced {
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
     ChVector<> m_points[NUM_POINTS];
+
+    double m_camber_angle;
+    double m_toe_angle;
 
     double m_spindleMass;
     double m_uprightMass;
