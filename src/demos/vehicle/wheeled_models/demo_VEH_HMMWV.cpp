@@ -73,6 +73,9 @@ DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 // Steering type (PITMAN_ARM or PITMAN_ARM_SHAFTS)
 SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
 
+// Brake type (SIMPLE or SHAFTS)
+BrakeType brake_type = BrakeType::SHAFTS;
+
 // Model tierods as bodies (true) or as distance constraints (false)
 bool use_tierod_bodies = true;
 
@@ -132,6 +135,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.UseTierodBodies(use_tierod_bodies);
     my_hmmwv.SetSteeringType(steering_type);
+    my_hmmwv.SetBrakeType(brake_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();

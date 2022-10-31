@@ -67,7 +67,7 @@
 
   "Wheelbase": 4.1,
   "Minimum Turning Radius": 11.0,
-  "Maximum Steering Angle": 0.43,
+  "Maximum Steering Angle (deg)": 0.43,
 
   "Driveline": {
     "Input File": "mtv/driveline/FMTV_Driveline4WD.json",

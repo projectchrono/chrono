@@ -12,7 +12,7 @@
     "Axis of Rotation":         [0, 1, 0],          // arm-chassis revolute joint
     "Point of Rotation":        [1.6, 0.51569083, 0.5],  // location of chassis connection
     "Point to Draglink":        [1.6, 0.51569083, 0.1],  // location of draglink connection
-    "Maximum Angle Degrees":    27
+    "Maximum Angle (deg)":      27
   }
 
 }

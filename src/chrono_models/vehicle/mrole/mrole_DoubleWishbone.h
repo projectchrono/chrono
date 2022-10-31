@@ -44,6 +44,9 @@ class CH_MODELS_API mrole_DoubleWishboneFront : public ChDoubleWishbone {
     mrole_DoubleWishboneFront(const std::string& name);
     ~mrole_DoubleWishboneFront();
 
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
+
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUCAMass() const override { return m_UCAMass; }
     virtual double getLCAMass() const override { return m_LCAMass; }
@@ -115,6 +118,9 @@ class CH_MODELS_API mrole_DoubleWishboneRear : public ChDoubleWishbone {
   public:
     mrole_DoubleWishboneRear(const std::string& name);
     ~mrole_DoubleWishboneRear();
+
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUCAMass() const override { return m_UCAMass; }
