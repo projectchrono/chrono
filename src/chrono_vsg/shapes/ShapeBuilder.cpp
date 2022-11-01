@@ -176,7 +176,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
         vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
     else
         vdsl = vsg::ViewDescriptorSetLayout::create();
-    graphicsPipelineConfig->additionalDescrptorSetLayout = vdsl;
+    graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
 
     // share the pipeline config and initialize if it's unique
     if (m_options->sharedObjects)
@@ -388,7 +388,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::M
         vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
     else
         vdsl = vsg::ViewDescriptorSetLayout::create();
-    graphicsPipelineConfig->additionalDescrptorSetLayout = vdsl;
+    graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
 
     // share the pipeline config and initialize if it's unique
     if (m_options->sharedObjects)
@@ -634,7 +634,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(vsg::ref_ptr<vsg::M
             vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
         else
             vdsl = vsg::ViewDescriptorSetLayout::create();
-        graphicsPipelineConfig->additionalDescrptorSetLayout = vdsl;
+        graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
 
         // share the pipeline config and initialize if it's unique
         if (m_options->sharedObjects)
@@ -785,7 +785,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createParticlePattern(std::shared_ptr<ChV
         vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
     else
         vdsl = vsg::ViewDescriptorSetLayout::create();
-    graphicsPipelineConfig->additionalDescrptorSetLayout = vdsl;
+    graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
 
     // share the pipeline config and initialize if it's unique
     if (m_options->sharedObjects)
