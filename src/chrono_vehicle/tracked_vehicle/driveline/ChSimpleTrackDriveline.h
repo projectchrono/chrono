@@ -62,12 +62,16 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChDrivelineTV {
     /// Get the angular speed of the specified sprocket.
     virtual double GetSprocketSpeed(VehicleSide side) const override;
 
+    /// Disconnect driveline from driven sprockets.
+    virtual void Disconnect() override;
+
   protected:
     /// Return the torque bias ratio for the differential.
     /// This is a simple model of a Torsen limited-slip differential.
     virtual double GetDifferentialMaxBias() const = 0;
 
   private:
+    bool m_connected;
     std::shared_ptr<ChShaft> m_shaft_left;   ///< associated left sprocket shaft
     std::shared_ptr<ChShaft> m_shaft_right;  ///< associated right sprocket shaft
 };

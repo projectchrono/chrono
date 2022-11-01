@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2022 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -14,16 +14,21 @@
 //
 // Terrain defined by an OpenCRG file (http://opencrg.org)
 //
-// OpenCRG® is managed by
+// OpenCRG® (up to v1.1.2) was managed by
 //	VIRES Simulationstechnologie GmbH
-//	Grassinger Strasse 8
-//	83043 Bad Aibling
-//	Germany
-//	p: +49.8061.939093-0
-//	f: +49.8061.939093-13
-//	e: opencrg@opencrg.org
 //
+// OpenCRG® (>= v1.2) is now managed by
+// ASAM e.V.
+// https://www.asam.net/standards/detail/opencrg/
+//
+// v1.1.2 is still available. Both versions work with chrono.
 // =============================================================================
+//
+// Limits:	Options and modifiers are ignored
+//
+// Roads start at {0,0,0}, first driving direction is {1,0,0}
+//
+//==============================================================================
 
 #ifndef CRGTERRAIN_H
 #define CRGTERRAIN_H
@@ -115,6 +120,12 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     /// This is the (x,y,z) road location at CRG parameters u=v=0.
     ChCoordsys<> GetStartPosition();
 
+    /// Generate roadside posts left and right (optional)
+    void SetRoadsidePostDistance(double dist) { m_post_distance = ChClamp(dist, 0.0, 100.0); };
+
+    /// Use a texture file, if mesh representation is desired (optional, should not be used with Irrlicht)
+    void SetRoadTextureFile(std::string texFile);
+
     /// Export road mesh to Wavefront file.
     void ExportMeshWavefront(const std::string& out_dir);
 
@@ -131,6 +142,11 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     void SetupMeshGraphics();
     void GenerateMesh();
     void GenerateCurves();
+    void SetRoadsidePosts();
+
+    double m_post_distance; // 0 means no posts
+    std::string m_texture_filename;
+    bool m_use_texture; // if set, use a textured mesh
 
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     bool m_use_vis_mesh;               ///< mesh or boundary visual asset?

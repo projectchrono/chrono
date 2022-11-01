@@ -37,7 +37,8 @@ SAEToeBarLeafspringAxle::SAEToeBarLeafspringAxle(const std::string& filename)
       m_shackleBushingData(nullptr),
       m_clampBushingData(nullptr),
       m_leafspringBushingData(nullptr) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -57,8 +58,6 @@ SAEToeBarLeafspringAxle::SAEToeBarLeafspringAxle(const rapidjson::Document& d)
     Create(d);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 SAEToeBarLeafspringAxle::~SAEToeBarLeafspringAxle() {}
 
 // -----------------------------------------------------------------------------
@@ -68,6 +67,16 @@ SAEToeBarLeafspringAxle::~SAEToeBarLeafspringAxle() {}
 void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     // Invoke base class method.
     ChPart::Create(d);
+
+    if (d.HasMember("Camber Angle (deg)"))
+        m_camber_angle = d["Camber Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+    else
+        m_camber_angle = 0;
+
+    if (d.HasMember("Toe Angle (deg)"))
+        m_toe_angle = d["Toe Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+    else
+        m_toe_angle = 0;
 
     // Read Spindle data
     assert(d.HasMember("Spindle"));
@@ -129,18 +138,21 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     m_points[SPRING_C] = ReadVectorJSON(d["Auxiliary Spring"]["Location Chassis"]);
     m_points[SPRING_A] = ReadVectorJSON(d["Auxiliary Spring"]["Location Axle"]);
     m_springRestLength = d["Auxiliary Spring"]["Free Length"].GetDouble();
+    double preload_aux = 0;
+    if (d["Auxiliary Spring"].HasMember("Preload"))
+        preload_aux = d["Auxiliary Spring"]["Preload"].GetDouble();
 
     if (d["Auxiliary Spring"].HasMember("Minimum Length") && d["Auxiliary Spring"].HasMember("Maximum Length")) {
         if (d["Auxiliary Spring"].HasMember("Spring Coefficient")) {
             m_springForceCB = chrono_types::make_shared<LinearSpringBistopForce>(
                 d["Auxiliary Spring"]["Spring Coefficient"].GetDouble(),
                 d["Auxiliary Spring"]["Minimum Length"].GetDouble(),
-                d["Auxiliary Spring"]["Maximum Length"].GetDouble());
+                d["Auxiliary Spring"]["Maximum Length"].GetDouble(), preload_aux);
         } else if (d["Auxiliary Spring"].HasMember("Curve Data")) {
             int num_points = d["Auxiliary Spring"]["Curve Data"].Size();
-            auto springForceCB =
-                chrono_types::make_shared<MapSpringBistopForce>(d["Auxiliary Spring"]["Minimum Length"].GetDouble(),
-                                                                d["Auxiliary Spring"]["Maximum Length"].GetDouble());
+            auto springForceCB = chrono_types::make_shared<MapSpringBistopForce>(
+                d["Auxiliary Spring"]["Minimum Length"].GetDouble(),
+                d["Auxiliary Spring"]["Maximum Length"].GetDouble(), preload_aux);
             for (int i = 0; i < num_points; i++) {
                 springForceCB->add_point(d["Auxiliary Spring"]["Curve Data"][i][0u].GetDouble(),
                                          d["Auxiliary Spring"]["Curve Data"][i][1u].GetDouble());
@@ -149,11 +161,11 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
         }
     } else {
         if (d["Auxiliary Spring"].HasMember("Spring Coefficient")) {
-            m_springForceCB =
-                chrono_types::make_shared<LinearSpringForce>(d["Auxiliary Spring"]["Spring Coefficient"].GetDouble());
+            m_springForceCB = chrono_types::make_shared<LinearSpringForce>(
+                d["Auxiliary Spring"]["Spring Coefficient"].GetDouble(), preload_aux);
         } else if (d["Auxiliary Spring"].HasMember("Curve Data")) {
             int num_points = d["Auxiliary Spring"]["Curve Data"].Size();
-            auto springForceCB = chrono_types::make_shared<MapSpringForce>();
+            auto springForceCB = chrono_types::make_shared<MapSpringForce>(preload_aux);
             for (int i = 0; i < num_points; i++) {
                 springForceCB->add_point(d["Auxiliary Spring"]["Curve Data"][i][0u].GetDouble(),
                                          d["Auxiliary Spring"]["Curve Data"][i][1u].GetDouble());

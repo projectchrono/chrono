@@ -41,6 +41,9 @@ class CH_MODELS_API UAZBUS_LeafspringAxle : public ChLeafspringAxle {
   protected:
     virtual const ChVector<> getLocation(PointId which) override;
 
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
+
     virtual double getAxleTubeMass() const override { return m_axleTubeMass; }
     virtual double getSpindleMass() const override { return m_spindleMass; }
  

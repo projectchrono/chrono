@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     RigidTerrain terrain(marder.GetSystem());
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.9f;
     minfo.cr = 0.75f;
     minfo.Y = 2e7f;
@@ -444,7 +444,7 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->AddVisualShape(shape);
 
     // Contact
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.9f;
     minfo.cr = 0.01f;
     minfo.Y = 2e7f;
@@ -470,7 +470,7 @@ void AddFallingObjects(ChSystem* system) {
     ball->SetPos_dt(ChVector<>(3, 0, 0));
     ball->SetBodyFixed(false);
 
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     ball->SetCollide(true);

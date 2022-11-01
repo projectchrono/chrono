@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     RandomSurfaceTerrain terrain(vehicle.GetSystem(), xend);
 
     if (iTire == 6) {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.9f;
         minfo.cr = 0.01f;
         minfo.Y = 2e7f;

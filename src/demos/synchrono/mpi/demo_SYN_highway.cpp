@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     // -------
     // Terrain
     // -------
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.9f;
     minfo.cr = 0.01f;
     minfo.Y = 2e7f;

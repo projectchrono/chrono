@@ -3,6 +3,9 @@
   "Type":                           "Suspension",
   "Template":                       "SolidAxle",
 
+ "Camber Angle (deg)":               0,
+ "Toe Angle (deg)":                  0,
+
   "Spindle" :
   {
     "Mass":                         0.248,

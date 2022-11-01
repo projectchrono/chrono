@@ -35,8 +35,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for continuous band track shoes using rigid treads.
-/// Derived classes specify actual template definitions, using different models
-/// for the track web.
+/// Derived classes specify actual template definitions, using different models for the track web.
 class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
   public:
     ChTrackShoeBand(const std::string& name  ///< [in] name of the subsystem
@@ -118,14 +117,10 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     /// Specify the name assigned to the procedurally-generated tread body visualization mesh.
     virtual const std::string& GetTreadVisualizationMeshName() const = 0;
 
-    /// Create the contact materials. A derived class must set 4 materials, consistent with the specified contact
-    /// method, for interactionss with the sprocket, wheels, and ground. Note that these can be shared.
-    virtual void CreateContactMaterials(ChContactMethod contact_method) = 0;
-
     /// Add contact geometry for the tread body.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
-    void AddShoeContact();
+    void AddShoeContact(ChContactMethod contact_method);
 
     /// Add visualization of the tread body, based on primitives corresponding to the contact shapes.
     /// Note that the "primitive" shape for the tread body is a procedurally-generated mesh.
@@ -135,10 +130,10 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     static ChColor GetColor(size_t index);
 
     // Contact materials
-    std::shared_ptr<ChMaterialSurface> m_tooth_material;  ///< contact material for teeth (sprocket interaction)
-    std::shared_ptr<ChMaterialSurface> m_body_material;   ///< contact material for main body (wheel interaction)
-    std::shared_ptr<ChMaterialSurface> m_pad_material;    ///< contact material for pad (ground interaction)
-    std::shared_ptr<ChMaterialSurface> m_guide_material;  ///< contact material for guide pin (wheel interaction)
+    ChContactMaterialData m_tooth_matinfo;  ///< data for contact material for teeth (sprocket interaction)
+    ChContactMaterialData m_body_matinfo;   ///< date for contact material for main body (wheel interaction)
+    ChContactMaterialData m_pad_matinfo;    ///< data for contact material for pad (ground interaction)
+    ChContactMaterialData m_guide_matinfo;  ///< date for contact material for guide pin (wheel interaction)
 
   private:
     /// Utilities for creating the tooth visualization mesh.
@@ -151,6 +146,8 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     double m_center_p_arc_end;    ///< ending angle of the (+x) arc, in tread body x-z plane
     double m_center_m_arc_start;  ///< starting angle of the (-x) arc, in tread body x-z plane
     double m_center_m_arc_end;    ///< ending angle of the (-x) arc, in tread body x-z plane
+
+    std::shared_ptr<ChMaterialSurface> m_tooth_material;  ///< contact material for teeth (sprocket interaction)
 
     friend class ChSprocketBand;
     friend class SprocketBandContactCB;

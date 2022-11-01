@@ -28,6 +28,7 @@
 
 #include "chrono_modal/ChModalAssembly.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -150,7 +151,23 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
                  << "    Re=" << my_assembly->Get_modes_eig()(i).real()
                  << "  Im=" << my_assembly->Get_modes_eig()(i).imag() << "\n";
 
-    my_assembly->ComputeModesDamped(14);
+    // Here we perform the complex-modal analysis (damped modes) on the ChModalAssembly.
+    // Short way:
+    //   my_assembly->ComputeModesDamped(14);
+    // Or, if you need more control on the eigenvalue solver, do this:
+    //   my_assembly->ComputeModesDamped(ChModalSolveDamped( ...parameters...));
+
+    ChSolverComplexPardisoMKL mfactorization;   // ex: use Pardiso instead than default Eigen::SparseQR for factorization
+    mfactorization.GetMklEngine().pardisoParameterArray()[12] = 1; // ex.: custom setting for Pardiso
+    my_assembly->ComputeModesDamped(ChModalSolveDamped(
+        14,          // n. of requested eigenmodes
+        1e-5,        // base frequency, or vector of frequency spans
+        500,         // the max. number of iterations
+        1e-10,       // the tolerance
+        true,        // verbose
+        ChQuadraticEigenvalueSolverKrylovSchur(&mfactorization) // the eigenpair solver algorithm
+     )
+    );
 
     // Just for logging the frequencies:
     for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)

@@ -1,0 +1,27 @@
+// Sample SCM terrain specification file for co-simulation
+{
+    "Type": "SCM",
+
+    "Patch dimensions": {
+        "Length": 4,
+        "Width": 1
+    },
+
+    "Grid spacing": 0.05,
+
+    "Soil parameters": {
+        "Bekker Kphi": 2e7,
+        "Bekker Kc": 0,
+        "Bekker n exponent": 1.1,
+        "Mohr cohesive limit": 0,
+        "Mohr friction limit": 20,
+        "Janosi shear coefficient": 0.01,
+        "Elastic stiffness": 2e8,
+        "Damping": 3e4
+    },
+
+    "Simulation settings": {
+        "Proxy contact radius": 0.002,
+        "Fix proxies": true
+    }
+}

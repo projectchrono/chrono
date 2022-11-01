@@ -80,7 +80,7 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
     virtual std::shared_ptr<ChVehicleBushingData> GetBushingData() const = 0;
 
     /// Add contact geometry for a web segment body.
-    virtual void AddWebContact(std::shared_ptr<ChBody> segment);
+    virtual void AddWebContact(std::shared_ptr<ChBody> segment, std::shared_ptr<ChMaterialSurface> web_mat);
 
   private:
     /// Connect this track shoe to the specified neighbor.

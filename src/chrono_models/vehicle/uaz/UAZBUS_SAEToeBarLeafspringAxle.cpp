@@ -15,9 +15,7 @@
 // UAZBUS leafspring axle with SAE three-link model and Toebar Steering.
 //
 // These concrete suspension subsystems are defined with respect to right-handed
-// frames with X pointing towards the front, Y to the left, and Z up (as imposed
-// by the base class ChDoubleWishbone) and origins at the midpoint between the
-// lower control arms' connection points to the chassis.
+// frames with X pointing towards the front, Y to the left, and Z up.
 //
 // All point locations are provided for the left half of the suspension.
 //

@@ -143,7 +143,7 @@ ChTrackTestRig::~ChTrackTestRig() {
 void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
     // Create a contact material for the posts (shared)
     //// TODO: are default material properties ok?
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     auto post_mat = minfo.CreateMaterial(m_system->GetContactMethod());
 
     // Create the chassis subsystem

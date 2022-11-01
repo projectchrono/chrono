@@ -25,7 +25,7 @@
 
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
-#include "chrono_vehicle/cosim/ChVehicleCosimMBSNode.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
 
 namespace chrono {
 namespace vehicle {
@@ -35,7 +35,7 @@ namespace vehicle {
 
 /// Mechanism for a single-wheel testing rig.
 /// The mechanism system is co-simulated with a tire and a terrain system.
-class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimMBSNode {
+class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimWheeledMBSNode {
   public:
     ChVehicleCosimRigNode();
     ~ChVehicleCosimRigNode();

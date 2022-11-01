@@ -78,10 +78,6 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
   protected:
     ChVehicleGeometry m_geometry;  ///< collection of visualization and collision shapes
 
-    /// Load contact materials. A derived class must implement this only if it sets m_has_collision to 'true' and should
-    /// use contact materials consistent with the specified contact method.
-    virtual void CreateContactMaterials(ChContactMethod contact_method) {}
-
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     virtual void Output(ChVehicleOutput& database) const override;
@@ -132,10 +128,6 @@ class CH_VEHICLE_API ChRigidChassisRear : public ChChassisRear {
 
   protected:
     ChVehicleGeometry m_geometry;  ///< collection of visualization and collision shapes
-
-    /// Load contact materials. A derived class must implement this only if it sets m_has_collision to 'true' and should
-    /// use contact materials consistent with the specified contact method.
-    virtual void CreateContactMaterials(ChContactMethod contact_method) {}
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 

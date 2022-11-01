@@ -37,6 +37,9 @@ class CH_VEHICLE_API SemiTrailingArm : public ChSemiTrailingArm {
     SemiTrailingArm(const rapidjson::Document& d);
     ~SemiTrailingArm();
 
+    virtual double getCamberAngle() const override { return m_camber_angle; }
+    virtual double getToeAngle() const override { return m_toe_angle; }
+
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getArmMass() const override { return m_armMass; }
 
@@ -64,6 +67,9 @@ class CH_VEHICLE_API SemiTrailingArm : public ChSemiTrailingArm {
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
     ChVector<> m_points[NUM_POINTS];
+
+    double m_camber_angle;
+    double m_toe_angle;
 
     double m_spindleMass;
     double m_armMass;

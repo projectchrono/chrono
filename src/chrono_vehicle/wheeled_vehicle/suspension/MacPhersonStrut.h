@@ -39,6 +39,9 @@ class CH_VEHICLE_API MacPhersonStrut : public ChMacPhersonStrut {
 
     virtual bool UseTierodBodies() const override { return m_use_tierod_bodies; }
 
+    virtual double getCamberAngle() const override { return m_camber_angle; }
+    virtual double getToeAngle() const override { return m_toe_angle; }
+
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getStrutMass() const override { return m_strutMass; }
     virtual double getLCAMass() const override { return m_LCAMass; }
@@ -78,6 +81,9 @@ class CH_VEHICLE_API MacPhersonStrut : public ChMacPhersonStrut {
     ChVector<> m_points[NUM_POINTS];
 
     bool m_use_tierod_bodies;
+
+    double m_camber_angle;
+    double m_toe_angle;
 
     double m_spindleMass;
     double m_strutMass;

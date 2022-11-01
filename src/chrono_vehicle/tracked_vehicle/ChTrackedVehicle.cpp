@@ -127,6 +127,12 @@ void ChTrackedVehicle::Advance(double step) {
     m_contact_manager->Process(this);
 }
 
+// Disconnect driveline
+void ChTrackedVehicle::DisconnectDriveline() {
+    if (m_driveline)
+        m_driveline->Disconnect();
+}
+
 // -----------------------------------------------------------------------------
 // Set visualization type for the various subsystems
 // -----------------------------------------------------------------------------

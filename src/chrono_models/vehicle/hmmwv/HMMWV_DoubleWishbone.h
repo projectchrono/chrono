@@ -46,6 +46,9 @@ class CH_MODELS_API HMMWV_DoubleWishboneFront : public ChDoubleWishbone {
 
     virtual bool UseTierodBodies() const override { return m_use_tierod_bodies; }
 
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
+
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUCAMass() const override { return m_UCAMass; }
     virtual double getLCAMass() const override { return m_LCAMass; }
@@ -120,6 +123,9 @@ class CH_MODELS_API HMMWV_DoubleWishboneRear : public ChDoubleWishbone {
     ~HMMWV_DoubleWishboneRear();
 
     virtual bool UseTierodBodies() const override { return m_use_tierod_bodies; }
+
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUCAMass() const override { return m_UCAMass; }

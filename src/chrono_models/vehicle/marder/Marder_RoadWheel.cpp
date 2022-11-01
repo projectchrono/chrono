@@ -46,7 +46,7 @@ const std::string Marder_RoadWheelRight::m_meshFile = "Marder/Roller_R.obj";
 Marder_RoadWheel::Marder_RoadWheel(const std::string& name) : ChDoubleTrackWheel(name) {}
 
 void Marder_RoadWheel::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.4f;
     minfo.cr = 0.75f;
     minfo.Y = 1e7f;

@@ -55,7 +55,7 @@ const std::string Marder_SprocketSinglePinRight::m_meshFile = "Marder/Sprocket_R
 Marder_SprocketSinglePin::Marder_SprocketSinglePin(const std::string& name) : ChSprocketSinglePin(name) {}
 
 void Marder_SprocketSinglePin::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.4f;
     minfo.cr = 0.75f;
     minfo.Y = 1e8f;

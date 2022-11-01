@@ -57,7 +57,7 @@ const std::string M113_SprocketDoublePinRight::m_meshFile = "M113/meshes/Sprocke
 M113_SprocketDoublePin::M113_SprocketDoublePin(const std::string& name) : ChSprocketDoublePin(name) {}
 
 void M113_SprocketDoublePin::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.4f;
     minfo.cr = 0.75f;
     minfo.Y = 1e9f;

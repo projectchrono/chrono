@@ -38,7 +38,7 @@
 
   "Wheelbase": 3.378,
   "Minimum Turning Radius": 7.62,
-  "Maximum Steering Angle": 30.23,
+  "Maximum Steering Angle (deg)": 30.23,
 
   "Driveline": {
     "Input File": "hmmwv/driveline/HMMWV_DrivelineSimple.json",
