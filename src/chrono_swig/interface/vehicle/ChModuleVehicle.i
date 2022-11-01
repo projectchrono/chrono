@@ -155,6 +155,7 @@ using namespace chrono::vehicle::m113;
 %include "std_vector.i"
 %include "typemaps.i"
 %include "cstring.i"
+%include "cpointer.i"
 
 #ifdef SWIGPYTHON
 %include "std_wstring.i"

@@ -98,6 +98,7 @@ using namespace chrono::copter;
 %include "std_vector.i"
 %include "std_array.i"
 %include "typemaps.i"
+%include "cpointer.i"
 
 // This is to enable references to double,int,etc. types in function parameters
 %pointer_class(int,int_ptr);
