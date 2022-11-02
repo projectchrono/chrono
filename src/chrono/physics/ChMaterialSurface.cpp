@@ -78,4 +78,42 @@ std::shared_ptr<ChMaterialSurface> ChMaterialSurface::DefaultMaterial(ChContactM
     return nullptr;
 }
 
+ChContactMaterialData::ChContactMaterialData()
+    : mu(0.8f), cr(0.01f), Y(2e7f), nu(0.3f), kn(2e5f), gn(40.0f), kt(2e5f), gt(20.0f) {}
+
+ChContactMaterialData::ChContactMaterialData(float mu_,
+                                             float cr_,
+                                             float Y_,
+                                             float nu_,
+                                             float kn_,
+                                             float gn_,
+                                             float kt_,
+                                             float gt_)
+    : mu(mu_), cr(cr_), Y(Y_), nu(nu_), kn(kn_), gn(gn_), kt(kt_), gt(gt_) {}
+
+std::shared_ptr<ChMaterialSurface> ChContactMaterialData::CreateMaterial(ChContactMethod contact_method) const {
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(mu);
+            matNSC->SetRestitution(cr);
+            return matNSC;
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(mu);
+            matSMC->SetRestitution(cr);
+            matSMC->SetYoungModulus(Y);
+            matSMC->SetPoissonRatio(nu);
+            matSMC->SetKn(kn);
+            matSMC->SetGn(gn);
+            matSMC->SetKt(kt);
+            matSMC->SetGt(gt);
+            return matSMC;
+        }
+        default:
+            return std::shared_ptr<ChMaterialSurface>();
+    }
+}
+
 }  // end namespace chrono

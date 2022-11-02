@@ -128,6 +128,7 @@ using namespace chrono::sensor;
 %include "cstring.i"
 %include "stdint.i"
 %include "numpy.i"
+%include "cpointer.i"
 
 %init %{
     import_array();

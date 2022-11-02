@@ -58,7 +58,7 @@ class CH_VEHICLE_API RigidTire : public ChRigidTire {
     std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 
-    MaterialInfo m_mat_info;
+    ChContactMaterialData m_mat_info;
 };
 
 /// @} vehicle_wheeled_tire

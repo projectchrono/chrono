@@ -613,7 +613,7 @@ double ChPac02Tire::CalcFyComb(double kappa, double alpha, double Fz, double gam
     double X1 = ChClamp(B * (alpha + Sh), -CH_C_PI_2 + 0.001,
                         CH_C_PI_2 - 0.001);  // Ensure that X1 stays within +/-90 deg minus a little bit
     double Fy0 = D * sin(C * atan(X1 - E * (X1 - atan(X1)))) + Sv;
-    double Shyk = m_PacCoeff.rhx1 + m_PacCoeff.rhy2 * dFz;
+    double Shyk = m_PacCoeff.rhy1 + m_PacCoeff.rhy2 * dFz;
     m_Shf = Sh + Sv / BCD;
     double kappa_s = kappa + Shyk;
     double Byk = m_PacCoeff.rby1 * cos(atan(m_PacCoeff.rby2 * (tan(alpha) - m_PacCoeff.rby3)));

@@ -46,6 +46,7 @@ const double M113_SprocketBand::m_gear_tip_width = 0.0128 * 1.04;
 const double M113_SprocketBand::m_gear_tooth_depth = 0.0387 * 1.04;
 const double M113_SprocketBand::m_gear_arc_radius = 0.0542 * 1.04;
 const double M113_SprocketBand::m_gear_RA = 0.2307 * 1.04;
+const double M113_SprocketBand::m_gear_RT = 0.22;
 
 const double M113_SprocketBand::m_lateral_backlash = 0.02;
 
@@ -57,7 +58,7 @@ const std::string M113_SprocketBandRight::m_meshFile = "M113/meshes/Sprocket2_R.
 M113_SprocketBand::M113_SprocketBand(const std::string& name) : ChSprocketBand(name) {}
 
 void M113_SprocketBand::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.4f;
     minfo.cr = 0.75f;
     minfo.Y = 1e9f;

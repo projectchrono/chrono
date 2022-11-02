@@ -20,7 +20,13 @@
 #include <complex>
 
 namespace chrono {
+
+// Forward references
+class ChDirectSolverLScomplex;
+class ChDirectSolverLS;
+    
 namespace modal {
+
 
 
 /// Class for passing basic settings to the Solve() function of the various solvers 
@@ -262,6 +268,10 @@ public:
 /// It uses an iterative method and it exploits the sparsity of the matrices.
 class ChApiModal ChQuadraticEigenvalueSolverKrylovSchur : public ChQuadraticEigenvalueSolver {
 public:
+    /// Default: uses Eigen::SparseQR as factorization for the shift&invert, 
+    /// otherwise pass a custom complex sparse solver for faster factorization (ex. ChSolverComplexPardisoMKL)
+    ChQuadraticEigenvalueSolverKrylovSchur(ChDirectSolverLScomplex* mlinear_solver = 0);
+
     virtual ~ChQuadraticEigenvalueSolverKrylovSchur() {};
 
     /// Solve the quadratic eigenvalue problem (lambda^2*M + lambda*R + K)*x = 0 s.t. Cq*x = 0
@@ -278,6 +288,7 @@ public:
         ChEigenvalueSolverSettings settings = 0   ///< optional: settings for the solver, or n. of desired lower eigenvalues. 
     ) const override;
 
+    ChDirectSolverLScomplex* linear_solver;
 };
 
 
@@ -370,44 +381,6 @@ public:
 
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////7
-//
-// EXPERIMENTAL CODE
-
-// Inherit from this class to define how to compute A*x
-class callback_Ax {
-public:
-    // Inherit this. It must compute A*x. How A is stored (full, sparse, factorised, etc. ) is up to you.
-    virtual void compute(ChVectorDynamic<std::complex<double>>& A_x,    ///< output: result of A*x. Assume already sized.
-        const ChVectorDynamic<std::complex<double>>& x          ///< input:  x in A*x
-    ) {};
-};
-
-
-// Calculate (complex) eigenvalues and eigenvectors of matrix A.
-// using the Krylov-Schur algorithm.
-// Adapted from Matlab code at  https://github.com/dingxiong/KrylovSchur
-
-class  ChApiModal KrylovSchurEig  {
-public:
-    
-    // Construct and compute results, returned in v and eig.
-    KrylovSchurEig(
-        ChMatrixDynamic<std::complex<double>>& v,   ///< output matrix with eigenvectors as columns, will be resized 
-        ChVectorDynamic<std::complex<double>>& eig, ///< output vector with eigenvalues (real part not zero if some damping), will be resized 
-        bool& isC,									///< 0 = k-th eigenvalue is real, 1= k-th and k-th+1 are complex conjugate pairs
-        bool& flag,									///< 0 = has converged, 1 = hasn't converged 
-        int& nc,									///< number of converged eigenvalues
-        int& ni,									///< number of used iterations
-        callback_Ax* Ax_function, // void (*Ax_function)(ChVectorDynamic<std::complex<double>>& A_x, const ChVectorDynamic<std::complex<double>>& x),  ///< compute the A*x operation, for standard eigenvalue problem A*v=lambda*v. 
-        ChVectorDynamic<std::complex<double>>& v1,  ///< initial approx of eigenvector, or random
-        const int n,								///< size of A
-        const int k,								///< number of needed eigenvalues
-        const int m,								///< Krylov restart threshold (largest dimension of krylov subspace)
-        const int maxIt,							///< max iteration number
-        const double tol							///< tolerance
-    );
-};
 
 
 }  // end namespace modal

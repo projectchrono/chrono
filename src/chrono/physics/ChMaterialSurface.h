@@ -82,6 +82,29 @@ class ChApi ChMaterialSurface {
 
 CH_CLASS_VERSION(ChMaterialSurface, 0)
 
+/// Material information for a collision shape.
+/// Provides mechanism for creating a contact material of type to a particular contact formulation (SMC or NSC).
+class ChApi ChContactMaterialData {
+  public:
+    float mu;  ///< coefficient of friction
+    float cr;  ///< coefficient of restitution
+    float Y;   ///< Young's modulus
+    float nu;  ///< Poisson ratio
+    float kn;  ///< normal stiffness
+    float gn;  ///< normal viscous damping
+    float kt;  ///< tangential stiffness
+    float gt;  ///< tangential viscous damping
+
+    /// Define default properties for contact material information.
+    ChContactMaterialData();
+
+    /// Define contact material data with provided properties.
+    ChContactMaterialData(float mu, float cr, float Y, float nu, float kn, float gn, float kt, float gt);
+
+    /// Construct a contact material, consistent with the specified method, using the current data.
+    std::shared_ptr<ChMaterialSurface> CreateMaterial(ChContactMethod contact_method) const;
+};
+
 /// Base class for composite material for a contact pair.
 class ChApi ChMaterialComposite {
   public:

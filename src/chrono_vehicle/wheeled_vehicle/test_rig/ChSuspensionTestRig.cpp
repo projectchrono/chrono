@@ -537,7 +537,7 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
 
     // Create a contact material for the posts (shared)
     //// TODO: are default material properties ok?
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     auto post_mat = minfo.CreateMaterial(sys->GetContactMethod());
 
     for (int ia = 0; ia < m_naxles; ia++) {

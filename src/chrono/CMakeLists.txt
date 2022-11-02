@@ -906,6 +906,7 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSystemDescriptor.cpp
     solver/ChSolver.cpp
     solver/ChDirectSolverLS.cpp
+    solver/ChDirectSolverLScomplex.cpp
     solver/ChIterativeSolver.cpp
     solver/ChIterativeSolverLS.cpp
     solver/ChIterativeSolverVI.cpp
@@ -927,6 +928,7 @@ set(ChronoEngine_solver_HEADERS
     solver/ChSolverLS.h
     solver/ChSolverVI.h
     solver/ChDirectSolverLS.h
+    solver/ChDirectSolverLScomplex.h
     solver/ChIterativeSolver.h
     solver/ChIterativeSolverLS.h
     solver/ChIterativeSolverVI.h

@@ -30,7 +30,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 TrackShoeBandANCF::TrackShoeBandANCF(const std::string& filename) : ChTrackShoeBandANCF(""), m_has_mesh(false) {
     Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -83,17 +82,17 @@ void TrackShoeBandANCF::Create(const rapidjson::Document& d) {
     m_guide_box_dims = ReadVectorJSON(d["Guide Pin"]["Dimensions"]);
     m_guide_box_offset_x = d["Guide Pin"]["Offset"].GetDouble();
 
-    // Read contact material information (defer creating the materials until CreateContactMaterials.
+    // Read contact material information
     assert(d.HasMember("Contact Materials"));
     assert(d["Contact Materials"].HasMember("Pad Material"));
     assert(d["Contact Materials"].HasMember("Body Material"));
     assert(d["Contact Materials"].HasMember("Guide Material"));
     assert(d["Contact Materials"].HasMember("Tooth Material"));
 
-    m_pad_mat_info = ReadMaterialInfoJSON(d["Contact Materials"]["Pad Material"]);
-    m_body_mat_info = ReadMaterialInfoJSON(d["Contact Materials"]["Body Material"]);
-    m_guide_mat_info = ReadMaterialInfoJSON(d["Contact Materials"]["Guide Material"]);
-    m_tooth_mat_info = ReadMaterialInfoJSON(d["Contact Materials"]["Tooth Material"]);
+    m_pad_matinfo = ReadMaterialInfoJSON(d["Contact Materials"]["Pad Material"]);
+    m_body_matinfo = ReadMaterialInfoJSON(d["Contact Materials"]["Body Material"]);
+    m_guide_matinfo = ReadMaterialInfoJSON(d["Contact Materials"]["Guide Material"]);
+    m_tooth_matinfo = ReadMaterialInfoJSON(d["Contact Materials"]["Tooth Material"]);
 
     // Read wheel visualization
     if (d.HasMember("Visualization")) {
@@ -106,14 +105,6 @@ void TrackShoeBandANCF::Create(const rapidjson::Document& d) {
     m_tread_meshName = GetName();
 }
 
-void TrackShoeBandANCF::CreateContactMaterials(ChContactMethod contact_method) {
-    m_pad_material = m_pad_mat_info.CreateMaterial(contact_method);      // shoe pad (ground contact)
-    m_body_material = m_body_mat_info.CreateMaterial(contact_method);    // shoe body (wheel contact)
-    m_guide_material = m_guide_mat_info.CreateMaterial(contact_method);  // guide (wheel contact)
-    m_tooth_material = m_tooth_mat_info.CreateMaterial(contact_method);  // teeth (sprocket contact)
-}
-
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {

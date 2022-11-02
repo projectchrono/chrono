@@ -47,6 +47,8 @@ ChTrackShoeSinglePin::~ChTrackShoeSinglePin() {
 void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                       const ChVector<>& location,
                                       const ChQuaternion<>& rotation) {
+    ChTrackShoeSegmented::Initialize(chassis, location, rotation);
+
     ChSystem* sys = chassis->GetSystem();
 
     // Create the shoe body.
@@ -62,11 +64,8 @@ void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetCollide(true);
     chassis->GetSystem()->AddBody(m_shoe);
 
-    // Create all contact materials
-    CreateContactMaterials(sys->GetContactMethod());
-
     // Add contact geometry on shoe body
-    m_geometry.AddCollisionShapes(m_shoe, TrackedCollisionFamily::SHOES);
+    m_geometry.CreateCollisionShapes(m_shoe, TrackedCollisionFamily::SHOES, sys->GetContactMethod());
     m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
 }
 

@@ -36,6 +36,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChVehicleGeometry.h"
 #include "chrono_vehicle/ChVehicleJoint.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
 
@@ -197,25 +198,6 @@ class CH_VEHICLE_API ChPart {
     friend class ChAxle;
     friend class ChWheeledVehicle;
     friend class ChTrackedVehicle;
-};
-
-// Utility class with material information for a collision shape.
-class CH_VEHICLE_API MaterialInfo {
-  public:
-    float mu;  // coefficient of friction
-    float cr;  // coefficient of restitution
-    float Y;   // Young's modulus
-    float nu;  // Poisson ratio
-    float kn;  // normal stiffness
-    float gn;  // normal viscous damping
-    float kt;  // tangential stiffness
-    float gt;  // tangential viscous damping
-
-    MaterialInfo();
-    MaterialInfo(float mu_, float cr_, float Y_, float nu_, float kn_, float gn_, float kt_, float gt_);
-
-    // Construct a contact material, consistent with the specified method, using the data in the provided structure.
-    std::shared_ptr<ChMaterialSurface> CreateMaterial(ChContactMethod contact_method);
 };
 
 /// @} vehicle

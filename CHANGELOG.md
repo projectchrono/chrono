@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Miscellaneous Chrono::Vehicle extensions](#added-miscellaneous-chronovehicle-extensions)
   - [Chrono:Fsi API changes](#changed-chronofsi-api-changes)
   - [User-defined SMC contact force calculation](#added-user-defined-smc-contact-force-calculation)
   - [Redesigned run-time visualization system](#changed-redesigned-run-time-visualization-system)
@@ -67,6 +68,36 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] Miscellaneous Chrono::Vehicle extensions
+
+**Wheeled vehicles**
+
+- Added option to specify camber and toe angles during suspension subsystem construction. 
+
+  A derived suspension class can override the functions `getCamberAngle` and `getToeAngle` to provide these angles expressed in radians). For a suspension subsystem specified through a JSON file, set the 'Camber Angle (deg)' and 'Toe Angle (deg)' values expressed in degrees. Note that all current Chrono::Vehicle models use default values of zero camber and toe angles.
+
+ - Modified the JSON schema for various vehicle subsystem specification so that all angles that are expected to be provided in radians include the string "(deg)" in the corresponding JSON key name. 
+
+   **Note**: this change requires users to update their JSON specification files! 
+
+- Added option to specify preloads for tracked vehicle suspensions, as well as for the tensioner in `ChTranslationalIdler`.
+
+**Tracked vehicles**
+
+- Renamed the base class for a track vehicle suspension `ChTrackSuspension`. Two different suspension templates are provided: `ChTranslationalDamperSuspension` uses a translational damper, while `ChRotationalDamperSuspension` uses a rotational damper.
+
+- Use a single set of classes to define all tracked vehicle wheels (road-wheels, idler wheels, and rollers). Two types of track wheels are derived from the base class `ChTrackWheel`: the first one, `ChDoubleTrackWheel` assumes that track shoes have a central guiding pin, while the second one `ChSingleTrackWheel` works in conjunction with track shoes with lateral guiding pins. Track wheels are used as members of the `ChTrackSuspension` and `ChIdler` base classes. 
+
+  The `ChRoller` class was obsoleted since a roller can be modeled with one of the available track wheels.
+
+- Added a new type of idler mechanism, `ChDistanceIdler` which is modeled with a connector arm pinned to the chassis. The idler wheel is attached to the connector arm with a revolute joint. A translational actuator dictates the relative position of the connector arm relative to the chassis, specified by the length of the actuator. 
+
+  The previous type of idler template is now named `ChTranslationalIdler`.
+
+- Added option to specify preloads for tracked vehicle suspensions, as well as for the tensioner in `ChTranslationalIdler`.
+
+- Add alternative model for a double-pin track shoe which uses a single body to model the connectors between shoes. For track assemblies that use kinematic joints, this model provides the same track kinematics and dynamics with fewer bodies and joints and without additional complications due to redundant constraints. The previous model, using two distinct connector bodies between two consecutive shoes, is appropriate for the case where kinematic joints are replaced with bushings. The double-pin track shoe topology is specified during construction, using the enum `DoublePinTrackShoeType ` which can be either `TWO_CONNECTORS` or `ONE_CONNECTOR`.
 
 ### [Changed] Chrono::FSI API changes
 
@@ -1038,7 +1069,7 @@ The necessary data includes the SCM tangential force parameters, Mohr cohesion (
 
 The Marder ("marten" in German) is a tracked infantry fighting vehicle used by the German Bundeswehr since 1969. It has a running gear with 12 road wheels, sprocket, idler and 3 support rollers. The first two and the last two road wheels on every side are damped by telescopic dampers. It is driven by a 444 kW Diesel engine, torque converter with lockup and 4 gear automatic gearbox. It carries up to nine soldiers (commander, gunner, driver and six infantrymen).
 
-The Chrono::Vehicle model is based only on public data available online and information found in literature. Although the original vehicle emplys double-pin tracks, the current Chrono model only implements a single-pin track.
+The Chrono::Vehicle model is based only on public data available online and information found in literature. Although the original vehicle employs double-pin tracks, the current Chrono model only implements a single-pin track.
 
 ### [Changed] Support for Z up camera in Chrono::Irrlicht
 

@@ -173,6 +173,8 @@ set(CV_BASE_FILES
     ChTerrain.cpp
     ChVehicle.h
     ChVehicle.cpp
+    ChVehicleGeometry.h
+    ChVehicleGeometry.cpp
     ChVehicleModelData.h
     ChVehicleModelData.cpp
     ChVehicleVisualSystem.h

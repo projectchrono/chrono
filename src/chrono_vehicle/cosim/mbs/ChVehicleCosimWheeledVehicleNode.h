@@ -19,8 +19,8 @@
 //
 // =============================================================================
 
-#ifndef CH_VEHCOSIM_VEHICLE_NODE_H
-#define CH_VEHCOSIM_VEHICLE_NODE_H
+#ifndef CH_VEHCOSIM_WHEELED_VEHICLE_NODE_H
+#define CH_VEHCOSIM_WHEELED_VEHICLE_NODE_H
 
 #include "chrono_vehicle/ChPowertrain.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -28,7 +28,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
-#include "chrono_vehicle/cosim/ChVehicleCosimMBSNode.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
 
 namespace chrono {
 namespace vehicle {
@@ -38,22 +38,22 @@ namespace vehicle {
 
 /// Wheeled vehicle co-simulation node.
 /// The vehicle system is co-simulated with tire nodes and a terrain node.
-class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
+class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWheeledMBSNode {
   public:
     /// Construct a wheeled vehicle node using the provided vehicle and powertrain JSON specification files.
-    ChVehicleCosimVehicleNode(const std::string& vehicle_json,    ///< vehicle JSON specification file
-                              const std::string& powertrain_json  ///< powertrain JSON specification file
+    ChVehicleCosimWheeledVehicleNode(const std::string& vehicle_json,    ///< vehicle JSON specification file
+                                     const std::string& powertrain_json  ///< powertrain JSON specification file
     );
 
     /// Construct a wheeled vehicle node using the provided vehicle and powertrain objects.
     /// Notes:
     /// - the provided vehicle system must be constructed with a null Chrono system.
     /// - the vehicle and powertrain system should not be initialized.
-    ChVehicleCosimVehicleNode(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< vehicle system
-                              std::shared_ptr<ChPowertrain> powertrain    ///< powertrain system
+    ChVehicleCosimWheeledVehicleNode(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< vehicle system
+                                     std::shared_ptr<ChPowertrain> powertrain    ///< powertrain system
     );
 
-    ~ChVehicleCosimVehicleNode();
+    ~ChVehicleCosimWheeledVehicleNode();
 
     /// Get the underlying vehicle system.
     std::shared_ptr<ChWheeledVehicle> GetVehicle() const { return m_vehicle; }
@@ -69,6 +69,9 @@ class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
 
     /// Attach a vehicle driver system.
     void SetDriver(std::shared_ptr<ChDriver> driver) { m_driver = driver; }
+
+    /// Fix vehicle chassis to ground.
+    void SetChassisFixed(bool val) { m_chassis_fixed = val; }
 
   private:
     /// Initialize the vehicle MBS and any associated subsystems.
@@ -118,7 +121,7 @@ class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
         virtual double GetAddedMass() const override { return m_mass; }
         virtual ChVector<> GetAddedInertia() const override { return ChVector<>(0.1, 0.1, 0.1); }
         virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_force; }
-        virtual TerrainForce GetTireForce() const { return m_force; }
+        virtual TerrainForce GetTireForce() const override { return m_force; }
         virtual void InitializeInertiaProperties() override {}
         virtual void UpdateInertiaProperties() override {}
 
@@ -137,6 +140,7 @@ class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
 
     ChVector<> m_init_loc;  ///< initial vehicle location (relative to center of terrain top surface)
     double m_init_yaw;      ///< initial vehicle yaw
+    bool m_chassis_fixed;   ///< fix chassis to ground
 
     int m_num_spindles;                   ///< number of spindles/wheels of the wheeled vehicle
     std::vector<double> m_spindle_loads;  ///< vertical loads on each spindle

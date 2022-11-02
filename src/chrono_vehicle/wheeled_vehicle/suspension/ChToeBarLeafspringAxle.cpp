@@ -242,11 +242,15 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     // Recall that the suspension reference frame is aligned with the chassis.
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
+    // Spindle orientation (based on camber and toe angles)
+    double sign = (side == LEFT) ? -1 : +1;
+    auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
+
     // Create and initialize knuckle body (same orientation as the chassis)
     m_knuckle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_knuckle[side]->SetNameString(m_name + "_knuckle" + suffix);
     m_knuckle[side]->SetPos(points[KNUCKLE_CM]);
-    m_knuckle[side]->SetRot(chassisRot);
+    m_knuckle[side]->SetRot(spindleRot);
     m_knuckle[side]->SetMass(getKnuckleMass());
     m_knuckle[side]->SetInertiaXX(getKnuckleInertia());
     chassis->GetSystem()->AddBody(m_knuckle[side]);
@@ -292,7 +296,7 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_revoluteKingpin[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_knuckle[side], rev_csys);
@@ -325,7 +329,6 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
-
 
 void ChToeBarLeafspringAxle::InitializeInertiaProperties() {
     m_mass = getAxleTubeMass() + getTierodMass() + getDraglinkMass() + 2 * (getSpindleMass() + getKnuckleMass());

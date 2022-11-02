@@ -50,15 +50,12 @@ class CH_VEHICLE_API RigidChassis : public ChRigidChassis {
     virtual ChFrame<> GetBodyCOMFrame() const override { return ChFrame<>(m_body_COM_loc, QUNIT); }
 
     virtual void Create(const rapidjson::Document& d) override;
-    virtual void CreateContactMaterials(ChContactMethod contact_method) override;
 
     double m_body_mass;               ///< chassis body mass
     ChMatrix33<> m_body_inertia;      ///< chassis body inertia tensor, w.r.t. centroidal frame
     ChVector<> m_body_COM_loc;        ///< location of the chassis COM in the chassis reference frame
     ChVector<> m_connector_rear_loc;  ///< location of connector to a potential rear chassis
     ChCoordsys<> m_driverCsys;        ///< driver position and orientation relative to chassis
-
-    std::vector<MaterialInfo> m_mat_info;
 };
 
 /// Vehicle rigid rear chassis model constructed with data from file (JSON format).
@@ -80,15 +77,12 @@ class CH_VEHICLE_API RigidChassisRear : public ChRigidChassisRear {
     virtual ChFrame<> GetBodyCOMFrame() const override { return ChFrame<>(m_body_COM_loc, QUNIT); }
 
     virtual void Create(const rapidjson::Document& d) override;
-    virtual void CreateContactMaterials(ChContactMethod contact_method) override;
 
     double m_body_mass;                ///< chassis body mass
     ChMatrix33<> m_body_inertia;       ///< chassis body inertia tensor, w.r.t. centroidal frame
     ChVector<> m_body_COM_loc;         ///< location of the chassis body COM in the chassis reference frame
     ChVector<> m_connector_front_loc;  ///< location of connector to the front chassis
     ChVector<> m_connector_rear_loc;   ///< location of connector to a potential rear chassis
-
-    std::vector<MaterialInfo> m_mat_info;
 };
 
 /// @} vehicle

@@ -197,6 +197,10 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// function also advances the state of the associated powertrain.
     virtual void Advance(double step) override final;
 
+    /// Disconnect driveline.
+    /// This function has no effect if called before vehicle initialization.
+    void DisconnectDriveline();
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 

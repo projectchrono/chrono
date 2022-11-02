@@ -65,7 +65,6 @@ const std::string M113_TrackShoeBandBushing::m_meshFile = "M113/meshes/TrackShoe
 const std::string M113_TrackShoeBandBushing::m_tread_meshName = "M113_Tread";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 M113_TrackShoeBandBushing::M113_TrackShoeBandBushing(const std::string& name) : ChTrackShoeBandBushing(name) {
     m_bushingData = chrono_types::make_shared<ChVehicleBushingData>();
     m_bushingData->K_lin = 7e7;
@@ -76,41 +75,26 @@ M113_TrackShoeBandBushing::M113_TrackShoeBandBushing(const std::string& name) : 
     m_bushingData->D_lin_dof = 0;
     m_bushingData->K_rot_dof = 500;
     m_bushingData->D_rot_dof = 0.05 * 500;
-}
 
-void M113_TrackShoeBandBushing::CreateContactMaterials(ChContactMethod contact_method) {
     // Pad material (ground contact)
-    {
-        MaterialInfo minfo;
-        minfo.mu = 0.8f;
-        minfo.cr = 0.75f;
-        minfo.Y = 1e7f;
-        m_pad_material = minfo.CreateMaterial(contact_method);
-    }
+    m_pad_matinfo.mu = 0.8f;
+    m_pad_matinfo.cr = 0.75f;
+    m_pad_matinfo.Y = 1e7f;
 
     // Body material (wheel contact)
-    {
-        MaterialInfo minfo;
-        minfo.mu = 0.8f;
-        minfo.cr = 0.75f;
-        minfo.Y = 1e7f;
-        m_body_material = minfo.CreateMaterial(contact_method);
-    }
+    m_body_matinfo.mu = 0.8f;
+    m_body_matinfo.cr = 0.75f;
+    m_body_matinfo.Y = 1e7f;
 
     // Guide material (wheel contact)
-    m_guide_material = m_body_material;
+    m_guide_matinfo = m_body_matinfo;
 
     // Tooth material (sprocket contact)
-    {
-        MaterialInfo minfo;
-        minfo.mu = 0.8f;
-        minfo.cr = 0.75f;
-        minfo.Y = 1e9f;
-        m_tooth_material = minfo.CreateMaterial(contact_method);
-    }
+    m_tooth_matinfo.mu = 0.8f;
+    m_tooth_matinfo.cr = 0.75f;
+    m_tooth_matinfo.Y = 1e9f;
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void M113_TrackShoeBandBushing::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {

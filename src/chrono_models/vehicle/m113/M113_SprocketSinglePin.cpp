@@ -55,7 +55,7 @@ const std::string M113_SprocketSinglePinRight::m_meshFile = "M113/meshes/Sprocke
 M113_SprocketSinglePin::M113_SprocketSinglePin(const std::string& name) : ChSprocketSinglePin(name) {}
 
 void M113_SprocketSinglePin::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.4f;
     minfo.cr = 0.75f;
     minfo.Y = 1e9f;

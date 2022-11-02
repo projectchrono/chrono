@@ -67,42 +67,26 @@ const std::string M113_TrackShoeBandANCF::m_meshFile = "M113/meshes/TrackShoeBan
 const std::string M113_TrackShoeBandANCF::m_tread_meshName = "M113_Tread";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name) : ChTrackShoeBandANCF(name) {}
-
-void M113_TrackShoeBandANCF::CreateContactMaterials(ChContactMethod contact_method) {
+M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name) : ChTrackShoeBandANCF(name) {
     // Pad material (ground contact)
-    {
-        MaterialInfo minfo;
-        minfo.mu = 0.8f;
-        minfo.cr = 0.75f;
-        minfo.Y = 1e7f;
-        m_pad_material = minfo.CreateMaterial(contact_method);
-    }
+    m_pad_matinfo.mu = 0.8f;
+    m_pad_matinfo.cr = 0.75f;
+    m_pad_matinfo.Y = 1e7f;
 
     // Body material (wheel contact)
-    {
-        MaterialInfo minfo;
-        minfo.mu = 0.8f;
-        minfo.cr = 0.75f;
-        minfo.Y = 1e7f;
-        m_body_material = minfo.CreateMaterial(contact_method);
-    }
+    m_body_matinfo.mu = 0.8f;
+    m_body_matinfo.cr = 0.75f;
+    m_body_matinfo.Y = 1e7f;
 
     // Guide material (wheel contact)
-    m_guide_material = m_body_material;
+    m_guide_matinfo = m_body_matinfo;
 
     // Tooth material (sprocket contact)
-    {
-        MaterialInfo minfo;
-        minfo.mu = 0.8f;
-        minfo.cr = 0.75f;
-        minfo.Y = 1e9f;
-        m_tooth_material = minfo.CreateMaterial(contact_method);
-    }
+    m_tooth_matinfo.mu = 0.8f;
+    m_tooth_matinfo.cr = 0.75f;
+    m_tooth_matinfo.Y = 1e9f;
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void M113_TrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {

@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Definition of the base vehicle co-simulation MBS NODE class.
+// Definition of the base vehicle co-simulation wheeled MBS NODE class.
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -37,7 +37,7 @@
     #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#include "chrono_vehicle/cosim/ChVehicleCosimMBSNode.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
 
 using std::cout;
 using std::endl;
@@ -45,8 +45,8 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
-// Construction of the base MBS node
-ChVehicleCosimMBSNode::ChVehicleCosimMBSNode() : ChVehicleCosimBaseNode("MBS"), m_fix_chassis(false) {
+// Construction of the base wheeled MBS node
+ChVehicleCosimWheeledMBSNode::ChVehicleCosimWheeledMBSNode() : ChVehicleCosimBaseNode("MBS"), m_fix_chassis(false) {
     // Default integrator and solver types
     m_int_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
@@ -59,17 +59,17 @@ ChVehicleCosimMBSNode::ChVehicleCosimMBSNode() : ChVehicleCosimBaseNode("MBS"), 
     m_system->SetNumThreads(1, 1, 1);
 }
 
-ChVehicleCosimMBSNode::~ChVehicleCosimMBSNode() {
+ChVehicleCosimWheeledMBSNode::~ChVehicleCosimWheeledMBSNode() {
     delete m_system;
 }
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimMBSNode::SetNumThreads(int num_threads) {
+void ChVehicleCosimWheeledMBSNode::SetNumThreads(int num_threads) {
     m_system->SetNumThreads(num_threads, 1, 1);
 }
 
-void ChVehicleCosimMBSNode::SetIntegratorType(ChTimestepper::Type int_type, ChSolver::Type slv_type) {
+void ChVehicleCosimWheeledMBSNode::SetIntegratorType(ChTimestepper::Type int_type, ChSolver::Type slv_type) {
     m_int_type = int_type;
     m_slv_type = slv_type;
 #ifndef CHRONO_PARDISO_MKL
@@ -84,22 +84,22 @@ void ChVehicleCosimMBSNode::SetIntegratorType(ChTimestepper::Type int_type, ChSo
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimMBSNode::AttachDrawbarPullRig(std::shared_ptr<ChVehicleCosimDBPRig> rig) {
+void ChVehicleCosimWheeledMBSNode::AttachDrawbarPullRig(std::shared_ptr<ChVehicleCosimDBPRig> rig) {
     m_DBP_rig = rig;
 }
 
-std::shared_ptr<ChVehicleCosimDBPRig> ChVehicleCosimMBSNode::GetDrawbarPullRig() const {
+std::shared_ptr<ChVehicleCosimDBPRig> ChVehicleCosimWheeledMBSNode::GetDrawbarPullRig() const {
     return m_DBP_rig;
 }
 
 // -----------------------------------------------------------------------------
-// Initialization of the MBS node:
+// Initialization of the wheeled MBS node:
 // - receive terrain height and dimensions
 // - receive tire mass and radius
 // - construct and initialize MBS
 // - send load mass on each wheel
 // -----------------------------------------------------------------------------
-void ChVehicleCosimMBSNode::Initialize() {
+void ChVehicleCosimWheeledMBSNode::Initialize() {
     // Invoke the base class method to figure out distribution of node types
     ChVehicleCosimBaseNode::Initialize();
 
@@ -113,9 +113,9 @@ void ChVehicleCosimMBSNode::Initialize() {
     MPI_Recv(init_dim, 3, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
     if (m_verbose) {
-        cout << "[MBS node    ] Received initial terrain height = " << init_dim[0] << endl;
-        cout << "[MBS node    ] Received terrain length    =  " << init_dim[1] << endl;
-        cout << "[MBS node    ] Received terrain width    =  " << init_dim[2] << endl;
+        cout << "[MBS node    ] Recv: initial terrain height = " << init_dim[0] << endl;
+        cout << "[MBS node    ] Recv: terrain length =  " << init_dim[1] << endl;
+        cout << "[MBS node    ] Recv: terrain width =  " << init_dim[2] << endl;
     }
 
     double terrain_height = init_dim[0];
@@ -132,9 +132,19 @@ void ChVehicleCosimMBSNode::Initialize() {
 
     // Let derived classes construct and initialize their multibody system
     InitializeMBS(tire_info, terrain_size, terrain_height);
-    assert(GetNumSpindles() == (int)m_num_tire_nodes);
+    auto num_spindles = GetNumSpindles();
+
+    // There must be a number of TIRE nodes equal to the number of spindles.
+    if (m_num_tire_nodes != num_spindles) {
+        std::cerr << "Error: number of TIRE nodes (" << m_num_tire_nodes << ") different from number of spindles ("
+                  << num_spindles << ")." << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
 
     GetChassisBody()->SetBodyFixed(m_fix_chassis);
+
+    // Send to TERRAIN node the number of interacting objects (here, number of spindles)
+    MPI_Send(&num_spindles, 1, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
     // For each tire:
     // - cache the spindle body
@@ -147,7 +157,7 @@ void ChVehicleCosimMBSNode::Initialize() {
     // Initialize the DBP rig if one is attached
     if (m_DBP_rig) {
         m_DBP_rig->m_verbose = m_verbose;
-        m_DBP_rig->Initialize(GetChassisBody(), tire_info, m_step_size);
+        m_DBP_rig->Initialize(GetChassisBody(), tire_info[0].y(), m_step_size);
 
         m_DBP_outf.open(m_node_out_dir + "/DBP.dat", std::ios::out);
         m_DBP_outf.precision(7);
@@ -160,7 +170,7 @@ void ChVehicleCosimMBSNode::Initialize() {
 // -----------------------------------------------------------------------------
 // Complete setup of the underlying ChSystem based on any user-provided settings
 // -----------------------------------------------------------------------------
-void ChVehicleCosimMBSNode::InitializeSystem() {
+void ChVehicleCosimWheeledMBSNode::InitializeSystem() {
     // Change solver
     switch (m_slv_type) {
         case ChSolver::Type::PARDISO_MKL: {
@@ -236,7 +246,7 @@ void ChVehicleCosimMBSNode::InitializeSystem() {
 // - extract and send tire mesh vertex states
 // - receive and apply vertex contact forces
 // -----------------------------------------------------------------------------
-void ChVehicleCosimMBSNode::Synchronize(int step_number, double time) {
+void ChVehicleCosimWheeledMBSNode::Synchronize(int step_number, double time) {
     MPI_Status status;
 
     for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
@@ -251,6 +261,9 @@ void ChVehicleCosimMBSNode::Synchronize(int step_number, double time) {
 
         MPI_Send(state_data, 13, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD);
 
+        if (m_verbose)
+            cout << "[MBS node    ] Send: spindle position (" << i << ") = " << state.pos << endl;
+
         // Receive spindle force as applied to the center of the spindle/wheel.
         // Note that we assume this is the resultant wrench at the wheel origin (expressed in absolute frame).
         double force_data[6];
@@ -261,13 +274,16 @@ void ChVehicleCosimMBSNode::Synchronize(int step_number, double time) {
         spindle_force.force = ChVector<>(force_data[0], force_data[1], force_data[2]);
         spindle_force.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
         ApplySpindleForce(i, spindle_force);
+
+        if (m_verbose)
+            cout << "[MBS node    ] Recv: spindle force (" << i << ") = " << spindle_force.force << endl;
     }
 }
 
 // -----------------------------------------------------------------------------
 // Advance simulation of the MBS node by the specified duration
 // -----------------------------------------------------------------------------
-void ChVehicleCosimMBSNode::Advance(double step_size) {
+void ChVehicleCosimWheeledMBSNode::Advance(double step_size) {
     m_timer.reset();
     m_timer.start();
     double t = 0;
@@ -285,7 +301,7 @@ void ChVehicleCosimMBSNode::Advance(double step_size) {
     m_cum_sim_time += m_timer();
 }
 
-void ChVehicleCosimMBSNode::OutputData(int frame) {
+void ChVehicleCosimWheeledMBSNode::OutputData(int frame) {
     double time = m_system->GetChTime();
 
     // If a DBP rig is attached, output its results
@@ -304,7 +320,7 @@ void ChVehicleCosimMBSNode::OutputData(int frame) {
     OnOutputData(frame);
 }
 
-void ChVehicleCosimMBSNode::OutputVisualizationData(int frame) {
+void ChVehicleCosimWheeledMBSNode::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
     utils::WriteVisualizationAssets(m_system, filename, true);
 }

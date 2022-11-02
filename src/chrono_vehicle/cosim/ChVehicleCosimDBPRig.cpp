@@ -104,7 +104,7 @@ ChVehicleCosimDBPRig::ChVehicleCosimDBPRig()
       m_delay_time(0) {}
 
 void ChVehicleCosimDBPRig::Initialize(std::shared_ptr<ChBody> chassis,
-                                      const std::vector<ChVector<>>& tire_info,
+                                      double wheel_radius,
                                       double step_size) {
     // Initialize filters
     int nw_dbp = static_cast<int>(std::round(m_dbp_filter_window / step_size));
@@ -112,7 +112,7 @@ void ChVehicleCosimDBPRig::Initialize(std::shared_ptr<ChBody> chassis,
     int nw_slip = static_cast<int>(std::round(m_slip_filter_window / step_size));
     m_slip_filter = chrono_types::make_unique<utils::ChRunningAverage>(nw_slip);
 
-    InitializeRig(chassis, tire_info);
+    InitializeRig(chassis, wheel_radius);
 }
 
 void ChVehicleCosimDBPRig::OnAdvance(double step_size) {
@@ -157,19 +157,16 @@ ChVehicleCosimDBPRigImposedSlip::ActuationType ChVehicleCosimDBPRigImposedSlip::
     return ActuationType::UNKNOWN;
 }
 
-void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chassis,
-                                                    const std::vector<ChVector<>>& tire_info) {
-    double tire_radius = tire_info[0].y();
-
+void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chassis, double wheel_radius) {
     // Calculate rig linear velocity and wheel angular velocity
     switch (m_act_type) {
         case ActuationType::SET_ANG_VEL:
             m_ang_vel = m_base_vel;
-            m_lin_vel = (m_ang_vel * tire_radius) * (1.0 - m_slip);
+            m_lin_vel = (m_ang_vel * wheel_radius) * (1.0 - m_slip);
             break;
         case ActuationType::SET_LIN_VEL:
             m_lin_vel = m_base_vel;
-            m_ang_vel = m_lin_vel / (tire_radius * (1.0 - m_slip));
+            m_ang_vel = m_lin_vel / (wheel_radius * (1.0 - m_slip));
             break;
         default:
             m_ang_vel = 0;
@@ -182,12 +179,12 @@ void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chas
     m_rot_motor_func = chrono_types::make_shared<ConstantFunction>(m_ang_vel, m_time_delay, m_time_ramp);
 
     if (m_verbose) {
-        cout << "[DBP rig     ] actuation                " << GetActuationTypeAsString(m_act_type) << endl;
-        cout << "[DBP rig     ] base velocity          = " << m_base_vel << endl;
-        cout << "[DBP rig     ] slip                   = " << m_slip << endl;
-        cout << "[DBP rig     ] rig linear velocity    = " << m_lin_vel << endl;
+        cout << "[DBP rig     ] actuation = " << GetActuationTypeAsString(m_act_type) << endl;
+        cout << "[DBP rig     ] base velocity = " << m_base_vel << endl;
+        cout << "[DBP rig     ] slip = " << m_slip << endl;
+        cout << "[DBP rig     ] rig linear velocity = " << m_lin_vel << endl;
         cout << "[DBP rig     ] wheel angular velocity = " << m_ang_vel << endl;
-        cout << "[DBP rig     ] tire radius            = " << tire_radius << endl;
+        cout << "[DBP rig     ] wheel radius = " << wheel_radius << endl;
     }
 
     // Create a "ground" body
@@ -239,9 +236,7 @@ void ChVehicleCosimDBPRigImposedAngVel::SetRampingIntervals(double delay, double
     m_time_ramp = ramp_time;
 }
 
-void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> chassis,
-                                                      const std::vector<ChVector<>>& tire_info) {
-    m_tire_radius = tire_info[0].y();
+void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> chassis, double wheel_radius) {
     m_rot_motor_func = chrono_types::make_shared<ConstantFunction>(m_ang_vel, m_time_delay, m_time_ramp);
 
     // Create a "ground" body

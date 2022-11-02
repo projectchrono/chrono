@@ -12,15 +12,15 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Definition of the base vehicle co-simulation MBS NODE class.
+// Definition of the base vehicle co-simulation WHEELED MBS NODE class.
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
 //
 // =============================================================================
 
-#ifndef CH_VEHCOSIM_MBS_NODE_H
-#define CH_VEHCOSIM_MBS_NODE_H
+#ifndef CH_VEHCOSIM_WHEELED_MBS_NODE_H
+#define CH_VEHCOSIM_WHEELED_MBS_NODE_H
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -37,7 +37,7 @@ namespace vehicle {
  *
  * This module defines concrete multibody system nodes:
  * - ChVehicleCosimRigNode wraps a single-wheel test rig.
- * - ChVehicleCosimVehicleNode wraps a Chrono::Vehicle wheeled vehicle defined through JSON specification files.
+ * - ChVehicleCosimWheeledVehicleNode wraps a Chrono::Vehicle wheeled vehicle defined through JSON specification files.
  * - ChVehicleCosimCuriosityNode wraps the Curiosity Mars rover model.
  * - ChVehicleCosimViperNode wraps the Viper lunar rover model.
  *
@@ -56,13 +56,13 @@ namespace vehicle {
 /// @addtogroup vehicle_cosim
 /// @{
 
-/// Base class for all MBS nodes.
-class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
+/// Base class for all MBS nodes with wheels.
+class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNode {
   public:
-    virtual ~ChVehicleCosimMBSNode();
+    virtual ~ChVehicleCosimWheeledMBSNode();
 
-    /// Return the node type as NodeType::MBS.
-    virtual NodeType GetNodeType() const override { return NodeType::MBS; }
+    /// Return the node type as NodeType::MBS_WHEELED.
+    virtual NodeType GetNodeType() const override { return NodeType::MBS_WHEELED; }
 
     /// Set the number of OpenMP threads used in Chrono simulation (default: 1).
     void SetNumThreads(int num_threads);
@@ -105,8 +105,8 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
     virtual void OutputVisualizationData(int frame) override final;
 
   protected:
-    /// Construct a base class MBS node.
-    ChVehicleCosimMBSNode();
+    /// Construct a base class wheeled MBS node.
+    ChVehicleCosimWheeledMBSNode();
 
     /// Initialize the underlying MBS
     virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire

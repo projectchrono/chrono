@@ -24,6 +24,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
+#include "chrono/core/ChException.h"
 
 namespace chrono {
 namespace vehicle {
@@ -65,6 +66,9 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     /// sprocket as a detracking prevention mechanism. For track shoes with a central guiding pin, this can be the
     /// center of the guiding pin collision shape.
     virtual ChVector<> GetLateralContactPoint() const = 0;
+
+    /// Return contact geometry and material for interaction with terrain.
+    virtual ChVehicleGeometry GetGroundContactGeometry() const { return ChVehicleGeometry(); }
 
     /// Turn on/off collision flag for the shoe body.
     void SetCollide(bool val) { m_shoe->SetCollide(val); }

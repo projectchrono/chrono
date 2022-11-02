@@ -47,8 +47,6 @@ HendricksonPRIMAXX::HendricksonPRIMAXX(const rapidjson::Document& d) : ChHendric
     Create(d);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 HendricksonPRIMAXX::~HendricksonPRIMAXX() {}
 
 // -----------------------------------------------------------------------------
@@ -154,9 +152,13 @@ void HendricksonPRIMAXX::Create(const rapidjson::Document& d) {
     m_points[SHOCKAH_C] = ReadVectorJSON(d["Shock Axle Housing"]["Location Chassis"]);
     m_points[SHOCKAH_AH] = ReadVectorJSON(d["Shock Axle Housing"]["Location Axle Housing"]);
     m_shockAH_restLength = d["Shock Axle Housing"]["Free Length"].GetDouble();
-    m_shockAHForceCB =
-        chrono_types::make_shared<LinearSpringDamperForce>(d["Shock Axle Housing"]["Spring Coefficient"].GetDouble(),
-                                                           d["Shock Axle Housing"]["Damping Coefficient"].GetDouble());
+    double preloadAH = 0;
+    if (d["Shock Axle Housing"].HasMember("Preload"))
+        preloadAH = d["Shock Axle Housing"]["Preload"].GetDouble();
+
+    m_shockAHForceCB = chrono_types::make_shared<LinearSpringDamperForce>(
+        d["Shock Axle Housing"]["Spring Coefficient"].GetDouble(),
+        d["Shock Axle Housing"]["Damping Coefficient"].GetDouble(), preloadAH);
 
     assert(d.HasMember("Shock Lower Beam"));
     assert(d["Shock Lower Beam"].IsObject());
@@ -164,9 +166,13 @@ void HendricksonPRIMAXX::Create(const rapidjson::Document& d) {
     m_points[SHOCKLB_C] = ReadVectorJSON(d["Shock Lower Beam"]["Location Chassis"]);
     m_points[SHOCKLB_LB] = ReadVectorJSON(d["Shock Lower Beam"]["Location Lower Beam"]);
     m_shockLB_restLength = d["Shock Lower Beam"]["Free Length"].GetDouble();
-    m_shockLBForceCB =
-        chrono_types::make_shared<LinearSpringDamperForce>(d["Shock Lower Beam"]["Spring Coefficient"].GetDouble(),
-                                                           d["Shock Lower Beam"]["Damping Coefficient"].GetDouble());
+    double preloadLB = 0;
+    if (d["Shock Lower Beam"].HasMember("Preload"))
+        preloadLB = d["Shock Lower Beam"]["Preload"].GetDouble();
+
+    m_shockLBForceCB = chrono_types::make_shared<LinearSpringDamperForce>(
+        d["Shock Lower Beam"]["Spring Coefficient"].GetDouble(),
+        d["Shock Lower Beam"]["Damping Coefficient"].GetDouble(), preloadLB);
 
     // Read axle inertia
     assert(d.HasMember("Axle"));

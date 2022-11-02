@@ -64,7 +64,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
     /// Set the material properties for terrain.
     /// These parameters characterize the material for the container and the granular material.
-    /// Tire contact material is received from the rig node.
+    /// Object contact material is received from the rig node.
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceSMC>& mat);
 
     /// Set the normal contact force model (default: Hertz).
@@ -157,9 +157,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     /// Return current total number of contacts.
     virtual int GetNumContacts() const override { return m_systemGPU->GetNumContacts(); }
 
-    virtual void CreateWheelProxy(unsigned int i) override;
-    virtual void UpdateWheelProxy(unsigned int i, BodyState& spindle_state) override;
-    virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
+    virtual void CreateRigidProxy(unsigned int i) override;
+    virtual void UpdateRigidProxy(unsigned int i, BodyState& rigid_state) override;
+    virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
     virtual void OnOutputData(int frame) override;
 
@@ -174,9 +174,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     /// Set composite material properties for internal granular system contacts.
     void SetMatPropertiesInternal();
 
-    /// Set composite material properties for granular-tire contacts
-    /// (can be invoked only once tire material was received).
-    void SetMatPropertiesExternal(unsigned int i);
+    /// Set composite material properties for granular-object contacts
+    /// (can be invoked only once object material was received).
+    void SetMatPropertiesExternal(unsigned int i_shape);
 
     /// Update position of visualization shapes for granular material.
     /// Note that this requires memory transfer from GPU.
