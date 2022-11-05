@@ -51,7 +51,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
         rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
     }
     shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
-    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfig::create(shaderSet);
+    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
     auto& defines = graphicsPipelineConfig->shaderHints->defines;
 
     // set up graphics pipeline
@@ -328,7 +328,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::M
         rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
     }
     shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
-    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfig::create(shaderSet);
+    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
     auto& defines = graphicsPipelineConfig->shaderHints->defines;
 
     // set up graphics pipeline
@@ -482,7 +482,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(vsg::ref_ptr<vsg::M
             rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
         }
         shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
-        auto graphicsPipelineConfig = vsg::GraphicsPipelineConfig::create(shaderSet);
+        auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
         auto& defines = graphicsPipelineConfig->shaderHints->defines;
 
         // two-sided polygons? -> cannot be used together with transparency!
@@ -694,7 +694,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createParticlePattern(std::shared_ptr<ChV
         rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
     }
     shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
-    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfig::create(shaderSet);
+    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
     auto& defines = graphicsPipelineConfig->shaderHints->defines;
 
     // set up graphics pipeline
