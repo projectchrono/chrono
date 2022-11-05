@@ -236,11 +236,11 @@ unsigned int ChContactTriangleXYZ::GetSubBlockOffset(int nblock) {
 
 bool ChContactTriangleXYZ::IsSubBlockActive(int nblock) const {
     if (nblock == 0)
-        return !GetNode1()->GetFixed();
+        return !GetNode1()->IsFixed();
     if (nblock == 1)
-        return !GetNode2()->GetFixed();
+        return !GetNode2()->IsFixed();
     if (nblock == 2)
-        return !GetNode3()->GetFixed();
+        return !GetNode3()->IsFixed();
 
     return false;
 }
@@ -505,11 +505,11 @@ unsigned int ChContactTriangleXYZROT::GetSubBlockOffset(int nblock) {
 
 bool ChContactTriangleXYZROT::IsSubBlockActive(int nblock) const {
     if (nblock == 0)
-        return !GetNode1()->GetFixed();
+        return !GetNode1()->IsFixed();
     if (nblock == 1)
-        return !GetNode2()->GetFixed();
+        return !GetNode2()->IsFixed();
     if (nblock == 2)
-        return !GetNode3()->GetFixed();
+        return !GetNode3()->IsFixed();
 
     return false;
 }

@@ -58,6 +58,14 @@ void ChNodeFEAxyzrot::SetNoSpeedNoAcceleration() {
     this->GetRot_dtdt() = QNULL;
 }
 
+void ChNodeFEAxyzrot::SetFixed(bool mev) {
+    variables.SetDisabled(mev);
+}
+
+bool ChNodeFEAxyzrot::IsFixed() const {
+    return variables.IsDisabled();
+}
+
 // -----------------------------------------------------------------------------
 
 void ChNodeFEAxyzrot::NodeIntStateGather(const unsigned int off_x,

@@ -24,10 +24,9 @@ namespace fea {
 /// @addtogroup fea_nodes
 /// @{
 
-/// Class for a generic 3D finite element node, with x,y,z displacement, direction, and one curvature vector OR
-/// additional direction.
-/// The variable DD represents the derivative of a gradient vector or an additional gradient, to be used in ANCF
-/// elements.
+/// Class for a generic 3D finite element node, with x,y,z displacement and 2 position vector derivatives.
+/// Depending on the specific type of ANCF element, these derivative vectors can be gradients of the position vector in
+/// two different directions or else a gradient and a curvature.
 class ChApi ChNodeFEAxyzDD : public ChNodeFEAxyzD {
   public:
     ChNodeFEAxyzDD(ChVector<> initial_pos = VNULL, ChVector<> initial_dir = VECT_X, ChVector<> initial_curv = VNULL);
@@ -58,19 +57,18 @@ class ChApi ChNodeFEAxyzDD : public ChNodeFEAxyzD {
 
     /// Get mass of the node (for DD variables).
     virtual ChVectorDynamic<>& GetMassDiagonalDD() { return variables_DD->GetMassDiagonal(); }
-    /// Sets the 'fixed' state of the node. If true, it does not move
-    /// respect to the absolute world, despite constraints, forces, etc.
+
+    /// Fix/release this node.
+    /// If fixed, its stet variables are not changed by the solver.
     virtual void SetFixed(bool mev) override;
 
-    /// Gets the 'fixed' state of the node.
-    virtual bool GetFixed() override { return variables_DD->IsDisabled(); }
+    /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
+    virtual bool IsFixed() const override;
 
     /// Get the number of degrees of freedom
     virtual int Get_ndof_x() const override { return 9; }
 
-    //
     // Functions for interfacing to the state bookkeeping
-    //
 
     virtual void NodeIntStateGather(const unsigned int off_x,
                                     ChState& x,

@@ -41,6 +41,14 @@ ChNodeFEAxyz& ChNodeFEAxyz::operator=(const ChNodeFEAxyz& other) {
     return *this;
 }
 
+void ChNodeFEAxyz::SetFixed(bool mev) {
+    variables.SetDisabled(mev);
+}
+
+bool ChNodeFEAxyz::IsFixed() const {
+    return variables.IsDisabled();
+}
+
 void ChNodeFEAxyz::Relax() {
     X0 = pos;
     SetNoSpeedNoAcceleration();

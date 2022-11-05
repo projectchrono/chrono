@@ -25,7 +25,7 @@ namespace fea {
 /// @{
 
 /// Class for a generic 3D finite element node, with x,y,z displacement and a direction.
-/// The direction D represents a gradient vector to be used in ANCF elements.
+/// The direction D represents a derivative vector to be used in ANCF elements.
 class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
   public:
     ChNodeFEAxyzD(ChVector<> initial_pos = VNULL, ChVector<> initial_dir = VECT_X);
@@ -57,11 +57,12 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     /// Get mass of the node.
     virtual ChVectorDynamic<>& GetMassDiagonal() { return variables_D->GetMassDiagonal(); }
 
-    /// Sets the 'fixed' state of the node. If true, it does not move
-    /// respect to the absolute world, despite constraints, forces, etc.
+    /// Fix/release this node.
+    /// If fixed, its stet variables are not changed by the solver.
     virtual void SetFixed(bool mev) override;
-    /// Gets the 'fixed' state of the node.
-    virtual bool GetFixed() override { return variables_D->IsDisabled(); }
+
+    /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
+    virtual bool IsFixed() const override;
 
     /// Get the number of degrees of freedom
     virtual int Get_ndof_x() const override { return 6; }

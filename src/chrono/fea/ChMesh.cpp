@@ -54,7 +54,7 @@ void ChMesh::SetupInitial() {
     n_dofs_w = 0;
 
     for (unsigned int i = 0; i < vnodes.size(); i++) {
-        if (!vnodes[i]->GetFixed()) {
+        if (!vnodes[i]->IsFixed()) {
             //    - count the degrees of freedom
             n_dofs += vnodes[i]->Get_ndof_x();
             n_dofs_w += vnodes[i]->Get_ndof_w();
@@ -147,7 +147,7 @@ void ChMesh::Setup() {
         vnodes[i]->NodeSetOffset_x(GetOffset_x() + n_dofs);
         vnodes[i]->NodeSetOffset_w(GetOffset_w() + n_dofs_w);
         // Count the degrees of freedom (consider only nodes that are not fixed)
-        if (!vnodes[i]->GetFixed()) {
+        if (!vnodes[i]->IsFixed()) {
             n_dofs += vnodes[i]->Get_ndof_x();
             n_dofs_w += vnodes[i]->Get_ndof_w();
         }
@@ -197,7 +197,7 @@ void ChMesh::IntStateGather(const unsigned int off_x,
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
-        if (!vnodes[j]->GetFixed()) {
+        if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntStateGather(off_x + local_off_x, x, off_v + local_off_v, v, T);
             local_off_x += vnodes[j]->Get_ndof_x();
             local_off_v += vnodes[j]->Get_ndof_w();
@@ -216,7 +216,7 @@ void ChMesh::IntStateScatter(const unsigned int off_x,
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
-        if (!vnodes[j]->GetFixed()) {
+        if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntStateScatter(off_x + local_off_x, x, off_v + local_off_v, v, T);
             local_off_x += vnodes[j]->Get_ndof_x();
             local_off_v += vnodes[j]->Get_ndof_w();
@@ -229,7 +229,7 @@ void ChMesh::IntStateScatter(const unsigned int off_x,
 void ChMesh::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
     unsigned int local_off_a = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
-        if (!vnodes[j]->GetFixed()) {
+        if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntStateGatherAcceleration(off_a + local_off_a, a);
             local_off_a += vnodes[j]->Get_ndof_w();
         }
@@ -239,7 +239,7 @@ void ChMesh::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& 
 void ChMesh::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     unsigned int local_off_a = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
-        if (!vnodes[j]->GetFixed()) {
+        if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntStateScatterAcceleration(off_a + local_off_a, a);
             local_off_a += vnodes[j]->Get_ndof_w();
         }
@@ -254,7 +254,7 @@ void ChMesh::IntStateIncrement(const unsigned int off_x,
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
-        if (!vnodes[j]->GetFixed()) {
+        if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntStateIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
             local_off_x += vnodes[j]->Get_ndof_x();
             local_off_v += vnodes[j]->Get_ndof_w();
@@ -273,7 +273,7 @@ void ChMesh::IntStateGetIncrement(const unsigned int off_x,
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
-        if (!vnodes[j]->GetFixed()) {
+        if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntStateGetIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
             local_off_x += vnodes[j]->Get_ndof_x();
             local_off_v += vnodes[j]->Get_ndof_w();
@@ -285,7 +285,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
     // nodes applied forces
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
-        if (!vnodes[j]->GetFixed()) {
+        if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntLoadResidual_F(off + local_off_v, R, c);
             local_off_v += vnodes[j]->Get_ndof_w();
         }
@@ -318,7 +318,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
         //#pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
         //***PARALLEL FOR***, (no need here to use omp atomic to avoid race condition in writing to R)
         for (int in = 0; in < vnodes.size(); in++) {
-            if (!vnodes[in]->GetFixed()) {
+            if (!vnodes[in]->IsFixed()) {
                 if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(vnodes[in])) {
                     ChVector<> fg = c * mnode->GetMass() * this->system->Get_G_acc();
                     R.segment(off + local_off_v, 3) += fg.eigen();
@@ -363,7 +363,7 @@ void ChMesh::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R re
     // nodal masses
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
-        if (!vnodes[j]->GetFixed()) {
+        if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntLoadResidual_Mv(off + local_off_v, R, w, c);
             local_off_v += vnodes[j]->Get_ndof_w();
         }
@@ -383,7 +383,7 @@ void ChMesh::IntToDescriptor(const unsigned int off_v,
                              const ChVectorDynamic<>& Qc) {
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
-        if (!vnodes[j]->GetFixed()) {
+        if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntToDescriptor(off_v + local_off_v, v, R);
             local_off_v += vnodes[j]->Get_ndof_w();
         }
@@ -396,7 +396,7 @@ void ChMesh::IntFromDescriptor(const unsigned int off_v,
                                ChVectorDynamic<>& L) {
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
-        if (!vnodes[j]->GetFixed()) {
+        if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntFromDescriptor(off_v + local_off_v, v);
             local_off_v += vnodes[j]->Get_ndof_w();
         }

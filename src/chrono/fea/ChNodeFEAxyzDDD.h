@@ -24,11 +24,12 @@ namespace fea {
 /// @addtogroup fea_nodes
 /// @{
 
-/// Class for a generic 3D finite element node, with x,y,z displacement, and 3 position vector gradients
+/// Class for a generic 3D finite element node, with x,y,z displacement, and 3 position vector derivatives.
 /// For a Fully Parameterized ANCF element:
-///   The variable D represents the position vector gradient with respect to the 1st element coordinate line
-///   The variable DD represents the position vector gradient with respect to the 2nd element coordinate line
-///   The variable DDD represents the position vector gradient with respect to the 3rd element coordinate line
+///   - The variable D represents the position vector gradient with respect to the 1st element coordinate line.
+///   - The variable DD represents the position vector gradient with respect to the 2nd element coordinate line.
+///   - The variable DDD represents the position vector gradient with respect to the 3rd element coordinate line.
+/// Other ANCF elements may use these derivative vectors differently.
 class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
   public:
     ChNodeFEAxyzDDD(ChVector<> initial_pos = VNULL, ChVector<> initial_dir_u = VECT_X, ChVector<> initial_dir_v = VECT_Y, ChVector<> initial_dir_w = VECT_Z);
@@ -59,19 +60,18 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
 
     /// Get mass of the node (for DDD variables).
     virtual ChVectorDynamic<>& GetMassDiagonalDDD() { return variables_DDD->GetMassDiagonal(); }
-    /// Sets the 'fixed' state of the node. If true, it does not move
-    /// respect to the absolute world, despite constraints, forces, etc.
+
+    /// Fix/release this node.
+    /// If fixed, its stet variables are not changed by the solver.
     virtual void SetFixed(bool mev) override;
 
-    /// Gets the 'fixed' state of the node.
-    virtual bool GetFixed() override { return variables_DDD->IsDisabled(); }
+    /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
+    virtual bool IsFixed() const override;
 
     /// Get the number of degrees of freedom
     virtual int Get_ndof_x() const override { return 12; }
 
-    //
     // Functions for interfacing to the state bookkeeping
-    //
 
     virtual void NodeIntStateGather(const unsigned int off_x,
                                     ChState& x,

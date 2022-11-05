@@ -65,6 +65,10 @@ void ChNodeFEAxyzDD::SetFixed(bool mev) {
     variables_DD->SetDisabled(mev);
 }
 
+bool ChNodeFEAxyzDD::IsFixed() const {
+    return ChNodeFEAxyzD::IsFixed() && variables_DD->IsDisabled();
+}
+
 // -----------------------------------------------------------------------------
 
 void ChNodeFEAxyzDD::NodeIntStateGather(const unsigned int off_x,

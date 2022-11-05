@@ -43,12 +43,12 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     /// Reset to no speed and acceleration.
     virtual void SetNoSpeedNoAcceleration() override { P_dt = 0; }
 
-    /// Set the 'fixed' state of the node.
-    /// If true, its current field value is not changed by solver.
-    virtual void SetFixed(bool mev) override { variables.SetDisabled(mev); }
-    /// Get the 'fixed' state of the node.
-    /// If true, its current field value is not changed by solver.
-    virtual bool GetFixed() override { return variables.IsDisabled(); }
+    /// Fix/release this node.
+    /// If fixed, its stet variables are not changed by the solver.
+    virtual void SetFixed(bool mev) override;
+
+    /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
+    virtual bool IsFixed() const override;
 
     /// Position of the node - in absolute csys.
     const ChVector<>& GetPos() const { return pos; }

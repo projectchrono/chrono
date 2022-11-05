@@ -31,7 +31,6 @@ class ChMesh;
 /// Class for a generic 3D finite element node, with x,y,z displacement.
 /// This is the typical node that can be used for tetrahedrons, etc.
 class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVariableTupleCarrier_1vars<3> {
-
   public:
     ChNodeFEAxyz(ChVector<> initial_pos = VNULL);
     ChNodeFEAxyz(const ChNodeFEAxyz& other);
@@ -47,12 +46,12 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     /// Reset to no speed and acceleration.
     virtual void SetNoSpeedNoAcceleration() override;
 
-    /// Set the 'fixed' state of the node.
-    /// If true, its current field value is not changed by solver.
-    virtual void SetFixed(bool mev) override { variables.SetDisabled(mev); }
-    /// Get the 'fixed' state of the node.
-    /// If true, its current field value is not changed by solver.
-    virtual bool GetFixed() override { return variables.IsDisabled(); }
+    /// Fix/release this node.
+    /// If fixed, its stet variables are not changed by the solver.
+    virtual void SetFixed(bool mev) override;
+
+    /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
+    virtual bool IsFixed() const override;
 
     /// Get mass of the node.
     virtual double GetMass() const override { return variables.GetNodeMass(); }
@@ -72,14 +71,10 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     /// Get the number of degrees of freedom
     virtual int Get_ndof_x() const override { return 3; }
 
-    //
     // INTERFACE to ChVariableTupleCarrier_1vars
-    //
     virtual ChVariables* GetVariables1() override { return &Variables(); }
 
-    //
     // Functions for interfacing to the state bookkeeping
-    //
 
     virtual void NodeIntStateGather(const unsigned int off_x,
                                     ChState& x,

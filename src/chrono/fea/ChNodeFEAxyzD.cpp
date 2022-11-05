@@ -61,8 +61,12 @@ void ChNodeFEAxyzD::SetNoSpeedNoAcceleration() {
 }
 
 void ChNodeFEAxyzD::SetFixed(bool mev) {
-    variables.SetDisabled(mev);
+    ChNodeFEAxyz::SetFixed(mev);
     variables_D->SetDisabled(mev);
+}
+
+bool ChNodeFEAxyzD::IsFixed() const {
+    return ChNodeFEAxyz::IsFixed() && variables_D->IsDisabled();
 }
 
 // -----------------------------------------------------------------------------
