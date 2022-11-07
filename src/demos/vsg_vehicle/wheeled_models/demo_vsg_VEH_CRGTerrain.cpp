@@ -282,13 +282,14 @@ int main(int argc, char* argv[]) {
     terrain.SetContactFrictionCoefficient(0.8f);
     terrain.SetRoadsidePostDistance(50.0);
     // bright concrete
-    terrain.SetRoadTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_Color.jpg");
+    terrain.SetRoadDiffuseTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_Color.jpg");
+    terrain.SetRoadNormalTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_NormalGL.jpg");
     // dark conkrete
-    //terrain.SetRoadTextureFile("vehicle/terrain/textures/Concrete037_1K-JPG/Concrete037_1K_Color.jpg");
+    //terrain.SetRoadDiffuseTextureFile("vehicle/terrain/textures/Concrete037_1K-JPG/Concrete037_1K_Color.jpg");
     // gravel
-    //terrain.SetRoadTextureFile("vehicle/terrain/textures/Gravel034_1K-JPG/Gravel034_1K_Color.jpg");
+    //terrain.SetRoadDiffuseTextureFile("vehicle/terrain/textures/Gravel034_1K-JPG/Gravel034_1K_Color.jpg");
     // grass
-    // terrain.SetRoadTextureFile("vehicle/terrain/textures/Grass004_1K-JPG/Grass004_1K_Color.jpg");
+    // terrain.SetRoadDiffuseTextureFile("vehicle/terrain/textures/Grass004_1K-JPG/Grass004_1K_Color.jpg");
     terrain.Initialize(crg_road_file);
 
     // ------------------

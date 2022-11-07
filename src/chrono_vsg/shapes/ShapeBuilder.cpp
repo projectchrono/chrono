@@ -74,23 +74,42 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
     phongMat->value().alphaMask = alpha;
     phongMat->value().alphaMaskCutoff = 0.3f;
 
-    // read texture image
-    vsg::Path textureFile(material->GetKdTexture());
-    if (textureFile) {
-        auto textureData = vsg::read_cast<vsg::Data>(textureFile, m_options);
-        if (!textureData) {
-            std::cout << "Could not read texture file : " << textureFile << std::endl;
+    // read texture image for diffuse light
+    vsg::Path diffuseTextureFile(material->GetKdTexture());
+    if (diffuseTextureFile) {
+        auto diffuseTextureData = vsg::read_cast<vsg::Data>(diffuseTextureFile, m_options);
+        if (!diffuseTextureData) {
+            std::cout << "Could not read texture file : " << diffuseTextureFile << std::endl;
         } else {
             // enable texturing with mipmaps
             auto sampler = vsg::Sampler::create();
             sampler->maxLod =
-                static_cast<uint32_t>(std::floor(std::log2(std::max(textureData->width(), textureData->height())))) + 1;
+                    static_cast<uint32_t>(std::floor(std::log2(std::max(diffuseTextureData->width(), diffuseTextureData->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
             sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", textureData, sampler);
+            graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", diffuseTextureData, sampler);
             // vsg combines material color and texture color, better use only one of it
             phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
+        }
+    }
+    // read texture image for diffuse light
+    vsg::Path normalTextureFile(material->GetNormalMapTexture());
+    if (normalTextureFile) {
+        auto normalTextureData = vsg::read_cast<vsg::Data>(normalTextureFile, m_options);
+        if (!normalTextureData) {
+            std::cout << "Could not read texture file : " << normalTextureFile << std::endl;
+        } else {
+            // enable texturing with mipmaps
+            auto sampler = vsg::Sampler::create();
+            sampler->maxLod =
+                    static_cast<uint32_t>(std::floor(std::log2(std::max(normalTextureData->width(), normalTextureData->height())))) + 1;
+            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            graphicsPipelineConfig->assignTexture(descriptors, "normalMap", normalTextureData, sampler);
+            // vsg combines material color and texture color, better use only one of it
+            //phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
         }
     }
 
@@ -508,24 +527,62 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(vsg::ref_ptr<vsg::M
         phongMat->value().alphaMask = alpha;
         phongMat->value().alphaMaskCutoff = 0.3f;
 
-        // read texture image
-        vsg::Path textureFile(chronoMat->GetKdTexture());
-        if (textureFile) {
-            auto textureData = vsg::read_cast<vsg::Data>(textureFile, m_options);
-            if (!textureData) {
-                std::cout << "Could not read texture file : " << textureFile << std::endl;
+        // read texture image for diffuse light
+        vsg::Path diffuseTextureFile(chronoMat->GetKdTexture());
+        if (diffuseTextureFile) {
+            auto diffuseTextureData = vsg::read_cast<vsg::Data>(diffuseTextureFile, m_options);
+            if (!diffuseTextureData) {
+                std::cout << "Could not read texture file : " << diffuseTextureFile << std::endl;
             } else {
                 // enable texturing with mipmaps
                 auto sampler = vsg::Sampler::create();
                 sampler->maxLod = static_cast<uint32_t>(
-                                      std::floor(std::log2(std::max(textureData->width(), textureData->height())))) +
-                                  1;
+                        std::floor(std::log2(std::max(diffuseTextureData->width(), diffuseTextureData->height())))) +
+                        1;
                 sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
                 sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
                 sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", textureData, sampler);
+                graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", diffuseTextureData, sampler);
                 // vsg combines material color and texture color, better use only one of it
                 phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
+            }
+        }
+
+        // read texture image for normal vectors
+        vsg::Path normalTextureFile(chronoMat->GetNormalMapTexture());
+        if (normalTextureFile) {
+            auto normalTextureData = vsg::read_cast<vsg::Data>(normalTextureFile, m_options);
+            if (!normalTextureData) {
+                std::cout << "Could not read texture file : " << normalTextureFile << std::endl;
+            } else {
+                // enable texturing with mipmaps
+                auto sampler = vsg::Sampler::create();
+                sampler->maxLod = static_cast<uint32_t>(
+                        std::floor(std::log2(std::max(normalTextureData->width(), normalTextureData->height())))) +
+                        1;
+                sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
+                sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+                sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+                graphicsPipelineConfig->assignTexture(descriptors, "normalMap", normalTextureData, sampler);
+            }
+        }
+
+        // read texture image displacement
+        vsg::Path displacementTextureFile(chronoMat->GetRoughnessTexture());
+        if (displacementTextureFile) {
+            auto displacementTextureData = vsg::read_cast<vsg::Data>(displacementTextureFile, m_options);
+            if (!displacementTextureData) {
+                std::cout << "Could not read texture file : " << displacementTextureFile << std::endl;
+            } else {
+                // enable texturing with mipmaps
+                auto sampler = vsg::Sampler::create();
+                sampler->maxLod = static_cast<uint32_t>(
+                        std::floor(std::log2(std::max(displacementTextureData->width(), displacementTextureData->height())))) +
+                        1;
+                sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
+                sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+                sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+                graphicsPipelineConfig->assignTexture(descriptors, "displacementMap", displacementTextureData, sampler);
             }
         }
 
