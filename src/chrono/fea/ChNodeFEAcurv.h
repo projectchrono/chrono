@@ -86,8 +86,8 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     virtual void SetNoSpeedNoAcceleration() override;
 
     /// Fix/release this node.
-    /// If fixed, its stet variables are not changed by the solver.
-    virtual void SetFixed(bool val) override;
+    /// If fixed, its state variables are not changed by the solver.
+    virtual void SetFixed(bool fixed) override;
 
     /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
     virtual bool IsFixed() const override;
@@ -132,9 +132,7 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
                                      const ChVectorDynamic<>& R) override;
     virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override;
 
-    //
     // Functions for interfacing to the solver
-    //
 
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
     virtual void VariablesFbReset() override;
@@ -144,9 +142,7 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

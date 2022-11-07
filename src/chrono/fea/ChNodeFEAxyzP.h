@@ -44,8 +44,8 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     virtual void SetNoSpeedNoAcceleration() override { P_dt = 0; }
 
     /// Fix/release this node.
-    /// If fixed, its stet variables are not changed by the solver.
-    virtual void SetFixed(bool mev) override;
+    /// If fixed, its state variables are not changed by the solver.
+    virtual void SetFixed(bool fixed) override;
 
     /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
     virtual bool IsFixed() const override;
@@ -80,9 +80,7 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     /// Get the number of degrees of freedom
     virtual int Get_ndof_x() const override { return 1; }
 
-    //
     // Functions for interfacing to the state bookkeeping
-    //
 
     virtual void NodeIntStateGather(const unsigned int off_x,
                                     ChState& x,
@@ -106,9 +104,7 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
                                      const ChVectorDynamic<>& R) override;
     virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override;
 
-    //
     // Functions for interfacing to the solver
-    //
 
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
 
@@ -120,9 +116,7 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    //
     // SERIALIZATION
-    //
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;

@@ -39,7 +39,7 @@ class ChApi ChNodeFEAbase : public virtual ChNodeBase {
     virtual void SetNoSpeedNoAcceleration() = 0;
 
     /// Fix/release this node.
-    /// If fixed, its stet variables are not changed by the solver.
+    /// If fixed, its state variables are not changed by the solver.
     virtual void SetFixed(bool mev) = 0;
 
     /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
@@ -54,10 +54,6 @@ class ChApi ChNodeFEAbase : public virtual ChNodeBase {
     double m_TotalMass;  ///< Nodal mass obtained from element masss matrix
 
   protected:
-    //
-    // DATA
-    //
-
     unsigned int g_index;  ///< global node index
 };
 

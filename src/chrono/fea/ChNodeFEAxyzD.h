@@ -34,19 +34,19 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
 
     ChNodeFEAxyzD& operator=(const ChNodeFEAxyzD& other);
 
-    /// Set the direction
-    void SetD(ChVector<> mD) { D = mD; }
-    /// Get the direction
+    /// Set the derivative vector.
+    void SetD(const ChVector<>& d) { D = d; }
+    /// Get the derivative vector.
     const ChVector<>& GetD() const { return D; }
 
-    /// Set the direction speed
-    void SetD_dt(ChVector<> mD) { D_dt = mD; }
-    /// Get the direction speed
+    /// Set the speed of the derivative vector.
+    void SetD_dt(const ChVector<>& dt) { D_dt = dt; }
+    /// Get the speed of the derivative vector.
     const ChVector<>& GetD_dt() const { return D_dt; }
 
-    /// Set the direction acceleration
-    void SetD_dtdt(ChVector<> mD) { D_dtdt = mD; }
-    /// Get the direction acceleration
+    /// Set the acceleration of the derivative vector.
+    void SetD_dtdt(const ChVector<>& dtt) { D_dtdt = dtt; }
+    /// Get the  acceleration of the derivative vector.
     const ChVector<>& GetD_dtdt() const { return D_dtdt; }
 
     ChVariables& Variables_D() { return *variables_D; }
@@ -55,11 +55,11 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     virtual void SetNoSpeedNoAcceleration() override;
 
     /// Get mass of the node.
-    virtual ChVectorDynamic<>& GetMassDiagonal() { return variables_D->GetMassDiagonal(); }
+    ChVectorDynamic<>& GetMassDiagonalD() { return variables_D->GetMassDiagonal(); }
 
     /// Fix/release this node.
-    /// If fixed, its stet variables are not changed by the solver.
-    virtual void SetFixed(bool mev) override;
+    /// If fixed, its state variables are not changed by the solver.
+    virtual void SetFixed(bool fixed) override;
 
     /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
     virtual bool IsFixed() const override;
@@ -67,9 +67,7 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     /// Get the number of degrees of freedom
     virtual int Get_ndof_x() const override { return 6; }
 
-    //
     // Functions for interfacing to the state bookkeeping
-    //
 
     virtual void NodeIntStateGather(const unsigned int off_x,
                                     ChState& x,
@@ -103,11 +101,9 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
                                      const ChVectorDynamic<>& R) override;
     virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override;
 
-    //
     // Functions for interfacing to the solver
-    //
 
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
     virtual void VariablesFbReset() override;
     virtual void VariablesFbLoadForces(double factor = 1) override;
     virtual void VariablesQbLoadSpeed() override;
@@ -115,9 +111,7 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    //
     // INTERFACE to ChLoadable
-    //
 
     /// Gets the number of DOFs affected by this element (position part)
     virtual int LoadableGet_ndof_x() override { return 6; }
@@ -170,16 +164,13 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
         ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
         ) override;
 
-    //
     // SERIALIZATION
-    //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveOUT(ChArchiveOut& archive) override;
+    virtual void ArchiveIN(ChArchiveIn& archive) override;
 
   private:
-    /// 3D node variable - the direction part: Dx,Dy,Dz (the position part is in parent class)
-    ChVariablesGenericDiagonalMass* variables_D;
+    ChVariablesGenericDiagonalMass* variables_D;  ///< derivative vector
 
   public:
     ChVector<> D;

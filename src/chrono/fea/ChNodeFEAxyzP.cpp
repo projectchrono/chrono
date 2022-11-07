@@ -47,8 +47,8 @@ ChNodeFEAxyzP& ChNodeFEAxyzP::operator=(const ChNodeFEAxyzP& other) {
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzP::SetFixed(bool mev) {
-    variables.SetDisabled(mev);
+void ChNodeFEAxyzP::SetFixed(bool fixed) {
+    variables.SetDisabled(fixed);
 }
 
 bool ChNodeFEAxyzP::IsFixed() const {

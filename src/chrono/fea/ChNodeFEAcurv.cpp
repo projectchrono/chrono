@@ -96,8 +96,8 @@ void ChNodeFEAcurv::SetNoSpeedNoAcceleration() {
     m_rzz_dtdt = VNULL;
 }
 
-void ChNodeFEAcurv::SetFixed(bool val) {
-    m_variables->SetDisabled(val);
+void ChNodeFEAcurv::SetFixed(bool fixed) {
+    m_variables->SetDisabled(fixed);
 }
 
 bool ChNodeFEAcurv::IsFixed() const {
