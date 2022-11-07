@@ -55,28 +55,30 @@ void ChMesh::SetupInitial() {
 
     for (unsigned int i = 0; i < vnodes.size(); i++) {
         if (!vnodes[i]->IsFixed()) {
-            //    - count the degrees of freedom
+            vnodes[i]->SetupInitial(GetSystem());
+
+            // count the degrees of freedom
             n_dofs += vnodes[i]->Get_ndof_x();
             n_dofs_w += vnodes[i]->Get_ndof_w();
         }
     }
 
     for (unsigned int i = 0; i < velements.size(); i++) {
-        //    - precompute matrices, such as the [Kl] local stiffness of each element, if needed, etc.
+        // precompute matrices, such as the [Kl] local stiffness of each element, if needed, etc.
         velements[i]->SetupInitial(GetSystem());
     }
 }
 
 void ChMesh::Relax() {
     for (unsigned int i = 0; i < vnodes.size(); i++) {
-        //    - "relaxes" the structure by setting all X0 = 0, and null speeds
+        // "relaxes" the structure by setting all X0 = 0, and null speeds
         vnodes[i]->Relax();
     }
 }
 
 void ChMesh::SetNoSpeedNoAcceleration() {
     for (unsigned int i = 0; i < vnodes.size(); i++) {
-        //    -  set null speeds, null accelerations
+        // set null speeds, null accelerations
         vnodes[i]->SetNoSpeedNoAcceleration();
     }
 }

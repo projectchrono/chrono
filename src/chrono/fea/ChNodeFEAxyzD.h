@@ -64,8 +64,15 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
     virtual bool IsFixed() const override;
 
-    /// Get the number of degrees of freedom
-    virtual int Get_ndof_x() const override { return 6; }
+    /// Fix/release the derivative vector states.
+    /// If fixed, these states are not changed by the solver.
+    void SetFixedD(bool fixed);
+
+    /// Return true if the derivative vector states are fixed.
+    bool IsFixedD() const;
+
+    /// Get the number of degrees of freedom.
+    virtual int Get_ndof_x() const override final { return m_dof; }
 
     // Functions for interfacing to the state bookkeeping
 
@@ -87,10 +94,10 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
                                        const unsigned int off_v,
                                        const ChStateDelta& Dv) override;
     virtual void NodeIntStateGetIncrement(const unsigned int off_x,
-                                       const ChState& x_new,
-                                       const ChState& x,
-                                       const unsigned int off_v,
-                                       ChStateDelta& Dv) override;
+                                          const ChState& x_new,
+                                          const ChState& x,
+                                          const unsigned int off_v,
+                                          ChStateDelta& Dv) override;
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                         ChVectorDynamic<>& R,
@@ -113,46 +120,36 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
 
     // INTERFACE to ChLoadable
 
-    /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 6; }
+    /// Gets the number of DOFs affected by this element (position part).
+    virtual int LoadableGet_ndof_x() override { return m_dof; }
 
-    /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 6; }
+    /// Gets the number of DOFs affected by this element (speed part).
+    virtual int LoadableGet_ndof_w() override { return m_dof; }
 
-    /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
-        mD.segment(block_offset + 0, 3) = pos.eigen();
-        mD.segment(block_offset + 3, 3) = D.eigen();
-    }
+    /// Gets all the DOFs packed in a single vector (position part).
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
 
-    /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
-        mD.segment(block_offset + 0, 3) = pos_dt.eigen();
-        mD.segment(block_offset + 3, 3) = D_dt.eigen();
-    }
+    /// Gets all the DOFs packed in a single vector (speed part).
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override {
-        this->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
-    }
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override;
 
-    /// Number of coordinates in the interpolated field, ex=3 for a
-    /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
-    virtual int Get_field_ncoords() override { return 6; }
+    /// Number of coordinates in the interpolated field.
+    virtual int Get_field_ncoords() override { return m_dof; }
 
-    /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+    /// Get the size of the i-th sub-block of DOFs in global vector.
+    virtual unsigned int GetSubBlockSize(int nblock) override { return m_dof; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
-        mvars.push_back(&Variables());
-        mvars.push_back(&Variables_D());
-    }
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
 
-    /// Evaluate Q=N'*F , for Q generalized lagrangian load, where N is some type of matrix
-    /// evaluated at point P(U,V,W) assumed in absolute coordinates, and
-    /// F is a load assumed in absolute coordinates.
-    /// The det[J] is unused.
+    /// Evaluate Q = N'*F, for Q generalized lagrangian load, where N is some type of matrix evaluated at point P(U,V,W)
+    /// assumed in absolute coordinates, and F is a load assumed in absolute coordinates. Here, det[J] is unused.
     virtual void ComputeNF(
         const double U,              ///< x coordinate of application point in absolute space
         const double V,              ///< y coordinate of application point in absolute space
@@ -169,10 +166,14 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     virtual void ArchiveOUT(ChArchiveOut& archive) override;
     virtual void ArchiveIN(ChArchiveIn& archive) override;
 
+  protected:
+    /// Initial setup. Set number of degrees of freedom for this node.
+    virtual void SetupInitial(ChSystem* system) override;
+
+    int m_dof;  ///< number of degrees of freedom
+
   private:
     ChVariablesGenericDiagonalMass* variables_D;  ///< derivative vector
-
-  public:
     ChVector<> D;
     ChVector<> D_dt;
     ChVector<> D_dtdt;

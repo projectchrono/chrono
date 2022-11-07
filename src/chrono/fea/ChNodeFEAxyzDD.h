@@ -65,8 +65,13 @@ class ChApi ChNodeFEAxyzDD : public ChNodeFEAxyzD {
     /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
     virtual bool IsFixed() const override;
 
-    /// Get the number of degrees of freedom
-    virtual int Get_ndof_x() const override { return 9; }
+    /// Fix/release the 2nd derivative vector states.
+    /// If fixed, these states are not changed by the solver. Note that releasing the 3rd derivative vector forces the
+    /// first derivative vector to also be released.
+    void SetFixedDD(bool fixed);
+
+    /// Return true if the 2nd derivative vector states are fixed.
+    bool IsFixedDD() const;
 
     // Functions for interfacing to the state bookkeeping
 
@@ -114,53 +119,36 @@ class ChApi ChNodeFEAxyzDD : public ChNodeFEAxyzD {
 
     // INTERFACE to ChLoadable
 
-    /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 9; }
+    /// Gets the number of DOFs affected by this element (position part).
+    virtual int LoadableGet_ndof_x() override { return m_dof; }
 
-    /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 9; }
+    /// Gets the number of DOFs affected by this element (speed part).
+    virtual int LoadableGet_ndof_w() override { return m_dof; }
 
-    /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mDD) override {
-        mDD.segment(block_offset + 0, 3) = pos.eigen();
-        mDD.segment(block_offset + 3, 3) = D.eigen();
-        mDD.segment(block_offset + 6, 3) = DD.eigen();
-    }
+    /// Gets all the DOFs packed in a single vector (position part).
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mDD) override;
 
-    /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mDD) override {
-        mDD.segment(block_offset + 0, 3) = pos_dt.eigen();
-        mDD.segment(block_offset + 3, 3) = D_dt.eigen();
-        mDD.segment(block_offset + 6, 3) = DD_dt.eigen();
-    }
+    /// Gets all the DOFs packed in a single vector (speed part).
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mDD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
                                         ChState& x_new,
                                         const ChState& x,
                                         const unsigned int off_v,
-                                        const ChStateDelta& Dv) override {
-        this->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
-    }
+                                        const ChStateDelta& Dv) override;
 
-    /// Number of coordinates in the interpolated field, ex=3 for a
-    /// tetrahedron finite element or a cable, etc. Here is 9: xyz displ + 2 gradients or 1 gradient + 1 curv. vector
-    virtual int Get_field_ncoords() override { return 9; }
+    /// Number of coordinates in the interpolated field.
+    virtual int Get_field_ncoords() override { return m_dof; }
 
-    /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 9; }
+    /// Get the size of the i-th sub-block of DOFs in global vector.
+    virtual unsigned int GetSubBlockSize(int nblock) override { return m_dof; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
-        mvars.push_back(&Variables());
-        mvars.push_back(&Variables_D());
-        mvars.push_back(&Variables_DD());
-    }
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
 
-    /// Evaluate Q=N'*F , for Q generalized lagrangian load, where N is some type of matrix
-    /// evaluated at point P(U,V,W) assumed in absolute coordinates, and
-    /// F is a load assumed in absolute coordinates.
-    /// The det[J] is unused.
+    /// Evaluate Q = N'*F, for Q generalized lagrangian load, where N is some type of matrix evaluated at point P(U,V,W)
+    /// assumed in absolute coordinates, and F is a load assumed in absolute coordinates. Here, det[J] is unused.
     virtual void ComputeNF(
         const double U,              ///< x coordinate of application point in absolute space
         const double V,              ///< y coordinate of application point in absolute space
@@ -177,10 +165,12 @@ class ChApi ChNodeFEAxyzDD : public ChNodeFEAxyzD {
     virtual void ArchiveOUT(ChArchiveOut& archive) override;
     virtual void ArchiveIN(ChArchiveIn& archive) override;
 
+  protected:
+    /// Initial setup. Set number of degrees of freedom for this node.
+    virtual void SetupInitial(ChSystem* system) override;
+
   private:
     ChVariablesGenericDiagonalMass* variables_DD;  ///< 2nd derivative vector
-
-  public:
     ChVector<> DD;
     ChVector<> DD_dt;
     ChVector<> DD_dtdt;

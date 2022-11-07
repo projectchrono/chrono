@@ -55,6 +55,12 @@ class ChApi ChNodeFEAbase : public virtual ChNodeBase {
 
   protected:
     unsigned int g_index;  ///< global node index
+
+  private:
+    /// Initial setup.
+    virtual void SetupInitial(ChSystem* system) {}
+
+    friend class ChMesh;
 };
 
 /// @} fea_nodes
