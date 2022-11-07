@@ -132,10 +132,10 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
     virtual int LoadableGet_ndof_w() override { return m_dof; }
 
     /// Gets all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mDDD) override;
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& S) override;
 
     /// Gets all the DOFs packed in a single vector (speed part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mDDD) override;
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& S) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -151,7 +151,7 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
     virtual unsigned int GetSubBlockSize(int nblock) override { return m_dof; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& vars) override;
 
     /// Evaluate Q = N'*F, for Q generalized lagrangian load, where N is some type of matrix evaluated at point P(U,V,W)
     /// assumed in absolute coordinates, and F is a load assumed in absolute coordinates. Here, det[J] is unused.

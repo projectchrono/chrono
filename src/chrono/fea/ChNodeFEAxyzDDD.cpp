@@ -247,17 +247,17 @@ void ChNodeFEAxyzDDD::VariablesQbIncrementPosition(double step) {
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzDDD::LoadableGetStateBlock_x(int block_offset, ChState& mDDD) {
-    ChNodeFEAxyzDD::LoadableGetStateBlock_x(block_offset, mDDD);
+void ChNodeFEAxyzDDD::LoadableGetStateBlock_x(int block_offset, ChState& S) {
+    ChNodeFEAxyzDD::LoadableGetStateBlock_x(block_offset, S);
     if (!IsFixedDDD()) {
-        mDDD.segment(block_offset + 9, 3) = DDD.eigen();
+        S.segment(block_offset + 9, 3) = DDD.eigen();
     }
 }
 
-void ChNodeFEAxyzDDD::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mDDD) {
-    ChNodeFEAxyzDD::LoadableGetStateBlock_w(block_offset, mDDD);
+void ChNodeFEAxyzDDD::LoadableGetStateBlock_w(int block_offset, ChStateDelta& S) {
+    ChNodeFEAxyzDD::LoadableGetStateBlock_w(block_offset, S);
     if (!IsFixedDDD()) {
-        mDDD.segment(block_offset + 9, 3) = DDD_dt.eigen();
+        S.segment(block_offset + 9, 3) = DDD_dt.eigen();
     }
 }
 
@@ -269,10 +269,10 @@ void ChNodeFEAxyzDDD::LoadableStateIncrement(const unsigned int off_x,
     NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
 }
 
-void ChNodeFEAxyzDDD::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
-    ChNodeFEAxyzDD::LoadableGetVariables(mvars);
+void ChNodeFEAxyzDDD::LoadableGetVariables(std::vector<ChVariables*>& vars) {
+    ChNodeFEAxyzDD::LoadableGetVariables(vars);
     if (!IsFixedDDD()) {
-        mvars.push_back(&Variables_DDD());
+        vars.push_back(&Variables_DDD());
     }
 }
 
