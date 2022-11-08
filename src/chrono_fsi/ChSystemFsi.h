@@ -265,7 +265,7 @@ class CH_FSI_API ChSystemFsi {
     /// Add an FEA mesh to the FSI system.
     void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
                     const std::vector<std::vector<int>>& beam_elements,
-                    std::vector<std::vector<int>>& shell_elements);
+                    const std::vector<std::vector<int>>& shell_elements);
 
     /// Complete construction of the FSI system (fluid and BDE objects).
     /// Use parameters read from JSON file and/or specified through various Set functions.

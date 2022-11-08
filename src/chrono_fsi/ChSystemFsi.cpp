@@ -660,7 +660,7 @@ void ChSystemFsi::AddFsiBody(std::shared_ptr<ChBody> body) {
 
 void ChSystemFsi::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
                              const std::vector<std::vector<int>>& beam_elements,
-                             std::vector<std::vector<int>>& shell_elements) {
+                             const std::vector<std::vector<int>>& shell_elements) {
     m_fsi_interface->m_fsi_mesh = mesh;
 
     m_fea_cable_nodes = beam_elements;
