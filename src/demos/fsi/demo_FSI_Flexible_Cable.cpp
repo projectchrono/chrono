@@ -263,7 +263,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     auto dir_const = chrono_types::make_shared<ChLinkDirFrame>();
     dir_const->Initialize(node, ground);
-    dir_const->SetDirectionInAbsoluteCoords(node->D);
+    dir_const->SetDirectionInAbsoluteCoords(node->GetD());
     sysMBS.Add(dir_const);
     
     // Add the mesh to the system
