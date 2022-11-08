@@ -38,7 +38,7 @@ public:
         int max_iters = 500,       ///< upper limit for the number of iterations. If too low might not converge.
         double mtolerance = 1e-10, ///< tolerance for the iterative solver. 
         bool mverbose = false,     ///< turn to true to see some diagnostic.
-        double msigma = 1e-5       ///< for shift&invert. Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
+        std::complex<double> msigma = 1e-5       ///< for shift&invert. Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
     ) :
         n_modes(m_nmodes),
         max_iterations(max_iters),
@@ -51,7 +51,7 @@ public:
 
     int n_modes = 10;
     double tolerance = 1e-10;   ///< tolerance for the iterative solver. 
-    double sigma = 1e-5;        ///< for shift&invert. Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
+    std::complex<double> sigma = 1e-5;        ///< for shift&invert. Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
     int max_iterations = 500;   ///< upper limit for the number of iterations. If too low might not converge.
     bool verbose = false;       ///< turn to true to see some diagnostic.
 };
