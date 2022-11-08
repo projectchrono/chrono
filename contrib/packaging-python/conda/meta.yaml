@@ -24,31 +24,29 @@ build:
 requirements:
   build:
     - python
-    - cmake >=3.10          # [not win]
+    - cmake          # [not win]
     - ninja   # [linux or osx]
     - pip     # [linux]
     - jinja2  # [linux]
-    - llvm-openmp   # [linux and osx]
     - libglvnd-glx-cos7-x86_64 # [linux]
-    - swig >=4.0.0
-    - mkl
-    - mkl-devel
+    - swig
+    - mkl # [not arm64]
+    - mkl-devel # [not arm64]
     - freeglut # [linux]
     - libxxf86vm-devel-cos7-x86_64 # [linux]
     - irrlicht
-    - opencascade 
-    - numpy
+    - opencascade # [not osx]
+    - numpy >=1.22.0 # [not osx]
     - glew
     - glfw
-    - eigen >=3.3.7
+    - eigen
 
   run:
     - python
-    - mkl
-    - numpy
+    - mkl # [not arm64]
+    - numpy >=1.22.0 # [not osx]
     - glew
     - glfw
-    - pythonocc-core ==7.4.1
 
 test:
   requires:
