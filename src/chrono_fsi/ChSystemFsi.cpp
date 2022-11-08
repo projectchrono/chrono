@@ -789,10 +789,8 @@ void ChSystemFsi::Initialize() {
     }
 
     // Resize worker data
-    m_fsi_interface->ResizeChronoBodiesData();
     m_fsi_interface->ResizeChronoCablesData(m_fea_cable_nodes);
     m_fsi_interface->ResizeChronoShellsData(m_fea_shell_nodes);
-    m_fsi_interface->ResizeChronoFEANodesData();
 
     // This also sets the referenceArray and counts numbers of various objects
     m_sysFSI->ResizeData(m_fsi_interface->m_fsi_bodies.size(), m_num_cable_elements, m_num_shell_elements,
@@ -923,7 +921,6 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
     } else {
         // A different coupling scheme is used for implicit SPH formulations
-        m_fsi_interface->Copy_ChSystem_to_External();
         if (m_integrate_SPH) {
             m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
                                            m_sysFSI->fsiMeshD, 0.0, m_time);

@@ -26,22 +26,8 @@
 namespace chrono {
 namespace fsi {
 
-ChFsiInterface::ChFsiInterface(ChSystem& mbs,
-                               ChSystemFsi_impl& fsi,
-                               std::shared_ptr<SimParams> params)
-    : m_sysMBS(mbs),
-      m_sysFSI(fsi),
-      m_paramsH(params),
-      m_verbose(true) {
-    size_t numBodies = m_sysMBS.Get_bodylist().size();
-    m_rigid_backup = chrono_types::make_shared<ChronoBodiesDataH>(numBodies);
-    m_flex_backup = chrono_types::make_shared<ChronoMeshDataH>(0);
-    size_t numNodes = 0;
-
-    if (m_sysMBS.Get_otherphysicslist().size())
-        numNodes = std::dynamic_pointer_cast<fea::ChMesh>(m_sysMBS.Get_otherphysicslist().at(0))->GetNnodes();
-    m_flex_backup = chrono_types::make_shared<ChronoMeshDataH>(numNodes);
-}
+ChFsiInterface::ChFsiInterface(ChSystem& mbs, ChSystemFsi_impl& fsi, std::shared_ptr<SimParams> params)
+    : m_sysMBS(mbs), m_sysFSI(fsi), m_paramsH(params), m_verbose(true) {}
 
 ChFsiInterface::~ChFsiInterface() {}
 
@@ -66,42 +52,6 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
     }
 }
 
-void ChFsiInterface::Copy_ChSystem_to_External() {
-    size_t numBodies = m_sysMBS.Get_bodylist().size();
-    size_t numNodes = m_fsi_mesh->GetNnodes();
-
-    if (m_rigid_backup->pos_ChSystemH.size() != numBodies || 
-        m_flex_backup->posFlex_ChSystemH_H.size() != numNodes) {
-        throw std::runtime_error(
-            "Size of the external data does not match the "
-            "ChSystem; thrown from Copy_ChSystem_to_External "
-            "!\n");
-    }
-
-    // Copy data between ChSystem and FSI system for rigid bodies
-    m_rigid_backup->resize(numBodies);
-    for (size_t i = 0; i < numBodies; i++) {
-        auto mBody = m_sysMBS.Get_bodylist().at(i);
-        m_rigid_backup->pos_ChSystemH[i] = utils::ToReal3(mBody->GetPos());
-        m_rigid_backup->vel_ChSystemH[i] = utils::ToReal3(mBody->GetPos_dt());
-        m_rigid_backup->acc_ChSystemH[i] = utils::ToReal3(mBody->GetPos_dtdt());
-
-        m_rigid_backup->quat_ChSystemH[i] = utils::ToReal4(mBody->GetRot());
-        m_rigid_backup->omegaVelGRF_ChSystemH[i] = utils::ToReal3(mBody->GetWvel_par());
-        m_rigid_backup->omegaAccGRF_ChSystemH[i] = utils::ToReal3(mBody->GetWacc_par());
-    }
-
-    // Copy data between ChSystem and FSI system for flexible bodies
-    m_flex_backup->resize(numNodes);
-    for (size_t i = 0; i < numNodes; i++) {
-        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
-        m_flex_backup->posFlex_ChSystemH_H[i] = utils::ToReal3(node->GetPos());
-        m_flex_backup->velFlex_ChSystemH_H[i] = utils::ToReal3(node->GetPos_dt());
-        m_flex_backup->accFlex_ChSystemH_H[i] = utils::ToReal3(node->GetPos_dtdt());
-        m_flex_backup->dirFlex_ChSystemH_H[i] = utils::ToReal3(node->GetD());
-    }
-}
-
 void ChFsiInterface::Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
     size_t num_fsiBodies_Rigids = m_fsi_bodies.size();
     for (size_t i = 0; i < num_fsiBodies_Rigids; i++) {
@@ -115,11 +65,6 @@ void ChFsiInterface::Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBod
         m_sysFSI.fsiBodiesH->omegaAccLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetWacc_loc());
     }
     fsiBodiesD->CopyFromH(*m_sysFSI.fsiBodiesH);
-}
-
-void ChFsiInterface::ResizeChronoBodiesData() {
-    size_t numBodies = m_sysMBS.Get_bodylist().size();
-    m_rigid_backup->resize(numBodies);
 }
 
 //-----------------------Chrono FEA Specifics-----------------------------------------
@@ -146,11 +91,6 @@ void ChFsiInterface::Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMesh
         m_sysFSI.fsiMeshH->dir_fsi_fea_H[i] = utils::ToReal3(node->GetD());
     }
     FsiMeshD->CopyFromH(*m_sysFSI.fsiMeshH);
-}
-
-void ChFsiInterface::ResizeChronoFEANodesData() {
-    size_t numNodes = m_fsi_mesh->GetNnodes();
-    m_flex_backup->resize(numNodes);
 }
 
 void ChFsiInterface::ResizeChronoCablesData(const std::vector<std::vector<int>>& CableElementsNodesSTDVector) {
