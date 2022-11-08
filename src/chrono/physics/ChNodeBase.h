@@ -35,9 +35,7 @@ class ChApi ChNodeBase {
 
     ChNodeBase& operator=(const ChNodeBase& other);
 
-    //
     // Functions for interfacing to the state bookkeeping
-    //
 
     /// Get the number of degrees of freedom
     virtual int Get_ndof_x() const = 0;
@@ -95,9 +93,7 @@ class ChApi ChNodeBase {
     virtual void NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {}
     virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {}
 
-    //
     // Functions for interfacing to the solver
-    //
 
     /// Tell to a system descriptor that there are variables of type
     /// ChVariables in this object (for further passing it to a solver)

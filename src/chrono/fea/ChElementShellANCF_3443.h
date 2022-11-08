@@ -303,7 +303,7 @@ class ChApi ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV
     virtual unsigned int GetSubBlockSize(int nblock) override { return 12; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->GetFixed(); }
+    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
