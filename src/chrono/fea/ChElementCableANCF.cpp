@@ -27,8 +27,8 @@ ChElementCableANCF::ChElementCableANCF() {
     m_use_damping = false;  // flag to add internal damping and its Jacobian
     m_alpha = 0.0;          // scaling factor for internal damping
 
-    // this->StiffnessMatrix.Resize(this->GetNdofs(), this->GetNdofs());
-    // this->MassMatrix.Resize(this->GetNdofs(), this->GetNdofs());
+    // StiffnessMatrix.Resize(GetNdofs(), GetNdofs());
+    // MassMatrix.Resize(GetNdofs(), GetNdofs());
 }
 
 void ChElementCableANCF::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA, std::shared_ptr<ChNodeFEAxyzD> nodeB) {
@@ -46,7 +46,7 @@ void ChElementCableANCF::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA, std::sha
 }
 
 void ChElementCableANCF::ShapeFunctions(ShapeVector& N, double xi) {
-    double l = this->GetRestLength();
+    double l = GetRestLength();
 
     N(0) = 1 - 3 * pow(xi, 2) + 2 * pow(xi, 3);
     N(1) = l * (xi - 2 * pow(xi, 2) + pow(xi, 3));
@@ -55,7 +55,7 @@ void ChElementCableANCF::ShapeFunctions(ShapeVector& N, double xi) {
 };
 
 void ChElementCableANCF::ShapeFunctionsDerivatives(ShapeVector& Nd, double xi) {
-    double l = this->GetRestLength();
+    double l = GetRestLength();
 
     Nd(0) = (6.0 * pow(xi, 2.0) - 6.0 * xi) / l;
     Nd(1) = 1.0 - 4.0 * xi + 3.0 * pow(xi, 2.0);
@@ -64,7 +64,7 @@ void ChElementCableANCF::ShapeFunctionsDerivatives(ShapeVector& Nd, double xi) {
 };
 
 void ChElementCableANCF::ShapeFunctionsDerivatives2(ShapeVector& Ndd, double xi) {
-    double l = this->GetRestLength();
+    double l = GetRestLength();
     Ndd(0) = (12 * xi - 6) / pow(l, 2);
     Ndd(1) = (-4 + 6 * xi) / l;
     Ndd(2) = (6 - 12 * xi) / pow(l, 2);
@@ -79,10 +79,10 @@ void ChElementCableANCF::Update() {
 void ChElementCableANCF::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.resize(12);
 
-    mD.segment(0, 3) = this->nodes[0]->GetPos().eigen();
-    mD.segment(3, 3) = this->nodes[0]->GetD().eigen();
-    mD.segment(6, 3) = this->nodes[1]->GetPos().eigen();
-    mD.segment(9, 3) = this->nodes[1]->GetD().eigen();
+    mD.segment(0, 3) = nodes[0]->GetPos().eigen();
+    mD.segment(3, 3) = nodes[0]->GetD().eigen();
+    mD.segment(6, 3) = nodes[1]->GetPos().eigen();
+    mD.segment(9, 3) = nodes[1]->GetD().eigen();
 }
 
 // Computes the stiffness matrix of the element:
@@ -100,16 +100,16 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         ChVectorDynamic<> F0(12);
         ChVectorDynamic<> F1(12);
 
-        this->ComputeInternalForces(F0);
+        ComputeInternalForces(F0);
 
         // Create local copies of the nodal coordinates and use the implementation version
         // of the function for calculating the internal forces.  With this, the calculation
         // of the Jacobian with finite differences is thread safe (otherwise, there would
         // be race conditions when adjacent elements attempt to perturb a common node).
-        ChVector<> pos[2] = {this->nodes[0]->pos, this->nodes[1]->pos};
-        ChVector<> D[2] = {this->nodes[0]->D, this->nodes[1]->D};
-        ChVector<> pos_dt[2] = {this->nodes[0]->pos_dt, this->nodes[1]->pos_dt};
-        ChVector<> D_dt[2] = {this->nodes[0]->D_dt, this->nodes[1]->D_dt};
+        ChVector<> pos[2] = {nodes[0]->GetPos(), nodes[1]->GetPos()};
+        ChVector<> D[2] = {nodes[0]->GetD(), nodes[1]->GetD()};
+        ChVector<> pos_dt[2] = {nodes[0]->GetPos_dt(), nodes[1]->GetPos_dt()};
+        ChVector<> D_dt[2] = {nodes[0]->GetD_dt(), nodes[1]->GetD_dt()};
 
         // Add part of the Jacobian stemming from elastic forces
         for (int inode = 0; inode < 2; ++inode) {
@@ -186,10 +186,10 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         double E = section->E;
         double I = section->I;
 
-        ChVector<> pA = this->nodes[0]->GetPos();
-        ChVector<> dA = this->nodes[0]->GetD();
-        ChVector<> pB = this->nodes[1]->GetPos();
-        ChVector<> dB = this->nodes[1]->GetD();
+        ChVector<> pA = nodes[0]->GetPos();
+        ChVector<> dA = nodes[0]->GetD();
+        ChVector<> pB = nodes[1]->GetPos();
+        ChVector<> dB = nodes[1]->GetD();
 
         // this matrix will be used in both CableANCF_StiffnessAxial and CableANCF_StiffnessCurv integrators
         ChMatrixNM<double, 4, 3> d;
@@ -252,7 +252,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
                                                               5             // order of integration
         );
 
-        this->m_JacobianMatrix = E * Area * length * Kaxial;
+        m_JacobianMatrix = E * Area * length * Kaxial;
 
         // 2)
         // Integrate   (k_e'*k_e)
@@ -340,11 +340,11 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
 
     //***DEBUG***
     /*
-    GetLog() << "Stiffness matr file dump. L=" << this->length << " A=" << this->section->Area << " E=" <<
-    this->section->E << " I=" << this->section->Izz << "\n";
-    GetLog() << this->StiffnessMatrix;
+    GetLog() << "Stiffness matr file dump. L=" << length << " A=" << section->Area << " E=" <<
+    section->E << " I=" << section->Izz << "\n";
+    GetLog() << StiffnessMatrix;
     ChStreamOutAsciiFile mdump("dump_stiff.txt");
-    this->StiffnessMatrix.StreamOUTdenseMatlabFormat(mdump);
+    StiffnessMatrix.StreamOUTdenseMatlabFormat(mdump);
     */
 }
 
@@ -353,7 +353,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
 void ChElementCableANCF::ComputeMassMatrix() {
     assert(section);
 
-    double L = this->length;
+    double L = length;
     double rhoAL = section->density * section->Area * L;
     double rhoAL2 = rhoAL * L;
     double rhoAL3 = rhoAL2 * L;
@@ -386,8 +386,8 @@ void ChElementCableANCF::SetupInitial(ChSystem* system) {
     assert(section);
 
     // Compute rest length, mass:
-    this->length = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
-    this->mass = this->length * this->section->Area * this->section->density;
+    length = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
+    mass = length * section->Area * section->density;
 
     // Here we calculate the internal forces in the initial configuration
     // Contribution of initial configuration in elastic forces is automatically subtracted
@@ -402,10 +402,10 @@ void ChElementCableANCF::SetupInitial(ChSystem* system) {
 
     // Compute the matrix used to multiply the acceleration due to gravity to get the generalized gravitational force
     // vector for the element
-    m_GravForceScale(0) = 0.5 * this->section->density * this->section->Area * this->length;
-    m_GravForceScale(1) = 1.0 / 12.0 * this->section->density * this->section->Area * this->length * this->length;
-    m_GravForceScale(2) = 0.5 * this->section->density * this->section->Area * this->length;
-    m_GravForceScale(3) = -1.0 / 12.0 * this->section->density * this->section->Area * this->length * this->length;
+    m_GravForceScale(0) = 0.5 * section->density * section->Area * length;
+    m_GravForceScale(1) = 1.0 / 12.0 * section->density * section->Area * length * length;
+    m_GravForceScale(2) = 0.5 * section->density * section->Area * length;
+    m_GravForceScale(3) = -1.0 / 12.0 * section->density * section->Area * length * length;
 }
 
 // Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also superimposes global
@@ -424,9 +424,9 @@ void ChElementCableANCF::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 // Computes the internal forces and set values in the Fi vector.
 // (e.g. the actual position of nodes is not in relaxed reference position).
 void ChElementCableANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    ComputeInternalForces_Impl(this->nodes[0]->GetPos(), this->nodes[0]->GetD(), this->nodes[1]->GetPos(),
-                               this->nodes[1]->GetD(), this->nodes[0]->GetPos_dt(), this->nodes[0]->GetD_dt(),
-                               this->nodes[1]->GetPos_dt(), this->nodes[1]->GetD_dt(), Fi);
+    ComputeInternalForces_Impl(nodes[0]->GetPos(), nodes[0]->GetD(), nodes[1]->GetPos(), nodes[1]->GetD(),
+                               nodes[0]->GetPos_dt(), nodes[0]->GetD_dt(), nodes[1]->GetPos_dt(), nodes[1]->GetD_dt(),
+                               Fi);
 }
 
 // Worker function for computing the internal forces.
@@ -656,16 +656,16 @@ void ChElementCableANCF::EvaluateSectionFrame(const double eta, ChVector<>& poin
     ShapeVector N;
     ShapeFunctions(N, xi);
 
-    ChVector<> pA = this->nodes[0]->GetPos();
-    ChVector<> dA = this->nodes[0]->GetD();
-    ChVector<> pB = this->nodes[1]->GetPos();
-    ChVector<> dB = this->nodes[1]->GetD();
+    ChVector<> pA = nodes[0]->GetPos();
+    ChVector<> dA = nodes[0]->GetD();
+    ChVector<> pB = nodes[1]->GetPos();
+    ChVector<> dB = nodes[1]->GetD();
 
     point.x() = N(0) * pA.x() + N(1) * dA.x() + N(2) * pB.x() + N(3) * dB.x();
     point.y() = N(0) * pA.y() + N(1) * dA.y() + N(2) * pB.y() + N(3) * dB.y();
     point.z() = N(0) * pA.z() + N(1) * dA.z() + N(2) * pB.z() + N(3) * dB.z();
 
-    this->ShapeFunctionsDerivatives(N, xi);
+    ShapeFunctionsDerivatives(N, xi);
 
     ChVector<> Dx;
 
@@ -705,12 +705,12 @@ void ChElementCableANCF::EvaluateSectionStrain(const double eta, ChVector<>& Str
     // double xi = (eta*2 - 1.0);
     double xi = (eta + 1.0) / 2.0;
 
-    this->ShapeFunctions(N, xi);  // Evaluate shape functions
-    this->ShapeFunctionsDerivatives(Nd, xi);
-    this->ShapeFunctionsDerivatives2(Ndd, xi);
+    ShapeFunctions(N, xi);  // Evaluate shape functions
+    ShapeFunctionsDerivatives(Nd, xi);
+    ShapeFunctionsDerivatives2(Ndd, xi);
     ChVectorDynamic<> mD(GetNdofs());
 
-    this->GetStateBlock(mD);
+    GetStateBlock(mD);
 
     ChMatrixNM<double, 3, 12> Sd;
     Sd.setZero();
@@ -773,10 +773,10 @@ void ChElementCableANCF::LoadableStateIncrement(const unsigned int off_x,
 
 // Get the pointers to the contained ChVariables, appending to the mvars vector.
 void ChElementCableANCF::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
-    mvars.push_back(&this->nodes[0]->Variables());
-    mvars.push_back(&this->nodes[0]->Variables_D());
-    mvars.push_back(&this->nodes[1]->Variables());
-    mvars.push_back(&this->nodes[1]->Variables_D());
+    mvars.push_back(&nodes[0]->Variables());
+    mvars.push_back(&nodes[0]->Variables_D());
+    mvars.push_back(&nodes[1]->Variables());
+    mvars.push_back(&nodes[1]->Variables_D());
 };
 
 // Evaluate N'*F , where N is some type of shape function evaluated at U,V coordinates of the surface,
@@ -790,9 +790,9 @@ void ChElementCableANCF::ComputeNF(const double U,
                                    ChVectorDynamic<>* state_x,
                                    ChVectorDynamic<>* state_w) {
     ShapeVector N;
-    this->ShapeFunctions(N, (U + 1) * 0.5);  // evaluate shape functions (in compressed vector)
+    ShapeFunctions(N, (U + 1) * 0.5);  // evaluate shape functions (in compressed vector)
 
-    detJ = this->GetRestLength() / 2.0;
+    detJ = GetRestLength() / 2.0;
 
     Qi.segment(0, 3) = N(0) * F.segment(0, 3);
     Qi.segment(3, 3) = N(1) * F.segment(0, 3);
@@ -812,7 +812,7 @@ void ChElementCableANCF::ComputeNF(const double U,
                                    const ChVectorDynamic<>& F,
                                    ChVectorDynamic<>* state_x,
                                    ChVectorDynamic<>* state_w) {
-    this->ComputeNF(U, Qi, detJ, F, state_x, state_w);
+    ComputeNF(U, Qi, detJ, F, state_x, state_w);
     detJ /= 4.0;  // because volume
 }
 

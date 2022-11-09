@@ -35,6 +35,7 @@
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 
 #include "demos/vehicle/SetChronoSolver.h"
@@ -43,10 +44,10 @@ using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::irrlicht;
 
-enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, LUGRE, ANCF, REISSNER };
+enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, LUGRE, ANCF, ANCF_TOROIDAL, REISSNER };
 TireType tire_type = TireType::TMEASY;
 
-bool use_JSON = true;
+bool use_JSON = false;
 
 int main() {
     // Create system and set solver
@@ -55,11 +56,11 @@ int main() {
     ChTimestepper::Type integrator_type;
     double step_size;
 
-    if (tire_type == TireType::ANCF || tire_type == TireType::REISSNER) {
+    if (tire_type == TireType::ANCF || tire_type == TireType::ANCF_TOROIDAL || tire_type == TireType::REISSNER) {
         sys = new ChSystemSMC;
         step_size = 1e-4;
         solver_type = ChSolver::Type::PARDISO_MKL;
-        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
     } else {
         sys = new ChSystemNSC;
         step_size = 1e-3;
@@ -73,34 +74,17 @@ int main() {
     auto wheel = chrono_types::make_shared<hmmwv::HMMWV_Wheel>("Wheel");
 
     std::shared_ptr<ChTire> tire;
-    if (use_JSON) {
-        switch (tire_type) {
-            case TireType::RIGID:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_RigidTire>("Rigid tire");
-                break;
-            case TireType::TMEASY:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_TMeasyTire>("TMeasy tire");
-                break;
-            case TireType::FIALA:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_FialaTire>("Fiala tire");
-                break;
-            case TireType::PAC89:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("Pac89 tire");
-                break;
-            case TireType::PAC02:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>("Pac02 tire");
-                break;
-            case TireType::LUGRE:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_LugreTire>("Lugre tire");
-                break;
-            case TireType::ANCF:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>("ANCF tire");
-                break;
-            case TireType::REISSNER:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner tire");
-                break;
-        }
-    } else {
+    if (tire_type == TireType::ANCF_TOROIDAL) {
+        auto ancf_tire = chrono_types::make_shared<ANCFToroidalTire>("ANCFtoroidal tire");
+        ancf_tire->SetRimRadius(0.27);
+        ancf_tire->SetHeight(0.18);
+        ancf_tire->SetThickness(0.015);
+        ancf_tire->SetDivCircumference(60);
+        ancf_tire->SetDivWidth(12);
+        ancf_tire->SetPressure(320e3);
+        ancf_tire->SetAlpha(0.15);
+        tire = ancf_tire;
+    } else if (use_JSON) {
         std::string tire_file;
         switch (tire_type) {
             case TireType::RIGID:
@@ -129,8 +113,34 @@ int main() {
                 break;
         }
         tire = ReadTireJSON(vehicle::GetDataFile(tire_file));
+    } else {
+        switch (tire_type) {
+            case TireType::RIGID:
+                tire = chrono_types::make_shared<hmmwv::HMMWV_RigidTire>("Rigid tire");
+                break;
+            case TireType::TMEASY:
+                tire = chrono_types::make_shared<hmmwv::HMMWV_TMeasyTire>("TMeasy tire");
+                break;
+            case TireType::FIALA:
+                tire = chrono_types::make_shared<hmmwv::HMMWV_FialaTire>("Fiala tire");
+                break;
+            case TireType::PAC89:
+                tire = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("Pac89 tire");
+                break;
+            case TireType::PAC02:
+                tire = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>("Pac02 tire");
+                break;
+            case TireType::LUGRE:
+                tire = chrono_types::make_shared<hmmwv::HMMWV_LugreTire>("Lugre tire");
+                break;
+            case TireType::ANCF:
+                tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>("ANCF tire");
+                break;
+            case TireType::REISSNER:
+                tire = chrono_types::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner tire");
+                break;
+        }
     }
-
 
     // Create and configure test rig
     ChTireTestRig rig(wheel, tire, sys);

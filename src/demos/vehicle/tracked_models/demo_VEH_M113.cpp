@@ -49,13 +49,16 @@ using std::endl;
 
 TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
 DoublePinTrackShoeType shoe_topology = DoublePinTrackShoeType::ONE_CONNECTOR;
-BrakeType brake_type = BrakeType::SIMPLE;
+BrakeType brake_type = BrakeType::SHAFTS;
 DrivelineTypeTV driveline_type = DrivelineTypeTV::BDS;
 PowertrainModelType powertrain_type = PowertrainModelType::SHAFTS;
 
 bool use_track_bushings = false;
 bool use_suspension_bushings = false;
 bool use_track_RSDA = false;
+
+bool fix_chassis = false;
+bool create_track = true;
 
 // Initial vehicle position
 ChVector<> initLoc(-40, 0, 0.8);
@@ -87,7 +90,7 @@ ChContactMethod contact_method = ChContactMethod::NSC;
 
 // Simulation step size
 double step_size_NSC = 1e-3;
-double step_size_SMC = 5e-4;
+double step_size_SMC = 1e-4;
 
 // Solver and integrator types
 ////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
@@ -174,6 +177,8 @@ bool ReportTrackFailure(ChTrackedVehicle& veh, double threshold = 1e-2) {
     for (int i = 0; i < 2; i++) {
         auto track = veh.GetTrackAssembly(VehicleSide(i));
         auto nshoes = track->GetNumTrackShoes();
+        if (nshoes <= 0)
+            continue;
         auto shoe1 = track->GetTrackShoe(0).get();
         for (int j = 1; j < nshoes; j++) {
             auto shoe2 = track->GetTrackShoe(j % (nshoes - 1)).get();
@@ -216,9 +221,6 @@ int main(int argc, char* argv[]) {
     // --------------------------
     // Construct the M113 vehicle
     // --------------------------
-
-    bool fix_chassis = false;
-    bool create_track = true;
 
     collision::ChCollisionSystemType collsys_type = collision::ChCollisionSystemType::BULLET;
     CollisionType chassis_collision_type = CollisionType::NONE;
@@ -460,7 +462,8 @@ int main(int argc, char* argv[]) {
 
     driver->Initialize();
 
-    std::cout << "Track shoe type: " << vehicle.GetTrackShoe(LEFT, 0)->GetTemplateName() << std::endl;
+    if (vehicle.GetNumTrackShoes(LEFT) > 0)
+        std::cout << "Track shoe type: " << vehicle.GetTrackShoe(LEFT, 0)->GetTemplateName() << std::endl;
     std::cout << "Driveline type:  " << vehicle.GetDriveline()->GetTemplateName() << std::endl;
     std::cout << "Powertrain type: " << m113.GetPowertrain()->GetTemplateName() << std::endl;
     std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
@@ -499,11 +502,6 @@ int main(int argc, char* argv[]) {
     // Generate JSON information with available output channels
     ////vehicle.ExportComponentList(out_dir + "/component_list.json");
 
-    std::cout << "Track shoe type: " << vehicle.GetTrackShoe(LEFT, 0)->GetTemplateName() << std::endl;
-    std::cout << "Driveline type:  " << vehicle.GetDriveline()->GetTemplateName() << std::endl;
-    std::cout << "Powertrain type: " << m113.GetPowertrain()->GetTemplateName() << std::endl;
-    std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
-
     // ------------------------------
     // Solver and integrator settings
     // ------------------------------
@@ -524,8 +522,8 @@ int main(int argc, char* argv[]) {
     m113.GetSystem()->GetSolver()->SetVerbose(verbose_solver);
     m113.GetSystem()->GetTimestepper()->SetVerbose(verbose_integrator);
 
-    std::cout << "SOLVER TYPE:     " << (int)slvr_type << std::endl;
-    std::cout << "INTEGRATOR TYPE: " << (int)intgr_type << std::endl;
+    std::cout << "SOLVER TYPE:     " << (int)m113.GetSystem()->GetSolver()->GetType() << std::endl;
+    std::cout << "INTEGRATOR TYPE: " << (int)m113.GetSystem()->GetTimestepper()->GetType() << std::endl;
 
     // ---------------
     // Simulation loop

@@ -461,6 +461,7 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
         return;
 
     CreateVisualizationMesh(sizeX, sizeY);
+    this->AddVisualShape(m_trimesh_shape);
 }
 
 // Initialize the terrain from a specified OBJ mesh file.
@@ -552,6 +553,7 @@ void SCMDeformableSoil::Initialize(const std::string& mesh_file, double delta) {
         return;
 
     CreateVisualizationMesh(sizeX, sizeY);
+    this->AddVisualShape(m_trimesh_shape);
 }
 
 void SCMDeformableSoil::CreateVisualizationMesh(double sizeX, double sizeY) {
@@ -579,13 +581,6 @@ void SCMDeformableSoil::CreateVisualizationMesh(double sizeX, double sizeY) {
     colors.resize(n_verts);
     idx_vertices.resize(n_faces);
     idx_normals.resize(n_faces);
-
-    // Default normal vector
-    ChVector<> def_normal;
-    if (m_type == PatchType::FLAT)
-        def_normal = ChVector<>(0, 0, 1);
-    else
-        def_normal = ChVector<>(0, 0, 0);
 
     // Load mesh vertices.
     // We order the vertices starting at the bottom-left corner, row after row.
