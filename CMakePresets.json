@@ -121,7 +121,6 @@
 				"ENABLE_MODULE_SENSOR": "ON",
 				"DNUMPY_INCLUDE_DIR": "C:/Users/builder/miniconda3/envs/build-env/",
 				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0",
-				"OptiX_INCLUDE":"C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0/include",
 				"CUDA_TOOLKIT_ROOT_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7",
 				"THRUST_INCLUDE_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7/include"
 			}
@@ -143,7 +142,6 @@
 				"ENABLE_MODULE_FSI": "ON",
 				"ENABLE_MODULE_SENSOR": "ON",
 				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0",
-				"OptiX_INCLUDE":"C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0/include",
 				"CUDA_TOOLKIT_ROOT_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7",
 				"THRUST_INCLUDE_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7/include"
 			}
