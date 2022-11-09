@@ -48,7 +48,6 @@ class ChFluidDynamics;
 class ChBce;
 struct SimParams;
 struct ChCounters;
-struct Real4;
 
 /// @addtogroup fsi_physics
 /// @{

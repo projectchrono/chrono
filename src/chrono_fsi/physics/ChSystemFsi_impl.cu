@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki
+// Author: Milad Rakhsha, Arman Pazouki, Radu Serban
 // =============================================================================
 //
 // Implementation of FSI system that includes all subclasses for proximity and

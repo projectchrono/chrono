@@ -9,69 +9,48 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki
+// Author: Milad Rakhsha, Arman Pazouki, RFadu Serban
 // =============================================================================
 //
-// Base class for changing device arrays in non-cuda files
+// Utilities for changing device arrays in non-cuda files
 // =============================================================================
-/**
- * @brief See collideSphereSphere.cuh for documentation.
- */
 
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 
 namespace chrono {
 namespace fsi {
 
-void ChUtilsDevice::ResizeMyThrust3(thrust::device_vector<Real3>& mThrustVec, int mSize) {
-    mThrustVec.resize(mSize);
-}
-void ChUtilsDevice::ResizeMyThrust4(thrust::device_vector<Real4>& mThrustVec, int mSize) {
-    mThrustVec.resize(mSize);
-}
-void ChUtilsDevice::FillMyThrust3(thrust::device_vector<Real3>& mThrustVec, Real3 v) {  //
-    thrust::fill(mThrustVec.begin(), mThrustVec.end(), v);
-}
-void ChUtilsDevice::FillMyThrust4(thrust::device_vector<Real4>& mThrustVec, Real4 v) {
-    thrust::fill(mThrustVec.begin(), mThrustVec.end(), v);
-}
-void ChUtilsDevice::ClearMyThrustR3(thrust::device_vector<Real3>& mThrustVec) {
-    mThrustVec.clear();
-}
-void ChUtilsDevice::ClearMyThrustR4(thrust::device_vector<Real4>& mThrustVec) {
-    mThrustVec.clear();
-}
-void ChUtilsDevice::ClearMyThrustU1(thrust::device_vector<uint>& mThrustVec) {
-    mThrustVec.clear();
-}
-void ChUtilsDevice::PushBackR3(thrust::device_vector<Real3>& mThrustVec, Real3 a3) {
-    mThrustVec.push_back(a3);
-}
-void ChUtilsDevice::PushBackR4(thrust::device_vector<Real4>& mThrustVec, Real4 a4) {
-    mThrustVec.push_back(a4);
-}
-void ChUtilsDevice::ResizeR3(thrust::device_vector<Real3>& mThrustVec, int size) {
-    mThrustVec.resize(size);
-}
-void ChUtilsDevice::ResizeR4(thrust::device_vector<Real4>& mThrustVec, int size) {
-    mThrustVec.resize(size);
-}
-void ChUtilsDevice::ResizeU1(thrust::device_vector<uint>& mThrustVec, int size) {
-    mThrustVec.resize(size);
+GpuTimer::GpuTimer(cudaStream_t stream) : m_stream(stream) {
+    cudaEventCreate(&m_start);
+    cudaEventCreate(&m_stop);
 }
 
-Real3 ChUtilsDevice::FetchElement(const thrust::device_vector<Real3>& DevVec, size_t i) {
-    return DevVec[i];
+GpuTimer::~GpuTimer() {
+    cudaEventDestroy(m_start);
+    cudaEventDestroy(m_stop);
 }
 
-void ChUtilsDevice::CopyD2H(thrust::device_vector<Real4>& DevVec, thrust::host_vector<Real4>& HostVec) {
-    thrust::copy(DevVec.begin(), DevVec.end(), HostVec.begin());
+void GpuTimer::Start() {
+    cudaEventRecord(m_start, m_stream);
 }
-void ChUtilsDevice::CopyD2H(thrust::device_vector<Real3>& DevVec, thrust::host_vector<Real3>& HostVec) {
-    thrust::copy(DevVec.begin(), DevVec.end(), HostVec.begin());
+
+void GpuTimer::Stop() {
+    cudaEventRecord(m_stop, m_stream);
 }
-void ChUtilsDevice::CopyD2H(thrust::device_vector<Real>& DevVec, thrust::host_vector<Real>& HostVec) {
-    thrust::copy(DevVec.begin(), DevVec.end(), HostVec.begin());
+
+float GpuTimer::Elapsed() {
+    float elapsed;
+    cudaEventSynchronize(m_stop);
+    cudaEventElapsedTime(&elapsed, m_start, m_stop);
+    return elapsed;
+}
+
+void ChUtilsDevice::FillVector(thrust::device_vector<Real3>& vector, const Real3& value) {
+    thrust::fill(vector.begin(), vector.end(), value);
+}
+
+void ChUtilsDevice::FillVector(thrust::device_vector<Real4>& vector, const Real4& value) {
+    thrust::fill(vector.begin(), vector.end(), value);
 }
 
 void ChUtilsDevice::Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string carshReport) {

@@ -36,11 +36,12 @@ ChFsiInterface::~ChFsiInterface() {}
 void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
     size_t numRigids = m_fsi_bodies.size();
 
+    thrust::host_vector<Real3> forcesH = m_sysFSI.fsiGeneralData->rigid_FSI_ForcesD;
+    thrust::host_vector<Real3> torquesH = m_sysFSI.fsiGeneralData->rigid_FSI_TorquesD;
+
     for (size_t i = 0; i < numRigids; i++) {
-        ChVector<> mforce = utils::ToChVector(
-            ChUtilsDevice::FetchElement(m_sysFSI.fsiGeneralData->rigid_FSI_ForcesD, i));
-        ChVector<> mtorque = utils::ToChVector(
-            ChUtilsDevice::FetchElement(m_sysFSI.fsiGeneralData->rigid_FSI_TorquesD, i));
+        ChVector<> mforce = utils::ToChVector(forcesH[i]);
+        ChVector<> mtorque = utils::ToChVector(torquesH[i]);
 
         std::shared_ptr<ChBody> body = m_fsi_bodies[i];
 
@@ -72,9 +73,10 @@ void ChFsiInterface::Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBod
 void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
     size_t num_nodes = m_fsi_nodes.size();
 
+    thrust::host_vector<Real3> forcesH = m_sysFSI.fsiGeneralData->Flex_FSI_ForcesD;
+
     for (size_t i = 0; i < num_nodes; i++) {
-        ChVector<> force = utils::ToChVector(
-            ChUtilsDevice::FetchElement(m_sysFSI.fsiGeneralData->Flex_FSI_ForcesD, i));
+        ChVector<> force = utils::ToChVector(forcesH[i]);
         auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
         node->SetForce(force);
     }

@@ -39,6 +39,7 @@
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFluid.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
+#include "chrono_fsi/utils/ChUtilsDevice.cuh"
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/filesystem/resolver.h"
@@ -875,6 +876,7 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
     }
 }
 
+
 void ChSystemFsi::DoStepDynamics_FSI() {
     if (!m_is_initialized) {
         cout << "ERROR: FSI system not initialized!\n" << endl;
@@ -886,7 +888,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         CopyDeviceDataToHalfStep();
         thrust::copy(m_sysFSI->fsiGeneralData->derivVelRhoD.begin(), m_sysFSI->fsiGeneralData->derivVelRhoD.end(),
                      m_sysFSI->fsiGeneralData->derivVelRhoD_old.begin());
-        ChUtilsDevice::FillMyThrust4(m_sysFSI->fsiGeneralData->derivVelRhoD, mR4(0));
+        ChUtilsDevice::FillVector(m_sysFSI->fsiGeneralData->derivVelRhoD, mR4(0));
 
         if (m_integrate_SPH) {
             m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD2,
