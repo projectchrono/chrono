@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(sysMBS);
+    ChSystemFsi sysFSI(&sysMBS);
 
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_CylinderDrop_Explicit.json");
     if (argc == 1) {

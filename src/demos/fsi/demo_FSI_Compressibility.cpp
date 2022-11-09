@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sysMBS;
 
     // Create an FSI system to handle fluid dynamics
-    ChSystemFsi sysFSI(sysMBS);
+    ChSystemFsi sysFSI(&sysMBS);
 
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Compressibility_Explicit.json");

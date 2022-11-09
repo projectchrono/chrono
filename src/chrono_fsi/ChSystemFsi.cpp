@@ -55,7 +55,7 @@ using std::endl;
 namespace chrono {
 namespace fsi {
 
-ChSystemFsi::ChSystemFsi(ChSystem& sysMBS)
+ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
     : m_sysMBS(sysMBS),
       m_verbose(true),
       m_is_initialized(false),
@@ -70,7 +70,7 @@ ChSystemFsi::ChSystemFsi(ChSystem& sysMBS)
     m_num_cable_elements = 0;
     m_num_shell_elements = 0;
 
-    m_fsi_interface = chrono_types::make_unique<ChFsiInterface>(m_sysMBS, *m_sysFSI, m_paramsH);
+    m_fsi_interface = chrono_types::make_unique<ChFsiInterface>(*m_sysFSI, m_paramsH);
 }
 
 ChSystemFsi::~ChSystemFsi() {}
@@ -182,7 +182,7 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
         return;
     }
 
-    char readBuffer[65536];
+    char readBuffer[32768];
     FileReadStream is(fp, readBuffer, sizeof(readBuffer));
     fclose(fp);
 
@@ -894,24 +894,23 @@ void ChSystemFsi::DoStepDynamics_FSI() {
             m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD1, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
                                            m_sysFSI->fsiMeshD, 1.0 * m_paramsH->dT, m_time);
         }
+
         m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
-        m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
-
         m_bce_manager->Flex_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
-        // Note that because of applying forces to the nodal coordinates using SetForce(),
-        // no other external forces can be applied, or if any thing has been applied will
-        // be rewritten by Add_Flex_Forces_To_ChSystem();
-        m_fsi_interface->Add_Flex_Forces_To_ChSystem();
 
-        // dT_Flex is the time step of solid body system
-        m_time += 1 * m_paramsH->dT;
-        if (m_paramsH->dT_Flex == 0)
-            m_paramsH->dT_Flex = m_paramsH->dT;
-        int sync = int(m_paramsH->dT / m_paramsH->dT_Flex);
-        if (sync < 1)
-            sync = 1;
-        for (int t = 0; t < sync; t++) {
-            m_sysMBS.DoStepDynamics(m_paramsH->dT / sync);
+        // Advance dynamics of the associated MBS system (if provided)
+        if (m_sysMBS) {
+            m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
+            m_fsi_interface->Add_Flex_Forces_To_ChSystem();
+
+            if (m_paramsH->dT_Flex == 0)
+                m_paramsH->dT_Flex = m_paramsH->dT;
+            int sync = int(m_paramsH->dT / m_paramsH->dT_Flex);
+            if (sync < 1)
+                sync = 1;
+            for (int t = 0; t < sync; t++) {
+                m_sysMBS->DoStepDynamics(m_paramsH->dT / sync);
+            }
         }
 
         m_fsi_interface->Copy_FsiBodies_ChSystem_to_FsiSystem(m_sysFSI->fsiBodiesD2);
@@ -925,25 +924,25 @@ void ChSystemFsi::DoStepDynamics_FSI() {
             m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
                                            m_sysFSI->fsiMeshD, 0.0, m_time);
         }
+
         m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
-        m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
-
         m_bce_manager->Flex_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
-        // Note that because of applying forces to the nodal coordinates using SetForce(),
-        // no other external forces can be applied, or if any thing has been applied will
-        // be rewritten by Add_Flex_Forces_To_ChSystem();
-        m_fsi_interface->Add_Flex_Forces_To_ChSystem();
 
-        m_time += 1 * m_paramsH->dT;
-        if (m_paramsH->dT_Flex == 0)
-            m_paramsH->dT_Flex = m_paramsH->dT;
-        int sync = int(m_paramsH->dT / m_paramsH->dT_Flex);
-        if (sync < 1)
-            sync = 1;
-        if (m_verbose)
-            cout << sync << " * Chrono StepDynamics with dt = " << m_paramsH->dT / sync << endl;
-        for (int t = 0; t < sync; t++) {
-            m_sysMBS.DoStepDynamics(m_paramsH->dT / sync);
+        // Advance dynamics of the associated MBS system (if provided)
+        if (m_sysMBS) {
+            m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
+            m_fsi_interface->Add_Flex_Forces_To_ChSystem();
+
+            if (m_paramsH->dT_Flex == 0)
+                m_paramsH->dT_Flex = m_paramsH->dT;
+            int sync = int(m_paramsH->dT / m_paramsH->dT_Flex);
+            if (sync < 1)
+                sync = 1;
+            if (m_verbose)
+                cout << sync << " * Chrono StepDynamics with dt = " << m_paramsH->dT / sync << endl;
+            for (int t = 0; t < sync; t++) {
+                m_sysMBS->DoStepDynamics(m_paramsH->dT / sync);
+            }
         }
 
         m_fsi_interface->Copy_FsiBodies_ChSystem_to_FsiSystem(m_sysFSI->fsiBodiesD2);
@@ -952,6 +951,8 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshD);
         m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
     }
+
+    m_time += 1 * m_paramsH->dT;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -2038,82 +2039,6 @@ void ChSystemFsi::CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
             }
         }
     }
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-
-void ChSystemFsi::AddSphereBody(std::shared_ptr<ChMaterialSurface> mat_prop,
-                                double density,
-                                const ChVector<>& pos,
-                                double radius) {
-    auto body = chrono_types::make_shared<ChBody>();
-    body->SetBodyFixed(false);
-    body->SetCollide(true);
-    body->SetPos(pos);
-    double volume = chrono::utils::CalcSphereVolume(radius);
-    ChVector<> gyration = chrono::utils::CalcSphereGyration(radius).diagonal();
-    double mass = density * volume;
-    body->SetMass(mass);
-    body->SetInertiaXX(mass * gyration);
-
-    body->GetCollisionModel()->ClearModel();
-    chrono::utils::AddSphereGeometry(body.get(), mat_prop, radius);
-    body->GetCollisionModel()->BuildModel();
-    m_sysMBS.AddBody(body);
-
-    AddSphereBCE(body, ChFrame<>(VNULL, QUNIT), radius, true, true);
-    m_fsi_interface->m_fsi_bodies.push_back(body);
-}
-
-void ChSystemFsi::AddCylinderBody(std::shared_ptr<ChMaterialSurface> mat_prop,
-                                  double density,
-                                  const ChVector<>& pos,
-                                  const ChQuaternion<>& rot,
-                                  double radius,
-                                  double length) {
-    auto body = chrono_types::make_shared<ChBody>();
-    body->SetBodyFixed(false);
-    body->SetCollide(true);
-    body->SetPos(pos);
-    body->SetRot(rot);
-    double volume = chrono::utils::CalcCylinderVolume(radius, 0.5 * length);
-    ChVector<> gyration = chrono::utils::CalcCylinderGyration(radius, 0.5 * length).diagonal();
-    double mass = density * volume;
-    body->SetMass(mass);
-    body->SetInertiaXX(mass * gyration);
-
-    body->GetCollisionModel()->ClearModel();
-    chrono::utils::AddCylinderGeometry(body.get(), mat_prop, radius, 0.5 * length);
-    body->GetCollisionModel()->BuildModel();
-    m_sysMBS.AddBody(body);
-
-    AddCylinderBCE(body, ChFrame<>(VNULL, QUNIT), radius, length, true, true, true);
-    m_fsi_interface->m_fsi_bodies.push_back(body);
-}
-
-void ChSystemFsi::AddBoxBody(std::shared_ptr<ChMaterialSurface> mat_prop,
-                             double density,
-                             const ChVector<>& pos,
-                             const ChQuaternion<>& rot,
-                             const ChVector<>& hsize) {
-    auto body = chrono_types::make_shared<ChBody>();
-    body->SetBodyFixed(false);
-    body->SetCollide(true);
-    body->SetPos(pos);
-    body->SetRot(rot);
-    double volume = chrono::utils::CalcBoxVolume(hsize);
-    ChVector<> gyration = chrono::utils::CalcBoxGyration(hsize).diagonal();
-    double mass = density * volume;
-    body->SetMass(mass);
-    body->SetInertiaXX(mass * gyration);
-
-    body->GetCollisionModel()->ClearModel();
-    chrono::utils::AddBoxGeometry(body.get(), mat_prop, hsize);
-    body->GetCollisionModel()->BuildModel();
-    m_sysMBS.AddBody(body);
-
-    m_fsi_interface->m_fsi_bodies.push_back(body);
-    AddBoxBCE(body, ChFrame<>(VNULL, QUNIT), hsize, true);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

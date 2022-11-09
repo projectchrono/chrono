@@ -42,8 +42,7 @@ namespace fsi {
 class ChFsiInterface : public ChFsiGeneral {
   public:
     /// Constructor of the FSI interface class.
-    ChFsiInterface(ChSystem& mbs,
-                   ChSystemFsi_impl& fsi,
+    ChFsiInterface(ChSystemFsi_impl& fsi,
                    std::shared_ptr<SimParams> params);
 
     /// Destructor of the FSI interface class.
@@ -69,7 +68,6 @@ class ChFsiInterface : public ChFsiGeneral {
     void Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD);
 
   private:
-    ChSystem& m_sysMBS;                    ///< Chrono multibody system
     ChSystemFsi_impl& m_sysFSI;            ///< FSI system
     std::shared_ptr<SimParams> m_paramsH;  ///< simulation parameters
     bool m_verbose;                        ///< enable/disable m_verbose terminal output (default: true)

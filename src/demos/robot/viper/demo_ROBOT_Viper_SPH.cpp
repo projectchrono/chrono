@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physical system and a corresponding FSI system
     ChSystemNSC sysMBS;
-    ChSystemFsi sysFSI(sysMBS);
+    ChSystemFsi sysFSI(&sysMBS);
 
     ChVector<> gravity = ChVector<>(0, 0, -9.81);
     sysMBS.Set_G_acc(gravity);

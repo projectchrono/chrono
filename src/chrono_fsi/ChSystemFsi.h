@@ -88,7 +88,7 @@ class CH_FSI_API ChSystemFsi {
     };
 
     /// Constructor for FSI system.
-    ChSystemFsi(ChSystem& sysMBS);
+    ChSystemFsi(ChSystem* sysMBS = nullptr);
 
     /// Destructor for the FSI system.
     ~ChSystemFsi();
@@ -399,32 +399,6 @@ class CH_FSI_API ChSystemFsi {
                        int SIDE,
                        int SIZE2D);
 
-    // ----------- Functions for creating solid bodies with given collision geometry
-
-    /// Create and add to the FSI system a rigid body with spherical shape.
-    /// BCE markers are created in the entire spherical volume using the current spacing value.
-    void AddSphereBody(std::shared_ptr<ChMaterialSurface> mat_prop,
-                       double density,
-                       const ChVector<>& pos,
-                       double radius);
-
-    /// Create and add to the FSI system a rigid body with cylindrical shape.
-    /// BCE markers are created in the entire cylindrical volume using the current spacing value.
-    void AddCylinderBody(std::shared_ptr<ChMaterialSurface> mat_prop,
-                         double density,
-                         const ChVector<>& pos,
-                         const ChQuaternion<>& rot,
-                         double radius,
-                         double length);
-
-    /// Create and add to the FSI system a rigid body with box shape.
-    /// BCE markers are created in the entire box volume using the current spacing value.
-    void AddBoxBody(std::shared_ptr<ChMaterialSurface> mat_prop,
-                    double density,
-                    const ChVector<>& pos,
-                    const ChQuaternion<>& rot,
-                    const ChVector<>& hsize);
-
     // ----------- Utility functions for extracting information at specific SPH particles
 
     /// Utility function for finding indices of SPH particles inside a given OBB.
@@ -542,7 +516,7 @@ class CH_FSI_API ChSystemFsi {
     /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
     void CopyDeviceDataToHalfStep();
 
-    ChSystem& m_sysMBS;  ///< reference to the multi-body system
+    ChSystem* m_sysMBS;  ///< multibody system
 
     std::shared_ptr<SimParams> m_paramsH;  ///< pointer to the simulation parameters
     TimeIntegrator fluidIntegrator;        ///< IISPH by default

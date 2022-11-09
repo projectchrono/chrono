@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(sysMBS);
+    ChSystemFsi sysFSI(&sysMBS);
 
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Toroidal_Tire_Granular.json");

@@ -26,8 +26,8 @@
 namespace chrono {
 namespace fsi {
 
-ChFsiInterface::ChFsiInterface(ChSystem& mbs, ChSystemFsi_impl& fsi, std::shared_ptr<SimParams> params)
-    : m_sysMBS(mbs), m_sysFSI(fsi), m_paramsH(params), m_verbose(true) {}
+ChFsiInterface::ChFsiInterface(ChSystemFsi_impl& fsi, std::shared_ptr<SimParams> params)
+    : m_sysFSI(fsi), m_paramsH(params), m_verbose(true) {}
 
 ChFsiInterface::~ChFsiInterface() {}
 
