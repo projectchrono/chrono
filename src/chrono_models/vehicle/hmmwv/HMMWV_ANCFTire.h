@@ -46,7 +46,7 @@ class CH_MODELS_API HMMWV_ANCFTire : public ChANCFTire {
     virtual double GetDefaultPressure() const override { return m_default_pressure; }
 
     /// Return list of nodes connected to the rim.
-    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const override;
+    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const override { return m_rim_nodes; }
 
     /// Create the FEA nodes and elements.
     /// The wheel rotational axis is assumed to be the Y axis.
@@ -81,20 +81,20 @@ class CH_MODELS_API HMMWV_ANCFTire : public ChANCFTire {
     static const ChVector<> m_G_2;
     std::vector<std::shared_ptr<fea::ChMaterialShellANCF>> m_materials;
 
-    static const unsigned int m_num_elements_bead;
-    static const unsigned int m_num_layers_bead;
+    static const int m_num_elements_bead;
+    static const int m_num_layers_bead;
     static const std::vector<double> m_layer_thickness_bead;
     static const std::vector<double> m_ply_angle_bead;
     static const std::vector<int> m_material_id_bead;
 
-    static const unsigned int m_num_elements_sidewall;
-    static const unsigned int m_num_layers_sidewall;
+    static const int m_num_elements_sidewall;
+    static const int m_num_layers_sidewall;
     static const std::vector<double> m_layer_thickness_sidewall;
     static const std::vector<double> m_ply_angle_sidewall;
     static const std::vector<int> m_material_id_sidewall;
 
-    static const unsigned int m_num_elements_tread;
-    static const unsigned int m_num_layers_tread;
+    static const int m_num_elements_tread;
+    static const int m_num_layers_tread;
     static const std::vector<double> m_layer_thickness_tread;
     static const std::vector<double> m_ply_angle_tread;
     static const std::vector<int> m_material_id_tread;
@@ -113,6 +113,8 @@ class CH_MODELS_API HMMWV_ANCFTire : public ChANCFTire {
     std::vector<double> m_profile_t;
     std::vector<double> m_profile_x;
     std::vector<double> m_profile_y;
+
+    std::vector<std::shared_ptr<fea::ChNodeFEAbase>> m_rim_nodes;
 };
 
 /// @} vehicle_models_hmmwv

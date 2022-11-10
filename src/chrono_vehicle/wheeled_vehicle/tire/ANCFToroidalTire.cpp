@@ -14,7 +14,7 @@
 //
 // ANCF toroidal tire.
 // This is a concrete ANCF tire class which uses a semi-toroidal tire mesh
-// composed of single-layer ANCF shell elements.
+// composed of single-layer 4-node ANCF shell elements.
 //
 // =============================================================================
 

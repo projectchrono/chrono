@@ -45,30 +45,11 @@ using namespace chrono::vehicle;
 using namespace chrono::irrlicht;
 
 enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, LUGRE, ANCF, ANCF_TOROIDAL, REISSNER };
-TireType tire_type = TireType::TMEASY;
+TireType tire_type = TireType::ANCF;
 
 bool use_JSON = false;
 
 int main() {
-    // Create system and set solver
-    ChSystem* sys = nullptr;
-    ChSolver::Type solver_type;
-    ChTimestepper::Type integrator_type;
-    double step_size;
-
-    if (tire_type == TireType::ANCF || tire_type == TireType::ANCF_TOROIDAL || tire_type == TireType::REISSNER) {
-        sys = new ChSystemSMC;
-        step_size = 1e-4;
-        solver_type = ChSolver::Type::PARDISO_MKL;
-        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-    } else {
-        sys = new ChSystemNSC;
-        step_size = 1e-3;
-        solver_type = ChSolver::Type::BARZILAIBORWEIN;
-        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-    }
-
-    SetChronoSolver(*sys, solver_type, integrator_type);
 
     // Create wheel and tire subsystems
     auto wheel = chrono_types::make_shared<hmmwv::HMMWV_Wheel>("Wheel");
@@ -79,8 +60,8 @@ int main() {
         ancf_tire->SetRimRadius(0.27);
         ancf_tire->SetHeight(0.18);
         ancf_tire->SetThickness(0.015);
-        ancf_tire->SetDivCircumference(60);
-        ancf_tire->SetDivWidth(12);
+        ancf_tire->SetDivCircumference(40);
+        ancf_tire->SetDivWidth(8);
         ancf_tire->SetPressure(320e3);
         ancf_tire->SetAlpha(0.15);
         tire = ancf_tire;
@@ -141,6 +122,27 @@ int main() {
                 break;
         }
     }
+
+    // Create system and set solver
+    ChSystem* sys = nullptr;
+    ChSolver::Type solver_type;
+    ChTimestepper::Type integrator_type;
+    double step_size;
+
+    if (tire_type == TireType::ANCF || tire_type == TireType::ANCF_TOROIDAL || tire_type == TireType::REISSNER) {
+        sys = new ChSystemSMC;
+        step_size = 5e-5;
+        solver_type = ChSolver::Type::PARDISO_MKL;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+        std::static_pointer_cast<ChDeformableTire>(tire)->SetContactFaceThickness(0.02);
+    } else {
+        sys = new ChSystemNSC;
+        step_size = 1e-3;
+        solver_type = ChSolver::Type::BARZILAIBORWEIN;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    }
+
+    SetChronoSolver(*sys, solver_type, integrator_type);
 
     // Create and configure test rig
     ChTireTestRig rig(wheel, tire, sys);
@@ -208,6 +210,7 @@ int main() {
 
         vis->BeginScene();
         vis->Render();
+        tools::drawAllContactPoints(vis.get(), 1.0, ContactsDrawMode::CONTACT_NORMALS);
         rig.Advance(step_size);
         vis->EndScene();
 
