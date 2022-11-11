@@ -164,7 +164,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
-    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
+    virtual TerrainForce GetTireForce() const override;
 
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
@@ -201,7 +201,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
     ContactData m_data;
     TireStates m_states;
 
-    TerrainForce m_tireforce;
+    TerrainForce mutable m_tireforce;
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
 };

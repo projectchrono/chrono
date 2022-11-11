@@ -46,7 +46,19 @@ ChPac89Tire::ChPac89Tire(const std::string& name)
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
 }
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+TerrainForce ChPac89Tire::GetTireForce() const{ 
+    // Rotate into global coordinates
+    m_tireforce.point = m_data.frame.pos;
+    m_tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
+    m_tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
 
+    // Move the tire forces from the contact patch to the wheel center
+    m_tireforce.moment +=
+        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
+    return m_tireforce;
+}
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPac89Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
@@ -292,14 +304,6 @@ void ChPac89Tire::Advance(double step) {
     // Convert from SAE to ISO Coordinates at the contact patch.
     m_tireforce.force = ChVector<>(Fx, -Fy, m_data.normal_force);
     m_tireforce.moment = ChVector<>(Mx, -My, -Mz);
-
-    // Rotate into global coordinates
-    m_tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
-    m_tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
-
-    // Move the tire forces from the contact patch to the wheel center
-    m_tireforce.moment +=
-        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
 }
 
 }  // end namespace vehicle
