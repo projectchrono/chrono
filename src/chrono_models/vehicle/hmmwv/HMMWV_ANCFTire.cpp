@@ -48,23 +48,23 @@ const ChVector<> HMMWV_ANCFTire::m_E_2(0.474e8, 0.474e8, 0.474e8);
 const ChVector<> HMMWV_ANCFTire::m_nu_2(0.45, 0.45, 0.45);
 const ChVector<> HMMWV_ANCFTire::m_G_2(0.1634e8, 0.1634e8, 0.1634e8);
 
-const int HMMWV_ANCFTire::m_num_elements_bead = 2;
-const int HMMWV_ANCFTire::m_num_layers_bead = 3;
-const std::vector<double> HMMWV_ANCFTire::m_layer_thickness_bead{{0.5e-03, 0.5e-02, 0.5e-03}};
-const std::vector<double> HMMWV_ANCFTire::m_ply_angle_bead{{90, 0, 90}};
-const std::vector<int> HMMWV_ANCFTire::m_material_id_bead{{0, 2, 0}};
+const int HMMWV_ANCFTire::m_num_elements_b = 2;
+const int HMMWV_ANCFTire::m_num_layers_b = 3;
+const std::vector<double> HMMWV_ANCFTire::m_layer_thickness_b{{0.5e-03, 0.5e-02, 0.5e-03}};
+const std::vector<double> HMMWV_ANCFTire::m_ply_angle_b{{90, 0, 90}};
+const std::vector<int> HMMWV_ANCFTire::m_material_id_b{{0, 2, 0}};
 
-const int HMMWV_ANCFTire::m_num_elements_sidewall = 4;
-const int HMMWV_ANCFTire::m_num_layers_sidewall = 3;
-const std::vector<double> HMMWV_ANCFTire::m_layer_thickness_sidewall{{0.5e-03, 0.1e-03, 0.5e-03}};
-const std::vector<double> HMMWV_ANCFTire::m_ply_angle_sidewall{{90, 0, 90}};
-const std::vector<int> HMMWV_ANCFTire::m_material_id_sidewall{{0, 2, 0}};
+const int HMMWV_ANCFTire::m_num_elements_s = 4;
+const int HMMWV_ANCFTire::m_num_layers_s = 3;
+const std::vector<double> HMMWV_ANCFTire::m_layer_thickness_s{{0.5e-03, 0.1e-03, 0.5e-03}};
+const std::vector<double> HMMWV_ANCFTire::m_ply_angle_s{{90, 0, 90}};
+const std::vector<int> HMMWV_ANCFTire::m_material_id_s{{0, 2, 0}};
 
-const int HMMWV_ANCFTire::m_num_elements_tread = 6;
-const int HMMWV_ANCFTire::m_num_layers_tread = 4;
-const std::vector<double> HMMWV_ANCFTire::m_layer_thickness_tread{{0.1e-02, 0.3e-03, 0.3e-03, 0.5e-03}};
-const std::vector<double> HMMWV_ANCFTire::m_ply_angle_tread{{0, -20, 20, 90}};
-const std::vector<int> HMMWV_ANCFTire::m_material_id_tread{{2, 1, 1, 0}};
+const int HMMWV_ANCFTire::m_num_elements_t = 6;
+const int HMMWV_ANCFTire::m_num_layers_t = 4;
+const std::vector<double> HMMWV_ANCFTire::m_layer_thickness_t{{0.1e-02, 0.3e-03, 0.3e-03, 0.5e-03}};
+const std::vector<double> HMMWV_ANCFTire::m_ply_angle_t{{0, -20, 20, 90}};
+const std::vector<int> HMMWV_ANCFTire::m_material_id_t{{2, 1, 1, 0}};
 
 const int HMMWV_ANCFTire::m_div_circumference = 90;
 
@@ -118,8 +118,9 @@ const double HMMWV_ANCFTire::m_profile[71][3] = {
 
 // -----------------------------------------------------------------------------
 
-HMMWV_ANCFTire::HMMWV_ANCFTire(const std::string& name) : ChANCFTire(name) {
-    m_div_width = 2 * (m_num_elements_bead + m_num_elements_sidewall + m_num_elements_tread);
+HMMWV_ANCFTire::HMMWV_ANCFTire(const std::string& name, ElementType element_type)
+    : ChANCFTire(name), m_element_type(element_type) {
+    m_div_width = 2 * (m_num_elements_b + m_num_elements_s + m_num_elements_t);
 
     // Create the vector of orthotropic layer materials
     m_materials.resize(3);
@@ -139,28 +140,45 @@ HMMWV_ANCFTire::HMMWV_ANCFTire(const std::string& name) : ChANCFTire(name) {
 }
 
 void HMMWV_ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
-    std::vector<std::shared_ptr<fea::ChMaterialShellANCF>> bmat;
-    std::vector<std::shared_ptr<fea::ChMaterialShellANCF>> smat;
-    std::vector<std::shared_ptr<fea::ChMaterialShellANCF>> tmat;
+    std::vector<std::shared_ptr<fea::ChMaterialShellANCF>> mat_b;
+    std::vector<std::shared_ptr<fea::ChMaterialShellANCF>> mat_s;
+    std::vector<std::shared_ptr<fea::ChMaterialShellANCF>> mat_t;
 
-    for (int i = 0; i < m_num_layers_bead; i++)
-        bmat.push_back(m_materials[m_material_id_bead[i]]);
-    for (int i = 0; i < m_num_layers_sidewall; i++)
-        smat.push_back(m_materials[m_material_id_sidewall[i]]);
-    for (int i = 0; i < m_num_layers_tread; i++)
-        tmat.push_back(m_materials[m_material_id_tread[i]]);
+    for (int i = 0; i < m_num_layers_b; i++)
+        mat_b.push_back(m_materials[m_material_id_b[i]]);
+    for (int i = 0; i < m_num_layers_s; i++)
+        mat_s.push_back(m_materials[m_material_id_s[i]]);
+    for (int i = 0; i < m_num_layers_t; i++)
+        mat_t.push_back(m_materials[m_material_id_t[i]]);
 
-    m_rim_nodes = CreateMeshANCF4(                                                                                 //
-        {m_profile_t, m_profile_x, m_profile_y},                                                                   //
-        {m_num_elements_bead, m_num_layers_bead, m_layer_thickness_bead, m_ply_angle_bead, bmat},                  //
-        {m_num_elements_sidewall, m_num_layers_sidewall, m_layer_thickness_sidewall, m_ply_angle_sidewall, smat},  //
-        {m_num_elements_tread, m_num_layers_tread, m_layer_thickness_tread, m_ply_angle_tread, tmat},              //
-        m_div_circumference,                                                                                       //
-        m_rim_radius,                                                                                              //
-        m_alpha,                                                                                                   //
-        m_mesh,                                                                                                    //
-        wheel_frame                                                                                                //
-    );
+    switch (m_element_type) {
+        case ElementType::ANCF_4:
+            m_rim_nodes = CreateMeshANCF4(                                                      //
+                {m_profile_t, m_profile_x, m_profile_y},                                        //
+                {m_num_elements_b, m_num_layers_b, m_layer_thickness_b, m_ply_angle_b, mat_b},  //
+                {m_num_elements_s, m_num_layers_s, m_layer_thickness_s, m_ply_angle_s, mat_s},  //
+                {m_num_elements_t, m_num_layers_t, m_layer_thickness_t, m_ply_angle_t, mat_t},  //
+                m_div_circumference,                                                            //
+                m_rim_radius,                                                                   //
+                m_alpha,                                                                        //
+                m_mesh,                                                                         //
+                wheel_frame                                                                     //
+            );
+            break;
+        case ElementType::ANCF_8:
+            m_rim_nodes = CreateMeshANCF8(                                                          //
+                {m_profile_t, m_profile_x, m_profile_y},                                            //
+                {m_num_elements_b / 2, m_num_layers_b, m_layer_thickness_b, m_ply_angle_b, mat_b},  //
+                {m_num_elements_s / 2, m_num_layers_s, m_layer_thickness_s, m_ply_angle_s, mat_s},  //
+                {m_num_elements_t / 2, m_num_layers_t, m_layer_thickness_t, m_ply_angle_t, mat_t},  //
+                m_div_circumference / 2,                                                            //
+                m_rim_radius,                                                                       //
+                m_alpha,                                                                            //
+                m_mesh,                                                                             //
+                wheel_frame                                                                         //
+            );
+            break;
+    }
 }
 
 void HMMWV_ANCFTire::CreateContactMaterial() {

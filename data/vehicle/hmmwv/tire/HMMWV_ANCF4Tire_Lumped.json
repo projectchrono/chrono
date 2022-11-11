@@ -1,11 +1,13 @@
 {
-  "Name":            "HMMWV ANCF Tire",
+  "Name":            "HMMWV ANCF 4-Node Tire",
   "Type":            "Tire",
   "Template":        "ANCFTire",
 
   "Tire Radius":     0.4673,
   "Rim Radius":      0.2683,
   "Rim Width":       0.254,
+
+  "8-Node Elements":  false,
 
   "Contact Material":
   {

@@ -43,8 +43,8 @@ class CH_VEHICLE_API ChANCFTire : public ChDeformableTire {
     /// Tire profile.
     struct Profile {
         std::vector<double> t;  ///< independent parameter
-        std::vector<double> x;  ///< x coordinate (across tire width)
-        std::vector<double> y;  ///< y coordinate (in radial direction)
+        std::vector<double> x;  ///< x coordinate (radial direction)
+        std::vector<double> y;  ///< y coordinate (transversal direction)
     };
 
     /// Tire section.
@@ -68,6 +68,20 @@ class CH_VEHICLE_API ChANCFTire : public ChDeformableTire {
     /// Utility class to generate a tire mesh using 4-node ANCF shell elements (ChElementShellANCF_3423).
     /// Returns a vector with the nodes that must be connected to the wheel rim.
     static std::vector<std::shared_ptr<fea::ChNodeFEAbase>> CreateMeshANCF4(
+        const Profile& profile,             ///< tire profile
+        const Section& bead,                ///< specification of bead section
+        const Section& sidewall,            ///< specification of sidewall section
+        const Section& tread,               ///< specification of tread section
+        int div_circumference,              ///< number of divisions along circumference
+        double rim_radius,                  ///< rim radius
+        double damping,                     ///< structural damping
+        std::shared_ptr<fea::ChMesh> mesh,  ///< containing FEA mesh
+        const ChFrameMoving<>& wheel_frame  ///< associated wheel frame
+    );
+
+    /// Utility class to generate a tire mesh using 8-node ANCF shell elements (ChElementShellANCF_3833).
+    /// Returns a vector with the nodes that must be connected to the wheel rim.
+    static std::vector<std::shared_ptr<fea::ChNodeFEAbase>> CreateMeshANCF8(
         const Profile& profile,             ///< tire profile
         const Section& bead,                ///< specification of bead section
         const Section& sidewall,            ///< specification of sidewall section

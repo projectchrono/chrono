@@ -44,10 +44,10 @@ using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::irrlicht;
 
-enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, LUGRE, ANCF, ANCF_TOROIDAL, REISSNER };
-TireType tire_type = TireType::ANCF;
+enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, LUGRE, ANCF4, ANCF8, ANCF_TOROIDAL, REISSNER };
+TireType tire_type = TireType::TMEASY;
 
-bool use_JSON = false;
+bool use_JSON = true;
 
 int main() {
 
@@ -86,8 +86,11 @@ int main() {
             case TireType::LUGRE:
                 tire_file = "hmmwv/tire/HMMWV_LugreTire.json";
                 break;
-            case TireType::ANCF:
-                tire_file = "hmmwv/tire/HMMWV_ANCFTire.json";
+            case TireType::ANCF4:
+                tire_file = "hmmwv/tire/HMMWV_ANCF4Tire.json";
+                break;
+            case TireType::ANCF8:
+                tire_file = "hmmwv/tire/HMMWV_ANCF8Tire_Lumped.json";
                 break;
             case TireType::REISSNER:
                 tire_file = "hmmwv/tire/HMMWV_ReissnerTire.json";
@@ -114,8 +117,13 @@ int main() {
             case TireType::LUGRE:
                 tire = chrono_types::make_shared<hmmwv::HMMWV_LugreTire>("Lugre tire");
                 break;
-            case TireType::ANCF:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>("ANCF tire");
+            case TireType::ANCF4:
+                tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>("ANCF tire",
+                                                                        hmmwv::HMMWV_ANCFTire::ElementType::ANCF_4);
+                break;
+            case TireType::ANCF8:
+                tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>("ANCF tire",
+                                                                        hmmwv::HMMWV_ANCFTire::ElementType::ANCF_8);
                 break;
             case TireType::REISSNER:
                 tire = chrono_types::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner tire");
@@ -129,9 +137,10 @@ int main() {
     ChTimestepper::Type integrator_type;
     double step_size;
 
-    if (tire_type == TireType::ANCF || tire_type == TireType::ANCF_TOROIDAL || tire_type == TireType::REISSNER) {
+    if (tire_type == TireType::ANCF4 || tire_type == TireType::ANCF8 || tire_type == TireType::ANCF_TOROIDAL ||
+        tire_type == TireType::REISSNER) {
         sys = new ChSystemSMC;
-        step_size = 5e-5;
+        step_size = 4e-5;
         solver_type = ChSolver::Type::PARDISO_MKL;
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
         std::static_pointer_cast<ChDeformableTire>(tire)->SetContactFaceThickness(0.02);

@@ -60,6 +60,8 @@ class CH_VEHICLE_API ANCFTire : public ChANCFTire {
     void ProcessJSON(const rapidjson::Document& d);
     virtual void CreateContactMaterial() override;
 
+    bool m_ANCF8;
+
     double m_tire_radius;
     double m_rim_radius;
     double m_rim_width;

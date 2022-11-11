@@ -26,10 +26,8 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
 // Constructors for ANCFTire
-// -----------------------------------------------------------------------------
-ANCFTire::ANCFTire(const std::string& filename) : ChANCFTire("") {
+ANCFTire::ANCFTire(const std::string& filename) : ChANCFTire(""), m_ANCF8(false) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -44,9 +42,7 @@ ANCFTire::ANCFTire(const rapidjson::Document& d) : ChANCFTire("") {
     ProcessJSON(d);
 }
 
-// -----------------------------------------------------------------------------
 // Process the specified JSON document and load tire specification
-// -----------------------------------------------------------------------------
 void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
     // Read top-level data
     assert(d.HasMember("Type"));
@@ -59,6 +55,9 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
     m_tire_radius = d["Tire Radius"].GetDouble();
     m_rim_radius = d["Rim Radius"].GetDouble();
     m_rim_width = d["Rim Width"].GetDouble();
+
+    if (d.HasMember("8-Node Elements"))
+        m_ANCF8 = d["8-Node Elements"].GetBool();
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
@@ -149,19 +148,28 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
     }
 }
 
-// -----------------------------------------------------------------------------
 // Create the FEA mesh
-// -----------------------------------------------------------------------------
 void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
-    m_rim_nodes = CreateMeshANCF4(                //
-        {m_profile_t, m_profile_x, m_profile_y},  //
-        m_bead, m_sidewall, m_tread,              //
-        m_div_circumference,                      //
-        m_rim_radius,                             //
-        m_alpha,                                  //
-        m_mesh,                                   //
-        wheel_frame                               //
-    );
+    if (m_ANCF8)
+        m_rim_nodes = CreateMeshANCF8(                //
+            {m_profile_t, m_profile_x, m_profile_y},  //
+            m_bead, m_sidewall, m_tread,              //
+            m_div_circumference,                      //
+            m_rim_radius,                             //
+            m_alpha,                                  //
+            m_mesh,                                   //
+            wheel_frame                               //
+        );
+    else
+        m_rim_nodes = CreateMeshANCF4(                //
+            {m_profile_t, m_profile_x, m_profile_y},  //
+            m_bead, m_sidewall, m_tread,              //
+            m_div_circumference,                      //
+            m_rim_radius,                             //
+            m_alpha,                                  //
+            m_mesh,                                   //
+            wheel_frame                               //
+        );
 }
 
 void ANCFTire::CreateContactMaterial() {
