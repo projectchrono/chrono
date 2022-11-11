@@ -87,7 +87,7 @@ int main() {
                 tire_file = "hmmwv/tire/HMMWV_LugreTire.json";
                 break;
             case TireType::ANCF4:
-                tire_file = "hmmwv/tire/HMMWV_ANCF4Tire.json";
+                tire_file = "hmmwv/tire/HMMWV_ANCF4Tire_Lumped.json";
                 break;
             case TireType::ANCF8:
                 tire_file = "hmmwv/tire/HMMWV_ANCF8Tire_Lumped.json";
