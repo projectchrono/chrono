@@ -213,16 +213,17 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
 }
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TerrainForce ChPac02Tire::GetTireForce() const{ 
+TerrainForce ChPac02Tire::GetGlobalTireForce() const {
+    TerrainForce global_tireforce;
     // Rotate into global coordinates
-    m_tireforce.point = m_data.frame.pos;
-    m_tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
-    m_tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
+    global_tireforce.point = m_data.frame.pos;
+    global_tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
+    global_tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
 
     // Move the tire forces from the contact patch to the wheel center
-    m_tireforce.moment +=
-        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
-    return m_tireforce;
+    global_tireforce.moment +=
+        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - global_tireforce.point, global_tireforce.force);
+    return global_tireforce;
 }
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

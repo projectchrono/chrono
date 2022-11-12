@@ -59,7 +59,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
     virtual double GetRadius() const override { return m_states.R_eff; }
 
     /// Report the tire force and moment.
-    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return GetGlobalTireForce(); }
 
     /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
@@ -164,7 +164,10 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
-    virtual TerrainForce GetTireForce() const override;
+    virtual TerrainForce GetTireForce() const override{ return GetGlobalTireForce(); }
+
+    ///Transform the tireforce from wheel frame to global frame
+    TerrainForce GetGlobalTireForce() const;
 
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
@@ -201,7 +204,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
     ContactData m_data;
     TireStates m_states;
 
-    TerrainForce mutable m_tireforce;
+    TerrainForce m_tireforce;
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
 };
