@@ -38,8 +38,6 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChPac89Tire::ChPac89Tire(const std::string& name)
     : ChForceElementTire(name), m_kappa(0), m_alpha(0), m_gamma(0), m_gamma_limit(3), m_mu(0), m_mu0(0.8) {
     m_tireforce.force = ChVector<>(0, 0, 0);
@@ -47,7 +45,6 @@ ChPac89Tire::ChPac89Tire(const std::string& name)
     m_tireforce.moment = ChVector<>(0, 0, 0);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPac89Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
@@ -64,28 +61,6 @@ void ChPac89Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_states.R_eff = m_unloaded_radius;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChPac89Tire::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
-    m_cyl_shape->GetCylinderGeometry().rad = m_unloaded_radius;
-    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
-    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
-    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
-    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
-}
-
-void ChPac89Tire::RemoveVisualizationAssets() {
-    // Make sure we only remove the assets added by ChPac89Tire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets to the same body (the spindle/wheel).
-    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPac89Tire::Synchronize(double time,
                               const ChTerrain& terrain) {
     WheelState wheel_state = m_wheel->GetState();
@@ -153,11 +128,8 @@ void ChPac89Tire::Synchronize(double time,
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPac89Tire::Advance(double step) {
     // Set tire forces to zero.
-    m_tireforce.point = m_wheel->GetPos();
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
 
@@ -292,14 +264,48 @@ void ChPac89Tire::Advance(double step) {
     // Convert from SAE to ISO Coordinates at the contact patch.
     m_tireforce.force = ChVector<>(Fx, -Fy, m_data.normal_force);
     m_tireforce.moment = ChVector<>(Mx, -My, -Mz);
+}
+
+// -----------------------------------------------------------------------------
+
+TerrainForce ChPac89Tire::ReportTireForce(ChTerrain* terrain) const {
+    return GetTireForce();
+}
+
+TerrainForce ChPac89Tire::GetTireForce() const {
+    TerrainForce tireforce;
+    tireforce.point = m_wheel->GetPos();
 
     // Rotate into global coordinates
-    m_tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
-    m_tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
+    tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
+    tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
 
     // Move the tire forces from the contact patch to the wheel center
-    m_tireforce.moment +=
-        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
+    tireforce.moment +=
+        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - tireforce.point, tireforce.force);
+
+    return tireforce;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChPac89Tire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
+    m_cyl_shape->GetCylinderGeometry().rad = m_unloaded_radius;
+    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
+    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
+    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
+    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
+}
+
+void ChPac89Tire::RemoveVisualizationAssets() {
+    // Make sure we only remove the assets added by ChPac89Tire::AddVisualizationAssets.
+    // This is important for the ChTire object because a wheel may add its own assets to the same body (the
+    // spindle/wheel).
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
 }
 
 }  // end namespace vehicle
