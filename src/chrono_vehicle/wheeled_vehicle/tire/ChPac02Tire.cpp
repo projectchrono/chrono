@@ -30,8 +30,6 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChPac02Tire::ChPac02Tire(const std::string& name)
     : ChForceElementTire(name),
       m_kappa(0),
@@ -213,7 +211,7 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
@@ -267,28 +265,6 @@ void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_states.cp_side_slip = 0;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChPac02Tire::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
-    m_cyl_shape->GetCylinderGeometry().rad = m_PacCoeff.R0;
-    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
-    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
-    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
-    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
-}
-
-void ChPac02Tire::RemoveVisualizationAssets() {
-    // Make sure we only remove the assets added by ChPac02Tire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets to the same body (the spindle/wheel).
-    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     WheelState wheel_state = m_wheel->GetState();
     CalculateKinematics(time, wheel_state, terrain);
@@ -355,11 +331,8 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPac02Tire::Advance(double step) {
     // Set tire forces to zero.
-    m_tireforce.point = m_wheel->GetPos();
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
 
@@ -451,15 +424,52 @@ void ChPac02Tire::Advance(double step) {
     // Convert from SAE to ISO Coordinates at the contact patch.
     m_tireforce.force = ChVector<>(Fx, -Fy, m_data.normal_force);
     m_tireforce.moment = ChVector<>(Mx, -My, -Mz);
+}
+
+// -----------------------------------------------------------------------------
+
+TerrainForce ChPac02Tire::ReportTireForce(ChTerrain* terrain) const {
+    return GetTireForce();
+}
+
+TerrainForce ChPac02Tire::GetTireForce() const {
+    TerrainForce tireforce;
+    tireforce.point = m_wheel->GetPos();
 
     // Rotate into global coordinates
-    m_tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
-    m_tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
+    tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
+    tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
 
     // Move the tire forces from the contact patch to the wheel center
-    m_tireforce.moment +=
-        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
+    tireforce.moment +=
+        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - tireforce.point, tireforce.force);
+
+    return tireforce;
 }
+
+// -----------------------------------------------------------------------------
+
+void ChPac02Tire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
+    m_cyl_shape->GetCylinderGeometry().rad = m_PacCoeff.R0;
+    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
+    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
+    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
+    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
+}
+
+void ChPac02Tire::RemoveVisualizationAssets() {
+    // Make sure we only remove the assets added by ChPac02Tire::AddVisualizationAssets.
+    // This is important for the ChTire object because a wheel may add its own assets to the same body (the
+    // spindle/wheel).
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
+}
+
+// -----------------------------------------------------------------------------
+
 
 double ChPac02Tire::CalcFx(double kappa, double Fz, double gamma) {
     // calculates the longitudinal force based on a limited parameter set.
