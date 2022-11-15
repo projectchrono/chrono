@@ -54,7 +54,7 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
     virtual double GetRadius() const override { return m_unloaded_radius; }
 
     /// Report the tire force and moment.
-    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
     /// Get the width of the tire.
     virtual double GetWidth() const override { return m_width; }
@@ -111,13 +111,11 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
     double m_time;        // actual system time
     double m_time_trans;  // end of start transient
 
-  //private:
     /// Get the tire force and moment.
-    /// This represents the output from this tire system that is passed to the
-    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
-    /// to the appropriate suspension subsystem which applies it as an external
-    /// force one the wheel body.
-    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
+    /// This represents the output from this tire system that is passed to the vehicle system.  Typically, the vehicle
+    /// subsystem will pass the tire force to the appropriate suspension subsystem which applies it as an external force
+    /// one the wheel body.
+    virtual TerrainForce GetTireForce() const override;
 
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;

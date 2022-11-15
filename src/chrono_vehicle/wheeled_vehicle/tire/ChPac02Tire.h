@@ -63,7 +63,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     virtual double GetRadius() const override { return m_states.R_eff; }
 
     /// Report the tire force and moment.
-    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
     /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
@@ -78,8 +78,8 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     virtual double GetVisualizationWidth() const { return m_PacCoeff.width; }
 
     /// Get the slip angle used in Pac89 (expressed in radians).
-    /// The reported value will have opposite sign to that reported by ChTire::GetSlipAngle
-    /// because ChPac89 uses internally a different frame convention.
+    /// The reported value will have opposite sign to that reported by ChTire::GetSlipAngle because ChPac89 uses
+    /// internally a different frame convention.
     double GetSlipAngle_internal() const { return m_states.cp_side_slip; }
 
     /// Get the longitudinal slip used in Pac89.
@@ -292,13 +292,11 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     Pac02ScalingFactors m_PacScal;
     Pac02Coeff m_PacCoeff;
 
-  //private:
     /// Get the tire force and moment.
-    /// This represents the output from this tire system that is passed to the
-    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
-    /// to the appropriate suspension subsystem which applies it as an external
-    /// force one the wheel body.
-    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
+    /// This represents the output from this tire system that is passed to the vehicle system.  Typically, the vehicle
+    /// subsystem will pass the tire force to the appropriate suspension subsystem which applies it as an external force
+    /// one the wheel body.
+    virtual TerrainForce GetTireForce() const override;
 
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;

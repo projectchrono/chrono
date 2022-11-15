@@ -65,8 +65,6 @@ namespace vehicle {
 const double kN2N = 1000.0;
 const double N2kN = 0.001;
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChTMeasyTire::ChTMeasyTire(const std::string& name)
     : ChForceElementTire(name),
       m_vnum(0.01),
@@ -84,7 +82,7 @@ ChTMeasyTire::ChTMeasyTire(const std::string& name)
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChTMeasyTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
@@ -117,32 +115,6 @@ void ChTMeasyTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 }
 
 // -----------------------------------------------------------------------------
-void ChTMeasyTire::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
-    m_cyl_shape->GetCylinderGeometry().rad = m_unloaded_radius;
-    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
-    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
-    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
-    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
-}
-
-void ChTMeasyTire::RemoveVisualizationAssets() {
-    // Make sure we only remove the assets added by ChTMeasyTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets to the same body (the spindle/wheel).
-    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
-}
-
-// -----------------------------------------------------------------------------
-double ChTMeasyTire::GetNormalStiffnessForce(double depth) const {
-    return m_TMeasyCoeff.cz * depth;
-}
-
-double ChTMeasyTire::GetNormalDampingForce(double depth, double velocity) const {
-    return m_TMeasyCoeff.dz * velocity;
-}
 
 void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
     WheelState wheel_state = m_wheel->GetState();
@@ -236,11 +208,8 @@ void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChTMeasyTire::Advance(double step) {
     // Set tire forces to zero.
-    m_tireforce.point = m_wheel->GetPos();
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
 
@@ -476,14 +445,59 @@ void ChTMeasyTire::Advance(double step) {
         m_tireforce.force = ChVector<>(startup * m_states.Fx, startup * m_states.Fy, m_data.normal_force);
         m_tireforce.moment = startup * ChVector<>(Mx, My, Mz);
     }
+}
+
+// -----------------------------------------------------------------------------
+
+TerrainForce ChTMeasyTire::ReportTireForce(ChTerrain* terrain) const {
+    return GetTireForce();
+}
+
+TerrainForce ChTMeasyTire::GetTireForce() const {
+    TerrainForce tireforce;
+    tireforce.point = m_wheel->GetPos();
+
     // Rotate into global coordinates
-    m_tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
-    m_tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
+    tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
+    tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
 
     // Move the tire forces from the contact patch to the wheel center
-    m_tireforce.moment +=
-        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
+    tireforce.moment +=
+        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - tireforce.point, tireforce.force);
+
+    return tireforce;
 }
+
+double ChTMeasyTire::GetNormalStiffnessForce(double depth) const {
+    return m_TMeasyCoeff.cz * depth;
+}
+
+double ChTMeasyTire::GetNormalDampingForce(double depth, double velocity) const {
+    return m_TMeasyCoeff.dz * velocity;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChTMeasyTire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
+    m_cyl_shape->GetCylinderGeometry().rad = m_unloaded_radius;
+    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
+    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
+    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
+    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
+}
+
+void ChTMeasyTire::RemoveVisualizationAssets() {
+    // Make sure we only remove the assets added by ChTMeasyTire::AddVisualizationAssets.
+    // This is important for the ChTire object because a wheel may add its own assets to the same body (the
+    // spindle/wheel).
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
+}
+
+// -----------------------------------------------------------------------------
 
 void ChTMeasyTire::tmxy_combined(double& f,
                                  double& fos,
