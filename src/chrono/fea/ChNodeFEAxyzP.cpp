@@ -47,6 +47,14 @@ ChNodeFEAxyzP& ChNodeFEAxyzP::operator=(const ChNodeFEAxyzP& other) {
 
 // -----------------------------------------------------------------------------
 
+void ChNodeFEAxyzP::SetFixed(bool fixed) {
+    variables.SetDisabled(fixed);
+}
+
+bool ChNodeFEAxyzP::IsFixed() const {
+    return variables.IsDisabled();
+}
+
 void ChNodeFEAxyzP::Relax() {
     // no special effect here, just resets scalar field.
     P = 0;

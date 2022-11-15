@@ -20,14 +20,15 @@ if [ `uname` == Darwin ]; then
 fi
 export LDFLAGS="-Wl,-undefined,dynamic_lookup $LDFLAGS"
 
-#Setting MKL directory values
-export MKL_INCLUDE_DIR=`cd $HOME/miniconda/pkgs/mkl-include-*/; pwd`
-export MKL_LIB_DIR=`cd $HOME/miniconda/pkgs/mkl-2022*/; pwd`
-CONFIGURATION=Release
-
 export PARDISO_MKL_ENABLE="OFF"
-if [`uname -m` == x86_64]; then
+export MKL_INCLUDE_DIR=""
+export MKL_LIB_DIR=""
+
+if [ `uname -m` == x86_64 ]; then
     PARDISO_MKL_ENABLE="ON"
+    #Setting MKL directory values
+    MKL_INCLUDE_DIR=`cd $HOME/miniconda/pkgs/mkl-include-*/; pwd`
+    MKL_LIB_DIR=`cd $HOME/miniconda/pkgs/mkl-2022*/; pwd`
 fi
 
 # Configure step
@@ -40,11 +41,12 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DPYTHON_EXECUTABLE:FILEPATH=$PYTHON \
  -DPYTHON_INCLUDE_DIR:PATH=$PREFIX/include/python$MY_PY_VER \
  -DPYTHON_LIBRARY:FILEPATH=$PREFIX/lib/${PY_LIB} \
- -DCMAKE_BUILD_TYPE=$CONFIGURATION \
+ -DCMAKE_BUILD_TYPE=RELEASE \
  -DENABLE_MODULE_IRRLICHT=ON \
  -DENABLE_MODULE_POSTPROCESS=ON \
  -DENABLE_MODULE_VEHICLE=ON \
  -DENABLE_MODULE_PYTHON=ON \
+ -DENABLE_MODULE_SENSOR=OFF \
  -DBUILD_DEMOS=OFF \
  -DBUILD_TESTING=OFF \
  -DBUILD_BENCHMARKING=OFF \
@@ -54,13 +56,14 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCASCADE_LIBDIR=$HOME/miniconda/lib \
  -DENABLE_MODULE_PARDISO_MKL=$(PARDISO_MKL_ENABLE) \
  -DMKL_INCLUDE_DIR=$MKL_INCLUDE_DIR/include \
+ -DIRRLICHT_ROOT=$PREFIX/include/irrlicht \
  -DMKL_RT_LIBRARY=$MKL_LIB_DIR/lib/libmkl_rt.dylib \
- -DEIGEN3_INCLUDE_DIR="/usr/local/include/eigen3" "$HOME/miniconda/include" \
+ -DEIGEN3_INCLUDE_DIR=$PREFIX/include/eigen3 \
  -DPYCHRONO_DATA_PATH=../../../../../../share/chrono/data/ \
  ./..
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
 # gcc gets out of memory
-cmake --build . --config "$CONFIGURATION"
+cmake --build . --config RELEASE
 
-cmake --build . --config "$CONFIGURATION" --target install
+cmake --build . --config RELEASE --target install

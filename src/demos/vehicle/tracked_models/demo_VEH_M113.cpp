@@ -21,10 +21,6 @@
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/solver/ChIterativeSolverVI.h"
-#include "chrono/solver/ChDirectSolverLS.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
@@ -32,20 +28,13 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
-
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/m113/M113.h"
 
-#ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#endif
-
-#ifdef CHRONO_MUMPS
-#include "chrono_mumps/ChSolverMumps.h"
-#endif
-
 #include "chrono_thirdparty/filesystem/path.h"
+
+#include "demos/vehicle/SetChronoSolver.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -60,13 +49,16 @@ using std::endl;
 
 TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
 DoublePinTrackShoeType shoe_topology = DoublePinTrackShoeType::ONE_CONNECTOR;
-BrakeType brake_type = BrakeType::SIMPLE;
+BrakeType brake_type = BrakeType::SHAFTS;
 DrivelineTypeTV driveline_type = DrivelineTypeTV::BDS;
 PowertrainModelType powertrain_type = PowertrainModelType::SHAFTS;
 
 bool use_track_bushings = false;
 bool use_suspension_bushings = false;
 bool use_track_RSDA = false;
+
+bool fix_chassis = false;
+bool create_track = true;
 
 // Initial vehicle position
 ChVector<> initLoc(-40, 0, 0.8);
@@ -98,7 +90,7 @@ ChContactMethod contact_method = ChContactMethod::NSC;
 
 // Simulation step size
 double step_size_NSC = 1e-3;
-double step_size_SMC = 5e-4;
+double step_size_SMC = 1e-4;
 
 // Solver and integrator types
 ////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
@@ -144,113 +136,6 @@ void AddFallingObjects(ChSystem* system);
 
 // =============================================================================
 
-void SelectSolver(ChSystem& sys, ChSolver::Type& solver_type, ChTimestepper::Type& integrator_type) {
-    // For NSC systems, use implicit linearized Euler and an iterative VI solver
-    if (sys.GetContactMethod() == ChContactMethod::NSC) {
-        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-        if (solver_type != ChSolver::Type::BARZILAIBORWEIN && solver_type != ChSolver::Type::APGD &&
-            solver_type != ChSolver::Type::PSOR && solver_type != ChSolver::Type::PSSOR) {
-            solver_type = ChSolver::Type::BARZILAIBORWEIN;
-        }
-    }
-
-    // If none of the direct sparse solver modules is enabled, default to SPARSE_QR
-    if (solver_type == ChSolver::Type::PARDISO_MKL) {
-#ifndef CHRONO_PARDISO_MKL
-        solver_type = ChSolver::Type::SPARSE_QR;
-#endif
-    } else if (solver_type == ChSolver::Type::PARDISO_PROJECT) {
-#ifndef CHRONO_PARDISOPROJECT
-        solver_type = ChSolver::Type::SPARSE_QR;
-#endif
-    } else if (solver_type == ChSolver::Type::MUMPS) {
-#ifndef CHRONO_MUMPS
-        solver_type = ChSolver::Type::SPARSE_QR;
-#endif
-    }
-
-    if (solver_type == ChSolver::Type::PARDISO_MKL) {
-#ifdef CHRONO_PARDISO_MKL
-        auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-        solver->LockSparsityPattern(true);
-        sys.SetSolver(solver);
-#endif
-    } else if (solver_type == ChSolver::Type::PARDISO_PROJECT) {
-#ifdef CHRONO_PARDISOPROJECT
-        auto solver = chrono_types::make_shared<ChSolverPardisoProject>();
-        solver->LockSparsityPattern(true);
-        sys->SetSolver(solver);
-#endif
-    } else if (solver_type == ChSolver::Type::MUMPS) {
-#ifdef CHRONO_MUMPS
-        auto solver = chrono_types::make_shared<ChSolverMumps>();
-        solver->LockSparsityPattern(true);
-        solver->EnableNullPivotDetection(true);
-        solver->GetMumpsEngine().SetICNTL(14, 50);
-        sys.SetSolver(solver);
-#endif
-    } else {
-        sys.SetSolverType(solver_type);
-        switch (solver_type) {
-            case ChSolver::Type::SPARSE_LU:
-            case ChSolver::Type::SPARSE_QR: {
-                auto solver = std::static_pointer_cast<ChDirectSolverLS>(sys.GetSolver());
-                solver->LockSparsityPattern(false);
-                solver->UseSparsityPatternLearner(false);
-                break;
-            }
-            case ChSolver::Type::BARZILAIBORWEIN:
-            case ChSolver::Type::APGD:
-            case ChSolver::Type::PSOR: {
-                auto solver = std::static_pointer_cast<ChIterativeSolverVI>(sys.GetSolver());
-                solver->SetMaxIterations(100);
-                solver->SetOmega(0.8);
-                solver->SetSharpnessLambda(1.0);
-
-                ////sys.SetMaxPenetrationRecoverySpeed(1.5);
-                ////sys.SetMinBounceSpeed(2.0);
-                break;
-            }
-            case ChSolver::Type::BICGSTAB:
-            case ChSolver::Type::MINRES:
-            case ChSolver::Type::GMRES: {
-                auto solver = std::static_pointer_cast<ChIterativeSolverLS>(sys.GetSolver());
-                solver->SetMaxIterations(200);
-                solver->SetTolerance(1e-10);
-                solver->EnableDiagonalPreconditioner(true);
-                break;
-            }
-            default:
-                break;
-        }
-    }
-
-    sys.SetTimestepperType(integrator_type);
-    switch (integrator_type) {
-        case ChTimestepper::Type::HHT: {
-            auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
-            integrator->SetAlpha(-0.2);
-            integrator->SetMaxiters(50);
-            integrator->SetAbsTolerances(1e-4, 1e2);
-            integrator->SetMode(ChTimestepperHHT::ACCELERATION);
-            integrator->SetStepControl(false);
-            integrator->SetModifiedNewton(false);
-            integrator->SetScaling(false);
-            break;
-        }
-        case ChTimestepper::Type::EULER_IMPLICIT: {
-            auto integrator = std::static_pointer_cast<ChTimestepperEulerImplicit>(sys.GetTimestepper());
-            integrator->SetMaxiters(50);
-            integrator->SetAbsTolerances(1e-4, 1e2);
-            break;
-        }
-        default:
-        case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
-        case ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
-            break;
-    }
-}
-
 void ReportTiming(ChSystem& sys) {
     std::stringstream ss;
     ss.precision(4);
@@ -292,6 +177,8 @@ bool ReportTrackFailure(ChTrackedVehicle& veh, double threshold = 1e-2) {
     for (int i = 0; i < 2; i++) {
         auto track = veh.GetTrackAssembly(VehicleSide(i));
         auto nshoes = track->GetNumTrackShoes();
+        if (nshoes <= 0)
+            continue;
         auto shoe1 = track->GetTrackShoe(0).get();
         for (int j = 1; j < nshoes; j++) {
             auto shoe2 = track->GetTrackShoe(j % (nshoes - 1)).get();
@@ -334,9 +221,6 @@ int main(int argc, char* argv[]) {
     // --------------------------
     // Construct the M113 vehicle
     // --------------------------
-
-    bool fix_chassis = false;
-    bool create_track = true;
 
     collision::ChCollisionSystemType collsys_type = collision::ChCollisionSystemType::BULLET;
     CollisionType chassis_collision_type = CollisionType::NONE;
@@ -578,7 +462,8 @@ int main(int argc, char* argv[]) {
 
     driver->Initialize();
 
-    std::cout << "Track shoe type: " << vehicle.GetTrackShoe(LEFT, 0)->GetTemplateName() << std::endl;
+    if (vehicle.GetNumTrackShoes(LEFT) > 0)
+        std::cout << "Track shoe type: " << vehicle.GetTrackShoe(LEFT, 0)->GetTemplateName() << std::endl;
     std::cout << "Driveline type:  " << vehicle.GetDriveline()->GetTemplateName() << std::endl;
     std::cout << "Powertrain type: " << m113.GetPowertrain()->GetTemplateName() << std::endl;
     std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
@@ -617,11 +502,6 @@ int main(int argc, char* argv[]) {
     // Generate JSON information with available output channels
     ////vehicle.ExportComponentList(out_dir + "/component_list.json");
 
-    std::cout << "Track shoe type: " << vehicle.GetTrackShoe(LEFT, 0)->GetTemplateName() << std::endl;
-    std::cout << "Driveline type:  " << vehicle.GetDriveline()->GetTemplateName() << std::endl;
-    std::cout << "Powertrain type: " << m113.GetPowertrain()->GetTemplateName() << std::endl;
-    std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
-
     // ------------------------------
     // Solver and integrator settings
     // ------------------------------
@@ -638,12 +518,12 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    SelectSolver(*m113.GetSystem(), slvr_type, intgr_type);
+    SetChronoSolver(*m113.GetSystem(), slvr_type, intgr_type);
     m113.GetSystem()->GetSolver()->SetVerbose(verbose_solver);
     m113.GetSystem()->GetTimestepper()->SetVerbose(verbose_integrator);
 
-    std::cout << "SOLVER TYPE:     " << (int)slvr_type << std::endl;
-    std::cout << "INTEGRATOR TYPE: " << (int)intgr_type << std::endl;
+    std::cout << "SOLVER TYPE:     " << (int)m113.GetSystem()->GetSolver()->GetType() << std::endl;
+    std::cout << "INTEGRATOR TYPE: " << (int)m113.GetSystem()->GetTimestepper()->GetType() << std::endl;
 
     // ---------------
     // Simulation loop

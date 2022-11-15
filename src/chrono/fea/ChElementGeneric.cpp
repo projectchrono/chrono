@@ -34,7 +34,7 @@ void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c
         int nodedofs = GetNodeNdofs(in);
         // GetLog() << "  in=" << in << "  stride=" << stride << "  nodedofs=" << nodedofs << " offset=" <<
         // GetNodeN(in)->NodeGetOffset_w() << "\n";
-        if (!GetNodeN(in)->GetFixed()) {
+        if (!GetNodeN(in)->IsFixed()) {
             for (int j = 0; j < nodedofs; j++)
 #pragma omp atomic
                 R(GetNodeN(in)->NodeGetOffset_w() + j) += mFi(stride + j);
@@ -55,7 +55,7 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
     int stride = 0;
     for (int in = 0; in < this->GetNnodes(); in++) {
         int nodedofs = GetNodeNdofs(in);
-        if (GetNodeN(in)->GetFixed()) {
+        if (GetNodeN(in)->IsFixed()) {
             for (int i = 0; i < nodedofs; ++i)
                 mqi(stride + i) = 0;
         } else {
@@ -69,7 +69,7 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
     stride = 0;
     for (int in = 0; in < this->GetNnodes(); in++) {
         int nodedofs = GetNodeNdofs(in);
-        if (!GetNodeN(in)->GetFixed())
+        if (!GetNodeN(in)->IsFixed())
             R.segment(GetNodeN(in)->NodeGetOffset_w(), nodedofs) += mFi.segment(stride, nodedofs);
         stride += nodedofs;
     }
@@ -86,7 +86,7 @@ void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const 
     int stride = 0;
     for (int in = 0; in < this->GetNnodes(); in++) {
         int nodedofs = GetNodeNdofs(in);
-        if (!GetNodeN(in)->GetFixed()) {
+        if (!GetNodeN(in)->IsFixed()) {
             for (int j = 0; j < nodedofs; j++)
                 //// ATOMIC as called from an OMP parallel loop: this is here to avoid race conditions when writing to R
                 #pragma omp atomic  

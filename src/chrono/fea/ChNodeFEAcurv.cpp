@@ -96,6 +96,14 @@ void ChNodeFEAcurv::SetNoSpeedNoAcceleration() {
     m_rzz_dtdt = VNULL;
 }
 
+void ChNodeFEAcurv::SetFixed(bool fixed) {
+    m_variables->SetDisabled(fixed);
+}
+
+bool ChNodeFEAcurv::IsFixed() const {
+    return m_variables->IsDisabled();
+}
+
 // -----------------------------------------------------------------------------
 
 void ChNodeFEAcurv::NodeIntStateGather(const unsigned int off_x,

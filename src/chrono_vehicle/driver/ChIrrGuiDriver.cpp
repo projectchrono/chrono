@@ -114,7 +114,7 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
                 return true;
 
             default:
-                return false;
+                break;
         }
     }
 
@@ -255,7 +255,7 @@ bool ChIrrGuiDriver::ProcessKeyboardEvents(const SEvent& event) {
                     m_braking_target = ChClamp(m_braking_target + m_braking_delta, 0.0, +1.0);
                 return true;
             default:
-                return false;
+                break;
         }
     } else {
         switch (event.KeyInput.Key) {
