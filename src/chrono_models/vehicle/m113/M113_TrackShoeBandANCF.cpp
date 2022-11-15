@@ -67,7 +67,8 @@ const std::string M113_TrackShoeBandANCF::m_meshFile = "M113/meshes/TrackShoeBan
 const std::string M113_TrackShoeBandANCF::m_tread_meshName = "M113_Tread";
 
 // -----------------------------------------------------------------------------
-M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name) : ChTrackShoeBandANCF(name) {
+M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name, ElementType element_type)
+    : ChTrackShoeBandANCF(name, element_type) {
     // Pad material (ground contact)
     m_pad_matinfo.mu = 0.8f;
     m_pad_matinfo.cr = 0.75f;

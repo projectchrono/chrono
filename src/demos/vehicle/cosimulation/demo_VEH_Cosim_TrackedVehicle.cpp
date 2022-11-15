@@ -205,9 +205,8 @@ int main(int argc, char** argv) {
                 vehicle::GetDataFile("M113/vehicle/M113_Vehicle_SinglePin.json"),
                 vehicle::GetDataFile("M113/powertrain/M113_ShaftsPowertrain.json"));
         } else {
-            auto m113_vehicle = chrono_types::make_shared<m113::M113_Vehicle>(
-                false, TrackShoeType::SINGLE_PIN, DoublePinTrackShoeType::ONE_CONNECTOR, DrivelineTypeTV::BDS,
-                BrakeType::SIMPLE, false, false, false, nullptr);
+            auto m113_vehicle = chrono_types::make_shared<m113::M113_Vehicle_SinglePin>(
+                false, DrivelineTypeTV::BDS, BrakeType::SIMPLE, false, false, false, nullptr);
             auto m113_powertrain = chrono_types::make_shared<m113::M113_ShaftsPowertrain>("Powertrain");
             vehicle = new ChVehicleCosimTrackedVehicleNode(m113_vehicle, m113_powertrain);
         }

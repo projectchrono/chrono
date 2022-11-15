@@ -145,6 +145,7 @@ int main(int argc, char* argv[]) {
     } else {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::BAND_BUSHING;
+        ChTrackShoeBandANCF::ElementType element_type = ChTrackShoeBandANCF::ElementType::ANCF_4;
         BrakeType brake_type = BrakeType::SIMPLE;
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
@@ -154,7 +155,8 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case TrackShoeType::BAND_ANCF: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(side, brake_type, false);
+                auto assembly =
+                    chrono_types::make_shared<M113_TrackAssemblyBandANCF>(side, brake_type, element_type, false);
                 assembly->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
                 track_assembly = assembly;
                 break;
