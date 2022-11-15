@@ -104,7 +104,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// A ChRigidTire always returns zero force and moment since tire
     /// forces are automatically applied to the associated wheel through Chrono's
     /// frictional contact system.
-    virtual TerrainForce GetTireForce() const override;
+    virtual TerrainForce GetTireForce() const override final;
 
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;

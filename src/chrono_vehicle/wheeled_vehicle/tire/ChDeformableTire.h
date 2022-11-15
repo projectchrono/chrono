@@ -182,7 +182,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// Get the tire force and moment.
     /// A ChDeformableTire always returns zero forces and moments since tire forces
     /// are implicitly applied to the associated wheel through the tire-wheel connections.
-    virtual TerrainForce GetTireForce() const override;
+    virtual TerrainForce GetTireForce() const override final;
 };
 
 /// @} vehicle_wheeled_tire

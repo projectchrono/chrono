@@ -66,17 +66,16 @@ class CH_VEHICLE_API ChTire : public ChPart {
     virtual double GetWidth() const = 0;
 
     /// Report the tire force and moment.
-    /// This function can be used for reporting purposes or else to calculate tire
-    /// forces in a co-simulation framework.
+    /// This function can be used for reporting purposes or else to calculate tire forces in a co-simulation framework.
+    /// The return application point, force, and moment are assumed to be expressed in the global reference frame.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const = 0;
 
-    /// Return the tire slip angle calculated based on the current state of the associated
-    /// wheel body. The return value is in radians.
-    /// (positive sign = left turn, negative sign = right turn)
+    /// Return the tire slip angle calculated based on the current state of the associated wheel body.
+    /// The return value is in radians (positive sign = left turn, negative sign = right turn).
     double GetSlipAngle() const { return m_slip_angle; }
 
-    /// Return the tire longitudinal slip calculated based on the current state of the associated
-    /// wheel body. (positive sign = driving, negative sign = breaking)
+    /// Return the tire longitudinal slip calculated based on the current state of the associated wheel body.
+    /// (positive sign = driving, negative sign = breaking)
     double GetLongitudinalSlip() const { return m_longitudinal_slip; }
 
     /// Return the tire camber angle calculated based on the current state of the associated
@@ -133,9 +132,10 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// This queries the associated wheel, so it must be called only after the wheel was initialized.
     double GetOffset() const { return m_wheel->m_offset; }
 
-    /// Get the mass added to the associated spindle body. 
-    /// Certain tires (e.g., those FEA-based) have their own physical representation and hence do not add mass and inertia to the spindle body.
-    /// All others increment the spindle body mass by the amount repoirted by this function.
+    /// Get the mass added to the associated spindle body.
+    /// Certain tires (e.g., those FEA-based) have their own physical representation and hence do not add mass and
+    /// inertia to the spindle body. All others increment the spindle body mass by the amount repoirted by this
+    /// function.
     virtual double GetAddedMass() const = 0;
 
     /// Get the inertia added to the associated spindle body.
@@ -145,31 +145,27 @@ class CH_VEHICLE_API ChTire : public ChPart {
     virtual ChVector<> GetAddedInertia() const = 0;
 
     /// Get the tire force and moment.
-    /// This represents the output from this tire system that is passed to the
-    /// vehicle system. Typically, the vehicle subsystem will pass the tire force
-    /// to the appropriate suspension subsystem which applies it as an external
-    /// force on the wheel body.
-    /// NOTE: tire models that rely on underlying Chrono functionality (e.g., the
-    /// Chrono contact system or Chrono constraints) must always return zero forces
-    /// and moments, else tire forces are double counted.
+    /// This represents the output from this tire system that is passed to the vehicle system. The return application
+    /// point, force, and moment are assumed to be expressed in the global reference frame.  Typically, the vehicle
+    /// subsystem will pass the tire force to the appropriate suspension subsystem which applies it as an external force
+    /// on the wheel body. NOTE: tire models that rely on underlying Chrono functionality (e.g., the Chrono contact
+    /// system or Chrono constraints) must always return zero forces and moments, else tire forces are double counted.
     virtual TerrainForce GetTireForce() const = 0;
 
-    /// Add mesh visualization to the body associated with this tire (a wheel spindle body). The two meshes are assumed
-    /// to be specified with respect to a frame with origin at the center of the tire and Y axis pointing towards the
-    /// outside. This function uses one of the two provided OBJ files, depending on the side on which the tire is
-    /// mounted. The name of the output mesh shape is set to be the stem of the input filename.
+    /// Add mesh visualization to the body associated with this tire (a wheel spindle body).
+    /// The two meshes are assumed to be specified with respect to a frame with origin at the center of the tire and Y
+    /// axis pointing towards the outside. This function uses one of the two provided OBJ files, depending on the side
+    /// on which the tire is mounted. The name of the output mesh shape is set to be the stem of the input filename.
     std::shared_ptr<ChTriangleMeshShape> AddVisualizationMesh(const std::string& mesh_file_left,
                                                               const std::string& mesh_file_right);
 
     /// Perform disc-terrain collision detection.
-    /// This utility function checks for contact between a disc of specified
-    /// radius with given position and orientation (specified as the location of
-    /// its center and a unit vector normal to the disc plane) and the terrain
-    /// system associated with this tire. It returns true if the disc contacts the
-    /// terrain and false otherwise.  If contact occurs, it returns a coordinate
-    /// system with the Z axis along the contact normal and the X axis along the
-    /// "rolling" direction, as well as a positive penetration depth (i.e. the
-    /// height below the terrain of the lowest point on the disc).
+    /// This utility function checks for contact between a disc of specified radius with given position and orientation
+    /// (specified as the location of its center and a unit vector normal to the disc plane) and the terrain system
+    /// associated with this tire. It returns true if the disc contacts the terrain and false otherwise.  If contact
+    /// occurs, it returns a coordinate system with the Z axis along the contact normal and the X axis along the
+    /// "rolling" direction, as well as a positive penetration depth (i.e. the height below the terrain of the lowest
+    /// point on the disc).
     static bool DiscTerrainCollision(
         const ChTerrain& terrain,       ///< [in] reference to terrain system
         const ChVector<>& disc_center,  ///< [in] global location of the disc center
@@ -180,18 +176,14 @@ class CH_VEHICLE_API ChTire : public ChPart {
         float& mu                       ///< [out] coefficient of friction at contact
     );
 
-    /// Perform disc-terrain collision detection considering the curvature of the road
-    /// surface. The surface normal is calculated based on 4 different height values below
-    /// the wheel center. The effective height is calculated as average value of the four
-    /// height values.
-    /// This utility function checks for contact between a disc of specified
-    /// radius with given position and orientation (specified as the location of
-    /// its center and a unit vector normal to the disc plane) and the terrain
-    /// system associated with this tire. It returns true if the disc contacts the
-    /// terrain and false otherwise.  If contact occurs, it returns a coordinate
-    /// system with the Z axis along the contact normal and the X axis along the
-    /// "rolling" direction, as well as a positive penetration depth (i.e. the
-    /// height below the terrain of the lowest point on the disc).
+    /// Perform disc-terrain collision detection considering the curvature of the road surface.
+    /// The surface normal is calculated based on 4 different height values below the wheel center. The effective height
+    /// is calculated as average value of the four height values. This utility function checks for contact between a
+    /// disc of specified radius with given position and orientation (specified as the location of its center and a unit
+    /// vector normal to the disc plane) and the terrain system associated with this tire. It returns true if the disc
+    /// contacts the terrain and false otherwise.  If contact occurs, it returns a coordinate system with the Z axis
+    /// along the contact normal and the X axis along the "rolling" direction, as well as a positive penetration depth
+    /// (i.e. the height below the terrain of the lowest point on the disc).
     static bool DiscTerrainCollision4pt(
         const ChTerrain& terrain,       ///< [in] reference to terrain system
         const ChVector<>& disc_center,  ///< [in] global location of the disc center
