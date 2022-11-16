@@ -44,6 +44,7 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
+
 ChTrackShoeBandANCF::ChTrackShoeBandANCF(const std::string& name, ElementType element_type)
     : ChTrackShoeBand(name), m_element_type(element_type) {}
 
