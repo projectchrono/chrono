@@ -37,6 +37,8 @@ class CH_MODELS_API M113_TrackAssemblyBandANCF : public ChTrackAssemblyBandANCF 
     M113_TrackAssemblyBandANCF(VehicleSide side,
                                BrakeType brake_type,
                                ChTrackShoeBandANCF::ElementType element_type,
+                               int num_elements_length,
+                               int num_elements_width,
                                bool use_suspension_bushings);
 
     virtual const ChVector<> GetSprocketLocation() const override;
