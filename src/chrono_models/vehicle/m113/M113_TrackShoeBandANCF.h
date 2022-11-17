@@ -38,6 +38,7 @@ class CH_MODELS_API M113_TrackShoeBandANCF : public ChTrackShoeBandANCF {
   public:
     M113_TrackShoeBandANCF(const std::string& name,
                            ElementType element_type,
+                           bool constrain_curvature,
                            int num_elements_length = 3,
                            int num_elements_width = 4);
     ~M113_TrackShoeBandANCF() {}

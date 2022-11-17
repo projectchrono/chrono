@@ -67,9 +67,10 @@ const std::string M113_TrackShoeBandANCF::m_tread_meshName = "M113_Tread";
 
 M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name,
                                                ElementType element_type,
+                                               bool constrain_curvature,
                                                int num_elements_length,
                                                int num_elements_width)
-    : ChTrackShoeBandANCF(name, element_type),
+    : ChTrackShoeBandANCF(name, element_type, constrain_curvature),
       m_num_elements_length(num_elements_length),
       m_num_elements_width(num_elements_width) {
     // Pad material (ground contact)

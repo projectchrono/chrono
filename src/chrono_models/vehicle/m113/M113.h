@@ -57,8 +57,11 @@ class CH_MODELS_API M113 {
     void SetDoublePinTrackShoeType(DoublePinTrackShoeType topology) { m_shoe_topology = topology; }
     void SetANCFTrackShoeElementType(ChTrackShoeBandANCF::ElementType type) { m_ancf_element_type = type; }
     void SetANCFTrackShoeNumElements(int num_elements_length, int num_elements_width) {
-        m_num_elements_length = num_elements_length;
-        m_num_elements_width = num_elements_width;
+        m_ancf_num_elements_length = num_elements_length;
+        m_ancf_num_elements_width = num_elements_width;
+    }
+    void SetANCFTrackShoeCurvatureConstraints(bool constrain_curvature) {
+        m_ancf_constrain_curvature = constrain_curvature;
     }
     void SetDrivelineType(DrivelineTypeTV driveline_type) { m_driveline_type = driveline_type; }
     void SetPowertrainType(PowertrainModelType powertrain_type) { m_powertrain_type = powertrain_type; }
@@ -116,8 +119,9 @@ class CH_MODELS_API M113 {
     TrackShoeType m_shoe_type;
     DoublePinTrackShoeType m_shoe_topology;
     ChTrackShoeBandANCF::ElementType m_ancf_element_type;
-    int m_num_elements_length;
-    int m_num_elements_width;
+    bool m_ancf_constrain_curvature;
+    int m_ancf_num_elements_length;
+    int m_ancf_num_elements_width;
     DrivelineTypeTV m_driveline_type;
     PowertrainModelType m_powertrain_type;
 

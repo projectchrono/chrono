@@ -181,6 +181,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         m_shoes[s]->SetWebMesh(m_track_mesh);
         // Pass material properties to the shoe
         m_shoes[s]->SetWebMeshProperties(rubber_mat, steel_mat, m_angle_1, m_angle_2, m_angle_3, m_alpha);
+
         // Initialize the track shoe system
         m_shoes[s]->Initialize(chassis, shoe_components_coordsys);
     }
