@@ -80,5 +80,6 @@ double ChWheeledVehicleVisualSystemVSG::GetTireTorque(int draxle, int side) {
 int ChWheeledVehicleVisualSystemVSG::GetNumDrivenAxles() {
     return m_drivenAxles;
 }
+
 }  // end namespace vehicle
 }  // end namespace chrono

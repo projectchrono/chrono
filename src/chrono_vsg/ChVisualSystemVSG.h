@@ -132,7 +132,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     };
 
   protected:
-    void BindAll() override;
+    virtual void BindAll() override;
     void UpdateFromMBS();
     // collect some often used calulations (not for Cylinders!)
     void Point2PointHelperAbs(ChVector<>& P1,
@@ -164,6 +164,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //                            +- m_decoScene
     //                            |
     //                            +- m_symbolScene
+    //                            |
+    //                            +- m_deformableScene
     vsg::ref_ptr<vsg::Group> m_scene;
     vsg::ref_ptr<vsg::Group> m_bodyScene;
     vsg::ref_ptr<vsg::Group> m_cogScene;
@@ -171,6 +173,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Group> m_particleScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
     vsg::ref_ptr<vsg::Group> m_symbolScene;
+    vsg::ref_ptr<vsg::Group> m_deformableScene;
     vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
     //
     bool m_draw_as_wireframe = false;

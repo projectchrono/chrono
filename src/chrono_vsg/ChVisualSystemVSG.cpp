@@ -408,6 +408,7 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_particleScene = vsg::Group::create();
     m_decoScene = vsg::Group::create();
     m_symbolScene = vsg::Group::create();
+    m_deformableScene = vsg::Group::create();
     // set up defaults and read command line arguments to override them
     m_options = vsg::Options::create();
     m_options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
@@ -622,6 +623,7 @@ void ChVisualSystemVSG::Initialize() {
     m_scene->addChild(m_particleScene);
     m_scene->addChild(m_decoScene);
     m_scene->addChild(m_symbolScene);
+    m_scene->addChild(m_deformableScene);
 
     BindAll();
 
@@ -1053,6 +1055,10 @@ void ChVisualSystemVSG::BindAll() {
     // loop through links in the system
     for (auto ilink : m_systems[0]->Get_linklist()) {
         if (auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink)) {
+            auto lnkVisModel = link->GetVisualModel();
+            if(!lnkVisModel) break;
+            auto lnkNumShapes = lnkVisModel->GetNumShapes();
+            if(lnkNumShapes == 0) break;
             for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
                 auto& shape = shape_instance.first;
                 if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
@@ -1103,6 +1109,10 @@ void ChVisualSystemVSG::BindAll() {
                 }
             }
         } else if (auto link = std::dynamic_pointer_cast<ChLinkDistance>(ilink)) {
+            auto lnkVisModel = link->GetVisualModel();
+            if(!lnkVisModel) continue;
+            auto lnkNumShapes = lnkVisModel->GetNumShapes();
+            if(lnkNumShapes == 0) continue;
             for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
                 auto& shape = shape_instance.first;
                 if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
