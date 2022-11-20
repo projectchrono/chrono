@@ -100,10 +100,10 @@ class ChApi ChElementShellANCF_3423 : public ChElementShell, public ChLoadableUV
     virtual int GetNnodes() override { return 4; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return 4 * 6; }
+    virtual int GetNdofs() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return 6; }
+    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->Get_ndof_x(); }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA,
@@ -368,16 +368,20 @@ class ChApi ChElementShellANCF_3423 : public ChElementShell, public ChLoadableUV
     //// RADU
     //// Why is m_d_dt inconsistent with m_d?  Why not keep it as an 8x3 matrix?
 
-    std::vector<std::shared_ptr<ChNodeFEAxyzD>> m_nodes;           ///< element nodes
+    std::vector<std::shared_ptr<ChNodeFEAxyzD>> m_nodes;  ///< element nodes
+    int m_element_dof;                                    ///< actual number of degrees of freedom for the element
+    bool m_full_dof;                                      ///< true if all DOFs are active
+    ChArray<int> m_mapping_dof;                           ///< indices of active DOFs
+
     std::vector<Layer, Eigen::aligned_allocator<Layer>> m_layers;  ///< element layers
     size_t m_numLayers;                                            ///< number of layers for this element
-    double m_lenX;                                                 ///< element length in X direction
-    double m_lenY;                                                 ///< element length in Y direction
-    double m_thickness;                                            ///< total element thickness
-    std::vector<double> m_GaussZ;                                  ///< layer separation z values (scaled to [-1,1])
-    double m_GaussScaling;     ///< scaling factor due to change of integration intervals
-    double m_Alpha;            ///< structural damping
-    VectorN m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
+    double m_lenX;                 ///< element length in X direction
+    double m_lenY;                 ///< element length in Y direction
+    double m_thickness;            ///< total element thickness
+    std::vector<double> m_GaussZ;  ///< layer separation z values (scaled to [-1,1])
+    double m_GaussScaling;         ///< scaling factor due to change of integration intervals
+    double m_Alpha;                ///< structural damping
+    VectorN m_GravForceScale;      ///< Gravity scaling matrix used to get the generalized force due to gravity
     ChMatrixNM<double, 24, 24> m_MassMatrix;            ///< mass matrix
     ChMatrixNM<double, 24, 24> m_JacobianMatrix;        ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
     ChMatrixNM<double, 8, 3> m_d0;                      ///< initial nodal coordinates

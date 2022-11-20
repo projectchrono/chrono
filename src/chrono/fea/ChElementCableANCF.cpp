@@ -22,13 +22,8 @@
 namespace chrono {
 namespace fea {
 
-ChElementCableANCF::ChElementCableANCF() {
+ChElementCableANCF::ChElementCableANCF() : m_element_dof(2 * 6), m_full_dof(true), m_alpha(0), m_use_damping(false) {
     nodes.resize(2);
-    m_use_damping = false;  // flag to add internal damping and its Jacobian
-    m_alpha = 0.0;          // scaling factor for internal damping
-
-    // StiffnessMatrix.Resize(GetNdofs(), GetNdofs());
-    // MassMatrix.Resize(GetNdofs(), GetNdofs());
 }
 
 void ChElementCableANCF::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA, std::shared_ptr<ChNodeFEAxyzD> nodeB) {
@@ -384,6 +379,20 @@ void ChElementCableANCF::ComputeMassMatrix() {
 // Setup: precompute mass and matrices that do not change during the simulation.
 void ChElementCableANCF::SetupInitial(ChSystem* system) {
     assert(section);
+
+    m_element_dof = 0;
+    for (int i = 0; i < 2; i++) {
+        m_element_dof += nodes[i]->Get_ndof_x();
+    }
+
+    m_full_dof = (m_element_dof == 2 * 6);
+
+    m_mapping_dof.resize(m_element_dof);
+    int dof = 0;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < nodes[i]->Get_ndof_x(); j++)
+            m_mapping_dof(dof++) = i * 6 + j;
+    }
 
     // Compute rest length, mass:
     length = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();

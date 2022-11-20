@@ -107,10 +107,10 @@ class ChApi ChElementBeamANCF_3243 : public ChElementBeam, public ChLoadableU, p
     virtual int GetNnodes() override { return 2; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return 2 * 12; }
+    virtual int GetNdofs() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return 12; }
+    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->Get_ndof_x(); }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzDDD> nodeA, std::shared_ptr<ChNodeFEAxyzDDD> nodeB);
@@ -409,7 +409,12 @@ class ChApi ChElementBeamANCF_3243 : public ChElementBeam, public ChLoadableU, p
 
     IntFrcMethod m_method;                           ///< Generalized internal force and Jacobian calculation method
     std::shared_ptr<ChMaterialBeamANCF> m_material;  ///< material model
+    
     std::vector<std::shared_ptr<ChNodeFEAxyzDDD>> m_nodes;  ///< element nodes
+    int m_element_dof;                                      ///< actual number of element DOFs
+    bool m_full_dof;                                        ///< true if all DOFs are active
+    ChArray<int> m_mapping_dof;                             ///< indices of active DOFs
+
     double m_lenX;                                          ///< total element length along X
     double m_thicknessY;                                    ///< total element length along Y
     double m_thicknessZ;                                    ///< total element length along Z

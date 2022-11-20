@@ -25,14 +25,10 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Class for all elements whose stiffness matrix can be seen
-/// as a NxN block-matrix to be splitted between N nodes.
-/// Helps reducing the complexity of inherited FEA elements because
-/// it implements some bookkeeping for the interface with solver.
-/// This means that most FEA elements inherited from ChElementGeneric
-/// need to implement at most the following two fundamental methods:
-///	ComputeKRMmatricesGlobal(), ComputeInternalForces(), 
-/// and optionally ComputeGravityForces().
+/// Class for all elements whose stiffness matrix can be seen as a NxN block-matrix to be splitted between N nodes.
+/// Implements basic bookkeeping for interfacing to the solver.
+/// Most FEA elements inherited from ChElementGeneric need to implement at most the two fundamental methods
+/// ComputeKRMmatricesGlobal(), ComputeInternalForces(), and optionally ComputeGravityForces().
 class ChApi ChElementGeneric : public ChElementBase {
   protected:
     ChKblockGeneric Kmatr;
@@ -44,11 +40,7 @@ class ChApi ChElementGeneric : public ChElementBase {
     /// Access the proxy to stiffness, for sparse solver
     ChKblockGeneric& Kstiffness() { return Kmatr; }
 
-    //
     // Functions for interfacing to the state bookkeeping
-    //
-
-    
 
     /// (This is a default (a bit unoptimal) book keeping so that in children classes you can avoid
     /// implementing this EleIntLoadResidual_F function, unless you need faster code)
@@ -64,10 +56,7 @@ class ChApi ChElementGeneric : public ChElementBase {
     /// only if they are inherited by ChLoadableUVW so it can use GetDensity() and Gauss quadrature.
     virtual void EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector<>& G_acc, const double c) override;
 
-
-    //
     // FEM functions
-    //
 
     /// (This is the default implementation (POTENTIALLY INEFFICIENT) so that in children classes you can avoid
     /// implementing this ComputeGravityForces() function, unless you need faster code.)
@@ -80,9 +69,7 @@ class ChApi ChElementGeneric : public ChElementBase {
     /// Children classes may need to override this with a more efficient version.
     virtual void ComputeMmatrixGlobal(ChMatrixRef M) override { ComputeKRMmatricesGlobal(M, 0, 0, 1.0); }
 
-    //
     // Functions for interfacing to the solver
-    //
 
     /// Tell to a system descriptor that there are item(s) of type
     /// ChKblock in this object (for further passing it to a solver)

@@ -40,7 +40,8 @@ const int ChElementShellANCF_3423::m_maxIterationsEAS = 100;
 // Constructor
 // ------------------------------------------------------------------------------
 
-ChElementShellANCF_3423::ChElementShellANCF_3423() : m_numLayers(0), m_lenX(0), m_lenY(0), m_thickness(0), m_Alpha(0) {
+ChElementShellANCF_3423::ChElementShellANCF_3423()
+    : m_element_dof(4 * 6), m_full_dof(true), m_numLayers(0), m_lenX(0), m_lenY(0), m_thickness(0), m_Alpha(0) {
     m_nodes.resize(4);
 }
 
@@ -91,6 +92,20 @@ void ChElementShellANCF_3423::AddLayer(double thickness, double theta, std::shar
 
 // Initial element setup.
 void ChElementShellANCF_3423::SetupInitial(ChSystem* system) {
+    m_element_dof = 0;
+    for (int i = 0; i < 4; i++) {
+        m_element_dof += m_nodes[i]->Get_ndof_x();
+    }
+
+    m_full_dof = (m_element_dof == 4 * 6);
+
+    m_mapping_dof.resize(m_element_dof);
+    int dof = 0;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < m_nodes[i]->Get_ndof_x(); j++)
+            m_mapping_dof(dof++) = i * 6 + j;
+    }
+
     // Perform layer initialization and accumulate element thickness.
     m_numLayers = m_layers.size();
     m_thickness = 0;

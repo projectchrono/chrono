@@ -22,18 +22,14 @@ namespace fea {
 void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
     ChVectorDynamic<> mFi(this->GetNdofs());
     this->ComputeInternalForces(mFi);
-    // GetLog() << "EleIntLoadResidual_F , mFi=" << mFi << "  c=" << c << "\n";
     mFi *= c;
 
-    //// RADU
     //// Attention: this is called from within a parallel OMP for loop.
     //// Must use atomic increment when updating the global vector R.
 
     int stride = 0;
     for (int in = 0; in < this->GetNnodes(); in++) {
         int nodedofs = GetNodeNdofs(in);
-        // GetLog() << "  in=" << in << "  stride=" << stride << "  nodedofs=" << nodedofs << " offset=" <<
-        // GetNodeN(in)->NodeGetOffset_w() << "\n";
         if (!GetNodeN(in)->IsFixed()) {
             for (int j = 0; j < nodedofs; j++)
 #pragma omp atomic
@@ -82,19 +78,19 @@ void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const 
     this->ComputeGravityForces(mFg, G_acc);
     mFg *= c;
 
+    //// Attention: this is called from within a parallel OMP for loop.
+    //// Must use atomic increment when updating the global vector R.
 
     int stride = 0;
     for (int in = 0; in < this->GetNnodes(); in++) {
         int nodedofs = GetNodeNdofs(in);
         if (!GetNodeN(in)->IsFixed()) {
             for (int j = 0; j < nodedofs; j++)
-                //// ATOMIC as called from an OMP parallel loop: this is here to avoid race conditions when writing to R
-                #pragma omp atomic  
+#pragma omp atomic
                 R(GetNodeN(in)->NodeGetOffset_w() + j) += mFg(stride + j);
         }
         stride += nodedofs;
     }
-
 }
 
 /*

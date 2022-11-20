@@ -43,6 +43,8 @@ namespace fea {
 
 ChElementBeamANCF_3333::ChElementBeamANCF_3333()
     : m_method(IntFrcMethod::ContInt),
+      m_element_dof(3 * 9),
+      m_full_dof(true),
       m_lenX(0),
       m_thicknessY(0),
       m_thicknessZ(0),
@@ -326,6 +328,20 @@ double ChElementBeamANCF_3333::GetVonMissesStress(const double xi, const double 
 // Initial element setup.
 
 void ChElementBeamANCF_3333::SetupInitial(ChSystem* system) {
+    m_element_dof = 0;
+    for (int i = 0; i < 3; i++) {
+        m_element_dof += m_nodes[i]->Get_ndof_x();
+    }
+
+    m_full_dof = (m_element_dof == 3 * 9);
+
+    m_mapping_dof.resize(m_element_dof);
+    int dof = 0;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < m_nodes[i]->Get_ndof_x(); j++)
+            m_mapping_dof(dof++) = i * 9 + j;
+    }
+
     // Store the initial nodal coordinates. These values define the reference configuration of the element.
     CalcCoordMatrix(m_ebar0);
 

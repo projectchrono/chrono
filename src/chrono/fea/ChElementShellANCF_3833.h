@@ -126,10 +126,10 @@ class ChApi ChElementShellANCF_3833 : public ChElementShell, public ChLoadableUV
     virtual int GetNnodes() override { return 8; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return 8 * 9; }
+    virtual int GetNdofs() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return 9; }
+    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->Get_ndof_x(); }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzDD> nodeA,
@@ -494,10 +494,15 @@ class ChApi ChElementShellANCF_3833 : public ChElementShell, public ChLoadableUV
     static ChQuadratureTables* GetStaticGQTables();
 
     IntFrcMethod m_method;  ///< Generalized internal force and Jacobian calculation method
-    std::vector<std::shared_ptr<ChNodeFEAxyzDD>> m_nodes;          ///< element nodes
+
+    std::vector<std::shared_ptr<ChNodeFEAxyzDD>> m_nodes;  ///< element nodes
+    int m_element_dof;                                     ///< actual number of element DOFs
+    bool m_full_dof;                                       ///< true if all DOFs are active
+    ChArray<int> m_mapping_dof;                            ///< indices of active DOFs
+
     std::vector<Layer, Eigen::aligned_allocator<Layer>> m_layers;  ///< element layers
     std::vector<double, Eigen::aligned_allocator<double>>
-        m_layer_zoffsets;      ///< Offsets of Bottom of Layers to the Bottom of the Element
+        m_layer_zoffsets;  ///< Offsets of Bottom of Layers to the Bottom of the Element
     int m_numLayers;           ///< number of layers for this element
     double m_lenX;             ///< total element length along X
     double m_lenY;             ///< total element length along Y

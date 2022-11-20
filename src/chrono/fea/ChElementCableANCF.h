@@ -48,8 +48,8 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     ~ChElementCableANCF() {}
 
     virtual int GetNnodes() override { return 2; }
-    virtual int GetNdofs() override { return 2 * 6; }
-    virtual int GetNodeNdofs(int n) override { return 6; }
+    virtual int GetNdofs() override { return m_element_dof; }
+    virtual int GetNodeNdofs(int n) override { return nodes[n]->Get_ndof_x(); }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
@@ -246,13 +246,16 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
                                     const ChVector<>& dB_dt,
                                     ChVectorDynamic<>& Fi);
 
-    std::vector<std::shared_ptr<ChNodeFEAxyzD> > nodes;
+    std::vector<std::shared_ptr<ChNodeFEAxyzD> > nodes;  ///< element nodes
+    int m_element_dof;                                   ///< actual number of degrees of freedom for the element
+    bool m_full_dof;                                     ///< true if all DOFs are active
+    ChArray<int> m_mapping_dof;                          ///< indices of active DOFs
 
     std::shared_ptr<ChBeamSectionCable> section;
     ChVectorN<double, 12> m_GenForceVec0;
     ChMatrixNM<double, 12, 12> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
     ChMatrixNM<double, 12, 12> m_MassMatrix;      ///< mass matrix
-    ChVectorN<double, 4> m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
+    ChVectorN<double, 4> m_GravForceScale;        ///< scaling matrix used to get the generalized force due to gravity
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
