@@ -77,17 +77,13 @@ class ChApi ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, p
         NIP_D0 + NIP_Dv;       ///< total number of integration points for the Enhanced Continuum Mechanics method
     static const int NSF = 9;  ///< number of shape functions
 
-    // Short-cut for defining a column-major Eigen matrix instead of the typically used row-major format
-    template <typename T, int M, int N>
-    using ChMatrixNMc = Eigen::Matrix<T, M, N, Eigen::ColMajor>;
-
     using VectorN = ChVectorN<double, NSF>;
     using Vector3N = ChVectorN<double, 3 * NSF>;
     using VectorNIP_D0 = ChVectorN<double, NIP_D0>;
     using VectorNIP_Dv = ChVectorN<double, NIP_Dv>;
     using Matrix3xN = ChMatrixNM<double, 3, NSF>;
     using MatrixNx3 = ChMatrixNM<double, NSF, 3>;
-    using MatrixNx3c = ChMatrixNMc<double, NSF, 3>;
+    using MatrixNx3c = ChMatrixNM_col<double, NSF, 3>;
     using MatrixNx6 = ChMatrixNM<double, NSF, 6>;
     using MatrixNxN = ChMatrixNM<double, NSF, NSF>;
 
@@ -417,40 +413,35 @@ class ChApi ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, p
     bool m_full_dof;                                       ///< true if all DOFs are active
     ChArray<int> m_mapping_dof;                            ///< indices of active DOFs
 
-    double m_lenX;                                         ///< total element length along X
-    double m_thicknessY;                                   ///< total element length along Y
-    double m_thicknessZ;                                   ///< total element length along Z
-    double m_Alpha;                                        ///< structural damping
-    bool m_damping_enabled;                                ///< Flag to run internal force damping calculations
+    double m_lenX;             ///< total element length along X
+    double m_thicknessY;       ///< total element length along Y
+    double m_thicknessZ;       ///< total element length along Z
+    double m_Alpha;            ///< structural damping
+    bool m_damping_enabled;    ///< Flag to run internal force damping calculations
     VectorN m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
     Matrix3xN m_ebar0;         ///< Element Position Coordinate Vector for the Reference Configuration
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-        m_SD;  ///< Precomputed corrected normalized shape function derivative matrices ordered by columns instead of
-               ///< by Gauss quadrature points used for the "Continuous Integration" style method for both the section
-               ///< of the Enhanced Continuum Mechanics method that includes the Poisson effect followed separately by
-               ///< the section that does not
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_kGQ_D0;  ///< Precomputed Gauss-Quadrature Weight & Element Jacobian scale factors used
-                   ///< for the "Continuous Integration" style method for excluding the Poisson
-                   ///< effect in the Enhanced Continuum Mechanics method
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
+    ChVectorN<double, (NSF * (NSF + 1)) / 2>
+        m_MassMatrix;        /// Mass Matrix in extra compact form (Upper Triangular Part only)
+    ChMatrixDynamic<> m_SD;  ///< Precomputed corrected normalized shape function derivative matrices ordered by columns
+                             ///< instead of by Gauss quadrature points used for the "Continuous Integration" style
+                             ///< method for both the section of the Enhanced Continuum Mechanics method that includes
+                             ///< the Poisson effect followed separately by the section that does not
+    ChMatrixDynamic_col<> m_kGQ_D0;  ///< Precomputed Gauss-Quadrature Weight & Element Jacobian scale factors used
+                                     ///< for the "Continuous Integration" style method for excluding the Poisson
+                                     ///< effect in the Enhanced Continuum Mechanics method
+    ChMatrixDynamic_col<>
         m_kGQ_Dv;  ///< Precomputed Gauss-Quadrature Weight & Element Jacobian scale factors used for the "Continuous
                    ///< Integration" style method for including the Poisson effect.  Selective reduced integration is
                    ///< used for capturing the Poisson effect with the Enhanced Continuum Mechanics method with only one
                    ///< point Gauss quadrature for the directions in the beam cross section and the full Gauss
                    ///< quadrature points only along the beam axis
-    ChVectorN<double, (NSF * (NSF + 1)) / 2>
-        m_MassMatrix;  /// Mass Matrix in extra compact form (Upper Triangular Part only)
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_O1;  ///< Precomputed Matrix combined with the nodal coordinates used for the "Pre-Integration" style method
-               ///< internal force calculation
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_O2;  ///< Precomputed Matrix combined with the nodal coordinates used for the "Pre-Integration" style method
-               ///< Jacobian calculation
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_K3Compact;  ///< Precomputed Matrix combined with the nodal coordinates used for the "Pre-Integration" style
-                      ///< method internal force calculation
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
+    ChMatrixDynamic_col<> m_O1;  ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                 ///< "Pre-Integration" style method internal force calculation
+    ChMatrixDynamic_col<> m_O2;  ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                 ///< "Pre-Integration" style method Jacobian calculation
+    ChMatrixDynamic_col<> m_K3Compact;  ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                        ///< "Pre-Integration" style method internal force calculation
+    ChMatrixDynamic_col<>
         m_K13Compact;  ///< Saved results from the generalized internal force calculation that are reused for the
                        ///< Jacobian calculations for the "Pre-Integration" style method
 

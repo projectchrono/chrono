@@ -71,16 +71,12 @@ class ChApi ChElementShellANCF_3833 : public ChElementShell, public ChLoadableUV
     static const int NIP = NP * NP * NT;  ///< number of Gauss quadrature points
     static const int NSF = 24;            ///< number of shape functions
 
-    // Short-cut for defining a column-major Eigen matrix instead of the typically used row-major format
-    template <typename T, int M, int N>
-    using ChMatrixNMc = Eigen::Matrix<T, M, N, Eigen::ColMajor>;
-
     using VectorN = ChVectorN<double, NSF>;
     using Vector3N = ChVectorN<double, 3 * NSF>;
     using VectorNIP = ChVectorN<double, NIP>;
     using Matrix3xN = ChMatrixNM<double, 3, NSF>;
     using MatrixNx3 = ChMatrixNM<double, NSF, 3>;
-    using MatrixNx3c = ChMatrixNMc<double, NSF, 3>;
+    using MatrixNx3c = ChMatrixNM_col<double, NSF, 3>;
     using MatrixNx6 = ChMatrixNM<double, NSF, 6>;
     using MatrixNxN = ChMatrixNM<double, NSF, NSF>;
 
@@ -502,7 +498,7 @@ class ChApi ChElementShellANCF_3833 : public ChElementShell, public ChLoadableUV
 
     std::vector<Layer, Eigen::aligned_allocator<Layer>> m_layers;  ///< element layers
     std::vector<double, Eigen::aligned_allocator<double>>
-        m_layer_zoffsets;  ///< Offsets of Bottom of Layers to the Bottom of the Element
+        m_layer_zoffsets;      ///< Offsets of Bottom of Layers to the Bottom of the Element
     int m_numLayers;           ///< number of layers for this element
     double m_lenX;             ///< total element length along X
     double m_lenY;             ///< total element length along Y
@@ -512,26 +508,22 @@ class ChApi ChElementShellANCF_3833 : public ChElementShell, public ChLoadableUV
     bool m_damping_enabled;    ///< Flag to run internal force damping calculations
     VectorN m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
     Matrix3xN m_ebar0;         ///< Element Position Coordinate Vector for the Reference Configuration
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-        m_SD;  ///< Precomputed corrected normalized shape function derivative matrices ordered by columns instead of by
-               ///< Gauss quadrature points used for the "Continuous Integration" style method
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_kGQ;  ///< Precomputed Gauss-Quadrature Weight & Element Jacobian scale factors used for the "Continuous
-                ///< Integration" style method
     ChVectorN<double, (NSF * (NSF + 1)) / 2>
         m_MassMatrix;  /// Mass Matrix in extra compact form (Upper Triangular Part only)
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_O1;  ///< Precomputed Matrix combined with the nodal coordinates used for the "Pre-Integration" style method
-               ///< internal force calculation
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_O2;  ///< Precomputed Matrix combined with the nodal coordinates used for the "Pre-Integration" style method
-               ///< Jacobian calculation
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_K3Compact;  ///< Precomputed Matrix combined with the nodal coordinates used for the "Pre-Integration" style
-                      ///< method internal force calculation
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_K13Compact;  ///< Saved results from the generalized internal force calculation that are reused for the
-                       ///< Jacobian calculations for the "Pre-Integration" style method
+    ChMatrixDynamic<>
+        m_SD;  ///< Precomputed corrected normalized shape function derivative matrices ordered by columns instead of by
+               ///< Gauss quadrature points used for the "Continuous Integration" style method
+    ChMatrixDynamic_col<> m_kGQ;  ///< Precomputed Gauss-Quadrature Weight & Element Jacobian scale factors used for the
+                                  ///< "Continuous Integration" style method
+    ChMatrixDynamic_col<> m_O1;   ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                 ///< "Pre-Integration" style method internal force calculation
+    ChMatrixDynamic_col<> m_O2;  ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                 ///< "Pre-Integration" style method Jacobian calculation
+    ChMatrixDynamic_col<> m_K3Compact;  ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                        ///< "Pre-Integration" style method internal force calculation
+    ChMatrixDynamic_col<>
+        m_K13Compact;  ///< Saved results from the generalized internal force calculation that are reused
+                       ///< for the Jacobian calculations for the "Pre-Integration" style method
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

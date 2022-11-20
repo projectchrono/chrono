@@ -267,6 +267,15 @@ TEST(LinearAlgebra, slicing) {
         ASSERT_TRUE(w1(i) == v1(idx(i)));
         ASSERT_TRUE(w2(i) == v2(idx(i)));
     }
+
+    // Cases with potential aliasing
+    // NOTE: no aliasing when SliceVector is implemented as a function. Aliasing possible if switching to a macro!
+    v2 = SliceVector(v2, idx).eval();
+    
+    ASSERT_TRUE(v2.size() == idx.size());
+    for (int i = 0; i < idx.size(); i++) {
+        ASSERT_TRUE(v2(i) == w2(i));
+    }
 }
 
 TEST(LinearAlgebraTest, solve) {

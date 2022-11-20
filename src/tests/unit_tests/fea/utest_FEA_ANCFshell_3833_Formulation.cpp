@@ -72,8 +72,7 @@ void print_red(std::string text) {
     std::cout << "\033[1;31m" << text << "\033[0m";
 }
 
-bool load_validation_data(const std::string& filename,
-                          Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& data) {
+bool load_validation_data(const std::string& filename, ChMatrixDynamic<>& data) {
     std::ifstream file(ref_dir + filename);
     if (!file.is_open()) {
         print_red("ERROR!  Cannot open file: " + ref_dir + filename + "\n");
@@ -247,7 +246,7 @@ bool ANCFShellTest::MassMatrixCheck(int msglvl) {
     //  Check the Mass Matrix
     //  (Result should be nearly exact - No expected error)
     // =============================================================================
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_MassMatrix_Compact;
+    ChMatrixDynamic<> Expected_MassMatrix_Compact;
     Expected_MassMatrix_Compact.resize(NSF, NSF);
     if (!load_validation_data("UT_ANCFShell_3833_MassMatrix.txt", Expected_MassMatrix_Compact))
         return false;
@@ -255,7 +254,7 @@ bool ANCFShellTest::MassMatrixCheck(int msglvl) {
     // Due to the known sparsity and repetitive pattern of the mass matrix, only 1 entries is saved per 3x3 block.  For
     // the unit expand out the reference solution to its full sparse and repetitive size for checking against the return
     // solution from the element.
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_MassMatrix;
+    ChMatrixDynamic<> Expected_MassMatrix;
     Expected_MassMatrix.resize(3 * Expected_MassMatrix_Compact.rows(), 3 * Expected_MassMatrix_Compact.cols());
     Expected_MassMatrix.setZero();
     for (unsigned int r = 0; r < Expected_MassMatrix_Compact.rows(); r++) {
@@ -312,7 +311,7 @@ bool ANCFShellTest::GeneralizedGravityForceCheck(int msglvl) {
     //  (Result should be nearly exact - No expected error)
     // =============================================================================
 
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_InternalForceDueToGravity;
+    ChMatrixDynamic<> Expected_InternalForceDueToGravity;
     Expected_InternalForceDueToGravity.resize(3 * NSF, 1);
     if (!load_validation_data("UT_ANCFShell_3833_Grav.txt", Expected_InternalForceDueToGravity))
         return false;
@@ -382,7 +381,7 @@ bool ANCFShellTest::GeneralizedInternalForceSmallDispNoVelCheck(int msglvl) {
     //  (some small error is expected depending on the formulation/steps used)
     // =============================================================================
 
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_InternalForceSmallDispNoVel;
+    ChMatrixDynamic<> Expected_InternalForceSmallDispNoVel;
     Expected_InternalForceSmallDispNoVel.resize(3 * NSF, 1);
     if (!load_validation_data("UT_ANCFShell_3833_IntFrcSmallDispNoVel.txt", Expected_InternalForceSmallDispNoVel))
         return false;
@@ -425,7 +424,7 @@ bool ANCFShellTest::GeneralizedInternalForceNoDispSmallVelCheck(int msglvl) {
     //  (some small error is expected depending on the formulation/steps used)
     // =============================================================================
 
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_InternalForceNoDispSmallVel;
+    ChMatrixDynamic<> Expected_InternalForceNoDispSmallVel;
     Expected_InternalForceNoDispSmallVel.resize(3 * NSF, 1);
     if (!load_validation_data("UT_ANCFShell_3833_IntFrcNoDispSmallVel.txt", Expected_InternalForceNoDispSmallVel))
         return false;
@@ -471,7 +470,7 @@ bool ANCFShellTest::JacobianNoDispNoVelNoDampingCheck(int msglvl) {
     //  (The R contribution should be all zeros since damping is not enabled)
     // =============================================================================
 
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_JacobianK_NoDispNoVelNoDamping;
+    ChMatrixDynamic<> Expected_JacobianK_NoDispNoVelNoDamping;
     Expected_JacobianK_NoDispNoVelNoDamping.resize(3 * NSF, 3 * NSF);
     if (!load_validation_data("UT_ANCFShell_3833_JacNoDispNoVelNoDamping.txt", Expected_JacobianK_NoDispNoVelNoDamping))
         return false;
@@ -587,7 +586,7 @@ bool ANCFShellTest::JacobianSmallDispNoVelNoDampingCheck(int msglvl) {
     //  (The R contribution should be all zeros since damping is not enabled)
     // ==========================================================================================================================================================
 
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_JacobianK_SmallDispNoVelNoDamping;
+    ChMatrixDynamic<> Expected_JacobianK_SmallDispNoVelNoDamping;
     Expected_JacobianK_SmallDispNoVelNoDamping.resize(3 * NSF, 3 * NSF);
     if (!load_validation_data("UT_ANCFShell_3833_JacSmallDispNoVelNoDamping.txt",
                               Expected_JacobianK_SmallDispNoVelNoDamping))
@@ -711,12 +710,12 @@ bool ANCFShellTest::JacobianNoDispNoVelWithDampingCheck(int msglvl) {
     //  (some small error is expected depending on the formulation/steps used)
     // =============================================================================
 
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_Jacobians;
+    ChMatrixDynamic<> Expected_Jacobians;
     Expected_Jacobians.resize(2 * 3 * NSF, 3 * NSF);
     if (!load_validation_data("UT_ANCFShell_3833_JacNoDispNoVelWithDamping.txt", Expected_Jacobians))
         return false;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_JacobianK_NoDispNoVelWithDamping;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_JacobianR_NoDispNoVelWithDamping;
+    ChMatrixDynamic<> Expected_JacobianK_NoDispNoVelWithDamping;
+    ChMatrixDynamic<> Expected_JacobianR_NoDispNoVelWithDamping;
     Expected_JacobianK_NoDispNoVelWithDamping =
         Expected_Jacobians.block(0, 0, Expected_Jacobians.cols(), Expected_Jacobians.cols());
     Expected_JacobianR_NoDispNoVelWithDamping =
@@ -884,12 +883,12 @@ bool ANCFShellTest::JacobianSmallDispNoVelWithDampingCheck(int msglvl) {
     //  (some small error is expected depending on the formulation/steps used)
     // =============================================================================
 
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_Jacobians;
+    ChMatrixDynamic<> Expected_Jacobians;
     Expected_Jacobians.resize(2 * 3 * NSF, 3 * NSF);
     if (!load_validation_data("UT_ANCFShell_3833_JacSmallDispNoVelWithDamping.txt", Expected_Jacobians))
         return false;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_JacobianK_SmallDispNoVelWithDamping;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_JacobianR_SmallDispNoVelWithDamping;
+    ChMatrixDynamic<> Expected_JacobianK_SmallDispNoVelWithDamping;
+    ChMatrixDynamic<> Expected_JacobianR_SmallDispNoVelWithDamping;
     Expected_JacobianK_SmallDispNoVelWithDamping =
         Expected_Jacobians.block(0, 0, Expected_Jacobians.cols(), Expected_Jacobians.cols());
     Expected_JacobianR_SmallDispNoVelWithDamping =
@@ -1062,12 +1061,12 @@ bool ANCFShellTest::JacobianNoDispSmallVelWithDampingCheck(int msglvl) {
     //  (some small error is expected depending on the formulation/steps used)
     // =============================================================================
 
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_Jacobians;
+    ChMatrixDynamic<> Expected_Jacobians;
     Expected_Jacobians.resize(2 * 3 * NSF, 3 * NSF);
     if (!load_validation_data("UT_ANCFShell_3833_JacNoDispSmallVelWithDamping.txt", Expected_Jacobians))
         return false;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_JacobianK_NoDispSmallVelWithDamping;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Expected_JacobianR_NoDispSmallVelWithDamping;
+    ChMatrixDynamic<> Expected_JacobianK_NoDispSmallVelWithDamping;
+    ChMatrixDynamic<> Expected_JacobianR_NoDispSmallVelWithDamping;
     Expected_JacobianK_NoDispSmallVelWithDamping =
         Expected_Jacobians.block(0, 0, Expected_Jacobians.cols(), Expected_Jacobians.cols());
     Expected_JacobianR_NoDispSmallVelWithDamping =

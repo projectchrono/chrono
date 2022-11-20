@@ -174,7 +174,7 @@ ChMatrix33<> ChElementBeamANCF_3243::GetGreenLagrangeStrain(const double xi, con
     CalcCoordMatrix(e_bar);
 
     // Calculate the Deformation Gradient at the current point
-    ChMatrixNMc<double, 3, 3> F = e_bar * Sxi_D;
+    ChMatrixNM_col<double, 3, 3> F = e_bar * Sxi_D;
 
     ChMatrix33<> I3x3;
     I3x3.setIdentity();
@@ -198,7 +198,7 @@ ChMatrix33<> ChElementBeamANCF_3243::GetPK2Stress(const double xi, const double 
     CalcCoordMatrix(e_bar);
 
     // Calculate the Deformation Gradient at the current point
-    ChMatrixNMc<double, 3, 3> F = e_bar * Sxi_D;
+    ChMatrixNM_col<double, 3, 3> F = e_bar * Sxi_D;
 
     // Calculate the Green-Lagrange strain tensor at the current point in Voigt notation
     ChVectorN<double, 6> epsilon_combined;
@@ -214,7 +214,7 @@ ChMatrix33<> ChElementBeamANCF_3243::GetPK2Stress(const double xi, const double 
         CalcCoordDerivMatrix(ebardot);
 
         // Calculate the time derivative of the Deformation Gradient at the current point
-        ChMatrixNMc<double, 3, 3> Fdot = ebardot * Sxi_D;
+        ChMatrixNM_col<double, 3, 3> Fdot = ebardot * Sxi_D;
 
         // Calculate the time derivative of the Green-Lagrange strain tensor in Voigt notation
         // and combine it with epsilon assuming a Linear Kelvin-Voigt Viscoelastic material model
@@ -262,7 +262,7 @@ double ChElementBeamANCF_3243::GetVonMissesStress(const double xi, const double 
     CalcCoordMatrix(e_bar);
 
     // Calculate the Deformation Gradient at the current point
-    ChMatrixNMc<double, 3, 3> F = e_bar * Sxi_D;
+    ChMatrixNM_col<double, 3, 3> F = e_bar * Sxi_D;
 
     // Calculate the Green-Lagrange strain tensor at the current point in Voigt notation
     ChVectorN<double, 6> epsilon_combined;
@@ -278,7 +278,7 @@ double ChElementBeamANCF_3243::GetVonMissesStress(const double xi, const double 
         CalcCoordDerivMatrix(ebardot);
 
         // Calculate the time derivative of the Deformation Gradient at the current point
-        ChMatrixNMc<double, 3, 3> Fdot = ebardot * Sxi_D;
+        ChMatrixNM_col<double, 3, 3> Fdot = ebardot * Sxi_D;
 
         // Calculate the time derivative of the Green-Lagrange strain tensor in Voigt notation
         // and combine it with epsilon assuming a Linear Kelvin-Voigt Viscoelastic material model
@@ -1088,7 +1088,7 @@ void ChElementBeamANCF_3243::ComputeInternalForcesContIntDamping(ChVectorDynamic
     //      [F13  F23  F33  F13dot  F23dot  F33dot ] <-- Dv Block (With Poisson Effect)
     // =============================================================================
 
-    ChMatrixNMc<double, 3 * NIP, 6> FC = m_SD.transpose() * ebar_ebardot;
+    ChMatrixNM_col<double, 3 * NIP, 6> FC = m_SD.transpose() * ebar_ebardot;
 
     // =============================================================================
     // =============================================================================
@@ -1228,7 +1228,7 @@ void ChElementBeamANCF_3243::ComputeInternalForcesContIntDamping(ChVectorDynamic
     // Note that the Dv Block entries will be calculated separately in a later step.
     // =============================================================================
 
-    ChMatrixNMc<double, 3 * NIP, 3> P_Block;
+    ChMatrixNM_col<double, 3 * NIP, 3> P_Block;
 
     P_Block.template block<NIP_D0, 1>(0, 0) = FC.template block<NIP_D0, 1>(0, 0).cwiseProduct(SPK2_1_Block_D0) +
                                               FC.template block<NIP_D0, 1>(NIP_D0, 0).cwiseProduct(SPK2_6_Block_D0) +
@@ -1437,7 +1437,7 @@ void ChElementBeamANCF_3243::ComputeInternalForcesContIntNoDamping(ChVectorDynam
     //      [F13  F23  F33 ] <-- Dv Block (With Poisson Effect)
     // =============================================================================
 
-    ChMatrixNMc<double, 3 * NIP, 3> FC = m_SD.transpose() * e_bar.transpose();
+    ChMatrixNM_col<double, 3 * NIP, 3> FC = m_SD.transpose() * e_bar.transpose();
 
     // =============================================================================
     // =============================================================================
@@ -1521,7 +1521,7 @@ void ChElementBeamANCF_3243::ComputeInternalForcesContIntNoDamping(ChVectorDynam
     // Note that the Dv Blocks entries are calculated in a later step
     // =============================================================================
 
-    ChMatrixNMc<double, 3 * NIP, 3> P_Block;
+    ChMatrixNM_col<double, 3 * NIP, 3> P_Block;
 
     P_Block.template block<NIP_D0, 1>(0, 0) = FC.template block<NIP_D0, 1>(0, 0).cwiseProduct(SPK2_1_Block_D0) +
                                               FC.template block<NIP_D0, 1>(NIP_D0, 0).cwiseProduct(SPK2_6_Block_D0) +
@@ -1758,7 +1758,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
     //      [F13  F23  F33  F13dot  F23dot  F33dot ] <-- Dv Block (With Poisson Effect)
     // =============================================================================
 
-    ChMatrixNMc<double, 3 * NIP, 6> FC = m_SD.transpose() * ebar_ebardot;
+    ChMatrixNM_col<double, 3 * NIP, 6> FC = m_SD.transpose() * ebar_ebardot;
 
     //==============================================================================
     //==============================================================================
@@ -1907,7 +1907,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
     //            [kGQ*(Kfactor+alpha*Rfactor)*F13+alpha*Rfactor*F13dot ... similar for F23 & F33 blocks] <- Dv
     // =============================================================================
 
-    ChMatrixNMc<double, 3 * NIP, 3> FCscaled = (Kfactor + m_Alpha * Rfactor) * FC.template block<3 * NIP, 3>(0, 0) +
+    ChMatrixNM_col<double, 3 * NIP, 3> FCscaled = (Kfactor + m_Alpha * Rfactor) * FC.template block<3 * NIP, 3>(0, 0) +
                                                (m_Alpha * Kfactor) * FC.template block<3 * NIP, 3>(0, 3);
 
     for (auto i = 0; i < 3; i++) {
@@ -2374,7 +2374,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntNoDamping(ChMatrixRef
     //      [F13  F23  F33 ] <-- Dv Block (With Poisson Effect)
     // =============================================================================
 
-    ChMatrixNMc<double, 3 * NIP, 3> FC = m_SD.transpose() * e_bar.transpose();
+    ChMatrixNM_col<double, 3 * NIP, 3> FC = m_SD.transpose() * e_bar.transpose();
 
     //==============================================================================
     //==============================================================================
@@ -2513,7 +2513,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntNoDamping(ChMatrixRef
     // each Gauss quadrature component by its Gauss quadrature weight times the element Jacobian (kGQ)
     // =============================================================================
 
-    ChMatrixNMc<double, 3 * NIP, 3> FCscaled = Kfactor * FC;
+    ChMatrixNM_col<double, 3 * NIP, 3> FCscaled = Kfactor * FC;
 
     for (auto i = 0; i < 3; i++) {
         FCscaled.template block<NIP_D0, 1>(0, i).array() *= m_kGQ_D0.array();
@@ -2890,7 +2890,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianPreInt(ChMatrixRef& H,
     ChMatrixNM<double, 1, NSF> tempRow0 = temp.template block<1, NSF>(0, 0);
     ChMatrixNM<double, 1, NSF> tempRow1 = temp.template block<1, NSF>(1, 0);
     ChMatrixNM<double, 1, NSF> tempRow2 = temp.template block<1, NSF>(2, 0);
-    ChMatrixNMc<double, 9, NSF * NSF> PI2;
+    ChMatrixNM_col<double, 9, NSF * NSF> PI2;
 
     for (unsigned int v = 0; v < NSF; v++) {
         PI2.template block<3, NSF>(0, NSF * v) = e_bar.template block<3, 1>(0, v) * tempRow0;
@@ -2900,7 +2900,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianPreInt(ChMatrixRef& H,
 
     // Calculate the matrix containing the dense part of the Jacobian matrix in a reordered form. This is then reordered
     // from its [9 x NSF^2] form into its required [3*NSF x 3*NSF] form
-    ChMatrixNMc<double, 9, NSF* NSF> K2 = -PI2 * m_O2;
+    ChMatrixNM_col<double, 9, NSF* NSF> K2 = -PI2 * m_O2;
 
     for (unsigned int k = 0; k < NSF; k++) {
         for (unsigned int f = 0; f < NSF; f++) {
