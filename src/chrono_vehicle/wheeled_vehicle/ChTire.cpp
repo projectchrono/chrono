@@ -120,7 +120,7 @@ std::shared_ptr<ChTriangleMeshShape> ChTire::AddVisualizationMesh(const std::str
 // Utility functions for characterizing the geometric contact between a disc with
 // specified center location, normal direction, and radius and the terrain,
 // assumed to be specified as a height field (over the x-y domain).
-// These functions returns false if no contact occurs.
+// These functions return false if no contact occurs.
 // Otherwise, they set the contact points on the disc (ptD) and on the terrain (ptT),
 // the normal contact direction, and the resulting penetration depth (a positive value).
 //
@@ -128,8 +128,8 @@ std::shared_ptr<ChTriangleMeshShape> ChTire::AddVisualizationMesh(const std::str
 // The second version uses the average of four terrain heights below the wheel center.
 // The third version uses the collision algorithm of Sui and Hirshey.
 //
-// NOTE: uses terrain normal at disc center for approximative calculation.
-// Hence only valid for terrains with constant slope. A completely accurate
+// NOTE: uses terrain normal at disc center for approximate calculation.
+// Hence, only valid for terrains with constant slope. A completely accurate
 // solution would require an iterative calculation of the contact point.
 // -----------------------------------------------------------------------------
 bool ChTire::DiscTerrainCollision(
@@ -146,9 +146,9 @@ bool ChTire::DiscTerrainCollision(
     ChVector<> nhelp;
     terrain.GetProperties(disc_center, hc, nhelp, mu);
 
-    // No contact if the disccenter is below the terrain or farther away by more than its radius.
+    // No contact if the disc center is below the terrain.
     double disc_height = ChWorldFrame::Height(disc_center);
-    if (disc_height <= hc || disc_height >= hc + disc_radius)
+    if (disc_height <= hc)
         return false;
 
     // Find the lowest point on the disc. There is no contact if the disc is (almost) horizontal.
@@ -207,9 +207,9 @@ bool ChTire::DiscTerrainCollision4pt(
     ChVector<> nhelp;
     terrain.GetProperties(disc_center, hc, nhelp, mu);
 
-    // No contact if the disc center is below the terrain or farther away by more than its radius.
+    // No contact if the disc center is below the terrain.
     double disc_height = ChWorldFrame::Height(disc_center);
-    if (disc_height <= hc || disc_height >= hc + disc_radius)
+    if (disc_height <= hc)
         return false;
 
     // Find the lowest point on the disc. No contact if the disc is (almost) horizontal.
