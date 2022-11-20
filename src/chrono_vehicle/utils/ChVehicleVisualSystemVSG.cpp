@@ -3,6 +3,47 @@
 namespace chrono {
 namespace vehicle {
 
+class FindVertexData : public vsg::Visitor {
+  public:
+    void apply(vsg::Object& object) { object.traverse(*this); }
+    /*
+        void apply(vsg::Geometry& geometry)
+        {
+            if (geometry.arrays.empty()) return;
+            geometry.arrays[0]->data->accept(*this);
+        }
+
+        void apply(vsg::VertexIndexDraw& vid) {
+            if (vid.arrays.empty())
+                return;
+            vid.arrays[0]->data->accept(*this);
+        }
+    */
+    void apply(vsg::BindVertexBuffers& bvd) {
+        if (bvd.arrays.empty())
+            return;
+        bvd.arrays[0]->data->accept(*this);
+    }
+
+    void apply(vsg::vec3Array& vertices) {
+        if (verticesSet.count(&vertices) == 0) {
+            verticesSet.insert(&vertices);
+        }
+    }
+
+    std::vector<vsg::ref_ptr<vsg::vec3Array>> getVerticesList() {
+        std::vector<vsg::ref_ptr<vsg::vec3Array>> verticesList(verticesSet.size());
+        auto vertices_itr = verticesList.begin();
+        for (auto& vertices : verticesSet) {
+            (*vertices_itr++) = const_cast<vsg::vec3Array*>(vertices);
+        }
+
+        return verticesList;
+    }
+
+    std::set<vsg::vec3Array*> verticesSet;
+};
+
 class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHandler> {
   public:
     VehAppKeyboardHandler(vsg::Viewer* viewer) : m_viewer(viewer) {}
@@ -387,7 +428,7 @@ double ChVehicleVisualSystemVSG::GetTconvSpeedOutput() {
     if (!m_vehicle->GetPowertrain())
         return 0.0;
     if (m_params->show_converter_data) {
-        return m_vehicle->GetPowertrain()->GetTorqueConverterOutputSpeed()*30.0/CH_C_PI;
+        return m_vehicle->GetPowertrain()->GetTorqueConverterOutputSpeed() * 30.0 / CH_C_PI;
     } else {
         return 0.0;
     }
@@ -418,101 +459,204 @@ void ChVehicleVisualSystemVSG::LogContraintViolations() {
     m_vehicle->LogConstraintViolations();
 }
 
+void ChVehicleVisualSystemVSG::SetTargetSymbol(double size, ChColor col) {
+    m_target_symbol_size = vsg::dvec3(size, size, size);
 
-    void ChVehicleVisualSystemVSG::SetTargetSymbol(double size, ChColor col) {
-        m_target_symbol_size = vsg::dvec3(size, size, size);
-
-        // Is the symbol already present?
-        vsg::ref_ptr<vsg::MatrixTransform> transform;
-        bool found = false;
-        for (auto child : m_symbolScene->children) {
-            char sType = ' ';
-            if (!child->getValue("SymbolType", sType))
-                continue;
-            if (!child->getValue("TransformPtr", transform))
-                continue;
-            if (sType != 'T')
-                continue;
-            // we only set the size
-            transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
-            found = true;
-        }
-        if (found)
-            return;
-
-        // Symbol is not found, build it
-        transform = vsg::MatrixTransform::create();
+    // Is the symbol already present?
+    vsg::ref_ptr<vsg::MatrixTransform> transform;
+    bool found = false;
+    for (auto child : m_symbolScene->children) {
+        char sType = ' ';
+        if (!child->getValue("SymbolType", sType))
+            continue;
+        if (!child->getValue("TransformPtr", transform))
+            continue;
+        if (sType != 'T')
+            continue;
+        // we only set the size
         transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
-
-        auto material = chrono_types::make_shared<ChVisualMaterial>();
-        material->SetEmissiveColor(col);
-        auto tmpGroup = m_shapeBuilder->createShape(vsg3d::ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
-        tmpGroup->setValue("SymbolType", 'T');
-        m_symbolScene->addChild(tmpGroup);
+        found = true;
     }
+    if (found)
+        return;
 
-    void ChVehicleVisualSystemVSG::SetTargetSymbolPosition(ChVector<> pos) {
-        m_target_symbol_position = vsg::dvec3(pos.x(), pos.y(), pos.z());
-        for (auto child : m_symbolScene->children) {
-            vsg::ref_ptr<vsg::MatrixTransform> transform;
-            char sType = ' ';
-            if (!child->getValue("SymbolType", sType))
-                continue;
-            if (!child->getValue("TransformPtr", transform))
-                continue;
-            if (sType != 'T')
-                continue;
-            transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
-        }
-    }
+    // Symbol is not found, build it
+    transform = vsg::MatrixTransform::create();
+    transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
 
-    void ChVehicleVisualSystemVSG::SetSentinelSymbol(double size, ChColor col) {
-        m_sentinel_symbol_size = vsg::dvec3(size, size, size);
+    auto material = chrono_types::make_shared<ChVisualMaterial>();
+    material->SetEmissiveColor(col);
+    auto tmpGroup =
+        m_shapeBuilder->createShape(vsg3d::ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+    tmpGroup->setValue("SymbolType", 'T');
+    m_symbolScene->addChild(tmpGroup);
+}
 
-        // Is the symbol already present?
+void ChVehicleVisualSystemVSG::SetTargetSymbolPosition(ChVector<> pos) {
+    m_target_symbol_position = vsg::dvec3(pos.x(), pos.y(), pos.z());
+    for (auto child : m_symbolScene->children) {
         vsg::ref_ptr<vsg::MatrixTransform> transform;
-        bool found = false;
-        for (auto child : m_symbolScene->children) {
-            char sType = ' ';
-            if (!child->getValue("SymbolType", sType))
-                continue;
-            if (!child->getValue("TransformPtr", transform))
-                continue;
-            if (sType != 'S')
-                continue;
-            // we only set the size
-            transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
-            found = true;
-        }
-        if (found)
-            return;
+        char sType = ' ';
+        if (!child->getValue("SymbolType", sType))
+            continue;
+        if (!child->getValue("TransformPtr", transform))
+            continue;
+        if (sType != 'T')
+            continue;
+        transform->matrix = vsg::translate(m_target_symbol_position) * vsg::scale(m_target_symbol_size);
+    }
+}
 
-        // Symbol is not found, build it
-        transform = vsg::MatrixTransform::create();
+void ChVehicleVisualSystemVSG::SetSentinelSymbol(double size, ChColor col) {
+    m_sentinel_symbol_size = vsg::dvec3(size, size, size);
+
+    // Is the symbol already present?
+    vsg::ref_ptr<vsg::MatrixTransform> transform;
+    bool found = false;
+    for (auto child : m_symbolScene->children) {
+        char sType = ' ';
+        if (!child->getValue("SymbolType", sType))
+            continue;
+        if (!child->getValue("TransformPtr", transform))
+            continue;
+        if (sType != 'S')
+            continue;
+        // we only set the size
         transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
+        found = true;
+    }
+    if (found)
+        return;
 
-        auto material = chrono_types::make_shared<ChVisualMaterial>();
-        material->SetEmissiveColor(col);
-        auto tmpGroup = m_shapeBuilder->createShape(vsg3d::ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
-        tmpGroup->setValue("SymbolType", 'S');
-        m_symbolScene->addChild(tmpGroup);
+    // Symbol is not found, build it
+    transform = vsg::MatrixTransform::create();
+    transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
+
+    auto material = chrono_types::make_shared<ChVisualMaterial>();
+    material->SetEmissiveColor(col);
+    auto tmpGroup =
+        m_shapeBuilder->createShape(vsg3d::ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+    tmpGroup->setValue("SymbolType", 'S');
+    m_symbolScene->addChild(tmpGroup);
+}
+
+void ChVehicleVisualSystemVSG::SetSentinelSymbolPosition(ChVector<> pos) {
+    m_sentinel_symbol_position = vsg::dvec3(pos.x(), pos.y(), pos.z());
+    for (auto child : m_symbolScene->children) {
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        char sType = ' ';
+        if (!child->getValue("SymbolType", sType))
+            continue;
+        if (!child->getValue("TransformPtr", transform))
+            continue;
+        if (sType != 'S')
+            continue;
+        transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
+    }
+}
+
+void ChVehicleVisualSystemVSG::BindAll() {
+    ChVisualSystemVSG::BindAll();
+
+    for (auto& item : m_systems[0]->Get_otherphysicslist()) {
+        if (auto defsoil = std::dynamic_pointer_cast<SCMDeformableSoil>(item)) {
+            auto defshape = defsoil->GetVisualShape(0);
+            if (!defshape) {
+                continue;
+            }
+            if (!defshape->IsVisible()) {
+                continue;
+            }
+            auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(defshape);
+            if (!trimesh) {
+                continue;
+            }
+            GetLog() << "Generating SCM Deformable Terrain....\n";
+            auto transform = vsg::MatrixTransform::create();
+            if (trimesh->GetNumMaterials() > 0) {
+                m_deformableScene->addChild(
+                    m_shapeBuilder->createTrimeshMatShape(transform, trimesh->IsWireframe(), trimesh));
+            } else {
+                m_deformableScene->addChild(
+                    m_shapeBuilder->createTrimeshColShapeSCM(transform, trimesh->IsWireframe(), trimesh));
+            }
+            // find the vertices in the scenegraph
+            m_scm_vertices_list = vsg::visit<FindVertexData>(m_deformableScene).getVerticesList();
+            for (auto& vertices : m_scm_vertices_list) {
+                m_num_scm_vertices += vertices->size();
+            }
+            GetLog() << "Dynamic SCM vertices = " << m_num_scm_vertices << "\n";
+            size_t num_vertices_actual = trimesh->GetMesh()->getCoordsVertices().size();
+            GetLog() << "Dynamic Mesh vertices = " << num_vertices_actual << "\n";
+            m_scm_z_actual.resize(num_vertices_actual);
+            m_scm_vertex_update_ok = true;
+        }
+    }
+}
+
+void ChVehicleVisualSystemVSG::UpdateFromMBS() {
+    ChVisualSystemVSG::UpdateFromMBS();
+
+    for (auto& item : m_systems[0]->Get_otherphysicslist()) {
+        if (auto defsoil = std::dynamic_pointer_cast<SCMDeformableSoil>(item)) {
+            auto defshape = defsoil->GetVisualShape(0);
+            if (!defshape) {
+                continue;
+            }
+            if (!defshape->IsVisible()) {
+                continue;
+            }
+            auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(defshape);
+            if (!trimesh) {
+                continue;
+            }
+            if (m_scm_vertex_update_ok) {
+                // GetLog() << "Updating SCM Deformable Terrain....\n";
+                auto& defvertices = trimesh->GetMesh()->getCoordsVertices();
+                for (size_t k = 0; k < defvertices.size(); k++) {
+                    m_scm_z_actual[k] = defvertices[k].z();
+                }
+            }
+        }
+    }
+}
+
+void ChVehicleVisualSystemVSG::Render() {
+    if (m_params->frame_number == 0)
+        m_params->time_begin = double(clock()) / double(CLOCKS_PER_SEC);
+
+    UpdateFromMBS();
+
+    if (!m_viewer->advanceToNextFrame()) {
+        return;
     }
 
-    void ChVehicleVisualSystemVSG::SetSentinelSymbolPosition(ChVector<> pos) {
-        m_sentinel_symbol_position = vsg::dvec3(pos.x(), pos.y(), pos.z());
-        for (auto child : m_symbolScene->children) {
-            vsg::ref_ptr<vsg::MatrixTransform> transform;
-            char sType = ' ';
-            if (!child->getValue("SymbolType", sType))
-                continue;
-            if (!child->getValue("TransformPtr", transform))
-                continue;
-            if (sType != 'S')
-                continue;
-            transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
+    // pass any events into EventHandlers assigned to the Viewer
+    m_viewer->handleEvents();
+
+    m_viewer->update();
+
+    if (m_scm_vertex_update_ok) {
+        for (auto& vertices : m_scm_vertices_list) {
+            size_t k = 0;
+            for (auto& v : *vertices) {
+                v.z = m_scm_z_actual[k];
+                k++;
+            }
+            vertices->dirty();
         }
     }
 
+    m_viewer->recordAndSubmit();
+
+    if (m_params->do_image_capture) {
+        exportScreenshot(m_window, m_options, m_imageFilename);
+        m_params->do_image_capture = false;
+    }
+
+    m_viewer->present();
+    m_params->frame_number++;
+}
 
 }  // namespace vehicle
 }  // namespace chrono

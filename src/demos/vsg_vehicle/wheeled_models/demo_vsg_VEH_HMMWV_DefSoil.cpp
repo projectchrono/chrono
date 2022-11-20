@@ -98,7 +98,7 @@ bool img_output = false;
 // =============================================================================
 
 class MyDriver : public ChDriver {
-public:
+  public:
     MyDriver(ChVehicle& vehicle, double delay) : ChDriver(vehicle), m_delay(delay) {}
     ~MyDriver() {}
 
@@ -124,7 +124,7 @@ public:
             m_steering = 0.6 * std::sin(CH_C_2PI * (eff_time - 2) / 6);
     }
 
-private:
+  private:
     double m_delay;
 };
 
@@ -157,7 +157,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
 
     // Visualization
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
-            vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
+        vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
@@ -227,13 +227,13 @@ int main(int argc, char* argv[]) {
 
     SCMDeformableTerrain terrain(system);
     terrain.SetSoilParameters(2e6,   // Bekker Kphi
-            0,     // Bekker Kc
-            1.1,   // Bekker n exponent
-            0,     // Mohr cohesive limit (Pa)
-            30,    // Mohr friction limit (degrees)
-            0.01,  // Janosi shear coefficient (m)
-            2e8,   // Elastic stiffness (Pa/m), before plastic yield
-            3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
+                              0,     // Bekker Kc
+                              1.1,   // Bekker n exponent
+                              0,     // Mohr cohesive limit (Pa)
+                              30,    // Mohr friction limit (degrees)
+                              0.01,  // Janosi shear coefficient (m)
+                              2e8,   // Elastic stiffness (Pa/m), before plastic yield
+                              3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
 
     ////terrain.EnableBulldozing(true);      // inflate soil at the border of the rut
@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
 
     // Optionally, enable moving patch feature (single patch around vehicle chassis)
     terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
-
+    terrain.SetMeshWireframe(true);
     // Optionally, enable moving patch feature (multiple patches around each wheel)
     ////for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
     ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
@@ -262,8 +262,8 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->SetWindowTitle("HMMWV Deformable Soil Demo");
-    vis->SetWindowSize(ChVector2<int>(800, 600));
-    vis->SetWindowPosition(ChVector2<int>(100, 300));
+    vis->SetWindowSize(ChVector2<int>(1000, 800));
+    vis->SetWindowPosition(ChVector2<int>(100, 100));
     vis->SetUseSkyBox(true);
     vis->SetCameraAngleDeg(40);
     vis->SetLightIntensity(1.0);
@@ -320,12 +320,12 @@ int main(int argc, char* argv[]) {
         // Render scene
         vis->BeginScene();
         vis->Render();
-        //tools::drawColorbar(vis.get(), 0, 0.1, "Sinkage", 30);
+        // tools::drawColorbar(vis.get(), 0, 0.1, "Sinkage", 30);
         vis->EndScene();
 
         if (img_output && step_number % render_steps == 0) {
             char filename[100];
-            sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
+            snprintf(filename, 99, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
             vis->WriteImageToFile(filename);
             render_frame++;
         }

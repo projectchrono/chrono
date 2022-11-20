@@ -15,6 +15,7 @@
 #include "chrono_vehicle/driver/ChVSGGuiDriver.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
+#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
 namespace chrono {
 namespace vehicle {
@@ -25,6 +26,10 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     ~ChVehicleVisualSystemVSG();
 
     virtual void Initialize() override;
+
+    virtual void BindAll() override;
+    virtual void UpdateFromMBS() override;
+    virtual void Render() override;
 
     /// Attach a vehicle to this VSG vehicle visualization system.
     virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
@@ -76,6 +81,10 @@ protected:
     vsg::dvec3 m_sentinel_symbol_position = vsg::dvec3(0.0,0.0,0.0);
     vsg::dvec3 m_sentinel_symbol_size = vsg::dvec3(1.0,1.0,1.0);
 
+    size_t m_num_scm_vertices = 0;
+    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_scm_vertices_list;
+    std::vector<float> m_scm_z_actual;
+    bool m_scm_vertex_update_ok = false;
     friend class ChVSGGuiDriver;
 };
 

@@ -66,7 +66,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
         phongMat->value().ambient.set(material->GetAmbientColor().R, material->GetAmbientColor().G,
                 material->GetAmbientColor().B, alpha);
     */
-    phongMat->value().ambient.set(1.0, 1.0, 1.0, alpha); // ambient intensity set by ambient light source!
+    phongMat->value().ambient.set(1.0, 1.0, 1.0, alpha);  // ambient intensity set by ambient light source!
     phongMat->value().specular.set(material->GetSpecularColor().R, material->GetSpecularColor().G,
                                    material->GetSpecularColor().B, alpha);
     phongMat->value().emissive.set(material->GetEmissiveColor().R, material->GetEmissiveColor().G,
@@ -83,8 +83,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
         } else {
             // enable texturing with mipmaps
             auto sampler = vsg::Sampler::create();
-            sampler->maxLod =
-                    static_cast<uint32_t>(std::floor(std::log2(std::max(diffuseTextureData->width(), diffuseTextureData->height())))) + 1;
+            sampler->maxLod = static_cast<uint32_t>(std::floor(
+                                  std::log2(std::max(diffuseTextureData->width(), diffuseTextureData->height())))) +
+                              1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
             sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -102,14 +103,15 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
         } else {
             // enable texturing with mipmaps
             auto sampler = vsg::Sampler::create();
-            sampler->maxLod =
-                    static_cast<uint32_t>(std::floor(std::log2(std::max(normalTextureData->width(), normalTextureData->height())))) + 1;
+            sampler->maxLod = static_cast<uint32_t>(std::floor(
+                                  std::log2(std::max(normalTextureData->width(), normalTextureData->height())))) +
+                              1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
             sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             graphicsPipelineConfig->assignTexture(descriptors, "normalMap", normalTextureData, sampler);
             // vsg combines material color and texture color, better use only one of it
-            //phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
+            // phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
         }
     }
 
@@ -269,7 +271,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::M
     unsigned int nvertexes = ntriangles * 3;
 
     // Set the Irrlicht vertex and index buffers for the mesh buffer
-    ChVector<> t[3];    // positions of trianlge vertices
+    ChVector<> t[3];    // positions of triangle vertices
     ChVector<> n[3];    // normals at the triangle vertices
     ChVector2<> uv[3];  // UV coordinates at the triangle vertices
     ChColor col[3];     // color coordinates at the triangle vertices
@@ -324,6 +326,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::M
     }
     // create and fill the vsg buffers
     size_t nVert = tmp_vertices.size();
+    GetLog() << ">>>> nVertInput = " << vertices.size() << "  >>>>> nVertOutput = " << nVert << "\n";
     vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nVert);
     vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nVert);
     vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nVert);
@@ -338,6 +341,179 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::M
         vsg_indices->set(k, k);
     }
 
+    vsg::ref_ptr<vsg::ShaderSet> shaderSet;
+
+    shaderSet = createPhongShaderSet(m_options);
+
+    auto rasterizationState = vsg::RasterizationState::create();
+    if (drawMode) {
+        rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
+    }
+    shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
+    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
+    auto& defines = graphicsPipelineConfig->shaderHints->defines;
+
+    // set up graphics pipeline
+    vsg::Descriptors descriptors;
+
+    // set up pass of material
+    auto phongMat = vsg::PhongMaterialValue::create();
+    phongMat->value().ambient = vsg::vec4(0.2, 0.2, 0.2, 1.0);
+    // set transparency, if needed
+    vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
+    VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+    colorBlendAttachment.blendEnable = VK_FALSE;  // default
+    colorBlendAttachment.colorWriteMask =
+        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    if (phongMat->value().alphaMask < 1.0) {
+        colorBlendAttachment.blendEnable = VK_TRUE;
+        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+    }
+    colorBlendAttachments.push_back(colorBlendAttachment);
+    graphicsPipelineConfig->colorBlendState = vsg::ColorBlendState::create(colorBlendAttachments);
+    graphicsPipelineConfig->assignUniform(descriptors, "material", phongMat);
+
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(descriptors);
+
+    vsg::DataList vertexArrays;
+
+    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, vsg_vertices);
+    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, vsg_normals);
+    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, vsg_texcoords);
+    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Color", VK_VERTEX_INPUT_RATE_INSTANCE, vsg_colors);
+
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(vertexArrays);
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(vsg_indices);
+
+    // setup geometry
+    auto drawCommands = vsg::Commands::create();
+    drawCommands->addChild(vsg::BindVertexBuffers::create(graphicsPipelineConfig->baseAttributeBinding, vertexArrays));
+    drawCommands->addChild(vsg::BindIndexBuffer::create(vsg_indices));
+    drawCommands->addChild(vsg::DrawIndexed::create(vsg_indices->size(), 1, 0, 0, 0));
+
+    if (m_options->sharedObjects) {
+        m_options->sharedObjects->share(drawCommands->children);
+        m_options->sharedObjects->share(drawCommands);
+    }
+
+    // register the ViewDescriptorSetLayout.
+    vsg::ref_ptr<vsg::ViewDescriptorSetLayout> vdsl;
+    if (m_options->sharedObjects)
+        vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
+    else
+        vdsl = vsg::ViewDescriptorSetLayout::create();
+    graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
+
+    // share the pipeline config and initialize if it's unique
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(graphicsPipelineConfig, [](auto gpc) { gpc->init(); });
+    else
+        graphicsPipelineConfig->init();
+
+    auto descriptorSet = vsg::DescriptorSet::create(graphicsPipelineConfig->descriptorSetLayout, descriptors);
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(descriptorSet);
+
+    auto bindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                                            graphicsPipelineConfig->layout, 0, descriptorSet);
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(bindDescriptorSet);
+
+    auto bindViewDescriptorSets =
+        vsg::BindViewDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineConfig->layout, 1);
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(bindViewDescriptorSets);
+
+    // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
+    // Descriptors to decorate the whole graph
+    auto stateGroup = vsg::StateGroup::create();
+    stateGroup->add(graphicsPipelineConfig->bindGraphicsPipeline);
+    stateGroup->add(bindDescriptorSet);
+    stateGroup->add(bindViewDescriptorSets);
+
+    // set up model transformation node
+    transform->subgraphRequiresLocalFrustum = false;
+
+    // add drawCommands to StateGroup
+    stateGroup->addChild(drawCommands);
+    if (m_options->sharedObjects) {
+        m_options->sharedObjects->share(stateGroup);
+    }
+    transform->addChild(stateGroup);
+    scenegraph->addChild(transform);
+    return scenegraph;
+}
+
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShapeSCM(vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                                bool drawMode,
+                                                                std::shared_ptr<ChTriangleMeshShape> tms) {
+    auto scenegraph = vsg::Group::create();
+    // store some information for easier update
+    scenegraph->setValue("TransformPtr", transform);
+
+    const auto& mesh = tms->GetMesh();
+
+    const auto& vertices = mesh->getCoordsVertices();
+    const auto& normals = mesh->getCoordsNormals();
+    const auto& uvs = mesh->getCoordsUV();
+    const auto& colors = mesh->getCoordsColors();
+
+    size_t nvertices = vertices.size();
+    bool normals_ok = true;
+    if (nvertices != normals.size()) {
+        normals_ok = false;
+    }
+    bool texcoords_ok = true;
+    if (nvertices != uvs.size()) {
+        texcoords_ok = false;
+    }
+    bool colors_ok = true;
+    if (nvertices != colors.size()) {
+        colors_ok = false;
+    }
+    const auto& v_indices = mesh->getIndicesVertexes();
+    unsigned int ntriangles = (unsigned int)v_indices.size();
+    auto default_color = tms->GetColor();
+
+    // create and fill the vsg buffers
+    vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nvertices);
+    vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nvertices);
+    vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nvertices);
+    vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(v_indices.size() * 3);
+    vsg::ref_ptr<vsg::vec4Array> vsg_colors = vsg::vec4Array::create(nvertices);
+    for (size_t k = 0; k < nvertices; k++) {
+        vsg_vertices->set(k, vsg::vec3(vertices[k].x(), vertices[k].y(), vertices[k].z()));
+        if (normals_ok) {
+            vsg_normals->set(k, vsg::vec3(normals[k].x(), normals[k].y(), normals[k].z()));
+        } else {
+            vsg_normals->set(k, vsg::vec3(0.0, 0.0, 1.0));
+        }
+        // seems to work with v-coordinate flipped on VSG
+        if (texcoords_ok) {
+            vsg_texcoords->set(k, vsg::vec2(uvs[k].x(), uvs[k].y()));
+        } else {
+            vsg_texcoords->set(k, vsg::vec2(0.0, 0.0));
+        }
+        if (colors_ok) {
+            vsg_colors->set(k, vsg::vec4(colors[k].R, colors[k].G, colors[k].B, 1.0f));
+        } else {
+            vsg_colors->set(k, vsg::vec4(default_color.R, default_color.G, default_color.B, 1.0f));
+        }
+    }
+    size_t kk = 0;
+    for (size_t k = 0; k < v_indices.size() * 3; k += 3) {
+        vsg_indices->set(k, v_indices[kk][0]);
+        vsg_indices->set(k + 1, v_indices[kk][1]);
+        vsg_indices->set(k + 2, v_indices[kk++][2]);
+    }
     vsg::ref_ptr<vsg::ShaderSet> shaderSet;
 
     shaderSet = createPhongShaderSet(m_options);
@@ -536,9 +712,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(vsg::ref_ptr<vsg::M
             } else {
                 // enable texturing with mipmaps
                 auto sampler = vsg::Sampler::create();
-                sampler->maxLod = static_cast<uint32_t>(
-                        std::floor(std::log2(std::max(diffuseTextureData->width(), diffuseTextureData->height())))) +
-                        1;
+                sampler->maxLod = static_cast<uint32_t>(std::floor(
+                                      std::log2(std::max(diffuseTextureData->width(), diffuseTextureData->height())))) +
+                                  1;
                 sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
                 sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
                 sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -557,9 +733,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(vsg::ref_ptr<vsg::M
             } else {
                 // enable texturing with mipmaps
                 auto sampler = vsg::Sampler::create();
-                sampler->maxLod = static_cast<uint32_t>(
-                        std::floor(std::log2(std::max(normalTextureData->width(), normalTextureData->height())))) +
-                        1;
+                sampler->maxLod = static_cast<uint32_t>(std::floor(
+                                      std::log2(std::max(normalTextureData->width(), normalTextureData->height())))) +
+                                  1;
                 sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
                 sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
                 sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -576,9 +752,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(vsg::ref_ptr<vsg::M
             } else {
                 // enable texturing with mipmaps
                 auto sampler = vsg::Sampler::create();
-                sampler->maxLod = static_cast<uint32_t>(
-                        std::floor(std::log2(std::max(displacementTextureData->width(), displacementTextureData->height())))) +
-                        1;
+                sampler->maxLod = static_cast<uint32_t>(std::floor(std::log2(
+                                      std::max(displacementTextureData->width(), displacementTextureData->height())))) +
+                                  1;
                 sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
                 sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
                 sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;

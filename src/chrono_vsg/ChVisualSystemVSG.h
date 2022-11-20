@@ -31,6 +31,7 @@
 #include <vsgImGui/implot.h>
 
 #include "tools/createSkybox.h"
+#include "tools/exportScreenshot.h"
 #include "shapes/ShapeBuilder.h"
 
 namespace chrono {
@@ -45,7 +46,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     ~ChVisualSystemVSG();
 
     virtual void Initialize();
-    void Render();
+    virtual void Render();
     bool Run();
     // terminate
     void Quit();
@@ -133,7 +134,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
   protected:
     virtual void BindAll() override;
-    void UpdateFromMBS();
+    virtual void UpdateFromMBS();
     // collect some often used calulations (not for Cylinders!)
     void Point2PointHelperAbs(ChVector<>& P1,
                               ChVector<>& P2,
@@ -177,8 +178,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
     //
     bool m_draw_as_wireframe = false;
+    vsg::ref_ptr<vsg::Options> m_options;
+    //
+    std::string m_imageFilename;
 
-  private:
+private:
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
     std::hash<std::string> m_stringHash;
     int m_windowWidth = 800;
@@ -188,7 +192,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::string m_windowTitle;
     ChColor m_clearColor;
     //
-    vsg::ref_ptr<vsg::Options> m_options;
     int m_numThreads = 16;
     vsg::ref_ptr<vsg::OperationThreads> m_loadThreads;
     // cache for particle shape
@@ -204,8 +207,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_lightIntensity = 1.0;
     double m_elevation = 0;
     double m_acimut = 0;
-    //
-    std::string m_imageFilename;
     // bool m_do_image_export = false;
     float m_guiFontSize = 20.0f;
 };

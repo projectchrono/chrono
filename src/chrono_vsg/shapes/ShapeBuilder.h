@@ -29,6 +29,7 @@
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/assets/ChSurfaceShape.h"
 #include "chrono/assets/ChPointPointShape.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -52,10 +53,17 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
                                          bool drawMode,
                                          std::shared_ptr<ChSurfaceShape> surface = nullptr);
-
+    // variant for general use, mesh can have unknown structure and noncontiguous faces
+    // face normals will be converted to vertex normals, it will be bloated by additional vertices
     vsg::ref_ptr<vsg::Group> createTrimeshColShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                   bool drawMode,
-                                                   std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
+            bool drawMode,
+            std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
+
+    // variant for SCMDeformableTerrain, regular mesh needed, no face normals allowed
+    // no face colors allowed
+    vsg::ref_ptr<vsg::Group> createTrimeshColShapeSCM(vsg::ref_ptr<vsg::MatrixTransform> transform,
+            bool drawMode,
+            std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
 
     vsg::ref_ptr<vsg::Group> createTrimeshMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool drawMode,

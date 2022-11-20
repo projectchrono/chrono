@@ -29,7 +29,6 @@
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/physics/ChParticleCloud.h"
-#include "tools/exportScreenshot.h"
 #include "ChVisualSystemVSG.h"
 #include <algorithm>
 #include <string>
