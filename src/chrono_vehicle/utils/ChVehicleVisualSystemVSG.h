@@ -82,17 +82,9 @@ protected:
     vsg::dvec3 m_sentinel_symbol_size = vsg::dvec3(1.0,1.0,1.0);
 
     size_t m_num_scm_vertices = 0;
-    // vertex list of the scm surface in the m_deformableScene
     std::vector<vsg::ref_ptr<vsg::vec3Array>> m_scm_vertices_list;
-    // vertex list of the scm surface in the m_deformableScene
-    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_scm_normals_list;
-    // normals list of the scm surface in the m_deformableScene
-    std::vector<vsg::ref_ptr<vsg::vec4Array>> m_scm_colors_list;
-    // mesh containing the actual scm vertex data from mbs
-    std::shared_ptr<geometry::ChTriangleMeshConnected>   m_scm_actual_mesh;
+    std::vector<float> m_scm_z_actual;
     bool m_scm_vertex_update_ok = false;
-    bool m_scm_normals_update_ok = false;
-    bool m_scm_color_update_ok = false;
     friend class ChVSGGuiDriver;
 };
 

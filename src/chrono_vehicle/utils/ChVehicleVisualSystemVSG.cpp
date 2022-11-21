@@ -6,7 +6,19 @@ namespace vehicle {
 class FindVertexData : public vsg::Visitor {
   public:
     void apply(vsg::Object& object) { object.traverse(*this); }
+    /*
+        void apply(vsg::Geometry& geometry)
+        {
+            if (geometry.arrays.empty()) return;
+            geometry.arrays[0]->data->accept(*this);
+        }
 
+        void apply(vsg::VertexIndexDraw& vid) {
+            if (vid.arrays.empty())
+                return;
+            vid.arrays[0]->data->accept(*this);
+        }
+    */
     void apply(vsg::BindVertexBuffers& bvd) {
         if (bvd.arrays.empty())
             return;
@@ -30,64 +42,6 @@ class FindVertexData : public vsg::Visitor {
     }
 
     std::set<vsg::vec3Array*> verticesSet;
-};
-
-class FindNormalsData : public vsg::Visitor {
-  public:
-    void apply(vsg::Object& object) { object.traverse(*this); }
-
-    void apply(vsg::BindVertexBuffers& bvd) {
-        if (bvd.arrays.empty())
-            return;
-        bvd.arrays[1]->data->accept(*this);
-    }
-
-    void apply(vsg::vec3Array& normals) {
-        if (normalsSet.count(&normals) == 0) {
-            normalsSet.insert(&normals);
-        }
-    }
-
-    std::vector<vsg::ref_ptr<vsg::vec3Array>> getNormalsList() {
-        std::vector<vsg::ref_ptr<vsg::vec3Array>> normalsList(normalsSet.size());
-        auto normals_itr = normalsList.begin();
-        for (auto& normals : normalsSet) {
-            (*normals_itr++) = const_cast<vsg::vec3Array*>(normals);
-        }
-
-        return normalsList;
-    }
-
-    std::set<vsg::vec3Array*> normalsSet;
-};
-
-class FindColorsData : public vsg::Visitor {
-  public:
-    void apply(vsg::Object& object) { object.traverse(*this); }
-
-    void apply(vsg::BindVertexBuffers& bvd) {
-        if (bvd.arrays.empty())
-            return;
-        bvd.arrays[3]->data->accept(*this);
-    }
-
-    void apply(vsg::vec4Array& colors) {
-        if (colorsSet.count(&colors) == 0) {
-            colorsSet.insert(&colors);
-        }
-    }
-
-    std::vector<vsg::ref_ptr<vsg::vec4Array>> getColorsList() {
-        std::vector<vsg::ref_ptr<vsg::vec4Array>> colorsList(colorsSet.size());
-        auto colors_itr = colorsList.begin();
-        for (auto& colors : colorsSet) {
-            (*colors_itr++) = const_cast<vsg::vec4Array*>(colors);
-        }
-
-        return colorsList;
-    }
-
-    std::set<vsg::vec4Array*> colorsSet;
 };
 
 class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHandler> {
@@ -631,35 +585,40 @@ void ChVehicleVisualSystemVSG::BindAll() {
             for (auto& vertices : m_scm_vertices_list) {
                 m_num_scm_vertices += vertices->size();
             }
-            // find the normals in the scenegraph
-            m_scm_normals_list = vsg::visit<FindNormalsData>(m_deformableScene).getNormalsList();
-            size_t num_normals = 0;
-            for (auto& normals : m_scm_normals_list) {
-                num_normals += normals->size();
-            }
-            // find the colors in the scenegraph
-            m_scm_colors_list = vsg::visit<FindColorsData>(m_deformableScene).getColorsList();
-            size_t num_colors = 0;
-            for (auto& colors : m_scm_colors_list) {
-                num_colors += colors->size();
-            }
             GetLog() << "Dynamic SCM vertices = " << m_num_scm_vertices << "\n";
             size_t num_vertices_actual = trimesh->GetMesh()->getCoordsVertices().size();
             GetLog() << "Dynamic Mesh vertices = " << num_vertices_actual << "\n";
+            m_scm_z_actual.resize(num_vertices_actual);
             m_scm_vertex_update_ok = true;
-            if(num_colors == m_num_scm_vertices) {
-                m_scm_normals_update_ok = true;
-            }
-            if (num_colors == m_num_scm_vertices) {
-                m_scm_color_update_ok = true;
-            }
-            m_scm_actual_mesh = trimesh->GetMesh();
         }
     }
 }
 
 void ChVehicleVisualSystemVSG::UpdateFromMBS() {
     ChVisualSystemVSG::UpdateFromMBS();
+
+    for (auto& item : m_systems[0]->Get_otherphysicslist()) {
+        if (auto defsoil = std::dynamic_pointer_cast<SCMDeformableSoil>(item)) {
+            auto defshape = defsoil->GetVisualShape(0);
+            if (!defshape) {
+                continue;
+            }
+            if (!defshape->IsVisible()) {
+                continue;
+            }
+            auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(defshape);
+            if (!trimesh) {
+                continue;
+            }
+            if (m_scm_vertex_update_ok) {
+                // GetLog() << "Updating SCM Deformable Terrain....\n";
+                auto& defvertices = trimesh->GetMesh()->getCoordsVertices();
+                for (size_t k = 0; k < defvertices.size(); k++) {
+                    m_scm_z_actual[k] = defvertices[k].z();
+                }
+            }
+        }
+    }
 }
 
 void ChVehicleVisualSystemVSG::Render() {
@@ -679,33 +638,12 @@ void ChVehicleVisualSystemVSG::Render() {
 
     if (m_scm_vertex_update_ok) {
         for (auto& vertices : m_scm_vertices_list) {
-            for (size_t k = 0; k < vertices->size(); k++) {
-                vertices->at(k).z = m_scm_actual_mesh->getCoordsVertices().at(k).z();
+            size_t k = 0;
+            for (auto& v : *vertices) {
+                v.z = m_scm_z_actual[k];
+                k++;
             }
             vertices->dirty();
-        }
-    }
-    if(m_scm_normals_update_ok) {
-        for (auto& normals : m_scm_normals_list) {
-            for (size_t k = 0; k < normals->size(); k++) {
-                float x = m_scm_actual_mesh->getCoordsVertices().at(k).x();
-                float y = m_scm_actual_mesh->getCoordsVertices().at(k).y();
-                float z = m_scm_actual_mesh->getCoordsVertices().at(k).z();
-                normals->at(k).set(x,y,z);
-            }
-            normals->dirty();
-        }
-    }
-    if (m_scm_color_update_ok) {
-        for (auto& colors : m_scm_colors_list) {
-            for (size_t k = 0; k < colors->size(); k++) {
-                float r = m_scm_actual_mesh->getCoordsColors().at(k).R;
-                float g = m_scm_actual_mesh->getCoordsColors().at(k).G;
-                float b = m_scm_actual_mesh->getCoordsColors().at(k).B;
-                float a = 1.0f;
-                colors->at(k).set(r, g, b, a);
-            }
-            colors->dirty();
         }
     }
 
