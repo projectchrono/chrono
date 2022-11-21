@@ -326,7 +326,7 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override {
-        return m_nodes[nodes_used_to_six[nblock]]->NodeGetOffset_w();
+        return m_nodes[nodes_used_to_six[nblock]]->NodeGetOffsetW();
     }
 
     /// Get the size of the specified sub-block of DOFs in global vector.

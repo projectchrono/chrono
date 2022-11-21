@@ -18,7 +18,7 @@ namespace chrono {
 namespace fea {
 
 ChNodeFEAxyzD::ChNodeFEAxyzD(ChVector<> initial_pos, ChVector<> initial_dir)
-    : ChNodeFEAxyz(initial_pos), m_dof(0), D(initial_dir), D_dt(VNULL), D_dtdt(VNULL) {
+    : ChNodeFEAxyz(initial_pos), m_dof_actual(0), D(initial_dir), D_dt(VNULL), D_dtdt(VNULL) {
     variables_D = new ChVariablesGenericDiagonalMass(3);
     // default: no atomic mass associated to fea node, the fea element will add mass matrix
     variables_D->GetMassDiagonal().setZero();
@@ -78,7 +78,12 @@ bool ChNodeFEAxyzD::IsFixedD() const {
 }
 
 void ChNodeFEAxyzD::SetupInitial(ChSystem* system) {
-    m_dof = IsFixedD() ? 3 : 6;
+    if (IsFixed())
+        m_dof_actual = 0;
+    else if (IsFixedD())
+        m_dof_actual = 3;
+    else
+        m_dof_actual = 6;
 }
 
 // -----------------------------------------------------------------------------
@@ -279,7 +284,7 @@ void ChNodeFEAxyzD::ComputeNF(
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
 ) {
-    Qi.segment(0, m_dof) = F.segment(0, m_dof);
+    Qi.segment(0, m_dof_actual) = F.segment(0, m_dof_actual);
     detJ = 1;  // not needed because not used in quadrature.
 }
 

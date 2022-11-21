@@ -162,8 +162,8 @@ void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::CSV_writer
     for (unsigned int in = 0; in < mesh->GetNnodes(); in++) {
         auto node = mesh->GetNode(in);
         node->NodeIntStateGather(offset_x, x, offset_v, v, t);
-        offset_x += node->Get_ndof_x();
-        offset_v += node->Get_ndof_w();
+        offset_x += node->GetNdofX();
+        offset_v += node->GetNdofW();
     }
 
     // Write number of vertices, number of DOFs

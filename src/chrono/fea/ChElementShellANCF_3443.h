@@ -36,7 +36,7 @@
 #include <vector>
 
 #include "chrono/fea/ChMaterialShellANCF.h"
-#include "chrono/core/ChQuadrature.h"
+#include "chrono/fea/ChElementANCF.h"
 #include "chrono/fea/ChElementShell.h"
 #include "chrono/fea/ChNodeFEAxyzDDD.h"
 
@@ -61,7 +61,10 @@ namespace fea {
 /// A o-----+-----o B
 /// </pre>
 
-class ChApi ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
+class ChApi ChElementShellANCF_3443 : public ChElementANCF,
+                                      public ChElementShell,
+                                      public ChLoadableUV,
+                                      public ChLoadableUVW {
   public:
     // Using fewer than 3 Gauss quadrature points for each midsurface direction (NP) or 2 Gauss quadrature points
     // through the thickness (NT) will likely result in numerical issues with the element.  A slightly less stiff
@@ -122,10 +125,16 @@ class ChApi ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV
     virtual int GetNnodes() override { return 4; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return m_element_dof; }
+    virtual int GetNdofs() override { return 4 * 12; }
+
+    /// Get the actual number of coordinates in the field used by the referenced nodes.
+    virtual int GetNdofs_actual() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->Get_ndof_x(); }
+    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->GetNdofX(); }
+
+    /// Get the number of coordinates from the n-th node used by this element.
+    virtual int GetNodeNdofs_actual(int n) override { return m_nodes[n]->GetNdofX_actual(); }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzDDD> nodeA,
@@ -293,7 +302,7 @@ class ChApi ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV
     virtual int GetSubBlocks() override { return 4; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetW(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 12; }
@@ -465,11 +474,8 @@ class ChApi ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV
     /// Access a statically-allocated set of tables, from 0 to a 10th order, with precomputed tables.
     static ChQuadratureTables* GetStaticGQTables();
 
-    IntFrcMethod m_method;  ///< Generalized internal force and Jacobian calculation method
+    IntFrcMethod m_method;                                  ///< internal force and Jacobian calculation method
     std::vector<std::shared_ptr<ChNodeFEAxyzDDD>> m_nodes;  ///< element nodes
-    int m_element_dof;                                      ///< actual number of element DOFs
-    bool m_full_dof;                                        ///< true if all DOFs are active
-    ChArray<int> m_mapping_dof;                             ///< indices of active DOFs
 
     std::vector<Layer, Eigen::aligned_allocator<Layer>> m_layers;  ///< element layers
     std::vector<double, Eigen::aligned_allocator<double>>
@@ -490,10 +496,10 @@ class ChApi ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV
                ///< Gauss quadrature points used for the "Continuous Integration" style method
     ChMatrixDynamic_col<> m_kGQ;  ///< Precomputed Gauss-Quadrature Weight & Element Jacobian scale factors used for the
                                   ///< "Continuous Integration" style method
-    ChMatrixDynamic_col<> m_O1;  ///< Precomputed Matrix combined with the nodal coordinates used for the
-                                 ///< "Pre-Integration" style method internal force calculation
-    ChMatrixDynamic_col<> m_O2;  ///< Precomputed Matrix combined with the nodal coordinates used for the
-                                 ///< "Pre-Integration" style method Jacobian calculation
+    ChMatrixDynamic_col<> m_O1;   ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                  ///< "Pre-Integration" style method internal force calculation
+    ChMatrixDynamic_col<> m_O2;   ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                  ///< "Pre-Integration" style method Jacobian calculation
     ChMatrixDynamic_col<> m_K3Compact;  ///< Precomputed Matrix combined with the nodal coordinates used for the
                                         ///< "Pre-Integration" style method internal force calculation
     ChMatrixDynamic_col<>

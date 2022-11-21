@@ -58,7 +58,7 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     virtual void SetMass(double mm) = 0;
 
     /// Get the number of degrees of freedom
-    virtual int Get_ndof_x() const override { return 3; }
+    virtual int GetNdofX() const override { return 3; }
 
     // INTERFACE to ChLoadable
 
@@ -89,7 +89,7 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     virtual int GetSubBlocks() override { return 1; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return NodeGetOffsetW(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }

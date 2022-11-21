@@ -161,9 +161,9 @@ void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
-    R.segment(mnode1->NodeGetOffset_w(), 3) += F.eigen() * s1;
-    R.segment(mnode2->NodeGetOffset_w(), 3) += F.eigen() * s2;
-    R.segment(mnode3->NodeGetOffset_w(), 3) += F.eigen() * s3;
+    R.segment(mnode1->NodeGetOffsetW(), 3) += F.eigen() * s1;
+    R.segment(mnode2->NodeGetOffsetW(), 3) += F.eigen() * s2;
+    R.segment(mnode3->NodeGetOffsetW(), 3) += F.eigen() * s3;
 }
 
 void ChContactTriangleXYZ::ContactForceLoadQ(const ChVector<>& F,
@@ -226,11 +226,11 @@ void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_p
 
 unsigned int ChContactTriangleXYZ::GetSubBlockOffset(int nblock) {
     if (nblock == 0)
-        return GetNode1()->NodeGetOffset_w();
+        return GetNode1()->NodeGetOffsetW();
     if (nblock == 1)
-        return GetNode2()->NodeGetOffset_w();
+        return GetNode2()->NodeGetOffsetW();
     if (nblock == 2)
-        return GetNode3()->NodeGetOffset_w();
+        return GetNode3()->NodeGetOffsetW();
     return 0;
 }
 
@@ -430,9 +430,9 @@ void ChContactTriangleXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
-    R.segment(mnode1->NodeGetOffset_w(), 3) += F.eigen() * s1;
-    R.segment(mnode2->NodeGetOffset_w(), 3) += F.eigen() * s2;
-    R.segment(mnode3->NodeGetOffset_w(), 3) += F.eigen() * s3;
+    R.segment(mnode1->NodeGetOffsetW(), 3) += F.eigen() * s1;
+    R.segment(mnode2->NodeGetOffsetW(), 3) += F.eigen() * s2;
+    R.segment(mnode3->NodeGetOffsetW(), 3) += F.eigen() * s3;
 }
 
 void ChContactTriangleXYZROT::ContactForceLoadQ(const ChVector<>& F,
@@ -495,11 +495,11 @@ void ChContactTriangleXYZROT::ComputeJacobianForContactPart(const ChVector<>& ab
 
 unsigned int ChContactTriangleXYZROT::GetSubBlockOffset(int nblock) {
     if (nblock == 0)
-        return GetNode1()->NodeGetOffset_w();
+        return GetNode1()->NodeGetOffsetW();
     if (nblock == 1)
-        return GetNode2()->NodeGetOffset_w();
+        return GetNode2()->NodeGetOffsetW();
     if (nblock == 2)
-        return GetNode3()->NodeGetOffset_w();
+        return GetNode3()->NodeGetOffsetW();
     return 0;
 }
 

@@ -42,8 +42,6 @@ namespace fea {
 
 ChElementShellANCF_3443::ChElementShellANCF_3443()
     : m_method(IntFrcMethod::ContInt),
-      m_element_dof(4 * 12),
-      m_full_dof(true),
       m_numLayers(0),
       m_lenX(0),
       m_lenY(0),
@@ -372,7 +370,7 @@ double ChElementShellANCF_3443::GetVonMissesStress(const double layer,
 void ChElementShellANCF_3443::SetupInitial(ChSystem* system) {
     m_element_dof = 0;
     for (int i = 0; i < 4; i++) {
-        m_element_dof += m_nodes[i]->Get_ndof_x();
+        m_element_dof += m_nodes[i]->GetNdofX();
     }
 
     m_full_dof = (m_element_dof == 4 * 12);
@@ -380,7 +378,7 @@ void ChElementShellANCF_3443::SetupInitial(ChSystem* system) {
     m_mapping_dof.resize(m_element_dof);
     int dof = 0;
     for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < m_nodes[i]->Get_ndof_x(); j++)
+        for (int j = 0; j < m_nodes[i]->GetNdofX(); j++)
             m_mapping_dof(dof++) = i * 12 + j;
     }
 
@@ -460,7 +458,7 @@ void ChElementShellANCF_3443::ComputeNodalMass() {
 // Compute the generalized internal force vector for the current nodal coordinates and set the value in the Fi vector.
 
 void ChElementShellANCF_3443::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    assert(Fi.size() == 3 * NSF);
+    assert(Fi.size() == GetNdofs());
 
     if (m_method == IntFrcMethod::ContInt) {
         if (m_damping_enabled) {  // If linear Kelvin-Voigt viscoelastic material model is enabled
@@ -477,7 +475,7 @@ void ChElementShellANCF_3443::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
 
 void ChElementShellANCF_3443::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == 3 * NSF) && (H.cols() == 3 * NSF));
+    assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
 
     if (m_method == IntFrcMethod::ContInt) {
         if (m_damping_enabled) {  // If linear Kelvin-Voigt viscoelastic material model is enabled
@@ -509,7 +507,7 @@ void ChElementShellANCF_3443::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfa
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
 void ChElementShellANCF_3443::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
-    assert(Fg.size() == 3 * NSF);
+    assert(Fg.size() == GetNdofs());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
     // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was

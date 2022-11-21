@@ -33,7 +33,7 @@ void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c
         if (!GetNodeN(in)->IsFixed()) {
             for (int j = 0; j < nodedofs; j++)
 #pragma omp atomic
-                R(GetNodeN(in)->NodeGetOffset_w() + j) += mFi(stride + j);
+                R(GetNodeN(in)->NodeGetOffsetW() + j) += mFi(stride + j);
         }
         stride += nodedofs;
     }
@@ -55,7 +55,7 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
             for (int i = 0; i < nodedofs; ++i)
                 mqi(stride + i) = 0;
         } else {
-            mqi.segment(stride, nodedofs) = w.segment(GetNodeN(in)->NodeGetOffset_w(), nodedofs);
+            mqi.segment(stride, nodedofs) = w.segment(GetNodeN(in)->NodeGetOffsetW(), nodedofs);
         }
         stride += nodedofs;
     }
@@ -66,7 +66,7 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
     for (int in = 0; in < this->GetNnodes(); in++) {
         int nodedofs = GetNodeNdofs(in);
         if (!GetNodeN(in)->IsFixed())
-            R.segment(GetNodeN(in)->NodeGetOffset_w(), nodedofs) += mFi.segment(stride, nodedofs);
+            R.segment(GetNodeN(in)->NodeGetOffsetW(), nodedofs) += mFi.segment(stride, nodedofs);
         stride += nodedofs;
     }
 }
@@ -87,7 +87,7 @@ void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const 
         if (!GetNodeN(in)->IsFixed()) {
             for (int j = 0; j < nodedofs; j++)
 #pragma omp atomic
-                R(GetNodeN(in)->NodeGetOffset_w() + j) += mFg(stride + j);
+                R(GetNodeN(in)->NodeGetOffsetW() + j) += mFg(stride + j);
         }
         stride += nodedofs;
     }

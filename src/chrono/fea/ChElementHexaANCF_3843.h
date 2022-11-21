@@ -35,9 +35,9 @@
 
 #include <vector>
 
+#include "chrono/fea/ChElementANCF.h"
 #include "chrono/fea/ChElementHexahedron.h"
 #include "chrono/fea/ChMaterialHexaANCF.h"
-#include "chrono/core/ChQuadrature.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChNodeFEAxyzDDD.h"
 #include "chrono/physics/ChLoadable.h"
@@ -74,7 +74,10 @@ namespace fea {
 /// E o-----+-----o F
 /// </pre>
 
-class ChApi ChElementHexaANCF_3843 : public ChElementHexahedron, public ChElementGeneric, public ChLoadableUVW {
+class ChApi ChElementHexaANCF_3843 : public ChElementANCF,
+                                     public ChElementHexahedron,
+                                     public ChElementGeneric,
+                                     public ChLoadableUVW {
   public:
     // Using fewer than 3 Gauss quadrature will likely result in numerical issues with the element.
     static const int NP = 4;              ///< number of Gauss quadrature along beam axis
@@ -103,10 +106,16 @@ class ChApi ChElementHexaANCF_3843 : public ChElementHexahedron, public ChElemen
     virtual int GetNnodes() override { return 8; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return m_element_dof; }
+    virtual int GetNdofs() override { return 8 * 12; }
+
+    /// Get the actual number of coordinates in the field used by the referenced nodes.
+    virtual int GetNdofs_actual() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->Get_ndof_x(); }
+    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->GetNdofX(); }
+
+    /// Get the number of coordinates from the n-th node used by this element.
+    virtual int GetNodeNdofs_actual(int n) override { return m_nodes[n]->GetNdofX_actual(); }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzDDD> nodeA,
@@ -279,7 +288,7 @@ class ChApi ChElementHexaANCF_3843 : public ChElementHexahedron, public ChElemen
     virtual int GetSubBlocks() override { return 8; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetW(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 12; }
@@ -410,13 +419,9 @@ class ChApi ChElementHexaANCF_3843 : public ChElementHexahedron, public ChElemen
     /// Access a statically-allocated set of tables, from 0 to a 10th order, with precomputed tables.
     static ChQuadratureTables* GetStaticGQTables();
 
-    IntFrcMethod m_method;                           ///< Generalized internal force and Jacobian calculation method
-    std::shared_ptr<ChMaterialHexaANCF> m_material;  ///< material model
-
+    IntFrcMethod m_method;                                  ///< internal force and Jacobian calculation method
+    std::shared_ptr<ChMaterialHexaANCF> m_material;         ///< material model
     std::vector<std::shared_ptr<ChNodeFEAxyzDDD>> m_nodes;  ///< element nodes
-    int m_element_dof;                                      ///< actual number of element DOFs
-    bool m_full_dof;                                        ///< true if all DOFs are active
-    ChArray<int> m_mapping_dof;                             ///< indices of active DOFs
 
     double m_lenX;             ///< total element length along X
     double m_lenY;             ///< total element length along Y

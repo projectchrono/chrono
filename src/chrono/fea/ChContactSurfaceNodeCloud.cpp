@@ -22,13 +22,13 @@
 namespace chrono {
 namespace fea {
 
-//////////////////////////////////////////////////////////////////////////////
-////  ChContactNodeXYZ
+// -----------------------------------------------------------------------------
+//  ChContactNodeXYZ
 
 void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
                                                   const ChVector<>& abs_point,
                                                   ChVectorDynamic<>& R) {
-    R.segment(this->mnode->NodeGetOffset_w(), 3) += F.eigen();
+    R.segment(this->mnode->NodeGetOffsetW(), 3) += F.eigen();
 }
 
 void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point,
@@ -50,8 +50,8 @@ ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem() {
     return (ChPhysicsItem*)container->GetMesh();
 }
 
-//////////////////////////////////////////////////////////////////////////////
-////  ChContactNodeXYZsphere
+// -----------------------------------------------------------------------------
+//  ChContactNodeXYZsphere
 
 ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* anode, ChContactSurface* acontainer)
     : ChContactNodeXYZ(anode, acontainer) {
@@ -59,13 +59,13 @@ ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* anode, ChContactSur
     this->collision_model->SetContactable(this);
 }
 
-//////////////////////////////////////////////////////////////////////////////
-////  ChContactNodeXYZROT
+// -----------------------------------------------------------------------------
+//  ChContactNodeXYZROT
 
 void ChContactNodeXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
                                                      const ChVector<>& abs_point,
                                                      ChVectorDynamic<>& R) {
-    R.segment(this->mnode->NodeGetOffset_w(), 3) += F.eigen();
+    R.segment(this->mnode->NodeGetOffsetW(), 3) += F.eigen();
 }
 
 void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_point,
@@ -87,8 +87,8 @@ ChPhysicsItem* ChContactNodeXYZROT::GetPhysicsItem() {
     return (ChPhysicsItem*)container->GetMesh();
 }
 
-//////////////////////////////////////////////////////////////////////////////
-////  ChContactNodeXYZROTsphere
+// -----------------------------------------------------------------------------
+//  ChContactNodeXYZROTsphere
 
 ChContactNodeXYZROTsphere::ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* anode, ChContactSurface* acontainer)
     : ChContactNodeXYZROT(anode, acontainer) {
@@ -96,8 +96,8 @@ ChContactNodeXYZROTsphere::ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* anode, ChC
     this->collision_model->SetContactable(this);
 }
 
-//////////////////////////////////////////////////////////////////////////////
-////  ChContactSurfaceNodeCloud
+// -----------------------------------------------------------------------------
+//  ChContactSurfaceNodeCloud
 
 ChContactSurfaceNodeCloud::ChContactSurfaceNodeCloud(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh)
     : ChContactSurface(material, mesh) {}

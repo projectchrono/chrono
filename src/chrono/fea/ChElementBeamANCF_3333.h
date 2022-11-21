@@ -37,7 +37,8 @@
 #include <vector>
 
 #include "chrono/fea/ChMaterialBeamANCF.h"
-#include "chrono/core/ChQuadrature.h"
+
+#include "chrono/fea/ChElementANCF.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChNodeFEAxyzDD.h"
 
@@ -61,7 +62,10 @@ namespace fea {
 /// </pre>
 /// where C is the third and central node.
 
-class ChApi ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
+class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
+                                     public ChElementBeam,
+                                     public ChLoadableU,
+                                     public ChLoadableUVW {
   public:
     // Using fewer than 2 Gauss quadrature points along the beam axis (NP) or through each cross section direction (NT)
     // will likely result in numerical issues with the element.
@@ -100,10 +104,16 @@ class ChApi ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, p
     virtual int GetNnodes() override { return 3; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return m_element_dof; }
+    virtual int GetNdofs() override { return 3 * 9; }
+
+    /// Get the actual number of coordinates in the field used by the referenced nodes.
+    virtual int GetNdofs_actual() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->Get_ndof_x(); }
+    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->GetNdofX(); }
+
+    /// Get the number of coordinates from the n-th node used by this element.
+    virtual int GetNodeNdofs_actual(int n) override { return m_nodes[n]->GetNdofX_actual(); }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzDD> nodeA,
@@ -256,7 +266,7 @@ class ChApi ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, p
     virtual int GetSubBlocks() override { return 3; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetW(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 9; }
@@ -405,13 +415,9 @@ class ChApi ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, p
     /// Access a statically-allocated set of tables, from 0 to a 10th order, with precomputed tables.
     static ChQuadratureTables* GetStaticGQTables();
 
-    IntFrcMethod m_method;                           ///< Generalized internal force and Jacobian calculation method
-    std::shared_ptr<ChMaterialBeamANCF> m_material;  ///< material model
-
+    IntFrcMethod m_method;                                 ///< internal force and Jacobian calculation method
+    std::shared_ptr<ChMaterialBeamANCF> m_material;        ///< material model
     std::vector<std::shared_ptr<ChNodeFEAxyzDD>> m_nodes;  ///< element nodes
-    int m_element_dof;                                     ///< actual number of degrees of freedom for the element
-    bool m_full_dof;                                       ///< true if all DOFs are active
-    ChArray<int> m_mapping_dof;                            ///< indices of active DOFs
 
     double m_lenX;             ///< total element length along X
     double m_thicknessY;       ///< total element length along Y
@@ -435,10 +441,10 @@ class ChApi ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, p
                    ///< used for capturing the Poisson effect with the Enhanced Continuum Mechanics method with only one
                    ///< point Gauss quadrature for the directions in the beam cross section and the full Gauss
                    ///< quadrature points only along the beam axis
-    ChMatrixDynamic_col<> m_O1;  ///< Precomputed Matrix combined with the nodal coordinates used for the
-                                 ///< "Pre-Integration" style method internal force calculation
-    ChMatrixDynamic_col<> m_O2;  ///< Precomputed Matrix combined with the nodal coordinates used for the
-                                 ///< "Pre-Integration" style method Jacobian calculation
+    ChMatrixDynamic_col<> m_O1;         ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                        ///< "Pre-Integration" style method internal force calculation
+    ChMatrixDynamic_col<> m_O2;         ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                        ///< "Pre-Integration" style method Jacobian calculation
     ChMatrixDynamic_col<> m_K3Compact;  ///< Precomputed Matrix combined with the nodal coordinates used for the
                                         ///< "Pre-Integration" style method internal force calculation
     ChMatrixDynamic_col<>
