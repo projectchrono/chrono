@@ -387,11 +387,13 @@ void ChElementCableANCF::SetupInitial(ChSystem* system) {
 
     m_full_dof = (m_element_dof == 2 * 6);
 
-    m_mapping_dof.resize(m_element_dof);
-    int dof = 0;
-    for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < m_nodes[i]->GetNdofX(); j++)
-            m_mapping_dof(dof++) = i * 6 + j;
+    if (!m_full_dof) {
+        m_mapping_dof.resize(m_element_dof);
+        int dof = 0;
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < m_nodes[i]->GetNdofX(); j++)
+                m_mapping_dof(dof++) = i * 6 + j;
+        }
     }
 
     // Compute rest length, mass:

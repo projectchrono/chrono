@@ -99,11 +99,13 @@ void ChElementShellANCF_3423::SetupInitial(ChSystem* system) {
 
     m_full_dof = (m_element_dof == 4 * 6);
 
-    m_mapping_dof.resize(m_element_dof);
-    int dof = 0;
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < m_nodes[i]->GetNdofX(); j++)
-            m_mapping_dof(dof++) = i * 6 + j;
+    if (!m_full_dof) {
+        m_mapping_dof.resize(m_element_dof);
+        int dof = 0;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < m_nodes[i]->GetNdofX(); j++)
+                m_mapping_dof(dof++) = i * 6 + j;
+        }
     }
 
     // Perform layer initialization and accumulate element thickness.

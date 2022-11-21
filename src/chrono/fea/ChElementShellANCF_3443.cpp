@@ -375,11 +375,13 @@ void ChElementShellANCF_3443::SetupInitial(ChSystem* system) {
 
     m_full_dof = (m_element_dof == 4 * 12);
 
-    m_mapping_dof.resize(m_element_dof);
-    int dof = 0;
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < m_nodes[i]->GetNdofX(); j++)
-            m_mapping_dof(dof++) = i * 12 + j;
+    if (!m_full_dof) {
+        m_mapping_dof.resize(m_element_dof);
+        int dof = 0;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < m_nodes[i]->GetNdofX(); j++)
+                m_mapping_dof(dof++) = i * 12 + j;
+        }
     }
 
     // Store the initial nodal coordinates. These values define the reference configuration of the element.
