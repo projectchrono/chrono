@@ -50,11 +50,11 @@ const double M113_SprocketBand::m_gear_RT = 0.22;
 
 const double M113_SprocketBand::m_lateral_backlash = 0.02;
 
-const std::string M113_SprocketBandLeft::m_meshFile = "M113/meshes/Sprocket2_L.obj";
-const std::string M113_SprocketBandRight::m_meshFile = "M113/meshes/Sprocket2_R.obj";
+const std::string M113_SprocketBandLeft::m_meshFile = "M113/meshes/SprocketBand_L.obj";
+const std::string M113_SprocketBandRight::m_meshFile = "M113/meshes/SprocketBand_R.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 M113_SprocketBand::M113_SprocketBand(const std::string& name) : ChSprocketBand(name) {}
 
 void M113_SprocketBand::CreateContactMaterial(ChContactMethod contact_method) {
@@ -65,12 +65,10 @@ void M113_SprocketBand::CreateContactMaterial(ChContactMethod contact_method) {
     m_material = minfo.CreateMaterial(contact_method);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void M113_SprocketBand::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        ////auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
-        auto trimesh = CreateVisualizationMesh(0.15, 0.03, 0.02);
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
+        ////auto trimesh = CreateVisualizationMesh(0.15, 0.03, 0.02);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());

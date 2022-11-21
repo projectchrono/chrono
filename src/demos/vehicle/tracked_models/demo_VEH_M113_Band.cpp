@@ -60,17 +60,20 @@ using std::endl;
 TrackShoeType shoe_type = TrackShoeType::BAND_ANCF;
 
 // ANCF element type for BAND_ANCF (ANCF_4 or ANCF_8)
-ChTrackShoeBandANCF::ElementType element_type = ChTrackShoeBandANCF::ElementType::ANCF_4;
+ChTrackShoeBandANCF::ElementType element_type = ChTrackShoeBandANCF::ElementType::ANCF_8;
 
 // Number of ANCF elements in one track shoe web mesh
 int num_elements_length = 1;
 int num_elements_width = 1;
 
+// Enable/disable curvature constraints (ANCF_8 only)
+bool constrain_curvature = false;
+
 // Simulation step size and duration
 double step_size = 2.5e-5;
 double t_end = 10.0;
 
-// Linear solver (MUMPS or PARDISO_MKL)
+// Linear solver (MUMPS, PARDISO_MKL, or SPARSE_LU)
 ChSolver::Type solver_type = ChSolver::Type::MUMPS;
 
 // Verbose level
@@ -111,6 +114,7 @@ int main(int argc, char* argv[]) {
     m113.SetTrackShoeType(shoe_type);
     m113.SetANCFTrackShoeElementType(element_type);
     m113.SetANCFTrackShoeNumElements(num_elements_length, num_elements_width);
+    m113.SetANCFTrackShoeCurvatureConstraints(constrain_curvature);
     m113.SetPowertrainType(PowertrainModelType::SIMPLE_CVT);
     m113.SetDrivelineType(DrivelineTypeTV::SIMPLE);
     m113.SetBrakeType(BrakeType::SIMPLE);
@@ -152,7 +156,7 @@ int main(int argc, char* argv[]) {
     vehicle.SetIdlerVisualizationType(VisualizationType::MESH);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetRoadWheelVisualizationType(VisualizationType::MESH);
-    vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetTrackShoeVisualizationType(VisualizationType::MESH);
 
     // Export sprocket and shoe tread visualization meshes
     auto trimesh =
@@ -288,6 +292,9 @@ int main(int argc, char* argv[]) {
     // ------------------------------
 
     // Linear solver
+#if !defined(CHRONO_PARDISO_MKL) && !defined(CHRONO_MUMPS)
+    solver_type = ChSolver::Type::SPARSE_LU;
+#endif
 #ifndef CHRONO_PARDISO_MKL
     if (solver_type == ChSolver::Type::PARDISO_MKL)
         solver_type = ChSolver::Type::MUMPS;
@@ -298,28 +305,33 @@ int main(int argc, char* argv[]) {
 #endif
 
     switch (solver_type) {
-#ifdef CHRONO_MUMPS
         case ChSolver::Type::MUMPS: {
+#ifdef CHRONO_MUMPS
             auto solver = chrono_types::make_shared<ChSolverMumps>();
             solver->LockSparsityPattern(true);
             solver->EnableNullPivotDetection(true);
             solver->GetMumpsEngine().SetICNTL(14, 50);
             solver->SetVerbose(verbose_solver);
             sys->SetSolver(solver);
+#endif
             break;
         }
-#endif
-#ifdef CHRONO_PARDISO_MKL
         case ChSolver::Type::PARDISO_MKL: {
+#ifdef CHRONO_PARDISO_MKL
             auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(verbose_solver);
+            sys->SetSolver(solver);
+#endif
+            break;
+        }
+        default: {
+            auto solver = chrono_types::make_shared<ChSolverSparseLU>();
             solver->LockSparsityPattern(true);
             solver->SetVerbose(verbose_solver);
             sys->SetSolver(solver);
             break;
         }
-#endif
-        default:
-            break;
     }
 
     // Integrator
@@ -328,7 +340,7 @@ int main(int argc, char* argv[]) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(20);
     integrator->SetAbsTolerances(1e-4, 1e2);
-    integrator->SetMode(ChTimestepperHHT::POSITION);
+    integrator->SetMode(ChTimestepperHHT::ACCELERATION);
     integrator->SetStepControl(false);
     integrator->SetModifiedNewton(true);
     integrator->SetScaling(false);
@@ -440,6 +452,13 @@ int main(int argc, char* argv[]) {
 #endif
 
         // Advance simulation for one timestep for all modules
+        if (step_number == 100) {
+            step_size = 5e-5;
+        }
+        if (step_number == 140) {
+            step_size = 1e-4;
+        }
+
         driver.Advance(step_size);
         terrain.Advance(step_size);
         m113.Advance(step_size);

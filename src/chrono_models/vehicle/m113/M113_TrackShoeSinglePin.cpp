@@ -132,7 +132,7 @@ M113_TrackShoeSinglePin::M113_TrackShoeSinglePin(const std::string& name) : ChTr
         ChVehicleGeometry::CylinderShape(ChVector<>(-0.061, +0.095, 0), QUNIT, 0.015, 0.095, -1));
 
     m_geometry.m_has_mesh = true;
-    m_geometry.m_vis_mesh_file = "M113/meshes/TrackShoe.obj";
+    m_geometry.m_vis_mesh_file = "M113/meshes/TrackShoeSinglePin.obj";
 }
 
 }  // end namespace m113
