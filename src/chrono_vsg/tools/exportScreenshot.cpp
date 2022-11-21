@@ -8,6 +8,9 @@
 
 using namespace std;
 
+namespace chrono {
+namespace vsg3d {
+
 void exportScreenshot(vsg::ref_ptr<vsg::Window> window,
                       vsg::ref_ptr<vsg::Options> options,
                       std::string& imageFilename) {
@@ -272,3 +275,5 @@ void exportScreenshot(vsg::ref_ptr<vsg::Window> window,
     }
 #endif
 }
+}  // namespace vsg3d
+}  // namespace chrono

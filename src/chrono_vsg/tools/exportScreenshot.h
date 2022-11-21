@@ -11,6 +11,11 @@
 #include <thread>
 #include <string>
 
-void exportScreenshot(vsg::ref_ptr<vsg::Window> window, vsg::ref_ptr<vsg::Options> options, std::string& imageFilename);
+#include "chrono_vsg/core/ChApiVSG.h"
 
+namespace chrono {
+namespace vsg3d {
+    CH_VSG_API void exportScreenshot(vsg::ref_ptr<vsg::Window> window, vsg::ref_ptr<vsg::Options> options, std::string& imageFilename);
+}
+}  // namespace chrono
 #endif

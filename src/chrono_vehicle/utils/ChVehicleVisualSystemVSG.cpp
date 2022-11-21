@@ -712,7 +712,7 @@ void ChVehicleVisualSystemVSG::Render() {
     m_viewer->recordAndSubmit();
 
     if (m_params->do_image_capture) {
-        exportScreenshot(m_window, m_options, m_imageFilename);
+        vsg3d::exportScreenshot(m_window, m_options, m_imageFilename);
         m_params->do_image_capture = false;
     }
 
