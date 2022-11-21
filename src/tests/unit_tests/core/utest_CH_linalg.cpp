@@ -245,7 +245,8 @@ TEST(LinearAlgebraTest, custom_matrices) {
 }
 
 TEST(LinearAlgebra, slicing) {
-    ChVectorN<double, 5> v1 = {1, 2, 3, 4, 5};
+    ChVectorN<double, 5> v1;
+    v1 << 1, 2, 3, 4, 5;
     ChVectorDynamic<double> v2(5);
     v2(0) = 1;
     v2(1) = 2;
