@@ -171,6 +171,12 @@ int main(int argc, char* argv[]) {
     // Control internal collisions and contact monitoring
     // --------------------------------------------------
 
+    // Disable contact for the FEA track meshes
+    std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(LEFT))
+        ->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
+    std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(RIGHT))
+        ->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
+
     // Enable contact on all tracked vehicle parts, except the left sprocket
     ////vehicle.SetCollide(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
 
