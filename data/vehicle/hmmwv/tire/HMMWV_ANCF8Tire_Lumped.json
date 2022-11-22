@@ -1,11 +1,13 @@
 {
-  "Name":            "HMMWV ANCF Tire",
+  "Name":            "HMMWV ANCF 8-Node Tire",
   "Type":            "Tire",
   "Template":        "ANCFTire",
 
   "Tire Radius":     0.4673,
   "Rim Radius":      0.2683,
   "Rim Width":       0.254,
+
+  "8-Node Elements":  true,
 
   "Contact Material":
   {
@@ -31,26 +33,26 @@
   [
       {
          "Type":    "Orthotropic",
-         "Density": 0.1000000E+04,
-         "E":       [0.7560000E+10 , 0.4740000E+08 , 0.4740000E+08],
-         "nu":      [0.4500000E+00 , 0.4500000E+00 , 0.4500000E+00],
-         "G":       [0.1634483E+08 , 0.1634483E+08 , 0.1634483E+08]
+         "Density": 0.108333E+04,
+         "E":       [0.0569311E+09 , 1.2995000E+09 , 0.0569311E+09],
+         "nu":      [0.0196939E+00 , 0.7415553E+00 , 0.4500000E+00],
+         "G":       [1.6344800E+07 , 1.6344800E+07 , 1.6344800E+07]
       },
       
       {
          "Type":    "Orthotropic",
-         "Density": 0.2639000E+04,
-         "E":       [0.1800000E+12 , 0.4740000E+08 , 0.4740000E+08],
-         "nu":      [0.4500000E+00 , 0.4500000E+00 , 0.4500000E+00],
-         "G":       [0.1634483E+08 , 0.1634483E+08 , 0.1634483E+08]
+         "Density": 0.10090909E+04,
+         "E":       [0.0484797E+09 , 6.8770364E+09 , 0.0484797E+09],
+         "nu":      [0.0031508E+00 , 0.4830288E+00 , 0.4500000E+00],
+         "G":       [1.6344800E+07 , 1.6344800E+07 , 1.6344800E+07]
       },
 
       {
          "Type":    "Orthotropic",
-         "Density": 0.1100000E+04,
-         "E":       [0.4740000E+08 , 0.4740000E+08 , 0.4740000E+08],
-         "nu":      [0.4500000E+00 , 0.4500000E+00 , 0.4500000E+00],
-         "G":       [0.1634483E+08 , 0.1634483E+08 , 0.1634483E+08]
+         "Density": 0.11515900E+04,
+         "E":       [0.7522762E+09 , 1.8424304E+09 , 0.0819833E+09],
+         "nu":      [0.0139820E+00 , 0.6983265E+00 , 0.6514890E+00],
+         "G":       [5.3971520E+09 , 0.0163448E+09 , 0.0163448E+09]
       }
   ],
 
@@ -60,29 +62,29 @@
 
   "Bead Section":
   {
-      "Layer Thickness":   [ 0.5e-03 , 0.5e-02 , 0.5e-03 ],
-      "Ply Angle":         [ 90 , 0 , 90],
-      "Material ID":       [ 0 , 2 , 0],
-      "Number Elements":   2
+      "Layer Thickness":   [ 9e-03 ],
+      "Ply Angle":         [ 0],
+      "Material ID":       [ 0],
+      "Number Elements":   1
   },
 
   "Sidewall Section":
   {
-      "Layer Thickness":   [ 0.5e-03 , 0.1e-03 , 0.5e-03 ],
-      "Ply Angle":         [ 90 , 0 , 90 ],
-      "Material ID":       [ 0 , 2 , 0 ],
-      "Number Elements":   4
+      "Layer Thickness":   [ 3.1e-03],
+      "Ply Angle":         [ 0 ],
+      "Material ID":       [ 1 ],
+      "Number Elements":   2
   },
 
   "Tread Section":
   {
-      "Layer Thickness":   [ 0.1e-02 , 0.3e-03 , 0.3e-03 , 0.5e-03 ],
-      "Ply Angle":         [ 0 , -20 , 20 , 90 ],
-      "Material ID":       [ 2 , 1 , 1 , 0 ],
-      "Number Elements":   6
+      "Layer Thickness":   [ 8.1e-03 ],
+      "Ply Angle":         [ 0 ],
+      "Material ID":       [ 2 ],
+      "Number Elements":   3
  },
 
-  "Number Elements Circumference":  90,
+  "Number Elements Circumference":  40,
 
   "Profile": 
   [

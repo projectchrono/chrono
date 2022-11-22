@@ -500,6 +500,7 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementBase.h
     fea/ChElementGeneric.h
     fea/ChElementCorotational.h
+    fea/ChElementANCF.h
     fea/ChElementSpring.h
     fea/ChElementBar.h
     fea/ChElementBeam.h

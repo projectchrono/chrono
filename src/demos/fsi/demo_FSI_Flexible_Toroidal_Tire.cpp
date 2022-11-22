@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/flex_body." + std::to_string(counter++) + ".vtk";
-            fea::ChMeshExporter::writeFrame(my_mesh, (char*)filename.c_str(), MESH_CONNECTIVITY);
+            fea::ChMeshExporter::WriteFrame(my_mesh, MESH_CONNECTIVITY, filename);
         }
 
         // Render SPH particles
@@ -459,5 +459,5 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         sysFSI.SetShellElementsNodes(_2D_elementsNodes_mesh);
 
     sysFSI.SetFsiMesh(my_mesh);
-    fea::ChMeshExporter::writeMesh(my_mesh, MESH_CONNECTIVITY);
+    fea::ChMeshExporter::WriteMesh(my_mesh, MESH_CONNECTIVITY);
 }

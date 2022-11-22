@@ -96,7 +96,7 @@ void ChNodeSPH::SetCollisionRadius(double mr) {
 }
 
 void ChNodeSPH::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
-    R.segment(NodeGetOffset_w(), 3) += F.eigen();
+    R.segment(NodeGetOffsetW(), 3) += F.eigen();
 }
 
 void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point,

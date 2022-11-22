@@ -50,9 +50,6 @@ const double M113_TrackShoeBandANCF::m_tooth_width = 0.0508;  // 2 in
 const double M113_TrackShoeBandANCF::m_tooth_height = 0.0385 * 1.04;
 const double M113_TrackShoeBandANCF::m_tooth_arc_radius = 0.0540 * 1.04;
 
-const int M113_TrackShoeBandANCF::m_num_elements_length = 3;
-const int M113_TrackShoeBandANCF::m_num_elements_width = 4;
-
 const double M113_TrackShoeBandANCF::m_web_length = 0.0335 * 1.04;
 const double M113_TrackShoeBandANCF::m_web_thickness = 0.0188 * 1.04;
 const double M113_TrackShoeBandANCF::m_steel_thickness = 0.05 * 25.4 / 1000.0;
@@ -63,11 +60,19 @@ const double M113_TrackShoeBandANCF::m_tread_thickness = 0.0157 * 1.04;
 const ChVector<> M113_TrackShoeBandANCF::m_guide_box_dims(0.0529, 0.0114, 0.075);
 const double M113_TrackShoeBandANCF::m_guide_box_offset_x = 0;
 
-const std::string M113_TrackShoeBandANCF::m_meshFile = "M113/meshes/TrackShoeBandANCF.obj";
+const std::string M113_TrackShoeBandANCF::m_meshFile = "M113/meshes/TrackShoeBand.obj";
 const std::string M113_TrackShoeBandANCF::m_tread_meshName = "M113_Tread";
 
 // -----------------------------------------------------------------------------
-M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name) : ChTrackShoeBandANCF(name) {
+
+M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name,
+                                               ElementType element_type,
+                                               bool constrain_curvature,
+                                               int num_elements_length,
+                                               int num_elements_width)
+    : ChTrackShoeBandANCF(name, element_type, constrain_curvature),
+      m_num_elements_length(num_elements_length),
+      m_num_elements_width(num_elements_width) {
     // Pad material (ground contact)
     m_pad_matinfo.mu = 0.8f;
     m_pad_matinfo.cr = 0.75f;
@@ -88,12 +93,15 @@ M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name) : ChTrac
 }
 
 // -----------------------------------------------------------------------------
+
 void M113_TrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        //// TODO:
-        //// Set up meshes for tread body and web links.
-        //// For now, default to PRIMITIVE visualization
-        ChTrackShoeBandANCF::AddVisualizationAssets(vis);
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetDataFile(m_meshFile), false, false);
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
+        trimesh_shape->SetMutable(false);
+        m_shoe->AddVisualShape(trimesh_shape);
     } else {
         ChTrackShoeBandANCF::AddVisualizationAssets(vis);
     }

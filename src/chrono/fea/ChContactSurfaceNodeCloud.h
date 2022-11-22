@@ -296,39 +296,42 @@ class ChApi ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
     collision::ChCollisionModel* collision_model;
 };
 
-/// Class which defines a contact surface for FEA elements, where only xyz nodes
-/// in the FEA model are used as contact items for the collision detection.
-/// Might be an efficient option in case of dense tessellations (but misses the FEAnodes-vs-FEAfaces
-/// cases, and misses FEAedge-vs-edges)
+/// Class which defines a contact surface for FEA elements.
+/// Only xyz nodes in the FEA model are used as contact items for the collision detection.
+/// Might be an efficient option in case of dense tessellations (but misses the node-vs-face and edge-vs-edge cases)
 class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
   public:
     ChContactSurfaceNodeCloud(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh = nullptr);
 
     virtual ~ChContactSurfaceNodeCloud() {}
-
-    //
-    // FUNCTIONS
-    //
-
-    /// Add a specific node to this collision cloud
+    /// Add a specific node to this collision cloud.
     void AddNode(std::shared_ptr<ChNodeFEAxyz> mnode, const double point_radius = 0.001);
-    /// Add a specific node to this collision cloud
+
+    /// Add a specific node to this collision cloud.
     void AddNode(std::shared_ptr<ChNodeFEAxyzrot> mnode, const double point_radius = 0.001);
 
-    /// Add all nodes of the mesh to this collision cloud
+    /// Add all nodes of the mesh to this collision cloud.
     void AddAllNodes(const double point_radius = 0.001);
 
     /// Add nodes of the mesh, belonging to the node_set, to this collision cloud
     void AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set, const double point_radius = 0.001);
 
+    /// Get the list of nodes.
+    std::vector<std::shared_ptr<ChContactNodeXYZsphere>>& GetNodeList() { return vnodes; }
+
+    /// Get the list of nodes with rotational dofs.
+    std::vector<std::shared_ptr<ChContactNodeXYZROTsphere>>& GetNodeListRot() { return vnodes_rot; }
+
     /// Get the number of nodes.
     unsigned int GetNnodes() const { return (unsigned int)vnodes.size(); }
-    /// Get the number of nodes with rotation too
+
+    /// Get the number of nodes with rotational dofs.
     unsigned int GetNnodesRot() const { return (unsigned int)vnodes_rot.size(); }
 
-    /// Access the N-th node
+    /// Access the n-th node.
     std::shared_ptr<ChContactNodeXYZsphere> GetNode(unsigned int n) { return vnodes[n]; };
-    /// Access the N-th node with rotation too
+
+    /// Access the n-th node with rotational dofs.
     std::shared_ptr<ChContactNodeXYZROTsphere> GetNodeRot(unsigned int n) { return vnodes_rot[n]; };
 
     // Functions to interface this with ChPhysicsItem container

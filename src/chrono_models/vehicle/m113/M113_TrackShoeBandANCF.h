@@ -36,7 +36,11 @@ namespace m113 {
 /// Continuous band rigid-link track shoe subsystem for the M113 vehicle.
 class CH_MODELS_API M113_TrackShoeBandANCF : public ChTrackShoeBandANCF {
   public:
-    M113_TrackShoeBandANCF(const std::string& name);
+    M113_TrackShoeBandANCF(const std::string& name,
+                           ElementType element_type,
+                           bool constrain_curvature,
+                           int num_elements_length = 3,
+                           int num_elements_width = 4);
     ~M113_TrackShoeBandANCF() {}
 
     /// Return the type of track shoe (guiding pin).
@@ -110,14 +114,15 @@ class CH_MODELS_API M113_TrackShoeBandANCF : public ChTrackShoeBandANCF {
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
+    int m_num_elements_length;
+    int m_num_elements_width;
+
     static const double m_tread_mass;
     static const ChVector<> m_tread_inertias;
 
     static const double m_web_mass;
     static const ChVector<> m_web_inertias;
     static const double m_steel_thickness;
-    static const int m_num_elements_length;
-    static const int m_num_elements_width;
 
     static const double m_shoe_height;
 

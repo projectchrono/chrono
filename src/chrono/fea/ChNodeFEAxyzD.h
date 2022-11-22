@@ -72,7 +72,10 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     bool IsFixedD() const;
 
     /// Get the number of degrees of freedom.
-    virtual int Get_ndof_x() const override final { return m_dof; }
+    virtual int GetNdofX() const override { return 6; }
+
+    /// Get the actual number of active degrees of freedom.
+    virtual int GetNdofX_active() const override { return m_dof_actual; }
 
     // Functions for interfacing to the state bookkeeping
 
@@ -121,10 +124,10 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     // INTERFACE to ChLoadable
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int LoadableGet_ndof_x() override { return m_dof; }
+    virtual int LoadableGet_ndof_x() override { return m_dof_actual; }
 
     /// Gets the number of DOFs affected by this element (speed part).
-    virtual int LoadableGet_ndof_w() override { return m_dof; }
+    virtual int LoadableGet_ndof_w() override { return m_dof_actual; }
 
     /// Gets all the DOFs packed in a single vector (position part).
     virtual void LoadableGetStateBlock_x(int block_offset, ChState& S) override;
@@ -140,10 +143,10 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field.
-    virtual int Get_field_ncoords() override { return m_dof; }
+    virtual int Get_field_ncoords() override { return m_dof_actual; }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return m_dof; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return m_dof_actual; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& vars) override;
@@ -170,7 +173,7 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     /// Initial setup. Set number of degrees of freedom for this node.
     virtual void SetupInitial(ChSystem* system) override;
 
-    int m_dof;  ///< number of degrees of freedom
+    int m_dof_actual;  ///< actual number of degrees of freedom
 
   private:
     ChVariablesGenericDiagonalMass* variables_D;  ///< derivative vector

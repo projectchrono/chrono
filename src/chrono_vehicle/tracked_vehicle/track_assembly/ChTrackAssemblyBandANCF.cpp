@@ -181,6 +181,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         m_shoes[s]->SetWebMesh(m_track_mesh);
         // Pass material properties to the shoe
         m_shoes[s]->SetWebMeshProperties(rubber_mat, steel_mat, m_angle_1, m_angle_2, m_angle_3, m_alpha);
+
         // Initialize the track shoe system
         m_shoes[s]->Initialize(chassis, shoe_components_coordsys);
     }
@@ -201,6 +202,13 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
                 m_track_mesh->AddContactSurface(contact_surf);
                 contact_surf->AddAllNodes(thickness / 2);
                 ////GetLog() << "Node cloud web contact. Number of nodes: " << contact_surf->GetNnodes() << "\n";
+
+                // Place all collision triangles in the same collision family and disable contact with each other
+                for (auto& node : contact_surf->GetNodeList()) {
+                    node->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
+                    node->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+                }
+
                 break;
             }
             case ContactSurfaceType::TRIANGLE_MESH: {
@@ -209,6 +217,13 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
                 contact_surf->AddFacesFromBoundary(thickness / 2, false);
                 ////GetLog() << "Triangle mesh web contact. Number of faces: " << contact_surf->GetNumTriangles() <<
                 ///"\n";
+
+                // Place all collision triangles in the same collision family and disable contact with each other
+                for (auto& face : contact_surf->GetTriangleList()) {
+                    face->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
+                    face->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+                }
+
                 break;
             }
             case ContactSurfaceType::NONE: {

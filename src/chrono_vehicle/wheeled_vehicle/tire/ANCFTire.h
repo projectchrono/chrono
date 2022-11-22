@@ -48,7 +48,7 @@ class CH_VEHICLE_API ANCFTire : public ChANCFTire {
     virtual double GetDefaultPressure() const override { return m_default_pressure; }
 
     /// Return list of nodes connected to the rim.
-    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const override;
+    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const override { return m_rim_nodes; }
 
     /// Create the FEA nodes and elements.
     /// The wheel rotational axis is assumed to be the Y axis.
@@ -60,35 +60,24 @@ class CH_VEHICLE_API ANCFTire : public ChANCFTire {
     void ProcessJSON(const rapidjson::Document& d);
     virtual void CreateContactMaterial() override;
 
+    bool m_ANCF8;
+
     double m_tire_radius;
     double m_rim_radius;
     double m_rim_width;
 
     int m_div_circumference;
-    int m_div_width;
 
     double m_alpha;
     double m_default_pressure;
 
     std::vector<std::shared_ptr<fea::ChMaterialShellANCF>> m_materials;
 
-    unsigned int m_num_elements_bead;
-    unsigned int m_num_layers_bead;
-    std::vector<double> m_layer_thickness_bead;
-    std::vector<double> m_ply_angle_bead;
-    std::vector<int> m_material_id_bead;
+    Section m_bead;
+    Section m_sidewall;
+    Section m_tread;
 
-    unsigned int m_num_elements_sidewall;
-    unsigned int m_num_layers_sidewall;
-    std::vector<double> m_layer_thickness_sidewall;
-    std::vector<double> m_ply_angle_sidewall;
-    std::vector<int> m_material_id_sidewall;
-
-    unsigned int m_num_elements_tread;
-    unsigned int m_num_layers_tread;
-    std::vector<double> m_layer_thickness_tread;
-    std::vector<double> m_ply_angle_tread;
-    std::vector<int> m_material_id_tread;
+    std::vector<std::shared_ptr<fea::ChNodeFEAbase>> m_rim_nodes;
 
     unsigned int m_num_points;
     std::vector<double> m_profile_t;

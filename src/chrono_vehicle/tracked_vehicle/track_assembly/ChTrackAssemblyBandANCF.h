@@ -59,8 +59,11 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
     /// Get the number of track shoes.
     virtual size_t GetNumTrackShoes() const override { return m_shoes.size(); }
 
-    /// Get a handle to the specified track shoe subsystem.
+    /// Get the specified track shoe subsystem.
     virtual std::shared_ptr<ChTrackShoe> GetTrackShoe(size_t id) const override { return m_shoes[id]; }
+
+    /// Get the FEA mesh which contains all track shoe FEA elements in this assembly.
+    std::shared_ptr<fea::ChMesh> GetMesh() const { return m_track_mesh; }
 
   protected:
     /// Set material properties of the rubber layers (isotropic material).

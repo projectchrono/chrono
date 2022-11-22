@@ -175,7 +175,6 @@ TEST(LinearAlgebraTest, extensions) {
     cout << "1 + v: " << 1 + v << endl;
 }
 
-
 TEST(LinearAlgebraTest, pasting) {
     ChMatrixDynamic<> A(4, 6);
     A.setRandom();
@@ -243,6 +242,41 @@ TEST(LinearAlgebraTest, custom_matrices) {
     X.semiNegate();
     cout << "Semi-negate X:\n" << X << endl;
     ASSERT_TRUE(X(1, 2) == -4);
+}
+
+TEST(LinearAlgebra, slicing) {
+    ChVectorN<double, 5> v1;
+    v1 << 1, 2, 3, 4, 5;
+    ChVectorDynamic<double> v2(5);
+    v2(0) = 1;
+    v2(1) = 2;
+    v2(2) = 3;
+    v2(3) = 4;
+    v2(4) = 5;
+
+    ChArray<int> idx(3);
+    idx(0) = 1;
+    idx(1) = 3;
+    idx(2) = 4;
+
+    auto w1 = SliceVector(v1, idx);
+    auto w2 = SliceVector(v2, idx);
+
+    ASSERT_TRUE(w1.size() == idx.size());
+    ASSERT_TRUE(w2.size() == idx.size());
+    for (int i = 0; i < idx.size(); i++) {
+        ASSERT_TRUE(w1(i) == v1(idx(i)));
+        ASSERT_TRUE(w2(i) == v2(idx(i)));
+    }
+
+    // Cases with potential aliasing
+    // NOTE: no aliasing when SliceVector is implemented as a function. Aliasing possible if switching to a macro!
+    v2 = SliceVector(v2, idx).eval();
+    
+    ASSERT_TRUE(v2.size() == idx.size());
+    for (int i = 0; i < idx.size(); i++) {
+        ASSERT_TRUE(v2(i) == w2(i));
+    }
 }
 
 TEST(LinearAlgebraTest, solve) {

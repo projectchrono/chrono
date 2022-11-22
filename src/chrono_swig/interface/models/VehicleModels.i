@@ -85,6 +85,10 @@
 
 %shared_ptr(chrono::vehicle::m113::M113)
 %shared_ptr(chrono::vehicle::m113::M113_Vehicle)
+%shared_ptr(chrono::vehicle::m113::M113_Vehicle_SinglePin)
+%shared_ptr(chrono::vehicle::m113::M113_Vehicle_DoublePin)
+%shared_ptr(chrono::vehicle::m113::M113_Vehicle_BandBushing)
+%shared_ptr(chrono::vehicle::m113::M113_Vehicle_BandANCF)
 
 #ifdef SWIGCSHARP
 %import "chrono_swig/interface/core/ChMaterialSurface.i"
