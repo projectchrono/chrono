@@ -81,10 +81,16 @@ protected:
     vsg::dvec3 m_sentinel_symbol_position = vsg::dvec3(0.0,0.0,0.0);
     vsg::dvec3 m_sentinel_symbol_size = vsg::dvec3(1.0,1.0,1.0);
 
-    size_t m_num_scm_vertices = 0;
-    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_scm_vertices_list;
-    std::vector<float> m_scm_z_actual;
-    bool m_scm_vertex_update_ok = false;
+    //============================================================
+    size_t m_num_vsgVertexList = 0;
+    bool m_allowVertexTransfer = false;
+    bool m_allowNormalsTransfer = false;
+    bool m_allowColorsTransfer = false;
+    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_vsgVerticesList;
+    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_vsgNormalsList;
+    std::vector<vsg::ref_ptr<vsg::vec4Array>> m_vsgColorsList;
+    std::shared_ptr<ChTriangleMeshShape> m_mbsMesh;
+    //============================================================
     friend class ChVSGGuiDriver;
 };
 

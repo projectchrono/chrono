@@ -418,6 +418,8 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_shapeBuilder = ShapeBuilder::create();
     m_shapeBuilder->m_options = m_options;
     m_shapeBuilder->m_sharedObjects = m_options->sharedObjects;
+    m_vsgBuilder = vsg::Builder::create();
+    m_vsgBuilder->options = m_options;
     m_renderGui = nullptr;
     // make some default settings
     SetWindowTitle("VSG: Vehicle Demo");
@@ -733,7 +735,7 @@ void ChVisualSystemVSG::Initialize() {
     // must be done after Viewer.assignRecordAndSubmitTasksAndPresentations();
     auto compileTraversal = vsg::CompileTraversal::create(*m_viewer);
     m_shapeBuilder->assignCompileTraversal(compileTraversal);
-
+    m_vsgBuilder->assignCompileTraversal(compileTraversal);
     vsg::ref_ptr<vsg::ResourceHints> resourceHints;
     if (!resourceHints) {
         // To help reduce the number of vsg::DescriptorPool that need to be allocated we'll provide a minimum

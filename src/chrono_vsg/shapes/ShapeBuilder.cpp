@@ -479,6 +479,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShapeSCM(vsg::ref_ptr<vsg
     if (nvertices != colors.size()) {
         colors_ok = false;
     }
+
     const auto& v_indices = mesh->getIndicesVertexes();
     unsigned int ntriangles = (unsigned int)v_indices.size();
     auto default_color = tms->GetColor();

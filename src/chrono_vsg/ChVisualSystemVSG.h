@@ -175,7 +175,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Group> m_decoScene;
     vsg::ref_ptr<vsg::Group> m_symbolScene;
     vsg::ref_ptr<vsg::Group> m_deformableScene;
+    //
     vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
+    vsg::ref_ptr<vsg::Builder> m_vsgBuilder;
     //
     bool m_draw_as_wireframe = false;
     vsg::ref_ptr<vsg::Options> m_options;
