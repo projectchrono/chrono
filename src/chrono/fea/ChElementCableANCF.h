@@ -51,14 +51,14 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     /// Get the number of coordinates in the field used by the referenced nodes.
     virtual int GetNdofs() override { return 2 * 6; }
 
-    /// Get the actual number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs_actual() override { return m_element_dof; }
+    /// Get the number of active coordinates in the field used by the referenced nodes.
+    virtual int GetNdofs_active() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
     virtual int GetNodeNdofs(int n) override { return m_nodes[n]->GetNdofX(); }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs_actual(int n) override { return m_nodes[n]->GetNdofX_actual(); }
+    virtual int GetNodeNdofs_active(int n) override { return m_nodes[n]->GetNdofX_active(); }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
 

@@ -40,15 +40,15 @@ class ChApi ChNodeBase {
     /// This might be different from ndof_x if quaternions are used for rotations and derivative is angular velocity.
     virtual int GetNdofW() const { return GetNdofX(); }
 
-    /// Get the actual number of degrees of freedom.
+    /// Get the actual number of active degrees of freedom.
     /// The default implementation returns the full number of DOFs for this node, but derived classes may allow fixing
     /// some of the node variables.
-    virtual int GetNdofX_actual() const { return GetNdofX(); }
+    virtual int GetNdofX_active() const { return GetNdofX(); }
 
-    /// Get the actual number of degrees of freedom, derivative.
+    /// Get the actual number of active degrees of freedom, derivative.
     /// The default implementation returns the full number of DOFs for this node, but derived classes may allow fixing
     /// some of the node variables.
-    virtual int GetNdofW_actual() const { return GetNdofX_actual(); }
+    virtual int GetNdofW_active() const { return GetNdofX_active(); }
 
     /// Return true if all node DOFs are active (no node variable is fixed).
     virtual bool UseFullDof() const { return true; }

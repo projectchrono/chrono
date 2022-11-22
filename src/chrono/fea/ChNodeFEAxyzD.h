@@ -74,8 +74,8 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     /// Get the number of degrees of freedom.
     virtual int GetNdofX() const override { return 6; }
 
-    /// Get the actual number of degrees of freedom.
-    virtual int GetNdofX_actual() const override { return m_dof_actual; }
+    /// Get the actual number of active degrees of freedom.
+    virtual int GetNdofX_active() const override { return m_dof_actual; }
 
     // Functions for interfacing to the state bookkeeping
 

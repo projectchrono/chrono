@@ -49,8 +49,8 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     /// Get the number of coordinates in the field used by the referenced nodes.
     virtual int GetNdofs() override { return 8 * 3 + 9; }
 
-    /// Get the actual number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs_actual() override { return m_element_dof; }
+    /// Get the number of active coordinates in the field used by the referenced nodes.
+    virtual int GetNdofs_active() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
     virtual int GetNodeNdofs(int n) override {
@@ -59,11 +59,11 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
         return m_central_node->GetNdofX();
     }
 
-    /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs_actual(int n) override {
+    /// Get the number of active coordinates from the n-th node used by this element.
+    virtual int GetNodeNdofs_active(int n) override {
         if (n < 8)
-            return m_nodes[n]->GetNdofX_actual();
-        return m_central_node->GetNdofX_actual();
+            return m_nodes[n]->GetNdofX_active();
+        return m_central_node->GetNdofX_active();
     }
 
     /// Access the n-th node of this element.

@@ -45,19 +45,19 @@ class ChApi ChElementBase {
     /// This is for example the size (number of rows/columns) of the local stiffness matrix.
     virtual int GetNdofs() = 0;
 
-    /// Get the actual number of degrees of freedom.
+    /// Get the actual number of active degrees of freedom.
     /// The default implementation returns the full number of DOFs for this element, but some elements may have nodes
     /// with fixed variables.
-    virtual int GetNdofs_actual() { return GetNdofs(); }
+    virtual int GetNdofs_active() { return GetNdofs(); }
 
     /// Get the number of coordinates from the specified node that are used by this element.
     /// Note that this may be different from the value returned by GetNodeN(n)->GetNdofW().
     virtual int GetNodeNdofs(int n) = 0;
 
-    /// Get the actual number of coordinates from the specified node that are used by this element.
+    /// Get the actual number of active coordinates from the specified node that are used by this element.
     /// The default implementation returns the full number of DOFs for this element, but some elements may have nodes
     /// with fixed variables.
-    virtual int GetNodeNdofs_actual(int n) { return GetNodeNdofs(n); }
+    virtual int GetNodeNdofs_active(int n) { return GetNodeNdofs(n); }
 
     /// Access the nth node.
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) = 0;

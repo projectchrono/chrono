@@ -29,7 +29,7 @@ void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c
 
     int stride = 0;
     for (int in = 0; in < GetNnodes(); in++) {
-        int node_dofs = GetNodeNdofs_actual(in);
+        int node_dofs = GetNodeNdofs_active(in);
         if (!GetNodeN(in)->IsFixed()) {
             for (int j = 0; j < node_dofs; j++)
 #pragma omp atomic
@@ -48,7 +48,7 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
     mqi.setZero();
     int stride = 0;
     for (int in = 0; in < GetNnodes(); in++) {
-        int node_dofs = GetNodeNdofs_actual(in);
+        int node_dofs = GetNodeNdofs_active(in);
         if (!GetNodeN(in)->IsFixed()) {
             mqi.segment(stride, node_dofs) = w.segment(GetNodeN(in)->NodeGetOffsetW(), node_dofs);
         }
@@ -59,7 +59,7 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
 
     stride = 0;
     for (int in = 0; in < GetNnodes(); in++) {
-        int node_dofs = GetNodeNdofs_actual(in);
+        int node_dofs = GetNodeNdofs_active(in);
         if (!GetNodeN(in)->IsFixed())
             R.segment(GetNodeN(in)->NodeGetOffsetW(), node_dofs) += Fi.segment(stride, node_dofs);
         stride += GetNodeNdofs(in);
@@ -76,7 +76,7 @@ void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const 
 
     int stride = 0;
     for (int in = 0; in < GetNnodes(); in++) {
-        int node_dofs = GetNodeNdofs_actual(in);
+        int node_dofs = GetNodeNdofs_active(in);
         if (!GetNodeN(in)->IsFixed()) {
             for (int j = 0; j < node_dofs; j++)
 #pragma omp atomic
