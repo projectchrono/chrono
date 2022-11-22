@@ -96,8 +96,7 @@ class ChApi ChElementBase {
 
     // Functions for interfacing to the state bookkeeping
 
-    /// This is optionally implemented if there is some internal state
-    /// that requires integration.
+    /// This is optionally implemented if there is some internal state that requires integration.
     virtual void EleDoIntegration() {}
 
     /// Add the internal forces (pasted at global nodes offsets) into
@@ -120,24 +119,21 @@ class ChApi ChElementBase {
 
     // Functions for interfacing to the solver
 
-    /// Tell to a system descriptor that there are item(s) of type
-    /// ChKblock in this object (for further passing it to a solver)
-    /// Basically does nothing, but inherited classes must specialize this.
+    /// Indicate that there are item(s) of type ChKblock in this object (for further passing it to a solver)
     virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) = 0;
 
-    /// Add the current stiffness K and damping R and mass M matrices in encapsulated
-    /// ChKblock item(s), if any. The K, R, M matrices are added with scaling
-    /// values Kfactor, Rfactor, Mfactor.
+    /// Add the current stiffness K and damping R and mass M matrices in encapsulated ChKblock item(s), if any.
+    /// The K, R, M matrices are added with scaling values Kfactor, Rfactor, Mfactor.
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) = 0;
 
-    /// Add the internal forces, expressed as nodal forces, into the
-    /// encapsulated ChVariables, in the 'fb' part: qf+=forces*factor
+    /// Add the internal forces, expressed as nodal forces, into the encapsulated ChVariables.
+    /// Update the 'fb' part: qf+=forces*factor
     /// WILL BE DEPRECATED - see EleIntLoadResidual_F
     virtual void VariablesFbLoadInternalForces(double factor = 1.0) {}
 
-    /// Add M*q (internal masses multiplied current 'qb') to Fb, ex. if qb is initialized
-    /// with v_old using VariablesQbLoadSpeed, this method can be used in
-    /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
+    /// Add M*q (internal masses multiplied current 'qb').
+    /// Update fb. For example, if qb is initialized with v_old using VariablesQbLoadSpeed, this method can be used in
+    /// timestepping schemes that do: M*v_new = M*v_old + forces*dt.
     /// WILL BE DEPRECATED
     virtual void VariablesFbIncrementMq() {}
 

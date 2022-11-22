@@ -48,7 +48,7 @@ class ChApi ChNodeBase {
     /// Get the actual number of degrees of freedom, derivative.
     /// The default implementation returns the full number of DOFs for this node, but derived classes may allow fixing
     /// some of the node variables.
-    virtual int GetNdofW_actual() const { return GetNdofW(); }
+    virtual int GetNdofW_actual() const { return GetNdofX_actual(); }
 
     /// Return true if all node DOFs are active (no node variable is fixed).
     virtual bool UseFullDof() const { return true; }
