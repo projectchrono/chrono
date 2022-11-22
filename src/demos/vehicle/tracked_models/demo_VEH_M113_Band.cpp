@@ -67,7 +67,7 @@ int num_elements_length = 1;
 int num_elements_width = 1;
 
 // Enable/disable curvature constraints (ANCF_8 only)
-bool constrain_curvature = false;
+bool constrain_curvature = true;
 
 // Simulation step size and duration
 double step_size = 2.5e-5;
