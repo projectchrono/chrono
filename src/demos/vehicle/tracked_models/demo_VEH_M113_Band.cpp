@@ -153,7 +153,8 @@ int main(int argc, char* argv[]) {
     // Set visualization type for vehicle components.
     vehicle.SetChassisVisualizationType(VisualizationType::NONE);
     vehicle.SetSprocketVisualizationType(VisualizationType::MESH);
-    vehicle.SetIdlerVisualizationType(VisualizationType::MESH);
+    vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetIdlerWheelVisualizationType(VisualizationType::MESH);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetRoadWheelVisualizationType(VisualizationType::MESH);
     vehicle.SetTrackShoeVisualizationType(VisualizationType::MESH);
