@@ -45,6 +45,9 @@ void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
     tire->InitializeInertiaProperties();
     tire->SetVisualizationType(tire_vis);
     tire->SetCollisionType(tire_coll);
+
+    // Recalculate vehicle mass to include the mass of the tire. 
+    InitializeInertiaProperties();
 }
 
 // -----------------------------------------------------------------------------
@@ -277,14 +280,10 @@ void ChWheeledVehicle::InitializeInertiaProperties() {
     for (auto& axle : m_axles) {
         axle->m_suspension->AddMass(m_mass);
 
-        // Special treatment for wheels and tires:
-        // - wheel mass already included in suspension mass (through spindle body)
-        // - include mass only from tires that do not add mass to the spindle
         for (auto& wheel : axle->GetWheels()) {
-            auto tire = wheel->GetTire();
-            if (tire) {
-                tire->InitializeInertiaProperties();
-                m_mass += tire->GetMass() - tire->GetAddedMass();
+            wheel->AddMass(m_mass);
+            if (wheel->GetTire()) {
+                wheel->GetTire()->AddMass(m_mass);
             }
         }
 
@@ -316,21 +315,10 @@ void ChWheeledVehicle::UpdateInertiaProperties() {
     for (auto& axle : m_axles) {
         axle->m_suspension->AddInertiaProperties(com, inertia);
 
-        // Special treatment for wheels and tires:
-        // - wheel inertia already included in suspension inertia (through spindle body)
-        // - include inertia only from tires that do not add inertia to the spindle
         for (auto& wheel : axle->GetWheels()) {
-            auto tire = wheel->GetTire();
-            if (tire) {
-                tire->UpdateInertiaProperties();
-                double tire_mass = tire->GetMass() - tire->GetAddedMass();
-                ChMatrix33<> tire_inertia = tire->GetInertia();
-                tire_inertia.diagonal() -= tire->GetAddedInertia().eigen();
-                ChFrame<> com_abs;
-                tire->m_xform.TransformLocalToParent(tire->m_com, com_abs);
-                com += tire_mass * com_abs.GetPos();
-                inertia += com_abs.GetA() * tire_inertia * com_abs.GetA().transpose() +
-                           tire_mass * utils::CompositeInertia::InertiaShiftMatrix(com_abs.GetPos());
+            wheel->AddInertiaProperties(com, inertia);
+            if (wheel->GetTire()) {
+                wheel->GetTire()->AddInertiaProperties(com, inertia);
             }
         }
 
