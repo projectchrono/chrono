@@ -77,6 +77,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void ShowGuiChart2(bool showChart2);
     void SetChart2Labels(std::string title, std::string xlabel, std::string ylabel);
     void UpdateChart2(std::shared_ptr<ChFunction_Repeat> fRep);
+    void SetColorBar(std::string title, double min_val, double max_val);
     void BeginScene() {};
     void EndScene() {};
     double GetModelTime();
@@ -130,6 +131,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
         std::string c2_title;
         std::string x2_label;
         std::string y2_label;
+        bool show_color_bar = false;
+        std::string cb_title;
+        double cb_min = 0.0;
+        double cb_max = 1.0;
     };
 
   protected:

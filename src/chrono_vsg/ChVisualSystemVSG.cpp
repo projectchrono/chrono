@@ -268,7 +268,37 @@ class GuiComponent {
                     ImPlot::EndPlot();
                 }
             }
-
+            if(_params->show_color_bar) {
+                ImGui::Text("Color Code: %s",_params->cb_title.c_str());
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0,0.0,1.0,1.0));
+                sprintf(label,"%.3f",_params->cb_min);
+                ImGui::Button(label);
+                ImGui::PopStyleColor(1);
+                ImGui::SameLine();
+                double cb_stride = _params->cb_max - _params->cb_min;
+                double cb_val = 0.25*cb_stride;
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0,0.9,0.9,1.0));
+                sprintf(label,"%.3f",cb_val);
+                ImGui::Button(label);
+                ImGui::PopStyleColor(1);
+                ImGui::SameLine();
+                cb_val = 0.5*cb_stride;
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0,0.9,0.0,1.0));
+                sprintf(label,"%.3f",cb_val);
+                ImGui::Button(label);
+                ImGui::PopStyleColor(1);
+                ImGui::SameLine();
+                cb_val = 0.75*cb_stride;
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.9,0.9,0.0,1.0));
+                sprintf(label,"%.3f",cb_val);
+                ImGui::Button(label);
+                ImGui::PopStyleColor(1);
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.9,0.0,0.0,1.0));
+                sprintf(label,"%.3f",_params->cb_max);
+                ImGui::Button(label);
+                ImGui::PopStyleColor(1);
+            }
             /* Example for an interactive element, better use the escape key, as it is more reactive with high MBS load
                         if (ImGui::Button("Quit"))  // Buttons return true when clicked (most widgets return true whenedited/activated)
                             m_appPtr->Quit();
@@ -1508,6 +1538,13 @@ void ChVisualSystemVSG::UpdateChart2(std::shared_ptr<ChFunction_Repeat> fRep) {
         m_params->x2_data[i] = x;
         m_params->y2_data[i] = fRep->Get_y(x);
     }
+}
+
+void ChVisualSystemVSG::SetColorBar(std::string title, double min_val, double max_val) {
+    m_params->cb_title = title;
+    m_params->cb_min = min_val;
+    m_params->cb_max = max_val;
+    m_params->show_color_bar = true;
 }
 
 }  // namespace vsg3d

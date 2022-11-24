@@ -270,6 +270,7 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(trackPoint, 10.0, 0.5);
     vis->AttachVehicle(&my_hmmwv.GetVehicle());
     //vis->SetSystemSymbol(1.0);
+    vis->SetColorBar("Sinkage (m)", 0.0, 0.1);
     vis->Initialize();
 
     // -----------------
