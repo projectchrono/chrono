@@ -648,14 +648,14 @@ void ChVehicleVisualSystemVSG::BindAll() {
                         GetLog() << "Normals Transfer allowed.\n";
                     }
                 }
-                if(m_allowVertexTransfer) {
+                if (m_allowVertexTransfer) {
                     m_vsgColorsList = vsg::visit<FindColorData>(m_deformableScene->children.at(0)).getColorsList();
                     size_t num_vsgColorsList = 0;
                     for (auto& colors : m_vsgColorsList) {
                         colors->properties.dataVariance = vsg::DYNAMIC_DATA;
                         num_vsgColorsList += colors->size();
                     }
-                    if(num_vsgColorsList == m_num_vsgVertexList) {
+                    if (num_vsgColorsList == m_num_vsgVertexList) {
                         m_allowColorsTransfer = true;
                         GetLog() << "Colors Transfer allowed.\n";
                     }
@@ -712,7 +712,7 @@ void ChVehicleVisualSystemVSG::Render() {
         }
     }
 
-    if(m_allowColorsTransfer) {
+    if (m_allowColorsTransfer) {
         for (auto& colors : m_vsgColorsList) {
             size_t k = 0;
             for (auto& c : *colors) {

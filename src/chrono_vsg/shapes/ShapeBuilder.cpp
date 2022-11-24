@@ -560,7 +560,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShapeSCM(vsg::ref_ptr<vsg
     graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, vsg_vertices);
     graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, vsg_normals);
     graphicsPipelineConfig->assignArray(vertexArrays, "vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, vsg_texcoords);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Color", VK_VERTEX_INPUT_RATE_INSTANCE, vsg_colors);
+    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Color", VK_VERTEX_INPUT_RATE_VERTEX, vsg_colors);
 
     if (m_options->sharedObjects)
         m_options->sharedObjects->share(vertexArrays);
