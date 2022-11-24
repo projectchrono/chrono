@@ -314,10 +314,11 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-//// TODO: tierod
-
 void ChDoubleWishbone::InitializeInertiaProperties() {
     m_mass = 2 * (getSpindleMass() + getUCAMass() + getLCAMass() + getUprightMass());
+    if (UseTierodBodies()) {
+        m_mass += 2 * getTierodMass();
+    }
 }
 
 void ChDoubleWishbone::UpdateInertiaProperties() {
@@ -338,6 +339,12 @@ void ChDoubleWishbone::UpdateInertiaProperties() {
     composite.AddComponent(m_LCA[RIGHT]->GetFrame_COG_to_abs(), getLCAMass(), inertiaLCA);
     composite.AddComponent(m_upright[LEFT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
     composite.AddComponent(m_upright[RIGHT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
+
+    if (UseTierodBodies()) {
+        ChMatrix33<> inertiaTierod(getTierodInertia());
+        composite.AddComponent(m_tierod[LEFT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
+        composite.AddComponent(m_tierod[RIGHT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
+    }
 
     // Express COM and inertia in subsystem reference frame
     m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());

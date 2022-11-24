@@ -241,6 +241,9 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
 
 void ChSingleWishbone::InitializeInertiaProperties() {
     m_mass = 2 * (getSpindleMass() + getCAMass() + getUprightMass());
+    if (UseTierodBodies()) {
+        m_mass += 2 * getTierodMass();
+    }
 }
 
 void ChSingleWishbone::UpdateInertiaProperties() {
@@ -258,6 +261,12 @@ void ChSingleWishbone::UpdateInertiaProperties() {
     composite.AddComponent(m_control_arm[RIGHT]->GetFrame_COG_to_abs(), getCAMass(), inertiaCA);
     composite.AddComponent(m_upright[LEFT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
     composite.AddComponent(m_upright[RIGHT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
+
+    if (UseTierodBodies()) {
+        ChMatrix33<> inertiaTierod(getTierodInertia());
+        composite.AddComponent(m_tierod[LEFT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
+        composite.AddComponent(m_tierod[RIGHT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
+    }
 
     // Express COM and inertia in subsystem reference frame
     m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());

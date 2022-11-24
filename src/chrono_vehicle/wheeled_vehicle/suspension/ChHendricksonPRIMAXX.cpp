@@ -343,6 +343,9 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
 void ChHendricksonPRIMAXX::InitializeInertiaProperties() {
     m_mass = getAxlehousingMass() + getTransversebeamMass() +
              2 * (getSpindleMass() + getKnuckleMass() + getTorquerodMass() + getLowerbeamMass());
+    if (UseTierodBodies()) {
+        m_mass += 2 * getTierodMass();
+    }
 }
 
 void ChHendricksonPRIMAXX::UpdateInertiaProperties() {
@@ -370,6 +373,12 @@ void ChHendricksonPRIMAXX::UpdateInertiaProperties() {
     composite.AddComponent(m_axlehousing->GetFrame_COG_to_abs(), getAxlehousingMass(), ChMatrix33<>(getAxlehousingInertia()));
     composite.AddComponent(m_transversebeam->GetFrame_COG_to_abs(), getTransversebeamMass(),
                            ChMatrix33<>(getTransversebeamInertia()));
+
+    if (UseTierodBodies()) {
+        ChMatrix33<> inertiaTierod(getTierodInertia());
+        composite.AddComponent(m_tierod[LEFT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
+        composite.AddComponent(m_tierod[RIGHT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
+    }
 
     // Express COM and inertia in subsystem reference frame
     m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
