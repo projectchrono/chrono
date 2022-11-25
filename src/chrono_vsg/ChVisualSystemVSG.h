@@ -100,6 +100,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     virtual void AttachGui();
 
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
+        const size_t nstr = 64;
         bool showGui = true;            // (don't) show the imgui menu, actually unused
         bool do_image_capture = false;  // mark image capturing as needed
         double cogSymbolSize = 0.0;

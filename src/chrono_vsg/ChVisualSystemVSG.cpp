@@ -54,7 +54,7 @@ class GuiComponent {
         */
         // 1. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         if (_params->showGui) {
-            char label[64];
+            char label[_params->nstr];
             ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
             ImGui::Begin("App:");  // Create a window called "Hello, world!" and append into it.
 
@@ -78,25 +78,25 @@ class GuiComponent {
                 ImGui::TableNextColumn();
                 ImGui::Text("Vehicle Speed:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.3f m/s", _params->vehicleSpeed);
+                snprintf(label, _params->nstr - 1, "%.3f m/s", _params->vehicleSpeed);
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Steering:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.3f", _params->steering);
+                snprintf(label, _params->nstr - 1, "%.3f", _params->steering);
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Throttle:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.3f", _params->throttle);
+                snprintf(label, _params->nstr - 1, "%.3f", _params->throttle);
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Braking:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.3f", _params->braking);
+                snprintf(label, _params->nstr - 1, "%.3f", _params->braking);
                 ImGui::Text(label);
                 ImGui::EndTable();
                 ImGui::Spacing();
@@ -105,33 +105,33 @@ class GuiComponent {
                 ImGui::TableNextColumn();
                 ImGui::Text("Engine Speed:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.1lf RPM", m_appPtr->GetEngineSpeedRPM());
+                snprintf(label, _params->nstr - 1, "%.1lf RPM", m_appPtr->GetEngineSpeedRPM());
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Engine Torque:");
                 ImGui::TableNextColumn();
-                sprintf(label, "%.1lf Nm", m_appPtr->GetEngineTorque());
+                snprintf(label, _params->nstr - 1, "%.1lf Nm", m_appPtr->GetEngineTorque());
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 switch (m_appPtr->GetDriveMode()) {
                     case 'F':
-                        sprintf(label, "[%c] Gear forward:", m_appPtr->GetTransmissionMode());
+                        snprintf(label, _params->nstr - 1, "[%c] Gear forward:", m_appPtr->GetTransmissionMode());
                         break;
                     case 'N':
-                        sprintf(label, "[%c] Gear neutral:", m_appPtr->GetTransmissionMode());
+                        snprintf(label, _params->nstr - 1, "[%c] Gear neutral:", m_appPtr->GetTransmissionMode());
                         break;
                     case 'R':
-                        sprintf(label, "[%c] Gear reverse:", m_appPtr->GetTransmissionMode());
+                        snprintf(label, _params->nstr - 1, "[%c] Gear reverse:", m_appPtr->GetTransmissionMode());
                         break;
                     default:
-                        sprintf(label, "[%c] Gear ?:", m_appPtr->GetTransmissionMode());
+                        snprintf(label, _params->nstr - 1, "[%c] Gear ?:", m_appPtr->GetTransmissionMode());
                         break;
                 }
                 ImGui::Text(label);
                 ImGui::TableNextColumn();
-                sprintf(label, "%d", m_appPtr->GetGearPosition());
+                snprintf(label, _params->nstr - 1, "%d", m_appPtr->GetGearPosition());
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::EndTable();
@@ -142,25 +142,25 @@ class GuiComponent {
                     ImGui::TableNextColumn();
                     ImGui::Text("T.conv.slip:");
                     ImGui::TableNextColumn();
-                    sprintf(label, "%.2f", m_appPtr->GetTconvSlip());
+                    snprintf(label, _params->nstr - 1, "%.2f", m_appPtr->GetTconvSlip());
                     ImGui::Text(label);
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::Text("T.conv.torque.in:");
                     ImGui::TableNextColumn();
-                    sprintf(label, "%.1f Nm", m_appPtr->GetTconvTorqueInput());
+                    snprintf(label, _params->nstr - 1, "%.1f Nm", m_appPtr->GetTconvTorqueInput());
                     ImGui::Text(label);
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::Text("T.conv.torque.out:");
                     ImGui::TableNextColumn();
-                    sprintf(label, "%.1f Nm", m_appPtr->GetTconvTorqueOutput());
+                    snprintf(label, _params->nstr - 1, "%.1f Nm", m_appPtr->GetTconvTorqueOutput());
                     ImGui::Text(label);
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::Text("T.conv.speed.out:");
                     ImGui::TableNextColumn();
-                    sprintf(label, "%.1f RPM", m_appPtr->GetTconvSpeedOutput());
+                    snprintf(label, _params->nstr - 1, "%.1f RPM", m_appPtr->GetTconvSpeedOutput());
                     ImGui::Text(label);
                     ImGui::TableNextRow();
                     ImGui::EndTable();
@@ -170,34 +170,34 @@ class GuiComponent {
                     ImGui::BeginTable("TireTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                                       ImVec2(0.0f, 0.0f));
                     ImGui::TableNextColumn();
-                    sprintf(label, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(0, 0));
+                    snprintf(label, _params->nstr - 1, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(0, 0));
                     ImGui::Text(label);
                     ImGui::TableNextColumn();
-                    sprintf(label, " R: %+5.1f Nm", m_appPtr->GetTireTorque(0, 1));
+                    snprintf(label, _params->nstr - 1, " R: %+5.1f Nm", m_appPtr->GetTireTorque(0, 1));
                     ImGui::Text(label);
                     ImGui::TableNextRow();
                     if (m_appPtr->GetNumDrivenAxles() >= 2) {
                         ImGui::TableNextColumn();
-                        sprintf(label, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(1, 0));
+                        snprintf(label, _params->nstr - 1, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(1, 0));
                         ImGui::Text(label);
                         ImGui::TableNextColumn();
-                        sprintf(label, " wheel R: %+5.1f Nm", m_appPtr->GetTireTorque(1, 1));
+                        snprintf(label, _params->nstr - 1, " wheel R: %+5.1f Nm", m_appPtr->GetTireTorque(1, 1));
                         ImGui::Text(label);
                         ImGui::TableNextRow();
                     }
                     if (m_appPtr->GetNumDrivenAxles() >= 4) {
                         ImGui::TableNextColumn();
-                        sprintf(label, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(2, 0));
+                        snprintf(label, _params->nstr - 1, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(2, 0));
                         ImGui::Text(label);
                         ImGui::TableNextColumn();
-                        sprintf(label, " R: %+5.1f Nm", m_appPtr->GetTireTorque(2, 1));
+                        snprintf(label, _params->nstr - 1, " R: %+5.1f Nm", m_appPtr->GetTireTorque(2, 1));
                         ImGui::Text(label);
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
-                        sprintf(label, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(3, 0));
+                        snprintf(label, _params->nstr - 1, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(3, 0));
                         ImGui::Text(label);
                         ImGui::TableNextColumn();
-                        sprintf(label, " R: %+5.1f Nm", m_appPtr->GetTireTorque(3, 1));
+                        snprintf(label, _params->nstr - 1, " R: %+5.1f Nm", m_appPtr->GetTireTorque(3, 1));
                         ImGui::Text(label);
                         ImGui::TableNextRow();
                     }
@@ -209,23 +209,23 @@ class GuiComponent {
                 ImGui::BeginTable("TrackDriveTable", 3, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                                   ImVec2(0.0f, 0.0f));
                 ImGui::TableNextColumn();
-                sprintf(label, "Sprocket Torque");
+                snprintf(label, _params->nstr - 1, "Sprocket Torque");
                 ImGui::Text(label);
                 ImGui::TableNextColumn();
-                sprintf(label, "L: %+5.1f Nm", m_appPtr->GetSprocketTorque(0));
+                snprintf(label, _params->nstr - 1, "L: %+5.1f Nm", m_appPtr->GetSprocketTorque(0));
                 ImGui::Text(label);
                 ImGui::TableNextColumn();
-                sprintf(label, " R: %+5.1f Nm", m_appPtr->GetSprocketTorque(1));
+                snprintf(label, _params->nstr - 1, " R: %+5.1f Nm", m_appPtr->GetSprocketTorque(1));
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                sprintf(label, "Sprocket Speed");
+                snprintf(label, _params->nstr - 1, "Sprocket Speed");
                 ImGui::Text(label);
                 ImGui::TableNextColumn();
-                sprintf(label, "L: %+5.1f RPM", m_appPtr->GetSprocketSpeed(0));
+                snprintf(label, _params->nstr - 1, "L: %+5.1f RPM", m_appPtr->GetSprocketSpeed(0));
                 ImGui::Text(label);
                 ImGui::TableNextColumn();
-                sprintf(label, " R: %+5.1f RPM", m_appPtr->GetSprocketSpeed(1));
+                snprintf(label, _params->nstr - 1, " R: %+5.1f RPM", m_appPtr->GetSprocketSpeed(1));
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::EndTable();
@@ -233,13 +233,13 @@ class GuiComponent {
             }
             ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f));
-            sprintf(label, "%.4f s", m_appPtr->GetModelTime());
+            snprintf(label, _params->nstr - 1, "%.4f s", m_appPtr->GetModelTime());
             ImGui::TableNextColumn();
             ImGui::Text("Model Time:");
             ImGui::TableNextColumn();
             ImGui::Text(label);
             ImGui::TableNextRow();
-            sprintf(label, "%.4f s", m_appPtr->GetWallclockTime());
+            snprintf(label, _params->nstr - 1, "%.4f s", m_appPtr->GetWallclockTime());
             ImGui::TableNextColumn();
             ImGui::Text("Wall Clock Time:");
             ImGui::TableNextColumn();
@@ -248,7 +248,7 @@ class GuiComponent {
             ImGui::TableNextColumn();
             ImGui::Text("Real Time Factor:");
             ImGui::TableNextColumn();
-            sprintf(label, "%.2f", m_appPtr->GetRealtimeFactor());
+            snprintf(label, _params->nstr - 1, "%.2f", m_appPtr->GetRealtimeFactor());
             ImGui::Text(label);
             ImGui::EndTable();
             ImGui::Spacing();
@@ -268,42 +268,55 @@ class GuiComponent {
                     ImPlot::EndPlot();
                 }
             }
-            if(_params->show_color_bar) {
-                ImGui::Text("Color Code: %s",_params->cb_title.c_str());
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0,0.0,1.0,1.0));
-                sprintf(label,"%.3f",_params->cb_min);
+            if (_params->show_color_bar) {
+                float alpha = 1.0;
+                float cv = 0.9;
+                float cv13 = cv / 3.0;
+                float cv23 = 2.0 * cv13;
+                ImGui::Text("Color Code: %s", _params->cb_title.c_str());
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, 0.0, cv, alpha));
+                snprintf(label, _params->nstr - 1, "%.3f", _params->cb_min);
                 ImGui::Button(label);
                 ImGui::PopStyleColor(1);
                 ImGui::SameLine();
                 double cb_stride = _params->cb_max - _params->cb_min;
-                double cb_val = 0.25*cb_stride;
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0,0.9,0.9,1.0));
-                sprintf(label,"%.3f",cb_val);
+                double cb_val = _params->cb_min + cb_stride * 1.0 / 6.0;
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv13, cv, alpha));
+                snprintf(label, _params->nstr - 1, "%.3f", cb_val);
                 ImGui::Button(label);
                 ImGui::PopStyleColor(1);
                 ImGui::SameLine();
-                cb_val = 0.5*cb_stride;
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0,0.9,0.0,1.0));
-                sprintf(label,"%.3f",cb_val);
+                cb_val = _params->cb_min + cb_stride * 2.0 / 6.0;
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv23, cv, alpha));
+                snprintf(label, _params->nstr - 1, "%.3f", cb_val);
                 ImGui::Button(label);
                 ImGui::PopStyleColor(1);
                 ImGui::SameLine();
-                cb_val = 0.75*cb_stride;
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.9,0.9,0.0,1.0));
-                sprintf(label,"%.3f",cb_val);
+                cb_val = _params->cb_min + 0.5 * cb_stride;
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv, 0.0, alpha));
+                snprintf(label, _params->nstr - 1, "%.3f", cb_val);
                 ImGui::Button(label);
                 ImGui::PopStyleColor(1);
                 ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.9,0.0,0.0,1.0));
-                sprintf(label,"%.3f",_params->cb_max);
+                cb_val = _params->cb_min + cb_stride * 4.0 / 6.0;
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv23, 0.0, alpha));
+                snprintf(label, _params->nstr - 1, "%.3f", cb_val);
+                ImGui::Button(label);
+                ImGui::PopStyleColor(1);
+                ImGui::SameLine();
+                cb_val = _params->cb_min + cb_stride * 5.0 / 6.0;
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv13, 0.0, alpha));
+                snprintf(label, _params->nstr - 1, "%.3f", cb_val);
+                ImGui::Button(label);
+                ImGui::PopStyleColor(1);
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, 0.0, 0.0, alpha));
+                snprintf(label, _params->nstr - 1, "%.3f", _params->cb_max);
                 ImGui::Button(label);
                 ImGui::PopStyleColor(1);
             }
-            /* Example for an interactive element, better use the escape key, as it is more reactive with high MBS load
-                        if (ImGui::Button("Quit"))  // Buttons return true when clicked (most widgets return true whenedited/activated)
-                            m_appPtr->Quit();
-            */
-            if (ImGui::Button("Quit"))  // Buttons return true when clicked (most widgets return true whenedited/activated)
+            if (ImGui::Button(
+                    "Quit"))  // Buttons return true when clicked (most widgets return true whenedited/activated)
                 m_appPtr->Quit();
 
             ImGui::End();
@@ -1087,9 +1100,11 @@ void ChVisualSystemVSG::BindAll() {
     for (auto ilink : m_systems[0]->Get_linklist()) {
         if (auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink)) {
             auto lnkVisModel = link->GetVisualModel();
-            if(!lnkVisModel) break;
+            if (!lnkVisModel)
+                break;
             auto lnkNumShapes = lnkVisModel->GetNumShapes();
-            if(lnkNumShapes == 0) break;
+            if (lnkNumShapes == 0)
+                break;
             for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
                 auto& shape = shape_instance.first;
                 if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
@@ -1141,9 +1156,11 @@ void ChVisualSystemVSG::BindAll() {
             }
         } else if (auto link = std::dynamic_pointer_cast<ChLinkDistance>(ilink)) {
             auto lnkVisModel = link->GetVisualModel();
-            if(!lnkVisModel) continue;
+            if (!lnkVisModel)
+                continue;
             auto lnkNumShapes = lnkVisModel->GetNumShapes();
-            if(lnkNumShapes == 0) continue;
+            if (lnkNumShapes == 0)
+                continue;
             for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
                 auto& shape = shape_instance.first;
                 if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
@@ -1489,33 +1506,33 @@ void ChVisualSystemVSG::SetChart2Labels(std::string title, std::string xlabel, s
 }
 
 void ChVisualSystemVSG::UpdateChart1(std::shared_ptr<ChFunction_Repeat> fRep) {
-    if(fRep == nullptr) {
+    if (fRep == nullptr) {
         GetLog() << "No data for chart1 in function " << __func__ << "\n";
-        return ;
+        return;
     }
     double xmin, xmax;
     fRep->Estimate_x_range(xmin, xmax);
     double ymin, ymax;
     fRep->Estimate_y_range(xmin, xmax, ymin, ymax, 0);
-    if(xmin >= xmax || ymin >= ymax) {
+    if (xmin >= xmax || ymin >= ymax) {
         GetLog() << "Nonsense data for chart1 in function " << __func__ << "\n";
-        return ;
+        return;
     }
     size_t npoints = 100;
-    if(m_params->x1_data.size() != npoints) {
+    if (m_params->x1_data.size() != npoints) {
         m_params->x1_data.resize(npoints);
         m_params->y1_data.resize(npoints);
     }
-    float step = (xmax-xmin)/float(npoints-1);
-    for(int i=0; i<npoints; i++) {
-        float x = xmin + step*float(i);
+    float step = (xmax - xmin) / float(npoints - 1);
+    for (int i = 0; i < npoints; i++) {
+        float x = xmin + step * float(i);
         m_params->x1_data[i] = x;
         m_params->y1_data[i] = fRep->Get_y(x);
     }
 }
 
 void ChVisualSystemVSG::UpdateChart2(std::shared_ptr<ChFunction_Repeat> fRep) {
-    if(fRep == nullptr) {
+    if (fRep == nullptr) {
         GetLog() << "No data for chart2 in function " << __func__ << "\n";
         return;
     }
@@ -1523,18 +1540,18 @@ void ChVisualSystemVSG::UpdateChart2(std::shared_ptr<ChFunction_Repeat> fRep) {
     fRep->Estimate_x_range(xmin, xmax);
     double ymin, ymax;
     fRep->Estimate_y_range(xmin, xmax, ymin, ymax, 0);
-    if(xmin >= xmax || ymin >= ymax) {
+    if (xmin >= xmax || ymin >= ymax) {
         GetLog() << "Nonsense data for chart1 in function " << __func__ << "\n";
-        return ;
+        return;
     }
     size_t npoints = 100;
-    if(m_params->x2_data.size() != npoints) {
+    if (m_params->x2_data.size() != npoints) {
         m_params->x2_data.resize(npoints);
         m_params->y2_data.resize(npoints);
     }
-    float step = (xmax-xmin)/float(npoints-1);
-    for(int i=0; i<npoints; i++) {
-        float x = xmin + step*float(i);
+    float step = (xmax - xmin) / float(npoints - 1);
+    for (int i = 0; i < npoints; i++) {
+        float x = xmin + step * float(i);
         m_params->x2_data[i] = x;
         m_params->y2_data[i] = fRep->Get_y(x);
     }
