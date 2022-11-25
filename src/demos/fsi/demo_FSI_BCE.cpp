@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
     }
 
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(sysMBS);
+    ChSystemFsi sysFSI(&sysMBS);
 
     sysFSI.SetInitialSpacing(0.025);
     sysFSI.SetKernelLength(0.025);

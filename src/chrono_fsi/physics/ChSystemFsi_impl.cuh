@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu, Radu Serban
 // =============================================================================
 //
 // Implementation of FSI system that includes all subclasses for proximity and
@@ -217,31 +217,6 @@ struct ChronoBodiesDataH {
     thrust::host_vector<Real3> omegaAccGRF_ChSystemH;  ///< Vector of the angular acceleraion of rigid bodies
 
     zipIterChronoBodiesH iterator();
-    void resize(size_t s);
-};
-
-/// Struct to store Chrono shell elements information on the host
-struct ChronoShellsDataH {
-    ChronoShellsDataH() {}
-    ChronoShellsDataH(size_t s);
-
-    // zipIterChronoShellsH iterator();
-
-    thrust::host_vector<Real3> posFlex_ChSystemH_nA_H;  ///< Vector of the node A position
-    thrust::host_vector<Real3> posFlex_ChSystemH_nB_H;  ///< Vector of the node B position
-    thrust::host_vector<Real3> posFlex_ChSystemH_nC_H;  ///< Vector of the node C position
-    thrust::host_vector<Real3> posFlex_ChSystemH_nD_H;  ///< Vector of the node D position
-
-    thrust::host_vector<Real3> velFlex_ChSystemH_nA_H;  ///< Vector of the node A velocity
-    thrust::host_vector<Real3> velFlex_ChSystemH_nB_H;  ///< Vector of the node B velocity
-    thrust::host_vector<Real3> velFlex_ChSystemH_nC_H;  ///< Vector of the node C velocity
-    thrust::host_vector<Real3> velFlex_ChSystemH_nD_H;  ///< Vector of the node D velocity
-
-    thrust::host_vector<Real3> accFlex_ChSystemH_nA_H;  ///< Vector of the node A acceleration
-    thrust::host_vector<Real3> accFlex_ChSystemH_nB_H;  ///< Vector of the node B acceleration
-    thrust::host_vector<Real3> accFlex_ChSystemH_nC_H;  ///< Vector of the node C acceleration
-    thrust::host_vector<Real3> accFlex_ChSystemH_nD_H;  ///< Vector of the node D acceleration
-
     void resize(size_t s);
 };
 

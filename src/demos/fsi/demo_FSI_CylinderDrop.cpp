@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(sysMBS);
+    ChSystemFsi sysFSI(&sysMBS);
 
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_CylinderDrop_Explicit.json");
     if (argc == 1) {
@@ -287,9 +287,8 @@ int main(int argc, char* argv[]) {
     ChTimer<> timer;
     timer.start();
     while (time < t_end) {
-        std::cout << "step: " << current_step << "  time: " << time << std::endl;
-        std::cout << "   box: " << sysMBS.Get_bodylist()[0]->GetPos() << std::endl;
-        std::cout << "   cyl: " << sysMBS.Get_bodylist()[1]->GetPos() << std::endl;
+        std::cout << "step: " << current_step << "  time: " << time
+                  << "  cyl z: " << sysMBS.Get_bodylist()[1]->GetPos().z() << std::endl;
 
         if (output && current_step % output_steps == 0) {
             std::cout << "-------- Output" << std::endl;
