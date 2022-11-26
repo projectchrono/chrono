@@ -11,14 +11,17 @@
 // =============================================================================
 // Author: Milad Rakhsha
 // =============================================================================
+
 #include <cstdio>
 #include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <sstream>
+
 #include <thrust/execution_policy.h>
 #include <thrust/extrema.h>
 #include <thrust/sort.h>
+
 #include "cublas_v2.h"
 #include "chrono_fsi/physics/ChFsiForceI2SPH.cuh"
 #include "chrono_fsi/physics/ChSphGeneral.cuh"

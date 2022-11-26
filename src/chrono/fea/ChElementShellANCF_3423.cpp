@@ -40,7 +40,8 @@ const int ChElementShellANCF_3423::m_maxIterationsEAS = 100;
 // Constructor
 // ------------------------------------------------------------------------------
 
-ChElementShellANCF_3423::ChElementShellANCF_3423() : m_numLayers(0), m_lenX(0), m_lenY(0), m_thickness(0), m_Alpha(0) {
+ChElementShellANCF_3423::ChElementShellANCF_3423()
+    : m_numLayers(0), m_lenX(0), m_lenY(0), m_thickness(0), m_Alpha(0) {
     m_nodes.resize(4);
 }
 
@@ -91,6 +92,22 @@ void ChElementShellANCF_3423::AddLayer(double thickness, double theta, std::shar
 
 // Initial element setup.
 void ChElementShellANCF_3423::SetupInitial(ChSystem* system) {
+    m_element_dof = 0;
+    for (int i = 0; i < 4; i++) {
+        m_element_dof += m_nodes[i]->GetNdofX();
+    }
+
+    m_full_dof = (m_element_dof == 4 * 6);
+
+    if (!m_full_dof) {
+        m_mapping_dof.resize(m_element_dof);
+        int dof = 0;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < m_nodes[i]->GetNdofX(); j++)
+                m_mapping_dof(dof++) = i * 6 + j;
+        }
+    }
+
     // Perform layer initialization and accumulate element thickness.
     m_numLayers = m_layers.size();
     m_thickness = 0;
@@ -144,7 +161,7 @@ void ChElementShellANCF_3423::GetStateBlock(ChVectorDynamic<>& mD) {
 // Calculate the global matrix H as a linear combination of K, R, and M:
 //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
 void ChElementShellANCF_3423::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == 24) && (H.cols() == 24));
+    assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
 
     // Calculate the linear combination Kfactor*[K] + Rfactor*[R]
     ComputeInternalJacobians(Kfactor, Rfactor);
@@ -273,7 +290,7 @@ void ChElementShellANCF_3423::ComputeGravityForceScale() {
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
 void ChElementShellANCF_3423::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
-    assert(Fg.size() == 3 * NSF);
+    assert(Fg.size() == GetNdofs());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
     // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was

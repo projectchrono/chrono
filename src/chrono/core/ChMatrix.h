@@ -67,27 +67,37 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 
-/// Dense matrix with *dynamic size* (i.e., with size a run-time variable, unknown at compile time).
-/// A ChMatrixDynamic is templated by the type of its coefficients (default: double).
+/// Dense matrix with *dynamic size* (i.e., with unknown at compile time) and row-major storage.
+/// A ChMatrixDynamic is templated by the coefficient type (default: double).
 template <typename T = double>
 using ChMatrixDynamic = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
-/// Dense matrix with *fixed size* (known at compile time).
-/// A ChMatrixNM is templated by the type of its coefficients and by the matrix dimensions (number of rows and columns).
+/// Dense matrix with *fixed size* (known at compile time) and row-major storage.
+/// A ChMatrixNM is templated by the coefficient type and by the matrix dimensions (number of rows and columns).
 template <typename T, int M, int N>
 using ChMatrixNM = Eigen::Matrix<T, M, N, Eigen::RowMajor>;
+
+/// Dense matrix with *dynamic size* (i.e., with unknown at compile time) and column-major storage.
+/// A ChMatrixDynamic_col is templated by the coefficient type (default: double).
+template <typename T = double>
+using ChMatrixDynamic_col = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+
+/// Dense matrix with *fixed size* (known at compile time) and column-major storage.
+/// A ChMatrixNM_col is templated by the coefficient type and by the matrix dimensions (number of rows and columns).
+template <typename T, int M, int N>
+using ChMatrixNM_col = Eigen::Matrix<T, M, N, Eigen::ColMajor>;
 
 ////template <typename T, int M, int N>
 ////using ChMatrixNMnoalign = Eigen::Matrix<T, M, N, Eigen::RowMajor | Eigen::DontAlign>;
 
 // -----------------------------------------------------------------------------
 
-/// Column vector with *dynamic size* (i.e., with size a run-time variable, unknown at compile time).
+/// Column vector with *dynamic size* (i.e., with size unknown at compile time).
 /// A ChVectorDynamic is templated by the type of its coefficients (default: double).
 template <typename T = double>
 using ChVectorDynamic = Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
 
-/// Row vector with *dynamic size* (i.e., with size a run-time variable, unknown at compile time).
+/// Row vector with *dynamic size* (i.e., with size unknown at compile time).
 /// A ChRowVectorDynamic is templated by the type of its coefficients (default: double).
 template <typename T = double>
 using ChRowVectorDynamic = Eigen::Matrix<T, 1, Eigen::Dynamic, Eigen::RowMajor>;
@@ -101,6 +111,18 @@ using ChVectorN = Eigen::Matrix<T, N, 1>;
 /// A ChRowVectorN is templated by the type of its coefficients and the number of elements.
 template <typename T, int N>
 using ChRowVectorN = Eigen::Matrix<T, 1, N, Eigen::RowMajor>;
+
+// -----------------------------------------------------------------------------
+
+/// General-purpose column array with *dynamic size*.
+/// This class provides easy-access to coefficient-wise operations.
+template <typename T = double>
+using ChArray = Eigen::Array<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
+
+/// Column array with *fixed size* (known at compile time).
+/// A ChArrayN is templated by the type of its coefficients and the number of elements.
+template <typename T, int N>
+using ChArrayN = Eigen::Array<T, N, 1>;
 
 // -----------------------------------------------------------------------------
 
@@ -132,12 +154,15 @@ using ChRowVectorRef = Eigen::Ref<Eigen::Matrix<double, 1, Eigen::Dynamic, Eigen
 /// This allows writing non-template functions that can accept either a ChRowVectorDynamic or a CVectorN.
 using ChRowVectorConstRef = const Eigen::Ref<const Eigen::Matrix<double, 1, Eigen::Dynamic, Eigen::RowMajor>>&;
 
-// -----------------------------------------------------------------------------
-
-/// General-purpose column array with *dynamic size*.
-/// This class provides easy-access to coefficient-wise operations.
+/// Reference to an array expression, templated by coefficient type.
+/// This allows writing non-template functions that can accept either a ChArrayDynamic or a ChArrayN.
 template <typename T = double>
-using ChArray = Eigen::Array<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
+using ChArrayRef = Eigen::Ref<Eigen::Array<T, Eigen::Dynamic, Eigen::ColMajor>>&;
+
+/// Constant reference to an array expression, templated by coefficient type.
+/// This allows writing non-template functions that can accept either a ChArray or a ChArrayN.
+template <typename T = double>
+using ChArrayConstRef = const Eigen::Ref<const Eigen::Array<T, Eigen::Dynamic, 1, Eigen::ColMajor>>&;
 
 // -----------------------------------------------------------------------------
 
@@ -224,6 +249,17 @@ inline void StreamOUT(ChSparseMatrix& matr, ChStreamOutAscii& stream) {
     }
     if (matr.rows() > 8)
         stream << "... \n\n";
+}
+
+/// Utility function for slicing a vector based on an array of indices.
+/// Return a new vector which only contains the elements with specified indices.
+template <typename T = double>
+ChVectorDynamic<T> SliceVector(ChVectorConstRef v, ChArrayConstRef<int> indices) {
+#if EIGEN_VERSION_AT_LEAST(3, 4, 0)
+    return v(indices);
+#else
+    return indices.unaryExpr(v);
+#endif
 }
 
 /// @} chrono_linalg

@@ -85,10 +85,10 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     ChFrameMoving<>& Frame() { return *this; }
 
     /// Get the number of degrees of freedom (7 because quaternion for rotation).
-    virtual int Get_ndof_x() const override { return 7; }
+    virtual int GetNdofX() const override { return 7; }
 
     /// Get the number of degrees of freedom, derivative (6 because angular velocity for rotation derivative).
-    virtual int Get_ndof_w() const override { return 6; }
+    virtual int GetNdofW() const override { return 6; }
 
     // INTERFACE to ChVariableTupleCarrier_1vars
 
@@ -167,7 +167,7 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     virtual int GetSubBlocks() override { return 1; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->NodeGetOffsetW(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }

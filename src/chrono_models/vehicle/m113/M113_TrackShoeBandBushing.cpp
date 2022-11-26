@@ -61,7 +61,7 @@ const double M113_TrackShoeBandBushing::m_tread_thickness = 0.0157 * 1.04;
 const ChVector<> M113_TrackShoeBandBushing::m_guide_box_dims(0.0529, 0.0114, 0.075);
 const double M113_TrackShoeBandBushing::m_guide_box_offset_x = 0;
 
-const std::string M113_TrackShoeBandBushing::m_meshFile = "M113/meshes/TrackShoeBandBushing.obj";
+const std::string M113_TrackShoeBandBushing::m_meshFile = "M113/meshes/TrackShoeBand.obj";
 const std::string M113_TrackShoeBandBushing::m_tread_meshName = "M113_Tread";
 
 // -----------------------------------------------------------------------------
@@ -98,10 +98,12 @@ M113_TrackShoeBandBushing::M113_TrackShoeBandBushing(const std::string& name) : 
 // -----------------------------------------------------------------------------
 void M113_TrackShoeBandBushing::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        //// TODO:
-        //// Set up meshes for tread body and web links.
-        //// For now, default to PRIMITIVE visualization
-        ChTrackShoeBandBushing::AddVisualizationAssets(vis);
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(m_meshFile, false, false);
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
+        trimesh_shape->SetMutable(false);
+        m_shoe->AddVisualShape(trimesh_shape);
     } else {
         ChTrackShoeBandBushing::AddVisualizationAssets(vis);
     }

@@ -59,7 +59,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
 
     // Create systems
     m_system = new ChSystemSMC;
-    m_systemFSI = new ChSystemFsi(*m_system);
+    m_systemFSI = new ChSystemFsi(m_system);
 
     // Solver settings independent of method type
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
@@ -77,7 +77,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const
     : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, 0, 0, ChContactMethod::SMC) {
     // Create systems
     m_system = new ChSystemSMC;
-    m_systemFSI = new ChSystemFsi(*m_system);
+    m_systemFSI = new ChSystemFsi(m_system);
 
     // Solver settings independent of method type
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));

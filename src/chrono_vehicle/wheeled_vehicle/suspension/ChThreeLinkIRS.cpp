@@ -267,19 +267,20 @@ void ChThreeLinkIRS::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
     // Calculate COM and inertia expressed in global frame
+    ChMatrix33<> inertiaSpindle(getSpindleInertia());
+    ChMatrix33<> inertiaArm(getArmInertia());
+    ChMatrix33<> inertiaLower(getLowerLinkInertia());
+    ChMatrix33<> inertiaUpper(getUpperLinkInertia());
+
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), m_spindle[LEFT]->GetMass(),
-                           m_spindle[LEFT]->GetInertia());
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), m_spindle[RIGHT]->GetMass(),
-                           m_spindle[RIGHT]->GetInertia());
-    composite.AddComponent(m_arm[LEFT]->GetFrame_COG_to_abs(), m_arm[LEFT]->GetMass(), m_arm[LEFT]->GetInertia());
-    composite.AddComponent(m_arm[RIGHT]->GetFrame_COG_to_abs(), m_arm[RIGHT]->GetMass(), m_arm[RIGHT]->GetInertia());
-    composite.AddComponent(m_lower[LEFT]->GetFrame_COG_to_abs(), m_lower[LEFT]->GetMass(), m_lower[LEFT]->GetInertia());
-    composite.AddComponent(m_lower[RIGHT]->GetFrame_COG_to_abs(), m_lower[RIGHT]->GetMass(),
-                           m_lower[RIGHT]->GetInertia());
-    composite.AddComponent(m_upper[LEFT]->GetFrame_COG_to_abs(), m_upper[LEFT]->GetMass(), m_upper[LEFT]->GetInertia());
-    composite.AddComponent(m_upper[RIGHT]->GetFrame_COG_to_abs(), m_upper[RIGHT]->GetMass(),
-                           m_upper[RIGHT]->GetInertia());
+    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_arm[LEFT]->GetFrame_COG_to_abs(), getArmMass(), inertiaArm);
+    composite.AddComponent(m_arm[RIGHT]->GetFrame_COG_to_abs(), getArmMass(), inertiaArm);
+    composite.AddComponent(m_lower[LEFT]->GetFrame_COG_to_abs(), getLowerLinkMass(), inertiaLower);
+    composite.AddComponent(m_lower[RIGHT]->GetFrame_COG_to_abs(), getLowerLinkMass(), inertiaLower);
+    composite.AddComponent(m_upper[LEFT]->GetFrame_COG_to_abs(), getUpperLinkMass(), inertiaUpper);
+    composite.AddComponent(m_upper[RIGHT]->GetFrame_COG_to_abs(), getUpperLinkMass(), inertiaUpper);
 
     // Express COM and inertia in subsystem reference frame
     m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());

@@ -47,11 +47,11 @@ const double M113_SprocketSinglePin::m_gear_RA = 0.245;
 
 const double M113_SprocketSinglePin::m_lateral_backlash = 0.02;
 
-const std::string M113_SprocketSinglePinLeft::m_meshFile = "M113/meshes/Sprocket_L.obj";
-const std::string M113_SprocketSinglePinRight::m_meshFile = "M113/meshes/Sprocket_R.obj";
+const std::string M113_SprocketSinglePinLeft::m_meshFile = "M113/meshes/SprocketSinglePin_L.obj";
+const std::string M113_SprocketSinglePinRight::m_meshFile = "M113/meshes/SprocketSinglePin_R.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 M113_SprocketSinglePin::M113_SprocketSinglePin(const std::string& name) : ChSprocketSinglePin(name) {}
 
 void M113_SprocketSinglePin::CreateContactMaterial(ChContactMethod contact_method) {
@@ -62,8 +62,6 @@ void M113_SprocketSinglePin::CreateContactMaterial(ChContactMethod contact_metho
     m_material = minfo.CreateMaterial(contact_method);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void M113_SprocketSinglePin::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);

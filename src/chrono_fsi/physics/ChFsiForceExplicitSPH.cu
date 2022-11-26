@@ -11,8 +11,10 @@
 // =============================================================================
 // Author: Arman Pazouki, Wei Hu
 // =============================================================================
+
 #include <thrust/extrema.h>
 #include <thrust/sort.h>
+
 #include "chrono_fsi/physics/ChFsiForceExplicitSPH.cuh"
 #include "chrono_fsi/physics/ChSphGeneral.cuh"
 

@@ -83,7 +83,15 @@ void ChNodeFEAxyzDD::SetupInitial(ChSystem* system) {
         SetFixedD(false);
 
     ChNodeFEAxyzD::SetupInitial(system);
-    m_dof += IsFixedDD() ? 0 : 3;
+
+    if (IsFixed())
+        m_dof_actual = 0;
+    else if (IsFixedD())
+        m_dof_actual = 3;
+    else if (IsFixedDD())
+        m_dof_actual = 6;
+    else
+        m_dof_actual = 9;
 }
 
 // -----------------------------------------------------------------------------
@@ -284,7 +292,7 @@ void ChNodeFEAxyzDD::ComputeNF(
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
 ) {
-    Qi.segment(0, m_dof) = F.segment(0, m_dof);
+    Qi.segment(0, m_dof_actual) = F.segment(0, m_dof_actual);
     detJ = 1;  // not needed because not used in quadrature.
 }
 

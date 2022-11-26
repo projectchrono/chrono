@@ -55,6 +55,14 @@ class CH_MODELS_API M113 {
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTrackShoeType(TrackShoeType shoe_type) { m_shoe_type = shoe_type; }
     void SetDoublePinTrackShoeType(DoublePinTrackShoeType topology) { m_shoe_topology = topology; }
+    void SetANCFTrackShoeElementType(ChTrackShoeBandANCF::ElementType type) { m_ancf_element_type = type; }
+    void SetANCFTrackShoeNumElements(int num_elements_length, int num_elements_width) {
+        m_ancf_num_elements_length = num_elements_length;
+        m_ancf_num_elements_width = num_elements_width;
+    }
+    void SetANCFTrackShoeCurvatureConstraints(bool constrain_curvature) {
+        m_ancf_constrain_curvature = constrain_curvature;
+    }
     void SetDrivelineType(DrivelineTypeTV driveline_type) { m_driveline_type = driveline_type; }
     void SetPowertrainType(PowertrainModelType powertrain_type) { m_powertrain_type = powertrain_type; }
 
@@ -67,6 +75,10 @@ class CH_MODELS_API M113 {
 
     void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) { m_collsysType = collsys_type; }
 
+    void SetGyrationMode(bool val) { m_gyration_mode = val; }
+
+    void SetAerodynamicDrag(double Cd, double area, double air_density);
+
     void CreateTrack(bool val) { m_create_track = val; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
@@ -77,8 +89,6 @@ class CH_MODELS_API M113 {
     std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_vehicle->GetPowertrain(); }
 
     void Initialize();
-
-    void SetAerodynamicDrag(double Cd, double area, double air_density);
 
     void SetChassisVisualizationType(VisualizationType vis) { m_vehicle->SetChassisVisualizationType(vis); }
     void SetSprocketVisualizationType(VisualizationType vis) { m_vehicle->SetSprocketVisualizationType(vis); }
@@ -108,6 +118,10 @@ class CH_MODELS_API M113 {
     BrakeType m_brake_type;
     TrackShoeType m_shoe_type;
     DoublePinTrackShoeType m_shoe_topology;
+    ChTrackShoeBandANCF::ElementType m_ancf_element_type;
+    bool m_ancf_constrain_curvature;
+    int m_ancf_num_elements_length;
+    int m_ancf_num_elements_width;
     DrivelineTypeTV m_driveline_type;
     PowertrainModelType m_powertrain_type;
 
@@ -117,6 +131,8 @@ class CH_MODELS_API M113 {
 
     ChCoordsys<> m_initPos;
     double m_initFwdVel;
+
+    bool m_gyration_mode;
 
     bool m_apply_drag;
     double m_Cd;

@@ -1,6 +1,6 @@
 # Blender v3.0.0 OBJ File: ''
 # www.blender.org
-mtllib TrackShoe.mtl
+mtllib TrackShoeSinglePin.mtl
 o TrackShoe_Object_1MeshMeshMesh_Mesh.006
 v 0.090750 -0.190253 -0.002729
 v 0.090750 -0.140363 -0.002729

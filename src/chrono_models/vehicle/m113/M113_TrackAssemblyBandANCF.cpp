@@ -55,6 +55,10 @@ const ChVector<> M113_TrackAssemblyBandANCF::m_susp_locs_R[5] = {  //
 // -----------------------------------------------------------------------------
 M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side,
                                                        BrakeType brake_type,
+                                                       ChTrackShoeBandANCF::ElementType element_type,
+                                                       bool constrain_curvature,
+                                                       int num_elements_length,
+                                                       int num_elements_width,
                                                        bool use_suspension_bushings)
     : ChTrackAssemblyBandANCF("", side) {
     size_t num_shoes = 0;
@@ -94,7 +98,8 @@ M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side,
         chrono_types::make_shared<M113_Suspension>(suspName + "4", side, 0, use_suspension_bushings, true);
 
     for (size_t it = 0; it < num_shoes; it++) {
-        m_shoes.push_back(chrono_types::make_shared<M113_TrackShoeBandANCF>(shoeName + std::to_string(it)));
+        m_shoes.push_back(chrono_types::make_shared<M113_TrackShoeBandANCF>(
+            shoeName + std::to_string(it), element_type, constrain_curvature, num_elements_length, num_elements_width));
     }
 
     // Specify material properties for the web mesh

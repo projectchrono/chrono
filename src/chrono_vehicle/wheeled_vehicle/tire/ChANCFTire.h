@@ -20,6 +20,7 @@
 #define CH_ANCFTIRE_H
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#include "chrono/fea/ChMaterialShellANCF.h"
 
 namespace chrono {
 namespace vehicle {
@@ -39,6 +40,22 @@ class CH_VEHICLE_API ChANCFTire : public ChDeformableTire {
     virtual std::string GetTemplateName() const override { return "ANCFTire"; }
 
   protected:
+    /// Tire profile.
+    struct Profile {
+        std::vector<double> t;  ///< independent parameter
+        std::vector<double> x;  ///< x coordinate (radial direction)
+        std::vector<double> y;  ///< y coordinate (transversal direction)
+    };
+
+    /// Tire section.
+    struct Section {
+        int num_divs;                                                ///< number of section divisions
+        int num_layers;                                              ///< number of layers
+        std::vector<double> thickness;                               ///< layer thickness
+        std::vector<double> angle;                                   ///< layer ply angle
+        std::vector<std::shared_ptr<fea::ChMaterialShellANCF>> mat;  ///< layer material
+    };
+
     /// Create the ChLoad for applying pressure to the tire.
     virtual void CreatePressureLoad() override final;
 
@@ -47,6 +64,34 @@ class CH_VEHICLE_API ChANCFTire : public ChDeformableTire {
 
     /// Create the tire-rim connections.
     virtual void CreateRimConnections(std::shared_ptr<ChBody> wheel) override final;
+
+    /// Utility class to generate a tire mesh using 4-node ANCF shell elements (ChElementShellANCF_3423).
+    /// Returns a vector with the nodes that must be connected to the wheel rim.
+    static std::vector<std::shared_ptr<fea::ChNodeFEAbase>> CreateMeshANCF4(
+        const Profile& profile,             ///< tire profile
+        const Section& bead,                ///< specification of bead section
+        const Section& sidewall,            ///< specification of sidewall section
+        const Section& tread,               ///< specification of tread section
+        int div_circumference,              ///< number of divisions along circumference
+        double rim_radius,                  ///< rim radius
+        double damping,                     ///< structural damping
+        std::shared_ptr<fea::ChMesh> mesh,  ///< containing FEA mesh
+        const ChFrameMoving<>& wheel_frame  ///< associated wheel frame
+    );
+
+    /// Utility class to generate a tire mesh using 8-node ANCF shell elements (ChElementShellANCF_3833).
+    /// Returns a vector with the nodes that must be connected to the wheel rim.
+    static std::vector<std::shared_ptr<fea::ChNodeFEAbase>> CreateMeshANCF8(
+        const Profile& profile,             ///< tire profile
+        const Section& bead,                ///< specification of bead section
+        const Section& sidewall,            ///< specification of sidewall section
+        const Section& tread,               ///< specification of tread section
+        int div_circumference,              ///< number of divisions along circumference
+        double rim_radius,                  ///< rim radius
+        double damping,                     ///< structural damping
+        std::shared_ptr<fea::ChMesh> mesh,  ///< containing FEA mesh
+        const ChFrameMoving<>& wheel_frame  ///< associated wheel frame
+    );
 };
 
 /// @} vehicle_wheeled_tire
